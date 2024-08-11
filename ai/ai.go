@@ -157,11 +157,11 @@ func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 		Properties: map[string]jsonschema.Definition{
 			"tools": {
 				Type:        jsonschema.String,
-				Description: "returns an well formatted json array of steps as an array of strings to execute the given task. example: search for a user: \"[\"generateApi\", \"callApi\", \"parseResponse\", \"generatedisplayHtml\", \"generateOutput\"]\"",
+				Description: `must return a well formatted json string that is an array of steps as strings to execute the given task. example:  "tools": "[\"generateApi\", \"callApi\", \"parseResponse\", \"generatedisplayHtml\", \"generateOutput\"]"`,
 			},
 			"context": {
 				Type:        jsonschema.String,
-				Description: "An explanation of why this tool is needed",
+				Description: "An explanation of why this tool is needed step by step.",
 			},
 		},
 		Required: []string{"tools", "context"},
@@ -182,7 +182,7 @@ func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 	dialogue := []openai.ChatCompletionMessage{
 		{
 			Role: openai.ChatMessageRoleSystem,
-			Content: fmt.Sprintln(`I'll help you generate an execution plan, You have access to a comprehensive set of tools designed to perform a wide range of tasks, from generating API calls to producing the final output for display. Each tool has a specific function that contributes to the overall process of executing a task. Here is the list of tools available:
+			Content: fmt.Sprintln(`I'll help you generate an execution plan, tools are a list of escaped json strings inside a string, You have access to a comprehensive set of tools designed to perform a wide range of tasks, from generating API calls to producing the final output for display. Each tool has a specific function that contributes to the overall process of executing a task. Here is the list of tools available:
 
 generateApi: Generates an API call based on the provided parameters.
 callApi: Executes the API call and retrieves the data.
