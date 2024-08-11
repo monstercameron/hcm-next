@@ -1,59 +1,29 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"hcmnext/ai"
+	"hcmnext/database"
+
 	"github.com/coder/websocket"
 	"github.com/joho/godotenv"
-	openai "github.com/sashabaranov/go-openai"
 )
 
-// Global OpenAI client
-var aiClient *openai.Client
+// Global variables
+var (
+	aiClient *ai.Client
+	db       *database.Database
+)
 
 func init() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	// Initialize OpenAI client with API key
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		log.Fatal("OpenAI API key not set")
-	}
-	aiClient = openai.NewClient(apiKey)
-	fmt.Println("OpenAI client initialized")
-}
-
-// handleAIRequest sends a message to OpenAI and returns the response
-func handleAIRequest(message string) (string, error) {
-	fmt.Printf("Sending message to OpenAI: %s\n", message)
-
-	resp, err := aiClient.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: "gpt-4o-mini",
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    "user",
-					Content: message,
-				},
-			},
-		},
-	)
-	if err != nil {
-		fmt.Printf("Error from OpenAI: %v\n", err)
-		return "", err
-	}
-
-	aiResponse := resp.Choices[0].Message.Content
-	fmt.Printf("Received response from OpenAI: %s\n", aiResponse)
-	return aiResponse, nil
 }
 
 // handleWebSocket manages the WebSocket connection
@@ -81,7 +51,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Received message from client: %s\n", msg)
 
 		// Send the message to the AI and get the response
-		aiResponse, err := handleAIRequest(string(msg))
+		aiResponse, err := aiClient.HandleRequest(string(msg))
 		if err != nil {
 			fmt.Printf("AI request error: %v\n", err)
 			break
@@ -101,12 +71,38 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Initialize AI client
+	var err error
+	aiClient, err = ai.NewClient()
+	if err != nil {
+		log.Fatalf("Failed to initialize AI client: %v", err)
+	}
+	fmt.Println("AI client initialized")
+
+	// Database initialization
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI not set in environment variables")
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		log.Fatal("DB_NAME not set in environment variables")
+	}
+
+	db, err = database.NewDatabase(mongoURI, dbName)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	fmt.Println("Connected to MongoDB")
+
 	// Set up the WebSocket handler
 	http.HandleFunc("/", handleWebSocket)
 
 	// Start the server
 	fmt.Println("WebSocket AI server starting on :8080")
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe error:", err)
 	}
