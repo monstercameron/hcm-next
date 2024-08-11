@@ -140,10 +140,167 @@ func ExecuteMath(expression string) (result string, err error) {
 // 	// Implementation here
 // }
 
-// // Generates the HTML structure needed to display the parsed data.
-// func (c *Client) GenerateDisplayHtml(parsedData interface{}) (htmlString string, err error) {
-// 	// Implementation here
-// }
+type DisplayResponse struct {
+	Markup  string `json:"markup"`
+	Context string `json:"context"`
+}
+
+// Generates the HTML structure needed to display the parsed data.
+func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruct DisplayResponse, err error) {
+	ctx := context.Background()
+
+	var schema = openai.ChatCompletionResponseFormatJSONSchema{
+		Name:        "GenerateDisplayHtml",
+		Description: "Generate the HTML structure needed to display data in the user prompt",
+		Schema: jsonschema.Definition{
+			Type: jsonschema.Object,
+			Properties: map[string]jsonschema.Definition{
+				"markup": {
+					Type:        jsonschema.String,
+					Description: `returns the HTML structure needed to display the parsed data from the user prompt`,
+				},
+				"context": {
+					Type:        jsonschema.String,
+					Description: "An explanation of why this tool is needed step by step.",
+				},
+			},
+			Required:             []string{"markup", "context"},
+			AdditionalProperties: false,
+		},
+		Strict: true,
+	}
+
+	// Prepare the initial user message
+	dialogue := []openai.ChatCompletionMessage{
+		{
+			Role: openai.ChatMessageRoleSystem,
+			Content: fmt.Sprintln(`You are an AI designed to generate the contents of the <body> tag of an HTML document. Your task is to create a body section that utilizes the following external resources. Ensure that the content is visually appealing and functional according to the user's specifications.
+
+			Markup Rules:
+			HTML structure must be valid and semantically correct.
+			Use the specified external resources for styling, functionality, and content rendering.
+			Ensure that the content is responsive and visually appealing.
+			Do not include additional scripts or resources beyond the specified ones.
+			DO NOT include the <head> tag or any meta tags in the generated content.
+			Do NOT include any server-side code or backend functionality.
+			Do not include any CSS links or stylesheets in the content.
+			Must Not Include: head tag, meta tags, CSS links, stylesheets, server-side code, backend functionality,script tags with sources.
+			
+			Code RULES:
+			Code must be browser only, no server-side code.
+			Code must be written in JavaScript with es6 syntax.
+			COde must be only use the specified external resources.
+			Code must be optimized for performance and efficiency.
+			Code must use the lowest amount of characters possible.
+			Code must wait always Defer attribute on script tags.
+			Code must never import any external libraries or scripts.
+
+			External Resources:
+
+			Tailwind CSS for styling.
+			Marked.js for Markdown parsing.
+			Toastify.js for toast notifications.
+			Mermaid.js for diagram generation.
+			Highlight.js for syntax highlighting.
+			Chart.js for charting and data visualization.
+			Three.js for 3D graphics.
+			React for building interactive UIs.
+			React DOM for rendering React components.
+			HTM for writing React components with HTML-like syntax.
+			Prompt to Generate Body Content:
+
+			Create the contents of the <body> tag with the following requirements:
+
+			Structure:
+
+			Include a clean and responsive layout using Tailwind CSS.
+			Incorporate sections for different functionalities:
+			Markdown Content: Render Markdown content using Marked.js.
+			Diagrams: Display Mermaid.js diagrams.
+			Charts: Visualize data with Chart.js charts.
+			3D Graphics: Render 3D graphics using Three.js.
+			Interactive UIs: Use React and HTM to build interactive components and dynamic UIs.
+			Styling:
+
+			Use Tailwind CSS classes to style the page content.
+			Ensure the content is visually appealing and adheres to modern design principles.
+			Functionality:
+
+			Implement interactive UIs with React and HTM.
+			Add a button or element that triggers a toast notification using Toastify.js.
+			Include a code block with syntax highlighting using Highlight.js.
+			Provide interactive elements for Markdown content, diagrams, charts, and 3D graphics.
+
+			JavaScript Integration:
+
+			Ensure that the content integrates and leverages the external scripts effectively.
+			Use Marked.js for Markdown rendering.
+			Initialize Mermaid.js for diagrams.
+			Configure and display charts with Chart.js.
+			Set up and render a 3D scene with Three.js.
+			Build and render interactive UIs using React and HTM.
+
+			User Input:
+
+			The user will provide additional details or preferences for the page layout, content, or design. Make sure to incorporate these specifics into the body content.
+
+			// Function to show toast notifications
+				const showToast = (message, type = "info") => {
+					Toastify({
+					text: message,
+					duration: 3000,
+					gravity: "top",
+					position: "right",
+					backgroundColor:
+						type === "error"
+						? "#ff6b6b"
+						: type === "warning"
+						? "#feca57"
+						: type === "success"
+						? "#48dbfb"
+						: "#54a0ff",
+					stopOnFocus: true,
+					}).showToast();
+				};
+		`),
+		},
+		{
+			Role:    openai.ChatMessageRoleUser,
+			Content: displayContext,
+		},
+	}
+
+	// Send the request to OpenAI
+	resp, err := c.aiClient.CreateChatCompletion(ctx,
+		openai.ChatCompletionRequest{
+			Model:    "gpt-4o-mini",
+			Messages: dialogue,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type:       openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &schema,
+			},
+		},
+	)
+
+	if err != nil || len(resp.Choices) != 1 {
+		fmt.Printf("Completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
+		return DisplayResponse{}, err
+	}
+
+	fmt.Printf("OpenAI response: %v\n", resp.Choices[len(resp.Choices)-1].Message.Content)
+
+	// Process the response and function call
+	msg := resp.Choices[0].Message
+
+	var displayResponse DisplayResponse
+	err = json.Unmarshal([]byte(msg.Content), &displayResponse)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON")
+	}
+
+	fmt.Printf("OpenAI answered the original request with: %v\n", msg.Content)
+	return displayResponse, nil
+}
 
 // // Generates the final output in the chat format, ready for display.
 // func (c *Client) GenerateOutput(parsedData interface{}) (chatFormat string, err error) {

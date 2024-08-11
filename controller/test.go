@@ -114,7 +114,7 @@ func (c *TestController) HandleToolUse(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Successfully responded to execution plan request for: %v", messages)
 }
 
-func (c *TestController) HandleGeneratemath(w http.ResponseWriter, r *http.Request) {
+func (c *TestController) HandleGenerateMath(w http.ResponseWriter, r *http.Request) {
 	log.Printf("HandleGenerateExecutionPlan called with method: %s", r.Method)
 
 	// Extract the prompt from the query parameters
@@ -131,6 +131,39 @@ func (c *TestController) HandleGeneratemath(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		log.Printf("Error Generating Math via Python: %v", err)
 		http.Error(w, fmt.Sprintf("Error Generating Math via Python: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Set the content type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Encode and send the response
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully responded to execution plan request for: %s", prompt)
+}
+
+func (c *TestController) HandleGenerateDisplayHtml(w http.ResponseWriter, r *http.Request) {
+	log.Printf("HandleGenerateDisplayHtml called with method: %s", r.Method)
+
+	// Extract the prompt from the query parameters
+	prompt := r.URL.Query().Get("prompt")
+	if prompt == "" {
+		http.Error(w, "Missing 'prompt' query parameter", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Generating HTML for: %s", prompt)
+
+	// Call the GenerateExecutionPlan function
+	result, err := c.aiClient.GenerateDisplayHtml(prompt)
+	if err != nil {
+		log.Printf("Error HTML: %v", err)
+		http.Error(w, fmt.Sprintf("Error HTML: %v", err), http.StatusInternalServerError)
 		return
 	}
 
