@@ -38,20 +38,26 @@ func (c *TestController) HandleSearchSWAPICharacter(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Create a response structure
-	response := struct {
-		CharacterName string `json:"characterName"`
-		SearchResult  string `json:"searchResult"`
-	}{
-		CharacterName: characterName,
-		SearchResult:  result,
-	}
-
 	// Set the content type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
+	type Character struct {
+		URL           string `json:"URL"`
+		CharacterName string `json:"characterName"`
+	}
+
+	// Define a variable to hold the unmarshaled data
+	var resultStruct Character
+
+	// Unmarshal the JSON string into the struct
+	if err := json.Unmarshal([]byte(result), &resultStruct); err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		http.Error(w, fmt.Sprintf("Error unmarshaling JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	// Encode and send the response
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(resultStruct); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return

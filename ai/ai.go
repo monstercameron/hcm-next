@@ -60,15 +60,19 @@ func (c *Client) SearchSWAPICharacter(characterName string) (string, error) {
 		Properties: map[string]jsonschema.Definition{
 			"characterName": {
 				Type:        jsonschema.String,
-				Description: "The name of the character to search for in SWAPI.",
+				Description: "The full name of the character to retrieve information for in the SWAPI.",
+			},
+			"URL": {
+				Type:        jsonschema.String,
+				Description: "The URL to call for retrieving the character information from SWAPI.",
 			},
 		},
-		Required: []string{"characterName"},
+		Required: []string{"characterName", "URL"},
 	}
 
 	functionDefinition := openai.FunctionDefinition{
-		Name:        "generate_swapi_search_url",
-		Description: "Generate a URL to search for a character in SWAPI using the character's name.",
+		Name:        "generate_swapi_retrieval_url",
+		Description: "Generate a URL to retrieve the character information from SWAPI.",
 		Parameters:  params,
 	}
 
@@ -81,7 +85,7 @@ func (c *Client) SearchSWAPICharacter(characterName string) (string, error) {
 	dialogue := []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("I need to find information about a character named '%s' from the Star Wars universe. Generate a URL that can be used to search for this character in the SWAPI.", characterName),
+			Content: fmt.Sprintf("generate SWAPI URL '%s'", characterName),
 		},
 	}
 
@@ -141,5 +145,5 @@ func (c *Client) SearchSWAPICharacter(characterName string) (string, error) {
 	msg = resp.Choices[0].Message
 	fmt.Printf("OpenAI answered the original request with: %v\n",
 		msg.Content)
-	return msg.Content, nil
+	return searchURL, nil
 }
