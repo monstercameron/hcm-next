@@ -1,5 +1,7 @@
+package database
+
 // Employee Schema
-{
+var EmployeSchema = `{
   "$jsonSchema": {
     "bsonType": "object",
     "required": ["employeeId", "firstName", "lastName", "email", "socialSecurityNumber", "personalDetails", "jobHistory", "statusHistory", "compensationDetails"],
@@ -296,10 +298,10 @@
       }
     }
   }
-}
+}`
 
 // Job schema
-{
+var JobSchema = `{
   "$jsonSchema": {
     "bsonType": "object",
     "required": ["jobId", "jobName", "positions", "locations", "budget", "headcount", "creationDate"],
@@ -587,4 +589,4 @@
       }
     }
   }
-}
+}`
