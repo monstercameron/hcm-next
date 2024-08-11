@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	"hcmnext/ai"
 	"hcmnext/database"
@@ -76,10 +80,45 @@ func main() {
 	// Set up the routes
 	r.SetupRoutes()
 
-	// Start the server
-	fmt.Println("WebSocket AI server and Employee API starting on :8080")
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe error:", err)
+	// Create a new server
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: nil, // Use default ServeMux
 	}
+
+	// Channel to listen for errors coming from the listener.
+	serverErrors := make(chan error, 1)
+
+	// Start the server
+	go func() {
+		fmt.Println("WebSocket AI server and Employee API starting on :8080")
+		serverErrors <- srv.ListenAndServe()
+	}()
+
+	// Channel to listen for an interrupt or terminate signal from the OS.
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	// Blocking main and waiting for shutdown.
+	select {
+	case err := <-serverErrors:
+		log.Fatalf("Error starting server: %v", err)
+
+	case <-shutdown:
+		fmt.Println("Starting shutdown...")
+
+		// Give outstanding requests a deadline for completion.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		// Asking listener to shut down and shed load.
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("Graceful shutdown did not complete in 5s: %v", err)
+			if err := srv.Close(); err != nil {
+				log.Fatalf("Error killing server: %v", err)
+			}
+		}
+	}
+
+	fmt.Println("Server gracefully stopped")
 }
