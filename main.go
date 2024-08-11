@@ -5,10 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"hcmnext/ai"
 	"hcmnext/database"
 	"hcmnext/controller"
+	"hcmnext/router"
 
 	"github.com/joho/godotenv"
 )
@@ -49,8 +51,15 @@ func main() {
 	// Initialize the controller
 	ctrl := controller.NewController(aiClient, db)
 
-	// Set up the WebSocket handler
-	http.HandleFunc("/", ctrl.HandleWebSocket)
+	// Initialize the home controller
+	staticDir := filepath.Join(".", "static")
+	homeCtrl := controller.NewHomeController(staticDir)
+
+	// Initialize the router
+	r := router.NewRouter(ctrl, homeCtrl)
+
+	// Set up the routes
+	r.SetupRoutes()
 
 	// Start the server
 	fmt.Println("WebSocket AI server starting on :8080")

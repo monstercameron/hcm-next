@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -36,9 +37,13 @@ func (c *Controller) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("WebSocket connection established")
 
+	c.handleWebSocketConnection(r.Context(), conn)
+}
+
+func (c *Controller) handleWebSocketConnection(ctx context.Context, conn *websocket.Conn) {
 	for {
 		// Read message from client
-		_, msg, err := conn.Read(r.Context())
+		_, msg, err := conn.Read(ctx)
 		if err != nil {
 			fmt.Printf("Read error: %v\n", err)
 			break
@@ -54,7 +59,7 @@ func (c *Controller) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send the AI's response back to the client
-		err = conn.Write(r.Context(), websocket.MessageText, []byte(aiResponse))
+		err = conn.Write(ctx, websocket.MessageText, []byte(aiResponse))
 		if err != nil {
 			fmt.Printf("Write error: %v\n", err)
 			break
