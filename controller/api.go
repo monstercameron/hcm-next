@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"hcmnext/database"
-	"hcmnext/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"hcmnext/database"
+	"hcmnext/models"
 )
 
 // API struct holds dependencies for the API handlers
