@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UKG Panel Webpage with Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ukg: {
+                blue: "#0066cc",
+                green: "#00a650",
+                orange: "#ff6a39",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      .slide-in {
+        animation: slideIn 0.5s ease-in-out;
+      }
+      #app {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #leftPanel {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+      }
+      #divider {
+        width: 10px;
+        cursor: col-resize;
+        background-color: #d1d5db;
+      }
+      #divider:hover {
+        background-color: #ff6a39;
+      }
+      #rightPanel {
+        flex-grow: 1;
+        border: none;
+      }
+      .chat-message {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .user-message {
+        border-left: 4px solid #0066cc;
+      }
+      .ai-message {
+        border-left: 4px solid #00a650;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div id="app">
+      <!-- Left panel (Chat Interface) -->
+      <div id="leftPanel" class="bg-white">
+        <div id="chatMessages" class="flex-grow p-6 overflow-y-auto"></div>
+        <div class="p-4 border-t">
+          <div class="flex">
+            <input
+              type="text"
+              id="chatInput"
+              class="flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-ukg-blue"
+              placeholder="Type your message..."
+            />
+            <button
+              id="sendButton"
+              class="bg-ukg-blue text-white px-4 py-2 rounded-r-md hover:bg-ukg-green transition-colors duration-300"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resizable divider -->
+      <div id="divider"></div>
+
+      <!-- Right panel -->
+      <iframe
+        id="rightPanel"
+        class="flex-grow border-none"
+        src="about:blank"
+      ></iframe>
+    </div>
+
+    <script type="module">
+      let socket;
+
+      const connectWebSocket = () => {
+        console.log("Attempting to connect to WebSocket");
+        socket = new WebSocket("ws://localhost:8080");
+
+        socket.onopen = () => {
+          console.log("WebSocket connection established");
+          addChatMessage("Connected to the server!");
+        };
+
+        socket.onmessage = (event) => {
+          console.log("Received message from server:", event.data);
+          addChatMessage("AI: " + event.data);
+        };
+
+        socket.onclose = (event) => {
+          const message = event.wasClean
+            ? `WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`
+            : "WebSocket connection died";
+          console.log(message);
+          addChatMessage(
+            "Disconnected from server. Attempting to reconnect..."
+          );
+          setTimeout(connectWebSocket, 5000); // Try to reconnect after 5 seconds
+        };
+
+        socket.onerror = (error) => {
+          console.log(`WebSocket error: ${error.message}`);
+        };
+      };
+
+      const sendMessage = () => {
+        const chatInput = document.getElementById("chatInput");
+        const message = chatInput.value.trim();
+        if (message && socket.readyState === WebSocket.OPEN) {
+          console.log("Sending message:", message);
+          socket.send(message);
+          addChatMessage(`You: ${message}`);
+          chatInput.value = "";
+          showFormWithAnimation();
+        } else {
+          console.log("Cannot send message. WebSocket is not open.");
+        }
+      };
+
+      const addChatMessage = (message) => {
+        console.log("Adding chat message:", message);
+
+        // Create a div for the chat message
+        const chatMessages = document.getElementById("chatMessages");
+        const messageElement = document.createElement("div");
+        messageElement.className = "chat-message slide-in";
+
+        // Display the message without HTML or JavaScript templates
+        const sanitizedMessage = message
+          .replace(/```html[\s\S]*?```/g, "") // Remove HTML code blocks
+          .replace(/```javascript[\s\S]*?```/g, ""); // Remove JavaScript code blocks
+        messageElement.innerHTML = marked.parse(sanitizedMessage);
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Extract and display content in the right panel
+        const htmlContent = extractContentFromMarkdown(message, "html");
+        const jsContent = extractContentFromMarkdown(message, "javascript");
+
+        if (htmlContent) {
+          displayContentInRightPanel(htmlContent, "HTML");
+        }
+        if (jsContent) {
+          displayContentInRightPanel(jsContent, "JavaScript");
+        }
+      };
+
+      const extractContentFromMarkdown = (markdown, type) => {
+        const patterns = {
+          html: /```html([\s\S]*?)```/g,
+          javascript: /```javascript([\s\S]*?)```/g,
+        };
+        if (!patterns[type]) {
+          throw new Error(
+            'Invalid content type. Choose "html" or "javascript".'
+          );
+        }
+        const matches = [];
+        let match;
+        while ((match = patterns[type].exec(markdown)) !== null) {
+          matches.push(match[1].trim());
+        }
+        return matches.join("\n");
+      };
+
+      const displayContentInRightPanel = (htmlContent) => {
+        const iframe = document.getElementById("rightPanel");
+        // Ensure the iframe is fully loaded
+        iframe.onload = function () {
+          // Access the iframe's document and set the innerHTML
+          iframe.contentDocument.open();
+          iframe.contentDocument.write(htmlContent);
+          iframe.contentDocument.close();
+        };
+
+        // Set the iframe's src to an empty page to ensure we can modify its content
+        iframe.src = "about:blank";
+      };
+
+      const showFormWithAnimation = () => {
+        const dynamicContent = document.getElementById("dynamicContent");
+        dynamicContent.style.opacity = "0";
+        dynamicContent.style.transform = "translateY(20px)";
+        setTimeout(() => {
+          dynamicContent.style.transition = "opacity 0.5s, transform 0.5s";
+          dynamicContent.style.opacity = "1";
+          dynamicContent.style.transform = "translateY(0)";
+        }, 300);
+      };
+
+      const initResizableDivider = () => {
+        const leftPanel = document.getElementById("leftPanel");
+        const divider = document.getElementById("divider");
+        const app = document.getElementById("app");
+
+        let isResizing = false;
+
+        const resize = (e) => {
+          if (isResizing) {
+            const newWidth = e.clientX - app.offsetLeft;
+            leftPanel.style.width = `${newWidth}px`;
+          }
+        };
+
+        divider.addEventListener("mousedown", () => {
+          isResizing = true;
+        });
+
+        document.addEventListener("mouseup", () => {
+          isResizing = false;
+        });
+
+        document.addEventListener("mousemove", resize);
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        connectWebSocket();
+        initResizableDivider();
+      });
+
+      document
+        .getElementById("sendButton")
+        .addEventListener("click", sendMessage);
+
+      document.getElementById("chatInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
