@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	openai "github.com/sashabaranov/go-openai"
 	"hcmnext/ai"
 	"log"
 	"net/http"
@@ -16,54 +17,6 @@ func NewTestController(aiClient *ai.Client) *TestController {
 	return &TestController{
 		aiClient: aiClient,
 	}
-}
-
-func (c *TestController) HandleSearchSWAPICharacter(w http.ResponseWriter, r *http.Request) {
-	log.Printf("HandleSearchSWAPICharacter called with method: %s", r.Method)
-
-	// Extract the character name from the query parameters
-	characterName := r.URL.Query().Get("name")
-	log.Printf("Searching for character: %s", characterName)
-
-	if characterName == "" {
-		http.Error(w, "Missing 'name' query parameter", http.StatusBadRequest)
-		return
-	}
-
-	// Call the SearchSWAPICharacter function
-	result, err := c.aiClient.SearchSWAPICharacter(characterName)
-	if err != nil {
-		log.Printf("Error searching for character: %v", err)
-		http.Error(w, fmt.Sprintf("Error searching for character: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Set the content type to JSON
-	w.Header().Set("Content-Type", "application/json")
-
-	type Character struct {
-		URL           string `json:"URL"`
-		CharacterName string `json:"characterName"`
-	}
-
-	// Define a variable to hold the unmarshaled data
-	var resultStruct Character
-
-	// Unmarshal the JSON string into the struct
-	if err := json.Unmarshal([]byte(result), &resultStruct); err != nil {
-		log.Printf("Error unmarshaling JSON: %v", err)
-		http.Error(w, fmt.Sprintf("Error unmarshaling JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Encode and send the response
-	if err := json.NewEncoder(w).Encode(resultStruct); err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("Successfully responded to search request for: %s", characterName)
 }
 
 // ExecutionPlan struct to hold the unmarshaled data
@@ -130,4 +83,50 @@ func (c *TestController) HandleGenerateExecutionPlan(w http.ResponseWriter, r *h
 	}
 
 	log.Printf("Successfully responded to execution plan request for: %s", prompt)
+}
+
+type ToolUseResponse struct {
+	Tool    bool   `json:"tool"`
+	Context string `json:"context"`
+}
+
+func (c *TestController) HandleToolUse(w http.ResponseWriter, r *http.Request) {
+	log.Printf("HandleGenerateExecutionPlan called with method: %s", r.Method)
+
+	// extract the body json and marshal it into a []openai.ChatCompletionMessage
+	var messages []openai.ChatCompletionMessage
+	if err := json.NewDecoder(r.Body).Decode(&messages); err != nil {
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, fmt.Sprintf("Error decoding request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("should use tool for: %v", messages)
+
+	// Call the GenerateExecutionPlan function
+	result, err := c.aiClient.ShouldUseTool(messages)
+	if err != nil {
+		log.Printf("Error should use tool: %v", err)
+		http.Error(w, fmt.Sprintf("Error should use tool: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Define a variable to hold the unmarshaled data
+	var toolUseResponse ToolUseResponse
+
+	// Unmarshal the JSON string into the struct
+	if err := json.Unmarshal([]byte(result), &toolUseResponse); err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		http.Error(w, fmt.Sprintf("Error unmarshaling JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode and send the response
+	if err := json.NewEncoder(w).Encode(toolUseResponse); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully responded to execution plan request for: %v", messages)
 }

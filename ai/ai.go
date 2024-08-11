@@ -51,103 +51,6 @@ func (c *Client) HandleRequest(message string) (string, error) {
 	return aiResponse, nil
 }
 
-func (c *Client) SearchSWAPICharacter(characterName string) (string, error) {
-	ctx := context.Background()
-
-	// Define the function and its parameters
-	params := jsonschema.Definition{
-		Type: jsonschema.Object,
-		Properties: map[string]jsonschema.Definition{
-			"characterName": {
-				Type:        jsonschema.String,
-				Description: "The full name of the character to retrieve information for in the SWAPI.",
-			},
-			"URL": {
-				Type:        jsonschema.String,
-				Description: "The URL to call for retrieving the character information from SWAPI.",
-			},
-		},
-		Required: []string{"characterName", "URL"},
-	}
-
-	functionDefinition := openai.FunctionDefinition{
-		Name:        "generate_swapi_retrieval_url",
-		Description: "Generate a URL to retrieve the character information from SWAPI.",
-		Parameters:  params,
-	}
-
-	tool := openai.Tool{
-		Type:     openai.ToolTypeFunction,
-		Function: &functionDefinition,
-	}
-
-	// Prepare the initial user message
-	dialogue := []openai.ChatCompletionMessage{
-		{
-			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("generate SWAPI URL '%s'", characterName),
-		},
-	}
-
-	fmt.Printf("Asking OpenAI '%v' and providing it a '%v()' function...\n",
-		dialogue[0].Content, functionDefinition.Name)
-
-	// Send the request to OpenAI
-	resp, err := c.aiClient.CreateChatCompletion(ctx,
-		openai.ChatCompletionRequest{
-			Model:    "gpt-4o-mini",
-			Messages: dialogue,
-			Tools:    []openai.Tool{tool},
-		},
-	)
-	if err != nil || len(resp.Choices) != 1 {
-		fmt.Printf("Completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
-		return "", err
-	}
-
-	// Process the response and function call
-	msg := resp.Choices[0].Message
-	if len(msg.ToolCalls) != 1 {
-		fmt.Printf("Completion error: len(toolcalls): %v\n", len(msg.ToolCalls))
-		return "", fmt.Errorf("unexpected number of tool calls")
-	}
-
-	// Directly use the Arguments as a string
-	executionPlan := msg.ToolCalls[0].Function.Arguments
-	fmt.Printf("OpenAI generated the URL: %s\n", executionPlan)
-
-	// Simulate calling the SWAPI search function and responding to OpenAI
-	dialogue = append(dialogue, msg)
-	dialogue = append(dialogue, openai.ChatCompletionMessage{
-		Role:       openai.ChatMessageRoleTool,
-		Content:    executionPlan,
-		Name:       msg.ToolCalls[0].Function.Name,
-		ToolCallID: msg.ToolCalls[0].ID,
-	})
-
-	fmt.Printf("Sending OpenAI our '%v()' function's response and requesting the reply to the original question...\n",
-		functionDefinition.Name)
-
-	// Get the final response from OpenAI
-	resp, err = c.aiClient.CreateChatCompletion(ctx,
-		openai.ChatCompletionRequest{
-			Model:    "gpt-4o-mini",
-			Messages: dialogue,
-			Tools:    []openai.Tool{tool},
-		},
-	)
-	if err != nil || len(resp.Choices) != 1 {
-		fmt.Printf("2nd completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
-		return "", err
-	}
-
-	// Return the final response
-	msg = resp.Choices[0].Message
-	fmt.Printf("OpenAI answered the original request with: %v\n",
-		msg.Content)
-	return executionPlan, nil
-}
-
 func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 	ctx := context.Background()
 
@@ -345,4 +248,65 @@ Process: Use the cached list to generate the HTML and produce the final output f
 	fmt.Printf("OpenAI answered the original request with: %v\n",
 		msg.Content)
 	return executionPlan, nil
+}
+
+func (c *Client) ShouldUseTool(consersation []openai.ChatCompletionMessage) (string, error) {
+	ctx := context.Background()
+
+	var schema = openai.ChatCompletionResponseFormatJSONSchema{
+		Name:        "ShouldUseTool",
+		Description: "For a given user prompt, determine whether we should use tools to help the user or if the provided context is sufficient to provide a response.",
+		Schema: jsonschema.Definition{
+			Type: jsonschema.Object,
+			Properties: map[string]jsonschema.Definition{
+				"useTool": {
+					Type:        jsonschema.Boolean,
+					Description: `returns a boolean value indicating whether the tool should be used or not. example: "useTool": true`,
+				},
+				"context": {
+					Type:        jsonschema.String,
+					Description: "An explanation of why this tool is needed step by step.",
+				},
+			},
+			Required:             []string{"useTool", "context"},
+			AdditionalProperties: false,
+		},
+		Strict: true,
+	}
+
+	// Prepare the initial user message
+	dialogue := []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: fmt.Sprintln(`I can help you decide whether if a tool should be used or not based on our conversation. I will return a tool call that will return a boolean value indicating whether the tool should be used or not. Always return json `),
+		},
+	}
+
+	// Add the conversation to the dialogue
+	dialogue = append(dialogue, consersation...)
+
+	// Send the request to OpenAI
+	resp, err := c.aiClient.CreateChatCompletion(ctx,
+		openai.ChatCompletionRequest{
+			Model:    "gpt-4o-mini",
+			Messages: dialogue,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type:       openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &schema,
+			},
+		},
+	)
+
+	if err != nil || len(resp.Choices) != 1 {
+		fmt.Printf("Completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
+		return "", err
+	}
+
+	fmt.Printf("OpenAI response: %v\n", resp.Choices[len(resp.Choices)-1].Message.Content)
+
+	// Process the response and function call
+	msg := resp.Choices[0].Message
+
+	fmt.Printf("OpenAI answered the original request with: %v\n", msg.Content)
+	return msg.Content, nil
 }

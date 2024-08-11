@@ -35,6 +35,6 @@ func (r *Router) SetupRoutes() {
 	http.HandleFunc("DELETE /api/employees/{id}", r.employeeAPI.DeleteEmployee)
 
 	// test routes
-	http.HandleFunc("GET /api/test", r.testController.HandleSearchSWAPICharacter)
 	http.HandleFunc("GET /api/exectionplan", r.testController.HandleGenerateExecutionPlan)
+	http.HandleFunc("GET /api/usetool", r.testController.HandleToolUse)
 }
