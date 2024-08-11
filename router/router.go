@@ -36,4 +36,5 @@ func (r *Router) SetupRoutes() {
 
 	// test routes
 	http.HandleFunc("GET /api/test", r.testController.HandleSearchSWAPICharacter)
+	http.HandleFunc("GET /api/exectionplan", r.testController.HandleGenerateExecutionPlan)
 }
