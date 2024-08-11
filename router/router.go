@@ -37,4 +37,5 @@ func (r *Router) SetupRoutes() {
 	// test routes
 	http.HandleFunc("GET /api/exectionplan", r.testController.HandleGenerateExecutionPlan)
 	http.HandleFunc("GET /api/usetool", r.testController.HandleToolUse)
+	http.HandleFunc("GET /api/math", r.testController.HandleGeneratemath)
 }
