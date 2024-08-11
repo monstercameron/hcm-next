@@ -21,7 +21,7 @@ func NewTestController(aiClient *ai.Client) *TestController {
 
 // ExecutionPlan struct to hold the unmarshaled data
 type ExecutionPlan struct {
-	Tools   string `json:"tools"`
+	Tools   []string `json:"tools"`
 	Context string `json:"context"`
 }
 
@@ -55,28 +55,11 @@ func (c *TestController) HandleGenerateExecutionPlan(w http.ResponseWriter, r *h
 		return
 	}
 
-	// Unmarshal the Tools field into a slice of strings
-	var tools []string
-	if err := json.Unmarshal([]byte(executionPlan.Tools), &tools); err != nil {
-		log.Printf("Error unmarshaling tools JSON string: %v", err)
-		http.Error(w, fmt.Sprintf("Error unmarshaling tools JSON string: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Create a new struct with the unmarshaled tools
-	response := struct {
-		Tools   []string `json:"tools"`
-		Context string   `json:"context"`
-	}{
-		Tools:   tools,
-		Context: executionPlan.Context,
-	}
-
 	// Set the content type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
 	// Encode and send the response
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(executionPlan); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return

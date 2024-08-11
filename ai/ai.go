@@ -54,32 +54,55 @@ func (c *Client) HandleRequest(message string) (string, error) {
 func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 	ctx := context.Background()
 
-	// Define the function and its parameters
-	params := jsonschema.Definition{
-		Type: jsonschema.Object,
-		Properties: map[string]jsonschema.Definition{
-			"tools": {
-				Type:        jsonschema.String,
-				Description: `must return a well formatted json string that is an array of steps as strings to execute the given task. example:  "tools": "[\"generateApi\", \"callApi\", \"parseResponse\", \"generatedisplayHtml\", \"generateOutput\"]"`,
-			},
-			"context": {
-				Type:        jsonschema.String,
-				Description: "An explanation of why this tool is needed step by step.",
-			},
-		},
-		Required: []string{"tools", "context"},
-	}
-
-	functionDefinition := openai.FunctionDefinition{
+	var schema = openai.ChatCompletionResponseFormatJSONSchema{
 		Name:        "GenerateExecutionPlan",
-		Description: "For a given user prompt, generate an execution plan, this is a tool that returns an array of steps to execute the given task.",
-		Parameters:  params,
+		Description: "For a given user prompt, generate an execution plan. This is a tool that returns an array of steps to execute the given task.",
+		Schema: jsonschema.Definition{
+			Type: jsonschema.Object,
+			Properties: map[string]jsonschema.Definition{
+				"tools": {
+					Type:        jsonschema.Array,
+					Description: `An array of steps as strings to execute the given task. Example: ["generateApi", "callApi", "parseResponse", "generateDisplayHtml", "generateOutput"]`,
+					Items: &jsonschema.Definition{Type: jsonschema.String},
+				},
+				"context": {
+					Type:        jsonschema.String,
+					Description: "An explanation of why this tool is needed step by step.",
+				},
+			},
+			Required:             []string{"tools", "context"},
+			AdditionalProperties: false,
+		},
+		Strict: true,
 	}
+	
 
-	tool := openai.Tool{
-		Type:     openai.ToolTypeFunction,
-		Function: &functionDefinition,
-	}
+	// Define the function and its parameters
+	// params := jsonschema.Definition{
+	// 	Type: jsonschema.Object,
+	// 	Properties: map[string]jsonschema.Definition{
+	// 		"tools": {
+	// 			Type:        jsonschema.String,
+	// 			Description: `must return a well formatted json string that is an array of steps as strings to execute the given task. example:  "tools": "[\"generateApi\", \"callApi\", \"parseResponse\", \"generatedisplayHtml\", \"generateOutput\"]"`,
+	// 		},
+	// 		"context": {
+	// 			Type:        jsonschema.String,
+	// 			Description: "An explanation of why this tool is needed step by step.",
+	// 		},
+	// 	},
+	// 	Required: []string{"tools", "context"},
+	// }
+
+	// functionDefinition := openai.FunctionDefinition{
+	// 	Name:        "GenerateExecutionPlan",
+	// 	Description: "For a given user prompt, generate an execution plan, this is a tool that returns an array of steps to execute the given task.",
+	// 	Parameters:  params,
+	// }
+
+	// tool := openai.Tool{
+	// 	Type:     openai.ToolTypeFunction,
+	// 	Function: &functionDefinition,
+	// }
 
 	// Prepare the initial user message
 	dialogue := []openai.ChatCompletionMessage{
@@ -187,19 +210,23 @@ Process: Use the cached list to generate the HTML and produce the final output f
 		},
 		{
 			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("create an execution plan based on this prompt: '%s'", prompt),
+			Content: fmt.Sprintf("create an execution plan json based on this prompt: '%s'", prompt),
 		},
 	}
 
-	fmt.Printf("Asking OpenAI '%v' and providing it a '%v()' function...\n",
-		dialogue[0].Content, functionDefinition.Name)
+	// fmt.Printf("Asking OpenAI '%v' and providing it a '%v()' function...\n",
+	// 	dialogue[0].Content, functionDefinition.Name)
 
 	// Send the request to OpenAI
 	resp, err := c.aiClient.CreateChatCompletion(ctx,
 		openai.ChatCompletionRequest{
 			Model:    "gpt-4o-mini",
 			Messages: dialogue,
-			Tools:    []openai.Tool{tool},
+			//Tools:    []openai.Tool{tool},
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type:       openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &schema,
+			},
 		},
 	)
 	if err != nil || len(resp.Choices) != 1 {
@@ -209,45 +236,45 @@ Process: Use the cached list to generate the HTML and produce the final output f
 
 	// Process the response and function call
 	msg := resp.Choices[0].Message
-	if len(msg.ToolCalls) != 1 {
-		fmt.Printf("Completion error: len(toolcalls): %v\n", len(msg.ToolCalls))
-		return "", fmt.Errorf("unexpected number of tool calls")
-	}
+	// if len(msg.ToolCalls) != 1 {
+	// 	fmt.Printf("Completion error: len(toolcalls): %v\n", len(msg.ToolCalls))
+	// 	return "", fmt.Errorf("unexpected number of tool calls")
+	// }
 
-	// Directly use the Arguments as a string
-	executionPlan := msg.ToolCalls[0].Function.Arguments
-	fmt.Printf("OpenAI generated the Execution Plan: %s\n", executionPlan)
+	// // Directly use the Arguments as a string
+	// executionPlan := msg.ToolCalls[0].Function.Arguments
+	// fmt.Printf("OpenAI generated the Execution Plan: %s\n", executionPlan)
 
-	// Simulate calling the SWAPI search function and responding to OpenAI
-	dialogue = append(dialogue, msg)
-	dialogue = append(dialogue, openai.ChatCompletionMessage{
-		Role:       openai.ChatMessageRoleTool,
-		Content:    executionPlan,
-		Name:       msg.ToolCalls[0].Function.Name,
-		ToolCallID: msg.ToolCalls[0].ID,
-	})
+	// // Simulate calling the SWAPI search function and responding to OpenAI
+	// dialogue = append(dialogue, msg)
+	// dialogue = append(dialogue, openai.ChatCompletionMessage{
+	// 	Role:       openai.ChatMessageRoleTool,
+	// 	Content:    executionPlan,
+	// 	Name:       msg.ToolCalls[0].Function.Name,
+	// 	ToolCallID: msg.ToolCalls[0].ID,
+	// })
 
-	fmt.Printf("Sending OpenAI our '%v()' function's response and requesting the reply to the original question...\n",
-		functionDefinition.Name)
+	// fmt.Printf("Sending OpenAI our '%v()' function's response and requesting the reply to the original question...\n",
+	// 	functionDefinition.Name)
 
 	// Get the final response from OpenAI
-	resp, err = c.aiClient.CreateChatCompletion(ctx,
-		openai.ChatCompletionRequest{
-			Model:    "gpt-4o-mini",
-			Messages: dialogue,
-			Tools:    []openai.Tool{tool},
-		},
-	)
-	if err != nil || len(resp.Choices) != 1 {
-		fmt.Printf("2nd completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
-		return "", err
-	}
+	// resp, err = c.aiClient.CreateChatCompletion(ctx,
+	// 	openai.ChatCompletionRequest{
+	// 		Model:    "gpt-4o-mini",
+	// 		Messages: dialogue,
+	// 		Tools:    []openai.Tool{tool},
+	// 	},
+	// )
+	// if err != nil || len(resp.Choices) != 1 {
+	// 	fmt.Printf("2nd completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
+	// 	return "", err
+	// }
 
 	// Return the final response
 	msg = resp.Choices[0].Message
 	fmt.Printf("OpenAI answered the original request with: %v\n",
 		msg.Content)
-	return executionPlan, nil
+	return msg.Content, nil
 }
 
 func (c *Client) ShouldUseTool(consersation []openai.ChatCompletionMessage) (string, error) {
