@@ -27,7 +27,7 @@ func NewController(aiClient *ai.Client, db *database.Database) *Controller {
 func (c *Controller) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	// Upgrade the HTTP connection to a WebSocket connection
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		OriginPatterns: []string{"localhost:5500", "127.0.0.1:5500"},
+		OriginPatterns: []string{"http://localhost:8080", "127.0.0.1:8800"},
 	})
 	if err != nil {
 		fmt.Printf("WebSocket accept error: %v\n", err)

@@ -161,7 +161,7 @@
       // Function to connect to WebSocket
       const connectWebSocket = () => {
         console.log("Attempting to connect to WebSocket");
-        socket = new WebSocket("ws://localhost:8080");
+        socket = new WebSocket("ws://localhost:8080/ws");
 
         socket.onopen = () => {
           console.log("WebSocket connection established");
