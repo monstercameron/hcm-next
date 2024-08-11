@@ -81,3 +81,12 @@ func (d *Database) DeleteOne(collection string, filter bson.M) (*mongo.DeleteRes
 	coll := d.db.Collection(collection)
 	return coll.DeleteOne(ctx, filter)
 }
+
+// CountDocuments counts the number of documents in the specified collection
+func (d *Database) CountDocuments(collection string, filter bson.M) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	coll := d.db.Collection(collection)
+	return coll.CountDocuments(ctx, filter)
+}
