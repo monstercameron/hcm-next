@@ -74,8 +74,11 @@ func main() {
 	// Initialize the Employee API
 	employeeAPI := controller.NewAPI(db)
 
+	// test fn calling
+	testCtrl := controller.NewTestController(aiClient)
+
 	// Initialize the router with all controllers
-	r := router.NewRouter(ctrl, homeCtrl, employeeAPI)
+	r := router.NewRouter(ctrl, homeCtrl, employeeAPI, testCtrl)
 
 	// Set up the routes
 	r.SetupRoutes()

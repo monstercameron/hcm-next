@@ -10,13 +10,15 @@ type Router struct {
 	controller     *controller.Controller
 	homeController *controller.HomeController
 	employeeAPI    *controller.API
+	testController *controller.TestController
 }
 
-func NewRouter(ctrl *controller.Controller, homeCtrl *controller.HomeController, empAPI *controller.API) *Router {
+func NewRouter(ctrl *controller.Controller, homeCtrl *controller.HomeController, empAPI *controller.API, testAPI *controller.TestController) *Router {
 	return &Router{
 		controller:     ctrl,
 		homeController: homeCtrl,
 		employeeAPI:    empAPI,
+		testController: testAPI,
 	}
 }
 
@@ -31,4 +33,7 @@ func (r *Router) SetupRoutes() {
 	http.HandleFunc("GET /api/employees/{id}", r.employeeAPI.GetEmployee)
 	http.HandleFunc("PUT /api/employees/{id}", r.employeeAPI.UpdateEmployee)
 	http.HandleFunc("DELETE /api/employees/{id}", r.employeeAPI.DeleteEmployee)
+
+	// test routes
+	http.HandleFunc("GET /api/test", r.testController.HandleSearchSWAPICharacter)
 }
