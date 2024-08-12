@@ -18,8 +18,10 @@ type MathResponse struct {
 }
 
 // Creates mathematical expressions or calculations.
-func (c *Client) GenerateMath(expression string) (result MathResponse, err error) {
+func (c *Client) GenerateMath(cachedContext map[string]interface{}, chatMessages []openai.ChatCompletionMessage) (result MathResponse, err error) {
 	ctx := context.Background()
+
+	expression := chatMessages[len(chatMessages)-1].Content
 
 	var schema = openai.ChatCompletionResponseFormatJSONSchema{
 		Name:        "generateMathJavascript",
@@ -146,8 +148,10 @@ type DisplayResponse struct {
 }
 
 // Generates the HTML structure needed to display the parsed data.
-func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruct DisplayResponse, err error) {
+func (c *Client) GenerateDisplayHtml(cachedContext map[string]interface{}, chatMessages []openai.ChatCompletionMessage) (displayContextStruct DisplayResponse, err error) {
 	ctx := context.Background()
+
+	displayContext := chatMessages[len(chatMessages)-1].Content
 
 	var schema = openai.ChatCompletionResponseFormatJSONSchema{
 		Name:        "GenerateDisplayHtml",
@@ -174,7 +178,9 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 	dialogue := []openai.ChatCompletionMessage{
 		{
 			Role: openai.ChatMessageRoleSystem,
-			Content: fmt.Sprintln(`You are an AI designed to generate the contents of the <body> tag of an HTML document. Your task is to create a body section that utilizes the following external resources. Ensure that the content is visually appealing and functional according to the user's specifications.
+			Content: fmt.Sprintln(`Always generate HTML contest
+			
+			You are an AI designed to generate the contents of the <body> tag of an HTML document. Your task is to create a body section that utilizes the following external resources. Ensure that the content is visually appealing and functional according to the user's specifications.
 
 			Markup Rules:
 			HTML structure must be valid and semantically correct.
@@ -196,7 +202,6 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 			Code must never import any external libraries or scripts.
 
 			External Resources:
-
 			Tailwind CSS for styling.
 			Marked.js for Markdown parsing.
 			Toastify.js for toast notifications.
@@ -212,7 +217,6 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 			Create the contents of the <body> tag with the following requirements:
 
 			Structure:
-
 			Include a clean and responsive layout using Tailwind CSS.
 			Incorporate sections for different functionalities:
 			Markdown Content: Render Markdown content using Marked.js.
@@ -220,19 +224,12 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 			Charts: Visualize data with Chart.js charts.
 			3D Graphics: Render 3D graphics using Three.js.
 			Interactive UIs: Use React and HTM to build interactive components and dynamic UIs.
-			Styling:
 
+			Styling:
 			Use Tailwind CSS classes to style the page content.
 			Ensure the content is visually appealing and adheres to modern design principles.
-			Functionality:
-
-			Implement interactive UIs with React and HTM.
-			Add a button or element that triggers a toast notification using Toastify.js.
-			Include a code block with syntax highlighting using Highlight.js.
-			Provide interactive elements for Markdown content, diagrams, charts, and 3D graphics.
 
 			JavaScript Integration:
-
 			Ensure that the content integrates and leverages the external scripts effectively.
 			Use Marked.js for Markdown rendering.
 			Initialize Mermaid.js for diagrams.
@@ -241,27 +238,7 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 			Build and render interactive UIs using React and HTM.
 
 			User Input:
-
 			The user will provide additional details or preferences for the page layout, content, or design. Make sure to incorporate these specifics into the body content.
-
-			// Function to show toast notifications
-				const showToast = (message, type = "info") => {
-					Toastify({
-					text: message,
-					duration: 3000,
-					gravity: "top",
-					position: "right",
-					backgroundColor:
-						type === "error"
-						? "#ff6b6b"
-						: type === "warning"
-						? "#feca57"
-						: type === "success"
-						? "#48dbfb"
-						: "#54a0ff",
-					stopOnFocus: true,
-					}).showToast();
-				};
 		`),
 		},
 		{
@@ -297,6 +274,9 @@ func (c *Client) GenerateDisplayHtml(displayContext string) (displayContextStruc
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON")
 	}
+
+	// wrap markup in markdown display template
+	displayResponse.Markup = fmt.Sprintf("```display\n%s\n```", displayResponse.Markup)
 
 	fmt.Printf("OpenAI answered the original request with: %v\n", msg.Content)
 	return displayResponse, nil
