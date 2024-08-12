@@ -301,12 +301,23 @@ const connectWebSocket = () => {
 
 // Function to send a message
 const sendMessage = () => {
+  // add the message to the chat history
   const chatInput = document.getElementById("chatInput");
   const message = chatInput.value.trim();
+  addChatMessage("You", message);
+
+  // all messages from the chat history get sent to the websocket
+  const chatMessages = document.getElementById("chatMessages");
+  const messages = Array.from(chatMessages.children).map((message) => {
+    return {
+      role: message.firstChild.innerText,
+      content: message.lastChild.innerText,
+    };
+  });
+
   if (message && socket.readyState === WebSocket.OPEN) {
     console.log("Sending message:", message);
-    socket.send(message);
-    addChatMessage("You", message);
+    socket.send(messages);
     chatInput.value = "";
   } else if (socket.readyState !== WebSocket.OPEN) {
     showToast("Cannot send message. Connection is not open.", "error");
@@ -330,13 +341,15 @@ const addChatMessage = (sender, message) => {
   }`;
 
   let cleanMessage = message;
-
-  // Extract display content
   const displayContent = extractContentFromMarkdown(message, "display");
-  cleanMessage = cleanMessage.replace(
-    displayContent,
-    "[Display  Content Removed]"
-  );
+
+  if (sender.toLowerCase() === "AI") {
+    // Extract display content
+    cleanMessage = cleanMessage.replace(
+      displayContent,
+      "[debug: Display  Content Removed]"
+    );
+  }
 
   // Use marked.js to parse the cleaned message
   messageElement.innerHTML = `<strong>${sender}:</strong> ${marked.parse(
@@ -347,7 +360,7 @@ const addChatMessage = (sender, message) => {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
   // Display extracted content in the right panel
-    displayContentInRightPanel(displayContent);
+  displayContentInRightPanel(displayContent);
 };
 
 // Function to extract content from markdown
