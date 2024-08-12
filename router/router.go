@@ -23,6 +23,9 @@ func NewRouter(ctrl *controller.Controller, homeCtrl *controller.HomeController,
 }
 
 func (r *Router) SetupRoutes() {
+	// handle static files
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	// Existing routes
 	http.HandleFunc("/", r.homeController.ServeHome)
 	http.HandleFunc("/ws", r.controller.HandleWebSocket)
