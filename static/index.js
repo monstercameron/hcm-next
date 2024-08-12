@@ -261,7 +261,7 @@ const connectWebSocket = () => {
 
   socket.onmessage = (event) => {
     console.log("Received message from server:", event.data);
-    addChatMessage("AI", event.data);
+    addChatMessage("Assistant", event.data);
   };
 
   socket.onclose = (event) => {
@@ -304,20 +304,23 @@ const sendMessage = () => {
   // add the message to the chat history
   const chatInput = document.getElementById("chatInput");
   const message = chatInput.value.trim();
-  addChatMessage("You", message);
+  addChatMessage("user", message);
 
   // all messages from the chat history get sent to the websocket
   const chatMessages = document.getElementById("chatMessages");
   const messages = Array.from(chatMessages.children).map((message) => {
+    const roleElement = message.querySelector("strong");
+    const contentElement = message.querySelector("p");
+
     return {
-      role: message.firstChild.innerText,
-      content: message.lastChild.innerText,
+      role: roleElement ? roleElement.innerText.toLocaleLowerCase().replace(":","") : null,
+      content: contentElement ? contentElement.innerText : null,
     };
   });
 
   if (message && socket.readyState === WebSocket.OPEN) {
     console.log("Sending message:", message);
-    socket.send(messages);
+    socket.send(JSON.stringify(messages));
     chatInput.value = "";
   } else if (socket.readyState !== WebSocket.OPEN) {
     showToast("Cannot send message. Connection is not open.", "error");

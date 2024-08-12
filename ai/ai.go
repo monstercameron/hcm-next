@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -26,26 +27,48 @@ func NewClient() (*Client, error) {
 }
 
 // HandleRequest sends a message to OpenAI and returns the response
-func (c *Client) HandleRequest(message string) (string, error) {
-	fmt.Printf("Sending message to OpenAI: %s\n", message)
+func (c *Client) HandleRequest(messages string) (string, error) {
+	fmt.Printf("Sending message to OpenAI: %s\n", messages)
 
-	// test integrating the go fns in the chat
-	markup, err := c.GenerateDisplayHtml(message)
+	// Unmarshal the response to an array of ChatCompletionMessage
+	var chatMessages []openai.ChatCompletionMessage
+	err := json.Unmarshal([]byte(messages), &chatMessages)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON")
+	}
+
+	// check if ai should use tool
+	shouldUseTool, err := c.ShouldUseTool(chatMessages)
 	if err != nil {
 		fmt.Printf("Error from OpenAI: %v\n", err)
 		return "", err
 	}
 
+	// if ai should use tool, generate execution plan
+	if shouldUseTool.UseTool {
+		// test integrating the go fns in the chat
+		markup, err := c.GenerateDisplayHtml(chatMessages[len(chatMessages)-1].Content)
+		if err != nil {
+			fmt.Printf("Error from OpenAI: %v\n", err)
+			return "", err
+		}
+		// return aiResponse, nil
+		return fmt.Sprintf("```display %s```", markup.Markup), nil
+	}
+
+	// if ai should not use tool, perform chat completion
+	systemMessage := openai.ChatCompletionMessage{
+		Role:    "system",
+		Content: "I am a helpful assistant that is here to help with all HCM tasks. I can provide information on employees, departments, and other HR-related topics. How can I assist you today?",
+	}
+
+	// generate a new list of messages systemMessage first, remove the first message from chatMessages
+	newList := append([]openai.ChatCompletionMessage{systemMessage}, chatMessages[1:]...)
 	resp, err := c.aiClient.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: "gpt-4o-mini",
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    "user",
-					Content: message,
-				},
-			},
+			Model:    "gpt-4o-mini",
+			Messages: newList,
 		},
 	)
 	if err != nil {
@@ -53,12 +76,12 @@ func (c *Client) HandleRequest(message string) (string, error) {
 		return "", err
 	}
 
+	// decode the response
 	aiResponse := resp.Choices[0].Message.Content
 	fmt.Printf("Received response from OpenAI: %s\n", aiResponse)
 
-
 	// return aiResponse, nil
-	return fmt.Sprintf("```display %s```", markup.Markup), nil
+	return resp.Choices[len(resp.Choices)-1].Message.Content, nil
 }
 
 func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
@@ -73,7 +96,7 @@ func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 				"tools": {
 					Type:        jsonschema.Array,
 					Description: `An array of steps as strings to execute the given task. Example: ["generateApi", "callApi", "parseResponse", "generateDisplayHtml", "generateOutput"]`,
-					Items: &jsonschema.Definition{Type: jsonschema.String},
+					Items:       &jsonschema.Definition{Type: jsonschema.String},
 				},
 				"context": {
 					Type:        jsonschema.String,
@@ -85,7 +108,7 @@ func (c *Client) GenerateExecutionPlan(prompt string) (string, error) {
 		},
 		Strict: true,
 	}
-	
+
 	// Prepare the initial user message
 	dialogue := []openai.ChatCompletionMessage{
 		{
@@ -218,7 +241,7 @@ Process: Use the cached list to generate the HTML and produce the final output f
 
 	// Process the response and function call
 	msg := resp.Choices[0].Message
-	
+
 	// Return the final response
 	msg = resp.Choices[0].Message
 	fmt.Printf("OpenAI answered the original request with: %v\n",
@@ -226,9 +249,16 @@ Process: Use the cached list to generate the HTML and produce the final output f
 	return msg.Content, nil
 }
 
-func (c *Client) ShouldUseTool(consersation []openai.ChatCompletionMessage) (string, error) {
+// Unmarshal the response
+type ToolResponse struct {
+	UseTool bool   `json:"useTool"`
+	Context string `json:"context"`
+}
+
+func (c *Client) ShouldUseTool(consersation []openai.ChatCompletionMessage) (ToolResponse, error) {
 	ctx := context.Background()
 
+	// Define the JSON schema for the response
 	var schema = openai.ChatCompletionResponseFormatJSONSchema{
 		Name:        "ShouldUseTool",
 		Description: "For a given user prompt, determine whether we should use tools to help the user or if the provided context is sufficient to provide a response.",
@@ -273,16 +303,22 @@ func (c *Client) ShouldUseTool(consersation []openai.ChatCompletionMessage) (str
 		},
 	)
 
+	// Process the response and function call
 	if err != nil || len(resp.Choices) != 1 {
 		fmt.Printf("Completion error: err:%v len(choices):%v\n", err, len(resp.Choices))
-		return "", err
+		return ToolResponse{UseTool: false}, err
 	}
 
 	fmt.Printf("OpenAI response: %v\n", resp.Choices[len(resp.Choices)-1].Message.Content)
 
-	// Process the response and function call
-	msg := resp.Choices[0].Message
+	var toolResponse ToolResponse
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toolResponse)
+	if err != nil {
+		fmt.Printf("Error unmarshaling JSON: %v\n", err)
+		return ToolResponse{UseTool: false}, err
+	}
 
-	fmt.Printf("OpenAI answered the original request with: %v\n", msg.Content)
-	return msg.Content, nil
+	// Return the final response
+	fmt.Printf("OpenAI answered the original request with: %v\n", resp.Choices[0].Message.Content)
+	return toolResponse, nil
 }

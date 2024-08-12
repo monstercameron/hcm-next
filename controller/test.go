@@ -65,12 +65,9 @@ func (c *TestController) HandleGenerateExecutionPlan(w http.ResponseWriter, r *h
 		return
 	}
 
-	log.Printf("Successfully responded to execution plan request for: %s", prompt)
-}
+	fmt.Println("here 1")
 
-type ToolUseResponse struct {
-	Tool    bool   `json:"tool"`
-	Context string `json:"context"`
+	log.Printf("Successfully responded to execution plan request for: %s", prompt)
 }
 
 func (c *TestController) HandleToolUse(w http.ResponseWriter, r *http.Request) {
@@ -94,18 +91,8 @@ func (c *TestController) HandleToolUse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Define a variable to hold the unmarshaled data
-	var toolUseResponse ToolUseResponse
-
-	// Unmarshal the JSON string into the struct
-	if err := json.Unmarshal([]byte(result), &toolUseResponse); err != nil {
-		log.Printf("Error unmarshaling JSON: %v", err)
-		http.Error(w, fmt.Sprintf("Error unmarshaling JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
-
 	// Encode and send the response
-	if err := json.NewEncoder(w).Encode(toolUseResponse); err != nil {
+	if err := json.NewEncoder(w).Encode(result); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return
