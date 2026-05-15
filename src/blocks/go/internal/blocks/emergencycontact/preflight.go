@@ -1,18 +1,11 @@
 package emergencycontact
 
 import (
-	"bytes"
-	"encoding/json"
 	"strings"
 	"time"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
-)
-
-const (
-	preflightRiskLow    = "low"
-	preflightRiskMedium = "medium"
-	preflightRiskHigh   = "high"
 )
 
 // PreflightInput is the contract for emergency-contact update validation.
@@ -36,28 +29,26 @@ type PreflightOutput struct {
 
 // ExecutePreflight validates an emergency-contact update request without side effects.
 func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePreflightInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PreflightInput](request.Input, "Emergency contact preflight input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
 
-	evaluationDate, evaluationDateError := parseDate(request.Context.EffectiveAt)
+	evaluationDate, evaluationDateError := blockshared.ParseContextEffectiveDate(request.Context.EffectiveAt)
 	if evaluationDateError != nil {
-		return executor.BlockResult{}, executor.InvalidInputError("context.effectiveAt must be a valid date or RFC3339 timestamp.", map[string]any{
-			"field": "context.effectiveAt",
-		})
+		return executor.BlockResult{}, evaluationDateError
 	}
 
 	validationWarnings := validateDuplicateContact(input)
 	validationErrors := validatePreflightInput(input, evaluationDate)
 	isValid := len(validationErrors) == 0
-	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	riskLevel := blockshared.RiskLevelForValidation(isValid, len(validationWarnings))
 	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
 		BlockOutputContract: executor.NewValidationOutputContract(
 			routeKey,
-			emergencyContactPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings)),
+			blockshared.PreflightFacts(PreflightBlockName, isValid, riskLevel, false, true, len(validationWarnings)),
 			validationErrors,
 			validationWarnings,
 		),
@@ -85,35 +76,10 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 	}, nil
 }
 
-func emergencyContactPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int) []executor.Fact {
-	return []executor.Fact{
-		{Key: "valid", Value: isValid, Source: PreflightBlockName},
-		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
-		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
-		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
-		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
-	}
-}
-
-func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {
-	var input PreflightInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PreflightInput{}, executor.InvalidInputError("Emergency contact preflight input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
-}
-
 func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	contact := input.ProposedEmergencyContact
 	businessReason := strings.TrimSpace(input.BusinessReason)
-	effectiveAt := strings.TrimSpace(input.EffectiveAt)
 
 	if strings.TrimSpace(contact.ContactID) == "" {
 		validationErrors = append(validationErrors, ValidationMessage{
@@ -139,7 +105,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if phoneDigitCount(contact.Phone) < 7 {
+	if blockshared.PhoneDigitCount(contact.Phone) < 7 {
 		validationErrors = append(validationErrors, ValidationMessage{
 			Code:    "emergency_contact.phone_invalid",
 			Field:   "proposedEmergencyContact.phone",
@@ -171,28 +137,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if effectiveAt == "" {
-		validationErrors = append(validationErrors, ValidationMessage{
-			Code:    "emergency_contact.effective_at_required",
-			Field:   "effectiveAt",
-			Message: "Effective date is required.",
-		})
-	} else {
-		effectiveDate, parseError := parseDate(effectiveAt)
-		if parseError != nil {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "emergency_contact.effective_at_invalid",
-				Field:   "effectiveAt",
-				Message: "Effective date must be a valid date.",
-			})
-		} else if effectiveDate.Before(evaluationDate.AddDate(0, 0, -180)) {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "emergency_contact.effective_at_too_far_in_past",
-				Field:   "effectiveAt",
-				Message: "Effective date cannot be more than 180 days in the past.",
-			})
-		}
-	}
+	validationErrors = append(validationErrors, blockshared.EffectiveDateValidation("emergency_contact", input.EffectiveAt, evaluationDate, 180)...)
 
 	if emergencyContactUnchanged(input.CurrentEmergencyContacts, contact) {
 		validationErrors = append(validationErrors, ValidationMessage{
@@ -208,14 +153,14 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 func validateDuplicateContact(input PreflightInput) []ValidationMessage {
 	warnings := make([]ValidationMessage, 0)
 	proposedContact := input.ProposedEmergencyContact
-	proposedPhoneDigits := digitsOnly(proposedContact.Phone)
+	proposedPhoneDigits := blockshared.DigitsOnly(proposedContact.Phone)
 
 	for _, currentContact := range input.CurrentEmergencyContacts {
 		if strings.TrimSpace(currentContact.ContactID) == strings.TrimSpace(proposedContact.ContactID) {
 			continue
 		}
 
-		if proposedPhoneDigits != "" && digitsOnly(currentContact.Phone) == proposedPhoneDigits {
+		if proposedPhoneDigits != "" && blockshared.DigitsOnly(currentContact.Phone) == proposedPhoneDigits {
 			warnings = append(warnings, ValidationMessage{
 				Code:    "emergency_contact.duplicate_phone",
 				Field:   "proposedEmergencyContact.phone",
@@ -227,18 +172,6 @@ func validateDuplicateContact(input PreflightInput) []ValidationMessage {
 	return warnings
 }
 
-func riskLevelForPreflight(isValid bool, warnings []ValidationMessage) string {
-	if !isValid {
-		return preflightRiskHigh
-	}
-
-	if len(warnings) > 0 {
-		return preflightRiskMedium
-	}
-
-	return preflightRiskLow
-}
-
 func emergencyContactUnchanged(currentContacts []EmergencyContact, proposedContact EmergencyContact) bool {
 	for _, currentContact := range currentContacts {
 		if strings.TrimSpace(currentContact.ContactID) != strings.TrimSpace(proposedContact.ContactID) {
@@ -247,51 +180,10 @@ func emergencyContactUnchanged(currentContacts []EmergencyContact, proposedConta
 
 		return strings.TrimSpace(currentContact.Name) == strings.TrimSpace(proposedContact.Name) &&
 			strings.TrimSpace(currentContact.Relationship) == strings.TrimSpace(proposedContact.Relationship) &&
-			digitsOnly(currentContact.Phone) == digitsOnly(proposedContact.Phone) &&
-			normalizedEmail(currentContact.Email) == normalizedEmail(proposedContact.Email) &&
+			blockshared.DigitsOnly(currentContact.Phone) == blockshared.DigitsOnly(proposedContact.Phone) &&
+			blockshared.NormalizedEmail(currentContact.Email) == blockshared.NormalizedEmail(proposedContact.Email) &&
 			currentContact.Priority == proposedContact.Priority
 	}
 
 	return false
-}
-
-func normalizedEmail(value *string) string {
-	if value == nil {
-		return ""
-	}
-
-	return strings.ToLower(strings.TrimSpace(*value))
-}
-
-func phoneDigitCount(value string) int {
-	return len(digitsOnly(value))
-}
-
-func digitsOnly(value string) string {
-	var builder strings.Builder
-
-	for _, runeValue := range value {
-		if runeValue >= '0' && runeValue <= '9' {
-			builder.WriteRune(runeValue)
-		}
-	}
-
-	return builder.String()
-}
-
-func parseDate(value string) (time.Time, error) {
-	trimmedValue := strings.TrimSpace(value)
-	layouts := []string{"2006-01-02", time.RFC3339}
-
-	var lastError error
-	for _, layout := range layouts {
-		parsedTime, err := time.Parse(layout, trimmedValue)
-		if err == nil {
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, time.UTC), nil
-		}
-
-		lastError = err
-	}
-
-	return time.Time{}, lastError
 }

@@ -1,18 +1,11 @@
 package orgtransfer
 
 import (
-	"bytes"
-	"encoding/json"
 	"strings"
 	"time"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
-)
-
-const (
-	preflightRiskLow    = "low"
-	preflightRiskMedium = "medium"
-	preflightRiskHigh   = "high"
 )
 
 // PreflightInput is the deterministic validation input for an org transfer.
@@ -49,28 +42,34 @@ type PreflightOutput struct {
 
 // ExecutePreflight validates the requested transfer without side effects.
 func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePreflightInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PreflightInput](request.Input, "Org transfer preflight input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
 
-	evaluationDate, evaluationDateError := parseDate(request.Context.EffectiveAt)
+	evaluationDate, evaluationDateError := blockshared.ParseContextEffectiveDate(request.Context.EffectiveAt)
 	if evaluationDateError != nil {
-		return executor.BlockResult{}, executor.InvalidInputError("context.effectiveAt must be a valid date or RFC3339 timestamp.", map[string]any{
-			"field": "context.effectiveAt",
-		})
+		return executor.BlockResult{}, evaluationDateError
 	}
 
 	validationErrors := validatePreflightInput(input, evaluationDate)
 	validationWarnings := validatePreflightWarnings(input)
 	isValid := len(validationErrors) == 0
-	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	riskLevel := blockshared.RiskLevelForValidation(isValid, len(validationWarnings))
 	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
 		BlockOutputContract: executor.NewValidationOutputContract(
 			routeKey,
-			orgTransferPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings), input.TargetTeamOrgUnit.OrgUnitID),
+			blockshared.PreflightFacts(
+				PreflightBlockName,
+				isValid,
+				riskLevel,
+				false,
+				true,
+				len(validationWarnings),
+				executor.Fact{Key: "targetTeamOrgUnitId", Value: input.TargetTeamOrgUnit.OrgUnitID, Source: PreflightBlockName},
+			),
 			validationErrors,
 			validationWarnings,
 		),
@@ -98,31 +97,6 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 			},
 		},
 	}, nil
-}
-
-func orgTransferPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int, targetTeamOrgUnitID string) []executor.Fact {
-	return []executor.Fact{
-		{Key: "valid", Value: isValid, Source: PreflightBlockName},
-		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
-		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
-		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
-		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
-		{Key: "targetTeamOrgUnitId", Value: targetTeamOrgUnitID, Source: PreflightBlockName},
-	}
-}
-
-func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {
-	var input PreflightInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PreflightInput{}, executor.InvalidInputError("Org transfer preflight input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
 }
 
 func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []ValidationMessage {
@@ -237,7 +211,7 @@ func validateEffectiveDate(validationErrors *[]ValidationMessage, effectiveAt st
 		return
 	}
 
-	effectiveDate, parseError := parseDate(effectiveAt)
+	effectiveDate, parseError := blockshared.ParseDate(effectiveAt)
 	if parseError != nil {
 		*validationErrors = append(*validationErrors, ValidationMessage{
 			Code:    "org_transfer.effective_at_invalid",
@@ -312,33 +286,4 @@ func metadataBool(metadata map[string]any, key string) bool {
 
 	boolValue, ok := value.(bool)
 	return ok && boolValue
-}
-
-func riskLevelForPreflight(isValid bool, warnings []ValidationMessage) string {
-	if !isValid {
-		return preflightRiskHigh
-	}
-
-	if len(warnings) > 0 {
-		return preflightRiskMedium
-	}
-
-	return preflightRiskLow
-}
-
-func parseDate(value string) (time.Time, error) {
-	trimmedValue := strings.TrimSpace(value)
-	layouts := []string{"2006-01-02", time.RFC3339}
-
-	var lastError error
-	for _, layout := range layouts {
-		parsedTime, err := time.Parse(layout, trimmedValue)
-		if err == nil {
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, time.UTC), nil
-		}
-
-		lastError = err
-	}
-
-	return time.Time{}, lastError
 }

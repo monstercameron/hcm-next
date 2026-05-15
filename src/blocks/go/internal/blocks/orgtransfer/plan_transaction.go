@@ -1,10 +1,7 @@
 package orgtransfer
 
 import (
-	"bytes"
-	"encoding/json"
-	"strings"
-
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -79,7 +76,7 @@ type PlanTransactionOutput struct {
 
 // ExecutePlanTransaction builds deterministic assignment, projection, ledger, and outbox specs.
 func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePlanTransactionInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PlanTransactionInput](request.Input, "Org transfer transaction plan input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
@@ -99,12 +96,13 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	output := PlanTransactionOutput{
 		BlockOutputContract: executor.NewTransactionOutputContract(
 			executor.RouteKeyTransactionPlanReady,
-			orgTransferTransactionFacts(
+			blockshared.TransactionFacts(
+				PlanTransactionBlockName,
 				len(internalWrites),
 				len(externalCallRequests),
 				len(projectionPatches),
-				len(assignmentOperations),
-				len(roleBindingOperations),
+				executor.Fact{Key: "assignmentOperationCount", Value: len(assignmentOperations), Source: PlanTransactionBlockName},
+				executor.Fact{Key: "roleBindingOperationCount", Value: len(roleBindingOperations), Source: PlanTransactionBlockName},
 			),
 			internalWrites,
 			externalCallRequests,
@@ -138,22 +136,6 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	}, nil
 }
 
-func orgTransferTransactionFacts(
-	internalWriteCount int,
-	externalCallCount int,
-	projectionPatchCount int,
-	assignmentOperationCount int,
-	roleBindingOperationCount int,
-) []executor.Fact {
-	return []executor.Fact{
-		{Key: "ledgerFactCount", Value: internalWriteCount, Source: PlanTransactionBlockName},
-		{Key: "externalCallCount", Value: externalCallCount, Source: PlanTransactionBlockName},
-		{Key: "projectionPatchCount", Value: projectionPatchCount, Source: PlanTransactionBlockName},
-		{Key: "assignmentOperationCount", Value: assignmentOperationCount, Source: PlanTransactionBlockName},
-		{Key: "roleBindingOperationCount", Value: roleBindingOperationCount, Source: PlanTransactionBlockName},
-	}
-}
-
 func buildGenericTransactionOperations(
 	assignmentOperations []AssignmentOperation,
 	roleBindingOperations []RoleBindingOperation,
@@ -185,20 +167,6 @@ func buildGenericTransactionOperations(
 	return transactionOperations
 }
 
-func decodePlanTransactionInput(rawInput json.RawMessage) (PlanTransactionInput, *executor.ExecutionError) {
-	var input PlanTransactionInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PlanTransactionInput{}, executor.InvalidInputError("Org transfer transaction plan input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
-}
-
 func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	requiredFields := map[string]string{
@@ -212,23 +180,9 @@ func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessag
 		"businessReason":            input.BusinessReason,
 	}
 
-	for field, value := range requiredFields {
-		if strings.TrimSpace(value) == "" {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "transaction_plan.required",
-				Field:   field,
-				Message: "Required transaction planning field is missing.",
-			})
-		}
-	}
+	validationErrors = append(validationErrors, blockshared.RequiredTransactionFields(requiredFields)...)
 
-	if _, err := parseDate(input.EffectiveAt); strings.TrimSpace(input.EffectiveAt) != "" && err != nil {
-		validationErrors = append(validationErrors, ValidationMessage{
-			Code:    "transaction_plan.effective_at_invalid",
-			Field:   "effectiveAt",
-			Message: "Effective date must be a valid date.",
-		})
-	}
+	validationErrors = append(validationErrors, blockshared.TransactionEffectiveDateValidation(input.EffectiveAt)...)
 
 	for _, assignmentType := range []string{"primary_team", "work_location", "cost_center"} {
 		if currentAssignmentForType(input.CurrentAssignments, assignmentType) == nil {

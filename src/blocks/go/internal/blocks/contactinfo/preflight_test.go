@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -25,7 +26,7 @@ func TestExecutePreflightValidContactInfo(t *testing.T) {
 		t.Fatalf("expected valid output, got errors: %#v", output.Errors)
 	}
 
-	if output.RiskLevel != preflightRiskMedium {
+	if output.RiskLevel != blockshared.RiskMedium {
 		t.Fatalf("expected medium risk for region change, got %s", output.RiskLevel)
 	}
 

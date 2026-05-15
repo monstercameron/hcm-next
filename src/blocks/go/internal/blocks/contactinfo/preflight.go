@@ -1,18 +1,11 @@
 package contactinfo
 
 import (
-	"bytes"
-	"encoding/json"
 	"strings"
 	"time"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
-)
-
-const (
-	preflightRiskLow    = "low"
-	preflightRiskMedium = "medium"
-	preflightRiskHigh   = "high"
 )
 
 // PreflightInput is the contract for contact-information update validation.
@@ -36,28 +29,26 @@ type PreflightOutput struct {
 
 // ExecutePreflight validates a contact-information update request without side effects.
 func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePreflightInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PreflightInput](request.Input, "Contact information preflight input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
 
-	evaluationDate, evaluationDateError := parseDate(request.Context.EffectiveAt)
+	evaluationDate, evaluationDateError := blockshared.ParseContextEffectiveDate(request.Context.EffectiveAt)
 	if evaluationDateError != nil {
-		return executor.BlockResult{}, executor.InvalidInputError("context.effectiveAt must be a valid date or RFC3339 timestamp.", map[string]any{
-			"field": "context.effectiveAt",
-		})
+		return executor.BlockResult{}, evaluationDateError
 	}
 
 	validationWarnings := validatePreflightWarnings(input)
 	validationErrors := validatePreflightInput(input, evaluationDate)
 	isValid := len(validationErrors) == 0
-	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	riskLevel := blockshared.RiskLevelForValidation(isValid, len(validationWarnings))
 	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
 		BlockOutputContract: executor.NewValidationOutputContract(
 			routeKey,
-			contactInfoPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings)),
+			blockshared.PreflightFacts(PreflightBlockName, isValid, riskLevel, false, true, len(validationWarnings)),
 			validationErrors,
 			validationWarnings,
 		),
@@ -86,37 +77,12 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 	}, nil
 }
 
-func contactInfoPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int) []executor.Fact {
-	return []executor.Fact{
-		{Key: "valid", Value: isValid, Source: PreflightBlockName},
-		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
-		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
-		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
-		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
-	}
-}
-
-func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {
-	var input PreflightInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PreflightInput{}, executor.InvalidInputError("Contact information preflight input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
-}
-
 func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	proposedContactInfo := normalizeContactInfo(input.ProposedContactInfo)
 	businessReason := strings.TrimSpace(input.BusinessReason)
-	effectiveAt := strings.TrimSpace(input.EffectiveAt)
 
-	if normalizedEmail(proposedContactInfo.PersonalEmail) == "" && digitsOnly(pointerValue(proposedContactInfo.MobilePhone)) == "" {
+	if blockshared.NormalizedEmail(proposedContactInfo.PersonalEmail) == "" && blockshared.DigitsOnly(blockshared.StringValue(proposedContactInfo.MobilePhone)) == "" {
 		validationErrors = append(validationErrors, ValidationMessage{
 			Code:    "contact_info.reachable_contact_required",
 			Field:   "proposedContactInfo",
@@ -124,7 +90,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if proposedContactInfo.PersonalEmail != nil && !strings.Contains(normalizedEmail(proposedContactInfo.PersonalEmail), "@") {
+	if proposedContactInfo.PersonalEmail != nil && !strings.Contains(blockshared.NormalizedEmail(proposedContactInfo.PersonalEmail), "@") {
 		validationErrors = append(validationErrors, ValidationMessage{
 			Code:    "contact_info.personal_email_invalid",
 			Field:   "proposedContactInfo.personalEmail",
@@ -132,7 +98,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if proposedContactInfo.MobilePhone != nil && phoneDigitCount(pointerValue(proposedContactInfo.MobilePhone)) < 7 {
+	if proposedContactInfo.MobilePhone != nil && blockshared.PhoneDigitCount(blockshared.StringValue(proposedContactInfo.MobilePhone)) < 7 {
 		validationErrors = append(validationErrors, ValidationMessage{
 			Code:    "contact_info.mobile_phone_invalid",
 			Field:   "proposedContactInfo.mobilePhone",
@@ -150,28 +116,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if effectiveAt == "" {
-		validationErrors = append(validationErrors, ValidationMessage{
-			Code:    "contact_info.effective_at_required",
-			Field:   "effectiveAt",
-			Message: "Effective date is required.",
-		})
-	} else {
-		effectiveDate, parseError := parseDate(effectiveAt)
-		if parseError != nil {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "contact_info.effective_at_invalid",
-				Field:   "effectiveAt",
-				Message: "Effective date must be a valid date.",
-			})
-		} else if effectiveDate.Before(evaluationDate.AddDate(0, 0, -180)) {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "contact_info.effective_at_too_far_in_past",
-				Field:   "effectiveAt",
-				Message: "Effective date cannot be more than 180 days in the past.",
-			})
-		}
-	}
+	validationErrors = append(validationErrors, blockshared.EffectiveDateValidation("contact_info", input.EffectiveAt, evaluationDate, 180)...)
 
 	if contactInfoEqual(input.CurrentContactInfo, input.ProposedContactInfo) {
 		validationErrors = append(validationErrors, ValidationMessage{
@@ -241,30 +186,18 @@ func validatePreflightWarnings(input PreflightInput) []ValidationMessage {
 	return warnings
 }
 
-func riskLevelForPreflight(isValid bool, warnings []ValidationMessage) string {
-	if !isValid {
-		return preflightRiskHigh
-	}
-
-	if len(warnings) > 0 {
-		return preflightRiskMedium
-	}
-
-	return preflightRiskLow
-}
-
 func contactInfoEqual(left ContactInfo, right ContactInfo) bool {
 	normalizedLeft := normalizeContactInfo(left)
 	normalizedRight := normalizeContactInfo(right)
 
-	return normalizedEmail(normalizedLeft.PersonalEmail) == normalizedEmail(normalizedRight.PersonalEmail) &&
-		digitsOnly(pointerValue(normalizedLeft.MobilePhone)) == digitsOnly(pointerValue(normalizedRight.MobilePhone)) &&
+	return blockshared.NormalizedEmail(normalizedLeft.PersonalEmail) == blockshared.NormalizedEmail(normalizedRight.PersonalEmail) &&
+		blockshared.DigitsOnly(blockshared.StringValue(normalizedLeft.MobilePhone)) == blockshared.DigitsOnly(blockshared.StringValue(normalizedRight.MobilePhone)) &&
 		addressEqual(normalizedLeft.HomeAddress, normalizedRight.HomeAddress)
 }
 
 func addressEqual(left PostalAddress, right PostalAddress) bool {
 	return strings.EqualFold(strings.TrimSpace(left.Line1), strings.TrimSpace(right.Line1)) &&
-		strings.EqualFold(strings.TrimSpace(pointerValue(left.Line2)), strings.TrimSpace(pointerValue(right.Line2))) &&
+		strings.EqualFold(strings.TrimSpace(blockshared.StringValue(left.Line2)), strings.TrimSpace(blockshared.StringValue(right.Line2))) &&
 		strings.EqualFold(strings.TrimSpace(left.City), strings.TrimSpace(right.City)) &&
 		strings.EqualFold(strings.TrimSpace(left.Region), strings.TrimSpace(right.Region)) &&
 		strings.EqualFold(strings.TrimSpace(left.PostalCode), strings.TrimSpace(right.PostalCode)) &&
@@ -284,14 +217,6 @@ func normalizeContactInfo(contactInfo ContactInfo) ContactInfo {
 			Country:    strings.ToUpper(strings.TrimSpace(contactInfo.HomeAddress.Country)),
 		},
 	}
-}
-
-func normalizedEmail(value *string) string {
-	if value == nil {
-		return ""
-	}
-
-	return strings.ToLower(strings.TrimSpace(*value))
 }
 
 func trimOptionalLowerString(value *string) *string {
@@ -318,45 +243,4 @@ func trimOptionalString(value *string) *string {
 	}
 
 	return &trimmedValue
-}
-
-func pointerValue(value *string) string {
-	if value == nil {
-		return ""
-	}
-
-	return *value
-}
-
-func phoneDigitCount(value string) int {
-	return len(digitsOnly(value))
-}
-
-func digitsOnly(value string) string {
-	var builder strings.Builder
-
-	for _, runeValue := range value {
-		if runeValue >= '0' && runeValue <= '9' {
-			builder.WriteRune(runeValue)
-		}
-	}
-
-	return builder.String()
-}
-
-func parseDate(value string) (time.Time, error) {
-	trimmedValue := strings.TrimSpace(value)
-	layouts := []string{"2006-01-02", time.RFC3339}
-
-	var lastError error
-	for _, layout := range layouts {
-		parsedTime, err := time.Parse(layout, trimmedValue)
-		if err == nil {
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, time.UTC), nil
-		}
-
-		lastError = err
-	}
-
-	return time.Time{}, lastError
 }

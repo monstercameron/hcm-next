@@ -1,10 +1,7 @@
 package contactinfo
 
 import (
-	"bytes"
-	"encoding/json"
-	"strings"
-
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -34,7 +31,7 @@ type PlanTransactionOutput struct {
 
 // ExecutePlanTransaction builds deterministic internal write and external call request specs.
 func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePlanTransactionInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PlanTransactionInput](request.Input, "Contact information transaction plan input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
@@ -84,7 +81,7 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	output := PlanTransactionOutput{
 		BlockOutputContract: executor.NewTransactionOutputContract(
 			executor.RouteKeyTransactionPlanReady,
-			contactInfoTransactionFacts(len(internalWrites), len(externalCallRequests), len(projectionPatches)),
+			blockshared.TransactionFacts(PlanTransactionBlockName, len(internalWrites), len(externalCallRequests), len(projectionPatches)),
 			internalWrites,
 			externalCallRequests,
 			projectionPatches,
@@ -114,28 +111,6 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	}, nil
 }
 
-func contactInfoTransactionFacts(internalWriteCount int, externalCallCount int, projectionPatchCount int) []executor.Fact {
-	return []executor.Fact{
-		{Key: "ledgerFactCount", Value: internalWriteCount, Source: PlanTransactionBlockName},
-		{Key: "externalCallCount", Value: externalCallCount, Source: PlanTransactionBlockName},
-		{Key: "projectionPatchCount", Value: projectionPatchCount, Source: PlanTransactionBlockName},
-	}
-}
-
-func decodePlanTransactionInput(rawInput json.RawMessage) (PlanTransactionInput, *executor.ExecutionError) {
-	var input PlanTransactionInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PlanTransactionInput{}, executor.InvalidInputError("Contact information transaction plan input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
-}
-
 func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	requiredFields := map[string]string{
@@ -149,25 +124,8 @@ func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessag
 		"effectiveAt":                                input.EffectiveAt,
 	}
 
-	for field, value := range requiredFields {
-		if strings.TrimSpace(value) == "" {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "transaction_plan.required",
-				Field:   field,
-				Message: "Required transaction planning field is missing.",
-			})
-		}
-	}
-
-	if strings.TrimSpace(input.EffectiveAt) != "" {
-		if _, err := parseDate(input.EffectiveAt); err != nil {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "transaction_plan.effective_at_invalid",
-				Field:   "effectiveAt",
-				Message: "Effective date must be a valid date.",
-			})
-		}
-	}
+	validationErrors = append(validationErrors, blockshared.RequiredTransactionFields(requiredFields)...)
+	validationErrors = append(validationErrors, blockshared.TransactionEffectiveDateValidation(input.EffectiveAt)...)
 
 	return validationErrors
 }
@@ -199,11 +157,11 @@ func changedContactInfoFields(currentContactInfo ContactInfo, proposedContactInf
 	changedFields := make([]string, 0, 3)
 	normalizedCurrent := normalizeContactInfo(currentContactInfo)
 
-	if normalizedEmail(normalizedCurrent.PersonalEmail) != normalizedEmail(proposedContactInfo.PersonalEmail) {
+	if blockshared.NormalizedEmail(normalizedCurrent.PersonalEmail) != blockshared.NormalizedEmail(proposedContactInfo.PersonalEmail) {
 		changedFields = append(changedFields, "contact.personalEmail")
 	}
 
-	if digitsOnly(pointerValue(normalizedCurrent.MobilePhone)) != digitsOnly(pointerValue(proposedContactInfo.MobilePhone)) {
+	if blockshared.DigitsOnly(blockshared.StringValue(normalizedCurrent.MobilePhone)) != blockshared.DigitsOnly(blockshared.StringValue(proposedContactInfo.MobilePhone)) {
 		changedFields = append(changedFields, "contact.mobilePhone")
 	}
 

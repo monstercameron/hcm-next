@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -33,7 +34,7 @@ func TestExecutePreflightValidInput(t *testing.T) {
 		t.Fatalf("expected valid output, got errors: %#v", output.Errors)
 	}
 
-	if output.RiskLevel != preflightRiskLow {
+	if output.RiskLevel != blockshared.RiskLow {
 		t.Fatalf("expected low risk, got %s", output.RiskLevel)
 	}
 

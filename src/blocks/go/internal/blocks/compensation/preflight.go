@@ -1,18 +1,11 @@
 package compensation
 
 import (
-	"bytes"
-	"encoding/json"
 	"strings"
 	"time"
 
+	"hcm-next-executor/internal/blockshared"
 	"hcm-next-executor/internal/executor"
-)
-
-const (
-	preflightRiskLow    = "low"
-	preflightRiskMedium = "medium"
-	preflightRiskHigh   = "high"
 )
 
 // PreflightInput is the contract for compensation change validation.
@@ -38,29 +31,35 @@ type PreflightOutput struct {
 
 // ExecutePreflight validates a compensation change request without side effects.
 func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, *executor.ExecutionError) {
-	input, inputError := decodePreflightInput(request.Input)
+	input, inputError := blockshared.DecodeStrict[PreflightInput](request.Input, "Compensation preflight input does not match the expected contract.")
 	if inputError != nil {
 		return executor.BlockResult{}, inputError
 	}
 
-	evaluationDate, evaluationDateError := parseDate(request.Context.EffectiveAt)
+	evaluationDate, evaluationDateError := blockshared.ParseContextEffectiveDate(request.Context.EffectiveAt)
 	if evaluationDateError != nil {
-		return executor.BlockResult{}, executor.InvalidInputError("context.effectiveAt must be a valid date or RFC3339 timestamp.", map[string]any{
-			"field": "context.effectiveAt",
-		})
+		return executor.BlockResult{}, evaluationDateError
 	}
 
 	validationWarnings := validatePreflightWarnings(input)
 	validationErrors := validatePreflightInput(input, evaluationDate)
 	isValid := len(validationErrors) == 0
-	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	riskLevel := blockshared.RiskLevelForValidation(isValid, len(validationWarnings))
 	increasePercent := compensationIncreasePercent(input.CurrentCompensation, input.ProposedCompensation)
 	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
 		BlockOutputContract: executor.NewValidationOutputContract(
 			routeKey,
-			compensationPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings), increasePercent),
+			blockshared.PreflightFacts(
+				PreflightBlockName,
+				isValid,
+				riskLevel,
+				false,
+				true,
+				len(validationWarnings),
+				executor.Fact{Key: "increasePercent", Value: increasePercent, Source: PreflightBlockName},
+			),
 			validationErrors,
 			validationWarnings,
 		),
@@ -90,35 +89,9 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 	}, nil
 }
 
-func compensationPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int, increasePercent float64) []executor.Fact {
-	return []executor.Fact{
-		{Key: "valid", Value: isValid, Source: PreflightBlockName},
-		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
-		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
-		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
-		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
-		{Key: "increasePercent", Value: increasePercent, Source: PreflightBlockName},
-	}
-}
-
-func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {
-	var input PreflightInput
-	decoder := json.NewDecoder(bytes.NewReader(rawInput))
-	decoder.DisallowUnknownFields()
-
-	if err := decoder.Decode(&input); err != nil {
-		return PreflightInput{}, executor.InvalidInputError("Compensation preflight input does not match the expected contract.", map[string]any{
-			"decodeError": err.Error(),
-		})
-	}
-
-	return input, nil
-}
-
 func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	businessReason := strings.TrimSpace(input.BusinessReason)
-	effectiveAt := strings.TrimSpace(input.EffectiveAt)
 
 	if input.CurrentCompensation.Amount <= 0 {
 		validationErrors = append(validationErrors, ValidationMessage{
@@ -176,28 +149,7 @@ func validatePreflightInput(input PreflightInput, evaluationDate time.Time) []Va
 		})
 	}
 
-	if effectiveAt == "" {
-		validationErrors = append(validationErrors, ValidationMessage{
-			Code:    "compensation.effective_at_required",
-			Field:   "effectiveAt",
-			Message: "Effective date is required.",
-		})
-	} else {
-		effectiveDate, parseError := parseDate(effectiveAt)
-		if parseError != nil {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "compensation.effective_at_invalid",
-				Field:   "effectiveAt",
-				Message: "Effective date must be a valid date.",
-			})
-		} else if effectiveDate.Before(evaluationDate.AddDate(0, 0, -180)) {
-			validationErrors = append(validationErrors, ValidationMessage{
-				Code:    "compensation.effective_at_too_far_in_past",
-				Field:   "effectiveAt",
-				Message: "Effective date cannot be more than 180 days in the past.",
-			})
-		}
-	}
+	validationErrors = append(validationErrors, blockshared.EffectiveDateValidation("compensation", input.EffectiveAt, evaluationDate, 180)...)
 
 	if strings.TrimSpace(input.ProposedCompensation.EffectiveDate) == "" {
 		validationErrors = append(validationErrors, ValidationMessage{
@@ -223,33 +175,4 @@ func validatePreflightWarnings(input PreflightInput) []ValidationMessage {
 	}
 
 	return warnings
-}
-
-func riskLevelForPreflight(isValid bool, warnings []ValidationMessage) string {
-	if !isValid {
-		return preflightRiskHigh
-	}
-
-	if len(warnings) > 0 {
-		return preflightRiskMedium
-	}
-
-	return preflightRiskLow
-}
-
-func parseDate(value string) (time.Time, error) {
-	trimmedValue := strings.TrimSpace(value)
-	layouts := []string{"2006-01-02", time.RFC3339}
-
-	var lastError error
-	for _, layout := range layouts {
-		parsedTime, err := time.Parse(layout, trimmedValue)
-		if err == nil {
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, time.UTC), nil
-		}
-
-		lastError = err
-	}
-
-	return time.Time{}, lastError
 }
