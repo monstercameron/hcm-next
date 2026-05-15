@@ -2,6 +2,17 @@
 
 ## 2026-05-15
 
+- `ddc16da` - Updated the generic runtime TODOs and workflow schema docs after
+  moving the active workflow path to generic runtime execution.
+- `71191dd` - Moved workflow E2E coverage to the public API routes and added a
+  generic-runtime contract test proving a new workflow intent can run without a
+  workflow-specific TypeScript service edit.
+- `a2220ba` - Replaced workflow-specific TypeScript services with the generic
+  runtime, config-driven workflow schemas, external-write client dispatch, and
+  reusable approval, transaction, permission, timeline, and record handling.
+- `68968e3` - Added the generic Go block output contract, customer-facing SDK
+  aliases, block contract docs, and generic route/transaction fields across
+  existing deterministic blocks.
 - `2c63cef` - Added the generic workflow runtime TODO plan that captures the
   remaining work to remove workflow-specific TypeScript branches and move
   business behavior into config and Go blocks.
