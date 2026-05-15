@@ -3,6 +3,7 @@ import {
   LEDGER_EVENT_TYPES,
   WORKFLOW_INTENTS,
   WORKFLOW_TRANSITIONS,
+  ok,
   type AppError,
   type Result,
 } from "@hcm-next/foundation";
@@ -22,9 +23,16 @@ import {
   DEMO_ORG_TRANSFER_FIXTURE_ALIASES,
 } from "@hcm-next/data-store/demo-organization";
 import type { AppDependencies } from "../../api/dependencies.js";
+import type {
+  ExecutorClient,
+  ExecutorRequest,
+  ExecutorResponse,
+} from "../../api/executor-client.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
+  getAvailableActions,
   getEmployeeProjection,
+  getTasks,
   getTimeline,
   listEmployeeProjections,
   startWorkflowIntent,
@@ -850,6 +858,10 @@ function availableActionTransitions(
     requestContext,
     workflowInstanceId,
   );
+  if (!actionsResult.ok) {
+    return [];
+  }
+
   const actionsPayload = unwrapResult(actionsResult);
   const actions = actionsPayload["actions"] as Array<Record<string, unknown>>;
 
