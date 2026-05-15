@@ -13,7 +13,10 @@ export type ActorType = ValueOf<typeof ACTOR_TYPES>;
 
 export const ROLE_KEYS = {
   EMPLOYEE: "employee",
+  MANAGER: "manager",
   HR_ADMIN: "hr_admin",
+  FINANCE_ADMIN: "finance_admin",
+  COMPENSATION_ADMIN: "compensation_admin",
   SYSTEM: "system",
 } as const;
 
@@ -37,6 +40,27 @@ export const PERMISSION_KEYS = {
   EMERGENCY_CONTACT_APPROVE: "employee_data_change.emergency_contact.approve",
   EMERGENCY_CONTACT_REJECT: "employee_data_change.emergency_contact.reject",
   EMERGENCY_CONTACT_EXECUTE: "employee_data_change.emergency_contact.execute",
+  ORG_TRANSFER_REQUEST: "employee_data_change.org_transfer.request",
+  ORG_TRANSFER_HR_REVIEW: "employee_data_change.org_transfer.hr_review",
+  ORG_TRANSFER_MANAGER_APPROVE: "employee_data_change.org_transfer.manager_approve",
+  ORG_TRANSFER_DESTINATION_MANAGER_APPROVE:
+    "employee_data_change.org_transfer.destination_manager_approve",
+  ORG_TRANSFER_FINANCE_APPROVE: "employee_data_change.org_transfer.finance_approve",
+  ORG_TRANSFER_COMPENSATION_APPROVE:
+    "employee_data_change.org_transfer.compensation_approve",
+  ORG_TRANSFER_MEDICAL_DIRECTOR_APPROVE:
+    "employee_data_change.org_transfer.medical_director_approve",
+  ORG_TRANSFER_EXECUTE: "employee_data_change.org_transfer.execute",
+  ORG_TRANSFER_VIEW_RESTRICTED_SUMMARY:
+    "employee_data_change.org_transfer.view_restricted_summary",
+  EMPLOYEE_VIEW_PROFILE: "employee.profile.view",
+  EMPLOYEE_VIEW_ORGANIZATION: "employee.organization.view",
+  EMPLOYEE_VIEW_JOB: "employee.job.view",
+  EMPLOYEE_VIEW_CONTACT: "employee.contact.view",
+  EMPLOYEE_VIEW_EMPLOYMENT: "employee.employment.view",
+  EMPLOYEE_VIEW_EMERGENCY_CONTACTS: "employee.emergency_contacts.view",
+  EMPLOYEE_VIEW_COMPENSATION: "employee.compensation.view",
+  EMPLOYEE_VIEW_WORKFLOW: "employee.workflow.view",
 } as const;
 
 export type PermissionKey = ValueOf<typeof PERMISSION_KEYS>;

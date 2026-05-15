@@ -1,6 +1,7 @@
 import type { Pool } from "pg";
 
 import {
+  DEMO_SEED_ALIASES,
   fromPromise,
   mapUnknownToDatabaseError,
   ok,
@@ -8,16 +9,21 @@ import {
 } from "@hcm-next/foundation";
 
 import { executeInTransaction, type DatabaseClient } from "../client";
+import { DEMO_ORGANIZATION } from "../demo-organization";
 import {
   DEMO_ACTORS,
-  DEMO_EMPLOYEE_PROJECTION,
+  DEMO_EMPLOYEE_PROJECTIONS,
   DEMO_LEGAL_NAME_INPUT_SCHEMA,
+  DEMO_ORGANIZATION_RELATIONSHIPS,
+  DEMO_ORGANIZATION_UNITS,
   DEMO_PERMISSION_POLICIES,
+  DEMO_ROLE_BINDINGS,
   DEMO_SEED_IDS,
+  DEMO_WORKER_ASSIGNMENTS,
   DEMO_WORKFLOW_GRAPH,
   DEMO_WORKFLOW_OUTPUT_SCHEMA,
+  demoIndexedFieldsForEmployeeProjection,
 } from "./demo-seed-data";
-import { DEMO_SEED_ALIASES } from "@hcm-next/foundation";
 
 export type SeedSummary = {
   statementsApplied: number;
@@ -27,6 +33,13 @@ export type SeedSummary = {
   hrActorAlias: string;
   systemActorAlias: string;
   employeeId: string;
+  organizationName: string;
+  organizationDatabaseName: string;
+  employeeCount: number;
+  organizationUnitCount: number;
+  organizationRelationshipCount: number;
+  workerAssignmentCount: number;
+  roleBindingCount: number;
 };
 
 async function executeSeedStatement(
@@ -62,7 +75,7 @@ async function applyDemoSeed(database: DatabaseClient): Promise<Result<number>> 
         data_region,
         settings
       )
-      VALUES ($1, $2, $3, 'active', 'America/New_York', 'en-US', 'US', $4::jsonb)
+      VALUES ($1, $2, $3, 'active', $4, $5, $6, $7::jsonb)
       ON CONFLICT (tenant_id) DO UPDATE
       SET name = EXCLUDED.name,
           slug = EXCLUDED.slug,
@@ -75,10 +88,23 @@ async function applyDemoSeed(database: DatabaseClient): Promise<Result<number>> 
     `,
     [
       DEMO_SEED_IDS.TENANT_ID,
-      "HCM Next Demo",
+      DEMO_ORGANIZATION.name,
       DEMO_SEED_ALIASES.TENANT,
+      DEMO_ORGANIZATION.defaultTimezone,
+      DEMO_ORGANIZATION.defaultLocale,
+      DEMO_ORGANIZATION.dataRegion,
       {
         demo: true,
+        organization: {
+          name: DEMO_ORGANIZATION.name,
+          slug: DEMO_ORGANIZATION.slug,
+          legalEntity: DEMO_ORGANIZATION.legalEntity,
+          industry: DEMO_ORGANIZATION.industry,
+        },
+        isolation: {
+          model: DEMO_ORGANIZATION.isolationModel,
+          databaseName: DEMO_ORGANIZATION.recommendedDatabaseName,
+        },
       },
     ],
   );
@@ -175,12 +201,221 @@ async function applyDemoSeed(database: DatabaseClient): Promise<Result<number>> 
         actor.externalSubject,
         {
           demoAlias: actor.externalSubject,
+          organizationSlug: DEMO_ORGANIZATION.slug,
+          accessPersonas: actor.accessPersonas,
         },
       ],
     );
 
     if (!actorResult.ok) {
       return actorResult;
+    }
+
+    statementsApplied += 1;
+  }
+
+  for (const organizationUnit of DEMO_ORGANIZATION_UNITS) {
+    const organizationUnitResult = await executeSeedStatement(
+      database,
+      `
+        INSERT INTO organization_units (
+          org_unit_id,
+          tenant_id,
+          unit_key,
+          type,
+          name,
+          status,
+          country,
+          jurisdiction,
+          effective_start,
+          effective_end,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10::timestamptz, $11::jsonb)
+        ON CONFLICT (tenant_id, unit_key) DO UPDATE
+        SET type = EXCLUDED.type,
+            name = EXCLUDED.name,
+            status = EXCLUDED.status,
+            country = EXCLUDED.country,
+            jurisdiction = EXCLUDED.jurisdiction,
+            effective_start = EXCLUDED.effective_start,
+            effective_end = EXCLUDED.effective_end,
+            metadata = EXCLUDED.metadata,
+            updated_at = now()
+      `,
+      [
+        organizationUnit.orgUnitId,
+        DEMO_SEED_IDS.TENANT_ID,
+        organizationUnit.unitKey,
+        organizationUnit.type,
+        organizationUnit.name,
+        organizationUnit.status,
+        organizationUnit.country,
+        organizationUnit.jurisdiction,
+        organizationUnit.effectiveStart,
+        organizationUnit.effectiveEnd,
+        organizationUnit.metadata,
+      ],
+    );
+
+    if (!organizationUnitResult.ok) {
+      return organizationUnitResult;
+    }
+
+    statementsApplied += 1;
+  }
+
+  for (const relationship of DEMO_ORGANIZATION_RELATIONSHIPS) {
+    const relationshipResult = await executeSeedStatement(
+      database,
+      `
+        INSERT INTO organization_relationships (
+          organization_relationship_id,
+          tenant_id,
+          from_org_unit_id,
+          to_org_unit_id,
+          relationship_type,
+          status,
+          effective_start,
+          effective_end,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $8::timestamptz, $9::jsonb)
+        ON CONFLICT (organization_relationship_id) DO UPDATE
+        SET from_org_unit_id = EXCLUDED.from_org_unit_id,
+            to_org_unit_id = EXCLUDED.to_org_unit_id,
+            relationship_type = EXCLUDED.relationship_type,
+            status = EXCLUDED.status,
+            effective_start = EXCLUDED.effective_start,
+            effective_end = EXCLUDED.effective_end,
+            metadata = EXCLUDED.metadata,
+            updated_at = now()
+      `,
+      [
+        relationship.organizationRelationshipId,
+        DEMO_SEED_IDS.TENANT_ID,
+        relationship.fromOrgUnitId,
+        relationship.toOrgUnitId,
+        relationship.relationshipType,
+        relationship.status,
+        relationship.effectiveStart,
+        relationship.effectiveEnd,
+        relationship.metadata,
+      ],
+    );
+
+    if (!relationshipResult.ok) {
+      return relationshipResult;
+    }
+
+    statementsApplied += 1;
+  }
+
+  for (const assignment of DEMO_WORKER_ASSIGNMENTS) {
+    const assignmentResult = await executeSeedStatement(
+      database,
+      `
+        INSERT INTO worker_assignments (
+          worker_assignment_id,
+          tenant_id,
+          employee_id,
+          org_unit_id,
+          assignment_type,
+          role_type,
+          manager_employee_id,
+          allocation_percent,
+          status,
+          effective_start,
+          effective_end,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::timestamptz, $12::jsonb)
+        ON CONFLICT (worker_assignment_id) DO UPDATE
+        SET employee_id = EXCLUDED.employee_id,
+            org_unit_id = EXCLUDED.org_unit_id,
+            assignment_type = EXCLUDED.assignment_type,
+            role_type = EXCLUDED.role_type,
+            manager_employee_id = EXCLUDED.manager_employee_id,
+            allocation_percent = EXCLUDED.allocation_percent,
+            status = EXCLUDED.status,
+            effective_start = EXCLUDED.effective_start,
+            effective_end = EXCLUDED.effective_end,
+            metadata = EXCLUDED.metadata,
+            updated_at = now()
+      `,
+      [
+        assignment.workerAssignmentId,
+        DEMO_SEED_IDS.TENANT_ID,
+        assignment.employeeId,
+        assignment.orgUnitId,
+        assignment.assignmentType,
+        assignment.roleType,
+        assignment.managerEmployeeId,
+        assignment.allocationPercent,
+        assignment.status,
+        assignment.effectiveStart,
+        assignment.effectiveEnd,
+        assignment.metadata,
+      ],
+    );
+
+    if (!assignmentResult.ok) {
+      return assignmentResult;
+    }
+
+    statementsApplied += 1;
+  }
+
+  for (const roleBinding of DEMO_ROLE_BINDINGS) {
+    const roleBindingResult = await executeSeedStatement(
+      database,
+      `
+        INSERT INTO role_bindings (
+          role_binding_id,
+          tenant_id,
+          actor_id,
+          role_key,
+          scope_type,
+          scope_org_unit_id,
+          scope_value,
+          relationship_type,
+          status,
+          effective_start,
+          effective_end,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::timestamptz, $12::jsonb)
+        ON CONFLICT (role_binding_id) DO UPDATE
+        SET actor_id = EXCLUDED.actor_id,
+            role_key = EXCLUDED.role_key,
+            scope_type = EXCLUDED.scope_type,
+            scope_org_unit_id = EXCLUDED.scope_org_unit_id,
+            scope_value = EXCLUDED.scope_value,
+            relationship_type = EXCLUDED.relationship_type,
+            status = EXCLUDED.status,
+            effective_start = EXCLUDED.effective_start,
+            effective_end = EXCLUDED.effective_end,
+            metadata = EXCLUDED.metadata,
+            updated_at = now()
+      `,
+      [
+        roleBinding.roleBindingId,
+        DEMO_SEED_IDS.TENANT_ID,
+        roleBinding.actorId,
+        roleBinding.roleKey,
+        roleBinding.scopeType,
+        roleBinding.scopeOrgUnitId,
+        roleBinding.scopeValue,
+        roleBinding.relationshipType,
+        roleBinding.status,
+        roleBinding.effectiveStart,
+        roleBinding.effectiveEnd,
+        roleBinding.metadata,
+      ],
+    );
+
+    if (!roleBindingResult.ok) {
+      return roleBindingResult;
     }
 
     statementsApplied += 1;
@@ -320,40 +555,38 @@ async function applyDemoSeed(database: DatabaseClient): Promise<Result<number>> 
 
   statementsApplied += 1;
 
-  const employeeProjectionResult = await executeSeedStatement(
-    database,
-    `
-      INSERT INTO employee_projection (
-        tenant_id,
-        employee_id,
-        projection_version,
-        document,
-        indexed_fields
-      )
-      VALUES ($1, $2, 1, $3::jsonb, $4::jsonb)
-      ON CONFLICT (tenant_id, employee_id) DO UPDATE
-      SET projection_version = EXCLUDED.projection_version,
-          document = EXCLUDED.document,
-          indexed_fields = EXCLUDED.indexed_fields,
-          updated_at = now()
-    `,
-    [
-      DEMO_SEED_IDS.TENANT_ID,
-      DEMO_SEED_ALIASES.EMPLOYEE,
-      DEMO_EMPLOYEE_PROJECTION,
-      {
-        displayName: DEMO_EMPLOYEE_PROJECTION.person.displayName,
-        employmentStatus: DEMO_EMPLOYEE_PROJECTION.employment.status,
-        legalEntity: DEMO_EMPLOYEE_PROJECTION.employment.legalEntity,
-      },
-    ],
-  );
+  for (const employeeProjection of DEMO_EMPLOYEE_PROJECTIONS) {
+    const employeeProjectionResult = await executeSeedStatement(
+      database,
+      `
+        INSERT INTO employee_projection (
+          tenant_id,
+          employee_id,
+          projection_version,
+          document,
+          indexed_fields
+        )
+        VALUES ($1, $2, 1, $3::jsonb, $4::jsonb)
+        ON CONFLICT (tenant_id, employee_id) DO UPDATE
+        SET projection_version = EXCLUDED.projection_version,
+            document = EXCLUDED.document,
+            indexed_fields = EXCLUDED.indexed_fields,
+            updated_at = now()
+      `,
+      [
+        DEMO_SEED_IDS.TENANT_ID,
+        employeeProjection.employeeId,
+        employeeProjection,
+        demoIndexedFieldsForEmployeeProjection(employeeProjection),
+      ],
+    );
 
-  if (!employeeProjectionResult.ok) {
-    return employeeProjectionResult;
+    if (!employeeProjectionResult.ok) {
+      return employeeProjectionResult;
+    }
+
+    statementsApplied += 1;
   }
-
-  statementsApplied += 1;
 
   for (const policy of DEMO_PERMISSION_POLICIES) {
     const policyResult = await executeSeedStatement(
@@ -508,5 +741,12 @@ export async function runDemoSeed(pool: Pool): Promise<Result<SeedSummary>> {
     hrActorAlias: DEMO_SEED_ALIASES.HR_ACTOR,
     systemActorAlias: DEMO_SEED_ALIASES.SYSTEM_ACTOR,
     employeeId: DEMO_SEED_ALIASES.EMPLOYEE,
+    organizationName: DEMO_ORGANIZATION.name,
+    organizationDatabaseName: DEMO_ORGANIZATION.recommendedDatabaseName,
+    employeeCount: DEMO_EMPLOYEE_PROJECTIONS.length,
+    organizationUnitCount: DEMO_ORGANIZATION_UNITS.length,
+    organizationRelationshipCount: DEMO_ORGANIZATION_RELATIONSHIPS.length,
+    workerAssignmentCount: DEMO_WORKER_ASSIGNMENTS.length,
+    roleBindingCount: DEMO_ROLE_BINDINGS.length,
   });
 }

@@ -13,6 +13,7 @@ import {
   type HcmNextStore,
 } from "./store.js";
 import type {
+  AccessGrantRecord,
   ActorRecord,
   ApprovalTaskRecord,
   ChangeRequestRecord,
@@ -21,8 +22,12 @@ import type {
   EmployeeProjectionRecord,
   IntegrationOutboxRecord,
   LedgerEventRecord,
+  OrganizationRelationshipRecord,
+  OrganizationUnitRecord,
   ProposedChangeRecord,
+  RoleBindingRecord,
   TransactionPlanRecord,
+  WorkerAssignmentRecord,
   WorkflowInstanceDocumentRecord,
   WorkflowInstanceRecord,
   WorkflowTransitionAttemptRecord,
@@ -33,6 +38,11 @@ export type Repositories = ReturnType<typeof createRepositories>;
 export function createRepositories(store: HcmNextStore) {
   return {
     actors: createActorRepository(store),
+    accessGrants: createAccessGrantRepository(store),
+    organizationUnits: createOrganizationUnitRepository(store),
+    organizationRelationships: createOrganizationRelationshipRepository(store),
+    workerAssignments: createWorkerAssignmentRepository(store),
+    roleBindings: createRoleBindingRepository(store),
     workflows: createWorkflowRepository(store),
     ledger: createLedgerRepository(store),
     changeRequests: createChangeRequestRepository(store),
@@ -56,6 +66,339 @@ function createActorRepository(store: HcmNextStore) {
       }
 
       return ok(actor);
+    },
+
+    findByLinkedWorkerId(
+      tenantId: string,
+      linkedWorkerId: string,
+    ): Result<ActorRecord, AppError> {
+      const actor = [...store.actors.values()].find((candidate) => {
+        return (
+          candidate.tenantId === tenantId &&
+          candidate.linkedWorkerId === linkedWorkerId &&
+          candidate.status === "active"
+        );
+      });
+
+      if (actor === undefined) {
+        return err(notFoundError("Actor", { linkedWorkerId }));
+      }
+
+      return ok(actor);
+    },
+
+    findFirstActiveByRole(
+      tenantId: string,
+      role: string,
+    ): Result<ActorRecord, AppError> {
+      const actor = [...store.actors.values()].find((candidate) => {
+        return (
+          candidate.tenantId === tenantId &&
+          candidate.status === "active" &&
+          candidate.roles.includes(role)
+        );
+      });
+
+      if (actor === undefined) {
+        return err(notFoundError("Actor", { role }));
+      }
+
+      return ok(actor);
+    },
+  };
+}
+
+function createAccessGrantRepository(store: HcmNextStore) {
+  return {
+    findActiveForActor(
+      tenantId: string,
+      actorId: string,
+    ): Result<AccessGrantRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.accessGrants.values()].filter((grant) => {
+          return (
+            grant.tenantId === tenantId &&
+            grant.actorId === actorId &&
+            grant.status === "active" &&
+            grant.startsAt <= now &&
+            (grant.expiresAt === undefined || grant.expiresAt > now)
+          );
+        }),
+      );
+    },
+  };
+}
+
+function createOrganizationUnitRepository(store: HcmNextStore) {
+  return {
+    findById(
+      tenantId: string,
+      orgUnitId: string,
+    ): Result<OrganizationUnitRecord, AppError> {
+      const organizationUnit = store.organizationUnits.get(orgUnitId);
+
+      if (organizationUnit === undefined || organizationUnit.tenantId !== tenantId) {
+        return err(notFoundError("Organization unit", { orgUnitId }));
+      }
+
+      return ok(organizationUnit);
+    },
+
+    findByTenant(tenantId: string): Result<OrganizationUnitRecord[], AppError> {
+      return ok(
+        [...store.organizationUnits.values()].filter((organizationUnit) => {
+          return organizationUnit.tenantId === tenantId;
+        }),
+      );
+    },
+
+    findByKey(
+      tenantId: string,
+      unitKey: string,
+    ): Result<OrganizationUnitRecord, AppError> {
+      const organizationUnit = [...store.organizationUnits.values()].find((unit) => {
+        return unit.tenantId === tenantId && unit.unitKey === unitKey;
+      });
+
+      if (organizationUnit === undefined) {
+        return err(notFoundError("Organization unit", { unitKey }));
+      }
+
+      return ok(organizationUnit);
+    },
+  };
+}
+
+function createOrganizationRelationshipRepository(store: HcmNextStore) {
+  return {
+    findByTenant(tenantId: string): Result<OrganizationRelationshipRecord[], AppError> {
+      return ok(
+        [...store.organizationRelationships.values()].filter((relationship) => {
+          return relationship.tenantId === tenantId;
+        }),
+      );
+    },
+
+    findActiveFromUnit(
+      tenantId: string,
+      fromOrgUnitId: string,
+    ): Result<OrganizationRelationshipRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.organizationRelationships.values()].filter((relationship) => {
+          return (
+            relationship.tenantId === tenantId &&
+            relationship.fromOrgUnitId === fromOrgUnitId &&
+            relationship.status === "active" &&
+            relationship.effectiveStart <= now &&
+            (relationship.effectiveEnd === undefined || relationship.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+  };
+}
+
+function createWorkerAssignmentRepository(store: HcmNextStore) {
+  return {
+    create(record: WorkerAssignmentRecord): Result<WorkerAssignmentRecord, AppError> {
+      store.workerAssignments.set(record.workerAssignmentId, record);
+      return ok(record);
+    },
+
+    update(record: WorkerAssignmentRecord): Result<WorkerAssignmentRecord, AppError> {
+      if (!store.workerAssignments.has(record.workerAssignmentId)) {
+        return err(
+          notFoundError("Worker assignment", {
+            workerAssignmentId: record.workerAssignmentId,
+          }),
+        );
+      }
+
+      store.workerAssignments.set(record.workerAssignmentId, {
+        ...record,
+        updatedAt: nowIso(),
+      });
+      return ok(store.workerAssignments.get(record.workerAssignmentId)!);
+    },
+
+    findById(workerAssignmentId: string): Result<WorkerAssignmentRecord, AppError> {
+      const workerAssignment = store.workerAssignments.get(workerAssignmentId);
+
+      if (workerAssignment === undefined) {
+        return err(notFoundError("Worker assignment", { workerAssignmentId }));
+      }
+
+      return ok(workerAssignment);
+    },
+
+    findActiveByTenant(tenantId: string): Result<WorkerAssignmentRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.workerAssignments.values()].filter((assignment) => {
+          return (
+            assignment.tenantId === tenantId &&
+            assignment.status === "active" &&
+            assignment.effectiveStart <= now &&
+            (assignment.effectiveEnd === undefined || assignment.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+
+    findActiveForEmployee(
+      tenantId: string,
+      employeeId: string,
+    ): Result<WorkerAssignmentRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.workerAssignments.values()].filter((assignment) => {
+          return (
+            assignment.tenantId === tenantId &&
+            assignment.employeeId === employeeId &&
+            assignment.status === "active" &&
+            assignment.effectiveStart <= now &&
+            (assignment.effectiveEnd === undefined || assignment.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+
+    findActiveForEmployeeByTypes(
+      tenantId: string,
+      employeeId: string,
+      assignmentTypes: string[],
+    ): Result<WorkerAssignmentRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.workerAssignments.values()].filter((assignment) => {
+          return (
+            assignment.tenantId === tenantId &&
+            assignment.employeeId === employeeId &&
+            assignment.status === "active" &&
+            assignmentTypes.includes(assignment.assignmentType) &&
+            assignment.effectiveStart <= now &&
+            (assignment.effectiveEnd === undefined || assignment.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+
+    findBySourceWorkflow(
+      tenantId: string,
+      sourceWorkflowInstanceId: string,
+    ): Result<WorkerAssignmentRecord[], AppError> {
+      return ok(
+        [...store.workerAssignments.values()].filter((assignment) => {
+          return (
+            assignment.tenantId === tenantId &&
+            assignment.sourceWorkflowInstanceId === sourceWorkflowInstanceId
+          );
+        }),
+      );
+    },
+
+    findActiveForOrgUnit(
+      tenantId: string,
+      orgUnitId: string,
+    ): Result<WorkerAssignmentRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.workerAssignments.values()].filter((assignment) => {
+          return (
+            assignment.tenantId === tenantId &&
+            assignment.orgUnitId === orgUnitId &&
+            assignment.status === "active" &&
+            assignment.effectiveStart <= now &&
+            (assignment.effectiveEnd === undefined || assignment.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+  };
+}
+
+function createRoleBindingRepository(store: HcmNextStore) {
+  return {
+    create(record: RoleBindingRecord): Result<RoleBindingRecord, AppError> {
+      store.roleBindings.set(record.roleBindingId, record);
+      return ok(record);
+    },
+
+    update(record: RoleBindingRecord): Result<RoleBindingRecord, AppError> {
+      if (!store.roleBindings.has(record.roleBindingId)) {
+        return err(
+          notFoundError("Role binding", { roleBindingId: record.roleBindingId }),
+        );
+      }
+
+      store.roleBindings.set(record.roleBindingId, {
+        ...record,
+        updatedAt: nowIso(),
+      });
+      return ok(store.roleBindings.get(record.roleBindingId)!);
+    },
+
+    findActiveForActor(
+      tenantId: string,
+      actorId: string,
+    ): Result<RoleBindingRecord[], AppError> {
+      const now = nowIso();
+
+      return ok(
+        [...store.roleBindings.values()].filter((roleBinding) => {
+          return (
+            roleBinding.tenantId === tenantId &&
+            roleBinding.actorId === actorId &&
+            roleBinding.status === "active" &&
+            roleBinding.effectiveStart <= now &&
+            (roleBinding.effectiveEnd === undefined || roleBinding.effectiveEnd > now)
+          );
+        }),
+      );
+    },
+
+    findActiveByActorRoleAndScope(
+      tenantId: string,
+      actorId: string,
+      roleKey: string,
+      scopeType: string,
+    ): Result<RoleBindingRecord | undefined, AppError> {
+      const now = nowIso();
+      const roleBinding = [...store.roleBindings.values()].find((candidate) => {
+        return (
+          candidate.tenantId === tenantId &&
+          candidate.actorId === actorId &&
+          candidate.roleKey === roleKey &&
+          candidate.scopeType === scopeType &&
+          candidate.status === "active" &&
+          candidate.effectiveStart <= now &&
+          (candidate.effectiveEnd === undefined || candidate.effectiveEnd > now)
+        );
+      });
+
+      return ok(roleBinding);
+    },
+
+    findBySourceWorkflow(
+      tenantId: string,
+      sourceWorkflowInstanceId: string,
+    ): Result<RoleBindingRecord[], AppError> {
+      return ok(
+        [...store.roleBindings.values()].filter((roleBinding) => {
+          return (
+            roleBinding.tenantId === tenantId &&
+            roleBinding.sourceWorkflowInstanceId === sourceWorkflowInstanceId
+          );
+        }),
+      );
     },
   };
 }
@@ -315,7 +658,7 @@ function createApprovalRepository(store: HcmNextStore) {
         return (
           task.status === "pending" &&
           (task.assigneeActorId === actor.actorId ||
-            (actor.roles.includes("hr_admin") && task.assigneeRole === "hr_admin"))
+            actor.roles.includes(task.assigneeRole))
         );
       });
 
@@ -366,6 +709,14 @@ function createTransactionPlanRepository(store: HcmNextStore) {
 
 function createEmployeeProjectionRepository(store: HcmNextStore) {
   return {
+    findByTenant(tenantId: string): Result<EmployeeProjectionRecord[], AppError> {
+      return ok(
+        [...store.employeeProjections.values()].filter(
+          (projection) => projection.tenantId === tenantId,
+        ),
+      );
+    },
+
     findByEmployeeId(
       tenantId: string,
       employeeId: string,
@@ -402,6 +753,7 @@ function createEmployeeProjectionRepository(store: HcmNextStore) {
         sourceEventId,
         sourceEventSequence,
         document,
+        indexedFields: indexedFieldsForEmployeeDocument(document),
         updatedAt: nowIso(),
       };
 
@@ -414,11 +766,40 @@ function createEmployeeProjectionRepository(store: HcmNextStore) {
   };
 }
 
+function indexedFieldsForEmployeeDocument(
+  document: EmployeeProjectionDocument,
+): Record<string, unknown> {
+  return {
+    displayName: document.person.displayName,
+    employmentStatus: document.employment.status,
+    legalEntity: document.employment.legalEntity,
+    businessUnit: document.organization.businessUnit,
+    department: document.organization.department,
+    team: document.organization.team,
+    location: document.organization.location,
+    costCenter: document.organization.costCenter,
+    managerEmployeeId: document.manager.employeeId,
+    jobCode: document.job.jobCode,
+    jobLevel: document.job.level,
+  };
+}
+
 function createIntegrationOutboxRepository(store: HcmNextStore) {
   return {
     create(record: IntegrationOutboxRecord): Result<IntegrationOutboxRecord, AppError> {
       store.integrationOutbox.set(record.outboxId, record);
       return ok(record);
+    },
+
+    findByIdempotencyKey(
+      tenantId: string,
+      idempotencyKey: string,
+    ): Result<IntegrationOutboxRecord | undefined, AppError> {
+      const outboxRow = [...store.integrationOutbox.values()].find((record) => {
+        return record.tenantId === tenantId && record.idempotencyKey === idempotencyKey;
+      });
+
+      return ok(outboxRow);
     },
 
     findByChangeRequest(

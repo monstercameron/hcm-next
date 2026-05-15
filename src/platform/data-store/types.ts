@@ -262,13 +262,13 @@ export type EmployeeProjectionDocument = {
     workEmail: string;
   };
   contact: ContactInfo;
-  employment: {
-    status: string;
-    legalEntity: string;
-  };
+  employment: EmploymentInfo;
+  organization: OrganizationInfo;
   manager: {
-    employeeId: string;
+    employeeId: string | null;
   };
+  job: JobInfo;
+  compensation: CompensationInfo;
   emergencyContacts: EmergencyContact[];
   custom: Record<string, unknown>;
 };
@@ -277,6 +277,39 @@ export type ContactInfo = {
   personalEmail: string | null;
   mobilePhone: string | null;
   homeAddress: PostalAddress;
+  workPhone?: string | null;
+};
+
+export type EmploymentInfo = {
+  status: string;
+  legalEntity: string;
+  hireDate: string;
+  workerType: string;
+};
+
+export type OrganizationInfo = {
+  legalEntity: string;
+  businessUnit: string;
+  department: string;
+  team: string;
+  location: string;
+  payZone: string;
+  costCenter: string;
+};
+
+export type JobInfo = {
+  jobCode: string;
+  title: string;
+  family: string;
+  level: string;
+};
+
+export type CompensationInfo = {
+  amount: number;
+  currency: string;
+  payFrequency: string;
+  bonusTargetPercent: number;
+  effectiveDate: string;
 };
 
 export type PostalAddress = {
@@ -301,6 +334,194 @@ export type EmergencyContact = {
   phone: string;
   email: string | null;
   priority: number;
+};
+
+export type AccessScopeType =
+  | "self"
+  | "direct_reports"
+  | "manager_chain"
+  | "business_unit"
+  | "department"
+  | "team"
+  | "location"
+  | "cost_center"
+  | "legal_entity"
+  | "global";
+
+export type EmployeeFieldGroup =
+  | "profile"
+  | "organization"
+  | "job"
+  | "employment"
+  | "contact"
+  | "emergency_contacts"
+  | "emergencyContacts"
+  | "workflow"
+  | "compensation";
+
+export type AccessGrantRecord = {
+  accessGrantId: string;
+  tenantId: string;
+  actorId: string;
+  permissions: string[];
+  scope: {
+    type: AccessScopeType;
+    values?: string[];
+  };
+  fieldGroups: EmployeeFieldGroup[];
+  status: string;
+  startsAt: string;
+  expiresAt?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrgLifecycleStatus =
+  | "proposed"
+  | "pending_approval"
+  | "active"
+  | "suspended"
+  | "expired"
+  | "revoked"
+  | "superseded"
+  | "inactive";
+
+export type OrganizationUnitType =
+  | "enterprise"
+  | "legal_entity"
+  | "employing_entity"
+  | "payroll_unit"
+  | "business_unit"
+  | "division"
+  | "department"
+  | "team"
+  | "location"
+  | "region"
+  | "cost_center"
+  | "project"
+  | "program"
+  | "clinic"
+  | "store"
+  | "franchisee"
+  | "supplier"
+  | "joint_venture"
+  | "board"
+  | "committee"
+  | "works_council"
+  | "union"
+  | "volunteer_group"
+  | "member_group";
+
+export type OrganizationUnitRecord = {
+  orgUnitId: string;
+  tenantId: string;
+  unitKey: string;
+  type: OrganizationUnitType;
+  name: string;
+  status: OrgLifecycleStatus;
+  country?: string | undefined;
+  jurisdiction?: string | undefined;
+  effectiveStart: string;
+  effectiveEnd?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrganizationRelationshipType =
+  | "part_of"
+  | "reports_to"
+  | "owns"
+  | "controls"
+  | "employs"
+  | "operates"
+  | "funds"
+  | "governs"
+  | "represents"
+  | "franchises"
+  | "supplies"
+  | "located_in"
+  | "allocated_to";
+
+export type OrganizationRelationshipRecord = {
+  organizationRelationshipId: string;
+  tenantId: string;
+  fromOrgUnitId: string;
+  toOrgUnitId: string;
+  relationshipType: OrganizationRelationshipType;
+  status: OrgLifecycleStatus;
+  effectiveStart: string;
+  effectiveEnd?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AssignmentLifecycleStatus = Exclude<OrgLifecycleStatus, "inactive">;
+
+export type WorkerAssignmentType =
+  | "legal_employer"
+  | "primary_team"
+  | "work_location"
+  | "cost_center"
+  | "project"
+  | "program"
+  | "committee"
+  | "board_seat"
+  | "volunteer_assignment"
+  | "member_affiliation"
+  | "representative_body";
+
+export type WorkerAssignmentRecord = {
+  workerAssignmentId: string;
+  tenantId: string;
+  employeeId: string;
+  orgUnitId: string;
+  assignmentType: WorkerAssignmentType;
+  roleType?: string | undefined;
+  managerEmployeeId?: string | undefined;
+  allocationPercent: number;
+  status: AssignmentLifecycleStatus;
+  effectiveStart: string;
+  effectiveEnd?: string | undefined;
+  sourceWorkflowInstanceId?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RoleBindingScopeType =
+  | "self"
+  | "direct_reports"
+  | "manager_chain"
+  | "org_unit"
+  | "org_unit_descendants"
+  | "legal_entity"
+  | "location"
+  | "country"
+  | "cost_center"
+  | "project"
+  | "assignment"
+  | "workflow_instance"
+  | "global";
+
+export type RoleBindingRecord = {
+  roleBindingId: string;
+  tenantId: string;
+  actorId: string;
+  roleKey: string;
+  scopeType: RoleBindingScopeType;
+  scopeOrgUnitId?: string | undefined;
+  scopeValue?: string | undefined;
+  relationshipType?: string | undefined;
+  status: AssignmentLifecycleStatus;
+  effectiveStart: string;
+  effectiveEnd?: string | undefined;
+  sourceWorkflowInstanceId?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type IntegrationOutboxRecord = {
