@@ -46,23 +46,28 @@ cd src/blocks/go
 go run ./cmd/executor
 ```
 
-The root `db:migrate` and `db:seed` scripts run the TypeScript migration and seed runners. They require a local `hcm_next` database.
+The root `db:migrate` and `db:seed` scripts run the TypeScript migration and seed runners. They require a local Postgres database. The default database is `hcm_next`; the HarborCare demo seed is designed for database-per-organization isolation and can be run against `hcm_next_harborcare` by setting `DATABASE_URL` before running the same migration and seed commands.
 
 ## Demo Seed Aliases
 
 Use these stable aliases in examples, tests, and seed data:
 
-| Alias                 | Meaning                    |
-| --------------------- | -------------------------- |
-| `tenant_demo`         | Demo tenant                |
-| `env_demo`            | Demo environment           |
-| `actor_employee_jane` | Employee actor             |
-| `actor_hr_admin`      | HR approver actor          |
-| `actor_system`        | System actor               |
-| `emp_123`             | Worker subject             |
-| `person_123`          | Person linked to `emp_123` |
+| Alias                 | Meaning                     |
+| --------------------- | --------------------------- |
+| `tenant_demo`         | HarborCare demo tenant      |
+| `env_demo`            | HarborCare demo environment |
+| `actor_employee_jane` | Employee actor              |
+| `actor_hr_admin`      | HR approver actor           |
+| `actor_system`        | System actor                |
+| `emp_123`             | Worker subject              |
+| `person_123`          | Person linked to `emp_123`  |
 
-The employee projection starts as:
+The HarborCare seed contains a roughly 50-person clinic network. The primary self-service employee projection starts as:
+
+Org-transfer E2E tests use the extended fixture aliases in
+[docs/fixtures/harborcare-org-transfer.md](fixtures/harborcare-org-transfer.md),
+including Boston Main Clinic, Cambridge Clinic, Cambridge Nursing, `CLN-BOS`,
+`CLN-CAM`, Morgan Lee (`emp_456`), and Sofia Rossi (`emp_461`).
 
 ```json
 {

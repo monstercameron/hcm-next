@@ -333,7 +333,7 @@ Current status in this checkout:
 | Typecheck passes                           | Passed | `npm run typecheck` completed.                      |
 | Tests pass                                 | Passed | `npm test` and `npm run test:go` completed.         |
 
-Local Postgres migration/seed execution still requires a running database named `hcm_next`, as documented in the README.
+Local Postgres migration/seed execution still requires a running Postgres database. The default remains `hcm_next`; the HarborCare demo seed can also be run against an organization-isolated database such as `hcm_next_harborcare` by setting `DATABASE_URL`.
 
 ## Latest Local Verification
 

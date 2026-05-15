@@ -10,6 +10,8 @@ src/
     foundation/         Result, errors, constants, context, logging, shared types.
     data-store/         Postgres client, migrations, seeds, repositories, projections.
     workflow-runtime/   Reusable workflow runtime primitives and services.
+  third-party-apis/
+    compensation-market/ Simulated external compensation data vendor API.
   workflows/
     legal-name-change/  Workflow-owned orchestration, permissions, manifest notes.
     shared/             Reusable workflow configuration conventions.
@@ -26,5 +28,6 @@ infra/                  Deployment and local infrastructure assets.
 - `src/platform/foundation` must not depend on application, storage, or workflow code.
 - `src/platform/data-store` owns SQL, migrations, repositories, seeds, projections, and ledger persistence.
 - `src/platform/workflow-runtime` owns reusable workflow machinery.
+- `src/third-party-apis/*` owns simulated vendor APIs only. These servers must stay separate from the internal HCM Next API in `src/api`.
 - `src/workflows/*` owns workflow-specific orchestration, permissions, schemas, state graphs, block contracts, and workflow notes.
 - `src/blocks/go` owns deterministic or performance-sensitive block execution.

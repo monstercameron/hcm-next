@@ -39,6 +39,7 @@ Node owns APIs, permissions, workflow orchestration, persistence, timeline reads
 ## Project Layout
 
 See [project-layout.md](project-layout.md) for the current repository map.
+See [workflow-schemas.md](workflow-schemas.md) for the evolving workflow schema and graph model.
 
 Short version:
 
@@ -131,6 +132,8 @@ Start local Postgres:
 ```bash
 docker compose up -d postgres
 createdb hcm_next
+# Optional organization-isolated demo database:
+createdb hcm_next_harborcare
 ```
 
 Run migrations and seeds:
@@ -161,7 +164,7 @@ Go executor: http://localhost:7001
 Postgres:    localhost:5432
 ```
 
-For the API-only demo and automated tests, the Node process uses seeded in-memory dependencies by default. The Postgres migration and seed scripts are present for the real ledger/projection store, but require a local `hcm_next` database before they can be run.
+For the API-only demo and automated tests, the Node process uses seeded in-memory dependencies by default. The Postgres migration and seed scripts are present for the real ledger/projection store. They use `hcm_next` by default; set `DATABASE_URL` to a database such as `hcm_next_harborcare` when running an organization-isolated demo seed.
 
 ## Quality Commands
 
