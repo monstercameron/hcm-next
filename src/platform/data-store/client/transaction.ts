@@ -43,6 +43,18 @@ export async function executeInTransaction<TValue>(
   } catch (error) {
     await client.query("ROLLBACK");
 
+    process.stderr.write(
+      `${JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: "error",
+        message: "database transaction failed and rolled back",
+        exception:
+          error instanceof Error
+            ? { name: error.name, message: error.message }
+            : String(error),
+      })}\n`,
+    );
+
     return err(mapUnknownToDatabaseError(error));
   } finally {
     client.release();

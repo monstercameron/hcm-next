@@ -4,7 +4,9 @@ import type { JsonRecord } from "../domain";
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LogContext = Partial<RequestContext> &
-  Partial<Pick<WorkflowContext, "workflowInstanceId" | "changeRequestId">>;
+  Partial<Pick<WorkflowContext, "workflowInstanceId" | "changeRequestId">> & {
+    service?: "api" | "executor";
+  };
 
 export type StructuredLogger = {
   debug: (message: string, details?: JsonRecord) => void;
