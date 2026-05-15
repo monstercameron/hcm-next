@@ -1,0 +1,12 @@
+{
+  "name": "@hcm-next/third-party-compensation-decision-api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx main.ts",
+    "build": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  }
+}

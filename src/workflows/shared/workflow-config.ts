@@ -13,8 +13,23 @@ import type { EmployeeProjectionDocument } from "@hcm-next/data-store";
 import legalNameWorkflowConfigJson from "../configs/employee-legal-name-change.workflow.json";
 import emergencyContactWorkflowConfigJson from "../configs/employee-emergency-contact-update.workflow.json";
 import contactInfoWorkflowConfigJson from "../configs/employee-contact-info-update.workflow.json";
+import compensationWorkflowConfigJson from "../configs/employee-compensation-change.workflow.json";
+import orgTransferCompensationChangeWorkflowConfigJson from "../configs/employee-org-transfer-compensation-change.workflow.json";
 
-export type WorkflowActionActor = "requester" | "hr_admin" | "hr_admin_or_system";
+export type WorkflowActionActor =
+  | "requester"
+  | "initiator"
+  | "hr_admin"
+  | "source_manager"
+  | "destination_manager"
+  | "finance_admin"
+  | "compensation_admin"
+  | "medical_director"
+  | "clinic_ops_admin"
+  | "org_transfer_approver"
+  | "hr_admin_or_system";
+
+export type WorkflowStartActor = "hr_admin" | "compensation_admin";
 
 export type WorkflowActionHandler =
   | "submit_configured_input"
@@ -31,8 +46,31 @@ export type WorkflowBlockReference = {
 };
 
 export type WorkflowValueExpression = {
-  $source: "input" | "employee" | "workflow" | "changeRequest" | "proposedChange";
+  $source:
+    | "input"
+    | "employee"
+    | "workflow"
+    | "changeRequest"
+    | "proposedChange"
+    | "approvalTask"
+    | "transactionPlan"
+    | "externalWriteResponse"
+    | "actor"
+    | "relationshipGraph"
+    | "tenantPolicy";
   path: string;
+};
+
+export type WorkflowOutcomeConditionSource =
+  | "externalWriteResponse"
+  | "externalWriteError";
+
+export type WorkflowOutcomeCondition = {
+  $source: WorkflowOutcomeConditionSource;
+  path: string;
+  equals?: unknown;
+  in?: unknown[];
+  exists?: boolean;
 };
 
 export type WorkflowInteractionConfig = Record<string, unknown> & {
@@ -41,6 +79,12 @@ export type WorkflowInteractionConfig = Record<string, unknown> & {
   employeeContext?: Array<{
     outputKey: string;
     path: string;
+    source?: "employee" | "workerAssignments" | "roleBindings" | "workflow";
+    visibility?: {
+      fieldGroups?: string[];
+      permissions?: string[];
+      actors?: WorkflowActionActor[];
+    };
   }>;
 };
 
@@ -86,15 +130,57 @@ export type WorkflowPlanConfig = {
   input: Record<string, unknown>;
 };
 
+export type WorkflowGraphOutcomeConfig = {
+  outcome: string;
+  when?: WorkflowOutcomeCondition;
+  eventType?: string;
+  nextNodeId?: string;
+  nextState?: WorkflowState;
+  nextStatus?: WorkflowStatus;
+  nextInteraction?: string;
+};
+
+export type WorkflowGraphNodeConfig = {
+  nodeId: string;
+  type:
+    | "interaction"
+    | "block"
+    | "policy_check"
+    | "approval"
+    | "transaction_plan"
+    | "data_write"
+    | "external_write"
+    | "projection_write"
+    | "manual_repair"
+    | "terminal";
+  title: string;
+  state?: WorkflowState;
+  interaction?: string;
+  block?: WorkflowBlockReference;
+  connectionId?: string;
+  operation?: string;
+  approval?: Record<string, unknown>;
+  policy?: Record<string, unknown>;
+  transaction?: Record<string, unknown>;
+  outcomes?: WorkflowGraphOutcomeConfig[];
+};
+
+export type WorkflowGraphConfig = {
+  startNodeId: string;
+  nodes: WorkflowGraphNodeConfig[];
+};
+
 export type WorkflowConfig = {
   intent: string;
   subjectType: string;
   selfServiceStart: boolean;
+  startActors?: WorkflowStartActor[];
   interactions: Record<string, WorkflowInteractionConfig>;
   states: Record<string, { actions: WorkflowActionConfig[] }>;
   submit: WorkflowSubmitConfig;
   approval: WorkflowApprovalConfig;
   plan: WorkflowPlanConfig;
+  graph?: WorkflowGraphConfig;
   projection: {
     allowedPatchPaths: string[];
   };
@@ -110,12 +196,20 @@ export type WorkflowTemplateSources = {
   workflow?: Record<string, unknown>;
   changeRequest?: Record<string, unknown>;
   proposedChange?: Record<string, unknown>;
+  approvalTask?: Record<string, unknown>;
+  transactionPlan?: Record<string, unknown>;
+  externalWriteResponse?: Record<string, unknown>;
+  actor?: Record<string, unknown>;
+  relationshipGraph?: Record<string, unknown>;
+  tenantPolicy?: Record<string, unknown>;
 };
 
 const workflowConfigs = [
   legalNameWorkflowConfigJson,
   emergencyContactWorkflowConfigJson,
   contactInfoWorkflowConfigJson,
+  compensationWorkflowConfigJson,
+  orgTransferCompensationChangeWorkflowConfigJson,
 ] as unknown as WorkflowConfig[];
 
 /**

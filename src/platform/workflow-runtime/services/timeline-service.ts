@@ -101,6 +101,11 @@ function summarizeLedgerEvent(event: LedgerEvent): string {
     [LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED]: "Change request created.",
     [LEDGER_EVENT_TYPES.PROPOSED_CHANGE_CREATED]: "Proposed change recorded.",
     [LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED]: "Legal name preflight completed.",
+    [LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED]:
+      "Emergency contact preflight completed.",
+    [LEDGER_EVENT_TYPES.CONTACT_INFO_PREFLIGHTED]:
+      "Contact information preflight completed.",
+    [LEDGER_EVENT_TYPES.COMPENSATION_PREFLIGHTED]: "Compensation preflight completed.",
     [LEDGER_EVENT_TYPES.EVIDENCE_REQUESTED]: "Evidence requested.",
     [LEDGER_EVENT_TYPES.DOCUMENT_CREATED]: "Document metadata created.",
     [LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED]: "Evidence provided.",
@@ -116,8 +121,14 @@ function summarizeLedgerEvent(event: LedgerEvent): string {
     [LEDGER_EVENT_TYPES.TRANSACTION_EXECUTION_STARTED]:
       "Transaction execution started.",
     [LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED]: "Legal name changed.",
+    [LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED]:
+      "Emergency contact updated.",
+    [LEDGER_EVENT_TYPES.EMPLOYEE_CONTACT_INFO_UPDATED]: "Contact information updated.",
+    [LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED]: "Compensation updated.",
     [LEDGER_EVENT_TYPES.EMPLOYEE_PROJECTION_UPDATED]: "Employee projection updated.",
     [LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED]: "External write requested.",
+    [LEDGER_EVENT_TYPES.EXTERNAL_WRITE_SUCCEEDED]: "External write succeeded.",
+    [LEDGER_EVENT_TYPES.EXTERNAL_WRITE_FAILED]: "External write failed.",
     [LEDGER_EVENT_TYPES.TRANSACTION_EXECUTION_COMPLETED]:
       "Transaction execution completed.",
     [LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED]: "Workflow completed.",

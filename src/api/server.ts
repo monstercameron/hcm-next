@@ -28,6 +28,7 @@ import {
   getTasks,
   getTimeline,
   getWorkflowInstance,
+  listEmployeeProjections,
   startWorkflowIntent,
   transitionWorkflow,
 } from "../workflows/legal-name-change/service.js";
@@ -172,6 +173,12 @@ async function routeWorkflowRequest(
   if (method === "GET" && segments.length === 1 && segments[0] === "tasks") {
     return handleQuery(routeContext, (requestContext) =>
       getTasks(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (method === "GET" && segments.length === 1 && segments[0] === "employees") {
+    return handleQuery(routeContext, (requestContext) =>
+      listEmployeeProjections(routeContext.dependencies, requestContext),
     );
   }
 

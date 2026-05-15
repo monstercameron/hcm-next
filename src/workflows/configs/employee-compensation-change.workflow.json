@@ -1,0 +1,411 @@
+{
+  "intent": "employee.compensation.change",
+  "subjectType": "worker",
+  "selfServiceStart": false,
+  "startActors": ["hr_admin"],
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "v0.2",
+      "title": "Request compensation change",
+      "employeeContext": [
+        {
+          "outputKey": "currentCompensation",
+          "path": "compensation"
+        },
+        {
+          "outputKey": "currentJob",
+          "path": "job"
+        },
+        {
+          "outputKey": "currentOrganization",
+          "path": "organization"
+        }
+      ],
+      "jsonSchema": {
+        "type": "object",
+        "required": ["proposedCompensation", "effectiveAt", "businessReason"],
+        "properties": {
+          "proposedCompensation": {
+            "type": "object",
+            "required": [
+              "amount",
+              "currency",
+              "payFrequency",
+              "bonusTargetPercent",
+              "effectiveDate"
+            ],
+            "properties": {
+              "amount": { "type": "number", "minimum": 1 },
+              "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+              "payFrequency": {
+                "type": "string",
+                "enum": ["annual", "hourly", "monthly"]
+              },
+              "bonusTargetPercent": { "type": "number", "minimum": 0 },
+              "effectiveDate": { "type": "string", "format": "date" }
+            }
+          },
+          "effectiveAt": { "type": "string", "format": "date" },
+          "businessReason": {
+            "type": "string",
+            "enum": [
+              "merit_increase",
+              "promotion",
+              "retention_adjustment",
+              "market_adjustment",
+              "correction"
+            ]
+          }
+        }
+      },
+      "uiSchema": {
+        "layout": "sectioned_form",
+        "submitLabel": "Submit for compensation review"
+      }
+    },
+    "waitingApproval": {
+      "type": "waiting",
+      "title": "Waiting for compensation approval"
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "title": "Ready to execute compensation change"
+    },
+    "vendorDecisionRepair": {
+      "type": "repair",
+      "title": "Vendor compensation decision needs repair",
+      "jsonSchema": {
+        "type": "object",
+        "required": ["repairAction"],
+        "properties": {
+          "repairAction": {
+            "type": "string",
+            "enum": ["revise_compensation", "cancel_request", "manual_review"]
+          },
+          "notes": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "repair_panel",
+        "submitLabel": "Record repair action"
+      }
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Submit for compensation review",
+          "actor": "initiator",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "waitingApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel",
+          "actor": "initiator",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve",
+          "actor": "compensation_admin",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject",
+          "actor": "compensation_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "initiator",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute compensation change",
+          "actor": "hr_admin_or_system",
+          "handler": "execute"
+        }
+      ]
+    },
+    "waiting_repair": {
+      "actions": [
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "hr_admin",
+          "handler": "cancel"
+        }
+      ]
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.employee_data.compensation.preflight",
+      "version": "1.0.0"
+    },
+    "preflightInput": {
+      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "proposedCompensation": {
+        "$source": "input",
+        "path": "proposedCompensation"
+      },
+      "currentJob": { "$source": "employee", "path": "job" },
+      "currentOrganization": { "$source": "employee", "path": "organization" },
+      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+      "businessReason": { "$source": "input", "path": "businessReason" }
+    },
+    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+    "businessReason": { "$source": "input", "path": "businessReason" },
+    "changeRequestStatus": "in_approval",
+    "markSubmitted": true,
+    "createApprovalTask": true,
+    "currentSnapshot": {
+      "compensation": { "$source": "employee", "path": "compensation" },
+      "job": { "$source": "employee", "path": "job" },
+      "organization": { "$source": "employee", "path": "organization" }
+    },
+    "proposedSnapshot": {
+      "compensation": { "$source": "input", "path": "proposedCompensation" }
+    },
+    "proposedChange": {
+      "targetObjectType": "worker",
+      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "fieldPath": "compensation",
+      "currentValue": { "$source": "employee", "path": "compensation" },
+      "proposedValue": {
+        "$source": "input",
+        "path": "proposedCompensation"
+      }
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "CompensationPreflighted",
+      "ApprovalTaskCreated",
+      "ChangeRequestSubmitted"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "actor_comp_admin",
+    "assigneeRole": "compensation_admin",
+    "approvalType": "compensation_change_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.employee_data.compensation.plan_transaction",
+      "version": "1.0.0"
+    },
+    "input": {
+      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
+      "workerId": { "$source": "workflow", "path": "subjectId" },
+      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "proposedCompensation": {
+        "$source": "proposedChange",
+        "path": "proposedValue"
+      },
+      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" },
+      "businessReason": { "$source": "changeRequest", "path": "businessReason" }
+    }
+  },
+  "graph": {
+    "startNodeId": "collect_compensation_input",
+    "nodes": [
+      {
+        "nodeId": "collect_compensation_input",
+        "type": "interaction",
+        "title": "Collect compensation input",
+        "state": "collecting_input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "nextNodeId": "compensation_preflight",
+            "nextState": "waiting_approval",
+            "nextStatus": "waiting"
+          },
+          {
+            "outcome": "canceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "compensation_preflight",
+        "type": "block",
+        "title": "Run compensation preflight",
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "nextNodeId": "compensation_approval",
+            "eventType": "CompensationPreflighted"
+          },
+          {
+            "outcome": "invalid",
+            "nextNodeId": "collect_compensation_input",
+            "eventType": "CompensationPreflighted",
+            "nextState": "collecting_input",
+            "nextStatus": "active"
+          }
+        ]
+      },
+      {
+        "nodeId": "compensation_approval",
+        "type": "approval",
+        "title": "Compensation approval",
+        "state": "waiting_approval",
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "nextNodeId": "plan_compensation_transaction",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "eventType": "ApprovalGranted"
+          },
+          {
+            "outcome": "rejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected",
+            "eventType": "ApprovalRejected"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_compensation_transaction",
+        "type": "transaction_plan",
+        "title": "Plan compensation transaction",
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "nextNodeId": "vendor_compensation_decision",
+            "eventType": "TransactionPlanCreated"
+          }
+        ]
+      },
+      {
+        "nodeId": "vendor_compensation_decision",
+        "type": "external_write",
+        "title": "Submit compensation decision to vendor",
+        "connectionId": "third_party_compensation_decision",
+        "operation": "submitCompensationChange",
+        "outcomes": [
+          {
+            "outcome": "accepted",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "accepted"
+            },
+            "eventType": "ExternalWriteSucceeded",
+            "nextNodeId": "apply_compensation_projection"
+          },
+          {
+            "outcome": "rejected",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "rejected"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "repair_vendor_decision",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "vendorDecisionRepair"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_compensation_projection",
+        "type": "projection_write",
+        "title": "Apply accepted compensation change",
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "EmployeeCompensationUpdated",
+            "nextNodeId": "completed"
+          }
+        ]
+      },
+      {
+        "nodeId": "repair_vendor_decision",
+        "type": "manual_repair",
+        "title": "Repair rejected vendor decision",
+        "state": "waiting_repair",
+        "outcomes": [
+          {
+            "outcome": "canceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Compensation workflow completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Compensation workflow canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "rejected",
+        "type": "terminal",
+        "title": "Compensation workflow rejected",
+        "state": "rejected"
+      }
+    ]
+  },
+  "projection": {
+    "allowedPatchPaths": ["/compensation"]
+  },
+  "timeline": {
+    "businessEvents": [
+      "WorkflowIntentStarted",
+      "ChangeRequestCreated",
+      "CompensationPreflighted",
+      "ApprovalTaskCreated",
+      "ApprovalGranted",
+      "TransactionPlanCreated",
+      "EmployeeCompensationUpdated",
+      "ExternalWriteRequested",
+      "ExternalWriteSucceeded",
+      "ExternalWriteFailed",
+      "WorkflowCompleted"
+    ],
+    "summaries": {
+      "WorkflowIntentStarted": "Compensation change workflow started.",
+      "ChangeRequestCreated": "Compensation change request submitted.",
+      "CompensationPreflighted": "Compensation preflight completed.",
+      "ApprovalTaskCreated": "Compensation approval task created.",
+      "ApprovalGranted": "Compensation admin approved the change.",
+      "TransactionPlanCreated": "Transaction plan created.",
+      "EmployeeCompensationUpdated": "Compensation updated in the employee projection.",
+      "ExternalWriteRequested": "Third-party compensation decision was requested.",
+      "ExternalWriteSucceeded": "Third-party compensation decision accepted the change.",
+      "ExternalWriteFailed": "Third-party compensation decision rejected the change.",
+      "WorkflowCompleted": "Workflow completed."
+    }
+  }
+}

@@ -154,7 +154,7 @@
     ]
   },
   "approval": {
-    "assigneeActorId": "actor_hr_admin",
+    "assigneeActorId": "actor_hr_admin_riley",
     "assigneeRole": "hr_admin",
     "approvalType": "hr_contact_info_review"
   },

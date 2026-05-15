@@ -1,0 +1,1570 @@
+{
+  "intent": "employee.org_transfer_compensation_change",
+  "subjectType": "worker",
+  "selfServiceStart": false,
+  "startActors": ["hr_admin"],
+  "schemaVersion": "v0.3",
+  "uxContract": {
+    "version": "v0.1",
+    "title": "Employee org transfer and compensation change",
+    "selfServiceStartDecision": "disabled_for_v1_hr_must_complete_org_fields",
+    "restrictedSummaryPermission": "employee_data_change.org_transfer.view_restricted_summary",
+    "fieldVisibility": {
+      "source_manager": ["profile", "organization", "job", "workflow"],
+      "destination_manager": [
+        "profile",
+        "proposed_organization",
+        "proposed_job",
+        "workflow"
+      ],
+      "finance_admin": ["profile", "proposed_cost_center", "workflow"],
+      "compensation_admin": [
+        "profile",
+        "organization",
+        "job",
+        "compensation",
+        "workflow"
+      ],
+      "medical_director": ["profile", "clinical_placement", "workflow"],
+      "hr_admin": [
+        "profile",
+        "contact",
+        "employment",
+        "organization",
+        "job",
+        "workflow"
+      ]
+    },
+    "errorMessages": {
+      "permissionDenied": "You do not have the required org-transfer scope for this action.",
+      "versionConflict": "This workflow changed. Refresh before submitting again.",
+      "repairRequired": "The transfer needs HR repair before it can continue."
+    }
+  },
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "v0.3",
+      "title": "Transfer employee and update compensation",
+      "employeeContext": [
+        {
+          "outputKey": "currentOrganization",
+          "path": "organization",
+          "visibility": {
+            "fieldGroups": ["organization"],
+            "permissions": ["employee.organization.view"]
+          }
+        },
+        {
+          "outputKey": "currentJob",
+          "path": "job",
+          "visibility": {
+            "fieldGroups": ["job"],
+            "permissions": ["employee.job.view"]
+          }
+        },
+        {
+          "outputKey": "currentManager",
+          "path": "manager",
+          "visibility": {
+            "fieldGroups": ["organization"],
+            "permissions": ["employee.organization.view"]
+          }
+        },
+        {
+          "outputKey": "currentCompensation",
+          "path": "compensation",
+          "visibility": {
+            "fieldGroups": ["compensation"],
+            "permissions": ["employee.compensation.view"],
+            "actors": ["hr_admin", "compensation_admin"]
+          }
+        },
+        {
+          "outputKey": "activeWorkerAssignments",
+          "source": "workerAssignments",
+          "path": "active",
+          "visibility": {
+            "fieldGroups": ["organization"],
+            "permissions": ["employee.organization.view"]
+          }
+        },
+        {
+          "outputKey": "currentRoleBindingSummary",
+          "source": "roleBindings",
+          "path": "summary",
+          "visibility": {
+            "fieldGroups": ["workflow"],
+            "permissions": ["employee_data_change.org_transfer.view_restricted_summary"]
+          }
+        }
+      ],
+      "jsonSchema": {
+        "type": "object",
+        "required": [
+          "targetLocationOrgUnitId",
+          "targetTeamOrgUnitId",
+          "targetCostCenterOrgUnitId",
+          "targetManagerEmployeeId",
+          "proposedJob",
+          "proposedCompensation",
+          "effectiveAt",
+          "businessReason",
+          "transferReason",
+          "accessImpactAcknowledged"
+        ],
+        "properties": {
+          "targetLocationOrgUnitId": { "type": "string", "minLength": 1 },
+          "targetTeamOrgUnitId": { "type": "string", "minLength": 1 },
+          "targetCostCenterOrgUnitId": { "type": "string", "minLength": 1 },
+          "targetManagerEmployeeId": { "type": "string", "minLength": 1 },
+          "proposedJob": {
+            "type": "object",
+            "required": ["jobCode", "title", "family", "level"],
+            "properties": {
+              "jobCode": { "type": "string", "minLength": 1 },
+              "title": { "type": "string", "minLength": 1 },
+              "family": { "type": "string", "minLength": 1 },
+              "level": { "type": "string", "minLength": 1 }
+            }
+          },
+          "proposedCompensation": {
+            "type": "object",
+            "required": [
+              "amount",
+              "currency",
+              "payFrequency",
+              "bonusTargetPercent",
+              "effectiveDate"
+            ],
+            "properties": {
+              "amount": { "type": "number", "minimum": 1 },
+              "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+              "payFrequency": {
+                "type": "string",
+                "enum": ["annual", "hourly", "monthly"]
+              },
+              "bonusTargetPercent": { "type": "number", "minimum": 0 },
+              "effectiveDate": { "type": "string", "format": "date" }
+            }
+          },
+          "effectiveAt": { "type": "string", "format": "date" },
+          "businessReason": {
+            "type": "string",
+            "enum": [
+              "internal_transfer",
+              "promotion",
+              "market_adjustment",
+              "retention_adjustment",
+              "operational_need",
+              "correction"
+            ]
+          },
+          "transferReason": {
+            "type": "string",
+            "enum": [
+              "employee_requested",
+              "manager_requested",
+              "clinic_staffing_need",
+              "career_development",
+              "coverage_gap",
+              "business_reorganization"
+            ]
+          },
+          "accessImpactAcknowledged": { "type": "boolean", "const": true }
+        }
+      },
+      "uiSchema": {
+        "layout": "sectioned_form",
+        "sectionOrder": [
+          "current_state",
+          "target_organization",
+          "job_and_compensation",
+          "business_context",
+          "access_impact"
+        ],
+        "readOnlyContextFields": [
+          "currentOrganization",
+          "currentJob",
+          "currentManager",
+          "currentCompensation",
+          "activeWorkerAssignments",
+          "currentRoleBindingSummary"
+        ],
+        "warningTextKeys": [
+          "org_transfer.access_removed_from_source_manager",
+          "org_transfer.access_added_for_destination_manager",
+          "org_transfer.cost_center_scope_required",
+          "org_transfer.compensation_visibility_restricted"
+        ],
+        "fieldLabels": {
+          "targetLocationOrgUnitId": "Target work location",
+          "targetTeamOrgUnitId": "Target team",
+          "targetCostCenterOrgUnitId": "Target cost center",
+          "targetManagerEmployeeId": "Target manager",
+          "proposedJob": "Proposed job",
+          "proposedCompensation": "Proposed compensation",
+          "effectiveAt": "Effective date",
+          "businessReason": "Business reason",
+          "transferReason": "Transfer reason",
+          "accessImpactAcknowledged": "Access impact reviewed"
+        },
+        "reviewLabels": {
+          "sourceManager": "Source manager review",
+          "destinationManager": "Destination manager review",
+          "finance": "Finance cost-center review",
+          "compensation": "Compensation review",
+          "medicalDirector": "Clinical placement review"
+        },
+        "submitLabel": "Submit transfer for review"
+      }
+    },
+    "sourceManagerApproval": {
+      "type": "approval",
+      "schemaVersion": "v0.3",
+      "title": "Source manager approval",
+      "summaryTemplate": "Review the transfer out of the current team and manager scope.",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "comment": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "approval_panel",
+        "reviewLabel": "Source manager review",
+        "visibleFieldGroups": ["profile", "organization", "job", "workflow"],
+        "submitLabels": {
+          "approved": "Approve source transfer",
+          "rejected": "Reject transfer",
+          "request_more_info": "Request more information"
+        }
+      }
+    },
+    "destinationManagerApproval": {
+      "type": "approval",
+      "schemaVersion": "v0.3",
+      "title": "Destination manager approval",
+      "summaryTemplate": "Review the proposed destination manager, team, and work location.",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "comment": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "approval_panel",
+        "reviewLabel": "Destination manager review",
+        "visibleFieldGroups": [
+          "profile",
+          "proposed_organization",
+          "proposed_job",
+          "workflow"
+        ],
+        "submitLabels": {
+          "approved": "Approve destination placement",
+          "rejected": "Reject transfer",
+          "request_more_info": "Request more information"
+        }
+      }
+    },
+    "financeApproval": {
+      "type": "approval",
+      "schemaVersion": "v0.3",
+      "title": "Finance cost-center approval",
+      "summaryTemplate": "Review the target cost center and cross-charge impact.",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "comment": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "approval_panel",
+        "reviewLabel": "Finance cost-center review",
+        "visibleFieldGroups": ["profile", "proposed_cost_center", "workflow"],
+        "submitLabels": {
+          "approved": "Approve cost center",
+          "rejected": "Reject transfer",
+          "request_more_info": "Request more information"
+        }
+      }
+    },
+    "compensationApproval": {
+      "type": "approval",
+      "schemaVersion": "v0.3",
+      "title": "Compensation approval",
+      "summaryTemplate": "Review the proposed compensation with job and org context.",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "comment": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "approval_panel",
+        "reviewLabel": "Compensation review",
+        "visibleFieldGroups": [
+          "profile",
+          "organization",
+          "job",
+          "compensation",
+          "workflow"
+        ],
+        "submitLabels": {
+          "approved": "Approve compensation",
+          "rejected": "Reject transfer",
+          "request_more_info": "Request more information"
+        }
+      }
+    },
+    "medicalDirectorApproval": {
+      "type": "approval",
+      "schemaVersion": "v0.3",
+      "title": "Medical director clinical placement approval",
+      "summaryTemplate": "Review clinical placement scope for the target clinic.",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "comment": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "uiSchema": {
+        "layout": "approval_panel",
+        "reviewLabel": "Clinical placement review",
+        "visibleFieldGroups": ["profile", "clinical_placement", "workflow"],
+        "submitLabels": {
+          "approved": "Approve clinical placement",
+          "rejected": "Reject transfer",
+          "request_more_info": "Request more information"
+        }
+      }
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "schemaVersion": "v0.3",
+      "title": "Ready to execute org transfer",
+      "summaryTemplate": "All required approvals are complete. Execution will update assignments, role bindings, employee projection, payroll, HRIS, and compensation vendor sync.",
+      "uiSchema": {
+        "layout": "execution_panel",
+        "submitLabel": "Execute org transfer"
+      }
+    },
+    "repair": {
+      "type": "repair",
+      "schemaVersion": "v0.3",
+      "title": "Org transfer needs repair",
+      "jsonSchema": {
+        "type": "object",
+        "required": ["repairAction", "notes"],
+        "properties": {
+          "repairAction": {
+            "type": "string",
+            "enum": [
+              "revise_transfer",
+              "retry_last_step",
+              "manual_reconcile",
+              "cancel_request"
+            ]
+          },
+          "notes": { "type": "string", "minLength": 1 }
+        }
+      },
+      "uiSchema": {
+        "layout": "repair_panel",
+        "submitLabel": "Record repair action",
+        "nextChoiceLabels": {
+          "revise_transfer": "Revise transfer details",
+          "retry_last_step": "Retry last failed step",
+          "manual_reconcile": "Manually reconcile",
+          "cancel_request": "Cancel request"
+        }
+      }
+    },
+    "completedSummary": {
+      "type": "summary",
+      "schemaVersion": "v0.3",
+      "title": "Org transfer completed",
+      "summaryTemplate": "The employee's destination org placement, manager, job, compensation, assignments, and access bindings were updated.",
+      "uiSchema": {
+        "layout": "completed_summary",
+        "visibleFieldGroups": ["profile", "organization", "job", "workflow"]
+      }
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Submit transfer for review",
+          "actor": "hr_admin",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_source_manager_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "sourceManagerApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel",
+          "actor": "hr_admin",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_source_manager_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve source transfer",
+          "actor": "source_manager",
+          "handler": "approve",
+          "nextState": "waiting_destination_manager_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "destinationManagerApproval"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject transfer",
+          "actor": "source_manager",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "source_manager",
+          "handler": "request_more_info",
+          "nextState": "waiting_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_destination_manager_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve destination placement",
+          "actor": "destination_manager",
+          "handler": "approve",
+          "nextState": "waiting_finance_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "financeApproval"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject transfer",
+          "actor": "destination_manager",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "destination_manager",
+          "handler": "request_more_info",
+          "nextState": "waiting_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_finance_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve cost center",
+          "actor": "finance_admin",
+          "handler": "approve",
+          "nextState": "waiting_compensation_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "compensationApproval"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject transfer",
+          "actor": "finance_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "finance_admin",
+          "handler": "request_more_info",
+          "nextState": "waiting_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_compensation_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve compensation",
+          "actor": "compensation_admin",
+          "handler": "approve",
+          "nextState": "waiting_medical_director_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "medicalDirectorApproval"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject transfer",
+          "actor": "compensation_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "compensation_admin",
+          "handler": "request_more_info",
+          "nextState": "waiting_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_medical_director_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve clinical placement",
+          "actor": "medical_director",
+          "handler": "approve",
+          "nextState": "approved",
+          "nextStatus": "active",
+          "nextInteraction": "readyToExecute"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject transfer",
+          "actor": "medical_director",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "medical_director",
+          "handler": "request_more_info",
+          "nextState": "waiting_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute org transfer",
+          "actor": "hr_admin_or_system",
+          "handler": "execute",
+          "nextState": "executing",
+          "nextStatus": "active"
+        }
+      ]
+    },
+    "executing": {
+      "actions": []
+    },
+    "waiting_repair": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Resubmit repaired transfer",
+          "actor": "hr_admin",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_source_manager_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "sourceManagerApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "hr_admin",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "executed": {
+      "actions": []
+    },
+    "rejected": {
+      "actions": []
+    },
+    "canceled": {
+      "actions": []
+    },
+    "failed": {
+      "actions": []
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.employee_data.org_transfer.preflight",
+      "version": "1.0.0"
+    },
+    "preflightInput": {
+      "currentOrganization": { "$source": "employee", "path": "organization" },
+      "currentJob": { "$source": "employee", "path": "job" },
+      "currentManager": { "$source": "employee", "path": "manager" },
+      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "targetLocationOrgUnitId": {
+        "$source": "input",
+        "path": "targetLocationOrgUnitId"
+      },
+      "targetTeamOrgUnitId": {
+        "$source": "input",
+        "path": "targetTeamOrgUnitId"
+      },
+      "targetCostCenterOrgUnitId": {
+        "$source": "input",
+        "path": "targetCostCenterOrgUnitId"
+      },
+      "targetManagerEmployeeId": {
+        "$source": "input",
+        "path": "targetManagerEmployeeId"
+      },
+      "proposedJob": { "$source": "input", "path": "proposedJob" },
+      "proposedCompensation": {
+        "$source": "input",
+        "path": "proposedCompensation"
+      },
+      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+      "businessReason": { "$source": "input", "path": "businessReason" },
+      "transferReason": { "$source": "input", "path": "transferReason" },
+      "accessImpactAcknowledged": {
+        "$source": "input",
+        "path": "accessImpactAcknowledged"
+      }
+    },
+    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+    "businessReason": { "$source": "input", "path": "businessReason" },
+    "changeRequestStatus": "in_approval",
+    "markSubmitted": true,
+    "createApprovalTask": false,
+    "currentSnapshot": {
+      "organization": { "$source": "employee", "path": "organization" },
+      "manager": { "$source": "employee", "path": "manager" },
+      "job": { "$source": "employee", "path": "job" },
+      "compensation": { "$source": "employee", "path": "compensation" }
+    },
+    "proposedSnapshot": {
+      "targetLocationOrgUnitId": {
+        "$source": "input",
+        "path": "targetLocationOrgUnitId"
+      },
+      "targetTeamOrgUnitId": {
+        "$source": "input",
+        "path": "targetTeamOrgUnitId"
+      },
+      "targetCostCenterOrgUnitId": {
+        "$source": "input",
+        "path": "targetCostCenterOrgUnitId"
+      },
+      "targetManagerEmployeeId": {
+        "$source": "input",
+        "path": "targetManagerEmployeeId"
+      },
+      "job": { "$source": "input", "path": "proposedJob" },
+      "compensation": { "$source": "input", "path": "proposedCompensation" }
+    },
+    "proposedChange": {
+      "targetObjectType": "worker",
+      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "fieldPath": "organization_transfer_compensation",
+      "currentValue": { "$source": "employee", "path": "organization" },
+      "proposedValue": { "$source": "input", "path": "" }
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "OrgTransferPreflighted",
+      "OrgTransferSubmitted"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "actor_source_manager",
+    "assigneeRole": "source_manager",
+    "approvalType": "source_manager_org_transfer_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.employee_data.org_transfer.plan_transaction",
+      "version": "1.0.0"
+    },
+    "input": {
+      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
+      "workerId": { "$source": "workflow", "path": "subjectId" },
+      "currentOrganization": { "$source": "employee", "path": "organization" },
+      "currentManager": { "$source": "employee", "path": "manager" },
+      "currentJob": { "$source": "employee", "path": "job" },
+      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "proposedTransfer": { "$source": "proposedChange", "path": "proposedValue" },
+      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" },
+      "businessReason": { "$source": "changeRequest", "path": "businessReason" }
+    }
+  },
+  "graph": {
+    "startNodeId": "collect_transfer_input",
+    "nodes": [
+      {
+        "nodeId": "collect_transfer_input",
+        "type": "interaction",
+        "title": "Collect org transfer input",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "OrgTransferSubmitted",
+            "nextNodeId": "org_transfer_preflight",
+            "nextState": "waiting_source_manager_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "sourceManagerApproval"
+          },
+          {
+            "outcome": "canceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "org_transfer_preflight",
+        "type": "block",
+        "title": "Run org transfer preflight",
+        "block": {
+          "name": "system.employee_data.org_transfer.preflight",
+          "version": "1.0.0"
+        },
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "eventType": "OrgTransferPreflighted",
+            "nextNodeId": "check_hr_transfer_authority"
+          },
+          {
+            "outcome": "invalid",
+            "eventType": "OrgTransferPreflighted",
+            "nextNodeId": "collect_transfer_input",
+            "nextState": "collecting_input",
+            "nextStatus": "active",
+            "nextInteraction": "input"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_hr_transfer_authority",
+        "type": "policy_check",
+        "title": "Check HR transfer authority",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.hr_review",
+          "scope": "global_or_subject_org"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "nextNodeId": "check_source_manager_visibility"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_source_manager_visibility",
+        "type": "policy_check",
+        "title": "Check source manager visibility",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.manager_approve",
+          "scope": "current_direct_reports"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "eventType": "SourceManagerApprovalCreated",
+            "nextNodeId": "source_manager_approval",
+            "nextState": "waiting_source_manager_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "sourceManagerApproval"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "source_manager_approval",
+        "type": "approval",
+        "title": "Source manager approval",
+        "state": "waiting_source_manager_approval",
+        "interaction": "sourceManagerApproval",
+        "approval": {
+          "actor": "source_manager",
+          "permission": "employee_data_change.org_transfer.manager_approve",
+          "approvalType": "source_manager_org_transfer_review"
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "check_destination_manager_visibility",
+            "nextState": "waiting_destination_manager_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "destinationManagerApproval"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_destination_manager_visibility",
+        "type": "policy_check",
+        "title": "Check destination manager visibility",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.destination_manager_approve",
+          "scope": "target_manager_or_target_org"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "eventType": "DestinationManagerApprovalCreated",
+            "nextNodeId": "destination_manager_approval",
+            "nextState": "waiting_destination_manager_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "destinationManagerApproval"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "destination_manager_approval",
+        "type": "approval",
+        "title": "Destination manager approval",
+        "state": "waiting_destination_manager_approval",
+        "interaction": "destinationManagerApproval",
+        "approval": {
+          "actor": "destination_manager",
+          "permission": "employee_data_change.org_transfer.destination_manager_approve",
+          "approvalType": "destination_manager_org_transfer_review"
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "check_finance_cost_center_scope",
+            "nextState": "waiting_finance_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "financeApproval"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_finance_cost_center_scope",
+        "type": "policy_check",
+        "title": "Check finance cost-center scope",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.finance_approve",
+          "scope": "target_cost_center"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "eventType": "FinanceApprovalCreated",
+            "nextNodeId": "finance_approval",
+            "nextState": "waiting_finance_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "financeApproval"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "finance_approval",
+        "type": "approval",
+        "title": "Finance cost-center approval",
+        "state": "waiting_finance_approval",
+        "interaction": "financeApproval",
+        "approval": {
+          "actor": "finance_admin",
+          "permission": "employee_data_change.org_transfer.finance_approve",
+          "approvalType": "finance_org_transfer_cost_center_review"
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "check_compensation_scope",
+            "nextState": "waiting_compensation_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "compensationApproval"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_compensation_scope",
+        "type": "policy_check",
+        "title": "Check compensation scope",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.compensation_approve",
+          "fieldGroups": ["compensation"],
+          "scope": "subject_or_target_org"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "eventType": "CompensationApprovalCreated",
+            "nextNodeId": "compensation_approval",
+            "nextState": "waiting_compensation_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "compensationApproval"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "compensation_approval",
+        "type": "approval",
+        "title": "Compensation approval",
+        "state": "waiting_compensation_approval",
+        "interaction": "compensationApproval",
+        "approval": {
+          "actor": "compensation_admin",
+          "permission": "employee_data_change.org_transfer.compensation_approve",
+          "approvalType": "compensation_org_transfer_review"
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "check_medical_director_clinical_scope",
+            "nextState": "waiting_medical_director_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "medicalDirectorApproval"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "check_medical_director_clinical_scope",
+        "type": "policy_check",
+        "title": "Check medical director clinical scope",
+        "policy": {
+          "permission": "employee_data_change.org_transfer.medical_director_approve",
+          "scope": "target_clinic_descendants"
+        },
+        "outcomes": [
+          {
+            "outcome": "allowed",
+            "eventType": "ClinicalPlacementApprovalCreated",
+            "nextNodeId": "medical_director_approval",
+            "nextState": "waiting_medical_director_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "medicalDirectorApproval"
+          },
+          {
+            "outcome": "denied",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "medical_director_approval",
+        "type": "approval",
+        "title": "Medical director clinical placement approval",
+        "state": "waiting_medical_director_approval",
+        "interaction": "medicalDirectorApproval",
+        "approval": {
+          "actor": "medical_director",
+          "permission": "employee_data_change.org_transfer.medical_director_approve",
+          "approvalType": "medical_director_clinical_placement_review"
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "ready_to_execute",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "nextInteraction": "readyToExecute"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "ready_to_execute",
+        "type": "interaction",
+        "title": "Ready to execute org transfer",
+        "state": "approved",
+        "interaction": "readyToExecute",
+        "outcomes": [
+          {
+            "outcome": "execute_requested",
+            "nextNodeId": "plan_org_transfer_transaction",
+            "nextState": "executing",
+            "nextStatus": "active"
+          },
+          {
+            "outcome": "canceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_org_transfer_transaction",
+        "type": "transaction_plan",
+        "title": "Plan org transfer transaction",
+        "block": {
+          "name": "system.employee_data.org_transfer.plan_transaction",
+          "version": "1.0.0"
+        },
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "supersede_current_assignments"
+          },
+          {
+            "outcome": "planning_failed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "supersede_current_assignments",
+        "type": "data_write",
+        "title": "Supersede current assignments",
+        "operation": "supersedeCurrentWorkerAssignments",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "compensatable",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.supersedeAssignments"
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "WorkerAssignmentSuperseded",
+            "nextNodeId": "create_target_assignments"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "create_target_assignments",
+        "type": "data_write",
+        "title": "Create target assignments",
+        "operation": "createTargetWorkerAssignments",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "compensatable",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.createAssignments"
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "WorkerAssignmentCreated",
+            "nextNodeId": "recalculate_role_bindings"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "recalculate_role_bindings",
+        "type": "data_write",
+        "title": "Recalculate role bindings",
+        "operation": "recalculateOrgTransferRoleBindings",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "compensatable",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.roleBindings"
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "RoleBindingsRecalculated",
+            "nextNodeId": "sync_hris_transfer"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_hris_transfer",
+        "type": "external_write",
+        "title": "Sync HRIS transfer",
+        "connectionId": "hris_worker_management",
+        "operation": "syncWorkerOrgTransfer",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "manual_repair",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.hrisTransfer"
+        },
+        "outcomes": [
+          {
+            "outcome": "accepted",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "accepted"
+            },
+            "eventType": "ExternalWriteSucceeded",
+            "nextNodeId": "sync_payroll_cost_center"
+          },
+          {
+            "outcome": "rejected",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "rejected"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "retryable_failure",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "retryable_failure"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "dead_letter",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "dead_letter"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_payroll_cost_center",
+        "type": "external_write",
+        "title": "Sync payroll cost center",
+        "connectionId": "payroll",
+        "operation": "syncWorkerCostCenter",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "manual_repair",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.payrollCostCenter"
+        },
+        "outcomes": [
+          {
+            "outcome": "accepted",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "accepted"
+            },
+            "eventType": "ExternalWriteSucceeded",
+            "nextNodeId": "sync_compensation_vendor"
+          },
+          {
+            "outcome": "rejected",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "rejected"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "retryable_failure",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "retryable_failure"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "dead_letter",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "dead_letter"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_compensation_vendor",
+        "type": "external_write",
+        "title": "Sync compensation vendor",
+        "connectionId": "third_party_compensation_decision",
+        "operation": "submitOrgTransferCompensationChange",
+        "transaction": {
+          "sideEffect": true,
+          "reversibility": "manual_repair",
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.compensationVendor"
+        },
+        "outcomes": [
+          {
+            "outcome": "accepted",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "accepted"
+            },
+            "eventType": "ExternalWriteSucceeded",
+            "nextNodeId": "apply_employee_projection"
+          },
+          {
+            "outcome": "rejected",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "rejected"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "retryable_failure",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "retryable_failure"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          },
+          {
+            "outcome": "dead_letter",
+            "when": {
+              "$source": "externalWriteResponse",
+              "path": "status",
+              "equals": "dead_letter"
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_employee_projection",
+        "type": "projection_write",
+        "title": "Apply employee org projection",
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "EmployeeOrgProjectionUpdated",
+            "nextNodeId": "apply_employee_compensation_projection"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_employee_compensation_projection",
+        "type": "projection_write",
+        "title": "Apply employee compensation projection",
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "EmployeeCompensationUpdated",
+            "nextNodeId": "complete_org_transfer"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "waiting_repair",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "complete_org_transfer",
+        "type": "block",
+        "title": "Record org transfer execution",
+        "outcomes": [
+          {
+            "outcome": "completed",
+            "eventType": "OrgTransferExecuted",
+            "nextNodeId": "completed",
+            "nextState": "executed",
+            "nextStatus": "completed",
+            "nextInteraction": "completedSummary"
+          }
+        ]
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Org transfer workflow completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "rejected",
+        "type": "terminal",
+        "title": "Org transfer workflow rejected",
+        "state": "rejected"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Org transfer workflow canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "failed",
+        "type": "terminal",
+        "title": "Org transfer workflow failed",
+        "state": "failed"
+      },
+      {
+        "nodeId": "waiting_repair",
+        "type": "terminal",
+        "title": "Org transfer workflow waiting for repair",
+        "state": "waiting_repair",
+        "interaction": "repair"
+      }
+    ],
+    "futureParallelUpgradePath": {
+      "description": "Source manager, destination manager, finance, compensation, and medical director approvals are serial in V1. The approval sequence can later be replaced by a parallel_split after source manager approval and a parallel_join before ready_to_execute once runtime join semantics are available.",
+      "candidateSplitAfterNodeId": "source_manager_approval",
+      "candidateJoinBeforeNodeId": "ready_to_execute"
+    }
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "compensate_then_repair",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "projection": {
+    "allowedPatchPaths": [
+      "/organization",
+      "/manager/employeeId",
+      "/job",
+      "/compensation"
+    ]
+  },
+  "timeline": {
+    "businessEvents": [
+      "WorkflowIntentStarted",
+      "ChangeRequestCreated",
+      "OrgTransferSubmitted",
+      "OrgTransferPreflighted",
+      "SourceManagerApprovalCreated",
+      "ApprovalGranted",
+      "DestinationManagerApprovalCreated",
+      "FinanceApprovalCreated",
+      "CompensationApprovalCreated",
+      "ClinicalPlacementApprovalCreated",
+      "TransactionPlanCreated",
+      "WorkerAssignmentSuperseded",
+      "WorkerAssignmentCreated",
+      "RoleBindingsRecalculated",
+      "ExternalWriteRequested",
+      "ExternalWriteSucceeded",
+      "ExternalWriteFailed",
+      "EmployeeOrgProjectionUpdated",
+      "EmployeeCompensationUpdated",
+      "OrgTransferExecuted",
+      "WorkflowCompleted"
+    ],
+    "summaries": {
+      "WorkflowIntentStarted": "Org transfer and compensation workflow started.",
+      "ChangeRequestCreated": "Org transfer change request created.",
+      "OrgTransferSubmitted": "Org transfer request submitted.",
+      "OrgTransferPreflighted": "Org transfer preflight completed.",
+      "SourceManagerApprovalCreated": "Source manager approval requested.",
+      "DestinationManagerApprovalCreated": "Destination manager approval requested.",
+      "FinanceApprovalCreated": "Finance cost-center approval requested.",
+      "CompensationApprovalCreated": "Compensation approval requested.",
+      "ClinicalPlacementApprovalCreated": "Clinical placement approval requested.",
+      "ApprovalGranted": "Approval granted.",
+      "ApprovalRejected": "Approval rejected.",
+      "MoreInformationRequested": "More information requested.",
+      "TransactionPlanCreated": "Org transfer transaction plan created.",
+      "WorkerAssignmentSuperseded": "Current worker assignments superseded.",
+      "WorkerAssignmentCreated": "Target worker assignments created.",
+      "RoleBindingsRecalculated": "Role bindings recalculated for transfer.",
+      "ExternalWriteRequested": "External sync requested.",
+      "ExternalWriteSucceeded": "External sync accepted.",
+      "ExternalWriteFailed": "External sync needs repair.",
+      "EmployeeOrgProjectionUpdated": "Employee organization projection updated.",
+      "EmployeeCompensationUpdated": "Employee compensation updated.",
+      "OrgTransferExecuted": "Org transfer executed.",
+      "WorkflowCompleted": "Workflow completed."
+    }
+  }
+}

@@ -9,6 +9,12 @@
     },
     {
       "path": "./src/api"
+    },
+    {
+      "path": "./src/third-party-apis/compensation-market"
+    },
+    {
+      "path": "./src/third-party-apis/compensation-decision"
     }
   ]
 }

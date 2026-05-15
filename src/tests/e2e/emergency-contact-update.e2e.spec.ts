@@ -58,6 +58,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
     }
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
+    const currentEmergencyContact = currentEmployeeEmergencyContact(harness);
 
     const submittedWorkflow = await transitionWorkflow(
       harness.dependencies,
@@ -69,7 +70,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
         expectedVersion: 1,
         input: {
           proposedEmergencyContact: {
-            contactId: "ec_001",
+            contactId: currentEmergencyContact.contactId,
             name: "Alex Doe",
             relationship: "spouse",
             phone: "+15557654321",
@@ -216,6 +217,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
     }
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
+    const currentEmergencyContact = currentEmployeeEmergencyContact(harness);
     const submitResult = await transitionWorkflow(
       harness.dependencies,
       harness.employeeContext,
@@ -225,14 +227,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
         idempotencyKey: "idem_emergency_contact_unchanged",
         expectedVersion: 1,
         input: {
-          proposedEmergencyContact: {
-            contactId: "ec_001",
-            name: "Alex Doe",
-            relationship: "spouse",
-            phone: "+15551234567",
-            email: "alex.doe@example.com",
-            priority: 1,
-          },
+          proposedEmergencyContact: currentEmergencyContact,
           effectiveAt: "2026-06-01",
           businessReason: "employee_self_service",
         },
@@ -262,6 +257,21 @@ function createHarness(): TestHarness {
       unwrapResult(repositories.actors.findById(DEMO_IDS.hrActorId)),
     ),
   };
+}
+
+function currentEmployeeEmergencyContact(
+  harness: TestHarness,
+): Record<string, unknown> {
+  const projection = harness.repositories.store.employeeProjections.get(
+    `${DEMO_IDS.tenantId}:${DEMO_IDS.employeeId}`,
+  );
+  const currentEmergencyContact = projection?.document.emergencyContacts[0];
+
+  if (currentEmergencyContact === undefined) {
+    throw new Error("Missing seeded emergency contact for employee.");
+  }
+
+  return currentEmergencyContact;
 }
 
 function createApiRequestContext(actor: ActorRecord): ApiRequestContext {

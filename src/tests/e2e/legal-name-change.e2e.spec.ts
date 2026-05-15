@@ -42,6 +42,21 @@ describe("employee.legal_name.change E2E contract", () => {
     harness = createHarness();
   });
 
+  it("denies an employee starting another worker's legal-name request", () => {
+    const startedWorkflow = startWorkflowIntent(
+      harness.dependencies,
+      harness.employeeContext,
+      {
+        intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
+        subjectType: "worker",
+        subjectId: DEMO_IDS.secondEmployeeId,
+      },
+    );
+
+    expect(startedWorkflow.ok).toBe(false);
+    expect(!startedWorkflow.ok && startedWorkflow.error.code).toBe("PERMISSION_DENIED");
+  });
+
   it("runs the legal-name workflow through approval, execution, projection, outbox, and ledger", async () => {
     const startedWorkflow = startWorkflowIntent(
       harness.dependencies,
@@ -305,6 +320,127 @@ describe("employee.legal_name.change E2E contract", () => {
     }
   });
 
+  it("does not create HR approval before evidence is provided", async () => {
+    const startedWorkflow = startWorkflowIntent(
+      harness.dependencies,
+      harness.employeeContext,
+      {
+        intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
+        subjectType: "worker",
+        subjectId: DEMO_IDS.employeeId,
+      },
+    );
+
+    expect(startedWorkflow.ok).toBe(true);
+    if (!startedWorkflow.ok) {
+      return;
+    }
+
+    const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
+    const submittedWorkflow = await submitValidLegalNameInput(
+      harness,
+      workflowInstanceId,
+      "idem_missing_evidence_submit",
+    );
+    const taskList = getTasks(harness.dependencies, harness.hrContext);
+    const approvalAttempt = await transitionWorkflow(
+      harness.dependencies,
+      harness.hrContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.APPROVE,
+        idempotencyKey: "idem_missing_evidence_approve",
+        expectedVersion: 2,
+        input: {
+          approvalTaskId: "missing_evidence_task",
+        },
+      },
+    );
+    const workflowInstance =
+      harness.repositories.store.workflowInstances.get(workflowInstanceId);
+
+    expect(submittedWorkflow.ok).toBe(true);
+    expect(submittedWorkflow.ok && submittedWorkflow.value["state"]).toBe(
+      "collecting_evidence",
+    );
+    expect(taskList.ok).toBe(true);
+    expect(taskList.ok && (taskList.value["tasks"] as unknown[])).toHaveLength(0);
+    expect(approvalAttempt.ok).toBe(false);
+    expect(workflowInstance?.state).toBe("collecting_evidence");
+  });
+
+  it("does not execute a rejected legal-name workflow", async () => {
+    const startedWorkflow = startWorkflowIntent(
+      harness.dependencies,
+      harness.employeeContext,
+      {
+        intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
+        subjectType: "worker",
+        subjectId: DEMO_IDS.employeeId,
+      },
+    );
+
+    expect(startedWorkflow.ok).toBe(true);
+    if (!startedWorkflow.ok) {
+      return;
+    }
+
+    const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
+    const submittedWorkflow = await submitValidLegalNameInput(
+      harness,
+      workflowInstanceId,
+      "idem_reject_submit",
+    );
+    const documentId = createEvidenceDocumentId(harness, workflowInstanceId);
+    const evidenceWorkflow = await provideLegalNameEvidence(
+      harness,
+      workflowInstanceId,
+      documentId,
+      "idem_reject_evidence",
+    );
+    const taskList = getTasks(harness.dependencies, harness.hrContext);
+
+    expect(submittedWorkflow.ok).toBe(true);
+    expect(evidenceWorkflow.ok).toBe(true);
+    expect(taskList.ok).toBe(true);
+    if (!taskList.ok) {
+      return;
+    }
+
+    const tasks = taskList.value["tasks"] as Array<Record<string, unknown>>;
+    const approvalTaskId = String(tasks[0]?.["approvalTaskId"]);
+    const rejectedWorkflow = await transitionWorkflow(
+      harness.dependencies,
+      harness.hrContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.REJECT,
+        idempotencyKey: "idem_reject",
+        expectedVersion: 3,
+        input: {
+          approvalTaskId,
+          reason: "evidence_mismatch",
+          comment: "Evidence does not match the requested legal name.",
+        },
+      },
+    );
+    const executeRejectedWorkflow = await transitionWorkflow(
+      harness.dependencies,
+      harness.hrContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.EXECUTE,
+        idempotencyKey: "idem_execute_rejected",
+        expectedVersion: 4,
+        input: {},
+      },
+    );
+
+    expect(rejectedWorkflow.ok).toBe(true);
+    expect(rejectedWorkflow.ok && rejectedWorkflow.value["state"]).toBe("rejected");
+    expect(executeRejectedWorkflow.ok).toBe(false);
+  });
+
   it("rejects unchanged legal-name input without creating a change request", async () => {
     const startedWorkflow = startWorkflowIntent(
       harness.dependencies,
@@ -346,6 +482,71 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(harness.repositories.store.changeRequests.size).toBe(0);
   });
 });
+
+async function submitValidLegalNameInput(
+  harness: TestHarness,
+  workflowInstanceId: string,
+  idempotencyKey: string,
+) {
+  return transitionWorkflow(
+    harness.dependencies,
+    harness.employeeContext,
+    workflowInstanceId,
+    {
+      transition: WORKFLOW_TRANSITIONS.SUBMIT_INPUT,
+      idempotencyKey,
+      expectedVersion: 1,
+      input: {
+        newLegalName: {
+          first: "Jane",
+          middle: null,
+          last: "Rivera",
+        },
+        effectiveAt: "2026-06-01",
+        businessReason: "legal_name_change",
+      },
+    },
+  );
+}
+
+function createEvidenceDocumentId(
+  harness: TestHarness,
+  workflowInstanceId: string,
+): string {
+  const documentResult = createDocument(harness.dependencies, harness.employeeContext, {
+    workflowInstanceId,
+    filename: "court-order.pdf",
+    contentType: "application/pdf",
+  });
+
+  if (!documentResult.ok) {
+    throw new Error(documentResult.error.message);
+  }
+
+  const document = documentResult.value["document"] as Record<string, unknown>;
+  return String(document["documentId"]);
+}
+
+async function provideLegalNameEvidence(
+  harness: TestHarness,
+  workflowInstanceId: string,
+  documentId: string,
+  idempotencyKey: string,
+) {
+  return transitionWorkflow(
+    harness.dependencies,
+    harness.employeeContext,
+    workflowInstanceId,
+    {
+      transition: WORKFLOW_TRANSITIONS.PROVIDE_EVIDENCE,
+      idempotencyKey,
+      expectedVersion: 2,
+      input: {
+        documentId,
+      },
+    },
+  );
+}
 
 function createHarness(): TestHarness {
   const store = createSeededDemoStore();

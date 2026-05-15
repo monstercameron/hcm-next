@@ -10,9 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"hcm-next-executor/internal/blocks/compensation"
 	"hcm-next-executor/internal/blocks/contactinfo"
 	"hcm-next-executor/internal/blocks/emergencycontact"
 	"hcm-next-executor/internal/blocks/legalname"
+	"hcm-next-executor/internal/blocks/orgtransfer"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -31,6 +33,14 @@ func main() {
 		os.Exit(1)
 	}
 	if err := contactinfo.RegisterBlocks(registry); err != nil {
+		logger.Error("failed to register executor blocks", "error", err)
+		os.Exit(1)
+	}
+	if err := compensation.RegisterBlocks(registry); err != nil {
+		logger.Error("failed to register executor blocks", "error", err)
+		os.Exit(1)
+	}
+	if err := orgtransfer.RegisterBlocks(registry); err != nil {
 		logger.Error("failed to register executor blocks", "error", err)
 		os.Exit(1)
 	}

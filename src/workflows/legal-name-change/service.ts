@@ -5,6 +5,7 @@ import {
   CHANGE_REQUEST_STATUSES,
   CHANGE_REQUEST_TYPES,
   DOCUMENT_CLASSIFICATIONS,
+  INTEGRATION_OUTBOX_STATUSES,
   LEDGER_EVENT_TYPES,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
@@ -25,10 +26,12 @@ import {
   createInitialWorkflowInstance,
   makeId,
   nowIso,
+  type AccessGrantRecord,
   type ActorRecord,
   type ApprovalTaskRecord,
   type ChangeRequestRecord,
   type EmployeeProjectionDocument,
+  type EmployeeProjectionRecord,
   type LedgerEventRecord,
   type ProposedChangeRecord,
   type Repositories,
@@ -54,10 +57,29 @@ import {
   resolveWorkflowTemplate,
   type WorkflowActionConfig,
   type WorkflowConfig,
+  type WorkflowGraphNodeConfig,
+  type WorkflowGraphOutcomeConfig,
   type WorkflowTemplateSources,
 } from "../shared/workflow-config.js";
+import {
+  canViewEmployee,
+  filterEmployeeProjectionForActor,
+  type EmployeeAccessGrant,
+  type EmployeeAccessGrants,
+  type EmployeeAccessInput,
+  type EmployeeAccessScope,
+  type EmployeeFieldGroup as EmployeeAccessFieldGroup,
+} from "../shared/employee-access.js";
+import {
+  approveOrgTransferStage,
+  canPerformOrgTransferApproval,
+  executeApprovedOrgTransfer,
+  isOrgTransferWorkflowIntent,
+  submitOrgTransferInput,
+} from "../org-transfer/service.js";
 
 const identityEvidencePurpose = "legal_name_change_evidence";
+const compensationDecisionConnectionId = "third_party_compensation_decision";
 
 type EvidenceInput = {
   documentId: string;
@@ -108,7 +130,34 @@ type PlanTransactionOutput = {
   }>;
 };
 
+type ExternalWriteExecution = {
+  connectionId: string;
+  operation: string;
+  idempotencyKey: string;
+  outcome: string;
+  eventType?: string;
+  nextNodeId?: string;
+  requestPayload: Record<string, unknown>;
+  responsePayload: Record<string, unknown>;
+};
+
+type ExternalWriteExecutionResult =
+  | {
+      status: "succeeded";
+      executions: ExternalWriteExecution[];
+    }
+  | {
+      status: "routed";
+      workflowInstance: WorkflowInstanceRecord;
+    };
+
 type TimelineView = "business" | "audit" | "debug";
+
+type TimelineVisibilityContext = {
+  actor: ActorRecord;
+  targetProjection: EmployeeProjectionRecord;
+  access: EmployeeAccessInput;
+};
 
 const timelineViews = {
   BUSINESS: "business",
@@ -494,6 +543,22 @@ export function getTimeline(
     return workflowConfigResult;
   }
 
+  const accessGrantsResult = findAccessGrantsForActor(
+    dependencies,
+    requestContext.actor,
+  );
+  if (!accessGrantsResult.ok) {
+    return accessGrantsResult;
+  }
+
+  const employeeProjectionResult = repositories.employeeProjections.findByEmployeeId(
+    requestContext.tenantId,
+    workflowResult.value.subjectId,
+  );
+  if (!employeeProjectionResult.ok) {
+    return employeeProjectionResult;
+  }
+
   return ok({
     workflowInstanceId,
     view: timelineViewResult.value,
@@ -502,6 +567,11 @@ export function getTimeline(
       timelineResult.value,
       timelineViewResult.value,
       workflowConfigResult.value,
+      {
+        actor: requestContext.actor,
+        targetProjection: employeeProjectionResult.value,
+        access: accessGrantsResult.value,
+      },
     ),
   });
 }
@@ -636,9 +706,181 @@ export function getEmployeeProjection(
     return projectionResult;
   }
 
+  const accessGrantsResult = findAccessGrantsForActor(
+    dependencies,
+    requestContext.actor,
+  );
+  if (!accessGrantsResult.ok) {
+    return accessGrantsResult;
+  }
+
+  const permissionResult = canViewEmployee(
+    requestContext.actor,
+    projectionResult.value.document,
+    "profile",
+    accessGrantsResult.value,
+  );
+  if (!permissionResult.ok) {
+    return permissionResult;
+  }
+
+  const filteredProjectionResult = filterEmployeeProjectionForActor(
+    requestContext.actor,
+    projectionResult.value,
+    accessGrantsResult.value,
+  );
+  if (!filteredProjectionResult.ok) {
+    return filteredProjectionResult;
+  }
+
   return ok({
-    projection: projectionResult.value,
+    projection: filteredProjectionResult.value,
   });
+}
+
+/**
+ * Lists employee projections visible to the current actor.
+ */
+export function listEmployeeProjections(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+): Result<Record<string, unknown>, AppError> {
+  const projectionsResult = dependencies.repositories.employeeProjections.findByTenant(
+    requestContext.tenantId,
+  );
+
+  if (!projectionsResult.ok) {
+    return projectionsResult;
+  }
+
+  const accessGrantsResult = findAccessGrantsForActor(
+    dependencies,
+    requestContext.actor,
+  );
+  if (!accessGrantsResult.ok) {
+    return accessGrantsResult;
+  }
+
+  const visibleProjections: EmployeeProjectionRecord[] = [];
+
+  for (const projection of projectionsResult.value) {
+    const permissionResult = canViewEmployee(
+      requestContext.actor,
+      projection.document,
+      "profile",
+      accessGrantsResult.value,
+    );
+
+    if (!permissionResult.ok) {
+      continue;
+    }
+
+    const filteredProjectionResult = filterEmployeeProjectionForActor(
+      requestContext.actor,
+      projection,
+      accessGrantsResult.value,
+    );
+    if (!filteredProjectionResult.ok) {
+      return filteredProjectionResult;
+    }
+
+    visibleProjections.push(filteredProjectionResult.value);
+  }
+
+  return ok({
+    employees: visibleProjections,
+  });
+}
+
+function findAccessGrantsForActor(
+  dependencies: AppDependencies,
+  actor: ActorRecord,
+): Result<EmployeeAccessInput, AppError> {
+  const accessGrantsResult = dependencies.repositories.accessGrants.findActiveForActor(
+    actor.tenantId,
+    actor.actorId,
+  );
+
+  if (!accessGrantsResult.ok) {
+    return accessGrantsResult;
+  }
+
+  const roleBindingsResult = dependencies.repositories.roleBindings.findActiveForActor(
+    actor.tenantId,
+    actor.actorId,
+  );
+  if (!roleBindingsResult.ok) {
+    return roleBindingsResult;
+  }
+
+  const workerAssignmentsResult =
+    dependencies.repositories.workerAssignments.findActiveByTenant(actor.tenantId);
+  if (!workerAssignmentsResult.ok) {
+    return workerAssignmentsResult;
+  }
+
+  const organizationRelationshipsResult =
+    dependencies.repositories.organizationRelationships.findByTenant(actor.tenantId);
+  if (!organizationRelationshipsResult.ok) {
+    return organizationRelationshipsResult;
+  }
+
+  const organizationUnitsResult =
+    dependencies.repositories.organizationUnits.findByTenant(actor.tenantId);
+  if (!organizationUnitsResult.ok) {
+    return organizationUnitsResult;
+  }
+
+  return ok({
+    legacyGrants: toEmployeeAccessGrants(accessGrantsResult.value),
+    roleBindings: roleBindingsResult.value,
+    workerAssignments: workerAssignmentsResult.value,
+    organizationRelationships: organizationRelationshipsResult.value,
+    organizationUnits: organizationUnitsResult.value,
+  });
+}
+
+function toEmployeeAccessGrants(
+  accessGrantRecords: AccessGrantRecord[],
+): EmployeeAccessGrants {
+  return accessGrantRecords.map((accessGrantRecord): EmployeeAccessGrant => {
+    return {
+      grantId: accessGrantRecord.accessGrantId,
+      actorIds: [accessGrantRecord.actorId],
+      fieldGroups: accessGrantRecord.fieldGroups.map(toEmployeeAccessFieldGroup),
+      scopes: [toEmployeeAccessScope(accessGrantRecord.scope)],
+    };
+  });
+}
+
+function toEmployeeAccessFieldGroup(
+  fieldGroup: AccessGrantRecord["fieldGroups"][number],
+): EmployeeAccessFieldGroup {
+  if (fieldGroup === "emergency_contacts") {
+    return "emergencyContacts";
+  }
+
+  return fieldGroup;
+}
+
+function toEmployeeAccessScope(scope: AccessGrantRecord["scope"]): EmployeeAccessScope {
+  if (
+    scope.type === "business_unit" ||
+    scope.type === "department" ||
+    scope.type === "team" ||
+    scope.type === "location" ||
+    scope.type === "cost_center" ||
+    scope.type === "legal_entity"
+  ) {
+    return {
+      type: scope.type,
+      values: scope.values ?? [],
+    };
+  }
+
+  return {
+    type: scope.type,
+  };
 }
 
 function canStartConfiguredWorkflow(
@@ -652,6 +894,17 @@ function canStartConfiguredWorkflow(
     actor.linkedWorkerId === subjectId;
 
   if (isSelfServiceRequester) {
+    return ok(true);
+  }
+
+  const canStartAsHrAdmin =
+    workflowConfig.startActors?.includes("hr_admin") === true &&
+    actor.roles.includes(ACTOR_ROLES.HR_ADMIN);
+  const canStartAsCompensationAdmin =
+    workflowConfig.startActors?.includes("compensation_admin") === true &&
+    actor.roles.includes(ACTOR_ROLES.COMPENSATION_ADMIN);
+
+  if (canStartAsHrAdmin || canStartAsCompensationAdmin) {
     return ok(true);
   }
 
@@ -673,6 +926,9 @@ function computeConfiguredAvailableActions(input: {
         actor: input.actor,
         actionConfig,
         workflowInstance: input.workflowInstance,
+        ...(input.pendingApprovalTask !== undefined
+          ? { pendingApprovalTask: input.pendingApprovalTask }
+          : {}),
       });
     })
     .map((actionConfig) => {
@@ -697,11 +953,15 @@ function canSubmitConfiguredTransition(input: {
   actor: ActorRecord;
   actionConfig: WorkflowActionConfig;
   workflowInstance: WorkflowInstanceRecord;
+  pendingApprovalTask?: ApprovalTaskRecord;
 }): Result<true, AppError> {
   const isAllowed = canActorPerformConfiguredAction({
     actor: input.actor,
     actionConfig: input.actionConfig,
     workflowInstance: input.workflowInstance,
+    ...(input.pendingApprovalTask !== undefined
+      ? { pendingApprovalTask: input.pendingApprovalTask }
+      : {}),
   });
 
   if (isAllowed) {
@@ -720,13 +980,54 @@ function canActorPerformConfiguredAction(input: {
   actor: ActorRecord;
   actionConfig: WorkflowActionConfig;
   workflowInstance: WorkflowInstanceRecord;
+  pendingApprovalTask?: ApprovalTaskRecord;
 }): boolean {
   if (input.actionConfig.actor === "requester") {
     return input.actor.linkedWorkerId === input.workflowInstance.subjectId;
   }
 
+  if (input.actionConfig.actor === "initiator") {
+    return input.actor.actorId === input.workflowInstance.requesterActorId;
+  }
+
   if (input.actionConfig.actor === "hr_admin") {
     return input.actor.roles.includes(ACTOR_ROLES.HR_ADMIN);
+  }
+
+  if (input.actionConfig.actor === "compensation_admin") {
+    return input.actor.roles.includes(ACTOR_ROLES.COMPENSATION_ADMIN);
+  }
+
+  if (isOrgTransferWorkflowIntent(input.workflowInstance.intent)) {
+    if (
+      input.actionConfig.actor === "source_manager" ||
+      input.actionConfig.actor === "destination_manager" ||
+      input.actionConfig.actor === "finance_admin" ||
+      input.actionConfig.actor === "medical_director" ||
+      input.actionConfig.actor === "org_transfer_approver"
+    ) {
+      return input.pendingApprovalTask === undefined
+        ? canPerformOrgTransferApproval({ actor: input.actor })
+        : canPerformOrgTransferApproval({
+            actor: input.actor,
+            pendingApprovalTask: input.pendingApprovalTask,
+          });
+    }
+  }
+
+  if (input.actionConfig.actor === "finance_admin") {
+    return input.actor.roles.includes(ACTOR_ROLES.FINANCE_ADMIN);
+  }
+
+  if (input.actionConfig.actor === "medical_director") {
+    return (
+      input.actor.roles.includes("medical_director") ||
+      input.actor.roles.includes("clinical_admin")
+    );
+  }
+
+  if (input.actionConfig.actor === "clinic_ops_admin") {
+    return input.actor.roles.includes("clinic_ops_admin");
   }
 
   if (input.actionConfig.actor === "hr_admin_or_system") {
@@ -759,6 +1060,10 @@ async function executeTransition(
   },
 ): Promise<Result<Record<string, unknown>, AppError>> {
   if (input.actionConfig.handler === "submit_configured_input") {
+    if (isOrgTransferWorkflowIntent(input.workflowConfig.intent)) {
+      return submitOrgTransferInput(dependencies, requestContext, input);
+    }
+
     return submitConfiguredInput(dependencies, requestContext, input);
   }
 
@@ -767,6 +1072,10 @@ async function executeTransition(
   }
 
   if (input.actionConfig.handler === "approve") {
+    if (isOrgTransferWorkflowIntent(input.workflowConfig.intent)) {
+      return approveOrgTransferStage(dependencies, requestContext, input);
+    }
+
     return approveChange(dependencies, requestContext, input);
   }
 
@@ -783,6 +1092,10 @@ async function executeTransition(
   }
 
   if (input.actionConfig.handler === "execute") {
+    if (isOrgTransferWorkflowIntent(input.workflowConfig.intent)) {
+      return executeApprovedOrgTransfer(dependencies, requestContext, input);
+    }
+
     return executeApprovedChange(dependencies, requestContext, input);
   }
 
@@ -1538,7 +1851,7 @@ function cancelWorkflow(
   return ok(serializeWorkflowInstance(workflowResult.value));
 }
 
-function executeApprovedChange(
+async function executeApprovedChange(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
@@ -1546,7 +1859,7 @@ function executeApprovedChange(
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
   },
-): Result<Record<string, unknown>, AppError> {
+): Promise<Result<Record<string, unknown>, AppError>> {
   const repositories = dependencies.repositories;
   const changeRequestResult = findChangeRequestForWorkflow(
     repositories,
@@ -1586,6 +1899,27 @@ function executeApprovedChange(
     return executionStartedResult;
   }
 
+  const externalWriteExecutionsResult = await executeSynchronousExternalWrites(
+    dependencies,
+    repositories,
+    requestContext,
+    input.workflowConfig,
+    input.workflowInstance,
+    input.transitionBody.idempotencyKey,
+    changeRequestResult.value,
+    transactionPlanResult.value,
+  );
+  if (!externalWriteExecutionsResult.ok) {
+    return externalWriteExecutionsResult;
+  }
+  if (externalWriteExecutionsResult.value.status === "routed") {
+    return ok(
+      serializeWorkflowInstance(externalWriteExecutionsResult.value.workflowInstance),
+    );
+  }
+
+  const externalWriteExecutions = externalWriteExecutionsResult.value.executions;
+
   const projectedDocumentResult = applyInternalTransactionWrites(
     repositories,
     requestContext,
@@ -1602,6 +1936,7 @@ function executeApprovedChange(
     requestContext,
     changeRequestResult.value,
     transactionPlanResult.value,
+    externalWriteExecutions,
   );
   if (!outboxResult.ok) {
     return outboxResult;
@@ -1625,6 +1960,7 @@ function executeApprovedChange(
     executionResult: {
       projectionVersion: projectedDocumentResult.value.projectionVersion,
       outboxRows: outboxResult.value,
+      externalWriteExecutions,
     },
     updatedBy: requestContext.actor.actorId,
   });
@@ -1654,47 +1990,391 @@ function executeApprovedChange(
       changeRequest: closedChangeRequestResult.value,
       transactionPlan: executedPlanResult.value,
       outboxRows: outboxResult.value,
+      externalWriteExecutions,
     },
   });
   if (!ledgerResult.ok) {
     return ledgerResult;
   }
 
+  const supplementalEvents = [
+    {
+      eventType: LEDGER_EVENT_TYPES.EMPLOYEE_PROJECTION_UPDATED,
+      transactionPlanId: transactionPlanResult.value.transactionPlanId,
+      payload: {
+        employeeId: changeRequestResult.value.targetWorkerId,
+        projectionVersion: projectedDocumentResult.value.projectionVersion,
+      },
+    },
+    {
+      eventType: LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED,
+      transactionPlanId: transactionPlanResult.value.transactionPlanId,
+      payload: {
+        outboxRows: outboxResult.value,
+      },
+    },
+    ...(externalWriteExecutions.length > 0
+      ? [
+          {
+            eventType:
+              externalWriteExecutions[0]?.eventType ??
+              LEDGER_EVENT_TYPES.EXTERNAL_WRITE_SUCCEEDED,
+            transactionPlanId: transactionPlanResult.value.transactionPlanId,
+            payload: {
+              externalWriteExecutions,
+            },
+          },
+        ]
+      : []),
+    {
+      eventType: LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED,
+      transactionPlanId: transactionPlanResult.value.transactionPlanId,
+      payload: {
+        terminalState: WORKFLOW_STATES.EXECUTED,
+      },
+    },
+  ];
   const supplementalLedgerResult = appendAdditionalWorkflowEvents(
     repositories,
     requestContext,
     workflowResult.value,
     input.transitionBody.idempotencyKey,
-    [
-      {
-        eventType: LEDGER_EVENT_TYPES.EMPLOYEE_PROJECTION_UPDATED,
-        transactionPlanId: transactionPlanResult.value.transactionPlanId,
-        payload: {
-          employeeId: changeRequestResult.value.targetWorkerId,
-          projectionVersion: projectedDocumentResult.value.projectionVersion,
-        },
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED,
-        transactionPlanId: transactionPlanResult.value.transactionPlanId,
-        payload: {
-          outboxRows: outboxResult.value,
-        },
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED,
-        transactionPlanId: transactionPlanResult.value.transactionPlanId,
-        payload: {
-          terminalState: WORKFLOW_STATES.EXECUTED,
-        },
-      },
-    ],
+    supplementalEvents,
   );
   if (!supplementalLedgerResult.ok) {
     return supplementalLedgerResult;
   }
 
   return ok(serializeWorkflowInstance(workflowResult.value));
+}
+
+async function executeSynchronousExternalWrites(
+  dependencies: AppDependencies,
+  repositories: Repositories,
+  requestContext: ApiRequestContext,
+  workflowConfig: WorkflowConfig,
+  workflowInstance: WorkflowInstanceRecord,
+  idempotencyKey: string,
+  changeRequest: ChangeRequestRecord,
+  transactionPlan: TransactionPlanRecord,
+): Promise<Result<ExternalWriteExecutionResult, AppError>> {
+  const externalWriteExecutions: ExternalWriteExecution[] = [];
+
+  for (const externalWrite of transactionPlan.externalWrites) {
+    const connectionId = stringField(externalWrite, "connectionId");
+
+    if (connectionId !== compensationDecisionConnectionId) {
+      continue;
+    }
+
+    const compensationDecisionClient = dependencies.compensationDecisionClient;
+    const operation = stringField(externalWrite, "operation") ?? "unknown";
+    const requestPayload = objectField(externalWrite, "payload");
+    const graphNodeResult = findExternalWriteGraphNode(workflowConfig, externalWrite);
+    const externalIdempotencyKey =
+      stringField(externalWrite, "idempotencyKey") ??
+      `${compensationDecisionConnectionId}_${transactionPlan.transactionPlanId}`;
+
+    if (!graphNodeResult.ok) {
+      return graphNodeResult;
+    }
+
+    if (compensationDecisionClient === undefined || requestPayload === undefined) {
+      return err(
+        validationFailedError({
+          connectionId,
+          operation,
+          compensationDecisionClient:
+            compensationDecisionClient === undefined ? "missing" : "configured",
+          requestPayload: requestPayload === undefined ? "missing" : "present",
+        }),
+      );
+    }
+
+    const decisionResult = await compensationDecisionClient.submitCompensationChange(
+      requestPayload,
+      externalIdempotencyKey,
+    );
+    if (!decisionResult.ok) {
+      const failureLedgerResult = appendExternalWriteFailedEvent(
+        repositories,
+        requestContext,
+        workflowInstance,
+        idempotencyKey,
+        transactionPlan.transactionPlanId,
+        {
+          connectionId,
+          operation,
+          error: decisionResult.error.details ?? {},
+        },
+      );
+      if (!failureLedgerResult.ok) {
+        return failureLedgerResult;
+      }
+
+      return decisionResult;
+    }
+
+    const outcomeResult = selectExternalWriteOutcome(
+      graphNodeResult.value,
+      decisionResult.value.rawResponse,
+    );
+    if (!outcomeResult.ok) {
+      return outcomeResult;
+    }
+
+    if (isTerminalExternalFailureOutcome(outcomeResult.value)) {
+      const failurePayload = {
+        connectionId,
+        operation,
+        response: decisionResult.value.rawResponse,
+        reasonCodes: decisionResult.value.reasonCodes,
+        outcome: outcomeResult.value.outcome,
+        nodeId: graphNodeResult.value.nodeId,
+      };
+      const routedWorkflowResult = routeExternalWriteOutcome(
+        repositories,
+        requestContext,
+        workflowConfig,
+        workflowInstance,
+        changeRequest,
+        transactionPlan,
+        idempotencyKey,
+        outcomeResult.value,
+        failurePayload,
+      );
+      if (!routedWorkflowResult.ok) {
+        return routedWorkflowResult;
+      }
+
+      return ok({
+        status: "routed",
+        workflowInstance: routedWorkflowResult.value,
+      });
+    }
+
+    externalWriteExecutions.push({
+      connectionId,
+      operation,
+      idempotencyKey: externalIdempotencyKey,
+      outcome: outcomeResult.value.outcome,
+      ...(outcomeResult.value.eventType !== undefined
+        ? { eventType: outcomeResult.value.eventType }
+        : {}),
+      ...(outcomeResult.value.nextNodeId !== undefined
+        ? { nextNodeId: outcomeResult.value.nextNodeId }
+        : {}),
+      requestPayload,
+      responsePayload: decisionResult.value.rawResponse,
+    });
+  }
+
+  return ok({
+    status: "succeeded",
+    executions: externalWriteExecutions,
+  });
+}
+
+function findExternalWriteGraphNode(
+  workflowConfig: WorkflowConfig,
+  externalWrite: Record<string, unknown>,
+): Result<WorkflowGraphNodeConfig, AppError> {
+  const connectionId = stringField(externalWrite, "connectionId");
+  const operation = stringField(externalWrite, "operation");
+  const graphNode = workflowConfig.graph?.nodes.find((node) => {
+    return (
+      node.type === "external_write" &&
+      node.connectionId === connectionId &&
+      node.operation === operation
+    );
+  });
+
+  if (graphNode === undefined) {
+    return err(
+      validationFailedError({
+        intent: workflowConfig.intent,
+        connectionId,
+        operation,
+        graphNode: "missing",
+      }),
+    );
+  }
+
+  return ok(graphNode);
+}
+
+function selectExternalWriteOutcome(
+  graphNode: WorkflowGraphNodeConfig,
+  externalWriteResponse: Record<string, unknown>,
+): Result<WorkflowGraphOutcomeConfig, AppError> {
+  const outcomes = graphNode.outcomes ?? [];
+  const matchingOutcome = outcomes.find((outcome) => {
+    return outcomeMatchesExternalWriteResponse(outcome, externalWriteResponse);
+  });
+
+  if (matchingOutcome === undefined) {
+    return err(
+      validationFailedError({
+        nodeId: graphNode.nodeId,
+        response: externalWriteResponse,
+        outcomes: outcomes.map((outcome) => outcome.outcome),
+      }),
+    );
+  }
+
+  return ok(matchingOutcome);
+}
+
+function outcomeMatchesExternalWriteResponse(
+  outcome: WorkflowGraphOutcomeConfig,
+  externalWriteResponse: Record<string, unknown>,
+): boolean {
+  if (outcome.when === undefined) {
+    return false;
+  }
+
+  if (outcome.when.$source !== "externalWriteResponse") {
+    return false;
+  }
+
+  const responseValue = valueAtDotPath(externalWriteResponse, outcome.when.path);
+
+  if (outcome.when.exists !== undefined) {
+    return outcome.when.exists
+      ? responseValue !== undefined
+      : responseValue === undefined;
+  }
+
+  if (outcome.when.in !== undefined) {
+    return outcome.when.in.some((allowedValue) => {
+      return Object.is(allowedValue, responseValue);
+    });
+  }
+
+  return Object.is(outcome.when.equals, responseValue);
+}
+
+function isTerminalExternalFailureOutcome(
+  outcome: WorkflowGraphOutcomeConfig,
+): boolean {
+  return (
+    outcome.nextState === WORKFLOW_STATES.WAITING_REPAIR ||
+    outcome.nextStatus === WORKFLOW_STATUSES.WAITING_REPAIR ||
+    outcome.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_FAILED
+  );
+}
+
+function routeExternalWriteOutcome(
+  repositories: Repositories,
+  requestContext: ApiRequestContext,
+  workflowConfig: WorkflowConfig,
+  workflowInstance: WorkflowInstanceRecord,
+  changeRequest: ChangeRequestRecord,
+  transactionPlan: TransactionPlanRecord,
+  idempotencyKey: string,
+  outcome: WorkflowGraphOutcomeConfig,
+  payload: Record<string, unknown>,
+): Result<WorkflowInstanceRecord, AppError> {
+  const nextInteractionResult =
+    outcome.nextInteraction === undefined
+      ? ok(workflowInstance.currentInteraction)
+      : buildConfiguredInteraction({
+          workflowConfig,
+          interactionKey: outcome.nextInteraction,
+        });
+  if (!nextInteractionResult.ok) {
+    return nextInteractionResult;
+  }
+
+  const changeRequestResult = repositories.changeRequests.update({
+    ...changeRequest,
+    status: CHANGE_REQUEST_STATUSES.WAITING_REPAIR,
+    updatedBy: requestContext.actor.actorId,
+    version: changeRequest.version + 1,
+  });
+  if (!changeRequestResult.ok) {
+    return changeRequestResult;
+  }
+
+  const transactionPlanResult = repositories.transactionPlans.update({
+    ...transactionPlan,
+    status: CHANGE_REQUEST_STATUSES.WAITING_REPAIR,
+    executionResult: {
+      externalWriteOutcome: outcome,
+      externalWritePayload: payload,
+    },
+    updatedBy: requestContext.actor.actorId,
+  });
+  if (!transactionPlanResult.ok) {
+    return transactionPlanResult;
+  }
+
+  const workflowResult = repositories.workflows.updateInstance({
+    ...workflowInstance,
+    state: outcome.nextState ?? WORKFLOW_STATES.WAITING_REPAIR,
+    status: outcome.nextStatus ?? WORKFLOW_STATUSES.WAITING_REPAIR,
+    currentInteraction: nextInteractionResult.value,
+    version: workflowInstance.version + 1,
+  });
+  if (!workflowResult.ok) {
+    return workflowResult;
+  }
+
+  const ledgerResult = appendTransitionLedgerEvents(repositories, requestContext, {
+    workflowInstance: workflowResult.value,
+    previousState: workflowInstance.state,
+    eventType: outcome.eventType ?? LEDGER_EVENT_TYPES.EXTERNAL_WRITE_FAILED,
+    idempotencyKey,
+    transactionPlanId: transactionPlan.transactionPlanId,
+    payload: {
+      ...payload,
+      changeRequest: changeRequestResult.value,
+      transactionPlan: transactionPlanResult.value,
+    },
+  });
+  if (!ledgerResult.ok) {
+    return ledgerResult;
+  }
+
+  return workflowResult;
+}
+
+function valueAtDotPath(source: Record<string, unknown>, path: string): unknown {
+  const pathSegments = path.split(".").filter((segment) => segment.length > 0);
+  let currentValue: unknown = source;
+
+  for (const pathSegment of pathSegments) {
+    if (typeof currentValue !== "object" || currentValue === null) {
+      return undefined;
+    }
+
+    currentValue = (currentValue as Record<string, unknown>)[pathSegment];
+  }
+
+  return currentValue;
+}
+
+function appendExternalWriteFailedEvent(
+  repositories: Repositories,
+  requestContext: ApiRequestContext,
+  workflowInstance: WorkflowInstanceRecord,
+  idempotencyKey: string,
+  transactionPlanId: string,
+  payload: Record<string, unknown>,
+): Result<true, AppError> {
+  return appendAdditionalWorkflowEvents(
+    repositories,
+    requestContext,
+    workflowInstance,
+    idempotencyKey,
+    [
+      {
+        eventType: LEDGER_EVENT_TYPES.EXTERNAL_WRITE_FAILED,
+        transactionPlanId,
+        payload,
+      },
+    ],
+  );
 }
 
 function parseTransitionBody(
@@ -2391,10 +3071,17 @@ function createIntegrationOutboxRows(
   requestContext: ApiRequestContext,
   changeRequest: ChangeRequestRecord,
   transactionPlan: TransactionPlanRecord,
+  externalWriteExecutions: ExternalWriteExecution[],
 ) {
   const outboxRows = [];
 
   for (const externalWrite of transactionPlan.externalWrites) {
+    const idempotencyKey =
+      stringField(externalWrite, "idempotencyKey") ??
+      `outbox_${changeRequest.changeRequestId}`;
+    const matchingExecution = externalWriteExecutions.find((execution) => {
+      return execution.idempotencyKey === idempotencyKey;
+    });
     const outboxResult = repositories.integrationOutbox.create({
       outboxId: makeId("outbox"),
       tenantId: requestContext.tenantId,
@@ -2403,12 +3090,16 @@ function createIntegrationOutboxRows(
       destination: stringField(externalWrite, "connectionId") ?? "unknown",
       operation: stringField(externalWrite, "operation") ?? "unknown",
       requestPayload: objectField(externalWrite, "payload") ?? {},
-      status: "pending",
-      attemptCount: 0,
+      ...(matchingExecution !== undefined
+        ? { responsePayload: matchingExecution.responsePayload }
+        : {}),
+      status:
+        matchingExecution !== undefined
+          ? INTEGRATION_OUTBOX_STATUSES.SUCCEEDED
+          : INTEGRATION_OUTBOX_STATUSES.PENDING,
+      attemptCount: matchingExecution !== undefined ? 1 : 0,
       maxAttempts: 3,
-      idempotencyKey:
-        stringField(externalWrite, "idempotencyKey") ??
-        `outbox_${changeRequest.changeRequestId}`,
+      idempotencyKey,
       createdAt: nowIso(),
       updatedAt: nowIso(),
     });
@@ -2642,6 +3333,7 @@ function buildTimelineView(
   ledgerEvents: LedgerEventRecord[],
   view: TimelineView,
   workflowConfig: WorkflowConfig,
+  visibilityContext?: TimelineVisibilityContext,
 ): Record<string, unknown>[] {
   if (view === timelineViews.AUDIT) {
     return ledgerEvents;
@@ -2659,19 +3351,22 @@ function buildTimelineView(
 
   return ledgerEvents
     .filter((event) => businessTimelineEventTypes.has(event.eventType))
-    .map((event) => createBusinessTimelineEntry(event, workflowConfig));
+    .map((event) =>
+      createBusinessTimelineEntry(event, workflowConfig, visibilityContext),
+    );
 }
 
 function createBusinessTimelineEntry(
   event: LedgerEventRecord,
   workflowConfig: WorkflowConfig,
+  visibilityContext?: TimelineVisibilityContext,
 ): Record<string, unknown> {
   return {
     eventType: event.eventType,
     occurredAt: event.occurredAt,
     actorId: event.actorId,
     summary: businessSummaryForEvent(event, workflowConfig),
-    payloadExcerpt: businessPayloadExcerpt(event),
+    payloadExcerpt: businessPayloadExcerpt(event, visibilityContext),
   };
 }
 
@@ -2692,7 +3387,28 @@ function businessSummaryForEvent(
   return workflowConfig.timeline.summaries[event.eventType] ?? event.eventType;
 }
 
-function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknown> {
+function businessPayloadExcerpt(
+  event: LedgerEventRecord,
+  visibilityContext?: TimelineVisibilityContext,
+): Record<string, unknown> {
+  const requiredFieldGroup = fieldGroupForTimelineEvent(event);
+
+  if (
+    requiredFieldGroup !== undefined &&
+    visibilityContext !== undefined &&
+    !canViewEmployee(
+      visibilityContext.actor,
+      visibilityContext.targetProjection.document,
+      requiredFieldGroup,
+      visibilityContext.access,
+    ).ok
+  ) {
+    return {
+      restricted: true,
+      fieldGroup: requiredFieldGroup,
+    };
+  }
+
   if (event.eventType === LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED) {
     return {
       previousLegalName: event.payload["previousLegalName"],
@@ -2706,11 +3422,29 @@ function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknow
     };
   }
 
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED) {
+    return {
+      previousCompensation: event.payload["previousCompensation"],
+      newCompensation: event.payload["newCompensation"],
+      increasePercent: event.payload["increasePercent"],
+    };
+  }
+
   if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED) {
     const outboxRows = event.payload["outboxRows"];
 
     return {
       outboxRequestCount: Array.isArray(outboxRows) ? outboxRows.length : 0,
+    };
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_SUCCEEDED) {
+    const externalWriteExecutions = event.payload["externalWriteExecutions"];
+
+    return {
+      externalWriteSuccessCount: Array.isArray(externalWriteExecutions)
+        ? externalWriteExecutions.length
+        : 0,
     };
   }
 
@@ -2747,7 +3481,47 @@ function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknow
     };
   }
 
+  if (event.eventType === LEDGER_EVENT_TYPES.COMPENSATION_PREFLIGHTED) {
+    return {
+      valid: event.payload["valid"],
+      riskLevel: event.payload["riskLevel"],
+      requiresApproval: event.payload["requiresApproval"],
+    };
+  }
+
   return {};
+}
+
+function fieldGroupForTimelineEvent(
+  event: LedgerEventRecord,
+): EmployeeAccessFieldGroup | undefined {
+  if (event.eventType === LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED) {
+    return "profile";
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
+    return "emergencyContacts";
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_CONTACT_INFO_UPDATED) {
+    return "contact";
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED) {
+    return "compensation";
+  }
+
+  if (
+    event.eventType === LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED ||
+    event.eventType === LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED ||
+    event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED ||
+    event.eventType === LEDGER_EVENT_TYPES.CONTACT_INFO_PREFLIGHTED ||
+    event.eventType === LEDGER_EVENT_TYPES.COMPENSATION_PREFLIGHTED
+  ) {
+    return "workflow";
+  }
+
+  return undefined;
 }
 
 function serializeWorkflowInstance(

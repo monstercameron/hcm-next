@@ -10,12 +10,15 @@
   },
   "workspaces": [
     "src/api",
-    "src/platform/*"
+    "src/platform/*",
+    "src/third-party-apis/*"
   ],
   "scripts": {
     "dev": "npm --workspace @hcm-next/api run dev",
     "dev:blocks": "cd src/blocks/go && go run ./cmd/executor",
     "dev:executor": "npm run dev:blocks",
+    "dev:third-party:compensation": "npm --workspace @hcm-next/third-party-compensation-market-api run dev",
+    "dev:third-party:compensation-decision": "npm --workspace @hcm-next/third-party-compensation-decision-api run dev",
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint .",
     "format": "prettier --write .",
