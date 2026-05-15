@@ -21,12 +21,14 @@ type EmergencyContact struct {
 	Priority     int     `json:"priority"`
 }
 
-// ValidationMessage is a typed business validation message returned by preflight.
-type ValidationMessage struct {
-	Code    string `json:"code"`
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
+// ValidationMessage is the generic block validation message used by emergency-contact blocks.
+type ValidationMessage = executor.ValidationIssue
+
+// InternalWriteSpec is the legacy emergency-contact output name for generic ledger facts.
+type InternalWriteSpec = executor.LedgerFact
+
+// ProjectionPatch is the generic projection mutation emitted by emergency-contact blocks.
+type ProjectionPatch = executor.ProjectionPatch
 
 // RegisterBlocks registers the V0 emergency-contact deterministic blocks.
 func RegisterBlocks(registry *executor.Registry) error {

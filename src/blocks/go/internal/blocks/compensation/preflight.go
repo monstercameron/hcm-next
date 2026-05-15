@@ -27,6 +27,7 @@ type PreflightInput struct {
 
 // PreflightOutput is the deterministic validation result for a compensation change.
 type PreflightOutput struct {
+	executor.BlockOutputContract
 	Valid            bool                `json:"valid"`
 	RiskLevel        string              `json:"riskLevel"`
 	RequiresEvidence bool                `json:"requiresEvidence"`
@@ -53,8 +54,16 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 	validationErrors := validatePreflightInput(input, evaluationDate)
 	isValid := len(validationErrors) == 0
 	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	increasePercent := compensationIncreasePercent(input.CurrentCompensation, input.ProposedCompensation)
+	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
+		BlockOutputContract: executor.NewValidationOutputContract(
+			routeKey,
+			compensationPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings), increasePercent),
+			validationErrors,
+			validationWarnings,
+		),
 		Valid:            isValid,
 		RiskLevel:        riskLevel,
 		RequiresEvidence: false,
@@ -74,11 +83,22 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 					"riskLevel":       riskLevel,
 					"warningCount":    len(validationWarnings),
 					"errorCount":      len(validationErrors),
-					"increasePercent": compensationIncreasePercent(input.CurrentCompensation, input.ProposedCompensation),
+					"increasePercent": increasePercent,
 				},
 			},
 		},
 	}, nil
+}
+
+func compensationPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int, increasePercent float64) []executor.Fact {
+	return []executor.Fact{
+		{Key: "valid", Value: isValid, Source: PreflightBlockName},
+		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
+		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
+		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
+		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
+		{Key: "increasePercent", Value: increasePercent, Source: PreflightBlockName},
+	}
 }
 
 func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {

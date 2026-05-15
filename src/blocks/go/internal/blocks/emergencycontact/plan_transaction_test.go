@@ -77,6 +77,26 @@ func TestExecutePlanTransactionCreatesEmergencyContactWrites(t *testing.T) {
 	if !reflect.DeepEqual(output.ProjectionPatches, expectedProjectionPatches) {
 		t.Fatalf("unexpected projection patches:\nwant: %#v\n got: %#v", expectedProjectionPatches, output.ProjectionPatches)
 	}
+
+	if output.RouteKey != executor.RouteKeyTransactionPlanReady {
+		t.Fatalf("expected transaction plan route key, got %s", output.RouteKey)
+	}
+
+	if output.TransactionPlan == nil {
+		t.Fatalf("expected generic transaction plan")
+	}
+
+	if len(output.LedgerFacts) != len(output.InternalWrites) {
+		t.Fatalf("expected ledger facts to mirror internal writes")
+	}
+
+	if len(output.ExternalCalls) != len(output.ExternalCallRequests) {
+		t.Fatalf("expected generic external calls to mirror legacy external call requests")
+	}
+
+	if len(output.TransactionPlan.ProjectionPatches) != len(output.ProjectionPatches) {
+		t.Fatalf("expected transaction plan projection patches to mirror legacy projection patches")
+	}
 }
 
 func planTransactionRequest(t *testing.T, input map[string]any) executor.ExecutionRequest {

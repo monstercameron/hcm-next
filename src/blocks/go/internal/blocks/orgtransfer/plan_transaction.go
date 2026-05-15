@@ -9,52 +9,36 @@ import (
 )
 
 const (
-	workerSubjectType                = "worker"
-	workerAssignmentSupersededEvent  = "WorkerAssignmentSuperseded"
-	workerAssignmentCreatedEvent     = "WorkerAssignmentCreated"
-	roleBindingsRecalculatedEvent    = "RoleBindingsRecalculated"
+	workerSubjectType                 = "worker"
+	workerAssignmentSupersededEvent   = "WorkerAssignmentSuperseded"
+	workerAssignmentCreatedEvent      = "WorkerAssignmentCreated"
+	roleBindingsRecalculatedEvent     = "RoleBindingsRecalculated"
 	employeeOrgProjectionUpdatedEvent = "EmployeeOrgProjectionUpdated"
-	employeeCompensationUpdatedEvent = "EmployeeCompensationUpdated"
-	hrisTransferConnectionID         = "hris_worker_profile"
-	payrollCostCenterConnectionID    = "payroll_cost_center"
-	compensationVendorConnectionID   = "compensation_vendor"
+	employeeCompensationUpdatedEvent  = "EmployeeCompensationUpdated"
+	orgTransferExecutedEvent          = "OrgTransferExecuted"
+	hrisTransferConnectionID          = "hris_worker_profile"
+	payrollCostCenterConnectionID     = "payroll_cost_center"
+	compensationVendorConnectionID    = "compensation_vendor"
 )
 
 // PlanTransactionInput is the deterministic transaction planning input for org transfer.
 type PlanTransactionInput struct {
-	ChangeRequestID            string             `json:"changeRequestId"`
-	WorkerID                   string             `json:"workerId"`
-	CurrentOrganization        OrganizationInfo   `json:"currentOrganization"`
-	ProposedOrganization       OrganizationInfo   `json:"proposedOrganization"`
-	CurrentJob                 JobInfo            `json:"currentJob"`
-	ProposedJob                JobInfo            `json:"proposedJob"`
-	CurrentCompensation        CompensationInfo   `json:"currentCompensation"`
-	ProposedCompensation       CompensationInfo   `json:"proposedCompensation"`
-	CurrentAssignments         []WorkerAssignment `json:"currentAssignments"`
-	TargetTeamOrgUnit          OrgUnit            `json:"targetTeamOrgUnit"`
-	TargetLocationOrgUnit      OrgUnit            `json:"targetLocationOrgUnit"`
-	TargetCostCenterOrgUnit    OrgUnit            `json:"targetCostCenterOrgUnit"`
-	SourceManagerEmployeeID    string             `json:"sourceManagerEmployeeId"`
-	TargetManagerEmployeeID    string             `json:"targetManagerEmployeeId"`
-	EffectiveAt                string             `json:"effectiveAt"`
-	BusinessReason             string             `json:"businessReason"`
-}
-
-// InternalWriteSpec describes an internal ledger write that Node may apply.
-type InternalWriteSpec struct {
-	EventType   string         `json:"eventType"`
-	SubjectType string         `json:"subjectType"`
-	SubjectID   string         `json:"subjectId"`
-	EffectiveAt string         `json:"effectiveAt"`
-	Payload     map[string]any `json:"payload"`
-}
-
-// ProjectionPatch describes a deterministic employee projection mutation.
-type ProjectionPatch struct {
-	Projection string `json:"projection"`
-	Operation  string `json:"operation"`
-	Path       string `json:"path"`
-	Value      any    `json:"value"`
+	ChangeRequestID         string             `json:"changeRequestId"`
+	WorkerID                string             `json:"workerId"`
+	CurrentOrganization     OrganizationInfo   `json:"currentOrganization"`
+	ProposedOrganization    OrganizationInfo   `json:"proposedOrganization"`
+	CurrentJob              JobInfo            `json:"currentJob"`
+	ProposedJob             JobInfo            `json:"proposedJob"`
+	CurrentCompensation     CompensationInfo   `json:"currentCompensation"`
+	ProposedCompensation    CompensationInfo   `json:"proposedCompensation"`
+	CurrentAssignments      []WorkerAssignment `json:"currentAssignments"`
+	TargetTeamOrgUnit       OrgUnit            `json:"targetTeamOrgUnit"`
+	TargetLocationOrgUnit   OrgUnit            `json:"targetLocationOrgUnit"`
+	TargetCostCenterOrgUnit OrgUnit            `json:"targetCostCenterOrgUnit"`
+	SourceManagerEmployeeID string             `json:"sourceManagerEmployeeId"`
+	TargetManagerEmployeeID string             `json:"targetManagerEmployeeId"`
+	EffectiveAt             string             `json:"effectiveAt"`
+	BusinessReason          string             `json:"businessReason"`
 }
 
 // AssignmentOperation describes a durable worker-assignment write for Node to apply.
@@ -79,12 +63,13 @@ type RoleBindingOperation struct {
 	RoleKey         string         `json:"roleKey,omitempty"`
 	ScopeType       string         `json:"scopeType,omitempty"`
 	EffectiveStart  string         `json:"effectiveStart,omitempty"`
-	IdempotencyKey   string         `json:"idempotencyKey"`
-	Metadata         map[string]any `json:"metadata,omitempty"`
+	IdempotencyKey  string         `json:"idempotencyKey"`
+	Metadata        map[string]any `json:"metadata,omitempty"`
 }
 
 // PlanTransactionOutput is the deterministic execution plan for an org transfer.
 type PlanTransactionOutput struct {
+	executor.BlockOutputContract
 	InternalWrites        []InternalWriteSpec            `json:"internalWrites"`
 	ProjectionPatches     []ProjectionPatch              `json:"projectionPatches"`
 	AssignmentOperations  []AssignmentOperation          `json:"assignmentOperations"`
@@ -110,7 +95,24 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	projectionPatches := buildProjectionPatches(input)
 	internalWrites := buildInternalWrites(input, assignmentOperations, roleBindingOperations, projectionPatches)
 	externalCallRequests := buildExternalCallRequests(input)
+	transactionOperations := buildGenericTransactionOperations(assignmentOperations, roleBindingOperations)
 	output := PlanTransactionOutput{
+		BlockOutputContract: executor.NewTransactionOutputContract(
+			executor.RouteKeyTransactionPlanReady,
+			orgTransferTransactionFacts(
+				len(internalWrites),
+				len(externalCallRequests),
+				len(projectionPatches),
+				len(assignmentOperations),
+				len(roleBindingOperations),
+			),
+			internalWrites,
+			externalCallRequests,
+			projectionPatches,
+			PlanTransactionBlockName,
+			request.Context.IdempotencyKey,
+			transactionOperations,
+		),
 		InternalWrites:        internalWrites,
 		ProjectionPatches:     projectionPatches,
 		AssignmentOperations:  assignmentOperations,
@@ -136,6 +138,53 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 	}, nil
 }
 
+func orgTransferTransactionFacts(
+	internalWriteCount int,
+	externalCallCount int,
+	projectionPatchCount int,
+	assignmentOperationCount int,
+	roleBindingOperationCount int,
+) []executor.Fact {
+	return []executor.Fact{
+		{Key: "ledgerFactCount", Value: internalWriteCount, Source: PlanTransactionBlockName},
+		{Key: "externalCallCount", Value: externalCallCount, Source: PlanTransactionBlockName},
+		{Key: "projectionPatchCount", Value: projectionPatchCount, Source: PlanTransactionBlockName},
+		{Key: "assignmentOperationCount", Value: assignmentOperationCount, Source: PlanTransactionBlockName},
+		{Key: "roleBindingOperationCount", Value: roleBindingOperationCount, Source: PlanTransactionBlockName},
+	}
+}
+
+func buildGenericTransactionOperations(
+	assignmentOperations []AssignmentOperation,
+	roleBindingOperations []RoleBindingOperation,
+) []executor.TransactionOperation {
+	transactionOperations := make([]executor.TransactionOperation, 0, len(assignmentOperations)+len(roleBindingOperations))
+
+	for _, operation := range assignmentOperations {
+		transactionOperations = append(transactionOperations, executor.TransactionOperation{
+			Operation:      operation.Operation,
+			Target:         "worker_assignment",
+			IdempotencyKey: operation.IdempotencyKey,
+			Payload: map[string]any{
+				"assignmentOperation": operation,
+			},
+		})
+	}
+
+	for _, operation := range roleBindingOperations {
+		transactionOperations = append(transactionOperations, executor.TransactionOperation{
+			Operation:      operation.Operation,
+			Target:         "role_binding",
+			IdempotencyKey: operation.IdempotencyKey,
+			Payload: map[string]any{
+				"roleBindingOperation": operation,
+			},
+		})
+	}
+
+	return transactionOperations
+}
+
 func decodePlanTransactionInput(rawInput json.RawMessage) (PlanTransactionInput, *executor.ExecutionError) {
 	var input PlanTransactionInput
 	decoder := json.NewDecoder(bytes.NewReader(rawInput))
@@ -153,14 +202,14 @@ func decodePlanTransactionInput(rawInput json.RawMessage) (PlanTransactionInput,
 func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessage {
 	validationErrors := make([]ValidationMessage, 0)
 	requiredFields := map[string]string{
-		"changeRequestId":         input.ChangeRequestID,
-		"workerId":                input.WorkerID,
-		"targetTeamOrgUnitId":     input.TargetTeamOrgUnit.OrgUnitID,
-		"targetLocationOrgUnitId": input.TargetLocationOrgUnit.OrgUnitID,
+		"changeRequestId":           input.ChangeRequestID,
+		"workerId":                  input.WorkerID,
+		"targetTeamOrgUnitId":       input.TargetTeamOrgUnit.OrgUnitID,
+		"targetLocationOrgUnitId":   input.TargetLocationOrgUnit.OrgUnitID,
 		"targetCostCenterOrgUnitId": input.TargetCostCenterOrgUnit.OrgUnitID,
-		"targetManagerEmployeeId": input.TargetManagerEmployeeID,
-		"effectiveAt":             input.EffectiveAt,
-		"businessReason":          input.BusinessReason,
+		"targetManagerEmployeeId":   input.TargetManagerEmployeeID,
+		"effectiveAt":               input.EffectiveAt,
+		"businessReason":            input.BusinessReason,
 	}
 
 	for field, value := range requiredFields {
@@ -266,14 +315,14 @@ func buildRoleBindingOperations(input PlanTransactionInput) []RoleBindingOperati
 			RoleKey:         "manager",
 			ScopeType:       "direct_reports",
 			EffectiveStart:  input.EffectiveAt,
-			IdempotencyKey:   "role_binding_destination_manager_" + input.ChangeRequestID,
+			IdempotencyKey:  "role_binding_destination_manager_" + input.ChangeRequestID,
 			Metadata: map[string]any{
 				"sourceManagerEmployeeId": input.SourceManagerEmployeeID,
 				"targetManagerEmployeeId": input.TargetManagerEmployeeID,
 			},
 		},
 		{
-			Operation:     "record_recalculation",
+			Operation:      "record_recalculation",
 			EffectiveStart: input.EffectiveAt,
 			IdempotencyKey: "role_binding_recalculation_" + input.ChangeRequestID,
 			Metadata: map[string]any{
@@ -375,6 +424,17 @@ func buildInternalWrites(
 		})
 	}
 
+	internalWrites = append(internalWrites, InternalWriteSpec{
+		EventType:   orgTransferExecutedEvent,
+		SubjectType: workerSubjectType,
+		SubjectID:   input.WorkerID,
+		EffectiveAt: input.EffectiveAt,
+		Payload: map[string]any{
+			"targetManagerEmployeeId": input.TargetManagerEmployeeID,
+			"proposedOrganization":    input.ProposedOrganization,
+		},
+	})
+
 	return internalWrites
 }
 
@@ -385,11 +445,11 @@ func buildExternalCallRequests(input PlanTransactionInput) []executor.ExternalCa
 			Operation:      "syncWorkerOrgTransfer",
 			IdempotencyKey: "hris_org_transfer_" + input.ChangeRequestID,
 			Payload: map[string]any{
-				"workerId":             input.WorkerID,
-				"changeRequestId":      input.ChangeRequestID,
-				"proposedOrganization": input.ProposedOrganization,
+				"workerId":                input.WorkerID,
+				"changeRequestId":         input.ChangeRequestID,
+				"proposedOrganization":    input.ProposedOrganization,
 				"targetManagerEmployeeId": input.TargetManagerEmployeeID,
-				"effectiveAt":          input.EffectiveAt,
+				"effectiveAt":             input.EffectiveAt,
 			},
 			Reconciliation: map[string]any{
 				"expectedExternalObject": "worker_assignment",

@@ -28,12 +28,14 @@ type ContactInfo struct {
 	HomeAddress   PostalAddress `json:"homeAddress"`
 }
 
-// ValidationMessage is a typed business validation message returned by preflight.
-type ValidationMessage struct {
-	Code    string `json:"code"`
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
+// ValidationMessage is the generic block validation message used by contact-info blocks.
+type ValidationMessage = executor.ValidationIssue
+
+// InternalWriteSpec is the legacy contact-info output name for generic ledger facts.
+type InternalWriteSpec = executor.LedgerFact
+
+// ProjectionPatch is the generic projection mutation emitted by contact-info blocks.
+type ProjectionPatch = executor.ProjectionPatch
 
 // RegisterBlocks registers the V0 contact-info deterministic blocks.
 func RegisterBlocks(registry *executor.Registry) error {

@@ -17,27 +17,28 @@ const (
 
 // PreflightInput is the deterministic validation input for an org transfer.
 type PreflightInput struct {
-	Employee                    PreflightEmployee `json:"employee"`
-	CurrentOrganization         OrganizationInfo  `json:"currentOrganization"`
-	TargetLocationOrgUnit       OrgUnit           `json:"targetLocationOrgUnit"`
-	TargetTeamOrgUnit           OrgUnit           `json:"targetTeamOrgUnit"`
-	TargetCostCenterOrgUnit     OrgUnit           `json:"targetCostCenterOrgUnit"`
-	TargetManager               PreflightEmployee `json:"targetManager"`
-	ActiveAssignments           []WorkerAssignment `json:"activeAssignments"`
-	EffectiveAt                 string            `json:"effectiveAt"`
-	BusinessReason              string            `json:"businessReason"`
-	TransferReason              string            `json:"transferReason"`
-	AccessImpactAcknowledged    bool              `json:"accessImpactAcknowledged"`
+	Employee                 PreflightEmployee  `json:"employee"`
+	CurrentOrganization      OrganizationInfo   `json:"currentOrganization"`
+	TargetLocationOrgUnit    OrgUnit            `json:"targetLocationOrgUnit"`
+	TargetTeamOrgUnit        OrgUnit            `json:"targetTeamOrgUnit"`
+	TargetCostCenterOrgUnit  OrgUnit            `json:"targetCostCenterOrgUnit"`
+	TargetManager            PreflightEmployee  `json:"targetManager"`
+	ActiveAssignments        []WorkerAssignment `json:"activeAssignments"`
+	EffectiveAt              string             `json:"effectiveAt"`
+	BusinessReason           string             `json:"businessReason"`
+	TransferReason           string             `json:"transferReason"`
+	AccessImpactAcknowledged bool               `json:"accessImpactAcknowledged"`
 }
 
 // PreflightEmployee is the minimal worker status contract needed by preflight.
 type PreflightEmployee struct {
-	EmployeeID        string `json:"employeeId"`
+	EmployeeID       string `json:"employeeId"`
 	EmploymentStatus string `json:"employmentStatus"`
 }
 
 // PreflightOutput is the deterministic validation result for an org transfer.
 type PreflightOutput struct {
+	executor.BlockOutputContract
 	Valid            bool                `json:"valid"`
 	RiskLevel        string              `json:"riskLevel"`
 	RequiresEvidence bool                `json:"requiresEvidence"`
@@ -64,8 +65,15 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 	validationWarnings := validatePreflightWarnings(input)
 	isValid := len(validationErrors) == 0
 	riskLevel := riskLevelForPreflight(isValid, validationWarnings)
+	routeKey := executor.RouteKeyForValidation(isValid, len(validationWarnings), true)
 
 	output := PreflightOutput{
+		BlockOutputContract: executor.NewValidationOutputContract(
+			routeKey,
+			orgTransferPreflightFacts(isValid, riskLevel, false, true, len(validationWarnings), input.TargetTeamOrgUnit.OrgUnitID),
+			validationErrors,
+			validationWarnings,
+		),
 		Valid:            isValid,
 		RiskLevel:        riskLevel,
 		RequiresEvidence: false,
@@ -90,6 +98,17 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 			},
 		},
 	}, nil
+}
+
+func orgTransferPreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool, warningCount int, targetTeamOrgUnitID string) []executor.Fact {
+	return []executor.Fact{
+		{Key: "valid", Value: isValid, Source: PreflightBlockName},
+		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
+		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
+		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
+		{Key: "warningCount", Value: warningCount, Source: PreflightBlockName},
+		{Key: "targetTeamOrgUnitId", Value: targetTeamOrgUnitID, Source: PreflightBlockName},
+	}
 }
 
 func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {

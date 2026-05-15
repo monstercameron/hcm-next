@@ -91,6 +91,26 @@ func TestExecutePlanTransactionOutputShape(t *testing.T) {
 	if len(blockResult.ExternalCallRequests) != 1 {
 		t.Fatalf("expected top-level external call request for Node outbox creation")
 	}
+
+	if output.RouteKey != executor.RouteKeyTransactionPlanReady {
+		t.Fatalf("expected transaction plan route key, got %s", output.RouteKey)
+	}
+
+	if output.TransactionPlan == nil {
+		t.Fatalf("expected generic transaction plan")
+	}
+
+	if len(output.LedgerFacts) != len(output.InternalWrites) {
+		t.Fatalf("expected ledger facts to mirror internal writes")
+	}
+
+	if len(output.ExternalCalls) != len(output.ExternalCallRequests) {
+		t.Fatalf("expected generic external calls to mirror legacy external call requests")
+	}
+
+	if len(output.TransactionPlan.ProjectionPatches) != len(output.ProjectionPatches) {
+		t.Fatalf("expected transaction plan projection patches to mirror legacy projection patches")
+	}
 }
 
 func planTransactionRequest(t *testing.T, input map[string]any) executor.ExecutionRequest {

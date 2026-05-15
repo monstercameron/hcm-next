@@ -24,6 +24,7 @@ type PreflightInput struct {
 
 // PreflightOutput is the deterministic validation result for a legal-name change.
 type PreflightOutput struct {
+	executor.BlockOutputContract
 	Valid            bool                `json:"valid"`
 	RiskLevel        string              `json:"riskLevel"`
 	RequiresEvidence bool                `json:"requiresEvidence"`
@@ -53,12 +54,20 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 		riskLevel = preflightRiskHigh
 	}
 
+	warnings := []ValidationMessage{}
+	routeKey := executor.RouteKeyForValidation(isValid, len(warnings), true)
 	output := PreflightOutput{
+		BlockOutputContract: executor.NewValidationOutputContract(
+			routeKey,
+			legalNamePreflightFacts(isValid, riskLevel, true, true),
+			validationErrors,
+			warnings,
+		),
 		Valid:            isValid,
 		RiskLevel:        riskLevel,
 		RequiresEvidence: true,
 		RequiresApproval: true,
-		Warnings:         []ValidationMessage{},
+		Warnings:         warnings,
 		Errors:           validationErrors,
 	}
 
@@ -75,6 +84,15 @@ func ExecutePreflight(request executor.ExecutionRequest) (executor.BlockResult, 
 			},
 		},
 	}, nil
+}
+
+func legalNamePreflightFacts(isValid bool, riskLevel string, requiresEvidence bool, requiresApproval bool) []executor.Fact {
+	return []executor.Fact{
+		{Key: "valid", Value: isValid, Source: PreflightBlockName},
+		{Key: "riskLevel", Value: riskLevel, Source: PreflightBlockName},
+		{Key: "requiresEvidence", Value: requiresEvidence, Source: PreflightBlockName},
+		{Key: "requiresApproval", Value: requiresApproval, Source: PreflightBlockName},
+	}
 }
 
 func decodePreflightInput(rawInput json.RawMessage) (PreflightInput, *executor.ExecutionError) {

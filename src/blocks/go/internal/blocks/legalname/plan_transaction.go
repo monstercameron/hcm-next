@@ -25,25 +25,9 @@ type PlanTransactionInput struct {
 	EffectiveAt       string    `json:"effectiveAt"`
 }
 
-// InternalWriteSpec describes an internal ledger/projection write that Node may apply.
-type InternalWriteSpec struct {
-	EventType   string         `json:"eventType"`
-	SubjectType string         `json:"subjectType"`
-	SubjectID   string         `json:"subjectId"`
-	EffectiveAt string         `json:"effectiveAt"`
-	Payload     map[string]any `json:"payload"`
-}
-
-// ProjectionPatch describes a deterministic projection mutation that Node may apply.
-type ProjectionPatch struct {
-	Projection string `json:"projection"`
-	Operation  string `json:"operation"`
-	Path       string `json:"path"`
-	Value      any    `json:"value"`
-}
-
 // PlanTransactionOutput is the deterministic execution plan for a legal-name change.
 type PlanTransactionOutput struct {
+	executor.BlockOutputContract
 	InternalWrites       []InternalWriteSpec            `json:"internalWrites"`
 	ExternalCallRequests []executor.ExternalCallRequest `json:"externalCallRequests"`
 	ProjectionPatches    []ProjectionPatch              `json:"projectionPatches"`
@@ -98,6 +82,16 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 
 	projectionPatches := legalNameProjectionPatches(input.ProposedLegalName)
 	output := PlanTransactionOutput{
+		BlockOutputContract: executor.NewTransactionOutputContract(
+			executor.RouteKeyTransactionPlanReady,
+			legalNameTransactionFacts(len(internalWrites), len(externalCallRequests), len(projectionPatches)),
+			internalWrites,
+			externalCallRequests,
+			projectionPatches,
+			PlanTransactionBlockName,
+			request.Context.IdempotencyKey,
+			nil,
+		),
 		InternalWrites:       internalWrites,
 		ExternalCallRequests: externalCallRequests,
 		ProjectionPatches:    projectionPatches,
@@ -118,6 +112,14 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 			},
 		},
 	}, nil
+}
+
+func legalNameTransactionFacts(internalWriteCount int, externalCallCount int, projectionPatchCount int) []executor.Fact {
+	return []executor.Fact{
+		{Key: "ledgerFactCount", Value: internalWriteCount, Source: PlanTransactionBlockName},
+		{Key: "externalCallCount", Value: externalCallCount, Source: PlanTransactionBlockName},
+		{Key: "projectionPatchCount", Value: projectionPatchCount, Source: PlanTransactionBlockName},
+	}
 }
 
 func decodePlanTransactionInput(rawInput json.RawMessage) (PlanTransactionInput, *executor.ExecutionError) {

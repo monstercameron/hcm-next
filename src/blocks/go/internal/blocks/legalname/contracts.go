@@ -18,12 +18,14 @@ type LegalName struct {
 	Last   string  `json:"last"`
 }
 
-// ValidationMessage is a typed business validation message returned by preflight.
-type ValidationMessage struct {
-	Code    string `json:"code"`
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
+// ValidationMessage is the generic block validation message used by legal-name blocks.
+type ValidationMessage = executor.ValidationIssue
+
+// InternalWriteSpec is the legacy legal-name output name for generic ledger facts.
+type InternalWriteSpec = executor.LedgerFact
+
+// ProjectionPatch is the generic projection mutation emitted by legal-name blocks.
+type ProjectionPatch = executor.ProjectionPatch
 
 // RegisterBlocks registers the V0 legal-name deterministic blocks.
 func RegisterBlocks(registry *executor.Registry) error {

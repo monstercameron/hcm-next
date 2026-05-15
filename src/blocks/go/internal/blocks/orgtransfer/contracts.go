@@ -51,24 +51,26 @@ type OrgUnit struct {
 // WorkerAssignment is the normalized worker-assignment contract supplied by Node.
 type WorkerAssignment struct {
 	WorkerAssignmentID string         `json:"workerAssignmentId"`
-	EmployeeID          string         `json:"employeeId"`
-	OrgUnitID           string         `json:"orgUnitId"`
-	AssignmentType      string         `json:"assignmentType"`
-	RoleType            string         `json:"roleType,omitempty"`
-	ManagerEmployeeID   string         `json:"managerEmployeeId,omitempty"`
-	AllocationPercent   float64        `json:"allocationPercent"`
-	Status              string         `json:"status"`
-	EffectiveStart      string         `json:"effectiveStart"`
-	EffectiveEnd        string         `json:"effectiveEnd,omitempty"`
-	Metadata            map[string]any `json:"metadata"`
+	EmployeeID         string         `json:"employeeId"`
+	OrgUnitID          string         `json:"orgUnitId"`
+	AssignmentType     string         `json:"assignmentType"`
+	RoleType           string         `json:"roleType,omitempty"`
+	ManagerEmployeeID  string         `json:"managerEmployeeId,omitempty"`
+	AllocationPercent  float64        `json:"allocationPercent"`
+	Status             string         `json:"status"`
+	EffectiveStart     string         `json:"effectiveStart"`
+	EffectiveEnd       string         `json:"effectiveEnd,omitempty"`
+	Metadata           map[string]any `json:"metadata"`
 }
 
-// ValidationMessage is a typed business validation message returned by preflight.
-type ValidationMessage struct {
-	Code    string `json:"code"`
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
+// ValidationMessage is the generic block validation message used by org-transfer blocks.
+type ValidationMessage = executor.ValidationIssue
+
+// InternalWriteSpec is the legacy org-transfer output name for generic ledger facts.
+type InternalWriteSpec = executor.LedgerFact
+
+// ProjectionPatch is the generic projection mutation emitted by org-transfer blocks.
+type ProjectionPatch = executor.ProjectionPatch
 
 // RegisterBlocks registers the V0 org transfer deterministic blocks.
 func RegisterBlocks(registry *executor.Registry) error {

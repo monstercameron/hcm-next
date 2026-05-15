@@ -40,6 +40,18 @@ func TestExecutePreflightValidInput(t *testing.T) {
 	if !output.RequiresEvidence || !output.RequiresApproval {
 		t.Fatalf("expected evidence and approval requirements to be true")
 	}
+
+	if output.RouteKey != executor.RouteKeyApprovalRequired {
+		t.Fatalf("expected approval route key, got %s", output.RouteKey)
+	}
+
+	if len(output.Facts) == 0 {
+		t.Fatalf("expected generic facts in output")
+	}
+
+	if len(output.ValidationErrors) != 0 {
+		t.Fatalf("expected no generic validation errors, got %#v", output.ValidationErrors)
+	}
 }
 
 func TestExecutePreflightMissingFirstName(t *testing.T) {
@@ -184,6 +196,10 @@ func executeInvalidPreflight(t *testing.T, input map[string]any) PreflightOutput
 	output := blockResult.Output.(PreflightOutput)
 	if output.Valid {
 		t.Fatalf("expected invalid output")
+	}
+
+	if output.RouteKey != executor.RouteKeyValidationFailed {
+		t.Fatalf("expected validation failure route key, got %s", output.RouteKey)
 	}
 
 	return output
