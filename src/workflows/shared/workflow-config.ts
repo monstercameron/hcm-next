@@ -12,6 +12,7 @@ import {
 import type { EmployeeProjectionDocument } from "@hcm-next/data-store";
 import legalNameWorkflowConfigJson from "../configs/employee-legal-name-change.workflow.json";
 import emergencyContactWorkflowConfigJson from "../configs/employee-emergency-contact-update.workflow.json";
+import contactInfoWorkflowConfigJson from "../configs/employee-contact-info-update.workflow.json";
 
 export type WorkflowActionActor = "requester" | "hr_admin" | "hr_admin_or_system";
 
@@ -114,6 +115,7 @@ export type WorkflowTemplateSources = {
 const workflowConfigs = [
   legalNameWorkflowConfigJson,
   emergencyContactWorkflowConfigJson,
+  contactInfoWorkflowConfigJson,
 ] as unknown as WorkflowConfig[];
 
 /**

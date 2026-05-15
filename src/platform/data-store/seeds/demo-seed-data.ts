@@ -41,6 +41,18 @@ export const DEMO_EMPLOYEE_PROJECTION = {
     preferredName: null,
     workEmail: "jane.doe@example.com",
   },
+  contact: {
+    personalEmail: "jane.personal@example.com",
+    mobilePhone: "+15550001111",
+    homeAddress: {
+      line1: "100 Market St",
+      line2: null,
+      city: "San Francisco",
+      region: "CA",
+      postalCode: "94105",
+      country: "US",
+    },
+  },
   employment: {
     status: "active",
     legalEntity: "US-001",

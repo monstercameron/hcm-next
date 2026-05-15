@@ -3,6 +3,7 @@ import type { ValueOf } from "../domain";
 export const WORKFLOW_INTENTS = {
   EMPLOYEE_LEGAL_NAME_CHANGE: "employee.legal_name.change",
   EMPLOYEE_EMERGENCY_CONTACT_UPDATE: "employee.emergency_contact.update",
+  EMPLOYEE_CONTACT_INFO_UPDATE: "employee.contact_info.update",
 } as const;
 
 export type WorkflowIntent = ValueOf<typeof WORKFLOW_INTENTS>;

@@ -81,6 +81,8 @@ export type SeededDemoIds = {
   workflowVersionId: string;
   emergencyContactWorkflowDefinitionId: string;
   emergencyContactWorkflowVersionId: string;
+  contactInfoWorkflowDefinitionId: string;
+  contactInfoWorkflowVersionId: string;
 };
 
 export const DEMO_IDS: SeededDemoIds = {
@@ -95,6 +97,8 @@ export const DEMO_IDS: SeededDemoIds = {
   workflowVersionId: "workflow_legal_name_change_v1",
   emergencyContactWorkflowDefinitionId: "workflow_emergency_contact_update",
   emergencyContactWorkflowVersionId: "workflow_emergency_contact_update_v1",
+  contactInfoWorkflowDefinitionId: "workflow_contact_info_update",
+  contactInfoWorkflowVersionId: "workflow_contact_info_update_v1",
 };
 
 export function createSeededDemoStore(): HcmNextStore {
@@ -198,6 +202,32 @@ export function createSeededDemoStore(): HcmNextStore {
     status: "published",
   });
 
+  store.workflowDefinitions.set(DEMO_IDS.contactInfoWorkflowDefinitionId, {
+    workflowDefinitionId: DEMO_IDS.contactInfoWorkflowDefinitionId,
+    tenantId: DEMO_IDS.tenantId,
+    name: "Employee Contact Information Update",
+    workflowType: "employee_data_change",
+    status: "active",
+    currentVersionId: DEMO_IDS.contactInfoWorkflowVersionId,
+  });
+
+  store.workflowVersions.set(DEMO_IDS.contactInfoWorkflowVersionId, {
+    workflowVersionId: DEMO_IDS.contactInfoWorkflowVersionId,
+    tenantId: DEMO_IDS.tenantId,
+    workflowDefinitionId: DEMO_IDS.contactInfoWorkflowDefinitionId,
+    versionNumber: 1,
+    graphDefinition: {
+      intent: "employee.contact_info.update",
+      initialState: WORKFLOW_STATES.COLLECTING_INPUT,
+    },
+    inputSchema: {},
+    outputSchema: {},
+    validationRules: [],
+    approvalRules: [],
+    aiReviewScope: {},
+    status: "published",
+  });
+
   store.employeeProjections.set(
     employeeProjectionKey(DEMO_IDS.tenantId, DEMO_IDS.employeeId),
     {
@@ -216,6 +246,18 @@ export function createSeededDemoStore(): HcmNextStore {
           displayName: "Jane Doe",
           preferredName: null,
           workEmail: "jane.doe@example.com",
+        },
+        contact: {
+          personalEmail: "jane.personal@example.com",
+          mobilePhone: "+15550001111",
+          homeAddress: {
+            line1: "100 Market St",
+            line2: null,
+            city: "San Francisco",
+            region: "CA",
+            postalCode: "94105",
+            country: "US",
+          },
         },
         employment: {
           status: "active",

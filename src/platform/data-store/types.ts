@@ -261,6 +261,7 @@ export type EmployeeProjectionDocument = {
     preferredName: string | null;
     workEmail: string;
   };
+  contact: ContactInfo;
   employment: {
     status: string;
     legalEntity: string;
@@ -270,6 +271,21 @@ export type EmployeeProjectionDocument = {
   };
   emergencyContacts: EmergencyContact[];
   custom: Record<string, unknown>;
+};
+
+export type ContactInfo = {
+  personalEmail: string | null;
+  mobilePhone: string | null;
+  homeAddress: PostalAddress;
+};
+
+export type PostalAddress = {
+  line1: string;
+  line2: string | null;
+  city: string;
+  region: string;
+  postalCode: string;
+  country: string;
 };
 
 export type LegalName = {
