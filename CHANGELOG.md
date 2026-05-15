@@ -2,6 +2,9 @@
 
 ## 2026-05-15
 
+- `312c71d` - Tightened the org-transfer E2E approval-task assertion to coerce
+  the task identifier through the same string path used by workflow transitions.
+- `8ceb7dd` - Updated the changelog after expanding org-transfer E2E coverage.
 - `97d8e12` - Expanded org-transfer E2E coverage for the HR-started workflow,
   approval routing, execution, idempotent replay, projection changes, and
   filtered timeline checks.
