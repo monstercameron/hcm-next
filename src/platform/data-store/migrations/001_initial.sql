@@ -221,6 +221,7 @@ CREATE TABLE transaction_plans (
   plan_version integer NOT NULL,
   steps jsonb NOT NULL DEFAULT '[]'::jsonb,
   internal_writes jsonb NOT NULL DEFAULT '[]'::jsonb,
+  projection_patches jsonb NOT NULL DEFAULT '[]'::jsonb,
   external_writes jsonb NOT NULL DEFAULT '[]'::jsonb,
   rollback_plan jsonb NOT NULL DEFAULT '{}'::jsonb,
   compensation_plan jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -265,4 +266,3 @@ CREATE TABLE integration_outbox (
   updated_at timestamptz NOT NULL,
   UNIQUE (tenant_id, idempotency_key)
 );
-

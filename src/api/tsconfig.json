@@ -6,6 +6,11 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["**/*.ts", "../tests/**/*.ts", "../workflows/**/*.ts"],
+  "include": [
+    "**/*.ts",
+    "../tests/**/*.ts",
+    "../workflows/**/*.ts",
+    "../workflows/**/*.json"
+  ],
   "exclude": ["node_modules"]
 }

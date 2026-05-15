@@ -2,6 +2,7 @@ package legalname
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"hcm-next-executor/internal/executor"
@@ -17,8 +18,9 @@ func TestExecutePlanTransactionOutputShape(t *testing.T) {
 			"last":  "Doe",
 		},
 		"proposedLegalName": map[string]any{
-			"first": "Jane",
-			"last":  "Rivera",
+			"first":  "Jane",
+			"middle": "A.",
+			"last":   "Rivera",
 		},
 		"effectiveAt": "2026-06-01",
 	})
@@ -61,6 +63,29 @@ func TestExecutePlanTransactionOutputShape(t *testing.T) {
 
 	if externalCallRequest.IdempotencyKey != "fake_hris_legal_name_cr_123" {
 		t.Fatalf("unexpected idempotency key: %s", externalCallRequest.IdempotencyKey)
+	}
+
+	expectedMiddleName := "A."
+	expectedProjectionPatches := []ProjectionPatch{
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/person/legalName",
+			Value: LegalName{
+				First:  "Jane",
+				Middle: &expectedMiddleName,
+				Last:   "Rivera",
+			},
+		},
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/person/displayName",
+			Value:      "Jane A. Rivera",
+		},
+	}
+	if !reflect.DeepEqual(output.ProjectionPatches, expectedProjectionPatches) {
+		t.Fatalf("unexpected projection patches:\nwant: %#v\n got: %#v", expectedProjectionPatches, output.ProjectionPatches)
 	}
 
 	if len(blockResult.ExternalCallRequests) != 1 {

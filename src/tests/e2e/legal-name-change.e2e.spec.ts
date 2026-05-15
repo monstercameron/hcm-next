@@ -224,6 +224,25 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(projection?.document.person.legalName.last).toBe("Rivera");
     expect(harness.repositories.store.integrationOutbox.size).toBe(1);
 
+    const transactionPlan = [
+      ...harness.repositories.store.transactionPlans.values(),
+    ][0];
+    expect(transactionPlan?.projectionPatches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          projection: "employee",
+          operation: "replace",
+          path: "/person/legalName",
+        }),
+        expect.objectContaining({
+          projection: "employee",
+          operation: "replace",
+          path: "/person/displayName",
+          value: "Jane Rivera",
+        }),
+      ]),
+    );
+
     const timeline = getTimeline(
       harness.dependencies,
       harness.hrContext,
@@ -435,6 +454,22 @@ function createPlanResponse(request: ExecutorRequest): ExecutorResponse {
           },
         },
       ],
+      projectionPatches: [
+        {
+          projection: "employee",
+          operation: "replace",
+          path: "/person/legalName",
+          value: input["proposedLegalName"],
+        },
+        {
+          projection: "employee",
+          operation: "replace",
+          path: "/person/displayName",
+          value: displayNameFromLegalName(
+            input["proposedLegalName"] as Record<string, unknown>,
+          ),
+        },
+      ],
       externalCallRequests: [
         {
           connectionId: "fake_hris",
@@ -456,4 +491,12 @@ function createPlanResponse(request: ExecutorRequest): ExecutorResponse {
       durationMs: 1,
     },
   };
+}
+
+function displayNameFromLegalName(legalName: Record<string, unknown>): string {
+  return [legalName["first"], legalName["middle"], legalName["last"]]
+    .filter((value): value is string => {
+      return typeof value === "string" && value.trim().length > 0;
+    })
+    .join(" ");
 }

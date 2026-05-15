@@ -12,6 +12,7 @@ export type CreateTransactionPlanInput = {
   planVersion?: number;
   steps?: readonly unknown[];
   internalWrites?: readonly unknown[];
+  projectionPatches?: readonly unknown[];
   externalWrites?: readonly unknown[];
   rollbackPlan?: DatabaseJson;
   compensationPlan?: DatabaseJson;
@@ -51,6 +52,7 @@ export function createTransactionPlanRepository(
             plan_version,
             steps,
             internal_writes,
+            projection_patches,
             external_writes,
             rollback_plan,
             compensation_plan,
@@ -76,8 +78,9 @@ export function createTransactionPlanRepository(
             $12::jsonb,
             $13::jsonb,
             $14::jsonb,
-            $15,
-            $15
+            $15::jsonb,
+            $16,
+            $16
           )
           RETURNING *
         `,
@@ -89,6 +92,7 @@ export function createTransactionPlanRepository(
           input.planVersion ?? 1,
           input.steps ?? [],
           input.internalWrites ?? [],
+          input.projectionPatches ?? [],
           input.externalWrites ?? [],
           input.rollbackPlan ?? {},
           input.compensationPlan ?? {},

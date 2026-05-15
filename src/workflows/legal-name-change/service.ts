@@ -1,11 +1,11 @@
 import {
+  ACTOR_ROLES,
   ACTOR_TYPES,
   APPROVAL_TASK_STATUSES,
   CHANGE_REQUEST_STATUSES,
   CHANGE_REQUEST_TYPES,
   DOCUMENT_CLASSIFICATIONS,
   LEDGER_EVENT_TYPES,
-  WORKFLOW_INTENTS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
   WORKFLOW_TRANSITIONS,
@@ -13,6 +13,7 @@ import {
   idempotencyConflictError,
   invalidWorkflowTransitionError,
   ok,
+  permissionDeniedError,
   validationFailedError,
   versionConflictError,
   type AppError,
@@ -24,12 +25,11 @@ import {
   createInitialWorkflowInstance,
   makeId,
   nowIso,
+  type ActorRecord,
   type ApprovalTaskRecord,
   type ChangeRequestRecord,
-  type EmergencyContact,
   type EmployeeProjectionDocument,
   type LedgerEventRecord,
-  type LegalName,
   type ProposedChangeRecord,
   type Repositories,
   type TransactionPlanRecord,
@@ -40,55 +40,24 @@ import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
   canCreateDocumentForWorkflow,
-  canStartEmergencyContactWorkflow,
-  canStartLegalNameWorkflow,
-  canSubmitTransition,
   canViewDocument,
   canViewWorkflowInstance,
-  computeAvailableActions,
   createPermissionSnapshot,
 } from "./permissions.js";
-
-const legalNamePreflightBlock = {
-  name: "system.employee_data.legal_name.preflight",
-  version: "1.0.0",
-} as const;
-
-const legalNamePlanTransactionBlock = {
-  name: "system.employee_data.legal_name.plan_transaction",
-  version: "1.0.0",
-} as const;
-
-const emergencyContactPreflightBlock = {
-  name: "system.employee_data.emergency_contact.preflight",
-  version: "1.0.0",
-} as const;
-
-const emergencyContactPlanTransactionBlock = {
-  name: "system.employee_data.emergency_contact.plan_transaction",
-  version: "1.0.0",
-} as const;
+import {
+  buildConfiguredInteraction,
+  configuredWorkflowIntents,
+  findWorkflowActionConfig,
+  getWorkflowConfigByIntent,
+  renderWorkflowTemplateString,
+  resolveWorkflowString,
+  resolveWorkflowTemplate,
+  type WorkflowActionConfig,
+  type WorkflowConfig,
+  type WorkflowTemplateSources,
+} from "../shared/workflow-config.js";
 
 const identityEvidencePurpose = "legal_name_change_evidence";
-
-const supportedEmployeeDataIntents = [
-  WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
-  WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE,
-] as const;
-
-type SupportedEmployeeDataIntent = (typeof supportedEmployeeDataIntents)[number];
-
-type LegalNameInput = {
-  newLegalName: LegalName;
-  effectiveAt: string;
-  businessReason: string;
-};
-
-type EmergencyContactInput = {
-  proposedEmergencyContact: EmergencyContact;
-  effectiveAt: string;
-  businessReason: string;
-};
 
 type EvidenceInput = {
   documentId: string;
@@ -124,6 +93,12 @@ type PlanTransactionOutput = {
     effectiveAt: string;
     payload: Record<string, unknown>;
   }>;
+  projectionPatches?: Array<{
+    projection: string;
+    operation: string;
+    path: string;
+    value: unknown;
+  }>;
   externalCallRequests: Array<{
     connectionId: string;
     operation: string;
@@ -140,21 +115,6 @@ const timelineViews = {
   AUDIT: "audit",
   DEBUG: "debug",
 } as const satisfies Record<string, TimelineView>;
-
-const businessTimelineEventTypes = new Set<string>([
-  LEDGER_EVENT_TYPES.WORKFLOW_INTENT_STARTED,
-  LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED,
-  LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED,
-  LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED,
-  LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED,
-  LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED,
-  LEDGER_EVENT_TYPES.APPROVAL_GRANTED,
-  LEDGER_EVENT_TYPES.TRANSACTION_PLAN_CREATED,
-  LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED,
-  LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED,
-  LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED,
-  LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED,
-]);
 
 const debugTimelineEventTypes = new Set<string>([
   LEDGER_EVENT_TYPES.WORKFLOW_TRANSITION_SUBMITTED,
@@ -177,32 +137,47 @@ export function startWorkflowIntent(
   const subjectType =
     stringField(body, "subjectType") ?? stringField(subject ?? {}, "type");
   const subjectId = stringField(body, "subjectId") ?? stringField(subject ?? {}, "id");
+  const workflowConfigResult =
+    intent !== undefined
+      ? getWorkflowConfigByIntent(intent)
+      : err(validationFailedError({ intent }));
 
-  if (
-    !isSupportedEmployeeDataIntent(intent) ||
-    subjectType !== "worker" ||
-    subjectId === undefined
-  ) {
+  if (!workflowConfigResult.ok || subjectId === undefined) {
     return err(
       validationFailedError({
         intent,
         subjectType,
         subjectId,
-        expectedIntents: supportedEmployeeDataIntents,
+        expectedIntents: configuredWorkflowIntents(),
       }),
     );
   }
 
-  const permissionResult = canStartEmployeeDataWorkflow(
+  const workflowConfig = workflowConfigResult.value;
+
+  if (subjectType !== workflowConfig.subjectType) {
+    return err(
+      validationFailedError({
+        intent,
+        subjectType,
+        subjectId,
+        expectedSubjectType: workflowConfig.subjectType,
+      }),
+    );
+  }
+
+  const permissionResult = canStartConfiguredWorkflow(
     requestContext.actor,
-    intent,
+    workflowConfig,
     subjectId,
   );
   if (!permissionResult.ok) {
     return permissionResult;
   }
 
-  const workflowVersionResult = repositories.workflows.findVersionByIntent(intent);
+  const workflowVersionResult = repositories.workflows.findVersionByIntent(
+    workflowConfig.intent,
+  );
   if (!workflowVersionResult.ok) {
     return workflowVersionResult;
   }
@@ -215,19 +190,25 @@ export function startWorkflowIntent(
     return employeeProjectionResult;
   }
 
+  const initialInteractionResult = buildConfiguredInteraction({
+    workflowConfig,
+    interactionKey: "input",
+    employeeDocument: employeeProjectionResult.value.document,
+  });
+  if (!initialInteractionResult.ok) {
+    return initialInteractionResult;
+  }
+
   const workflowInstance = createInitialWorkflowInstance({
     tenantId: requestContext.tenantId,
     environmentId: requestContext.environmentId,
     workflowDefinitionId: workflowVersionResult.value.workflowDefinitionId,
     workflowVersionId: workflowVersionResult.value.workflowVersionId,
-    intent,
-    subjectType,
+    intent: workflowConfig.intent,
+    subjectType: workflowConfig.subjectType,
     subjectId,
     requesterActorId: requestContext.actor.actorId,
-    currentInteraction: createInitialInteractionForIntent(
-      intent,
-      employeeProjectionResult.value.document,
-    ),
+    currentInteraction: initialInteractionResult.value,
     context: {
       targetEmployee: employeeProjectionResult.value.document,
     },
@@ -312,12 +293,18 @@ export function getAvailableActions(
     return pendingApprovalTaskResult;
   }
 
+  const workflowConfigResult = getWorkflowConfigByIntent(workflowResult.value.intent);
+  if (!workflowConfigResult.ok) {
+    return workflowConfigResult;
+  }
+
   return ok({
     workflowInstanceId,
     version: workflowResult.value.version,
     state: workflowResult.value.state,
-    actions: computeAvailableActions({
+    actions: computeConfiguredAvailableActions({
       actor: requestContext.actor,
+      workflowConfig: workflowConfigResult.value,
       workflowInstance: workflowResult.value,
       ...(pendingApprovalTaskResult.value !== undefined
         ? { pendingApprovalTask: pendingApprovalTaskResult.value }
@@ -502,11 +489,20 @@ export function getTimeline(
     return timelineResult;
   }
 
+  const workflowConfigResult = getWorkflowConfigByIntent(workflowResult.value.intent);
+  if (!workflowConfigResult.ok) {
+    return workflowConfigResult;
+  }
+
   return ok({
     workflowInstanceId,
     view: timelineViewResult.value,
     totalLedgerEventCount: timelineResult.value.length,
-    events: buildTimelineView(timelineResult.value, timelineViewResult.value),
+    events: buildTimelineView(
+      timelineResult.value,
+      timelineViewResult.value,
+      workflowConfigResult.value,
+    ),
   });
 }
 
@@ -543,6 +539,26 @@ export async function transitionWorkflow(
     return replayTransitionAttempt(idempotentReplayResult.value);
   }
 
+  const workflowConfigResult = getWorkflowConfigByIntent(workflowResult.value.intent);
+  if (!workflowConfigResult.ok) {
+    return workflowConfigResult;
+  }
+
+  const actionConfigResult = findWorkflowActionConfig({
+    workflowConfig: workflowConfigResult.value,
+    state: workflowResult.value.state,
+    transition: transitionBodyResult.value.transition,
+  });
+  if (!actionConfigResult.ok) {
+    return err(
+      invalidWorkflowTransitionError({
+        workflowInstanceId,
+        state: workflowResult.value.state,
+        transition: transitionBodyResult.value.transition,
+      }),
+    );
+  }
+
   if (workflowResult.value.version !== transitionBodyResult.value.expectedVersion) {
     return err(
       versionConflictError({
@@ -559,10 +575,10 @@ export async function transitionWorkflow(
     return pendingApprovalTaskResult;
   }
 
-  const permissionResult = canSubmitTransition({
+  const permissionResult = canSubmitConfiguredTransition({
     actor: requestContext.actor,
+    actionConfig: actionConfigResult.value,
     workflowInstance: workflowResult.value,
-    transition: transitionBodyResult.value.transition,
     ...(pendingApprovalTaskResult.value !== undefined
       ? { pendingApprovalTask: pendingApprovalTaskResult.value }
       : {}),
@@ -583,6 +599,8 @@ export async function transitionWorkflow(
   }
 
   const transitionResult = await executeTransition(dependencies, requestContext, {
+    workflowConfig: workflowConfigResult.value,
+    actionConfig: actionConfigResult.value,
     workflowInstance: workflowResult.value,
     transitionBody: transitionBodyResult.value,
     ...(pendingApprovalTaskResult.value !== undefined
@@ -623,47 +641,148 @@ export function getEmployeeProjection(
   });
 }
 
+function canStartConfiguredWorkflow(
+  actor: ActorRecord,
+  workflowConfig: WorkflowConfig,
+  subjectId: string,
+): Result<true, AppError> {
+  const isSelfServiceRequester =
+    workflowConfig.selfServiceStart &&
+    actor.roles.includes(ACTOR_ROLES.EMPLOYEE) &&
+    actor.linkedWorkerId === subjectId;
+
+  if (isSelfServiceRequester) {
+    return ok(true);
+  }
+
+  return err(permissionDeniedError({ intent: workflowConfig.intent, subjectId }));
+}
+
+function computeConfiguredAvailableActions(input: {
+  actor: ActorRecord;
+  workflowConfig: WorkflowConfig;
+  workflowInstance: WorkflowInstanceRecord;
+  pendingApprovalTask?: ApprovalTaskRecord;
+}): Array<Record<string, unknown>> {
+  const stateConfig = input.workflowConfig.states[input.workflowInstance.state];
+  const actions = stateConfig?.actions ?? [];
+
+  return actions
+    .filter((actionConfig) => {
+      return canActorPerformConfiguredAction({
+        actor: input.actor,
+        actionConfig,
+        workflowInstance: input.workflowInstance,
+      });
+    })
+    .map((actionConfig) => {
+      const action: Record<string, unknown> = {
+        transition: actionConfig.transition,
+        label: actionConfig.label,
+        enabled: true,
+      };
+
+      if (
+        input.pendingApprovalTask !== undefined &&
+        actionRequiresApprovalTask(actionConfig)
+      ) {
+        action["taskId"] = input.pendingApprovalTask.approvalTaskId;
+      }
+
+      return action;
+    });
+}
+
+function canSubmitConfiguredTransition(input: {
+  actor: ActorRecord;
+  actionConfig: WorkflowActionConfig;
+  workflowInstance: WorkflowInstanceRecord;
+}): Result<true, AppError> {
+  const isAllowed = canActorPerformConfiguredAction({
+    actor: input.actor,
+    actionConfig: input.actionConfig,
+    workflowInstance: input.workflowInstance,
+  });
+
+  if (isAllowed) {
+    return ok(true);
+  }
+
+  return err(
+    permissionDeniedError({
+      transition: input.actionConfig.transition,
+      state: input.workflowInstance.state,
+    }),
+  );
+}
+
+function canActorPerformConfiguredAction(input: {
+  actor: ActorRecord;
+  actionConfig: WorkflowActionConfig;
+  workflowInstance: WorkflowInstanceRecord;
+}): boolean {
+  if (input.actionConfig.actor === "requester") {
+    return input.actor.linkedWorkerId === input.workflowInstance.subjectId;
+  }
+
+  if (input.actionConfig.actor === "hr_admin") {
+    return input.actor.roles.includes(ACTOR_ROLES.HR_ADMIN);
+  }
+
+  if (input.actionConfig.actor === "hr_admin_or_system") {
+    return (
+      input.actor.roles.includes(ACTOR_ROLES.HR_ADMIN) ||
+      input.actor.roles.includes(ACTOR_ROLES.SYSTEM)
+    );
+  }
+
+  return false;
+}
+
+function actionRequiresApprovalTask(actionConfig: WorkflowActionConfig): boolean {
+  return (
+    actionConfig.handler === "approve" ||
+    actionConfig.handler === "reject" ||
+    actionConfig.handler === "request_more_info"
+  );
+}
+
 async function executeTransition(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
+    actionConfig: WorkflowActionConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
     pendingApprovalTask?: ApprovalTaskRecord;
   },
 ): Promise<Result<Record<string, unknown>, AppError>> {
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.SUBMIT_INPUT) {
-    if (
-      input.workflowInstance.intent ===
-      WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE
-    ) {
-      return submitEmergencyContactInput(dependencies, requestContext, input);
-    }
-
-    return submitLegalNameInput(dependencies, requestContext, input);
+  if (input.actionConfig.handler === "submit_configured_input") {
+    return submitConfiguredInput(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.PROVIDE_EVIDENCE) {
+  if (input.actionConfig.handler === "provide_evidence") {
     return provideEvidence(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.APPROVE) {
+  if (input.actionConfig.handler === "approve") {
     return approveChange(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.REJECT) {
+  if (input.actionConfig.handler === "reject") {
     return rejectChange(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO) {
+  if (input.actionConfig.handler === "request_more_info") {
     return requestMoreInformation(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.CANCEL) {
+  if (input.actionConfig.handler === "cancel") {
     return cancelWorkflow(dependencies, requestContext, input);
   }
 
-  if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.EXECUTE) {
+  if (input.actionConfig.handler === "execute") {
     return executeApprovedChange(dependencies, requestContext, input);
   }
 
@@ -674,21 +793,17 @@ async function executeTransition(
   );
 }
 
-async function submitLegalNameInput(
+async function submitConfiguredInput(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
+    actionConfig: WorkflowActionConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
   },
 ): Promise<Result<Record<string, unknown>, AppError>> {
   const repositories = dependencies.repositories;
-  const legalNameInputResult = parseLegalNameInput(input.transitionBody.input);
-
-  if (!legalNameInputResult.ok) {
-    return legalNameInputResult;
-  }
-
   const projectionResult = repositories.employeeProjections.findByEmployeeId(
     requestContext.tenantId,
     input.workflowInstance.subjectId,
@@ -697,159 +812,33 @@ async function submitLegalNameInput(
     return projectionResult;
   }
 
-  const preflightResult =
-    await dependencies.executorClient.executeBlock<PreflightOutput>({
-      tenantId: requestContext.tenantId,
-      environmentId: requestContext.environmentId,
-      changeRequestId: "",
-      workflowInstanceId: input.workflowInstance.workflowInstanceId,
-      workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: legalNamePreflightBlock,
-      input: {
-        currentLegalName: projectionResult.value.document.person.legalName,
-        proposedLegalName: legalNameInputResult.value.newLegalName,
-        effectiveAt: legalNameInputResult.value.effectiveAt,
-        businessReason: legalNameInputResult.value.businessReason,
-      },
-      context: {
-        actorId: requestContext.actor.actorId,
-        effectiveAt: legalNameInputResult.value.effectiveAt,
-        permissions: createPermissionSnapshot(requestContext.actor),
-        correlationId: requestContext.correlationId,
-        idempotencyKey: input.transitionBody.idempotencyKey,
-      },
-    });
-  if (!preflightResult.ok) {
-    return preflightResult;
-  }
-  if (!preflightResult.value.output?.valid) {
-    return err(validationFailedError({ preflight: preflightResult.value.output }));
-  }
-
-  const timestamp = nowIso();
-  const changeRequest = createLegalNameChangeRequest({
-    requestContext,
-    workflowInstance: input.workflowInstance,
-    employeeDocument: projectionResult.value.document,
-    legalNameInput: legalNameInputResult.value,
-    preflight: preflightResult.value.output,
-    timestamp,
-  });
-  const changeRequestResult = repositories.changeRequests.create(changeRequest);
-  if (!changeRequestResult.ok) {
-    return changeRequestResult;
-  }
-
-  const proposedChangesResult = repositories.proposedChanges.createMany([
-    {
-      proposedChangeId: makeId("pchg"),
-      tenantId: requestContext.tenantId,
-      changeRequestId: changeRequest.changeRequestId,
-      targetObjectType: "person",
-      targetObjectId: projectionResult.value.document.person.personId,
-      fieldPath: "person.legalName",
-      currentValue: projectionResult.value.document.person.legalName,
-      proposedValue: legalNameInputResult.value.newLegalName,
-      effectiveAt: legalNameInputResult.value.effectiveAt,
-      reasonCode: legalNameInputResult.value.businessReason,
-      validationStatus: "valid",
-      riskLevel: preflightResult.value.output.riskLevel,
-      metadata: {},
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    },
-  ]);
-  if (!proposedChangesResult.ok) {
-    return proposedChangesResult;
-  }
-
-  const updatedWorkflow = {
-    ...input.workflowInstance,
-    state: WORKFLOW_STATES.COLLECTING_EVIDENCE,
-    status: WORKFLOW_STATUSES.ACTIVE,
-    changeRequestId: changeRequest.changeRequestId,
-    currentInteraction: legalNameEvidenceInteraction(),
-    context: {
-      ...input.workflowInstance.context,
-      legalNameInput: legalNameInputResult.value,
-      preflight: preflightResult.value.output,
-    },
-    version: input.workflowInstance.version + 1,
+  const templateSources: WorkflowTemplateSources = {
+    input: input.transitionBody.input,
+    employee: projectionResult.value.document,
+    workflow: input.workflowInstance,
   };
-  const updateWorkflowResult = repositories.workflows.updateInstance(updatedWorkflow);
-  if (!updateWorkflowResult.ok) {
-    return updateWorkflowResult;
-  }
-
-  const ledgerResult = appendTransitionLedgerEvents(repositories, requestContext, {
-    workflowInstance: updateWorkflowResult.value,
-    previousState: input.workflowInstance.state,
-    eventType: LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED,
-    idempotencyKey: input.transitionBody.idempotencyKey,
-    payload: {
-      changeRequestId: changeRequest.changeRequestId,
-      preflight: preflightResult.value.output,
-      proposedChanges: proposedChangesResult.value,
-    },
-  });
-  if (!ledgerResult.ok) {
-    return ledgerResult;
-  }
-
-  const supplementalLedgerResult = appendAdditionalWorkflowEvents(
-    repositories,
-    requestContext,
-    updateWorkflowResult.value,
-    input.transitionBody.idempotencyKey,
-    [
-      {
-        eventType: LEDGER_EVENT_TYPES.PROPOSED_CHANGE_CREATED,
-        payload: {
-          proposedChanges: proposedChangesResult.value,
-        },
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED,
-        payload: preflightResult.value.output,
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.EVIDENCE_REQUESTED,
-        payload: {
-          required: preflightResult.value.output.requiresEvidence,
-        },
-      },
-    ],
+  const effectiveAtResult = resolveWorkflowString(
+    input.workflowConfig.submit.effectiveAt,
+    templateSources,
   );
-  if (!supplementalLedgerResult.ok) {
-    return supplementalLedgerResult;
+  if (!effectiveAtResult.ok) {
+    return effectiveAtResult;
   }
 
-  return ok(serializeWorkflowInstance(updateWorkflowResult.value));
-}
-
-async function submitEmergencyContactInput(
-  dependencies: AppDependencies,
-  requestContext: ApiRequestContext,
-  input: {
-    workflowInstance: WorkflowInstanceRecord;
-    transitionBody: TransitionBody;
-  },
-): Promise<Result<Record<string, unknown>, AppError>> {
-  const repositories = dependencies.repositories;
-  const emergencyContactInputResult = parseEmergencyContactInput(
-    input.transitionBody.input,
+  const businessReasonResult = resolveWorkflowString(
+    input.workflowConfig.submit.businessReason,
+    templateSources,
   );
-
-  if (!emergencyContactInputResult.ok) {
-    return emergencyContactInputResult;
+  if (!businessReasonResult.ok) {
+    return businessReasonResult;
   }
 
-  const projectionResult = repositories.employeeProjections.findByEmployeeId(
-    requestContext.tenantId,
-    input.workflowInstance.subjectId,
+  const preflightInputResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.preflightInput,
+    templateSources,
   );
-  if (!projectionResult.ok) {
-    return projectionResult;
+  if (!preflightInputResult.ok) {
+    return preflightInputResult;
   }
 
   const preflightResult =
@@ -859,17 +848,11 @@ async function submitEmergencyContactInput(
       changeRequestId: "",
       workflowInstanceId: input.workflowInstance.workflowInstanceId,
       workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: emergencyContactPreflightBlock,
-      input: {
-        currentEmergencyContacts: projectionResult.value.document.emergencyContacts,
-        proposedEmergencyContact:
-          emergencyContactInputResult.value.proposedEmergencyContact,
-        effectiveAt: emergencyContactInputResult.value.effectiveAt,
-        businessReason: emergencyContactInputResult.value.businessReason,
-      },
+      block: input.workflowConfig.submit.preflightBlock,
+      input: preflightInputResult.value as Record<string, unknown>,
       context: {
         actorId: requestContext.actor.actorId,
-        effectiveAt: emergencyContactInputResult.value.effectiveAt,
+        effectiveAt: effectiveAtResult.value,
         permissions: createPermissionSnapshot(requestContext.actor),
         correlationId: requestContext.correlationId,
         idempotencyKey: input.transitionBody.idempotencyKey,
@@ -883,12 +866,15 @@ async function submitEmergencyContactInput(
   }
 
   const timestamp = nowIso();
-  const changeRequest = createEmergencyContactChangeRequest({
+  const changeRequest = createConfiguredChangeRequest({
+    workflowConfig: input.workflowConfig,
     requestContext,
     workflowInstance: input.workflowInstance,
     employeeDocument: projectionResult.value.document,
-    emergencyContactInput: emergencyContactInputResult.value,
+    input: input.transitionBody.input,
     preflight: preflightResult.value.output,
+    effectiveAt: effectiveAtResult.value,
+    businessReason: businessReasonResult.value,
     timestamp,
   });
   const changeRequestResult = repositories.changeRequests.create(changeRequest);
@@ -896,50 +882,65 @@ async function submitEmergencyContactInput(
     return changeRequestResult;
   }
 
+  const proposedChangeResult = createConfiguredProposedChange({
+    workflowConfig: input.workflowConfig,
+    requestContext,
+    workflowInstance: input.workflowInstance,
+    employeeDocument: projectionResult.value.document,
+    input: input.transitionBody.input,
+    changeRequest,
+    preflight: preflightResult.value.output,
+    effectiveAt: effectiveAtResult.value,
+    businessReason: businessReasonResult.value,
+    timestamp,
+  });
+  if (!proposedChangeResult.ok) {
+    return proposedChangeResult;
+  }
+
   const proposedChangesResult = repositories.proposedChanges.createMany([
-    {
-      proposedChangeId: makeId("pchg"),
-      tenantId: requestContext.tenantId,
-      changeRequestId: changeRequest.changeRequestId,
-      targetObjectType: "worker",
-      targetObjectId: projectionResult.value.employeeId,
-      fieldPath: `emergencyContacts.${emergencyContactInputResult.value.proposedEmergencyContact.contactId}`,
-      currentValue: projectionResult.value.document.emergencyContacts,
-      proposedValue: emergencyContactInputResult.value.proposedEmergencyContact,
-      effectiveAt: emergencyContactInputResult.value.effectiveAt,
-      reasonCode: emergencyContactInputResult.value.businessReason,
-      validationStatus: "valid",
-      riskLevel: preflightResult.value.output.riskLevel,
-      metadata: {},
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    },
+    proposedChangeResult.value,
   ]);
   if (!proposedChangesResult.ok) {
     return proposedChangesResult;
   }
 
-  const approvalTask = createEmergencyContactApprovalTask({
-    tenantId: requestContext.tenantId,
-    workflowInstanceId: input.workflowInstance.workflowInstanceId,
-    changeRequestId: changeRequest.changeRequestId,
-  });
-  const approvalTaskResult = repositories.approvals.create(approvalTask);
+  const approvalTaskResult = input.workflowConfig.submit.createApprovalTask
+    ? repositories.approvals.create(
+        createConfiguredApprovalTask({
+          workflowConfig: input.workflowConfig,
+          tenantId: requestContext.tenantId,
+          workflowInstanceId: input.workflowInstance.workflowInstanceId,
+          changeRequestId: changeRequest.changeRequestId,
+        }),
+      )
+    : ok(undefined);
   if (!approvalTaskResult.ok) {
     return approvalTaskResult;
   }
 
+  const nextInteractionResult = buildConfiguredInteraction({
+    workflowConfig: input.workflowConfig,
+    interactionKey: input.actionConfig.nextInteraction ?? "input",
+    employeeDocument: projectionResult.value.document,
+  });
+  if (!nextInteractionResult.ok) {
+    return nextInteractionResult;
+  }
+
   const updatedWorkflow = {
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.WAITING_APPROVAL,
-    status: WORKFLOW_STATUSES.WAITING,
+    state: input.actionConfig.nextState ?? input.workflowInstance.state,
+    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
     changeRequestId: changeRequest.changeRequestId,
-    currentInteraction: legalNameWaitingInteraction(),
+    currentInteraction: nextInteractionResult.value,
     context: {
       ...input.workflowInstance.context,
-      emergencyContactInput: emergencyContactInputResult.value,
+      submitInput: input.transitionBody.input,
       preflight: preflightResult.value.output,
-      approvalTaskId: approvalTask.approvalTaskId,
+      ...(approvalTaskResult.value !== undefined
+        ? { approvalTaskId: approvalTaskResult.value.approvalTaskId }
+        : {}),
     },
     version: input.workflowInstance.version + 1,
   };
@@ -968,31 +969,15 @@ async function submitEmergencyContactInput(
     requestContext,
     updateWorkflowResult.value,
     input.transitionBody.idempotencyKey,
-    [
-      {
-        eventType: LEDGER_EVENT_TYPES.PROPOSED_CHANGE_CREATED,
-        payload: {
-          proposedChanges: proposedChangesResult.value,
-        },
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED,
-        payload: preflightResult.value.output,
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED,
-        approvalTaskId: approvalTask.approvalTaskId,
-        payload: {
-          approvalTask,
-        },
-      },
-      {
-        eventType: LEDGER_EVENT_TYPES.CHANGE_REQUEST_SUBMITTED,
-        payload: {
-          changeRequest,
-        },
-      },
-    ],
+    configuredSubmitEvents({
+      workflowConfig: input.workflowConfig,
+      proposedChanges: proposedChangesResult.value,
+      preflight: preflightResult.value.output,
+      changeRequest,
+      ...(approvalTaskResult.value !== undefined
+        ? { approvalTask: approvalTaskResult.value }
+        : {}),
+    }),
   );
   if (!supplementalLedgerResult.ok) {
     return supplementalLedgerResult;
@@ -1005,6 +990,8 @@ function provideEvidence(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
+    actionConfig: WorkflowActionConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
   },
@@ -1040,7 +1027,8 @@ function provideEvidence(
     return err(validationFailedError({ changeRequestId: "missing" }));
   }
 
-  const approvalTask = createLegalNameApprovalTask({
+  const approvalTask = createConfiguredApprovalTask({
+    workflowConfig: input.workflowConfig,
     tenantId: requestContext.tenantId,
     workflowInstanceId: input.workflowInstance.workflowInstanceId,
     changeRequestId,
@@ -1067,11 +1055,19 @@ function provideEvidence(
     return updatedChangeRequestResult;
   }
 
+  const nextInteractionResult = buildConfiguredInteraction({
+    workflowConfig: input.workflowConfig,
+    interactionKey: input.actionConfig.nextInteraction ?? "waitingApproval",
+  });
+  if (!nextInteractionResult.ok) {
+    return nextInteractionResult;
+  }
+
   const updatedWorkflow = {
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.WAITING_APPROVAL,
-    status: WORKFLOW_STATUSES.WAITING,
-    currentInteraction: legalNameWaitingInteraction(),
+    state: input.actionConfig.nextState ?? input.workflowInstance.state,
+    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    currentInteraction: nextInteractionResult.value,
     context: {
       ...input.workflowInstance.context,
       evidenceDocumentId: documentResult.value.documentId,
@@ -1132,6 +1128,7 @@ async function approveChange(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
     pendingApprovalTask?: ApprovalTaskRecord;
@@ -1177,6 +1174,7 @@ async function approveChange(
   }
 
   const planOutputResult = await planApprovedChange(dependencies, requestContext, {
+    workflowConfig: input.workflowConfig,
     workflowInstance: input.workflowInstance,
     changeRequest: changeRequestResult.value,
     proposedChanges: proposedChangesResult.value,
@@ -1228,13 +1226,20 @@ async function approveChange(
     return updatedChangeRequestResult;
   }
 
+  const readyInteractionResult = buildConfiguredInteraction({
+    workflowConfig: input.workflowConfig,
+    interactionKey: "readyToExecute",
+    employeeDocument: projectionResult.value.document,
+  });
+  if (!readyInteractionResult.ok) {
+    return readyInteractionResult;
+  }
+
   const updatedWorkflow = {
     ...input.workflowInstance,
     state: WORKFLOW_STATES.APPROVED,
     status: WORKFLOW_STATUSES.ACTIVE,
-    currentInteraction: readyToExecuteInteractionForIntent(
-      input.workflowInstance.intent,
-    ),
+    currentInteraction: readyInteractionResult.value,
     context: {
       ...input.workflowInstance.context,
       transactionPlanId: transactionPlan.transactionPlanId,
@@ -1413,6 +1418,8 @@ function requestMoreInformation(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
+    actionConfig: WorkflowActionConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
     pendingApprovalTask?: ApprovalTaskRecord;
@@ -1447,11 +1454,19 @@ function requestMoreInformation(
     return taskResult;
   }
 
+  const nextInteractionResult = buildConfiguredInteraction({
+    workflowConfig: input.workflowConfig,
+    interactionKey: input.actionConfig.nextInteraction ?? "input",
+  });
+  if (!nextInteractionResult.ok) {
+    return nextInteractionResult;
+  }
+
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.COLLECTING_EVIDENCE,
-    status: WORKFLOW_STATUSES.ACTIVE,
-    currentInteraction: legalNameEvidenceInteraction(),
+    state: input.actionConfig.nextState ?? input.workflowInstance.state,
+    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    currentInteraction: nextInteractionResult.value,
     version: input.workflowInstance.version + 1,
   });
   if (!workflowResult.ok) {
@@ -1480,6 +1495,7 @@ function cancelWorkflow(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
   },
@@ -1526,6 +1542,7 @@ function executeApprovedChange(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
     workflowInstance: WorkflowInstanceRecord;
     transitionBody: TransitionBody;
   },
@@ -1572,6 +1589,7 @@ function executeApprovedChange(
   const projectedDocumentResult = applyInternalTransactionWrites(
     repositories,
     requestContext,
+    input.workflowConfig,
     changeRequestResult.value,
     transactionPlanResult.value,
   );
@@ -1711,50 +1729,6 @@ function parseTransitionBody(
   });
 }
 
-function parseLegalNameInput(
-  input: Record<string, unknown>,
-): Result<LegalNameInput, AppError> {
-  const newLegalNameResult = parseLegalNameValue(input["newLegalName"]);
-  const effectiveAt = stringField(input, "effectiveAt");
-  const businessReason = stringField(input, "businessReason");
-
-  if (!newLegalNameResult.ok) {
-    return newLegalNameResult;
-  }
-  if (effectiveAt === undefined || businessReason === undefined) {
-    return err(validationFailedError({ effectiveAt, businessReason }));
-  }
-
-  return ok({
-    newLegalName: newLegalNameResult.value,
-    effectiveAt,
-    businessReason,
-  });
-}
-
-function parseEmergencyContactInput(
-  input: Record<string, unknown>,
-): Result<EmergencyContactInput, AppError> {
-  const proposedContactResult = parseEmergencyContactValue(
-    input["proposedEmergencyContact"],
-  );
-  const effectiveAt = stringField(input, "effectiveAt");
-  const businessReason = stringField(input, "businessReason");
-
-  if (!proposedContactResult.ok) {
-    return proposedContactResult;
-  }
-  if (effectiveAt === undefined || businessReason === undefined) {
-    return err(validationFailedError({ effectiveAt, businessReason }));
-  }
-
-  return ok({
-    proposedEmergencyContact: proposedContactResult.value,
-    effectiveAt,
-    businessReason,
-  });
-}
-
 function parseEvidenceInput(
   input: Record<string, unknown>,
 ): Result<EvidenceInput, AppError> {
@@ -1783,89 +1757,6 @@ function parseApprovalDecisionInput(
     ...(comment !== undefined ? { comment } : {}),
     ...(reason !== undefined ? { reason } : {}),
   });
-}
-
-function parseLegalNameValue(value: unknown): Result<LegalName, AppError> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return err(validationFailedError({ legalName: "Expected an object." }));
-  }
-
-  const objectValue = value as Record<string, unknown>;
-  const first = stringField(objectValue, "first");
-  const middle = nullableStringField(objectValue, "middle");
-  const last = stringField(objectValue, "last");
-
-  if (first === undefined || last === undefined) {
-    return err(validationFailedError({ first, last }));
-  }
-
-  return ok({
-    first,
-    middle,
-    last,
-  });
-}
-
-function parseEmergencyContactValue(
-  value: unknown,
-): Result<EmergencyContact, AppError> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return err(validationFailedError({ emergencyContact: "Expected an object." }));
-  }
-
-  const objectValue = value as Record<string, unknown>;
-  const contactId = stringField(objectValue, "contactId") ?? makeId("ec");
-  const name = stringField(objectValue, "name");
-  const relationship = stringField(objectValue, "relationship");
-  const phone = stringField(objectValue, "phone");
-  const email = nullableStringField(objectValue, "email");
-  const priority = numberField(objectValue, "priority");
-
-  if (
-    name === undefined ||
-    relationship === undefined ||
-    phone === undefined ||
-    priority === undefined
-  ) {
-    return err(
-      validationFailedError({
-        name,
-        relationship,
-        phone,
-        priority,
-      }),
-    );
-  }
-
-  return ok({
-    contactId,
-    name,
-    relationship,
-    phone,
-    email,
-    priority,
-  });
-}
-
-function parseEmergencyContactArray(
-  value: unknown,
-): Result<EmergencyContact[], AppError> {
-  if (!Array.isArray(value)) {
-    return err(validationFailedError({ emergencyContacts: "Expected an array." }));
-  }
-
-  const contacts: EmergencyContact[] = [];
-
-  for (const contactValue of value) {
-    const contactResult = parseEmergencyContactValue(contactValue);
-    if (!contactResult.ok) {
-      return contactResult;
-    }
-
-    contacts.push(contactResult.value);
-  }
-
-  return ok(contacts);
 }
 
 function replayTransitionAttempt(
@@ -1950,14 +1841,31 @@ function verifyApprovalTask(
   return ok(pendingApprovalTask);
 }
 
-function createLegalNameChangeRequest(input: {
+function createConfiguredChangeRequest(input: {
+  workflowConfig: WorkflowConfig;
   requestContext: ApiRequestContext;
   workflowInstance: WorkflowInstanceRecord;
   employeeDocument: EmployeeProjectionDocument;
-  legalNameInput: LegalNameInput;
+  input: Record<string, unknown>;
   preflight: PreflightOutput;
+  effectiveAt: string;
+  businessReason: string;
   timestamp: string;
 }): ChangeRequestRecord {
+  const templateSources: WorkflowTemplateSources = {
+    input: input.input,
+    employee: input.employeeDocument,
+    workflow: input.workflowInstance,
+  };
+  const currentSnapshotResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.currentSnapshot,
+    templateSources,
+  );
+  const proposedSnapshotResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.proposedSnapshot,
+    templateSources,
+  );
+
   return {
     changeRequestId: makeId("chg"),
     tenantId: input.requestContext.tenantId,
@@ -1965,24 +1873,26 @@ function createLegalNameChangeRequest(input: {
     changeType: CHANGE_REQUEST_TYPES.EMPLOYEE_DATA_CHANGE,
     targetWorkerId: input.workflowInstance.subjectId,
     requesterActorId: input.requestContext.actor.actorId,
-    effectiveAt: input.legalNameInput.effectiveAt,
-    businessReason: input.legalNameInput.businessReason,
-    status: CHANGE_REQUEST_STATUSES.PREFLIGHTED,
+    effectiveAt: input.effectiveAt,
+    businessReason: input.businessReason,
+    status: input.workflowConfig.submit.changeRequestStatus,
     priority: "normal",
-    currentSnapshot: {
-      legalName: input.employeeDocument.person.legalName,
-    },
-    proposedSnapshot: {
-      legalName: input.legalNameInput.newLegalName,
-    },
+    currentSnapshot: currentSnapshotResult.ok
+      ? (currentSnapshotResult.value as Record<string, unknown>)
+      : {},
+    proposedSnapshot: proposedSnapshotResult.ok
+      ? (proposedSnapshotResult.value as Record<string, unknown>)
+      : {},
     preflightResult: input.preflight,
     aiReview: {
       mode: "not_configured_v0",
-      summary:
-        "Legal-name workflow V0 uses deterministic preflight. AI review plugs into this envelope later.",
+      summary: `${input.workflowConfig.intent} uses deterministic preflight. AI review plugs into this envelope later.`,
     },
     workflowDefinitionId: input.workflowInstance.workflowDefinitionId,
     workflowVersionId: input.workflowInstance.workflowVersionId,
+    ...(input.workflowConfig.submit.markSubmitted
+      ? { submittedAt: input.timestamp }
+      : {}),
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
     createdBy: input.requestContext.actor.actorId,
@@ -1992,69 +1902,76 @@ function createLegalNameChangeRequest(input: {
   };
 }
 
-function createLegalNameApprovalTask(input: {
-  tenantId: string;
-  workflowInstanceId: string;
-  changeRequestId: string;
-}): ApprovalTaskRecord {
-  return {
-    approvalTaskId: makeId("appr"),
-    tenantId: input.tenantId,
-    changeRequestId: input.changeRequestId,
-    workflowInstanceId: input.workflowInstanceId,
-    assigneeActorId: "actor_hr_admin",
-    assigneeRole: "hr_admin",
-    approvalType: "hr_legal_name_review",
-    status: APPROVAL_TASK_STATUSES.PENDING,
-    createdAt: nowIso(),
-    metadata: {},
-  };
-}
-
-function createEmergencyContactChangeRequest(input: {
+function createConfiguredProposedChange(input: {
+  workflowConfig: WorkflowConfig;
   requestContext: ApiRequestContext;
   workflowInstance: WorkflowInstanceRecord;
   employeeDocument: EmployeeProjectionDocument;
-  emergencyContactInput: EmergencyContactInput;
+  input: Record<string, unknown>;
+  changeRequest: ChangeRequestRecord;
   preflight: PreflightOutput;
+  effectiveAt: string;
+  businessReason: string;
   timestamp: string;
-}): ChangeRequestRecord {
-  return {
-    changeRequestId: makeId("chg"),
+}): Result<ProposedChangeRecord, AppError> {
+  const templateSources: WorkflowTemplateSources = {
+    input: input.input,
+    employee: input.employeeDocument,
+    workflow: input.workflowInstance,
+    changeRequest: input.changeRequest,
+  };
+  const targetObjectIdResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.proposedChange.targetObjectId,
+    templateSources,
+  );
+  const currentValueResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.proposedChange.currentValue,
+    templateSources,
+  );
+  const proposedValueResult = resolveWorkflowTemplate(
+    input.workflowConfig.submit.proposedChange.proposedValue,
+    templateSources,
+  );
+
+  if (!targetObjectIdResult.ok) {
+    return targetObjectIdResult;
+  }
+  if (!currentValueResult.ok) {
+    return currentValueResult;
+  }
+  if (!proposedValueResult.ok) {
+    return proposedValueResult;
+  }
+  if (typeof targetObjectIdResult.value !== "string") {
+    return err(validationFailedError({ targetObjectId: targetObjectIdResult.value }));
+  }
+
+  return ok({
+    proposedChangeId: makeId("pchg"),
     tenantId: input.requestContext.tenantId,
-    environmentId: input.requestContext.environmentId,
-    changeType: CHANGE_REQUEST_TYPES.EMPLOYEE_DATA_CHANGE,
-    targetWorkerId: input.workflowInstance.subjectId,
-    requesterActorId: input.requestContext.actor.actorId,
-    effectiveAt: input.emergencyContactInput.effectiveAt,
-    businessReason: input.emergencyContactInput.businessReason,
-    status: CHANGE_REQUEST_STATUSES.IN_APPROVAL,
-    priority: "normal",
-    currentSnapshot: {
-      emergencyContacts: input.employeeDocument.emergencyContacts,
-    },
-    proposedSnapshot: {
-      emergencyContact: input.emergencyContactInput.proposedEmergencyContact,
-    },
-    preflightResult: input.preflight,
-    aiReview: {
-      mode: "not_configured_v0",
-      summary:
-        "Emergency-contact workflow V0 uses deterministic preflight. AI review plugs into this envelope later.",
-    },
-    workflowDefinitionId: input.workflowInstance.workflowDefinitionId,
-    workflowVersionId: input.workflowInstance.workflowVersionId,
-    submittedAt: input.timestamp,
+    changeRequestId: input.changeRequest.changeRequestId,
+    targetObjectType: input.workflowConfig.submit.proposedChange.targetObjectType,
+    targetObjectId: targetObjectIdResult.value,
+    fieldPath:
+      input.workflowConfig.submit.proposedChange.fieldPath ??
+      renderWorkflowTemplateString(
+        input.workflowConfig.submit.proposedChange.fieldPathTemplate ?? "",
+        input.input,
+      ),
+    currentValue: currentValueResult.value,
+    proposedValue: proposedValueResult.value,
+    effectiveAt: input.effectiveAt,
+    reasonCode: input.businessReason,
+    validationStatus: "valid",
+    riskLevel: input.preflight.riskLevel,
+    metadata: {},
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
-    createdBy: input.requestContext.actor.actorId,
-    updatedBy: input.requestContext.actor.actorId,
-    version: 1,
-    metadata: {},
-  };
+  });
 }
 
-function createEmergencyContactApprovalTask(input: {
+function createConfiguredApprovalTask(input: {
+  workflowConfig: WorkflowConfig;
   tenantId: string;
   workflowInstanceId: string;
   changeRequestId: string;
@@ -2064,19 +1981,71 @@ function createEmergencyContactApprovalTask(input: {
     tenantId: input.tenantId,
     changeRequestId: input.changeRequestId,
     workflowInstanceId: input.workflowInstanceId,
-    assigneeActorId: "actor_hr_admin",
-    assigneeRole: "hr_admin",
-    approvalType: "hr_emergency_contact_review",
+    assigneeActorId: input.workflowConfig.approval.assigneeActorId,
+    assigneeRole: input.workflowConfig.approval.assigneeRole,
+    approvalType: input.workflowConfig.approval.approvalType,
     status: APPROVAL_TASK_STATUSES.PENDING,
     createdAt: nowIso(),
     metadata: {},
   };
+}
+
+function configuredSubmitEvents(input: {
+  workflowConfig: WorkflowConfig;
+  proposedChanges: ProposedChangeRecord[];
+  preflight: PreflightOutput;
+  approvalTask?: ApprovalTaskRecord;
+  changeRequest: ChangeRequestRecord;
+}): Array<{
+  eventType: string;
+  approvalTaskId?: string;
+  transactionPlanId?: string;
+  payload: Record<string, unknown>;
+}> {
+  return input.workflowConfig.submit.additionalEvents.map((eventType) => {
+    if (eventType === LEDGER_EVENT_TYPES.PROPOSED_CHANGE_CREATED) {
+      return {
+        eventType,
+        payload: { proposedChanges: input.proposedChanges },
+      };
+    }
+
+    if (eventType === LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED) {
+      return {
+        eventType,
+        ...(input.approvalTask !== undefined
+          ? { approvalTaskId: input.approvalTask.approvalTaskId }
+          : {}),
+        payload: { approvalTask: input.approvalTask },
+      };
+    }
+
+    if (eventType === LEDGER_EVENT_TYPES.CHANGE_REQUEST_SUBMITTED) {
+      return {
+        eventType,
+        payload: { changeRequest: input.changeRequest },
+      };
+    }
+
+    if (eventType === LEDGER_EVENT_TYPES.EVIDENCE_REQUESTED) {
+      return {
+        eventType,
+        payload: { required: input.preflight.requiresEvidence },
+      };
+    }
+
+    return {
+      eventType,
+      payload: input.preflight,
+    };
+  });
 }
 
 async function planApprovedChange(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
   input: {
+    workflowConfig: WorkflowConfig;
     workflowInstance: WorkflowInstanceRecord;
     changeRequest: ChangeRequestRecord;
     proposedChanges: ProposedChangeRecord[];
@@ -2084,30 +2053,19 @@ async function planApprovedChange(
     idempotencyKey: string;
   },
 ): Promise<Result<PlanTransactionOutput, AppError>> {
-  if (
-    input.workflowInstance.intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE
-  ) {
-    return planEmergencyContactChange(dependencies, requestContext, input);
+  const proposedChange = input.proposedChanges[0];
+  if (proposedChange === undefined) {
+    return err(validationFailedError({ proposedChange: "missing" }));
   }
 
-  return planLegalNameChange(dependencies, requestContext, input);
-}
-
-async function planLegalNameChange(
-  dependencies: AppDependencies,
-  requestContext: ApiRequestContext,
-  input: {
-    workflowInstance: WorkflowInstanceRecord;
-    changeRequest: ChangeRequestRecord;
-    proposedChanges: ProposedChangeRecord[];
-    employeeDocument: EmployeeProjectionDocument;
-    idempotencyKey: string;
-  },
-): Promise<Result<PlanTransactionOutput, AppError>> {
-  const proposedName = input.proposedChanges[0]?.proposedValue;
-  const legalNameResult = parseLegalNameValue(proposedName);
-  if (!legalNameResult.ok) {
-    return legalNameResult;
+  const planInputResult = resolveWorkflowTemplate(input.workflowConfig.plan.input, {
+    employee: input.employeeDocument,
+    workflow: input.workflowInstance,
+    changeRequest: input.changeRequest,
+    proposedChange,
+  });
+  if (!planInputResult.ok) {
+    return planInputResult;
   }
 
   const planResult =
@@ -2117,65 +2075,8 @@ async function planLegalNameChange(
       changeRequestId: input.changeRequest.changeRequestId,
       workflowInstanceId: input.workflowInstance.workflowInstanceId,
       workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: legalNamePlanTransactionBlock,
-      input: {
-        changeRequestId: input.changeRequest.changeRequestId,
-        workerId: input.workflowInstance.subjectId,
-        personId: input.employeeDocument.person.personId,
-        currentLegalName: input.employeeDocument.person.legalName,
-        proposedLegalName: legalNameResult.value,
-        effectiveAt: input.changeRequest.effectiveAt,
-      },
-      context: {
-        actorId: requestContext.actor.actorId,
-        effectiveAt: input.changeRequest.effectiveAt,
-        permissions: createPermissionSnapshot(requestContext.actor),
-        correlationId: requestContext.correlationId,
-        idempotencyKey: input.idempotencyKey,
-      },
-    });
-  if (!planResult.ok) {
-    return planResult;
-  }
-  if (planResult.value.output === undefined) {
-    return err(validationFailedError({ planOutput: "missing" }));
-  }
-
-  return ok(planResult.value.output);
-}
-
-async function planEmergencyContactChange(
-  dependencies: AppDependencies,
-  requestContext: ApiRequestContext,
-  input: {
-    workflowInstance: WorkflowInstanceRecord;
-    changeRequest: ChangeRequestRecord;
-    proposedChanges: ProposedChangeRecord[];
-    employeeDocument: EmployeeProjectionDocument;
-    idempotencyKey: string;
-  },
-): Promise<Result<PlanTransactionOutput, AppError>> {
-  const proposedContact = input.proposedChanges[0]?.proposedValue;
-  const emergencyContactResult = parseEmergencyContactValue(proposedContact);
-  if (!emergencyContactResult.ok) {
-    return emergencyContactResult;
-  }
-
-  const planResult =
-    await dependencies.executorClient.executeBlock<PlanTransactionOutput>({
-      tenantId: requestContext.tenantId,
-      environmentId: requestContext.environmentId,
-      changeRequestId: input.changeRequest.changeRequestId,
-      workflowInstanceId: input.workflowInstance.workflowInstanceId,
-      workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: emergencyContactPlanTransactionBlock,
-      input: {
-        changeRequestId: input.changeRequest.changeRequestId,
-        workerId: input.workflowInstance.subjectId,
-        currentEmergencyContacts: input.employeeDocument.emergencyContacts,
-        proposedEmergencyContact: emergencyContactResult.value,
-        effectiveAt: input.changeRequest.effectiveAt,
-      },
+      block: input.workflowConfig.plan.block,
+      input: planInputResult.value as Record<string, unknown>,
       context: {
         actorId: requestContext.actor.actorId,
         effectiveAt: input.changeRequest.effectiveAt,
@@ -2203,6 +2104,7 @@ function createTransactionPlan(input: {
   const timestamp = nowIso();
   const internalWrites = input.output?.internalWrites ?? [];
   const externalWrites = input.output?.externalCallRequests ?? [];
+  const projectionPatches = input.output?.projectionPatches ?? [];
 
   return {
     transactionPlanId: makeId("txnplan"),
@@ -2221,6 +2123,7 @@ function createTransactionPlan(input: {
       },
     ],
     internalWrites,
+    projectionPatches,
     externalWrites,
     rollbackPlan: {
       mode: "compensating_change",
@@ -2249,147 +2152,238 @@ function createTransactionPlan(input: {
 function applyInternalTransactionWrites(
   repositories: Repositories,
   requestContext: ApiRequestContext,
+  workflowConfig: WorkflowConfig,
   changeRequest: ChangeRequestRecord,
   transactionPlan: TransactionPlanRecord,
 ) {
-  const firstWrite = transactionPlan.internalWrites[0];
-  const eventType = stringField(firstWrite ?? {}, "eventType");
+  const projectionResult = repositories.employeeProjections.findByEmployeeId(
+    requestContext.tenantId,
+    changeRequest.targetWorkerId,
+  );
+  if (!projectionResult.ok) {
+    return projectionResult;
+  }
 
-  if (eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
-    return applyInternalEmergencyContactWrites(
-      repositories,
-      requestContext,
-      changeRequest,
-      transactionPlan,
+  const internalWriteResult = parseInternalLedgerWrite(transactionPlan);
+  if (!internalWriteResult.ok) {
+    return internalWriteResult;
+  }
+
+  const updatedDocumentResult = applyProjectionPatches({
+    document: projectionResult.value.document,
+    patches: transactionPlan.projectionPatches,
+    allowedPatchPaths: workflowConfig.projection.allowedPatchPaths,
+  });
+  if (!updatedDocumentResult.ok) {
+    return updatedDocumentResult;
+  }
+
+  const internalWrite = internalWriteResult.value;
+  const ledgerEventResult = repositories.ledger.append({
+    tenantId: requestContext.tenantId,
+    eventType: internalWrite.eventType,
+    subjectType: internalWrite.subjectType,
+    subjectId: internalWrite.subjectId,
+    occurredAt: nowIso(),
+    effectiveAt: internalWrite.effectiveAt,
+    actorType: requestContext.actor.actorType,
+    actorId: requestContext.actor.actorId,
+    relationshipContext: {},
+    changeRequestId: changeRequest.changeRequestId,
+    transactionPlanId: transactionPlan.transactionPlanId,
+    correlationId: requestContext.correlationId,
+    permissionSnapshot: createPermissionSnapshot(requestContext.actor),
+    aiVisibilitySnapshot: {},
+    payload: internalWrite.payload,
+  });
+  if (!ledgerEventResult.ok) {
+    return ledgerEventResult;
+  }
+
+  return repositories.employeeProjections.updateDocument(
+    requestContext.tenantId,
+    changeRequest.targetWorkerId,
+    updatedDocumentResult.value,
+    ledgerEventResult.value.eventId,
+    ledgerEventResult.value.eventSequence,
+  );
+}
+
+function parseInternalLedgerWrite(transactionPlan: TransactionPlanRecord): Result<
+  {
+    eventType: string;
+    subjectType: string;
+    subjectId: string;
+    effectiveAt: string;
+    payload: Record<string, unknown>;
+  },
+  AppError
+> {
+  const firstWrite = transactionPlan.internalWrites[0];
+
+  if (firstWrite === undefined) {
+    return err(validationFailedError({ internalWrites: "missing" }));
+  }
+
+  const eventType = stringField(firstWrite, "eventType");
+  const subjectType = stringField(firstWrite, "subjectType");
+  const subjectId = stringField(firstWrite, "subjectId");
+  const effectiveAt = stringField(firstWrite, "effectiveAt");
+  const payload = objectField(firstWrite, "payload");
+
+  if (
+    eventType === undefined ||
+    subjectType === undefined ||
+    subjectId === undefined ||
+    effectiveAt === undefined ||
+    payload === undefined
+  ) {
+    return err(
+      validationFailedError({
+        eventType,
+        subjectType,
+        subjectId,
+        effectiveAt,
+        payload,
+      }),
     );
   }
 
-  return applyInternalLegalNameWrites(
-    repositories,
-    requestContext,
-    changeRequest,
-    transactionPlan,
-  );
+  return ok({
+    eventType,
+    subjectType,
+    subjectId,
+    effectiveAt,
+    payload,
+  });
 }
 
-function applyInternalLegalNameWrites(
-  repositories: Repositories,
-  requestContext: ApiRequestContext,
-  changeRequest: ChangeRequestRecord,
-  transactionPlan: TransactionPlanRecord,
-) {
-  const firstWrite = transactionPlan.internalWrites[0];
-  const payload = objectField(firstWrite ?? {}, "payload");
-  const newLegalNameResult = parseLegalNameValue(payload?.["newLegalName"]);
-
-  if (!newLegalNameResult.ok) {
-    return newLegalNameResult;
+function applyProjectionPatches(input: {
+  document: EmployeeProjectionDocument;
+  patches: Record<string, unknown>[];
+  allowedPatchPaths: string[];
+}): Result<EmployeeProjectionDocument, AppError> {
+  if (input.patches.length === 0) {
+    return err(validationFailedError({ projectionPatches: "missing" }));
   }
 
-  const projectionResult = repositories.employeeProjections.findByEmployeeId(
-    requestContext.tenantId,
-    changeRequest.targetWorkerId,
-  );
-  if (!projectionResult.ok) {
-    return projectionResult;
+  const updatedDocument = cloneJsonValue(input.document);
+
+  for (const patch of input.patches) {
+    const patchResult = parseProjectionPatch(patch, input.allowedPatchPaths);
+    if (!patchResult.ok) {
+      return patchResult;
+    }
+
+    const applyResult = setJsonPointerValue(updatedDocument, patchResult.value);
+    if (!applyResult.ok) {
+      return applyResult;
+    }
   }
 
-  const legalNameChangedEvent = repositories.ledger.append({
-    tenantId: requestContext.tenantId,
-    eventType: LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED,
-    subjectType: "worker",
-    subjectId: changeRequest.targetWorkerId,
-    occurredAt: nowIso(),
-    effectiveAt: changeRequest.effectiveAt,
-    actorType: requestContext.actor.actorType,
-    actorId: requestContext.actor.actorId,
-    relationshipContext: {},
-    changeRequestId: changeRequest.changeRequestId,
-    transactionPlanId: transactionPlan.transactionPlanId,
-    correlationId: requestContext.correlationId,
-    permissionSnapshot: createPermissionSnapshot(requestContext.actor),
-    aiVisibilitySnapshot: {},
-    payload: payload ?? {},
-  });
-  if (!legalNameChangedEvent.ok) {
-    return legalNameChangedEvent;
-  }
-
-  const updatedDocument: EmployeeProjectionDocument = {
-    ...projectionResult.value.document,
-    person: {
-      ...projectionResult.value.document.person,
-      legalName: newLegalNameResult.value,
-      displayName: displayNameFromLegalName(newLegalNameResult.value),
-    },
-  };
-
-  return repositories.employeeProjections.updateDocument(
-    requestContext.tenantId,
-    changeRequest.targetWorkerId,
-    updatedDocument,
-    legalNameChangedEvent.value.eventId,
-    legalNameChangedEvent.value.eventSequence,
-  );
+  return ok(updatedDocument);
 }
 
-function applyInternalEmergencyContactWrites(
-  repositories: Repositories,
-  requestContext: ApiRequestContext,
-  changeRequest: ChangeRequestRecord,
-  transactionPlan: TransactionPlanRecord,
-) {
-  const firstWrite = transactionPlan.internalWrites[0];
-  const payload = objectField(firstWrite ?? {}, "payload");
-  const newContactsResult = parseEmergencyContactArray(
-    payload?.["newEmergencyContacts"],
-  );
+function parseProjectionPatch(
+  patch: Record<string, unknown>,
+  allowedPatchPaths: string[],
+): Result<
+  {
+    projection: string;
+    operation: string;
+    path: string;
+    value: unknown;
+  },
+  AppError
+> {
+  const projection = stringField(patch, "projection");
+  const operation = stringField(patch, "operation");
+  const path = stringField(patch, "path");
 
-  if (!newContactsResult.ok) {
-    return newContactsResult;
+  if (
+    projection !== "employee" ||
+    operation !== "replace" ||
+    path === undefined ||
+    !allowedPatchPaths.includes(path)
+  ) {
+    return err(
+      validationFailedError({
+        projection,
+        operation,
+        path,
+        allowedPatchPaths,
+      }),
+    );
   }
 
-  const projectionResult = repositories.employeeProjections.findByEmployeeId(
-    requestContext.tenantId,
-    changeRequest.targetWorkerId,
-  );
-  if (!projectionResult.ok) {
-    return projectionResult;
-  }
-
-  const emergencyContactUpdatedEvent = repositories.ledger.append({
-    tenantId: requestContext.tenantId,
-    eventType: LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED,
-    subjectType: "worker",
-    subjectId: changeRequest.targetWorkerId,
-    occurredAt: nowIso(),
-    effectiveAt: changeRequest.effectiveAt,
-    actorType: requestContext.actor.actorType,
-    actorId: requestContext.actor.actorId,
-    relationshipContext: {},
-    changeRequestId: changeRequest.changeRequestId,
-    transactionPlanId: transactionPlan.transactionPlanId,
-    correlationId: requestContext.correlationId,
-    permissionSnapshot: createPermissionSnapshot(requestContext.actor),
-    aiVisibilitySnapshot: {},
-    payload: payload ?? {},
+  return ok({
+    projection,
+    operation,
+    path,
+    value: patch["value"],
   });
-  if (!emergencyContactUpdatedEvent.ok) {
-    return emergencyContactUpdatedEvent;
+}
+
+function setJsonPointerValue(
+  document: EmployeeProjectionDocument,
+  patch: {
+    path: string;
+    value: unknown;
+  },
+): Result<true, AppError> {
+  const pathSegmentsResult = parseJsonPointerSegments(patch.path);
+  if (!pathSegmentsResult.ok) {
+    return pathSegmentsResult;
   }
 
-  const updatedDocument: EmployeeProjectionDocument = {
-    ...projectionResult.value.document,
-    emergencyContacts: newContactsResult.value,
-  };
+  const pathSegments = pathSegmentsResult.value;
+  const targetKey = pathSegments.at(-1);
 
-  return repositories.employeeProjections.updateDocument(
-    requestContext.tenantId,
-    changeRequest.targetWorkerId,
-    updatedDocument,
-    emergencyContactUpdatedEvent.value.eventId,
-    emergencyContactUpdatedEvent.value.eventSequence,
-  );
+  if (targetKey === undefined) {
+    return err(validationFailedError({ path: patch.path }));
+  }
+
+  let parentValue: unknown = document;
+
+  for (const pathSegment of pathSegments.slice(0, -1)) {
+    if (typeof parentValue !== "object" || parentValue === null) {
+      return err(validationFailedError({ path: patch.path, pathSegment }));
+    }
+
+    parentValue = (parentValue as Record<string, unknown>)[pathSegment];
+  }
+
+  if (typeof parentValue !== "object" || parentValue === null) {
+    return err(validationFailedError({ path: patch.path, targetKey }));
+  }
+
+  (parentValue as Record<string, unknown>)[targetKey] = cloneJsonValue(patch.value);
+
+  return ok(true);
+}
+
+function parseJsonPointerSegments(path: string): Result<string[], AppError> {
+  if (!path.startsWith("/")) {
+    return err(validationFailedError({ path }));
+  }
+
+  const pathSegments = path
+    .slice(1)
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => {
+      return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+    });
+
+  if (pathSegments.length === 0) {
+    return err(validationFailedError({ path }));
+  }
+
+  return ok(pathSegments);
+}
+
+function cloneJsonValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function createIntegrationOutboxRows(
@@ -2647,6 +2641,7 @@ function parseTimelineView(view?: string): Result<TimelineView, AppError> {
 function buildTimelineView(
   ledgerEvents: LedgerEventRecord[],
   view: TimelineView,
+  workflowConfig: WorkflowConfig,
 ): Record<string, unknown>[] {
   if (view === timelineViews.AUDIT) {
     return ledgerEvents;
@@ -2658,19 +2653,24 @@ function buildTimelineView(
       .map((event) => createDebugTimelineEntry(event));
   }
 
+  const businessTimelineEventTypes = new Set<string>(
+    workflowConfig.timeline.businessEvents,
+  );
+
   return ledgerEvents
     .filter((event) => businessTimelineEventTypes.has(event.eventType))
-    .map((event) => createBusinessTimelineEntry(event));
+    .map((event) => createBusinessTimelineEntry(event, workflowConfig));
 }
 
 function createBusinessTimelineEntry(
   event: LedgerEventRecord,
+  workflowConfig: WorkflowConfig,
 ): Record<string, unknown> {
   return {
     eventType: event.eventType,
     occurredAt: event.occurredAt,
     actorId: event.actorId,
-    summary: businessSummaryForEvent(event),
+    summary: businessSummaryForEvent(event, workflowConfig),
     payloadExcerpt: businessPayloadExcerpt(event),
   };
 }
@@ -2685,60 +2685,11 @@ function createDebugTimelineEntry(event: LedgerEventRecord): Record<string, unkn
   };
 }
 
-function businessSummaryForEvent(event: LedgerEventRecord): string {
-  if (event.eventType === LEDGER_EVENT_TYPES.WORKFLOW_INTENT_STARTED) {
-    return "Employee data change workflow started.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED) {
-    return "Employee data change request submitted.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED) {
-    const riskLevel = stringField(event.payload, "riskLevel") ?? "unknown";
-
-    return `Preflight completed with ${riskLevel} risk.`;
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED) {
-    const riskLevel = stringField(event.payload, "riskLevel") ?? "unknown";
-
-    return `Emergency contact preflight completed with ${riskLevel} risk.`;
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED) {
-    return "Evidence was provided for HR review.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED) {
-    return "HR approval task created.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.APPROVAL_GRANTED) {
-    return "HR approved the legal name change.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.TRANSACTION_PLAN_CREATED) {
-    return "Transaction plan created.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED) {
-    return "Legal name changed in the employee projection.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
-    return "Emergency contact updated in the employee projection.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED) {
-    return "External HRIS sync was queued.";
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED) {
-    return "Workflow completed.";
-  }
-
-  return event.eventType;
+function businessSummaryForEvent(
+  event: LedgerEventRecord,
+  workflowConfig: WorkflowConfig,
+): string {
+  return workflowConfig.timeline.summaries[event.eventType] ?? event.eventType;
 }
 
 function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknown> {
@@ -2815,169 +2766,11 @@ function serializeWorkflowInstance(
   };
 }
 
-function isSupportedEmployeeDataIntent(
-  intent: string | undefined,
-): intent is SupportedEmployeeDataIntent {
-  return supportedEmployeeDataIntents.some((supportedIntent) => {
-    return supportedIntent === intent;
-  });
-}
-
-function canStartEmployeeDataWorkflow(
-  actor: Parameters<typeof canStartLegalNameWorkflow>[0],
-  intent: SupportedEmployeeDataIntent,
-  subjectId: string,
-): Result<true, AppError> {
-  if (intent === WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE) {
-    return canStartLegalNameWorkflow(actor, subjectId);
-  }
-
-  return canStartEmergencyContactWorkflow(actor, subjectId);
-}
-
-function createInitialInteractionForIntent(
-  intent: SupportedEmployeeDataIntent,
-  employeeDocument: EmployeeProjectionDocument,
-) {
-  if (intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE) {
-    return createEmergencyContactFormInteraction(employeeDocument.emergencyContacts);
-  }
-
-  return createLegalNameFormInteraction(employeeDocument.person.legalName);
-}
-
-function createLegalNameFormInteraction(currentLegalName: LegalName) {
-  return {
-    type: "form",
-    schemaVersion: "v0.1",
-    title: "Request legal name change",
-    currentLegalName,
-    jsonSchema: {
-      type: "object",
-      required: ["newLegalName", "effectiveAt", "businessReason"],
-      properties: {
-        newLegalName: {
-          type: "object",
-          required: ["first", "last"],
-          properties: {
-            first: { type: "string", minLength: 1 },
-            middle: { type: ["string", "null"] },
-            last: { type: "string", minLength: 1 },
-          },
-        },
-        effectiveAt: { type: "string", format: "date" },
-        businessReason: {
-          type: "string",
-          enum: ["marriage", "divorce", "legal_name_change", "correction", "other"],
-        },
-      },
-    },
-    uiSchema: {
-      layout: "wizard",
-      submitLabel: "Continue",
-    },
-  };
-}
-
-function createEmergencyContactFormInteraction(
-  currentEmergencyContacts: EmergencyContact[],
-) {
-  return {
-    type: "form",
-    schemaVersion: "v0.1",
-    title: "Update emergency contact",
-    currentEmergencyContacts,
-    jsonSchema: {
-      type: "object",
-      required: ["proposedEmergencyContact", "effectiveAt", "businessReason"],
-      properties: {
-        proposedEmergencyContact: {
-          type: "object",
-          required: ["name", "relationship", "phone", "priority"],
-          properties: {
-            contactId: { type: "string" },
-            name: { type: "string", minLength: 1 },
-            relationship: {
-              type: "string",
-              enum: [
-                "spouse",
-                "partner",
-                "parent",
-                "sibling",
-                "child",
-                "friend",
-                "other",
-              ],
-            },
-            phone: { type: "string", minLength: 7 },
-            email: { type: ["string", "null"] },
-            priority: { type: "number", minimum: 1 },
-          },
-        },
-        effectiveAt: { type: "string", format: "date" },
-        businessReason: {
-          type: "string",
-          enum: ["employee_self_service", "correction", "annual_review", "other"],
-        },
-      },
-    },
-    uiSchema: {
-      layout: "single_page",
-      submitLabel: "Submit for review",
-    },
-  };
-}
-
-function legalNameEvidenceInteraction() {
-  return {
-    type: "evidence_upload",
-    title: "Upload legal name change evidence",
-    acceptedDocumentTypes: [
-      "marriage_certificate",
-      "court_order",
-      "government_id",
-      "other_legal_document",
-    ],
-    maxFiles: 1,
-  };
-}
-
-function legalNameWaitingInteraction() {
-  return {
-    type: "waiting",
-    title: "Waiting for HR approval",
-  };
-}
-
-function legalNameReadyToExecuteInteraction() {
-  return {
-    type: "ready_to_execute",
-    title: "Ready to execute legal name change",
-  };
-}
-
-function readyToExecuteInteractionForIntent(intent: string) {
-  if (intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE) {
-    return {
-      type: "ready_to_execute",
-      title: "Ready to execute emergency contact update",
-    };
-  }
-
-  return legalNameReadyToExecuteInteraction();
-}
-
 function terminalInteraction(status: string) {
   return {
     type: "terminal",
     status,
   };
-}
-
-function displayNameFromLegalName(legalName: LegalName): string {
-  return [legalName.first, legalName.middle, legalName.last]
-    .filter((value) => value !== null && value.trim().length > 0)
-    .join(" ");
 }
 
 function stringField(
@@ -2997,25 +2790,6 @@ function stringField(
   }
 
   return trimmedValue;
-}
-
-function nullableStringField(
-  object: Record<string, unknown>,
-  fieldName: string,
-): string | null {
-  const value = object[fieldName];
-
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-
-  return trimmedValue.length > 0 ? trimmedValue : null;
 }
 
 function numberField(

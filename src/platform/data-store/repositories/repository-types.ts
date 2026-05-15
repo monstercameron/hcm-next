@@ -255,6 +255,7 @@ export type TransactionPlanRecord = {
   plan_version: number;
   steps: unknown[];
   internal_writes: unknown[];
+  projection_patches: unknown[];
   external_writes: unknown[];
   rollback_plan: DatabaseJson;
   compensation_plan: DatabaseJson;

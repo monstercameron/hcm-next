@@ -34,10 +34,19 @@ type InternalWriteSpec struct {
 	Payload     map[string]any `json:"payload"`
 }
 
+// ProjectionPatch describes a deterministic projection mutation that Node may apply.
+type ProjectionPatch struct {
+	Projection string `json:"projection"`
+	Operation  string `json:"operation"`
+	Path       string `json:"path"`
+	Value      any    `json:"value"`
+}
+
 // PlanTransactionOutput is the deterministic execution plan for an emergency-contact update.
 type PlanTransactionOutput struct {
 	InternalWrites       []InternalWriteSpec            `json:"internalWrites"`
 	ExternalCallRequests []executor.ExternalCallRequest `json:"externalCallRequests"`
+	ProjectionPatches    []ProjectionPatch              `json:"projectionPatches"`
 }
 
 // ExecutePlanTransaction builds deterministic internal write and external call request specs.
@@ -88,9 +97,11 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 		},
 	}
 
+	projectionPatches := emergencyContactProjectionPatches(newEmergencyContacts)
 	output := PlanTransactionOutput{
 		InternalWrites:       internalWrites,
 		ExternalCallRequests: externalCallRequests,
+		ProjectionPatches:    projectionPatches,
 	}
 
 	return executor.BlockResult{
@@ -103,6 +114,7 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 				Fields: map[string]any{
 					"internalWriteCount":       len(internalWrites),
 					"externalCallRequestCount": len(externalCallRequests),
+					"projectionPatchCount":     len(projectionPatches),
 				},
 			},
 		},
@@ -156,6 +168,17 @@ func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessag
 	}
 
 	return validationErrors
+}
+
+func emergencyContactProjectionPatches(newEmergencyContacts []EmergencyContact) []ProjectionPatch {
+	return []ProjectionPatch{
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/emergencyContacts",
+			Value:      newEmergencyContacts,
+		},
+	}
 }
 
 func upsertEmergencyContact(currentContacts []EmergencyContact, proposedContact EmergencyContact) []EmergencyContact {

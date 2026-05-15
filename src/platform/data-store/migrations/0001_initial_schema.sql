@@ -486,6 +486,7 @@ CREATE TABLE transaction_plans (
   plan_version integer NOT NULL DEFAULT 1,
   steps jsonb NOT NULL DEFAULT '[]'::jsonb,
   internal_writes jsonb NOT NULL DEFAULT '[]'::jsonb,
+  projection_patches jsonb NOT NULL DEFAULT '[]'::jsonb,
   external_writes jsonb NOT NULL DEFAULT '[]'::jsonb,
   rollback_plan jsonb NOT NULL DEFAULT '{}'::jsonb,
   compensation_plan jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -504,6 +505,8 @@ CREATE TABLE transaction_plans (
     CHECK (jsonb_typeof(steps) = 'array'),
   CONSTRAINT transaction_plans_internal_writes_array_check
     CHECK (jsonb_typeof(internal_writes) = 'array'),
+  CONSTRAINT transaction_plans_projection_patches_array_check
+    CHECK (jsonb_typeof(projection_patches) = 'array'),
   CONSTRAINT transaction_plans_external_writes_array_check
     CHECK (jsonb_typeof(external_writes) = 'array')
 );

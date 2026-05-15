@@ -1,0 +1,213 @@
+{
+  "intent": "employee.emergency_contact.update",
+  "subjectType": "worker",
+  "selfServiceStart": true,
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "v0.2",
+      "title": "Update emergency contact",
+      "employeeContext": [
+        {
+          "outputKey": "currentEmergencyContacts",
+          "path": "emergencyContacts"
+        }
+      ],
+      "jsonSchema": {
+        "type": "object",
+        "required": ["proposedEmergencyContact", "effectiveAt", "businessReason"],
+        "properties": {
+          "proposedEmergencyContact": {
+            "type": "object",
+            "required": ["name", "relationship", "phone", "priority"],
+            "properties": {
+              "contactId": { "type": "string" },
+              "name": { "type": "string", "minLength": 1 },
+              "relationship": {
+                "type": "string",
+                "enum": [
+                  "spouse",
+                  "partner",
+                  "parent",
+                  "sibling",
+                  "child",
+                  "friend",
+                  "other"
+                ]
+              },
+              "phone": { "type": "string", "minLength": 7 },
+              "email": { "type": ["string", "null"] },
+              "priority": { "type": "number", "minimum": 1 }
+            }
+          },
+          "effectiveAt": { "type": "string", "format": "date" },
+          "businessReason": {
+            "type": "string",
+            "enum": ["employee_self_service", "correction", "annual_review", "other"]
+          }
+        }
+      },
+      "uiSchema": {
+        "layout": "single_page",
+        "submitLabel": "Submit for review"
+      }
+    },
+    "waitingApproval": {
+      "type": "waiting",
+      "title": "Waiting for HR approval"
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "title": "Ready to execute emergency contact update"
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Submit for review",
+          "actor": "requester",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "waitingApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel",
+          "actor": "requester",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve",
+          "actor": "hr_admin",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject",
+          "actor": "hr_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "requester",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute change",
+          "actor": "hr_admin_or_system",
+          "handler": "execute"
+        }
+      ]
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.employee_data.emergency_contact.preflight",
+      "version": "1.0.0"
+    },
+    "preflightInput": {
+      "currentEmergencyContacts": {
+        "$source": "employee",
+        "path": "emergencyContacts"
+      },
+      "proposedEmergencyContact": {
+        "$source": "input",
+        "path": "proposedEmergencyContact"
+      },
+      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+      "businessReason": { "$source": "input", "path": "businessReason" }
+    },
+    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+    "businessReason": { "$source": "input", "path": "businessReason" },
+    "changeRequestStatus": "in_approval",
+    "markSubmitted": true,
+    "createApprovalTask": true,
+    "currentSnapshot": {
+      "emergencyContacts": { "$source": "employee", "path": "emergencyContacts" }
+    },
+    "proposedSnapshot": {
+      "emergencyContact": { "$source": "input", "path": "proposedEmergencyContact" }
+    },
+    "proposedChange": {
+      "targetObjectType": "worker",
+      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "fieldPathTemplate": "emergencyContacts.${proposedEmergencyContact.contactId}",
+      "currentValue": { "$source": "employee", "path": "emergencyContacts" },
+      "proposedValue": {
+        "$source": "input",
+        "path": "proposedEmergencyContact"
+      }
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "EmergencyContactPreflighted",
+      "ApprovalTaskCreated",
+      "ChangeRequestSubmitted"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "actor_hr_admin",
+    "assigneeRole": "hr_admin",
+    "approvalType": "hr_emergency_contact_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.employee_data.emergency_contact.plan_transaction",
+      "version": "1.0.0"
+    },
+    "input": {
+      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
+      "workerId": { "$source": "workflow", "path": "subjectId" },
+      "currentEmergencyContacts": {
+        "$source": "employee",
+        "path": "emergencyContacts"
+      },
+      "proposedEmergencyContact": {
+        "$source": "proposedChange",
+        "path": "proposedValue"
+      },
+      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" }
+    }
+  },
+  "projection": {
+    "allowedPatchPaths": ["/emergencyContacts"]
+  },
+  "timeline": {
+    "businessEvents": [
+      "WorkflowIntentStarted",
+      "ChangeRequestCreated",
+      "EmergencyContactPreflighted",
+      "ApprovalTaskCreated",
+      "ApprovalGranted",
+      "TransactionPlanCreated",
+      "EmployeeEmergencyContactUpdated",
+      "ExternalWriteRequested",
+      "WorkflowCompleted"
+    ],
+    "summaries": {
+      "WorkflowIntentStarted": "Emergency contact update workflow started.",
+      "ChangeRequestCreated": "Emergency contact update request submitted.",
+      "EmergencyContactPreflighted": "Emergency contact preflight completed.",
+      "ApprovalTaskCreated": "HR approval task created.",
+      "ApprovalGranted": "HR approved the emergency contact update.",
+      "TransactionPlanCreated": "Transaction plan created.",
+      "EmployeeEmergencyContactUpdated": "Emergency contact updated in the employee projection.",
+      "ExternalWriteRequested": "External HRIS sync was queued.",
+      "WorkflowCompleted": "Workflow completed."
+    }
+  }
+}

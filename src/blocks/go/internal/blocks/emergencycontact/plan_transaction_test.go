@@ -2,6 +2,7 @@ package emergencycontact
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"hcm-next-executor/internal/executor"
@@ -52,6 +53,29 @@ func TestExecutePlanTransactionCreatesEmergencyContactWrites(t *testing.T) {
 
 	if output.ExternalCallRequests[0].Operation != updateEmergencyContactsOperation {
 		t.Fatalf("unexpected external operation: %s", output.ExternalCallRequests[0].Operation)
+	}
+
+	expectedEmail := "alex.doe@example.com"
+	expectedEmergencyContacts := []EmergencyContact{
+		{
+			ContactID:    "ec_001",
+			Name:         "Alex Doe",
+			Relationship: "spouse",
+			Phone:        "+15557654321",
+			Email:        &expectedEmail,
+			Priority:     1,
+		},
+	}
+	expectedProjectionPatches := []ProjectionPatch{
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/emergencyContacts",
+			Value:      expectedEmergencyContacts,
+		},
+	}
+	if !reflect.DeepEqual(output.ProjectionPatches, expectedProjectionPatches) {
+		t.Fatalf("unexpected projection patches:\nwant: %#v\n got: %#v", expectedProjectionPatches, output.ProjectionPatches)
 	}
 }
 

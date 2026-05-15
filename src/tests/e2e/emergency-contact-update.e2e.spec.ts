@@ -157,6 +157,19 @@ describe("employee.emergency_contact.update E2E contract", () => {
     expect(projection?.document.emergencyContacts[0]?.phone).toBe("+15557654321");
     expect(harness.repositories.store.integrationOutbox.size).toBe(1);
 
+    const transactionPlan = [
+      ...harness.repositories.store.transactionPlans.values(),
+    ][0];
+    expect(transactionPlan?.projectionPatches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          projection: "employee",
+          operation: "replace",
+          path: "/emergencyContacts",
+        }),
+      ]),
+    );
+
     const timeline = getTimeline(
       harness.dependencies,
       harness.hrContext,
@@ -363,6 +376,14 @@ function createEmergencyContactPlanResponse(
             changedEmergencyContact: proposedContact,
             newEmergencyContacts,
           },
+        },
+      ],
+      projectionPatches: [
+        {
+          projection: "employee",
+          operation: "replace",
+          path: "/emergencyContacts",
+          value: newEmergencyContacts,
         },
       ],
       externalCallRequests: [

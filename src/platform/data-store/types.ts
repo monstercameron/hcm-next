@@ -225,6 +225,7 @@ export type TransactionPlanRecord = {
   planVersion: number;
   steps: Record<string, unknown>[];
   internalWrites: Record<string, unknown>[];
+  projectionPatches: Record<string, unknown>[];
   externalWrites: Record<string, unknown>[];
   rollbackPlan: Record<string, unknown>;
   compensationPlan: Record<string, unknown>;

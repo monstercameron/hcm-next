@@ -1,0 +1,223 @@
+{
+  "intent": "employee.legal_name.change",
+  "subjectType": "worker",
+  "selfServiceStart": true,
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "v0.2",
+      "title": "Request legal name change",
+      "employeeContext": [
+        {
+          "outputKey": "currentLegalName",
+          "path": "person.legalName"
+        }
+      ],
+      "jsonSchema": {
+        "type": "object",
+        "required": ["newLegalName", "effectiveAt", "businessReason"],
+        "properties": {
+          "newLegalName": {
+            "type": "object",
+            "required": ["first", "last"],
+            "properties": {
+              "first": { "type": "string", "minLength": 1 },
+              "middle": { "type": ["string", "null"] },
+              "last": { "type": "string", "minLength": 1 }
+            }
+          },
+          "effectiveAt": { "type": "string", "format": "date" },
+          "businessReason": {
+            "type": "string",
+            "enum": ["marriage", "divorce", "legal_name_change", "correction", "other"]
+          }
+        }
+      },
+      "uiSchema": {
+        "layout": "wizard",
+        "submitLabel": "Continue"
+      }
+    },
+    "evidence": {
+      "type": "evidence_upload",
+      "title": "Upload legal name change evidence",
+      "acceptedDocumentTypes": [
+        "marriage_certificate",
+        "court_order",
+        "government_id",
+        "other_legal_document"
+      ],
+      "maxFiles": 1
+    },
+    "waitingApproval": {
+      "type": "waiting",
+      "title": "Waiting for HR approval"
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "title": "Ready to execute legal name change"
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Continue",
+          "actor": "requester",
+          "handler": "submit_configured_input",
+          "nextState": "collecting_evidence",
+          "nextStatus": "active",
+          "nextInteraction": "evidence"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel",
+          "actor": "requester",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "collecting_evidence": {
+      "actions": [
+        {
+          "transition": "provide_evidence",
+          "label": "Submit evidence",
+          "actor": "requester",
+          "handler": "provide_evidence",
+          "nextState": "waiting_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "waitingApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "requester",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve",
+          "actor": "hr_admin",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject",
+          "actor": "hr_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "hr_admin",
+          "handler": "request_more_info",
+          "nextState": "collecting_evidence",
+          "nextStatus": "active",
+          "nextInteraction": "evidence"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "requester",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute change",
+          "actor": "hr_admin_or_system",
+          "handler": "execute"
+        }
+      ]
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.employee_data.legal_name.preflight",
+      "version": "1.0.0"
+    },
+    "preflightInput": {
+      "currentLegalName": { "$source": "employee", "path": "person.legalName" },
+      "proposedLegalName": { "$source": "input", "path": "newLegalName" },
+      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+      "businessReason": { "$source": "input", "path": "businessReason" }
+    },
+    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
+    "businessReason": { "$source": "input", "path": "businessReason" },
+    "changeRequestStatus": "preflighted",
+    "currentSnapshot": {
+      "legalName": { "$source": "employee", "path": "person.legalName" }
+    },
+    "proposedSnapshot": {
+      "legalName": { "$source": "input", "path": "newLegalName" }
+    },
+    "proposedChange": {
+      "targetObjectType": "person",
+      "targetObjectId": { "$source": "employee", "path": "person.personId" },
+      "fieldPath": "person.legalName",
+      "currentValue": { "$source": "employee", "path": "person.legalName" },
+      "proposedValue": { "$source": "input", "path": "newLegalName" }
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "NameChangePreflighted",
+      "EvidenceRequested"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "actor_hr_admin",
+    "assigneeRole": "hr_admin",
+    "approvalType": "hr_legal_name_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.employee_data.legal_name.plan_transaction",
+      "version": "1.0.0"
+    },
+    "input": {
+      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
+      "workerId": { "$source": "workflow", "path": "subjectId" },
+      "personId": { "$source": "employee", "path": "person.personId" },
+      "currentLegalName": { "$source": "employee", "path": "person.legalName" },
+      "proposedLegalName": { "$source": "proposedChange", "path": "proposedValue" },
+      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" }
+    }
+  },
+  "projection": {
+    "allowedPatchPaths": ["/person/legalName", "/person/displayName"]
+  },
+  "timeline": {
+    "businessEvents": [
+      "WorkflowIntentStarted",
+      "ChangeRequestCreated",
+      "NameChangePreflighted",
+      "EvidenceProvided",
+      "ApprovalTaskCreated",
+      "ApprovalGranted",
+      "TransactionPlanCreated",
+      "PersonLegalNameChanged",
+      "ExternalWriteRequested",
+      "WorkflowCompleted"
+    ],
+    "summaries": {
+      "WorkflowIntentStarted": "Legal name change workflow started.",
+      "ChangeRequestCreated": "Legal name change request submitted.",
+      "NameChangePreflighted": "Legal name preflight completed.",
+      "EvidenceProvided": "Evidence was provided for HR review.",
+      "ApprovalTaskCreated": "HR approval task created.",
+      "ApprovalGranted": "HR approved the legal name change.",
+      "TransactionPlanCreated": "Transaction plan created.",
+      "PersonLegalNameChanged": "Legal name changed in the employee projection.",
+      "ExternalWriteRequested": "External HRIS sync was queued.",
+      "WorkflowCompleted": "Workflow completed."
+    }
+  }
+}

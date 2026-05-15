@@ -34,10 +34,19 @@ type InternalWriteSpec struct {
 	Payload     map[string]any `json:"payload"`
 }
 
+// ProjectionPatch describes a deterministic projection mutation that Node may apply.
+type ProjectionPatch struct {
+	Projection string `json:"projection"`
+	Operation  string `json:"operation"`
+	Path       string `json:"path"`
+	Value      any    `json:"value"`
+}
+
 // PlanTransactionOutput is the deterministic execution plan for a legal-name change.
 type PlanTransactionOutput struct {
 	InternalWrites       []InternalWriteSpec            `json:"internalWrites"`
 	ExternalCallRequests []executor.ExternalCallRequest `json:"externalCallRequests"`
+	ProjectionPatches    []ProjectionPatch              `json:"projectionPatches"`
 }
 
 // ExecutePlanTransaction builds deterministic internal write and external call request specs.
@@ -87,9 +96,11 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 		},
 	}
 
+	projectionPatches := legalNameProjectionPatches(input.ProposedLegalName)
 	output := PlanTransactionOutput{
 		InternalWrites:       internalWrites,
 		ExternalCallRequests: externalCallRequests,
+		ProjectionPatches:    projectionPatches,
 	}
 
 	return executor.BlockResult{
@@ -102,6 +113,7 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 				Fields: map[string]any{
 					"internalWriteCount":       len(internalWrites),
 					"externalCallRequestCount": len(externalCallRequests),
+					"projectionPatchCount":     len(projectionPatches),
 				},
 			},
 		},
@@ -156,4 +168,42 @@ func validatePlanTransactionInput(input PlanTransactionInput) []ValidationMessag
 	}
 
 	return validationErrors
+}
+
+func legalNameProjectionPatches(proposedLegalName LegalName) []ProjectionPatch {
+	return []ProjectionPatch{
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/person/legalName",
+			Value:      proposedLegalName,
+		},
+		{
+			Projection: "employee",
+			Operation:  "replace",
+			Path:       "/person/displayName",
+			Value:      displayNameFromLegalName(proposedLegalName),
+		},
+	}
+}
+
+func displayNameFromLegalName(legalName LegalName) string {
+	nameParts := []string{
+		strings.TrimSpace(legalName.First),
+	}
+
+	if legalName.Middle != nil {
+		nameParts = append(nameParts, strings.TrimSpace(*legalName.Middle))
+	}
+
+	nameParts = append(nameParts, strings.TrimSpace(legalName.Last))
+
+	displayNameParts := make([]string, 0, len(nameParts))
+	for _, namePart := range nameParts {
+		if namePart != "" {
+			displayNameParts = append(displayNameParts, namePart)
+		}
+	}
+
+	return strings.Join(displayNameParts, " ")
 }
