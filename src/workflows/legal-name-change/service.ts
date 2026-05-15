@@ -328,14 +328,6 @@ export function getAvailableActions(
     return workflowResult;
   }
 
-  const permissionResult = canViewWorkflowInstance(
-    requestContext.actor,
-    workflowResult.value,
-  );
-  if (!permissionResult.ok) {
-    return permissionResult;
-  }
-
   const pendingApprovalTaskResult =
     repositories.approvals.findPendingByWorkflow(workflowInstanceId);
   if (!pendingApprovalTaskResult.ok) {
@@ -345,6 +337,22 @@ export function getAvailableActions(
   const workflowConfigResult = getWorkflowConfigByIntent(workflowResult.value.intent);
   if (!workflowConfigResult.ok) {
     return workflowConfigResult;
+  }
+
+  const permissionResult = canViewWorkflowInstance(
+    requestContext.actor,
+    workflowResult.value,
+  );
+  const canViewPendingApproval =
+    isOrgTransferWorkflowIntent(workflowResult.value.intent) &&
+    canPerformOrgTransferApproval({
+      actor: requestContext.actor,
+      ...(pendingApprovalTaskResult.value !== undefined
+        ? { pendingApprovalTask: pendingApprovalTaskResult.value }
+        : {}),
+    });
+  if (!permissionResult.ok && !canViewPendingApproval) {
+    return permissionResult;
   }
 
   return ok({
