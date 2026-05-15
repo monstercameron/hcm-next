@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { type AppError, type Result } from "@hcm-next/foundation";
+import {
+  LEDGER_EVENT_TYPES,
+  WORKFLOW_INTENTS,
+  WORKFLOW_TRANSITIONS,
+  type AppError,
+  type Result,
+} from "@hcm-next/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
@@ -19,7 +25,10 @@ import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
   getEmployeeProjection,
+  getTimeline,
   listEmployeeProjections,
+  startWorkflowIntent,
+  transitionWorkflow,
 } from "../../workflows/legal-name-change/service.js";
 import orgTransferWorkflowConfigJson from "../../workflows/configs/employee-org-transfer-compensation-change.workflow.json";
 
@@ -28,10 +37,13 @@ const fixture = DEMO_ORG_TRANSFER_FIXTURE_ALIASES;
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  hrContext: ApiRequestContext;
   sourceManagerContext: ApiRequestContext;
   destinationManagerContext: ApiRequestContext;
   financeContext: ApiRequestContext;
   compensationContext: ApiRequestContext;
+  medicalDirectorContext: ApiRequestContext;
+  systemContext: ApiRequestContext;
   employeeContext: ApiRequestContext;
 };
 
@@ -278,6 +290,256 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
         ?.name,
     ).toBe(fixture.sourceCostCenterName);
   });
+
+  it("runs the full org transfer approval chain and proves post-execution RBAC", async () => {
+    const transferInput = orgTransferInputFixture(harness.repositories);
+    const startedWorkflow = startWorkflowIntent(
+      harness.dependencies,
+      harness.hrContext,
+      {
+        intent: WORKFLOW_INTENTS.EMPLOYEE_ORG_TRANSFER_COMPENSATION_CHANGE,
+        subjectType: "worker",
+        subjectId: fixture.sourceEmployeeId,
+      },
+    );
+
+    expect(startedWorkflow.ok).toBe(true);
+    if (!startedWorkflow.ok) {
+      return;
+    }
+
+    const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
+    expect(startedWorkflow.value["state"]).toBe("collecting_input");
+
+    const submittedWorkflow = await transitionWorkflow(
+      harness.dependencies,
+      harness.hrContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.SUBMIT_INPUT,
+        idempotencyKey: "idem_org_transfer_submit",
+        expectedVersion: 1,
+        input: transferInput,
+      },
+    );
+
+    expect(submittedWorkflow.ok).toBe(true);
+    expect(submittedWorkflow.ok && submittedWorkflow.value["state"]).toBe(
+      "waiting_source_manager_approval",
+    );
+
+    const sourceApprovalTask = pendingTaskFor(harness, harness.sourceManagerContext);
+    const employeeActions = availableActionTransitions(
+      harness,
+      harness.employeeContext,
+      workflowInstanceId,
+    );
+    const sourceManagerActions = availableActionTransitions(
+      harness,
+      harness.sourceManagerContext,
+      workflowInstanceId,
+    );
+
+    expect(employeeActions).not.toContain(WORKFLOW_TRANSITIONS.APPROVE);
+    expect(sourceManagerActions).toContain(WORKFLOW_TRANSITIONS.APPROVE);
+
+    const wrongManagerAttempt = await transitionWorkflow(
+      harness.dependencies,
+      harness.destinationManagerContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.APPROVE,
+        idempotencyKey: "idem_org_transfer_wrong_manager",
+        expectedVersion: 2,
+        input: {
+          approvalTaskId: sourceApprovalTask.approvalTaskId,
+          comment: "Attempted from the wrong manager.",
+        },
+      },
+    );
+    expect(wrongManagerAttempt.ok).toBe(false);
+
+    await approveStage({
+      harness,
+      context: harness.sourceManagerContext,
+      workflowInstanceId,
+      expectedVersion: 2,
+      idempotencyKey: "idem_org_transfer_source_approve",
+      expectedState: "waiting_destination_manager_approval",
+    });
+    await approveStage({
+      harness,
+      context: harness.destinationManagerContext,
+      workflowInstanceId,
+      expectedVersion: 3,
+      idempotencyKey: "idem_org_transfer_destination_approve",
+      expectedState: "waiting_finance_approval",
+    });
+
+    expect(
+      availableActionTransitions(
+        harness,
+        harness.compensationContext,
+        workflowInstanceId,
+      ),
+    ).not.toContain(WORKFLOW_TRANSITIONS.APPROVE);
+    expect(
+      availableActionTransitions(harness, harness.financeContext, workflowInstanceId),
+    ).toContain(WORKFLOW_TRANSITIONS.APPROVE);
+
+    await approveStage({
+      harness,
+      context: harness.financeContext,
+      workflowInstanceId,
+      expectedVersion: 4,
+      idempotencyKey: "idem_org_transfer_finance_approve",
+      expectedState: "waiting_compensation_approval",
+    });
+    await approveStage({
+      harness,
+      context: harness.compensationContext,
+      workflowInstanceId,
+      expectedVersion: 5,
+      idempotencyKey: "idem_org_transfer_comp_approve",
+      expectedState: "waiting_medical_director_approval",
+    });
+    await approveStage({
+      harness,
+      context: harness.medicalDirectorContext,
+      workflowInstanceId,
+      expectedVersion: 6,
+      idempotencyKey: "idem_org_transfer_medical_approve",
+      expectedState: "approved",
+    });
+
+    const executedWorkflow = await transitionWorkflow(
+      harness.dependencies,
+      harness.systemContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.EXECUTE,
+        idempotencyKey: "idem_org_transfer_execute",
+        expectedVersion: 7,
+        input: {},
+      },
+    );
+
+    expect(executedWorkflow.ok).toBe(true);
+    const executedWorkflowValue = unwrapResult(executedWorkflow);
+    expect(executedWorkflowValue["state"]).toBe("executed");
+
+    const executedReplay = await transitionWorkflow(
+      harness.dependencies,
+      harness.systemContext,
+      workflowInstanceId,
+      {
+        transition: WORKFLOW_TRANSITIONS.EXECUTE,
+        idempotencyKey: "idem_org_transfer_execute",
+        expectedVersion: 7,
+        input: {},
+      },
+    );
+    expect(executedReplay.ok).toBe(true);
+    expect(executedReplay.ok && executedReplay.value["idempotentReplay"]).toBe(true);
+
+    const updatedProjection = unwrapResult(
+      harness.repositories.employeeProjections.findByEmployeeId(
+        DEMO_IDS.tenantId,
+        fixture.sourceEmployeeId,
+      ),
+    );
+    expect(updatedProjection.document.organization).toMatchObject({
+      location: fixture.targetLocationName,
+      team: fixture.targetTeamName,
+      costCenter: fixture.targetCostCenterName,
+    });
+    expect(updatedProjection.document.manager.employeeId).toBe(
+      fixture.targetManagerEmployeeId,
+    );
+    expect(updatedProjection.document.compensation).toMatchObject(
+      fixture.proposedCompensation,
+    );
+
+    const activeAssignments = unwrapResult(
+      harness.repositories.workerAssignments.findActiveForEmployee(
+        DEMO_IDS.tenantId,
+        fixture.sourceEmployeeId,
+      ),
+    );
+    const assignmentsByType = assignmentMap(activeAssignments);
+    expect(
+      orgUnitForAssignment(harness.repositories, assignmentsByType.get("primary_team"))
+        ?.name,
+    ).toBe(fixture.targetTeamName);
+    expect(
+      orgUnitForAssignment(harness.repositories, assignmentsByType.get("work_location"))
+        ?.name,
+    ).toBe(fixture.targetLocationName);
+    expect(
+      orgUnitForAssignment(harness.repositories, assignmentsByType.get("cost_center"))
+        ?.name,
+    ).toBe(fixture.targetCostCenterName);
+
+    const workflowAssignments = unwrapResult(
+      harness.repositories.workerAssignments.findBySourceWorkflow(
+        DEMO_IDS.tenantId,
+        workflowInstanceId,
+      ),
+    );
+    expect(
+      workflowAssignments.filter((assignment) => assignment.status === "active"),
+    ).toHaveLength(3);
+    expect(
+      workflowAssignments.filter((assignment) => assignment.status === "superseded"),
+    ).toHaveLength(3);
+
+    expect(
+      readEmployeeProjectionResult(
+        harness.dependencies,
+        harness.sourceManagerContext,
+        fixture.sourceEmployeeId,
+      ).ok,
+    ).toBe(false);
+    expect(
+      readEmployeeProjection(
+        harness.dependencies,
+        harness.destinationManagerContext,
+        fixture.sourceEmployeeId,
+      ).organization.team,
+    ).toBe(fixture.targetTeamName);
+
+    const outboxRows = [
+      ...harness.repositories.store.integrationOutbox.values(),
+    ].filter((row) => row.changeRequestId === executedWorkflowValue["changeRequestId"]);
+    expect(outboxRows.map((row) => row.destination).sort()).toEqual([
+      "compensation_vendor",
+      "hris",
+      "payroll",
+    ]);
+
+    const timeline = unwrapResult(
+      getTimeline(harness.dependencies, harness.hrContext, workflowInstanceId),
+    );
+    const eventTypes = (timeline["events"] as Array<Record<string, unknown>>).map(
+      (event) => event["eventType"],
+    );
+    expect(eventTypes).toEqual(
+      expect.arrayContaining([
+        "SourceManagerApprovalCreated",
+        "DestinationManagerApprovalCreated",
+        "FinanceApprovalCreated",
+        "CompensationApprovalCreated",
+        "ClinicalPlacementApprovalCreated",
+        "WorkerAssignmentSuperseded",
+        "WorkerAssignmentCreated",
+        "RoleBindingsRecalculated",
+        "EmployeeOrgProjectionUpdated",
+        "EmployeeCompensationUpdated",
+        "OrgTransferExecuted",
+        "WorkflowCompleted",
+      ]),
+    );
+  });
 });
 
 function createHarness(): TestHarness {
@@ -285,16 +547,13 @@ function createHarness(): TestHarness {
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
     repositories,
-    executorClient: {
-      executeBlock() {
-        throw new Error("Org-transfer contract tests do not execute blocks.");
-      },
-    },
+    executorClient: createOrgTransferExecutorClient(),
   };
 
   return {
     dependencies,
     repositories,
+    hrContext: createRequestContext(mustActor(repositories, DEMO_IDS.hrActorId)),
     sourceManagerContext: createRequestContext(
       mustActor(repositories, DEMO_IDS.managerActorId),
     ),
@@ -306,6 +565,12 @@ function createHarness(): TestHarness {
     ),
     compensationContext: createRequestContext(
       mustActor(repositories, DEMO_IDS.compensationAdminActorId),
+    ),
+    medicalDirectorContext: createRequestContext(
+      mustActor(repositories, DEMO_IDS.medicalDirectorActorId),
+    ),
+    systemContext: createRequestContext(
+      mustActor(repositories, DEMO_IDS.systemActorId),
     ),
     employeeContext: createRequestContext(
       mustActor(repositories, DEMO_IDS.employeeActorId),
@@ -333,6 +598,203 @@ function createRequestContext(actor: ActorRecord): ApiRequestContext {
   };
 }
 
+function createOrgTransferExecutorClient(): ExecutorClient {
+  return {
+    async executeBlock<TOutput>(
+      request: ExecutorRequest,
+    ): Promise<Result<ExecutorResponse<TOutput>, AppError>> {
+      const output = request.block.name.endsWith(".preflight")
+        ? {
+            valid: true,
+            riskLevel: "medium",
+            requiresEvidence: false,
+            requiresApproval: true,
+            warnings: [],
+            errors: [],
+          }
+        : buildOrgTransferPlanOutput(request);
+
+      return ok({
+        status: "succeeded",
+        output: output as TOutput,
+        proposedEvents: [],
+        externalCallRequests: [],
+        logs: [],
+        metrics: {},
+      });
+    },
+  };
+}
+
+function buildOrgTransferPlanOutput(request: ExecutorRequest): Record<string, unknown> {
+  const effectiveAt = stringValue(request.input["effectiveAt"]);
+  const workerId = stringValue(request.input["workerId"]);
+  const currentAssignments = recordArray(request.input["currentAssignments"]);
+  const proposedOrganization = recordValue(request.input["proposedOrganization"]);
+  const proposedJob = recordValue(request.input["proposedJob"]);
+  const proposedCompensation = recordValue(request.input["proposedCompensation"]);
+  const targetTeam = recordValue(request.input["targetTeamOrgUnit"]);
+  const targetLocation = recordValue(request.input["targetLocationOrgUnit"]);
+  const targetCostCenter = recordValue(request.input["targetCostCenterOrgUnit"]);
+  const targetManagerEmployeeId = stringValue(request.input["targetManagerEmployeeId"]);
+
+  const supersededAssignmentTypes = new Set([
+    "primary_team",
+    "work_location",
+    "cost_center",
+  ]);
+  const supersedeOperations = currentAssignments
+    .filter((assignment) => {
+      return supersededAssignmentTypes.has(stringValue(assignment["assignmentType"]));
+    })
+    .map((assignment) => {
+      const assignmentType = stringValue(assignment["assignmentType"]);
+      return {
+        operation: "supersede",
+        assignmentType,
+        currentWorkerAssignmentId: stringValue(assignment["workerAssignmentId"]),
+        effectiveEnd: effectiveAt,
+        idempotencyKey: [
+          "org_transfer",
+          request.workflowInstanceId,
+          assignmentType,
+          "supersede",
+        ].join(":"),
+      };
+    });
+
+  const createOperations = [
+    {
+      operation: "create",
+      assignmentType: "primary_team",
+      orgUnitId: stringValue(targetTeam["orgUnitId"]),
+      roleType: "primary",
+      managerEmployeeId: targetManagerEmployeeId,
+      allocationPercent: 100,
+      effectiveStart: effectiveAt,
+      idempotencyKey: `org_transfer:${request.workflowInstanceId}:primary_team:create`,
+    },
+    {
+      operation: "create",
+      assignmentType: "work_location",
+      orgUnitId: stringValue(targetLocation["orgUnitId"]),
+      roleType: "primary",
+      managerEmployeeId: targetManagerEmployeeId,
+      allocationPercent: 100,
+      effectiveStart: effectiveAt,
+      idempotencyKey: `org_transfer:${request.workflowInstanceId}:work_location:create`,
+    },
+    {
+      operation: "create",
+      assignmentType: "cost_center",
+      orgUnitId: stringValue(targetCostCenter["orgUnitId"]),
+      roleType: "primary",
+      managerEmployeeId: targetManagerEmployeeId,
+      allocationPercent: 100,
+      effectiveStart: effectiveAt,
+      idempotencyKey: `org_transfer:${request.workflowInstanceId}:cost_center:create`,
+    },
+  ];
+
+  return {
+    internalWrites: [
+      {
+        eventType: LEDGER_EVENT_TYPES.EMPLOYEE_ORG_PROJECTION_UPDATED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: {
+          organization: proposedOrganization,
+          targetManagerEmployeeId,
+        },
+      },
+      {
+        eventType: LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: {
+          compensation: proposedCompensation,
+        },
+      },
+    ],
+    projectionPatches: [
+      {
+        projection: "employee",
+        operation: "replace",
+        path: "/organization",
+        value: proposedOrganization,
+      },
+      {
+        projection: "employee",
+        operation: "replace",
+        path: "/manager/employeeId",
+        value: targetManagerEmployeeId,
+      },
+      {
+        projection: "employee",
+        operation: "replace",
+        path: "/job",
+        value: proposedJob,
+      },
+      {
+        projection: "employee",
+        operation: "replace",
+        path: "/compensation",
+        value: proposedCompensation,
+      },
+    ],
+    assignmentOperations: [...supersedeOperations, ...createOperations],
+    roleBindingOperations: [
+      {
+        operation: "ensure_direct_reports_binding",
+        actorEmployeeId: targetManagerEmployeeId,
+        roleKey: "manager",
+        scopeType: "direct_reports",
+        effectiveStart: effectiveAt,
+        idempotencyKey: `org_transfer:${request.workflowInstanceId}:role_binding:destination_manager`,
+      },
+      {
+        operation: "record_recalculation",
+        idempotencyKey: `org_transfer:${request.workflowInstanceId}:role_binding:recalculation`,
+      },
+    ],
+    externalCallRequests: [
+      {
+        connectionId: "hris",
+        operation: "syncWorkerTransfer",
+        idempotencyKey: `org_transfer:${request.workflowInstanceId}:hris`,
+        payload: {
+          workerId,
+          proposedOrganization,
+          targetManagerEmployeeId,
+          effectiveAt,
+        },
+      },
+      {
+        connectionId: "payroll",
+        operation: "syncCostCenter",
+        idempotencyKey: `org_transfer:${request.workflowInstanceId}:payroll`,
+        payload: {
+          workerId,
+          targetCostCenter: stringValue(targetCostCenter["name"]),
+          effectiveAt,
+        },
+      },
+      {
+        connectionId: "compensation_vendor",
+        operation: "syncCompensation",
+        idempotencyKey: `org_transfer:${request.workflowInstanceId}:compensation_vendor`,
+        payload: {
+          workerId,
+          compensation: proposedCompensation,
+          effectiveAt,
+        },
+      },
+    ],
+  };
+}
+
 function listVisibleEmployees(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
@@ -348,11 +810,78 @@ function readEmployeeProjection(
   requestContext: ApiRequestContext,
   employeeId: string,
 ): EmployeeProjectionDocument {
-  const result = getEmployeeProjection(dependencies, requestContext, employeeId);
-  const value = unwrapResult(result);
+  const value = unwrapResult(
+    readEmployeeProjectionResult(dependencies, requestContext, employeeId),
+  );
   const projection = value["projection"] as { document?: EmployeeProjectionDocument };
 
   return projection.document ?? (projection as unknown as EmployeeProjectionDocument);
+}
+
+function readEmployeeProjectionResult(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  employeeId: string,
+): Result<Record<string, unknown>, AppError> {
+  return getEmployeeProjection(dependencies, requestContext, employeeId);
+}
+
+function pendingTaskFor(
+  harness: TestHarness,
+  requestContext: ApiRequestContext,
+): Record<string, unknown> {
+  const tasks = unwrapResult(getTasks(harness.dependencies, requestContext));
+  const task = (tasks["tasks"] as Array<Record<string, unknown>>)[0];
+
+  if (task === undefined) {
+    throw new Error(`Missing pending task for ${requestContext.actor.actorId}`);
+  }
+
+  return task;
+}
+
+function availableActionTransitions(
+  harness: TestHarness,
+  requestContext: ApiRequestContext,
+  workflowInstanceId: string,
+): string[] {
+  const actionsResult = getAvailableActions(
+    harness.dependencies,
+    requestContext,
+    workflowInstanceId,
+  );
+  const actionsPayload = unwrapResult(actionsResult);
+  const actions = actionsPayload["actions"] as Array<Record<string, unknown>>;
+
+  return actions.map((action) => String(action["transition"]));
+}
+
+async function approveStage(input: {
+  harness: TestHarness;
+  context: ApiRequestContext;
+  workflowInstanceId: string;
+  expectedVersion: number;
+  idempotencyKey: string;
+  expectedState: string;
+}): Promise<void> {
+  const task = pendingTaskFor(input.harness, input.context);
+  const approvedWorkflow = await transitionWorkflow(
+    input.harness.dependencies,
+    input.context,
+    input.workflowInstanceId,
+    {
+      transition: WORKFLOW_TRANSITIONS.APPROVE,
+      idempotencyKey: input.idempotencyKey,
+      expectedVersion: input.expectedVersion,
+      input: {
+        approvalTaskId: String(task["approvalTaskId"]),
+        comment: `${input.expectedState} approved in e2e.`,
+      },
+    },
+  );
+
+  const approvedWorkflowValue = unwrapResult(approvedWorkflow);
+  expect(approvedWorkflowValue["state"]).toBe(input.expectedState);
 }
 
 function unwrapResult<TValue>(result: Result<TValue, AppError>): TValue {
@@ -479,4 +1008,24 @@ function approvalDecisionPayloadContract() {
     reject: { required: ["reason"] },
     requestMoreInfo: { required: ["reason"] },
   };
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function recordArray(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map(recordValue);
 }
