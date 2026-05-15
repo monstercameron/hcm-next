@@ -1,0 +1,563 @@
+{
+  "intent": "position.headcount_requisition.approval",
+  "subjectType": "position",
+  "selfServiceStart": false,
+  "startActors": ["hr_admin", "clinic_ops_admin"],
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "2026-05-15.1",
+      "title": "Request headcount requisition",
+      "jsonSchema": {
+        "type": "object",
+        "required": [
+          "department",
+          "team",
+          "location",
+          "costCenter",
+          "jobCode",
+          "title",
+          "level",
+          "requestedFte",
+          "targetStartDate",
+          "salaryRangeMin",
+          "salaryRangeMax",
+          "businessJustification",
+          "selectedLeadershipApprovers"
+        ],
+        "properties": {
+          "department": { "type": "string", "minLength": 1 },
+          "team": { "type": "string", "minLength": 1 },
+          "location": { "type": "string", "minLength": 1 },
+          "costCenter": { "type": "string", "minLength": 1 },
+          "jobCode": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "level": { "type": "string", "minLength": 1 },
+          "requestedFte": { "type": "number", "exclusiveMinimum": 0 },
+          "targetStartDate": { "type": "string", "format": "date" },
+          "salaryRangeMin": { "type": "number" },
+          "salaryRangeMax": { "type": "number" },
+          "businessJustification": { "type": "string", "minLength": 1 },
+          "selectedLeadershipApprovers": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      },
+      "uiSchema": {
+        "layout": "wizard",
+        "fieldLabels": {
+          "department": "Department",
+          "team": "Team",
+          "location": "Location",
+          "costCenter": "Cost center",
+          "jobCode": "Job code",
+          "title": "Title",
+          "level": "Level",
+          "requestedFte": "Requested FTE",
+          "targetStartDate": "Target start date",
+          "salaryRangeMin": "Salary range minimum",
+          "salaryRangeMax": "Salary range maximum",
+          "businessJustification": "Business justification",
+          "selectedLeadershipApprovers": "Leadership approval chain"
+        },
+        "submitLabel": "Submit requisition"
+      }
+    },
+    "leadershipApproval": {
+      "type": "approval_wait",
+      "title": "Leadership approval chain"
+    },
+    "crossFunctionalApproval": {
+      "type": "approval_wait",
+      "title": "Cross-functional approval",
+      "uiSchema": {
+        "quorumLabel": "3 of 5 approvals required",
+        "vetoHolderLabels": ["Finance", "Medical Director"]
+      }
+    },
+    "repair": {
+      "type": "repair",
+      "title": "Repair headcount requisition"
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "title": "Ready to execute headcount requisition"
+    },
+    "completedSummary": {
+      "type": "terminal",
+      "title": "Headcount requisition completed"
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Submit requisition",
+          "actor": "initiator",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_sync_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "leadershipApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "initiator",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_sync_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve",
+          "actor": "approval_task_assignee",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject",
+          "actor": "approval_task_assignee",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "approval_task_assignee",
+          "handler": "request_more_info",
+          "nextState": "waiting_approval_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_async_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve",
+          "actor": "approval_task_assignee",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject",
+          "actor": "approval_task_assignee",
+          "handler": "reject"
+        },
+        {
+          "transition": "request_more_info",
+          "label": "Request more information",
+          "actor": "approval_task_assignee",
+          "handler": "request_more_info",
+          "nextState": "waiting_approval_repair",
+          "nextStatus": "waiting_repair",
+          "nextInteraction": "repair"
+        }
+      ]
+    },
+    "waiting_approval_repair": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Resubmit requisition",
+          "actor": "initiator",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_sync_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "leadershipApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "initiator",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute requisition",
+          "actor": "hr_admin_or_system",
+          "handler": "execute"
+        }
+      ]
+    },
+    "approval_gate_failed": {
+      "actions": []
+    },
+    "canceled": {
+      "actions": []
+    },
+    "executed": {
+      "actions": []
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.position.headcount.preflight",
+      "version": "1.0.0"
+    },
+    "preflightInput": {},
+    "effectiveAt": { "$source": "input", "path": "targetStartDate" },
+    "businessReason": { "$source": "input", "path": "businessJustification" },
+    "changeRequestStatus": "in_approval",
+    "markSubmitted": true,
+    "createApprovalTask": false,
+    "currentSnapshot": {},
+    "proposedSnapshot": {
+      "department": { "$source": "input", "path": "department" },
+      "team": { "$source": "input", "path": "team" },
+      "location": { "$source": "input", "path": "location" },
+      "costCenter": { "$source": "input", "path": "costCenter" },
+      "jobCode": { "$source": "input", "path": "jobCode" },
+      "title": { "$source": "input", "path": "title" },
+      "level": { "$source": "input", "path": "level" },
+      "requestedFte": { "$source": "input", "path": "requestedFte" },
+      "targetStartDate": { "$source": "input", "path": "targetStartDate" },
+      "salaryRangeMin": { "$source": "input", "path": "salaryRangeMin" },
+      "salaryRangeMax": { "$source": "input", "path": "salaryRangeMax" },
+      "businessJustification": {
+        "$source": "input",
+        "path": "businessJustification"
+      },
+      "selectedLeadershipApprovers": {
+        "$source": "input",
+        "path": "selectedLeadershipApprovers"
+      }
+    },
+    "proposedChange": {
+      "targetObjectType": "position",
+      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "fieldPath": "position.headcount_requisition",
+      "currentValue": { "$source": "workflow", "path": "context.currentPosition" },
+      "proposedValue": { "$source": "input", "path": "" }
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "ApprovalGateOpened",
+      "ApprovalGateTaskCreated",
+      "ChangeRequestSubmitted",
+      "HeadcountRequisitionSubmitted"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "",
+    "assigneeRole": "approval_task_assignee",
+    "approvalType": "headcount_requisition_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.position.headcount.execute",
+      "version": "1.0.0"
+    },
+    "input": {}
+  },
+  "graph": {
+    "startNodeId": "headcount_intake",
+    "nodes": [
+      {
+        "nodeId": "headcount_intake",
+        "type": "interaction",
+        "title": "Collect headcount requisition",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "HeadcountRequisitionSubmitted",
+            "nextNodeId": "leadership_chain_gate",
+            "nextState": "waiting_sync_approval",
+            "nextInteraction": "leadershipApproval"
+          }
+        ]
+      },
+      {
+        "nodeId": "leadership_chain_gate",
+        "type": "approval_gate",
+        "title": "Leadership approval chain",
+        "state": "waiting_sync_approval",
+        "interaction": "leadershipApproval",
+        "approvalGate": {
+          "gateId": "leadership_chain_gate",
+          "mode": "sequential",
+          "interaction": "leadershipApproval",
+          "snapshotResolvedApprovers": true,
+          "taskVersionRequired": true,
+          "approverResolvers": [
+            {
+              "resolverId": "selected_leadership_approvers",
+              "type": "workflow_field",
+              "label": "Selected leadership approvers",
+              "taskKey": "leadership",
+              "approvalType": "leadership_headcount_review",
+              "permission": "position.headcount.leadership_approve",
+              "fieldPath": "submitInput.selectedLeadershipApprovers",
+              "preserveOrder": true
+            }
+          ],
+          "passRule": { "type": "all_required" },
+          "failurePolicies": [
+            {
+              "type": "stop_workflow",
+              "nextState": "approval_gate_failed"
+            },
+            {
+              "type": "send_to_repair",
+              "nextState": "waiting_approval_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair"
+            }
+          ],
+          "events": {
+            "opened": "ApprovalGateOpened",
+            "taskCreated": "ApprovalGateTaskCreated",
+            "taskDecided": "ApprovalGateTaskDecided",
+            "passed": "ApprovalGatePassed",
+            "failed": "ApprovalGateFailed",
+            "taskCanceled": "ApprovalGateTaskCanceled"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "gate_passed",
+            "eventType": "ApprovalGatePassed",
+            "nextNodeId": "cross_functional_gate",
+            "nextState": "waiting_async_approval",
+            "nextInteraction": "crossFunctionalApproval"
+          },
+          {
+            "outcome": "gate_failed",
+            "eventType": "ApprovalGateFailed",
+            "nextNodeId": "gate_failed",
+            "nextState": "approval_gate_failed"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "repair",
+            "nextState": "waiting_approval_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "cross_functional_gate",
+        "type": "approval_gate",
+        "title": "Cross-functional approval quorum",
+        "state": "waiting_async_approval",
+        "interaction": "crossFunctionalApproval",
+        "approvalGate": {
+          "gateId": "cross_functional_gate",
+          "mode": "parallel",
+          "interaction": "crossFunctionalApproval",
+          "snapshotResolvedApprovers": true,
+          "taskVersionRequired": true,
+          "approverResolvers": [
+            {
+              "resolverId": "finance_reviewer",
+              "type": "role",
+              "label": "Finance",
+              "taskKey": "finance",
+              "approvalType": "finance_headcount_review",
+              "permission": "position.headcount.finance_approve",
+              "role": "finance_admin",
+              "opensWithGate": true,
+              "isVetoHolder": true
+            },
+            {
+              "resolverId": "hrbp",
+              "type": "role",
+              "label": "HRBP",
+              "taskKey": "hrbp",
+              "approvalType": "hrbp_headcount_review",
+              "permission": "position.headcount.hrbp_approve",
+              "role": "hrbp",
+              "opensWithGate": true
+            },
+            {
+              "resolverId": "compensation_reviewer",
+              "type": "role",
+              "label": "Compensation",
+              "taskKey": "compensation",
+              "approvalType": "compensation_headcount_review",
+              "permission": "position.headcount.compensation_approve",
+              "role": "compensation_admin",
+              "opensWithGate": true
+            },
+            {
+              "resolverId": "medical_director_reviewer",
+              "type": "role",
+              "label": "Medical Director",
+              "taskKey": "medical_director",
+              "approvalType": "medical_director_headcount_review",
+              "permission": "position.headcount.medical_director_approve",
+              "role": "medical_director",
+              "opensWithGate": true,
+              "isVetoHolder": true
+            },
+            {
+              "resolverId": "clinic_ops_reviewer",
+              "type": "role",
+              "label": "Clinic Ops",
+              "taskKey": "clinic_ops",
+              "approvalType": "clinic_ops_headcount_review",
+              "permission": "position.headcount.clinic_ops_approve",
+              "role": "clinic_ops_admin",
+              "opensWithGate": true
+            }
+          ],
+          "passRule": {
+            "type": "quorum",
+            "requiredApprovals": 3,
+            "eligibleApprovals": 5
+          },
+          "failurePolicies": [
+            {
+              "type": "continue_until_threshold_impossible",
+              "nextState": "approval_gate_failed"
+            },
+            {
+              "type": "veto_only",
+              "nextState": "approval_gate_failed"
+            },
+            {
+              "type": "send_to_repair",
+              "nextState": "waiting_approval_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair"
+            }
+          ],
+          "events": {
+            "opened": "ApprovalGateOpened",
+            "taskCreated": "ApprovalGateTaskCreated",
+            "taskDecided": "ApprovalGateTaskDecided",
+            "passed": "ApprovalGatePassed",
+            "failed": "ApprovalGateFailed",
+            "taskCanceled": "ApprovalGateTaskCanceled"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "gate_passed",
+            "eventType": "ApprovalGatePassed",
+            "nextNodeId": "ready_to_execute",
+            "nextState": "approved",
+            "nextInteraction": "readyToExecute"
+          },
+          {
+            "outcome": "gate_failed",
+            "eventType": "ApprovalGateFailed",
+            "nextNodeId": "gate_failed",
+            "nextState": "approval_gate_failed"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "repair",
+            "nextState": "waiting_approval_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair"
+          }
+        ]
+      },
+      {
+        "nodeId": "repair",
+        "type": "manual_repair",
+        "title": "Repair headcount requisition",
+        "state": "waiting_approval_repair",
+        "interaction": "repair",
+        "outcomes": [
+          {
+            "outcome": "resubmitted",
+            "eventType": "HeadcountRequisitionSubmitted",
+            "nextNodeId": "leadership_chain_gate",
+            "nextState": "waiting_sync_approval",
+            "nextInteraction": "leadershipApproval"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "ready_to_execute",
+        "type": "interaction",
+        "title": "Ready to execute",
+        "state": "approved",
+        "interaction": "readyToExecute",
+        "outcomes": [
+          {
+            "outcome": "executed",
+            "eventType": "HeadcountRequisitionExecuted",
+            "nextNodeId": "completed",
+            "nextState": "executed",
+            "nextInteraction": "completedSummary"
+          }
+        ]
+      },
+      {
+        "nodeId": "gate_failed",
+        "type": "terminal",
+        "title": "Approval gate failed",
+        "state": "approval_gate_failed"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Completed",
+        "state": "executed",
+        "interaction": "completedSummary"
+      }
+    ]
+  },
+  "projection": {
+    "allowedPatchPaths": []
+  },
+  "timeline": {
+    "businessEvents": [
+      "WorkflowIntentStarted",
+      "HeadcountRequisitionSubmitted",
+      "ApprovalGateOpened",
+      "ApprovalGateTaskCreated",
+      "ApprovalGateTaskDecided",
+      "ApprovalGatePassed",
+      "ApprovalGateFailed",
+      "ApprovalGateTaskCanceled",
+      "HeadcountRequisitionApproved",
+      "HeadcountRequisitionRejected",
+      "HeadcountRequisitionExecuted",
+      "WorkflowCompleted"
+    ],
+    "summaries": {
+      "WorkflowIntentStarted": "Headcount requisition workflow started.",
+      "HeadcountRequisitionSubmitted": "Headcount requisition submitted.",
+      "ApprovalGateOpened": "Approval gate opened.",
+      "ApprovalGateTaskCreated": "Approval task created.",
+      "ApprovalGateTaskDecided": "Approval task decided.",
+      "ApprovalGatePassed": "Approval gate passed.",
+      "ApprovalGateFailed": "Approval gate failed.",
+      "ApprovalGateTaskCanceled": "Approval task canceled.",
+      "HeadcountRequisitionApproved": "Headcount requisition approved.",
+      "HeadcountRequisitionRejected": "Headcount requisition rejected.",
+      "HeadcountRequisitionExecuted": "Headcount requisition executed.",
+      "WorkflowCompleted": "Workflow completed."
+    }
+  }
+}

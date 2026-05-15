@@ -815,6 +815,163 @@ No duplicate approval, transaction plan, or ledger events are created.
 
 If the same idempotency key is reused with a different request body, expected HTTP status is `409` with `IDEMPOTENCY_CONFLICT`.
 
+## Headcount Requisition Approval Demo
+
+This sequence uses the HarborCare fixture aliases in
+`docs/fixtures/harborcare-headcount-approval.md`.
+
+```bash
+HEADCOUNT_INTENT="position.headcount_requisition.approval"
+HEADCOUNT_SUBJECT="position_req_senior_rn_cambridge_nursing"
+REQUESTER_ACTOR="actor_hr_admin"
+LEADERSHIP_1_ACTOR="actor_manager_morgan"
+LEADERSHIP_2_ACTOR="actor_emp_461"
+FINANCE_ACTOR="actor_finance_admin"
+COMP_ACTOR="actor_comp_admin"
+CLINIC_OPS_ACTOR="actor_emp_930"
+```
+
+Start the workflow:
+
+```bash
+curl -sS -X POST "$API_BASE/workflow-intents" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: $REQUESTER_ACTOR" \
+  -d '{
+    "intent": "'"$HEADCOUNT_INTENT"'",
+    "subjectType": "position",
+    "subjectId": "'"$HEADCOUNT_SUBJECT"'"
+  }'
+```
+
+Submit the Senior RN Cambridge Nursing request:
+
+```bash
+curl -sS -X POST "$API_BASE/workflow-instances/$WORKFLOW_INSTANCE_ID/transitions" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: $REQUESTER_ACTOR" \
+  -d '{
+    "transition": "submit_input",
+    "idempotencyKey": "idem_demo_headcount_submit_001",
+    "expectedVersion": 1,
+    "payload": {
+      "department": "Clinical Care",
+      "team": "Cambridge Nursing",
+      "location": "Cambridge Clinic",
+      "costCenter": "CLN-CAM",
+      "jobCode": "CLN-RN3",
+      "title": "Senior Registered Nurse",
+      "level": "P3",
+      "requestedFte": 1,
+      "targetStartDate": "2026-07-01",
+      "salaryRangeMin": 98000,
+      "salaryRangeMax": 116000,
+      "businessJustification": "Cambridge Nursing needs one Senior RN to cover expanded evening triage volume.",
+      "selectedLeadershipApprovers": [
+        "'"$LEADERSHIP_1_ACTOR"'",
+        "'"$LEADERSHIP_2_ACTOR"'"
+      ]
+    }
+  }'
+```
+
+Expected behavior:
+
+```text
+The workflow moves to waiting_sync_approval.
+Only actor_manager_morgan receives the first leadership_chain_gate task.
+actor_emp_461 has no leadership task until the first approval is recorded.
+```
+
+Approve the sequential leadership chain, then approve any three async tasks:
+
+```bash
+# Leadership approver 1 approves the first opened task.
+curl -sS -X POST "$API_BASE/workflow-instances/$WORKFLOW_INSTANCE_ID/transitions" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: $LEADERSHIP_1_ACTOR" \
+  -d '{
+    "transition": "approve",
+    "idempotencyKey": "idem_demo_headcount_leadership_1",
+    "expectedVersion": 2,
+    "payload": {
+      "approvalTaskId": "'"$LEADERSHIP_1_TASK_ID"'",
+      "taskVersion": 1,
+      "comment": "Cambridge staffing need validated."
+    }
+  }'
+
+# Leadership approver 2 approves the next task.
+curl -sS -X POST "$API_BASE/workflow-instances/$WORKFLOW_INSTANCE_ID/transitions" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: $LEADERSHIP_2_ACTOR" \
+  -d '{
+    "transition": "approve",
+    "idempotencyKey": "idem_demo_headcount_leadership_2",
+    "expectedVersion": 3,
+    "payload": {
+      "approvalTaskId": "'"$LEADERSHIP_2_TASK_ID"'",
+      "taskVersion": 1,
+      "comment": "Approved for Cambridge clinic coverage."
+    }
+  }'
+
+# The async gate opens five tasks. Any three approvals pass quorum.
+for ACTOR_AND_TASK in \
+  "$FINANCE_ACTOR:$FINANCE_TASK_ID" \
+  "$COMP_ACTOR:$COMP_TASK_ID" \
+  "$CLINIC_OPS_ACTOR:$CLINIC_OPS_TASK_ID"
+do
+  ACTOR_ID="${ACTOR_AND_TASK%%:*}"
+  TASK_ID="${ACTOR_AND_TASK##*:}"
+  curl -sS -X POST "$API_BASE/workflow-instances/$WORKFLOW_INSTANCE_ID/transitions" \
+    -H "content-type: application/json" \
+    -H "x-demo-actor-id: $ACTOR_ID" \
+    -d '{
+      "transition": "approve",
+      "idempotencyKey": "idem_demo_headcount_async_'"$ACTOR_ID"'",
+      "expectedVersion": '"$CURRENT_WORKFLOW_VERSION"',
+      "payload": {
+        "approvalTaskId": "'"$TASK_ID"'",
+        "taskVersion": 1,
+        "comment": "Approved."
+      }
+    }'
+done
+```
+
+Expected behavior:
+
+```text
+The workflow moves to approved after the third async approval.
+The HRBP and Medical Director pending tasks are canceled.
+Ledger events include ApprovalGateOpened, ApprovalGateTaskCreated,
+ApprovalGateTaskDecided, ApprovalGatePassed, ApprovalGateTaskCanceled, and
+HeadcountRequisitionApproved.
+```
+
+Execute the approved requisition:
+
+```bash
+curl -sS -X POST "$API_BASE/workflow-instances/$WORKFLOW_INSTANCE_ID/transitions" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_system" \
+  -d '{
+    "transition": "execute",
+    "idempotencyKey": "idem_demo_headcount_execute_001",
+    "expectedVersion": '"$CURRENT_WORKFLOW_VERSION"',
+    "payload": {}
+  }'
+```
+
+Expected behavior:
+
+```text
+The workflow moves to executed.
+Replay with the same execute idempotency key returns the cached response and
+does not create duplicate approval tasks or ledger events.
+```
+
 ## Demo Readiness Checklist
 
 - [x] Dependencies install from a clean checkout.

@@ -419,7 +419,7 @@ export const DEMO_EMPLOYEE_SPECS: readonly DemoEmployeeSpec[] = [
     workerType: "employee",
     compensationAmount: 112000,
     bonusTargetPercent: 10,
-    roles: [ACTOR_ROLES.HR_ADMIN],
+    roles: [ACTOR_ROLES.HR_ADMIN, "hrbp"],
     accessPersonas: ["secondary_hr_admin"],
   },
   {

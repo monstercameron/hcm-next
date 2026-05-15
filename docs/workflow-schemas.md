@@ -247,8 +247,11 @@ Current node types:
 ```text
 interaction
 block
+policy_check
 approval
+approval_gate
 transaction_plan
+data_write
 external_write
 projection_write
 manual_repair
@@ -316,6 +319,122 @@ Good, bad, waiting, skipped, repaired, retried, and canceled paths should all be
 ```
 
 They should not be hidden as uncaught errors or workflow-specific TypeScript branches.
+
+## Approval Gates
+
+Approval gates model multi-person human decisions as graph nodes. They are separate from ordinary `approval` nodes because a gate can own many approval tasks, evaluate a pass/fail rule, and decide whether the workflow advances, fails, or routes to repair.
+
+Current gate modes:
+
+```text
+sequential  ordered approval chain; only the current stage is open
+parallel    unordered approval set; all configured approvers may act independently
+```
+
+Current gate config shape:
+
+```json
+{
+  "nodeId": "cross_functional_gate",
+  "type": "approval_gate",
+  "title": "Cross-functional approval",
+  "state": "waiting_async_approval",
+  "interaction": "crossFunctionalApproval",
+  "approvalGate": {
+    "gateId": "cross_functional_gate",
+    "mode": "parallel",
+    "interaction": "crossFunctionalApproval",
+    "snapshotResolvedApprovers": true,
+    "taskVersionRequired": true,
+    "approverResolvers": [],
+    "passRule": {
+      "type": "quorum",
+      "requiredApprovals": 3,
+      "eligibleApprovals": 5
+    },
+    "failurePolicies": [
+      {
+        "type": "continue_until_threshold_impossible",
+        "nextNodeId": "gate_failed",
+        "nextState": "approval_gate_failed",
+        "nextStatus": "rejected"
+      },
+      {
+        "type": "veto_only",
+        "nextNodeId": "gate_failed",
+        "nextState": "approval_gate_failed",
+        "nextStatus": "rejected"
+      }
+    ],
+    "events": {
+      "opened": "ApprovalGateOpened",
+      "taskCreated": "ApprovalGateTaskCreated",
+      "taskDecided": "ApprovalGateTaskDecided",
+      "passed": "ApprovalGatePassed",
+      "failed": "ApprovalGateFailed",
+      "taskCanceled": "ApprovalGateTaskCanceled"
+    }
+  },
+  "outcomes": [
+    {
+      "outcome": "gate_passed",
+      "eventType": "ApprovalGatePassed",
+      "nextNodeId": "ready_to_execute",
+      "nextState": "approved"
+    },
+    {
+      "outcome": "gate_failed",
+      "eventType": "ApprovalGateFailed",
+      "nextNodeId": "gate_failed",
+      "nextState": "approval_gate_failed"
+    }
+  ]
+}
+```
+
+Resolver types:
+
+```text
+actor            fixed actor id
+role             first or configured actor with a role
+manager_chain    ordered managers from the subject context
+department_lead  lead for a department path
+cost_center_owner owner for a cost center path
+seniority_level  actor matching configured seniority criteria
+workflow_field   explicit actor ids submitted by the requester
+```
+
+Pass rule types:
+
+```text
+all_required  every eligible task must approve
+quorum        N approvals out of M eligible tasks
+percentage    approval count must meet a percentage threshold
+any_one       first approval passes the gate
+weighted      approval weights must meet a threshold
+role_quorum   each required role bucket must meet its own quorum
+composite     combine child pass rules with all or any semantics
+```
+
+Failure policy types:
+
+```text
+stop_workflow                         fail immediately on rejection
+send_to_repair                        route to a repair interaction
+continue_until_threshold_impossible   wait until quorum can no longer be reached
+require_all_responses                 decide only after every task responds
+veto_only                             fail immediately for configured veto holders
+escalate_on_timeout                   create or reroute work after timeout
+```
+
+Runtime rules:
+
+- Snapshot resolved approvers into an `approval_groups` record when the gate opens.
+- Store per-task gate metadata on `approval_tasks` so historical decisions remain auditable.
+- Use task-level versions for approval decisions; parallel reviewers should not conflict on workflow-level version changes.
+- Cancel remaining pending tasks after a gate reaches a terminal pass/fail outcome.
+- Emit gate-level ledger events for open, task creation, decision, pass, fail, and task cancellation.
+- Keep gate outcomes lower snake case, usually `gate_passed` and `gate_failed`.
 
 ## Saga Transactions
 
