@@ -30,9 +30,47 @@ logs/
 **/logs/
 *.log
 
+# Local environment and secret material
 .env
 .env.*
 !.env.example
+.envrc
+.env.local
+.env.*.local
+secrets/
+.secrets/
+**/secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+*.kubeconfig
+service-account*.json
+*-service-account.json
+google-credentials*.json
+firebase-adminsdk*.json
+
+# Local database/runtime scratch
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+# Local editor/OS state
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
 npm-debug.log*
 yarn-debug.log*
