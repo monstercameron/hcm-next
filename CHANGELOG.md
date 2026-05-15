@@ -2,6 +2,10 @@
 
 ## 2026-05-15
 
+- `0b37642` - Aligned the org-transfer demo fixture date and approval metadata
+  with the workflow configuration used by the org-transfer runtime.
+- `b72f7fa` - Started the root changelog and documented the initial logical
+  implementation commits.
 - `503fcc2` - Updated workflow planning documentation, including the workflow
   schema spec, org-aware RBAC plan, API demo notes, project layout notes, and
   detailed TODO workstreams.
