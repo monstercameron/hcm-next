@@ -2,6 +2,11 @@
 
 ## 2026-05-15
 
+- `fdf115a` - Extracted shared Go block helpers for strict decoding, date
+  validation, risk/fact construction, transaction field validation, and string
+  normalization across deterministic blocks.
+- `2a8b2e7` - Hardened `.gitignore` coverage for local build artifacts, runtime
+  scratch data, editor state, and secret material.
 - `ddc16da` - Updated the generic runtime TODOs and workflow schema docs after
   moving the active workflow path to generic runtime execution.
 - `71191dd` - Moved workflow E2E coverage to the public API routes and added a
