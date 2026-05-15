@@ -156,9 +156,9 @@ export const DEMO_ORG_TRANSFER_FIXTURE_ALIASES = {
     currency: "USD",
     payFrequency: "annual",
     bonusTargetPercent: 5,
-    effectiveDate: "2026-06-01",
+    effectiveDate: "2026-05-01",
   },
-  effectiveAt: "2026-06-01",
+  effectiveAt: "2026-05-01",
   businessReason: "operational_need",
   transferReason: "clinic_staffing_need",
 } as const;
