@@ -2,6 +2,14 @@
 
 ## 2026-05-15
 
+- `e398414` - Added the dynamic workflow UI console, UI contracts/runtime
+  packages, brand token rendering, configurable control and widget libraries,
+  style lab, broad HR widget catalog, route menu organization, and frontend UI
+  planning docs.
+- `8017b40` - Added the workflow admin runtime foundation, including JSON
+  workflow draft/publish APIs, validation and preview services, simulation,
+  debugger and repair helpers, workflow admin persistence, graph runtime
+  support, E2E coverage, and admin/demo documentation.
 - `fdf115a` - Extracted shared Go block helpers for strict decoding, date
   validation, risk/fact construction, transaction field validation, and string
   normalization across deterministic blocks.
