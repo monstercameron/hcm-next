@@ -2,6 +2,11 @@
 
 ## 2026-05-15
 
+- `97d8e12` - Expanded org-transfer E2E coverage for the HR-started workflow,
+  approval routing, execution, idempotent replay, projection changes, and
+  filtered timeline checks.
+- `e29c0b0` - Updated the changelog after the org-transfer metadata alignment
+  commit.
 - `0b37642` - Aligned the org-transfer demo fixture date and approval metadata
   with the workflow configuration used by the org-transfer runtime.
 - `b72f7fa` - Started the root changelog and documented the initial logical
