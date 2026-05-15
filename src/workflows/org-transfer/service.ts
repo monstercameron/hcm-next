@@ -1,6 +1,5 @@
 import {
   ACTOR_ROLES,
-  ACTOR_TYPES,
   APPROVAL_TASK_STATUSES,
   CHANGE_REQUEST_STATUSES,
   CHANGE_REQUEST_TYPES,
@@ -27,7 +26,6 @@ import {
   type CompensationInfo,
   type EmployeeProjectionDocument,
   type JobInfo,
-  type LedgerEventRecord,
   type OrganizationInfo,
   type OrganizationUnitRecord,
   type ProposedChangeRecord,
@@ -45,6 +43,22 @@ import {
   type WorkflowActionConfig,
   type WorkflowConfig,
 } from "../shared/workflow-config.js";
+import {
+  booleanField,
+  cloneJsonValue,
+  numberField,
+  objectField,
+  stringField,
+} from "../shared/json-fields.js";
+import {
+  serializeWorkflowInstance,
+  terminalInteraction,
+} from "../shared/workflow-response.js";
+import {
+  appendAdditionalWorkflowEvents,
+  appendTransitionLedgerEvents,
+  appendWorkflowLedgerEvent,
+} from "../shared/workflow-ledger-events.js";
 
 type OrgTransferTransitionBody = {
   transition: string;
@@ -2236,237 +2250,10 @@ function emptyCompensationInfo(): CompensationInfo {
   };
 }
 
-function appendTransitionLedgerEvents(
-  repositories: Repositories,
-  requestContext: ApiRequestContext,
-  input: {
-    workflowInstance: WorkflowInstanceRecord;
-    previousState: string;
-    eventType: string;
-    idempotencyKey: string;
-    approvalTaskId?: string;
-    transactionPlanId?: string;
-    payload: Record<string, unknown>;
-  },
-): Result<true, AppError> {
-  const transitionLedgerResult = appendWorkflowLedgerEvent(
-    repositories,
-    requestContext,
-    {
-      eventType: LEDGER_EVENT_TYPES.WORKFLOW_TRANSITION_SUBMITTED,
-      workflowInstance: input.workflowInstance,
-      subjectType: input.workflowInstance.subjectType,
-      subjectId: input.workflowInstance.subjectId,
-      idempotencyKey: input.idempotencyKey,
-      payload: {
-        previousState: input.previousState,
-        currentState: input.workflowInstance.state,
-      },
-    },
-  );
-  if (!transitionLedgerResult.ok) {
-    return transitionLedgerResult;
-  }
-
-  const businessLedgerResult = appendWorkflowLedgerEvent(repositories, requestContext, {
-    eventType: input.eventType,
-    workflowInstance: input.workflowInstance,
-    subjectType: input.workflowInstance.subjectType,
-    subjectId: input.workflowInstance.subjectId,
-    idempotencyKey: input.idempotencyKey,
-    ...(input.approvalTaskId !== undefined
-      ? { approvalTaskId: input.approvalTaskId }
-      : {}),
-    ...(input.transactionPlanId !== undefined
-      ? { transactionPlanId: input.transactionPlanId }
-      : {}),
-    payload: input.payload,
-  });
-  if (!businessLedgerResult.ok) {
-    return businessLedgerResult;
-  }
-
-  const stateLedgerResult = appendWorkflowLedgerEvent(repositories, requestContext, {
-    eventType: LEDGER_EVENT_TYPES.WORKFLOW_STATE_CHANGED,
-    workflowInstance: input.workflowInstance,
-    subjectType: input.workflowInstance.subjectType,
-    subjectId: input.workflowInstance.subjectId,
-    idempotencyKey: input.idempotencyKey,
-    payload: {
-      previousState: input.previousState,
-      currentState: input.workflowInstance.state,
-    },
-  });
-  if (!stateLedgerResult.ok) {
-    return stateLedgerResult;
-  }
-
-  return ok(true);
-}
-
-function appendAdditionalWorkflowEvents(
-  repositories: Repositories,
-  requestContext: ApiRequestContext,
-  workflowInstance: WorkflowInstanceRecord,
-  idempotencyKey: string,
-  events: Array<{
-    eventType: string;
-    approvalTaskId?: string;
-    transactionPlanId?: string;
-    payload: Record<string, unknown>;
-  }>,
-): Result<true, AppError> {
-  for (const event of events) {
-    const eventResult = appendWorkflowLedgerEvent(repositories, requestContext, {
-      eventType: event.eventType,
-      workflowInstance,
-      subjectType: workflowInstance.subjectType,
-      subjectId: workflowInstance.subjectId,
-      idempotencyKey,
-      ...(event.approvalTaskId !== undefined
-        ? { approvalTaskId: event.approvalTaskId }
-        : {}),
-      ...(event.transactionPlanId !== undefined
-        ? { transactionPlanId: event.transactionPlanId }
-        : {}),
-      payload: event.payload,
-    });
-
-    if (!eventResult.ok) {
-      return eventResult;
-    }
-  }
-
-  return ok(true);
-}
-
-function appendWorkflowLedgerEvent(
-  repositories: Repositories,
-  requestContext: ApiRequestContext,
-  input: {
-    eventType: string;
-    workflowInstance: WorkflowInstanceRecord;
-    subjectType: string;
-    subjectId: string;
-    idempotencyKey?: string;
-    approvalTaskId?: string;
-    transactionPlanId?: string;
-    payload: Record<string, unknown>;
-  },
-): Result<LedgerEventRecord, AppError> {
-  return repositories.ledger.append({
-    tenantId: requestContext.tenantId,
-    eventType: input.eventType,
-    subjectType: input.subjectType,
-    subjectId: input.subjectId,
-    occurredAt: nowIso(),
-    actorType: requestContext.actor.actorType || ACTOR_TYPES.HUMAN,
-    actorId: requestContext.actor.actorId,
-    relationshipContext: {
-      linkedWorkerId: requestContext.actor.linkedWorkerId ?? null,
-    },
-    workflowInstanceId: input.workflowInstance.workflowInstanceId,
-    workflowDefinitionId: input.workflowInstance.workflowDefinitionId,
-    workflowVersionId: input.workflowInstance.workflowVersionId,
-    ...(input.workflowInstance.changeRequestId !== undefined
-      ? { changeRequestId: input.workflowInstance.changeRequestId }
-      : {}),
-    ...(input.transactionPlanId !== undefined
-      ? { transactionPlanId: input.transactionPlanId }
-      : {}),
-    ...(input.approvalTaskId !== undefined
-      ? { approvalTaskId: input.approvalTaskId }
-      : {}),
-    correlationId: requestContext.correlationId,
-    ...(input.idempotencyKey !== undefined
-      ? { idempotencyKey: input.idempotencyKey }
-      : {}),
-    permissionSnapshot: createPermissionSnapshot(requestContext.actor),
-    aiVisibilitySnapshot: {},
-    payload: input.payload,
-    ...(requestContext.actor.roles[0] !== undefined
-      ? { actorRole: requestContext.actor.roles[0] }
-      : {}),
-  });
-}
-
 function isFutureEffective(effectiveAt: string, now: string): boolean {
   return dateKey(effectiveAt) > dateKey(now);
 }
 
 function dateKey(value: string): string {
   return value.slice(0, 10);
-}
-
-function serializeWorkflowInstance(
-  workflowInstance: WorkflowInstanceRecord,
-): Record<string, unknown> {
-  return {
-    workflowInstanceId: workflowInstance.workflowInstanceId,
-    intent: workflowInstance.intent,
-    subjectType: workflowInstance.subjectType,
-    subjectId: workflowInstance.subjectId,
-    state: workflowInstance.state,
-    status: workflowInstance.status,
-    version: workflowInstance.version,
-    changeRequestId: workflowInstance.changeRequestId,
-    currentInteraction: workflowInstance.currentInteraction,
-  };
-}
-
-function terminalInteraction(status: string): Record<string, unknown> {
-  return {
-    type: "terminal",
-    status,
-  };
-}
-
-function stringField(
-  object: Record<string, unknown>,
-  fieldName: string,
-): string | undefined {
-  const value = object[fieldName];
-
-  if (typeof value !== "string") {
-    return undefined;
-  }
-
-  const trimmedValue = value.trim();
-
-  return trimmedValue.length === 0 ? undefined : trimmedValue;
-}
-
-function numberField(
-  object: Record<string, unknown>,
-  fieldName: string,
-): number | undefined {
-  const value = object[fieldName];
-
-  return typeof value === "number" ? value : undefined;
-}
-
-function booleanField(
-  object: Record<string, unknown>,
-  fieldName: string,
-): boolean | undefined {
-  const value = object[fieldName];
-
-  return typeof value === "boolean" ? value : undefined;
-}
-
-function objectField(
-  object: Record<string, unknown>,
-  fieldName: string,
-): Record<string, unknown> | undefined {
-  const value = object[fieldName];
-
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return undefined;
-  }
-
-  return value as Record<string, unknown>;
-}
-
-function cloneJsonValue<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
 }

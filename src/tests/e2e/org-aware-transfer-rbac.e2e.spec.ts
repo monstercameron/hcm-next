@@ -436,6 +436,9 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     const executedWorkflowValue = unwrapResult(executedWorkflow);
     expect(executedWorkflowValue["state"]).toBe("executed");
 
+    const assignmentCountAfterExecute =
+      harness.repositories.store.workerAssignments.size;
+    const outboxCountAfterExecute = harness.repositories.store.integrationOutbox.size;
     const executedReplay = await transitionWorkflow(
       harness.dependencies,
       harness.systemContext,
@@ -449,6 +452,12 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     );
     expect(executedReplay.ok).toBe(true);
     expect(executedReplay.ok && executedReplay.value["idempotentReplay"]).toBe(true);
+    expect(harness.repositories.store.workerAssignments.size).toBe(
+      assignmentCountAfterExecute,
+    );
+    expect(harness.repositories.store.integrationOutbox.size).toBe(
+      outboxCountAfterExecute,
+    );
 
     const updatedProjection = unwrapResult(
       harness.repositories.employeeProjections.findByEmployeeId(
@@ -515,6 +524,13 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
         fixture.sourceEmployeeId,
       ).organization.team,
     ).toBe(fixture.targetTeamName);
+    expect(
+      readEmployeeProjection(
+        harness.dependencies,
+        harness.employeeContext,
+        fixture.sourceEmployeeId,
+      ).employeeId,
+    ).toBe(fixture.sourceEmployeeId);
 
     const outboxRows = [
       ...harness.repositories.store.integrationOutbox.values(),
