@@ -2,6 +2,22 @@
 
 ## 2026-05-15
 
+- `2c63cef` - Added the generic workflow runtime TODO plan that captures the
+  remaining work to remove workflow-specific TypeScript branches and move
+  business behavior into config and Go blocks.
+- `0d88740` - Added the position headcount requisition approval workflow,
+  HarborCare fixtures, E2E coverage, API demo docs, approval-gate schema docs,
+  and completed approval workflow TODOs.
+- `434c493` - Added the approval-gate data model and evaluator, including
+  `approval_groups`, approval task metadata, migration coverage, permissions,
+  ledger events, and unit tests for sync/async gate rules.
+- `821bc57` - Extracted reusable workflow runtime helpers for access context,
+  JSON field parsing, projection patches, timeline views, ledger events,
+  response shaping, and transition attempts.
+- `8d45464` - Added workflow registry admin tooling for listing, validating,
+  importing, publishing, and resolving checked-in workflow configs.
+- `cc313ac` - Updated the changelog after the org-transfer available-action
+  fixes.
 - `ca3e00f` - Allowed scoped org-transfer approvers to retrieve available
   approval actions without requiring broad workflow visibility.
 - `196f8e9` - Fixed the org-transfer E2E available-action helper used by the
