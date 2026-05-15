@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"hcm-next-executor/internal/blocks/emergencycontact"
 	"hcm-next-executor/internal/blocks/legalname"
 	"hcm-next-executor/internal/executor"
 )
@@ -21,6 +22,10 @@ func main() {
 	registry := executor.NewRegistry()
 
 	if err := legalname.RegisterBlocks(registry); err != nil {
+		logger.Error("failed to register executor blocks", "error", err)
+		os.Exit(1)
+	}
+	if err := emergencycontact.RegisterBlocks(registry); err != nil {
 		logger.Error("failed to register executor blocks", "error", err)
 		os.Exit(1)
 	}
@@ -58,6 +63,9 @@ func main() {
 func newExecutorHandler() (http.Handler, error) {
 	registry := executor.NewRegistry()
 	if err := legalname.RegisterBlocks(registry); err != nil {
+		return nil, err
+	}
+	if err := emergencycontact.RegisterBlocks(registry); err != nil {
 		return nil, err
 	}
 

@@ -26,9 +26,11 @@ import {
   nowIso,
   type ApprovalTaskRecord,
   type ChangeRequestRecord,
+  type EmergencyContact,
   type EmployeeProjectionDocument,
   type LedgerEventRecord,
   type LegalName,
+  type ProposedChangeRecord,
   type Repositories,
   type TransactionPlanRecord,
   type WorkflowInstanceRecord,
@@ -38,6 +40,7 @@ import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
   canCreateDocumentForWorkflow,
+  canStartEmergencyContactWorkflow,
   canStartLegalNameWorkflow,
   canSubmitTransition,
   canViewDocument,
@@ -56,10 +59,33 @@ const legalNamePlanTransactionBlock = {
   version: "1.0.0",
 } as const;
 
+const emergencyContactPreflightBlock = {
+  name: "system.employee_data.emergency_contact.preflight",
+  version: "1.0.0",
+} as const;
+
+const emergencyContactPlanTransactionBlock = {
+  name: "system.employee_data.emergency_contact.plan_transaction",
+  version: "1.0.0",
+} as const;
+
 const identityEvidencePurpose = "legal_name_change_evidence";
+
+const supportedEmployeeDataIntents = [
+  WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
+  WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE,
+] as const;
+
+type SupportedEmployeeDataIntent = (typeof supportedEmployeeDataIntents)[number];
 
 type LegalNameInput = {
   newLegalName: LegalName;
+  effectiveAt: string;
+  businessReason: string;
+};
+
+type EmergencyContactInput = {
+  proposedEmergencyContact: EmergencyContact;
   effectiveAt: string;
   businessReason: string;
 };
@@ -119,11 +145,13 @@ const businessTimelineEventTypes = new Set<string>([
   LEDGER_EVENT_TYPES.WORKFLOW_INTENT_STARTED,
   LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED,
   LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED,
+  LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED,
   LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED,
   LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED,
   LEDGER_EVENT_TYPES.APPROVAL_GRANTED,
   LEDGER_EVENT_TYPES.TRANSACTION_PLAN_CREATED,
   LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED,
+  LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED,
   LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED,
   LEDGER_EVENT_TYPES.WORKFLOW_COMPLETED,
 ]);
@@ -151,7 +179,7 @@ export function startWorkflowIntent(
   const subjectId = stringField(body, "subjectId") ?? stringField(subject ?? {}, "id");
 
   if (
-    intent !== WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE ||
+    !isSupportedEmployeeDataIntent(intent) ||
     subjectType !== "worker" ||
     subjectId === undefined
   ) {
@@ -160,12 +188,16 @@ export function startWorkflowIntent(
         intent,
         subjectType,
         subjectId,
-        expectedIntent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
+        expectedIntents: supportedEmployeeDataIntents,
       }),
     );
   }
 
-  const permissionResult = canStartLegalNameWorkflow(requestContext.actor, subjectId);
+  const permissionResult = canStartEmployeeDataWorkflow(
+    requestContext.actor,
+    intent,
+    subjectId,
+  );
   if (!permissionResult.ok) {
     return permissionResult;
   }
@@ -192,8 +224,9 @@ export function startWorkflowIntent(
     subjectType,
     subjectId,
     requesterActorId: requestContext.actor.actorId,
-    currentInteraction: createLegalNameFormInteraction(
-      employeeProjectionResult.value.document.person.legalName,
+    currentInteraction: createInitialInteractionForIntent(
+      intent,
+      employeeProjectionResult.value.document,
     ),
     context: {
       targetEmployee: employeeProjectionResult.value.document,
@@ -600,6 +633,13 @@ async function executeTransition(
   },
 ): Promise<Result<Record<string, unknown>, AppError>> {
   if (input.transitionBody.transition === WORKFLOW_TRANSITIONS.SUBMIT_INPUT) {
+    if (
+      input.workflowInstance.intent ===
+      WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE
+    ) {
+      return submitEmergencyContactInput(dependencies, requestContext, input);
+    }
+
     return submitLegalNameInput(dependencies, requestContext, input);
   }
 
@@ -787,6 +827,180 @@ async function submitLegalNameInput(
   return ok(serializeWorkflowInstance(updateWorkflowResult.value));
 }
 
+async function submitEmergencyContactInput(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  input: {
+    workflowInstance: WorkflowInstanceRecord;
+    transitionBody: TransitionBody;
+  },
+): Promise<Result<Record<string, unknown>, AppError>> {
+  const repositories = dependencies.repositories;
+  const emergencyContactInputResult = parseEmergencyContactInput(
+    input.transitionBody.input,
+  );
+
+  if (!emergencyContactInputResult.ok) {
+    return emergencyContactInputResult;
+  }
+
+  const projectionResult = repositories.employeeProjections.findByEmployeeId(
+    requestContext.tenantId,
+    input.workflowInstance.subjectId,
+  );
+  if (!projectionResult.ok) {
+    return projectionResult;
+  }
+
+  const preflightResult =
+    await dependencies.executorClient.executeBlock<PreflightOutput>({
+      tenantId: requestContext.tenantId,
+      environmentId: requestContext.environmentId,
+      changeRequestId: "",
+      workflowInstanceId: input.workflowInstance.workflowInstanceId,
+      workflowVersionId: input.workflowInstance.workflowVersionId,
+      block: emergencyContactPreflightBlock,
+      input: {
+        currentEmergencyContacts: projectionResult.value.document.emergencyContacts,
+        proposedEmergencyContact:
+          emergencyContactInputResult.value.proposedEmergencyContact,
+        effectiveAt: emergencyContactInputResult.value.effectiveAt,
+        businessReason: emergencyContactInputResult.value.businessReason,
+      },
+      context: {
+        actorId: requestContext.actor.actorId,
+        effectiveAt: emergencyContactInputResult.value.effectiveAt,
+        permissions: createPermissionSnapshot(requestContext.actor),
+        correlationId: requestContext.correlationId,
+        idempotencyKey: input.transitionBody.idempotencyKey,
+      },
+    });
+  if (!preflightResult.ok) {
+    return preflightResult;
+  }
+  if (!preflightResult.value.output?.valid) {
+    return err(validationFailedError({ preflight: preflightResult.value.output }));
+  }
+
+  const timestamp = nowIso();
+  const changeRequest = createEmergencyContactChangeRequest({
+    requestContext,
+    workflowInstance: input.workflowInstance,
+    employeeDocument: projectionResult.value.document,
+    emergencyContactInput: emergencyContactInputResult.value,
+    preflight: preflightResult.value.output,
+    timestamp,
+  });
+  const changeRequestResult = repositories.changeRequests.create(changeRequest);
+  if (!changeRequestResult.ok) {
+    return changeRequestResult;
+  }
+
+  const proposedChangesResult = repositories.proposedChanges.createMany([
+    {
+      proposedChangeId: makeId("pchg"),
+      tenantId: requestContext.tenantId,
+      changeRequestId: changeRequest.changeRequestId,
+      targetObjectType: "worker",
+      targetObjectId: projectionResult.value.employeeId,
+      fieldPath: `emergencyContacts.${emergencyContactInputResult.value.proposedEmergencyContact.contactId}`,
+      currentValue: projectionResult.value.document.emergencyContacts,
+      proposedValue: emergencyContactInputResult.value.proposedEmergencyContact,
+      effectiveAt: emergencyContactInputResult.value.effectiveAt,
+      reasonCode: emergencyContactInputResult.value.businessReason,
+      validationStatus: "valid",
+      riskLevel: preflightResult.value.output.riskLevel,
+      metadata: {},
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  ]);
+  if (!proposedChangesResult.ok) {
+    return proposedChangesResult;
+  }
+
+  const approvalTask = createEmergencyContactApprovalTask({
+    tenantId: requestContext.tenantId,
+    workflowInstanceId: input.workflowInstance.workflowInstanceId,
+    changeRequestId: changeRequest.changeRequestId,
+  });
+  const approvalTaskResult = repositories.approvals.create(approvalTask);
+  if (!approvalTaskResult.ok) {
+    return approvalTaskResult;
+  }
+
+  const updatedWorkflow = {
+    ...input.workflowInstance,
+    state: WORKFLOW_STATES.WAITING_APPROVAL,
+    status: WORKFLOW_STATUSES.WAITING,
+    changeRequestId: changeRequest.changeRequestId,
+    currentInteraction: legalNameWaitingInteraction(),
+    context: {
+      ...input.workflowInstance.context,
+      emergencyContactInput: emergencyContactInputResult.value,
+      preflight: preflightResult.value.output,
+      approvalTaskId: approvalTask.approvalTaskId,
+    },
+    version: input.workflowInstance.version + 1,
+  };
+  const updateWorkflowResult = repositories.workflows.updateInstance(updatedWorkflow);
+  if (!updateWorkflowResult.ok) {
+    return updateWorkflowResult;
+  }
+
+  const ledgerResult = appendTransitionLedgerEvents(repositories, requestContext, {
+    workflowInstance: updateWorkflowResult.value,
+    previousState: input.workflowInstance.state,
+    eventType: LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED,
+    idempotencyKey: input.transitionBody.idempotencyKey,
+    payload: {
+      changeRequestId: changeRequest.changeRequestId,
+      preflight: preflightResult.value.output,
+      proposedChanges: proposedChangesResult.value,
+    },
+  });
+  if (!ledgerResult.ok) {
+    return ledgerResult;
+  }
+
+  const supplementalLedgerResult = appendAdditionalWorkflowEvents(
+    repositories,
+    requestContext,
+    updateWorkflowResult.value,
+    input.transitionBody.idempotencyKey,
+    [
+      {
+        eventType: LEDGER_EVENT_TYPES.PROPOSED_CHANGE_CREATED,
+        payload: {
+          proposedChanges: proposedChangesResult.value,
+        },
+      },
+      {
+        eventType: LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED,
+        payload: preflightResult.value.output,
+      },
+      {
+        eventType: LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED,
+        approvalTaskId: approvalTask.approvalTaskId,
+        payload: {
+          approvalTask,
+        },
+      },
+      {
+        eventType: LEDGER_EVENT_TYPES.CHANGE_REQUEST_SUBMITTED,
+        payload: {
+          changeRequest,
+        },
+      },
+    ],
+  );
+  if (!supplementalLedgerResult.ok) {
+    return supplementalLedgerResult;
+  }
+
+  return ok(serializeWorkflowInstance(updateWorkflowResult.value));
+}
+
 function provideEvidence(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
@@ -953,11 +1167,6 @@ async function approveChange(
   if (!proposedChangesResult.ok) {
     return proposedChangesResult;
   }
-  const proposedName = proposedChangesResult.value[0]?.proposedValue;
-  const legalNameResult = parseLegalNameValue(proposedName);
-  if (!legalNameResult.ok) {
-    return legalNameResult;
-  }
 
   const projectionResult = repositories.employeeProjections.findByEmployeeId(
     requestContext.tenantId,
@@ -967,32 +1176,15 @@ async function approveChange(
     return projectionResult;
   }
 
-  const planResult =
-    await dependencies.executorClient.executeBlock<PlanTransactionOutput>({
-      tenantId: requestContext.tenantId,
-      environmentId: requestContext.environmentId,
-      changeRequestId,
-      workflowInstanceId: input.workflowInstance.workflowInstanceId,
-      workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: legalNamePlanTransactionBlock,
-      input: {
-        changeRequestId,
-        workerId: input.workflowInstance.subjectId,
-        personId: projectionResult.value.document.person.personId,
-        currentLegalName: projectionResult.value.document.person.legalName,
-        proposedLegalName: legalNameResult.value,
-        effectiveAt: changeRequestResult.value.effectiveAt,
-      },
-      context: {
-        actorId: requestContext.actor.actorId,
-        effectiveAt: changeRequestResult.value.effectiveAt,
-        permissions: createPermissionSnapshot(requestContext.actor),
-        correlationId: requestContext.correlationId,
-        idempotencyKey: input.transitionBody.idempotencyKey,
-      },
-    });
-  if (!planResult.ok) {
-    return planResult;
+  const planOutputResult = await planApprovedChange(dependencies, requestContext, {
+    workflowInstance: input.workflowInstance,
+    changeRequest: changeRequestResult.value,
+    proposedChanges: proposedChangesResult.value,
+    employeeDocument: projectionResult.value.document,
+    idempotencyKey: input.transitionBody.idempotencyKey,
+  });
+  if (!planOutputResult.ok) {
+    return planOutputResult;
   }
 
   const transactionPlanInput = {
@@ -1000,14 +1192,10 @@ async function approveChange(
     changeRequestId,
     actorId: requestContext.actor.actorId,
   };
-  const transactionPlan = createTransactionPlan(
-    planResult.value.output !== undefined
-      ? {
-          ...transactionPlanInput,
-          output: planResult.value.output,
-        }
-      : transactionPlanInput,
-  );
+  const transactionPlan = createTransactionPlan({
+    ...transactionPlanInput,
+    output: planOutputResult.value,
+  });
   const transactionPlanResult = repositories.transactionPlans.create(transactionPlan);
   if (!transactionPlanResult.ok) {
     return transactionPlanResult;
@@ -1044,7 +1232,9 @@ async function approveChange(
     ...input.workflowInstance,
     state: WORKFLOW_STATES.APPROVED,
     status: WORKFLOW_STATUSES.ACTIVE,
-    currentInteraction: legalNameReadyToExecuteInteraction(),
+    currentInteraction: readyToExecuteInteractionForIntent(
+      input.workflowInstance.intent,
+    ),
     context: {
       ...input.workflowInstance.context,
       transactionPlanId: transactionPlan.transactionPlanId,
@@ -1379,7 +1569,7 @@ function executeApprovedChange(
     return executionStartedResult;
   }
 
-  const projectedDocumentResult = applyInternalLegalNameWrites(
+  const projectedDocumentResult = applyInternalTransactionWrites(
     repositories,
     requestContext,
     changeRequestResult.value,
@@ -1542,6 +1732,29 @@ function parseLegalNameInput(
   });
 }
 
+function parseEmergencyContactInput(
+  input: Record<string, unknown>,
+): Result<EmergencyContactInput, AppError> {
+  const proposedContactResult = parseEmergencyContactValue(
+    input["proposedEmergencyContact"],
+  );
+  const effectiveAt = stringField(input, "effectiveAt");
+  const businessReason = stringField(input, "businessReason");
+
+  if (!proposedContactResult.ok) {
+    return proposedContactResult;
+  }
+  if (effectiveAt === undefined || businessReason === undefined) {
+    return err(validationFailedError({ effectiveAt, businessReason }));
+  }
+
+  return ok({
+    proposedEmergencyContact: proposedContactResult.value,
+    effectiveAt,
+    businessReason,
+  });
+}
+
 function parseEvidenceInput(
   input: Record<string, unknown>,
 ): Result<EvidenceInput, AppError> {
@@ -1591,6 +1804,68 @@ function parseLegalNameValue(value: unknown): Result<LegalName, AppError> {
     middle,
     last,
   });
+}
+
+function parseEmergencyContactValue(
+  value: unknown,
+): Result<EmergencyContact, AppError> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return err(validationFailedError({ emergencyContact: "Expected an object." }));
+  }
+
+  const objectValue = value as Record<string, unknown>;
+  const contactId = stringField(objectValue, "contactId") ?? makeId("ec");
+  const name = stringField(objectValue, "name");
+  const relationship = stringField(objectValue, "relationship");
+  const phone = stringField(objectValue, "phone");
+  const email = nullableStringField(objectValue, "email");
+  const priority = numberField(objectValue, "priority");
+
+  if (
+    name === undefined ||
+    relationship === undefined ||
+    phone === undefined ||
+    priority === undefined
+  ) {
+    return err(
+      validationFailedError({
+        name,
+        relationship,
+        phone,
+        priority,
+      }),
+    );
+  }
+
+  return ok({
+    contactId,
+    name,
+    relationship,
+    phone,
+    email,
+    priority,
+  });
+}
+
+function parseEmergencyContactArray(
+  value: unknown,
+): Result<EmergencyContact[], AppError> {
+  if (!Array.isArray(value)) {
+    return err(validationFailedError({ emergencyContacts: "Expected an array." }));
+  }
+
+  const contacts: EmergencyContact[] = [];
+
+  for (const contactValue of value) {
+    const contactResult = parseEmergencyContactValue(contactValue);
+    if (!contactResult.ok) {
+      return contactResult;
+    }
+
+    contacts.push(contactResult.value);
+  }
+
+  return ok(contacts);
 }
 
 function replayTransitionAttempt(
@@ -1736,6 +2011,189 @@ function createLegalNameApprovalTask(input: {
   };
 }
 
+function createEmergencyContactChangeRequest(input: {
+  requestContext: ApiRequestContext;
+  workflowInstance: WorkflowInstanceRecord;
+  employeeDocument: EmployeeProjectionDocument;
+  emergencyContactInput: EmergencyContactInput;
+  preflight: PreflightOutput;
+  timestamp: string;
+}): ChangeRequestRecord {
+  return {
+    changeRequestId: makeId("chg"),
+    tenantId: input.requestContext.tenantId,
+    environmentId: input.requestContext.environmentId,
+    changeType: CHANGE_REQUEST_TYPES.EMPLOYEE_DATA_CHANGE,
+    targetWorkerId: input.workflowInstance.subjectId,
+    requesterActorId: input.requestContext.actor.actorId,
+    effectiveAt: input.emergencyContactInput.effectiveAt,
+    businessReason: input.emergencyContactInput.businessReason,
+    status: CHANGE_REQUEST_STATUSES.IN_APPROVAL,
+    priority: "normal",
+    currentSnapshot: {
+      emergencyContacts: input.employeeDocument.emergencyContacts,
+    },
+    proposedSnapshot: {
+      emergencyContact: input.emergencyContactInput.proposedEmergencyContact,
+    },
+    preflightResult: input.preflight,
+    aiReview: {
+      mode: "not_configured_v0",
+      summary:
+        "Emergency-contact workflow V0 uses deterministic preflight. AI review plugs into this envelope later.",
+    },
+    workflowDefinitionId: input.workflowInstance.workflowDefinitionId,
+    workflowVersionId: input.workflowInstance.workflowVersionId,
+    submittedAt: input.timestamp,
+    createdAt: input.timestamp,
+    updatedAt: input.timestamp,
+    createdBy: input.requestContext.actor.actorId,
+    updatedBy: input.requestContext.actor.actorId,
+    version: 1,
+    metadata: {},
+  };
+}
+
+function createEmergencyContactApprovalTask(input: {
+  tenantId: string;
+  workflowInstanceId: string;
+  changeRequestId: string;
+}): ApprovalTaskRecord {
+  return {
+    approvalTaskId: makeId("appr"),
+    tenantId: input.tenantId,
+    changeRequestId: input.changeRequestId,
+    workflowInstanceId: input.workflowInstanceId,
+    assigneeActorId: "actor_hr_admin",
+    assigneeRole: "hr_admin",
+    approvalType: "hr_emergency_contact_review",
+    status: APPROVAL_TASK_STATUSES.PENDING,
+    createdAt: nowIso(),
+    metadata: {},
+  };
+}
+
+async function planApprovedChange(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  input: {
+    workflowInstance: WorkflowInstanceRecord;
+    changeRequest: ChangeRequestRecord;
+    proposedChanges: ProposedChangeRecord[];
+    employeeDocument: EmployeeProjectionDocument;
+    idempotencyKey: string;
+  },
+): Promise<Result<PlanTransactionOutput, AppError>> {
+  if (
+    input.workflowInstance.intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE
+  ) {
+    return planEmergencyContactChange(dependencies, requestContext, input);
+  }
+
+  return planLegalNameChange(dependencies, requestContext, input);
+}
+
+async function planLegalNameChange(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  input: {
+    workflowInstance: WorkflowInstanceRecord;
+    changeRequest: ChangeRequestRecord;
+    proposedChanges: ProposedChangeRecord[];
+    employeeDocument: EmployeeProjectionDocument;
+    idempotencyKey: string;
+  },
+): Promise<Result<PlanTransactionOutput, AppError>> {
+  const proposedName = input.proposedChanges[0]?.proposedValue;
+  const legalNameResult = parseLegalNameValue(proposedName);
+  if (!legalNameResult.ok) {
+    return legalNameResult;
+  }
+
+  const planResult =
+    await dependencies.executorClient.executeBlock<PlanTransactionOutput>({
+      tenantId: requestContext.tenantId,
+      environmentId: requestContext.environmentId,
+      changeRequestId: input.changeRequest.changeRequestId,
+      workflowInstanceId: input.workflowInstance.workflowInstanceId,
+      workflowVersionId: input.workflowInstance.workflowVersionId,
+      block: legalNamePlanTransactionBlock,
+      input: {
+        changeRequestId: input.changeRequest.changeRequestId,
+        workerId: input.workflowInstance.subjectId,
+        personId: input.employeeDocument.person.personId,
+        currentLegalName: input.employeeDocument.person.legalName,
+        proposedLegalName: legalNameResult.value,
+        effectiveAt: input.changeRequest.effectiveAt,
+      },
+      context: {
+        actorId: requestContext.actor.actorId,
+        effectiveAt: input.changeRequest.effectiveAt,
+        permissions: createPermissionSnapshot(requestContext.actor),
+        correlationId: requestContext.correlationId,
+        idempotencyKey: input.idempotencyKey,
+      },
+    });
+  if (!planResult.ok) {
+    return planResult;
+  }
+  if (planResult.value.output === undefined) {
+    return err(validationFailedError({ planOutput: "missing" }));
+  }
+
+  return ok(planResult.value.output);
+}
+
+async function planEmergencyContactChange(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  input: {
+    workflowInstance: WorkflowInstanceRecord;
+    changeRequest: ChangeRequestRecord;
+    proposedChanges: ProposedChangeRecord[];
+    employeeDocument: EmployeeProjectionDocument;
+    idempotencyKey: string;
+  },
+): Promise<Result<PlanTransactionOutput, AppError>> {
+  const proposedContact = input.proposedChanges[0]?.proposedValue;
+  const emergencyContactResult = parseEmergencyContactValue(proposedContact);
+  if (!emergencyContactResult.ok) {
+    return emergencyContactResult;
+  }
+
+  const planResult =
+    await dependencies.executorClient.executeBlock<PlanTransactionOutput>({
+      tenantId: requestContext.tenantId,
+      environmentId: requestContext.environmentId,
+      changeRequestId: input.changeRequest.changeRequestId,
+      workflowInstanceId: input.workflowInstance.workflowInstanceId,
+      workflowVersionId: input.workflowInstance.workflowVersionId,
+      block: emergencyContactPlanTransactionBlock,
+      input: {
+        changeRequestId: input.changeRequest.changeRequestId,
+        workerId: input.workflowInstance.subjectId,
+        currentEmergencyContacts: input.employeeDocument.emergencyContacts,
+        proposedEmergencyContact: emergencyContactResult.value,
+        effectiveAt: input.changeRequest.effectiveAt,
+      },
+      context: {
+        actorId: requestContext.actor.actorId,
+        effectiveAt: input.changeRequest.effectiveAt,
+        permissions: createPermissionSnapshot(requestContext.actor),
+        correlationId: requestContext.correlationId,
+        idempotencyKey: input.idempotencyKey,
+      },
+    });
+  if (!planResult.ok) {
+    return planResult;
+  }
+  if (planResult.value.output === undefined) {
+    return err(validationFailedError({ planOutput: "missing" }));
+  }
+
+  return ok(planResult.value.output);
+}
+
 function createTransactionPlan(input: {
   tenantId: string;
   changeRequestId: string;
@@ -1766,7 +2224,7 @@ function createTransactionPlan(input: {
     externalWrites,
     rollbackPlan: {
       mode: "compensating_change",
-      reason: "Legal name changes are corrected by a new approved event.",
+      reason: "Employee data changes are corrected by a new approved event.",
     },
     compensationPlan: {
       mode: "manual_review_if_external_write_fails",
@@ -1786,6 +2244,32 @@ function createTransactionPlan(input: {
     createdBy: input.actorId,
     updatedBy: input.actorId,
   };
+}
+
+function applyInternalTransactionWrites(
+  repositories: Repositories,
+  requestContext: ApiRequestContext,
+  changeRequest: ChangeRequestRecord,
+  transactionPlan: TransactionPlanRecord,
+) {
+  const firstWrite = transactionPlan.internalWrites[0];
+  const eventType = stringField(firstWrite ?? {}, "eventType");
+
+  if (eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
+    return applyInternalEmergencyContactWrites(
+      repositories,
+      requestContext,
+      changeRequest,
+      transactionPlan,
+    );
+  }
+
+  return applyInternalLegalNameWrites(
+    repositories,
+    requestContext,
+    changeRequest,
+    transactionPlan,
+  );
 }
 
 function applyInternalLegalNameWrites(
@@ -1846,6 +2330,65 @@ function applyInternalLegalNameWrites(
     updatedDocument,
     legalNameChangedEvent.value.eventId,
     legalNameChangedEvent.value.eventSequence,
+  );
+}
+
+function applyInternalEmergencyContactWrites(
+  repositories: Repositories,
+  requestContext: ApiRequestContext,
+  changeRequest: ChangeRequestRecord,
+  transactionPlan: TransactionPlanRecord,
+) {
+  const firstWrite = transactionPlan.internalWrites[0];
+  const payload = objectField(firstWrite ?? {}, "payload");
+  const newContactsResult = parseEmergencyContactArray(
+    payload?.["newEmergencyContacts"],
+  );
+
+  if (!newContactsResult.ok) {
+    return newContactsResult;
+  }
+
+  const projectionResult = repositories.employeeProjections.findByEmployeeId(
+    requestContext.tenantId,
+    changeRequest.targetWorkerId,
+  );
+  if (!projectionResult.ok) {
+    return projectionResult;
+  }
+
+  const emergencyContactUpdatedEvent = repositories.ledger.append({
+    tenantId: requestContext.tenantId,
+    eventType: LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED,
+    subjectType: "worker",
+    subjectId: changeRequest.targetWorkerId,
+    occurredAt: nowIso(),
+    effectiveAt: changeRequest.effectiveAt,
+    actorType: requestContext.actor.actorType,
+    actorId: requestContext.actor.actorId,
+    relationshipContext: {},
+    changeRequestId: changeRequest.changeRequestId,
+    transactionPlanId: transactionPlan.transactionPlanId,
+    correlationId: requestContext.correlationId,
+    permissionSnapshot: createPermissionSnapshot(requestContext.actor),
+    aiVisibilitySnapshot: {},
+    payload: payload ?? {},
+  });
+  if (!emergencyContactUpdatedEvent.ok) {
+    return emergencyContactUpdatedEvent;
+  }
+
+  const updatedDocument: EmployeeProjectionDocument = {
+    ...projectionResult.value.document,
+    emergencyContacts: newContactsResult.value,
+  };
+
+  return repositories.employeeProjections.updateDocument(
+    requestContext.tenantId,
+    changeRequest.targetWorkerId,
+    updatedDocument,
+    emergencyContactUpdatedEvent.value.eventId,
+    emergencyContactUpdatedEvent.value.eventSequence,
   );
 }
 
@@ -2144,17 +2687,23 @@ function createDebugTimelineEntry(event: LedgerEventRecord): Record<string, unkn
 
 function businessSummaryForEvent(event: LedgerEventRecord): string {
   if (event.eventType === LEDGER_EVENT_TYPES.WORKFLOW_INTENT_STARTED) {
-    return "Legal name change workflow started.";
+    return "Employee data change workflow started.";
   }
 
   if (event.eventType === LEDGER_EVENT_TYPES.CHANGE_REQUEST_CREATED) {
-    return "Legal name change request submitted.";
+    return "Employee data change request submitted.";
   }
 
   if (event.eventType === LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED) {
     const riskLevel = stringField(event.payload, "riskLevel") ?? "unknown";
 
     return `Preflight completed with ${riskLevel} risk.`;
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED) {
+    const riskLevel = stringField(event.payload, "riskLevel") ?? "unknown";
+
+    return `Emergency contact preflight completed with ${riskLevel} risk.`;
   }
 
   if (event.eventType === LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED) {
@@ -2177,6 +2726,10 @@ function businessSummaryForEvent(event: LedgerEventRecord): string {
     return "Legal name changed in the employee projection.";
   }
 
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
+    return "Emergency contact updated in the employee projection.";
+  }
+
   if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED) {
     return "External HRIS sync was queued.";
   }
@@ -2193,6 +2746,12 @@ function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknow
     return {
       previousLegalName: event.payload["previousLegalName"],
       newLegalName: event.payload["newLegalName"],
+    };
+  }
+
+  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
+    return {
+      changedEmergencyContact: event.payload["changedEmergencyContact"],
     };
   }
 
@@ -2228,6 +2787,15 @@ function businessPayloadExcerpt(event: LedgerEventRecord): Record<string, unknow
     };
   }
 
+  if (event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED) {
+    return {
+      valid: event.payload["valid"],
+      riskLevel: event.payload["riskLevel"],
+      requiresEvidence: event.payload["requiresEvidence"],
+      requiresApproval: event.payload["requiresApproval"],
+    };
+  }
+
   return {};
 }
 
@@ -2245,6 +2813,37 @@ function serializeWorkflowInstance(
     changeRequestId: workflowInstance.changeRequestId,
     currentInteraction: workflowInstance.currentInteraction,
   };
+}
+
+function isSupportedEmployeeDataIntent(
+  intent: string | undefined,
+): intent is SupportedEmployeeDataIntent {
+  return supportedEmployeeDataIntents.some((supportedIntent) => {
+    return supportedIntent === intent;
+  });
+}
+
+function canStartEmployeeDataWorkflow(
+  actor: Parameters<typeof canStartLegalNameWorkflow>[0],
+  intent: SupportedEmployeeDataIntent,
+  subjectId: string,
+): Result<true, AppError> {
+  if (intent === WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE) {
+    return canStartLegalNameWorkflow(actor, subjectId);
+  }
+
+  return canStartEmergencyContactWorkflow(actor, subjectId);
+}
+
+function createInitialInteractionForIntent(
+  intent: SupportedEmployeeDataIntent,
+  employeeDocument: EmployeeProjectionDocument,
+) {
+  if (intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE) {
+    return createEmergencyContactFormInteraction(employeeDocument.emergencyContacts);
+  }
+
+  return createLegalNameFormInteraction(employeeDocument.person.legalName);
 }
 
 function createLegalNameFormInteraction(currentLegalName: LegalName) {
@@ -2280,6 +2879,55 @@ function createLegalNameFormInteraction(currentLegalName: LegalName) {
   };
 }
 
+function createEmergencyContactFormInteraction(
+  currentEmergencyContacts: EmergencyContact[],
+) {
+  return {
+    type: "form",
+    schemaVersion: "v0.1",
+    title: "Update emergency contact",
+    currentEmergencyContacts,
+    jsonSchema: {
+      type: "object",
+      required: ["proposedEmergencyContact", "effectiveAt", "businessReason"],
+      properties: {
+        proposedEmergencyContact: {
+          type: "object",
+          required: ["name", "relationship", "phone", "priority"],
+          properties: {
+            contactId: { type: "string" },
+            name: { type: "string", minLength: 1 },
+            relationship: {
+              type: "string",
+              enum: [
+                "spouse",
+                "partner",
+                "parent",
+                "sibling",
+                "child",
+                "friend",
+                "other",
+              ],
+            },
+            phone: { type: "string", minLength: 7 },
+            email: { type: ["string", "null"] },
+            priority: { type: "number", minimum: 1 },
+          },
+        },
+        effectiveAt: { type: "string", format: "date" },
+        businessReason: {
+          type: "string",
+          enum: ["employee_self_service", "correction", "annual_review", "other"],
+        },
+      },
+    },
+    uiSchema: {
+      layout: "single_page",
+      submitLabel: "Submit for review",
+    },
+  };
+}
+
 function legalNameEvidenceInteraction() {
   return {
     type: "evidence_upload",
@@ -2306,6 +2954,17 @@ function legalNameReadyToExecuteInteraction() {
     type: "ready_to_execute",
     title: "Ready to execute legal name change",
   };
+}
+
+function readyToExecuteInteractionForIntent(intent: string) {
+  if (intent === WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE) {
+    return {
+      type: "ready_to_execute",
+      title: "Ready to execute emergency contact update",
+    };
+  }
+
+  return legalNameReadyToExecuteInteraction();
 }
 
 function terminalInteraction(status: string) {

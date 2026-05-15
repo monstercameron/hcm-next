@@ -40,6 +40,15 @@ export type LegalName = {
   last: string;
 };
 
+export type EmergencyContact = {
+  contactId: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string | null;
+  priority: number;
+};
+
 export type EmployeeProjectionDocument = {
   employeeId: string;
   person: {
@@ -56,6 +65,7 @@ export type EmployeeProjectionDocument = {
   manager?: {
     employeeId?: string;
   };
+  emergencyContacts?: EmergencyContact[];
   custom: JsonObject;
 };
 

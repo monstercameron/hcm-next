@@ -32,6 +32,11 @@ export const PERMISSION_KEYS = {
   LEGAL_NAME_REQUEST_MORE_INFO: "employee_data_change.legal_name.request_more_info",
   LEGAL_NAME_EXECUTE: "employee_data_change.legal_name.execute",
   LEGAL_NAME_VIEW_EVIDENCE: "employee_data_change.legal_name.view_evidence",
+  EMERGENCY_CONTACT_REQUEST: "employee_data_change.emergency_contact.request",
+  EMERGENCY_CONTACT_CANCEL_OWN: "employee_data_change.emergency_contact.cancel_own",
+  EMERGENCY_CONTACT_APPROVE: "employee_data_change.emergency_contact.approve",
+  EMERGENCY_CONTACT_REJECT: "employee_data_change.emergency_contact.reject",
+  EMERGENCY_CONTACT_EXECUTE: "employee_data_change.emergency_contact.execute",
 } as const;
 
 export type PermissionKey = ValueOf<typeof PERMISSION_KEYS>;

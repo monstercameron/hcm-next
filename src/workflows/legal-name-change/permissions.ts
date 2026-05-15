@@ -1,6 +1,7 @@
 import {
   ACTOR_ROLES,
   PERMISSION_KEYS,
+  WORKFLOW_INTENTS,
   WORKFLOW_STATES,
   WORKFLOW_TRANSITIONS,
   err,
@@ -36,6 +37,24 @@ export function canStartLegalNameWorkflow(
   }
 
   return err(permissionDeniedError({ permission: PERMISSION_KEYS.LEGAL_NAME_REQUEST }));
+}
+
+export function canStartEmergencyContactWorkflow(
+  actor: ActorRecord,
+  subjectId: string,
+): Result<true, AppError> {
+  if (
+    actor.roles.includes(ACTOR_ROLES.EMPLOYEE) &&
+    actor.linkedWorkerId === subjectId
+  ) {
+    return ok(true);
+  }
+
+  return err(
+    permissionDeniedError({
+      permission: PERMISSION_KEYS.EMERGENCY_CONTACT_REQUEST,
+    }),
+  );
 }
 
 export function canViewWorkflowInstance(
@@ -116,7 +135,7 @@ export function computeAvailableActions(input: {
   }
 
   if (workflowInstance.state === WORKFLOW_STATES.WAITING_APPROVAL && isHrAdmin) {
-    return [
+    const approvalActions: Array<Record<string, unknown>> = [
       {
         transition: WORKFLOW_TRANSITIONS.APPROVE,
         label: "Approve",
@@ -129,13 +148,18 @@ export function computeAvailableActions(input: {
         enabled: true,
         taskId: pendingApprovalTask?.approvalTaskId,
       },
-      {
+    ];
+
+    if (workflowInstance.intent === WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE) {
+      approvalActions.push({
         transition: WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO,
         label: "Request more information",
         enabled: true,
         taskId: pendingApprovalTask?.approvalTaskId,
-      },
-    ];
+      });
+    }
+
+    return approvalActions;
   }
 
   if (workflowInstance.state === WORKFLOW_STATES.WAITING_APPROVAL && isRequester) {

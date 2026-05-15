@@ -21,7 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "vitest run src/tests/e2e/legal-name-change.e2e.spec.ts && npm run test --workspaces --if-present",
+    "test": "vitest run src/tests/e2e && npm run test --workspaces --if-present",
     "test:go": "cd src/blocks/go && go test ./...",
     "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run test:go && npm run build",
     "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",

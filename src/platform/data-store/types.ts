@@ -267,6 +267,7 @@ export type EmployeeProjectionDocument = {
   manager: {
     employeeId: string;
   };
+  emergencyContacts: EmergencyContact[];
   custom: Record<string, unknown>;
 };
 
@@ -274,6 +275,15 @@ export type LegalName = {
   first: string;
   middle: string | null;
   last: string;
+};
+
+export type EmergencyContact = {
+  contactId: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  email: string | null;
+  priority: number;
 };
 
 export type IntegrationOutboxRecord = {

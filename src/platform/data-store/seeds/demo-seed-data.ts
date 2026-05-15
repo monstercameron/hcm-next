@@ -48,6 +48,16 @@ export const DEMO_EMPLOYEE_PROJECTION = {
   manager: {
     employeeId: DEMO_SEED_ALIASES.MANAGER_EMPLOYEE,
   },
+  emergencyContacts: [
+    {
+      contactId: "ec_001",
+      name: "Alex Doe",
+      relationship: "spouse",
+      phone: "+15551234567",
+      email: "alex.doe@example.com",
+      priority: 1,
+    },
+  ],
   custom: {},
 } as const;
 

@@ -79,6 +79,8 @@ export type SeededDemoIds = {
   personId: string;
   workflowDefinitionId: string;
   workflowVersionId: string;
+  emergencyContactWorkflowDefinitionId: string;
+  emergencyContactWorkflowVersionId: string;
 };
 
 export const DEMO_IDS: SeededDemoIds = {
@@ -91,6 +93,8 @@ export const DEMO_IDS: SeededDemoIds = {
   personId: "person_123",
   workflowDefinitionId: "workflow_legal_name_change",
   workflowVersionId: "workflow_legal_name_change_v1",
+  emergencyContactWorkflowDefinitionId: "workflow_emergency_contact_update",
+  emergencyContactWorkflowVersionId: "workflow_emergency_contact_update_v1",
 };
 
 export function createSeededDemoStore(): HcmNextStore {
@@ -168,6 +172,32 @@ export function createSeededDemoStore(): HcmNextStore {
     status: "published",
   });
 
+  store.workflowDefinitions.set(DEMO_IDS.emergencyContactWorkflowDefinitionId, {
+    workflowDefinitionId: DEMO_IDS.emergencyContactWorkflowDefinitionId,
+    tenantId: DEMO_IDS.tenantId,
+    name: "Employee Emergency Contact Update",
+    workflowType: "employee_data_change",
+    status: "active",
+    currentVersionId: DEMO_IDS.emergencyContactWorkflowVersionId,
+  });
+
+  store.workflowVersions.set(DEMO_IDS.emergencyContactWorkflowVersionId, {
+    workflowVersionId: DEMO_IDS.emergencyContactWorkflowVersionId,
+    tenantId: DEMO_IDS.tenantId,
+    workflowDefinitionId: DEMO_IDS.emergencyContactWorkflowDefinitionId,
+    versionNumber: 1,
+    graphDefinition: {
+      intent: WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE,
+      initialState: WORKFLOW_STATES.COLLECTING_INPUT,
+    },
+    inputSchema: {},
+    outputSchema: {},
+    validationRules: [],
+    approvalRules: [],
+    aiReviewScope: {},
+    status: "published",
+  });
+
   store.employeeProjections.set(
     employeeProjectionKey(DEMO_IDS.tenantId, DEMO_IDS.employeeId),
     {
@@ -194,6 +224,16 @@ export function createSeededDemoStore(): HcmNextStore {
         manager: {
           employeeId: "emp_456",
         },
+        emergencyContacts: [
+          {
+            contactId: "ec_001",
+            name: "Alex Doe",
+            relationship: "spouse",
+            phone: "+15551234567",
+            email: "alex.doe@example.com",
+            priority: 1,
+          },
+        ],
         custom: {},
       },
       indexedFields: {},
