@@ -53,6 +53,17 @@ export const PERMISSION_KEYS = {
   ORG_TRANSFER_EXECUTE: "employee_data_change.org_transfer.execute",
   ORG_TRANSFER_VIEW_RESTRICTED_SUMMARY:
     "employee_data_change.org_transfer.view_restricted_summary",
+  POSITION_HEADCOUNT_REQUEST: "position.headcount.request",
+  POSITION_HEADCOUNT_LEADERSHIP_APPROVE: "position.headcount.leadership_approve",
+  POSITION_HEADCOUNT_FINANCE_APPROVE: "position.headcount.finance_approve",
+  POSITION_HEADCOUNT_HRBP_APPROVE: "position.headcount.hrbp_approve",
+  POSITION_HEADCOUNT_COMPENSATION_APPROVE: "position.headcount.compensation_approve",
+  POSITION_HEADCOUNT_MEDICAL_DIRECTOR_APPROVE:
+    "position.headcount.medical_director_approve",
+  POSITION_HEADCOUNT_CLINIC_OPS_APPROVE: "position.headcount.clinic_ops_approve",
+  POSITION_HEADCOUNT_EXECUTE: "position.headcount.execute",
+  POSITION_HEADCOUNT_VIEW_RESTRICTED_SUMMARY:
+    "position.headcount.view_restricted_summary",
   EMPLOYEE_VIEW_PROFILE: "employee.profile.view",
   EMPLOYEE_VIEW_ORGANIZATION: "employee.organization.view",
   EMPLOYEE_VIEW_JOB: "employee.job.view",

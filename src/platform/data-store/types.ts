@@ -34,10 +34,35 @@ export type ActorRecord = {
 export type WorkflowDefinitionRecord = {
   workflowDefinitionId: string;
   tenantId: string;
+  intent?: string | undefined;
+  subjectType?: string | undefined;
   name: string;
+  description?: string | undefined;
   workflowType: string;
   status: string;
-  currentVersionId: string;
+  currentVersionId?: string | undefined;
+  createdByActorId?: string | undefined;
+  updatedByActorId?: string | undefined;
+  activatedAt?: string | undefined;
+  deprecatedAt?: string | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
+};
+
+export type WorkflowVersionValidationStatus =
+  | "not_validated"
+  | "pending"
+  | "valid"
+  | "invalid";
+
+export type WorkflowVersionValidationResultRecord = {
+  status: WorkflowVersionValidationStatus;
+  errors: Record<string, unknown>[];
+  warnings: Record<string, unknown>[];
+  summary: Record<string, unknown>;
+  validatedAt?: string | undefined;
+  validatedByActorId?: string | undefined;
 };
 
 export type WorkflowVersionRecord = {
@@ -45,6 +70,7 @@ export type WorkflowVersionRecord = {
   tenantId: string;
   workflowDefinitionId: string;
   versionNumber: number;
+  configHash?: string | undefined;
   graphDefinition: Record<string, unknown>;
   inputSchema: Record<string, unknown>;
   outputSchema: Record<string, unknown>;
@@ -52,6 +78,18 @@ export type WorkflowVersionRecord = {
   approvalRules: Record<string, unknown>[];
   aiReviewScope: Record<string, unknown>;
   status: string;
+  validationStatus?: WorkflowVersionValidationStatus | undefined;
+  validationResult?: WorkflowVersionValidationResultRecord | undefined;
+  authorActorId?: string | undefined;
+  createdByActorId?: string | undefined;
+  updatedByActorId?: string | undefined;
+  publishedByActorId?: string | undefined;
+  deprecatedByActorId?: string | undefined;
+  publishedAt?: string | undefined;
+  deprecatedAt?: string | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
 };
 
 export type WorkflowInstanceRecord = {
@@ -197,11 +235,40 @@ export type WorkflowInstanceDocumentRecord = {
   createdAt: string;
 };
 
+export type ApprovalGroupStatus =
+  | "active"
+  | "passed"
+  | "failed"
+  | "repair"
+  | "canceled";
+
+export type ApprovalGroupRecord = {
+  approvalGroupId: string;
+  tenantId: string;
+  workflowInstanceId: string;
+  changeRequestId?: string | undefined;
+  gateNodeId: string;
+  mode: string;
+  status: ApprovalGroupStatus;
+  passRule: Record<string, unknown>;
+  failurePolicy: string;
+  currentSequenceIndex?: number | undefined;
+  openedAt: string;
+  completedAt?: string | undefined;
+  failedAt?: string | undefined;
+  canceledAt?: string | undefined;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ApprovalTaskRecord = {
   approvalTaskId: string;
   tenantId: string;
   changeRequestId: string;
   workflowInstanceId: string;
+  approvalGroupId?: string | undefined;
+  gateNodeId?: string | undefined;
   assigneeActorId: string;
   assigneeRole: string;
   assigneeRelationship?: string | undefined;
@@ -212,6 +279,11 @@ export type ApprovalTaskRecord = {
   comments?: string | undefined;
   dueAt?: string | undefined;
   delegatedToActorId?: string | undefined;
+  sequenceIndex?: number | undefined;
+  weight?: number | undefined;
+  isVetoHolder?: boolean | undefined;
+  resolvedFrom?: Record<string, unknown> | undefined;
+  taskVersion?: number | undefined;
   createdAt: string;
   decidedAt?: string | undefined;
   metadata: Record<string, unknown>;

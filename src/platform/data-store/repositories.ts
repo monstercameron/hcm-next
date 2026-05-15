@@ -2,6 +2,7 @@ import {
   err,
   notFoundError,
   ok,
+  validationFailedError,
   type AppError,
   type Result,
 } from "@hcm-next/foundation";
@@ -15,6 +16,7 @@ import {
 import type {
   AccessGrantRecord,
   ActorRecord,
+  ApprovalGroupRecord,
   ApprovalTaskRecord,
   ChangeRequestRecord,
   DocumentRecord,
@@ -28,10 +30,25 @@ import type {
   RoleBindingRecord,
   TransactionPlanRecord,
   WorkerAssignmentRecord,
+  WorkflowDefinitionRecord,
   WorkflowInstanceDocumentRecord,
   WorkflowInstanceRecord,
   WorkflowTransitionAttemptRecord,
+  WorkflowVersionRecord,
+  WorkflowVersionValidationResultRecord,
+  WorkflowVersionValidationStatus,
 } from "./types.js";
+
+const workflowDefinitionStatuses = {
+  ACTIVE: "active",
+  DEPRECATED: "deprecated",
+  ARCHIVED: "archived",
+} as const;
+
+const workflowVersionStatuses = {
+  PUBLISHED: "published",
+  DEPRECATED: "deprecated",
+} as const;
 
 export type Repositories = ReturnType<typeof createRepositories>;
 
@@ -48,6 +65,7 @@ export function createRepositories(store: HcmNextStore) {
     changeRequests: createChangeRequestRepository(store),
     proposedChanges: createProposedChangeRepository(store),
     documents: createDocumentRepository(store),
+    approvalGroups: createApprovalGroupRepository(store),
     approvals: createApprovalRepository(store),
     transactionPlans: createTransactionPlanRepository(store),
     employeeProjections: createEmployeeProjectionRepository(store),
@@ -405,6 +423,299 @@ function createRoleBindingRepository(store: HcmNextStore) {
 
 function createWorkflowRepository(store: HcmNextStore) {
   return {
+    /** Lists workflow definitions for tenant-scoped admin registry screens. */
+    listDefinitions(tenantId: string): Result<WorkflowDefinitionRecord[], AppError> {
+      return ok(
+        [...store.workflowDefinitions.values()].filter((definition) => {
+          return definition.tenantId === tenantId;
+        }),
+      );
+    },
+
+    /** Lists workflow versions for a tenant, optionally scoped to one definition. */
+    listVersions(
+      tenantId: string,
+      workflowDefinitionId?: string,
+    ): Result<WorkflowVersionRecord[], AppError> {
+      return ok(
+        [...store.workflowVersions.values()].filter((version) => {
+          return (
+            version.tenantId === tenantId &&
+            (workflowDefinitionId === undefined ||
+              version.workflowDefinitionId === workflowDefinitionId)
+          );
+        }),
+      );
+    },
+
+    /** Finds the current published workflow version for a tenant and public intent. */
+    findCurrentPublishedVersionByIntent(
+      tenantId: string,
+      intent: string,
+    ): Result<
+      {
+        definition: WorkflowDefinitionRecord;
+        version: WorkflowVersionRecord;
+      },
+      AppError
+    > {
+      for (const definition of store.workflowDefinitions.values()) {
+        if (
+          definition.tenantId !== tenantId ||
+          !isWorkflowDefinitionActive(definition)
+        ) {
+          continue;
+        }
+
+        const currentVersion = definition.currentVersionId
+          ? store.workflowVersions.get(definition.currentVersionId)
+          : undefined;
+
+        if (
+          currentVersion !== undefined &&
+          isCurrentPublishedVersionForIntent(definition, currentVersion, intent)
+        ) {
+          return ok({
+            definition,
+            version: currentVersion,
+          });
+        }
+      }
+
+      return err(notFoundError("Workflow", { tenantId, intent }));
+    },
+
+    /** Finds one workflow version by tenant and version ID. */
+    findVersionById(
+      tenantId: string,
+      workflowVersionId: string,
+    ): Result<WorkflowVersionRecord, AppError> {
+      return findWorkflowVersionById(store, tenantId, workflowVersionId);
+    },
+
+    /** Finds a workflow version by definition and deterministic config hash. */
+    findVersionByHash(input: {
+      tenantId: string;
+      workflowDefinitionId: string;
+      configHash: string;
+    }): Result<WorkflowVersionRecord | undefined, AppError> {
+      const workflowVersion = [...store.workflowVersions.values()].find((version) => {
+        return (
+          version.tenantId === input.tenantId &&
+          version.workflowDefinitionId === input.workflowDefinitionId &&
+          version.configHash === input.configHash
+        );
+      });
+
+      return ok(workflowVersion);
+    },
+
+    /** Creates a workflow definition record from an imported workflow config. */
+    createDefinition(
+      record: WorkflowDefinitionRecord,
+    ): Result<WorkflowDefinitionRecord, AppError> {
+      const timestamp = nowIso();
+      const workflowDefinition: WorkflowDefinitionRecord = {
+        ...record,
+        createdAt: record.createdAt ?? timestamp,
+        updatedAt: record.updatedAt ?? timestamp,
+        metadata: record.metadata ?? {},
+      };
+
+      store.workflowDefinitions.set(
+        workflowDefinition.workflowDefinitionId,
+        workflowDefinition,
+      );
+      return ok(workflowDefinition);
+    },
+
+    /** Creates a workflow version record from an imported workflow config. */
+    createVersion(
+      record: WorkflowVersionRecord,
+    ): Result<WorkflowVersionRecord, AppError> {
+      const timestamp = nowIso();
+      const workflowVersion: WorkflowVersionRecord = {
+        ...record,
+        validationStatus: record.validationStatus ?? "not_validated",
+        createdAt: record.createdAt ?? timestamp,
+        updatedAt: record.updatedAt ?? timestamp,
+        metadata: record.metadata ?? {},
+      };
+
+      store.workflowVersions.set(workflowVersion.workflowVersionId, workflowVersion);
+      return ok(workflowVersion);
+    },
+
+    /** Persists workflow version validation output and validation status. */
+    updateVersionValidation(input: {
+      tenantId: string;
+      workflowVersionId: string;
+      validationStatus: WorkflowVersionValidationStatus;
+      validationResult: WorkflowVersionValidationResultRecord;
+      actorId?: string;
+    }): Result<WorkflowVersionRecord, AppError> {
+      const workflowVersionResult = findWorkflowVersionById(
+        store,
+        input.tenantId,
+        input.workflowVersionId,
+      );
+      if (!workflowVersionResult.ok) {
+        return workflowVersionResult;
+      }
+
+      const updatedVersion: WorkflowVersionRecord = {
+        ...workflowVersionResult.value,
+        validationStatus: input.validationStatus,
+        validationResult: input.validationResult,
+        updatedByActorId: input.actorId,
+        updatedAt: nowIso(),
+      };
+
+      store.workflowVersions.set(updatedVersion.workflowVersionId, updatedVersion);
+      return ok(updatedVersion);
+    },
+
+    /** Updates workflow version lifecycle status without publishing it as current. */
+    updateVersionStatus(input: {
+      tenantId: string;
+      workflowVersionId: string;
+      status: string;
+      actorId?: string;
+    }): Result<WorkflowVersionRecord, AppError> {
+      const workflowVersionResult = findWorkflowVersionById(
+        store,
+        input.tenantId,
+        input.workflowVersionId,
+      );
+      if (!workflowVersionResult.ok) {
+        return workflowVersionResult;
+      }
+
+      const updatedVersion: WorkflowVersionRecord = {
+        ...workflowVersionResult.value,
+        status: input.status,
+        updatedByActorId: input.actorId,
+        updatedAt: nowIso(),
+      };
+
+      store.workflowVersions.set(updatedVersion.workflowVersionId, updatedVersion);
+      return ok(updatedVersion);
+    },
+
+    /** Publishes a workflow version and makes it the definition's current version. */
+    publishVersionAsCurrent(input: {
+      tenantId: string;
+      workflowVersionId: string;
+      actorId?: string;
+    }): Result<
+      {
+        definition: WorkflowDefinitionRecord;
+        version: WorkflowVersionRecord;
+      },
+      AppError
+    > {
+      const workflowVersionResult = findWorkflowVersionById(
+        store,
+        input.tenantId,
+        input.workflowVersionId,
+      );
+      if (!workflowVersionResult.ok) {
+        return workflowVersionResult;
+      }
+
+      const workflowDefinition = store.workflowDefinitions.get(
+        workflowVersionResult.value.workflowDefinitionId,
+      );
+      if (
+        workflowDefinition === undefined ||
+        workflowDefinition.tenantId !== input.tenantId
+      ) {
+        return err(
+          notFoundError("Workflow definition", {
+            workflowDefinitionId: workflowVersionResult.value.workflowDefinitionId,
+          }),
+        );
+      }
+
+      const timestamp = nowIso();
+      const updatedVersion: WorkflowVersionRecord = {
+        ...workflowVersionResult.value,
+        status: workflowVersionStatuses.PUBLISHED,
+        publishedAt: workflowVersionResult.value.publishedAt ?? timestamp,
+        publishedByActorId:
+          workflowVersionResult.value.publishedByActorId ?? input.actorId,
+        deprecatedAt: undefined,
+        deprecatedByActorId: undefined,
+        updatedByActorId: input.actorId,
+        updatedAt: timestamp,
+      };
+      const updatedDefinition: WorkflowDefinitionRecord = {
+        ...workflowDefinition,
+        status: workflowDefinitionStatuses.ACTIVE,
+        currentVersionId: updatedVersion.workflowVersionId,
+        activatedAt: workflowDefinition.activatedAt ?? timestamp,
+        updatedByActorId: input.actorId,
+        updatedAt: timestamp,
+      };
+
+      store.workflowVersions.set(updatedVersion.workflowVersionId, updatedVersion);
+      store.workflowDefinitions.set(
+        updatedDefinition.workflowDefinitionId,
+        updatedDefinition,
+      );
+
+      return ok({
+        definition: updatedDefinition,
+        version: updatedVersion,
+      });
+    },
+
+    /** Deprecates a non-current workflow version. */
+    deprecateVersion(input: {
+      tenantId: string;
+      workflowVersionId: string;
+      actorId?: string;
+    }): Result<WorkflowVersionRecord, AppError> {
+      const workflowVersionResult = findWorkflowVersionById(
+        store,
+        input.tenantId,
+        input.workflowVersionId,
+      );
+      if (!workflowVersionResult.ok) {
+        return workflowVersionResult;
+      }
+
+      const workflowDefinition = store.workflowDefinitions.get(
+        workflowVersionResult.value.workflowDefinitionId,
+      );
+      if (
+        workflowDefinition !== undefined &&
+        workflowDefinition.currentVersionId === input.workflowVersionId
+      ) {
+        return err(
+          validationFailedError({
+            workflowVersionId: input.workflowVersionId,
+            reason: "current workflow version cannot be deprecated",
+          }),
+        );
+      }
+
+      const timestamp = nowIso();
+      const updatedVersion: WorkflowVersionRecord = {
+        ...workflowVersionResult.value,
+        status: workflowVersionStatuses.DEPRECATED,
+        deprecatedAt: workflowVersionResult.value.deprecatedAt ?? timestamp,
+        deprecatedByActorId:
+          workflowVersionResult.value.deprecatedByActorId ?? input.actorId,
+        updatedByActorId: input.actorId,
+        updatedAt: timestamp,
+      };
+
+      store.workflowVersions.set(updatedVersion.workflowVersionId, updatedVersion);
+      return ok(updatedVersion);
+    },
+
+    /** Finds a workflow version by public intent for legacy runtime callers. */
     findVersionByIntent(intent: string): Result<
       {
         workflowDefinitionId: string;
@@ -413,7 +724,10 @@ function createWorkflowRepository(store: HcmNextStore) {
       AppError
     > {
       for (const workflowVersion of store.workflowVersions.values()) {
-        if (workflowVersion.graphDefinition["intent"] === intent) {
+        if (
+          workflowVersion.graphDefinition["intent"] === intent &&
+          workflowVersion.status === workflowVersionStatuses.PUBLISHED
+        ) {
           return ok({
             workflowDefinitionId: workflowVersion.workflowDefinitionId,
             workflowVersionId: workflowVersion.workflowVersionId,
@@ -491,6 +805,45 @@ function createWorkflowRepository(store: HcmNextStore) {
       return ok(attempt);
     },
   };
+}
+
+function findWorkflowVersionById(
+  store: HcmNextStore,
+  tenantId: string,
+  workflowVersionId: string,
+): Result<WorkflowVersionRecord, AppError> {
+  const workflowVersion = store.workflowVersions.get(workflowVersionId);
+
+  if (workflowVersion === undefined || workflowVersion.tenantId !== tenantId) {
+    return err(notFoundError("Workflow version", { workflowVersionId }));
+  }
+
+  return ok(workflowVersion);
+}
+
+function isWorkflowDefinitionActive(definition: WorkflowDefinitionRecord): boolean {
+  return definition.status === workflowDefinitionStatuses.ACTIVE;
+}
+
+function isCurrentPublishedVersionForIntent(
+  definition: WorkflowDefinitionRecord,
+  version: WorkflowVersionRecord,
+  intent: string,
+): boolean {
+  return (
+    version.tenantId === definition.tenantId &&
+    version.workflowDefinitionId === definition.workflowDefinitionId &&
+    version.status === workflowVersionStatuses.PUBLISHED &&
+    (definition.intent === intent || workflowVersionIntent(version) === intent)
+  );
+}
+
+function workflowVersionIntent(version: WorkflowVersionRecord): string | undefined {
+  const intent = version.graphDefinition["intent"];
+
+  return typeof intent === "string" && intent.trim().length > 0
+    ? intent.trim()
+    : undefined;
 }
 
 function createLedgerRepository(store: HcmNextStore) {
@@ -623,6 +976,69 @@ function createDocumentRepository(store: HcmNextStore) {
   };
 }
 
+function createApprovalGroupRepository(store: HcmNextStore) {
+  return {
+    /** Creates an approval gate-level group record. */
+    create(record: ApprovalGroupRecord): Result<ApprovalGroupRecord, AppError> {
+      store.approvalGroups.set(record.approvalGroupId, record);
+      return ok(record);
+    },
+
+    /** Finds an approval group by its durable ID. */
+    findById(approvalGroupId: string): Result<ApprovalGroupRecord, AppError> {
+      const approvalGroup = store.approvalGroups.get(approvalGroupId);
+
+      if (approvalGroup === undefined) {
+        return err(notFoundError("Approval group", { approvalGroupId }));
+      }
+
+      return ok(approvalGroup);
+    },
+
+    /** Lists approval groups created for a workflow instance. */
+    findByWorkflow(
+      workflowInstanceId: string,
+    ): Result<ApprovalGroupRecord[], AppError> {
+      return ok(
+        [...store.approvalGroups.values()].filter((approvalGroup) => {
+          return approvalGroup.workflowInstanceId === workflowInstanceId;
+        }),
+      );
+    },
+
+    /** Finds the active approval group for a workflow instance, if one exists. */
+    findActiveByWorkflow(
+      workflowInstanceId: string,
+    ): Result<ApprovalGroupRecord | undefined, AppError> {
+      const approvalGroup = [...store.approvalGroups.values()].find((candidate) => {
+        return (
+          candidate.workflowInstanceId === workflowInstanceId &&
+          candidate.status === "active"
+        );
+      });
+
+      return ok(approvalGroup);
+    },
+
+    /** Updates an approval group and refreshes its modification timestamp. */
+    update(record: ApprovalGroupRecord): Result<ApprovalGroupRecord, AppError> {
+      if (!store.approvalGroups.has(record.approvalGroupId)) {
+        return err(
+          notFoundError("Approval group", {
+            approvalGroupId: record.approvalGroupId,
+          }),
+        );
+      }
+
+      store.approvalGroups.set(record.approvalGroupId, {
+        ...record,
+        updatedAt: nowIso(),
+      });
+      return ok(store.approvalGroups.get(record.approvalGroupId)!);
+    },
+  };
+}
+
 function createApprovalRepository(store: HcmNextStore) {
   return {
     create(record: ApprovalTaskRecord): Result<ApprovalTaskRecord, AppError> {
@@ -655,29 +1071,70 @@ function createApprovalRepository(store: HcmNextStore) {
 
     findPendingForActor(actor: ActorRecord): Result<ApprovalTaskRecord[], AppError> {
       const tasks = [...store.approvalTasks.values()].filter((task) => {
+        const assignmentMode = task.metadata["assignmentMode"];
+        const canUseRoleFallback =
+          assignmentMode !== "actor" && actor.roles.includes(task.assigneeRole);
+
         return (
           task.status === "pending" &&
-          (task.assigneeActorId === actor.actorId ||
-            actor.roles.includes(task.assigneeRole))
+          (task.assigneeActorId === actor.actorId || canUseRoleFallback)
         );
       });
 
       return ok(tasks);
     },
 
+    findByApprovalGroup(
+      approvalGroupId: string,
+    ): Result<ApprovalTaskRecord[], AppError> {
+      return ok(
+        [...store.approvalTasks.values()].filter((approvalTask) => {
+          return approvalGroupIdForTask(approvalTask) === approvalGroupId;
+        }),
+      );
+    },
+
+    findPendingByApprovalGroup(
+      approvalGroupId: string,
+    ): Result<ApprovalTaskRecord[], AppError> {
+      return ok(
+        [...store.approvalTasks.values()].filter((approvalTask) => {
+          return (
+            approvalGroupIdForTask(approvalTask) === approvalGroupId &&
+            approvalTask.status === "pending"
+          );
+        }),
+      );
+    },
+
     findPendingByWorkflow(
       workflowInstanceId: string,
     ): Result<ApprovalTaskRecord | undefined, AppError> {
-      const task = [...store.approvalTasks.values()].find((approvalTask) => {
+      const pendingTasks = [...store.approvalTasks.values()].filter((approvalTask) => {
         return (
           approvalTask.workflowInstanceId === workflowInstanceId &&
           approvalTask.status === "pending"
         );
       });
+      const legacyTask = pendingTasks.find((approvalTask) => {
+        return approvalGroupIdForTask(approvalTask) === undefined;
+      });
 
-      return ok(task);
+      return ok(legacyTask ?? pendingTasks[0]);
     },
   };
+}
+
+function approvalGroupIdForTask(approvalTask: ApprovalTaskRecord): string | undefined {
+  if (approvalTask.approvalGroupId !== undefined) {
+    return approvalTask.approvalGroupId;
+  }
+
+  const metadataApprovalGroupId = approvalTask.metadata["approvalGroupId"];
+
+  return typeof metadataApprovalGroupId === "string"
+    ? metadataApprovalGroupId
+    : undefined;
 }
 
 function createTransactionPlanRepository(store: HcmNextStore) {

@@ -7,6 +7,7 @@ export const WORKFLOW_INTENTS = {
   EMPLOYEE_COMPENSATION_CHANGE: "employee.compensation.change",
   EMPLOYEE_ORG_TRANSFER_COMPENSATION_CHANGE:
     "employee.org_transfer_compensation_change",
+  POSITION_HEADCOUNT_REQUISITION_APPROVAL: "position.headcount_requisition.approval",
 } as const;
 
 export type WorkflowIntent = ValueOf<typeof WORKFLOW_INTENTS>;
@@ -20,6 +21,11 @@ export const WORKFLOW_STATES = {
   WAITING_FINANCE_APPROVAL: "waiting_finance_approval",
   WAITING_COMPENSATION_APPROVAL: "waiting_compensation_approval",
   WAITING_MEDICAL_DIRECTOR_APPROVAL: "waiting_medical_director_approval",
+  WAITING_SYNC_APPROVAL: "waiting_sync_approval",
+  WAITING_ASYNC_APPROVAL: "waiting_async_approval",
+  APPROVAL_GATE_PASSED: "approval_gate_passed",
+  APPROVAL_GATE_FAILED: "approval_gate_failed",
+  WAITING_APPROVAL_REPAIR: "waiting_approval_repair",
   APPROVED: "approved",
   EXECUTING: "executing",
   EXECUTED: "executed",

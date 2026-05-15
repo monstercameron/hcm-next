@@ -9,6 +9,7 @@ export const CHANGE_REQUEST_TYPES = {
   PROMOTION: "promotion",
   LEAVE: "leave",
   EMPLOYEE_DATA_CHANGE: "employee_data_change",
+  HEADCOUNT_REQUISITION: "headcount_requisition",
   TERMINATION: "termination",
   REORG_BATCH: "reorg_batch",
   CUSTOM: "custom",

@@ -27,6 +27,7 @@ import {
 import type {
   AccessGrantRecord,
   ActorRecord,
+  ApprovalGroupRecord,
   ApprovalTaskRecord,
   ChangeRequestRecord,
   DocumentRecord,
@@ -67,6 +68,7 @@ export type HcmNextStore = {
   proposedChanges: Map<string, ProposedChangeRecord>;
   documents: Map<string, DocumentRecord>;
   workflowInstanceDocuments: Map<string, WorkflowInstanceDocumentRecord>;
+  approvalGroups: Map<string, ApprovalGroupRecord>;
   approvalTasks: Map<string, ApprovalTaskRecord>;
   transactionPlans: Map<string, TransactionPlanRecord>;
   employeeProjections: Map<string, EmployeeProjectionRecord>;
@@ -93,6 +95,7 @@ export function createEmptyStore(): HcmNextStore {
     proposedChanges: new Map(),
     documents: new Map(),
     workflowInstanceDocuments: new Map(),
+    approvalGroups: new Map(),
     approvalTasks: new Map(),
     transactionPlans: new Map(),
     employeeProjections: new Map(),
@@ -131,6 +134,8 @@ export type SeededDemoIds = {
   compensationWorkflowVersionId: string;
   orgTransferWorkflowDefinitionId: string;
   orgTransferWorkflowVersionId: string;
+  headcountWorkflowDefinitionId: string;
+  headcountWorkflowVersionId: string;
 };
 
 export const DEMO_IDS: SeededDemoIds = {
@@ -163,6 +168,8 @@ export const DEMO_IDS: SeededDemoIds = {
   compensationWorkflowVersionId: "workflow_compensation_change_v1",
   orgTransferWorkflowDefinitionId: "workflow_org_transfer_compensation_change",
   orgTransferWorkflowVersionId: "workflow_org_transfer_compensation_change_v1",
+  headcountWorkflowDefinitionId: "workflow_position_headcount_requisition",
+  headcountWorkflowVersionId: "workflow_position_headcount_requisition_v1",
 };
 
 type RuntimeDemoEmployeeSeed = {
@@ -745,6 +752,32 @@ export function createSeededDemoStore(): HcmNextStore {
     versionNumber: 1,
     graphDefinition: {
       intent: WORKFLOW_INTENTS.EMPLOYEE_ORG_TRANSFER_COMPENSATION_CHANGE,
+      initialState: WORKFLOW_STATES.COLLECTING_INPUT,
+    },
+    inputSchema: {},
+    outputSchema: {},
+    validationRules: [],
+    approvalRules: [],
+    aiReviewScope: {},
+    status: "published",
+  });
+
+  store.workflowDefinitions.set(DEMO_IDS.headcountWorkflowDefinitionId, {
+    workflowDefinitionId: DEMO_IDS.headcountWorkflowDefinitionId,
+    tenantId: DEMO_IDS.tenantId,
+    name: "Position Headcount Requisition Approval",
+    workflowType: "position_workforce_planning",
+    status: "active",
+    currentVersionId: DEMO_IDS.headcountWorkflowVersionId,
+  });
+
+  store.workflowVersions.set(DEMO_IDS.headcountWorkflowVersionId, {
+    workflowVersionId: DEMO_IDS.headcountWorkflowVersionId,
+    tenantId: DEMO_IDS.tenantId,
+    workflowDefinitionId: DEMO_IDS.headcountWorkflowDefinitionId,
+    versionNumber: 1,
+    graphDefinition: {
+      intent: WORKFLOW_INTENTS.POSITION_HEADCOUNT_REQUISITION_APPROVAL,
       initialState: WORKFLOW_STATES.COLLECTING_INPUT,
     },
     inputSchema: {},
