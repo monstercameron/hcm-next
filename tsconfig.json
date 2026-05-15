@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./src/platform/foundation"
+    },
+    {
+      "path": "./src/platform/data-store"
+    },
+    {
+      "path": "./src/api"
+    }
+  ]
+}

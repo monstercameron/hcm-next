@@ -1,11 +1,52 @@
 {
   "name": "hcm-next",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workflow-native HCM platform foundation.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
   },
-  "author": "",
-  "license": "ISC"
+  "workspaces": [
+    "src/api",
+    "src/platform/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace @hcm-next/api run dev",
+    "dev:blocks": "cd src/blocks/go && go run ./cmd/executor",
+    "dev:executor": "npm run dev:blocks",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run src/tests/e2e/legal-name-change.e2e.spec.ts && npm run test --workspaces --if-present",
+    "test:go": "cd src/blocks/go && go test ./...",
+    "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run test:go && npm run build",
+    "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",
+    "db:seed": "npm --workspace @hcm-next/data-store run db:seed",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,css}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/node": "^22.10.1",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.16.0",
+    "vitest": "^2.1.6"
+  }
 }

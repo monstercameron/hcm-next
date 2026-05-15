@@ -1,0 +1,16 @@
+{
+  "name": "@hcm-next/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx main.ts",
+    "build": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@hcm-next/foundation": "0.1.0",
+    "@hcm-next/data-store": "0.1.0"
+  }
+}

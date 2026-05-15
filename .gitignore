@@ -1,1 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# TypeScript / JavaScript build artifacts
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+.next/
+**/.next/
+.turbo/
+**/.turbo/
+coverage/
+**/coverage/
+*.tsbuildinfo
+
+# Go build and test artifacts
+bin/
+**/bin/
+*.exe
+*.test
+*.out
+coverage.out
+
+# Logs
+logs/
+**/logs/
+*.log
+
 .env
+.env.*
+!.env.example
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

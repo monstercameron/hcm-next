@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../tests/**/*.ts", "../workflows/**/*.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@hcm-next/foundation": ["src/platform/foundation/index.ts"],
+      "@hcm-next/foundation/*": ["src/platform/foundation/*"],
+      "@hcm-next/data-store": ["src/platform/data-store/index.ts"],
+      "@hcm-next/data-store/*": ["src/platform/data-store/*"],
+      "@hcm-next/workflow-runtime": ["src/platform/workflow-runtime/index.ts"],
+      "@hcm-next/workflow-runtime/*": ["src/platform/workflow-runtime/*"]
+    }
+  }
+}
