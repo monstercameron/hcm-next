@@ -1,8 +1,39 @@
 {
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Position headcount requisition approval",
+    "description": "Position headcount requisition with sequential leadership approval and parallel cross-functional approval gates.",
+    "domain": "position",
+    "owner": "hcm-workflow-platform",
+    "tags": ["position", "position_headcount_requisition_approval"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.position.headcount.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.position.headcount.execute",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "position.headcount_requisition.approval",
   "subjectType": "position",
   "selfServiceStart": false,
   "startActors": ["hr_admin", "clinic_ops_admin"],
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "approved": "readyToExecute",
+      "waiting_repair": "repair",
+      "waiting_approval_repair": "repair",
+      "executed": "completedSummary"
+    }
+  },
   "interactions": {
     "input": {
       "type": "form",
@@ -26,22 +57,59 @@
           "selectedLeadershipApprovers"
         ],
         "properties": {
-          "department": { "type": "string", "minLength": 1 },
-          "team": { "type": "string", "minLength": 1 },
-          "location": { "type": "string", "minLength": 1 },
-          "costCenter": { "type": "string", "minLength": 1 },
-          "jobCode": { "type": "string", "minLength": 1 },
-          "title": { "type": "string", "minLength": 1 },
-          "level": { "type": "string", "minLength": 1 },
-          "requestedFte": { "type": "number", "exclusiveMinimum": 0 },
-          "targetStartDate": { "type": "string", "format": "date" },
-          "salaryRangeMin": { "type": "number" },
-          "salaryRangeMax": { "type": "number" },
-          "businessJustification": { "type": "string", "minLength": 1 },
+          "department": {
+            "type": "string",
+            "minLength": 1
+          },
+          "team": {
+            "type": "string",
+            "minLength": 1
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1
+          },
+          "costCenter": {
+            "type": "string",
+            "minLength": 1
+          },
+          "jobCode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "level": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestedFte": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "targetStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "salaryRangeMin": {
+            "type": "number"
+          },
+          "salaryRangeMax": {
+            "type": "number"
+          },
+          "businessJustification": {
+            "type": "string",
+            "minLength": 1
+          },
           "selectedLeadershipApprovers": {
             "type": "array",
             "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       },
@@ -197,32 +265,75 @@
     },
     "executed": {
       "actions": []
+    },
+    "failed": {
+      "actions": []
     }
   },
   "submit": {
     "preflightBlock": {
       "name": "system.position.headcount.preflight",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {},
-    "effectiveAt": { "$source": "input", "path": "targetStartDate" },
-    "businessReason": { "$source": "input", "path": "businessJustification" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "targetStartDate"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessJustification"
+    },
     "changeRequestStatus": "in_approval",
     "markSubmitted": true,
     "createApprovalTask": false,
     "currentSnapshot": {},
     "proposedSnapshot": {
-      "department": { "$source": "input", "path": "department" },
-      "team": { "$source": "input", "path": "team" },
-      "location": { "$source": "input", "path": "location" },
-      "costCenter": { "$source": "input", "path": "costCenter" },
-      "jobCode": { "$source": "input", "path": "jobCode" },
-      "title": { "$source": "input", "path": "title" },
-      "level": { "$source": "input", "path": "level" },
-      "requestedFte": { "$source": "input", "path": "requestedFte" },
-      "targetStartDate": { "$source": "input", "path": "targetStartDate" },
-      "salaryRangeMin": { "$source": "input", "path": "salaryRangeMin" },
-      "salaryRangeMax": { "$source": "input", "path": "salaryRangeMax" },
+      "department": {
+        "$source": "input",
+        "path": "department"
+      },
+      "team": {
+        "$source": "input",
+        "path": "team"
+      },
+      "location": {
+        "$source": "input",
+        "path": "location"
+      },
+      "costCenter": {
+        "$source": "input",
+        "path": "costCenter"
+      },
+      "jobCode": {
+        "$source": "input",
+        "path": "jobCode"
+      },
+      "title": {
+        "$source": "input",
+        "path": "title"
+      },
+      "level": {
+        "$source": "input",
+        "path": "level"
+      },
+      "requestedFte": {
+        "$source": "input",
+        "path": "requestedFte"
+      },
+      "targetStartDate": {
+        "$source": "input",
+        "path": "targetStartDate"
+      },
+      "salaryRangeMin": {
+        "$source": "input",
+        "path": "salaryRangeMin"
+      },
+      "salaryRangeMax": {
+        "$source": "input",
+        "path": "salaryRangeMax"
+      },
       "businessJustification": {
         "$source": "input",
         "path": "businessJustification"
@@ -234,10 +345,19 @@
     },
     "proposedChange": {
       "targetObjectType": "position",
-      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "fieldPath": "position.headcount_requisition",
-      "currentValue": { "$source": "workflow", "path": "context.currentPosition" },
-      "proposedValue": { "$source": "input", "path": "" }
+      "currentValue": {
+        "$source": "workflow",
+        "path": "context.currentPosition"
+      },
+      "proposedValue": {
+        "$source": "input",
+        "path": ""
+      }
     },
     "additionalEvents": [
       "ProposedChangeCreated",
@@ -255,7 +375,8 @@
   "plan": {
     "block": {
       "name": "system.position.headcount.execute",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {}
   },
@@ -274,7 +395,8 @@
             "eventType": "HeadcountRequisitionSubmitted",
             "nextNodeId": "leadership_chain_gate",
             "nextState": "waiting_sync_approval",
-            "nextInteraction": "leadershipApproval"
+            "nextInteraction": "leadershipApproval",
+            "routeKey": "submitted"
           }
         ]
       },
@@ -302,7 +424,9 @@
               "preserveOrder": true
             }
           ],
-          "passRule": { "type": "all_required" },
+          "passRule": {
+            "type": "all_required"
+          },
           "failurePolicies": [
             {
               "type": "stop_workflow",
@@ -330,13 +454,15 @@
             "eventType": "ApprovalGatePassed",
             "nextNodeId": "cross_functional_gate",
             "nextState": "waiting_async_approval",
-            "nextInteraction": "crossFunctionalApproval"
+            "nextInteraction": "crossFunctionalApproval",
+            "routeKey": "gate_passed"
           },
           {
             "outcome": "gate_failed",
             "eventType": "ApprovalGateFailed",
             "nextNodeId": "gate_failed",
-            "nextState": "approval_gate_failed"
+            "nextState": "approval_gate_failed",
+            "routeKey": "gate_failed"
           },
           {
             "outcome": "request_more_info",
@@ -344,7 +470,8 @@
             "nextNodeId": "repair",
             "nextState": "waiting_approval_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -363,11 +490,12 @@
           "approverResolvers": [
             {
               "resolverId": "finance_reviewer",
-              "type": "role",
+              "type": "actor",
               "label": "Finance",
               "taskKey": "finance",
               "approvalType": "finance_headcount_review",
               "permission": "position.headcount.finance_approve",
+              "actorId": "actor_finance_admin",
               "role": "finance_admin",
               "opensWithGate": true,
               "isVetoHolder": true
@@ -394,11 +522,12 @@
             },
             {
               "resolverId": "medical_director_reviewer",
-              "type": "role",
+              "type": "actor",
               "label": "Medical Director",
               "taskKey": "medical_director",
               "approvalType": "medical_director_headcount_review",
               "permission": "position.headcount.medical_director_approve",
+              "actorId": "actor_emp_920",
               "role": "medical_director",
               "opensWithGate": true,
               "isVetoHolder": true
@@ -448,15 +577,25 @@
           {
             "outcome": "gate_passed",
             "eventType": "ApprovalGatePassed",
+            "ledgerEvents": [
+              {
+                "eventType": "HeadcountRequisitionApproved",
+                "source": "approval_gate",
+                "nodeId": "cross_functional_gate",
+                "routeKey": "gate_passed"
+              }
+            ],
             "nextNodeId": "ready_to_execute",
             "nextState": "approved",
-            "nextInteraction": "readyToExecute"
+            "nextInteraction": "readyToExecute",
+            "routeKey": "gate_passed"
           },
           {
             "outcome": "gate_failed",
             "eventType": "ApprovalGateFailed",
             "nextNodeId": "gate_failed",
-            "nextState": "approval_gate_failed"
+            "nextState": "approval_gate_failed",
+            "routeKey": "gate_failed"
           },
           {
             "outcome": "request_more_info",
@@ -464,7 +603,8 @@
             "nextNodeId": "repair",
             "nextState": "waiting_approval_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -480,13 +620,15 @@
             "eventType": "HeadcountRequisitionSubmitted",
             "nextNodeId": "leadership_chain_gate",
             "nextState": "waiting_sync_approval",
-            "nextInteraction": "leadershipApproval"
+            "nextInteraction": "leadershipApproval",
+            "routeKey": "resubmitted"
           },
           {
             "outcome": "canceled",
             "eventType": "WorkflowCanceled",
             "nextNodeId": "canceled",
-            "nextState": "canceled"
+            "nextState": "canceled",
+            "routeKey": "canceled"
           }
         ]
       },
@@ -498,11 +640,10 @@
         "interaction": "readyToExecute",
         "outcomes": [
           {
-            "outcome": "executed",
-            "eventType": "HeadcountRequisitionExecuted",
-            "nextNodeId": "completed",
-            "nextState": "executed",
-            "nextInteraction": "completedSummary"
+            "outcome": "execute_requested",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "plan_headcount_execution",
+            "routeKey": "execute_requested"
           }
         ]
       },
@@ -519,11 +660,399 @@
         "state": "canceled"
       },
       {
+        "nodeId": "plan_headcount_execution",
+        "type": "transaction_plan",
+        "title": "Plan headcount requisition execution",
+        "block": {
+          "name": "system.position.headcount.execute",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {},
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "sync_headcount_hris",
+            "routeKey": "planned"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_headcount_hris",
+        "type": "external_write",
+        "title": "Queue headcount HRIS position creation",
+        "connectionId": "hris",
+        "operation": "createPosition",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "headcount_hris.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "manual_repair",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "repair",
+              "nextState": "waiting_approval_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          },
+          "idempotencyKeyPath": "transactionPlan.idempotencyKey"
+        },
+        "outcomes": [
+          {
+            "outcome": "requested",
+            "eventType": "ExternalWriteRequested",
+            "nextNodeId": "record_headcount_execution",
+            "routeKey": "requested"
+          },
+          {
+            "outcome": "retryable_failure",
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "repair",
+            "nextState": "waiting_approval_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "repair",
+            "routeKey": "retryable_failure"
+          }
+        ]
+      },
+      {
+        "nodeId": "record_headcount_execution",
+        "type": "ledger_event",
+        "title": "Record headcount requisition execution",
+        "outcomes": [
+          {
+            "outcome": "recorded",
+            "eventType": "HeadcountRequisitionExecuted",
+            "nextNodeId": "completed",
+            "nextState": "executed",
+            "nextStatus": "completed",
+            "nextInteraction": "completedSummary",
+            "routeKey": "recorded"
+          }
+        ]
+      },
+      {
+        "nodeId": "failed",
+        "type": "terminal",
+        "title": "Headcount requisition execution failed",
+        "state": "failed"
+      },
+      {
         "nodeId": "completed",
         "type": "terminal",
         "title": "Completed",
         "state": "executed",
         "interaction": "completedSummary"
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "headcount_intake.submitted",
+        "fromNodeId": "headcount_intake",
+        "routeKey": "submitted",
+        "toNodeId": "leadership_chain_gate",
+        "eventType": "HeadcountRequisitionSubmitted",
+        "nextState": "waiting_sync_approval",
+        "nextInteraction": "leadershipApproval"
+      },
+      {
+        "edgeId": "leadership_chain_gate.gate_passed",
+        "fromNodeId": "leadership_chain_gate",
+        "routeKey": "gate_passed",
+        "toNodeId": "cross_functional_gate",
+        "eventType": "ApprovalGatePassed",
+        "nextState": "waiting_async_approval",
+        "nextInteraction": "crossFunctionalApproval"
+      },
+      {
+        "edgeId": "leadership_chain_gate.gate_failed",
+        "fromNodeId": "leadership_chain_gate",
+        "routeKey": "gate_failed",
+        "toNodeId": "gate_failed",
+        "eventType": "ApprovalGateFailed",
+        "nextState": "approval_gate_failed"
+      },
+      {
+        "edgeId": "leadership_chain_gate.request_more_info",
+        "fromNodeId": "leadership_chain_gate",
+        "routeKey": "request_more_info",
+        "toNodeId": "repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_approval_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "cross_functional_gate.gate_passed",
+        "fromNodeId": "cross_functional_gate",
+        "routeKey": "gate_passed",
+        "toNodeId": "ready_to_execute",
+        "eventType": "ApprovalGatePassed",
+        "nextState": "approved",
+        "nextInteraction": "readyToExecute"
+      },
+      {
+        "edgeId": "cross_functional_gate.gate_failed",
+        "fromNodeId": "cross_functional_gate",
+        "routeKey": "gate_failed",
+        "toNodeId": "gate_failed",
+        "eventType": "ApprovalGateFailed",
+        "nextState": "approval_gate_failed"
+      },
+      {
+        "edgeId": "cross_functional_gate.request_more_info",
+        "fromNodeId": "cross_functional_gate",
+        "routeKey": "request_more_info",
+        "toNodeId": "repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_approval_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "repair.resubmitted",
+        "fromNodeId": "repair",
+        "routeKey": "resubmitted",
+        "toNodeId": "leadership_chain_gate",
+        "eventType": "HeadcountRequisitionSubmitted",
+        "nextState": "waiting_sync_approval",
+        "nextInteraction": "leadershipApproval"
+      },
+      {
+        "edgeId": "repair.canceled",
+        "fromNodeId": "repair",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "eventType": "WorkflowCanceled",
+        "nextState": "canceled"
+      },
+      {
+        "edgeId": "ready_to_execute.execute_requested",
+        "fromNodeId": "ready_to_execute",
+        "routeKey": "execute_requested",
+        "toNodeId": "plan_headcount_execution",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_headcount_execution.planned",
+        "fromNodeId": "plan_headcount_execution",
+        "routeKey": "planned",
+        "toNodeId": "sync_headcount_hris",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_headcount_execution.failed",
+        "fromNodeId": "plan_headcount_execution",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "sync_headcount_hris.requested",
+        "fromNodeId": "sync_headcount_hris",
+        "routeKey": "requested",
+        "toNodeId": "record_headcount_execution",
+        "eventType": "ExternalWriteRequested"
+      },
+      {
+        "edgeId": "sync_headcount_hris.retryable_failure",
+        "fromNodeId": "sync_headcount_hris",
+        "routeKey": "retryable_failure",
+        "toNodeId": "repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_approval_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "record_headcount_execution.recorded",
+        "fromNodeId": "record_headcount_execution",
+        "routeKey": "recorded",
+        "toNodeId": "completed",
+        "eventType": "HeadcountRequisitionExecuted",
+        "nextState": "executed",
+        "nextStatus": "completed",
+        "nextInteraction": "completedSummary"
+      }
+    ]
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "retry_then_repair",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "HeadcountRequisitionSubmitted": {
+        "eventType": "HeadcountRequisitionSubmitted",
+        "source": "runtime"
+      },
+      "ApprovalGateOpened": {
+        "eventType": "ApprovalGateOpened",
+        "source": "runtime"
+      },
+      "ApprovalGateTaskCreated": {
+        "eventType": "ApprovalGateTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGateTaskDecided": {
+        "eventType": "ApprovalGateTaskDecided",
+        "source": "runtime"
+      },
+      "ApprovalGatePassed": {
+        "eventType": "ApprovalGatePassed",
+        "source": "runtime"
+      },
+      "ApprovalGateFailed": {
+        "eventType": "ApprovalGateFailed",
+        "source": "runtime"
+      },
+      "ApprovalGateTaskCanceled": {
+        "eventType": "ApprovalGateTaskCanceled",
+        "source": "runtime"
+      },
+      "HeadcountRequisitionApproved": {
+        "eventType": "HeadcountRequisitionApproved",
+        "source": "runtime"
+      },
+      "HeadcountRequisitionRejected": {
+        "eventType": "HeadcountRequisitionRejected",
+        "source": "runtime"
+      },
+      "HeadcountRequisitionExecuted": {
+        "eventType": "HeadcountRequisitionExecuted",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "HeadcountRequisitionSubmitted",
+        "source": "node",
+        "nodeId": "headcount_intake",
+        "routeKey": "submitted"
+      },
+      {
+        "eventType": "ApprovalGatePassed",
+        "source": "approval_gate",
+        "nodeId": "leadership_chain_gate",
+        "routeKey": "gate_passed"
+      },
+      {
+        "eventType": "ApprovalGateFailed",
+        "source": "approval_gate",
+        "nodeId": "leadership_chain_gate",
+        "routeKey": "gate_failed"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "approval_gate",
+        "nodeId": "leadership_chain_gate",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "ApprovalGatePassed",
+        "source": "approval_gate",
+        "nodeId": "cross_functional_gate",
+        "routeKey": "gate_passed"
+      },
+      {
+        "eventType": "ApprovalGateFailed",
+        "source": "approval_gate",
+        "nodeId": "cross_functional_gate",
+        "routeKey": "gate_failed"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "approval_gate",
+        "nodeId": "cross_functional_gate",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "HeadcountRequisitionSubmitted",
+        "source": "node",
+        "nodeId": "repair",
+        "routeKey": "resubmitted"
+      },
+      {
+        "eventType": "WorkflowCanceled",
+        "source": "node",
+        "nodeId": "repair",
+        "routeKey": "canceled"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "node",
+        "nodeId": "ready_to_execute",
+        "routeKey": "execute_requested"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_headcount_execution",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "block",
+        "nodeId": "plan_headcount_execution",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "ExternalWriteRequested",
+        "source": "node",
+        "nodeId": "sync_headcount_hris",
+        "routeKey": "requested"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_headcount_hris",
+        "routeKey": "retryable_failure"
+      },
+      {
+        "eventType": "HeadcountRequisitionExecuted",
+        "source": "node",
+        "nodeId": "record_headcount_execution",
+        "routeKey": "recorded"
       }
     ]
   },

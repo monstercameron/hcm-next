@@ -17,7 +17,6 @@ import type {
 } from "@hcm-next/data-store";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
-import type { ExternalWriteExecution, ExternalWriteExecutionResult } from "./types.js";
 import { objectField, stringField, valueAtDotPath } from "../shared/json-fields.js";
 import {
   buildConfiguredInteraction,
@@ -29,11 +28,10 @@ import {
   appendAdditionalWorkflowEvents,
   appendTransitionLedgerEvents,
 } from "../shared/workflow-ledger-events.js";
-
-const compensationDecisionConnectionId = "third_party_compensation_decision";
+import type { ExternalWriteExecution, ExternalWriteExecutionResult } from "./types.js";
 
 /**
- * Executes synchronous external writes that must route the workflow immediately.
+ * Executes configured synchronous external writes that can route the workflow.
  */
 export async function executeSynchronousExternalWrites(
   dependencies: AppDependencies,
@@ -49,40 +47,41 @@ export async function executeSynchronousExternalWrites(
 
   for (const externalWrite of transactionPlan.externalWrites) {
     const connectionId = stringField(externalWrite, "connectionId");
+    const operation = stringField(externalWrite, "operation") ?? "unknown";
+    const externalClient =
+      connectionId === undefined
+        ? undefined
+        : dependencies.externalWriteClients?.[connectionId];
 
-    if (connectionId !== compensationDecisionConnectionId) {
+    if (connectionId === undefined || externalClient === undefined) {
       continue;
     }
 
-    const compensationDecisionClient = dependencies.compensationDecisionClient;
-    const operation = stringField(externalWrite, "operation") ?? "unknown";
     const requestPayload = objectField(externalWrite, "payload");
     const graphNodeResult = findExternalWriteGraphNode(workflowConfig, externalWrite);
     const externalIdempotencyKey =
       stringField(externalWrite, "idempotencyKey") ??
-      `${compensationDecisionConnectionId}_${transactionPlan.transactionPlanId}`;
+      `${connectionId}_${transactionPlan.transactionPlanId}`;
 
     if (!graphNodeResult.ok) {
       return graphNodeResult;
     }
 
-    if (compensationDecisionClient === undefined || requestPayload === undefined) {
+    if (requestPayload === undefined) {
       return err(
         validationFailedError({
           connectionId,
           operation,
-          compensationDecisionClient:
-            compensationDecisionClient === undefined ? "missing" : "configured",
-          requestPayload: requestPayload === undefined ? "missing" : "present",
+          requestPayload: "missing",
         }),
       );
     }
 
-    const decisionResult = await compensationDecisionClient.submitCompensationChange(
+    const externalWriteResult = await externalClient.submit(
       requestPayload,
       externalIdempotencyKey,
     );
-    if (!decisionResult.ok) {
+    if (!externalWriteResult.ok) {
       const failureLedgerResult = appendExternalWriteFailedEvent(
         repositories,
         requestContext,
@@ -92,33 +91,25 @@ export async function executeSynchronousExternalWrites(
         {
           connectionId,
           operation,
-          error: decisionResult.error.details ?? {},
+          error: externalWriteResult.error.details ?? {},
         },
       );
       if (!failureLedgerResult.ok) {
         return failureLedgerResult;
       }
 
-      return decisionResult;
+      return externalWriteResult;
     }
 
     const outcomeResult = selectExternalWriteOutcome(
       graphNodeResult.value,
-      decisionResult.value.rawResponse,
+      externalWriteResult.value.rawResponse,
     );
     if (!outcomeResult.ok) {
       return outcomeResult;
     }
 
     if (isTerminalExternalFailureOutcome(outcomeResult.value)) {
-      const failurePayload = {
-        connectionId,
-        operation,
-        response: decisionResult.value.rawResponse,
-        reasonCodes: decisionResult.value.reasonCodes,
-        outcome: outcomeResult.value.outcome,
-        nodeId: graphNodeResult.value.nodeId,
-      };
       const routedWorkflowResult = routeExternalWriteOutcome(
         repositories,
         requestContext,
@@ -128,7 +119,14 @@ export async function executeSynchronousExternalWrites(
         transactionPlan,
         idempotencyKey,
         outcomeResult.value,
-        failurePayload,
+        {
+          connectionId,
+          operation,
+          response: externalWriteResult.value.rawResponse,
+          reasonCodes: externalWriteResult.value.reasonCodes ?? [],
+          outcome: outcomeResult.value.outcome,
+          nodeId: graphNodeResult.value.nodeId,
+        },
       );
       if (!routedWorkflowResult.ok) {
         return routedWorkflowResult;
@@ -152,7 +150,7 @@ export async function executeSynchronousExternalWrites(
         ? { nextNodeId: outcomeResult.value.nextNodeId }
         : {}),
       requestPayload,
-      responsePayload: decisionResult.value.rawResponse,
+      responsePayload: externalWriteResult.value.rawResponse,
     });
   }
 

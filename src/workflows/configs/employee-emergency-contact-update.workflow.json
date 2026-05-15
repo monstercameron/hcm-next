@@ -1,7 +1,36 @@
 {
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Employee emergency contact update",
+    "description": "Self-service emergency contact update with HR approval and deterministic HRIS transaction planning.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_emergency_contact_update"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.emergency_contact.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.emergency_contact.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "employee.emergency_contact.update",
   "subjectType": "worker",
   "selfServiceStart": true,
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "waiting_approval": "waitingApproval",
+      "approved": "readyToExecute"
+    }
+  },
   "interactions": {
     "input": {
       "type": "form",
@@ -21,8 +50,13 @@
             "type": "object",
             "required": ["name", "relationship", "phone", "priority"],
             "properties": {
-              "contactId": { "type": "string" },
-              "name": { "type": "string", "minLength": 1 },
+              "contactId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
               "relationship": {
                 "type": "string",
                 "enum": [
@@ -35,12 +69,23 @@
                   "other"
                 ]
               },
-              "phone": { "type": "string", "minLength": 7 },
-              "email": { "type": ["string", "null"] },
-              "priority": { "type": "number", "minimum": 1 }
+              "phone": {
+                "type": "string",
+                "minLength": 7
+              },
+              "email": {
+                "type": ["string", "null"]
+              },
+              "priority": {
+                "type": "number",
+                "minimum": 1
+              }
             }
           },
-          "effectiveAt": { "type": "string", "format": "date" },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
           "businessReason": {
             "type": "string",
             "enum": ["employee_self_service", "correction", "annual_review", "other"]
@@ -117,7 +162,8 @@
   "submit": {
     "preflightBlock": {
       "name": "system.employee_data.emergency_contact.preflight",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {
       "currentEmergencyContacts": {
@@ -128,25 +174,49 @@
         "$source": "input",
         "path": "proposedEmergencyContact"
       },
-      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-      "businessReason": { "$source": "input", "path": "businessReason" }
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
     },
-    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-    "businessReason": { "$source": "input", "path": "businessReason" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
     "changeRequestStatus": "in_approval",
     "markSubmitted": true,
     "createApprovalTask": true,
     "currentSnapshot": {
-      "emergencyContacts": { "$source": "employee", "path": "emergencyContacts" }
+      "emergencyContacts": {
+        "$source": "employee",
+        "path": "emergencyContacts"
+      }
     },
     "proposedSnapshot": {
-      "emergencyContact": { "$source": "input", "path": "proposedEmergencyContact" }
+      "emergencyContact": {
+        "$source": "input",
+        "path": "proposedEmergencyContact"
+      }
     },
     "proposedChange": {
       "targetObjectType": "worker",
-      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "fieldPathTemplate": "emergencyContacts.${proposedEmergencyContact.contactId}",
-      "currentValue": { "$source": "employee", "path": "emergencyContacts" },
+      "currentValue": {
+        "$source": "employee",
+        "path": "emergencyContacts"
+      },
       "proposedValue": {
         "$source": "input",
         "path": "proposedEmergencyContact"
@@ -167,11 +237,18 @@
   "plan": {
     "block": {
       "name": "system.employee_data.emergency_contact.plan_transaction",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {
-      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
-      "workerId": { "$source": "workflow", "path": "subjectId" },
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "currentEmergencyContacts": {
         "$source": "employee",
         "path": "emergencyContacts"
@@ -180,8 +257,566 @@
         "$source": "proposedChange",
         "path": "proposedValue"
       },
-      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" }
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      }
     }
+  },
+  "graph": {
+    "startNodeId": "collect_emergency_contact_input",
+    "metadata": {
+      "executionModel": "generic_graph",
+      "compatibility": "legacy_submit_approval_execute"
+    },
+    "nodes": [
+      {
+        "nodeId": "collect_emergency_contact_input",
+        "type": "interaction",
+        "title": "Collect emergency contact update input",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "ChangeRequestCreated",
+            "nextNodeId": "emergency_contact_preflight",
+            "routeKey": "submitted"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "emergency_contact_preflight",
+        "type": "block",
+        "title": "Run emergency contact update preflight",
+        "block": {
+          "name": "system.employee_data.emergency_contact.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "currentEmergencyContacts": {
+            "$source": "employee",
+            "path": "emergencyContacts"
+          },
+          "proposedEmergencyContact": {
+            "$source": "input",
+            "path": "proposedEmergencyContact"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "eventType": "EmergencyContactPreflighted",
+            "nextNodeId": "hr_emergency_contact_approval",
+            "nextState": "waiting_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "waitingApproval",
+            "routeKey": "valid"
+          },
+          {
+            "outcome": "invalid",
+            "eventType": "EmergencyContactPreflighted",
+            "nextNodeId": "collect_emergency_contact_input",
+            "nextState": "collecting_input",
+            "nextStatus": "active",
+            "nextInteraction": "input",
+            "routeKey": "invalid"
+          }
+        ]
+      },
+      {
+        "nodeId": "hr_emergency_contact_approval",
+        "type": "approval",
+        "title": "HR emergency contact update approval",
+        "state": "waiting_approval",
+        "interaction": "waitingApproval",
+        "approval": {
+          "taskKey": "hr_emergency_contact_review",
+          "approvalType": "hr_emergency_contact_review",
+          "interaction": "waitingApproval",
+          "resolver": {
+            "type": "role",
+            "role": "hr_admin",
+            "permission": "employee_data_change.emergency_contact.approve"
+          },
+          "decisionSchema": {
+            "approve": {
+              "required": []
+            },
+            "reject": {
+              "required": ["reason"]
+            },
+            "requestMoreInfo": {
+              "required": ["reason"]
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "plan_emergency_contact_transaction",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "nextInteraction": "readyToExecute",
+            "routeKey": "approved"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_emergency_contact_transaction",
+        "type": "transaction_plan",
+        "title": "Plan emergency contact update transaction",
+        "block": {
+          "name": "system.employee_data.emergency_contact.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "currentEmergencyContacts": {
+            "$source": "employee",
+            "path": "emergencyContacts"
+          },
+          "proposedEmergencyContact": {
+            "$source": "proposedChange",
+            "path": "proposedValue"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "apply_emergency_contact_projection",
+            "routeKey": "planned"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_emergency_contact_projection",
+        "type": "projection_write",
+        "title": "Apply emergency contact update projection",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "emergency_contact_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "EmployeeEmergencyContactUpdated",
+            "nextNodeId": "record_emergency_contact_projection_update",
+            "routeKey": "applied"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "record_emergency_contact_projection_update",
+        "type": "ledger_event",
+        "title": "Record employee projection update",
+        "outcomes": [
+          {
+            "outcome": "recorded",
+            "eventType": "EmployeeProjectionUpdated",
+            "nextNodeId": "sync_emergency_contact_hris",
+            "routeKey": "recorded"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_emergency_contact_hris",
+        "type": "external_write",
+        "title": "Queue emergency contact update HRIS sync",
+        "connectionId": "fake_hris",
+        "operation": "updateEmergencyContacts",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "emergency_contact_hris.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "manual_repair",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          },
+          "idempotencyKeyPath": "transactionPlan.idempotencyKey"
+        },
+        "outcomes": [
+          {
+            "outcome": "requested",
+            "eventType": "ExternalWriteRequested",
+            "nextNodeId": "completed",
+            "routeKey": "requested"
+          },
+          {
+            "outcome": "retryable_failure",
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "retryable_failure"
+          }
+        ]
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Emergency contact update workflow completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "rejected",
+        "type": "terminal",
+        "title": "Emergency contact update workflow rejected",
+        "state": "rejected"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Emergency contact update workflow canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "failed",
+        "type": "terminal",
+        "title": "Emergency contact update workflow failed",
+        "state": "failed"
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "collect_emergency_contact_input.submitted",
+        "fromNodeId": "collect_emergency_contact_input",
+        "routeKey": "submitted",
+        "toNodeId": "emergency_contact_preflight",
+        "eventType": "ChangeRequestCreated"
+      },
+      {
+        "edgeId": "collect_emergency_contact_input.canceled",
+        "fromNodeId": "collect_emergency_contact_input",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "eventType": "WorkflowCanceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "emergency_contact_preflight.valid",
+        "fromNodeId": "emergency_contact_preflight",
+        "routeKey": "valid",
+        "toNodeId": "hr_emergency_contact_approval",
+        "eventType": "EmergencyContactPreflighted",
+        "nextState": "waiting_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "waitingApproval"
+      },
+      {
+        "edgeId": "emergency_contact_preflight.invalid",
+        "fromNodeId": "emergency_contact_preflight",
+        "routeKey": "invalid",
+        "toNodeId": "collect_emergency_contact_input",
+        "eventType": "EmergencyContactPreflighted",
+        "nextState": "collecting_input",
+        "nextStatus": "active",
+        "nextInteraction": "input"
+      },
+      {
+        "edgeId": "hr_emergency_contact_approval.approved",
+        "fromNodeId": "hr_emergency_contact_approval",
+        "routeKey": "approved",
+        "toNodeId": "plan_emergency_contact_transaction",
+        "eventType": "ApprovalGranted",
+        "nextState": "approved",
+        "nextStatus": "active",
+        "nextInteraction": "readyToExecute"
+      },
+      {
+        "edgeId": "hr_emergency_contact_approval.rejected",
+        "fromNodeId": "hr_emergency_contact_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "plan_emergency_contact_transaction.planned",
+        "fromNodeId": "plan_emergency_contact_transaction",
+        "routeKey": "planned",
+        "toNodeId": "apply_emergency_contact_projection",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_emergency_contact_transaction.failed",
+        "fromNodeId": "plan_emergency_contact_transaction",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "apply_emergency_contact_projection.applied",
+        "fromNodeId": "apply_emergency_contact_projection",
+        "routeKey": "applied",
+        "toNodeId": "record_emergency_contact_projection_update",
+        "eventType": "EmployeeEmergencyContactUpdated"
+      },
+      {
+        "edgeId": "apply_emergency_contact_projection.failed",
+        "fromNodeId": "apply_emergency_contact_projection",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "record_emergency_contact_projection_update.recorded",
+        "fromNodeId": "record_emergency_contact_projection_update",
+        "routeKey": "recorded",
+        "toNodeId": "sync_emergency_contact_hris",
+        "eventType": "EmployeeProjectionUpdated"
+      },
+      {
+        "edgeId": "sync_emergency_contact_hris.requested",
+        "fromNodeId": "sync_emergency_contact_hris",
+        "routeKey": "requested",
+        "toNodeId": "completed",
+        "eventType": "ExternalWriteRequested"
+      },
+      {
+        "edgeId": "sync_emergency_contact_hris.retryable_failure",
+        "fromNodeId": "sync_emergency_contact_hris",
+        "routeKey": "retryable_failure",
+        "toNodeId": "failed",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      }
+    ]
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "compensate_then_fail",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "EmergencyContactPreflighted": {
+        "eventType": "EmergencyContactPreflighted",
+        "source": "runtime"
+      },
+      "ApprovalTaskCreated": {
+        "eventType": "ApprovalTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "EmployeeEmergencyContactUpdated": {
+        "eventType": "EmployeeEmergencyContactUpdated",
+        "source": "runtime"
+      },
+      "ExternalWriteRequested": {
+        "eventType": "ExternalWriteRequested",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "ChangeRequestCreated",
+        "source": "node",
+        "nodeId": "collect_emergency_contact_input",
+        "routeKey": "submitted"
+      },
+      {
+        "eventType": "WorkflowCanceled",
+        "source": "node",
+        "nodeId": "collect_emergency_contact_input",
+        "routeKey": "canceled"
+      },
+      {
+        "eventType": "EmergencyContactPreflighted",
+        "source": "block",
+        "nodeId": "emergency_contact_preflight",
+        "routeKey": "valid"
+      },
+      {
+        "eventType": "EmergencyContactPreflighted",
+        "source": "block",
+        "nodeId": "emergency_contact_preflight",
+        "routeKey": "invalid"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "hr_emergency_contact_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "hr_emergency_contact_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_emergency_contact_transaction",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "block",
+        "nodeId": "plan_emergency_contact_transaction",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeEmergencyContactUpdated",
+        "source": "node",
+        "nodeId": "apply_emergency_contact_projection",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "apply_emergency_contact_projection",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeProjectionUpdated",
+        "source": "node",
+        "nodeId": "record_emergency_contact_projection_update",
+        "routeKey": "recorded"
+      },
+      {
+        "eventType": "ExternalWriteRequested",
+        "source": "node",
+        "nodeId": "sync_emergency_contact_hris",
+        "routeKey": "requested"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_emergency_contact_hris",
+        "routeKey": "retryable_failure"
+      }
+    ]
   },
   "projection": {
     "allowedPatchPaths": ["/emergencyContacts"]

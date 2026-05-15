@@ -7,6 +7,7 @@ import {
   type AppError,
   type Result,
 } from "@hcm-next/foundation";
+import type { ExternalWriteClient } from "./external-write-client.js";
 
 export type CompensationDecisionResponse = {
   providerDecisionId: string;
@@ -88,6 +89,33 @@ export function createHttpCompensationDecisionClient(
       }
 
       return parseCompensationDecisionResponse(bodyResult.value);
+    },
+  };
+}
+
+/**
+ * Adapts the demo compensation decision client to the generic external-write
+ * client contract used by the workflow runtime.
+ */
+export function createCompensationDecisionExternalWriteClient(
+  baseUrl: string,
+): ExternalWriteClient {
+  const compensationDecisionClient = createHttpCompensationDecisionClient(baseUrl);
+
+  return {
+    async submit(payload, idempotencyKey) {
+      const decisionResult = await compensationDecisionClient.submitCompensationChange(
+        payload,
+        idempotencyKey,
+      );
+      if (!decisionResult.ok) {
+        return decisionResult;
+      }
+
+      return ok({
+        rawResponse: decisionResult.value.rawResponse,
+        reasonCodes: decisionResult.value.reasonCodes,
+      });
     },
   };
 }

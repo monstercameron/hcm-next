@@ -3,16 +3,14 @@ import {
   createSeededDemoStore,
   type Repositories,
 } from "@hcm-next/data-store";
-import {
-  createHttpCompensationDecisionClient,
-  type CompensationDecisionClient,
-} from "./compensation-decision-client.js";
+import { createCompensationDecisionExternalWriteClient } from "./compensation-decision-client.js";
 import { createHttpExecutorClient, type ExecutorClient } from "./executor-client.js";
+import type { ExternalWriteClient } from "./external-write-client.js";
 
 export type AppDependencies = {
   repositories: Repositories;
   executorClient: ExecutorClient;
-  compensationDecisionClient?: CompensationDecisionClient;
+  externalWriteClients?: Record<string, ExternalWriteClient>;
 };
 
 export function createDefaultDependencies(): AppDependencies {
@@ -24,8 +22,10 @@ export function createDefaultDependencies(): AppDependencies {
   return {
     repositories: createRepositories(store),
     executorClient: createHttpExecutorClient(executorUrl),
-    compensationDecisionClient: createHttpCompensationDecisionClient(
-      compensationDecisionUrl,
-    ),
+    externalWriteClients: {
+      third_party_compensation_decision: createCompensationDecisionExternalWriteClient(
+        compensationDecisionUrl,
+      ),
+    },
   };
 }

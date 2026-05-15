@@ -1,7 +1,37 @@
 {
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Employee legal name change",
+    "description": "Self-service legal name change with HR evidence review and deterministic HRIS transaction planning.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_legal_name_change"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.legal_name.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.legal_name.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "employee.legal_name.change",
   "subjectType": "worker",
   "selfServiceStart": true,
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "collecting_evidence": "evidence",
+      "waiting_approval": "waitingApproval",
+      "approved": "readyToExecute"
+    }
+  },
   "interactions": {
     "input": {
       "type": "form",
@@ -21,12 +51,23 @@
             "type": "object",
             "required": ["first", "last"],
             "properties": {
-              "first": { "type": "string", "minLength": 1 },
-              "middle": { "type": ["string", "null"] },
-              "last": { "type": "string", "minLength": 1 }
+              "first": {
+                "type": "string",
+                "minLength": 1
+              },
+              "middle": {
+                "type": ["string", "null"]
+              },
+              "last": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
-          "effectiveAt": { "type": "string", "format": "date" },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
           "businessReason": {
             "type": "string",
             "enum": ["marriage", "divorce", "legal_name_change", "correction", "other"]
@@ -142,29 +183,63 @@
   "submit": {
     "preflightBlock": {
       "name": "system.employee_data.legal_name.preflight",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {
-      "currentLegalName": { "$source": "employee", "path": "person.legalName" },
-      "proposedLegalName": { "$source": "input", "path": "newLegalName" },
-      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-      "businessReason": { "$source": "input", "path": "businessReason" }
+      "currentLegalName": {
+        "$source": "employee",
+        "path": "person.legalName"
+      },
+      "proposedLegalName": {
+        "$source": "input",
+        "path": "newLegalName"
+      },
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
     },
-    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-    "businessReason": { "$source": "input", "path": "businessReason" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
     "changeRequestStatus": "preflighted",
     "currentSnapshot": {
-      "legalName": { "$source": "employee", "path": "person.legalName" }
+      "legalName": {
+        "$source": "employee",
+        "path": "person.legalName"
+      }
     },
     "proposedSnapshot": {
-      "legalName": { "$source": "input", "path": "newLegalName" }
+      "legalName": {
+        "$source": "input",
+        "path": "newLegalName"
+      }
     },
     "proposedChange": {
       "targetObjectType": "person",
-      "targetObjectId": { "$source": "employee", "path": "person.personId" },
+      "targetObjectId": {
+        "$source": "employee",
+        "path": "person.personId"
+      },
       "fieldPath": "person.legalName",
-      "currentValue": { "$source": "employee", "path": "person.legalName" },
-      "proposedValue": { "$source": "input", "path": "newLegalName" }
+      "currentValue": {
+        "$source": "employee",
+        "path": "person.legalName"
+      },
+      "proposedValue": {
+        "$source": "input",
+        "path": "newLegalName"
+      }
     },
     "additionalEvents": [
       "ProposedChangeCreated",
@@ -180,16 +255,680 @@
   "plan": {
     "block": {
       "name": "system.employee_data.legal_name.plan_transaction",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {
-      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
-      "workerId": { "$source": "workflow", "path": "subjectId" },
-      "personId": { "$source": "employee", "path": "person.personId" },
-      "currentLegalName": { "$source": "employee", "path": "person.legalName" },
-      "proposedLegalName": { "$source": "proposedChange", "path": "proposedValue" },
-      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" }
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "personId": {
+        "$source": "employee",
+        "path": "person.personId"
+      },
+      "currentLegalName": {
+        "$source": "employee",
+        "path": "person.legalName"
+      },
+      "proposedLegalName": {
+        "$source": "proposedChange",
+        "path": "proposedValue"
+      },
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      }
     }
+  },
+  "graph": {
+    "startNodeId": "collect_legal_name_input",
+    "metadata": {
+      "executionModel": "generic_graph",
+      "compatibility": "legacy_submit_evidence_approval_execute"
+    },
+    "nodes": [
+      {
+        "nodeId": "collect_legal_name_input",
+        "type": "interaction",
+        "title": "Collect legal name input",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "ChangeRequestCreated",
+            "nextNodeId": "legal_name_preflight",
+            "routeKey": "submitted"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "legal_name_preflight",
+        "type": "block",
+        "title": "Run legal name preflight",
+        "block": {
+          "name": "system.employee_data.legal_name.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "currentLegalName": {
+            "$source": "employee",
+            "path": "person.legalName"
+          },
+          "proposedLegalName": {
+            "$source": "input",
+            "path": "newLegalName"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "eventType": "NameChangePreflighted",
+            "nextNodeId": "collect_legal_name_evidence",
+            "nextState": "collecting_evidence",
+            "nextStatus": "active",
+            "nextInteraction": "evidence",
+            "routeKey": "valid"
+          },
+          {
+            "outcome": "invalid",
+            "eventType": "NameChangePreflighted",
+            "nextNodeId": "collect_legal_name_input",
+            "nextState": "collecting_input",
+            "nextStatus": "active",
+            "nextInteraction": "input",
+            "routeKey": "invalid"
+          }
+        ]
+      },
+      {
+        "nodeId": "collect_legal_name_evidence",
+        "type": "interaction",
+        "title": "Collect legal name evidence",
+        "state": "collecting_evidence",
+        "interaction": "evidence",
+        "outcomes": [
+          {
+            "outcome": "provided",
+            "eventType": "EvidenceProvided",
+            "nextNodeId": "hr_legal_name_approval",
+            "nextState": "waiting_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "waitingApproval",
+            "routeKey": "provided"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "hr_legal_name_approval",
+        "type": "approval",
+        "title": "HR legal name approval",
+        "state": "waiting_approval",
+        "interaction": "waitingApproval",
+        "approval": {
+          "taskKey": "hr_legal_name_review",
+          "approvalType": "hr_legal_name_review",
+          "interaction": "waitingApproval",
+          "resolver": {
+            "type": "role",
+            "role": "hr_admin",
+            "permission": "employee_data_change.legal_name.approve"
+          },
+          "decisionSchema": {
+            "approve": {
+              "required": []
+            },
+            "reject": {
+              "required": ["reason"]
+            },
+            "requestMoreInfo": {
+              "required": ["reason"]
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "plan_legal_name_transaction",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "nextInteraction": "readyToExecute",
+            "routeKey": "approved"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
+          },
+          {
+            "outcome": "request_more_info",
+            "eventType": "MoreInformationRequested",
+            "nextNodeId": "collect_legal_name_evidence",
+            "nextState": "collecting_evidence",
+            "nextStatus": "active",
+            "nextInteraction": "evidence",
+            "routeKey": "request_more_info"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_legal_name_transaction",
+        "type": "transaction_plan",
+        "title": "Plan legal name transaction",
+        "block": {
+          "name": "system.employee_data.legal_name.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "personId": {
+            "$source": "employee",
+            "path": "person.personId"
+          },
+          "currentLegalName": {
+            "$source": "employee",
+            "path": "person.legalName"
+          },
+          "proposedLegalName": {
+            "$source": "proposedChange",
+            "path": "proposedValue"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "apply_legal_name_projection",
+            "routeKey": "planned"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_legal_name_projection",
+        "type": "projection_write",
+        "title": "Apply legal name projection",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "legal_name_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "PersonLegalNameChanged",
+            "nextNodeId": "record_legal_name_projection_update",
+            "routeKey": "applied"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "record_legal_name_projection_update",
+        "type": "ledger_event",
+        "title": "Record employee projection update",
+        "outcomes": [
+          {
+            "outcome": "recorded",
+            "eventType": "EmployeeProjectionUpdated",
+            "nextNodeId": "sync_legal_name_hris",
+            "routeKey": "recorded"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_legal_name_hris",
+        "type": "external_write",
+        "title": "Queue legal name HRIS sync",
+        "connectionId": "fake_hris",
+        "operation": "updateLegalName",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "legal_name_hris.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "manual_repair",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          },
+          "idempotencyKeyPath": "transactionPlan.idempotencyKey"
+        },
+        "outcomes": [
+          {
+            "outcome": "requested",
+            "eventType": "ExternalWriteRequested",
+            "nextNodeId": "completed",
+            "routeKey": "requested"
+          },
+          {
+            "outcome": "retryable_failure",
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "retryable_failure"
+          }
+        ]
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Legal name change workflow completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "rejected",
+        "type": "terminal",
+        "title": "Legal name change workflow rejected",
+        "state": "rejected"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Legal name change workflow canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "failed",
+        "type": "terminal",
+        "title": "Legal name change workflow failed",
+        "state": "failed"
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "collect_legal_name_input.submitted",
+        "fromNodeId": "collect_legal_name_input",
+        "routeKey": "submitted",
+        "toNodeId": "legal_name_preflight",
+        "eventType": "ChangeRequestCreated"
+      },
+      {
+        "edgeId": "collect_legal_name_input.canceled",
+        "fromNodeId": "collect_legal_name_input",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "eventType": "WorkflowCanceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "legal_name_preflight.valid",
+        "fromNodeId": "legal_name_preflight",
+        "routeKey": "valid",
+        "toNodeId": "collect_legal_name_evidence",
+        "eventType": "NameChangePreflighted",
+        "nextState": "collecting_evidence",
+        "nextStatus": "active",
+        "nextInteraction": "evidence"
+      },
+      {
+        "edgeId": "legal_name_preflight.invalid",
+        "fromNodeId": "legal_name_preflight",
+        "routeKey": "invalid",
+        "toNodeId": "collect_legal_name_input",
+        "eventType": "NameChangePreflighted",
+        "nextState": "collecting_input",
+        "nextStatus": "active",
+        "nextInteraction": "input"
+      },
+      {
+        "edgeId": "collect_legal_name_evidence.provided",
+        "fromNodeId": "collect_legal_name_evidence",
+        "routeKey": "provided",
+        "toNodeId": "hr_legal_name_approval",
+        "eventType": "EvidenceProvided",
+        "nextState": "waiting_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "waitingApproval"
+      },
+      {
+        "edgeId": "collect_legal_name_evidence.canceled",
+        "fromNodeId": "collect_legal_name_evidence",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "eventType": "WorkflowCanceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "hr_legal_name_approval.approved",
+        "fromNodeId": "hr_legal_name_approval",
+        "routeKey": "approved",
+        "toNodeId": "plan_legal_name_transaction",
+        "eventType": "ApprovalGranted",
+        "nextState": "approved",
+        "nextStatus": "active",
+        "nextInteraction": "readyToExecute"
+      },
+      {
+        "edgeId": "hr_legal_name_approval.rejected",
+        "fromNodeId": "hr_legal_name_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "hr_legal_name_approval.request_more_info",
+        "fromNodeId": "hr_legal_name_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "collect_legal_name_evidence",
+        "eventType": "MoreInformationRequested",
+        "nextState": "collecting_evidence",
+        "nextStatus": "active",
+        "nextInteraction": "evidence"
+      },
+      {
+        "edgeId": "plan_legal_name_transaction.planned",
+        "fromNodeId": "plan_legal_name_transaction",
+        "routeKey": "planned",
+        "toNodeId": "apply_legal_name_projection",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_legal_name_transaction.failed",
+        "fromNodeId": "plan_legal_name_transaction",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "apply_legal_name_projection.applied",
+        "fromNodeId": "apply_legal_name_projection",
+        "routeKey": "applied",
+        "toNodeId": "record_legal_name_projection_update",
+        "eventType": "PersonLegalNameChanged"
+      },
+      {
+        "edgeId": "apply_legal_name_projection.failed",
+        "fromNodeId": "apply_legal_name_projection",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "record_legal_name_projection_update.recorded",
+        "fromNodeId": "record_legal_name_projection_update",
+        "routeKey": "recorded",
+        "toNodeId": "sync_legal_name_hris",
+        "eventType": "EmployeeProjectionUpdated"
+      },
+      {
+        "edgeId": "sync_legal_name_hris.requested",
+        "fromNodeId": "sync_legal_name_hris",
+        "routeKey": "requested",
+        "toNodeId": "completed",
+        "eventType": "ExternalWriteRequested"
+      },
+      {
+        "edgeId": "sync_legal_name_hris.retryable_failure",
+        "fromNodeId": "sync_legal_name_hris",
+        "routeKey": "retryable_failure",
+        "toNodeId": "failed",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      }
+    ]
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "compensate_then_fail",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "NameChangePreflighted": {
+        "eventType": "NameChangePreflighted",
+        "source": "runtime"
+      },
+      "EvidenceProvided": {
+        "eventType": "EvidenceProvided",
+        "source": "runtime"
+      },
+      "ApprovalTaskCreated": {
+        "eventType": "ApprovalTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "PersonLegalNameChanged": {
+        "eventType": "PersonLegalNameChanged",
+        "source": "runtime"
+      },
+      "ExternalWriteRequested": {
+        "eventType": "ExternalWriteRequested",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "ChangeRequestCreated",
+        "source": "node",
+        "nodeId": "collect_legal_name_input",
+        "routeKey": "submitted"
+      },
+      {
+        "eventType": "WorkflowCanceled",
+        "source": "node",
+        "nodeId": "collect_legal_name_input",
+        "routeKey": "canceled"
+      },
+      {
+        "eventType": "NameChangePreflighted",
+        "source": "block",
+        "nodeId": "legal_name_preflight",
+        "routeKey": "valid"
+      },
+      {
+        "eventType": "NameChangePreflighted",
+        "source": "block",
+        "nodeId": "legal_name_preflight",
+        "routeKey": "invalid"
+      },
+      {
+        "eventType": "EvidenceProvided",
+        "source": "node",
+        "nodeId": "collect_legal_name_evidence",
+        "routeKey": "provided"
+      },
+      {
+        "eventType": "WorkflowCanceled",
+        "source": "node",
+        "nodeId": "collect_legal_name_evidence",
+        "routeKey": "canceled"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "hr_legal_name_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "hr_legal_name_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "hr_legal_name_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_legal_name_transaction",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "block",
+        "nodeId": "plan_legal_name_transaction",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "PersonLegalNameChanged",
+        "source": "node",
+        "nodeId": "apply_legal_name_projection",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "apply_legal_name_projection",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeProjectionUpdated",
+        "source": "node",
+        "nodeId": "record_legal_name_projection_update",
+        "routeKey": "recorded"
+      },
+      {
+        "eventType": "ExternalWriteRequested",
+        "source": "node",
+        "nodeId": "sync_legal_name_hris",
+        "routeKey": "requested"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_legal_name_hris",
+        "routeKey": "retryable_failure"
+      }
+    ]
   },
   "projection": {
     "allowedPatchPaths": ["/person/legalName", "/person/displayName"]

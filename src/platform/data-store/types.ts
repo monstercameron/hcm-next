@@ -299,6 +299,8 @@ export type TransactionPlanRecord = {
   internalWrites: Record<string, unknown>[];
   projectionPatches: Record<string, unknown>[];
   externalWrites: Record<string, unknown>[];
+  assignmentOperations?: Record<string, unknown>[];
+  roleBindingOperations?: Record<string, unknown>[];
   rollbackPlan: Record<string, unknown>;
   compensationPlan: Record<string, unknown>;
   idempotencyKeys: Record<string, unknown>;

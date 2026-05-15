@@ -62,6 +62,7 @@ export type WorkflowActionHandler =
 export type WorkflowBlockReference = {
   name: string;
   version: string;
+  runtime?: "go";
 };
 
 export type WorkflowValueExpression = {
@@ -72,24 +73,42 @@ export type WorkflowValueExpression = {
     | "changeRequest"
     | "proposedChange"
     | "approvalTask"
+    | "approvalGate"
     | "transactionPlan"
     | "externalWriteResponse"
+    | "blockResult"
+    | "node"
+    | "ledger"
     | "actor"
     | "relationshipGraph"
-    | "tenantPolicy";
+    | "tenantPolicy"
+    | "secretRef"
+    | "environment";
   path: string;
 };
 
 export type WorkflowOutcomeConditionSource =
-  | "externalWriteResponse"
+  | WorkflowValueExpression["$source"]
   | "externalWriteError";
 
 export type WorkflowOutcomeCondition = {
   $source: WorkflowOutcomeConditionSource;
   path: string;
   equals?: unknown;
+  notEquals?: unknown;
   in?: unknown[];
+  notIn?: unknown[];
   exists?: boolean;
+};
+
+export type WorkflowMetadataConfig = {
+  schemaVersion?: string;
+  title?: string;
+  description?: string;
+  domain?: string;
+  owner?: string;
+  tags?: string[];
+  deterministicBlockRefs?: Record<string, WorkflowBlockReference>;
 };
 
 export type WorkflowInteractionConfig = Record<string, unknown> & {
@@ -142,6 +161,32 @@ export type WorkflowApprovalConfig = {
   assigneeActorId: string;
   assigneeRole: string;
   approvalType: string;
+};
+
+export type WorkflowApprovalResolverConfig = {
+  type:
+    | "actor"
+    | "role"
+    | "requester"
+    | "manager"
+    | "workflow_field"
+    | "approval_task_assignee";
+  actorId?: string;
+  role?: WorkflowActionActor | string;
+  fieldPath?: string;
+  permission?: string;
+};
+
+export type WorkflowApprovalNodeConfig = {
+  taskKey: string;
+  approvalType: string;
+  interaction?: string;
+  resolver: WorkflowApprovalResolverConfig;
+  decisionSchema?: {
+    approve?: Record<string, unknown>;
+    reject?: Record<string, unknown>;
+    requestMoreInfo?: Record<string, unknown>;
+  };
 };
 
 export type WorkflowApprovalGateMode = "sequential" | "parallel";
@@ -253,10 +298,131 @@ export type WorkflowPlanConfig = {
   input: Record<string, unknown>;
 };
 
+export type WorkflowRetryBackoff = "none" | "fixed" | "linear" | "exponential";
+
+export type WorkflowRetryPolicyConfig = {
+  maxAttempts: number;
+  backoff: WorkflowRetryBackoff;
+  retryOn?: string[];
+};
+
+export type WorkflowIdempotencyConfig = {
+  scope: "workflow_instance" | "transaction_plan" | "node" | "external_operation";
+  keyTemplate?: string;
+  keyPath?: string;
+  onDuplicate:
+    | "read_existing_result"
+    | "reject_duplicate"
+    | "allow_if_same_payload"
+    | "manual_review_if_payload_differs";
+};
+
+export type WorkflowReversibility =
+  | "none"
+  | "retryable"
+  | "reversible"
+  | "compensatable"
+  | "manual_repair"
+  | "irreversible";
+
+export type WorkflowReconciliationConfig = {
+  required: boolean;
+  checkNodeId?: string;
+  expected?: Record<string, unknown>;
+  onMismatch?: {
+    nextNodeId?: string;
+    nextState?: WorkflowState;
+    nextStatus?: WorkflowStatus;
+    nextInteraction?: string;
+    eventType?: string;
+  };
+};
+
+export type WorkflowFailurePolicyConfig = {
+  onFailure:
+    | "fail_fast"
+    | "retry"
+    | "retry_then_repair"
+    | "retry_then_compensate"
+    | "compensate_then_repair"
+    | "compensate_then_fail"
+    | "manual_repair"
+    | "ignore_with_warning";
+  retryPolicy?: WorkflowRetryPolicyConfig;
+  afterRetriesExhausted?: {
+    runCompensation?: boolean;
+    nextNodeId?: string;
+    nextState?: WorkflowState;
+    nextStatus?: WorkflowStatus;
+    nextInteraction?: string;
+    eventType?: string;
+  };
+};
+
+export type WorkflowTransactionBehaviorConfig = {
+  sideEffect: boolean;
+  idempotency?: WorkflowIdempotencyConfig;
+  idempotencyKeyPath?: string;
+  reversibility: WorkflowReversibility;
+  compensatingNodeId?: string;
+  retryPolicy?: WorkflowRetryPolicyConfig;
+  reconciliation?: WorkflowReconciliationConfig;
+  failurePolicy?: WorkflowFailurePolicyConfig;
+};
+
+export type WorkflowCompensationConfig = {
+  compensatesNodeId?: string;
+  trigger:
+    | "node_failure"
+    | "retry_exhausted"
+    | "manual_repair"
+    | "workflow_canceled"
+    | "reconciliation_failed";
+  reasonPath?: string;
+  successOutcome?: string;
+  failureOutcome?: string;
+};
+
+export type WorkflowSagaConfig = {
+  mode: "orchestrated" | "choreographed";
+  transactionBoundary:
+    | "workflow_instance"
+    | "change_request"
+    | "transaction_plan"
+    | "node";
+  failurePolicy:
+    | "fail_fast"
+    | "retry_then_repair"
+    | "compensate_then_repair"
+    | "compensate_then_fail";
+  idempotencyScope:
+    | "workflow_instance"
+    | "transaction_plan"
+    | "node"
+    | "external_operation";
+  compensationOrder: "reverse_completed_steps" | "configured_order";
+  reconciliationRequired: boolean;
+};
+
+export type WorkflowLedgerEventMappingConfig = {
+  eventType: string;
+  source: "runtime" | "node" | "block" | "approval_gate" | "integration";
+  nodeId?: string;
+  routeKey?: string;
+  payloadTemplate?: Record<string, unknown>;
+};
+
+export type WorkflowLedgerConfig = {
+  events?: Record<string, WorkflowLedgerEventMappingConfig>;
+  nodeEvents?: WorkflowLedgerEventMappingConfig[];
+};
+
 export type WorkflowGraphOutcomeConfig = {
   outcome: string;
+  routeKey?: string;
   when?: WorkflowOutcomeCondition;
   eventType?: string;
+  ledgerEvents?: WorkflowLedgerEventMappingConfig[];
   nextNodeId?: string;
   nextState?: WorkflowState;
   nextStatus?: WorkflowStatus;
@@ -275,37 +441,71 @@ export type WorkflowGraphNodeConfig = {
     | "data_write"
     | "external_write"
     | "projection_write"
+    | "ledger_event"
     | "manual_repair"
     | "terminal";
   title: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
   state?: WorkflowState;
   interaction?: string;
   block?: WorkflowBlockReference;
+  blockInput?: Record<string, unknown>;
   connectionId?: string;
   operation?: string;
-  approval?: Record<string, unknown>;
+  approval?: WorkflowApprovalNodeConfig;
   approvalGate?: WorkflowApprovalGateConfig;
   policy?: Record<string, unknown>;
-  transaction?: Record<string, unknown>;
+  transaction?: WorkflowTransactionBehaviorConfig;
+  failurePolicy?: WorkflowFailurePolicyConfig;
+  compensation?: WorkflowCompensationConfig;
   outcomes?: WorkflowGraphOutcomeConfig[];
+};
+
+export type WorkflowGraphEdgeConfig = {
+  edgeId?: string;
+  fromNodeId: string;
+  routeKey: string;
+  toNodeId?: string;
+  eventType?: string;
+  nextState?: WorkflowState;
+  nextStatus?: WorkflowStatus;
+  nextInteraction?: string;
 };
 
 export type WorkflowGraphConfig = {
   startNodeId: string;
+  metadata?: Record<string, unknown>;
   nodes: WorkflowGraphNodeConfig[];
+  edges?: WorkflowGraphEdgeConfig[];
+};
+
+export type WorkflowUiConfig = {
+  defaultInteraction?: string;
+  stateInteractions?: Record<string, string>;
+  generatedSurfaces?: Array<{
+    interaction: string;
+    state?: WorkflowState;
+    actor?: WorkflowActionActor;
+  }>;
 };
 
 export type WorkflowConfig = {
+  schemaVersion?: string;
+  metadata?: WorkflowMetadataConfig;
   intent: string;
   subjectType: string;
   selfServiceStart: boolean;
   startActors?: WorkflowStartActor[];
+  ui?: WorkflowUiConfig;
   interactions: Record<string, WorkflowInteractionConfig>;
   states: Record<string, { actions: WorkflowActionConfig[] }>;
   submit: WorkflowSubmitConfig;
   approval: WorkflowApprovalConfig;
   plan: WorkflowPlanConfig;
   graph?: WorkflowGraphConfig;
+  saga?: WorkflowSagaConfig;
+  ledger?: WorkflowLedgerConfig;
   projection: {
     allowedPatchPaths: string[];
   };
@@ -322,11 +522,17 @@ export type WorkflowTemplateSources = {
   changeRequest?: Record<string, unknown>;
   proposedChange?: Record<string, unknown>;
   approvalTask?: Record<string, unknown>;
+  approvalGate?: Record<string, unknown>;
   transactionPlan?: Record<string, unknown>;
   externalWriteResponse?: Record<string, unknown>;
+  blockResult?: Record<string, unknown>;
+  node?: Record<string, unknown>;
+  ledger?: Record<string, unknown>;
   actor?: Record<string, unknown>;
   relationshipGraph?: Record<string, unknown>;
   tenantPolicy?: Record<string, unknown>;
+  secretRef?: Record<string, unknown>;
+  environment?: Record<string, unknown>;
 };
 
 /**

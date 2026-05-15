@@ -72,6 +72,7 @@ export function parseApprovalDecisionInput(
   input: Record<string, unknown>,
 ): Result<ApprovalDecisionInput, AppError> {
   const approvalTaskId = stringField(input, "approvalTaskId");
+  const taskVersion = numberField(input, "taskVersion");
   const comment = stringField(input, "comment");
   const reason = stringField(input, "reason");
 
@@ -83,6 +84,7 @@ export function parseApprovalDecisionInput(
     ok: true,
     value: {
       approvalTaskId,
+      ...(taskVersion !== undefined ? { taskVersion } : {}),
       ...(comment !== undefined ? { comment } : {}),
       ...(reason !== undefined ? { reason } : {}),
     },

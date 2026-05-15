@@ -1,7 +1,36 @@
 {
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Employee contact information update",
+    "description": "Self-service contact information update with HR approval and deterministic HRIS transaction planning.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_contact_info_update"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.contact_info.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.contact_info.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "employee.contact_info.update",
   "subjectType": "worker",
   "selfServiceStart": true,
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "waiting_approval": "waitingApproval",
+      "approved": "readyToExecute"
+    }
+  },
   "interactions": {
     "input": {
       "type": "form",
@@ -21,23 +50,48 @@
             "type": "object",
             "required": ["personalEmail", "mobilePhone", "homeAddress"],
             "properties": {
-              "personalEmail": { "type": ["string", "null"] },
-              "mobilePhone": { "type": ["string", "null"] },
+              "personalEmail": {
+                "type": ["string", "null"]
+              },
+              "mobilePhone": {
+                "type": ["string", "null"]
+              },
               "homeAddress": {
                 "type": "object",
                 "required": ["line1", "city", "region", "postalCode", "country"],
                 "properties": {
-                  "line1": { "type": "string", "minLength": 1 },
-                  "line2": { "type": ["string", "null"] },
-                  "city": { "type": "string", "minLength": 1 },
-                  "region": { "type": "string", "minLength": 1 },
-                  "postalCode": { "type": "string", "minLength": 1 },
-                  "country": { "type": "string", "minLength": 2, "maxLength": 2 }
+                  "line1": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "line2": {
+                    "type": ["string", "null"]
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "region": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  }
                 }
               }
             }
           },
-          "effectiveAt": { "type": "string", "format": "date" },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
           "businessReason": {
             "type": "string",
             "enum": ["employee_self_service", "relocation", "correction", "other"]
@@ -114,33 +168,61 @@
   "submit": {
     "preflightBlock": {
       "name": "system.employee_data.contact_info.preflight",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {
-      "currentContactInfo": { "$source": "employee", "path": "contact" },
+      "currentContactInfo": {
+        "$source": "employee",
+        "path": "contact"
+      },
       "proposedContactInfo": {
         "$source": "input",
         "path": "proposedContactInfo"
       },
-      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-      "businessReason": { "$source": "input", "path": "businessReason" }
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
     },
-    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-    "businessReason": { "$source": "input", "path": "businessReason" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
     "changeRequestStatus": "in_approval",
     "markSubmitted": true,
     "createApprovalTask": true,
     "currentSnapshot": {
-      "contactInfo": { "$source": "employee", "path": "contact" }
+      "contactInfo": {
+        "$source": "employee",
+        "path": "contact"
+      }
     },
     "proposedSnapshot": {
-      "contactInfo": { "$source": "input", "path": "proposedContactInfo" }
+      "contactInfo": {
+        "$source": "input",
+        "path": "proposedContactInfo"
+      }
     },
     "proposedChange": {
       "targetObjectType": "worker",
-      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "fieldPath": "contact",
-      "currentValue": { "$source": "employee", "path": "contact" },
+      "currentValue": {
+        "$source": "employee",
+        "path": "contact"
+      },
       "proposedValue": {
         "$source": "input",
         "path": "proposedContactInfo"
@@ -161,18 +243,586 @@
   "plan": {
     "block": {
       "name": "system.employee_data.contact_info.plan_transaction",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {
-      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
-      "workerId": { "$source": "workflow", "path": "subjectId" },
-      "currentContactInfo": { "$source": "employee", "path": "contact" },
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "currentContactInfo": {
+        "$source": "employee",
+        "path": "contact"
+      },
       "proposedContactInfo": {
         "$source": "proposedChange",
         "path": "proposedValue"
       },
-      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" }
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      }
     }
+  },
+  "graph": {
+    "startNodeId": "collect_contact_info_input",
+    "metadata": {
+      "executionModel": "generic_graph",
+      "compatibility": "legacy_submit_approval_execute"
+    },
+    "nodes": [
+      {
+        "nodeId": "collect_contact_info_input",
+        "type": "interaction",
+        "title": "Collect contact information update input",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "ChangeRequestCreated",
+            "nextNodeId": "contact_info_preflight",
+            "routeKey": "submitted"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "contact_info_preflight",
+        "type": "block",
+        "title": "Run contact information update preflight",
+        "block": {
+          "name": "system.employee_data.contact_info.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "currentContactInfo": {
+            "$source": "employee",
+            "path": "contact"
+          },
+          "proposedContactInfo": {
+            "$source": "input",
+            "path": "proposedContactInfo"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "eventType": "ContactInfoPreflighted",
+            "nextNodeId": "hr_contact_info_approval",
+            "nextState": "waiting_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "waitingApproval",
+            "routeKey": "valid"
+          },
+          {
+            "outcome": "invalid",
+            "eventType": "ContactInfoPreflighted",
+            "nextNodeId": "collect_contact_info_input",
+            "nextState": "collecting_input",
+            "nextStatus": "active",
+            "nextInteraction": "input",
+            "routeKey": "invalid"
+          }
+        ]
+      },
+      {
+        "nodeId": "hr_contact_info_approval",
+        "type": "approval",
+        "title": "HR contact information update approval",
+        "state": "waiting_approval",
+        "interaction": "waitingApproval",
+        "approval": {
+          "taskKey": "hr_contact_info_review",
+          "approvalType": "hr_contact_info_review",
+          "interaction": "waitingApproval",
+          "resolver": {
+            "type": "role",
+            "role": "hr_admin",
+            "permission": "employee_data_change.contact_info.approve"
+          },
+          "decisionSchema": {
+            "approve": {
+              "required": []
+            },
+            "reject": {
+              "required": ["reason"]
+            },
+            "requestMoreInfo": {
+              "required": ["reason"]
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "plan_contact_info_transaction",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "nextInteraction": "readyToExecute",
+            "routeKey": "approved"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_contact_info_transaction",
+        "type": "transaction_plan",
+        "title": "Plan contact information update transaction",
+        "block": {
+          "name": "system.employee_data.contact_info.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "currentContactInfo": {
+            "$source": "employee",
+            "path": "contact"
+          },
+          "proposedContactInfo": {
+            "$source": "proposedChange",
+            "path": "proposedValue"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "apply_contact_info_projection",
+            "routeKey": "planned"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_contact_info_projection",
+        "type": "projection_write",
+        "title": "Apply contact information update projection",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "contact_info_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "EmployeeContactInfoUpdated",
+            "nextNodeId": "record_contact_info_projection_update",
+            "routeKey": "applied"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "record_contact_info_projection_update",
+        "type": "ledger_event",
+        "title": "Record employee projection update",
+        "outcomes": [
+          {
+            "outcome": "recorded",
+            "eventType": "EmployeeProjectionUpdated",
+            "nextNodeId": "sync_contact_info_hris",
+            "routeKey": "recorded"
+          }
+        ]
+      },
+      {
+        "nodeId": "sync_contact_info_hris",
+        "type": "external_write",
+        "title": "Queue contact information update HRIS sync",
+        "connectionId": "fake_hris",
+        "operation": "updateContactInfo",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "contact_info_hris.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "manual_repair",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          },
+          "idempotencyKeyPath": "transactionPlan.idempotencyKey"
+        },
+        "outcomes": [
+          {
+            "outcome": "requested",
+            "eventType": "ExternalWriteRequested",
+            "nextNodeId": "completed",
+            "routeKey": "requested"
+          },
+          {
+            "outcome": "retryable_failure",
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "retryable_failure"
+          }
+        ]
+      },
+      {
+        "nodeId": "completed",
+        "type": "terminal",
+        "title": "Contact information update workflow completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "rejected",
+        "type": "terminal",
+        "title": "Contact information update workflow rejected",
+        "state": "rejected"
+      },
+      {
+        "nodeId": "canceled",
+        "type": "terminal",
+        "title": "Contact information update workflow canceled",
+        "state": "canceled"
+      },
+      {
+        "nodeId": "failed",
+        "type": "terminal",
+        "title": "Contact information update workflow failed",
+        "state": "failed"
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "collect_contact_info_input.submitted",
+        "fromNodeId": "collect_contact_info_input",
+        "routeKey": "submitted",
+        "toNodeId": "contact_info_preflight",
+        "eventType": "ChangeRequestCreated"
+      },
+      {
+        "edgeId": "collect_contact_info_input.canceled",
+        "fromNodeId": "collect_contact_info_input",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "eventType": "WorkflowCanceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "contact_info_preflight.valid",
+        "fromNodeId": "contact_info_preflight",
+        "routeKey": "valid",
+        "toNodeId": "hr_contact_info_approval",
+        "eventType": "ContactInfoPreflighted",
+        "nextState": "waiting_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "waitingApproval"
+      },
+      {
+        "edgeId": "contact_info_preflight.invalid",
+        "fromNodeId": "contact_info_preflight",
+        "routeKey": "invalid",
+        "toNodeId": "collect_contact_info_input",
+        "eventType": "ContactInfoPreflighted",
+        "nextState": "collecting_input",
+        "nextStatus": "active",
+        "nextInteraction": "input"
+      },
+      {
+        "edgeId": "hr_contact_info_approval.approved",
+        "fromNodeId": "hr_contact_info_approval",
+        "routeKey": "approved",
+        "toNodeId": "plan_contact_info_transaction",
+        "eventType": "ApprovalGranted",
+        "nextState": "approved",
+        "nextStatus": "active",
+        "nextInteraction": "readyToExecute"
+      },
+      {
+        "edgeId": "hr_contact_info_approval.rejected",
+        "fromNodeId": "hr_contact_info_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "plan_contact_info_transaction.planned",
+        "fromNodeId": "plan_contact_info_transaction",
+        "routeKey": "planned",
+        "toNodeId": "apply_contact_info_projection",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_contact_info_transaction.failed",
+        "fromNodeId": "plan_contact_info_transaction",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "apply_contact_info_projection.applied",
+        "fromNodeId": "apply_contact_info_projection",
+        "routeKey": "applied",
+        "toNodeId": "record_contact_info_projection_update",
+        "eventType": "EmployeeContactInfoUpdated"
+      },
+      {
+        "edgeId": "apply_contact_info_projection.failed",
+        "fromNodeId": "apply_contact_info_projection",
+        "routeKey": "failed",
+        "toNodeId": "failed",
+        "eventType": "WorkflowFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      },
+      {
+        "edgeId": "record_contact_info_projection_update.recorded",
+        "fromNodeId": "record_contact_info_projection_update",
+        "routeKey": "recorded",
+        "toNodeId": "sync_contact_info_hris",
+        "eventType": "EmployeeProjectionUpdated"
+      },
+      {
+        "edgeId": "sync_contact_info_hris.requested",
+        "fromNodeId": "sync_contact_info_hris",
+        "routeKey": "requested",
+        "toNodeId": "completed",
+        "eventType": "ExternalWriteRequested"
+      },
+      {
+        "edgeId": "sync_contact_info_hris.retryable_failure",
+        "fromNodeId": "sync_contact_info_hris",
+        "routeKey": "retryable_failure",
+        "toNodeId": "failed",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "failed",
+        "nextStatus": "failed"
+      }
+    ]
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "compensate_then_fail",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "ContactInfoPreflighted": {
+        "eventType": "ContactInfoPreflighted",
+        "source": "runtime"
+      },
+      "ApprovalTaskCreated": {
+        "eventType": "ApprovalTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "EmployeeContactInfoUpdated": {
+        "eventType": "EmployeeContactInfoUpdated",
+        "source": "runtime"
+      },
+      "ExternalWriteRequested": {
+        "eventType": "ExternalWriteRequested",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "ChangeRequestCreated",
+        "source": "node",
+        "nodeId": "collect_contact_info_input",
+        "routeKey": "submitted"
+      },
+      {
+        "eventType": "WorkflowCanceled",
+        "source": "node",
+        "nodeId": "collect_contact_info_input",
+        "routeKey": "canceled"
+      },
+      {
+        "eventType": "ContactInfoPreflighted",
+        "source": "block",
+        "nodeId": "contact_info_preflight",
+        "routeKey": "valid"
+      },
+      {
+        "eventType": "ContactInfoPreflighted",
+        "source": "block",
+        "nodeId": "contact_info_preflight",
+        "routeKey": "invalid"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "hr_contact_info_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "hr_contact_info_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_contact_info_transaction",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "block",
+        "nodeId": "plan_contact_info_transaction",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeContactInfoUpdated",
+        "source": "node",
+        "nodeId": "apply_contact_info_projection",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "apply_contact_info_projection",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeProjectionUpdated",
+        "source": "node",
+        "nodeId": "record_contact_info_projection_update",
+        "routeKey": "recorded"
+      },
+      {
+        "eventType": "ExternalWriteRequested",
+        "source": "node",
+        "nodeId": "sync_contact_info_hris",
+        "routeKey": "requested"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_contact_info_hris",
+        "routeKey": "retryable_failure"
+      }
+    ]
   },
   "projection": {
     "allowedPatchPaths": [

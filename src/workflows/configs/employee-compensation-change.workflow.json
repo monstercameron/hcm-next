@@ -1,8 +1,38 @@
 {
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Employee compensation change",
+    "description": "HR-initiated compensation change with compensation approval, vendor decision routing, and repair handling.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_compensation_change"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.compensation.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.compensation.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "employee.compensation.change",
   "subjectType": "worker",
   "selfServiceStart": false,
   "startActors": ["hr_admin"],
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "waiting_approval": "waitingApproval",
+      "approved": "readyToExecute",
+      "waiting_repair": "vendorDecisionRepair"
+    }
+  },
   "interactions": {
     "input": {
       "type": "form",
@@ -36,17 +66,33 @@
               "effectiveDate"
             ],
             "properties": {
-              "amount": { "type": "number", "minimum": 1 },
-              "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+              "amount": {
+                "type": "number",
+                "minimum": 1
+              },
+              "currency": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 3
+              },
               "payFrequency": {
                 "type": "string",
                 "enum": ["annual", "hourly", "monthly"]
               },
-              "bonusTargetPercent": { "type": "number", "minimum": 0 },
-              "effectiveDate": { "type": "string", "format": "date" }
+              "bonusTargetPercent": {
+                "type": "number",
+                "minimum": 0
+              },
+              "effectiveDate": {
+                "type": "string",
+                "format": "date"
+              }
             }
           },
-          "effectiveAt": { "type": "string", "format": "date" },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
           "businessReason": {
             "type": "string",
             "enum": [
@@ -83,7 +129,9 @@
             "type": "string",
             "enum": ["revise_compensation", "cancel_request", "manual_review"]
           },
-          "notes": { "type": "string" }
+          "notes": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -158,37 +206,77 @@
   "submit": {
     "preflightBlock": {
       "name": "system.employee_data.compensation.preflight",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {
-      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "currentCompensation": {
+        "$source": "employee",
+        "path": "compensation"
+      },
       "proposedCompensation": {
         "$source": "input",
         "path": "proposedCompensation"
       },
-      "currentJob": { "$source": "employee", "path": "job" },
-      "currentOrganization": { "$source": "employee", "path": "organization" },
-      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-      "businessReason": { "$source": "input", "path": "businessReason" }
+      "currentJob": {
+        "$source": "employee",
+        "path": "job"
+      },
+      "currentOrganization": {
+        "$source": "employee",
+        "path": "organization"
+      },
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
     },
-    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-    "businessReason": { "$source": "input", "path": "businessReason" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
     "changeRequestStatus": "in_approval",
     "markSubmitted": true,
     "createApprovalTask": true,
     "currentSnapshot": {
-      "compensation": { "$source": "employee", "path": "compensation" },
-      "job": { "$source": "employee", "path": "job" },
-      "organization": { "$source": "employee", "path": "organization" }
+      "compensation": {
+        "$source": "employee",
+        "path": "compensation"
+      },
+      "job": {
+        "$source": "employee",
+        "path": "job"
+      },
+      "organization": {
+        "$source": "employee",
+        "path": "organization"
+      }
     },
     "proposedSnapshot": {
-      "compensation": { "$source": "input", "path": "proposedCompensation" }
+      "compensation": {
+        "$source": "input",
+        "path": "proposedCompensation"
+      }
     },
     "proposedChange": {
       "targetObjectType": "worker",
-      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "fieldPath": "compensation",
-      "currentValue": { "$source": "employee", "path": "compensation" },
+      "currentValue": {
+        "$source": "employee",
+        "path": "compensation"
+      },
       "proposedValue": {
         "$source": "input",
         "path": "proposedCompensation"
@@ -209,18 +297,34 @@
   "plan": {
     "block": {
       "name": "system.employee_data.compensation.plan_transaction",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {
-      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
-      "workerId": { "$source": "workflow", "path": "subjectId" },
-      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "currentCompensation": {
+        "$source": "employee",
+        "path": "compensation"
+      },
       "proposedCompensation": {
         "$source": "proposedChange",
         "path": "proposedValue"
       },
-      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" },
-      "businessReason": { "$source": "changeRequest", "path": "businessReason" }
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "changeRequest",
+        "path": "businessReason"
+      }
     }
   },
   "graph": {
@@ -236,15 +340,18 @@
             "outcome": "submitted",
             "nextNodeId": "compensation_preflight",
             "nextState": "waiting_approval",
-            "nextStatus": "waiting"
+            "nextStatus": "waiting",
+            "routeKey": "submitted"
           },
           {
             "outcome": "canceled",
             "nextNodeId": "canceled",
             "nextState": "canceled",
-            "nextStatus": "canceled"
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
           }
-        ]
+        ],
+        "interaction": "input"
       },
       {
         "nodeId": "compensation_preflight",
@@ -254,16 +361,49 @@
           {
             "outcome": "valid",
             "nextNodeId": "compensation_approval",
-            "eventType": "CompensationPreflighted"
+            "eventType": "CompensationPreflighted",
+            "routeKey": "valid"
           },
           {
             "outcome": "invalid",
             "nextNodeId": "collect_compensation_input",
             "eventType": "CompensationPreflighted",
             "nextState": "collecting_input",
-            "nextStatus": "active"
+            "nextStatus": "active",
+            "routeKey": "invalid"
           }
-        ]
+        ],
+        "block": {
+          "name": "system.employee_data.compensation.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "currentCompensation": {
+            "$source": "employee",
+            "path": "compensation"
+          },
+          "proposedCompensation": {
+            "$source": "input",
+            "path": "proposedCompensation"
+          },
+          "currentJob": {
+            "$source": "employee",
+            "path": "job"
+          },
+          "currentOrganization": {
+            "$source": "employee",
+            "path": "organization"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          }
+        }
       },
       {
         "nodeId": "compensation_approval",
@@ -276,16 +416,38 @@
             "nextNodeId": "plan_compensation_transaction",
             "nextState": "approved",
             "nextStatus": "active",
-            "eventType": "ApprovalGranted"
+            "eventType": "ApprovalGranted",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
             "nextStatus": "rejected",
-            "eventType": "ApprovalRejected"
+            "eventType": "ApprovalRejected",
+            "routeKey": "rejected"
           }
-        ]
+        ],
+        "approval": {
+          "taskKey": "compensation_approval",
+          "approvalType": "compensation_approval_review",
+          "resolver": {
+            "type": "role",
+            "role": "compensation_admin",
+            "permission": "employee_data_change.compensation.approve"
+          },
+          "decisionSchema": {
+            "approve": {
+              "required": []
+            },
+            "reject": {
+              "required": ["reason"]
+            },
+            "requestMoreInfo": {
+              "required": ["reason"]
+            }
+          }
+        }
       },
       {
         "nodeId": "plan_compensation_transaction",
@@ -295,9 +457,41 @@
           {
             "outcome": "planned",
             "nextNodeId": "vendor_compensation_decision",
-            "eventType": "TransactionPlanCreated"
+            "eventType": "TransactionPlanCreated",
+            "routeKey": "planned"
           }
-        ]
+        ],
+        "block": {
+          "name": "system.employee_data.compensation.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "currentCompensation": {
+            "$source": "employee",
+            "path": "compensation"
+          },
+          "proposedCompensation": {
+            "$source": "proposedChange",
+            "path": "proposedValue"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "changeRequest",
+            "path": "businessReason"
+          }
+        }
       },
       {
         "nodeId": "vendor_compensation_decision",
@@ -314,7 +508,8 @@
               "equals": "accepted"
             },
             "eventType": "ExternalWriteSucceeded",
-            "nextNodeId": "apply_compensation_projection"
+            "nextNodeId": "apply_compensation_projection",
+            "routeKey": "accepted"
           },
           {
             "outcome": "rejected",
@@ -327,9 +522,68 @@
             "nextNodeId": "repair_vendor_decision",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "vendorDecisionRepair"
+            "nextInteraction": "vendorDecisionRepair",
+            "routeKey": "rejected"
+          },
+          {
+            "outcome": "retryable_failure",
+            "when": {
+              "$source": "externalWriteError",
+              "path": "category",
+              "in": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "repair_vendor_decision",
+            "nextState": "waiting_repair",
+            "nextStatus": "waiting_repair",
+            "nextInteraction": "vendorDecisionRepair",
+            "routeKey": "retryable_failure"
           }
-        ]
+        ],
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "compensation_vendor_decision.${transactionPlan.transactionPlanId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "manual_repair",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "repair_vendor_decision",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "vendorDecisionRepair",
+              "eventType": "WorkflowFailed"
+            }
+          },
+          "reconciliation": {
+            "required": true,
+            "expected": {
+              "status": "accepted"
+            },
+            "onMismatch": {
+              "nextNodeId": "repair_vendor_decision",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "vendorDecisionRepair",
+              "eventType": "ExternalWriteFailed"
+            }
+          },
+          "idempotencyKeyPath": "transactionPlan.idempotencyKey"
+        }
       },
       {
         "nodeId": "apply_compensation_projection",
@@ -339,9 +593,40 @@
           {
             "outcome": "applied",
             "eventType": "EmployeeCompensationUpdated",
-            "nextNodeId": "completed"
+            "nextNodeId": "completed",
+            "routeKey": "applied"
           }
-        ]
+        ],
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "compensation_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "repair_vendor_decision",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "vendorDecisionRepair",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        }
       },
       {
         "nodeId": "repair_vendor_decision",
@@ -353,7 +638,8 @@
             "outcome": "canceled",
             "nextNodeId": "canceled",
             "nextState": "canceled",
-            "nextStatus": "canceled"
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
           }
         ]
       },
@@ -374,6 +660,219 @@
         "type": "terminal",
         "title": "Compensation workflow rejected",
         "state": "rejected"
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "collect_compensation_input.submitted",
+        "fromNodeId": "collect_compensation_input",
+        "routeKey": "submitted",
+        "toNodeId": "compensation_preflight",
+        "nextState": "waiting_approval",
+        "nextStatus": "waiting"
+      },
+      {
+        "edgeId": "collect_compensation_input.canceled",
+        "fromNodeId": "collect_compensation_input",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "compensation_preflight.valid",
+        "fromNodeId": "compensation_preflight",
+        "routeKey": "valid",
+        "toNodeId": "compensation_approval",
+        "eventType": "CompensationPreflighted"
+      },
+      {
+        "edgeId": "compensation_preflight.invalid",
+        "fromNodeId": "compensation_preflight",
+        "routeKey": "invalid",
+        "toNodeId": "collect_compensation_input",
+        "eventType": "CompensationPreflighted",
+        "nextState": "collecting_input",
+        "nextStatus": "active"
+      },
+      {
+        "edgeId": "compensation_approval.approved",
+        "fromNodeId": "compensation_approval",
+        "routeKey": "approved",
+        "toNodeId": "plan_compensation_transaction",
+        "eventType": "ApprovalGranted",
+        "nextState": "approved",
+        "nextStatus": "active"
+      },
+      {
+        "edgeId": "compensation_approval.rejected",
+        "fromNodeId": "compensation_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "plan_compensation_transaction.planned",
+        "fromNodeId": "plan_compensation_transaction",
+        "routeKey": "planned",
+        "toNodeId": "vendor_compensation_decision",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "vendor_compensation_decision.accepted",
+        "fromNodeId": "vendor_compensation_decision",
+        "routeKey": "accepted",
+        "toNodeId": "apply_compensation_projection",
+        "eventType": "ExternalWriteSucceeded"
+      },
+      {
+        "edgeId": "vendor_compensation_decision.rejected",
+        "fromNodeId": "vendor_compensation_decision",
+        "routeKey": "rejected",
+        "toNodeId": "repair_vendor_decision",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "vendorDecisionRepair"
+      },
+      {
+        "edgeId": "vendor_compensation_decision.retryable_failure",
+        "fromNodeId": "vendor_compensation_decision",
+        "routeKey": "retryable_failure",
+        "toNodeId": "repair_vendor_decision",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "vendorDecisionRepair"
+      },
+      {
+        "edgeId": "apply_compensation_projection.applied",
+        "fromNodeId": "apply_compensation_projection",
+        "routeKey": "applied",
+        "toNodeId": "completed",
+        "eventType": "EmployeeCompensationUpdated"
+      },
+      {
+        "edgeId": "repair_vendor_decision.canceled",
+        "fromNodeId": "repair_vendor_decision",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      }
+    ]
+  },
+  "saga": {
+    "mode": "orchestrated",
+    "transactionBoundary": "workflow_instance",
+    "failurePolicy": "compensate_then_repair",
+    "idempotencyScope": "workflow_instance",
+    "compensationOrder": "reverse_completed_steps",
+    "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "CompensationPreflighted": {
+        "eventType": "CompensationPreflighted",
+        "source": "runtime"
+      },
+      "ApprovalTaskCreated": {
+        "eventType": "ApprovalTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "EmployeeCompensationUpdated": {
+        "eventType": "EmployeeCompensationUpdated",
+        "source": "runtime"
+      },
+      "ExternalWriteRequested": {
+        "eventType": "ExternalWriteRequested",
+        "source": "runtime"
+      },
+      "ExternalWriteSucceeded": {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "runtime"
+      },
+      "ExternalWriteFailed": {
+        "eventType": "ExternalWriteFailed",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "CompensationPreflighted",
+        "source": "block",
+        "nodeId": "compensation_preflight",
+        "routeKey": "valid"
+      },
+      {
+        "eventType": "CompensationPreflighted",
+        "source": "block",
+        "nodeId": "compensation_preflight",
+        "routeKey": "invalid"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "compensation_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "compensation_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_compensation_transaction",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "node",
+        "nodeId": "vendor_compensation_decision",
+        "routeKey": "accepted"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "vendor_compensation_decision",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "vendor_compensation_decision",
+        "routeKey": "retryable_failure"
+      },
+      {
+        "eventType": "EmployeeCompensationUpdated",
+        "source": "node",
+        "nodeId": "apply_compensation_projection",
+        "routeKey": "applied"
       }
     ]
   },

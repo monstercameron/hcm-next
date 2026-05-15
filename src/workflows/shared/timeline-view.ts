@@ -128,7 +128,7 @@ function businessPayloadExcerpt(
   event: LedgerEventRecord,
   visibilityContext?: TimelineVisibilityContext,
 ): Record<string, unknown> {
-  const requiredFieldGroup = fieldGroupForTimelineEvent(event);
+  const requiredFieldGroup = fieldGroupForTimelinePayload(event.payload);
 
   if (
     requiredFieldGroup !== undefined &&
@@ -146,116 +146,118 @@ function businessPayloadExcerpt(
     };
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED) {
+  return genericPayloadExcerpt(event.payload);
+}
+
+function genericPayloadExcerpt(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const outboxRows = payload["outboxRows"];
+
+  if (Array.isArray(outboxRows)) {
     return {
-      previousLegalName: event.payload["previousLegalName"],
-      newLegalName: event.payload["newLegalName"],
+      outboxRequestCount: outboxRows.length,
     };
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
+  const externalWriteExecutions = payload["externalWriteExecutions"];
+
+  if (Array.isArray(externalWriteExecutions)) {
     return {
-      changedEmergencyContact: event.payload["changedEmergencyContact"],
+      externalWriteSuccessCount: externalWriteExecutions.length,
     };
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED) {
+  if (payload["documentId"] !== undefined) {
     return {
-      previousCompensation: event.payload["previousCompensation"],
-      newCompensation: event.payload["newCompensation"],
-      increasePercent: event.payload["increasePercent"],
+      documentId: payload["documentId"],
     };
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_REQUESTED) {
-    const outboxRows = event.payload["outboxRows"];
+  const approvalTask = objectField(payload, "approvalTask");
 
-    return {
-      outboxRequestCount: Array.isArray(outboxRows) ? outboxRows.length : 0,
-    };
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EXTERNAL_WRITE_SUCCEEDED) {
-    const externalWriteExecutions = event.payload["externalWriteExecutions"];
-
-    return {
-      externalWriteSuccessCount: Array.isArray(externalWriteExecutions)
-        ? externalWriteExecutions.length
-        : 0,
-    };
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.EVIDENCE_PROVIDED) {
-    return {
-      documentId: event.payload["documentId"],
-    };
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED) {
-    const approvalTask = objectField(event.payload, "approvalTask");
-
+  if (approvalTask !== undefined) {
     return {
       approvalTaskId: approvalTask?.["approvalTaskId"],
       assigneeRole: approvalTask?.["assigneeRole"],
     };
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED) {
-    return {
-      valid: event.payload["valid"],
-      riskLevel: event.payload["riskLevel"],
-      requiresEvidence: event.payload["requiresEvidence"],
-      requiresApproval: event.payload["requiresApproval"],
-    };
+  const excerpt: Record<string, unknown> = {};
+
+  for (const key of genericExcerptKeys) {
+    if (payload[key] !== undefined) {
+      excerpt[key] = payload[key];
+    }
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED) {
-    return {
-      valid: event.payload["valid"],
-      riskLevel: event.payload["riskLevel"],
-      requiresEvidence: event.payload["requiresEvidence"],
-      requiresApproval: event.payload["requiresApproval"],
-    };
-  }
-
-  if (event.eventType === LEDGER_EVENT_TYPES.COMPENSATION_PREFLIGHTED) {
-    return {
-      valid: event.payload["valid"],
-      riskLevel: event.payload["riskLevel"],
-      requiresApproval: event.payload["requiresApproval"],
-    };
-  }
-
-  return {};
+  return excerpt;
 }
 
-function fieldGroupForTimelineEvent(
-  event: LedgerEventRecord,
+const genericExcerptKeys = [
+  "valid",
+  "riskLevel",
+  "requiresEvidence",
+  "requiresApproval",
+  "projectionVersion",
+  "terminalState",
+] as const;
+
+function fieldGroupForTimelinePayload(
+  payload: Record<string, unknown>,
 ): EmployeeAccessFieldGroup | undefined {
-  if (event.eventType === LEDGER_EVENT_TYPES.PERSON_LEGAL_NAME_CHANGED) {
-    return "profile";
+  for (const key of Object.keys(payload)) {
+    const fieldGroup = fieldGroupForPayloadKey(key);
+
+    if (fieldGroup !== undefined) {
+      return fieldGroup;
+    }
   }
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_EMERGENCY_CONTACT_UPDATED) {
-    return "emergencyContacts";
-  }
+  return undefined;
+}
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_CONTACT_INFO_UPDATED) {
-    return "contact";
-  }
+function fieldGroupForPayloadKey(key: string): EmployeeAccessFieldGroup | undefined {
+  const normalizedKey = key.toLowerCase();
 
-  if (event.eventType === LEDGER_EVENT_TYPES.EMPLOYEE_COMPENSATION_UPDATED) {
+  if (
+    normalizedKey.includes("compensation") ||
+    normalizedKey.includes("salary") ||
+    normalizedKey.includes("bonus")
+  ) {
     return "compensation";
   }
 
+  if (normalizedKey.includes("emergency") || normalizedKey.includes("dependent")) {
+    return "emergencyContacts";
+  }
+
   if (
-    event.eventType === LEDGER_EVENT_TYPES.APPROVAL_TASK_CREATED ||
-    event.eventType === LEDGER_EVENT_TYPES.NAME_CHANGE_PREFLIGHTED ||
-    event.eventType === LEDGER_EVENT_TYPES.EMERGENCY_CONTACT_PREFLIGHTED ||
-    event.eventType === LEDGER_EVENT_TYPES.CONTACT_INFO_PREFLIGHTED ||
-    event.eventType === LEDGER_EVENT_TYPES.COMPENSATION_PREFLIGHTED
+    normalizedKey.includes("contact") ||
+    normalizedKey.includes("email") ||
+    normalizedKey.includes("phone") ||
+    normalizedKey.includes("address")
   ) {
-    return "workflow";
+    return "contact";
+  }
+
+  if (
+    normalizedKey.includes("organization") ||
+    normalizedKey.includes("orgunit") ||
+    normalizedKey.includes("manager") ||
+    normalizedKey.includes("location") ||
+    normalizedKey.includes("costcenter") ||
+    normalizedKey.includes("team")
+  ) {
+    return "organization";
+  }
+
+  if (
+    normalizedKey.includes("legalname") ||
+    normalizedKey.includes("person") ||
+    normalizedKey.includes("profile")
+  ) {
+    return "profile";
   }
 
   return undefined;

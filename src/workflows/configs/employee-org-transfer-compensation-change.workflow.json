@@ -1,9 +1,29 @@
 {
+  "schemaVersion": "v0.3",
+  "metadata": {
+    "schemaVersion": "v0.3",
+    "title": "Employee org transfer and compensation change",
+    "description": "HR-initiated org transfer and compensation change with staged approvals, integration writes, and saga repair handling.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_org_transfer_compensation_change"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.org_transfer_compensation_change.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.org_transfer_compensation_change.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
   "intent": "employee.org_transfer_compensation_change",
   "subjectType": "worker",
   "selfServiceStart": false,
   "startActors": ["hr_admin"],
-  "schemaVersion": "v0.3",
   "uxContract": {
     "version": "v0.1",
     "title": "Employee org transfer and compensation change",
@@ -39,6 +59,16 @@
       "permissionDenied": "You do not have the required org-transfer scope for this action.",
       "versionConflict": "This workflow changed. Refresh before submitting again.",
       "repairRequired": "The transfer needs HR repair before it can continue."
+    }
+  },
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "approved": "readyToExecute",
+      "waiting_repair": "repair",
+      "waiting_approval_repair": "repair",
+      "executed": "completedSummary"
     }
   },
   "interactions": {
@@ -114,18 +144,42 @@
           "accessImpactAcknowledged"
         ],
         "properties": {
-          "targetLocationOrgUnitId": { "type": "string", "minLength": 1 },
-          "targetTeamOrgUnitId": { "type": "string", "minLength": 1 },
-          "targetCostCenterOrgUnitId": { "type": "string", "minLength": 1 },
-          "targetManagerEmployeeId": { "type": "string", "minLength": 1 },
+          "targetLocationOrgUnitId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetTeamOrgUnitId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetCostCenterOrgUnitId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetManagerEmployeeId": {
+            "type": "string",
+            "minLength": 1
+          },
           "proposedJob": {
             "type": "object",
             "required": ["jobCode", "title", "family", "level"],
             "properties": {
-              "jobCode": { "type": "string", "minLength": 1 },
-              "title": { "type": "string", "minLength": 1 },
-              "family": { "type": "string", "minLength": 1 },
-              "level": { "type": "string", "minLength": 1 }
+              "jobCode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "family": {
+                "type": "string",
+                "minLength": 1
+              },
+              "level": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "proposedCompensation": {
@@ -138,17 +192,33 @@
               "effectiveDate"
             ],
             "properties": {
-              "amount": { "type": "number", "minimum": 1 },
-              "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+              "amount": {
+                "type": "number",
+                "minimum": 1
+              },
+              "currency": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 3
+              },
               "payFrequency": {
                 "type": "string",
                 "enum": ["annual", "hourly", "monthly"]
               },
-              "bonusTargetPercent": { "type": "number", "minimum": 0 },
-              "effectiveDate": { "type": "string", "format": "date" }
+              "bonusTargetPercent": {
+                "type": "number",
+                "minimum": 0
+              },
+              "effectiveDate": {
+                "type": "string",
+                "format": "date"
+              }
             }
           },
-          "effectiveAt": { "type": "string", "format": "date" },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
           "businessReason": {
             "type": "string",
             "enum": [
@@ -171,7 +241,10 @@
               "business_reorganization"
             ]
           },
-          "accessImpactAcknowledged": { "type": "boolean", "const": true }
+          "accessImpactAcknowledged": {
+            "type": "boolean",
+            "const": true
+          }
         }
       },
       "uiSchema": {
@@ -227,8 +300,12 @@
       "jsonSchema": {
         "type": "object",
         "properties": {
-          "comment": { "type": "string" },
-          "reason": { "type": "string" }
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -250,8 +327,12 @@
       "jsonSchema": {
         "type": "object",
         "properties": {
-          "comment": { "type": "string" },
-          "reason": { "type": "string" }
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -278,8 +359,12 @@
       "jsonSchema": {
         "type": "object",
         "properties": {
-          "comment": { "type": "string" },
-          "reason": { "type": "string" }
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -301,8 +386,12 @@
       "jsonSchema": {
         "type": "object",
         "properties": {
-          "comment": { "type": "string" },
-          "reason": { "type": "string" }
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -330,8 +419,12 @@
       "jsonSchema": {
         "type": "object",
         "properties": {
-          "comment": { "type": "string" },
-          "reason": { "type": "string" }
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "uiSchema": {
@@ -372,7 +465,10 @@
               "cancel_request"
             ]
           },
-          "notes": { "type": "string", "minLength": 1 }
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "uiSchema": {
@@ -606,14 +702,27 @@
   },
   "submit": {
     "preflightBlock": {
-      "name": "system.employee_data.org_transfer.preflight",
-      "version": "1.0.0"
+      "name": "system.employee_data.org_transfer_compensation_change.preflight",
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "preflightInput": {
-      "currentOrganization": { "$source": "employee", "path": "organization" },
-      "currentJob": { "$source": "employee", "path": "job" },
-      "currentManager": { "$source": "employee", "path": "manager" },
-      "currentCompensation": { "$source": "employee", "path": "compensation" },
+      "currentOrganization": {
+        "$source": "employee",
+        "path": "organization"
+      },
+      "currentJob": {
+        "$source": "employee",
+        "path": "job"
+      },
+      "currentManager": {
+        "$source": "employee",
+        "path": "manager"
+      },
+      "currentCompensation": {
+        "$source": "employee",
+        "path": "compensation"
+      },
       "targetLocationOrgUnitId": {
         "$source": "input",
         "path": "targetLocationOrgUnitId"
@@ -630,29 +739,59 @@
         "$source": "input",
         "path": "targetManagerEmployeeId"
       },
-      "proposedJob": { "$source": "input", "path": "proposedJob" },
+      "proposedJob": {
+        "$source": "input",
+        "path": "proposedJob"
+      },
       "proposedCompensation": {
         "$source": "input",
         "path": "proposedCompensation"
       },
-      "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-      "businessReason": { "$source": "input", "path": "businessReason" },
-      "transferReason": { "$source": "input", "path": "transferReason" },
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      },
+      "transferReason": {
+        "$source": "input",
+        "path": "transferReason"
+      },
       "accessImpactAcknowledged": {
         "$source": "input",
         "path": "accessImpactAcknowledged"
       }
     },
-    "effectiveAt": { "$source": "input", "path": "effectiveAt" },
-    "businessReason": { "$source": "input", "path": "businessReason" },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
     "changeRequestStatus": "in_approval",
     "markSubmitted": true,
     "createApprovalTask": false,
     "currentSnapshot": {
-      "organization": { "$source": "employee", "path": "organization" },
-      "manager": { "$source": "employee", "path": "manager" },
-      "job": { "$source": "employee", "path": "job" },
-      "compensation": { "$source": "employee", "path": "compensation" }
+      "organization": {
+        "$source": "employee",
+        "path": "organization"
+      },
+      "manager": {
+        "$source": "employee",
+        "path": "manager"
+      },
+      "job": {
+        "$source": "employee",
+        "path": "job"
+      },
+      "compensation": {
+        "$source": "employee",
+        "path": "compensation"
+      }
     },
     "proposedSnapshot": {
       "targetLocationOrgUnitId": {
@@ -671,15 +810,30 @@
         "$source": "input",
         "path": "targetManagerEmployeeId"
       },
-      "job": { "$source": "input", "path": "proposedJob" },
-      "compensation": { "$source": "input", "path": "proposedCompensation" }
+      "job": {
+        "$source": "input",
+        "path": "proposedJob"
+      },
+      "compensation": {
+        "$source": "input",
+        "path": "proposedCompensation"
+      }
     },
     "proposedChange": {
       "targetObjectType": "worker",
-      "targetObjectId": { "$source": "workflow", "path": "subjectId" },
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
       "fieldPath": "organization_transfer_compensation",
-      "currentValue": { "$source": "employee", "path": "organization" },
-      "proposedValue": { "$source": "input", "path": "" }
+      "currentValue": {
+        "$source": "employee",
+        "path": "organization"
+      },
+      "proposedValue": {
+        "$source": "input",
+        "path": ""
+      }
     },
     "additionalEvents": [
       "ProposedChangeCreated",
@@ -694,19 +848,47 @@
   },
   "plan": {
     "block": {
-      "name": "system.employee_data.org_transfer.plan_transaction",
-      "version": "1.0.0"
+      "name": "system.employee_data.org_transfer_compensation_change.plan_transaction",
+      "version": "1.0.0",
+      "runtime": "go"
     },
     "input": {
-      "changeRequestId": { "$source": "changeRequest", "path": "changeRequestId" },
-      "workerId": { "$source": "workflow", "path": "subjectId" },
-      "currentOrganization": { "$source": "employee", "path": "organization" },
-      "currentManager": { "$source": "employee", "path": "manager" },
-      "currentJob": { "$source": "employee", "path": "job" },
-      "currentCompensation": { "$source": "employee", "path": "compensation" },
-      "proposedTransfer": { "$source": "proposedChange", "path": "proposedValue" },
-      "effectiveAt": { "$source": "changeRequest", "path": "effectiveAt" },
-      "businessReason": { "$source": "changeRequest", "path": "businessReason" }
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "currentOrganization": {
+        "$source": "employee",
+        "path": "organization"
+      },
+      "currentManager": {
+        "$source": "employee",
+        "path": "manager"
+      },
+      "currentJob": {
+        "$source": "employee",
+        "path": "job"
+      },
+      "currentCompensation": {
+        "$source": "employee",
+        "path": "compensation"
+      },
+      "proposedTransfer": {
+        "$source": "proposedChange",
+        "path": "proposedValue"
+      },
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "changeRequest",
+        "path": "businessReason"
+      }
     }
   },
   "graph": {
@@ -725,13 +907,15 @@
             "nextNodeId": "org_transfer_preflight",
             "nextState": "waiting_source_manager_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "sourceManagerApproval"
+            "nextInteraction": "sourceManagerApproval",
+            "routeKey": "submitted"
           },
           {
             "outcome": "canceled",
             "nextNodeId": "canceled",
             "nextState": "canceled",
-            "nextStatus": "canceled"
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
           }
         ]
       },
@@ -740,14 +924,16 @@
         "type": "block",
         "title": "Run org transfer preflight",
         "block": {
-          "name": "system.employee_data.org_transfer.preflight",
-          "version": "1.0.0"
+          "name": "system.employee_data.org_transfer_compensation_change.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
         },
         "outcomes": [
           {
             "outcome": "valid",
             "eventType": "OrgTransferPreflighted",
-            "nextNodeId": "check_hr_transfer_authority"
+            "nextNodeId": "check_hr_transfer_authority",
+            "routeKey": "valid"
           },
           {
             "outcome": "invalid",
@@ -755,9 +941,68 @@
             "nextNodeId": "collect_transfer_input",
             "nextState": "collecting_input",
             "nextStatus": "active",
-            "nextInteraction": "input"
+            "nextInteraction": "input",
+            "routeKey": "invalid"
           }
-        ]
+        ],
+        "blockInput": {
+          "currentOrganization": {
+            "$source": "employee",
+            "path": "organization"
+          },
+          "currentJob": {
+            "$source": "employee",
+            "path": "job"
+          },
+          "currentManager": {
+            "$source": "employee",
+            "path": "manager"
+          },
+          "currentCompensation": {
+            "$source": "employee",
+            "path": "compensation"
+          },
+          "targetLocationOrgUnitId": {
+            "$source": "input",
+            "path": "targetLocationOrgUnitId"
+          },
+          "targetTeamOrgUnitId": {
+            "$source": "input",
+            "path": "targetTeamOrgUnitId"
+          },
+          "targetCostCenterOrgUnitId": {
+            "$source": "input",
+            "path": "targetCostCenterOrgUnitId"
+          },
+          "targetManagerEmployeeId": {
+            "$source": "input",
+            "path": "targetManagerEmployeeId"
+          },
+          "proposedJob": {
+            "$source": "input",
+            "path": "proposedJob"
+          },
+          "proposedCompensation": {
+            "$source": "input",
+            "path": "proposedCompensation"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          },
+          "transferReason": {
+            "$source": "input",
+            "path": "transferReason"
+          },
+          "accessImpactAcknowledged": {
+            "$source": "input",
+            "path": "accessImpactAcknowledged"
+          }
+        }
       },
       {
         "nodeId": "check_hr_transfer_authority",
@@ -770,14 +1015,16 @@
         "outcomes": [
           {
             "outcome": "allowed",
-            "nextNodeId": "check_source_manager_visibility"
+            "nextNodeId": "check_source_manager_visibility",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -796,14 +1043,16 @@
             "nextNodeId": "source_manager_approval",
             "nextState": "waiting_source_manager_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "sourceManagerApproval"
+            "nextInteraction": "sourceManagerApproval",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -814,8 +1063,12 @@
         "state": "waiting_source_manager_approval",
         "interaction": "sourceManagerApproval",
         "approval": {
-          "actor": "source_manager",
-          "permission": "employee_data_change.org_transfer.manager_approve",
+          "taskKey": "source_manager",
+          "resolver": {
+            "type": "manager",
+            "role": "source_manager",
+            "permission": "employee_data_change.org_transfer.manager_approve"
+          },
           "approvalType": "source_manager_org_transfer_review"
         },
         "outcomes": [
@@ -825,14 +1078,16 @@
             "nextNodeId": "check_destination_manager_visibility",
             "nextState": "waiting_destination_manager_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "destinationManagerApproval"
+            "nextInteraction": "destinationManagerApproval",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "eventType": "ApprovalRejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
-            "nextStatus": "rejected"
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
           },
           {
             "outcome": "request_more_info",
@@ -840,7 +1095,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -859,14 +1115,16 @@
             "nextNodeId": "destination_manager_approval",
             "nextState": "waiting_destination_manager_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "destinationManagerApproval"
+            "nextInteraction": "destinationManagerApproval",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -877,8 +1135,13 @@
         "state": "waiting_destination_manager_approval",
         "interaction": "destinationManagerApproval",
         "approval": {
-          "actor": "destination_manager",
-          "permission": "employee_data_change.org_transfer.destination_manager_approve",
+          "taskKey": "destination_manager",
+          "resolver": {
+            "type": "workflow_field",
+            "role": "destination_manager",
+            "fieldPath": "submitInput.targetManagerEmployeeId",
+            "permission": "employee_data_change.org_transfer.destination_manager_approve"
+          },
           "approvalType": "destination_manager_org_transfer_review"
         },
         "outcomes": [
@@ -888,14 +1151,16 @@
             "nextNodeId": "check_finance_cost_center_scope",
             "nextState": "waiting_finance_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "financeApproval"
+            "nextInteraction": "financeApproval",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "eventType": "ApprovalRejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
-            "nextStatus": "rejected"
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
           },
           {
             "outcome": "request_more_info",
@@ -903,7 +1168,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -922,14 +1188,16 @@
             "nextNodeId": "finance_approval",
             "nextState": "waiting_finance_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "financeApproval"
+            "nextInteraction": "financeApproval",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -940,8 +1208,13 @@
         "state": "waiting_finance_approval",
         "interaction": "financeApproval",
         "approval": {
-          "actor": "finance_admin",
-          "permission": "employee_data_change.org_transfer.finance_approve",
+          "taskKey": "finance",
+          "resolver": {
+            "type": "actor",
+            "actorId": "actor_finance_admin",
+            "role": "finance_admin",
+            "permission": "employee_data_change.org_transfer.finance_approve"
+          },
           "approvalType": "finance_org_transfer_cost_center_review"
         },
         "outcomes": [
@@ -951,14 +1224,16 @@
             "nextNodeId": "check_compensation_scope",
             "nextState": "waiting_compensation_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "compensationApproval"
+            "nextInteraction": "compensationApproval",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "eventType": "ApprovalRejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
-            "nextStatus": "rejected"
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
           },
           {
             "outcome": "request_more_info",
@@ -966,7 +1241,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -986,14 +1262,16 @@
             "nextNodeId": "compensation_approval",
             "nextState": "waiting_compensation_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "compensationApproval"
+            "nextInteraction": "compensationApproval",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -1004,8 +1282,12 @@
         "state": "waiting_compensation_approval",
         "interaction": "compensationApproval",
         "approval": {
-          "actor": "compensation_admin",
-          "permission": "employee_data_change.org_transfer.compensation_approve",
+          "taskKey": "compensation",
+          "resolver": {
+            "type": "role",
+            "role": "compensation_admin",
+            "permission": "employee_data_change.org_transfer.compensation_approve"
+          },
           "approvalType": "compensation_org_transfer_review"
         },
         "outcomes": [
@@ -1015,14 +1297,16 @@
             "nextNodeId": "check_medical_director_clinical_scope",
             "nextState": "waiting_medical_director_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "medicalDirectorApproval"
+            "nextInteraction": "medicalDirectorApproval",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "eventType": "ApprovalRejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
-            "nextStatus": "rejected"
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
           },
           {
             "outcome": "request_more_info",
@@ -1030,7 +1314,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -1049,14 +1334,16 @@
             "nextNodeId": "medical_director_approval",
             "nextState": "waiting_medical_director_approval",
             "nextStatus": "waiting",
-            "nextInteraction": "medicalDirectorApproval"
+            "nextInteraction": "medicalDirectorApproval",
+            "routeKey": "allowed"
           },
           {
             "outcome": "denied",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "denied"
           }
         ]
       },
@@ -1067,8 +1354,13 @@
         "state": "waiting_medical_director_approval",
         "interaction": "medicalDirectorApproval",
         "approval": {
-          "actor": "medical_director",
-          "permission": "employee_data_change.org_transfer.medical_director_approve",
+          "taskKey": "medical_director",
+          "resolver": {
+            "type": "actor",
+            "actorId": "actor_emp_920",
+            "role": "medical_director",
+            "permission": "employee_data_change.org_transfer.medical_director_approve"
+          },
           "approvalType": "medical_director_clinical_placement_review"
         },
         "outcomes": [
@@ -1078,14 +1370,16 @@
             "nextNodeId": "ready_to_execute",
             "nextState": "approved",
             "nextStatus": "active",
-            "nextInteraction": "readyToExecute"
+            "nextInteraction": "readyToExecute",
+            "routeKey": "approved"
           },
           {
             "outcome": "rejected",
             "eventType": "ApprovalRejected",
             "nextNodeId": "rejected",
             "nextState": "rejected",
-            "nextStatus": "rejected"
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
           },
           {
             "outcome": "request_more_info",
@@ -1093,7 +1387,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "request_more_info"
           }
         ]
       },
@@ -1108,13 +1403,15 @@
             "outcome": "execute_requested",
             "nextNodeId": "plan_org_transfer_transaction",
             "nextState": "executing",
-            "nextStatus": "active"
+            "nextStatus": "active",
+            "routeKey": "execute_requested"
           },
           {
             "outcome": "canceled",
             "nextNodeId": "canceled",
             "nextState": "canceled",
-            "nextStatus": "canceled"
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
           }
         ]
       },
@@ -1123,23 +1420,64 @@
         "type": "transaction_plan",
         "title": "Plan org transfer transaction",
         "block": {
-          "name": "system.employee_data.org_transfer.plan_transaction",
-          "version": "1.0.0"
+          "name": "system.employee_data.org_transfer_compensation_change.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
         },
         "outcomes": [
           {
             "outcome": "planned",
             "eventType": "TransactionPlanCreated",
-            "nextNodeId": "supersede_current_assignments"
+            "nextNodeId": "supersede_current_assignments",
+            "routeKey": "planned"
           },
           {
             "outcome": "planning_failed",
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "planning_failed"
           }
-        ]
+        ],
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "currentOrganization": {
+            "$source": "employee",
+            "path": "organization"
+          },
+          "currentManager": {
+            "$source": "employee",
+            "path": "manager"
+          },
+          "currentJob": {
+            "$source": "employee",
+            "path": "job"
+          },
+          "currentCompensation": {
+            "$source": "employee",
+            "path": "compensation"
+          },
+          "proposedTransfer": {
+            "$source": "proposedChange",
+            "path": "proposedValue"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          },
+          "businessReason": {
+            "$source": "changeRequest",
+            "path": "businessReason"
+          }
+        }
       },
       {
         "nodeId": "supersede_current_assignments",
@@ -1149,13 +1487,40 @@
         "transaction": {
           "sideEffect": true,
           "reversibility": "compensatable",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.supersedeAssignments"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.supersedeAssignments",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.supersedeAssignments",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
             "outcome": "applied",
             "eventType": "WorkerAssignmentSuperseded",
-            "nextNodeId": "create_target_assignments"
+            "nextNodeId": "create_target_assignments",
+            "routeKey": "applied"
           },
           {
             "outcome": "failed",
@@ -1163,7 +1528,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "failed"
           }
         ]
       },
@@ -1175,13 +1541,40 @@
         "transaction": {
           "sideEffect": true,
           "reversibility": "compensatable",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.createAssignments"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.createAssignments",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.createAssignments",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
             "outcome": "applied",
             "eventType": "WorkerAssignmentCreated",
-            "nextNodeId": "recalculate_role_bindings"
+            "nextNodeId": "recalculate_role_bindings",
+            "routeKey": "applied"
           },
           {
             "outcome": "failed",
@@ -1189,7 +1582,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "failed"
           }
         ]
       },
@@ -1201,13 +1595,40 @@
         "transaction": {
           "sideEffect": true,
           "reversibility": "compensatable",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.roleBindings"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.roleBindings",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.roleBindings",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
             "outcome": "applied",
             "eventType": "RoleBindingsRecalculated",
-            "nextNodeId": "sync_hris_transfer"
+            "nextNodeId": "sync_hris_transfer",
+            "routeKey": "applied"
           },
           {
             "outcome": "failed",
@@ -1215,7 +1636,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "failed"
           }
         ]
       },
@@ -1223,12 +1645,38 @@
         "nodeId": "sync_hris_transfer",
         "type": "external_write",
         "title": "Sync HRIS transfer",
-        "connectionId": "hris_worker_management",
+        "connectionId": "hris_worker_profile",
         "operation": "syncWorkerOrgTransfer",
         "transaction": {
           "sideEffect": true,
           "reversibility": "manual_repair",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.hrisTransfer"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.hrisTransfer",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.hrisTransfer",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
@@ -1239,7 +1687,8 @@
               "equals": "accepted"
             },
             "eventType": "ExternalWriteSucceeded",
-            "nextNodeId": "sync_payroll_cost_center"
+            "nextNodeId": "sync_payroll_cost_center",
+            "routeKey": "accepted"
           },
           {
             "outcome": "rejected",
@@ -1252,7 +1701,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "rejected"
           },
           {
             "outcome": "retryable_failure",
@@ -1265,7 +1715,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "retryable_failure"
           },
           {
             "outcome": "dead_letter",
@@ -1278,7 +1729,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "dead_letter"
           }
         ]
       },
@@ -1286,12 +1738,38 @@
         "nodeId": "sync_payroll_cost_center",
         "type": "external_write",
         "title": "Sync payroll cost center",
-        "connectionId": "payroll",
-        "operation": "syncWorkerCostCenter",
+        "connectionId": "payroll_cost_center",
+        "operation": "syncCostCenter",
         "transaction": {
           "sideEffect": true,
           "reversibility": "manual_repair",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.payrollCostCenter"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.payrollCostCenter",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.payrollCostCenter",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
@@ -1302,7 +1780,8 @@
               "equals": "accepted"
             },
             "eventType": "ExternalWriteSucceeded",
-            "nextNodeId": "sync_compensation_vendor"
+            "nextNodeId": "sync_compensation_vendor",
+            "routeKey": "accepted"
           },
           {
             "outcome": "rejected",
@@ -1315,7 +1794,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "rejected"
           },
           {
             "outcome": "retryable_failure",
@@ -1328,7 +1808,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "retryable_failure"
           },
           {
             "outcome": "dead_letter",
@@ -1341,7 +1822,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "dead_letter"
           }
         ]
       },
@@ -1349,12 +1831,38 @@
         "nodeId": "sync_compensation_vendor",
         "type": "external_write",
         "title": "Sync compensation vendor",
-        "connectionId": "third_party_compensation_decision",
-        "operation": "submitOrgTransferCompensationChange",
+        "connectionId": "compensation_vendor",
+        "operation": "syncCompensation",
         "transaction": {
           "sideEffect": true,
           "reversibility": "manual_repair",
-          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.compensationVendor"
+          "idempotencyKeyPath": "transactionPlan.idempotencyKeys.compensationVendor",
+          "idempotency": {
+            "scope": "node",
+            "keyPath": "transactionPlan.idempotencyKeys.compensationVendor",
+            "onDuplicate": "read_existing_result"
+          },
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
         },
         "outcomes": [
           {
@@ -1365,7 +1873,8 @@
               "equals": "accepted"
             },
             "eventType": "ExternalWriteSucceeded",
-            "nextNodeId": "apply_employee_projection"
+            "nextNodeId": "apply_employee_projection",
+            "routeKey": "accepted"
           },
           {
             "outcome": "rejected",
@@ -1378,7 +1887,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "rejected"
           },
           {
             "outcome": "retryable_failure",
@@ -1391,7 +1901,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "retryable_failure"
           },
           {
             "outcome": "dead_letter",
@@ -1404,7 +1915,8 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "dead_letter"
           }
         ]
       },
@@ -1416,7 +1928,8 @@
           {
             "outcome": "applied",
             "eventType": "EmployeeOrgProjectionUpdated",
-            "nextNodeId": "apply_employee_compensation_projection"
+            "nextNodeId": "apply_employee_compensation_projection",
+            "routeKey": "applied"
           },
           {
             "outcome": "failed",
@@ -1424,9 +1937,40 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "failed"
           }
-        ]
+        ],
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "apply_employee_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        }
       },
       {
         "nodeId": "apply_employee_compensation_projection",
@@ -1436,7 +1980,8 @@
           {
             "outcome": "applied",
             "eventType": "EmployeeCompensationUpdated",
-            "nextNodeId": "complete_org_transfer"
+            "nextNodeId": "complete_org_transfer",
+            "routeKey": "applied"
           },
           {
             "outcome": "failed",
@@ -1444,13 +1989,44 @@
             "nextNodeId": "waiting_repair",
             "nextState": "waiting_repair",
             "nextStatus": "waiting_repair",
-            "nextInteraction": "repair"
+            "nextInteraction": "repair",
+            "routeKey": "failed"
           }
-        ]
+        ],
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "apply_employee_compensation_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_compensate",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "runCompensation": true,
+              "nextNodeId": "waiting_repair",
+              "nextState": "waiting_repair",
+              "nextStatus": "waiting_repair",
+              "nextInteraction": "repair",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        }
       },
       {
         "nodeId": "complete_org_transfer",
-        "type": "block",
+        "type": "ledger_event",
         "title": "Record org transfer execution",
         "outcomes": [
           {
@@ -1459,7 +2035,8 @@
             "nextNodeId": "completed",
             "nextState": "executed",
             "nextStatus": "completed",
-            "nextInteraction": "completedSummary"
+            "nextInteraction": "completedSummary",
+            "routeKey": "completed"
           }
         ]
       },
@@ -1499,7 +2076,537 @@
       "description": "Source manager, destination manager, finance, compensation, and medical director approvals are serial in V1. The approval sequence can later be replaced by a parallel_split after source manager approval and a parallel_join before ready_to_execute once runtime join semantics are available.",
       "candidateSplitAfterNodeId": "source_manager_approval",
       "candidateJoinBeforeNodeId": "ready_to_execute"
-    }
+    },
+    "edges": [
+      {
+        "edgeId": "collect_transfer_input.submitted",
+        "fromNodeId": "collect_transfer_input",
+        "routeKey": "submitted",
+        "toNodeId": "org_transfer_preflight",
+        "eventType": "OrgTransferSubmitted",
+        "nextState": "waiting_source_manager_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "sourceManagerApproval"
+      },
+      {
+        "edgeId": "collect_transfer_input.canceled",
+        "fromNodeId": "collect_transfer_input",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "org_transfer_preflight.valid",
+        "fromNodeId": "org_transfer_preflight",
+        "routeKey": "valid",
+        "toNodeId": "check_hr_transfer_authority",
+        "eventType": "OrgTransferPreflighted"
+      },
+      {
+        "edgeId": "org_transfer_preflight.invalid",
+        "fromNodeId": "org_transfer_preflight",
+        "routeKey": "invalid",
+        "toNodeId": "collect_transfer_input",
+        "eventType": "OrgTransferPreflighted",
+        "nextState": "collecting_input",
+        "nextStatus": "active",
+        "nextInteraction": "input"
+      },
+      {
+        "edgeId": "check_hr_transfer_authority.allowed",
+        "fromNodeId": "check_hr_transfer_authority",
+        "routeKey": "allowed",
+        "toNodeId": "check_source_manager_visibility"
+      },
+      {
+        "edgeId": "check_hr_transfer_authority.denied",
+        "fromNodeId": "check_hr_transfer_authority",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "check_source_manager_visibility.allowed",
+        "fromNodeId": "check_source_manager_visibility",
+        "routeKey": "allowed",
+        "toNodeId": "source_manager_approval",
+        "eventType": "SourceManagerApprovalCreated",
+        "nextState": "waiting_source_manager_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "sourceManagerApproval"
+      },
+      {
+        "edgeId": "check_source_manager_visibility.denied",
+        "fromNodeId": "check_source_manager_visibility",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "source_manager_approval.approved",
+        "fromNodeId": "source_manager_approval",
+        "routeKey": "approved",
+        "toNodeId": "check_destination_manager_visibility",
+        "eventType": "ApprovalGranted",
+        "nextState": "waiting_destination_manager_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "destinationManagerApproval"
+      },
+      {
+        "edgeId": "source_manager_approval.rejected",
+        "fromNodeId": "source_manager_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "source_manager_approval.request_more_info",
+        "fromNodeId": "source_manager_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "waiting_repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "check_destination_manager_visibility.allowed",
+        "fromNodeId": "check_destination_manager_visibility",
+        "routeKey": "allowed",
+        "toNodeId": "destination_manager_approval",
+        "eventType": "DestinationManagerApprovalCreated",
+        "nextState": "waiting_destination_manager_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "destinationManagerApproval"
+      },
+      {
+        "edgeId": "check_destination_manager_visibility.denied",
+        "fromNodeId": "check_destination_manager_visibility",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "destination_manager_approval.approved",
+        "fromNodeId": "destination_manager_approval",
+        "routeKey": "approved",
+        "toNodeId": "check_finance_cost_center_scope",
+        "eventType": "ApprovalGranted",
+        "nextState": "waiting_finance_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "financeApproval"
+      },
+      {
+        "edgeId": "destination_manager_approval.rejected",
+        "fromNodeId": "destination_manager_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "destination_manager_approval.request_more_info",
+        "fromNodeId": "destination_manager_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "waiting_repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "check_finance_cost_center_scope.allowed",
+        "fromNodeId": "check_finance_cost_center_scope",
+        "routeKey": "allowed",
+        "toNodeId": "finance_approval",
+        "eventType": "FinanceApprovalCreated",
+        "nextState": "waiting_finance_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "financeApproval"
+      },
+      {
+        "edgeId": "check_finance_cost_center_scope.denied",
+        "fromNodeId": "check_finance_cost_center_scope",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "finance_approval.approved",
+        "fromNodeId": "finance_approval",
+        "routeKey": "approved",
+        "toNodeId": "check_compensation_scope",
+        "eventType": "ApprovalGranted",
+        "nextState": "waiting_compensation_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "compensationApproval"
+      },
+      {
+        "edgeId": "finance_approval.rejected",
+        "fromNodeId": "finance_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "finance_approval.request_more_info",
+        "fromNodeId": "finance_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "waiting_repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "check_compensation_scope.allowed",
+        "fromNodeId": "check_compensation_scope",
+        "routeKey": "allowed",
+        "toNodeId": "compensation_approval",
+        "eventType": "CompensationApprovalCreated",
+        "nextState": "waiting_compensation_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "compensationApproval"
+      },
+      {
+        "edgeId": "check_compensation_scope.denied",
+        "fromNodeId": "check_compensation_scope",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "compensation_approval.approved",
+        "fromNodeId": "compensation_approval",
+        "routeKey": "approved",
+        "toNodeId": "check_medical_director_clinical_scope",
+        "eventType": "ApprovalGranted",
+        "nextState": "waiting_medical_director_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "medicalDirectorApproval"
+      },
+      {
+        "edgeId": "compensation_approval.rejected",
+        "fromNodeId": "compensation_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "compensation_approval.request_more_info",
+        "fromNodeId": "compensation_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "waiting_repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "check_medical_director_clinical_scope.allowed",
+        "fromNodeId": "check_medical_director_clinical_scope",
+        "routeKey": "allowed",
+        "toNodeId": "medical_director_approval",
+        "eventType": "ClinicalPlacementApprovalCreated",
+        "nextState": "waiting_medical_director_approval",
+        "nextStatus": "waiting",
+        "nextInteraction": "medicalDirectorApproval"
+      },
+      {
+        "edgeId": "check_medical_director_clinical_scope.denied",
+        "fromNodeId": "check_medical_director_clinical_scope",
+        "routeKey": "denied",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "medical_director_approval.approved",
+        "fromNodeId": "medical_director_approval",
+        "routeKey": "approved",
+        "toNodeId": "ready_to_execute",
+        "eventType": "ApprovalGranted",
+        "nextState": "approved",
+        "nextStatus": "active",
+        "nextInteraction": "readyToExecute"
+      },
+      {
+        "edgeId": "medical_director_approval.rejected",
+        "fromNodeId": "medical_director_approval",
+        "routeKey": "rejected",
+        "toNodeId": "rejected",
+        "eventType": "ApprovalRejected",
+        "nextState": "rejected",
+        "nextStatus": "rejected"
+      },
+      {
+        "edgeId": "medical_director_approval.request_more_info",
+        "fromNodeId": "medical_director_approval",
+        "routeKey": "request_more_info",
+        "toNodeId": "waiting_repair",
+        "eventType": "MoreInformationRequested",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "ready_to_execute.execute_requested",
+        "fromNodeId": "ready_to_execute",
+        "routeKey": "execute_requested",
+        "toNodeId": "plan_org_transfer_transaction",
+        "nextState": "executing",
+        "nextStatus": "active"
+      },
+      {
+        "edgeId": "ready_to_execute.canceled",
+        "fromNodeId": "ready_to_execute",
+        "routeKey": "canceled",
+        "toNodeId": "canceled",
+        "nextState": "canceled",
+        "nextStatus": "canceled"
+      },
+      {
+        "edgeId": "plan_org_transfer_transaction.planned",
+        "fromNodeId": "plan_org_transfer_transaction",
+        "routeKey": "planned",
+        "toNodeId": "supersede_current_assignments",
+        "eventType": "TransactionPlanCreated"
+      },
+      {
+        "edgeId": "plan_org_transfer_transaction.planning_failed",
+        "fromNodeId": "plan_org_transfer_transaction",
+        "routeKey": "planning_failed",
+        "toNodeId": "waiting_repair",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "supersede_current_assignments.applied",
+        "fromNodeId": "supersede_current_assignments",
+        "routeKey": "applied",
+        "toNodeId": "create_target_assignments",
+        "eventType": "WorkerAssignmentSuperseded"
+      },
+      {
+        "edgeId": "supersede_current_assignments.failed",
+        "fromNodeId": "supersede_current_assignments",
+        "routeKey": "failed",
+        "toNodeId": "waiting_repair",
+        "eventType": "WorkflowFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "create_target_assignments.applied",
+        "fromNodeId": "create_target_assignments",
+        "routeKey": "applied",
+        "toNodeId": "recalculate_role_bindings",
+        "eventType": "WorkerAssignmentCreated"
+      },
+      {
+        "edgeId": "create_target_assignments.failed",
+        "fromNodeId": "create_target_assignments",
+        "routeKey": "failed",
+        "toNodeId": "waiting_repair",
+        "eventType": "WorkflowFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "recalculate_role_bindings.applied",
+        "fromNodeId": "recalculate_role_bindings",
+        "routeKey": "applied",
+        "toNodeId": "sync_hris_transfer",
+        "eventType": "RoleBindingsRecalculated"
+      },
+      {
+        "edgeId": "recalculate_role_bindings.failed",
+        "fromNodeId": "recalculate_role_bindings",
+        "routeKey": "failed",
+        "toNodeId": "waiting_repair",
+        "eventType": "WorkflowFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_hris_transfer.accepted",
+        "fromNodeId": "sync_hris_transfer",
+        "routeKey": "accepted",
+        "toNodeId": "sync_payroll_cost_center",
+        "eventType": "ExternalWriteSucceeded"
+      },
+      {
+        "edgeId": "sync_hris_transfer.rejected",
+        "fromNodeId": "sync_hris_transfer",
+        "routeKey": "rejected",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_hris_transfer.retryable_failure",
+        "fromNodeId": "sync_hris_transfer",
+        "routeKey": "retryable_failure",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_hris_transfer.dead_letter",
+        "fromNodeId": "sync_hris_transfer",
+        "routeKey": "dead_letter",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_payroll_cost_center.accepted",
+        "fromNodeId": "sync_payroll_cost_center",
+        "routeKey": "accepted",
+        "toNodeId": "sync_compensation_vendor",
+        "eventType": "ExternalWriteSucceeded"
+      },
+      {
+        "edgeId": "sync_payroll_cost_center.rejected",
+        "fromNodeId": "sync_payroll_cost_center",
+        "routeKey": "rejected",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_payroll_cost_center.retryable_failure",
+        "fromNodeId": "sync_payroll_cost_center",
+        "routeKey": "retryable_failure",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_payroll_cost_center.dead_letter",
+        "fromNodeId": "sync_payroll_cost_center",
+        "routeKey": "dead_letter",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_compensation_vendor.accepted",
+        "fromNodeId": "sync_compensation_vendor",
+        "routeKey": "accepted",
+        "toNodeId": "apply_employee_projection",
+        "eventType": "ExternalWriteSucceeded"
+      },
+      {
+        "edgeId": "sync_compensation_vendor.rejected",
+        "fromNodeId": "sync_compensation_vendor",
+        "routeKey": "rejected",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_compensation_vendor.retryable_failure",
+        "fromNodeId": "sync_compensation_vendor",
+        "routeKey": "retryable_failure",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "sync_compensation_vendor.dead_letter",
+        "fromNodeId": "sync_compensation_vendor",
+        "routeKey": "dead_letter",
+        "toNodeId": "waiting_repair",
+        "eventType": "ExternalWriteFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "apply_employee_projection.applied",
+        "fromNodeId": "apply_employee_projection",
+        "routeKey": "applied",
+        "toNodeId": "apply_employee_compensation_projection",
+        "eventType": "EmployeeOrgProjectionUpdated"
+      },
+      {
+        "edgeId": "apply_employee_projection.failed",
+        "fromNodeId": "apply_employee_projection",
+        "routeKey": "failed",
+        "toNodeId": "waiting_repair",
+        "eventType": "WorkflowFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "apply_employee_compensation_projection.applied",
+        "fromNodeId": "apply_employee_compensation_projection",
+        "routeKey": "applied",
+        "toNodeId": "complete_org_transfer",
+        "eventType": "EmployeeCompensationUpdated"
+      },
+      {
+        "edgeId": "apply_employee_compensation_projection.failed",
+        "fromNodeId": "apply_employee_compensation_projection",
+        "routeKey": "failed",
+        "toNodeId": "waiting_repair",
+        "eventType": "WorkflowFailed",
+        "nextState": "waiting_repair",
+        "nextStatus": "waiting_repair",
+        "nextInteraction": "repair"
+      },
+      {
+        "edgeId": "complete_org_transfer.completed",
+        "fromNodeId": "complete_org_transfer",
+        "routeKey": "completed",
+        "toNodeId": "completed",
+        "eventType": "OrgTransferExecuted",
+        "nextState": "executed",
+        "nextStatus": "completed",
+        "nextInteraction": "completedSummary"
+      }
+    ]
   },
   "saga": {
     "mode": "orchestrated",
@@ -1508,6 +2615,378 @@
     "idempotencyScope": "workflow_instance",
     "compensationOrder": "reverse_completed_steps",
     "reconciliationRequired": true
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "OrgTransferSubmitted": {
+        "eventType": "OrgTransferSubmitted",
+        "source": "runtime"
+      },
+      "OrgTransferPreflighted": {
+        "eventType": "OrgTransferPreflighted",
+        "source": "runtime"
+      },
+      "SourceManagerApprovalCreated": {
+        "eventType": "SourceManagerApprovalCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "DestinationManagerApprovalCreated": {
+        "eventType": "DestinationManagerApprovalCreated",
+        "source": "runtime"
+      },
+      "FinanceApprovalCreated": {
+        "eventType": "FinanceApprovalCreated",
+        "source": "runtime"
+      },
+      "CompensationApprovalCreated": {
+        "eventType": "CompensationApprovalCreated",
+        "source": "runtime"
+      },
+      "ClinicalPlacementApprovalCreated": {
+        "eventType": "ClinicalPlacementApprovalCreated",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "WorkerAssignmentSuperseded": {
+        "eventType": "WorkerAssignmentSuperseded",
+        "source": "runtime"
+      },
+      "WorkerAssignmentCreated": {
+        "eventType": "WorkerAssignmentCreated",
+        "source": "runtime"
+      },
+      "RoleBindingsRecalculated": {
+        "eventType": "RoleBindingsRecalculated",
+        "source": "runtime"
+      },
+      "ExternalWriteRequested": {
+        "eventType": "ExternalWriteRequested",
+        "source": "runtime"
+      },
+      "ExternalWriteSucceeded": {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "runtime"
+      },
+      "ExternalWriteFailed": {
+        "eventType": "ExternalWriteFailed",
+        "source": "runtime"
+      },
+      "EmployeeOrgProjectionUpdated": {
+        "eventType": "EmployeeOrgProjectionUpdated",
+        "source": "runtime"
+      },
+      "EmployeeCompensationUpdated": {
+        "eventType": "EmployeeCompensationUpdated",
+        "source": "runtime"
+      },
+      "OrgTransferExecuted": {
+        "eventType": "OrgTransferExecuted",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "OrgTransferSubmitted",
+        "source": "node",
+        "nodeId": "collect_transfer_input",
+        "routeKey": "submitted"
+      },
+      {
+        "eventType": "OrgTransferPreflighted",
+        "source": "block",
+        "nodeId": "org_transfer_preflight",
+        "routeKey": "valid"
+      },
+      {
+        "eventType": "OrgTransferPreflighted",
+        "source": "block",
+        "nodeId": "org_transfer_preflight",
+        "routeKey": "invalid"
+      },
+      {
+        "eventType": "SourceManagerApprovalCreated",
+        "source": "node",
+        "nodeId": "check_source_manager_visibility",
+        "routeKey": "allowed"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "source_manager_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "source_manager_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "source_manager_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "DestinationManagerApprovalCreated",
+        "source": "node",
+        "nodeId": "check_destination_manager_visibility",
+        "routeKey": "allowed"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "destination_manager_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "destination_manager_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "destination_manager_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "FinanceApprovalCreated",
+        "source": "node",
+        "nodeId": "check_finance_cost_center_scope",
+        "routeKey": "allowed"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "finance_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "finance_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "finance_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "CompensationApprovalCreated",
+        "source": "node",
+        "nodeId": "check_compensation_scope",
+        "routeKey": "allowed"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "compensation_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "compensation_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "compensation_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "ClinicalPlacementApprovalCreated",
+        "source": "node",
+        "nodeId": "check_medical_director_clinical_scope",
+        "routeKey": "allowed"
+      },
+      {
+        "eventType": "ApprovalGranted",
+        "source": "node",
+        "nodeId": "medical_director_approval",
+        "routeKey": "approved"
+      },
+      {
+        "eventType": "ApprovalRejected",
+        "source": "node",
+        "nodeId": "medical_director_approval",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "MoreInformationRequested",
+        "source": "node",
+        "nodeId": "medical_director_approval",
+        "routeKey": "request_more_info"
+      },
+      {
+        "eventType": "TransactionPlanCreated",
+        "source": "block",
+        "nodeId": "plan_org_transfer_transaction",
+        "routeKey": "planned"
+      },
+      {
+        "eventType": "WorkerAssignmentSuperseded",
+        "source": "node",
+        "nodeId": "supersede_current_assignments",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "supersede_current_assignments",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "WorkerAssignmentCreated",
+        "source": "node",
+        "nodeId": "create_target_assignments",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "create_target_assignments",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "RoleBindingsRecalculated",
+        "source": "node",
+        "nodeId": "recalculate_role_bindings",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "recalculate_role_bindings",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "node",
+        "nodeId": "sync_hris_transfer",
+        "routeKey": "accepted"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_hris_transfer",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_hris_transfer",
+        "routeKey": "retryable_failure"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_hris_transfer",
+        "routeKey": "dead_letter"
+      },
+      {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "node",
+        "nodeId": "sync_payroll_cost_center",
+        "routeKey": "accepted"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_payroll_cost_center",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_payroll_cost_center",
+        "routeKey": "retryable_failure"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_payroll_cost_center",
+        "routeKey": "dead_letter"
+      },
+      {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "node",
+        "nodeId": "sync_compensation_vendor",
+        "routeKey": "accepted"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_compensation_vendor",
+        "routeKey": "rejected"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_compensation_vendor",
+        "routeKey": "retryable_failure"
+      },
+      {
+        "eventType": "ExternalWriteFailed",
+        "source": "node",
+        "nodeId": "sync_compensation_vendor",
+        "routeKey": "dead_letter"
+      },
+      {
+        "eventType": "EmployeeOrgProjectionUpdated",
+        "source": "node",
+        "nodeId": "apply_employee_projection",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "apply_employee_projection",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "EmployeeCompensationUpdated",
+        "source": "node",
+        "nodeId": "apply_employee_compensation_projection",
+        "routeKey": "applied"
+      },
+      {
+        "eventType": "WorkflowFailed",
+        "source": "node",
+        "nodeId": "apply_employee_compensation_projection",
+        "routeKey": "failed"
+      },
+      {
+        "eventType": "OrgTransferExecuted",
+        "source": "node",
+        "nodeId": "complete_org_transfer",
+        "routeKey": "completed"
+      }
+    ]
   },
   "projection": {
     "allowedPatchPaths": [

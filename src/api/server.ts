@@ -39,7 +39,7 @@ import {
   listEmployeeProjections,
   startWorkflowIntent,
   transitionWorkflow,
-} from "../workflows/legal-name-change/service.js";
+} from "../workflows/runtime/service.js";
 
 type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | "OPTIONS" | "HEAD";
 
