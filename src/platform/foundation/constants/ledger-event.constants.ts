@@ -56,6 +56,18 @@ export const LEDGER_EVENT_TYPES = {
   WORKFLOW_COMPLETED: "WorkflowCompleted",
   WORKFLOW_CANCELED: "WorkflowCanceled",
   WORKFLOW_FAILED: "WorkflowFailed",
+  WORKFLOW_FAMILY_CREATED: "WorkflowFamilyCreated",
+  WORKFLOW_DRAFT_CREATED: "WorkflowDraftCreated",
+  WORKFLOW_DRAFT_UPDATED: "WorkflowDraftUpdated",
+  WORKFLOW_DRAFT_REVIEW_REQUESTED: "WorkflowDraftReviewRequested",
+  WORKFLOW_DRAFT_REJECTED: "WorkflowDraftRejected",
+  WORKFLOW_PUBLISHED: "WorkflowPublished",
+  WORKFLOW_ROLLED_BACK: "WorkflowRolledBack",
+  WORKFLOW_ARCHIVED: "WorkflowArchived",
+  WORKFLOW_ADMIN_REPAIR_ACTION_REQUESTED: "WorkflowAdminRepairActionRequested",
+  WORKFLOW_ADMIN_INTEGRATION_RETRY_REQUESTED: "WorkflowAdminIntegrationRetryRequested",
+  WORKFLOW_ADMIN_WORKFLOW_CANCELED: "WorkflowAdminWorkflowCanceled",
+  WORKFLOW_ADMIN_REPAIR_REOPENED: "WorkflowAdminRepairReopened",
 } as const;
 
 export type LedgerEventType = ValueOf<typeof LEDGER_EVENT_TYPES>;

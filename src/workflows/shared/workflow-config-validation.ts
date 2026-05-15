@@ -1,5 +1,6 @@
 import {
   LEDGER_EVENT_TYPES,
+  PERMISSION_KEYS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
 } from "@hcm-next/foundation";
@@ -12,6 +13,7 @@ export type WorkflowValidationIssue = {
   severity: WorkflowValidationSeverity;
   code: string;
   path: string;
+  jsonPath: string;
   message: string;
 };
 
@@ -23,19 +25,25 @@ export type WorkflowValidationReport = {
 };
 
 const requiredTopLevelFields = [
+  "schemaVersion",
   "intent",
   "subjectType",
   "selfServiceStart",
   "interactions",
   "states",
+  "graph",
   "submit",
   "approval",
   "plan",
+  "ledger",
   "projection",
   "timeline",
 ] as const;
 
+export const SUPPORTED_WORKFLOW_SCHEMA_VERSIONS = ["v0.3", "v0.4"] as const;
+
 const knownLedgerEventTypes = new Set<string>(Object.values(LEDGER_EVENT_TYPES));
+const knownPermissionKeys = new Set<string>(Object.values(PERMISSION_KEYS));
 const knownWorkflowStates = new Set<string>(Object.values(WORKFLOW_STATES));
 const knownWorkflowStatuses = new Set<string>(Object.values(WORKFLOW_STATUSES));
 const knownGraphNodeTypes = new Set([
@@ -141,6 +149,7 @@ export function validateWorkflowConfig(value: unknown): WorkflowValidationReport
   }
 
   validateTopLevelFields(workflowConfigRecord, issues);
+  validateAdminMetadataFields(workflowConfigRecord, issues);
 
   const interactions = readRequiredRecord(
     workflowConfigRecord,
@@ -207,6 +216,7 @@ export function validateWorkflowConfig(value: unknown): WorkflowValidationReport
   validateSaga(saga, issues);
   validateLedger(ledger, graphReferences.nodeIds, issues);
   validateTimeline(timeline, issues);
+  validateConfigLintRules(workflowConfigRecord, issues);
 
   return buildValidationReport(value, issues);
 }
@@ -244,6 +254,76 @@ function validateTopLevelFields(
         }),
       );
     }
+  }
+}
+
+function validateAdminMetadataFields(
+  workflowConfig: Record<string, unknown>,
+  issues: WorkflowValidationIssue[],
+): void {
+  const schemaVersion = readRequiredString(
+    workflowConfig,
+    "schemaVersion",
+    "schemaVersion",
+    issues,
+  );
+  if (
+    schemaVersion !== undefined &&
+    !(SUPPORTED_WORKFLOW_SCHEMA_VERSIONS as readonly string[]).includes(schemaVersion)
+  ) {
+    issues.push(
+      issue({
+        code: "workflow_config.schema_version_unsupported",
+        path: "schemaVersion",
+        message: `Workflow schema version ${schemaVersion} is not supported.`,
+      }),
+    );
+  }
+
+  const metadata = isRecord(workflowConfig["metadata"])
+    ? workflowConfig["metadata"]
+    : undefined;
+  const topLevelName = stringValue(workflowConfig["name"]);
+  const metadataTitle =
+    metadata === undefined ? undefined : stringValue(metadata["title"]);
+  const topLevelDescription = stringValue(workflowConfig["description"]);
+  const metadataDescription =
+    metadata === undefined ? undefined : stringValue(metadata["description"]);
+
+  if (topLevelName === undefined && metadataTitle === undefined) {
+    issues.push(
+      issue({
+        severity: "warning",
+        code: "workflow_config.name_missing",
+        path: "name",
+        message:
+          "Workflow config should define name or metadata.title for admin lists.",
+      }),
+    );
+  }
+
+  if (topLevelDescription === undefined && metadataDescription === undefined) {
+    issues.push(
+      issue({
+        severity: "warning",
+        code: "workflow_config.description_missing",
+        path: "description",
+        message:
+          "Workflow config should define description or metadata.description for admin review.",
+      }),
+    );
+  }
+
+  if (!isRecord(workflowConfig["permissions"])) {
+    issues.push(
+      issue({
+        severity: "warning",
+        code: "workflow_config.permissions_section_missing",
+        path: "permissions",
+        message:
+          "Workflow config does not define an admin permissions section; referenced permissions will still be validated.",
+      }),
+    );
   }
 }
 
@@ -421,7 +501,59 @@ function validateInteractions(
 
     readRequiredString(interaction, "type", `${interactionPath}.type`, issues);
     readRequiredString(interaction, "title", `${interactionPath}.title`, issues);
+    validateInteractionEmployeeContext(interaction, interactionPath, issues);
   }
+}
+
+function validateInteractionEmployeeContext(
+  interaction: Record<string, unknown>,
+  interactionPath: string,
+  issues: WorkflowValidationIssue[],
+): void {
+  const employeeContext = interaction["employeeContext"];
+  if (employeeContext === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(employeeContext)) {
+    issues.push(
+      issue({
+        code: "workflow_config.interaction_employee_context_invalid",
+        path: `${interactionPath}.employeeContext`,
+        message: "Workflow interaction employeeContext must be an array.",
+      }),
+    );
+    return;
+  }
+
+  employeeContext.forEach((contextItem, contextIndex) => {
+    const contextPath = `${interactionPath}.employeeContext.${contextIndex}`;
+    if (!isRecord(contextItem)) {
+      issues.push(
+        issue({
+          code: "workflow_config.interaction_employee_context_item_invalid",
+          path: contextPath,
+          message: "Workflow interaction employeeContext entries must be objects.",
+        }),
+      );
+      return;
+    }
+
+    readRequiredString(contextItem, "outputKey", `${contextPath}.outputKey`, issues);
+    readRequiredString(contextItem, "path", `${contextPath}.path`, issues);
+
+    const visibility = readOptionalRecord(
+      contextItem,
+      "visibility",
+      `${contextPath}.visibility`,
+      issues,
+    );
+    validatePermissionArray(
+      visibility?.["permissions"],
+      `${contextPath}.visibility.permissions`,
+      issues,
+    );
+  });
 }
 
 function validateStates(
@@ -937,6 +1069,11 @@ function validateApprovalNode(
     `${approvalPath}.resolver.permission`,
     issues,
   );
+  validatePermissionValue(
+    resolver["permission"],
+    `${approvalPath}.resolver.permission`,
+    issues,
+  );
 }
 
 function validateApprovalGate(
@@ -985,6 +1122,14 @@ function validateApprovalGate(
         message: "Approval gates need at least one approver resolver.",
       }),
     );
+  } else {
+    approverResolvers.forEach((resolver, resolverIndex) => {
+      validateApprovalGateResolver(
+        resolver,
+        `${approvalGatePath}.approverResolvers.${resolverIndex}`,
+        issues,
+      );
+    });
   }
 
   readRequiredRecord(approvalGate, "passRule", `${approvalGatePath}.passRule`, issues);
@@ -1043,6 +1188,30 @@ function validateApprovalGate(
       issues,
     );
   }
+}
+
+function validateApprovalGateResolver(
+  resolver: unknown,
+  resolverPath: string,
+  issues: WorkflowValidationIssue[],
+): void {
+  if (!isRecord(resolver)) {
+    issues.push(
+      issue({
+        code: "workflow_config.approval_gate_resolver_invalid",
+        path: resolverPath,
+        message: "Approval gate approver resolvers must be objects.",
+      }),
+    );
+    return;
+  }
+
+  readRequiredString(resolver, "resolverId", `${resolverPath}.resolverId`, issues);
+  readRequiredString(resolver, "type", `${resolverPath}.type`, issues);
+  readRequiredString(resolver, "taskKey", `${resolverPath}.taskKey`, issues);
+  readRequiredString(resolver, "approvalType", `${resolverPath}.approvalType`, issues);
+  readRequiredString(resolver, "permission", `${resolverPath}.permission`, issues);
+  validatePermissionValue(resolver["permission"], `${resolverPath}.permission`, issues);
 }
 
 function validateApprovalGateFailurePolicy(
@@ -1954,6 +2123,107 @@ function validateTimeline(
   });
 }
 
+function validateConfigLintRules(
+  workflowConfig: Record<string, unknown>,
+  issues: WorkflowValidationIssue[],
+): void {
+  const graph = isRecord(workflowConfig["graph"]) ? workflowConfig["graph"] : undefined;
+  const interactions = isRecord(workflowConfig["interactions"])
+    ? workflowConfig["interactions"]
+    : undefined;
+  const ledger = isRecord(workflowConfig["ledger"])
+    ? workflowConfig["ledger"]
+    : undefined;
+
+  validateUnreachableGraphNodes(graph, issues);
+  validateUnusedInteractions(workflowConfig, interactions, graph, issues);
+  validateUnusedLedgerMappings(workflowConfig, ledger, graph, issues);
+}
+
+function validateUnreachableGraphNodes(
+  graph: Record<string, unknown> | undefined,
+  issues: WorkflowValidationIssue[],
+): void {
+  const nodes = Array.isArray(graph?.["nodes"]) ? graph["nodes"] : undefined;
+  const startNodeId = stringValue(graph?.["startNodeId"]);
+
+  if (nodes === undefined || startNodeId === undefined) {
+    return;
+  }
+
+  const adjacency = graphAdjacency(nodes);
+  const reachableNodeIds = reachableNodes(startNodeId, adjacency);
+
+  nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node)) {
+      return;
+    }
+
+    const nodeId = stringValue(node["nodeId"]);
+    if (nodeId !== undefined && !reachableNodeIds.has(nodeId)) {
+      issues.push(
+        issue({
+          severity: "warning",
+          code: "workflow_config.graph_node_unreachable",
+          path: `graph.nodes.${nodeIndex}.nodeId`,
+          message: `Graph node ${nodeId} is not reachable from the start node.`,
+        }),
+      );
+    }
+  });
+}
+
+function validateUnusedInteractions(
+  workflowConfig: Record<string, unknown>,
+  interactions: Record<string, unknown> | undefined,
+  graph: Record<string, unknown> | undefined,
+  issues: WorkflowValidationIssue[],
+): void {
+  if (interactions === undefined) {
+    return;
+  }
+
+  const referencedInteractions = collectReferencedInteractions(workflowConfig, graph);
+  for (const interactionKey of Object.keys(interactions)) {
+    if (!referencedInteractions.has(interactionKey)) {
+      issues.push(
+        issue({
+          severity: "warning",
+          code: "workflow_config.interaction_unused",
+          path: `interactions.${interactionKey}`,
+          message: `Workflow interaction ${interactionKey} is not referenced by UI, states, or graph routes.`,
+        }),
+      );
+    }
+  }
+}
+
+function validateUnusedLedgerMappings(
+  workflowConfig: Record<string, unknown>,
+  ledger: Record<string, unknown> | undefined,
+  graph: Record<string, unknown> | undefined,
+  issues: WorkflowValidationIssue[],
+): void {
+  const ledgerEvents = isRecord(ledger?.["events"]) ? ledger["events"] : undefined;
+  if (ledgerEvents === undefined) {
+    return;
+  }
+
+  const referencedEventTypes = collectReferencedLedgerEvents(workflowConfig, graph);
+  for (const eventType of Object.keys(ledgerEvents)) {
+    if (!referencedEventTypes.has(eventType)) {
+      issues.push(
+        issue({
+          severity: "warning",
+          code: "workflow_config.ledger_mapping_unused",
+          path: `ledger.events.${eventType}`,
+          message: `Ledger mapping ${eventType} is not referenced by workflow actions, graph routes, or timeline summaries.`,
+        }),
+      );
+    }
+  }
+}
+
 function validateOptionalReference(
   record: Record<string, unknown>,
   field: string,
@@ -2263,8 +2533,265 @@ function issue(input: {
     severity: input.severity ?? "error",
     code: input.code,
     path: input.path,
+    jsonPath: toJsonPath(input.path),
     message: input.message,
   };
+}
+
+function validatePermissionArray(
+  value: unknown,
+  path: string,
+  issues: WorkflowValidationIssue[],
+): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    issues.push(
+      issue({
+        code: "workflow_config.permissions_invalid",
+        path,
+        message: "Workflow permission references must be an array of permission keys.",
+      }),
+    );
+    return;
+  }
+
+  value.forEach((permission, permissionIndex) => {
+    validatePermissionValue(permission, `${path}.${permissionIndex}`, issues);
+  });
+}
+
+function validatePermissionValue(
+  value: unknown,
+  path: string,
+  issues: WorkflowValidationIssue[],
+): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (typeof value !== "string" || value.trim().length === 0) {
+    issues.push(
+      issue({
+        code: "workflow_config.permission_reference_invalid",
+        path,
+        message: "Workflow permission references must be non-empty strings.",
+      }),
+    );
+    return;
+  }
+
+  if (value === "*" || value.endsWith(".*")) {
+    issues.push(
+      issue({
+        severity: "warning",
+        code: "workflow_config.permission_scope_overbroad",
+        path,
+        message: `Workflow permission reference ${value} is broader than expected for HR workflow admin.`,
+      }),
+    );
+    return;
+  }
+
+  if (!knownPermissionKeys.has(value)) {
+    issues.push(
+      issue({
+        code: "workflow_config.permission_reference_unknown",
+        path,
+        message: `Workflow references unknown permission ${value}.`,
+      }),
+    );
+  }
+}
+
+function collectReferencedInteractions(
+  workflowConfig: Record<string, unknown>,
+  graph: Record<string, unknown> | undefined,
+): Set<string> {
+  const referencedInteractions = new Set<string>();
+  const ui = isRecord(workflowConfig["ui"]) ? workflowConfig["ui"] : undefined;
+  const states = isRecord(workflowConfig["states"]) ? workflowConfig["states"] : {};
+  const nodes = Array.isArray(graph?.["nodes"]) ? graph["nodes"] : [];
+
+  addStringIfPresent(referencedInteractions, ui?.["defaultInteraction"]);
+
+  const stateInteractions = isRecord(ui?.["stateInteractions"])
+    ? ui["stateInteractions"]
+    : {};
+  for (const value of Object.values(stateInteractions)) {
+    addStringIfPresent(referencedInteractions, value);
+  }
+
+  for (const stateConfig of Object.values(states)) {
+    if (!isRecord(stateConfig) || !Array.isArray(stateConfig["actions"])) {
+      continue;
+    }
+
+    for (const action of stateConfig["actions"]) {
+      if (isRecord(action)) {
+        addStringIfPresent(referencedInteractions, action["nextInteraction"]);
+      }
+    }
+  }
+
+  for (const node of nodes) {
+    if (!isRecord(node)) {
+      continue;
+    }
+
+    addStringIfPresent(referencedInteractions, node["interaction"]);
+
+    const outcomes = Array.isArray(node["outcomes"]) ? node["outcomes"] : [];
+    for (const outcome of outcomes) {
+      if (isRecord(outcome)) {
+        addStringIfPresent(referencedInteractions, outcome["nextInteraction"]);
+      }
+    }
+
+    const approvalGate = isRecord(node["approvalGate"])
+      ? node["approvalGate"]
+      : undefined;
+    addStringIfPresent(referencedInteractions, approvalGate?.["interaction"]);
+  }
+
+  return referencedInteractions;
+}
+
+function collectReferencedLedgerEvents(
+  workflowConfig: Record<string, unknown>,
+  graph: Record<string, unknown> | undefined,
+): Set<string> {
+  const referencedEventTypes = new Set<string>();
+  const submit = isRecord(workflowConfig["submit"]) ? workflowConfig["submit"] : {};
+  const timeline = isRecord(workflowConfig["timeline"])
+    ? workflowConfig["timeline"]
+    : {};
+  const nodes = Array.isArray(graph?.["nodes"]) ? graph["nodes"] : [];
+
+  addStringArrayValues(referencedEventTypes, submit["additionalEvents"]);
+  addStringArrayValues(referencedEventTypes, timeline["businessEvents"]);
+
+  const summaries = isRecord(timeline["summaries"]) ? timeline["summaries"] : {};
+  for (const eventType of Object.keys(summaries)) {
+    referencedEventTypes.add(eventType);
+  }
+
+  for (const node of nodes) {
+    if (!isRecord(node)) {
+      continue;
+    }
+
+    const outcomes = Array.isArray(node["outcomes"]) ? node["outcomes"] : [];
+    for (const outcome of outcomes) {
+      if (isRecord(outcome)) {
+        addStringIfPresent(referencedEventTypes, outcome["eventType"]);
+      }
+    }
+
+    const approvalGate = isRecord(node["approvalGate"])
+      ? node["approvalGate"]
+      : undefined;
+    const approvalGateEvents = isRecord(approvalGate?.["events"])
+      ? approvalGate["events"]
+      : {};
+    for (const eventType of Object.values(approvalGateEvents)) {
+      addStringIfPresent(referencedEventTypes, eventType);
+    }
+  }
+
+  return referencedEventTypes;
+}
+
+function graphAdjacency(nodes: unknown[]): Map<string, string[]> {
+  const adjacency = new Map<string, string[]>();
+
+  for (const node of nodes) {
+    if (!isRecord(node)) {
+      continue;
+    }
+
+    const nodeId = stringValue(node["nodeId"]);
+    if (nodeId === undefined) {
+      continue;
+    }
+
+    const nextNodeIds: string[] = [];
+    const outcomes = Array.isArray(node["outcomes"]) ? node["outcomes"] : [];
+
+    for (const outcome of outcomes) {
+      if (!isRecord(outcome)) {
+        continue;
+      }
+
+      const nextNodeId = stringValue(outcome["nextNodeId"]);
+      if (nextNodeId !== undefined) {
+        nextNodeIds.push(nextNodeId);
+      }
+    }
+
+    adjacency.set(nodeId, nextNodeIds);
+  }
+
+  return adjacency;
+}
+
+function reachableNodes(
+  startNodeId: string,
+  adjacency: Map<string, string[]>,
+): Set<string> {
+  const visitedNodeIds = new Set<string>();
+  const pendingNodeIds = [startNodeId];
+
+  while (pendingNodeIds.length > 0) {
+    const nodeId = pendingNodeIds.pop();
+    if (nodeId === undefined || visitedNodeIds.has(nodeId)) {
+      continue;
+    }
+
+    visitedNodeIds.add(nodeId);
+
+    for (const nextNodeId of adjacency.get(nodeId) ?? []) {
+      pendingNodeIds.push(nextNodeId);
+    }
+  }
+
+  return visitedNodeIds;
+}
+
+function addStringArrayValues(target: Set<string>, value: unknown): void {
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  for (const item of value) {
+    addStringIfPresent(target, item);
+  }
+}
+
+function addStringIfPresent(target: Set<string>, value: unknown): void {
+  const text = stringValue(value);
+  if (text !== undefined) {
+    target.add(text);
+  }
+}
+
+function stringValue(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+}
+
+function toJsonPath(path: string): string {
+  if (path === "$") {
+    return "$";
+  }
+
+  return `$.${path}`;
 }
 
 function hasOwnField(record: Record<string, unknown>, field: string): boolean {

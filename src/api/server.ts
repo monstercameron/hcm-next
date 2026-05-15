@@ -29,6 +29,39 @@ import {
   validateWorkflowVersion,
 } from "../workflows/admin/service.js";
 import {
+  archiveWorkflowFamilyForApi,
+  blockCatalogForApi,
+  clonePublishedWorkflowVersionForApi,
+  cloneWorkflowTemplateForApi,
+  createWorkflowDraftForApi,
+  diffWorkflowConfigsForApi,
+  exportWorkflowJsonForApi,
+  getWorkflowRegistryDetailForApi,
+  inputMappingPreviewForApi,
+  integrationBindingValidationForApi,
+  interactionPreviewForApi,
+  importWorkflowJsonForApi,
+  listIntegrationBindingsForApi,
+  listWorkflowRegistryForApi,
+  listWorkflowTemplatesForApi,
+  mermaidPreviewForApi,
+  permissionPreviewForApi,
+  publishGuardrailsForApi,
+  publishWorkflowDraftForApi,
+  rejectWorkflowDraftForApi,
+  requestWorkflowDraftReviewForApi,
+  rollbackWorkflowFamilyForApi,
+  saveWorkflowDraftForApi,
+  seedWorkflowTemplatesForApi,
+  simulateWorkflowForApi,
+  upsertIntegrationBindingForApi,
+  validateWorkflowJsonForApi,
+} from "../workflows/admin/contracts/admin-route-handlers.js";
+import {
+  getWorkflowRuntimeDebugger,
+  submitWorkflowAdminRepairAction,
+} from "../workflows/admin/debugger/index.js";
+import {
   createDocument,
   getAvailableActions,
   getDocument,
@@ -182,6 +215,409 @@ async function routeWorkflowRequest(
         requestContext,
         segments[2] ?? "",
       ),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-instances" &&
+    segments[3] === "debug"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      getWorkflowRuntimeDebugger(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-instances" &&
+    segments[3] === "repair-actions"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      submitWorkflowAdminRepairAction(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-families"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      listWorkflowRegistryForApi(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-families"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      getWorkflowRegistryDetailForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-families" &&
+    segments[3] === "rollback"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      rollbackWorkflowFamilyForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-families" &&
+    segments[3] === "archive"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      archiveWorkflowFamilyForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-integration-bindings"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      listIntegrationBindingsForApi(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-integration-bindings"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      upsertIntegrationBindingForApi(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-templates" &&
+    segments[2] === "seed"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext) =>
+      seedWorkflowTemplatesForApi(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-templates"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      listWorkflowTemplatesForApi(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-templates" &&
+    segments[3] === "clone"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      cloneWorkflowTemplateForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "published-workflow-versions" &&
+    segments[3] === "clone"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      clonePublishedWorkflowVersionForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-drafts"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      createWorkflowDraftForApi(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-drafts" &&
+    segments[3] === "save"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      saveWorkflowDraftForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-drafts" &&
+    segments[3] === "request-review"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      requestWorkflowDraftReviewForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-drafts" &&
+    segments[3] === "reject"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      rejectWorkflowDraftForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-drafts" &&
+    segments[3] === "publish"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      publishWorkflowDraftForApi(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "validate-json"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      validateWorkflowJsonForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "export-json"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      exportWorkflowJsonForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "import-json"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      importWorkflowJsonForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "mermaid-preview"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      mermaidPreviewForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "GET" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-blocks"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      blockCatalogForApi(requestContext),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "input-mapping-preview"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      inputMappingPreviewForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "interaction-preview"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      interactionPreviewForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "permission-preview"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      permissionPreviewForApi(
+        routeContext.dependencies.repositories,
+        requestContext,
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "simulate"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      simulateWorkflowForApi(
+        routeContext.dependencies.repositories,
+        requestContext,
+        body,
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "diff"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      diffWorkflowConfigsForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "integration-bindings" &&
+    segments[3] === "validate"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      integrationBindingValidationForApi(requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "publish-guardrails"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      publishGuardrailsForApi(requestContext, body),
     );
   }
 

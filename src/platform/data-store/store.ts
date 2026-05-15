@@ -44,8 +44,14 @@ import type {
   TransactionPlanRecord,
   WorkerAssignmentRecord,
   WorkflowDefinitionRecord,
+  WorkflowAdminDraftRecord,
+  WorkflowAdminFamilyRecord,
+  WorkflowAdminVersionRecord,
+  WorkflowIntegrationBindingRecord,
   WorkflowInstanceDocumentRecord,
   WorkflowInstanceRecord,
+  WorkflowPublishHistoryRecord,
+  WorkflowTemplateRecord,
   WorkflowTransitionAttemptRecord,
   WorkflowVersionRecord,
 } from "./types.js";
@@ -61,6 +67,12 @@ export type HcmNextStore = {
   roleBindings: Map<string, RoleBindingRecord>;
   workflowDefinitions: Map<string, WorkflowDefinitionRecord>;
   workflowVersions: Map<string, WorkflowVersionRecord>;
+  workflowAdminFamilies: Map<string, WorkflowAdminFamilyRecord>;
+  workflowAdminDrafts: Map<string, WorkflowAdminDraftRecord>;
+  workflowAdminVersions: Map<string, WorkflowAdminVersionRecord>;
+  workflowPublishHistory: WorkflowPublishHistoryRecord[];
+  workflowTemplates: Map<string, WorkflowTemplateRecord>;
+  workflowIntegrationBindings: Map<string, WorkflowIntegrationBindingRecord>;
   workflowInstances: Map<string, WorkflowInstanceRecord>;
   transitionAttempts: Map<string, WorkflowTransitionAttemptRecord>;
   ledgerEvents: LedgerEventRecord[];
@@ -88,6 +100,12 @@ export function createEmptyStore(): HcmNextStore {
     roleBindings: new Map(),
     workflowDefinitions: new Map(),
     workflowVersions: new Map(),
+    workflowAdminFamilies: new Map(),
+    workflowAdminDrafts: new Map(),
+    workflowAdminVersions: new Map(),
+    workflowPublishHistory: [],
+    workflowTemplates: new Map(),
+    workflowIntegrationBindings: new Map(),
     workflowInstances: new Map(),
     transitionAttempts: new Map(),
     ledgerEvents: [],

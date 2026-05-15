@@ -1,6 +1,11 @@
 import type {
   ApprovalTaskStatus,
   ChangeRequestStatus,
+  WorkflowAdminDraftStatus,
+  WorkflowAdminFamilyStatus,
+  WorkflowAdminPublishAction,
+  WorkflowAdminTemplateStatus,
+  WorkflowAdminVersionStatus,
   WorkflowState,
   WorkflowStatus,
 } from "@hcm-next/foundation";
@@ -90,6 +95,120 @@ export type WorkflowVersionRecord = {
   createdAt?: string | undefined;
   updatedAt?: string | undefined;
   metadata?: Record<string, unknown> | undefined;
+};
+
+export type WorkflowAdminFamilyRecord = {
+  workflowFamilyId: string;
+  tenantId: string;
+  environmentId: string;
+  intent: string;
+  name: string;
+  description?: string | undefined;
+  hcmDomain: string;
+  ownerActorId: string;
+  status: WorkflowAdminFamilyStatus;
+  activeWorkflowVersionRecordId?: string | undefined;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, unknown>;
+};
+
+export type WorkflowAdminDraftRecord = {
+  workflowDraftId: string;
+  workflowFamilyId: string;
+  tenantId: string;
+  environmentId: string;
+  draftVersion: number;
+  configJson: Record<string, unknown>;
+  configChecksum: string;
+  status: WorkflowAdminDraftStatus;
+  createdByActorId: string;
+  updatedByActorId: string;
+  sourceTemplateId?: string | undefined;
+  sourceWorkflowVersionRecordId?: string | undefined;
+  sourceMetadata: Record<string, unknown>;
+  overrideMetadata: Record<string, unknown>;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WorkflowAdminVersionRecord = {
+  workflowVersionRecordId: string;
+  workflowFamilyId: string;
+  tenantId: string;
+  environmentId: string;
+  publishedVersion: number;
+  configJson: Record<string, unknown>;
+  configChecksum: string;
+  status: WorkflowAdminVersionStatus;
+  isActive: boolean;
+  publishedByActorId: string;
+  publishedAt: string;
+  sourceWorkflowDraftId?: string | undefined;
+  createdAt: string;
+  metadata: Record<string, unknown>;
+};
+
+export type WorkflowPublishHistoryRecord = {
+  workflowPublishHistoryId: string;
+  workflowFamilyId: string;
+  tenantId: string;
+  environmentId: string;
+  action: WorkflowAdminPublishAction;
+  sourceWorkflowDraftId?: string | undefined;
+  publishedWorkflowVersionRecordId: string;
+  previousActiveWorkflowVersionRecordId?: string | undefined;
+  rollbackTargetWorkflowVersionRecordId?: string | undefined;
+  actorId: string;
+  occurredAt: string;
+  metadata: Record<string, unknown>;
+};
+
+export type WorkflowTemplateRecord = {
+  workflowTemplateId: string;
+  name: string;
+  intent: string;
+  hcmDomain: string;
+  description?: string | undefined;
+  templateVersion: number;
+  configJson: Record<string, unknown>;
+  configChecksum: string;
+  status: WorkflowAdminTemplateStatus;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, unknown>;
+};
+
+export type WorkflowIntegrationBindingRecord = {
+  workflowIntegrationBindingId: string;
+  tenantId: string;
+  environmentId: string;
+  abstractConnectionId: string;
+  connectorId: string;
+  connectorEnvironment: "sandbox" | "staging" | "production";
+  secretRef: string;
+  enabled: boolean;
+  allowedOperations: string[];
+  timeoutMs: number;
+  retryPolicy: {
+    maxAttempts: number;
+    backoff: "none" | "fixed" | "linear" | "exponential";
+  };
+  reconciliation: {
+    required: boolean;
+    expectedStatusPath?: string | undefined;
+  };
+  idempotencyScope:
+    | "workflow_instance"
+    | "transaction_plan"
+    | "node"
+    | "external_operation";
+  allowSandboxInProduction?: boolean | undefined;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, unknown>;
 };
 
 export type WorkflowInstanceRecord = {

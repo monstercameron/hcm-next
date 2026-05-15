@@ -889,6 +889,48 @@ The platform should:
 - Execute permitted side effects.
 - Route based on configured outcomes.
 
+## Workflow Admin Authoring And Preview
+
+Workflow Admin v0 is JSON-first. The first admin controls should make configs
+safe to inspect before a visual builder exists.
+
+Current implemented authoring helpers:
+
+```text
+schema-aware validation report
+  -> valid/errors/warnings/configHash
+  -> path and jsonPath per issue
+  -> known node/state/status/interaction/ledger/permission checks
+  -> graph reachability and unused-reference warnings
+
+Mermaid preview
+  -> flowchart LR by default
+  -> every configured node rendered from graph.nodes
+  -> every configured route rendered from graph.edges or node outcomes
+  -> terminal, approval, gate, external, transaction, and repair classes
+
+block catalog
+  -> existing Go block names and versions
+  -> runtime, domain, side-effect classification
+  -> input/output contract summaries
+
+input mapping preview
+  -> source type, source path, target field
+  -> fixture-based resolved values
+  -> default/fallback status
+  -> unresolved required mapping errors
+  -> sensitive field redaction
+
+interaction preview
+  -> generated field list from jsonSchema
+  -> summary sections from employeeContext
+  -> submit, approval, and repair action contracts
+  -> permission-hidden context redaction
+```
+
+Mermaid preview is deliberately read-only. Drag-and-drop editing should wait
+until the schema, validation, simulator, and publishing lifecycle are stable.
+
 ## Template Sources
 
 Current template expressions use source plus path:
@@ -1161,6 +1203,277 @@ status accepted -> ExternalWriteSucceeded -> projection write path
 status rejected -> ExternalWriteFailed -> waiting_repair
 ```
 
-This is an early implementation. The schema is ahead of the runtime in some areas. The next major step is to make the runtime execute graph nodes generically instead of using only selected graph sections during workflow execution.
+The runtime now has a first durable sequential graph execution slice. Workflow
+instances store the current graph cursor in `context.activeNodeId` and a richer
+`context.graphRuntime` object. The public API is still workflow-native, but each
+material transition advances graph nodes using configured route keys and
+outcomes.
 
-Saga support is currently conceptual in the schema spec. The runtime already has transaction plans, idempotency keys, rollback plan placeholders, compensation plan placeholders, external write outcomes, and repair routing. The next implementation step is to make side-effecting nodes record completed node history and execute configured compensating nodes when later steps fail.
+Implemented runtime context shape:
+
+```json
+{
+  "activeNodeId": "apply_compensation_projection",
+  "graphRuntime": {
+    "activeNodeId": "apply_compensation_projection",
+    "activeNodeIds": ["apply_compensation_projection"],
+    "completedNodes": [
+      {
+        "nodeId": "compensation_approval",
+        "nodeType": "approval",
+        "title": "Compensation approval",
+        "outcome": "approved",
+        "routeKey": "approved",
+        "sideEffect": false,
+        "eventType": "ApprovalGranted",
+        "nextNodeId": "plan_compensation_transaction"
+      }
+    ],
+    "routeDecisions": [
+      {
+        "fromNodeId": "compensation_approval",
+        "routeKey": "approved",
+        "outcome": "approved",
+        "toNodeId": "plan_compensation_transaction",
+        "nextState": "approved",
+        "nextStatus": "active"
+      }
+    ],
+    "warnings": []
+  }
+}
+```
+
+User-facing workflow state and engine position are now intentionally separate:
+
+```text
+state = what the actor sees and what actions are available
+activeNodeId = where the graph executor resumes
+```
+
+Example:
+
+```text
+state: approved
+activeNodeId: vendor_compensation_decision
+```
+
+That means the workflow is approved from the user's perspective, but the graph
+will resume at the configured side-effect node when the `execute` transition is
+submitted.
+
+Automatic sequential advancement is implemented for the current node chain. The
+engine can route through configured automatic nodes until it reaches a wait
+boundary.
+
+Wait boundaries:
+
+```text
+interaction
+approval
+approval_gate
+manual_repair
+terminal
+```
+
+Approval transitions can also stop before side-effecting execution nodes:
+
+```text
+projection_write
+external_write
+data_write
+```
+
+This keeps approval and execution separate while still letting graph config own
+the transaction-plan route.
+
+Common transition-to-route mapping:
+
+```text
+submit_input        -> submitted
+provide_evidence   -> provided
+approve            -> approved
+reject             -> rejected
+request_more_info  -> request_more_info
+cancel             -> canceled
+```
+
+Common automatic route keys:
+
+```text
+preflight block        -> valid
+transaction_plan       -> planned
+projection_write       -> applied
+ledger_event           -> recorded
+external_write queued  -> requested
+external_write response -> accepted / rejected / retryable_failure from response outcome
+```
+
+Outcome conditions support atomic and composite forms:
+
+```json
+{
+  "all": [
+    {
+      "$source": "externalWriteResponse",
+      "path": "status",
+      "equals": "accepted"
+    },
+    {
+      "not": {
+        "$source": "input",
+        "path": "businessReason",
+        "equals": "correction"
+      }
+    }
+  ]
+}
+```
+
+Supported atomic operators:
+
+```text
+equals
+notEquals
+in
+notIn
+exists
+```
+
+Supported composite operators:
+
+```text
+all
+any
+not
+```
+
+Edges override node outcome routing when both exist. This allows graph edges to
+serve as the normalized routing index while outcomes remain the business-facing
+result definitions.
+
+Parallel split/join is intentionally not implemented in this slice. The current
+runtime supports one active graph node at a time, represented by
+`activeNodeIds: [activeNodeId]`. True parallelism requires durable execution
+tokens, branch completion records, join policies, and conflict-safe task
+coordination.
+
+Saga support is still partial. The runtime now records completed graph node
+history in workflow context and already has transaction plans, idempotency keys,
+rollback plan placeholders, compensation plan placeholders, external write
+outcomes, and repair routing. The next implementation step is to execute
+configured compensating nodes when later side-effecting steps fail.
+
+## Workflow Admin v0
+
+Workflow Admin is JSON-first. The editable artifact is the full workflow config, and TypeScript stays generic: it validates, previews, simulates, publishes, resolves, debugs, and repairs configs without embedding workflow-specific business rules.
+
+### Lifecycle
+
+```text
+template or raw config
+  -> workflow family
+  -> editable draft
+  -> validation / preview / simulation
+  -> publish immutable version
+  -> runtime instance pins published version
+  -> rollback or archive family when needed
+```
+
+Core records:
+
+- `workflow_families`: tenant/environment/intention registry entry.
+- `workflow_drafts`: mutable JSON config under optimistic concurrency.
+- `workflow_versions`: immutable published JSON config.
+- `workflow_publish_history`: publish and rollback trace.
+- `workflow_templates`: seedable workflow starting points.
+
+### Mermaid Preview
+
+The preview endpoint renders graph configs as deterministic Mermaid using `flowchart LR` by default.
+
+Rules:
+
+- Every graph node becomes a Mermaid node.
+- Node labels use `nodeType: title`.
+- Outcome, default, error, repair, approval, and integration routes become labeled edges.
+- Terminal success/failure, approval, external-write, transaction, and repair nodes get deterministic styles.
+- Preview metadata includes node count, edge count, terminal count, unreachable nodes, and validation warnings.
+
+### Validation
+
+Validation returns a structured report with `valid`, `errors`, `warnings`, `jsonPath`, `code`, `severity`, and `message`.
+
+The validator checks:
+
+- Required top-level sections.
+- Supported schema version.
+- Unique state and node IDs.
+- Known node types and node-type-specific shape.
+- Route targets and terminal paths.
+- Duplicate route labels.
+- Interaction references.
+- Permission and ledger event references.
+- Reachability and unused config warnings.
+- Block catalog references.
+
+### Simulation
+
+Simulation runs a config in memory against fixture data. It creates no workflow instance, ledger row, approval task, projection write, or external call.
+
+Simulation inputs:
+
+- Raw workflow config.
+- Actor and employee fixtures, or IDs resolvable from the demo store.
+- Workflow input fixture.
+- Effective date.
+- Fake integration responses/errors.
+- Approval decisions.
+- Node outcome overrides.
+
+Simulation output:
+
+- Node-by-node trace.
+- Block input and output summaries.
+- Route decisions.
+- Validation errors and warnings.
+- Proposed ledger events.
+- Transaction plans.
+- Projection patch previews.
+- External call previews.
+- Final workflow node, state, and status.
+
+### Publish Guardrails
+
+Publishing is blocked when guardrails find schema errors, missing blocks, missing integration bindings, unreachable required nodes, missing terminal paths, unknown permissions, unknown ledger events, unsafe AI context expansion, invalid approval gates, or unresolved high-risk policy requirements.
+
+Warnings are returned with the same issue shape. A warning does not block publishing unless a policy marks it as a blocker.
+
+### Runtime Debugger
+
+The debugger reads a live workflow instance and returns:
+
+- Workflow identity, intent, pinned version, state, status, and runtime version.
+- Last transition details when present.
+- Pending approval tasks and active approval gate state.
+- Current repair requirements.
+- Node execution history.
+- Ledger events grouped by node when possible.
+- External calls grouped by node when possible.
+- Redacted block input and output summaries.
+- Stuck workflow detections.
+- Repair options.
+
+### Repair Actions
+
+Admin repair actions are explicit, idempotent, expected-version-checked workflow operations.
+
+Supported actions:
+
+- `retry_integration`
+- `cancel_workflow`
+- `reopen_repair`
+- `reevaluate_current_node`
+- `rerun_simulation_from_current_state`
+
+Repair actions append ledger events such as `WorkflowAdminRepairActionRequested`, `WorkflowAdminIntegrationRetryRequested`, `WorkflowAdminWorkflowCanceled`, and `WorkflowAdminRepairReopened`.

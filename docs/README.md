@@ -8,6 +8,17 @@ V0 focuses on one API-only workflow:
 employee.legal_name.change
 ```
 
+Workflow Admin v0 now adds the JSON-first admin path for workflow configs:
+
+```text
+workflow template/raw config
+  -> draft
+  -> validate / preview / simulate
+  -> publish immutable DB version
+  -> runtime instance pins version
+  -> debug / repair / rollback
+```
+
 The demo proves:
 
 ```text
@@ -94,6 +105,25 @@ GET /workflow-instances/:workflowInstanceId/available-actions
 GET /workflow-instances/:workflowInstanceId/timeline
 GET /documents/:documentId
 GET /tasks?status=pending
+```
+
+Workflow Admin endpoints include:
+
+```text
+GET  /admin/workflow-families
+POST /admin/workflow-drafts
+POST /admin/workflow-drafts/:workflowDraftId/publish
+POST /admin/workflows/validate-json
+POST /admin/workflows/mermaid-preview
+GET  /admin/workflow-blocks
+POST /admin/workflows/input-mapping-preview
+POST /admin/workflows/interaction-preview
+POST /admin/workflows/permission-preview
+POST /admin/workflows/simulate
+POST /admin/workflows/diff
+POST /admin/workflows/publish-guardrails
+GET  /admin/workflow-instances/:workflowInstanceId/debug
+POST /admin/workflow-instances/:workflowInstanceId/repair-actions
 ```
 
 Timeline supports three views:
@@ -194,6 +224,8 @@ Run the legal-name change demo from:
 
 [docs/api-demo.md](api-demo.md)
 
+That doc also includes the Workflow Admin JSON demo path for validation, Mermaid preview, DB publish, runtime pinning, debugger, and repair actions.
+
 The happy path is:
 
 1. `POST /workflow-intents` as `actor_employee_jane`.
@@ -229,9 +261,11 @@ Critical checks:
 - [plan.md](plan.md)
 - [V0TODOS.md](V0TODOS.md)
 - [TODOS.md](TODOS.md)
+- [TODOS2.md](TODOS2.md)
 - [docs/code-style.md](code-style.md)
 - [docs/core-platform-architecture.md](core-platform-architecture.md)
 - [docs/data-model-storage-strategy.md](data-model-storage-strategy.md)
+- [docs/dynamic-ui-branding-strategy.md](dynamic-ui-branding-strategy.md)
 - [docs/api-demo.md](api-demo.md)
 - [docs/v0-implementation-notes.md](v0-implementation-notes.md)
 

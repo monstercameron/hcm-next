@@ -17,7 +17,8 @@ import type {
 } from "@hcm-next/data-store";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
-import { objectField, stringField, valueAtDotPath } from "../shared/json-fields.js";
+import { objectField, stringField } from "../shared/json-fields.js";
+import { workflowConditionMatches } from "../shared/workflow-conditions.js";
 import {
   buildConfiguredInteraction,
   type WorkflowConfig,
@@ -29,6 +30,7 @@ import {
   appendTransitionLedgerEvents,
 } from "../shared/workflow-ledger-events.js";
 import type { ExternalWriteExecution, ExternalWriteExecutionResult } from "./types.js";
+import { advanceWorkflowGraph, contextWithGraphAdvance } from "./graph-runtime.js";
 
 /**
  * Executes configured synchronous external writes that can route the workflow.
@@ -194,7 +196,10 @@ function selectExternalWriteOutcome(
 ): Result<WorkflowGraphOutcomeConfig, AppError> {
   const outcomes = graphNode.outcomes ?? [];
   const matchingOutcome = outcomes.find((outcome) => {
-    return outcomeMatchesExternalWriteResponse(outcome, externalWriteResponse);
+    return (
+      outcome.when !== undefined &&
+      workflowConditionMatches(outcome.when, { externalWriteResponse })
+    );
   });
 
   if (matchingOutcome === undefined) {
@@ -208,35 +213,6 @@ function selectExternalWriteOutcome(
   }
 
   return ok(matchingOutcome);
-}
-
-function outcomeMatchesExternalWriteResponse(
-  outcome: WorkflowGraphOutcomeConfig,
-  externalWriteResponse: Record<string, unknown>,
-): boolean {
-  if (outcome.when === undefined) {
-    return false;
-  }
-
-  if (outcome.when.$source !== "externalWriteResponse") {
-    return false;
-  }
-
-  const responseValue = valueAtDotPath(externalWriteResponse, outcome.when.path);
-
-  if (outcome.when.exists !== undefined) {
-    return outcome.when.exists
-      ? responseValue !== undefined
-      : responseValue === undefined;
-  }
-
-  if (outcome.when.in !== undefined) {
-    return outcome.when.in.some((allowedValue) => {
-      return Object.is(allowedValue, responseValue);
-    });
-  }
-
-  return Object.is(outcome.when.equals, responseValue);
 }
 
 function isTerminalExternalFailureOutcome(
@@ -260,12 +236,23 @@ function routeExternalWriteOutcome(
   outcome: WorkflowGraphOutcomeConfig,
   payload: Record<string, unknown>,
 ): Result<WorkflowInstanceRecord, AppError> {
+  const graphAdvance = advanceWorkflowGraph({
+    workflowConfig,
+    workflowContext: workflowInstance.context,
+    firstRouteKey: outcome.routeKey ?? outcome.outcome,
+    sources: {
+      workflow: workflowInstance,
+      changeRequest,
+      transactionPlan,
+      externalWriteResponse: objectField(payload, "response") ?? {},
+    },
+  });
   const nextInteractionResult =
-    outcome.nextInteraction === undefined
+    (graphAdvance.nextInteraction ?? outcome.nextInteraction) === undefined
       ? ok(workflowInstance.currentInteraction)
       : buildConfiguredInteraction({
           workflowConfig,
-          interactionKey: outcome.nextInteraction,
+          interactionKey: graphAdvance.nextInteraction ?? outcome.nextInteraction ?? "",
         });
   if (!nextInteractionResult.ok) {
     return nextInteractionResult;
@@ -296,9 +283,15 @@ function routeExternalWriteOutcome(
 
   const workflowResult = repositories.workflows.updateInstance({
     ...workflowInstance,
-    state: outcome.nextState ?? WORKFLOW_STATES.WAITING_REPAIR,
-    status: outcome.nextStatus ?? WORKFLOW_STATUSES.WAITING_REPAIR,
+    state:
+      graphAdvance.nextState ?? outcome.nextState ?? WORKFLOW_STATES.WAITING_REPAIR,
+    status:
+      graphAdvance.nextStatus ?? outcome.nextStatus ?? WORKFLOW_STATUSES.WAITING_REPAIR,
     currentInteraction: nextInteractionResult.value,
+    context: contextWithGraphAdvance({
+      context: workflowInstance.context,
+      advance: graphAdvance,
+    }),
     version: workflowInstance.version + 1,
   });
   if (!workflowResult.ok) {

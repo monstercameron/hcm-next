@@ -1,5 +1,9 @@
 export * from "./client";
 export * from "./repositories/index";
+export {
+  createWorkflowAdminRepository,
+  type WorkflowAdminRepository,
+} from "./repositories/in-memory-workflow-admin-repository.js";
 export { createRepositories, type Repositories } from "./repositories.js";
 export {
   createDemoDocumentRecord,

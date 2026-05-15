@@ -61,3 +61,25 @@ export const WORKFLOW_TRANSITIONS = {
 } as const;
 
 export type WorkflowTransition = ValueOf<typeof WORKFLOW_TRANSITIONS>;
+
+export const WORKFLOW_ROUTE_KEYS = {
+  SUBMITTED: "submitted",
+  PROVIDED: "provided",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  REQUEST_MORE_INFO: "request_more_info",
+  CANCELED: "canceled",
+  VALID: "valid",
+  INVALID: "invalid",
+  PLANNED: "planned",
+  APPLIED: "applied",
+  RECORDED: "recorded",
+  REQUESTED: "requested",
+  ACCEPTED: "accepted",
+  GATE_PASSED: "gate_passed",
+  GATE_FAILED: "gate_failed",
+  RETRYABLE_FAILURE: "retryable_failure",
+  FAILED: "failed",
+} as const;
+
+export type WorkflowRouteKey = ValueOf<typeof WORKFLOW_ROUTE_KEYS>;

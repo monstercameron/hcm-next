@@ -972,6 +972,177 @@ Replay with the same execute idempotency key returns the cached response and
 does not create duplicate approval tasks or ledger events.
 ```
 
+## Workflow Admin JSON Demo
+
+Seed the admin template registry from checked-in workflow configs:
+
+```bash
+curl -sS -X POST "$API_BASE/admin/workflow-templates/seed" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{}'
+```
+
+Validate an unsaved workflow JSON payload:
+
+```bash
+curl -sS -X POST "$API_BASE/admin/workflows/validate-json" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{ "workflowConfig": { "...": "full workflow config" } }'
+```
+
+Example validation error shape:
+
+```json
+{
+  "correlationId": "corr_admin",
+  "validation": {
+    "valid": false,
+    "errors": [
+      {
+        "severity": "error",
+        "code": "workflow_config.graph_route_target_missing",
+        "path": "graph.nodes.legal_name_preflight.outcomes.ok",
+        "jsonPath": "$.graph.nodes.legal_name_preflight.outcomes.ok",
+        "message": "Route target is not configured."
+      }
+    ],
+    "warnings": []
+  }
+}
+```
+
+Generate a Mermaid graph preview:
+
+```bash
+curl -sS -X POST "$API_BASE/admin/workflows/mermaid-preview" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{ "workflowConfig": { "...": "full workflow config" } }'
+```
+
+Expected Mermaid shape:
+
+```mermaid
+flowchart LR
+  collect_legal_name_input["interaction: Collect legal name input"]
+  legal_name_preflight["block: Preflight legal name change"]
+  completed["terminal: Completed"]
+```
+
+Inspect the deterministic Go block catalog:
+
+```bash
+curl -sS "$API_BASE/admin/workflow-blocks" \
+  -H "x-demo-actor-id: actor_hr_admin"
+```
+
+Simulate a workflow without durable writes:
+
+```bash
+curl -sS -X POST "$API_BASE/admin/workflows/simulate" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{
+    "workflowConfig": { "...": "full workflow config" },
+    "employeeId": "emp_461",
+    "workflowInput": {
+      "newLegalName": { "first": "Jane", "last": "Rivera" },
+      "effectiveAt": "2026-06-01",
+      "businessReason": "legal_name_change"
+    }
+  }'
+```
+
+Example simulator trace shape:
+
+```json
+{
+  "durableWritesCreated": false,
+  "workflowIntent": "employee.legal_name.change",
+  "traces": [
+    {
+      "nodeId": "collect_legal_name_input",
+      "nodeType": "interaction",
+      "title": "Collect legal name input",
+      "routeDecision": {
+        "outcome": "submitted",
+        "routeKey": "submitted",
+        "nextNodeId": "legal_name_preflight"
+      },
+      "validationErrors": [],
+      "warnings": []
+    }
+  ]
+}
+```
+
+Create and publish a database-backed workflow draft:
+
+```bash
+curl -sS -X POST "$API_BASE/admin/workflow-drafts" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{ "workflowConfig": { "...": "full workflow config" } }'
+
+curl -sS -X POST "$API_BASE/admin/workflow-drafts/$WORKFLOW_DRAFT_ID/publish" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{ "expectedVersion": 1 }'
+```
+
+Start a workflow after publish. Runtime resolution prefers the active database-published version and pins the instance to that immutable version:
+
+```bash
+curl -sS -X POST "$API_BASE/workflow-intents" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_emp_461" \
+  -d '{
+    "intent": "employee.legal_name.change",
+    "subjectType": "worker",
+    "subjectId": "emp_461"
+  }'
+```
+
+Debug and repair a workflow instance:
+
+```bash
+curl -sS "$API_BASE/admin/workflow-instances/$WORKFLOW_INSTANCE_ID/debug" \
+  -H "x-demo-actor-id: actor_hr_admin"
+
+curl -sS -X POST "$API_BASE/admin/workflow-instances/$WORKFLOW_INSTANCE_ID/repair-actions" \
+  -H "content-type: application/json" \
+  -H "x-demo-actor-id: actor_hr_admin" \
+  -d '{
+    "action": "cancel_workflow",
+    "idempotencyKey": "idem_admin_cancel_demo",
+    "expectedVersion": 1
+  }'
+```
+
+Example debugger output shape:
+
+```json
+{
+  "workflowInstanceId": "workflow_instance_123",
+  "workflowIntent": "employee.legal_name.change",
+  "currentState": "collecting_input",
+  "workflowStatus": "active",
+  "pinnedWorkflowVersion": {
+    "workflowDefinitionId": "workflow_family_123",
+    "workflowVersionId": "workflow_admin_version_123"
+  },
+  "repairOptions": [
+    {
+      "action": "cancel_workflow",
+      "label": "Cancel workflow",
+      "enabled": true
+    }
+  ]
+}
+```
+
 ## Demo Readiness Checklist
 
 - [x] Dependencies install from a clean checkout.

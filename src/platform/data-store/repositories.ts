@@ -13,6 +13,7 @@ import {
   transitionAttemptKey,
   type HcmNextStore,
 } from "./store.js";
+import { createWorkflowAdminRepository } from "./repositories/in-memory-workflow-admin-repository.js";
 import type {
   AccessGrantRecord,
   ActorRecord,
@@ -31,6 +32,7 @@ import type {
   TransactionPlanRecord,
   WorkerAssignmentRecord,
   WorkflowDefinitionRecord,
+  WorkflowIntegrationBindingRecord,
   WorkflowInstanceDocumentRecord,
   WorkflowInstanceRecord,
   WorkflowTransitionAttemptRecord,
@@ -61,6 +63,8 @@ export function createRepositories(store: HcmNextStore) {
     workerAssignments: createWorkerAssignmentRepository(store),
     roleBindings: createRoleBindingRepository(store),
     workflows: createWorkflowRepository(store),
+    workflowAdmin: createWorkflowAdminRepository(store),
+    workflowIntegrationBindings: createWorkflowIntegrationBindingRepository(store),
     ledger: createLedgerRepository(store),
     changeRequests: createChangeRequestRepository(store),
     proposedChanges: createProposedChangeRepository(store),
@@ -71,6 +75,66 @@ export function createRepositories(store: HcmNextStore) {
     employeeProjections: createEmployeeProjectionRepository(store),
     integrationOutbox: createIntegrationOutboxRepository(store),
     store,
+  };
+}
+
+function createWorkflowIntegrationBindingRepository(store: HcmNextStore) {
+  return {
+    list(input: {
+      tenantId: string;
+      environmentId?: string | undefined;
+    }): Result<WorkflowIntegrationBindingRecord[], AppError> {
+      return ok(
+        [...store.workflowIntegrationBindings.values()]
+          .filter((binding) => {
+            return (
+              binding.tenantId === input.tenantId &&
+              (input.environmentId === undefined ||
+                binding.environmentId === input.environmentId)
+            );
+          })
+          .sort((left, right) =>
+            left.abstractConnectionId.localeCompare(right.abstractConnectionId),
+          ),
+      );
+    },
+
+    upsert(
+      input: Omit<
+        WorkflowIntegrationBindingRecord,
+        "workflowIntegrationBindingId" | "createdAt" | "updatedAt"
+      > & {
+        workflowIntegrationBindingId?: string | undefined;
+      },
+    ): Result<WorkflowIntegrationBindingRecord, AppError> {
+      const existingBinding = [...store.workflowIntegrationBindings.values()].find(
+        (binding) => {
+          return (
+            binding.tenantId === input.tenantId &&
+            binding.environmentId === input.environmentId &&
+            binding.abstractConnectionId === input.abstractConnectionId
+          );
+        },
+      );
+      const timestamp = nowIso();
+      const record: WorkflowIntegrationBindingRecord = {
+        ...(existingBinding ?? {}),
+        ...input,
+        workflowIntegrationBindingId:
+          existingBinding?.workflowIntegrationBindingId ??
+          input.workflowIntegrationBindingId ??
+          makeId("workflow_integration_binding"),
+        createdAt: existingBinding?.createdAt ?? timestamp,
+        updatedAt: timestamp,
+      };
+
+      store.workflowIntegrationBindings.set(
+        record.workflowIntegrationBindingId,
+        record,
+      );
+
+      return ok(record);
+    },
   };
 }
 

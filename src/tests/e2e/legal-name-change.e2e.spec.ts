@@ -209,6 +209,23 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(executedWorkflow.ok).toBe(true);
     expect(executedWorkflow.ok && executedWorkflow.value["state"]).toBe("executed");
 
+    const executedInstance =
+      harness.repositories.store.workflowInstances.get(workflowInstanceId);
+    const executedGraphRuntime = graphRuntimeFromInstance(executedInstance);
+    expect(executedGraphRuntime?.["activeNodeId"]).toBe("completed");
+    expect(graphCompletedNodeIds(executedGraphRuntime)).toEqual(
+      expect.arrayContaining([
+        "collect_legal_name_input",
+        "legal_name_preflight",
+        "collect_legal_name_evidence",
+        "hr_legal_name_approval",
+        "plan_legal_name_transaction",
+        "apply_legal_name_projection",
+        "record_legal_name_projection_update",
+        "sync_legal_name_hris",
+      ]),
+    );
+
     const replayedExecution = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
@@ -684,4 +701,32 @@ function displayNameFromLegalName(legalName: Record<string, unknown>): string {
       return typeof value === "string" && value.trim().length > 0;
     })
     .join(" ");
+}
+
+function graphRuntimeFromInstance(
+  workflowInstance: { context: Record<string, unknown> } | undefined,
+): Record<string, unknown> | undefined {
+  const graphRuntime = workflowInstance?.context["graphRuntime"];
+
+  return typeof graphRuntime === "object" && graphRuntime !== null
+    ? (graphRuntime as Record<string, unknown>)
+    : undefined;
+}
+
+function graphCompletedNodeIds(
+  graphRuntime: Record<string, unknown> | undefined,
+): string[] {
+  const completedNodes = graphRuntime?.["completedNodes"];
+
+  if (!Array.isArray(completedNodes)) {
+    return [];
+  }
+
+  return completedNodes.flatMap((node) => {
+    return typeof node === "object" &&
+      node !== null &&
+      typeof (node as Record<string, unknown>)["nodeId"] === "string"
+      ? [String((node as Record<string, unknown>)["nodeId"])]
+      : [];
+  });
 }

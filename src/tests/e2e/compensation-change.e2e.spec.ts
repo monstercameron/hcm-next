@@ -131,6 +131,21 @@ describe("employee.compensation.change E2E contract", () => {
     expect(executedWorkflow.ok).toBe(true);
     expect(executedWorkflow.ok && executedWorkflow.value["state"]).toBe("executed");
 
+    const executedInstance =
+      activeHarness.repositories.store.workflowInstances.get(workflowInstanceId);
+    const executedGraphRuntime = graphRuntimeFromInstance(executedInstance);
+    expect(executedGraphRuntime?.["activeNodeId"]).toBe("completed");
+    expect(graphCompletedNodeIds(executedGraphRuntime)).toEqual(
+      expect.arrayContaining([
+        "collect_compensation_input",
+        "compensation_preflight",
+        "compensation_approval",
+        "plan_compensation_transaction",
+        "vendor_compensation_decision",
+        "apply_compensation_projection",
+      ]),
+    );
+
     const projection = activeHarness.repositories.store.employeeProjections.get(
       `${DEMO_IDS.tenantId}:${DEMO_IDS.employeeId}`,
     );
@@ -208,6 +223,20 @@ describe("employee.compensation.change E2E contract", () => {
     expect(routedWorkflow.ok).toBe(true);
     expect(routedWorkflow.ok && routedWorkflow.value["state"]).toBe("waiting_repair");
     expect(routedWorkflow.ok && routedWorkflow.value["status"]).toBe("waiting_repair");
+
+    const routedInstance =
+      activeHarness.repositories.store.workflowInstances.get(workflowInstanceId);
+    const routedGraphRuntime = graphRuntimeFromInstance(routedInstance);
+    expect(routedGraphRuntime?.["activeNodeId"]).toBe("repair_vendor_decision");
+    expect(graphCompletedNodeIds(routedGraphRuntime)).toEqual(
+      expect.arrayContaining([
+        "collect_compensation_input",
+        "compensation_preflight",
+        "compensation_approval",
+        "plan_compensation_transaction",
+        "vendor_compensation_decision",
+      ]),
+    );
 
     const projection = activeHarness.repositories.store.employeeProjections.get(
       `${DEMO_IDS.tenantId}:${DEMO_IDS.employeeId}`,
@@ -452,4 +481,32 @@ function compensationFixture(amount: number): Record<string, unknown> {
     bonusTargetPercent: 5,
     effectiveDate: "2026-06-01",
   };
+}
+
+function graphRuntimeFromInstance(
+  workflowInstance: { context: Record<string, unknown> } | undefined,
+): Record<string, unknown> | undefined {
+  const graphRuntime = workflowInstance?.context["graphRuntime"];
+
+  return typeof graphRuntime === "object" && graphRuntime !== null
+    ? (graphRuntime as Record<string, unknown>)
+    : undefined;
+}
+
+function graphCompletedNodeIds(
+  graphRuntime: Record<string, unknown> | undefined,
+): string[] {
+  const completedNodes = graphRuntime?.["completedNodes"];
+
+  if (!Array.isArray(completedNodes)) {
+    return [];
+  }
+
+  return completedNodes.flatMap((node) => {
+    return typeof node === "object" &&
+      node !== null &&
+      typeof (node as Record<string, unknown>)["nodeId"] === "string"
+      ? [String((node as Record<string, unknown>)["nodeId"])]
+      : [];
+  });
 }

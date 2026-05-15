@@ -28,10 +28,15 @@ export {
 } from "./workflow-config-registry.js";
 export {
   validateWorkflowConfig,
+  SUPPORTED_WORKFLOW_SCHEMA_VERSIONS,
   type WorkflowValidationIssue,
   type WorkflowValidationReport,
   type WorkflowValidationSeverity,
 } from "./workflow-config-validation.js";
+export {
+  canonicalWorkflowConfigJsonSchema,
+  type WorkflowConfigJsonSchema,
+} from "./workflow-config-schema.js";
 
 export type WorkflowActionActor =
   | "requester"
@@ -91,7 +96,7 @@ export type WorkflowOutcomeConditionSource =
   | WorkflowValueExpression["$source"]
   | "externalWriteError";
 
-export type WorkflowOutcomeCondition = {
+export type WorkflowAtomicOutcomeCondition = {
   $source: WorkflowOutcomeConditionSource;
   path: string;
   equals?: unknown;
@@ -100,6 +105,18 @@ export type WorkflowOutcomeCondition = {
   notIn?: unknown[];
   exists?: boolean;
 };
+
+export type WorkflowOutcomeCondition =
+  | WorkflowAtomicOutcomeCondition
+  | {
+      all: WorkflowOutcomeCondition[];
+    }
+  | {
+      any: WorkflowOutcomeCondition[];
+    }
+  | {
+      not: WorkflowOutcomeCondition;
+    };
 
 export type WorkflowMetadataConfig = {
   schemaVersion?: string;
@@ -194,9 +211,11 @@ export type WorkflowApprovalGateMode = "sequential" | "parallel";
 export type WorkflowApprovalGateResolverType =
   | "actor"
   | "role"
+  | "relationship"
   | "manager_chain"
   | "department_lead"
   | "cost_center_owner"
+  | "org_unit"
   | "seniority_level"
   | "workflow_field";
 
@@ -283,6 +302,28 @@ export type WorkflowApprovalGateConfig = {
   approverResolvers: WorkflowApprovalGateApproverResolverConfig[];
   passRule: WorkflowApprovalGatePassRuleConfig;
   failurePolicies: WorkflowApprovalGateFailurePolicyConfig[];
+  requestMoreInfoPolicy?: {
+    enabled: boolean;
+    nextNodeId?: string;
+    nextState?: WorkflowState;
+    nextStatus?: WorkflowStatus;
+    nextInteraction?: string;
+  };
+  staleTaskPolicy?: {
+    after: string;
+    action: "notify" | "escalate" | "expire";
+    escalationResolverId?: string;
+  };
+  taskExpirationPolicy?: {
+    expiresAfter: string;
+    expirationAction: "reject" | "send_to_repair" | "escalate";
+    nextNodeId?: string;
+  };
+  delegationPolicy?: {
+    enabled: boolean;
+    allowedResolverIds?: string[];
+    requiresAudit?: boolean;
+  };
   events: {
     opened: string;
     taskCreated: string;

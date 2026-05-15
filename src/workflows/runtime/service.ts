@@ -3,6 +3,7 @@ import {
   CHANGE_REQUEST_STATUSES,
   DOCUMENT_CLASSIFICATIONS,
   LEDGER_EVENT_TYPES,
+  WORKFLOW_ROUTE_KEYS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
   err,
@@ -77,6 +78,13 @@ import {
 } from "./approval-gates.js";
 import { executeSynchronousExternalWrites } from "./external-writes.js";
 import {
+  advanceWorkflowGraph,
+  contextWithGraphAdvance,
+  initialGraphRuntimeContext,
+  routeKeyForWorkflowTransition,
+  type WorkflowGraphAdvanceResult,
+} from "./graph-runtime.js";
+import {
   parseApprovalDecisionInput,
   parseEvidenceInput,
   parseTransitionBody,
@@ -106,6 +114,7 @@ import {
 import type {
   AdditionalLedgerEventInput,
   ApprovalDecisionInput,
+  ExternalWriteExecution,
   PreflightOutput,
   RuntimeTransitionInput,
 } from "./types.js";
@@ -140,6 +149,7 @@ export function startWorkflowIntent(
   const workflowConfigResult = resolveCurrentPublishedWorkflowConfig(
     repositories,
     requestContext.tenantId,
+    requestContext.environmentId,
     intent,
   );
   if (!workflowConfigResult.ok) {
@@ -200,6 +210,7 @@ export function startWorkflowIntent(
     requesterActorId: requestContext.actor.actorId,
     currentInteraction: initialInteractionResult.value,
     context: {
+      ...initialGraphRuntimeContext(workflowConfig),
       ...(workflowConfig.graph?.startNodeId !== undefined
         ? { activeNodeId: workflowConfig.graph.startNodeId }
         : {}),
@@ -998,9 +1009,18 @@ async function submitConfiguredInput(
     return approvalTaskResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: templateSources,
+    automaticRouteKeysByNodeId: preflightAutomaticRouteKeys(input.workflowConfig),
+  });
+  const nextInteractionKey =
+    graphAdvance.nextInteraction ?? input.actionConfig.nextInteraction ?? "input";
   const nextInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: input.actionConfig.nextInteraction ?? "input",
+    interactionKey: nextInteractionKey,
     ...(employeeProjectionResult.value !== undefined
       ? { employeeDocument: employeeProjectionResult.value.document }
       : {}),
@@ -1012,12 +1032,21 @@ async function submitConfiguredInput(
 
   const updatedWorkflow = {
     ...input.workflowInstance,
-    state: input.actionConfig.nextState ?? input.workflowInstance.state,
-    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    state:
+      graphAdvance.nextState ??
+      input.actionConfig.nextState ??
+      input.workflowInstance.state,
+    status:
+      graphAdvance.nextStatus ??
+      input.actionConfig.nextStatus ??
+      input.workflowInstance.status,
     changeRequestId: createdChangeRequestResult.value.changeRequestId,
     currentInteraction: nextInteractionResult.value,
     context: {
-      ...input.workflowInstance.context,
+      ...contextWithGraphAdvance({
+        context: input.workflowInstance.context,
+        advance: graphAdvance,
+      }),
       submitInput: input.transitionBody.input,
       preflight: preflightResult.value.output,
       ...(approvalTaskResult.value !== undefined
@@ -1163,9 +1192,20 @@ function provideEvidence(
     return updatedChangeRequestResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+    }),
+  });
+  const nextInteractionKey =
+    graphAdvance.nextInteraction ?? input.actionConfig.nextInteraction ?? "input";
   const nextInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: input.actionConfig.nextInteraction ?? "input",
+    interactionKey: nextInteractionKey,
     fallbackInteraction: input.workflowInstance.currentInteraction,
   });
   if (!nextInteractionResult.ok) {
@@ -1174,11 +1214,20 @@ function provideEvidence(
 
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: input.actionConfig.nextState ?? input.workflowInstance.state,
-    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    state:
+      graphAdvance.nextState ??
+      input.actionConfig.nextState ??
+      input.workflowInstance.state,
+    status:
+      graphAdvance.nextStatus ??
+      input.actionConfig.nextStatus ??
+      input.workflowInstance.status,
     currentInteraction: nextInteractionResult.value,
     context: {
-      ...input.workflowInstance.context,
+      ...contextWithGraphAdvance({
+        context: input.workflowInstance.context,
+        advance: graphAdvance,
+      }),
       evidenceDocumentId: documentResult.value.documentId,
       approvalTaskId: approvalTask.approvalTaskId,
     },
@@ -1357,11 +1406,25 @@ function rejectChange(
     return changeRequestUpdateResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+      changeRequest: changeRequestResult.value,
+    }),
+  });
   const workflowResult = dependencies.repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.REJECTED,
-    status: WORKFLOW_STATUSES.REJECTED,
+    state: graphAdvance.nextState ?? WORKFLOW_STATES.REJECTED,
+    status: graphAdvance.nextStatus ?? WORKFLOW_STATUSES.REJECTED,
     currentInteraction: terminalInteraction("rejected"),
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     completedAt: nowIso(),
     version: input.workflowInstance.version + 1,
   });
@@ -1456,9 +1519,20 @@ function requestMoreInformation(
     );
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+    }),
+  });
+  const nextInteractionKey =
+    graphAdvance.nextInteraction ?? input.actionConfig.nextInteraction ?? "input";
   const nextInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: input.actionConfig.nextInteraction ?? "input",
+    interactionKey: nextInteractionKey,
     fallbackInteraction: input.workflowInstance.currentInteraction,
   });
   if (!nextInteractionResult.ok) {
@@ -1467,9 +1541,19 @@ function requestMoreInformation(
 
   const workflowResult = dependencies.repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: input.actionConfig.nextState ?? input.workflowInstance.state,
-    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    state:
+      graphAdvance.nextState ??
+      input.actionConfig.nextState ??
+      input.workflowInstance.state,
+    status:
+      graphAdvance.nextStatus ??
+      input.actionConfig.nextStatus ??
+      input.workflowInstance.status,
     currentInteraction: nextInteractionResult.value,
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     version: input.workflowInstance.version + 1,
   });
   if (!workflowResult.ok) {
@@ -1513,11 +1597,27 @@ function cancelWorkflow(
     return changeRequestResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+      ...(changeRequestResult.value !== undefined
+        ? { changeRequest: changeRequestResult.value }
+        : {}),
+    }),
+  });
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.CANCELED,
-    status: WORKFLOW_STATUSES.CANCELED,
+    state: graphAdvance.nextState ?? WORKFLOW_STATES.CANCELED,
+    status: graphAdvance.nextStatus ?? WORKFLOW_STATUSES.CANCELED,
     currentInteraction: terminalInteraction("canceled"),
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     canceledAt: nowIso(),
     version: input.workflowInstance.version + 1,
   });
@@ -1652,11 +1752,21 @@ async function executeApprovedChange(
     return executedPlanResult;
   }
 
+  const graphAdvance = advanceGraphForExecution({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transactionPlan: executedPlanResult.value,
+    externalWriteExecutions: externalWriteExecutionsResult.value.executions,
+  });
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: WORKFLOW_STATES.EXECUTED,
-    status: WORKFLOW_STATUSES.COMPLETED,
+    state: graphAdvance.nextState ?? WORKFLOW_STATES.EXECUTED,
+    status: graphAdvance.nextStatus ?? WORKFLOW_STATUSES.COMPLETED,
     currentInteraction: terminalInteraction("executed"),
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     completedAt: nowIso(),
     version: input.workflowInstance.version + 1,
   });
@@ -1748,9 +1858,28 @@ async function approveFinalConfiguredChange(
     return employeeProjectionResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+      ...(employeeProjectionResult.value !== undefined
+        ? { employeeDocument: employeeProjectionResult.value.document }
+        : {}),
+      changeRequest: changeRequestResult.value,
+    }),
+    automaticRouteKeysByNodeId: transactionPlanAutomaticRouteKeys(input.workflowConfig),
+    stopBeforeNodeTypes: ["projection_write", "external_write", "data_write"],
+  });
+  const readyInteractionKey =
+    graphAdvance.nextInteraction ??
+    input.actionConfig.nextInteraction ??
+    "readyToExecute";
   const readyInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: input.actionConfig.nextInteraction ?? "readyToExecute",
+    interactionKey: readyInteractionKey,
     ...(employeeProjectionResult.value !== undefined
       ? { employeeDocument: employeeProjectionResult.value.document }
       : {}),
@@ -1762,11 +1891,20 @@ async function approveFinalConfiguredChange(
 
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: input.actionConfig.nextState ?? WORKFLOW_STATES.APPROVED,
-    status: input.actionConfig.nextStatus ?? WORKFLOW_STATUSES.ACTIVE,
+    state:
+      graphAdvance.nextState ??
+      input.actionConfig.nextState ??
+      WORKFLOW_STATES.APPROVED,
+    status:
+      graphAdvance.nextStatus ??
+      input.actionConfig.nextStatus ??
+      WORKFLOW_STATUSES.ACTIVE,
     currentInteraction: readyInteractionResult.value,
     context: {
-      ...input.workflowInstance.context,
+      ...contextWithGraphAdvance({
+        context: input.workflowInstance.context,
+        advance: graphAdvance,
+      }),
       transactionPlanId: transactionPlanResult.value.transactionPlanId,
     },
     version: input.workflowInstance.version + 1,
@@ -1832,9 +1970,21 @@ function advanceToNextApprovalState(
     return changeRequestResult;
   }
 
+  const graphAdvance = advanceGraphForTransition({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    transition: input.transitionBody.transition,
+    sources: workflowTemplateSources({
+      input: input.transitionBody.input,
+      workflowInstance: input.workflowInstance,
+      changeRequest: changeRequestResult.value,
+    }),
+  });
+  const nextInteractionKey =
+    graphAdvance.nextInteraction ?? input.actionConfig.nextInteraction ?? "input";
   const nextInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: input.actionConfig.nextInteraction ?? "input",
+    interactionKey: nextInteractionKey,
     fallbackInteraction: input.workflowInstance.currentInteraction,
   });
   if (!nextInteractionResult.ok) {
@@ -1843,9 +1993,19 @@ function advanceToNextApprovalState(
 
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: input.actionConfig.nextState ?? input.workflowInstance.state,
-    status: input.actionConfig.nextStatus ?? input.workflowInstance.status,
+    state:
+      graphAdvance.nextState ??
+      input.actionConfig.nextState ??
+      input.workflowInstance.state,
+    status:
+      graphAdvance.nextStatus ??
+      input.actionConfig.nextStatus ??
+      input.workflowInstance.status,
     currentInteraction: nextInteractionResult.value,
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     version: input.workflowInstance.version + 1,
   });
   if (!workflowResult.ok) {
@@ -2090,9 +2250,21 @@ function routeGateOutcome(
   outcome: WorkflowGraphOutcomeConfig,
 ): Result<Record<string, unknown>, AppError> {
   const repositories = dependencies.repositories;
+  const graphAdvance = advanceGraphForRouteKey({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    routeKey: outcome.routeKey ?? outcome.outcome,
+    sources: {
+      input: input.transitionBody.input,
+      workflow: input.workflowInstance,
+      approvalGate: approvalGroup as unknown as Record<string, unknown>,
+    },
+  });
+  const nextInteractionKey =
+    graphAdvance.nextInteraction ?? outcome.nextInteraction ?? "input";
   const nextInteractionResult = buildNextInteraction({
     workflowConfig: input.workflowConfig,
-    interactionKey: outcome.nextInteraction ?? "input",
+    interactionKey: nextInteractionKey,
     fallbackInteraction: input.workflowInstance.currentInteraction,
   });
   if (!nextInteractionResult.ok) {
@@ -2101,9 +2273,14 @@ function routeGateOutcome(
 
   const workflowResult = repositories.workflows.updateInstance({
     ...input.workflowInstance,
-    state: outcome.nextState ?? input.workflowInstance.state,
-    status: outcome.nextStatus ?? input.workflowInstance.status,
+    state: graphAdvance.nextState ?? outcome.nextState ?? input.workflowInstance.state,
+    status:
+      graphAdvance.nextStatus ?? outcome.nextStatus ?? input.workflowInstance.status,
     currentInteraction: nextInteractionResult.value,
+    context: contextWithGraphAdvance({
+      context: input.workflowInstance.context,
+      advance: graphAdvance,
+    }),
     version: input.workflowInstance.version + 1,
   });
   if (!workflowResult.ok) {
@@ -2251,6 +2428,147 @@ async function createPlannedTransaction(
   return dependencies.repositories.transactionPlans.create(transactionPlan);
 }
 
+function advanceGraphForTransition(input: {
+  workflowConfig: WorkflowConfig;
+  workflowInstance: WorkflowInstanceRecord;
+  transition: string;
+  sources?: WorkflowTemplateSources | undefined;
+  automaticRouteKeysByNodeId?: Record<string, string> | undefined;
+  stopBeforeNodeTypes?: Array<"projection_write" | "external_write" | "data_write">;
+}): WorkflowGraphAdvanceResult {
+  return advanceGraphForRouteKey({
+    workflowConfig: input.workflowConfig,
+    workflowInstance: input.workflowInstance,
+    routeKey: routeKeyForWorkflowTransition(input.transition),
+    sources: input.sources,
+    automaticRouteKeysByNodeId: input.automaticRouteKeysByNodeId,
+    ...(input.stopBeforeNodeTypes !== undefined
+      ? { stopBeforeNodeTypes: input.stopBeforeNodeTypes }
+      : {}),
+  });
+}
+
+function advanceGraphForRouteKey(input: {
+  workflowConfig: WorkflowConfig;
+  workflowInstance: WorkflowInstanceRecord;
+  routeKey?: string | undefined;
+  sources?: WorkflowTemplateSources | undefined;
+  automaticRouteKeysByNodeId?: Record<string, string> | undefined;
+  stopBeforeNodeTypes?: Array<"projection_write" | "external_write" | "data_write">;
+}): WorkflowGraphAdvanceResult {
+  return advanceWorkflowGraph({
+    workflowConfig: input.workflowConfig,
+    workflowContext: input.workflowInstance.context,
+    firstRouteKey: input.routeKey,
+    sources: input.sources,
+    automaticRouteKeysByNodeId: input.automaticRouteKeysByNodeId,
+    stopBeforeNodeTypes: input.stopBeforeNodeTypes,
+  });
+}
+
+function advanceGraphForExecution(input: {
+  workflowConfig: WorkflowConfig;
+  workflowInstance: WorkflowInstanceRecord;
+  transactionPlan: TransactionPlanRecord;
+  externalWriteExecutions: ExternalWriteExecution[];
+}): WorkflowGraphAdvanceResult {
+  return advanceWorkflowGraph({
+    workflowConfig: input.workflowConfig,
+    workflowContext: input.workflowInstance.context,
+    sources: {
+      workflow: input.workflowInstance,
+      transactionPlan: input.transactionPlan,
+    },
+    automaticRouteKeysByNodeId: executionAutomaticRouteKeys(input),
+  });
+}
+
+function preflightAutomaticRouteKeys(
+  workflowConfig: WorkflowConfig,
+): Record<string, string> {
+  return Object.fromEntries(
+    (workflowConfig.graph?.nodes ?? [])
+      .filter((node) => {
+        return (
+          node.type === "block" &&
+          node.block?.name === workflowConfig.submit.preflightBlock.name
+        );
+      })
+      .map((node) => [node.nodeId, WORKFLOW_ROUTE_KEYS.VALID]),
+  );
+}
+
+function transactionPlanAutomaticRouteKeys(
+  workflowConfig: WorkflowConfig,
+): Record<string, string> {
+  return Object.fromEntries(
+    (workflowConfig.graph?.nodes ?? [])
+      .filter((node) => node.type === "transaction_plan")
+      .map((node) => [node.nodeId, WORKFLOW_ROUTE_KEYS.PLANNED]),
+  );
+}
+
+function executionAutomaticRouteKeys(input: {
+  workflowConfig: WorkflowConfig;
+  externalWriteExecutions: ExternalWriteExecution[];
+}): Record<string, string> {
+  const routeKeys: Record<string, string> = {};
+
+  for (const node of input.workflowConfig.graph?.nodes ?? []) {
+    if (node.type === "projection_write" || node.type === "data_write") {
+      routeKeys[node.nodeId] = WORKFLOW_ROUTE_KEYS.APPLIED;
+      continue;
+    }
+
+    if (node.type === "ledger_event") {
+      routeKeys[node.nodeId] = routeKeyIfConfigured(
+        node,
+        "completed",
+        WORKFLOW_ROUTE_KEYS.RECORDED,
+      );
+      continue;
+    }
+
+    if (node.type === "external_write") {
+      routeKeys[node.nodeId] =
+        externalWriteOutcomeForNode(input.externalWriteExecutions, node) ??
+        routeKeyIfConfigured(
+          node,
+          WORKFLOW_ROUTE_KEYS.REQUESTED,
+          WORKFLOW_ROUTE_KEYS.ACCEPTED,
+        );
+    }
+  }
+
+  return routeKeys;
+}
+
+function routeKeyIfConfigured(
+  node: { outcomes?: WorkflowGraphOutcomeConfig[] },
+  preferredRouteKey: string,
+  fallbackRouteKey: string,
+): string {
+  const hasPreferredRoute = node.outcomes?.some((outcome) => {
+    return (
+      outcome.routeKey === preferredRouteKey || outcome.outcome === preferredRouteKey
+    );
+  });
+
+  return hasPreferredRoute === true ? preferredRouteKey : fallbackRouteKey;
+}
+
+function externalWriteOutcomeForNode(
+  externalWriteExecutions: ExternalWriteExecution[],
+  node: { connectionId?: string; operation?: string },
+): string | undefined {
+  return externalWriteExecutions.find((execution) => {
+    return (
+      execution.connectionId === node.connectionId &&
+      execution.operation === node.operation
+    );
+  })?.outcome;
+}
+
 function verifyApprovalTaskForActor(
   repositories: Repositories,
   requestContext: ApiRequestContext,
@@ -2356,12 +2674,16 @@ function workflowTemplateSources(input: {
   input: Record<string, unknown>;
   workflowInstance: WorkflowInstanceRecord;
   employeeDocument?: EmployeeProjectionDocument;
+  changeRequest?: ChangeRequestRecord;
 }): WorkflowTemplateSources {
   return {
     input: input.input,
     workflow: input.workflowInstance,
     ...(input.employeeDocument !== undefined
       ? { employee: input.employeeDocument }
+      : {}),
+    ...(input.changeRequest !== undefined
+      ? { changeRequest: input.changeRequest }
       : {}),
   };
 }

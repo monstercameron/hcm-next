@@ -1,4 +1,5 @@
 import {
+  ERROR_CODES,
   err,
   ok,
   validationFailedError,
@@ -29,8 +30,22 @@ export type ResolvedWorkflowConfig = {
 export function resolveCurrentPublishedWorkflowConfig(
   repositories: Repositories,
   tenantId: string,
+  environmentId: string,
   intent: string,
 ): Result<ResolvedWorkflowConfig, AppError> {
+  const adminConfigResult = resolveCurrentAdminWorkflowConfig(
+    repositories,
+    tenantId,
+    environmentId,
+    intent,
+  );
+  if (adminConfigResult.ok) {
+    return adminConfigResult;
+  }
+  if (adminConfigResult.error.code !== ERROR_CODES.NOT_FOUND) {
+    return adminConfigResult;
+  }
+
   const workflowVersionResult =
     repositories.workflows.findCurrentPublishedVersionByIntent(tenantId, intent);
   if (!workflowVersionResult.ok) {
@@ -64,7 +79,11 @@ export function resolvePinnedWorkflowConfig(
     workflowInstance.workflowVersionId,
   );
   if (!workflowVersionResult.ok) {
-    return workflowVersionResult;
+    if (workflowVersionResult.error.code !== ERROR_CODES.NOT_FOUND) {
+      return workflowVersionResult;
+    }
+
+    return resolvePinnedAdminWorkflowConfig(repositories, workflowInstance);
   }
 
   if (
@@ -84,6 +103,63 @@ export function resolvePinnedWorkflowConfig(
     workflowVersionResult.value,
     workflowInstance.intent,
   );
+}
+
+function resolveCurrentAdminWorkflowConfig(
+  repositories: Repositories,
+  tenantId: string,
+  environmentId: string,
+  intent: string,
+): Result<ResolvedWorkflowConfig, AppError> {
+  const activeVersionResult = repositories.workflowAdmin.findActiveVersionByIntent({
+    tenantId,
+    environmentId,
+    intent,
+  });
+  if (!activeVersionResult.ok) {
+    return activeVersionResult;
+  }
+
+  const workflowConfigResult = workflowConfigFromGraphDefinition(
+    activeVersionResult.value.version.configJson,
+  );
+  if (!workflowConfigResult.ok) {
+    return workflowConfigResult;
+  }
+
+  return ok({
+    workflowDefinitionId: activeVersionResult.value.family.workflowFamilyId,
+    workflowVersionId: activeVersionResult.value.version.workflowVersionRecordId,
+    workflowConfig: workflowConfigResult.value,
+  });
+}
+
+function resolvePinnedAdminWorkflowConfig(
+  repositories: Repositories,
+  workflowInstance: WorkflowInstanceRecord,
+): Result<WorkflowConfig, AppError> {
+  const workflowVersionResult = repositories.workflowAdmin.findVersionById({
+    tenantId: workflowInstance.tenantId,
+    workflowVersionRecordId: workflowInstance.workflowVersionId,
+  });
+  if (!workflowVersionResult.ok) {
+    return workflowVersionResult;
+  }
+
+  if (
+    workflowVersionResult.value.workflowFamilyId !==
+    workflowInstance.workflowDefinitionId
+  ) {
+    return err(
+      validationFailedError({
+        workflowInstanceId: workflowInstance.workflowInstanceId,
+        workflowDefinitionId: workflowInstance.workflowDefinitionId,
+        workflowVersionFamilyId: workflowVersionResult.value.workflowFamilyId,
+      }),
+    );
+  }
+
+  return workflowConfigFromGraphDefinition(workflowVersionResult.value.configJson);
 }
 
 /**
