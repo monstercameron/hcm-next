@@ -21,6 +21,14 @@ import {
 } from "./request-context.js";
 import { toJsonHttpResponse, type JsonHttpResponse } from "./response.js";
 import {
+  deprecateWorkflowVersion,
+  importWorkflowConfigPayload,
+  importWorkflowConfigsFromFiles,
+  listWorkflowAdminDefinitions,
+  publishWorkflowVersion,
+  validateWorkflowVersion,
+} from "../workflows/admin/service.js";
+import {
   createDocument,
   getAvailableActions,
   getDocument,
@@ -94,6 +102,88 @@ async function routeWorkflowRequest(
 ): Promise<JsonHttpResponse> {
   const segments = routeContext.segments;
   const method = routeContext.method;
+
+  if (
+    method === "GET" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows"
+  ) {
+    return handleQuery(routeContext, (requestContext) =>
+      listWorkflowAdminDefinitions(routeContext.dependencies, requestContext),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 3 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows" &&
+    segments[2] === "import-from-files"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      importWorkflowConfigsFromFiles(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 2 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflows"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      importWorkflowConfigPayload(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-versions" &&
+    segments[3] === "validate"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext) =>
+      validateWorkflowVersion(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-versions" &&
+    segments[3] === "publish"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext) =>
+      publishWorkflowVersion(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+      ),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 4 &&
+    segments[0] === "admin" &&
+    segments[1] === "workflow-versions" &&
+    segments[3] === "deprecate"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext) =>
+      deprecateWorkflowVersion(
+        routeContext.dependencies,
+        requestContext,
+        segments[2] ?? "",
+      ),
+    );
+  }
 
   if (
     method === "POST" &&

@@ -1,6 +1,5 @@
 import {
   err,
-  notFoundError,
   ok,
   validationFailedError,
   type AppError,
@@ -10,11 +9,29 @@ import {
   type WorkflowStatus,
 } from "@hcm-next/foundation";
 import type { EmployeeProjectionDocument } from "@hcm-next/data-store";
-import legalNameWorkflowConfigJson from "../configs/employee-legal-name-change.workflow.json";
-import emergencyContactWorkflowConfigJson from "../configs/employee-emergency-contact-update.workflow.json";
-import contactInfoWorkflowConfigJson from "../configs/employee-contact-info-update.workflow.json";
-import compensationWorkflowConfigJson from "../configs/employee-compensation-change.workflow.json";
-import orgTransferCompensationChangeWorkflowConfigJson from "../configs/employee-org-transfer-compensation-change.workflow.json";
+import {
+  findFilesystemWorkflowConfigByIntent,
+  listFilesystemWorkflowConfigIntents,
+} from "./workflow-config-registry.js";
+
+export {
+  canonicalJsonString,
+  cloneWorkflowConfig,
+  findFilesystemWorkflowConfigByIntent,
+  listFilesystemWorkflowConfigEntries,
+  listFilesystemWorkflowConfigIntents,
+  listFilesystemWorkflowConfigs,
+  resolveWorkflowConfigFromGraphDefinition,
+  workflowConfigFromGraphDefinition,
+  workflowConfigHash,
+  type WorkflowConfigFileEntry,
+} from "./workflow-config-registry.js";
+export {
+  validateWorkflowConfig,
+  type WorkflowValidationIssue,
+  type WorkflowValidationReport,
+  type WorkflowValidationSeverity,
+} from "./workflow-config-validation.js";
 
 export type WorkflowActionActor =
   | "requester"
@@ -23,13 +40,15 @@ export type WorkflowActionActor =
   | "source_manager"
   | "destination_manager"
   | "finance_admin"
+  | "hrbp"
   | "compensation_admin"
   | "medical_director"
   | "clinic_ops_admin"
   | "org_transfer_approver"
+  | "approval_task_assignee"
   | "hr_admin_or_system";
 
-export type WorkflowStartActor = "hr_admin" | "compensation_admin";
+export type WorkflowStartActor = "hr_admin" | "compensation_admin" | "clinic_ops_admin";
 
 export type WorkflowActionHandler =
   | "submit_configured_input"
@@ -125,6 +144,110 @@ export type WorkflowApprovalConfig = {
   approvalType: string;
 };
 
+export type WorkflowApprovalGateMode = "sequential" | "parallel";
+
+export type WorkflowApprovalGateResolverType =
+  | "actor"
+  | "role"
+  | "manager_chain"
+  | "department_lead"
+  | "cost_center_owner"
+  | "seniority_level"
+  | "workflow_field";
+
+export type WorkflowApprovalGateApproverResolverConfig = {
+  resolverId: string;
+  type: WorkflowApprovalGateResolverType;
+  label: string;
+  taskKey: string;
+  approvalType: string;
+  permission: string;
+  actorId?: string;
+  role?: string;
+  fieldPath?: string;
+  subjectPath?: string;
+  departmentPath?: string;
+  costCenterPath?: string;
+  seniorityLevelPath?: string;
+  preserveOrder?: boolean;
+  opensWithGate?: boolean;
+  isVetoHolder?: boolean;
+  weight?: number;
+};
+
+export type WorkflowApprovalGatePassRuleConfig =
+  | {
+      type: "all_required";
+    }
+  | {
+      type: "quorum";
+      requiredApprovals: number;
+      eligibleApprovals: number;
+    }
+  | {
+      type: "percentage";
+      requiredPercentage: number;
+      eligibleApprovals: number;
+    }
+  | {
+      type: "any_one";
+    }
+  | {
+      type: "weighted";
+      requiredWeight: number;
+      totalWeight: number;
+    }
+  | {
+      type: "role_quorum";
+      roleQuorums: Array<{
+        role: string;
+        requiredApprovals: number;
+        eligibleApprovals: number;
+      }>;
+    }
+  | {
+      type: "composite";
+      operator: "all" | "any";
+      rules: WorkflowApprovalGatePassRuleConfig[];
+    };
+
+export type WorkflowApprovalGateFailurePolicyType =
+  | "stop_workflow"
+  | "send_to_repair"
+  | "continue_until_threshold_impossible"
+  | "require_all_responses"
+  | "veto_only"
+  | "escalate_on_timeout";
+
+export type WorkflowApprovalGateFailurePolicyConfig = {
+  type: WorkflowApprovalGateFailurePolicyType;
+  nextNodeId?: string;
+  nextState?: WorkflowState;
+  nextStatus?: WorkflowStatus;
+  nextInteraction?: string;
+  timeoutAfter?: string;
+  escalationResolverId?: string;
+};
+
+export type WorkflowApprovalGateConfig = {
+  gateId: string;
+  mode: WorkflowApprovalGateMode;
+  interaction: string;
+  snapshotResolvedApprovers: boolean;
+  taskVersionRequired: boolean;
+  approverResolvers: WorkflowApprovalGateApproverResolverConfig[];
+  passRule: WorkflowApprovalGatePassRuleConfig;
+  failurePolicies: WorkflowApprovalGateFailurePolicyConfig[];
+  events: {
+    opened: string;
+    taskCreated: string;
+    taskDecided: string;
+    passed: string;
+    failed: string;
+    taskCanceled?: string;
+  };
+};
+
 export type WorkflowPlanConfig = {
   block: WorkflowBlockReference;
   input: Record<string, unknown>;
@@ -147,6 +270,7 @@ export type WorkflowGraphNodeConfig = {
     | "block"
     | "policy_check"
     | "approval"
+    | "approval_gate"
     | "transaction_plan"
     | "data_write"
     | "external_write"
@@ -160,6 +284,7 @@ export type WorkflowGraphNodeConfig = {
   connectionId?: string;
   operation?: string;
   approval?: Record<string, unknown>;
+  approvalGate?: WorkflowApprovalGateConfig;
   policy?: Record<string, unknown>;
   transaction?: Record<string, unknown>;
   outcomes?: WorkflowGraphOutcomeConfig[];
@@ -204,36 +329,20 @@ export type WorkflowTemplateSources = {
   tenantPolicy?: Record<string, unknown>;
 };
 
-const workflowConfigs = [
-  legalNameWorkflowConfigJson,
-  emergencyContactWorkflowConfigJson,
-  contactInfoWorkflowConfigJson,
-  compensationWorkflowConfigJson,
-  orgTransferCompensationChangeWorkflowConfigJson,
-] as unknown as WorkflowConfig[];
-
 /**
  * Finds a configured workflow by public intent.
  */
 export function getWorkflowConfigByIntent(
   intent: string,
 ): Result<WorkflowConfig, AppError> {
-  const workflowConfig = workflowConfigs.find((config) => {
-    return config.intent === intent;
-  });
-
-  if (workflowConfig === undefined) {
-    return err(notFoundError("Workflow config", { intent }));
-  }
-
-  return ok(workflowConfig);
+  return findFilesystemWorkflowConfigByIntent(intent);
 }
 
 /**
  * Lists configured intents so validation errors can remain explicit.
  */
 export function configuredWorkflowIntents(): string[] {
-  return workflowConfigs.map((config) => config.intent);
+  return listFilesystemWorkflowConfigIntents();
 }
 
 /**
