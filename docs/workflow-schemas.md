@@ -47,10 +47,13 @@ The current top-level shape is:
 
 ```json
 {
+  "schemaVersion": "v0.4",
+  "metadata": {},
   "intent": "employee.compensation.change",
   "subjectType": "worker",
   "selfServiceStart": false,
   "startActors": ["hr_admin"],
+  "ui": {},
   "interactions": {},
   "states": {},
   "submit": {},
@@ -58,6 +61,7 @@ The current top-level shape is:
   "plan": {},
   "graph": {},
   "saga": {},
+  "ledger": {},
   "projection": {},
   "timeline": {}
 }
@@ -222,7 +226,11 @@ Current shape:
 {
   "graph": {
     "startNodeId": "collect_compensation_input",
-    "nodes": []
+    "metadata": {
+      "executionModel": "generic_graph"
+    },
+    "nodes": [],
+    "edges": []
   }
 }
 ```
@@ -236,6 +244,15 @@ Each node should be independently addressable:
   "title": "Submit compensation decision to vendor",
   "connectionId": "third_party_compensation_decision",
   "operation": "submitCompensationChange",
+  "transaction": {
+    "sideEffect": true,
+    "idempotency": {
+      "scope": "node",
+      "keyTemplate": "compensation_vendor_decision.${transactionPlan.transactionPlanId}",
+      "onDuplicate": "read_existing_result"
+    },
+    "reversibility": "manual_repair"
+  },
   "outcomes": []
 }
 ```
@@ -254,6 +271,7 @@ transaction_plan
 data_write
 external_write
 projection_write
+ledger_event
 manual_repair
 terminal
 ```
@@ -290,6 +308,7 @@ Current outcome shape:
 ```json
 {
   "outcome": "accepted",
+  "routeKey": "accepted",
   "when": {
     "$source": "externalWriteResponse",
     "path": "status",
@@ -304,6 +323,7 @@ Outcome fields:
 
 ```text
 outcome          stable outcome key
+routeKey         generic route key used by edges; defaults to outcome during migration
 when             optional condition expression
 eventType        ledger event to emit
 nextNodeId       next graph node
@@ -319,6 +339,28 @@ Good, bad, waiting, skipped, repaired, retried, and canceled paths should all be
 ```
 
 They should not be hidden as uncaught errors or workflow-specific TypeScript branches.
+
+## Edges
+
+Edges are the graph runtime's routing index. They duplicate the essential route
+fields from outcomes so a generic executor can route by `fromNodeId + routeKey`
+without workflow-specific TypeScript conditionals.
+
+Example:
+
+```json
+{
+  "edgeId": "vendor_compensation_decision.accepted",
+  "fromNodeId": "vendor_compensation_decision",
+  "routeKey": "accepted",
+  "toNodeId": "apply_compensation_projection",
+  "eventType": "ExternalWriteSucceeded"
+}
+```
+
+Validation checks that each edge source node exists, each edge `routeKey`
+matches an outcome on that source node, and each destination node/state/status
+or interaction is configured.
 
 ## Approval Gates
 
@@ -461,7 +503,7 @@ the workflow must know what happened in steps 1-4 and what can be safely reverse
 retried, reconciled, or repaired.
 ```
 
-The workflow schema should eventually include a top-level `saga` section:
+Workflow configs now include a top-level `saga` section:
 
 ```json
 {
@@ -823,7 +865,8 @@ Current block references:
 {
   "block": {
     "name": "system.employee_data.compensation.plan_transaction",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "runtime": "go"
   }
 }
 ```
@@ -939,6 +982,32 @@ plan transaction
 ## Ledger Events
 
 Workflow configs should declare business timeline events, but the ledger remains the durable fact log.
+
+Configs also support a `ledger` mapping section:
+
+```json
+{
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      }
+    },
+    "nodeEvents": [
+      {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "node",
+        "nodeId": "vendor_compensation_decision",
+        "routeKey": "accepted"
+      }
+    ]
+  }
+}
+```
+
+The current migration keeps `timeline.businessEvents` as the user-facing audit
+surface and uses `ledger.nodeEvents` as the generic graph-to-ledger map.
 
 Timeline config:
 
