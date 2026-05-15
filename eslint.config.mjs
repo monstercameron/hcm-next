@@ -19,8 +19,15 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         __dirname: "readonly",
+        document: "readonly",
+        fetch: "readonly",
         globalThis: "readonly",
+        Headers: "readonly",
+        localStorage: "readonly",
         process: "readonly",
+        Request: "readonly",
+        Response: "readonly",
+        window: "readonly",
       },
     },
   },

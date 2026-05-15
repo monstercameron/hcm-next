@@ -1,0 +1,106 @@
+import {
+  defaultBrandPack,
+  mergeBrandPacks,
+  type UiRuntimeContext,
+} from "@hcm-next/ui-runtime";
+
+export const harborCareBrand = mergeBrandPacks(defaultBrandPack, {
+  id: "harborcare-brand",
+  name: "HarborCare",
+  tokens: {
+    "surface.base": "#f7f8f5",
+    "surface.subtle": "#eef3ee",
+    "surface.raised": "#ffffff",
+    "text.primary": "#18221d",
+    "text.secondary": "#415148",
+    "border.default": "#d4ded4",
+    "action.primary.background": "#0f6b5f",
+    "action.secondary.background": "#e1f4ef",
+    "status.info": "#2f5fb3",
+    "status.success": "#0f6b5f",
+    "status.warning": "#9a5b13",
+    "ui.shadow.active": "0 0 0 3px color-mix(in srgb, #0f6b5f 22%, transparent)",
+    "ui.focus.ring": "0 0 0 3px color-mix(in srgb, #0f6b5f 18%, transparent)",
+    "ui.card.border": "color-mix(in srgb, #d4ded4 82%, #18221d 18%)",
+    "ui.hover.surface": "color-mix(in srgb, #e1f4ef 58%, #ffffff)",
+    "ui.control.surface": "#ffffff",
+    "ui.control.surface.muted": "#f7f8f5",
+    "ui.control.surface.active": "#e1f4ef",
+    "ui.control.border": "#d4ded4",
+    "ui.control.border.strong": "#9fb29f",
+    "ui.control.text": "#18221d",
+    "ui.control.text.muted": "#617267",
+    "ui.motion.fast": "130ms",
+    "ui.motion.medium": "210ms",
+    "ui.motion.slow": "300ms",
+    "ui.motion.ease": "cubic-bezier(0.2, 0, 0, 1)",
+    "ui.motion.translate.hover": "-1px",
+    "ui.motion.scale.hover": "1.004",
+  },
+});
+
+export const demoRuntimeContext: UiRuntimeContext = {
+  actor: {
+    id: "actor_manager_alex",
+    displayName: "Alex Manager",
+    roles: ["manager", "approver"],
+    permissions: [
+      "employee.view",
+      "workflow.submit",
+      "workflow.approve",
+      "workflow.timeline.view",
+    ],
+  },
+  workflow: {
+    id: "wf-org-comp-1048",
+    type: "employee.org_transfer_compensation_change",
+    title: "Org transfer and compensation change",
+    state: "waiting_approval",
+    status: "active",
+    input: {
+      proposed: {
+        manager: "Jordan Lee",
+        department: "Cambridge Nursing",
+        effectiveDate: "2026-06-01",
+        compensation: "$112,000",
+      },
+    },
+    context: {
+      current: {
+        manager: "Alex Manager",
+        department: "Somerville Nursing",
+        effectiveDate: "2026-05-15",
+        compensation: "$105,000",
+      },
+    },
+    config: {
+      risk: "medium",
+      approvalPath: ["manager", "hrbp", "compensation"],
+    },
+  },
+  employee: {
+    id: "emp_jane_rivera",
+    displayName: "Jane Rivera",
+    preferredName: "Jane",
+    jobTitle: "Registered Nurse",
+    department: "Somerville Nursing",
+    manager: "Alex Manager",
+    location: "Cambridge, MA",
+    employmentStatus: "Active",
+  },
+  tenant: {
+    id: "tenant_harborcare",
+    name: "HarborCare",
+    config: {
+      defaultSurface: "full_app",
+    },
+  },
+  brand: harborCareBrand,
+  surfaceMode: "full_app",
+  apiData: {},
+  integrationData: {},
+  previousWorkflowResponses: {},
+  manualValues: {},
+  uploadedAssets: {},
+  nowIso: "2026-05-15T12:00:00.000Z",
+};

@@ -1,254 +1,323 @@
-# HCM Next Generic Workflow Runtime TODOs
+# Atomic Component TODO Inventory
 
-## Non-Negotiable Architecture Rule
+Generated from the previous component and control inventory on 2026-05-15.
+The previous file mixed atomic components, aliases, renderer internals, examples,
+compound HCM editors, and broad domain catalog widgets. This version keeps only
+the reusable building blocks that a workflow config or agent should compose into
+larger interactions.
 
-TypeScript code must contain zero workflow-specific business logic.
+Each checkbox means:
 
-Allowed in TypeScript:
+- Verify the standardized config shape and hydration path.
+- Verify semantic markup, accessible names, keyboard behavior, and focus states.
+- Verify full runtime branding through brand tokens, CSS variables, and style props.
+- Verify preview data and generated UI compatibility.
+- Verify responsive quality with Playwright screenshots.
+- Add focused unit, integration, or E2E coverage where the item has behavior.
 
-- [x] Generic workflow graph loading, versioning, and validation.
-- [x] Generic node dispatch and transition orchestration.
-- [x] Generic RBAC/ABAC/ReBAC policy checks based on config.
-- [x] Generic approval, transaction, ledger, projection, outbox, and repair mechanics.
-- [x] Generic UI schema delivery and interaction state.
-- [x] Generic API transport and request/response mapping.
-- [x] Generic external-write client dispatch by configured `connectionId`.
+## Review Rules
 
-Not allowed in TypeScript:
+- Keep components that do one durable UI job.
+- Collapse aliases into one canonical component with semantic props.
+- Collapse domain-specific controls into generic field, selector, table, diff,
+  timeline, checklist, and action primitives.
+- Collapse catalog-only widgets into examples or recipes, not atomic components.
+- Remove showcase helper components from the readiness checklist.
+- Keep compatibility aliases only in registry/adapters, not as first-class TODOs.
 
-- [x] Legal-name-specific business rules.
-- [x] Contact-info-specific business rules.
-- [x] Emergency-contact-specific business rules.
-- [x] Compensation-specific business rules.
-- [x] Org-transfer-specific business rules.
-- [x] Headcount-specific business rules.
-- [x] Integration-specific decision logic.
-- [x] Customer-specific validation, transformation, routing, or transaction planning.
+## Sources Read
 
-Business behavior belongs in:
+- `src/console/src/app/App.tsx`
+- `src/console/src/brand/BrandTokenProvider.tsx`
+- `src/console/src/features/workflows/WorkflowPageRoute.tsx`
+- `src/console/src/runtime/WorkflowPageRenderer.tsx`
+- `src/console/src/runtime/control-library/fields/*.tsx`
+- `src/console/src/runtime/control-library/fields/registry.tsx`
+- `src/console/src/runtime/control-library/widgets/*.tsx`
+- `src/console/src/runtime/control-library/widgets/index.tsx`
+- `src/console/src/runtime/style-lab/*.tsx`
+- `src/platform/ui-contracts/*.ts`
+- `src/platform/ui-runtime/*.ts`
 
-- [x] JSON workflow configs.
-- [x] Go block implementations.
-- [x] Block contract schemas and SDK contract types.
-- [x] Tenant policy/config data.
-- [ ] Integration manifests beyond the current `connectionId` client map.
+## Atomic Runtime And Branding
 
-## Work Stream 1: Generic TypeScript Workflow Runtime
+- [ ] `BrandTokenProvider`
+- [ ] `WorkflowPageRenderer`
+- [ ] `WidgetShell`
+- [ ] `FieldShell`
+- [ ] `FieldControlFactory`
+- [ ] `WidgetFactoryRegistry`
+- [ ] `StyleLabPreviewScope`
+- [ ] `StatusBadge`
+- [ ] `EmptyState`
 
-- [x] Create `src/workflows/runtime/` as the only TypeScript workflow execution layer.
-- [x] Add generic public workflow service functions:
-  - [x] `startWorkflowIntent`
-  - [x] `getWorkflowInstance`
-  - [x] `getAvailableActions`
-  - [x] `transitionWorkflow`
-  - [x] `getTimeline`
-  - [x] `getTasks`
-  - [x] `createDocument`
-  - [x] `getDocument`
-  - [x] `getEmployeeProjection`
-  - [x] `listEmployeeProjections`
-- [x] Replace API imports from workflow-specific services with the generic runtime service.
-- [x] Define runtime models:
-  - [x] `RuntimeWorkflowDefinition`
-  - [x] `RuntimeWorkflowVersion`
-  - [x] `RuntimeWorkflowInstance`
-  - [x] `RuntimeWorkflowNode`
-  - [x] `RuntimeWorkflowEdge`
-  - [x] `RuntimeTransition`
-  - [x] `NodeExecutionResult`
-  - [x] `RouteDecision`
-  - [x] `RuntimeTransactionPlan`
-  - [x] `SagaStep`
-- [x] Implement generic start flow:
-  - [x] Resolve workflow config by intent from registry/database.
-  - [x] Validate subject type from config.
-  - [x] Evaluate start permissions from config.
-  - [x] Create workflow instance.
-  - [x] Set initial interaction from config.
-  - [x] Append generic intent-started ledger event.
-- [x] Implement generic transition flow:
-  - [x] Parse canonical transition body.
-  - [x] Enforce idempotency.
-  - [x] Enforce optimistic version checks.
-  - [x] Load pinned workflow config.
-  - [x] Resolve available action from current state/config.
-  - [x] Check generic actor permission rule.
-  - [x] Dispatch to generic handler by node/action type.
-  - [x] Persist state changes and ledger events.
-  - [x] Save transition attempt result.
-- [x] Implement generic node behavior used by V0 workflows:
-  - [x] UI form submission.
-  - [x] Go preflight block execution.
-  - [x] Go transaction-planning block execution.
-  - [x] Approval task nodes.
-  - [x] Approval gates.
-  - [x] External write routing through configured clients.
-  - [x] Transaction commit from block output.
-  - [x] Repair states.
-  - [x] Terminal completion.
-  - [ ] Generic wait/timer nodes.
-- [x] Remove hardcoded workflow checks from TypeScript:
-  - [x] Remove `isHeadcountRequisitionWorkflowIntent` branches from the active API path.
-  - [x] Remove `isOrgTransferWorkflowIntent` branches from the active API path.
-  - [x] Remove legal-name-specific assumptions from the active API path.
-  - [x] Delete legacy workflow-specific TypeScript service folders.
-- [x] Keep TypeScript transitions canonical and generic:
-  - [x] `start`
-  - [x] `submit_input`
-  - [x] `provide_evidence`
-  - [x] `approve`
-  - [x] `reject`
-  - [x] `request_more_info`
-  - [x] `repair`
-  - [x] `execute`
-  - [x] `cancel`
-- [x] Make routing config-driven:
-  - [x] Runtime follows `routeKey` / outcome config returned by nodes.
-  - [x] Runtime never branches on workflow intent.
-  - [x] Runtime never branches on HR-specific fields.
-- [x] Keep only generic shared runtime modules under TypeScript workflow execution code.
+## Atomic Field Components
 
-## Work Stream 2: Go Block Programming Model
+### Scalar Inputs
 
-- [x] Define the formal Go block contract.
-- [x] Every Go block input supports:
-  - [x] Typed node input.
-  - [x] Workflow context.
-  - [x] Actor context.
-  - [x] Permission snapshot.
-  - [x] Tenant config placeholder.
-  - [x] Prior node facts placeholder.
-- [x] Every Go block output supports:
-  - [x] `facts`
-  - [x] `routeKey`
-  - [x] `validationErrors`
-  - [x] `warnings`
-  - [x] `transactionPlan`
-  - [x] `externalCalls`
-  - [x] `projectionPatches`
-  - [x] `ledgerFacts`
-- [x] Add block categories to the contract/docs:
-  - [x] validation block
-  - [x] preflight block
-  - [x] transform block
-  - [x] policy block
-  - [x] integration mapping block
-  - [x] transaction planning block
-  - [x] reconciliation block
-  - [x] compensation/rollback block placeholder
-- [x] Move deterministic workflow-specific logic into Go blocks:
-  - [x] legal name change
-  - [x] emergency contact update
-  - [x] contact info update
-  - [x] compensation change
-  - [x] org transfer
-  - [x] headcount requisition demo planning
-- [x] Add or update Go tests for each migrated block.
-- [x] Add a local block contract test harness.
-- [x] Add customer block SDK skeleton:
-  - [x] block contract aliases
-  - [x] contract docs
-  - [x] example compile/test path through `go test ./...`
-  - [ ] full generated block template
-- [ ] Add block manifest format:
-  - [ ] block name
-  - [ ] semantic version
-  - [ ] input schema
-  - [ ] output schema
-  - [ ] required permissions
-  - [ ] allowed external capabilities
-  - [ ] deterministic/effectful classification
-- [ ] Add customer block safety placeholders:
-  - [ ] static scan placeholder
-  - [ ] dependency audit placeholder
-  - [ ] compile check command wrapper
-  - [ ] contract test check command wrapper
+- [ ] `TextInputControl`
+- [ ] `TextareaControl`
+- [ ] `NumberInputControl`
+- [ ] `DateInputControl`
+- [ ] `TimeInputControl`
+- [ ] `ReadOnlyValueControl`
 
-## Work Stream 3: Workflow Schema And Config Migration
+### Choice Inputs
 
-- [x] Redesign workflow JSON schema around graph execution.
-- [x] Every workflow config defines:
-  - [x] metadata.
-  - [x] subject type.
-  - [x] start permissions.
-  - [x] nodes.
-  - [x] edges.
-  - [x] UI schemas.
-  - [x] block refs.
-  - [x] approval gates where needed.
-  - [x] transaction behavior.
-  - [x] failure behavior.
-  - [x] reversal/compensation behavior placeholders.
-  - [x] ledger event mapping.
-- [x] Edges route by generic `routeKey`, not TypeScript conditions.
-- [x] Add schema support for:
-  - [x] one input to one output.
-  - [x] one input to many possible outcomes.
-  - [x] approval-gate parallelism.
-  - [x] repair loops.
-  - [x] rollback/compensation path metadata.
-  - [ ] generic graph joins outside approval gates.
-- [x] Convert existing workflows fully to graph configs:
-  - [x] legal name change.
-  - [x] emergency contact update.
-  - [x] contact info update.
-  - [x] compensation change.
-  - [x] org transfer.
-  - [x] headcount requisition.
-- [x] Ensure configs reference Go block refs for workflow-specific behavior.
-- [x] Ensure configs map ledger events generically.
-- [x] Ensure configs map UI/interactions generically.
-- [x] Ensure configs map approval behavior generically.
-- [x] Add config validation tests.
-- [ ] Add config snapshot tests.
-- [x] Add a contract test proving a new workflow can be added without TypeScript service edits.
+- [ ] `SelectControl`
+- [ ] `ComboboxControl`
+- [ ] `MultiSelectControl`
+- [ ] `RadioGroupControl`
+- [ ] `CheckboxControl`
+- [ ] `ToggleControl`
+- [ ] `SliderControl`
 
-## Work Stream 4: Enterprise Transaction, Security, And Demo Readiness
+### Structured Inputs
 
-- [x] Make transaction plans, rollback plans, compensation plans, and repair state part of the runtime records.
-- [ ] Make full saga/compensation execution a first-class runtime engine.
-- [x] Each workflow execution records:
-  - [x] attempted step.
-  - [x] completed step.
-  - [x] failed external step.
-  - [ ] executed compensating step.
-  - [x] manual repair state/task path.
-  - [x] final reconciliation/outbox status placeholder.
-- [x] Make ledger event emission generic and config/block-mapped.
-- [x] Ensure projections are updated only from transaction plans.
-- [x] Ensure TypeScript never directly mutates business state outside generic transaction mechanics.
-- [x] Make RBAC/ABAC/ReBAC generic:
-  - [x] actor permissions.
-  - [x] field visibility.
-  - [x] relationship access.
-  - [x] org scope.
-  - [x] approval authority.
-- [ ] Ensure Go blocks receive only permission-filtered context.
-- [x] Add generic approval-gate runtime:
-  - [x] sequential approvals.
-  - [x] parallel approvals.
-  - [x] quorum approvals.
-  - [x] veto holders.
-  - [ ] escalation timers.
-  - [x] repair after rejection/more-info.
-- [x] Add generic integration outbox runtime.
-- [x] Add generic third-party API simulation path for demos.
-- [x] Add e2e coverage proving each workflow runs through generic runtime:
-  - [x] legal name change.
-  - [x] emergency contact update.
-  - [x] contact info update.
-  - [x] compensation change.
-  - [x] org transfer.
-  - [x] headcount requisition.
-- [x] Add e2e coverage proving a new workflow requires zero TypeScript changes.
-- [ ] Add final API demo script.
+- [ ] `RepeaterControl`
+- [ ] `TableInputControl`
+- [ ] `MatrixInputControl`
+- [ ] `EntityPickerControl`
+- [ ] `TreePickerControl`
+- [ ] `FileUploadControl`
+- [ ] `SignatureInputControl`
+- [ ] `SensitiveRevealControl`
 
-## Final Verification
+## Atomic Display Components
 
-- [x] `npm run format:check`
-- [x] `npm run typecheck`
-- [x] `npm run lint`
-- [x] `npm run test`
-- [x] `npm run test:go`
-- [x] `npm run build`
-- [x] Manual review confirms active TypeScript workflow execution has no workflow-specific business branches.
+### Text And Content
+
+- [ ] `TextContentWidget`
+- [ ] `MarkdownContentWidget`
+- [ ] `HtmlContentWidget`
+- [ ] `CalloutWidget`
+- [ ] `LinkListWidget`
+- [ ] `AccordionWidget`
+
+### Data And Status
+
+- [ ] `MetricTileWidget`
+- [ ] `ProgressWidget`
+- [ ] `LabelValueListWidget`
+- [ ] `RecordSummaryWidget`
+- [ ] `ChecklistWidget`
+- [ ] `QueueListWidget`
+- [ ] `DataTableWidget`
+
+### Review And Audit
+
+- [ ] `DiffViewerWidget`
+- [ ] `TimelineWidget`
+- [ ] `ActionBarWidget`
+- [ ] `ReasonCaptureWidget`
+
+### Visualization And Media
+
+- [ ] `ChartWidget`
+- [ ] `GraphWidget`
+- [ ] `BoardWidget`
+- [ ] `MediaViewerWidget`
+- [ ] `DocumentPreviewWidget`
+
+## Atomic Layout And Surface Components
+
+- [ ] `SectionLayout`
+- [ ] `StackLayout`
+- [ ] `GridLayout`
+- [ ] `TabsWidget`
+- [ ] `StepperWidget`
+- [ ] `ModalDrawerWidget`
+- [ ] `ToastCenterWidget`
+
+## Canonical Generated Field Type IDs
+
+These are the only field type IDs that should be first-class for generated UI.
+Older IDs can remain as compatibility aliases that normalize into these types.
+
+- [ ] `text`
+- [ ] `textarea`
+- [ ] `number`
+- [ ] `date`
+- [ ] `time`
+- [ ] `select`
+- [ ] `combobox`
+- [ ] `multi_select`
+- [ ] `radio_group`
+- [ ] `checkbox`
+- [ ] `toggle`
+- [ ] `slider`
+- [ ] `repeater`
+- [ ] `table`
+- [ ] `matrix`
+- [ ] `entity_picker`
+- [ ] `tree_picker`
+- [ ] `file_upload`
+- [ ] `signature`
+- [ ] `sensitive_reveal`
+- [ ] `readonly`
+
+## Canonical Generated Widget Type IDs
+
+These are the widget type IDs that should stay unique and reusable. Domain,
+workflow, and visualization aliases should normalize into these IDs with props.
+
+- [ ] `layout.section`
+- [ ] `layout.stack`
+- [ ] `layout.grid`
+- [ ] `content.text`
+- [ ] `content.markdown`
+- [ ] `content.html`
+- [ ] `content.callout`
+- [ ] `content.linkList`
+- [ ] `content.accordion`
+- [ ] `data.metricTile`
+- [ ] `data.progress`
+- [ ] `data.labelValueList`
+- [ ] `data.recordSummary`
+- [ ] `data.checklist`
+- [ ] `data.queueList`
+- [ ] `data.table`
+- [ ] `review.diff`
+- [ ] `review.timeline`
+- [ ] `workflow.actionBar`
+- [ ] `workflow.reasonCapture`
+- [ ] `viz.chart`
+- [ ] `viz.graph`
+- [ ] `ui.board`
+- [ ] `media.viewer`
+- [ ] `document.preview`
+- [ ] `ui.tabs`
+- [ ] `ui.stepper`
+- [ ] `ui.modalDrawer`
+- [ ] `ui.toastCenter`
+
+## Consolidation Map
+
+### App And Renderer Items
+
+- `App`, `WorkflowPageRoute`, `StyleLabRail`, and `StyleLabWorkbench` are app/admin
+  surfaces, not generated workflow primitives.
+- Inline `WorkflowPageRenderer` components should be deleted or converted into
+  registry-backed atomic components.
+- `WidgetBody` should become a thin registry dispatcher, not a component family.
+
+### Field Type Aliases
+
+- `email`, `phone`, and `url` map to `text` with `inputType`, `inputMode`,
+  `pattern`, and transform props.
+- `money` and `percent` map to `number` with `format`, `prefix`, `suffix`,
+  `currency`, `min`, `max`, and `step` props.
+- `date_range` maps to two `date` controls composed by the workflow layout.
+- `dropdown`, `grouped_select`, `dropdown_group`, `filterable_select`, and
+  `filterable_dropdown` map to `select` or `combobox` with `searchEnabled`,
+  `groupPath`, and data-source props.
+- `toggle_group`, `slider_group`, and `metric_slider_group` map to repeated
+  `toggle` or `slider` controls.
+- `repeating_list`, `table_editor`, `cluster_board`, and `drag_drop_clusters`
+  map to `repeater`, `table`, or `ui.board`.
+- `file`, `evidence_upload`, and policy evidence upload variants map to
+  `file_upload` plus validation and accepted-file props.
+- `e_signature` and `signature_capture` map to `signature`.
+
+### HCM And Governance Controls
+
+- `employee_picker`, `manager_picker`, `org_unit_picker`, `department_picker`,
+  `legal_entity_picker`, `cost_center_picker`, `location_picker`,
+  `job_profile_picker`, `position_picker`, `pay_band_picker`,
+  `payroll_cutoff_picker`, and `permission_entity_picker` map to
+  `entity_picker` with `entityType` and binding metadata.
+- `manager_tree_picker` and `org_tree_picker` map to `tree_picker`.
+- `compensation_editor`, `job_change_editor`, `manager_org_change_editor`,
+  `worker_assignment_editor`, `role_binding_editor`,
+  `effective_dated_fact_editor`, `effective_dated_change`,
+  `before_after_field_editor`, `compensation_package_editor`,
+  `schedule_time_control`, and `international_contact` are compound workflow
+  recipes composed from scalar inputs, selectors, tables, diffs, and layouts.
+- `approval_chain_editor`, `policy_evidence_checklist`, and `ai_review_panel`
+  are compound workflow recipes composed from checklist, timeline, action, and
+  content primitives.
+- `bulk_grid_editor`, `conflict_resolver`, `integration_repair_control`, and
+  `transaction_simulation_viewer` are compound recipes composed from table,
+  diff, checklist, timeline, and action primitives.
+
+### Widget Aliases
+
+- `queue.requestList` maps to `data.queueList`.
+- `employee.summary` maps to `data.recordSummary`.
+- `change.diff` maps to `review.diff`.
+- `approval.decisionPanel` maps to `workflow.actionBar` plus
+  `workflow.reasonCapture`.
+- `simulation.resultPanel` maps to `data.checklist` plus `review.timeline`.
+- `audit.timeline` maps to `review.timeline`.
+- `content.faq` maps to `content.accordion`.
+- `data.filterableTable` maps to `data.table` with filter props.
+- `data.metricGraph`, `data.graphChart`, and all `viz.*` chart variants map to
+  `viz.chart` with a `variant` prop.
+- `data.nodeGraph` and `data.orgChart` map to `viz.graph` with `graphType`.
+- `data.clusterBoard`, `ui.kanbanBoard`, and drag/drop board variants map to
+  `ui.board`.
+- `media.image`, `media.audio`, `media.video`, and `media.pdf` map to
+  `media.viewer` with `mediaType`.
+- Document packet, generated PDF, OCR, redaction, attachment, and signature
+  packet widgets map to `document.preview` plus primitive subcomponents.
+
+### Catalog Families Removed From Atomic Inventory
+
+The following catalog families are useful as page recipes, examples, or
+compatibility IDs, but they are not atomic components:
+
+- `ai.*`
+- `hcm.*`
+- `workflow.*`
+- `document.*`
+- `collaboration.*`
+- `integration.*`
+- `recruiting.*`
+- `onboarding.*`
+- `offboarding.*`
+- `performance.*`
+- `talent.*`
+- `workforce.*`
+- `scheduling.*`
+- `leave.*`
+- `benefits.*`
+- `payroll.*`
+- `employeeRelations.*`
+- `compliance.*`
+- `experience.*`
+
+### Showcase Helpers Removed From Atomic Inventory
+
+These are implementation details or demos and should not be first-class
+generated UI components:
+
+- `ShowcaseMetrics`
+- `ShowcaseItems`
+- `ShowcaseMessages`
+- `ShowcaseDiff`
+- `ShowcasePointBars`
+- `ShowcaseRows`
+- `GenericShowcaseWidget`
+- `LineChartPreview`
+- `BulletChartPreview`
+- `StackedBarChartPreview`
+- `ProportionalChartPreview`
+- `ScatterChartPreview`
+- `RangeChartPreview`
+- `TimelineChartPreview`
+- `VisualizationShowcaseWidget`
+- `TimeControls`
+- `TimeRing`
+- `TimeShowcaseWidget`
+- `UiBlockShowcaseWidget`
+
+## Completion Criteria
+
+- [ ] Atomic registries expose only canonical first-class type IDs.
+- [ ] Compatibility aliases normalize into canonical IDs before rendering.
+- [ ] Removed compound/domain components are represented as recipes or examples.
+- [ ] Every retained atomic component accepts standardized style and brand props.
+- [ ] Every retained atomic component has preview data for generated UI demos.
+- [ ] Playwright covers desktop and mobile rendering of every retained category.
+- [ ] Playwright screenshots verify runtime rebranding does not break layout.
+- [ ] `WorkflowPageRenderer.tsx` delegates component rendering to registries.

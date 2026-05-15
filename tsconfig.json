@@ -8,6 +8,15 @@
       "path": "./src/platform/data-store"
     },
     {
+      "path": "./src/platform/ui-contracts"
+    },
+    {
+      "path": "./src/platform/ui-runtime"
+    },
+    {
+      "path": "./src/console"
+    },
+    {
       "path": "./src/api"
     },
     {

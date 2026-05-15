@@ -10,11 +10,13 @@
   },
   "workspaces": [
     "src/api",
+    "src/console",
     "src/platform/*",
     "src/third-party-apis/*"
   ],
   "scripts": {
     "dev": "npm --workspace @hcm-next/api run dev",
+    "dev:console": "npm --workspace @hcm-next/console run dev",
     "dev:blocks": "cd src/blocks/go && go run ./cmd/executor",
     "dev:executor": "npm run dev:blocks",
     "dev:third-party:compensation": "npm --workspace @hcm-next/third-party-compensation-market-api run dev",
@@ -24,7 +26,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "vitest run src/tests/e2e && npm run test --workspaces --if-present",
+    "test": "vitest run src/tests/e2e src/workflows && npm run test --workspaces --if-present",
     "test:go": "cd src/blocks/go && go test ./...",
     "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run test:go && npm run build",
     "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",

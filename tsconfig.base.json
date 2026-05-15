@@ -22,7 +22,11 @@
       "@hcm-next/data-store": ["src/platform/data-store/index.ts"],
       "@hcm-next/data-store/*": ["src/platform/data-store/*"],
       "@hcm-next/workflow-runtime": ["src/platform/workflow-runtime/index.ts"],
-      "@hcm-next/workflow-runtime/*": ["src/platform/workflow-runtime/*"]
+      "@hcm-next/workflow-runtime/*": ["src/platform/workflow-runtime/*"],
+      "@hcm-next/ui-contracts": ["src/platform/ui-contracts/index.ts"],
+      "@hcm-next/ui-contracts/*": ["src/platform/ui-contracts/*"],
+      "@hcm-next/ui-runtime": ["src/platform/ui-runtime/index.ts"],
+      "@hcm-next/ui-runtime/*": ["src/platform/ui-runtime/*"]
     }
   }
 }
