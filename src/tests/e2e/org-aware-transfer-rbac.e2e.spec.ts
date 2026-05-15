@@ -352,7 +352,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
         idempotencyKey: "idem_org_transfer_wrong_manager",
         expectedVersion: 2,
         input: {
-          approvalTaskId: sourceApprovalTask.approvalTaskId,
+          approvalTaskId: String(sourceApprovalTask["approvalTaskId"]),
           comment: "Attempted from the wrong manager.",
         },
       },
