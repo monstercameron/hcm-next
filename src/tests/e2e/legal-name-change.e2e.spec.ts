@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   ok,
   WORKFLOW_INTENTS,
@@ -21,16 +21,14 @@ import type {
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
-  createDocument,
-  getTasks,
-  getTimeline,
-  startWorkflowIntent,
-  transitionWorkflow,
-} from "../../workflows/legal-name-change/service.js";
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   employeeContext: ApiRequestContext;
   hrContext: ApiRequestContext;
 };
@@ -38,13 +36,16 @@ type TestHarness = {
 describe("employee.legal_name.change E2E contract", () => {
   let harness: TestHarness;
 
-  beforeEach(() => {
-    harness = createHarness();
+  beforeEach(async () => {
+    harness = await createHarness();
   });
 
-  it("denies an employee starting another worker's legal-name request", () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+  afterEach(async () => {
+    await harness.workflowApi.close();
+  });
+
+  it("denies an employee starting another worker's legal-name request", async () => {
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
@@ -58,8 +59,7 @@ describe("employee.legal_name.change E2E contract", () => {
   });
 
   it("runs the legal-name workflow through approval, execution, projection, outbox, and ledger", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
@@ -75,8 +75,7 @@ describe("employee.legal_name.change E2E contract", () => {
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
 
-    const submittedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -100,8 +99,7 @@ describe("employee.legal_name.change E2E contract", () => {
       "collecting_evidence",
     );
 
-    const documentResult = createDocument(
-      harness.dependencies,
+    const documentResult = await harness.workflowApi.createDocument(
       harness.employeeContext,
       {
         workflowInstanceId,
@@ -118,8 +116,7 @@ describe("employee.legal_name.change E2E contract", () => {
     const document = documentResult.value["document"] as Record<string, unknown>;
     const documentId = String(document["documentId"]);
 
-    const evidenceWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const evidenceWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -137,8 +134,7 @@ describe("employee.legal_name.change E2E contract", () => {
       "waiting_approval",
     );
 
-    const employeeApprovalAttempt = await transitionWorkflow(
-      harness.dependencies,
+    const employeeApprovalAttempt = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -156,7 +152,7 @@ describe("employee.legal_name.change E2E contract", () => {
       "PERMISSION_DENIED",
     );
 
-    const taskList = getTasks(harness.dependencies, harness.hrContext);
+    const taskList = await harness.workflowApi.getTasks(harness.hrContext);
 
     expect(taskList.ok).toBe(true);
     if (!taskList.ok) {
@@ -168,8 +164,7 @@ describe("employee.legal_name.change E2E contract", () => {
 
     const approvalTaskId = String(tasks[0]?.["approvalTaskId"]);
 
-    const approvedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const approvedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -186,8 +181,7 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(approvedWorkflow.ok).toBe(true);
     expect(approvedWorkflow.ok && approvedWorkflow.value["state"]).toBe("approved");
 
-    const staleExecute = await transitionWorkflow(
-      harness.dependencies,
+    const staleExecute = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -201,8 +195,7 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(staleExecute.ok).toBe(false);
     expect(!staleExecute.ok && staleExecute.error.code).toBe("VERSION_CONFLICT");
 
-    const executedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const executedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -216,8 +209,7 @@ describe("employee.legal_name.change E2E contract", () => {
     expect(executedWorkflow.ok).toBe(true);
     expect(executedWorkflow.ok && executedWorkflow.value["state"]).toBe("executed");
 
-    const replayedExecution = await transitionWorkflow(
-      harness.dependencies,
+    const replayedExecution = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -258,8 +250,7 @@ describe("employee.legal_name.change E2E contract", () => {
       ]),
     );
 
-    const timeline = getTimeline(
-      harness.dependencies,
+    const timeline = await harness.workflowApi.getTimeline(
       harness.hrContext,
       workflowInstanceId,
     );
@@ -291,8 +282,7 @@ describe("employee.legal_name.change E2E contract", () => {
       expect(eventTypes).not.toContain("WorkflowStateChanged");
     }
 
-    const auditTimeline = getTimeline(
-      harness.dependencies,
+    const auditTimeline = await harness.workflowApi.getTimeline(
       harness.hrContext,
       workflowInstanceId,
       "audit",
@@ -302,8 +292,7 @@ describe("employee.legal_name.change E2E contract", () => {
       auditTimeline.ok && (auditTimeline.value["events"] as unknown[]).length,
     ).toBeGreaterThan(18);
 
-    const debugTimeline = getTimeline(
-      harness.dependencies,
+    const debugTimeline = await harness.workflowApi.getTimeline(
       harness.hrContext,
       workflowInstanceId,
       "debug",
@@ -321,8 +310,7 @@ describe("employee.legal_name.change E2E contract", () => {
   });
 
   it("does not create HR approval before evidence is provided", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
@@ -342,9 +330,8 @@ describe("employee.legal_name.change E2E contract", () => {
       workflowInstanceId,
       "idem_missing_evidence_submit",
     );
-    const taskList = getTasks(harness.dependencies, harness.hrContext);
-    const approvalAttempt = await transitionWorkflow(
-      harness.dependencies,
+    const taskList = await harness.workflowApi.getTasks(harness.hrContext);
+    const approvalAttempt = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -370,8 +357,7 @@ describe("employee.legal_name.change E2E contract", () => {
   });
 
   it("does not execute a rejected legal-name workflow", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
@@ -391,14 +377,14 @@ describe("employee.legal_name.change E2E contract", () => {
       workflowInstanceId,
       "idem_reject_submit",
     );
-    const documentId = createEvidenceDocumentId(harness, workflowInstanceId);
+    const documentId = await createEvidenceDocumentId(harness, workflowInstanceId);
     const evidenceWorkflow = await provideLegalNameEvidence(
       harness,
       workflowInstanceId,
       documentId,
       "idem_reject_evidence",
     );
-    const taskList = getTasks(harness.dependencies, harness.hrContext);
+    const taskList = await harness.workflowApi.getTasks(harness.hrContext);
 
     expect(submittedWorkflow.ok).toBe(true);
     expect(evidenceWorkflow.ok).toBe(true);
@@ -409,8 +395,7 @@ describe("employee.legal_name.change E2E contract", () => {
 
     const tasks = taskList.value["tasks"] as Array<Record<string, unknown>>;
     const approvalTaskId = String(tasks[0]?.["approvalTaskId"]);
-    const rejectedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const rejectedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -424,8 +409,7 @@ describe("employee.legal_name.change E2E contract", () => {
         },
       },
     );
-    const executeRejectedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const executeRejectedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -442,8 +426,7 @@ describe("employee.legal_name.change E2E contract", () => {
   });
 
   it("rejects unchanged legal-name input without creating a change request", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_LEGAL_NAME_CHANGE,
@@ -458,8 +441,7 @@ describe("employee.legal_name.change E2E contract", () => {
     }
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
-    const submitResult = await transitionWorkflow(
-      harness.dependencies,
+    const submitResult = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -488,8 +470,7 @@ async function submitValidLegalNameInput(
   workflowInstanceId: string,
   idempotencyKey: string,
 ) {
-  return transitionWorkflow(
-    harness.dependencies,
+  return harness.workflowApi.transitionWorkflow(
     harness.employeeContext,
     workflowInstanceId,
     {
@@ -509,15 +490,18 @@ async function submitValidLegalNameInput(
   );
 }
 
-function createEvidenceDocumentId(
+async function createEvidenceDocumentId(
   harness: TestHarness,
   workflowInstanceId: string,
-): string {
-  const documentResult = createDocument(harness.dependencies, harness.employeeContext, {
-    workflowInstanceId,
-    filename: "court-order.pdf",
-    contentType: "application/pdf",
-  });
+): Promise<string> {
+  const documentResult = await harness.workflowApi.createDocument(
+    harness.employeeContext,
+    {
+      workflowInstanceId,
+      filename: "court-order.pdf",
+      contentType: "application/pdf",
+    },
+  );
 
   if (!documentResult.ok) {
     throw new Error(documentResult.error.message);
@@ -533,8 +517,7 @@ async function provideLegalNameEvidence(
   documentId: string,
   idempotencyKey: string,
 ) {
-  return transitionWorkflow(
-    harness.dependencies,
+  return harness.workflowApi.transitionWorkflow(
     harness.employeeContext,
     workflowInstanceId,
     {
@@ -548,7 +531,7 @@ async function provideLegalNameEvidence(
   );
 }
 
-function createHarness(): TestHarness {
+async function createHarness(): Promise<TestHarness> {
   const store = createSeededDemoStore();
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
@@ -559,6 +542,7 @@ function createHarness(): TestHarness {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     employeeContext: createApiRequestContext(
       unwrapResult(repositories.actors.findById(DEMO_IDS.employeeActorId)),
     ),

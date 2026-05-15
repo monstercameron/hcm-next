@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   LEDGER_EVENT_TYPES,
   WORKFLOW_INTENTS,
@@ -30,6 +30,10 @@ import type {
   ExecutorResponse,
 } from "../../api/executor-client.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
+import {
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 
 const configPath = resolve(
   process.cwd(),
@@ -71,6 +75,7 @@ const headcountFixture = {
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   requesterContext: ApiRequestContext;
   leadershipApprover1Context: ApiRequestContext;
   leadershipApprover2Context: ApiRequestContext;
@@ -87,7 +92,7 @@ type WorkflowService = {
     dependencies: AppDependencies,
     requestContext: ApiRequestContext,
     body: Record<string, unknown>,
-  ): Result<Record<string, unknown>, AppError>;
+  ): Promise<Result<Record<string, unknown>, AppError>>;
   transitionWorkflow(
     dependencies: AppDependencies,
     requestContext: ApiRequestContext,
@@ -103,12 +108,12 @@ type WorkflowService = {
     requestContext: ApiRequestContext,
     workflowInstanceId: string,
     view?: string,
-  ): Result<Record<string, unknown>, AppError>;
+  ): Promise<Result<Record<string, unknown>, AppError>>;
   getAvailableActions(
     dependencies: AppDependencies,
     requestContext: ApiRequestContext,
     workflowInstanceId: string,
-  ): Result<Record<string, unknown>, AppError>;
+  ): Promise<Result<Record<string, unknown>, AppError>>;
 };
 
 type WorkflowConfigContract = {
@@ -152,8 +157,8 @@ type WorkflowConfigContract = {
 };
 
 describe("position.headcount_requisition.approval HarborCare fixtures", () => {
-  it("resolves stable HarborCare actor aliases and Cambridge Nursing request data", () => {
-    const harness = createHarness();
+  it("resolves stable HarborCare actor aliases and Cambridge Nursing request data", async () => {
+    const harness = await createHarness();
 
     expect(harness.repositories.store.tenants.get(DEMO_IDS.tenantId)?.name).toBe(
       DEMO_ORGANIZATION.name,
@@ -220,6 +225,8 @@ describe("position.headcount_requisition.approval HarborCare fixtures", () => {
         headcountFixture.leadershipApprover2ActorId,
       ],
     });
+
+    await harness.workflowApi.close();
   });
 });
 
@@ -346,12 +353,16 @@ describe("position.headcount_requisition.approval dynamic sync/async E2E contrac
   let service: WorkflowService;
 
   beforeEach(async () => {
-    harness = createHarness();
-    service = await loadWorkflowService();
+    harness = await createHarness();
+    service = createWorkflowServiceClient(harness.workflowApi);
+  });
+
+  afterEach(async () => {
+    await harness.workflowApi.close();
   });
 
   it("runs the full sequential leadership and async quorum happy path", async () => {
-    const workflowInstanceId = startHeadcountWorkflow(
+    const workflowInstanceId = await startHeadcountWorkflow(
       service,
       harness,
       "idem_headcount_start_happy",
@@ -525,7 +536,7 @@ describe("position.headcount_requisition.approval dynamic sync/async E2E contrac
     );
 
     const businessTimeline = unwrapResult(
-      service.getTimeline(
+      await service.getTimeline(
         harness.dependencies,
         harness.requesterContext,
         workflowInstanceId,
@@ -712,7 +723,7 @@ describe("position.headcount_requisition.approval dynamic sync/async E2E contrac
   });
 
   it("rejects duplicate leadership approvers during submit validation", async () => {
-    const workflowInstanceId = startHeadcountWorkflow(
+    const workflowInstanceId = await startHeadcountWorkflow(
       service,
       harness,
       "idem_headcount_start_duplicate_leadership",
@@ -805,7 +816,7 @@ describe("position.headcount_requisition.approval dynamic sync/async E2E contrac
   });
 });
 
-function createHarness(): TestHarness {
+async function createHarness(): Promise<TestHarness> {
   const store = createSeededDemoStore();
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
@@ -816,6 +827,7 @@ function createHarness(): TestHarness {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     requesterContext: createRequestContext(
       mustActor(repositories, headcountFixture.requesterActorId),
     ),
@@ -994,16 +1006,39 @@ function readHeadcountWorkflowConfig(): WorkflowConfigContract {
   return JSON.parse(readFileSync(configPath, "utf8")) as WorkflowConfigContract;
 }
 
-async function loadWorkflowService(): Promise<WorkflowService> {
-  return (await import("../../workflows/legal-name-change/service.js")) as unknown as WorkflowService;
+function createWorkflowServiceClient(workflowApi: WorkflowApiClient): WorkflowService {
+  return {
+    startWorkflowIntent(_dependencies, requestContext, body) {
+      return workflowApi.startWorkflowIntent(requestContext, body);
+    },
+    transitionWorkflow(_dependencies, requestContext, workflowInstanceId, body) {
+      return workflowApi.transitionWorkflow(requestContext, workflowInstanceId, body);
+    },
+    getTasks(dependencies, requestContext) {
+      const tasksResult = dependencies.repositories.approvals.findPendingForActor(
+        requestContext.actor,
+      );
+      if (!tasksResult.ok) {
+        return tasksResult;
+      }
+
+      return ok({ tasks: tasksResult.value });
+    },
+    getTimeline(_dependencies, requestContext, workflowInstanceId, view) {
+      return workflowApi.getTimeline(requestContext, workflowInstanceId, view);
+    },
+    getAvailableActions(_dependencies, requestContext, workflowInstanceId) {
+      return workflowApi.getAvailableActions(requestContext, workflowInstanceId);
+    },
+  };
 }
 
-function startHeadcountWorkflow(
+async function startHeadcountWorkflow(
   service: WorkflowService,
   harness: TestHarness,
   idempotencyKey: string,
-): string {
-  const startedWorkflow = service.startWorkflowIntent(
+): Promise<string> {
+  const startedWorkflow = await service.startWorkflowIntent(
     harness.dependencies,
     harness.requesterContext,
     {
@@ -1049,7 +1084,7 @@ async function startAndSubmitHeadcountWorkflow(
   harness: TestHarness,
   keySuffix: string,
 ): Promise<string> {
-  const workflowInstanceId = startHeadcountWorkflow(
+  const workflowInstanceId = await startHeadcountWorkflow(
     service,
     harness,
     `idem_headcount_start_${keySuffix}`,

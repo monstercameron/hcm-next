@@ -15,7 +15,7 @@ import {
   type ActorRecord,
   type Repositories,
 } from "@hcm-next/data-store";
-import { createHttpCompensationDecisionClient } from "../../api/compensation-decision-client.js";
+import { createCompensationDecisionExternalWriteClient } from "../../api/compensation-decision-client.js";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type {
   ExecutorClient,
@@ -25,15 +25,14 @@ import type {
 import type { ApiRequestContext } from "../../api/request-context.js";
 import { createCompensationDecisionApiServer } from "../../third-party-apis/compensation-decision/server.js";
 import {
-  getTasks,
-  getTimeline,
-  startWorkflowIntent,
-  transitionWorkflow,
-} from "../../workflows/legal-name-change/service.js";
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   hrContext: ApiRequestContext;
   compensationAdminContext: ApiRequestContext;
   decisionServer: Server;
@@ -48,6 +47,7 @@ describe("employee.compensation.change E2E contract", () => {
 
   afterEach(async () => {
     if (harness !== undefined) {
+      await harness.workflowApi.close();
       await closeServer(harness.decisionServer);
       harness = undefined;
     }
@@ -55,8 +55,7 @@ describe("employee.compensation.change E2E contract", () => {
 
   it("runs a compensation change through approval, vendor decision, projection, outbox, and ledger", async () => {
     const activeHarness = requireHarness(harness);
-    const startedWorkflow = startWorkflowIntent(
-      activeHarness.dependencies,
+    const startedWorkflow = await activeHarness.workflowApi.startWorkflowIntent(
       activeHarness.hrContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_COMPENSATION_CHANGE,
@@ -72,8 +71,7 @@ describe("employee.compensation.change E2E contract", () => {
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
     const proposedCompensation = compensationFixture(98000);
-    const submittedWorkflow = await transitionWorkflow(
-      activeHarness.dependencies,
+    const submittedWorkflow = await activeHarness.workflowApi.transitionWorkflow(
       activeHarness.hrContext,
       workflowInstanceId,
       {
@@ -93,8 +91,7 @@ describe("employee.compensation.change E2E contract", () => {
       "waiting_approval",
     );
 
-    const tasks = getTasks(
-      activeHarness.dependencies,
+    const tasks = await activeHarness.workflowApi.getTasks(
       activeHarness.compensationAdminContext,
     );
     expect(tasks.ok).toBe(true);
@@ -103,8 +100,7 @@ describe("employee.compensation.change E2E contract", () => {
       : undefined;
     const approvalTaskId = String(approvalTask?.["approvalTaskId"]);
 
-    const approvedWorkflow = await transitionWorkflow(
-      activeHarness.dependencies,
+    const approvedWorkflow = await activeHarness.workflowApi.transitionWorkflow(
       activeHarness.compensationAdminContext,
       workflowInstanceId,
       {
@@ -121,8 +117,7 @@ describe("employee.compensation.change E2E contract", () => {
     expect(approvedWorkflow.ok).toBe(true);
     expect(approvedWorkflow.ok && approvedWorkflow.value["state"]).toBe("approved");
 
-    const executedWorkflow = await transitionWorkflow(
-      activeHarness.dependencies,
+    const executedWorkflow = await activeHarness.workflowApi.transitionWorkflow(
       activeHarness.hrContext,
       workflowInstanceId,
       {
@@ -149,8 +144,7 @@ describe("employee.compensation.change E2E contract", () => {
     expect(outboxRows[0]?.status).toBe("succeeded");
     expect(outboxRows[0]?.responsePayload?.["status"]).toBe("accepted");
 
-    const timeline = getTimeline(
-      activeHarness.dependencies,
+    const timeline = await activeHarness.workflowApi.getTimeline(
       activeHarness.hrContext,
       workflowInstanceId,
     );
@@ -179,8 +173,7 @@ describe("employee.compensation.change E2E contract", () => {
 
   it("stops execution when the third-party compensation decision rejects the payload", async () => {
     const activeHarness = requireHarness(harness);
-    const startedWorkflow = startWorkflowIntent(
-      activeHarness.dependencies,
+    const startedWorkflow = await activeHarness.workflowApi.startWorkflowIntent(
       activeHarness.hrContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_COMPENSATION_CHANGE,
@@ -201,8 +194,7 @@ describe("employee.compensation.change E2E contract", () => {
       compensationFixture(125000),
     );
 
-    const routedWorkflow = await transitionWorkflow(
-      activeHarness.dependencies,
+    const routedWorkflow = await activeHarness.workflowApi.transitionWorkflow(
       activeHarness.hrContext,
       workflowInstanceId,
       {
@@ -223,8 +215,7 @@ describe("employee.compensation.change E2E contract", () => {
     expect(projection?.document.compensation.amount).toBe(93000);
     expect(activeHarness.repositories.store.integrationOutbox.size).toBe(0);
 
-    const auditTimeline = getTimeline(
-      activeHarness.dependencies,
+    const auditTimeline = await activeHarness.workflowApi.getTimeline(
       activeHarness.hrContext,
       workflowInstanceId,
       "audit",
@@ -247,12 +238,13 @@ async function createHarness(): Promise<TestHarness> {
   const repositories = createRepositories(store);
   const server = createCompensationDecisionApiServer();
   const decisionApiOrigin = await startTestServer(server);
-  const compensationDecisionClient =
-    createHttpCompensationDecisionClient(decisionApiOrigin);
   const dependencies: AppDependencies = {
     repositories,
     executorClient: createFakeExecutorClient(),
-    compensationDecisionClient,
+    externalWriteClients: {
+      third_party_compensation_decision:
+        createCompensationDecisionExternalWriteClient(decisionApiOrigin),
+    },
   };
   const hrActor = mustActor(repositories, DEMO_IDS.hrActorId);
   const compensationAdminActor = mustActor(
@@ -263,6 +255,7 @@ async function createHarness(): Promise<TestHarness> {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     hrContext: createRequestContext(hrActor),
     compensationAdminContext: createRequestContext(compensationAdminActor),
     decisionServer: server,
@@ -274,8 +267,7 @@ async function submitAndApproveCompensationChange(
   workflowInstanceId: string,
   proposedCompensation: Record<string, unknown>,
 ): Promise<void> {
-  const submittedWorkflow = await transitionWorkflow(
-    harness.dependencies,
+  const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
     harness.hrContext,
     workflowInstanceId,
     {
@@ -291,12 +283,11 @@ async function submitAndApproveCompensationChange(
   );
   expect(submittedWorkflow.ok).toBe(true);
 
-  const tasks = getTasks(harness.dependencies, harness.compensationAdminContext);
+  const tasks = await harness.workflowApi.getTasks(harness.compensationAdminContext);
   const approvalTask = tasks.ok
     ? (tasks.value["tasks"] as Array<Record<string, unknown>>)[0]
     : undefined;
-  const approvedWorkflow = await transitionWorkflow(
-    harness.dependencies,
+  const approvedWorkflow = await harness.workflowApi.transitionWorkflow(
     harness.compensationAdminContext,
     workflowInstanceId,
     {

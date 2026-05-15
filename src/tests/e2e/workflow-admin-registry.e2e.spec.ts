@@ -246,6 +246,25 @@ async function createHarness(): Promise<TestHarness> {
   const dependencies: AppDependencies = {
     repositories,
     executorClient: createFakeExecutorClient(),
+    externalWriteClients: {
+      third_party_compensation_decision: {
+        submit(payload, idempotencyKey) {
+          return Promise.resolve(
+            ok({
+              reasonCodes: [],
+              rawResponse: {
+                providerDecisionId: `decision_${idempotencyKey}`,
+                decision: "good",
+                status: "accepted",
+                reasonCodes: [],
+                receivedAt: "2026-05-15T00:00:00.000Z",
+                payload,
+              },
+            }),
+          );
+        },
+      },
+    },
   };
   const apiServer = createApiServer(dependencies);
   const apiOrigin = await startTestServer(apiServer);
@@ -321,7 +340,22 @@ function createPlanResponse(request: ExecutorRequest): ExecutorResponse {
             value: proposedCompensation,
           },
         ],
-        externalCallRequests: [],
+        externalCallRequests: [
+          {
+            connectionId: "third_party_compensation_decision",
+            operation: "submitCompensationChange",
+            idempotencyKey: `third_party_comp_decision_${String(
+              input["changeRequestId"],
+            )}`,
+            payload: {
+              workerId: input["workerId"],
+              currentCompensation: input["currentCompensation"],
+              proposedCompensation,
+              effectiveAt: input["effectiveAt"],
+            },
+            reconciliation: {},
+          },
+        ],
       },
       proposedEvents: [],
       externalCallRequests: [],

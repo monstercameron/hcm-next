@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   ok,
   WORKFLOW_INTENTS,
@@ -21,15 +21,14 @@ import type {
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
-  getTasks,
-  getTimeline,
-  startWorkflowIntent,
-  transitionWorkflow,
-} from "../../workflows/legal-name-change/service.js";
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   employeeContext: ApiRequestContext;
   hrContext: ApiRequestContext;
 };
@@ -37,13 +36,16 @@ type TestHarness = {
 describe("employee.emergency_contact.update E2E contract", () => {
   let harness: TestHarness;
 
-  beforeEach(() => {
-    harness = createHarness();
+  beforeEach(async () => {
+    harness = await createHarness();
+  });
+
+  afterEach(async () => {
+    await harness.workflowApi.close();
   });
 
   it("runs the emergency-contact workflow through approval, execution, projection, outbox, and ledger", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE,
@@ -60,8 +62,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
     const currentEmergencyContact = currentEmployeeEmergencyContact(harness);
 
-    const submittedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -88,8 +89,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
       "waiting_approval",
     );
 
-    const employeeApprovalAttempt = await transitionWorkflow(
-      harness.dependencies,
+    const employeeApprovalAttempt = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -107,7 +107,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
       "PERMISSION_DENIED",
     );
 
-    const taskList = getTasks(harness.dependencies, harness.hrContext);
+    const taskList = await harness.workflowApi.getTasks(harness.hrContext);
 
     expect(taskList.ok).toBe(true);
     if (!taskList.ok) {
@@ -119,8 +119,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
 
     const approvalTaskId = String(tasks[0]?.["approvalTaskId"]);
 
-    const approvedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const approvedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -137,8 +136,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
     expect(approvedWorkflow.ok).toBe(true);
     expect(approvedWorkflow.ok && approvedWorkflow.value["state"]).toBe("approved");
 
-    const executedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const executedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -171,8 +169,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
       ]),
     );
 
-    const timeline = getTimeline(
-      harness.dependencies,
+    const timeline = await harness.workflowApi.getTimeline(
       harness.hrContext,
       workflowInstanceId,
     );
@@ -201,8 +198,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
   });
 
   it("rejects unchanged emergency-contact input without creating a change request", async () => {
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_EMERGENCY_CONTACT_UPDATE,
@@ -218,8 +214,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
     const currentEmergencyContact = currentEmployeeEmergencyContact(harness);
-    const submitResult = await transitionWorkflow(
-      harness.dependencies,
+    const submitResult = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
@@ -239,7 +234,7 @@ describe("employee.emergency_contact.update E2E contract", () => {
   });
 });
 
-function createHarness(): TestHarness {
+async function createHarness(): Promise<TestHarness> {
   const store = createSeededDemoStore();
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
@@ -250,6 +245,7 @@ function createHarness(): TestHarness {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     employeeContext: createApiRequestContext(
       unwrapResult(repositories.actors.findById(DEMO_IDS.employeeActorId)),
     ),

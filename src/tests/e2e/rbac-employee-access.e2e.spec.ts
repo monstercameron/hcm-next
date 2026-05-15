@@ -1,6 +1,4 @@
-import type { Server } from "node:http";
-import type { AddressInfo } from "node:net";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   WORKFLOW_TRANSITIONS,
   ok,
@@ -21,24 +19,20 @@ import type {
   ExecutorRequest,
   ExecutorResponse,
 } from "../../api/executor-client.js";
-import { createApiServer } from "../../api/server.js";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
-import * as employeeAccessService from "../../workflows/legal-name-change/service.js";
+import {
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 
 const contactInfoUpdateIntent = "employee.contact_info.update";
 const maskedValueKeys = ["masked", "redacted", "restricted"];
 
-type EmployeeListService = typeof employeeAccessService & {
-  listEmployeeProjections?: (
-    dependencies: AppDependencies,
-    requestContext: ApiRequestContext,
-  ) => Result<Record<string, unknown>, AppError>;
-};
-
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   primaryHrContext: ApiRequestContext;
   managerContext: ApiRequestContext;
   employeeContext: ApiRequestContext;
@@ -49,12 +43,16 @@ type TestHarness = {
 describe("RBAC employee access E2E contract", () => {
   let harness: TestHarness;
 
-  beforeEach(() => {
-    harness = createHarness();
+  beforeEach(async () => {
+    harness = await createHarness();
   });
 
-  it("allows the primary HR admin to see the broad employee list", () => {
-    const employees = listEmployees(harness.dependencies, harness.primaryHrContext);
+  afterEach(async () => {
+    await harness.workflowApi.close();
+  });
+
+  it("allows the primary HR admin to see the broad employee list", async () => {
+    const employees = await listEmployees(harness, harness.primaryHrContext);
 
     expect(employees.length).toBe(harness.repositories.store.employeeProjections.size);
     expect(employeeIds(employees)).toEqual(
@@ -110,11 +108,11 @@ describe("RBAC employee access E2E contract", () => {
     );
   });
 
-  it("limits a manager to self and direct reports only", () => {
+  it("limits a manager to self and direct reports only", async () => {
     const managerEmployeeId = harness.managerContext.actor.linkedWorkerId;
 
     expect(managerEmployeeId).toBeDefined();
-    const employees = listEmployees(harness.dependencies, harness.managerContext);
+    const employees = await listEmployees(harness, harness.managerContext);
 
     expect(employees.length).toBeGreaterThan(0);
     expect(
@@ -124,19 +122,16 @@ describe("RBAC employee access E2E contract", () => {
     ).toBe(true);
   });
 
-  it("limits an employee to their own employee projection", () => {
-    const employees = listEmployees(harness.dependencies, harness.employeeContext);
+  it("limits an employee to their own employee projection", async () => {
+    const employees = await listEmployees(harness, harness.employeeContext);
 
     expect(employeeIds(employees)).toEqual([
       harness.employeeContext.actor.linkedWorkerId,
     ]);
   });
 
-  it("allows a compensation admin to see compensation fields for scoped employees", () => {
-    const employees = listEmployees(
-      harness.dependencies,
-      harness.compensationAdminContext,
-    );
+  it("allows a compensation admin to see compensation fields for scoped employees", async () => {
+    const employees = await listEmployees(harness, harness.compensationAdminContext);
 
     expect(employees.length).toBeGreaterThan(0);
     expect(
@@ -153,9 +148,9 @@ describe("RBAC employee access E2E contract", () => {
     ).toBe(true);
   });
 
-  it("masks compensation and contact data for limited actors", () => {
-    const employee = readEmployeeProjection(
-      harness.dependencies,
+  it("masks compensation and contact data for limited actors", async () => {
+    const employee = await readEmployeeProjection(
+      harness,
       harness.managerContext,
       DEMO_IDS.employeeId,
     );
@@ -180,14 +175,16 @@ describe("RBAC employee access E2E contract", () => {
   });
 
   it("serves the RBAC-filtered employee list through the API route", async () => {
-    const apiResponse = await readApiJson(
-      harness.dependencies,
-      "/employees",
-      DEMO_IDS.managerActorId,
+    const employeesResult = await harness.workflowApi.listEmployeeProjections(
+      harness.managerContext,
     );
-    const employees = apiResponse.body["employees"] as EmployeeProjectionRecord[];
 
-    expect(apiResponse.status).toBe(200);
+    expect(employeesResult.ok).toBe(true);
+    if (!employeesResult.ok) {
+      return;
+    }
+
+    const employees = employeesResult.value["employees"] as EmployeeProjectionRecord[];
     expect(employees.length).toBeGreaterThan(0);
     expect(
       employees.every((employee) => {
@@ -197,20 +194,19 @@ describe("RBAC employee access E2E contract", () => {
   });
 
   it("denies out-of-scope employee projection reads through the API route", async () => {
-    const apiResponse = await readApiJson(
-      harness.dependencies,
-      `/employees/${DEMO_IDS.managerEmployeeId}`,
-      DEMO_IDS.employeeActorId,
+    const projectionResult = await harness.workflowApi.getEmployeeProjection(
+      harness.employeeContext,
+      DEMO_IDS.managerEmployeeId,
     );
-    const error = apiResponse.body["error"] as Record<string, unknown>;
 
-    expect(apiResponse.status).toBe(403);
-    expect(error["code"]).toBe("PERMISSION_DENIED");
+    expect(projectionResult.ok).toBe(false);
+    expect(!projectionResult.ok && projectionResult.error.code).toBe(
+      "PERMISSION_DENIED",
+    );
   });
 
   it("allows a second HR admin to receive an approval task for an existing workflow", async () => {
-    const startedWorkflow = employeeAccessService.startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
         intent: contactInfoUpdateIntent,
@@ -224,8 +220,7 @@ describe("RBAC employee access E2E contract", () => {
       return;
     }
 
-    const submittedWorkflow = await employeeAccessService.transitionWorkflow(
-      harness.dependencies,
+    const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       String(startedWorkflow.value["workflowInstanceId"]),
       {
@@ -245,10 +240,7 @@ describe("RBAC employee access E2E contract", () => {
       "waiting_approval",
     );
 
-    const tasksResult = employeeAccessService.getTasks(
-      harness.dependencies,
-      harness.secondHrContext,
-    );
+    const tasksResult = await harness.workflowApi.getTasks(harness.secondHrContext);
 
     expect(tasksResult.ok).toBe(true);
     if (!tasksResult.ok) {
@@ -268,7 +260,7 @@ describe("RBAC employee access E2E contract", () => {
   });
 });
 
-function createHarness(): TestHarness {
+async function createHarness(): Promise<TestHarness> {
   const store = createSeededDemoStore();
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
@@ -279,6 +271,7 @@ function createHarness(): TestHarness {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     primaryHrContext: createRequestContext(mustActor(repositories, DEMO_IDS.hrActorId)),
     managerContext: createRequestContext(
       mustActor(repositories, DEMO_IDS.managerActorId),
@@ -315,32 +308,22 @@ function createRequestContext(actor: ActorRecord): ApiRequestContext {
   };
 }
 
-function listEmployees(
-  dependencies: AppDependencies,
+async function listEmployees(
+  harness: TestHarness,
   requestContext: ApiRequestContext,
-): EmployeeProjectionRecord[] {
-  const listEmployeeProjections = (employeeAccessService as EmployeeListService)
-    .listEmployeeProjections;
-
-  if (listEmployeeProjections === undefined) {
-    throw new Error(
-      "Missing service export listEmployeeProjections(dependencies, requestContext).",
-    );
-  }
-
-  const result = listEmployeeProjections(dependencies, requestContext);
+): Promise<EmployeeProjectionRecord[]> {
+  const result = await harness.workflowApi.listEmployeeProjections(requestContext);
   const value = unwrapResult(result);
 
   return value["employees"] as EmployeeProjectionRecord[];
 }
 
-function readEmployeeProjection(
-  dependencies: AppDependencies,
+async function readEmployeeProjection(
+  harness: TestHarness,
   requestContext: ApiRequestContext,
   employeeId: string,
-): EmployeeProjectionDocument {
-  const result = employeeAccessService.getEmployeeProjection(
-    dependencies,
+): Promise<EmployeeProjectionDocument> {
+  const result = await harness.workflowApi.getEmployeeProjection(
     requestContext,
     employeeId,
   );
@@ -458,58 +441,6 @@ function isMaskedContact(value: unknown): boolean {
     contact.mobilePhone === null &&
     isMasked(contact.homeAddress?.line1)
   );
-}
-
-type ApiJsonResponse = {
-  status: number;
-  body: Record<string, unknown>;
-};
-
-async function readApiJson(
-  dependencies: AppDependencies,
-  path: string,
-  actorId: string,
-): Promise<ApiJsonResponse> {
-  const server = createApiServer(dependencies);
-  const origin = await listenOnEphemeralPort(server);
-  const response = await fetch(`${origin}${path}`, {
-    headers: {
-      "x-demo-actor-id": actorId,
-      "x-request-id": `req_api_${actorId}`,
-      "x-correlation-id": `corr_api_${actorId}`,
-    },
-  });
-  const body = (await response.json()) as Record<string, unknown>;
-
-  await closeServer(server);
-
-  return {
-    status: response.status,
-    body,
-  };
-}
-
-function listenOnEphemeralPort(server: Server): Promise<string> {
-  return new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address() as AddressInfo;
-      resolve(`http://127.0.0.1:${address.port}`);
-    });
-  });
-}
-
-function closeServer(server: Server): Promise<void> {
-  return new Promise((resolve, reject) => {
-    server.close((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
 }
 
 function createFakeExecutorClient(): ExecutorClient {

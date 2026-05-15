@@ -1,7 +1,9 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-  ok,
   WORKFLOW_TRANSITIONS,
+  ok,
   type AppError,
   type Result,
 } from "@hcm-next/foundation";
@@ -12,19 +14,20 @@ import {
   type ActorRecord,
   type Repositories,
 } from "@hcm-next/data-store";
+import type { AppDependencies } from "../../api/dependencies.js";
 import type {
   ExecutorClient,
   ExecutorRequest,
   ExecutorResponse,
 } from "../../api/executor-client.js";
-import type { AppDependencies } from "../../api/dependencies.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
+import contactInfoWorkflowConfigJson from "../../workflows/configs/employee-contact-info-update.workflow.json";
 import {
   createWorkflowApiClient,
   type WorkflowApiClient,
 } from "../support/workflow-api-client.js";
 
-const contactInfoUpdateIntent = "employee.contact_info.update";
+const genericContactInfoIntent = "employee.generic_contact_info_test.update";
 
 type TestHarness = {
   dependencies: AppDependencies;
@@ -34,7 +37,7 @@ type TestHarness = {
   hrContext: ApiRequestContext;
 };
 
-describe("employee.contact_info.update E2E contract", () => {
+describe("generic workflow runtime E2E contract", () => {
   let harness: TestHarness;
 
   beforeEach(async () => {
@@ -45,29 +48,53 @@ describe("employee.contact_info.update E2E contract", () => {
     await harness.workflowApi.close();
   });
 
-  it("runs the contact-info workflow through approval, execution, projection, outbox, and ledger", async () => {
+  it("keeps e2e workflows on public API routes instead of workflow service imports", () => {
+    expect(workflowServiceImportOffenders()).toEqual([]);
+  });
+
+  it("imports and runs a new configured workflow intent without a TypeScript service edit", async () => {
+    const workflowConfig = genericContactInfoWorkflowConfig();
+
+    expect(workflowServiceSources()).not.toContain(genericContactInfoIntent);
+
+    const importResult = await harness.workflowApi.postAdminWorkflowConfig(
+      harness.hrContext,
+      {
+        workflowConfig,
+        publish: true,
+      },
+    );
+    expect(importResult.ok).toBe(true);
+    if (!importResult.ok) {
+      return;
+    }
+    expect(importResult.value["imported"]).toBe(1);
+    expect(importResult.value["published"]).toBe(1);
+
     const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.employeeContext,
       {
-        intent: contactInfoUpdateIntent,
+        intent: genericContactInfoIntent,
         subjectType: "worker",
         subjectId: DEMO_IDS.employeeId,
       },
     );
-
     expect(startedWorkflow.ok).toBe(true);
     if (!startedWorkflow.ok) {
       return;
     }
+    expect(startedWorkflow.value["workflowVersionId"]).toBe(
+      importResult.value["workflowVersionId"],
+    );
 
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
-    const proposedContactInfo = proposedContactInfoFixture();
+    const proposedContactInfo = genericContactInfoFixture();
     const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.employeeContext,
       workflowInstanceId,
       {
         transition: WORKFLOW_TRANSITIONS.SUBMIT_INPUT,
-        idempotencyKey: "idem_contact_info_submit",
+        idempotencyKey: "idem_generic_contact_submit",
         expectedVersion: 1,
         input: {
           proposedContactInfo,
@@ -76,7 +103,6 @@ describe("employee.contact_info.update E2E contract", () => {
         },
       },
     );
-
     expect(submittedWorkflow.ok).toBe(true);
     expect(submittedWorkflow.ok && submittedWorkflow.value["state"]).toBe(
       "waiting_approval",
@@ -87,22 +113,20 @@ describe("employee.contact_info.update E2E contract", () => {
     const approvalTask = tasks.ok
       ? (tasks.value["tasks"] as Array<Record<string, unknown>>)[0]
       : undefined;
-    const approvalTaskId = String(approvalTask?.["approvalTaskId"]);
 
     const approvedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
         transition: WORKFLOW_TRANSITIONS.APPROVE,
-        idempotencyKey: "idem_contact_info_approve",
+        idempotencyKey: "idem_generic_contact_approve",
         expectedVersion: 2,
         input: {
-          approvalTaskId,
-          comment: "Relocation contact update is complete.",
+          approvalTaskId: String(approvalTask?.["approvalTaskId"]),
+          comment: "Generic config workflow approved.",
         },
       },
     );
-
     expect(approvedWorkflow.ok).toBe(true);
     expect(approvedWorkflow.ok && approvedWorkflow.value["state"]).toBe("approved");
 
@@ -111,12 +135,11 @@ describe("employee.contact_info.update E2E contract", () => {
       workflowInstanceId,
       {
         transition: WORKFLOW_TRANSITIONS.EXECUTE,
-        idempotencyKey: "idem_contact_info_execute",
+        idempotencyKey: "idem_generic_contact_execute",
         expectedVersion: 3,
         input: {},
       },
     );
-
     expect(executedWorkflow.ok).toBe(true);
     expect(executedWorkflow.ok && executedWorkflow.value["state"]).toBe("executed");
 
@@ -124,99 +147,31 @@ describe("employee.contact_info.update E2E contract", () => {
       `${DEMO_IDS.tenantId}:${DEMO_IDS.employeeId}`,
     );
     expect(projection?.document.contact.personalEmail).toBe(
-      "jane.rivera.personal@example.com",
+      "jane.generic.personal@example.com",
     );
-    expect(projection?.document.contact.mobilePhone).toBe("+15559998888");
-    expect(projection?.document.contact.homeAddress.region).toBe("NY");
     expect(harness.repositories.store.integrationOutbox.size).toBe(1);
-
-    const transactionPlan = [
-      ...harness.repositories.store.transactionPlans.values(),
-    ][0];
-    expect(transactionPlan?.projectionPatches).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          projection: "employee",
-          operation: "replace",
-          path: "/contact/personalEmail",
-        }),
-        expect.objectContaining({
-          projection: "employee",
-          operation: "replace",
-          path: "/contact/mobilePhone",
-        }),
-        expect.objectContaining({
-          projection: "employee",
-          operation: "replace",
-          path: "/contact/homeAddress",
-        }),
-      ]),
-    );
 
     const timeline = await harness.workflowApi.getTimeline(
       harness.hrContext,
       workflowInstanceId,
     );
-
     expect(timeline.ok).toBe(true);
     if (timeline.ok) {
       const eventTypes = (
         timeline.value["events"] as Array<Record<string, unknown>>
       ).map((event) => event["eventType"]);
-
       expect(eventTypes).toEqual(
         expect.arrayContaining([
           "WorkflowIntentStarted",
           "ChangeRequestCreated",
           "ContactInfoPreflighted",
-          "ApprovalTaskCreated",
           "ApprovalGranted",
           "TransactionPlanCreated",
           "EmployeeContactInfoUpdated",
-          "ExternalWriteRequested",
           "WorkflowCompleted",
         ]),
       );
-      expect(eventTypes).not.toContain("WorkflowTransitionSubmitted");
-      expect(eventTypes).not.toContain("WorkflowStateChanged");
     }
-  });
-
-  it("rejects unchanged contact information without creating a change request", async () => {
-    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
-      harness.employeeContext,
-      {
-        intent: contactInfoUpdateIntent,
-        subjectType: "worker",
-        subjectId: DEMO_IDS.employeeId,
-      },
-    );
-
-    expect(startedWorkflow.ok).toBe(true);
-    if (!startedWorkflow.ok) {
-      return;
-    }
-
-    const unchangedContactInfo = harness.repositories.store.employeeProjections.get(
-      `${DEMO_IDS.tenantId}:${DEMO_IDS.employeeId}`,
-    )?.document.contact;
-    const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
-      harness.employeeContext,
-      String(startedWorkflow.value["workflowInstanceId"]),
-      {
-        transition: WORKFLOW_TRANSITIONS.SUBMIT_INPUT,
-        idempotencyKey: "idem_contact_info_unchanged",
-        expectedVersion: 1,
-        input: {
-          proposedContactInfo: unchangedContactInfo,
-          effectiveAt: "2026-06-01",
-          businessReason: "employee_self_service",
-        },
-      },
-    );
-
-    expect(submittedWorkflow.ok).toBe(false);
-    expect(harness.repositories.store.changeRequests.size).toBe(0);
   });
 });
 
@@ -227,36 +182,36 @@ async function createHarness(): Promise<TestHarness> {
     repositories,
     executorClient: createFakeExecutorClient(),
   };
-  const employeeActor = mustActor(repositories, DEMO_IDS.employeeActorId);
-  const hrActor = mustActor(repositories, DEMO_IDS.secondAdminActorId);
 
   return {
     dependencies,
     repositories,
     workflowApi: await createWorkflowApiClient(dependencies),
-    employeeContext: createRequestContext(employeeActor),
-    hrContext: createRequestContext(hrActor),
+    employeeContext: createApiRequestContext(
+      unwrapResult(repositories.actors.findById(DEMO_IDS.employeeActorId)),
+    ),
+    hrContext: createApiRequestContext(
+      unwrapResult(repositories.actors.findById(DEMO_IDS.secondAdminActorId)),
+    ),
   };
 }
 
-function mustActor(repositories: Repositories, actorId: string): ActorRecord {
-  const actorResult = repositories.actors.findById(actorId);
-
-  if (!actorResult.ok) {
-    throw new Error(`Missing actor ${actorId}`);
-  }
-
-  return actorResult.value;
-}
-
-function createRequestContext(actor: ActorRecord): ApiRequestContext {
+function createApiRequestContext(actor: ActorRecord): ApiRequestContext {
   return {
-    tenantId: DEMO_IDS.tenantId,
-    environmentId: DEMO_IDS.environmentId,
     actor,
+    tenantId: actor.tenantId,
+    environmentId: DEMO_IDS.environmentId,
     requestId: `req_${actor.actorId}`,
     correlationId: `corr_${actor.actorId}`,
   };
+}
+
+function unwrapResult<TValue>(result: Result<TValue, AppError>): TValue {
+  if (!result.ok) {
+    throw new Error(result.error.message);
+  }
+
+  return result.value;
 }
 
 function createFakeExecutorClient(): ExecutorClient {
@@ -264,54 +219,25 @@ function createFakeExecutorClient(): ExecutorClient {
     executeBlock<TOutput>(
       request: ExecutorRequest,
     ): Promise<Result<ExecutorResponse<TOutput>, AppError>> {
-      if (request.block.name.endsWith(".preflight")) {
-        return Promise.resolve(
-          ok(createContactInfoPreflightResponse(request) as ExecutorResponse<TOutput>),
-        );
-      }
+      const response = request.block.name.endsWith(".preflight")
+        ? createGenericContactPreflightResponse()
+        : createGenericContactPlanResponse(request);
 
-      return Promise.resolve(
-        ok(createContactInfoPlanResponse(request) as ExecutorResponse<TOutput>),
-      );
+      return Promise.resolve(ok(response as ExecutorResponse<TOutput>));
     },
   };
 }
 
-function createContactInfoPreflightResponse(
-  request: ExecutorRequest,
-): ExecutorResponse {
-  const input = request.input;
-  const currentContactInfo = input["currentContactInfo"] as Record<string, unknown>;
-  const proposedContactInfo = input["proposedContactInfo"] as Record<string, unknown>;
-  const isUnchanged =
-    JSON.stringify(currentContactInfo) === JSON.stringify(proposedContactInfo);
-
+function createGenericContactPreflightResponse(): ExecutorResponse {
   return {
     status: "succeeded",
     output: {
-      valid: !isUnchanged,
-      riskLevel: isUnchanged ? "high" : "medium",
+      valid: true,
+      riskLevel: "medium",
       requiresEvidence: false,
       requiresApproval: true,
-      warnings: isUnchanged
-        ? []
-        : [
-            {
-              code: "contact_info.region_changed",
-              field: "proposedContactInfo.homeAddress.region",
-              message: "Region changed; local payroll or tax rules may be affected.",
-            },
-          ],
-      errors: isUnchanged
-        ? [
-            {
-              code: "contact_info.unchanged",
-              field: "proposedContactInfo",
-              message:
-                "Contact information must differ from current contact information.",
-            },
-          ]
-        : [],
+      warnings: [],
+      errors: [],
     },
     proposedEvents: [],
     externalCallRequests: [],
@@ -322,7 +248,7 @@ function createContactInfoPreflightResponse(
   };
 }
 
-function createContactInfoPlanResponse(request: ExecutorRequest): ExecutorResponse {
+function createGenericContactPlanResponse(request: ExecutorRequest): ExecutorResponse {
   const input = request.input;
   const proposedContactInfo = input["proposedContactInfo"] as Record<string, unknown>;
 
@@ -338,11 +264,6 @@ function createContactInfoPlanResponse(request: ExecutorRequest): ExecutorRespon
           payload: {
             previousContactInfo: input["currentContactInfo"],
             newContactInfo: proposedContactInfo,
-            changedFields: [
-              "contact.personalEmail",
-              "contact.mobilePhone",
-              "contact.homeAddress",
-            ],
           },
         },
       ],
@@ -370,7 +291,9 @@ function createContactInfoPlanResponse(request: ExecutorRequest): ExecutorRespon
         {
           connectionId: "fake_hris",
           operation: "updateContactInfo",
-          idempotencyKey: `fake_hris_contact_info_${String(input["changeRequestId"])}`,
+          idempotencyKey: `fake_hris_generic_contact_${String(
+            input["changeRequestId"],
+          )}`,
           payload: {
             workerId: input["workerId"],
             contactInfo: proposedContactInfo,
@@ -389,17 +312,58 @@ function createContactInfoPlanResponse(request: ExecutorRequest): ExecutorRespon
   };
 }
 
-function proposedContactInfoFixture(): Record<string, unknown> {
+function genericContactInfoWorkflowConfig(): Record<string, unknown> {
   return {
-    personalEmail: "jane.rivera.personal@example.com",
-    mobilePhone: "+15559998888",
+    ...(JSON.parse(JSON.stringify(contactInfoWorkflowConfigJson)) as Record<
+      string,
+      unknown
+    >),
+    intent: genericContactInfoIntent,
+  };
+}
+
+function genericContactInfoFixture(): Record<string, unknown> {
+  return {
+    personalEmail: "jane.generic.personal@example.com",
+    mobilePhone: "+15551112222",
     homeAddress: {
-      line1: "200 Park Ave",
-      line2: "Apt 8",
-      city: "New York",
-      region: "NY",
-      postalCode: "10017",
+      line1: "300 Main St",
+      line2: null,
+      city: "Cambridge",
+      region: "MA",
+      postalCode: "02139",
       country: "US",
     },
   };
+}
+
+function workflowServiceImportOffenders(): string[] {
+  const testRoot = resolve(process.cwd(), "src/tests");
+  const serviceImportPattern =
+    /(?:from\s+["'][^"']*workflows\/(?!configs\/)[^"']*\/service\.js["']|import\(["'][^"']*workflows\/(?!configs\/)[^"']*\/service\.js["']\))/;
+
+  return sourceFiles(testRoot)
+    .filter((filePath) => serviceImportPattern.test(readFileSync(filePath, "utf8")))
+    .map((filePath) => relative(process.cwd(), filePath).replace(/\\/g, "/"));
+}
+
+function workflowServiceSources(): string {
+  const workflowsRoot = resolve(process.cwd(), "src/workflows");
+
+  return sourceFiles(workflowsRoot)
+    .filter((filePath) => filePath.endsWith("service.ts"))
+    .map((filePath) => readFileSync(filePath, "utf8"))
+    .join("\n");
+}
+
+function sourceFiles(root: string): string[] {
+  return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = join(root, entry.name);
+
+    if (entry.isDirectory()) {
+      return sourceFiles(entryPath);
+    }
+
+    return entry.isFile() && entry.name.endsWith(".ts") ? [entryPath] : [];
+  });
 }

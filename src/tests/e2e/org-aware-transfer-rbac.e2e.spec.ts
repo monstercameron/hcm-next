@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   LEDGER_EVENT_TYPES,
   WORKFLOW_INTENTS,
@@ -30,14 +30,9 @@ import type {
 } from "../../api/executor-client.js";
 import type { ApiRequestContext } from "../../api/request-context.js";
 import {
-  getAvailableActions,
-  getEmployeeProjection,
-  getTasks,
-  getTimeline,
-  listEmployeeProjections,
-  startWorkflowIntent,
-  transitionWorkflow,
-} from "../../workflows/legal-name-change/service.js";
+  createWorkflowApiClient,
+  type WorkflowApiClient,
+} from "../support/workflow-api-client.js";
 import orgTransferWorkflowConfigJson from "../../workflows/configs/employee-org-transfer-compensation-change.workflow.json";
 
 const fixture = DEMO_ORG_TRANSFER_FIXTURE_ALIASES;
@@ -45,6 +40,7 @@ const fixture = DEMO_ORG_TRANSFER_FIXTURE_ALIASES;
 type TestHarness = {
   dependencies: AppDependencies;
   repositories: Repositories;
+  workflowApi: WorkflowApiClient;
   hrContext: ApiRequestContext;
   sourceManagerContext: ApiRequestContext;
   destinationManagerContext: ApiRequestContext;
@@ -82,8 +78,12 @@ type OrgTransferWorkflowConfig = {
 describe("employee.org_transfer_compensation_change HarborCare E2E contract", () => {
   let harness: TestHarness;
 
-  beforeEach(() => {
-    harness = createHarness();
+  beforeEach(async () => {
+    harness = await createHarness();
+  });
+
+  afterEach(async () => {
+    await harness.workflowApi.close();
   });
 
   it("resolves stable HarborCare source and target fixture aliases", () => {
@@ -155,13 +155,13 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     ).toBe(true);
   });
 
-  it("asserts pre-workflow RBAC visibility for the transfer actors", () => {
-    const sourceManagerEmployees = listVisibleEmployees(
-      harness.dependencies,
+  it("asserts pre-workflow RBAC visibility for the transfer actors", async () => {
+    const sourceManagerEmployees = await listVisibleEmployees(
+      harness,
       harness.sourceManagerContext,
     );
-    const destinationManagerEmployees = listVisibleEmployees(
-      harness.dependencies,
+    const destinationManagerEmployees = await listVisibleEmployees(
+      harness,
       harness.destinationManagerContext,
     );
 
@@ -170,23 +170,23 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
       fixture.sourceEmployeeId,
     );
 
-    const sourceManagerJane = readEmployeeProjection(
-      harness.dependencies,
+    const sourceManagerJane = await readEmployeeProjection(
+      harness,
       harness.sourceManagerContext,
       fixture.sourceEmployeeId,
     );
-    const financeJane = readEmployeeProjection(
-      harness.dependencies,
+    const financeJane = await readEmployeeProjection(
+      harness,
       harness.financeContext,
       fixture.sourceEmployeeId,
     );
-    const compensationJane = readEmployeeProjection(
-      harness.dependencies,
+    const compensationJane = await readEmployeeProjection(
+      harness,
       harness.compensationContext,
       fixture.sourceEmployeeId,
     );
-    const employeeJane = readEmployeeProjection(
-      harness.dependencies,
+    const employeeJane = await readEmployeeProjection(
+      harness,
       harness.employeeContext,
       fixture.sourceEmployeeId,
     );
@@ -301,8 +301,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
 
   it("runs the full org transfer approval chain and proves post-execution RBAC", async () => {
     const transferInput = orgTransferInputFixture(harness.repositories);
-    const startedWorkflow = startWorkflowIntent(
-      harness.dependencies,
+    const startedWorkflow = await harness.workflowApi.startWorkflowIntent(
       harness.hrContext,
       {
         intent: WORKFLOW_INTENTS.EMPLOYEE_ORG_TRANSFER_COMPENSATION_CHANGE,
@@ -319,8 +318,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     const workflowInstanceId = String(startedWorkflow.value["workflowInstanceId"]);
     expect(startedWorkflow.value["state"]).toBe("collecting_input");
 
-    const submittedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const submittedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.hrContext,
       workflowInstanceId,
       {
@@ -336,13 +334,16 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
       "waiting_source_manager_approval",
     );
 
-    const sourceApprovalTask = pendingTaskFor(harness, harness.sourceManagerContext);
-    const employeeActions = availableActionTransitions(
+    const sourceApprovalTask = await pendingTaskFor(
+      harness,
+      harness.sourceManagerContext,
+    );
+    const employeeActions = await availableActionTransitions(
       harness,
       harness.employeeContext,
       workflowInstanceId,
     );
-    const sourceManagerActions = availableActionTransitions(
+    const sourceManagerActions = await availableActionTransitions(
       harness,
       harness.sourceManagerContext,
       workflowInstanceId,
@@ -351,8 +352,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     expect(employeeActions).not.toContain(WORKFLOW_TRANSITIONS.APPROVE);
     expect(sourceManagerActions).toContain(WORKFLOW_TRANSITIONS.APPROVE);
 
-    const wrongManagerAttempt = await transitionWorkflow(
-      harness.dependencies,
+    const wrongManagerAttempt = await harness.workflowApi.transitionWorkflow(
       harness.destinationManagerContext,
       workflowInstanceId,
       {
@@ -385,14 +385,18 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     });
 
     expect(
-      availableActionTransitions(
+      await availableActionTransitions(
         harness,
         harness.compensationContext,
         workflowInstanceId,
       ),
     ).not.toContain(WORKFLOW_TRANSITIONS.APPROVE);
     expect(
-      availableActionTransitions(harness, harness.financeContext, workflowInstanceId),
+      await availableActionTransitions(
+        harness,
+        harness.financeContext,
+        workflowInstanceId,
+      ),
     ).toContain(WORKFLOW_TRANSITIONS.APPROVE);
 
     await approveStage({
@@ -420,8 +424,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
       expectedState: "approved",
     });
 
-    const executedWorkflow = await transitionWorkflow(
-      harness.dependencies,
+    const executedWorkflow = await harness.workflowApi.transitionWorkflow(
       harness.systemContext,
       workflowInstanceId,
       {
@@ -439,8 +442,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     const assignmentCountAfterExecute =
       harness.repositories.store.workerAssignments.size;
     const outboxCountAfterExecute = harness.repositories.store.integrationOutbox.size;
-    const executedReplay = await transitionWorkflow(
-      harness.dependencies,
+    const executedReplay = await harness.workflowApi.transitionWorkflow(
       harness.systemContext,
       workflowInstanceId,
       {
@@ -511,24 +513,30 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     ).toHaveLength(3);
 
     expect(
-      readEmployeeProjectionResult(
-        harness.dependencies,
-        harness.sourceManagerContext,
-        fixture.sourceEmployeeId,
+      (
+        await readEmployeeProjectionResult(
+          harness,
+          harness.sourceManagerContext,
+          fixture.sourceEmployeeId,
+        )
       ).ok,
     ).toBe(false);
     expect(
-      readEmployeeProjection(
-        harness.dependencies,
-        harness.destinationManagerContext,
-        fixture.sourceEmployeeId,
+      (
+        await readEmployeeProjection(
+          harness,
+          harness.destinationManagerContext,
+          fixture.sourceEmployeeId,
+        )
       ).organization.team,
     ).toBe(fixture.targetTeamName);
     expect(
-      readEmployeeProjection(
-        harness.dependencies,
-        harness.employeeContext,
-        fixture.sourceEmployeeId,
+      (
+        await readEmployeeProjection(
+          harness,
+          harness.employeeContext,
+          fixture.sourceEmployeeId,
+        )
       ).employeeId,
     ).toBe(fixture.sourceEmployeeId);
 
@@ -542,7 +550,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
     ]);
 
     const timeline = unwrapResult(
-      getTimeline(harness.dependencies, harness.hrContext, workflowInstanceId),
+      await harness.workflowApi.getTimeline(harness.hrContext, workflowInstanceId),
     );
     const eventTypes = (timeline["events"] as Array<Record<string, unknown>>).map(
       (event) => event["eventType"],
@@ -566,7 +574,7 @@ describe("employee.org_transfer_compensation_change HarborCare E2E contract", ()
   });
 });
 
-function createHarness(): TestHarness {
+async function createHarness(): Promise<TestHarness> {
   const store = createSeededDemoStore();
   const repositories = createRepositories(store);
   const dependencies: AppDependencies = {
@@ -577,6 +585,7 @@ function createHarness(): TestHarness {
   return {
     dependencies,
     repositories,
+    workflowApi: await createWorkflowApiClient(dependencies),
     hrContext: createRequestContext(mustActor(repositories, DEMO_IDS.hrActorId)),
     sourceManagerContext: createRequestContext(
       mustActor(repositories, DEMO_IDS.managerActorId),
@@ -654,20 +663,59 @@ function buildOrgTransferPlanOutput(request: ExecutorRequest): Record<string, un
   const effectiveAt = stringValue(request.input["effectiveAt"]);
   const workerId = stringValue(request.input["workerId"]);
   const currentAssignments = recordArray(request.input["currentAssignments"]);
-  const proposedOrganization = recordValue(request.input["proposedOrganization"]);
-  const proposedJob = recordValue(request.input["proposedJob"]);
-  const proposedCompensation = recordValue(request.input["proposedCompensation"]);
-  const targetTeam = recordValue(request.input["targetTeamOrgUnit"]);
-  const targetLocation = recordValue(request.input["targetLocationOrgUnit"]);
-  const targetCostCenter = recordValue(request.input["targetCostCenterOrgUnit"]);
-  const targetManagerEmployeeId = stringValue(request.input["targetManagerEmployeeId"]);
+  const proposedTransfer = recordValue(request.input["proposedTransfer"]);
+  const proposedOrganization =
+    Object.keys(recordValue(request.input["proposedOrganization"])).length > 0
+      ? recordValue(request.input["proposedOrganization"])
+      : proposedOrganizationFixture();
+  const proposedJob =
+    Object.keys(recordValue(request.input["proposedJob"])).length > 0
+      ? recordValue(request.input["proposedJob"])
+      : recordValue(proposedTransfer["proposedJob"]);
+  const proposedCompensation =
+    Object.keys(recordValue(request.input["proposedCompensation"])).length > 0
+      ? recordValue(request.input["proposedCompensation"])
+      : recordValue(proposedTransfer["proposedCompensation"]);
+  const targetTeam =
+    Object.keys(recordValue(request.input["targetTeamOrgUnit"])).length > 0
+      ? recordValue(request.input["targetTeamOrgUnit"])
+      : orgUnitFixture(
+          stringValue(proposedTransfer["targetTeamOrgUnitId"]),
+          fixture.targetTeamName,
+        );
+  const targetLocation =
+    Object.keys(recordValue(request.input["targetLocationOrgUnit"])).length > 0
+      ? recordValue(request.input["targetLocationOrgUnit"])
+      : orgUnitFixture(
+          stringValue(proposedTransfer["targetLocationOrgUnitId"]),
+          fixture.targetLocationName,
+        );
+  const targetCostCenter =
+    Object.keys(recordValue(request.input["targetCostCenterOrgUnit"])).length > 0
+      ? recordValue(request.input["targetCostCenterOrgUnit"])
+      : orgUnitFixture(
+          stringValue(proposedTransfer["targetCostCenterOrgUnitId"]),
+          fixture.targetCostCenterName,
+        );
+  const targetManagerEmployeeId = firstNonEmptyString(
+    request.input["targetManagerEmployeeId"],
+    proposedTransfer["targetManagerEmployeeId"],
+  );
 
   const supersededAssignmentTypes = new Set([
     "primary_team",
     "work_location",
     "cost_center",
   ]);
-  const supersedeOperations = currentAssignments
+  const currentAssignmentsForSupersede =
+    currentAssignments.length > 0
+      ? currentAssignments
+      : [
+          { assignmentType: "primary_team" },
+          { assignmentType: "work_location" },
+          { assignmentType: "cost_center" },
+        ];
+  const supersedeOperations = currentAssignmentsForSupersede
     .filter((assignment) => {
       return supersededAssignmentTypes.has(stringValue(assignment["assignmentType"]));
     })
@@ -722,6 +770,35 @@ function buildOrgTransferPlanOutput(request: ExecutorRequest): Record<string, un
 
   return {
     internalWrites: [
+      ...supersedeOperations.map((operation) => ({
+        eventType: LEDGER_EVENT_TYPES.WORKER_ASSIGNMENT_SUPERSEDED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: { operation },
+      })),
+      ...createOperations.map((operation) => ({
+        eventType: LEDGER_EVENT_TYPES.WORKER_ASSIGNMENT_CREATED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: { operation },
+      })),
+      {
+        eventType: LEDGER_EVENT_TYPES.ROLE_BINDINGS_RECALCULATED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: {
+          operations: [
+            {
+              operation: "ensure_direct_reports_binding",
+              actorEmployeeId: targetManagerEmployeeId,
+            },
+            { operation: "record_recalculation" },
+          ],
+        },
+      },
       {
         eventType: LEDGER_EVENT_TYPES.EMPLOYEE_ORG_PROJECTION_UPDATED,
         subjectType: "worker",
@@ -739,6 +816,16 @@ function buildOrgTransferPlanOutput(request: ExecutorRequest): Record<string, un
         effectiveAt,
         payload: {
           compensation: proposedCompensation,
+        },
+      },
+      {
+        eventType: LEDGER_EVENT_TYPES.ORG_TRANSFER_EXECUTED,
+        subjectType: "worker",
+        subjectId: workerId,
+        effectiveAt,
+        payload: {
+          targetManagerEmployeeId,
+          proposedOrganization,
         },
       },
     ],
@@ -819,23 +906,45 @@ function buildOrgTransferPlanOutput(request: ExecutorRequest): Record<string, un
   };
 }
 
-function listVisibleEmployees(
-  dependencies: AppDependencies,
+function proposedOrganizationFixture(): Record<string, unknown> {
+  return {
+    legalEntity: "HarborCare Medical Group PC",
+    businessUnit: "Clinical Operations",
+    department: "Clinical Care",
+    team: fixture.targetTeamName,
+    location: fixture.targetLocationName,
+    payZone: "US-EAST",
+    costCenter: fixture.targetCostCenterName,
+  };
+}
+
+function orgUnitFixture(
+  orgUnitId: string | undefined,
+  name: string,
+): Record<string, unknown> {
+  return {
+    orgUnitId,
+    name,
+  };
+}
+
+async function listVisibleEmployees(
+  harness: TestHarness,
   requestContext: ApiRequestContext,
-): EmployeeProjectionRecord[] {
-  const result = listEmployeeProjections(dependencies, requestContext);
+): Promise<EmployeeProjectionRecord[]> {
+  const result = await harness.workflowApi.listEmployeeProjections(requestContext);
   const value = unwrapResult(result);
 
   return value["employees"] as EmployeeProjectionRecord[];
 }
 
-function readEmployeeProjection(
-  dependencies: AppDependencies,
+async function readEmployeeProjection(
+  harness: TestHarness,
   requestContext: ApiRequestContext,
   employeeId: string,
-): EmployeeProjectionDocument {
+): Promise<EmployeeProjectionDocument> {
   const value = unwrapResult(
-    readEmployeeProjectionResult(dependencies, requestContext, employeeId),
+    await readEmployeeProjectionResult(harness, requestContext, employeeId),
   );
   const projection = value["projection"] as { document?: EmployeeProjectionDocument };
 
@@ -843,18 +952,18 @@ function readEmployeeProjection(
 }
 
 function readEmployeeProjectionResult(
-  dependencies: AppDependencies,
-  requestContext: ApiRequestContext,
-  employeeId: string,
-): Result<Record<string, unknown>, AppError> {
-  return getEmployeeProjection(dependencies, requestContext, employeeId);
-}
-
-function pendingTaskFor(
   harness: TestHarness,
   requestContext: ApiRequestContext,
-): Record<string, unknown> {
-  const tasks = unwrapResult(getTasks(harness.dependencies, requestContext));
+  employeeId: string,
+): Promise<Result<Record<string, unknown>, AppError>> {
+  return harness.workflowApi.getEmployeeProjection(requestContext, employeeId);
+}
+
+async function pendingTaskFor(
+  harness: TestHarness,
+  requestContext: ApiRequestContext,
+): Promise<Record<string, unknown>> {
+  const tasks = unwrapResult(await harness.workflowApi.getTasks(requestContext));
   const task = (tasks["tasks"] as Array<Record<string, unknown>>)[0];
 
   if (task === undefined) {
@@ -864,13 +973,12 @@ function pendingTaskFor(
   return task;
 }
 
-function availableActionTransitions(
+async function availableActionTransitions(
   harness: TestHarness,
   requestContext: ApiRequestContext,
   workflowInstanceId: string,
-): string[] {
-  const actionsResult = getAvailableActions(
-    harness.dependencies,
+): Promise<string[]> {
+  const actionsResult = await harness.workflowApi.getAvailableActions(
     requestContext,
     workflowInstanceId,
   );
@@ -892,9 +1000,8 @@ async function approveStage(input: {
   idempotencyKey: string;
   expectedState: string;
 }): Promise<void> {
-  const task = pendingTaskFor(input.harness, input.context);
-  const approvedWorkflow = await transitionWorkflow(
-    input.harness.dependencies,
+  const task = await pendingTaskFor(input.harness, input.context);
+  const approvedWorkflow = await input.harness.workflowApi.transitionWorkflow(
     input.context,
     input.workflowInstanceId,
     {
@@ -1039,7 +1146,17 @@ function approvalDecisionPayloadContract() {
 }
 
 function stringValue(value: unknown): string {
-  return typeof value === "string" ? value : "";
+  return firstNonEmptyString(value);
+}
+
+function firstNonEmptyString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+
+  return "";
 }
 
 function recordValue(value: unknown): Record<string, unknown> {
