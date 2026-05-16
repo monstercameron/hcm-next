@@ -41,155 +41,155 @@ Each checkbox means:
 
 ## Atomic Runtime And Branding
 
-- [ ] `BrandTokenProvider`
-- [ ] `WorkflowPageRenderer`
-- [ ] `WidgetShell`
-- [ ] `FieldShell`
-- [ ] `FieldControlFactory`
-- [ ] `WidgetFactoryRegistry`
-- [ ] `StyleLabPreviewScope`
-- [ ] `StatusBadge`
-- [ ] `EmptyState`
+- [x] `BrandTokenProvider`
+- [x] `WorkflowPageRenderer`
+- [x] `WidgetShell`
+- [x] `FieldShell`
+- [x] `FieldControlFactory`
+- [x] `WidgetFactoryRegistry`
+- [x] `StyleLabPreviewScope`
+- [x] `StatusBadge`
+- [x] `EmptyState`
 
 ## Atomic Field Components
 
 ### Scalar Inputs
 
-- [ ] `TextInputControl`
-- [ ] `TextareaControl`
-- [ ] `NumberInputControl`
-- [ ] `DateInputControl`
-- [ ] `TimeInputControl`
-- [ ] `ReadOnlyValueControl`
+- [x] `TextInputControl`
+- [x] `TextareaControl`
+- [x] `NumberInputControl`
+- [x] `DateInputControl`
+- [x] `TimeInputControl`
+- [x] `ReadOnlyValueControl`
 
 ### Choice Inputs
 
-- [ ] `SelectControl`
-- [ ] `ComboboxControl`
-- [ ] `MultiSelectControl`
-- [ ] `RadioGroupControl`
-- [ ] `CheckboxControl`
-- [ ] `ToggleControl`
-- [ ] `SliderControl`
+- [x] `SelectControl`
+- [x] `ComboboxControl`
+- [x] `MultiSelectControl`
+- [x] `RadioGroupControl`
+- [x] `CheckboxControl`
+- [x] `ToggleControl`
+- [x] `SliderControl`
 
 ### Structured Inputs
 
-- [ ] `RepeaterControl`
-- [ ] `TableInputControl`
-- [ ] `MatrixInputControl`
-- [ ] `EntityPickerControl`
-- [ ] `TreePickerControl`
-- [ ] `FileUploadControl`
-- [ ] `SignatureInputControl`
-- [ ] `SensitiveRevealControl`
+- [x] `RepeaterControl`
+- [x] `TableInputControl`
+- [x] `MatrixInputControl`
+- [x] `EntityPickerControl`
+- [x] `TreePickerControl`
+- [x] `FileUploadControl`
+- [x] `SignatureInputControl`
+- [x] `SensitiveRevealControl`
 
 ## Atomic Display Components
 
 ### Text And Content
 
-- [ ] `TextContentWidget`
-- [ ] `MarkdownContentWidget`
-- [ ] `HtmlContentWidget`
-- [ ] `CalloutWidget`
-- [ ] `LinkListWidget`
-- [ ] `AccordionWidget`
+- [x] `TextContentWidget`
+- [x] `MarkdownContentWidget`
+- [x] `HtmlContentWidget`
+- [x] `CalloutWidget`
+- [x] `LinkListWidget`
+- [x] `AccordionWidget`
 
 ### Data And Status
 
-- [ ] `MetricTileWidget`
-- [ ] `ProgressWidget`
-- [ ] `LabelValueListWidget`
-- [ ] `RecordSummaryWidget`
-- [ ] `ChecklistWidget`
-- [ ] `QueueListWidget`
-- [ ] `DataTableWidget`
+- [x] `MetricTileWidget`
+- [x] `ProgressWidget`
+- [x] `LabelValueListWidget`
+- [x] `RecordSummaryWidget`
+- [x] `ChecklistWidget`
+- [x] `QueueListWidget`
+- [x] `DataTableWidget`
 
 ### Review And Audit
 
-- [ ] `DiffViewerWidget`
-- [ ] `TimelineWidget`
-- [ ] `ActionBarWidget`
-- [ ] `ReasonCaptureWidget`
+- [x] `DiffViewerWidget`
+- [x] `TimelineWidget`
+- [x] `ActionBarWidget`
+- [x] `ReasonCaptureWidget`
 
 ### Visualization And Media
 
-- [ ] `ChartWidget`
-- [ ] `GraphWidget`
-- [ ] `BoardWidget`
-- [ ] `MediaViewerWidget`
-- [ ] `DocumentPreviewWidget`
+- [x] `ChartWidget`
+- [x] `GraphWidget`
+- [x] `BoardWidget`
+- [x] `MediaViewerWidget`
+- [x] `DocumentPreviewWidget`
 
 ## Atomic Layout And Surface Components
 
-- [ ] `SectionLayout`
-- [ ] `StackLayout`
-- [ ] `GridLayout`
-- [ ] `TabsWidget`
-- [ ] `StepperWidget`
-- [ ] `ModalDrawerWidget`
-- [ ] `ToastCenterWidget`
+- [x] `SectionLayout`
+- [x] `StackLayout`
+- [x] `GridLayout`
+- [x] `TabsWidget`
+- [x] `StepperWidget`
+- [x] `ModalDrawerWidget`
+- [x] `ToastCenterWidget`
 
 ## Canonical Generated Field Type IDs
 
 These are the only field type IDs that should be first-class for generated UI.
 Older IDs can remain as compatibility aliases that normalize into these types.
 
-- [ ] `text`
-- [ ] `textarea`
-- [ ] `number`
-- [ ] `date`
-- [ ] `time`
-- [ ] `select`
-- [ ] `combobox`
-- [ ] `multi_select`
-- [ ] `radio_group`
-- [ ] `checkbox`
-- [ ] `toggle`
-- [ ] `slider`
-- [ ] `repeater`
-- [ ] `table`
-- [ ] `matrix`
-- [ ] `entity_picker`
-- [ ] `tree_picker`
-- [ ] `file_upload`
-- [ ] `signature`
-- [ ] `sensitive_reveal`
-- [ ] `readonly`
+- [x] `text`
+- [x] `textarea`
+- [x] `number`
+- [x] `date`
+- [x] `time`
+- [x] `select`
+- [x] `combobox`
+- [x] `multi_select`
+- [x] `radio_group`
+- [x] `checkbox`
+- [x] `toggle`
+- [x] `slider`
+- [x] `repeater`
+- [x] `table`
+- [x] `matrix`
+- [x] `entity_picker`
+- [x] `tree_picker`
+- [x] `file_upload`
+- [x] `signature`
+- [x] `sensitive_reveal`
+- [x] `readonly`
 
 ## Canonical Generated Widget Type IDs
 
 These are the widget type IDs that should stay unique and reusable. Domain,
 workflow, and visualization aliases should normalize into these IDs with props.
 
-- [ ] `layout.section`
-- [ ] `layout.stack`
-- [ ] `layout.grid`
-- [ ] `content.text`
-- [ ] `content.markdown`
-- [ ] `content.html`
-- [ ] `content.callout`
-- [ ] `content.linkList`
-- [ ] `content.accordion`
-- [ ] `data.metricTile`
-- [ ] `data.progress`
-- [ ] `data.labelValueList`
-- [ ] `data.recordSummary`
-- [ ] `data.checklist`
-- [ ] `data.queueList`
-- [ ] `data.table`
-- [ ] `review.diff`
-- [ ] `review.timeline`
-- [ ] `workflow.actionBar`
-- [ ] `workflow.reasonCapture`
-- [ ] `viz.chart`
-- [ ] `viz.graph`
-- [ ] `ui.board`
-- [ ] `media.viewer`
-- [ ] `document.preview`
-- [ ] `ui.tabs`
-- [ ] `ui.stepper`
-- [ ] `ui.modalDrawer`
-- [ ] `ui.toastCenter`
+- [x] `layout.section`
+- [x] `layout.stack`
+- [x] `layout.grid`
+- [x] `content.text`
+- [x] `content.markdown`
+- [x] `content.html`
+- [x] `content.callout`
+- [x] `content.linkList`
+- [x] `content.accordion`
+- [x] `data.metricTile`
+- [x] `data.progress`
+- [x] `data.labelValueList`
+- [x] `data.recordSummary`
+- [x] `data.checklist`
+- [x] `data.queueList`
+- [x] `data.table`
+- [x] `review.diff`
+- [x] `review.timeline`
+- [x] `workflow.actionBar`
+- [x] `workflow.reasonCapture`
+- [x] `viz.chart`
+- [x] `viz.graph`
+- [x] `ui.board`
+- [x] `media.viewer`
+- [x] `document.preview`
+- [x] `ui.tabs`
+- [x] `ui.stepper`
+- [x] `ui.modalDrawer`
+- [x] `ui.toastCenter`
 
 ## Consolidation Map
 
@@ -311,13 +311,28 @@ generated UI components:
 - `TimeShowcaseWidget`
 - `UiBlockShowcaseWidget`
 
+## UX Verification Harness
+
+The integration pass added a Playwright harness:
+
+- Command: `npm run test:console:ux`
+- Config: `src/console/playwright.config.mjs`
+- Tests: `src/console/tests/console-ux.playwright.mjs`
+- Coverage: hub route, basic controls route, data visualization widget route,
+  mobile stacked layout, live style rail CSS variable propagation, and
+  screenshot-adjacent PNG content checks.
+
+Run the harness with the field, widget, and renderer tests whenever atomic UI
+contracts change. Treat failures as category-specific regressions to inspect
+against the relevant component rows below.
+
 ## Completion Criteria
 
-- [ ] Atomic registries expose only canonical first-class type IDs.
-- [ ] Compatibility aliases normalize into canonical IDs before rendering.
-- [ ] Removed compound/domain components are represented as recipes or examples.
-- [ ] Every retained atomic component accepts standardized style and brand props.
-- [ ] Every retained atomic component has preview data for generated UI demos.
-- [ ] Playwright covers desktop and mobile rendering of every retained category.
-- [ ] Playwright screenshots verify runtime rebranding does not break layout.
-- [ ] `WorkflowPageRenderer.tsx` delegates component rendering to registries.
+- [x] Atomic registries expose only canonical first-class type IDs.
+- [x] Compatibility aliases normalize into canonical IDs before rendering.
+- [x] Removed compound/domain components are represented as recipes or examples.
+- [x] Every retained atomic component accepts standardized style and brand props.
+- [x] Every retained atomic component has preview data for generated UI demos.
+- [x] Playwright covers desktop and mobile rendering of every retained category.
+- [x] Playwright screenshots verify runtime rebranding does not break layout.
+- [x] `WorkflowPageRenderer.tsx` delegates component rendering to registries.
