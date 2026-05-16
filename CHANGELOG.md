@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-05-16
+
+- `2d00188` - Enhanced the console app shell with a demo auth session (login screen,
+  workspace card, session storage using `fromThrowable` at the UI boundary). Expanded
+  `WorkflowPageRenderer` with richer interaction handling, extended `hcm-controls` with
+  new field types, updated field registry and widget index tests, and expanded Playwright
+  component gallery and UX smoke test coverage.
+- `22afae4` - Expanded the brand token system with gap, padding, sizing, shadow, opacity,
+  scrollbar, and chart accent tokens. Extended `style-lab-vars` to expose the new tokens
+  as CSS variable mappings, added matching `StyleLabRail` sliders for live editing, and
+  updated `styles.css` to consume the new variables.
+- `816cd8c` - Added vitest test suites for the termination workflow: `ai-review-graph.test.ts`
+  covers auto-advance through `ai_review` nodes, `completedNodes` outcome reporting,
+  fallback via `outcomes[0]`, and stop-boundary behavior; `termination-workflow-config.test.ts`
+  validates config loading, schema validation, AI review node wiring, preflight block
+  reference, and start actor requirement.
+- `f39a608` - Wired `ai_review` node auto-advance and async AI execution into the workflow
+  runtime service. `aiReviewAutomaticRouteKeys` maps every `ai_review` node to `'completed'`
+  before graph advance; `executeAiReviewNodes` fires async AI calls for traversed nodes and
+  appends `AiChangeReviewGenerated` or `AiChangeReviewFailed` ledger events. AI failures
+  never block workflow progression (`failurePolicy: 'continue'`).
+- `bfb4269` - Added the employee termination workflow config (`employee.termination`):
+  HR-initiated input collection, Go compliance preflight block, `ai_review` node for risk
+  assessment, HR director approval, plan-transaction block, projection write, payroll and
+  benefits external writes, ledger event recording, and full timeline summaries. Registered
+  in the filesystem workflow config registry.
+- `5712fb5` - Added Go termination preflight and plan-transaction blocks.
+  `system.employee_data.termination.preflight` validates employment status, termination
+  type, effective date, and business reason; computes tenure, risk level, statutory notice
+  days, COBRA window, and warnings. `system.employee_data.termination.plan_transaction`
+  produces an HRIS internal write, `fake_payroll/processFinalPay` and
+  `fake_benefits/triggerCobra` external calls, and an `employment.status` projection patch.
+  Registered in both executor entry points.
+- `92aa225` - Added `ai_review` to the workflow graph node type union and validation
+  allowlist. Exported `WorkflowAiReviewNodeConfig` (changeType, visibleFields,
+  currentStateTemplate, proposedStateTemplate, failurePolicy).
+- `15ed808` - Added foundation constants for the employee termination workflow:
+  `TerminationSubmitted`, `TerminationPreflighted`, `TerminationExecuted` ledger event
+  types; five termination action permissions; and the `employee.termination` workflow intent.
+
 ## 2026-05-15
 
 - `011fdf9` - Marked atomic runtime and field components complete in the TODOS tracker.
