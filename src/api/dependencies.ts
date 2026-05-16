@@ -1,25 +1,11 @@
-import {
-  createRepositories,
-  createSeededDemoStore,
-  type Repositories,
-} from "@hcm-next/data-store";
-import { createStructuredLogger, type StructuredLogger } from "@hcm-next/foundation";
-import {
-  createNullAiClient,
-  createOpenAiClient,
-  type AiClient,
-} from "@hcm-next/ai-client";
+import { createRepositories, createSeededDemoStore } from "@hcm-next/data-store";
+import { createStructuredLogger } from "@hcm-next/foundation";
+import { createNullAiClient, createOpenAiClient } from "@hcm-next/ai-client";
+import type { AppDependencies } from "../workflows/shared/runtime-dependencies.js";
 import { createCompensationDecisionExternalWriteClient } from "./compensation-decision-client.js";
-import { createHttpExecutorClient, type ExecutorClient } from "./executor-client.js";
-import type { ExternalWriteClient } from "./external-write-client.js";
+import { createHttpExecutorClient } from "./executor-client.js";
 
-export type AppDependencies = {
-  repositories: Repositories;
-  executorClient: ExecutorClient;
-  aiClient?: AiClient;
-  externalWriteClients?: Record<string, ExternalWriteClient>;
-  logger?: StructuredLogger;
-};
+export type { AppDependencies } from "../workflows/shared/runtime-dependencies.js";
 
 export function createDefaultDependencies(): AppDependencies {
   const executorUrl = process.env["GO_EXECUTOR_URL"] ?? "http://localhost:7001";
@@ -44,5 +30,8 @@ export function createDefaultDependencies(): AppDependencies {
       ),
     },
     logger: createStructuredLogger({ service: "api" }),
+    runtimeConfig: {
+      allowFilesystemWorkflowImports: process.env["NODE_ENV"] !== "production",
+    },
   };
 }

@@ -821,6 +821,20 @@ function createWorkflowRepository(store: HcmNextStore) {
       return ok(workflowInstance);
     },
 
+    /**
+     * Lists workflow instances for a tenant. Sorted newest-first by
+     * `startedAt` so list-style consumers (AI chat agent, dashboards) see
+     * the most recent work first.
+     */
+    listInstancesByTenant(
+      tenantId: string,
+    ): Result<WorkflowInstanceRecord[], AppError> {
+      const instances = [...store.workflowInstances.values()]
+        .filter((instance) => instance.tenantId === tenantId)
+        .sort((left, right) => right.startedAt.localeCompare(left.startedAt));
+      return ok(instances);
+    },
+
     updateInstance(
       workflowInstance: WorkflowInstanceRecord,
     ): Result<WorkflowInstanceRecord, AppError> {

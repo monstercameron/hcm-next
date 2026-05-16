@@ -6,6 +6,7 @@ import {
   WORKFLOW_ROUTE_KEYS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
+  WORKFLOW_TRANSITIONS,
   err,
   invalidWorkflowTransitionError,
   ok,
@@ -29,8 +30,6 @@ import {
   type TransactionPlanRecord,
   type WorkflowInstanceRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../api/dependencies.js";
-import type { ApiRequestContext } from "../../api/request-context.js";
 import { findAccessGrantsForActor } from "../shared/access-context.js";
 import {
   canViewEmployee,
@@ -64,6 +63,10 @@ import {
   serializeWorkflowInstance,
   terminalInteraction,
 } from "../shared/workflow-response.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../shared/runtime-dependencies.js";
 import {
   completeTransitionAttempt,
   createTransitionAttempt,
@@ -901,6 +904,66 @@ export function listEmployeeProjections(
   });
 }
 
+/**
+ * Lists workflow instances the acting user is permitted to see, optionally
+ * narrowed by intent or state. Uses the same workflow-visibility predicate
+ * as `getWorkflowInstance` so the list never leaks instances the actor
+ * could not read individually.
+ */
+export function listWorkflowInstances(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  filters?: { intent?: string; state?: string },
+): Result<Record<string, unknown>, AppError> {
+  const repositories = dependencies.repositories;
+  const instancesResult = repositories.workflows.listInstancesByTenant(
+    requestContext.tenantId,
+  );
+  if (!instancesResult.ok) {
+    return instancesResult;
+  }
+
+  const visible: WorkflowInstanceRecord[] = [];
+  for (const instance of instancesResult.value) {
+    if (filters?.intent !== undefined && instance.intent !== filters.intent) {
+      continue;
+    }
+    if (filters?.state !== undefined && instance.state !== filters.state) {
+      continue;
+    }
+
+    const workflowConfigResult = resolvePinnedWorkflowConfig(repositories, instance);
+    if (!workflowConfigResult.ok) {
+      continue;
+    }
+
+    const pendingTasksResult = pendingTasksForActor(
+      repositories,
+      requestContext,
+      instance.workflowInstanceId,
+    );
+    if (!pendingTasksResult.ok) {
+      return pendingTasksResult;
+    }
+
+    const permissionResult = canViewConfiguredWorkflow({
+      actor: requestContext.actor,
+      workflowConfig: workflowConfigResult.value,
+      workflowInstance: instance,
+      pendingTasks: pendingTasksResult.value,
+    });
+    if (!permissionResult.ok) {
+      continue;
+    }
+
+    visible.push(instance);
+  }
+
+  return ok({
+    instances: visible.map(serializeWorkflowInstance),
+  });
+}
+
 async function executeTransition(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
@@ -914,15 +977,15 @@ async function executeTransition(
     return provideEvidence(dependencies, requestContext, input);
   }
 
-  if (input.actionConfig.handler === "approve") {
+  if (input.actionConfig.handler === WORKFLOW_TRANSITIONS.APPROVE) {
     return approveChange(dependencies, requestContext, input);
   }
 
-  if (input.actionConfig.handler === "reject") {
+  if (input.actionConfig.handler === WORKFLOW_TRANSITIONS.REJECT) {
     return rejectChange(dependencies, requestContext, input);
   }
 
-  if (input.actionConfig.handler === "request_more_info") {
+  if (input.actionConfig.handler === WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO) {
     return requestMoreInformation(dependencies, requestContext, input);
   }
 
@@ -930,7 +993,7 @@ async function executeTransition(
     return cancelWorkflow(dependencies, requestContext, input);
   }
 
-  if (input.actionConfig.handler === "execute") {
+  if (input.actionConfig.handler === WORKFLOW_TRANSITIONS.EXECUTE) {
     return executeApprovedChange(dependencies, requestContext, input);
   }
 
@@ -1389,7 +1452,7 @@ async function approveChange(
   const approvedTaskResult = dependencies.repositories.approvals.update({
     ...pendingTaskResult.value,
     status: APPROVAL_TASK_STATUSES.APPROVED,
-    decision: "approved",
+    decision: APPROVAL_TASK_STATUSES.APPROVED,
     ...(decisionInputResult.value.comment !== undefined
       ? { comments: decisionInputResult.value.comment }
       : {}),
@@ -1455,7 +1518,7 @@ function rejectChange(
   const rejectedTaskResult = dependencies.repositories.approvals.update({
     ...pendingTaskResult.value,
     status: APPROVAL_TASK_STATUSES.REJECTED,
-    decision: "rejected",
+    decision: APPROVAL_TASK_STATUSES.REJECTED,
     decisionReason: decisionInputResult.value.reason,
     ...(decisionInputResult.value.comment !== undefined
       ? { comments: decisionInputResult.value.comment }
@@ -1509,7 +1572,7 @@ function rejectChange(
     ...input.workflowInstance,
     state: graphAdvance.nextState ?? WORKFLOW_STATES.REJECTED,
     status: graphAdvance.nextStatus ?? WORKFLOW_STATUSES.REJECTED,
-    currentInteraction: terminalInteraction("rejected"),
+    currentInteraction: terminalInteraction(WORKFLOW_STATES.REJECTED),
     context: contextWithGraphAdvance({
       context: input.workflowInstance.context,
       advance: graphAdvance,
@@ -1829,7 +1892,7 @@ async function executeApprovedChange(
 
   const executedPlanResult = repositories.transactionPlans.update({
     ...transactionPlanResult.value,
-    status: "executed",
+    status: CHANGE_REQUEST_STATUSES.EXECUTED,
     executionResult: {
       projectionVersion: appliedWritesResult.value.projectionVersion,
       outboxRows: outboxResult.value,
@@ -1851,7 +1914,7 @@ async function executeApprovedChange(
     ...input.workflowInstance,
     state: graphAdvance.nextState ?? WORKFLOW_STATES.EXECUTED,
     status: graphAdvance.nextStatus ?? WORKFLOW_STATUSES.COMPLETED,
-    currentInteraction: terminalInteraction("executed"),
+    currentInteraction: terminalInteraction(WORKFLOW_STATES.EXECUTED),
     context: contextWithGraphAdvance({
       context: input.workflowInstance.context,
       advance: graphAdvance,
@@ -3349,7 +3412,7 @@ function outcomeForGateDecision(
     decisionOutcome === "passed"
       ? "gate_passed"
       : decisionOutcome === "repair"
-        ? "request_more_info"
+        ? WORKFLOW_ROUTE_KEYS.REQUEST_MORE_INFO
         : "gate_failed";
   const outcome = gateNode?.outcomes?.find((candidate) => {
     return candidate.outcome === outcomeName;

@@ -7,15 +7,10 @@ import {
   type AppError,
   type Result,
 } from "@hcm-next/foundation";
-import { DEMO_IDS, type ActorRecord, type Repositories } from "@hcm-next/data-store";
+import { DEMO_IDS, type Repositories } from "@hcm-next/data-store";
+import type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";
 
-export type ApiRequestContext = {
-  actor: ActorRecord;
-  tenantId: string;
-  environmentId: string;
-  requestId: string;
-  correlationId: string;
-};
+export type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";
 
 export type HeaderReader = {
   get: (name: string) => string | null;

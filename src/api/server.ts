@@ -75,6 +75,8 @@ import {
   startWorkflowIntent,
   transitionWorkflow,
 } from "../workflows/runtime/service.js";
+import { handleAiGenerateUi } from "./ai-generate-ui.js";
+import { handleAiChat } from "./ai-chat.js";
 
 type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | "OPTIONS" | "HEAD";
 
@@ -662,6 +664,28 @@ async function routeWorkflowRequest(
   ) {
     return handleJsonCommand(routeContext, async (requestContext, body) =>
       startWorkflowIntent(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 2 &&
+    segments[0] === "ai" &&
+    segments[1] === "generate-ui"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      handleAiGenerateUi(routeContext.dependencies, requestContext, body),
+    );
+  }
+
+  if (
+    method === "POST" &&
+    segments.length === 2 &&
+    segments[0] === "ai" &&
+    segments[1] === "chat"
+  ) {
+    return handleJsonCommand(routeContext, async (requestContext, body) =>
+      handleAiChat(routeContext.dependencies, requestContext, body),
     );
   }
 

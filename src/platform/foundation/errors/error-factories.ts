@@ -165,6 +165,58 @@ export function aiReviewError(details?: JsonRecord, cause?: unknown): AppError {
   });
 }
 
+export type AiUiGenerationStage =
+  | "api_call"
+  | "response_parse"
+  | "schema_validation"
+  | "chat_turn";
+
+const AI_UI_GENERATION_CODE_BY_STAGE: Record<
+  AiUiGenerationStage,
+  (typeof ERROR_CODES)[
+    | "AI_UI_GENERATION_API_CALL_FAILED"
+    | "AI_UI_GENERATION_RESPONSE_PARSE_FAILED"
+    | "AI_UI_GENERATION_SCHEMA_VALIDATION_FAILED"
+    | "AI_UI_GENERATION_CHAT_TURN_FAILED"]
+> = {
+  api_call: ERROR_CODES.AI_UI_GENERATION_API_CALL_FAILED,
+  response_parse: ERROR_CODES.AI_UI_GENERATION_RESPONSE_PARSE_FAILED,
+  schema_validation: ERROR_CODES.AI_UI_GENERATION_SCHEMA_VALIDATION_FAILED,
+  chat_turn: ERROR_CODES.AI_UI_GENERATION_CHAT_TURN_FAILED,
+};
+
+const AI_UI_GENERATION_INTERNAL_MESSAGE_BY_STAGE: Record<AiUiGenerationStage, string> =
+  {
+    api_call: "AI UI generation provider call failed.",
+    response_parse: "AI UI generation response could not be parsed as JSON.",
+    schema_validation:
+      "AI UI generation response did not match the expected page definition shape.",
+    chat_turn: "AI chat turn could not be completed by the provider.",
+  };
+
+const AI_UI_GENERATION_SAFE_MESSAGE =
+  "We could not generate the screen. Try again or use the standard view.";
+
+/**
+ * Creates an error for AI UI generation failures across each pipeline stage:
+ * provider API call, JSON parse, or schema validation. Public message is
+ * intentionally generic so the chat panel can render it directly.
+ */
+export function aiUiGenerationError(
+  context: { stage: AiUiGenerationStage } & JsonRecord,
+  cause?: unknown,
+): AppError {
+  const { stage, ...rest } = context;
+
+  return buildAppError({
+    code: AI_UI_GENERATION_CODE_BY_STAGE[stage],
+    message: AI_UI_GENERATION_INTERNAL_MESSAGE_BY_STAGE[stage],
+    safeMessage: AI_UI_GENERATION_SAFE_MESSAGE,
+    details: { stage, ...rest },
+    cause,
+  });
+}
+
 /**
  * Creates an error for unexpected system failures at process boundaries.
  */

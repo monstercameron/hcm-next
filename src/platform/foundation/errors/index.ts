@@ -3,6 +3,7 @@ export { ERROR_CODES } from "./error-codes";
 export type { ErrorCode } from "./error-codes";
 export {
   aiReviewError,
+  aiUiGenerationError,
   databaseError,
   goExecutorError,
   idempotencyConflictError,
@@ -15,6 +16,7 @@ export {
   versionConflictError,
   workflowNotFoundError,
 } from "./error-factories";
+export type { AiUiGenerationStage } from "./error-factories";
 export {
   mapUnknownToDatabaseError,
   mapUnknownToGoExecutorError,

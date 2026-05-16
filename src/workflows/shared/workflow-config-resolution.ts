@@ -48,22 +48,38 @@ export function resolveCurrentPublishedWorkflowConfig(
 
   const workflowVersionResult =
     repositories.workflows.findCurrentPublishedVersionByIntent(tenantId, intent);
-  if (!workflowVersionResult.ok) {
+  if (workflowVersionResult.ok) {
+    const workflowConfigResult = resolveWorkflowConfigFromVersion(
+      workflowVersionResult.value.version,
+      intent,
+    );
+    if (!workflowConfigResult.ok) {
+      return workflowConfigResult;
+    }
+
+    return ok({
+      workflowDefinitionId: workflowVersionResult.value.definition.workflowDefinitionId,
+      workflowVersionId: workflowVersionResult.value.version.workflowVersionId,
+      workflowConfig: workflowConfigResult.value,
+    });
+  }
+  if (workflowVersionResult.error.code !== ERROR_CODES.NOT_FOUND) {
     return workflowVersionResult;
   }
 
-  const workflowConfigResult = resolveWorkflowConfigFromVersion(
-    workflowVersionResult.value.version,
-    intent,
-  );
-  if (!workflowConfigResult.ok) {
-    return workflowConfigResult;
+  // Filesystem fallback. Workflow configs that ship in src/workflows/configs/*
+  // but aren't yet published into the tenant should still be startable in dev
+  // so the AI assistant can render and submit forms for them. Synthetic
+  // definition/version ids are stable per intent so projections and timelines
+  // can key on them deterministically.
+  const filesystemConfigResult = findFilesystemWorkflowConfigByIntent(intent);
+  if (!filesystemConfigResult.ok) {
+    return filesystemConfigResult;
   }
-
   return ok({
-    workflowDefinitionId: workflowVersionResult.value.definition.workflowDefinitionId,
-    workflowVersionId: workflowVersionResult.value.version.workflowVersionId,
-    workflowConfig: workflowConfigResult.value,
+    workflowDefinitionId: `wfdef_fs_${intent}`,
+    workflowVersionId: `wfver_fs_${intent}_v1`,
+    workflowConfig: filesystemConfigResult.value,
   });
 }
 

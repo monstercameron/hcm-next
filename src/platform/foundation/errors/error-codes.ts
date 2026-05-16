@@ -12,6 +12,11 @@ export const ERROR_CODES = {
   INTEGRATION_ERROR: "INTEGRATION_ERROR",
   GO_EXECUTOR_ERROR: "GO_EXECUTOR_ERROR",
   AI_REVIEW_ERROR: "AI_REVIEW_ERROR",
+  AI_UI_GENERATION_API_CALL_FAILED: "ai_ui_generation_api_call_failed",
+  AI_UI_GENERATION_RESPONSE_PARSE_FAILED: "ai_ui_generation_response_parse_failed",
+  AI_UI_GENERATION_SCHEMA_VALIDATION_FAILED:
+    "ai_ui_generation_schema_validation_failed",
+  AI_UI_GENERATION_CHAT_TURN_FAILED: "ai_ui_generation_chat_turn_failed",
   SYSTEM_ERROR: "SYSTEM_ERROR",
 } as const;
 
