@@ -470,6 +470,14 @@ export type WorkflowGraphOutcomeConfig = {
   nextInteraction?: string;
 };
 
+export type WorkflowAiReviewNodeConfig = {
+  changeType: string;
+  visibleFields: string[];
+  currentStateTemplate: Record<string, unknown>;
+  proposedStateTemplate: Record<string, unknown>;
+  failurePolicy: "continue" | "fail";
+};
+
 export type WorkflowGraphNodeConfig = {
   nodeId: string;
   type:
@@ -484,6 +492,7 @@ export type WorkflowGraphNodeConfig = {
     | "projection_write"
     | "ledger_event"
     | "manual_repair"
+    | "ai_review"
     | "terminal";
   title: string;
   description?: string;
@@ -496,6 +505,7 @@ export type WorkflowGraphNodeConfig = {
   operation?: string;
   approval?: WorkflowApprovalNodeConfig;
   approvalGate?: WorkflowApprovalGateConfig;
+  aiReview?: WorkflowAiReviewNodeConfig;
   policy?: Record<string, unknown>;
   transaction?: WorkflowTransactionBehaviorConfig;
   failurePolicy?: WorkflowFailurePolicyConfig;

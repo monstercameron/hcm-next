@@ -58,6 +58,7 @@ const knownGraphNodeTypes = new Set([
   "projection_write",
   "ledger_event",
   "manual_repair",
+  "ai_review",
   "terminal",
 ]);
 const sideEffectingNodeTypes = new Set([
