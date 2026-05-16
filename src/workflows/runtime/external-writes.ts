@@ -15,9 +15,11 @@ import type {
   TransactionPlanRecord,
   WorkflowInstanceRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../api/dependencies.js";
-import type { ApiRequestContext } from "../../api/request-context.js";
 import { objectField, stringField } from "../shared/json-fields.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../shared/runtime-dependencies.js";
 import { workflowConditionMatches } from "../shared/workflow-conditions.js";
 import {
   buildConfiguredInteraction,

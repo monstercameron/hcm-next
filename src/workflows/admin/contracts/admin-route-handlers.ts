@@ -11,8 +11,10 @@ import type {
   EmployeeProjectionRecord,
   Repositories,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../../api/dependencies.js";
-import type { ApiRequestContext } from "../../../api/request-context.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../../shared/runtime-dependencies.js";
 import { previewWorkflowInputMappings } from "../authoring/input-mapping-preview.js";
 import {
   exportWorkflowJsonForEditor,

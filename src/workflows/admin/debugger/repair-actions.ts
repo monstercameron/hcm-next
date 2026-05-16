@@ -19,8 +19,10 @@ import {
   type Repositories,
   type WorkflowInstanceRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../../api/dependencies.js";
-import type { ApiRequestContext } from "../../../api/request-context.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../../shared/runtime-dependencies.js";
 import { appendWorkflowLedgerEvent } from "../../shared/workflow-ledger-events.js";
 import { terminalInteraction } from "../../shared/workflow-response.js";
 import { numberField, stringField } from "../../shared/json-fields.js";

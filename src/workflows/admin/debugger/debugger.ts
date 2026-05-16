@@ -16,8 +16,10 @@ import type {
   WorkflowInstanceRecord,
   WorkflowTransitionAttemptRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../../api/dependencies.js";
-import type { ApiRequestContext } from "../../../api/request-context.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../../shared/runtime-dependencies.js";
 import { requireWorkflowAdmin } from "../contracts/admin-permissions.js";
 import type {
   ApprovalGateDebugInfo,

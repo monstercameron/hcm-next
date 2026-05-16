@@ -16,8 +16,10 @@ import {
   type WorkflowDefinitionRecord,
   type WorkflowVersionRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../api/dependencies.js";
-import type { ApiRequestContext } from "../../api/request-context.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../shared/runtime-dependencies.js";
 import type { WorkflowConfig } from "../shared/workflow-config.js";
 import {
   cloneWorkflowConfig,
@@ -88,7 +90,7 @@ export function importWorkflowConfigsFromFiles(
     return authorizationResult;
   }
 
-  if (process.env["NODE_ENV"] === "production") {
+  if (dependencies.runtimeConfig?.allowFilesystemWorkflowImports === false) {
     dependencies.logger?.warn("workflow configs file import blocked in production", {
       actorId: requestContext.actor.actorId,
       tenantId: requestContext.tenantId,

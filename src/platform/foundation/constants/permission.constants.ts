@@ -17,6 +17,7 @@ export const ROLE_KEYS = {
   HR_ADMIN: "hr_admin",
   FINANCE_ADMIN: "finance_admin",
   COMPENSATION_ADMIN: "compensation_admin",
+  CLINIC_OPS_ADMIN: "clinic_ops_admin",
   SYSTEM: "system",
 } as const;
 

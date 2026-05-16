@@ -23,13 +23,16 @@
     "dev:third-party:compensation-decision": "npm --workspace @hcm-next/third-party-compensation-decision-api run dev",
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint .",
+    "check:code-style": "node scripts/check-code-style.mjs",
+    "check:code-style:staged": "node scripts/check-code-style.mjs --staged",
+    "check:go": "node scripts/check-go-style.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run src/tests/e2e src/workflows && npm run test --workspaces --if-present",
     "test:console:ux": "playwright test --config src/console/playwright.config.mjs",
     "test:go": "cd src/blocks/go && go test ./...",
-    "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run test:go && npm run build",
+    "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run check:code-style && npm run check:go && npm run test && npm run test:go && npm run build",
     "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",
     "db:seed": "npm --workspace @hcm-next/data-store run db:seed",
     "prepare": "husky"
@@ -40,6 +43,9 @@
     ],
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix"
+    ],
+    "*.go": [
+      "gofmt -w"
     ]
   },
   "devDependencies": {

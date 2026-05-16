@@ -1,4 +1,7 @@
 import {
+  ACTOR_ROLES,
+  WORKFLOW_STATUSES,
+  WORKFLOW_TRANSITIONS,
   ok,
   validationFailedError,
   type AppError,
@@ -89,9 +92,17 @@ export type WorkflowPermissionPreview = {
   aiRedactedPaths: string[];
 };
 
-const approvalHandlers = new Set(["approve", "reject", "request_more_info"]);
-const orgAdminRoles = new Set(["hr_admin", "clinic_ops_admin", "system"]);
-const defaultWorkflowStatus = "active" as WorkflowStatus;
+const approvalHandlers = new Set<string>([
+  WORKFLOW_TRANSITIONS.APPROVE,
+  WORKFLOW_TRANSITIONS.REJECT,
+  WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO,
+]);
+const orgAdminRoles = new Set<string>([
+  ACTOR_ROLES.HR_ADMIN,
+  ACTOR_ROLES.CLINIC_OPS_ADMIN,
+  ACTOR_ROLES.SYSTEM,
+]);
+const defaultWorkflowStatus = WORKFLOW_STATUSES.ACTIVE as WorkflowStatus;
 
 const hiddenPathsByFieldGroup: Record<EmployeeFieldGroup, string[]> = {
   profile: ["person"],
@@ -188,7 +199,9 @@ export function previewWorkflowPermissions(
     approvalAuthority: allowedActions.some((action) =>
       approvalHandlers.has(action.handler),
     ),
-    executionAuthority: allowedActions.some((action) => action.handler === "execute"),
+    executionAuthority: allowedActions.some(
+      (action) => action.handler === WORKFLOW_TRANSITIONS.EXECUTE,
+    ),
     repairAuthority:
       input.workflowState.includes("repair") ||
       allowedActions.some((action) => action.transition.includes("repair")),
@@ -294,8 +307,9 @@ function relationshipPreviewFrom(input: {
     managerChain:
       actorLinkedWorkerId !== undefined && managerChain.includes(actorLinkedWorkerId),
     hrbp: roles.has("hrbp"),
-    compensationAdmin: roles.has("compensation_admin"),
-    financeApprover: roles.has("finance_admin") || roles.has("finance_approver"),
+    compensationAdmin: roles.has(ACTOR_ROLES.COMPENSATION_ADMIN),
+    financeApprover:
+      roles.has(ACTOR_ROLES.FINANCE_ADMIN) || roles.has("finance_approver"),
     orgAdmin: [...roles].some((role) => orgAdminRoles.has(role)),
     workflowApprover: input.pendingTasks.some((task) => {
       return (

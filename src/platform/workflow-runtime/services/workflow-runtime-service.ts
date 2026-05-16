@@ -893,7 +893,7 @@ class DefaultWorkflowRuntimeService implements WorkflowRuntimeService {
     const updatedTaskResult = await input.store.updateApprovalTask({
       ...approvalTaskResult.value,
       status: APPROVAL_TASK_STATUSES.APPROVED,
-      decision: "approved",
+      decision: APPROVAL_TASK_STATUSES.APPROVED,
       comments: stringPayload(input.payload.comment),
       decidedAt: nowIso(),
     });
@@ -997,7 +997,7 @@ class DefaultWorkflowRuntimeService implements WorkflowRuntimeService {
     const updatedTaskResult = await input.store.updateApprovalTask({
       ...approvalTaskResult.value,
       status: APPROVAL_TASK_STATUSES.REJECTED,
-      decision: "rejected",
+      decision: APPROVAL_TASK_STATUSES.REJECTED,
       decisionReason: reasonResult.value,
       comments: stringPayload(input.payload.comment),
       decidedAt: nowIso(),
@@ -1282,7 +1282,7 @@ class DefaultWorkflowRuntimeService implements WorkflowRuntimeService {
 
     const executingPlanResult = await input.store.updateTransactionPlan({
       ...planResult.value,
-      status: "executed",
+      status: CHANGE_REQUEST_STATUSES.EXECUTED,
       executionResult: {
         executedAt: nowIso(),
       },
@@ -1375,7 +1375,7 @@ class DefaultWorkflowRuntimeService implements WorkflowRuntimeService {
         subjectId: planResult.value.transactionPlanId,
         changeRequestId: changeRequestResult.value.changeRequestId,
         transactionPlanId: planResult.value.transactionPlanId,
-        payload: { status: "executed" },
+        payload: { status: CHANGE_REQUEST_STATUSES.EXECUTED },
       }),
       stateChangedEvent(input, nextWorkflowInstance, permissionSnapshot),
       buildWorkflowLedgerEvent({

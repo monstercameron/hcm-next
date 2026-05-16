@@ -1,4 +1,5 @@
 import {
+  APPROVAL_TASK_STATUSES,
   err,
   ok,
   versionConflictError,
@@ -228,12 +229,18 @@ function normalizedDecisionForTask(
     return "ignored";
   }
 
-  if (task.decision === "approved" || task.status === "approved") {
-    return "approved";
+  if (
+    task.decision === APPROVAL_TASK_STATUSES.APPROVED ||
+    task.status === APPROVAL_TASK_STATUSES.APPROVED
+  ) {
+    return APPROVAL_TASK_STATUSES.APPROVED;
   }
 
-  if (task.decision === "rejected" || task.status === "rejected") {
-    return "rejected";
+  if (
+    task.decision === APPROVAL_TASK_STATUSES.REJECTED ||
+    task.status === APPROVAL_TASK_STATUSES.REJECTED
+  ) {
+    return APPROVAL_TASK_STATUSES.REJECTED;
   }
 
   if (
@@ -244,7 +251,7 @@ function normalizedDecisionForTask(
   }
 
   if (task.status === "expired") {
-    return "rejected";
+    return APPROVAL_TASK_STATUSES.REJECTED;
   }
 
   return "pending";
@@ -255,8 +262,14 @@ function buildProgress(
   totalTaskCount: number | undefined,
 ): ApprovalGateProgress {
   const countableTasks = countableTasksFrom(tasks);
-  const approvedTasks = tasksWithDecision(countableTasks, "approved");
-  const rejectedTasks = tasksWithDecision(countableTasks, "rejected");
+  const approvedTasks = tasksWithDecision(
+    countableTasks,
+    APPROVAL_TASK_STATUSES.APPROVED,
+  );
+  const rejectedTasks = tasksWithDecision(
+    countableTasks,
+    APPROVAL_TASK_STATUSES.REJECTED,
+  );
   const pendingTasks = tasksWithDecision(countableTasks, "pending");
   const ignoredCount = tasks.filter((task) => {
     return task.normalizedDecision === "ignored";
@@ -287,7 +300,7 @@ function evaluateSequentialGate(
     tasks.length === 0 ? 1 : highestSequenceIndex(tasks) + 1,
   );
   const moreInfoTask = firstTaskWithDecision(tasks, "more_info_requested");
-  const rejectedTask = firstTaskWithDecision(tasks, "rejected");
+  const rejectedTask = firstTaskWithDecision(tasks, APPROVAL_TASK_STATUSES.REJECTED);
   const pendingTaskIds = pendingTaskIdsFrom(tasks);
 
   if (moreInfoTask !== undefined) {
@@ -352,7 +365,7 @@ function evaluateSequentialGate(
     tasks.some((task) => {
       return (
         task.sequenceIndex === firstIncompleteSequenceIndex - 1 &&
-        task.normalizedDecision === "approved"
+        task.normalizedDecision === APPROVAL_TASK_STATUSES.APPROVED
       );
     });
 
@@ -375,7 +388,10 @@ function evaluateParallelGate(
   const failurePolicy = input.failurePolicy ?? DEFAULT_FAILURE_POLICY;
   const moreInfoTask = firstTaskWithDecision(tasks, "more_info_requested");
   const vetoRejectedTask = tasks.find((task) => {
-    return task.isVetoHolder === true && task.normalizedDecision === "rejected";
+    return (
+      task.isVetoHolder === true &&
+      task.normalizedDecision === APPROVAL_TASK_STATUSES.REJECTED
+    );
   });
   const pendingTaskIds = pendingTaskIdsFrom(tasks);
 
@@ -624,9 +640,11 @@ function evaluateRoleQuorumRule(
     return {
       role: roleQuorum.role,
       requiredApprovals: roleQuorum.requiredApprovals,
-      approvedCount: tasksWithDecision(roleTasks, "approved").length,
+      approvedCount: tasksWithDecision(roleTasks, APPROVAL_TASK_STATUSES.APPROVED)
+        .length,
       pendingCount: tasksWithDecision(roleTasks, "pending").length,
-      rejectedCount: tasksWithDecision(roleTasks, "rejected").length,
+      rejectedCount: tasksWithDecision(roleTasks, APPROVAL_TASK_STATUSES.REJECTED)
+        .length,
     };
   });
 
@@ -766,7 +784,8 @@ function firstIncompleteSequence(
   for (let sequenceIndex = 0; sequenceIndex < totalSequenceCount; sequenceIndex += 1) {
     const sequenceApproved = tasks.some((task) => {
       return (
-        task.sequenceIndex === sequenceIndex && task.normalizedDecision === "approved"
+        task.sequenceIndex === sequenceIndex &&
+        task.normalizedDecision === APPROVAL_TASK_STATUSES.APPROVED
       );
     });
 

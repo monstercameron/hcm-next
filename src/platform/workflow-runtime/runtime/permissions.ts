@@ -72,7 +72,9 @@ export function canViewWorkflowInstance(
 ): boolean {
   const relationship = resolveRelationship(context, actor, workflowInstance.subject.id);
   return (
-    relationship === "self" || relationship === "hr_admin" || relationship === "system"
+    relationship === "self" ||
+    relationship === ACTOR_ROLES.HR_ADMIN ||
+    relationship === ACTOR_ROLES.SYSTEM
   );
 }
 
@@ -128,11 +130,11 @@ function resolveRelationship(
   subjectWorkerId?: string,
 ): PermissionSnapshot["relationship"] {
   if (context.roles.includes(ACTOR_ROLES.SYSTEM)) {
-    return "system";
+    return ACTOR_ROLES.SYSTEM;
   }
 
   if (context.roles.includes(ACTOR_ROLES.HR_ADMIN)) {
-    return "hr_admin";
+    return ACTOR_ROLES.HR_ADMIN;
   }
 
   if (actor.linkedWorkerId && actor.linkedWorkerId === subjectWorkerId) {
@@ -149,11 +151,11 @@ function canUsePermission(
   resource: PermissionResource,
   relationship: PermissionSnapshot["relationship"],
 ): boolean {
-  if (relationship === "system") {
+  if (relationship === ACTOR_ROLES.SYSTEM) {
     return permission === PERMISSION_KEYS.LEGAL_NAME_EXECUTE;
   }
 
-  if (relationship === "hr_admin") {
+  if (relationship === ACTOR_ROLES.HR_ADMIN) {
     return [
       PERMISSION_KEYS.LEGAL_NAME_APPROVE,
       PERMISSION_KEYS.LEGAL_NAME_REJECT,

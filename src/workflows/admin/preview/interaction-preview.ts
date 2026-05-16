@@ -1,4 +1,5 @@
 import {
+  WORKFLOW_TRANSITIONS,
   err,
   ok,
   validationFailedError,
@@ -75,7 +76,11 @@ export type WorkflowInteractionPreviewWarning = {
   message: string;
 };
 
-const approvalHandlers = new Set(["approve", "reject", "request_more_info"]);
+const approvalHandlers = new Set<string>([
+  WORKFLOW_TRANSITIONS.APPROVE,
+  WORKFLOW_TRANSITIONS.REJECT,
+  WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO,
+]);
 const sensitiveFieldTokens = ["compensation", "salary", "pay", "ssn", "secret"];
 
 /**
@@ -119,7 +124,8 @@ export function previewWorkflowInteraction(
   });
   const repairAction = stateActions.find((action) => {
     return (
-      action.handler === "request_more_info" || action.transition.includes("repair")
+      action.handler === WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO ||
+      action.transition.includes("repair")
     );
   });
   const warnings = interactionWarnings({

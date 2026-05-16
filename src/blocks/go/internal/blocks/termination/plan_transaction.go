@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	terminationExecutedEventType     = "EmployeeTerminationExecuted"
-	workerSubjectType                = "worker"
-	payrollConnectionID              = "fake_payroll"
-	benefitsConnectionID             = "fake_benefits"
-	processFinalPayOperation         = "processFinalPay"
-	triggerCobraOperation            = "triggerCobra"
+	terminationExecutedEventType = "EmployeeTerminationExecuted"
+	workerSubjectType            = "worker"
+	payrollConnectionID          = "fake_payroll"
+	benefitsConnectionID         = "fake_benefits"
+	processFinalPayOperation     = "processFinalPay"
+	triggerCobraOperation        = "triggerCobra"
 )
 
 // PlanTransactionInput is the contract for deterministic termination transaction planning.
@@ -80,9 +80,9 @@ func ExecutePlanTransaction(request executor.ExecutionRequest) (executor.BlockRe
 			Reconciliation: map[string]any{
 				"expectedExternalObject": "final_pay_record",
 				"expectedFields": map[string]any{
-					"workerId":    input.WorkerID,
+					"workerId":     input.WorkerID,
 					"finalPayDate": input.FinalPayDate,
-					"status":      "processed",
+					"status":       "processed",
 				},
 			},
 		},

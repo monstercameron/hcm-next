@@ -1,4 +1,5 @@
 import {
+  WORKFLOW_STATES,
   err,
   ok,
   validationFailedError,
@@ -183,7 +184,7 @@ function renderClassAssignments(nodes: WorkflowGraphNodeConfig[]): string[] {
 
 function classNameForNode(node: WorkflowGraphNodeConfig): string | undefined {
   if (node.type === "terminal") {
-    if (node.state === "executed" || node.nodeId.includes("completed")) {
+    if (node.state === WORKFLOW_STATES.EXECUTED || node.nodeId.includes("completed")) {
       return "terminalSuccess";
     }
 

@@ -18,8 +18,8 @@ import {
   type TransactionPlanRecord,
   type WorkflowInstanceRecord,
 } from "@hcm-next/data-store";
-import type { ApiRequestContext } from "../../api/request-context.js";
 import { stringField } from "../shared/json-fields.js";
+import type { ApiRequestContext } from "../shared/runtime-dependencies.js";
 import {
   renderWorkflowTemplateString,
   resolveWorkflowTemplate,

@@ -1,6 +1,5 @@
 import { ok, type AppError, type Result } from "@hcm-next/foundation";
 import type { AccessGrantRecord, ActorRecord } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../api/dependencies.js";
 import type {
   EmployeeAccessGrant,
   EmployeeAccessGrants,
@@ -8,6 +7,7 @@ import type {
   EmployeeAccessScope,
   EmployeeFieldGroup as EmployeeAccessFieldGroup,
 } from "./employee-access.js";
+import type { AppDependencies } from "./runtime-dependencies.js";
 
 /**
  * Builds the full employee-access context needed by projection and timeline reads.

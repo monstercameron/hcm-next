@@ -1,5 +1,6 @@
 import {
   ACTOR_ROLES,
+  WORKFLOW_TRANSITIONS,
   err,
   ok,
   permissionDeniedError,
@@ -193,9 +194,9 @@ export function actionRequiresApprovalTask(
   actionConfig: WorkflowActionConfig,
 ): boolean {
   return (
-    actionConfig.handler === "approve" ||
-    actionConfig.handler === "reject" ||
-    actionConfig.handler === "request_more_info"
+    actionConfig.handler === WORKFLOW_TRANSITIONS.APPROVE ||
+    actionConfig.handler === WORKFLOW_TRANSITIONS.REJECT ||
+    actionConfig.handler === WORKFLOW_TRANSITIONS.REQUEST_MORE_INFO
   );
 }
 

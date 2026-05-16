@@ -18,10 +18,12 @@ import {
   type WorkerAssignmentRecord,
   type WorkflowInstanceRecord,
 } from "@hcm-next/data-store";
-import type { AppDependencies } from "../../api/dependencies.js";
-import type { ApiRequestContext } from "../../api/request-context.js";
 import { numberField, objectField, stringField } from "../shared/json-fields.js";
 import { applyProjectionPatches } from "../shared/projection-patches.js";
+import type {
+  ApiRequestContext,
+  AppDependencies,
+} from "../shared/runtime-dependencies.js";
 import {
   resolveWorkflowTemplate,
   type WorkflowConfig,

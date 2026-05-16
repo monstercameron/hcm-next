@@ -1,2 +1,5 @@
 #!/usr/bin/env sh
 npm exec lint-staged
+npm run check:code-style
+npm run check:go
+npm run test:all
