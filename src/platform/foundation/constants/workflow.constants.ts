@@ -8,6 +8,7 @@ export const WORKFLOW_INTENTS = {
   EMPLOYEE_ORG_TRANSFER_COMPENSATION_CHANGE:
     "employee.org_transfer_compensation_change",
   POSITION_HEADCOUNT_REQUISITION_APPROVAL: "position.headcount_requisition.approval",
+  EMPLOYEE_TERMINATION: "employee.termination",
 } as const;
 
 export type WorkflowIntent = ValueOf<typeof WORKFLOW_INTENTS>;

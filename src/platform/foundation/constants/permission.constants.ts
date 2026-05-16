@@ -82,6 +82,11 @@ export const PERMISSION_KEYS = {
   EMPLOYEE_VIEW_EMERGENCY_CONTACTS: "employee.emergency_contacts.view",
   EMPLOYEE_VIEW_COMPENSATION: "employee.compensation.view",
   EMPLOYEE_VIEW_WORKFLOW: "employee.workflow.view",
+  TERMINATION_INITIATE: "employee_data_change.termination.initiate",
+  TERMINATION_CANCEL_OWN: "employee_data_change.termination.cancel_own",
+  TERMINATION_APPROVE: "employee_data_change.termination.approve",
+  TERMINATION_REJECT: "employee_data_change.termination.reject",
+  TERMINATION_EXECUTE: "employee_data_change.termination.execute",
 } as const;
 
 export type PermissionKey = ValueOf<typeof PERMISSION_KEYS>;
