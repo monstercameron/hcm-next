@@ -597,6 +597,119 @@ const createInitialFormValues = (
   return values;
 };
 
+const payloadKeyLabels: Readonly<Record<string, string>> = {
+  current: "Current",
+  proposed: "Proposed",
+  reason: "Reason",
+  effectiveDate: "Effective date",
+  datingMode: "Timing",
+  dateMode: "Timing",
+  payrollCutoff: "Payroll cutoff",
+};
+
+const humanizePayloadKey = (key: string): string => {
+  const configuredLabel = payloadKeyLabels[key];
+
+  if (configuredLabel !== undefined) {
+    return configuredLabel;
+  }
+
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+};
+
+const payloadValueIsEmpty = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === "string" && value.trim().length === 0);
+
+const formattedPayloadValue = (value: unknown): string => {
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  return valueToText(value);
+};
+
+const formattedPayloadEntryValue = (key: string, value: unknown): string => {
+  if ((key === "datingMode" || key === "dateMode") && typeof value === "string") {
+    if (value === "retroactive") {
+      return "Retroactive";
+    }
+
+    if (value === "correction") {
+      return "Correction";
+    }
+
+    if (value === "future") {
+      return "Future dated";
+    }
+  }
+
+  return formattedPayloadValue(value);
+};
+
+function PayloadValueSummary({ value }: { value: unknown }): JSX.Element {
+  if (isRecord(value)) {
+    const record = objectValue(value);
+    const current = formattedPayloadValue(record.current);
+    const proposed = formattedPayloadValue(record.proposed);
+
+    if (!payloadValueIsEmpty(record.current) || !payloadValueIsEmpty(record.proposed)) {
+      return (
+        <span className="payload-change-summary">
+          <span>{payloadValueIsEmpty(record.current) ? "Not set" : current}</span>
+          <small>to</small>
+          <strong>{payloadValueIsEmpty(record.proposed) ? "Not set" : proposed}</strong>
+        </span>
+      );
+    }
+
+    const entries = Object.entries(record).filter(([, entryValue]) => {
+      if (Array.isArray(entryValue)) {
+        return entryValue.length > 0;
+      }
+
+      return !payloadValueIsEmpty(entryValue);
+    });
+
+    if (entries.length === 0) {
+      return <span className="payload-empty">No values set</span>;
+    }
+
+    return (
+      <span className="payload-kv-list">
+        {entries.slice(0, 4).map(([key, entryValue]) => (
+          <span key={key}>
+            <strong>{humanizePayloadKey(key)}</strong>
+            <small>{formattedPayloadEntryValue(key, entryValue)}</small>
+          </span>
+        ))}
+      </span>
+    );
+  }
+
+  if (Array.isArray(value)) {
+    return (
+      <span>
+        {value.length} {value.length === 1 ? "item" : "items"}
+      </span>
+    );
+  }
+
+  if (payloadValueIsEmpty(value)) {
+    return <span className="payload-empty">No value set</span>;
+  }
+
+  return <span>{formattedPayloadValue(value)}</span>;
+}
+
 function StatusBadge({ status }: { status: string }): JSX.Element {
   const normalized = status.toLowerCase();
   const className =
@@ -625,6 +738,10 @@ function WidgetShell({
     brandingStyleProps?.className === undefined
       ? `widget widget-size-${size}`
       : `widget widget-size-${size} ${brandingStyleProps.className}`;
+  const eyebrow =
+    widget.instance.type === "form.dynamicFieldGroup"
+      ? "Workflow controls"
+      : widget.definition?.displayName;
 
   return (
     <section
@@ -636,7 +753,7 @@ function WidgetShell({
     >
       <header className="widget-header">
         <div>
-          <p className="eyebrow">{widget.definition?.displayName}</p>
+          <p className="eyebrow">{eyebrow}</p>
           <h2>{widget.instance.title ?? widget.definition?.displayName}</h2>
           {widget.instance.description !== undefined ? (
             <p>{widget.instance.description}</p>
@@ -713,6 +830,7 @@ function DynamicFieldGroup({
   const [values, setValues] = useState<Record<string, unknown>>(() =>
     createInitialFormValues(fields),
   );
+  const generatedPayload = JSON.stringify(values);
 
   const setFieldValue = (fieldId: string, value: unknown): void => {
     setValues((current) => ({
@@ -723,7 +841,7 @@ function DynamicFieldGroup({
 
   return (
     <form
-      className="field-grid"
+      className="dynamic-field-group field-grid"
       aria-label={widget.instance.title}
       onSubmit={(event) => event.preventDefault()}
     >
@@ -801,13 +919,46 @@ function DynamicFieldGroup({
           </div>
         );
       })}
-      <div className="form-preview">
-        <div>
-          <strong>Live generated payload</strong>
-          <span>Values update as the controls change.</span>
-        </div>
-        <pre>{JSON.stringify(values, null, 2)}</pre>
-      </div>
+      <section
+        aria-label="Generated workflow data"
+        className="form-preview"
+        data-generated-payload={generatedPayload}
+      >
+        <header>
+          <div>
+            <strong>Workflow data</strong>
+            <span>
+              {fields.length} {fields.length === 1 ? "control" : "controls"}
+            </span>
+          </div>
+        </header>
+        <dl className="payload-summary-grid">
+          {fields.map((field) => {
+            const config = createFieldControlConfig(field);
+            const id = config.id;
+
+            return (
+              <div
+                className="payload-summary-card"
+                data-control-id={id}
+                data-control-type={config.type}
+                key={id}
+              >
+                <dt>{config.label}</dt>
+                <dd>
+                  <PayloadValueSummary value={values[id]} />
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        <input
+          name="generatedPayload"
+          readOnly
+          type="hidden"
+          value={generatedPayload}
+        />
+      </section>
     </form>
   );
 }
@@ -845,6 +996,100 @@ function FieldInput({
   type: string;
   value: unknown;
 }): JSX.Element {
+  const sourceType = stringValue(config.raw.sourceType);
+  const isReadonlyAlias = config.type === "readonly" && sourceType.length > 0;
+
+  if (isReadonlyAlias && sourceType === "effective_dated_change") {
+    return <EffectiveDatedChangeControl onChange={onChange} value={value} />;
+  }
+
+  if (isReadonlyAlias && sourceType === "before_after_field_editor") {
+    return <BeforeAfterFieldEditorControl onChange={onChange} value={value} />;
+  }
+
+  if (isReadonlyAlias && sourceType === "compensation_package_editor") {
+    return <CompensationPackageEditorControl onChange={onChange} value={value} />;
+  }
+
+  if (isReadonlyAlias && sourceType === "international_contact") {
+    return <InternationalContactControl onChange={onChange} value={value} />;
+  }
+
+  if (isReadonlyAlias && sourceType === "schedule_time_control") {
+    return <ScheduleTimeControl onChange={onChange} value={value} />;
+  }
+
+  if (isReadonlyAlias && sourceType === "approval_chain_editor") {
+    return (
+      <ApprovalChainEditorControl items={items} onChange={onChange} value={value} />
+    );
+  }
+
+  if (isReadonlyAlias && sourceType === "policy_evidence_checklist") {
+    return (
+      <PolicyEvidenceChecklistControl
+        items={items.length > 0 ? items : options}
+        onChange={onChange}
+        value={value}
+      />
+    );
+  }
+
+  if (isReadonlyAlias && sourceType === "conflict_resolver") {
+    return (
+      <ConflictResolverControl
+        items={items.length > 0 ? items : options}
+        onChange={onChange}
+        value={value}
+      />
+    );
+  }
+
+  if (isReadonlyAlias && sourceType === "integration_repair_control") {
+    return (
+      <IntegrationRepairControl
+        items={items.length > 0 ? items : options}
+        onChange={onChange}
+        value={value}
+      />
+    );
+  }
+
+  if (isReadonlyAlias && sourceType === "ai_review_panel") {
+    return (
+      <AiReviewPanelControl
+        items={items.length > 0 ? items : options}
+        onChange={onChange}
+        value={value}
+      />
+    );
+  }
+
+  if (isReadonlyAlias && sourceType === "transaction_simulation_viewer") {
+    return (
+      <TransactionSimulationViewerControl
+        items={items.length > 0 ? items : options}
+        onChange={onChange}
+        value={value}
+      />
+    );
+  }
+
+  if (
+    isReadonlyAlias &&
+    (sourceType.endsWith("_editor") || sourceType === "attestation")
+  ) {
+    return (
+      <CompositeControl
+        id={id}
+        label={label}
+        onChange={onChange}
+        type={sourceType}
+        value={value}
+      />
+    );
+  }
+
   if (fieldControlRegistry[config.type] !== undefined) {
     return (
       <FieldControlFactory
@@ -1714,6 +1959,14 @@ function EffectiveDatedChangeControl({
   value: unknown;
 }): JSX.Element {
   const change = objectValue(value);
+  const datingMode = stringValue(change.datingMode, "future");
+  const datingModeLabel =
+    datingMode === "retroactive"
+      ? "Retroactive"
+      : datingMode === "correction"
+        ? "Correction"
+        : "Future dated";
+  const payrollCutoff = stringValue(change.payrollCutoff, "not set");
 
   const updateChange = (nextValue: Record<string, unknown>): void => {
     onChange({ ...change, ...nextValue });
@@ -1728,10 +1981,8 @@ function EffectiveDatedChangeControl({
           { label: "Correction", value: "correction" },
         ].map((mode) => (
           <button
-            aria-pressed={stringValue(change.datingMode) === mode.value}
-            className={
-              stringValue(change.datingMode) === mode.value ? "segment-active" : ""
-            }
+            aria-pressed={datingMode === mode.value}
+            className={datingMode === mode.value ? "segment-active" : ""}
             key={mode.value}
             onClick={() => updateChange({ datingMode: mode.value })}
             type="button"
@@ -1762,14 +2013,17 @@ function EffectiveDatedChangeControl({
           />
         </label>
       </div>
-      <textarea
-        onChange={(event) => updateChange({ reason: event.currentTarget.value })}
-        placeholder="Reason for effective dating"
-        value={stringValue(change.reason)}
-      />
+      <label className="hcm-note-field">
+        <span>Change reason</span>
+        <textarea
+          onChange={(event) => updateChange({ reason: event.currentTarget.value })}
+          placeholder="Reason for effective dating"
+          value={stringValue(change.reason)}
+        />
+      </label>
       <div className="selected-pill">
-        {stringValue(change.datingMode, "future")} · cutoff{" "}
-        {stringValue(change.payrollCutoff, "not set")}
+        <span>{datingModeLabel}</span>
+        <span>Cutoff {payrollCutoff}</span>
       </div>
     </div>
   );
@@ -1789,28 +2043,28 @@ function BeforeAfterFieldEditorControl({
   };
 
   return (
-    <div className="hcm-control-card">
+    <div className="hcm-control-card before-after-control-card">
       <div className="metadata-grid">
         <label>
-          <span>Current</span>
-          <input
-            onChange={(event) => updateDiff({ current: event.currentTarget.value })}
-            value={stringValue(diff.current)}
-          />
+          <span>Current value</span>
+          <input readOnly value={stringValue(diff.current)} />
         </label>
         <label>
-          <span>Proposed</span>
+          <span>Proposed value</span>
           <input
             onChange={(event) => updateDiff({ proposed: event.currentTarget.value })}
             value={stringValue(diff.proposed)}
           />
         </label>
       </div>
-      <textarea
-        onChange={(event) => updateDiff({ reason: event.currentTarget.value })}
-        placeholder="Reason or reviewer note"
-        value={stringValue(diff.reason)}
-      />
+      <label className="hcm-note-field">
+        <span>Change reason</span>
+        <textarea
+          onChange={(event) => updateDiff({ reason: event.currentTarget.value })}
+          placeholder="Reason or reviewer note"
+          value={stringValue(diff.reason)}
+        />
+      </label>
     </div>
   );
 }

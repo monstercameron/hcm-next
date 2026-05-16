@@ -204,4 +204,26 @@ describe("field control registry", () => {
     expect(markup).toContain("background-color:rgb(240, 245, 255)");
     expect(markup).toContain("color:rgb(30, 40, 50)");
   });
+
+  it("applies branding style props to every canonical field control", () => {
+    for (const type of Object.keys(fieldControlRegistry)) {
+      const { markup } = renderControl(type, {
+        brandingStyleProps: {
+          className: "tenant-brand-field",
+          controlClassName: "tenant-control",
+          cssVariables: {
+            "--ui-control-accent": "#0044cc",
+          } as CSSProperties,
+          style: {
+            backgroundColor: "rgb(240, 245, 255)",
+          },
+        },
+      });
+
+      expect(markup, type).toContain("tenant-brand-field");
+      expect(markup, type).toContain("tenant-control");
+      expect(markup, type).toContain("--ui-control-accent:#0044cc");
+      expect(markup, type).toMatch(/background-color:rgb\(240,\s?245,\s?255\)/);
+    }
+  });
 });

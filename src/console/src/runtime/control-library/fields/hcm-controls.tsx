@@ -123,27 +123,72 @@ export const HcmRecordEditorControl = (props: FieldControlProps) => {
 
 export const EffectiveDatedChangeControl = (props: FieldControlProps) => {
   const currentValue = recordValue(props.value);
+  const datingMode = objectFieldValue(
+    currentValue,
+    "datingMode",
+    objectFieldValue(currentValue, "dateMode", "future"),
+  );
 
   return (
     <div
       className={controlClassNames(props, "field-library-effective-dated-change")}
       style={controlStyleProps(props)}
     >
-      {["effectiveDate", "dateMode", "payrollCutoff", "reason"].map((fieldName) => (
-        <label className="field-library-stack-row" key={fieldName}>
-          <span>{fieldName}</span>
-          <input
-            className="field-library-input"
-            onChange={(event) =>
-              props.onChange(
-                updateObjectField(currentValue, fieldName, eventInputValue(event)),
-              )
-            }
-            type={fieldName === "effectiveDate" ? "date" : "text"}
-            value={objectFieldValue(currentValue, fieldName)}
-          />
-        </label>
-      ))}
+      <label className="field-library-stack-row">
+        <span>Effective date</span>
+        <input
+          className="field-library-input"
+          onChange={(event) =>
+            props.onChange(
+              updateObjectField(currentValue, "effectiveDate", eventInputValue(event)),
+            )
+          }
+          type="date"
+          value={objectFieldValue(currentValue, "effectiveDate")}
+        />
+      </label>
+      <label className="field-library-stack-row">
+        <span>Timing</span>
+        <select
+          className="field-library-input"
+          onChange={(event) =>
+            props.onChange(
+              updateObjectField(currentValue, "datingMode", eventInputValue(event)),
+            )
+          }
+          value={datingMode}
+        >
+          <option value="future">Future dated</option>
+          <option value="retroactive">Retroactive</option>
+          <option value="correction">Correction</option>
+        </select>
+      </label>
+      <label className="field-library-stack-row">
+        <span>Payroll cutoff</span>
+        <input
+          className="field-library-input"
+          onChange={(event) =>
+            props.onChange(
+              updateObjectField(currentValue, "payrollCutoff", eventInputValue(event)),
+            )
+          }
+          type="date"
+          value={objectFieldValue(currentValue, "payrollCutoff")}
+        />
+      </label>
+      <label className="field-library-stack-row">
+        <span>Reason</span>
+        <input
+          className="field-library-input"
+          onChange={(event) =>
+            props.onChange(
+              updateObjectField(currentValue, "reason", eventInputValue(event)),
+            )
+          }
+          placeholder="Add decision reason"
+          value={objectFieldValue(currentValue, "reason")}
+        />
+      </label>
     </div>
   );
 };
@@ -162,12 +207,12 @@ export const BeforeAfterFieldEditorControl = (props: FieldControlProps) => {
       className={controlClassNames(props, "field-library-before-after-editor")}
       style={controlStyleProps(props)}
     >
-      <label>
-        <span>Current</span>
+      <label className="field-library-stack-row">
+        <span>Current value</span>
         <input className="field-library-input" readOnly value={currentFieldValue} />
       </label>
-      <label>
-        <span>Proposed</span>
+      <label className="field-library-stack-row">
+        <span>Proposed value</span>
         <input
           className="field-library-input"
           onChange={(event) =>
@@ -176,6 +221,19 @@ export const BeforeAfterFieldEditorControl = (props: FieldControlProps) => {
             )
           }
           value={proposedFieldValue}
+        />
+      </label>
+      <label className="field-library-stack-row">
+        <span>Reason</span>
+        <input
+          className="field-library-input"
+          onChange={(event) =>
+            props.onChange(
+              updateObjectField(currentValue, "reason", eventInputValue(event)),
+            )
+          }
+          placeholder="Explain why this value is changing"
+          value={objectFieldValue(currentValue, "reason")}
         />
       </label>
     </div>

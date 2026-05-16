@@ -100,6 +100,20 @@ async function expectNoViewportOverflow(page) {
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 2);
 }
 
+async function seedDemoSession(page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "hcm-next-demo-session",
+      JSON.stringify({
+        email: "admin@harborcare.example",
+        name: "Avery Morgan",
+        signedInAt: "2026-05-15T00:00:00.000Z",
+        workspace: "HarborCare Operations",
+      }),
+    );
+  });
+}
+
 async function captureAndAudit(locator, screenshotPath, label) {
   await locator.scrollIntoViewIfNeeded();
 
@@ -174,6 +188,7 @@ test("captures every cataloged atomic component type for visual review", async (
   page,
 }, testInfo) => {
   await page.setViewportSize(desktopViewport);
+  await seedDemoSession(page);
 
   const screenshotRoot = testInfo.outputPath("component-screenshots");
   await mkdir(screenshotRoot, { recursive: true });

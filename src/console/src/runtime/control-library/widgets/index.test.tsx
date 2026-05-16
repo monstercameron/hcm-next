@@ -8,6 +8,7 @@ import {
   MediaViewerWidget,
   QueueListWidget,
   RecordSummaryWidget,
+  SectionLayout,
   getWidgetFactoryEntry,
   renderWidgetFromRegistry,
   widgetRegistry,
@@ -126,14 +127,34 @@ describe("control-library widget registry", () => {
         style,
       },
     );
+    const markup = renderToStaticMarkup(element);
 
-    expect(element?.props.styleProps.accentColor).toBe("#0044cc");
-    expect(element?.props.styleProps.className).toContain("tenant-brand-widget");
-    expect(
-      element?.props.styleProps.style[
-        "--ui-control-accent" as keyof typeof element.props.styleProps.style
-      ],
-    ).toBe("#0044cc");
+    expect(element?.props.brandingStyleProps.accentColor).toBe("#0044cc");
+    expect(element?.props.brandingStyleProps.className).toContain(
+      "tenant-brand-widget",
+    );
+    expect(markup).toContain("tenant-brand-widget");
+    expect(markup).toContain("--ui-control-accent:#0044cc");
+  });
+
+  it("applies branding style props to every canonical registry-rendered widget", () => {
+    for (const type of canonicalWidgetIds) {
+      const element = renderWidgetFromRegistry(resolvedWidget(type), widgetRegistry, {
+        accentColor: "#0044cc",
+        className: "tenant-brand-widget",
+        style: {
+          backgroundColor: "rgb(240, 245, 255)",
+        },
+      });
+
+      expect(element, type).toBeDefined();
+
+      const markup = renderToStaticMarkup(element!);
+
+      expect(markup, type).toContain("tenant-brand-widget");
+      expect(markup, type).toContain("--ui-control-accent:#0044cc");
+      expect(markup, type).toMatch(/background-color:rgb\(240,\s?245,\s?255\)/);
+    }
   });
 
   it("normalizes exact legacy aliases to canonical widget entries", () => {
@@ -180,5 +201,46 @@ describe("control-library widget registry", () => {
 
     expect(markup).toContain("Name change");
     expect(markup).toContain("Jane Rivera");
+  });
+
+  it("accepts branding style props on direct widget and layout components", () => {
+    const brandingStyleProps = {
+      accentColor: "#0044cc",
+      className: "tenant-brand-widget",
+      style: {
+        backgroundColor: "rgb(240, 245, 255)",
+      },
+    };
+    const queueMarkup = renderToStaticMarkup(
+      <QueueListWidget
+        brandingStyleProps={brandingStyleProps}
+        config={{
+          requests: [
+            {
+              id: "request-1",
+              title: "Name change",
+              employee: "Jane Rivera",
+            },
+          ],
+        }}
+        styleProps={{ className: "local-widget" }}
+      />,
+    );
+    const layoutMarkup = renderToStaticMarkup(
+      <SectionLayout
+        brandingStyleProps={brandingStyleProps}
+        className="local-layout"
+        title="Direct layout"
+      >
+        <p>Layout body</p>
+      </SectionLayout>,
+    );
+
+    expect(queueMarkup).toContain("tenant-brand-widget");
+    expect(queueMarkup).toContain("local-widget");
+    expect(queueMarkup).toContain("--ui-control-accent:#0044cc");
+    expect(layoutMarkup).toContain("tenant-brand-widget");
+    expect(layoutMarkup).toContain("local-layout");
+    expect(layoutMarkup).toContain("--ui-control-accent:#0044cc");
   });
 });

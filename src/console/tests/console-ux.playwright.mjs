@@ -196,29 +196,51 @@ async function readBrandVariable(page, variableName) {
   }, variableName);
 }
 
-test("hub route renders the desktop console shell and workflow atoms", async ({
+async function seedDemoSession(page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "hcm-next-demo-session",
+      JSON.stringify({
+        email: "admin@harborcare.example",
+        name: "Avery Morgan",
+        signedInAt: "2026-05-15T00:00:00.000Z",
+        workspace: "HarborCare Operations",
+      }),
+    );
+  });
+}
+
+test("login route prefills credentials and opens a blank workspace", async ({
   page,
 }) => {
   await page.setViewportSize(desktopViewport);
-  await page.goto("/");
+  await page.goto("/login");
 
-  await expect(page.getByRole("heading", { name: "Change Request Hub" })).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /Hub Requests, tasks, and repair work/i }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Active requests" })).toBeVisible();
-  await expect(page.getByText("Jane Rivera")).toBeVisible();
-  await expect(page.getByLabel("Live style controls")).toBeVisible();
-  expect(await page.locator(".widget").count()).toBeGreaterThanOrEqual(3);
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByLabel("Workspace sign in")).toBeVisible();
+  await expect(page.getByLabel("Email")).toHaveValue("admin@harborcare.example");
+  await expect(page.getByLabel("Password")).toHaveValue("HarborCare2026!");
 
   await expectNoViewportOverflow(page);
-  await expectRenderedScreenshot(page.locator(".workflow-page"), "hub desktop");
+  await expectRenderedScreenshot(page.locator(".login-shell"), "login desktop");
+
+  await page.getByRole("button", { name: "Enter workspace" }).click();
+  await expect(page).toHaveURL(/\/workspace$/);
+  await expect(page.getByRole("main", { name: "Workspace" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Blank workspace" })).toBeVisible();
+  await expect(page.locator(".widget")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Change Request Hub" })).toHaveCount(
+    0,
+  );
+
+  await expectNoViewportOverflow(page);
 });
 
 test("basic controls route renders representative atomic field categories", async ({
   page,
 }) => {
   await page.setViewportSize(desktopViewport);
+  await seedDemoSession(page);
   await page.goto("/controls/basic-inputs");
 
   await expect(
@@ -248,6 +270,7 @@ test("widget route renders reusable data visualization components", async ({
   page,
 }) => {
   await page.setViewportSize(desktopViewport);
+  await seedDemoSession(page);
   await page.goto("/widgets/data-viz");
 
   await expect(
@@ -273,6 +296,7 @@ test("mobile viewport stacks navigation, content, and style rail without overflo
   page,
 }) => {
   await page.setViewportSize(mobileViewport);
+  await seedDemoSession(page);
   await page.goto("/controls/choice-selection");
 
   await expect(
@@ -303,6 +327,7 @@ test("style rail updates brand variables used by generated controls", async ({
   page,
 }) => {
   await page.setViewportSize(desktopViewport);
+  await seedDemoSession(page);
   await page.goto("/controls/basic-inputs");
 
   await expect(page.getByLabel("Live style controls")).toBeVisible();
