@@ -12,6 +12,7 @@ import contactInfoWorkflowConfigJson from "../configs/employee-contact-info-upda
 import compensationWorkflowConfigJson from "../configs/employee-compensation-change.workflow.json";
 import orgTransferCompensationChangeWorkflowConfigJson from "../configs/employee-org-transfer-compensation-change.workflow.json";
 import positionHeadcountRequisitionWorkflowConfigJson from "../configs/position-headcount-requisition.workflow.json";
+import employeeTerminationWorkflowConfigJson from "../configs/employee-termination.workflow.json";
 import { validateWorkflowConfig } from "./workflow-config-validation.js";
 import type { WorkflowConfig } from "./workflow-config.js";
 
@@ -48,6 +49,10 @@ const filesystemWorkflowConfigEntries = [
     fileName: "position-headcount-requisition.workflow.json",
     workflowConfig:
       positionHeadcountRequisitionWorkflowConfigJson as unknown as WorkflowConfig,
+  },
+  {
+    fileName: "employee-termination.workflow.json",
+    workflowConfig: employeeTerminationWorkflowConfigJson as unknown as WorkflowConfig,
   },
 ] as const;
 

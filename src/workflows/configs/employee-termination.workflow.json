@@ -1,0 +1,737 @@
+{
+  "schemaVersion": "v0.4",
+  "metadata": {
+    "schemaVersion": "v0.4",
+    "title": "Employee termination",
+    "description": "HR-initiated employee termination with AI risk assessment, deterministic compliance preflight, and HRIS/payroll/benefits transaction planning.",
+    "domain": "worker",
+    "owner": "hcm-workflow-platform",
+    "tags": ["worker", "employee_termination"],
+    "deterministicBlockRefs": {
+      "preflight": {
+        "name": "system.employee_data.termination.preflight",
+        "version": "1.0.0",
+        "runtime": "go"
+      },
+      "planTransaction": {
+        "name": "system.employee_data.termination.plan_transaction",
+        "version": "1.0.0",
+        "runtime": "go"
+      }
+    }
+  },
+  "intent": "employee.termination",
+  "subjectType": "worker",
+  "selfServiceStart": false,
+  "startActors": ["hr_admin"],
+  "ui": {
+    "defaultInteraction": "input",
+    "stateInteractions": {
+      "collecting_input": "input",
+      "waiting_approval": "waitingApproval",
+      "approved": "readyToExecute"
+    }
+  },
+  "interactions": {
+    "input": {
+      "type": "form",
+      "schemaVersion": "v0.2",
+      "title": "Initiate employee termination",
+      "employeeContext": [
+        {
+          "outputKey": "currentEmploymentStatus",
+          "path": "employment.status"
+        },
+        {
+          "outputKey": "hireDate",
+          "path": "employment.hireDate"
+        },
+        {
+          "outputKey": "employeeName",
+          "path": "person.displayName"
+        }
+      ],
+      "jsonSchema": {
+        "type": "object",
+        "required": ["terminationType", "effectiveAt", "businessReason"],
+        "properties": {
+          "terminationType": {
+            "type": "string",
+            "enum": ["voluntary", "involuntary", "retirement", "mutual_agreement"]
+          },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "businessReason": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500
+          }
+        }
+      },
+      "uiSchema": {
+        "layout": "sectioned_form",
+        "submitLabel": "Submit for HR approval"
+      }
+    },
+    "waitingApproval": {
+      "type": "waiting",
+      "title": "Awaiting HR director approval"
+    },
+    "readyToExecute": {
+      "type": "ready_to_execute",
+      "title": "Ready to execute employee termination"
+    }
+  },
+  "states": {
+    "collecting_input": {
+      "actions": [
+        {
+          "transition": "submit_input",
+          "label": "Submit for approval",
+          "actor": "hr_admin",
+          "handler": "submit_configured_input",
+          "nextState": "waiting_approval",
+          "nextStatus": "waiting",
+          "nextInteraction": "waitingApproval"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel",
+          "actor": "hr_admin",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "waiting_approval": {
+      "actions": [
+        {
+          "transition": "approve",
+          "label": "Approve termination",
+          "actor": "hr_admin",
+          "handler": "approve"
+        },
+        {
+          "transition": "reject",
+          "label": "Reject termination",
+          "actor": "hr_admin",
+          "handler": "reject"
+        },
+        {
+          "transition": "cancel",
+          "label": "Cancel request",
+          "actor": "hr_admin",
+          "handler": "cancel"
+        }
+      ]
+    },
+    "approved": {
+      "actions": [
+        {
+          "transition": "execute",
+          "label": "Execute termination",
+          "actor": "hr_admin_or_system",
+          "handler": "execute"
+        }
+      ]
+    }
+  },
+  "submit": {
+    "preflightBlock": {
+      "name": "system.employee_data.termination.preflight",
+      "version": "1.0.0",
+      "runtime": "go"
+    },
+    "preflightInput": {
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "currentEmploymentStatus": {
+        "$source": "employee",
+        "path": "employment.status"
+      },
+      "hireDate": {
+        "$source": "employee",
+        "path": "employment.hireDate"
+      },
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "terminationType": {
+        "$source": "input",
+        "path": "terminationType"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
+    },
+    "effectiveAt": {
+      "$source": "input",
+      "path": "effectiveAt"
+    },
+    "businessReason": {
+      "$source": "input",
+      "path": "businessReason"
+    },
+    "changeRequestStatus": "in_approval",
+    "markSubmitted": true,
+    "createApprovalTask": true,
+    "currentSnapshot": {
+      "employmentStatus": {
+        "$source": "employee",
+        "path": "employment.status"
+      },
+      "hireDate": {
+        "$source": "employee",
+        "path": "employment.hireDate"
+      },
+      "department": {
+        "$source": "employee",
+        "path": "organization.department"
+      },
+      "jobTitle": {
+        "$source": "employee",
+        "path": "job.title"
+      }
+    },
+    "proposedSnapshot": {
+      "terminationType": {
+        "$source": "input",
+        "path": "terminationType"
+      },
+      "effectiveAt": {
+        "$source": "input",
+        "path": "effectiveAt"
+      },
+      "businessReason": {
+        "$source": "input",
+        "path": "businessReason"
+      }
+    },
+    "proposedChange": {
+      "targetObjectType": "worker",
+      "targetObjectId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "fieldPath": "employment.status",
+      "currentValue": {
+        "$source": "employee",
+        "path": "employment.status"
+      },
+      "proposedValue": "terminated"
+    },
+    "additionalEvents": [
+      "ProposedChangeCreated",
+      "TerminationPreflighted",
+      "ApprovalTaskCreated",
+      "TerminationSubmitted"
+    ]
+  },
+  "approval": {
+    "assigneeActorId": "actor_hr_admin_riley",
+    "assigneeRole": "hr_admin",
+    "approvalType": "hr_termination_review"
+  },
+  "plan": {
+    "block": {
+      "name": "system.employee_data.termination.plan_transaction",
+      "version": "1.0.0",
+      "runtime": "go"
+    },
+    "input": {
+      "changeRequestId": {
+        "$source": "changeRequest",
+        "path": "changeRequestId"
+      },
+      "workerId": {
+        "$source": "workflow",
+        "path": "subjectId"
+      },
+      "effectiveAt": {
+        "$source": "changeRequest",
+        "path": "effectiveAt"
+      },
+      "terminationType": {
+        "$source": "proposedChange",
+        "path": "proposedSnapshot.terminationType"
+      },
+      "cobraWindowDays": 60,
+      "finalPayDate": {
+        "$source": "blockResult",
+        "path": "preflight.finalPayDate"
+      }
+    }
+  },
+  "graph": {
+    "startNodeId": "collect_termination_input",
+    "metadata": {
+      "executionModel": "generic_graph",
+      "compatibility": "legacy_submit_approval_execute"
+    },
+    "nodes": [
+      {
+        "nodeId": "collect_termination_input",
+        "type": "interaction",
+        "title": "Collect termination input",
+        "state": "collecting_input",
+        "interaction": "input",
+        "outcomes": [
+          {
+            "outcome": "submitted",
+            "eventType": "ChangeRequestCreated",
+            "nextNodeId": "termination_preflight",
+            "routeKey": "submitted"
+          },
+          {
+            "outcome": "canceled",
+            "eventType": "WorkflowCanceled",
+            "nextNodeId": "termination_canceled",
+            "nextState": "canceled",
+            "nextStatus": "canceled",
+            "routeKey": "canceled"
+          }
+        ]
+      },
+      {
+        "nodeId": "termination_preflight",
+        "type": "block",
+        "title": "Run termination compliance preflight",
+        "block": {
+          "name": "system.employee_data.termination.preflight",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "currentEmploymentStatus": {
+            "$source": "employee",
+            "path": "employment.status"
+          },
+          "hireDate": {
+            "$source": "employee",
+            "path": "employment.hireDate"
+          },
+          "effectiveAt": {
+            "$source": "input",
+            "path": "effectiveAt"
+          },
+          "terminationType": {
+            "$source": "input",
+            "path": "terminationType"
+          },
+          "businessReason": {
+            "$source": "input",
+            "path": "businessReason"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "valid",
+            "eventType": "TerminationPreflighted",
+            "nextNodeId": "ai_review_termination",
+            "routeKey": "valid"
+          },
+          {
+            "outcome": "valid_with_warnings",
+            "eventType": "TerminationPreflighted",
+            "nextNodeId": "ai_review_termination",
+            "routeKey": "valid_with_warnings"
+          },
+          {
+            "outcome": "invalid",
+            "eventType": "TerminationPreflighted",
+            "nextNodeId": "collect_termination_input",
+            "nextState": "collecting_input",
+            "nextStatus": "active",
+            "nextInteraction": "input",
+            "routeKey": "invalid"
+          }
+        ]
+      },
+      {
+        "nodeId": "ai_review_termination",
+        "type": "ai_review",
+        "title": "AI risk assessment for termination",
+        "aiReview": {
+          "changeType": "employee.termination",
+          "failurePolicy": "continue",
+          "visibleFields": [
+            "terminationType",
+            "effectiveAt",
+            "businessReason",
+            "employment.status",
+            "employment.hireDate",
+            "organization.department",
+            "job.title"
+          ],
+          "currentStateTemplate": {
+            "employmentStatus": {
+              "$source": "employee",
+              "path": "employment.status"
+            },
+            "hireDate": {
+              "$source": "employee",
+              "path": "employment.hireDate"
+            },
+            "department": {
+              "$source": "employee",
+              "path": "organization.department"
+            },
+            "jobTitle": {
+              "$source": "employee",
+              "path": "job.title"
+            }
+          },
+          "proposedStateTemplate": {
+            "terminationType": {
+              "$source": "input",
+              "path": "terminationType"
+            },
+            "effectiveAt": {
+              "$source": "input",
+              "path": "effectiveAt"
+            },
+            "businessReason": {
+              "$source": "input",
+              "path": "businessReason"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "completed",
+            "nextNodeId": "hr_termination_approval",
+            "nextState": "waiting_approval",
+            "nextStatus": "waiting",
+            "nextInteraction": "waitingApproval",
+            "routeKey": "completed"
+          }
+        ]
+      },
+      {
+        "nodeId": "hr_termination_approval",
+        "type": "approval",
+        "title": "HR director termination approval",
+        "state": "waiting_approval",
+        "interaction": "waitingApproval",
+        "approval": {
+          "taskKey": "hr_termination_review",
+          "approvalType": "hr_termination_review",
+          "interaction": "waitingApproval",
+          "resolver": {
+            "type": "role",
+            "role": "hr_admin",
+            "permission": "employee_data_change.termination.approve"
+          },
+          "decisionSchema": {
+            "approve": {
+              "required": []
+            },
+            "reject": {
+              "required": ["reason"]
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "approved",
+            "eventType": "ApprovalGranted",
+            "nextNodeId": "plan_termination_transaction",
+            "nextState": "approved",
+            "nextStatus": "active",
+            "nextInteraction": "readyToExecute",
+            "routeKey": "approved"
+          },
+          {
+            "outcome": "rejected",
+            "eventType": "ApprovalRejected",
+            "nextNodeId": "termination_rejected",
+            "nextState": "rejected",
+            "nextStatus": "rejected",
+            "routeKey": "rejected"
+          }
+        ]
+      },
+      {
+        "nodeId": "plan_termination_transaction",
+        "type": "transaction_plan",
+        "title": "Plan termination transaction",
+        "block": {
+          "name": "system.employee_data.termination.plan_transaction",
+          "version": "1.0.0",
+          "runtime": "go"
+        },
+        "blockInput": {
+          "changeRequestId": {
+            "$source": "changeRequest",
+            "path": "changeRequestId"
+          },
+          "workerId": {
+            "$source": "workflow",
+            "path": "subjectId"
+          },
+          "effectiveAt": {
+            "$source": "changeRequest",
+            "path": "effectiveAt"
+          },
+          "terminationType": {
+            "$source": "workflow",
+            "path": "context.submitInput.terminationType"
+          },
+          "cobraWindowDays": 60,
+          "finalPayDate": {
+            "$source": "workflow",
+            "path": "context.preflight.finalPayDate"
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "planned",
+            "eventType": "TransactionPlanCreated",
+            "nextNodeId": "apply_termination_projection",
+            "routeKey": "planned"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "termination_failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "apply_termination_projection",
+        "type": "projection_write",
+        "title": "Apply termination status to employee projection",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "node",
+            "keyTemplate": "termination_projection.${workflow.workflowInstanceId}",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "irreversible",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "nextNodeId": "termination_failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "applied",
+            "eventType": "TerminationExecuted",
+            "nextNodeId": "notify_payroll_and_benefits",
+            "routeKey": "applied"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "WorkflowFailed",
+            "nextNodeId": "termination_failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "notify_payroll_and_benefits",
+        "type": "external_write",
+        "title": "Notify payroll and benefits systems",
+        "connectionId": "fake_payroll",
+        "operation": "processFinalPay",
+        "transaction": {
+          "sideEffect": true,
+          "idempotency": {
+            "scope": "external_operation",
+            "keyPath": "transactionPlan.idempotencyKeys.fake_payroll_processFinalPay",
+            "onDuplicate": "read_existing_result"
+          },
+          "reversibility": "compensatable",
+          "retryPolicy": {
+            "maxAttempts": 3,
+            "backoff": "exponential",
+            "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+          },
+          "failurePolicy": {
+            "onFailure": "retry_then_repair",
+            "retryPolicy": {
+              "maxAttempts": 3,
+              "backoff": "exponential",
+              "retryOn": ["timeout", "rate_limited", "transient_5xx"]
+            },
+            "afterRetriesExhausted": {
+              "nextNodeId": "termination_failed",
+              "nextState": "failed",
+              "nextStatus": "failed",
+              "eventType": "WorkflowFailed"
+            }
+          }
+        },
+        "outcomes": [
+          {
+            "outcome": "accepted",
+            "eventType": "ExternalWriteSucceeded",
+            "nextNodeId": "record_termination_completed",
+            "routeKey": "accepted"
+          },
+          {
+            "outcome": "failed",
+            "eventType": "ExternalWriteFailed",
+            "nextNodeId": "termination_failed",
+            "nextState": "failed",
+            "nextStatus": "failed",
+            "routeKey": "failed"
+          }
+        ]
+      },
+      {
+        "nodeId": "record_termination_completed",
+        "type": "ledger_event",
+        "title": "Record termination completion",
+        "outcomes": [
+          {
+            "outcome": "recorded",
+            "eventType": "WorkflowCompleted",
+            "nextNodeId": "termination_completed",
+            "nextState": "executed",
+            "nextStatus": "completed",
+            "routeKey": "recorded"
+          }
+        ]
+      },
+      {
+        "nodeId": "termination_completed",
+        "type": "terminal",
+        "title": "Termination completed",
+        "state": "executed"
+      },
+      {
+        "nodeId": "termination_rejected",
+        "type": "terminal",
+        "title": "Termination rejected"
+      },
+      {
+        "nodeId": "termination_canceled",
+        "type": "terminal",
+        "title": "Termination canceled"
+      },
+      {
+        "nodeId": "termination_failed",
+        "type": "terminal",
+        "title": "Termination failed"
+      }
+    ]
+  },
+  "ledger": {
+    "events": {
+      "WorkflowIntentStarted": {
+        "eventType": "WorkflowIntentStarted",
+        "source": "runtime"
+      },
+      "ChangeRequestCreated": {
+        "eventType": "ChangeRequestCreated",
+        "source": "runtime"
+      },
+      "TerminationPreflighted": {
+        "eventType": "TerminationPreflighted",
+        "source": "runtime"
+      },
+      "ApprovalTaskCreated": {
+        "eventType": "ApprovalTaskCreated",
+        "source": "runtime"
+      },
+      "ApprovalGranted": {
+        "eventType": "ApprovalGranted",
+        "source": "runtime"
+      },
+      "ApprovalRejected": {
+        "eventType": "ApprovalRejected",
+        "source": "runtime"
+      },
+      "TransactionPlanCreated": {
+        "eventType": "TransactionPlanCreated",
+        "source": "runtime"
+      },
+      "TerminationExecuted": {
+        "eventType": "TerminationExecuted",
+        "source": "runtime"
+      },
+      "WorkflowCompleted": {
+        "eventType": "WorkflowCompleted",
+        "source": "runtime"
+      },
+      "WorkflowCanceled": {
+        "eventType": "WorkflowCanceled",
+        "source": "runtime"
+      },
+      "WorkflowFailed": {
+        "eventType": "WorkflowFailed",
+        "source": "runtime"
+      },
+      "ExternalWriteSucceeded": {
+        "eventType": "ExternalWriteSucceeded",
+        "source": "runtime"
+      },
+      "ExternalWriteFailed": {
+        "eventType": "ExternalWriteFailed",
+        "source": "runtime"
+      },
+      "AiChangeReviewGenerated": {
+        "eventType": "AiChangeReviewGenerated",
+        "source": "runtime"
+      },
+      "AiChangeReviewFailed": {
+        "eventType": "AiChangeReviewFailed",
+        "source": "runtime"
+      }
+    }
+  },
+  "projection": {
+    "allowedPatchPaths": ["/employment/status"]
+  },
+  "timeline": {
+    "businessEvents": [
+      "TerminationSubmitted",
+      "TerminationPreflighted",
+      "ApprovalGranted",
+      "ApprovalRejected",
+      "TerminationExecuted",
+      "AiChangeReviewGenerated",
+      "AiChangeReviewFailed"
+    ],
+    "summaries": {
+      "TerminationSubmitted": "Termination request submitted for approval",
+      "TerminationPreflighted": "Termination compliance check completed",
+      "ApprovalGranted": "Termination approved",
+      "ApprovalRejected": "Termination rejected",
+      "TerminationExecuted": "Employee termination executed",
+      "AiChangeReviewGenerated": "AI risk assessment completed",
+      "AiChangeReviewFailed": "AI risk assessment unavailable"
+    }
+  }
+}
