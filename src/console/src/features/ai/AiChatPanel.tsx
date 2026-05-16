@@ -51,8 +51,7 @@ export type AiChatPanelProps = {
 const IDLE_DELAY_MS = 30_000;
 const TEXTAREA_MAX_LINES = 5;
 const TEXTAREA_BASE_LINE_HEIGHT_PX = 22;
-const EMPTY_MESSAGE =
-  "Tell me what you'd like to do, or pick an action above.";
+const EMPTY_MESSAGE = "Tell me what you'd like to do, or pick an action above.";
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -91,9 +90,7 @@ export function AiChatPanel({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const conversationRef = useRef<HTMLDivElement | null>(null);
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const chat = useChat();
 
@@ -233,8 +230,7 @@ export function AiChatPanel({
 
   const handleChipActivate = (chip: QuickAction): void => {
     resetIdleTimer();
-    const subjectNameForTemplate =
-      chip.defaultSubjectName ?? defaultSubjectName;
+    const subjectNameForTemplate = chip.defaultSubjectName ?? defaultSubjectName;
     const renderedPrompt = renderPromptTemplate(
       chip.promptTemplate,
       subjectNameForTemplate === undefined
@@ -305,9 +301,7 @@ export function AiChatPanel({
     );
   };
 
-  const handleTextareaKeyDown = (
-    event: KeyboardEvent<HTMLTextAreaElement>,
-  ): void => {
+  const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
     resetIdleTimer();
     // Enter submits; Shift+Enter inserts a newline. Cmd/Ctrl+Enter still works
     // for muscle-memory carry-over from the previous bindings.
@@ -321,8 +315,7 @@ export function AiChatPanel({
     submitPrompt();
   };
 
-  const submitDisabled =
-    chat.isPending || userPrompt.trim().length === 0;
+  const submitDisabled = chat.isPending || userPrompt.trim().length === 0;
 
   return (
     <>
@@ -335,11 +328,7 @@ export function AiChatPanel({
         ref={fabRef}
         type="button"
       >
-        {isOpen ? (
-          <X aria-hidden size={20} />
-        ) : (
-          <Sparkles aria-hidden size={20} />
-        )}
+        {isOpen ? <X aria-hidden size={20} /> : <Sparkles aria-hidden size={20} />}
       </button>
 
       {isOpen ? (

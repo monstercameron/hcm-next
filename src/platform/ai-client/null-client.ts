@@ -239,7 +239,11 @@ function runDemoChatTurn(request: AiChatTurnRequest): AiChatTurnResponse {
   if (
     lastMessage !== undefined &&
     lastMessage.role === "tool" &&
-    looksLikeToolCallForName(request.messages, lastMessage.toolCallId, "generate_ui_page")
+    looksLikeToolCallForName(
+      request.messages,
+      lastMessage.toolCallId,
+      "generate_ui_page",
+    )
   ) {
     return demoAssistantText(
       "I've put the termination form on the screen. Fill it in and submit when ready.",
@@ -250,7 +254,11 @@ function runDemoChatTurn(request: AiChatTurnRequest): AiChatTurnResponse {
   if (
     lastMessage !== undefined &&
     lastMessage.role === "tool" &&
-    looksLikeToolCallForName(request.messages, lastMessage.toolCallId, "search_employees")
+    looksLikeToolCallForName(
+      request.messages,
+      lastMessage.toolCallId,
+      "search_employees",
+    )
   ) {
     const firstEmployeeId = firstEmployeeIdFromToolContent(lastMessage.content);
     if (firstEmployeeId !== undefined) {
@@ -277,10 +285,7 @@ function runDemoChatTurn(request: AiChatTurnRequest): AiChatTurnResponse {
 
   // Branch 2: termination intent — search for the employee.
   const lastUserMessage = userMessages[userMessages.length - 1];
-  if (
-    lastUserMessage !== undefined &&
-    /terminat/i.test(lastUserMessage.content)
-  ) {
+  if (lastUserMessage !== undefined && /terminat/i.test(lastUserMessage.content)) {
     return demoAssistantToolCall({
       id: `null-call-${request.messages.length}`,
       name: "search_employees",
@@ -289,9 +294,7 @@ function runDemoChatTurn(request: AiChatTurnRequest): AiChatTurnResponse {
   }
 
   // Branch 5: generic clarifying response.
-  return demoAssistantText(
-    "Tell me more — what would you like to do?",
-  );
+  return demoAssistantText("Tell me more — what would you like to do?");
 }
 
 function demoAssistantText(text: string): AiChatTurnResponse {

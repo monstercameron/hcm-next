@@ -78,8 +78,7 @@ async function mockChat(page) {
     const lastUser = [...messages]
       .reverse()
       .find((message) => message?.role === "user");
-    const userContent =
-      typeof lastUser?.content === "string" ? lastUser.content : "";
+    const userContent = typeof lastUser?.content === "string" ? lastUser.content : "";
     const wantsTermination = /terminat/i.test(userContent);
 
     const responseBody = wantsTermination
@@ -90,8 +89,7 @@ async function mockChat(page) {
           },
           sideEffects: {
             renderPage: buildMockPage("employee.termination"),
-            workflowConfigHash:
-              "sha1:0123456789abcdef0123456789abcdef01234567",
+            workflowConfigHash: "sha1:0123456789abcdef0123456789abcdef01234567",
           },
           providerMetadata: {
             provider: "null",
@@ -102,8 +100,7 @@ async function mockChat(page) {
         }
       : {
           assistantMessage: {
-            content:
-              "Hi — I'm the HCM assistant. What would you like to do today?",
+            content: "Hi — I'm the HCM assistant. What would you like to do today?",
           },
           sideEffects: {},
           providerMetadata: {
@@ -197,9 +194,7 @@ test.describe("AI chat panel", () => {
     await openPanel(page);
     await expect(page.getByText("HCM Assistant", { exact: true })).toBeVisible();
     await expect(
-      page.getByText(
-        "Tell me what you'd like to do, or pick an action above.",
-      ),
+      page.getByText("Tell me what you'd like to do, or pick an action above."),
     ).toBeVisible();
   });
 
@@ -225,9 +220,7 @@ test.describe("AI chat panel", () => {
     await openPanel(page);
     await sendPrompt(page, "hi");
 
-    await expect(
-      page.getByText(/HCM assistant/i).first(),
-    ).toBeVisible();
+    await expect(page.getByText(/HCM assistant/i).first()).toBeVisible();
     await expect(page.locator(".ai-chat-turn-user").last()).toHaveText("hi");
   });
 
@@ -252,9 +245,7 @@ test.describe("AI chat panel", () => {
     await openPanel(page);
     await sendPrompt(page, `Start a termination for ${DEMO_SUBJECT_NAME}`);
 
-    await expect(
-      page.getByText(/termination form/i).first(),
-    ).toBeVisible();
+    await expect(page.getByText(/termination form/i).first()).toBeVisible();
     const main = page.locator(".app-main");
     await expect(
       main.getByText("Termination requires effective date and reason."),

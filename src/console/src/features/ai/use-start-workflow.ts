@@ -129,9 +129,7 @@ const toHex = (bytes: ArrayBuffer): string => {
 async function defaultSha1(canonical: string): Promise<string> {
   const subtle = globalThis.crypto?.subtle;
   if (subtle === undefined) {
-    return Promise.reject(
-      systemError({ reason: "crypto_subtle_unavailable" }),
-    );
+    return Promise.reject(systemError({ reason: "crypto_subtle_unavailable" }));
   }
   const encoded = new TextEncoder().encode(canonical);
   const digestResult = await fromPromise(
@@ -243,10 +241,7 @@ export async function runStartWorkflow(
     currentState,
   };
 
-  if (
-    typeof body.currentInteraction === "object" &&
-    body.currentInteraction !== null
-  ) {
+  if (typeof body.currentInteraction === "object" && body.currentInteraction !== null) {
     const interaction = body.currentInteraction as Record<string, unknown>;
     const interactionKey =
       typeof interaction["interactionKey"] === "string"

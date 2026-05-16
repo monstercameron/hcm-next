@@ -166,7 +166,8 @@ describe("createOpenAiClient.generatePageDefinition", () => {
     const callArgs = responsesCreateMock.mock.calls[0]?.[0] as {
       input: Array<{ role: string; content: string }>;
     };
-    const userMessage = callArgs.input.find((msg) => msg.role === "user")?.content ?? "";
+    const userMessage =
+      callArgs.input.find((msg) => msg.role === "user")?.content ?? "";
     expect(userMessage).toContain("Employee options");
     expect(userMessage).toContain("emp_1");
     expect(userMessage).toContain("Alice North");
@@ -472,9 +473,7 @@ describe("createOpenAiClient.runChatTurn", () => {
         {
           role: "assistant",
           content: null,
-          toolCalls: [
-            { id: "call_a", name: "list_workflows", arguments: {} },
-          ],
+          toolCalls: [{ id: "call_a", name: "list_workflows", arguments: {} }],
         },
         {
           role: "tool",

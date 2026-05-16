@@ -161,10 +161,7 @@ describe("createNullAiClient.generatePageDefinition", () => {
     const fields = (fieldGroup?.props?.["fields"] ?? []) as Array<{
       id: string;
     }>;
-    expect(fields.map((field) => field.id)).toEqual([
-      "terminationDate",
-      "reasonCode",
-    ]);
+    expect(fields.map((field) => field.id)).toEqual(["terminationDate", "reasonCode"]);
   });
 
   it("caps the intake page at four widgets and omits redundant chrome", async () => {
@@ -330,9 +327,7 @@ describe("createNullAiClient.runChatTurn", () => {
         {
           role: "assistant",
           content: null,
-          toolCalls: [
-            { id: "call-1", name: "search_employees", arguments: {} },
-          ],
+          toolCalls: [{ id: "call-1", name: "search_employees", arguments: {} }],
         },
         {
           role: "tool",

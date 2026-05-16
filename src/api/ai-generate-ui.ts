@@ -230,10 +230,9 @@ function loadTenantProjections(
   dependencies: AppDependencies,
   requestContext: ApiRequestContext,
 ): readonly EmployeeProjectionRecord[] {
-  const projectionsResult =
-    dependencies.repositories.employeeProjections.findByTenant(
-      requestContext.tenantId,
-    );
+  const projectionsResult = dependencies.repositories.employeeProjections.findByTenant(
+    requestContext.tenantId,
+  );
   if (!projectionsResult.ok) {
     return [];
   }

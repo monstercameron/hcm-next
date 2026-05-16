@@ -608,8 +608,7 @@ export const ensureUniqueFieldIds = (
   fields.forEach((field, index) => {
     const declaredId = stringValue(field.id).trim();
     const label = stringValue(field.label);
-    const candidate =
-      declaredId.length > 0 ? declaredId : slugifyFieldId(label, index);
+    const candidate = declaredId.length > 0 ? declaredId : slugifyFieldId(label, index);
     let uniqueId = candidate;
     let suffix = 1;
 

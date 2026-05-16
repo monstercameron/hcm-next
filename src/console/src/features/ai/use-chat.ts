@@ -238,11 +238,7 @@ export async function runChatTurn(
  * React Query mutation around the chat agent. Chat responses are dynamic by
  * nature so there is no client-side caching — every send hits the server.
  */
-export function useChat(): UseMutationResult<
-  ChatTurnOutput,
-  AppError,
-  ChatTurnInput
-> {
+export function useChat(): UseMutationResult<ChatTurnOutput, AppError, ChatTurnInput> {
   return useMutation<ChatTurnOutput, AppError, ChatTurnInput>({
     mutationFn: (input) =>
       runChatTurn(input, {

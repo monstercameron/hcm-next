@@ -187,35 +187,35 @@ const UI_GENERATION_SYSTEM_PROMPT =
   // -- HR-coordinator voice --
   "Speak in HR coordinator language. Never expose internal identifiers (role tokens like `hr_admin`, " +
   "transition names like `submit_input`, block names like `system.employee_data.*`, intent names like " +
-  "`employee.termination`). Translate them to plain English: `hr_admin` -> \"HR Director\", " +
-  "`hr_termination_review` -> \"Termination review\", `system.employee_data.termination.preflight` -> " +
-  "\"Compliance check\", and so on. " +
-  "Do not generate a \"Process facts\" widget that lists block names, transition ids, or preflight " +
+  '`employee.termination`). Translate them to plain English: `hr_admin` -> "HR Director", ' +
+  '`hr_termination_review` -> "Termination review", `system.employee_data.termination.preflight` -> ' +
+  '"Compliance check", and so on. ' +
+  'Do not generate a "Process facts" widget that lists block names, transition ids, or preflight ' +
   "identifiers. Those are implementation details the user does not care about. " +
   "Widget titles must be short, human, and business-meaningful. Examples: " +
-  "for the subject picker use \"Employee\" (not \"Select employee\" - the field label already says that); " +
-  "for the record summary use \"Employee details\" (not \"Selected employee\"); " +
-  "for the input form use a workflow-specific noun phrase like \"Termination details\" (not \"Workflow input\"); " +
-  "for the action bar use a verb phrase like \"Submit for approval\" (not \"Action Bar\" or \"Submit action bar\"). " +
-  "For the action bar's title and the submit button label, never include the words \"action bar\"; use a verb-phrase " +
-  "like \"Submit termination\" / \"Submit for approval\" / \"Cancel\". " +
+  'for the subject picker use "Employee" (not "Select employee" - the field label already says that); ' +
+  'for the record summary use "Employee details" (not "Selected employee"); ' +
+  'for the input form use a workflow-specific noun phrase like "Termination details" (not "Workflow input"); ' +
+  'for the action bar use a verb phrase like "Submit for approval" (not "Action Bar" or "Submit action bar"). ' +
+  'For the action bar\'s title and the submit button label, never include the words "action bar"; use a verb-phrase ' +
+  'like "Submit termination" / "Submit for approval" / "Cancel". ' +
   // -- Tighter page composition --
   "Generate a SHORT, focused page. Use AT MOST 4-5 widgets per page unless the workflow specifically requires more. " +
   "For an intake form, the standard composition is exactly four widgets in this order: " +
   "(1) `form.subjectPicker`, (2) `data.recordSummary` bound to the selected subject, " +
   "(3) `form.dynamicFieldGroup` for the workflow's submit fields, (4) `workflow.actionBar` with the submit/cancel actions. " +
-  "Do NOT add a redundant `data.checklist` of \"required input\" (the field group already shows required-field tags). " +
-  "Do NOT add a `data.labelValueList` of \"key facts\" (the employee summary already shows job and department). " +
-  "Do NOT add an \"About this request\" `content.callout` (the user already knows what they are doing). " +
+  'Do NOT add a redundant `data.checklist` of "required input" (the field group already shows required-field tags). ' +
+  'Do NOT add a `data.labelValueList` of "key facts" (the employee summary already shows job and department). ' +
+  'Do NOT add an "About this request" `content.callout` (the user already knows what they are doing). ' +
   // -- Picker / summary / action wiring (unchanged) --
   "ALWAYS include a `form.subjectPicker` widget as the first widget in the first region. " +
   "Populate its `options` prop from the `Employee options` list provided in the user prompt. " +
   "If a subject was provided, set `defaultSubjectId` to that subject's id so the picker pre-selects it; otherwise leave it empty. " +
-  "Set `label` to a short instruction such as \"Select employee to apply this workflow to\" and `required` to true. " +
+  'Set `label` to a short instruction such as "Select employee to apply this workflow to" and `required` to true. ' +
   "Never omit the picker - the user relies on it to switch the workflow's subject visually. " +
-  "For the `data.recordSummary` widget that displays the picked subject, set `props.recordId = \"$selectedSubject\"` and do NOT set `props.record`. The runtime will populate it from the picker's selection. " +
+  'For the `data.recordSummary` widget that displays the picked subject, set `props.recordId = "$selectedSubject"` and do NOT set `props.record`. The runtime will populate it from the picker\'s selection. ' +
   "For the primary submit button in `workflow.actionBar`, set the action's `transition` to one of the workflow's declared submit transitions (use the first action listed in `states[currentState].actions`) so the runtime can dispatch it correctly. Set `variant` to `\"primary\"`. " +
-  "When rendering the action's label, translate the transition id to plain English (e.g. `submit_input` -> \"Submit for approval\").";
+  'When rendering the action\'s label, translate the transition id to plain English (e.g. `submit_input` -> "Submit for approval").';
 
 type OpenAiChatToolCallWire = {
   id: string;
@@ -255,9 +255,7 @@ type OpenAiChatCompletionWire = {
   };
 };
 
-function buildOpenAiChatMessages(
-  request: AiChatTurnRequest,
-): OpenAiChatMessageWire[] {
+function buildOpenAiChatMessages(request: AiChatTurnRequest): OpenAiChatMessageWire[] {
   const messages: OpenAiChatMessageWire[] = [
     { role: "system", content: request.systemPrompt },
   ];
@@ -325,9 +323,7 @@ function mapOpenAiToolCalls(
     const parsed = fromThrowable(
       () => JSON.parse(argsText) as unknown,
       (cause) =>
-        cause instanceof Error
-          ? cause
-          : new Error("tool_call_arguments_parse_failed"),
+        cause instanceof Error ? cause : new Error("tool_call_arguments_parse_failed"),
     );
     if (!parsed.ok) {
       return { ok: false, error: parsed.error };
@@ -781,10 +777,7 @@ export function createOpenAiClient(config: OpenAiClientConfig): AiClient {
       return ok(result);
     },
 
-    async runChatTurn(
-      request: AiChatTurnRequest,
-      logger?: StructuredLogger,
-    ) {
+    async runChatTurn(request: AiChatTurnRequest, logger?: StructuredLogger) {
       const startMs = Date.now();
 
       logger?.info("ai chat turn started", {

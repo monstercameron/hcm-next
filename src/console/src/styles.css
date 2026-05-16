@@ -4916,7 +4916,8 @@
     border-radius: var(--ui-radius-control);
     color: var(--ui-control-text);
     cursor: pointer;
-    transition: background var(--ui-motion-fast) ease,
+    transition:
+      background var(--ui-motion-fast) ease,
       border-color var(--ui-motion-fast) ease,
       box-shadow var(--ui-motion-fast) ease;
   }

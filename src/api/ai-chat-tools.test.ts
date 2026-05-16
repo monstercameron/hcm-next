@@ -7,10 +7,7 @@ import {
 import { createNullAiClient } from "@hcm-next/ai-client";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
-import {
-  AI_CHAT_TOOL_DEFINITIONS,
-  executeToolCall,
-} from "./ai-chat-tools.js";
+import { AI_CHAT_TOOL_DEFINITIONS, executeToolCall } from "./ai-chat-tools.js";
 
 type Harness = {
   dependencies: AppDependencies;
@@ -94,9 +91,7 @@ describe("executeToolCall: list_workflows", () => {
       workflows: Array<{ intent: string }>;
     };
     expect(body.workflows.length).toBeGreaterThan(0);
-    expect(body.workflows.some((w) => w.intent === "employee.termination")).toBe(
-      true,
-    );
+    expect(body.workflows.some((w) => w.intent === "employee.termination")).toBe(true);
   });
 });
 

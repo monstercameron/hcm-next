@@ -2,13 +2,7 @@ import { fromThrowable, systemError } from "@hcm-next/foundation";
 import type { PageDefinition } from "@hcm-next/ui-contracts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ArrowRight, Building2, LogOut, ShieldCheck } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -417,18 +411,14 @@ function AuthenticatedWorkflowPage({
       aiGeneratedPage={aiGeneratedPage}
       aiGeneratedSource={aiGeneratedSource}
       availableIntents={availableIntents}
-      {...(fieldBrandingStyleProps === undefined
-        ? {}
-        : { fieldBrandingStyleProps })}
+      {...(fieldBrandingStyleProps === undefined ? {} : { fieldBrandingStyleProps })}
       onAiGenerated={onAiGenerated}
       onClearAi={onClearAi}
       onLogout={onLogout}
       onStyleLabChange={onStyleLabChange}
       session={session}
       styleLabConfig={styleLabConfig}
-      {...(widgetBrandingStyleProps === undefined
-        ? {}
-        : { widgetBrandingStyleProps })}
+      {...(widgetBrandingStyleProps === undefined ? {} : { widgetBrandingStyleProps })}
     >
       <WorkflowPageRoute
         {...(fieldBrandingStyleProps === undefined ? {} : { fieldBrandingStyleProps })}
@@ -533,9 +523,9 @@ export function App(): JSX.Element {
   const [session, setSession] = useState<DemoSession | undefined>(
     readStoredDemoSession,
   );
-  const [aiGeneratedPage, setAiGeneratedPage] = useState<
-    PageDefinition | undefined
-  >(undefined);
+  const [aiGeneratedPage, setAiGeneratedPage] = useState<PageDefinition | undefined>(
+    undefined,
+  );
   const [aiGeneratedSource, setAiGeneratedSource] = useState<
     "cache" | "fresh" | undefined
   >(undefined);
@@ -555,10 +545,7 @@ export function App(): JSX.Element {
     setAiGeneratedSource(undefined);
   };
 
-  const handleAiGenerated = (
-    page: PageDefinition,
-    source: "cache" | "fresh",
-  ): void => {
+  const handleAiGenerated = (page: PageDefinition, source: "cache" | "fresh"): void => {
     setAiGeneratedPage(page);
     setAiGeneratedSource(source);
   };

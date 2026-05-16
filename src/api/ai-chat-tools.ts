@@ -144,8 +144,7 @@ export const AI_CHAT_TOOL_DEFINITIONS: readonly AiChatToolDefinition[] = [
         },
         input: {
           type: "object",
-          description:
-            "Object whose keys match the workflow's declared submit inputs.",
+          description: "Object whose keys match the workflow's declared submit inputs.",
           additionalProperties: true,
         },
       },
@@ -443,10 +442,7 @@ function projectionToToolEntry(
     displayName: document.person.displayName,
     employmentStatus: document.employment.status,
   };
-  if (
-    typeof document.job.title === "string" &&
-    document.job.title.length > 0
-  ) {
+  if (typeof document.job.title === "string" && document.job.title.length > 0) {
     entry.jobTitle = document.job.title;
   }
   if (
@@ -720,7 +716,10 @@ function toolErrorFromAppError(
   error: AppError,
   fallback: { code: string; message: string },
 ): { ok: false; error: { code: string; message: string } } {
-  if (error.code === ERROR_CODES.NOT_FOUND || error.code === ERROR_CODES.WORKFLOW_NOT_FOUND) {
+  if (
+    error.code === ERROR_CODES.NOT_FOUND ||
+    error.code === ERROR_CODES.WORKFLOW_NOT_FOUND
+  ) {
     return serializableToolError("not_found", error.safeMessage);
   }
   if (error.code === ERROR_CODES.PERMISSION_DENIED) {
@@ -873,10 +872,7 @@ function getWorkflowConfigToolResult(
 ): GetWorkflowConfigToolResult {
   const intent = stringArgument(input.arguments, "intent");
   if (intent === undefined) {
-    return serializableToolError(
-      "invalid_arguments",
-      "Argument 'intent' is required.",
-    );
+    return serializableToolError("invalid_arguments", "Argument 'intent' is required.");
   }
 
   const configResult = getWorkflowConfigByIntent(
@@ -936,9 +932,7 @@ function summariseDeclaredInputs(
   return summary;
 }
 
-function summariseWorkflowStates(
-  config: WorkflowConfig,
-): Array<{
+function summariseWorkflowStates(config: WorkflowConfig): Array<{
   id: string;
   actions: Array<{ transition: string; label: string; actor: string }>;
 }> {
@@ -970,10 +964,7 @@ async function startWorkflowToolResult(
   const startInput = objectArgument(input.arguments, "input");
 
   if (intent === undefined) {
-    return serializableToolError(
-      "invalid_arguments",
-      "Argument 'intent' is required.",
-    );
+    return serializableToolError("invalid_arguments", "Argument 'intent' is required.");
   }
   if (subjectId === undefined) {
     return serializableToolError(
@@ -1023,13 +1014,15 @@ async function startWorkflowToolResult(
   }
 
   const value = startResult.value as Record<string, unknown>;
-  const workflowInstanceId = typeof value["workflowInstanceId"] === "string"
-    ? (value["workflowInstanceId"] as string)
-    : "";
+  const workflowInstanceId =
+    typeof value["workflowInstanceId"] === "string"
+      ? (value["workflowInstanceId"] as string)
+      : "";
   const currentState =
     typeof value["state"] === "string" ? (value["state"] as string) : "";
   const currentInteraction =
-    typeof value["currentInteraction"] === "object" && value["currentInteraction"] !== null
+    typeof value["currentInteraction"] === "object" &&
+    value["currentInteraction"] !== null
       ? (value["currentInteraction"] as Record<string, unknown>)
       : {};
 
@@ -1039,8 +1032,11 @@ async function startWorkflowToolResult(
     workflowInstanceId,
   );
   const nextActions: Array<Record<string, unknown>> =
-    actionsResult.ok && Array.isArray((actionsResult.value as Record<string, unknown>)["actions"])
-      ? ((actionsResult.value as Record<string, unknown>)["actions"] as Array<Record<string, unknown>>)
+    actionsResult.ok &&
+    Array.isArray((actionsResult.value as Record<string, unknown>)["actions"])
+      ? ((actionsResult.value as Record<string, unknown>)["actions"] as Array<
+          Record<string, unknown>
+        >)
       : [];
 
   return {
@@ -1129,9 +1125,10 @@ function taskToInstanceSummary(
   input: ExecuteToolCallInput,
   task: Record<string, unknown>,
 ): WorkflowInstanceSummary | undefined {
-  const workflowInstanceId = typeof task["workflowInstanceId"] === "string"
-    ? (task["workflowInstanceId"] as string)
-    : undefined;
+  const workflowInstanceId =
+    typeof task["workflowInstanceId"] === "string"
+      ? (task["workflowInstanceId"] as string)
+      : undefined;
   if (workflowInstanceId === undefined) {
     return undefined;
   }
@@ -1155,25 +1152,24 @@ function workflowInstanceToSummary(
   input: ExecuteToolCallInput,
   instance: Record<string, unknown>,
 ): WorkflowInstanceSummary {
-  const subjectId = typeof instance["subjectId"] === "string"
-    ? (instance["subjectId"] as string)
-    : "";
+  const subjectId =
+    typeof instance["subjectId"] === "string" ? (instance["subjectId"] as string) : "";
   const displayName = lookupSubjectDisplayName(input, subjectId);
   const summary: WorkflowInstanceSummary = {
-    id: typeof instance["workflowInstanceId"] === "string"
-      ? (instance["workflowInstanceId"] as string)
-      : "",
-    intent: typeof instance["intent"] === "string"
-      ? (instance["intent"] as string)
-      : "",
+    id:
+      typeof instance["workflowInstanceId"] === "string"
+        ? (instance["workflowInstanceId"] as string)
+        : "",
+    intent:
+      typeof instance["intent"] === "string" ? (instance["intent"] as string) : "",
     subjectId,
     state: typeof instance["state"] === "string" ? (instance["state"] as string) : "",
-    status: typeof instance["status"] === "string"
-      ? (instance["status"] as string)
-      : "",
-    createdAt: typeof instance["startedAt"] === "string"
-      ? (instance["startedAt"] as string)
-      : "",
+    status:
+      typeof instance["status"] === "string" ? (instance["status"] as string) : "",
+    createdAt:
+      typeof instance["startedAt"] === "string"
+        ? (instance["startedAt"] as string)
+        : "",
   };
   if (displayName !== undefined) {
     summary.subjectDisplayName = displayName;
@@ -1219,23 +1215,24 @@ function getWorkflowInstanceToolResult(
   }
 
   const value = instanceResult.value as Record<string, unknown>;
-  const subjectId = typeof value["subjectId"] === "string"
-    ? (value["subjectId"] as string)
-    : "";
+  const subjectId =
+    typeof value["subjectId"] === "string" ? (value["subjectId"] as string) : "";
   const subjectDisplayName = lookupSubjectDisplayName(input, subjectId);
 
   const summary: GetWorkflowInstanceToolResult = {
     ok: true,
-    id: typeof value["workflowInstanceId"] === "string"
-      ? (value["workflowInstanceId"] as string)
-      : "",
+    id:
+      typeof value["workflowInstanceId"] === "string"
+        ? (value["workflowInstanceId"] as string)
+        : "",
     intent: typeof value["intent"] === "string" ? (value["intent"] as string) : "",
     subjectId,
     state: typeof value["state"] === "string" ? (value["state"] as string) : "",
     status: typeof value["status"] === "string" ? (value["status"] as string) : "",
     version: typeof value["version"] === "number" ? (value["version"] as number) : 0,
     currentInteraction:
-      typeof value["currentInteraction"] === "object" && value["currentInteraction"] !== null
+      typeof value["currentInteraction"] === "object" &&
+      value["currentInteraction"] !== null
         ? (value["currentInteraction"] as Record<string, unknown>)
         : {},
   };
@@ -1289,24 +1286,22 @@ function getWorkflowTimelineToolResult(
     ? (value["events"] as Array<Record<string, unknown>>)
     : [];
   const truncated = rawEvents.length > WORKFLOW_TIMELINE_MAX_ENTRIES;
-  const recent = truncated ? rawEvents.slice(-WORKFLOW_TIMELINE_MAX_ENTRIES) : rawEvents;
+  const recent = truncated
+    ? rawEvents.slice(-WORKFLOW_TIMELINE_MAX_ENTRIES)
+    : rawEvents;
 
   const entries: TimelineEntry[] = recent.map((event) => ({
-    eventType: typeof event["eventType"] === "string"
-      ? (event["eventType"] as string)
-      : "",
+    eventType:
+      typeof event["eventType"] === "string" ? (event["eventType"] as string) : "",
     summary:
       typeof event["summary"] === "string"
         ? (event["summary"] as string)
         : typeof event["eventType"] === "string"
           ? (event["eventType"] as string)
           : "",
-    actorId: typeof event["actorId"] === "string"
-      ? (event["actorId"] as string)
-      : "",
-    occurredAt: typeof event["occurredAt"] === "string"
-      ? (event["occurredAt"] as string)
-      : "",
+    actorId: typeof event["actorId"] === "string" ? (event["actorId"] as string) : "",
+    occurredAt:
+      typeof event["occurredAt"] === "string" ? (event["occurredAt"] as string) : "",
   }));
 
   return {
@@ -1358,9 +1353,10 @@ function getAvailableActionsToolResult(
   return {
     ok: true,
     actions: rawActions.map((action) => {
-      const transition = typeof action["transition"] === "string"
-        ? (action["transition"] as string)
-        : "";
+      const transition =
+        typeof action["transition"] === "string"
+          ? (action["transition"] as string)
+          : "";
       const summary: AvailableAction = {
         transition,
         label: typeof action["label"] === "string" ? (action["label"] as string) : "",
@@ -1450,11 +1446,11 @@ async function transitionWorkflowToolResult(
 
   const value = transitionResult.value as Record<string, unknown>;
   const newState = typeof value["state"] === "string" ? (value["state"] as string) : "";
-  const newStatus = typeof value["status"] === "string"
-    ? (value["status"] as string)
-    : "";
+  const newStatus =
+    typeof value["status"] === "string" ? (value["status"] as string) : "";
   const currentInteraction =
-    typeof value["currentInteraction"] === "object" && value["currentInteraction"] !== null
+    typeof value["currentInteraction"] === "object" &&
+    value["currentInteraction"] !== null
       ? (value["currentInteraction"] as Record<string, unknown>)
       : {};
 
@@ -1464,8 +1460,11 @@ async function transitionWorkflowToolResult(
     workflowInstanceId,
   );
   const nextActions: Array<Record<string, unknown>> =
-    actionsResult.ok && Array.isArray((actionsResult.value as Record<string, unknown>)["actions"])
-      ? ((actionsResult.value as Record<string, unknown>)["actions"] as Array<Record<string, unknown>>)
+    actionsResult.ok &&
+    Array.isArray((actionsResult.value as Record<string, unknown>)["actions"])
+      ? ((actionsResult.value as Record<string, unknown>)["actions"] as Array<
+          Record<string, unknown>
+        >)
       : [];
 
   return {
@@ -1507,22 +1506,25 @@ function getMyTasksToolResult(input: ExecuteToolCallInput): GetMyTasksToolResult
   return {
     ok: true,
     tasks: rawTasks.map((task) => {
-      const workflowInstanceId = typeof task["workflowInstanceId"] === "string"
-        ? (task["workflowInstanceId"] as string)
-        : "";
+      const workflowInstanceId =
+        typeof task["workflowInstanceId"] === "string"
+          ? (task["workflowInstanceId"] as string)
+          : "";
       // We need the subjectId from the workflow instance; the approval task
       // record does not store it directly. Look it up best-effort.
       const subjectInfo = subjectFromInstance(input, workflowInstanceId);
       const summary: TaskSummary = {
-        id: typeof task["approvalTaskId"] === "string"
-          ? (task["approvalTaskId"] as string)
-          : "",
+        id:
+          typeof task["approvalTaskId"] === "string"
+            ? (task["approvalTaskId"] as string)
+            : "",
         workflowInstanceId,
         subjectId: subjectInfo?.subjectId ?? "",
         intent: subjectInfo?.intent ?? "",
-        taskType: typeof task["approvalType"] === "string"
-          ? (task["approvalType"] as string)
-          : "",
+        taskType:
+          typeof task["approvalType"] === "string"
+            ? (task["approvalType"] as string)
+            : "",
       };
       if (subjectInfo?.subjectDisplayName !== undefined) {
         summary.subjectDisplayName = subjectInfo.subjectDisplayName;

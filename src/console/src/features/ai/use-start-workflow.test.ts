@@ -86,9 +86,9 @@ describe("runStartWorkflow", () => {
     )) as AppError;
 
     expect(error.code).toBe(ERROR_CODES.SYSTEM_ERROR);
-    expect(
-      (error.details as { reason?: string } | undefined)?.reason,
-    ).toBe("network_request_failed");
+    expect((error.details as { reason?: string } | undefined)?.reason).toBe(
+      "network_request_failed",
+    );
   });
 
   it("maps HTTP 400 to validation_failed and surfaces the safeMessage", async () => {
@@ -157,9 +157,7 @@ describe("runStartWorkflow", () => {
   });
 
   it("rejects when the response shape is missing required fields", async () => {
-    const fetchMock = vi.fn(async () =>
-      okResponse({ workflowInstanceId: "wf_abc" }),
-    );
+    const fetchMock = vi.fn(async () => okResponse({ workflowInstanceId: "wf_abc" }));
 
     const error = (await runStartWorkflow(baseInput, baseDeps(fetchMock)).then(
       () => undefined,
@@ -167,9 +165,9 @@ describe("runStartWorkflow", () => {
     )) as AppError;
 
     expect(error.code).toBe(ERROR_CODES.SYSTEM_ERROR);
-    expect(
-      (error.details as { reason?: string } | undefined)?.reason,
-    ).toBe("response_shape_invalid");
+    expect((error.details as { reason?: string } | undefined)?.reason).toBe(
+      "response_shape_invalid",
+    );
   });
 
   it("includes subjectType in the body when provided", async () => {

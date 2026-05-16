@@ -9,10 +9,7 @@ import {
   widgetClassName,
   widgetStyleVariables,
 } from "./utils";
-import {
-  usePageForm,
-  type PageFormSubject,
-} from "../../page-form-context.js";
+import { usePageForm, type PageFormSubject } from "../../page-form-context.js";
 import {
   runStartWorkflow,
   type RunStartWorkflowDeps,
@@ -474,8 +471,7 @@ export function ApprovalDecisionPanelWidget({
             : isCancel
               ? (): void => performCancel()
               : (): void => setSelectedAction(action.action);
-          const disabled =
-            action.disabled === true || (isSubmit && submitDisabled);
+          const disabled = action.disabled === true || (isSubmit && submitDisabled);
           return (
             <button
               aria-pressed={selectedAction === action.action}
@@ -517,7 +513,6 @@ export function ApprovalDecisionPanelWidget({
     </WidgetRoot>
   );
 }
-
 
 export const ActionBarWidget = ApprovalDecisionPanelWidget;
 

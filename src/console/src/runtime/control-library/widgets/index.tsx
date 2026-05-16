@@ -857,16 +857,12 @@ export const widgetRegistry = {
       />
     ),
   ),
-  "data.employeeList": factory(
-    "data.employeeList",
-    "EmployeeListWidget",
-    (widget) => (
-      <EmployeeListWidget
-        config={employeeListConfig(widget)}
-        styleProps={widgetStyleProps(widget)}
-      />
-    ),
-  ),
+  "data.employeeList": factory("data.employeeList", "EmployeeListWidget", (widget) => (
+    <EmployeeListWidget
+      config={employeeListConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
 } satisfies WidgetFactoryRegistry;
 
 const exactWidgetAliases: Readonly<Record<string, string>> = {

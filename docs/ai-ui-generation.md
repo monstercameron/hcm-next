@@ -32,9 +32,7 @@ Request body:
 
 ```json
 {
-  "messages": [
-    { "role": "user", "content": "Start a termination for Jane Rivera" }
-  ]
+  "messages": [{ "role": "user", "content": "Start a termination for Jane Rivera" }]
 }
 ```
 

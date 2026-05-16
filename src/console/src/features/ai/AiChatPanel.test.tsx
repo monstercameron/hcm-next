@@ -8,26 +8,21 @@ import {
 
 describe("renderPromptTemplate", () => {
   it("substitutes {subjectName} when a value is provided", () => {
-    const rendered = renderPromptTemplate(
-      "Start a termination for {subjectName}",
-      { subjectName: "Jane Rivera" },
-    );
+    const rendered = renderPromptTemplate("Start a termination for {subjectName}", {
+      subjectName: "Jane Rivera",
+    });
     expect(rendered).toBe("Start a termination for Jane Rivera");
   });
 
   it("falls back to 'this employee' when subjectName is undefined", () => {
-    const rendered = renderPromptTemplate(
-      "Update contact info for {subjectName}",
-      {},
-    );
+    const rendered = renderPromptTemplate("Update contact info for {subjectName}", {});
     expect(rendered).toBe("Update contact info for this employee");
   });
 
   it("falls back when subjectName is an empty string", () => {
-    const rendered = renderPromptTemplate(
-      "Update contact info for {subjectName}",
-      { subjectName: "" },
-    );
+    const rendered = renderPromptTemplate("Update contact info for {subjectName}", {
+      subjectName: "",
+    });
     expect(rendered).toBe("Update contact info for this employee");
   });
 });

@@ -132,8 +132,7 @@ describe("runChatTurn: failure modes", () => {
   });
 
   it("rejects with systemError when the response shape is invalid", async () => {
-    const fetchImpl: typeof fetch = async () =>
-      jsonResponse(200, { unexpected: true });
+    const fetchImpl: typeof fetch = async () => jsonResponse(200, { unexpected: true });
     const { deps } = makeDeps(fetchImpl);
 
     await expect(runChatTurn(baseInput, deps)).rejects.toMatchObject({
@@ -145,11 +144,8 @@ describe("runChatTurn: failure modes", () => {
 
 describe("useChat: hook surface", () => {
   it("exposes a UseMutationResult parameterised on the chat types", () => {
-    const hookRef: () => UseMutationResult<
-      ChatTurnOutput,
-      AppError,
-      ChatTurnInput
-    > = useChat;
+    const hookRef: () => UseMutationResult<ChatTurnOutput, AppError, ChatTurnInput> =
+      useChat;
     expect(typeof hookRef).toBe("function");
     expect(typeof useMutation).toBe("function");
   });

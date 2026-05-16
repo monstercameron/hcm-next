@@ -172,13 +172,12 @@ export async function handleAiChat(
       assistantContent:
         "I'm having trouble finishing this thought. Could you rephrase what you need?",
       sideEffects: accumulatedSideEffects,
-      providerMetadata:
-        lastResponse?.providerMetadata ?? {
-          provider: "unknown",
-          model: "unknown",
-          inputTokens: 0,
-          outputTokens: 0,
-        },
+      providerMetadata: lastResponse?.providerMetadata ?? {
+        provider: "unknown",
+        model: "unknown",
+        inputTokens: 0,
+        outputTokens: 0,
+      },
     }),
   );
 }

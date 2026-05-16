@@ -8,10 +8,7 @@ import { createHash } from "node:crypto";
  * — including object key order, since we canonicalise via JSON.stringify
  * over a structured payload — produce the same key.
  */
-export function sha1IdempotencyKey(
-  prefix: string,
-  parts: readonly unknown[],
-): string {
+export function sha1IdempotencyKey(prefix: string, parts: readonly unknown[]): string {
   const canonical = JSON.stringify(parts);
   const hashHex = createHash("sha1").update(canonical).digest("hex");
   return `${prefix}:${hashHex}`;

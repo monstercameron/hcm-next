@@ -41,10 +41,7 @@ describe("ensureUniqueFieldIds", () => {
   });
 
   it("falls back to a positional id when both id and label are empty", () => {
-    const result = ensureUniqueFieldIds([
-      { type: "text" },
-      { type: "text" },
-    ]);
+    const result = ensureUniqueFieldIds([{ type: "text" }, { type: "text" }]);
 
     expect(result[0]?.id).toBe("field_0");
     expect(result[1]?.id).toBe("field_1");
