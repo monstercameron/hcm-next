@@ -97,7 +97,6 @@ import {
   stringValue,
   stylePropsFromConfig,
   valueToText,
-  widgetStylePropsFromElementProps,
 } from "./utils";
 
 export * from "./types";
@@ -127,18 +126,13 @@ const withWidgetBrandingStyleProps = (
   }
 
   const typedElement = element as ReactElement<WidgetElementStyleProps>;
-  const existingStyleProps =
-    typedElement.props.styleProps ??
-    widgetStylePropsFromElementProps(typedElement.props);
-  const mergedStyleProps = mergeWidgetStyleProps(
+  const mergedBrandingStyleProps = mergeWidgetStyleProps(
     brandingStyleProps,
-    existingStyleProps,
+    typedElement.props.brandingStyleProps,
   );
 
   return cloneElement(typedElement, {
-    brandingStyleProps,
-    ...mergedStyleProps,
-    styleProps: mergedStyleProps,
+    brandingStyleProps: mergedBrandingStyleProps,
   });
 };
 

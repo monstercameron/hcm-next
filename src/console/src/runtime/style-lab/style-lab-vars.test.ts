@@ -32,6 +32,15 @@ const brand = {
     "ui.control.surface.active": "#eef6ff",
     "ui.control.border": "#cccccc",
     "ui.control.border.strong": "#999999",
+    "ui.gap.md": "16px",
+    "ui.gap.section": "24px",
+    "ui.panel.padding.default": "20px",
+    "ui.card.padding.default": "18px",
+    "ui.control.padding.x.default": "13px",
+    "ui.control.padding.y.default": "9px",
+    "ui.border.width": "2px",
+    "ui.hover.opacity": "0.95",
+    "ui.disabled.opacity": "0.55",
     "action.primary.background": "#1357d8",
   },
 };
@@ -49,6 +58,15 @@ describe("style lab variables", () => {
     expect(config.strongBorder).toBe("#999999");
     expect(config.textPrimary).toBe("#101827");
     expect(config.accent).toBe("#1357d8");
+    expect(config.gapPx).toBe(16);
+    expect(config.sectionGapPx).toBe(24);
+    expect(config.panelPaddingPx).toBe(20);
+    expect(config.cardPaddingPx).toBe(18);
+    expect(config.controlPaddingXPx).toBe(13);
+    expect(config.controlPaddingYPx).toBe(9);
+    expect(config.borderWidthPx).toBe(2);
+    expect(config.hoverOpacity).toBe(0.95);
+    expect(config.disabledOpacity).toBe(0.55);
   });
 
   it("converts style state into runtime control variables", () => {
@@ -56,21 +74,40 @@ describe("style lab variables", () => {
     const variables = styleLabConfigToCssVariables({
       ...config,
       radiusPx: 12,
+      gapPx: 18,
+      sectionGapPx: 30,
+      panelPaddingPx: 24,
+      cardPaddingPx: 20,
+      controlPaddingXPx: 14,
+      controlPaddingYPx: 11,
       controlHeightPx: 44,
+      borderWidthPx: 1.5,
       motionSpeedMs: 200,
       hoverLiftPx: -2,
       hoverScale: 1.01,
+      hoverOpacity: 0.92,
+      disabledOpacity: 0.5,
     });
 
     expect(variables["--surface-base"]).toBe("#f4f6fb");
     expect(variables["--surface-raised"]).toBe("#ffffff");
     expect(variables["--surface-subtle"]).toBe("#edf1f7");
     expect(variables["--text-primary"]).toBe("#101827");
+    expect(variables["--ui-density-gap"]).toBe("18px");
+    expect(variables["--ui-section-gap"]).toBe("30px");
+    expect(variables["--ui-panel-padding"]).toBe("24px");
+    expect(variables["--ui-page-padding"]).toBe("30px");
+    expect(variables["--ui-card-padding"]).toBe("20px");
+    expect(variables["--ui-control-padding-x"]).toBe("14px");
+    expect(variables["--ui-control-padding-y"]).toBe("11px");
     expect(variables["--ui-radius-control"]).toBe("12px");
     expect(variables["--ui-control-height"]).toBe("44px");
+    expect(variables["--ui-border-width"]).toBe("1.5px");
     expect(variables["--ui-motion-fast"]).toBe("200ms");
     expect(variables["--ui-motion-translate-hover"]).toBe("-2px");
     expect(variables["--ui-motion-scale-hover"]).toBe("1.01");
+    expect(variables["--ui-hover-opacity"]).toBe("0.92");
+    expect(variables["--ui-disabled-opacity"]).toBe("0.5");
   });
 
   it("merges brand variables before live style overrides", () => {

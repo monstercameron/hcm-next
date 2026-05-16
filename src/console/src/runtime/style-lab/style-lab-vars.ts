@@ -48,6 +48,21 @@ const tokenValue = (
   fallback: string,
 ): string => tokens[tokenName] ?? fallback;
 
+const tokenNumberValue = (
+  tokens: Readonly<Record<string, string>>,
+  tokenName: string,
+  fallback: number,
+): number => {
+  const value = tokens[tokenName];
+
+  if (value === undefined) {
+    return fallback;
+  }
+
+  const parsedValue = Number.parseFloat(value);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+};
+
 const cssColorMix = (left: string, leftPercent: number, right: string): string =>
   `color-mix(in srgb, ${left} ${leftPercent}%, ${right})`;
 
@@ -79,12 +94,25 @@ export const createDefaultStyleLabConfig = (
     textSecondary,
     textMuted,
     accent,
+    gapPx: tokenNumberValue(tokens, "ui.gap.md", 14),
+    sectionGapPx: tokenNumberValue(tokens, "ui.gap.section", 20),
+    panelPaddingPx: tokenNumberValue(tokens, "ui.panel.padding.default", 22),
+    cardPaddingPx: tokenNumberValue(tokens, "ui.card.padding.default", 18),
+    controlPaddingXPx: tokenNumberValue(tokens, "ui.control.padding.x.default", 12),
+    controlPaddingYPx: tokenNumberValue(tokens, "ui.control.padding.y.default", 10),
     radiusPx: 8,
     density: "default",
-    controlHeightPx: DENSITY_HEIGHTS.default,
+    controlHeightPx: tokenNumberValue(
+      tokens,
+      "ui.control.height.default",
+      DENSITY_HEIGHTS.default,
+    ),
+    borderWidthPx: tokenNumberValue(tokens, "ui.border.width", 1),
     motionSpeedMs: 180,
     hoverLiftPx: -1,
     hoverScale: 1.005,
+    hoverOpacity: tokenNumberValue(tokens, "ui.hover.opacity", 1),
+    disabledOpacity: tokenNumberValue(tokens, "ui.disabled.opacity", 0.6),
     shadowPreset,
     controlShadow: tokenValue(tokens, "ui.shadow.control", shadowValues.controlShadow),
     activeShadow: tokenValue(tokens, "ui.shadow.active", shadowValues.activeShadow),
@@ -127,16 +155,52 @@ export const styleLabConfigToCssVariables = (
     "--ui-control-border-strong": styleConfig.strongBorder,
     "--ui-control-text": styleConfig.textPrimary,
     "--ui-control-text-muted": styleConfig.textMuted,
+    "--ui-gap-md": `${styleConfig.gapPx}px`,
+    "--ui-density-gap": `${styleConfig.gapPx}px`,
+    "--ui-gap-section": `${styleConfig.sectionGapPx}px`,
+    "--ui-section-gap": `${styleConfig.sectionGapPx}px`,
+    "--ui-region-gap": `${styleConfig.sectionGapPx}px`,
+    "--ui-panel-padding": `${styleConfig.panelPaddingPx}px`,
+    "--ui-page-padding": `${Math.round(styleConfig.panelPaddingPx * 1.25)}px`,
+    "--ui-card-padding": `${styleConfig.cardPaddingPx}px`,
+    "--ui-control-padding-x": `${styleConfig.controlPaddingXPx}px`,
+    "--ui-control-padding-y": `${styleConfig.controlPaddingYPx}px`,
     "--ui-radius-control": `${styleConfig.radiusPx}px`,
     "--ui-radius-surface": `${Math.max(styleConfig.radiusPx, 6)}px`,
     "--ui-control-height": `${styleConfig.controlHeightPx}px`,
+    "--ui-border-width": `${styleConfig.borderWidthPx}px`,
+    "--ui-divider-width": `${styleConfig.borderWidthPx}px`,
     "--ui-shadow-card": styleConfig.controlShadow,
     "--ui-shadow-control": styleConfig.controlShadow,
     "--ui-shadow-active": styleConfig.activeShadow,
+    "--ui-active-shadow": styleConfig.activeShadow,
+    "--ui-focus-border": styleConfig.accent,
     "--ui-card-border": cssColorMix(styleConfig.border, 82, styleConfig.textPrimary),
     "--ui-hover-surface": cssColorMix(
       styleConfig.activeSurface,
       58,
+      styleConfig.raisedSurface,
+    ),
+    "--ui-hover-border": styleConfig.strongBorder,
+    "--ui-hover-shadow": styleConfig.controlShadow,
+    "--ui-hover-opacity": String(styleConfig.hoverOpacity),
+    "--ui-active-surface": styleConfig.activeSurface,
+    "--ui-active-border": styleConfig.accent,
+    "--ui-disabled-opacity": String(styleConfig.disabledOpacity),
+    "--ui-drag-surface": cssColorMix(
+      styleConfig.activeSurface,
+      42,
+      styleConfig.raisedSurface,
+    ),
+    "--ui-drop-surface": cssColorMix(styleConfig.accent, 10, styleConfig.raisedSurface),
+    "--ui-subtle-tint": cssColorMix(
+      styleConfig.activeSurface,
+      28,
+      styleConfig.raisedSurface,
+    ),
+    "--ui-selected-tint": cssColorMix(
+      styleConfig.activeSurface,
+      70,
       styleConfig.raisedSurface,
     ),
     "--ui-motion-fast": `${styleConfig.motionSpeedMs}ms`,

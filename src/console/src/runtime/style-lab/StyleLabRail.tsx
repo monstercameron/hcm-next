@@ -138,6 +138,8 @@ const shadowOptions: readonly StyleLabShadowPreset[] = [
 
 const fieldValue = (value: number, suffix = ""): string => `${value}${suffix}`;
 
+const opacityValue = (value: number): string => value.toFixed(2);
+
 function FieldShell({ label, valueLabel, children }: FieldShellProps): JSX.Element {
   return (
     <label style={fieldStyle}>
@@ -280,6 +282,137 @@ export function StyleLabRail({
           />
         </FieldShell>
 
+        <FieldShell label="Base gap" valueLabel={fieldValue(value.gapPx, "px")}>
+          <input
+            max={28}
+            min={4}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(value, "gapPx", Number(event.currentTarget.value)),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.gapPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Section gap"
+          valueLabel={fieldValue(value.sectionGapPx, "px")}
+        >
+          <input
+            max={42}
+            min={8}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "sectionGapPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.sectionGapPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Panel padding"
+          valueLabel={fieldValue(value.panelPaddingPx, "px")}
+        >
+          <input
+            max={42}
+            min={8}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "panelPaddingPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.panelPaddingPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Card padding"
+          valueLabel={fieldValue(value.cardPaddingPx, "px")}
+        >
+          <input
+            max={36}
+            min={8}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "cardPaddingPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.cardPaddingPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Control padding X"
+          valueLabel={fieldValue(value.controlPaddingXPx, "px")}
+        >
+          <input
+            max={24}
+            min={6}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "controlPaddingXPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.controlPaddingXPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Control padding Y"
+          valueLabel={fieldValue(value.controlPaddingYPx, "px")}
+        >
+          <input
+            max={18}
+            min={4}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "controlPaddingYPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={1}
+            style={rangeStyle}
+            type="range"
+            value={value.controlPaddingYPx}
+          />
+        </FieldShell>
+
         <FieldShell label="Radius" valueLabel={fieldValue(value.radiusPx, "px")}>
           <input
             max={24}
@@ -293,6 +426,29 @@ export function StyleLabRail({
             style={rangeStyle}
             type="range"
             value={value.radiusPx}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Border width"
+          valueLabel={fieldValue(value.borderWidthPx, "px")}
+        >
+          <input
+            max={4}
+            min={0}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "borderWidthPx",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={0.5}
+            style={rangeStyle}
+            type="range"
+            value={value.borderWidthPx}
           />
         </FieldShell>
 
@@ -356,6 +512,49 @@ export function StyleLabRail({
             style={rangeStyle}
             type="range"
             value={value.hoverScale}
+          />
+        </FieldShell>
+
+        <FieldShell label="Hover opacity" valueLabel={opacityValue(value.hoverOpacity)}>
+          <input
+            max={1}
+            min={0.7}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "hoverOpacity",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={0.01}
+            style={rangeStyle}
+            type="range"
+            value={value.hoverOpacity}
+          />
+        </FieldShell>
+
+        <FieldShell
+          label="Disabled opacity"
+          valueLabel={opacityValue(value.disabledOpacity)}
+        >
+          <input
+            max={0.9}
+            min={0.25}
+            onChange={(event) =>
+              onChange(
+                updateStyleValue(
+                  value,
+                  "disabledOpacity",
+                  Number(event.currentTarget.value),
+                ),
+              )
+            }
+            step={0.01}
+            style={rangeStyle}
+            type="range"
+            value={value.disabledOpacity}
           />
         </FieldShell>
 

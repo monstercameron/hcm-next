@@ -411,7 +411,7 @@ export function DataTableWidget({
 
             return queryMatch && riskMatch;
           })
-      : config.rows,
+        : config.rows,
     [config.filterable, config.rows, query, riskField, riskFilter],
   );
   const resolvedStyleProps = resolveWidgetStyleProps({

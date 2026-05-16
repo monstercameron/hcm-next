@@ -65,6 +65,9 @@ describe("ui runtime", () => {
 
     expect(cssVariables["--surface-base"]).toBe("#f6f7f9");
     expect(cssVariables["--action-primary-background"]).toBe("#2456d6");
+    expect(cssVariables["--ui-gap-section"]).toBe("20px");
+    expect(cssVariables["--ui-hover-shadow"]).toBe("0 8px 20px rgb(15 23 42 / 10%)");
+    expect(cssVariables["--ui-disabled-opacity"]).toBe("0.6");
   });
 
   it("resolves nested workflow bindings with provenance", () => {

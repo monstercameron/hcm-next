@@ -49,12 +49,12 @@ export function StatusBadge({
     brandingStyleProps,
     styleProps,
   });
+  const className = [baseClassName, resolvedStyleProps.className]
+    .filter((part): part is string => typeof part === "string" && part.length > 0)
+    .join(" ");
 
   return (
-    <span
-      className={widgetClassName(baseClassName, resolvedStyleProps)}
-      style={widgetStyleVariables(resolvedStyleProps)}
-    >
+    <span className={className} style={widgetStyleVariables(resolvedStyleProps)}>
       {badgeLabel}
     </span>
   );
