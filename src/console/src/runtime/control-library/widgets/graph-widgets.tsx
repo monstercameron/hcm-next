@@ -7,6 +7,7 @@ import {
   optionLabel,
   optionValue,
   recordsValue,
+  resolveWidgetStyleProps,
   stringValue,
 } from "./utils";
 
@@ -99,10 +100,15 @@ export const orgChartNodesFromRecords = (
 export function OrgChartWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<OrgChartConfig>): JSX.Element {
   const rootNodes = config.nodes.filter((node) => node.parentId === undefined);
   const [selectedNodeId, setSelectedNodeId] = useState(rootNodes[0]?.id ?? "");
   const selectedNode = config.nodes.find((node) => node.id === selectedNodeId);
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   const childrenByParent = useMemo(() => {
     const groups = new Map<string, GraphNodeConfig[]>();
@@ -134,7 +140,7 @@ export function OrgChartWidget({
             <strong>{node.label}</strong>
             <small>{node.description}</small>
           </span>
-          <StatusBadge status={node.status} />
+          <StatusBadge status={node.status} styleProps={resolvedStyleProps} />
         </button>
         {children.length > 0 ? <ul>{children.map(renderOrgNode)}</ul> : null}
       </li>
@@ -142,7 +148,7 @@ export function OrgChartWidget({
   };
 
   return (
-    <WidgetRoot className="org-chart-widget" styleProps={styleProps}>
+    <WidgetRoot className="org-chart-widget" styleProps={resolvedStyleProps}>
       <ul>{rootNodes.map(renderOrgNode)}</ul>
       <div className="selected-pill">
         {config.selectedLabel ?? "Selected"}: {selectedNode?.label ?? "None"}
@@ -154,12 +160,17 @@ export function OrgChartWidget({
 export function NodeGraphWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<NodeGraphConfig>): JSX.Element {
   const [selectedNodeId, setSelectedNodeId] = useState(config.nodes[0]?.id ?? "");
   const nodeMap = new Map(config.nodes.map((node) => [node.id, node]));
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="node-graph-widget" styleProps={styleProps}>
+    <WidgetRoot className="node-graph-widget" styleProps={resolvedStyleProps}>
       <div className="node-graph-canvas" role="img" aria-label={config.label}>
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           {config.edges.map((edge) => {
@@ -211,7 +222,13 @@ export function NodeGraphWidget({
 export function GraphWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<GraphConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   if (config.graphType === "org" || config.graphType === "orgChart") {
     const selectedLabelConfig =
       config.selectedLabel === undefined ? {} : { selectedLabel: config.selectedLabel };
@@ -222,10 +239,10 @@ export function GraphWidget({
           nodes: config.nodes,
           ...selectedLabelConfig,
         }}
-        styleProps={styleProps}
+        styleProps={resolvedStyleProps}
       />
     );
   }
 
-  return <NodeGraphWidget config={config} styleProps={styleProps} />;
+  return <NodeGraphWidget config={config} styleProps={resolvedStyleProps} />;
 }

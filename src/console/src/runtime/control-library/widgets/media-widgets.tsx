@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { WidgetComponentProps } from "./types";
 import { WidgetRoot } from "./primitives";
+import { resolveWidgetStyleProps } from "./utils";
 
 export type ImageMediaConfig = {
   src: string;
@@ -41,9 +42,15 @@ export type MediaConfig =
 export function ImageMediaWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ImageMediaConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="media-widget" styleProps={styleProps}>
+    <WidgetRoot className="media-widget" styleProps={resolvedStyleProps}>
       <figure className="media-image-frame">
         <img
           alt={config.alt}
@@ -63,9 +70,15 @@ export function ImageMediaWidget({
 export function AudioMediaWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<AudioMediaConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="media-widget" styleProps={styleProps}>
+    <WidgetRoot className="media-widget" styleProps={resolvedStyleProps}>
       {config.src !== undefined && config.src.length > 0 ? (
         <audio controls src={config.src}>
           {config.transcript}
@@ -80,9 +93,15 @@ export function AudioMediaWidget({
 export function VideoMediaWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<VideoMediaConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="media-widget" styleProps={styleProps}>
+    <WidgetRoot className="media-widget" styleProps={resolvedStyleProps}>
       {config.src !== undefined && config.src.length > 0 ? (
         <video controls src={config.src}>
           {config.transcript}
@@ -97,6 +116,7 @@ export function VideoMediaWidget({
 export function PdfViewerWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<PdfViewerConfig>): JSX.Element {
   const pageCount = Math.max(1, config.pageCount);
   const minZoom = config.minZoom ?? 75;
@@ -104,9 +124,13 @@ export function PdfViewerWidget({
   const zoomStep = config.zoomStep ?? 25;
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(100);
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="pdf-viewer" styleProps={styleProps}>
+    <WidgetRoot className="pdf-viewer" styleProps={resolvedStyleProps}>
       <div className="pdf-toolbar" aria-label="PDF viewer controls">
         <button
           disabled={page <= 1}
@@ -158,20 +182,26 @@ export function PdfViewerWidget({
 export function MediaWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<MediaConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   if (config.mediaType === "image") {
-    return <ImageMediaWidget config={config} styleProps={styleProps} />;
+    return <ImageMediaWidget config={config} styleProps={resolvedStyleProps} />;
   }
 
   if (config.mediaType === "audio") {
-    return <AudioMediaWidget config={config} styleProps={styleProps} />;
+    return <AudioMediaWidget config={config} styleProps={resolvedStyleProps} />;
   }
 
   if (config.mediaType === "video") {
-    return <VideoMediaWidget config={config} styleProps={styleProps} />;
+    return <VideoMediaWidget config={config} styleProps={resolvedStyleProps} />;
   }
 
-  return <PdfViewerWidget config={config} styleProps={styleProps} />;
+  return <PdfViewerWidget config={config} styleProps={resolvedStyleProps} />;
 }
 
 export const MediaViewerWidget = MediaWidget;
@@ -179,6 +209,12 @@ export const MediaViewerWidget = MediaWidget;
 export function DocumentPreviewWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<DocumentPreviewConfig>): JSX.Element {
-  return <PdfViewerWidget config={config} styleProps={styleProps} />;
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
+  return <PdfViewerWidget config={config} styleProps={resolvedStyleProps} />;
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { WidgetComponentProps, WidgetRecord } from "./types";
 import { EmptyState, StatusBadge, WidgetRoot } from "./primitives";
-import { recordsValue, stringValue } from "./utils";
+import { recordsValue, resolveWidgetStyleProps, stringValue } from "./utils";
 
 export type TabItemConfig = {
   id: string;
@@ -107,22 +107,27 @@ export const toastItemsFromRecords = (
 export function TabsWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<TabsConfig>): JSX.Element {
   const firstTabId = config.tabs[0]?.id ?? "";
   const [activeTabId, setActiveTabId] = useState(config.selectedId ?? firstTabId);
   const activeTab = config.tabs.find((tab) => tab.id === activeTabId) ?? config.tabs[0];
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   if (config.tabs.length === 0) {
     return (
       <EmptyState
         label={stringValue(config.emptyLabel, "No tabs configured.")}
-        styleProps={styleProps}
+        styleProps={resolvedStyleProps}
       />
     );
   }
 
   return (
-    <WidgetRoot className="tabs-widget" styleProps={styleProps}>
+    <WidgetRoot className="tabs-widget" styleProps={resolvedStyleProps}>
       <div className="graph-toolbar" role="tablist" aria-label="Tabs">
         {config.tabs.map((tab) => (
           <button
@@ -140,7 +145,7 @@ export function TabsWidget({
       <section role="tabpanel">
         <strong>{activeTab?.label}</strong>
         {activeTab?.status !== undefined ? (
-          <StatusBadge status={activeTab.status} />
+          <StatusBadge status={activeTab.status} styleProps={resolvedStyleProps} />
         ) : null}
         {activeTab?.content !== undefined ? <p>{activeTab.content}</p> : null}
       </section>
@@ -151,23 +156,28 @@ export function TabsWidget({
 export function StepperWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<StepperConfig>): JSX.Element {
   const firstStepId = config.steps[0]?.id ?? "";
   const [currentStepId, setCurrentStepId] = useState(
     config.currentStepId ?? firstStepId,
   );
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   if (config.steps.length === 0) {
     return (
       <EmptyState
         label={stringValue(config.emptyLabel, "No steps configured.")}
-        styleProps={styleProps}
+        styleProps={resolvedStyleProps}
       />
     );
   }
 
   return (
-    <WidgetRoot className="stepper-widget" styleProps={styleProps}>
+    <WidgetRoot className="stepper-widget" styleProps={resolvedStyleProps}>
       <ol className="timeline">
         {config.steps.map((step) => (
           <li key={step.id}>
@@ -180,7 +190,9 @@ export function StepperWidget({
               {step.label}
             </button>
             {step.detail !== undefined ? <small>{step.detail}</small> : null}
-            {step.status !== undefined ? <StatusBadge status={step.status} /> : null}
+            {step.status !== undefined ? (
+              <StatusBadge status={step.status} styleProps={resolvedStyleProps} />
+            ) : null}
           </li>
         ))}
       </ol>
@@ -191,12 +203,20 @@ export function StepperWidget({
 export function ModalDrawerWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ModalDrawerConfig>): JSX.Element {
   const [open, setOpen] = useState(config.defaultOpen === true);
   const placement = config.placement ?? "modal";
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className={`${placement}-drawer-widget`} styleProps={styleProps}>
+    <WidgetRoot
+      className={`${placement}-drawer-widget`}
+      styleProps={resolvedStyleProps}
+    >
       <button onClick={() => setOpen(true)} type="button">
         {config.openLabel ?? config.title}
       </button>
@@ -218,30 +238,38 @@ export function ModalDrawerWidget({
 export function ToastCenterWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ToastCenterConfig>): JSX.Element {
   const [dismissedToastIds, setDismissedToastIds] = useState<readonly string[]>([]);
   const visibleToasts = config.toasts.filter(
     (toast) => !dismissedToastIds.includes(toast.id),
   );
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   if (visibleToasts.length === 0) {
     return (
       <EmptyState
         label={stringValue(config.emptyLabel, "No notifications.")}
-        styleProps={styleProps}
+        styleProps={resolvedStyleProps}
       />
     );
   }
 
   return (
-    <WidgetRoot className="toast-center-widget" styleProps={styleProps}>
+    <WidgetRoot className="toast-center-widget" styleProps={resolvedStyleProps}>
       {visibleToasts.map((toast) => (
         <article className="check-row" key={toast.id}>
           <div>
             <strong>{toast.title}</strong>
             {toast.detail !== undefined ? <span>{toast.detail}</span> : null}
           </div>
-          <StatusBadge status={toast.status ?? "info"} />
+          <StatusBadge
+            status={toast.status ?? "info"}
+            styleProps={resolvedStyleProps}
+          />
           <button
             aria-label={`Dismiss ${toast.title}`}
             onClick={() => setDismissedToastIds((current) => [...current, toast.id])}
