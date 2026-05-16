@@ -333,6 +333,8 @@ Permission-aware AI summarizes:
 - Risk areas
 - Suggested next actions
 
+The console additionally ships an AI-generated workflow UI surface (floating HR-assistant panel) that turns a plain-English request into a `PageDefinition` grounded in the workflow JSON. See [ai-ui-generation.md](ai-ui-generation.md).
+
 ### 10.5 HCM Change Ledger
 
 Immutable audit trail of:

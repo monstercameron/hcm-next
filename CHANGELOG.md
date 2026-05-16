@@ -2,6 +2,27 @@
 
 ## 2026-05-16
 
+- `b0d640c` - Added GitHub Actions for Node and Go test jobs on push, pull
+  request, and manual dispatch. Added pre-commit enforcement for lint-staged,
+  code-style checks, Go checks, and `test:all`; added TypeScript and Go style
+  checkers; moved shared runtime dependency types out of the API layer; replaced
+  high-signal workflow magic literals with typed constants; and gofmt-formatted
+  the touched Go block code.
+- `4c7bc8a` - Added the console AI assistant surface and generated-page runtime:
+  floating `AiChatPanel`, quick-action chips, `useChat`, `useStartWorkflow`,
+  assistant-view rendering and route cleanup in `ConsoleShell`, generated page
+  form state, subject picker widget, action-bar workflow submit wiring, branded
+  panel styles, and unit/Playwright coverage for the assistant and renderer
+  paths.
+- `fbd5240` - Added the AI chat and workflow UI generation backend:
+  `POST /api/ai/chat`, chat tool dispatch for workflow/employee/task actions,
+  direct `POST /api/ai/generate-ui`, `AiClient.generatePageDefinition`,
+  canonical widget type constraints, OpenAI/null-client implementations,
+  workflow config lookup and hashing, UI generation error factories, and API,
+  provider, registry, and E2E tests.
+- `2f1a7ac` - Added runtime package dependencies for the AI assistant:
+  `dotenv` for API environment loading plus `@tanstack/react-query`,
+  `react-markdown`, and `remark-gfm` for the console assistant experience.
 - `2d00188` - Enhanced the console app shell with a demo auth session (login screen,
   workspace card, session storage using `fromThrowable` at the UI boundary). Expanded
   `WorkflowPageRenderer` with richer interaction handling, extended `hcm-controls` with
