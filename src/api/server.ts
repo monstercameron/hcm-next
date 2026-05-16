@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { randomUUID } from "node:crypto";
 import { URL } from "node:url";
 import {
+  createStructuredLogger,
   fromPromise,
   fromThrowable,
   err,
@@ -98,13 +100,45 @@ async function sendHandledRequest(
   request: IncomingMessage,
   response: ServerResponse,
 ): Promise<void> {
+  const startMs = Date.now();
+  const requestId =
+    (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
+  const correlationId =
+    (request.headers["x-correlation-id"] as string | undefined) ?? requestId;
+  const requestLogger = createStructuredLogger({
+    service: "api",
+    requestId,
+    correlationId,
+  });
+  const requestDependencies = { ...dependencies, logger: requestLogger };
+  const requestPath = new URL(request.url ?? "/", requestOrigin(request)).pathname;
+
+  requestLogger.info("request received", {
+    method: request.method ?? "UNKNOWN",
+    path: requestPath,
+  });
+
   const handledResponseResult = await fromPromise(
-    async () => handleApiRequest(dependencies, request),
+    async () => handleApiRequest(requestDependencies, request),
     (error) => systemError({ routeBoundary: true }, error),
   );
   const handledResponse = handledResponseResult.ok
     ? handledResponseResult.value
     : toJsonHttpResponse(handledResponseResult);
+
+  const durationMs = Date.now() - startMs;
+  const completionLevel =
+    handledResponse.status >= 500
+      ? "error"
+      : handledResponse.status >= 400
+        ? "warn"
+        : "info";
+  requestLogger[completionLevel]("request completed", {
+    method: request.method ?? "UNKNOWN",
+    path: requestPath,
+    status: handledResponse.status,
+    durationMs,
+  });
 
   writeJsonResponse(response, handledResponse);
 }

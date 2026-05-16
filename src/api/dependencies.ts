@@ -3,6 +3,7 @@ import {
   createSeededDemoStore,
   type Repositories,
 } from "@hcm-next/data-store";
+import { createStructuredLogger, type StructuredLogger } from "@hcm-next/foundation";
 import { createCompensationDecisionExternalWriteClient } from "./compensation-decision-client.js";
 import { createHttpExecutorClient, type ExecutorClient } from "./executor-client.js";
 import type { ExternalWriteClient } from "./external-write-client.js";
@@ -11,6 +12,7 @@ export type AppDependencies = {
   repositories: Repositories;
   executorClient: ExecutorClient;
   externalWriteClients?: Record<string, ExternalWriteClient>;
+  logger?: StructuredLogger;
 };
 
 export function createDefaultDependencies(): AppDependencies {
@@ -27,5 +29,6 @@ export function createDefaultDependencies(): AppDependencies {
         compensationDecisionUrl,
       ),
     },
+    logger: createStructuredLogger({ service: "api" }),
   };
 }

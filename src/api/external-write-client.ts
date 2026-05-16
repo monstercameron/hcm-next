@@ -1,4 +1,4 @@
-import type { AppError, Result } from "@hcm-next/foundation";
+import type { AppError, Result, StructuredLogger } from "@hcm-next/foundation";
 
 export type ExternalWriteClientResponse = {
   rawResponse: Record<string, unknown>;
@@ -9,5 +9,6 @@ export type ExternalWriteClient = {
   submit(
     payload: Record<string, unknown>,
     idempotencyKey: string,
+    logger?: StructuredLogger,
   ): Promise<Result<ExternalWriteClientResponse, AppError>>;
 };

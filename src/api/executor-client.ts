@@ -4,6 +4,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
+  type StructuredLogger,
 } from "@hcm-next/foundation";
 
 export type ExecutorBlockRef = {
@@ -45,6 +46,7 @@ export type ExecutorResponse<TOutput = Record<string, unknown>> = {
 export type ExecutorClient = {
   executeBlock<TOutput>(
     request: ExecutorRequest,
+    logger?: StructuredLogger,
   ): Promise<Result<ExecutorResponse<TOutput>, AppError>>;
 };
 
@@ -52,12 +54,27 @@ export function createHttpExecutorClient(baseUrl: string): ExecutorClient {
   return {
     async executeBlock<TOutput>(
       request: ExecutorRequest,
+      logger?: StructuredLogger,
     ): Promise<Result<ExecutorResponse<TOutput>, AppError>> {
+      const blockRef = `${request.block.name}@${request.block.version}`;
+      const startMs = Date.now();
+
+      logger?.info("executor block started", {
+        block: blockRef,
+        workflowInstanceId: request.workflowInstanceId,
+        changeRequestId: request.changeRequestId,
+        correlationId: request.context.correlationId,
+      });
+
       const responseResult = await fromPromise(
         async () => {
           const response = await fetch(`${baseUrl}/execute-block`, {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": request.context.correlationId,
+              "x-correlation-id": request.context.correlationId,
+            },
             body: JSON.stringify(request),
           });
 
@@ -67,6 +84,12 @@ export function createHttpExecutorClient(baseUrl: string): ExecutorClient {
       );
 
       if (!responseResult.ok) {
+        logger?.error("executor request failed", {
+          block: blockRef,
+          workflowInstanceId: request.workflowInstanceId,
+          errorCode: responseResult.error.code,
+          durationMs: Date.now() - startMs,
+        });
         return responseResult;
       }
 
@@ -78,10 +101,35 @@ export function createHttpExecutorClient(baseUrl: string): ExecutorClient {
       );
 
       if (!bodyResult.ok) {
+        logger?.error("executor response parse failed", {
+          block: blockRef,
+          workflowInstanceId: request.workflowInstanceId,
+          errorCode: bodyResult.error.code,
+          durationMs: Date.now() - startMs,
+        });
         return bodyResult;
       }
 
+      for (const { level: rawLevel, message: rawMessage, ...details } of bodyResult
+        .value.logs) {
+        const level = (rawLevel as string | undefined) ?? "info";
+        const message = (rawMessage as string | undefined) ?? "executor log";
+        if (level === "error") {
+          logger?.error(message, { ...details, service: "executor" });
+        } else if (level === "warn") {
+          logger?.warn(message, { ...details, service: "executor" });
+        } else {
+          logger?.info(message, { ...details, service: "executor" });
+        }
+      }
+
       if (bodyResult.value.status !== "succeeded") {
+        logger?.warn("executor block failed", {
+          block: blockRef,
+          workflowInstanceId: request.workflowInstanceId,
+          errorCode: bodyResult.value.error?.code,
+          durationMs: Date.now() - startMs,
+        });
         return {
           ok: false,
           error: validationFailedError({
@@ -89,6 +137,12 @@ export function createHttpExecutorClient(baseUrl: string): ExecutorClient {
           }),
         };
       }
+
+      logger?.info("executor block completed", {
+        block: blockRef,
+        workflowInstanceId: request.workflowInstanceId,
+        durationMs: Date.now() - startMs,
+      });
 
       return bodyResult;
     },

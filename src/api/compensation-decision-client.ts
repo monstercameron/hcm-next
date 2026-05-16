@@ -57,10 +57,16 @@ export function createHttpCompensationDecisionClient(
       );
 
       if (!responseResult.ok) {
+        process.stderr.write(
+          `${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", message: "compensation decision HTTP request failed", integration: "third_party_compensation_decision" })}\n`,
+        );
         return responseResult;
       }
 
       if (!responseResult.value.ok) {
+        process.stderr.write(
+          `${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", message: "compensation decision HTTP error response", integration: "third_party_compensation_decision", httpStatus: responseResult.value.status })}\n`,
+        );
         return err(
           integrationError({
             integration: "third_party_compensation_decision",
@@ -103,14 +109,27 @@ export function createCompensationDecisionExternalWriteClient(
   const compensationDecisionClient = createHttpCompensationDecisionClient(baseUrl);
 
   return {
-    async submit(payload, idempotencyKey) {
+    async submit(payload, idempotencyKey, logger) {
+      logger?.info("compensation decision submit started", { idempotencyKey });
+
       const decisionResult = await compensationDecisionClient.submitCompensationChange(
         payload,
         idempotencyKey,
       );
       if (!decisionResult.ok) {
+        logger?.error("compensation decision submit failed", {
+          idempotencyKey,
+          errorCode: decisionResult.error.code,
+        });
         return decisionResult;
       }
+
+      logger?.info("compensation decision submit completed", {
+        idempotencyKey,
+        decision: decisionResult.value.decision,
+        status: decisionResult.value.status,
+        reasonCodes: decisionResult.value.reasonCodes,
+      });
 
       return ok({
         rawResponse: decisionResult.value.rawResponse,
