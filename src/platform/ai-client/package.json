@@ -1,17 +1,19 @@
 {
-  "name": "@hcm-next/api",
+  "name": "@hcm-next/ai-client",
   "version": "0.1.0",
   "private": true,
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*.ts"
+  },
   "scripts": {
-    "dev": "tsx main.ts",
-    "build": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@hcm-next/foundation": "0.1.0",
-    "@hcm-next/data-store": "0.1.0",
-    "@hcm-next/ai-client": "0.1.0"
+    "openai": "^4.0.0"
   }
 }

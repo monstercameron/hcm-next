@@ -8,6 +8,9 @@
       "path": "./src/platform/data-store"
     },
     {
+      "path": "./src/platform/ai-client"
+    },
+    {
       "path": "./src/platform/ui-contracts"
     },
     {

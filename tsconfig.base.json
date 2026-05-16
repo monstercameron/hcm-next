@@ -26,7 +26,9 @@
       "@hcm-next/ui-contracts": ["src/platform/ui-contracts/index.ts"],
       "@hcm-next/ui-contracts/*": ["src/platform/ui-contracts/*"],
       "@hcm-next/ui-runtime": ["src/platform/ui-runtime/index.ts"],
-      "@hcm-next/ui-runtime/*": ["src/platform/ui-runtime/*"]
+      "@hcm-next/ui-runtime/*": ["src/platform/ui-runtime/*"],
+      "@hcm-next/ai-client": ["src/platform/ai-client/index.ts"],
+      "@hcm-next/ai-client/*": ["src/platform/ai-client/*"]
     }
   }
 }
