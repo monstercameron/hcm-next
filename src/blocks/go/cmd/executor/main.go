@@ -15,6 +15,7 @@ import (
 	"hcm-next-executor/internal/blocks/emergencycontact"
 	"hcm-next-executor/internal/blocks/legalname"
 	"hcm-next-executor/internal/blocks/orgtransfer"
+	"hcm-next-executor/internal/blocks/termination"
 	"hcm-next-executor/internal/executor"
 )
 
@@ -41,6 +42,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err := orgtransfer.RegisterBlocks(registry); err != nil {
+		logger.Error("failed to register executor blocks", "error", err)
+		os.Exit(1)
+	}
+	if err := termination.RegisterBlocks(registry); err != nil {
 		logger.Error("failed to register executor blocks", "error", err)
 		os.Exit(1)
 	}
