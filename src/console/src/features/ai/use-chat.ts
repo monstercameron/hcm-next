@@ -9,6 +9,7 @@ import {
 } from "@hcm-next/foundation";
 import type { PageDefinition } from "@hcm-next/ui-contracts";
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
+import { browserFetch } from "../../api/http-client.js";
 
 /**
  * One message in the visible chat history. The wire protocol can carry richer
@@ -242,7 +243,7 @@ export function useChat(): UseMutationResult<ChatTurnOutput, AppError, ChatTurnI
   return useMutation<ChatTurnOutput, AppError, ChatTurnInput>({
     mutationFn: (input) =>
       runChatTurn(input, {
-        fetch: (...args) => fetch(...args),
+        fetch: browserFetch,
       }),
   });
 }

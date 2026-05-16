@@ -9,6 +9,7 @@ import {
   type AppError,
 } from "@hcm-next/foundation";
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
+import { browserFetch } from "../../api/http-client.js";
 
 /**
  * Input contract for the start-workflow mutation. `subjectType` is optional
@@ -270,7 +271,7 @@ export function useStartWorkflow(): UseMutationResult<
   return useMutation<StartWorkflowOutput, AppError, StartWorkflowInput>({
     mutationFn: (input) =>
       runStartWorkflow(input, {
-        fetch: (...args) => fetch(...args),
+        fetch: browserFetch,
       }),
   });
 }

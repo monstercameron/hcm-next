@@ -14,7 +14,8 @@ import {
   runStartWorkflow,
   type RunStartWorkflowDeps,
 } from "../../../features/ai/use-start-workflow.js";
-import { fromPromise, systemError, type AppError } from "@hcm-next/foundation";
+import { fromPromise, type AppError } from "@hcm-next/foundation";
+import { browserFetchOrReject } from "../../../api/http-client.js";
 
 export type RequestQueueItem = {
   id: string;
@@ -365,10 +366,7 @@ const findCancelAction = (
  * the optional `deps` prop so tests can stub the fetch / sha1 layer.
  */
 const DEFAULT_START_WORKFLOW_DEPS: RunStartWorkflowDeps = {
-  fetch: (...args) =>
-    typeof fetch === "function"
-      ? fetch(...args)
-      : Promise.reject(systemError({ reason: "fetch_unavailable" })),
+  fetch: browserFetchOrReject,
 };
 
 export type ActionBarSubmitDeps = RunStartWorkflowDeps;

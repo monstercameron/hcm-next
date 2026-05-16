@@ -169,7 +169,9 @@ const isAllowedProcessEnvFile = (filePath) =>
   allowedProcessEnvFiles.has(filePath) || filePath.startsWith("scripts/");
 
 const isAllowedFetchFile = (filePath) =>
-  allowedFetchFiles.has(filePath) || isTestFile(filePath);
+  allowedFetchFiles.has(filePath) ||
+  filePath.startsWith("src/console/src/api/") ||
+  isTestFile(filePath);
 
 const isAllowedSqlFile = (filePath) =>
   isTestFile(filePath) || filePath.startsWith("src/platform/data-store/");
@@ -209,7 +211,11 @@ const isQueryCall = (node) =>
   node.expression.name.text === "query";
 
 const moduleSpecifierText = (node) => {
-  if (!("moduleSpecifier" in node) || !ts.isStringLiteral(node.moduleSpecifier)) {
+  if (
+    !("moduleSpecifier" in node) ||
+    node.moduleSpecifier === undefined ||
+    !ts.isStringLiteral(node.moduleSpecifier)
+  ) {
     return undefined;
   }
 
