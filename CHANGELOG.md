@@ -2,6 +2,23 @@
 
 ## 2026-05-15
 
+- `011fdf9` - Marked atomic runtime and field components complete in the TODOS tracker.
+- `7afe6cc` - Expanded the console control library with canonical field types, new widget
+  categories (ui-widgets, graph-widgets, workflow-widgets), updated field registry and
+  shared config, broad style refinements, and added Playwright E2E setup with component
+  gallery visual and console UX smoke tests.
+- `6e9d830` - Added structured logging throughout the workflow runtime and admin services,
+  covering intent start/create, transitions, idempotent replay, external writes, and all
+  admin lifecycle operations (import, validate, publish, deprecate, repair actions).
+- `2ad6b31` - Added request-scoped logging to the Node API layer: per-request logger
+  injected via DI, executor client re-emits Go block logs into the unified stream, and
+  HTTP request/completion events logged at appropriate levels.
+- `d909276` - Added structured slog logging to the Go executor service with per-request
+  child loggers carrying block, requestId, correlationId, workflowInstanceId, and actorId.
+- `9bcf5a1` - Added structured logging infrastructure to the platform foundation: extended
+  LogContext with a service field and added JSON-to-stderr fallback at async, sync, and
+  database transaction exception boundaries.
+- `1412922` - Ignored Playwright test artifacts, output directories, and image files.
 - `e398414` - Added the dynamic workflow UI console, UI contracts/runtime
   packages, brand token rendering, configurable control and widget libraries,
   style lab, broad HR widget catalog, route menu organization, and frontend UI
