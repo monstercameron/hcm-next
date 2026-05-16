@@ -84,6 +84,7 @@ import type {
   LabelValueItem,
   WidgetFactoryEntry,
   WidgetFactoryRegistry,
+  WidgetBrandingStyleProps,
   WidgetRecord,
   WidgetStyleProps,
 } from "./types";
@@ -96,6 +97,7 @@ import {
   stringValue,
   stylePropsFromConfig,
   valueToText,
+  widgetStylePropsFromElementProps,
 } from "./utils";
 
 export * from "./types";
@@ -114,48 +116,7 @@ const widgetProps = (widget: ResolvedWidget): WidgetRecord =>
 const widgetStyleProps = (widget: ResolvedWidget) =>
   stylePropsFromConfig(widgetProps(widget).style);
 
-type WidgetElementStyleProps = WidgetStyleProps & {
-  styleProps?: WidgetStyleProps | undefined;
-};
-
-const widgetStyleKeys = [
-  "className",
-  "style",
-  "tone",
-  "variant",
-  "density",
-  "accentColor",
-  "surfaceColor",
-  "mutedSurfaceColor",
-  "activeSurfaceColor",
-  "borderColor",
-  "borderStrongColor",
-  "textColor",
-  "mutedTextColor",
-  "radius",
-  "controlHeight",
-  "shadow",
-  "hoverLift",
-  "hoverScale",
-  "motionFast",
-  "motionMedium",
-] as const;
-
-const widgetStylePropsFromElementProps = (
-  props: WidgetElementStyleProps,
-): WidgetStyleProps => {
-  const styleProps: WidgetStyleProps = {};
-
-  for (const styleKey of widgetStyleKeys) {
-    const value = props[styleKey];
-
-    if (value !== undefined) {
-      Object.assign(styleProps, { [styleKey]: value });
-    }
-  }
-
-  return styleProps;
-};
+type WidgetElementStyleProps = WidgetStyleProps & WidgetBrandingStyleProps;
 
 const withWidgetBrandingStyleProps = (
   element: JSX.Element | undefined,
@@ -175,6 +136,7 @@ const withWidgetBrandingStyleProps = (
   );
 
   return cloneElement(typedElement, {
+    brandingStyleProps,
     ...mergedStyleProps,
     styleProps: mergedStyleProps,
   });
