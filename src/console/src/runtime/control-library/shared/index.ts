@@ -1,4 +1,5 @@
 export * from "./config";
+export * from "./field-types";
 export * from "./guards";
 export * from "./options";
 export * from "./path";

@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type {
+  WidgetBrandingStyleProps,
   WidgetDensity,
   WidgetRecord,
   WidgetStyleProps,
@@ -24,6 +25,29 @@ const styleVariableKeys = {
   motionFast: "--ui-motion-fast",
   motionMedium: "--ui-motion-medium",
 } as const;
+
+export const widgetStyleKeys = [
+  "className",
+  "style",
+  "tone",
+  "variant",
+  "density",
+  "accentColor",
+  "surfaceColor",
+  "mutedSurfaceColor",
+  "activeSurfaceColor",
+  "borderColor",
+  "borderStrongColor",
+  "textColor",
+  "mutedTextColor",
+  "radius",
+  "controlHeight",
+  "shadow",
+  "hoverLift",
+  "hoverScale",
+  "motionFast",
+  "motionMedium",
+] as const;
 
 export const isWidgetRecord = (value: unknown): value is WidgetRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -172,6 +196,31 @@ export const mergeWidgetStyleProps = (
     ...localStyleProps?.style,
   },
 });
+
+export const widgetStylePropsFromElementProps = (
+  props: WidgetStyleProps,
+): WidgetStyleProps => {
+  const styleProps: WidgetStyleProps = {};
+
+  for (const styleKey of widgetStyleKeys) {
+    const value = props[styleKey];
+
+    if (value !== undefined) {
+      Object.assign(styleProps, { [styleKey]: value });
+    }
+  }
+
+  return styleProps;
+};
+
+export const resolveWidgetStyleProps = (
+  props: WidgetBrandingStyleProps & WidgetStyleProps,
+): WidgetStyleProps => {
+  const directStyleProps = widgetStylePropsFromElementProps(props);
+  const localStyleProps = mergeWidgetStyleProps(props.styleProps, directStyleProps);
+
+  return mergeWidgetStyleProps(props.brandingStyleProps, localStyleProps);
+};
 
 /** Creates CSS variables used by the generic console control styles. */
 export const widgetStyleVariables = (

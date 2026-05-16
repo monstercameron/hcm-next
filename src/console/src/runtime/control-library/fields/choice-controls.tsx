@@ -10,6 +10,7 @@ import {
   optionLabel,
   optionMatchesQuery,
   optionValue,
+  rawBoolean,
   scalarInputValue,
   selectedStringSet,
 } from "./utils";
@@ -29,9 +30,7 @@ const OptionBody = ({ option }: { option: Readonly<Record<string, unknown>> }) =
 export const SelectControl = (props: FieldControlProps) => {
   const groupedRecords = groupedOptions(props.options ?? []);
   const shouldGroupOptions =
-    props.config.type === "grouped_select" ||
-    props.config.type === "dropdown_group" ||
-    groupedRecords.length > 1;
+    rawBoolean(props.config, "grouped") || groupedRecords.length > 1;
 
   return (
     <select
@@ -61,7 +60,7 @@ export const SelectControl = (props: FieldControlProps) => {
   );
 };
 
-export const FilterableSelectControl = (props: FieldControlProps) => {
+export const ComboboxControl = (props: FieldControlProps) => {
   const [query, setQuery] = useState("");
   const filteredOptions = useMemo(
     () => (props.options ?? []).filter((option) => optionMatchesQuery(option, query)),
@@ -102,6 +101,8 @@ export const FilterableSelectControl = (props: FieldControlProps) => {
     </div>
   );
 };
+
+export const FilterableSelectControl = ComboboxControl;
 
 export const MultiSelectControl = (props: FieldControlProps) => {
   const selectedValues = selectedStringSet(props.value);
@@ -175,18 +176,15 @@ export const CheckboxControl = (props: FieldControlProps) => (
 );
 
 export const ChoiceControl = (props: FieldControlProps) => {
-  if (
-    props.config.type === "filterable_select" ||
-    props.config.type === "filterable_dropdown"
-  ) {
-    return <FilterableSelectControl {...props} />;
+  if (props.config.type === "combobox") {
+    return <ComboboxControl {...props} />;
   }
 
   if (props.config.type === "multi_select") {
     return <MultiSelectControl {...props} />;
   }
 
-  if (props.config.type === "radio" || props.config.type === "radio_group") {
+  if (props.config.type === "radio_group") {
     return <RadioGroupControl {...props} />;
   }
 

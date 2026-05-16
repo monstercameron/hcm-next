@@ -296,6 +296,7 @@ export const InternationalContactControl = (props: FieldControlProps) => {
 
 export const HcmControl = (props: FieldControlProps) => {
   if (
+    props.config.type === "tree_picker" ||
     props.config.type === "manager_tree_picker" ||
     props.config.type === "org_tree_picker"
   ) {

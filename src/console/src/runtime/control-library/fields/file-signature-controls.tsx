@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import {
   controlClassNames,
   controlStyleProps,
@@ -8,12 +10,14 @@ import {
   updateObjectField,
 } from "./utils";
 import type { FieldControlProps } from "./types";
+import { fieldControlSourceType } from "../shared/field-types";
 
 const fileNamesFromList = (fileList: FileList | null): readonly string[] =>
   fileList === null ? [] : Array.from(fileList).map((file) => file.name);
 
 export const FileUploadControl = (props: FieldControlProps) => {
   const files = stringArrayValue(props.value);
+  const inputId = useId();
 
   return (
     <div
@@ -22,12 +26,22 @@ export const FileUploadControl = (props: FieldControlProps) => {
     >
       <input
         aria-label={props.config.label}
+        className="field-library-file-input"
+        id={inputId}
         multiple
         onChange={(event) =>
           props.onChange(fileNamesFromList(event.currentTarget.files))
         }
         type="file"
       />
+      <label className="field-library-file-picker" htmlFor={inputId}>
+        <span>Choose files</span>
+        <small>
+          {files.length > 0
+            ? `${files.length} file${files.length === 1 ? "" : "s"} selected`
+            : "No files selected"}
+        </small>
+      </label>
       {files.length > 0 ? (
         <ul>
           {files.map((fileName) => (
@@ -60,21 +74,29 @@ export const PolicyAcknowledgementControl = (props: FieldControlProps) => (
   </label>
 );
 
-export const SignatureControl = (props: FieldControlProps) => (
-  <div
-    className={controlClassNames(props, "field-library-signature")}
-    style={controlStyleProps(props)}
-  >
-    <input
-      aria-label={`${props.config.label} typed signature`}
-      className="field-library-input"
-      onChange={(event) => props.onChange(eventInputValue(event))}
-      placeholder="Type full legal name"
-      value={typeof props.value === "string" ? props.value : ""}
-    />
-    <small>Typed signature is stored as the attestation value.</small>
-  </div>
-);
+export const SignatureInputControl = (props: FieldControlProps) => {
+  if (fieldControlSourceType(props.config) === "signature_capture") {
+    return <SignatureCaptureControl {...props} />;
+  }
+
+  return (
+    <div
+      className={controlClassNames(props, "field-library-signature")}
+      style={controlStyleProps(props)}
+    >
+      <input
+        aria-label={`${props.config.label} typed signature`}
+        className="field-library-input"
+        onChange={(event) => props.onChange(eventInputValue(event))}
+        placeholder="Type full legal name"
+        value={typeof props.value === "string" ? props.value : ""}
+      />
+      <small>Typed signature is stored as the attestation value.</small>
+    </div>
+  );
+};
+
+export const SignatureControl = SignatureInputControl;
 
 export const SignatureCaptureControl = (props: FieldControlProps) => {
   const currentValue = recordValue(props.value);
@@ -116,20 +138,16 @@ export const SignatureCaptureControl = (props: FieldControlProps) => {
 };
 
 export const FileSignatureControl = (props: FieldControlProps) => {
-  if (props.config.type === "evidence_upload") {
+  if (fieldControlSourceType(props.config) === "evidence_upload") {
     return <EvidenceUploadControl {...props} />;
   }
 
-  if (props.config.type === "policy_acknowledgement") {
+  if (fieldControlSourceType(props.config) === "policy_acknowledgement") {
     return <PolicyAcknowledgementControl {...props} />;
   }
 
-  if (props.config.type === "signature" || props.config.type === "e_signature") {
-    return <SignatureControl {...props} />;
-  }
-
-  if (props.config.type === "signature_capture") {
-    return <SignatureCaptureControl {...props} />;
+  if (props.config.type === "signature") {
+    return <SignatureInputControl {...props} />;
   }
 
   return <FileUploadControl {...props} />;

@@ -1,23 +1,25 @@
 import type { ResolvedWidget } from "@hcm-next/ui-runtime";
 import { cloneElement, type ReactElement } from "react";
 import {
-  AuditTimelineWidget,
-  ApprovalDecisionPanelWidget,
-  ChangeDiffWidget,
-  EmployeeSummaryWidget,
-  RequestQueueWidget,
-  SimulationResultPanelWidget,
+  ActionBarWidget,
+  ChecklistWidget,
+  DiffViewerWidget,
+  QueueListWidget,
+  ReasonCaptureWidget,
+  RecordSummaryWidget,
+  TimelineWidget,
   type ApprovalActionConfig,
   type ApprovalDecisionPanelConfig,
   type AuditTimelineConfig,
   type ChangeDiffConfig,
   type EmployeeSummaryConfig,
+  type ReasonCaptureConfig,
   type RequestQueueConfig,
   type SimulationResultPanelConfig,
 } from "./workflow-widgets";
 import {
-  CalloutContentWidget,
-  FaqWidget,
+  AccordionWidget,
+  CalloutWidget,
   HtmlContentWidget,
   LabelValueListWidget,
   LinkListWidget,
@@ -27,7 +29,6 @@ import {
   labelValueItemsFromRecords,
   linkItemsFromRecords,
   type CalloutContentConfig,
-  type FaqConfig,
   type HtmlContentConfig,
   type LabelValueListConfig,
   type LinkListConfig,
@@ -35,45 +36,50 @@ import {
   type TextContentConfig,
 } from "./content-widgets";
 import {
-  ClusterBoardWidget,
+  BoardWidget,
+  ChartWidget,
   DataTableWidget,
-  FilterableTableWidget,
-  GraphChartWidget,
-  MatrixWidget,
-  MetricGraphWidget,
   MetricTileWidget,
   ProgressWidget,
   clusterBoardGroupsFromRecords,
   clusterBoardItemsFromRecords,
-  matrixItemsFromRecords,
-  matrixValuesFromConfig,
   metricPointsFromRecords,
   tableColumnsFromRecords,
+  type ChartConfig,
   type ClusterBoardConfig,
   type DataTableConfig,
-  type FilterableTableConfig,
-  type GraphChartConfig,
-  type MatrixConfig,
-  type MetricGraphConfig,
   type MetricTileConfig,
   type ProgressConfig,
 } from "./data-widgets";
 import {
-  NodeGraphWidget,
-  OrgChartWidget,
+  GraphWidget,
   graphEdgesFromRecords,
   graphNodesFromRecords,
   orgChartNodesFromRecords,
+  type GraphConfig,
   type NodeGraphConfig,
-  type OrgChartConfig,
 } from "./graph-widgets";
 import {
-  MediaWidget,
-  PdfViewerWidget,
+  DocumentPreviewWidget,
+  MediaViewerWidget,
+  type DocumentPreviewConfig,
   type MediaConfig,
   type PdfViewerConfig,
 } from "./media-widgets";
-import { WidgetGrid, WidgetSection, WidgetStack } from "./primitives";
+import { GridLayout, SectionLayout, StackLayout } from "./primitives";
+import {
+  ModalDrawerWidget,
+  StepperWidget,
+  TabsWidget,
+  ToastCenterWidget,
+  stepsConfigFromRecords,
+  tabsConfigFromRecords,
+  toastsConfigFromRecords,
+  type ModalDrawerConfig,
+  type StepperConfig,
+  type TabsConfig,
+  type ToastCenterConfig,
+} from "./ui-widgets";
 import type {
   LabelValueItem,
   WidgetFactoryEntry,
@@ -86,6 +92,7 @@ import {
   objectValue,
   recordsValue,
   mergeWidgetStyleProps,
+  stringArrayValue,
   stringValue,
   stylePropsFromConfig,
   valueToText,
@@ -99,6 +106,7 @@ export * from "./content-widgets";
 export * from "./data-widgets";
 export * from "./graph-widgets";
 export * from "./media-widgets";
+export * from "./ui-widgets";
 
 const widgetProps = (widget: ResolvedWidget): WidgetRecord =>
   objectValue(widget.instance.props);
@@ -178,11 +186,25 @@ const recordToLabelValueItem = (record: WidgetRecord): LabelValueItem => ({
   detail: stringValue(record.detail),
 });
 
+const recordsFromFirstAvailable = (
+  ...values: readonly unknown[]
+): readonly WidgetRecord[] => {
+  for (const value of values) {
+    const records = recordsValue(value);
+
+    if (records.length > 0) {
+      return records;
+    }
+  }
+
+  return [];
+};
+
 const requestQueueConfig = (widget: ResolvedWidget): RequestQueueConfig => {
   const props = widgetProps(widget);
 
   return {
-    requests: recordsValue(props.requests).map((request) => ({
+    requests: recordsFromFirstAvailable(props.requests, props.items).map((request) => ({
       id: stringValue(request.id, stringValue(request.title, "request")),
       title: stringValue(request.title, "Untitled request"),
       employee: stringValue(request.employee, "No subject"),
@@ -197,13 +219,21 @@ const requestQueueConfig = (widget: ResolvedWidget): RequestQueueConfig => {
 
 const employeeSummaryConfig = (widget: ResolvedWidget): EmployeeSummaryConfig => {
   const props = widgetProps(widget);
-  const employee = objectValue(widget.bindings.employee?.value);
-  const configuredFacts = recordsValue(props.facts).map(recordToLabelValueItem);
+  const employee = {
+    ...objectValue(widget.bindings.employee?.value),
+    ...objectValue(props.record),
+  };
+  const configuredFacts = recordsFromFirstAvailable(props.facts, props.items).map(
+    recordToLabelValueItem,
+  );
   const factsConfig = configuredFacts.length > 0 ? { facts: configuredFacts } : {};
 
   return {
     employee: {
-      displayName: stringValue(employee.displayName, "Unknown employee"),
+      displayName: stringValue(
+        props.displayName,
+        stringValue(employee.displayName, stringValue(widget.instance.title, "Record")),
+      ),
       jobTitle: stringValue(employee.jobTitle, "Not set"),
       department: stringValue(employee.department, "Not set"),
       manager: stringValue(employee.manager, "Not set"),
@@ -242,8 +272,29 @@ const changeDiffConfig = (widget: ResolvedWidget): ChangeDiffConfig => {
   };
 };
 
-const approvalActions = (widget: ResolvedWidget): readonly ApprovalActionConfig[] =>
-  (widget.instance.actions ?? []).map((action) => {
+const configuredApprovalActions = (value: unknown): readonly ApprovalActionConfig[] =>
+  recordsValue(value).map((action) => ({
+    action: stringValue(action.action, stringValue(action.transition)),
+    label: stringValue(action.label, stringValue(action.action, "Action")),
+    disabled: action.disabled === true,
+    variant:
+      action.variant === "primary" ||
+      action.variant === "secondary" ||
+      action.variant === "danger"
+        ? action.variant
+        : "secondary",
+    reason: stringValue(action.reason),
+  }));
+
+const approvalActions = (widget: ResolvedWidget): readonly ApprovalActionConfig[] => {
+  const props = widgetProps(widget);
+  const configuredActions = configuredApprovalActions(props.actions);
+
+  if (configuredActions.length > 0) {
+    return configuredActions;
+  }
+
+  return (widget.instance.actions ?? []).map((action) => {
     const variant = action.variant === "quiet" ? "secondary" : action.variant;
     const variantConfig = variant === undefined ? {} : { variant };
 
@@ -254,6 +305,7 @@ const approvalActions = (widget: ResolvedWidget): readonly ApprovalActionConfig[
       ...variantConfig,
     };
   });
+};
 
 const approvalDecisionPanelConfig = (
   widget: ResolvedWidget,
@@ -271,13 +323,31 @@ const approvalDecisionPanelConfig = (
   };
 };
 
+const reasonCaptureConfig = (widget: ResolvedWidget): ReasonCaptureConfig => {
+  const props = widgetProps(widget);
+
+  return {
+    label: stringValue(props.label, "Reason"),
+    placeholder: stringValue(props.placeholder),
+    value: stringValue(props.value),
+    helperText: stringValue(props.helperText, stringValue(props.description)),
+    required: props.required === true,
+    reasons:
+      stringArrayValue(props.reasons).length > 0
+        ? stringArrayValue(props.reasons)
+        : recordsValue(props.reasons).map((reason) =>
+            stringValue(reason.label, stringValue(reason.value)),
+          ),
+  };
+};
+
 const simulationResultPanelConfig = (
   widget: ResolvedWidget,
 ): SimulationResultPanelConfig => {
   const props = widgetProps(widget);
 
   return {
-    checks: recordsValue(props.checks).map((check) => ({
+    checks: recordsFromFirstAvailable(props.checks, props.items).map((check) => ({
       id: stringValue(check.id, stringValue(check.label, "check")),
       label: stringValue(check.label, "Check"),
       detail: stringValue(check.detail),
@@ -291,7 +361,7 @@ const auditTimelineConfig = (widget: ResolvedWidget): AuditTimelineConfig => {
   const props = widgetProps(widget);
 
   return {
-    events: recordsValue(props.events).map((event) => ({
+    events: recordsFromFirstAvailable(props.events, props.items).map((event) => ({
       id: stringValue(event.id, `${stringValue(event.at)}-${stringValue(event.label)}`),
       at: stringValue(event.at),
       label: stringValue(event.label, "Event"),
@@ -313,11 +383,14 @@ const textContentConfig = (widget: ResolvedWidget): TextContentConfig => {
 };
 
 const markdownContentConfig = (widget: ResolvedWidget): MarkdownContentConfig => ({
-  markdown: stringValue(widgetProps(widget).markdown),
+  markdown: stringValue(
+    widgetProps(widget).markdown,
+    stringValue(widgetProps(widget).body),
+  ),
 });
 
 const htmlContentConfig = (widget: ResolvedWidget): HtmlContentConfig => ({
-  html: stringValue(widgetProps(widget).html),
+  html: stringValue(widgetProps(widget).html, stringValue(widgetProps(widget).body)),
 });
 
 const calloutContentConfig = (widget: ResolvedWidget): CalloutContentConfig => ({
@@ -328,7 +401,7 @@ const linkListConfig = (widget: ResolvedWidget): LinkListConfig => ({
   links: linkItemsFromRecords(recordsValue(widgetProps(widget).links)),
 });
 
-const faqConfig = (widget: ResolvedWidget): FaqConfig => ({
+const accordionConfig = (widget: ResolvedWidget) => ({
   items: faqItemsFromRecords(widgetProps(widget).items),
 });
 
@@ -356,50 +429,38 @@ const progressConfig = (widget: ResolvedWidget): ProgressConfig => {
   };
 };
 
-const metricGraphConfig = (widget: ResolvedWidget): MetricGraphConfig => {
+const chartConfig = (widget: ResolvedWidget): ChartConfig => {
   const props = widgetProps(widget);
-  const variant = stringValue(props.variant, "bar");
+  const series = recordsValue(props.series).map((item) => ({
+    id: stringValue(item.id, stringValue(item.label, "series")),
+    label: stringValue(item.label, stringValue(item.id, "Series")),
+    points: metricPointsFromRecords(item.points),
+  }));
+  const variant = stringValue(
+    props.variant,
+    widget.instance.type.startsWith("viz.")
+      ? widget.instance.type.slice("viz.".length)
+      : "bar",
+  );
 
   return {
     points: metricPointsFromRecords(props.points),
-    variant: variant === "line" ? "line" : "bar",
+    series,
+    variant: variant === "line" || variant === "area" ? variant : "bar",
+    emptyLabel: stringValue(props.emptyLabel),
   };
 };
-
-const graphChartConfig = (widget: ResolvedWidget): GraphChartConfig => ({
-  series: recordsValue(widgetProps(widget).series).map((series) => ({
-    id: stringValue(series.id, stringValue(series.label, "series")),
-    label: stringValue(series.label, stringValue(series.id, "Series")),
-    points: metricPointsFromRecords(series.points),
-  })),
-});
 
 const dataTableConfig = (widget: ResolvedWidget): DataTableConfig => {
   const props = widgetProps(widget);
+  const filterable =
+    props.filterable === true || widget.instance.type === "data.filterableTable";
 
   return {
     columns: tableColumnsFromRecords(props.columns),
     rows: recordsValue(props.rows),
-  };
-};
-
-const filterableTableConfig = (widget: ResolvedWidget): FilterableTableConfig => {
-  const props = widgetProps(widget);
-
-  return {
-    columns: tableColumnsFromRecords(props.columns),
-    rows: recordsValue(props.rows),
+    filterable,
     riskFilterField: stringValue(props.riskFilterField, "risk"),
-  };
-};
-
-const matrixConfig = (widget: ResolvedWidget): MatrixConfig => {
-  const props = widgetProps(widget);
-
-  return {
-    rows: matrixItemsFromRecords(recordsValue(props.rows)),
-    columns: matrixItemsFromRecords(recordsValue(props.columns)),
-    values: matrixValuesFromConfig(props.values),
   };
 };
 
@@ -412,10 +473,6 @@ const clusterBoardConfig = (widget: ResolvedWidget): ClusterBoardConfig => {
   };
 };
 
-const orgChartConfig = (widget: ResolvedWidget): OrgChartConfig => ({
-  nodes: orgChartNodesFromRecords(recordsValue(widgetProps(widget).nodes)),
-});
-
 const nodeGraphConfig = (widget: ResolvedWidget): NodeGraphConfig => {
   const props = widgetProps(widget);
 
@@ -423,6 +480,27 @@ const nodeGraphConfig = (widget: ResolvedWidget): NodeGraphConfig => {
     nodes: graphNodesFromRecords(props.nodes),
     edges: graphEdgesFromRecords(props.edges),
     label: stringValue(widget.instance.title, "Node graph"),
+  };
+};
+
+const graphConfig = (widget: ResolvedWidget): GraphConfig => {
+  const props = widgetProps(widget);
+  const configuredGraphType = stringValue(props.graphType);
+  const graphType =
+    configuredGraphType.length > 0
+      ? configuredGraphType
+      : widget.instance.type === "data.orgChart" ||
+          widget.instance.type.toLowerCase().includes("orgchart")
+        ? "org"
+        : "node";
+
+  return {
+    ...nodeGraphConfig(widget),
+    nodes:
+      graphType === "org"
+        ? orgChartNodesFromRecords(recordsValue(props.nodes))
+        : graphNodesFromRecords(props.nodes),
+    graphType,
   };
 };
 
@@ -441,8 +519,15 @@ const mediaConfig = (widget: ResolvedWidget): MediaConfig => {
   const props = widgetProps(widget);
   const src = stringValue(props.src);
   const transcript = stringValue(props.transcript);
+  const configuredMediaType = stringValue(props.mediaType);
+  const mediaType =
+    configuredMediaType.length > 0
+      ? configuredMediaType
+      : widget.instance.type.startsWith("media.")
+        ? widget.instance.type.slice("media.".length)
+        : "pdf";
 
-  if (widget.instance.type === "media.image") {
+  if (mediaType === "image") {
     return {
       mediaType: "image",
       src,
@@ -450,7 +535,7 @@ const mediaConfig = (widget: ResolvedWidget): MediaConfig => {
     };
   }
 
-  if (widget.instance.type === "media.audio") {
+  if (mediaType === "audio") {
     return {
       mediaType: "audio",
       src,
@@ -458,7 +543,7 @@ const mediaConfig = (widget: ResolvedWidget): MediaConfig => {
     };
   }
 
-  if (widget.instance.type === "media.video") {
+  if (mediaType === "video") {
     return {
       mediaType: "video",
       src,
@@ -469,6 +554,59 @@ const mediaConfig = (widget: ResolvedWidget): MediaConfig => {
   return {
     mediaType: "pdf",
     ...pdfViewerConfig(widget),
+  };
+};
+
+const documentPreviewConfig = (widget: ResolvedWidget): DocumentPreviewConfig => {
+  const props = widgetProps(widget);
+
+  return {
+    ...pdfViewerConfig(widget),
+    documentType: stringValue(props.documentType, stringValue(props.type)),
+    status: stringValue(props.status),
+  };
+};
+
+const tabsConfig = (widget: ResolvedWidget): TabsConfig => {
+  const props = widgetProps(widget);
+
+  return {
+    tabs: tabsConfigFromRecords(props.tabs ?? props.items),
+    selectedId: stringValue(props.selectedId),
+    emptyLabel: stringValue(props.emptyLabel),
+  };
+};
+
+const stepperConfig = (widget: ResolvedWidget): StepperConfig => {
+  const props = widgetProps(widget);
+
+  return {
+    steps: stepsConfigFromRecords(props.steps ?? props.items),
+    currentStepId: stringValue(props.currentStepId, stringValue(props.selectedId)),
+    emptyLabel: stringValue(props.emptyLabel),
+  };
+};
+
+const modalDrawerConfig = (widget: ResolvedWidget): ModalDrawerConfig => {
+  const props = widgetProps(widget);
+  const placement = stringValue(props.placement);
+
+  return {
+    title: stringValue(props.title, stringValue(widget.instance.title, "Details")),
+    body: stringValue(props.body, stringValue(widget.instance.description)),
+    openLabel: stringValue(props.openLabel),
+    closeLabel: stringValue(props.closeLabel),
+    defaultOpen: props.defaultOpen === true || props.open === true,
+    placement: placement === "drawer" ? "drawer" : "modal",
+  };
+};
+
+const toastCenterConfig = (widget: ResolvedWidget): ToastCenterConfig => {
+  const props = widgetProps(widget);
+
+  return {
+    toasts: toastsConfigFromRecords(props.toasts ?? props.items),
+    emptyLabel: stringValue(props.emptyLabel),
   };
 };
 
@@ -483,68 +621,24 @@ const factory = (
 });
 
 export const widgetRegistry = {
-  "layout.section": factory("layout.section", "WidgetSection", (widget) => (
-    <WidgetSection
+  "layout.section": factory("layout.section", "SectionLayout", (widget) => (
+    <SectionLayout
       title={widget.instance.title}
       description={widget.instance.description}
       {...widgetStyleProps(widget)}
     >
       <p>{valueToText(widgetProps(widget).body)}</p>
-    </WidgetSection>
+    </SectionLayout>
   )),
-  "layout.stack": factory("layout.stack", "WidgetStack", (widget) => (
-    <WidgetStack {...widgetStyleProps(widget)}>
+  "layout.stack": factory("layout.stack", "StackLayout", (widget) => (
+    <StackLayout {...widgetStyleProps(widget)}>
       <p>{valueToText(widgetProps(widget).body)}</p>
-    </WidgetStack>
+    </StackLayout>
   )),
-  "layout.grid": factory("layout.grid", "WidgetGrid", (widget) => (
-    <WidgetGrid {...widgetStyleProps(widget)}>
+  "layout.grid": factory("layout.grid", "GridLayout", (widget) => (
+    <GridLayout {...widgetStyleProps(widget)}>
       <p>{valueToText(widgetProps(widget).body)}</p>
-    </WidgetGrid>
-  )),
-  "queue.requestList": factory("queue.requestList", "RequestQueueWidget", (widget) => (
-    <RequestQueueWidget
-      config={requestQueueConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "employee.summary": factory("employee.summary", "EmployeeSummaryWidget", (widget) => (
-    <EmployeeSummaryWidget
-      config={employeeSummaryConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "change.diff": factory("change.diff", "ChangeDiffWidget", (widget) => (
-    <ChangeDiffWidget
-      config={changeDiffConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "approval.decisionPanel": factory(
-    "approval.decisionPanel",
-    "ApprovalDecisionPanelWidget",
-    (widget) => (
-      <ApprovalDecisionPanelWidget
-        config={approvalDecisionPanelConfig(widget)}
-        styleProps={widgetStyleProps(widget)}
-      />
-    ),
-  ),
-  "simulation.resultPanel": factory(
-    "simulation.resultPanel",
-    "SimulationResultPanelWidget",
-    (widget) => (
-      <SimulationResultPanelWidget
-        config={simulationResultPanelConfig(widget)}
-        styleProps={widgetStyleProps(widget)}
-      />
-    ),
-  ),
-  "audit.timeline": factory("audit.timeline", "AuditTimelineWidget", (widget) => (
-    <AuditTimelineWidget
-      config={auditTimelineConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
+    </GridLayout>
   )),
   "content.text": factory("content.text", "TextContentWidget", (widget) => (
     <TextContentWidget
@@ -564,8 +658,8 @@ export const widgetRegistry = {
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "content.callout": factory("content.callout", "CalloutContentWidget", (widget) => (
-    <CalloutContentWidget
+  "content.callout": factory("content.callout", "CalloutWidget", (widget) => (
+    <CalloutWidget
       config={calloutContentConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
@@ -576,14 +670,26 @@ export const widgetRegistry = {
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "content.metricTile": factory("content.metricTile", "MetricTileWidget", (widget) => (
+  "content.accordion": factory("content.accordion", "AccordionWidget", (widget) => (
+    <AccordionWidget
+      config={accordionConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "data.metricTile": factory("data.metricTile", "MetricTileWidget", (widget) => (
     <MetricTileWidget
       config={metricTileConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "content.labelValueList": factory(
-    "content.labelValueList",
+  "data.progress": factory("data.progress", "ProgressWidget", (widget) => (
+    <ProgressWidget
+      config={progressConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "data.labelValueList": factory(
+    "data.labelValueList",
     "LabelValueListWidget",
     (widget) => (
       <LabelValueListWidget
@@ -592,36 +698,25 @@ export const widgetRegistry = {
       />
     ),
   ),
-  "content.faq": factory("content.faq", "FaqWidget", (widget) => (
-    <FaqWidget config={faqConfig(widget)} styleProps={widgetStyleProps(widget)} />
-  )),
-  "data.progress": factory("data.progress", "ProgressWidget", (widget) => (
-    <ProgressWidget
-      config={progressConfig(widget)}
+  "data.recordSummary": factory(
+    "data.recordSummary",
+    "RecordSummaryWidget",
+    (widget) => (
+      <RecordSummaryWidget
+        config={employeeSummaryConfig(widget)}
+        styleProps={widgetStyleProps(widget)}
+      />
+    ),
+  ),
+  "data.checklist": factory("data.checklist", "ChecklistWidget", (widget) => (
+    <ChecklistWidget
+      config={simulationResultPanelConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "data.metricGraph": factory("data.metricGraph", "MetricGraphWidget", (widget) => (
-    <MetricGraphWidget
-      config={metricGraphConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "data.graphChart": factory("data.graphChart", "GraphChartWidget", (widget) => (
-    <GraphChartWidget
-      config={graphChartConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "data.nodeGraph": factory("data.nodeGraph", "NodeGraphWidget", (widget) => (
-    <NodeGraphWidget
-      config={nodeGraphConfig(widget)}
-      styleProps={widgetStyleProps(widget)}
-    />
-  )),
-  "data.orgChart": factory("data.orgChart", "OrgChartWidget", (widget) => (
-    <OrgChartWidget
-      config={orgChartConfig(widget)}
+  "data.queueList": factory("data.queueList", "QueueListWidget", (widget) => (
+    <QueueListWidget
+      config={requestQueueConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
   )),
@@ -631,46 +726,120 @@ export const widgetRegistry = {
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "data.filterableTable": factory(
-    "data.filterableTable",
-    "FilterableTableWidget",
+  "review.diff": factory("review.diff", "DiffViewerWidget", (widget) => (
+    <DiffViewerWidget
+      config={changeDiffConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "review.timeline": factory("review.timeline", "TimelineWidget", (widget) => (
+    <TimelineWidget
+      config={auditTimelineConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "workflow.actionBar": factory("workflow.actionBar", "ActionBarWidget", (widget) => (
+    <ActionBarWidget
+      config={approvalDecisionPanelConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "workflow.reasonCapture": factory(
+    "workflow.reasonCapture",
+    "ReasonCaptureWidget",
     (widget) => (
-      <FilterableTableWidget
-        config={filterableTableConfig(widget)}
+      <ReasonCaptureWidget
+        config={reasonCaptureConfig(widget)}
         styleProps={widgetStyleProps(widget)}
       />
     ),
   ),
-  "data.matrix": factory("data.matrix", "MatrixWidget", (widget) => (
-    <MatrixWidget config={matrixConfig(widget)} styleProps={widgetStyleProps(widget)} />
+  "viz.chart": factory("viz.chart", "ChartWidget", (widget) => (
+    <ChartWidget config={chartConfig(widget)} styleProps={widgetStyleProps(widget)} />
   )),
-  "data.clusterBoard": factory("data.clusterBoard", "ClusterBoardWidget", (widget) => (
-    <ClusterBoardWidget
+  "viz.graph": factory("viz.graph", "GraphWidget", (widget) => (
+    <GraphWidget config={graphConfig(widget)} styleProps={widgetStyleProps(widget)} />
+  )),
+  "ui.board": factory("ui.board", "BoardWidget", (widget) => (
+    <BoardWidget
       config={clusterBoardConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
   )),
-  "media.image": factory("media.image", "MediaWidget", (widget) => (
-    <MediaWidget config={mediaConfig(widget)} styleProps={widgetStyleProps(widget)} />
+  "media.viewer": factory("media.viewer", "MediaViewerWidget", (widget) => (
+    <MediaViewerWidget
+      config={mediaConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
   )),
-  "media.audio": factory("media.audio", "MediaWidget", (widget) => (
-    <MediaWidget config={mediaConfig(widget)} styleProps={widgetStyleProps(widget)} />
+  "document.preview": factory("document.preview", "DocumentPreviewWidget", (widget) => (
+    <DocumentPreviewWidget
+      config={documentPreviewConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
   )),
-  "media.video": factory("media.video", "MediaWidget", (widget) => (
-    <MediaWidget config={mediaConfig(widget)} styleProps={widgetStyleProps(widget)} />
+  "ui.tabs": factory("ui.tabs", "TabsWidget", (widget) => (
+    <TabsWidget config={tabsConfig(widget)} styleProps={widgetStyleProps(widget)} />
   )),
-  "media.pdf": factory("media.pdf", "PdfViewerWidget", (widget) => (
-    <PdfViewerWidget
-      config={pdfViewerConfig(widget)}
+  "ui.stepper": factory("ui.stepper", "StepperWidget", (widget) => (
+    <StepperWidget
+      config={stepperConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "ui.modalDrawer": factory("ui.modalDrawer", "ModalDrawerWidget", (widget) => (
+    <ModalDrawerWidget
+      config={modalDrawerConfig(widget)}
+      styleProps={widgetStyleProps(widget)}
+    />
+  )),
+  "ui.toastCenter": factory("ui.toastCenter", "ToastCenterWidget", (widget) => (
+    <ToastCenterWidget
+      config={toastCenterConfig(widget)}
       styleProps={widgetStyleProps(widget)}
     />
   )),
 } satisfies WidgetFactoryRegistry;
 
+const exactWidgetAliases: Readonly<Record<string, string>> = {
+  "queue.requestList": "data.queueList",
+  "employee.summary": "data.recordSummary",
+  "change.diff": "review.diff",
+  "approval.decisionPanel": "workflow.actionBar",
+  "simulation.resultPanel": "data.checklist",
+  "audit.timeline": "review.timeline",
+  "content.faq": "content.accordion",
+  "content.metricTile": "data.metricTile",
+  "content.labelValueList": "data.labelValueList",
+  "data.filterableTable": "data.table",
+  "data.metricGraph": "viz.chart",
+  "data.graphChart": "viz.chart",
+  "data.nodeGraph": "viz.graph",
+  "data.orgChart": "viz.graph",
+  "data.clusterBoard": "ui.board",
+  "data.matrix": "data.table",
+  "ui.kanbanBoard": "ui.board",
+  "media.image": "media.viewer",
+  "media.audio": "media.viewer",
+  "media.video": "media.viewer",
+  "media.pdf": "media.viewer",
+};
+
+export const normalizeWidgetType = (type: string): string => {
+  const exactAlias = exactWidgetAliases[type];
+
+  if (exactAlias !== undefined) {
+    return exactAlias;
+  }
+
+  return type;
+};
+
 export const getWidgetFactoryEntry = (
   type: string,
   registry: WidgetFactoryRegistry = widgetRegistry,
-): WidgetFactoryEntry | undefined => registry[type];
+): WidgetFactoryEntry | undefined =>
+  registry[type] ?? registry[normalizeWidgetType(type)];
 
 /** Builds a configured React element for a resolved runtime widget. */
 export const renderWidgetFromRegistry = (

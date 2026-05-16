@@ -32,9 +32,13 @@ export type WidgetStyleProps = {
   motionMedium?: string;
 };
 
-export type WidgetComponentProps<TConfig> = {
-  config: TConfig;
+export type WidgetBrandingStyleProps = {
   styleProps?: WidgetStyleProps | undefined;
+  brandingStyleProps?: WidgetStyleProps | undefined;
+};
+
+export type WidgetComponentProps<TConfig> = WidgetBrandingStyleProps & {
+  config: TConfig;
 };
 
 export type WidgetComponent<TConfig> = ComponentType<WidgetComponentProps<TConfig>>;
@@ -47,11 +51,12 @@ export type WidgetFactoryEntry = {
 
 export type WidgetFactoryRegistry = Readonly<Record<string, WidgetFactoryEntry>>;
 
-export type WidgetLayoutProps = WidgetStyleProps & {
-  children?: ReactNode | undefined;
-  title?: string | undefined;
-  description?: string | undefined;
-};
+export type WidgetLayoutProps = WidgetStyleProps &
+  WidgetBrandingStyleProps & {
+    children?: ReactNode | undefined;
+    title?: string | undefined;
+    description?: string | undefined;
+  };
 
 export type StatusTone = WidgetTone | "error" | "low" | "medium" | "high";
 

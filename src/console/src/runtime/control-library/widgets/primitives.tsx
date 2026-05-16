@@ -1,6 +1,16 @@
 import type { ReactNode } from "react";
-import type { StatusBadgeConfig, WidgetLayoutProps, WidgetStyleProps } from "./types";
-import { stringValue, widgetClassName, widgetStyleVariables } from "./utils";
+import type {
+  StatusBadgeConfig,
+  WidgetBrandingStyleProps,
+  WidgetLayoutProps,
+  WidgetStyleProps,
+} from "./types";
+import {
+  resolveWidgetStyleProps,
+  stringValue,
+  widgetClassName,
+  widgetStyleVariables,
+} from "./utils";
 
 const statusClassName = (status: string): string => {
   const normalizedStatus = status.toLowerCase();
@@ -24,25 +34,50 @@ const statusClassName = (status: string): string => {
   return "status-badge status-info";
 };
 
-export function StatusBadge({ status, label }: StatusBadgeConfig): JSX.Element {
+export function StatusBadge({
+  status,
+  label,
+  styleProps,
+  brandingStyleProps,
+}: StatusBadgeConfig & {
+  styleProps?: WidgetStyleProps | undefined;
+  brandingStyleProps?: WidgetStyleProps | undefined;
+}): JSX.Element {
   const badgeLabel = stringValue(label, status);
+  const baseClassName = statusClassName(status);
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
-  return <span className={statusClassName(status)}>{badgeLabel}</span>;
+  return (
+    <span
+      className={widgetClassName(baseClassName, resolvedStyleProps)}
+      style={widgetStyleVariables(resolvedStyleProps)}
+    >
+      {badgeLabel}
+    </span>
+  );
 }
 
 export function WidgetRoot({
   children,
   className,
   styleProps,
+  brandingStyleProps,
 }: {
   children: ReactNode;
   className: string;
-  styleProps?: WidgetStyleProps | undefined;
-}): JSX.Element {
+} & WidgetBrandingStyleProps): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
     <div
-      className={widgetClassName(className, styleProps)}
-      style={widgetStyleVariables(styleProps)}
+      className={widgetClassName(className, resolvedStyleProps)}
+      style={widgetStyleVariables(resolvedStyleProps)}
     >
       {children}
     </div>
@@ -52,23 +87,29 @@ export function WidgetRoot({
 export function EmptyState({
   label,
   styleProps,
+  brandingStyleProps,
 }: {
   label: string;
-  styleProps?: WidgetStyleProps | undefined;
-}): JSX.Element {
+} & WidgetBrandingStyleProps): JSX.Element {
   return (
-    <WidgetRoot className="content-block" styleProps={styleProps}>
+    <WidgetRoot
+      brandingStyleProps={brandingStyleProps}
+      className="content-block"
+      styleProps={styleProps}
+    >
       <p>{label}</p>
     </WidgetRoot>
   );
 }
 
-export function WidgetSection({
+export function SectionLayout({
   children,
   title,
   description,
-  ...styleProps
+  ...rawStyleProps
 }: WidgetLayoutProps): JSX.Element {
+  const styleProps = resolveWidgetStyleProps(rawStyleProps);
+
   return (
     <section
       className={widgetClassName("widget-section-layout", styleProps)}
@@ -87,10 +128,14 @@ export function WidgetSection({
   );
 }
 
-export function WidgetStack({
+export const WidgetSection = SectionLayout;
+
+export function StackLayout({
   children,
-  ...styleProps
+  ...rawStyleProps
 }: WidgetLayoutProps): JSX.Element {
+  const styleProps = resolveWidgetStyleProps(rawStyleProps);
+
   return (
     <div
       className={widgetClassName("widget-stack-layout", styleProps)}
@@ -101,10 +146,14 @@ export function WidgetStack({
   );
 }
 
-export function WidgetGrid({
+export const WidgetStack = StackLayout;
+
+export function GridLayout({
   children,
-  ...styleProps
+  ...rawStyleProps
 }: WidgetLayoutProps): JSX.Element {
+  const styleProps = resolveWidgetStyleProps(rawStyleProps);
+
   return (
     <div
       className={widgetClassName("widget-grid-layout", styleProps)}
@@ -114,3 +163,5 @@ export function WidgetGrid({
     </div>
   );
 }
+
+export const WidgetGrid = GridLayout;

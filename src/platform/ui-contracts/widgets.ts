@@ -1,5 +1,9 @@
 import type { DataBinding } from "./bindings";
 import type { SurfaceMode } from "./brand";
+import type {
+  CanonicalWidgetTypeId,
+  WidgetTypeAliasDefinition,
+} from "./generated-types";
 import type { RuleSet } from "./rules";
 
 export type WidgetTrustTier = "governed_workflow" | "benign_content" | "external_embed";
@@ -55,6 +59,8 @@ export type WidgetDefinition = {
   supportsResize: boolean;
   supportsDataBinding: boolean;
   supportsPersonalization: boolean;
+  canonicalType?: CanonicalWidgetTypeId;
+  compatibilityAlias?: WidgetTypeAliasDefinition;
   requiredBindings?: readonly string[];
   allowedActions?: readonly WidgetActionKind[];
 };

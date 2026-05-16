@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import {
   controlClassNames,
   controlStyleProps,
@@ -12,23 +14,40 @@ import {
   updateObjectField,
 } from "./utils";
 import type { FieldControlProps } from "./types";
+import { fieldControlSourceType } from "../shared/field-types";
 
-export const ToggleControl = (props: FieldControlProps) => (
-  <label
-    className={controlClassNames(props, "field-library-toggle")}
-    style={controlStyleProps(props)}
-  >
-    <input
-      checked={props.value === true}
-      onChange={(event) => props.onChange(event.currentTarget.checked)}
-      type="checkbox"
-    />
-    <span aria-hidden="true" className="field-library-toggle-track">
-      <span className="field-library-toggle-thumb" />
-    </span>
-    <span>{props.config.placeholder || props.config.label}</span>
-  </label>
-);
+const sliderPercent = (value: number, min: number, max: number): string => {
+  if (max <= min) {
+    return "0%";
+  }
+
+  const boundedValue = Math.min(Math.max(value, min), max);
+
+  return `${((boundedValue - min) / (max - min)) * 100}%`;
+};
+
+export const ToggleControl = (props: FieldControlProps) => {
+  if (fieldControlSourceType(props.config) === "toggle_group") {
+    return <ToggleGroupControl {...props} />;
+  }
+
+  return (
+    <label
+      className={controlClassNames(props, "field-library-toggle")}
+      style={controlStyleProps(props)}
+    >
+      <input
+        checked={props.value === true}
+        onChange={(event) => props.onChange(event.currentTarget.checked)}
+        type="checkbox"
+      />
+      <span aria-hidden="true" className="field-library-toggle-track">
+        <span className="field-library-toggle-thumb" />
+      </span>
+      <span>{props.config.placeholder || props.config.label}</span>
+    </label>
+  );
+};
 
 export const ToggleGroupControl = (props: FieldControlProps) => {
   const currentValue = recordValue(props.value);
@@ -65,6 +84,12 @@ export const ToggleGroupControl = (props: FieldControlProps) => {
 };
 
 export const SliderControl = (props: FieldControlProps) => {
+  const sourceType = fieldControlSourceType(props.config);
+
+  if (sourceType === "slider_group" || sourceType === "metric_slider_group") {
+    return <SliderGroupControl {...props} />;
+  }
+
   const min = rawNumber(props.config, "min", 0);
   const max = rawNumber(props.config, "max", 100);
   const step = rawNumber(props.config, "step", 1);
@@ -74,7 +99,12 @@ export const SliderControl = (props: FieldControlProps) => {
   return (
     <div
       className={controlClassNames(props, "field-library-slider")}
-      style={controlStyleProps(props)}
+      style={
+        {
+          ...controlStyleProps(props),
+          "--field-library-slider-value": sliderPercent(currentValue, min, max),
+        } as CSSProperties
+      }
     >
       <input
         aria-label={props.config.label}
@@ -109,7 +139,15 @@ export const SliderGroupControl = (props: FieldControlProps) => {
         const numericValue = numberValue(currentValue[value], 0);
 
         return (
-          <label className="field-library-slider-row" key={value}>
+          <label
+            className="field-library-slider-row"
+            key={value}
+            style={
+              {
+                "--field-library-slider-value": sliderPercent(numericValue, min, max),
+              } as CSSProperties
+            }
+          >
             <span>
               {optionLabel(option)}
               <small>{optionDescription(option)}</small>

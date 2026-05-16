@@ -58,6 +58,25 @@ describe("control library shared helpers", () => {
     expect(parseResult.value.validation.message).toBe("Employee is required.");
   });
 
+  it("normalizes field aliases into canonical generated field types", () => {
+    const emailConfig = createFieldControlConfig({
+      id: "work_email",
+      label: "Work email",
+      type: "email",
+    });
+    const filterableConfig = createFieldControlConfig({
+      id: "department",
+      label: "Department",
+      type: "filterable_dropdown",
+    });
+
+    expect(emailConfig.type).toBe("text");
+    expect(emailConfig.raw.sourceType).toBe("email");
+    expect(emailConfig.raw.inputType).toBe("email");
+    expect(filterableConfig.type).toBe("combobox");
+    expect(filterableConfig.behavior.searchEnabled).toBe(true);
+  });
+
   it("returns explicit parse errors for invalid generated field configs", () => {
     const parseResult = parseUnknownFieldControlConfig("not-a-config");
 
@@ -145,7 +164,8 @@ describe("control library shared helpers", () => {
     const className = controlClassName(config, "workflow-field");
     const styleVariables = controlStyleVariables(config.style);
 
-    expect(className).toContain("control-type-ai_review_panel");
+    expect(className).toContain("control-type-readonly");
+    expect(config.raw.sourceType).toBe("ai_review_panel");
     expect(className).toContain("control-tone-warning");
     expect(styleVariables["--ui-control-accent" as keyof typeof styleVariables]).toBe(
       "#ad5900",

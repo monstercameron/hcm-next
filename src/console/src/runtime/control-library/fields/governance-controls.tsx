@@ -133,7 +133,7 @@ export const AiReviewPanelControl = (props: FieldControlProps) => (
   </div>
 );
 
-export const SensitiveFieldRevealControl = (props: FieldControlProps) => {
+export const SensitiveRevealControl = (props: FieldControlProps) => {
   const currentValue = recordValue(props.value);
   const isRevealed = currentValue.revealed === true;
 
@@ -169,6 +169,8 @@ export const SensitiveFieldRevealControl = (props: FieldControlProps) => {
   );
 };
 
+export const SensitiveFieldRevealControl = SensitiveRevealControl;
+
 export const GovernanceControl = (props: FieldControlProps) => {
   if (props.config.type === "approval_chain_editor") {
     return <ApprovalChainEditorControl {...props} />;
@@ -178,8 +180,8 @@ export const GovernanceControl = (props: FieldControlProps) => {
     return <PolicyEvidenceChecklistControl {...props} />;
   }
 
-  if (props.config.type === "sensitive_field_reveal") {
-    return <SensitiveFieldRevealControl {...props} />;
+  if (props.config.type === "sensitive_reveal") {
+    return <SensitiveRevealControl {...props} />;
   }
 
   return <AiReviewPanelControl {...props} />;

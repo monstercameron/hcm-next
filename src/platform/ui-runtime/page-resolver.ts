@@ -4,16 +4,29 @@ import type {
   PageRegionDefinition,
   WidgetDefinition,
   WidgetInstance,
+  WidgetTypeAliasDefinition,
 } from "@hcm-next/ui-contracts";
 import { brandTokensToCssVariables } from "./brand";
 import { resolveWidgetBindings } from "./bindings";
 import type { UiRuntimeContext } from "./context";
-import { createDefaultWidgetRegistry, findWidgetDefinition } from "./registry";
+import {
+  createDefaultWidgetRegistry,
+  findCanonicalWidgetDefinition,
+  findExactWidgetDefinition,
+  findWidgetDefinition,
+  getWidgetTypeCanonicalization,
+  normalizeWidgetInstance,
+} from "./registry";
 import { evaluateRuleSet } from "./rules";
 
 export type ResolvedWidget = {
   instance: WidgetInstance;
   definition: WidgetDefinition | undefined;
+  canonicalDefinition: WidgetDefinition | undefined;
+  normalizedInstance: WidgetInstance;
+  originalType: string;
+  canonicalType: string;
+  compatibilityAlias?: WidgetTypeAliasDefinition;
   bindings: Readonly<Record<string, BoundValue>>;
 };
 
@@ -42,7 +55,11 @@ const resolveWidget = (
   context: UiRuntimeContext,
   registry: readonly WidgetDefinition[],
 ): ResolvedWidget | undefined => {
-  const definition = findWidgetDefinition(registry, widget.type);
+  const canonicalization = getWidgetTypeCanonicalization(widget.type);
+  const definition =
+    findExactWidgetDefinition(registry, widget.type) ??
+    findWidgetDefinition(registry, widget.type);
+  const canonicalDefinition = findCanonicalWidgetDefinition(registry, widget.type);
 
   if (!isWidgetAllowedForSurface(definition, context)) {
     return undefined;
@@ -60,6 +77,13 @@ const resolveWidget = (
   return {
     instance: widget,
     definition,
+    canonicalDefinition,
+    normalizedInstance: normalizeWidgetInstance(widget),
+    originalType: canonicalization.originalType,
+    canonicalType: canonicalization.canonicalType,
+    ...(canonicalization.alias === undefined
+      ? {}
+      : { compatibilityAlias: canonicalization.alias }),
     bindings,
   };
 };

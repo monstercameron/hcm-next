@@ -7,6 +7,7 @@ import {
   optionLabel,
   optionValue,
   recordsValue,
+  resolveWidgetStyleProps,
   stringValue,
   valueToText,
 } from "./utils";
@@ -44,6 +45,13 @@ export type GraphChartConfig = {
   series: readonly GraphChartSeries[];
 };
 
+export type ChartConfig = {
+  points?: readonly MetricGraphPoint[];
+  series?: readonly GraphChartSeries[];
+  variant?: "bar" | "line" | "area";
+  emptyLabel?: string;
+};
+
 export type TableColumnConfig = {
   id: string;
   label: string;
@@ -52,6 +60,8 @@ export type TableColumnConfig = {
 export type DataTableConfig = {
   columns: readonly TableColumnConfig[];
   rows: readonly WidgetRecord[];
+  filterable?: boolean;
+  riskFilterField?: string;
 };
 
 export type FilterableTableConfig = DataTableConfig & {
@@ -81,6 +91,8 @@ export type ClusterBoardConfig = {
   items: readonly ClusterBoardItem[];
   values?: Readonly<Record<string, readonly string[]>>;
 };
+
+export type BoardConfig = ClusterBoardConfig;
 
 export const metricPointsFromRecords = (value: unknown): readonly MetricGraphPoint[] =>
   recordsValue(value).map((point) => {
@@ -155,9 +167,15 @@ export const clusterBoardGroupsFromRecords = (
 export function MetricTileWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<MetricTileConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="metric-tile" styleProps={styleProps}>
+    <WidgetRoot className="metric-tile" styleProps={resolvedStyleProps}>
       <span>{config.label}</span>
       <strong>{valueToText(config.value)}</strong>
       {config.detail !== undefined ? <small>{config.detail}</small> : null}
@@ -168,12 +186,17 @@ export function MetricTileWidget({
 export function ProgressWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ProgressConfig>): JSX.Element {
   const max = config.max ?? 100;
   const value = Math.min(max, Math.max(0, config.value));
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="progress-widget" styleProps={styleProps}>
+    <WidgetRoot className="progress-widget" styleProps={resolvedStyleProps}>
       <progress max={max} value={value} />
       <span>
         {config.label !== undefined ? `${config.label}: ` : ""}
@@ -186,6 +209,7 @@ export function ProgressWidget({
 export function MetricGraphWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<MetricGraphConfig>): JSX.Element {
   const configuredVariant = config.variant ?? "bar";
   const [variant, setVariant] = useState<"bar" | "line">(configuredVariant);
@@ -194,9 +218,13 @@ export function MetricGraphWidget({
     ...config.points.flatMap((point) => [point.value, point.target ?? 0]),
   );
   const pathPoints = metricPathPoints(config.points);
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="metric-graph-widget" styleProps={styleProps}>
+    <WidgetRoot className="metric-graph-widget" styleProps={resolvedStyleProps}>
       <div className="graph-toolbar" role="group" aria-label="Metric graph type">
         {[
           { label: "Bars", value: "bar" as const },
@@ -238,7 +266,21 @@ export function MetricGraphWidget({
       ) : (
         <div className="metric-line-chart">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g className="chart-grid-lines" aria-hidden="true">
+              {[28, 52, 76].map((y) => (
+                <line key={y} x1="0" x2="100" y1={y} y2={y} />
+              ))}
+            </g>
             <polyline points={pathPoints} />
+            {config.points.map((point, index) => {
+              const x =
+                config.points.length <= 1
+                  ? 50
+                  : (index / (config.points.length - 1)) * 100;
+              const y = 96 - (point.value / maxValue) * 86;
+
+              return <circle cx={x} cy={y} key={point.label} r="1.7" />;
+            })}
           </svg>
           <div className="metric-line-labels">
             {config.points.map((point) => (
@@ -289,6 +331,11 @@ export function GraphChartWidget({
       </div>
       <div className="graph-chart-canvas">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <g className="chart-grid-lines" aria-hidden="true">
+            {[28, 52, 76].map((y) => (
+              <line key={y} x1="0" x2="100" y1={y} y2={y} />
+            ))}
+          </g>
           <polygon points={`0,100 ${pathPoints} 100,100`} />
           <polyline points={pathPoints} />
           {points.map((point, index) => {
@@ -311,12 +358,77 @@ export function GraphChartWidget({
   );
 }
 
+export function ChartWidget({
+  config,
+  styleProps,
+}: WidgetComponentProps<ChartConfig>): JSX.Element {
+  const series = config.series ?? [];
+
+  if (series.length > 0) {
+    return <GraphChartWidget config={{ series }} styleProps={styleProps} />;
+  }
+
+  return (
+    <MetricGraphWidget
+      config={{
+        points: config.points ?? [],
+        variant: config.variant === "line" ? "line" : "bar",
+      }}
+      styleProps={styleProps}
+    />
+  );
+}
+
 export function DataTableWidget({
   config,
   styleProps,
 }: WidgetComponentProps<DataTableConfig>): JSX.Element {
+  const riskField = config.riskFilterField ?? "risk";
+  const [query, setQuery] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const filteredRows = useMemo(
+    () =>
+      config.filterable === true
+        ? config.rows.filter((row) => {
+            const queryMatch =
+              query.trim().length === 0 ||
+              Object.values(row).some((value) =>
+                valueToText(value).toLowerCase().includes(query.toLowerCase()),
+              );
+            const rowRisk = stringValue(row[riskField]).toLowerCase();
+            const riskMatch = riskFilter === "all" || rowRisk === riskFilter;
+
+            return queryMatch && riskMatch;
+          })
+        : config.rows,
+    [config.filterable, config.rows, query, riskField, riskFilter],
+  );
+
   return (
-    <WidgetRoot className="data-table-wrap" styleProps={styleProps}>
+    <WidgetRoot
+      className={config.filterable === true ? "filterable-table" : "data-table-wrap"}
+      styleProps={styleProps}
+    >
+      {config.filterable === true ? (
+        <div className="table-filters">
+          <input
+            aria-label="Filter table rows"
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            placeholder="Filter rows"
+            value={query}
+          />
+          <select
+            aria-label="Risk filter"
+            onChange={(event) => setRiskFilter(event.currentTarget.value)}
+            value={riskFilter}
+          >
+            <option value="all">All risk levels</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      ) : null}
       <table className="data-table">
         <thead>
           <tr>
@@ -326,7 +438,7 @@ export function DataTableWidget({
           </tr>
         </thead>
         <tbody>
-          {config.rows.map((row, rowIndex) => (
+          {filteredRows.map((row, rowIndex) => (
             <tr key={`${stringValue(row.id, "row")}-${rowIndex}`}>
               {config.columns.map((column) => (
                 <td key={column.id}>{valueToText(row[column.id])}</td>
@@ -335,6 +447,11 @@ export function DataTableWidget({
           ))}
         </tbody>
       </table>
+      {config.filterable === true ? (
+        <div className="selected-pill">
+          Showing {filteredRows.length} of {config.rows.length} rows
+        </div>
+      ) : null}
     </WidgetRoot>
   );
 }
@@ -342,65 +459,36 @@ export function DataTableWidget({
 export function FilterableTableWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<FilterableTableConfig>): JSX.Element {
-  const riskField = config.riskFilterField ?? "risk";
-  const [query, setQuery] = useState("");
-  const [riskFilter, setRiskFilter] = useState("all");
-  const filteredRows = useMemo(
-    () =>
-      config.rows.filter((row) => {
-        const queryMatch =
-          query.trim().length === 0 ||
-          Object.values(row).some((value) =>
-            valueToText(value).toLowerCase().includes(query.toLowerCase()),
-          );
-        const rowRisk = stringValue(row[riskField]).toLowerCase();
-        const riskMatch = riskFilter === "all" || rowRisk === riskFilter;
-
-        return queryMatch && riskMatch;
-      }),
-    [config.rows, query, riskField, riskFilter],
-  );
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="filterable-table" styleProps={styleProps}>
-      <div className="table-filters">
-        <input
-          aria-label="Filter table rows"
-          onChange={(event) => setQuery(event.currentTarget.value)}
-          placeholder="Filter rows"
-          value={query}
-        />
-        <select
-          aria-label="Risk filter"
-          onChange={(event) => setRiskFilter(event.currentTarget.value)}
-          value={riskFilter}
-        >
-          <option value="all">All risk levels</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-      <DataTableWidget
-        config={{
-          columns: config.columns,
-          rows: filteredRows,
-        }}
-      />
-      <div className="selected-pill">
-        Showing {filteredRows.length} of {config.rows.length} rows
-      </div>
-    </WidgetRoot>
+    <DataTableWidget
+      config={{
+        ...config,
+        filterable: true,
+      }}
+      styleProps={resolvedStyleProps}
+    />
   );
 }
 
 export function MatrixWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<MatrixConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="matrix-display" styleProps={styleProps}>
+    <WidgetRoot className="matrix-display" styleProps={resolvedStyleProps}>
       <strong>Criterion</strong>
       {config.columns.map((column) => (
         <strong key={column.label}>{column.label}</strong>
@@ -429,14 +517,19 @@ export function MatrixWidget({
 export function ClusterBoardWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ClusterBoardConfig>): JSX.Element {
   const initialClusters =
     config.values ?? createClusterState(config.groups, config.items);
   const [selectedItemId, setSelectedItemId] = useState(config.items[0]?.id ?? "");
   const itemMap = new Map(config.items.map((item) => [item.id, item]));
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="cluster-board" styleProps={styleProps}>
+    <WidgetRoot className="cluster-board" styleProps={resolvedStyleProps}>
       {Object.entries(initialClusters).map(([groupId, itemIds]) => {
         const group = config.groups.find((candidate) => candidate.id === groupId);
 
@@ -475,6 +568,8 @@ export function ClusterBoardWidget({
     </WidgetRoot>
   );
 }
+
+export const BoardWidget = ClusterBoardWidget;
 
 export const matrixItemsFromRecords = (
   records: readonly WidgetRecord[],

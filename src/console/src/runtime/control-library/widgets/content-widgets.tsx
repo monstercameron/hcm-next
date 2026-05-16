@@ -7,6 +7,7 @@ import type {
 import { WidgetRoot } from "./primitives";
 import {
   recordsValue,
+  resolveWidgetStyleProps,
   sanitizeHtmlSubset,
   stringValue,
   valueToText,
@@ -31,6 +32,8 @@ export type CalloutContentConfig = {
   body: string;
 };
 
+export type CalloutConfig = CalloutContentConfig;
+
 export type LinkListConfig = {
   links: readonly LinkItem[];
 };
@@ -43,6 +46,10 @@ export type FaqItem = {
 export type FaqConfig = {
   items: readonly FaqItem[];
 };
+
+export type AccordionItem = FaqItem;
+
+export type AccordionConfig = FaqConfig;
 
 export type LabelValueListConfig = {
   items: readonly LabelValueItem[];
@@ -78,9 +85,15 @@ export const labelValueItemsFromRecords = (
 export function TextContentWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<TextContentConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="content-block" styleProps={styleProps}>
+    <WidgetRoot className="content-block" styleProps={resolvedStyleProps}>
       <p>{config.body}</p>
       {config.visibility !== undefined ? <small>{config.visibility}</small> : null}
     </WidgetRoot>
@@ -90,9 +103,15 @@ export function TextContentWidget({
 export function MarkdownContentWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<MarkdownContentConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="content-block" styleProps={styleProps}>
+    <WidgetRoot className="content-block" styleProps={resolvedStyleProps}>
       {markdownLinesValue(config.markdown).map((line) => (
         <p key={line}>{line}</p>
       ))}
@@ -103,9 +122,15 @@ export function MarkdownContentWidget({
 export function HtmlContentWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<HtmlContentConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="content-block" styleProps={styleProps}>
+    <WidgetRoot className="content-block" styleProps={resolvedStyleProps}>
       <div
         dangerouslySetInnerHTML={{
           __html: sanitizeHtmlSubset(config.html),
@@ -115,25 +140,39 @@ export function HtmlContentWidget({
   );
 }
 
-export function CalloutContentWidget({
+export function CalloutWidget({
   config,
   styleProps,
-}: WidgetComponentProps<CalloutContentConfig>): JSX.Element {
+  brandingStyleProps,
+}: WidgetComponentProps<CalloutConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="callout-body" styleProps={styleProps}>
+    <WidgetRoot className="callout-body" styleProps={resolvedStyleProps}>
       <p>{config.body}</p>
     </WidgetRoot>
   );
 }
 
+export const CalloutContentWidget = CalloutWidget;
+
 export function LinkListWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<LinkListConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
     <ul
-      className={widgetClassName("link-list", styleProps)}
-      style={widgetStyleVariables(styleProps)}
+      className={widgetClassName("link-list", resolvedStyleProps)}
+      style={widgetStyleVariables(resolvedStyleProps)}
     >
       {config.links.map((link) => (
         <li key={`${link.label}-${link.href}`}>
@@ -145,12 +184,18 @@ export function LinkListWidget({
   );
 }
 
-export function FaqWidget({
+export function AccordionWidget({
   config,
   styleProps,
-}: WidgetComponentProps<FaqConfig>): JSX.Element {
+  brandingStyleProps,
+}: WidgetComponentProps<AccordionConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
-    <WidgetRoot className="faq-list" styleProps={styleProps}>
+    <WidgetRoot className="faq-list" styleProps={resolvedStyleProps}>
       {config.items.map((item) => (
         <details key={item.question}>
           <summary>{item.question}</summary>
@@ -161,14 +206,22 @@ export function FaqWidget({
   );
 }
 
+export const FaqWidget = AccordionWidget;
+
 export function LabelValueListWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<LabelValueListConfig>): JSX.Element {
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
+
   return (
     <dl
-      className={widgetClassName("label-value-list", styleProps)}
-      style={widgetStyleVariables(styleProps)}
+      className={widgetClassName("label-value-list", resolvedStyleProps)}
+      style={widgetStyleVariables(resolvedStyleProps)}
     >
       {config.items.map((item) => (
         <div key={item.label}>

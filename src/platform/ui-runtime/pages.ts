@@ -1447,6 +1447,30 @@ const basePageDefinitions: readonly PageDefinition[] = [
             },
           },
           {
+            id: "widget-section-layout",
+            type: "layout.section",
+            title: "Section layout",
+            props: {
+              body: "Section layout gives generated pages a branded, titled content region.",
+            },
+          },
+          {
+            id: "widget-stack-layout",
+            type: "layout.stack",
+            title: "Stack layout",
+            props: {
+              body: "Stack layout arranges generated workflow content in a single column.",
+            },
+          },
+          {
+            id: "widget-grid-layout",
+            type: "layout.grid",
+            title: "Grid layout",
+            props: {
+              body: "Grid layout provides a responsive multi-column surface for atomic widgets.",
+            },
+          },
+          {
             id: "widget-text",
             type: "content.text",
             title: "Text block",
@@ -1892,6 +1916,17 @@ const basePageDefinitions: readonly PageDefinition[] = [
                 variant: "danger",
               },
             ],
+          },
+          {
+            id: "widget-reason-capture",
+            type: "workflow.reasonCapture",
+            title: "Reason capture",
+            props: {
+              label: "Decision reason",
+              placeholder: "Add context for the approval record",
+              required: true,
+              reasons: ["Policy exception", "Missing evidence", "Payroll cutoff"],
+            },
           },
           {
             id: "widget-simulation",

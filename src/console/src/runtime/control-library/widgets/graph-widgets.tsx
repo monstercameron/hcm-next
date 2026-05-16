@@ -41,6 +41,10 @@ export type NodeGraphConfig = {
   selectedLabel?: string;
 };
 
+export type GraphConfig = NodeGraphConfig & {
+  graphType?: string;
+};
+
 export const graphNodesFromRecords = (value: unknown): readonly GraphNodeConfig[] =>
   recordsValue(value).map((node) => {
     const id = stringValue(node.id, optionValue(node));
@@ -202,4 +206,26 @@ export function NodeGraphWidget({
       </div>
     </WidgetRoot>
   );
+}
+
+export function GraphWidget({
+  config,
+  styleProps,
+}: WidgetComponentProps<GraphConfig>): JSX.Element {
+  if (config.graphType === "org" || config.graphType === "orgChart") {
+    const selectedLabelConfig =
+      config.selectedLabel === undefined ? {} : { selectedLabel: config.selectedLabel };
+
+    return (
+      <OrgChartWidget
+        config={{
+          nodes: config.nodes,
+          ...selectedLabelConfig,
+        }}
+        styleProps={styleProps}
+      />
+    );
+  }
+
+  return <NodeGraphWidget config={config} styleProps={styleProps} />;
 }

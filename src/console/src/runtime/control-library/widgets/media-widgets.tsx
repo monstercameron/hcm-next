@@ -27,6 +27,11 @@ export type PdfViewerConfig = {
   zoomStep?: number;
 };
 
+export type DocumentPreviewConfig = PdfViewerConfig & {
+  documentType?: string;
+  status?: string;
+};
+
 export type MediaConfig =
   | ({ mediaType: "image" } & ImageMediaConfig)
   | ({ mediaType: "audio" } & AudioMediaConfig)
@@ -39,7 +44,18 @@ export function ImageMediaWidget({
 }: WidgetComponentProps<ImageMediaConfig>): JSX.Element {
   return (
     <WidgetRoot className="media-widget" styleProps={styleProps}>
-      <img className="media-image" src={config.src} alt={config.alt} />
+      <figure className="media-image-frame">
+        <img
+          alt={config.alt}
+          className="media-image"
+          loading="eager"
+          onError={(event) => {
+            event.currentTarget.hidden = true;
+          }}
+          src={config.src}
+        />
+        <figcaption>{config.alt}</figcaption>
+      </figure>
     </WidgetRoot>
   );
 }
@@ -155,5 +171,14 @@ export function MediaWidget({
     return <VideoMediaWidget config={config} styleProps={styleProps} />;
   }
 
+  return <PdfViewerWidget config={config} styleProps={styleProps} />;
+}
+
+export const MediaViewerWidget = MediaWidget;
+
+export function DocumentPreviewWidget({
+  config,
+  styleProps,
+}: WidgetComponentProps<DocumentPreviewConfig>): JSX.Element {
   return <PdfViewerWidget config={config} styleProps={styleProps} />;
 }

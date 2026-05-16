@@ -16,6 +16,7 @@ import {
   updateObjectField,
 } from "./utils";
 import type { FieldControlProps } from "./types";
+import { fieldControlSourceType } from "../shared/field-types";
 
 export const RepeatingListControl = (props: FieldControlProps) => {
   const values = stringArrayValue(props.value);
@@ -56,6 +57,8 @@ export const RepeatingListControl = (props: FieldControlProps) => {
     </div>
   );
 };
+
+export const RepeaterControl = RepeatingListControl;
 
 export const TableEditorControl = (props: FieldControlProps) => {
   const fallbackColumns = [
@@ -156,6 +159,8 @@ export const MatrixControl = (props: FieldControlProps) => {
   );
 };
 
+export const MatrixInputControl = MatrixControl;
+
 export const ClusterBoardControl = (props: FieldControlProps) => {
   const items = props.items?.length === 0 ? (props.options ?? []) : (props.items ?? []);
   const configuredGroups = props.groups?.length === 0 ? [] : (props.groups ?? []);
@@ -204,27 +209,30 @@ export const ClusterBoardControl = (props: FieldControlProps) => {
   );
 };
 
-export const StructuredControl = (props: FieldControlProps) => {
-  if (props.config.type === "repeating_list") {
-    return <RepeatingListControl {...props} />;
-  }
+export const TableInputControl = (props: FieldControlProps) => {
+  const sourceType = fieldControlSourceType(props.config);
 
-  if (props.config.type === "matrix") {
-    return <MatrixControl {...props} />;
-  }
-
-  if (
-    props.config.type === "cluster_board" ||
-    props.config.type === "drag_drop_clusters"
-  ) {
+  if (sourceType === "cluster_board" || sourceType === "drag_drop_clusters") {
     return <ClusterBoardControl {...props} />;
   }
 
-  if (props.config.type === "bulk_grid_editor") {
-    return <TableEditorControl {...props} value={recordsValue(props.value)} />;
+  return <TableEditorControl {...props} value={recordsValue(props.value)} />;
+};
+
+export const StructuredControl = (props: FieldControlProps) => {
+  if (props.config.type === "repeater") {
+    return <RepeaterControl {...props} />;
   }
 
-  return <TableEditorControl {...props} value={recordsValue(props.value)} />;
+  if (props.config.type === "matrix") {
+    return <MatrixInputControl {...props} />;
+  }
+
+  if (props.config.type === "table") {
+    return <TableInputControl {...props} />;
+  }
+
+  return <TableInputControl {...props} />;
 };
 
 export const StaticPreviewControl = (props: FieldControlProps) => (

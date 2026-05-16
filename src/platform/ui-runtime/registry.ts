@@ -1,8 +1,13 @@
 import type {
+  CanonicalWidgetTypeId,
   SurfaceMode,
   WidgetDefinition,
+  WidgetInstance,
   WidgetTrustTier,
+  WidgetTypeAliasDefinition,
 } from "@hcm-next/ui-contracts";
+import { canonicalWidgetTypeIds } from "@hcm-next/ui-contracts";
+import { normalizeGeneratedFieldsInProps } from "./field-types";
 
 const allSurfaces: readonly SurfaceMode[] = [
   "full_app",
@@ -34,6 +39,486 @@ const workflowSurfaces: readonly SurfaceMode[] = [
   "mobile_compact",
 ];
 
+type WidgetDefinitionOptions = {
+  defaultSize?: WidgetDefinition["defaultSize"];
+  supportsResize?: boolean;
+  supportsDataBinding?: boolean;
+  supportsPersonalization?: boolean;
+  allowedActions?: WidgetDefinition["allowedActions"];
+  canonicalType?: CanonicalWidgetTypeId;
+  compatibilityAlias?: WidgetTypeAliasDefinition;
+};
+
+type WidgetFamilyAliasRule = {
+  prefix: string;
+  canonicalType: CanonicalWidgetTypeId;
+  description: string;
+  props?: Readonly<Record<string, unknown>>;
+};
+
+const canonicalWidgetTypeSet = new Set<string>(canonicalWidgetTypeIds);
+
+const alias = (
+  sourceType: string,
+  canonicalType: CanonicalWidgetTypeId,
+  description: string,
+  props: Readonly<Record<string, unknown>> = {},
+  source: WidgetTypeAliasDefinition["source"] = "legacy",
+  composition: readonly CanonicalWidgetTypeId[] = [],
+): WidgetTypeAliasDefinition => ({
+  sourceType,
+  canonicalType,
+  description,
+  source,
+  ...(Object.keys(props).length === 0 ? {} : { props }),
+  ...(composition.length === 0 ? {} : { composition }),
+});
+
+export const widgetTypeAliases: readonly WidgetTypeAliasDefinition[] = [
+  alias("queue.requestList", "data.queueList", "Request queues use queue list."),
+  alias(
+    "employee.summary",
+    "data.recordSummary",
+    "Employee summary is a record summary with employee binding metadata.",
+    { recordType: "employee" },
+  ),
+  alias("change.diff", "review.diff", "Change diff is the canonical diff viewer."),
+  alias(
+    "approval.decisionPanel",
+    "workflow.actionBar",
+    "Decision panels use an action bar and optional reason capture.",
+    { reasonCapture: "inline" },
+    "legacy",
+    ["workflow.actionBar", "workflow.reasonCapture"],
+  ),
+  alias(
+    "simulation.resultPanel",
+    "data.checklist",
+    "Simulation panels normalize into checklist status with timeline support.",
+    { checklistType: "simulation" },
+    "legacy",
+    ["data.checklist", "review.timeline"],
+  ),
+  alias("audit.timeline", "review.timeline", "Audit timelines use review timeline."),
+  alias("content.metricTile", "data.metricTile", "Metric tiles belong to data."),
+  alias(
+    "content.labelValueList",
+    "data.labelValueList",
+    "Label/value content belongs to data.",
+  ),
+  alias("content.faq", "content.accordion", "FAQ uses accordion semantics."),
+  alias("ui.accordion", "content.accordion", "UI accordion uses content accordion."),
+  alias(
+    "data.filterableTable",
+    "data.table",
+    "Filterable tables are data tables with filter props.",
+    { filterable: true },
+  ),
+  alias("data.matrix", "data.table", "Matrix displays normalize to tables.", {
+    presentation: "matrix",
+  }),
+  alias("data.metricGraph", "viz.chart", "Metric graph is a chart variant.", {
+    variant: "metric",
+  }),
+  alias("data.graphChart", "viz.chart", "Graph chart is a chart variant.", {
+    variant: "series",
+  }),
+  alias("data.nodeGraph", "viz.graph", "Node graph is the canonical graph widget.", {
+    graphType: "node",
+  }),
+  alias("data.orgChart", "viz.graph", "Org chart is a graph with org layout.", {
+    graphType: "org",
+  }),
+  alias("data.clusterBoard", "ui.board", "Cluster board is a board variant.", {
+    boardType: "cluster",
+  }),
+  alias("ui.kanbanBoard", "ui.board", "Kanban board is a board variant.", {
+    boardType: "kanban",
+  }),
+  alias("ui.wizardProgress", "ui.stepper", "Wizard progress uses stepper."),
+  alias("ui.timelineVariant", "review.timeline", "Timeline variants use timeline."),
+  alias("ui.calendar", "data.table", "Calendar widgets are date-oriented tables.", {
+    presentation: "calendar",
+  }),
+  alias("ui.mapListSplit", "layout.grid", "Map/list split uses grid layout.", {
+    layoutVariant: "mapList",
+  }),
+  alias("ui.commandPalette", "workflow.actionBar", "Commands use action bar."),
+  alias("ui.searchResults", "data.table", "Search results use data table."),
+  alias("ui.stateDisplay", "content.callout", "State displays use callout content."),
+  alias("ui.resizableSplitPane", "layout.grid", "Split panes use grid layout.", {
+    resizable: true,
+  }),
+  alias("media.image", "media.viewer", "Images use media viewer.", {
+    mediaType: "image",
+  }),
+  alias("media.audio", "media.viewer", "Audio uses media viewer.", {
+    mediaType: "audio",
+  }),
+  alias("media.video", "media.viewer", "Video uses media viewer.", {
+    mediaType: "video",
+  }),
+  alias("media.pdf", "media.viewer", "PDF media uses media viewer.", {
+    mediaType: "pdf",
+  }),
+  alias("workflow.slaCountdown", "data.progress", "SLA countdown is progress."),
+  alias(
+    "workflow.escalationPath",
+    "review.timeline",
+    "Escalation paths are timeline records.",
+  ),
+  alias(
+    "workflow.approvalSwimlane",
+    "review.timeline",
+    "Approval swimlanes are timeline records.",
+  ),
+  alias(
+    "workflow.parallelApprovalBoard",
+    "ui.board",
+    "Parallel approval boards use board semantics.",
+  ),
+  alias(
+    "workflow.requiredEvidenceChecklist",
+    "data.checklist",
+    "Required evidence uses checklist.",
+  ),
+  alias(
+    "workflow.blockingIssuesPanel",
+    "data.checklist",
+    "Blocking issues use checklist.",
+  ),
+  alias("workflow.dependencyGraph", "viz.graph", "Dependencies use graph."),
+  alias("workflow.repairQueue", "data.queueList", "Repair queues use queue list."),
+  alias("workflow.stateMachineViewer", "viz.graph", "State machines use graph."),
+  alias(
+    "workflow.transitionHistory",
+    "review.timeline",
+    "Transition history uses timeline.",
+  ),
+  alias("workflow.changedSinceLastReview", "review.diff", "Changed records use diff."),
+  alias("workflow.taskHandoff", "workflow.actionBar", "Task handoff uses action bar."),
+  alias(
+    "workflow.exceptionQueue",
+    "data.queueList",
+    "Exception queues use queue list.",
+  ),
+  alias("workflow.policyFindings", "data.checklist", "Policy findings use checklist."),
+  alias("ai.changeBrief", "content.callout", "AI briefs use callout content."),
+  alias("document.packetViewer", "document.preview", "Document packets use preview.", {
+    previewType: "packet",
+  }),
+  alias(
+    "document.comparisonDiff",
+    "document.preview",
+    "Document comparison uses preview plus diff.",
+    { previewType: "comparison" },
+    "legacy",
+    ["document.preview", "review.diff"],
+  ),
+  alias(
+    "document.attachmentGallery",
+    "document.preview",
+    "Attachment galleries use document preview.",
+    { previewType: "attachments" },
+  ),
+  alias(
+    "document.evidenceTimeline",
+    "document.preview",
+    "Evidence timelines use document preview plus timeline.",
+    { previewType: "evidence" },
+    "legacy",
+    ["document.preview", "review.timeline"],
+  ),
+  alias(
+    "document.signaturePacketStatus",
+    "document.preview",
+    "Signature packet status uses document preview.",
+    { previewType: "signaturePacket" },
+  ),
+  alias(
+    "document.eSignatureCanvas",
+    "document.preview",
+    "E-signature canvases use document preview.",
+    { previewType: "signature" },
+  ),
+  alias(
+    "document.generatedFormPreview",
+    "document.preview",
+    "Generated forms use document preview.",
+    { previewType: "form" },
+  ),
+  alias(
+    "document.generatedPdfPreview",
+    "document.preview",
+    "Generated PDFs use document preview.",
+    { previewType: "pdf" },
+  ),
+  alias(
+    "document.auditExportPreview",
+    "document.preview",
+    "Audit exports use document preview.",
+    { previewType: "auditExport" },
+  ),
+  alias(
+    "document.redactionPreview",
+    "document.preview",
+    "Redaction previews use document preview.",
+    { previewType: "redaction" },
+  ),
+  alias(
+    "document.ocrExtractedFields",
+    "document.preview",
+    "OCR extracted fields use document preview.",
+    { previewType: "ocr" },
+  ),
+];
+
+export const widgetTypeAliasFamilyRules: readonly WidgetFamilyAliasRule[] = [
+  {
+    prefix: "ai.",
+    canonicalType: "content.callout",
+    description: "AI catalog widgets normalize to content or review recipes.",
+    props: { catalogFamily: "ai" },
+  },
+  {
+    prefix: "hcm.",
+    canonicalType: "data.recordSummary",
+    description: "HCM insight catalog widgets normalize to data summary recipes.",
+    props: { catalogFamily: "hcm" },
+  },
+  {
+    prefix: "workflow.",
+    canonicalType: "data.checklist",
+    description: "Workflow catalog widgets normalize to checklist/action recipes.",
+    props: { catalogFamily: "workflow" },
+  },
+  {
+    prefix: "document.",
+    canonicalType: "document.preview",
+    description: "Document catalog widgets normalize to document preview recipes.",
+    props: { catalogFamily: "document" },
+  },
+  {
+    prefix: "collaboration.",
+    canonicalType: "review.timeline",
+    description: "Collaboration catalog widgets normalize to timeline/content recipes.",
+    props: { catalogFamily: "collaboration" },
+  },
+  {
+    prefix: "integration.",
+    canonicalType: "data.checklist",
+    description: "Integration catalog widgets normalize to checklist/table recipes.",
+    props: { catalogFamily: "integration" },
+  },
+  {
+    prefix: "time.",
+    canonicalType: "data.metricTile",
+    description: "Time catalog widgets normalize to metric/progress recipes.",
+    props: { catalogFamily: "time" },
+  },
+  {
+    prefix: "viz.",
+    canonicalType: "viz.chart",
+    description: "Visualization variants normalize to chart with variant props.",
+    props: { catalogFamily: "viz" },
+  },
+  {
+    prefix: "ui.",
+    canonicalType: "layout.section",
+    description: "UI block catalog widgets normalize to layout/surface recipes.",
+    props: { catalogFamily: "ui" },
+  },
+  {
+    prefix: "recruiting.",
+    canonicalType: "data.recordSummary",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "recruiting" },
+  },
+  {
+    prefix: "onboarding.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "onboarding" },
+  },
+  {
+    prefix: "offboarding.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "offboarding" },
+  },
+  {
+    prefix: "performance.",
+    canonicalType: "data.recordSummary",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "performance" },
+  },
+  {
+    prefix: "talent.",
+    canonicalType: "data.recordSummary",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "talent" },
+  },
+  {
+    prefix: "workforce.",
+    canonicalType: "data.metricTile",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "workforce" },
+  },
+  {
+    prefix: "scheduling.",
+    canonicalType: "data.table",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "scheduling" },
+  },
+  {
+    prefix: "leave.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "leave" },
+  },
+  {
+    prefix: "benefits.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "benefits" },
+  },
+  {
+    prefix: "payroll.",
+    canonicalType: "data.table",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "payroll" },
+  },
+  {
+    prefix: "employeeRelations.",
+    canonicalType: "review.timeline",
+    description: "Domain catalog widgets normalize to reusable review recipes.",
+    props: { catalogFamily: "employeeRelations" },
+  },
+  {
+    prefix: "compliance.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "compliance" },
+  },
+  {
+    prefix: "experience.",
+    canonicalType: "content.callout",
+    description: "Domain catalog widgets normalize to reusable content recipes.",
+    props: { catalogFamily: "experience" },
+  },
+  {
+    prefix: "coreHris.",
+    canonicalType: "data.recordSummary",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "coreHris" },
+  },
+  {
+    prefix: "compAdvanced.",
+    canonicalType: "data.metricTile",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "compAdvanced" },
+  },
+  {
+    prefix: "learning.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "learning" },
+  },
+  {
+    prefix: "dei.",
+    canonicalType: "viz.chart",
+    description: "Domain catalog widgets normalize to reusable visualization recipes.",
+    props: { catalogFamily: "dei" },
+  },
+  {
+    prefix: "labor.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "labor" },
+  },
+  {
+    prefix: "healthSafety.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "healthSafety" },
+  },
+  {
+    prefix: "serviceDelivery.",
+    canonicalType: "data.queueList",
+    description: "Domain catalog widgets normalize to reusable queue recipes.",
+    props: { catalogFamily: "serviceDelivery" },
+  },
+  {
+    prefix: "employeeFinance.",
+    canonicalType: "data.recordSummary",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "employeeFinance" },
+  },
+  {
+    prefix: "globalMobility.",
+    canonicalType: "data.checklist",
+    description: "Domain catalog widgets normalize to reusable data recipes.",
+    props: { catalogFamily: "globalMobility" },
+  },
+  {
+    prefix: "privacy.",
+    canonicalType: "review.timeline",
+    description: "Domain catalog widgets normalize to reusable review recipes.",
+    props: { catalogFamily: "privacy" },
+  },
+];
+
+const widgetTypeAliasMap = new Map(
+  widgetTypeAliases.map((entry) => [entry.sourceType, entry]),
+);
+
+export const isCanonicalWidgetType = (
+  widgetType: string,
+): widgetType is CanonicalWidgetTypeId => canonicalWidgetTypeSet.has(widgetType);
+
+export const findWidgetTypeAlias = (
+  widgetType: string,
+): WidgetTypeAliasDefinition | undefined => {
+  const exactAlias = widgetTypeAliasMap.get(widgetType);
+
+  if (exactAlias !== undefined) {
+    return exactAlias;
+  }
+
+  if (isCanonicalWidgetType(widgetType)) {
+    return undefined;
+  }
+
+  const familyRule = widgetTypeAliasFamilyRules.find((rule) =>
+    widgetType.startsWith(rule.prefix),
+  );
+
+  if (familyRule === undefined) {
+    return undefined;
+  }
+
+  return alias(
+    widgetType,
+    familyRule.canonicalType,
+    familyRule.description,
+    {
+      ...(familyRule.props ?? {}),
+      catalogWidgetType: widgetType,
+    },
+    "domain_family",
+  );
+};
+
+export const resolveCanonicalWidgetType = (
+  widgetType: string,
+): CanonicalWidgetTypeId | string => {
+  if (isCanonicalWidgetType(widgetType)) {
+    return widgetType;
+  }
+
+  return findWidgetTypeAlias(widgetType)?.canonicalType ?? widgetType;
+};
+
 const definition = (
   widgetType: string,
   displayName: string,
@@ -41,18 +526,34 @@ const definition = (
   category: WidgetDefinition["category"],
   allowedSurfaces: readonly SurfaceMode[] = allSurfaces,
   requiredBindings: readonly string[] = [],
-): WidgetDefinition => ({
-  widgetType,
-  displayName,
-  tier,
-  category,
-  allowedSurfaces,
-  defaultSize: "full",
-  supportsResize: true,
-  supportsDataBinding: true,
-  supportsPersonalization: tier !== "governed_workflow",
-  requiredBindings,
-});
+  options: WidgetDefinitionOptions = {},
+): WidgetDefinition => {
+  const compatibilityAlias =
+    options.compatibilityAlias ?? findWidgetTypeAlias(widgetType);
+  const canonicalType =
+    options.canonicalType ??
+    compatibilityAlias?.canonicalType ??
+    (isCanonicalWidgetType(widgetType) ? widgetType : undefined);
+
+  return {
+    widgetType,
+    displayName,
+    tier,
+    category,
+    allowedSurfaces,
+    defaultSize: options.defaultSize ?? "full",
+    supportsResize: options.supportsResize ?? true,
+    supportsDataBinding: options.supportsDataBinding ?? true,
+    supportsPersonalization:
+      options.supportsPersonalization ?? tier !== "governed_workflow",
+    ...(requiredBindings.length === 0 ? {} : { requiredBindings }),
+    ...(options.allowedActions === undefined
+      ? {}
+      : { allowedActions: options.allowedActions }),
+    ...(canonicalType === undefined ? {} : { canonicalType }),
+    ...(compatibilityAlias === undefined ? {} : { compatibilityAlias }),
+  };
+};
 
 const domainDefinitions = (
   entries: readonly (readonly [
@@ -1063,9 +1564,7 @@ const privacyWidgetDefinitions: readonly WidgetDefinition[] = domainDefinitions(
 ]);
 
 const uiBlockWidgetDefinitions: readonly WidgetDefinition[] = [
-  definition("ui.tabs", "Tabs", "benign_content", "layout"),
   definition("ui.accordion", "Accordion", "benign_content", "layout"),
-  definition("ui.stepper", "Stepper", "benign_content", "layout"),
   definition("ui.wizardProgress", "Wizard Progress", "benign_content", "layout"),
   definition("ui.kanbanBoard", "Kanban Board", "benign_content", "layout"),
   definition("ui.calendar", "Calendar", "benign_content", "layout"),
@@ -1080,13 +1579,6 @@ const uiBlockWidgetDefinitions: readonly WidgetDefinition[] = [
     "layout",
   ),
   definition(
-    "ui.toastCenter",
-    "Toast / Notification Center",
-    "benign_content",
-    "layout",
-  ),
-  definition("ui.modalDrawer", "Modal / Drawer Surface", "benign_content", "layout"),
-  definition(
     "ui.resizableSplitPane",
     "Resizable Split Pane",
     "benign_content",
@@ -1094,10 +1586,67 @@ const uiBlockWidgetDefinitions: readonly WidgetDefinition[] = [
   ),
 ];
 
-export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [
+export const canonicalWidgetDefinitions: readonly WidgetDefinition[] = [
   definition("layout.section", "Section", "benign_content", "layout"),
   definition("layout.stack", "Stack", "benign_content", "layout"),
   definition("layout.grid", "Grid", "benign_content", "layout"),
+  definition("content.text", "Text Block", "benign_content", "content"),
+  definition("content.markdown", "Markdown Viewer", "benign_content", "content"),
+  definition("content.html", "Sanitized HTML Viewer", "benign_content", "content"),
+  definition("content.callout", "Callout", "benign_content", "content"),
+  definition("content.linkList", "Link List", "benign_content", "content"),
+  definition("content.accordion", "Accordion", "benign_content", "content"),
+  definition("data.metricTile", "Metric Tile", "benign_content", "data_display"),
+  definition("data.progress", "Progress", "benign_content", "data_display"),
+  definition(
+    "data.labelValueList",
+    "Label/Value List",
+    "benign_content",
+    "data_display",
+  ),
+  definition(
+    "data.recordSummary",
+    "Record Summary",
+    "governed_workflow",
+    "data_display",
+  ),
+  definition("data.checklist", "Checklist", "governed_workflow", "transaction"),
+  definition("data.queueList", "Queue List", "governed_workflow", "data_display"),
+  definition("data.table", "Table", "benign_content", "data_display"),
+  definition("review.diff", "Diff Viewer", "governed_workflow", "change_review"),
+  definition("review.timeline", "Timeline", "governed_workflow", "audit"),
+  definition(
+    "workflow.actionBar",
+    "Action Bar",
+    "governed_workflow",
+    "approval",
+    workflowSurfaces,
+  ),
+  definition(
+    "workflow.reasonCapture",
+    "Reason Capture",
+    "governed_workflow",
+    "approval",
+    workflowSurfaces,
+  ),
+  definition("viz.chart", "Chart", "benign_content", "data_display"),
+  definition("viz.graph", "Graph", "benign_content", "data_display"),
+  definition("ui.board", "Board", "benign_content", "layout"),
+  definition("media.viewer", "Media Viewer", "benign_content", "media"),
+  definition("document.preview", "Document Preview", "benign_content", "media"),
+  definition("ui.tabs", "Tabs", "benign_content", "layout"),
+  definition("ui.stepper", "Stepper", "benign_content", "layout"),
+  definition("ui.modalDrawer", "Modal / Drawer Surface", "benign_content", "layout"),
+  definition(
+    "ui.toastCenter",
+    "Toast / Notification Center",
+    "benign_content",
+    "layout",
+  ),
+];
+
+export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [
+  ...canonicalWidgetDefinitions,
   definition("queue.requestList", "Request Queue", "governed_workflow", "data_display"),
   definition(
     "employee.summary",
@@ -1133,11 +1682,6 @@ export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [
   ),
   definition("audit.timeline", "Audit Timeline", "governed_workflow", "audit"),
   definition("ai.changeBrief", "AI Change Brief", "governed_workflow", "ai_review"),
-  definition("content.text", "Text Block", "benign_content", "content"),
-  definition("content.markdown", "Markdown Viewer", "benign_content", "content"),
-  definition("content.html", "Sanitized HTML Viewer", "benign_content", "content"),
-  definition("content.callout", "Callout", "benign_content", "content"),
-  definition("content.linkList", "Link List", "benign_content", "content"),
   definition("content.metricTile", "Metric Tile", "benign_content", "data_display"),
   definition(
     "content.labelValueList",
@@ -1146,12 +1690,10 @@ export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [
     "data_display",
   ),
   definition("content.faq", "FAQ", "benign_content", "content"),
-  definition("data.progress", "Progress", "benign_content", "data_display"),
   definition("data.metricGraph", "Metric Graph", "benign_content", "data_display"),
   definition("data.graphChart", "Graph Chart", "benign_content", "data_display"),
   definition("data.nodeGraph", "Node Graph", "benign_content", "data_display"),
   definition("data.orgChart", "Org Chart", "benign_content", "hcm_context"),
-  definition("data.table", "Table", "benign_content", "data_display"),
   definition(
     "data.filterableTable",
     "Filterable Table",
@@ -1198,8 +1740,88 @@ export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [
   ...uiBlockWidgetDefinitions,
 ];
 
-export const findWidgetDefinition = (
+export type WidgetTypeCanonicalization = {
+  originalType: string;
+  canonicalType: CanonicalWidgetTypeId | string;
+  isCanonical: boolean;
+  alias?: WidgetTypeAliasDefinition;
+};
+
+export const getWidgetTypeCanonicalization = (
+  widgetType: string,
+): WidgetTypeCanonicalization => {
+  const widgetAlias = findWidgetTypeAlias(widgetType);
+  const canonicalType = resolveCanonicalWidgetType(widgetType);
+
+  return {
+    originalType: widgetType,
+    canonicalType,
+    isCanonical: canonicalType === widgetType && isCanonicalWidgetType(widgetType),
+    ...(widgetAlias === undefined ? {} : { alias: widgetAlias }),
+  };
+};
+
+export const getCanonicalWidgetDefinitions = (
+  registry: readonly WidgetDefinition[] = createDefaultWidgetRegistry(),
+): readonly WidgetDefinition[] =>
+  registry.filter(
+    (definitionItem) =>
+      isCanonicalWidgetType(definitionItem.widgetType) &&
+      definitionItem.canonicalType === definitionItem.widgetType,
+  );
+
+export const findExactWidgetDefinition = (
   registry: readonly WidgetDefinition[],
   widgetType: string,
 ): WidgetDefinition | undefined =>
   registry.find((definitionItem) => definitionItem.widgetType === widgetType);
+
+export const findWidgetDefinition = (
+  registry: readonly WidgetDefinition[],
+  widgetType: string,
+): WidgetDefinition | undefined => {
+  const exactDefinition = findExactWidgetDefinition(registry, widgetType);
+
+  if (exactDefinition !== undefined) {
+    return exactDefinition;
+  }
+
+  const canonicalType = resolveCanonicalWidgetType(widgetType);
+
+  if (canonicalType === widgetType) {
+    return undefined;
+  }
+
+  return findExactWidgetDefinition(registry, canonicalType);
+};
+
+export const findCanonicalWidgetDefinition = (
+  registry: readonly WidgetDefinition[],
+  widgetType: string,
+): WidgetDefinition | undefined =>
+  findExactWidgetDefinition(registry, resolveCanonicalWidgetType(widgetType));
+
+export const normalizeWidgetInstance = (widget: WidgetInstance): WidgetInstance => {
+  const canonicalization = getWidgetTypeCanonicalization(widget.type);
+  const mergedProps =
+    canonicalization.alias?.props === undefined
+      ? widget.props
+      : {
+          ...canonicalization.alias.props,
+          ...(widget.props ?? {}),
+        };
+  const normalizedProps = normalizeGeneratedFieldsInProps(mergedProps);
+
+  if (
+    canonicalization.canonicalType === widget.type &&
+    normalizedProps === widget.props
+  ) {
+    return widget;
+  }
+
+  return {
+    ...widget,
+    type: canonicalization.canonicalType,
+    ...(normalizedProps === undefined ? {} : { props: normalizedProps }),
+  };
+};

@@ -629,6 +629,9 @@ function WidgetShell({
   return (
     <section
       className={shellClassName}
+      data-widget-canonical-type={widget.canonicalType}
+      data-widget-id={widget.instance.id}
+      data-widget-type={widget.instance.type}
       style={widgetStyleVariables(brandingStyleProps)}
     >
       <header className="widget-header">
@@ -3796,6 +3799,11 @@ function LineChartPreview({
         </div>
       ) : null}
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <g className="viz-grid-lines" aria-hidden="true">
+          {[26, 50, 74].map((y) => (
+            <line key={y} x1="8" x2="92" y1={y} y2={y} />
+          ))}
+        </g>
         {area ? <polygon points={areaPoints} /> : null}
         {stacked ? (
           <polygon
@@ -3812,6 +3820,14 @@ function LineChartPreview({
           />
         ) : null}
         <polyline points={linePoints} />
+        {points.map((point, index) => (
+          <circle
+            cx={chartX(index, points.length)}
+            cy={chartY(point.value, maxValue)}
+            key={point.label}
+            r="1.8"
+          />
+        ))}
       </svg>
       <div className="metric-line-labels">
         {points.map((point) => (

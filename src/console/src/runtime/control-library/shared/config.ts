@@ -5,6 +5,7 @@ import {
   readRecord,
   stringValue,
 } from "./guards";
+import { normalizeFieldControlRecord } from "./field-types";
 import { controlErr, controlOk, type ControlResult } from "./result";
 import { readDensity, readTone, readVariant } from "./style";
 import type {
@@ -53,15 +54,16 @@ const createDataConfig = (
 export const parseFieldControlConfig = (
   field: ControlRecord,
 ): ControlResult<FieldControlConfig> => {
-  const data = readRecord(field, "data");
-  const display = readRecord(field, "display");
-  const style = readRecord(field, "style");
-  const appearance = readRecord(field, "appearance");
-  const behavior = readRecord(field, "behavior");
-  const validation = readRecord(field, "validation");
-  const id = stringValue(field.id);
+  const normalizedField = normalizeFieldControlRecord(field);
+  const data = readRecord(normalizedField, "data");
+  const display = readRecord(normalizedField, "display");
+  const style = readRecord(normalizedField, "style");
+  const appearance = readRecord(normalizedField, "appearance");
+  const behavior = readRecord(normalizedField, "behavior");
+  const validation = readRecord(normalizedField, "validation");
+  const id = stringValue(normalizedField.id);
   const label = stringValue(field.label, id);
-  const dataConfig = createDataConfig(field, data);
+  const dataConfig = createDataConfig(normalizedField, data);
   const displayEmptyLabel = stringValue(
     display.emptyLabel,
     stringValue(data.emptyLabel),
@@ -75,10 +77,10 @@ export const parseFieldControlConfig = (
   return controlOk({
     id,
     label,
-    type: stringValue(field.type, "text"),
-    required: booleanValue(field.required),
-    placeholder: stringValue(field.placeholder, label),
-    help: stringValue(field.help),
+    type: stringValue(normalizedField.type, "text"),
+    required: booleanValue(normalizedField.required),
+    placeholder: stringValue(normalizedField.placeholder, label),
+    help: stringValue(normalizedField.help),
     data: dataConfig,
     display: {
       layout: readLayout(display.layout),
@@ -145,7 +147,7 @@ export const parseFieldControlConfig = (
       message: stringValue(validation.message),
     },
     aiInstruction: aiInstruction.length > 0 ? aiInstruction : undefined,
-    raw: field,
+    raw: normalizedField,
   });
 };
 
@@ -176,15 +178,16 @@ export const createFieldControlConfig = (field: ControlRecord): FieldControlConf
   }
 
   const fallbackId = stringValue(field.id, "generated_control");
+  const normalizedField = normalizeFieldControlRecord(field);
 
   return {
     id: fallbackId,
     label: stringValue(field.label, fallbackId),
-    type: stringValue(field.type, "text"),
-    required: booleanValue(field.required),
-    placeholder: stringValue(field.placeholder, fallbackId),
+    type: stringValue(normalizedField.type, "text"),
+    required: booleanValue(normalizedField.required),
+    placeholder: stringValue(normalizedField.placeholder, fallbackId),
     help: parsedConfig.error.safeMessage,
-    data: createDataConfig(field, {}),
+    data: createDataConfig(normalizedField, {}),
     display: {},
     style: {
       tone: "danger",
@@ -193,6 +196,6 @@ export const createFieldControlConfig = (field: ControlRecord): FieldControlConf
     },
     behavior: {},
     validation: {},
-    raw: field,
+    raw: normalizedField,
   };
 };

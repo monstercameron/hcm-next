@@ -1,35 +1,27 @@
 import {
   controlClassNames,
   controlStyleProps,
+  displayValue,
   eventInputValue,
   inputConstraintAttributes,
   objectFieldValue,
   rawString,
   scalarInputValue,
-  stringValue,
   textareaConstraintAttributes,
   updateObjectField,
 } from "./utils";
 import type { FieldControlProps } from "./types";
+import { fieldControlSourceType } from "../shared/field-types";
 
 const textInputTypeByControlType: Readonly<Record<string, string>> = {
-  email: "email",
-  phone: "tel",
-  url: "url",
   date: "date",
   time: "time",
   number: "number",
-  money: "number",
-  percent: "number",
   text: "text",
 };
 
 const nextScalarValue = (props: FieldControlProps, nextValue: string): unknown => {
-  if (
-    props.config.type === "number" ||
-    props.config.type === "money" ||
-    props.config.type === "percent"
-  ) {
+  if (props.config.type === "number") {
     return nextValue.length === 0 ? "" : Number(nextValue);
   }
 
@@ -37,7 +29,9 @@ const nextScalarValue = (props: FieldControlProps, nextValue: string): unknown =
 };
 
 export const TextInputControl = (props: FieldControlProps) => {
-  const inputType = textInputTypeByControlType[props.config.type] ?? "text";
+  const inputType =
+    rawString(props.config, "inputType") ||
+    (textInputTypeByControlType[props.config.type] ?? "text");
   const prefix = rawString(props.config, "prefix");
   const suffix = rawString(props.config, "suffix");
 
@@ -73,6 +67,22 @@ export const TextareaControl = (props: FieldControlProps) => (
     style={controlStyleProps(props)}
     value={scalarInputValue(props.value)}
   />
+);
+
+export const NumberInputControl = (props: FieldControlProps) => (
+  <TextInputControl {...props} />
+);
+
+export const DateInputControl = (props: FieldControlProps) => {
+  if (fieldControlSourceType(props.config) === "date_range") {
+    return <DateRangeControl {...props} />;
+  }
+
+  return <TextInputControl {...props} />;
+};
+
+export const TimeInputControl = (props: FieldControlProps) => (
+  <TextInputControl {...props} />
 );
 
 export const DateRangeControl = (props: FieldControlProps) => {
@@ -114,8 +124,16 @@ export const BasicInputControl = (props: FieldControlProps) => {
     return <TextareaControl {...props} />;
   }
 
-  if (props.config.type === "date_range") {
-    return <DateRangeControl {...props} />;
+  if (props.config.type === "number") {
+    return <NumberInputControl {...props} />;
+  }
+
+  if (props.config.type === "date") {
+    return <DateInputControl {...props} />;
+  }
+
+  if (props.config.type === "time") {
+    return <TimeInputControl {...props} />;
   }
 
   return <TextInputControl {...props} />;
@@ -127,6 +145,6 @@ export const ReadOnlyValueControl = (props: FieldControlProps) => (
     className={controlClassNames(props, "field-library-readonly")}
     style={controlStyleProps(props)}
   >
-    {stringValue(props.value, props.config.placeholder)}
+    {displayValue(props.value, props.config.placeholder)}
   </output>
 );
