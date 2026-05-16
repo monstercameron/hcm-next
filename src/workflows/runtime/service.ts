@@ -137,6 +137,13 @@ export function startWorkflowIntent(
   const subjectId = stringField(body, "subjectId") ?? stringField(subject ?? {}, "id");
 
   if (intent === undefined || subjectId === undefined) {
+    dependencies.logger?.warn("workflow intent validation failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      intent: intent ?? undefined,
+      subjectType: subjectType ?? undefined,
+      subjectId: subjectId ?? undefined,
+    });
     return err(
       validationFailedError({
         intent,
@@ -145,6 +152,15 @@ export function startWorkflowIntent(
       }),
     );
   }
+
+  dependencies.logger?.info("workflow intent started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    correlationId: requestContext.correlationId,
+    intent,
+    subjectType: subjectType ?? undefined,
+    subjectId,
+  });
 
   const workflowConfigResult = resolveCurrentPublishedWorkflowConfig(
     repositories,
@@ -237,6 +253,15 @@ export function startWorkflowIntent(
   if (!ledgerResult.ok) {
     return ledgerResult;
   }
+
+  dependencies.logger?.info("workflow intent created", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowInstanceId: workflowInstance.workflowInstanceId,
+    workflowVersionId: workflowInstance.workflowVersionId,
+    intent,
+    initialState: workflowInstance.state,
+  });
 
   return ok(serializeWorkflowInstance(createdWorkflowResult.value));
 }
@@ -622,11 +647,33 @@ export async function transitionWorkflow(
   const transitionBodyResult = parseTransitionBody(body);
 
   if (!transitionBodyResult.ok) {
+    dependencies.logger?.warn("workflow transition body parse failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      errorCode: transitionBodyResult.error.code,
+    });
     return transitionBodyResult;
   }
 
+  dependencies.logger?.info("workflow transition started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    correlationId: requestContext.correlationId,
+    workflowInstanceId,
+    transition: transitionBodyResult.value.transition,
+    idempotencyKey: transitionBodyResult.value.idempotencyKey,
+    expectedVersion: transitionBodyResult.value.expectedVersion,
+  });
+
   const workflowResult = repositories.workflows.findInstanceById(workflowInstanceId);
   if (!workflowResult.ok) {
+    dependencies.logger?.warn("workflow instance not found", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      errorCode: workflowResult.error.code,
+    });
     return workflowResult;
   }
 
@@ -639,6 +686,12 @@ export async function transitionWorkflow(
     return idempotentReplayResult;
   }
   if (idempotentReplayResult.value !== undefined) {
+    dependencies.logger?.info("replaying idempotent transition", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      idempotencyKey: transitionBodyResult.value.idempotencyKey,
+    });
     return replayTransitionAttempt(idempotentReplayResult.value);
   }
 
@@ -711,6 +764,27 @@ export async function transitionWorkflow(
     workflowInstance: workflowResult.value,
     transitionBody: transitionBodyResult.value,
   });
+
+  if (!transitionResult.ok) {
+    dependencies.logger?.warn("workflow transition failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      transition: transitionBodyResult.value.transition,
+      errorCode: transitionResult.error.code,
+    });
+  } else {
+    const resultBody = transitionResult.value;
+    dependencies.logger?.info("workflow transition completed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      transition: transitionBodyResult.value.transition,
+      newState: resultBody["state"],
+      newStatus: resultBody["status"],
+    });
+  }
+
   const completedAttempt = completeTransitionAttempt(startedAttempt, transitionResult);
   const completedAttemptResult =
     repositories.workflows.saveTransitionAttempt(completedAttempt);
@@ -919,22 +993,25 @@ async function submitConfiguredInput(
     input.transitionBody.input,
   );
   const preflightResult =
-    await dependencies.executorClient.executeBlock<PreflightOutput>({
-      tenantId: requestContext.tenantId,
-      environmentId: requestContext.environmentId,
-      changeRequestId: "",
-      workflowInstanceId: input.workflowInstance.workflowInstanceId,
-      workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: input.workflowConfig.submit.preflightBlock,
-      input: preflightInput,
-      context: {
-        actorId: requestContext.actor.actorId,
-        effectiveAt: effectiveAtResult.value,
-        permissions: createPermissionSnapshot(requestContext.actor),
-        correlationId: requestContext.correlationId,
-        idempotencyKey: input.transitionBody.idempotencyKey,
+    await dependencies.executorClient.executeBlock<PreflightOutput>(
+      {
+        tenantId: requestContext.tenantId,
+        environmentId: requestContext.environmentId,
+        changeRequestId: "",
+        workflowInstanceId: input.workflowInstance.workflowInstanceId,
+        workflowVersionId: input.workflowInstance.workflowVersionId,
+        block: input.workflowConfig.submit.preflightBlock,
+        input: preflightInput,
+        context: {
+          actorId: requestContext.actor.actorId,
+          effectiveAt: effectiveAtResult.value,
+          permissions: createPermissionSnapshot(requestContext.actor),
+          correlationId: requestContext.correlationId,
+          idempotencyKey: input.transitionBody.idempotencyKey,
+        },
       },
-    });
+      dependencies.logger,
+    );
   if (!preflightResult.ok) {
     return preflightResult;
   }

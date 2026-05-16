@@ -79,11 +79,25 @@ export async function executeSynchronousExternalWrites(
       );
     }
 
+    dependencies.logger?.info("external write started", {
+      connectionId,
+      operation,
+      idempotencyKey: externalIdempotencyKey,
+      workflowInstanceId: workflowInstance.workflowInstanceId,
+    });
+
     const externalWriteResult = await externalClient.submit(
       requestPayload,
       externalIdempotencyKey,
+      dependencies.logger,
     );
     if (!externalWriteResult.ok) {
+      dependencies.logger?.error("external write failed", {
+        connectionId,
+        operation,
+        idempotencyKey: externalIdempotencyKey,
+        errorCode: externalWriteResult.error.code,
+      });
       const failureLedgerResult = appendExternalWriteFailedEvent(
         repositories,
         requestContext,
@@ -102,6 +116,12 @@ export async function executeSynchronousExternalWrites(
 
       return externalWriteResult;
     }
+
+    dependencies.logger?.info("external write succeeded", {
+      connectionId,
+      operation,
+      idempotencyKey: externalIdempotencyKey,
+    });
 
     const outcomeResult = selectExternalWriteOutcome(
       graphNodeResult.value,

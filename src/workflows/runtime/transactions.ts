@@ -63,22 +63,25 @@ export async function planApprovedChange(
   }
 
   const planResult =
-    await dependencies.executorClient.executeBlock<PlanTransactionOutput>({
-      tenantId: requestContext.tenantId,
-      environmentId: requestContext.environmentId,
-      changeRequestId: input.changeRequest.changeRequestId,
-      workflowInstanceId: input.workflowInstance.workflowInstanceId,
-      workflowVersionId: input.workflowInstance.workflowVersionId,
-      block: input.workflowConfig.plan.block,
-      input: planInputResult.value as Record<string, unknown>,
-      context: {
-        actorId: requestContext.actor.actorId,
-        effectiveAt: input.changeRequest.effectiveAt,
-        permissions: createPermissionSnapshot(requestContext.actor),
-        correlationId: requestContext.correlationId,
-        idempotencyKey: input.idempotencyKey,
+    await dependencies.executorClient.executeBlock<PlanTransactionOutput>(
+      {
+        tenantId: requestContext.tenantId,
+        environmentId: requestContext.environmentId,
+        changeRequestId: input.changeRequest.changeRequestId,
+        workflowInstanceId: input.workflowInstance.workflowInstanceId,
+        workflowVersionId: input.workflowInstance.workflowVersionId,
+        block: input.workflowConfig.plan.block,
+        input: planInputResult.value as Record<string, unknown>,
+        context: {
+          actorId: requestContext.actor.actorId,
+          effectiveAt: input.changeRequest.effectiveAt,
+          permissions: createPermissionSnapshot(requestContext.actor),
+          correlationId: requestContext.correlationId,
+          idempotencyKey: input.idempotencyKey,
+        },
       },
-    });
+      dependencies.logger,
+    );
   if (!planResult.ok) {
     return planResult;
   }

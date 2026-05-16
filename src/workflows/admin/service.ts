@@ -54,6 +54,11 @@ export function listWorkflowAdminDefinitions(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow admin list authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
 
@@ -75,10 +80,19 @@ export function importWorkflowConfigsFromFiles(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow configs file import authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
 
   if (process.env["NODE_ENV"] === "production") {
+    dependencies.logger?.warn("workflow configs file import blocked in production", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+    });
     return err(
       validationFailedError({
         route: "POST /admin/workflows/import-from-files",
@@ -89,6 +103,12 @@ export function importWorkflowConfigsFromFiles(
 
   const summary = createImportSummary();
   const shouldPublishImportedVersions = booleanField(body, "publish") ?? true;
+
+  dependencies.logger?.info("workflow configs file import started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    publish: shouldPublishImportedVersions,
+  });
 
   for (const workflowConfig of listFilesystemWorkflowConfigs()) {
     const importResult = importWorkflowConfigIntoRegistry({
@@ -101,6 +121,10 @@ export function importWorkflowConfigsFromFiles(
     });
 
     if (!importResult.ok) {
+      dependencies.logger?.warn("workflow config file import rejected", {
+        intent: workflowConfig.intent,
+        errorCode: importResult.error.code,
+      });
       summary.rejected.push({
         intent: workflowConfig.intent,
         reason: importResult.error.safeMessage,
@@ -110,6 +134,15 @@ export function importWorkflowConfigsFromFiles(
 
     recordImportOutcome(summary, importResult.value);
   }
+
+  dependencies.logger?.info("workflow configs file import completed", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    imported: summary.imported,
+    skipped: summary.skipped,
+    published: summary.published,
+    rejected: summary.rejected.length,
+  });
 
   return ok(summary);
 }
@@ -124,13 +157,31 @@ export function importWorkflowConfigPayload(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow config payload import authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
 
   const workflowConfigResult = readWorkflowConfigPayload(body);
   if (!workflowConfigResult.ok) {
+    dependencies.logger?.warn("workflow config payload parse failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: workflowConfigResult.error.code,
+    });
     return workflowConfigResult;
   }
+
+  const publish = booleanField(body, "publish") ?? false;
+  dependencies.logger?.info("workflow config payload import started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    intent: workflowConfigResult.value.intent,
+    publish,
+  });
 
   const importResult = importWorkflowConfigIntoRegistry({
     repositories: dependencies.repositories,
@@ -138,11 +189,28 @@ export function importWorkflowConfigPayload(
     actorId: requestContext.actor.actorId,
     workflowConfig: workflowConfigResult.value,
     source: "api",
-    publishCurrent: booleanField(body, "publish") ?? false,
+    publishCurrent: publish,
   });
   if (!importResult.ok) {
+    dependencies.logger?.warn("workflow config payload import failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      intent: workflowConfigResult.value.intent,
+      errorCode: importResult.error.code,
+    });
     return importResult;
   }
+
+  dependencies.logger?.info("workflow config payload import completed", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    intent: workflowConfigResult.value.intent,
+    workflowVersionId: importResult.value.workflowVersionId,
+    workflowDefinitionId: importResult.value.workflowDefinitionId,
+    imported: importResult.value.imported,
+    skipped: importResult.value.skipped,
+    published: importResult.value.published,
+  });
 
   return ok({
     imported: importResult.value.imported ? 1 : 0,
@@ -165,8 +233,20 @@ export function validateWorkflowVersion(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow version validation authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
+
+  dependencies.logger?.info("workflow version validation started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+  });
 
   const workflowVersionResult = findWorkflowVersion(
     dependencies.repositories,
@@ -174,6 +254,12 @@ export function validateWorkflowVersion(
     workflowVersionId,
   );
   if (!workflowVersionResult.ok) {
+    dependencies.logger?.warn("workflow version not found for validation", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: workflowVersionResult.error.code,
+    });
     return workflowVersionResult;
   }
 
@@ -210,6 +296,15 @@ export function validateWorkflowVersion(
     }
   }
 
+  dependencies.logger?.info("workflow version validation completed", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+    valid: validation.valid,
+    errorCount: validation.errors.length,
+    warningCount: validation.warnings.length,
+  });
+
   return ok({
     validated: validation.valid ? 1 : 0,
     rejected: validation.valid ? 0 : 1,
@@ -228,8 +323,20 @@ export function publishWorkflowVersion(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow version publish authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
+
+  dependencies.logger?.info("workflow version publish started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+  });
 
   const workflowVersionResult = findWorkflowVersion(
     dependencies.repositories,
@@ -237,6 +344,12 @@ export function publishWorkflowVersion(
     workflowVersionId,
   );
   if (!workflowVersionResult.ok) {
+    dependencies.logger?.warn("workflow version not found for publish", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: workflowVersionResult.error.code,
+    });
     return workflowVersionResult;
   }
 
@@ -244,6 +357,12 @@ export function publishWorkflowVersion(
     workflowVersionResult.value.graphDefinition,
   );
   if (!validation.valid) {
+    dependencies.logger?.warn("workflow version publish validation failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCount: validation.errors.length,
+    });
     return err(validationFailedError({ workflowVersionId, validation }));
   }
 
@@ -280,6 +399,14 @@ export function publishWorkflowVersion(
     return publishResult;
   }
 
+  dependencies.logger?.info("workflow version published", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+    workflowDefinitionId: workflowDefinitionResult.value.workflowDefinitionId,
+    intent: workflowVersionResult.value.graphDefinition["intent"],
+  });
+
   return ok({
     published: 1,
     rejected: 0,
@@ -298,8 +425,20 @@ export function deprecateWorkflowVersion(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow version deprecate authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
+
+  dependencies.logger?.info("workflow version deprecate started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+  });
 
   const workflowVersionResult = findWorkflowVersion(
     dependencies.repositories,
@@ -307,6 +446,12 @@ export function deprecateWorkflowVersion(
     workflowVersionId,
   );
   if (!workflowVersionResult.ok) {
+    dependencies.logger?.warn("workflow version not found for deprecate", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowVersionId,
+      errorCode: workflowVersionResult.error.code,
+    });
     return workflowVersionResult;
   }
 
@@ -320,6 +465,15 @@ export function deprecateWorkflowVersion(
   }
 
   if (workflowDefinitionResult.value.currentVersionId === workflowVersionId) {
+    dependencies.logger?.warn(
+      "workflow version deprecate rejected — version is current",
+      {
+        actorId: requestContext.actor.actorId,
+        tenantId: requestContext.tenantId,
+        workflowVersionId,
+        workflowDefinitionId: workflowDefinitionResult.value.workflowDefinitionId,
+      },
+    );
     return err(
       validationFailedError({
         workflowVersionId,
@@ -336,6 +490,13 @@ export function deprecateWorkflowVersion(
   if (!deprecateResult.ok) {
     return deprecateResult;
   }
+
+  dependencies.logger?.info("workflow version deprecated", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowVersionId,
+    workflowDefinitionId: workflowDefinitionResult.value.workflowDefinitionId,
+  });
 
   return ok({
     deprecated: 1,

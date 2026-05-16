@@ -71,8 +71,14 @@ export function submitWorkflowAdminRepairAction(
   workflowInstanceId: string,
   body: Record<string, unknown>,
 ): Result<Record<string, unknown>, AppError> {
+  const { logger } = dependencies;
+
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    logger?.warn("repair action authorization denied", {
+      workflowInstanceId,
+      actorId: requestContext.actor.actorId,
+    });
     return authorizationResult;
   }
 
@@ -91,6 +97,15 @@ export function submitWorkflowAdminRepairAction(
     return err(notFoundError("Workflow instance", { workflowInstanceId }));
   }
 
+  const { action, idempotencyKey } = requestResult.value;
+
+  logger?.info("repair action started", {
+    workflowInstanceId,
+    action,
+    actorId: requestContext.actor.actorId,
+    idempotencyKey,
+  });
+
   const replayResult = replayExistingRepairAction(
     dependencies.repositories,
     requestContext,
@@ -98,20 +113,38 @@ export function submitWorkflowAdminRepairAction(
     requestResult.value,
   );
   if (replayResult !== undefined) {
+    if (replayResult.ok) {
+      logger?.info("replaying idempotent repair action", {
+        workflowInstanceId,
+        action,
+        idempotencyKey,
+      });
+    }
     return replayResult;
   }
 
   const guardResult = guardRepairAction(workflowResult.value, requestResult.value);
   if (!guardResult.ok) {
+    logger?.warn("repair action guard failed", {
+      workflowInstanceId,
+      action,
+      errorCode: guardResult.error.code,
+    });
     return guardResult;
   }
 
-  return applyRepairAction(
+  const applyResult = applyRepairAction(
     dependencies.repositories,
     requestContext,
     workflowResult.value,
     requestResult.value,
   );
+
+  if (applyResult.ok) {
+    logger?.info("repair action completed", { workflowInstanceId, action });
+  }
+
+  return applyResult;
 }
 
 function parseRepairActionRequest(

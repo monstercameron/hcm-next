@@ -70,8 +70,20 @@ export function getWorkflowRuntimeDebugger(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow debugger authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
+
+  dependencies.logger?.info("workflow runtime debugger requested", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowInstanceId,
+  });
 
   const debugPartsResult = loadRuntimeDebugParts(
     dependencies.repositories,
@@ -79,6 +91,12 @@ export function getWorkflowRuntimeDebugger(
     workflowInstanceId,
   );
   if (!debugPartsResult.ok) {
+    dependencies.logger?.warn("workflow runtime debugger load failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowInstanceId,
+      errorCode: debugPartsResult.error.code,
+    });
     return debugPartsResult;
   }
 

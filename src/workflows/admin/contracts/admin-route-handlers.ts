@@ -814,20 +814,52 @@ export function upsertIntegrationBindingForApi(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("integration binding upsert authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
 
   const bindingInputResult = integrationBindingRecordFromBody(requestContext, body);
   if (!bindingInputResult.ok) {
+    dependencies.logger?.warn("integration binding upsert parse failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      errorCode: bindingInputResult.error.code,
+    });
     return bindingInputResult;
   }
+
+  dependencies.logger?.info("integration binding upsert started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    environmentId: requestContext.environmentId,
+    abstractConnectionId: bindingInputResult.value.abstractConnectionId,
+    connectorId: bindingInputResult.value.connectorId,
+  });
 
   const upsertResult = dependencies.repositories.workflowIntegrationBindings.upsert(
     bindingInputResult.value,
   );
   if (!upsertResult.ok) {
+    dependencies.logger?.warn("integration binding upsert failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      abstractConnectionId: bindingInputResult.value.abstractConnectionId,
+      errorCode: upsertResult.error.code,
+    });
     return upsertResult;
   }
+
+  dependencies.logger?.info("integration binding upserted", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    environmentId: requestContext.environmentId,
+    abstractConnectionId: bindingInputResult.value.abstractConnectionId,
+    connectorId: bindingInputResult.value.connectorId,
+  });
 
   return ok(withAdminMetadata(requestContext, { binding: upsertResult.value }));
 }
@@ -847,6 +879,13 @@ function draftLifecycleActionForApi<TValue extends Record<string, unknown>>(
 ): Result<Record<string, unknown>, AppError> {
   const authorizationResult = requireWorkflowAdmin(requestContext.actor);
   if (!authorizationResult.ok) {
+    dependencies.logger?.warn("workflow draft lifecycle action authorization denied", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowDraftId,
+      responseKey,
+      errorCode: authorizationResult.error.code,
+    });
     return authorizationResult;
   }
 
@@ -855,6 +894,14 @@ function draftLifecycleActionForApi<TValue extends Record<string, unknown>>(
     return err(validationFailedError({ expectedVersion }));
   }
 
+  dependencies.logger?.info("workflow draft lifecycle action started", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowDraftId,
+    action: responseKey,
+    expectedVersion,
+  });
+
   const actionResult = action({
     repositories: dependencies.repositories,
     context: adminContext(requestContext),
@@ -862,8 +909,22 @@ function draftLifecycleActionForApi<TValue extends Record<string, unknown>>(
     expectedVersion,
   });
   if (!actionResult.ok) {
+    dependencies.logger?.warn("workflow draft lifecycle action failed", {
+      actorId: requestContext.actor.actorId,
+      tenantId: requestContext.tenantId,
+      workflowDraftId,
+      action: responseKey,
+      errorCode: actionResult.error.code,
+    });
     return actionResult;
   }
+
+  dependencies.logger?.info("workflow draft lifecycle action completed", {
+    actorId: requestContext.actor.actorId,
+    tenantId: requestContext.tenantId,
+    workflowDraftId,
+    action: responseKey,
+  });
 
   return ok(withAdminMetadata(requestContext, { [responseKey]: actionResult.value }));
 }
