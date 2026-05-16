@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const desktopViewport = { width: 1440, height: 920 };
 
-const DEMO_SUBJECT_NAME = "Jane Rivera";
+const DEMO_SUBJECT_NAME = "Jane Doe";
 const TERMINATION_PROMPT_PREFIX = "Start a termination for ";
 
 /**
@@ -270,7 +270,7 @@ test.describe("AI chat panel", () => {
     const textarea = page.getByRole("textbox", {
       name: "Describe what you'd like to do",
     });
-    await textarea.fill("Start a termination for Jane Rivera");
+    await textarea.fill(`Start a termination for ${DEMO_SUBJECT_NAME}`);
     await expect(submit).toBeEnabled();
 
     await textarea.fill("   ");
