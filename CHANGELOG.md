@@ -2,6 +2,13 @@
 
 ## 2026-05-16
 
+- `9e24c2f` - Added Playwright regression coverage for an AI-generated
+  termination page using `name`-keyed fields and `$selectedSubject` summaries.
+  Updated `WorkflowPageRenderer` to treat field `name` as a stable fallback id,
+  and hid the assistant FAB while the panel is open while preserving focus
+  restoration on close.
+- `c62d4a2` - Restored the workflow action-bar `systemError` import used by
+  generated-page submit error mapping after the fetch-boundary refactor.
 - `e55f62d` - Fixed the code-style checker so export declarations without a
   module specifier do not crash the AST walk. Added a console HTTP boundary
   helper and routed AI chat/start-workflow fetch calls through it so the
