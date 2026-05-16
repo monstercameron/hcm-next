@@ -68,6 +68,8 @@ export const LEDGER_EVENT_TYPES = {
   WORKFLOW_ADMIN_INTEGRATION_RETRY_REQUESTED: "WorkflowAdminIntegrationRetryRequested",
   WORKFLOW_ADMIN_WORKFLOW_CANCELED: "WorkflowAdminWorkflowCanceled",
   WORKFLOW_ADMIN_REPAIR_REOPENED: "WorkflowAdminRepairReopened",
+  AI_CHANGE_REVIEW_GENERATED: "AiChangeReviewGenerated",
+  AI_CHANGE_REVIEW_FAILED: "AiChangeReviewFailed",
 } as const;
 
 export type LedgerEventType = ValueOf<typeof LEDGER_EVENT_TYPES>;

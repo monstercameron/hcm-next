@@ -2,6 +2,7 @@ export type { AppError } from "./app-error";
 export { ERROR_CODES } from "./error-codes";
 export type { ErrorCode } from "./error-codes";
 export {
+  aiReviewError,
   databaseError,
   goExecutorError,
   idempotencyConflictError,

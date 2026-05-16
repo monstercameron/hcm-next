@@ -152,6 +152,20 @@ export function goExecutorError(details?: JsonRecord, cause?: unknown): AppError
 }
 
 /**
+ * Creates an error for AI provider failures, timeouts, or unparseable responses.
+ */
+export function aiReviewError(details?: JsonRecord, cause?: unknown): AppError {
+  return buildAppError({
+    code: ERROR_CODES.AI_REVIEW_ERROR,
+    message: "AI review operation failed.",
+    safeMessage:
+      "The AI review could not be completed. The workflow will continue without it.",
+    details,
+    cause,
+  });
+}
+
+/**
  * Creates an error for unexpected system failures at process boundaries.
  */
 export function systemError(details?: JsonRecord, cause?: unknown): AppError {
