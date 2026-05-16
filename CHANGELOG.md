@@ -2,6 +2,9 @@
 
 ## 2026-05-16
 
+- `51fe847` - Aligned the AI chat Playwright fixture with the seeded demo
+  employee (`Jane Doe` / `emp_123`) so quick-action prompt assertions match the
+  console's default subject context.
 - `9e24c2f` - Added Playwright regression coverage for an AI-generated
   termination page using `name`-keyed fields and `$selectedSubject` summaries.
   Updated `WorkflowPageRenderer` to treat field `name` as a stable fallback id,
