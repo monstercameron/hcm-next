@@ -299,6 +299,7 @@ export function MetricGraphWidget({
 export function GraphChartWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<GraphChartConfig>): JSX.Element {
   const [activeSeriesId, setActiveSeriesId] = useState(config.series[0]?.id ?? "");
   const activeSeries =
@@ -313,9 +314,13 @@ export function GraphChartWidget({
       return `${x},${y}`;
     })
     .join(" ");
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
-    <WidgetRoot className="graph-chart-widget" styleProps={styleProps}>
+    <WidgetRoot className="graph-chart-widget" styleProps={resolvedStyleProps}>
       <div className="graph-toolbar" role="group" aria-label="Graph chart series">
         {config.series.map((series) => (
           <button
@@ -361,11 +366,16 @@ export function GraphChartWidget({
 export function ChartWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<ChartConfig>): JSX.Element {
   const series = config.series ?? [];
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   if (series.length > 0) {
-    return <GraphChartWidget config={{ series }} styleProps={styleProps} />;
+    return <GraphChartWidget config={{ series }} styleProps={resolvedStyleProps} />;
   }
 
   return (
@@ -374,7 +384,7 @@ export function ChartWidget({
         points: config.points ?? [],
         variant: config.variant === "line" ? "line" : "bar",
       }}
-      styleProps={styleProps}
+      styleProps={resolvedStyleProps}
     />
   );
 }
@@ -382,6 +392,7 @@ export function ChartWidget({
 export function DataTableWidget({
   config,
   styleProps,
+  brandingStyleProps,
 }: WidgetComponentProps<DataTableConfig>): JSX.Element {
   const riskField = config.riskFilterField ?? "risk";
   const [query, setQuery] = useState("");
@@ -400,14 +411,18 @@ export function DataTableWidget({
 
             return queryMatch && riskMatch;
           })
-        : config.rows,
+      : config.rows,
     [config.filterable, config.rows, query, riskField, riskFilter],
   );
+  const resolvedStyleProps = resolveWidgetStyleProps({
+    brandingStyleProps,
+    styleProps,
+  });
 
   return (
     <WidgetRoot
       className={config.filterable === true ? "filterable-table" : "data-table-wrap"}
-      styleProps={styleProps}
+      styleProps={resolvedStyleProps}
     >
       {config.filterable === true ? (
         <div className="table-filters">
