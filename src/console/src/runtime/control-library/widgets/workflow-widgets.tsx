@@ -14,7 +14,7 @@ import {
   runStartWorkflow,
   type RunStartWorkflowDeps,
 } from "../../../features/ai/use-start-workflow.js";
-import { fromPromise, type AppError } from "@hcm-next/foundation";
+import { fromPromise, systemError, type AppError } from "@hcm-next/foundation";
 import { browserFetchOrReject } from "../../../api/http-client.js";
 
 export type RequestQueueItem = {
