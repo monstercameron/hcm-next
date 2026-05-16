@@ -80,6 +80,13 @@ import {
   type TabsConfig,
   type ToastCenterConfig,
 } from "./ui-widgets";
+import {
+  EmployeeListWidget,
+  SubjectPickerWidget,
+  type EmployeeListConfig,
+  type SubjectOption,
+  type SubjectPickerConfig,
+} from "./subject-picker-widget";
 import type {
   LabelValueItem,
   WidgetFactoryEntry,
@@ -108,6 +115,7 @@ export * from "./data-widgets";
 export * from "./graph-widgets";
 export * from "./media-widgets";
 export * from "./ui-widgets";
+export * from "./subject-picker-widget";
 
 const widgetProps = (widget: ResolvedWidget): WidgetRecord =>
   objectValue(widget.instance.props);
@@ -173,6 +181,16 @@ const requestQueueConfig = (widget: ResolvedWidget): RequestQueueConfig => {
   };
 };
 
+const PLACEHOLDER_DISPLAY_NAMES: ReadonlySet<string> = new Set([
+  "selected employee",
+  "not set",
+  "record",
+  "",
+]);
+
+const isPlaceholderDisplayName = (value: string): boolean =>
+  PLACEHOLDER_DISPLAY_NAMES.has(value.trim().toLowerCase());
+
 const employeeSummaryConfig = (widget: ResolvedWidget): EmployeeSummaryConfig => {
   const props = widgetProps(widget);
   const employee = {
@@ -184,18 +202,31 @@ const employeeSummaryConfig = (widget: ResolvedWidget): EmployeeSummaryConfig =>
   );
   const factsConfig = configuredFacts.length > 0 ? { facts: configuredFacts } : {};
 
+  // Bind to PageFormContext when (a) the AI flagged this widget as the picker
+  // mirror (recordId === "$selectedSubject"), or (b) it left only placeholder
+  // strings behind so we know there is no real subject data to render.
+  const recordId = stringValue(props.recordId);
+  const displayName = stringValue(
+    props.displayName,
+    stringValue(employee.displayName, stringValue(widget.instance.title, "Record")),
+  );
+  const hasNoSubjectData =
+    Object.keys(employee).length === 0 && stringValue(props.recordId).length === 0;
+  const bindToSelectedSubject =
+    recordId === "$selectedSubject" ||
+    hasNoSubjectData ||
+    isPlaceholderDisplayName(displayName);
+
   return {
     employee: {
-      displayName: stringValue(
-        props.displayName,
-        stringValue(employee.displayName, stringValue(widget.instance.title, "Record")),
-      ),
+      displayName,
       jobTitle: stringValue(employee.jobTitle, "Not set"),
       department: stringValue(employee.department, "Not set"),
       manager: stringValue(employee.manager, "Not set"),
       avatarLabel: stringValue(props.avatarLabel),
     },
     ...factsConfig,
+    ...(bindToSelectedSubject ? { bindToSelectedSubject: true } : {}),
   };
 };
 
@@ -557,6 +588,67 @@ const modalDrawerConfig = (widget: ResolvedWidget): ModalDrawerConfig => {
   };
 };
 
+const subjectOptionsFromRecords = (value: unknown): readonly SubjectOption[] =>
+  recordsValue(value)
+    .map((record): SubjectOption | undefined => {
+      const id = stringValue(record.id);
+      const displayName = stringValue(record.displayName, id);
+
+      if (id.length === 0) {
+        return undefined;
+      }
+
+      const option: SubjectOption = { id, displayName };
+      const jobTitle = stringValue(record.jobTitle);
+      const department = stringValue(record.department);
+      const manager = stringValue(record.manager);
+
+      if (jobTitle.length > 0) {
+        option.jobTitle = jobTitle;
+      }
+      if (department.length > 0) {
+        option.department = department;
+      }
+      if (manager.length > 0) {
+        option.manager = manager;
+      }
+
+      return option;
+    })
+    .filter((option): option is SubjectOption => option !== undefined);
+
+const subjectPickerConfig = (widget: ResolvedWidget): SubjectPickerConfig => {
+  const props = widgetProps(widget);
+  const options = subjectOptionsFromRecords(props.options);
+  const helperText = stringValue(props.helperText);
+  const defaultSubjectId = stringValue(props.defaultSubjectId);
+
+  return {
+    label: stringValue(
+      props.label,
+      stringValue(widget.instance.title, "Select an employee"),
+    ),
+    required: props.required === true,
+    options,
+    ...(helperText.length > 0 ? { helperText } : {}),
+    ...(defaultSubjectId.length > 0 ? { defaultSubjectId } : {}),
+  };
+};
+
+const employeeListConfig = (widget: ResolvedWidget): EmployeeListConfig => {
+  const props = widgetProps(widget);
+  const label = stringValue(props.label, stringValue(widget.instance.title));
+  const helperText = stringValue(props.helperText);
+  const emptyLabel = stringValue(props.emptyLabel);
+
+  return {
+    options: subjectOptionsFromRecords(props.options),
+    ...(label.length > 0 ? { label } : {}),
+    ...(helperText.length > 0 ? { helperText } : {}),
+    ...(emptyLabel.length > 0 ? { emptyLabel } : {}),
+  };
+};
+
 const toastCenterConfig = (widget: ResolvedWidget): ToastCenterConfig => {
   const props = widgetProps(widget);
 
@@ -755,6 +847,26 @@ export const widgetRegistry = {
       styleProps={widgetStyleProps(widget)}
     />
   )),
+  "form.subjectPicker": factory(
+    "form.subjectPicker",
+    "SubjectPickerWidget",
+    (widget) => (
+      <SubjectPickerWidget
+        config={subjectPickerConfig(widget)}
+        styleProps={widgetStyleProps(widget)}
+      />
+    ),
+  ),
+  "data.employeeList": factory(
+    "data.employeeList",
+    "EmployeeListWidget",
+    (widget) => (
+      <EmployeeListWidget
+        config={employeeListConfig(widget)}
+        styleProps={widgetStyleProps(widget)}
+      />
+    ),
+  ),
 } satisfies WidgetFactoryRegistry;
 
 const exactWidgetAliases: Readonly<Record<string, string>> = {

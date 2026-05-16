@@ -1,7 +1,14 @@
-import { fromThrowable } from "@hcm-next/foundation";
+import { fromThrowable, systemError } from "@hcm-next/foundation";
+import type { PageDefinition } from "@hcm-next/ui-contracts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ArrowRight, Building2, LogOut, ShieldCheck } from "lucide-react";
-import { useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -12,7 +19,9 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { BrandTokenProvider } from "../brand/BrandTokenProvider";
+import { AiChatPanel } from "../features/ai/AiChatPanel.js";
 import { WorkflowPageRoute } from "../features/workflows/WorkflowPageRoute";
+import { WorkflowPageRenderer } from "../runtime/WorkflowPageRenderer";
 import {
   StyleLabRail,
   createDefaultStyleLabConfig,
@@ -25,8 +34,18 @@ import type {
   FieldControlBaseStyleProps,
   WidgetStyleProps,
 } from "../runtime/control-library";
+import { assistantViewChipLabel } from "./console-shell-helpers.js";
 import { demoRuntimeContext } from "./demo-data";
 import { appRoutes, navSections } from "./page-routes";
+
+// Hardcoded for v1; the chat panel only surfaces chips whose intent is
+// listed here. A future iteration should fetch this list from a registered-
+// intents API so newly registered workflows show up without a client edit.
+const AVAILABLE_AI_INTENTS: readonly string[] = [
+  "employee.termination",
+  "employee.contact_update",
+  "employee.org_transfer_compensation_change",
+];
 
 type DemoSession = {
   email: string;
@@ -71,6 +90,7 @@ const readStoredDemoSession = (): DemoSession | undefined => {
 
   const parseResult = fromThrowable(
     () => JSON.parse(storedValue) as Partial<DemoSession>,
+    (cause) => systemError({ reason: "demo_session_parse_failed" }, cause),
   );
 
   if (!parseResult.ok) {
@@ -218,19 +238,45 @@ function LoginScreen({
 }
 
 function ConsoleShell({
+  aiGeneratedPage,
+  aiGeneratedSource,
+  availableIntents,
   children,
+  fieldBrandingStyleProps,
+  onAiGenerated,
+  onClearAi,
   onLogout,
   onStyleLabChange,
   session,
   styleLabConfig,
+  widgetBrandingStyleProps,
 }: {
+  aiGeneratedPage: PageDefinition | undefined;
+  aiGeneratedSource: "cache" | "fresh" | undefined;
+  availableIntents: readonly string[];
   children: ReactNode;
+  fieldBrandingStyleProps?: FieldControlBaseStyleProps;
+  onAiGenerated: (page: PageDefinition, source: "cache" | "fresh") => void;
+  onClearAi: () => void;
   onLogout: () => void;
   onStyleLabChange: (nextValue: StyleLabControlStyle) => void;
   session: DemoSession;
   styleLabConfig: StyleLabControlStyle;
+  widgetBrandingStyleProps?: WidgetStyleProps;
 }): JSX.Element {
   const location = useLocation();
+
+  // Auto-clear any pinned assistant view whenever the user navigates. The
+  // latest callback is read through a ref so the effect's dependency list is
+  // limited to the pathname — depending on `onClearAi` (a fresh closure each
+  // render) would otherwise fire the effect on every render.
+  const clearAiRef = useRef(onClearAi);
+  useEffect(() => {
+    clearAiRef.current = onClearAi;
+  }, [onClearAi]);
+  useEffect(() => {
+    clearAiRef.current();
+  }, [location.pathname]);
 
   return (
     <div className="app-shell app-shell-with-style-rail">
@@ -286,19 +332,60 @@ function ConsoleShell({
           ))}
         </nav>
       </aside>
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        {aiGeneratedPage !== undefined ? (
+          <>
+            <div className="assistant-view-chip" role="status">
+              <span>{assistantViewChipLabel({ source: aiGeneratedSource })}</span>
+              <button type="button" onClick={onClearAi}>
+                Clear
+              </button>
+            </div>
+            <WorkflowPageRenderer
+              {...(fieldBrandingStyleProps === undefined
+                ? {}
+                : { fieldBrandingStyleProps })}
+              page={aiGeneratedPage}
+              runtimeContext={demoRuntimeContext}
+              {...(widgetBrandingStyleProps === undefined
+                ? {}
+                : { widgetBrandingStyleProps })}
+            />
+          </>
+        ) : (
+          children
+        )}
+      </main>
       <StyleLabRail
         brand={demoRuntimeContext.brand}
         className="app-style-lab-rail"
         onChange={onStyleLabChange}
         value={styleLabConfig}
       />
+      <AiChatPanel
+        {...(typeof demoRuntimeContext.actor.id === "string"
+          ? { actorId: demoRuntimeContext.actor.id }
+          : {})}
+        availableIntents={availableIntents}
+        {...(typeof demoRuntimeContext.employee.id === "string"
+          ? { defaultSubjectId: demoRuntimeContext.employee.id }
+          : {})}
+        {...(typeof demoRuntimeContext.employee.displayName === "string"
+          ? { defaultSubjectName: demoRuntimeContext.employee.displayName }
+          : {})}
+        onGenerated={onAiGenerated}
+      />
     </div>
   );
 }
 
 function AuthenticatedWorkflowPage({
+  aiGeneratedPage,
+  aiGeneratedSource,
+  availableIntents,
   fieldBrandingStyleProps,
+  onAiGenerated,
+  onClearAi,
   onLogout,
   onStyleLabChange,
   pageId,
@@ -306,7 +393,12 @@ function AuthenticatedWorkflowPage({
   styleLabConfig,
   widgetBrandingStyleProps,
 }: {
+  aiGeneratedPage: PageDefinition | undefined;
+  aiGeneratedSource: "cache" | "fresh" | undefined;
+  availableIntents: readonly string[];
   fieldBrandingStyleProps?: FieldControlBaseStyleProps;
+  onAiGenerated: (page: PageDefinition, source: "cache" | "fresh") => void;
+  onClearAi: () => void;
   onLogout: () => void;
   onStyleLabChange: (nextValue: StyleLabControlStyle) => void;
   pageId: string;
@@ -322,10 +414,21 @@ function AuthenticatedWorkflowPage({
 
   return (
     <ConsoleShell
+      aiGeneratedPage={aiGeneratedPage}
+      aiGeneratedSource={aiGeneratedSource}
+      availableIntents={availableIntents}
+      {...(fieldBrandingStyleProps === undefined
+        ? {}
+        : { fieldBrandingStyleProps })}
+      onAiGenerated={onAiGenerated}
+      onClearAi={onClearAi}
       onLogout={onLogout}
       onStyleLabChange={onStyleLabChange}
       session={session}
       styleLabConfig={styleLabConfig}
+      {...(widgetBrandingStyleProps === undefined
+        ? {}
+        : { widgetBrandingStyleProps })}
     >
       <WorkflowPageRoute
         {...(fieldBrandingStyleProps === undefined ? {} : { fieldBrandingStyleProps })}
@@ -339,11 +442,25 @@ function AuthenticatedWorkflowPage({
 }
 
 function BlankWorkspacePage({
+  aiGeneratedPage,
+  aiGeneratedSource,
+  availableIntents,
+  fieldBrandingStyleProps,
+  onAiGenerated,
+  onClearAi,
   onLogout,
   session,
+  widgetBrandingStyleProps,
 }: {
+  aiGeneratedPage: PageDefinition | undefined;
+  aiGeneratedSource: "cache" | "fresh" | undefined;
+  availableIntents: readonly string[];
+  fieldBrandingStyleProps?: FieldControlBaseStyleProps;
+  onAiGenerated: (page: PageDefinition, source: "cache" | "fresh") => void;
+  onClearAi: () => void;
   onLogout: () => void;
   session: DemoSession | undefined;
+  widgetBrandingStyleProps?: WidgetStyleProps;
 }): JSX.Element {
   const location = useLocation();
 
@@ -352,24 +469,60 @@ function BlankWorkspacePage({
   }
 
   return (
-    <main className="workspace-shell" aria-label="Workspace">
-      <header className="workspace-topbar">
-        <div className="app-brand">
-          <div className="app-brand-mark" aria-hidden="true">
-            HN
+    <>
+      <main className="workspace-shell" aria-label="Workspace">
+        <header className="workspace-topbar">
+          <div className="app-brand">
+            <div className="app-brand-mark" aria-hidden="true">
+              HN
+            </div>
+            <div>
+              <p className="eyebrow">HCM Next</p>
+              <h1>{session.workspace}</h1>
+            </div>
           </div>
-          <div>
-            <p className="eyebrow">HCM Next</p>
-            <h1>{session.workspace}</h1>
-          </div>
-        </div>
-        <button onClick={onLogout} type="button">
-          <LogOut size={16} aria-hidden />
-          Sign out
-        </button>
-      </header>
-      <section className="workspace-blank-canvas" aria-label="Blank workspace" />
-    </main>
+          <button onClick={onLogout} type="button">
+            <LogOut size={16} aria-hidden />
+            Sign out
+          </button>
+        </header>
+        {aiGeneratedPage !== undefined ? (
+          <>
+            <div className="assistant-view-chip" role="status">
+              <span>{assistantViewChipLabel({ source: aiGeneratedSource })}</span>
+              <button type="button" onClick={onClearAi}>
+                Clear
+              </button>
+            </div>
+            <WorkflowPageRenderer
+              {...(fieldBrandingStyleProps === undefined
+                ? {}
+                : { fieldBrandingStyleProps })}
+              page={aiGeneratedPage}
+              runtimeContext={demoRuntimeContext}
+              {...(widgetBrandingStyleProps === undefined
+                ? {}
+                : { widgetBrandingStyleProps })}
+            />
+          </>
+        ) : (
+          <section className="workspace-blank-canvas" aria-label="Blank workspace" />
+        )}
+      </main>
+      <AiChatPanel
+        {...(typeof demoRuntimeContext.actor.id === "string"
+          ? { actorId: demoRuntimeContext.actor.id }
+          : {})}
+        availableIntents={availableIntents}
+        {...(typeof demoRuntimeContext.employee.id === "string"
+          ? { defaultSubjectId: demoRuntimeContext.employee.id }
+          : {})}
+        {...(typeof demoRuntimeContext.employee.displayName === "string"
+          ? { defaultSubjectName: demoRuntimeContext.employee.displayName }
+          : {})}
+        onGenerated={onAiGenerated}
+      />
+    </>
   );
 }
 
@@ -380,6 +533,12 @@ export function App(): JSX.Element {
   const [session, setSession] = useState<DemoSession | undefined>(
     readStoredDemoSession,
   );
+  const [aiGeneratedPage, setAiGeneratedPage] = useState<
+    PageDefinition | undefined
+  >(undefined);
+  const [aiGeneratedSource, setAiGeneratedSource] = useState<
+    "cache" | "fresh" | undefined
+  >(undefined);
   const styleOverrides = styleLabConfigToCssVariables(styleLabConfig);
   const fieldBrandingStyleProps = styleLabConfigToFieldStyleProps(styleLabConfig);
   const widgetBrandingStyleProps = styleLabConfigToWidgetStyleProps(styleLabConfig);
@@ -392,11 +551,31 @@ export function App(): JSX.Element {
   const handleLogout = (): void => {
     window.localStorage.removeItem(demoSessionStorageKey);
     setSession(undefined);
+    setAiGeneratedPage(undefined);
+    setAiGeneratedSource(undefined);
+  };
+
+  const handleAiGenerated = (
+    page: PageDefinition,
+    source: "cache" | "fresh",
+  ): void => {
+    setAiGeneratedPage(page);
+    setAiGeneratedSource(source);
+  };
+
+  const handleClearAi = (): void => {
+    setAiGeneratedPage(undefined);
+    setAiGeneratedSource(undefined);
   };
 
   const workflowRoute = (pageId: string): JSX.Element => (
     <AuthenticatedWorkflowPage
+      aiGeneratedPage={aiGeneratedPage}
+      aiGeneratedSource={aiGeneratedSource}
+      availableIntents={AVAILABLE_AI_INTENTS}
       fieldBrandingStyleProps={fieldBrandingStyleProps}
+      onAiGenerated={handleAiGenerated}
+      onClearAi={handleClearAi}
       onLogout={handleLogout}
       onStyleLabChange={setStyleLabConfig}
       pageId={pageId}
@@ -434,7 +613,19 @@ export function App(): JSX.Element {
             />
             <Route
               path="/workspace"
-              element={<BlankWorkspacePage onLogout={handleLogout} session={session} />}
+              element={
+                <BlankWorkspacePage
+                  aiGeneratedPage={aiGeneratedPage}
+                  aiGeneratedSource={aiGeneratedSource}
+                  availableIntents={AVAILABLE_AI_INTENTS}
+                  fieldBrandingStyleProps={fieldBrandingStyleProps}
+                  onAiGenerated={handleAiGenerated}
+                  onClearAi={handleClearAi}
+                  onLogout={handleLogout}
+                  session={session}
+                  widgetBrandingStyleProps={widgetBrandingStyleProps}
+                />
+              }
             />
             {appRoutes
               .filter((route) => route.path !== "/")

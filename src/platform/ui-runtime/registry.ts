@@ -1643,6 +1643,22 @@ export const canonicalWidgetDefinitions: readonly WidgetDefinition[] = [
     "benign_content",
     "layout",
   ),
+  definition(
+    "form.subjectPicker",
+    "Subject Picker",
+    "governed_workflow",
+    "form",
+    workflowSurfaces,
+    ["employee", "worker"],
+  ),
+  definition(
+    "data.employeeList",
+    "Employee List",
+    "governed_workflow",
+    "hcm_context",
+    workflowSurfaces,
+    ["employee", "worker"],
+  ),
 ];
 
 export const createDefaultWidgetRegistry = (): readonly WidgetDefinition[] => [

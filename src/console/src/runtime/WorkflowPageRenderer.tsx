@@ -26,6 +26,7 @@ import {
   type FieldControlBaseStyleProps,
   type WidgetStyleProps,
 } from "./control-library";
+import { PageFormProvider, usePageForm } from "./page-form-context.js";
 
 type WorkflowPageRendererProps = {
   fieldBrandingStyleProps?: FieldControlBaseStyleProps;
@@ -581,6 +582,49 @@ const createInitialFieldValue = (field: RecordValue): unknown => {
   return stringValue(field.placeholder);
 };
 
+const slugifyFieldId = (label: string, index: number): string => {
+  const slug = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return slug.length > 0 ? `${slug}_${index}` : `field_${index}`;
+};
+
+/**
+ * Guarantees every field in a dynamic field group has a non-empty, unique id.
+ * The DOM relies on ids for `<label htmlFor>` targeting and the form-state map
+ * keys controlled values by id, so duplicates collapse multiple fields onto a
+ * single state slot. AI providers occasionally omit `id` (the schema only
+ * requires `type`) — without this normalization those fields all fall back to
+ * the literal "generated_control" string and overwrite each other.
+ */
+export const ensureUniqueFieldIds = (
+  fields: readonly RecordValue[],
+): readonly RecordValue[] => {
+  const usedIds = new Set<string>();
+  const normalized: RecordValue[] = [];
+
+  fields.forEach((field, index) => {
+    const declaredId = stringValue(field.id).trim();
+    const label = stringValue(field.label);
+    const candidate =
+      declaredId.length > 0 ? declaredId : slugifyFieldId(label, index);
+    let uniqueId = candidate;
+    let suffix = 1;
+
+    while (usedIds.has(uniqueId)) {
+      suffix += 1;
+      uniqueId = `${candidate}_${suffix}`;
+    }
+
+    usedIds.add(uniqueId);
+    normalized.push({ ...field, id: uniqueId });
+  });
+
+  return normalized;
+};
+
 const createInitialFormValues = (
   fields: readonly RecordValue[],
 ): Record<string, unknown> => {
@@ -738,10 +782,6 @@ function WidgetShell({
     brandingStyleProps?.className === undefined
       ? `widget widget-size-${size}`
       : `widget widget-size-${size} ${brandingStyleProps.className}`;
-  const eyebrow =
-    widget.instance.type === "form.dynamicFieldGroup"
-      ? "Workflow controls"
-      : widget.definition?.displayName;
 
   return (
     <section
@@ -753,7 +793,6 @@ function WidgetShell({
     >
       <header className="widget-header">
         <div>
-          <p className="eyebrow">{eyebrow}</p>
           <h2>{widget.instance.title ?? widget.definition?.displayName}</h2>
           {widget.instance.description !== undefined ? (
             <p>{widget.instance.description}</p>
@@ -826,17 +865,29 @@ function DynamicFieldGroup({
   brandingStyleProps?: FieldControlBaseStyleProps;
   widget: ResolvedWidget;
 }): JSX.Element {
-  const fields = recordsValue(widget.instance.props?.fields);
+  const fields = ensureUniqueFieldIds(recordsValue(widget.instance.props?.fields));
   const [values, setValues] = useState<Record<string, unknown>>(() =>
     createInitialFormValues(fields),
   );
   const generatedPayload = JSON.stringify(values);
+  const pageForm = usePageForm();
+
+  // Sync the initial defaults into PageFormContext once so the action bar can
+  // submit before the user touches any field. The empty-deps array is
+  // intentional — we only want to seed on mount; subsequent edits flow through
+  // `setFieldValue` below.
+  useEffect(() => {
+    for (const [fieldId, value] of Object.entries(values)) {
+      pageForm.setFieldValue(fieldId, value);
+    }
+  }, []);
 
   const setFieldValue = (fieldId: string, value: unknown): void => {
     setValues((current) => ({
       ...current,
       [fieldId]: value,
     }));
+    pageForm.setFieldValue(fieldId, value);
   };
 
   return (
@@ -5192,46 +5243,135 @@ export function WorkflowPageRenderer({
     );
   }
 
-  return (
-    <div className="workflow-page" style={resolvedPage.cssVariables}>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">{runtimeContext.tenant.name}</p>
-          <h1>{resolvedPage.page.title}</h1>
-          <p>{resolvedPage.page.description}</p>
-        </div>
-        <div className="page-meta" aria-label="Current workflow context">
-          <span>{runtimeContext.workflow.state}</span>
-          <strong>{runtimeContext.actor.displayName}</strong>
-        </div>
-      </header>
+  // Prefer the intent declared on the generated page itself (e.g. "employee.
+  // termination" when the AI generated a termination form) over whatever was
+  // pinned in the static runtime context — otherwise an AI page rendered while
+  // the demo context is on a different workflow would submit to the wrong one.
+  const pageDeclaredIntent =
+    Array.isArray(page.workflowTypes) &&
+    page.workflowTypes.length > 0 &&
+    page.workflowTypes[0] !== "*"
+      ? page.workflowTypes[0]
+      : undefined;
+  const runtimeContextIntent =
+    typeof runtimeContext.workflow.type === "string" &&
+    runtimeContext.workflow.type.length > 0
+      ? runtimeContext.workflow.type
+      : undefined;
+  const workflowIntent = pageDeclaredIntent ?? runtimeContextIntent;
+  // The demo runtime context doesn't carry `subjectType`; the only configured
+  // subject for HR workflows today is `worker`, so default to that when the
+  // context doesn't declare otherwise. The submit hook only sends subjectType
+  // when present, and the server validates it against the workflow config.
+  const contextSubjectType = stringValueFromUnknown(
+    (runtimeContext.workflow.config as Record<string, unknown> | undefined)?.[
+      "subjectType"
+    ],
+  );
+  const workflowSubjectType = contextSubjectType ?? "worker";
+  const actorId =
+    typeof runtimeContext.actor.id === "string" && runtimeContext.actor.id.length > 0
+      ? runtimeContext.actor.id
+      : undefined;
 
-      {resolvedPage.regions.map((region) => (
-        <section
-          className={`page-region region-${region.region.layout} region-${region.region.width}`}
-          key={region.region.id}
-        >
-          {region.widgets.map((widget) => (
-            <WidgetShell
-              {...(widgetBrandingStyleProps === undefined
-                ? {}
-                : { brandingStyleProps: widgetBrandingStyleProps })}
-              widget={widget}
-              key={widget.instance.id}
-            >
-              <WidgetBody
-                {...(fieldBrandingStyleProps === undefined
-                  ? {}
-                  : { fieldBrandingStyleProps })}
-                widget={widget}
+  return (
+    <PageFormProvider
+      {...(workflowIntent === undefined
+        ? {}
+        : { initialWorkflowIntent: workflowIntent })}
+      {...(workflowSubjectType === undefined
+        ? {}
+        : { initialWorkflowSubjectType: workflowSubjectType })}
+      {...(actorId === undefined ? {} : { initialActorId: actorId })}
+    >
+      <PageFormContextActorSync actorId={actorId} />
+      <div className="workflow-page" style={resolvedPage.cssVariables}>
+        <PageFormSubmitNotice />
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">{runtimeContext.tenant.name}</p>
+            <h1>{resolvedPage.page.title}</h1>
+            <p>{resolvedPage.page.description}</p>
+          </div>
+          <div className="page-meta" aria-label="Current workflow context">
+            <span>{runtimeContext.workflow.state}</span>
+            <strong>{runtimeContext.actor.displayName}</strong>
+          </div>
+        </header>
+
+        {resolvedPage.regions.map((region) => (
+          <section
+            className={`page-region region-${region.region.layout} region-${region.region.width}`}
+            key={region.region.id}
+          >
+            {region.widgets.map((widget) => (
+              <WidgetShell
                 {...(widgetBrandingStyleProps === undefined
                   ? {}
-                  : { widgetBrandingStyleProps })}
-              />
-            </WidgetShell>
-          ))}
-        </section>
-      ))}
+                  : { brandingStyleProps: widgetBrandingStyleProps })}
+                widget={widget}
+                key={widget.instance.id}
+              >
+                <WidgetBody
+                  {...(fieldBrandingStyleProps === undefined
+                    ? {}
+                    : { fieldBrandingStyleProps })}
+                  widget={widget}
+                  {...(widgetBrandingStyleProps === undefined
+                    ? {}
+                    : { widgetBrandingStyleProps })}
+                />
+              </WidgetShell>
+            ))}
+          </section>
+        ))}
+      </div>
+    </PageFormProvider>
+  );
+}
+
+const stringValueFromUnknown = (value: unknown): string | undefined =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
+
+/**
+ * Mirrors any later actorId change from the renderer's props into the form
+ * provider. The initial value comes through `initialActorId`; this keeps
+ * provider state in sync for the rare hot-swap case (logout/login).
+ */
+function PageFormContextActorSync({
+  actorId,
+}: {
+  actorId: string | undefined;
+}): JSX.Element | null {
+  const pageForm = usePageForm();
+  useEffect(() => {
+    pageForm.setActorId(actorId);
+  }, [actorId, pageForm]);
+  return null;
+}
+
+/**
+ * Renders a callout at the top of the page when a workflow has been started
+ * from the action bar's Submit. Keeps the confirmation visible even when the
+ * action bar itself scrolls off-screen.
+ */
+function PageFormSubmitNotice(): JSX.Element | null {
+  const pageForm = usePageForm();
+  const result = pageForm.submitResult;
+  if (result === undefined) {
+    return null;
+  }
+  const interactionSuffix =
+    result.currentInteraction === undefined
+      ? ""
+      : ` · interaction: ${result.currentInteraction}`;
+  return (
+    <div className="callout-body status-success" role="status">
+      <strong>Workflow started.</strong>{" "}
+      <span>
+        Started {result.workflowInstanceId} · state: {result.currentState}
+        {interactionSuffix}
+      </span>
     </div>
   );
 }

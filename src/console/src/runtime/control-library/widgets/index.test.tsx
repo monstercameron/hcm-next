@@ -13,6 +13,7 @@ import {
   renderWidgetFromRegistry,
   widgetRegistry,
 } from "./index";
+import { PageFormProvider } from "../../page-form-context.js";
 
 const resolvedWidget = (type: string): ResolvedWidget => {
   const instance = {
@@ -43,6 +44,12 @@ const resolvedWidget = (type: string): ResolvedWidget => {
       ],
       mediaType: "image",
       src: "/demo.png",
+      label: "Select employee",
+      required: false,
+      options: [
+        { id: "emp_1", displayName: "Jane Rivera", jobTitle: "Engineer" },
+        { id: "emp_2", displayName: "Sam Patel", department: "Platform" },
+      ],
       style: {
         tone: "info",
         variant: "subtle",
@@ -92,6 +99,8 @@ describe("control-library widget registry", () => {
     "ui.stepper",
     "ui.modalDrawer",
     "ui.toastCenter",
+    "form.subjectPicker",
+    "data.employeeList",
   ];
 
   it("exposes every canonical widget type id", () => {
@@ -242,5 +251,70 @@ describe("control-library widget registry", () => {
     expect(layoutMarkup).toContain("tenant-brand-widget");
     expect(layoutMarkup).toContain("local-layout");
     expect(layoutMarkup).toContain("--ui-control-accent:#0044cc");
+  });
+
+  it("renders the recordSummary with PageFormContext when recordId is $selectedSubject", () => {
+    const instance = {
+      id: "summary-1",
+      type: "data.recordSummary",
+      title: "Selected employee",
+      props: {
+        recordId: "$selectedSubject",
+      },
+    };
+    const widget = {
+      instance,
+      normalizedInstance: instance,
+      definition: undefined,
+      canonicalDefinition: undefined,
+      originalType: instance.type,
+      canonicalType: instance.type,
+      bindings: {},
+    } as ResolvedWidget;
+
+    const element = renderWidgetFromRegistry(widget);
+    const markup = renderToStaticMarkup(
+      <PageFormProvider
+        initialAvailableSubjects={[
+          {
+            id: "emp_42",
+            displayName: "Leo Park",
+            jobTitle: "IT Manager",
+            department: "IT",
+            manager: "Pat Khan",
+          },
+        ]}
+        initialSelectedSubjectId="emp_42"
+      >
+        {element}
+      </PageFormProvider>,
+    );
+
+    expect(markup).toContain("Leo Park");
+    expect(markup).toContain("IT Manager");
+    expect(markup).toContain("Pat Khan");
+  });
+
+  it("renders the Not set placeholder when nothing is picked", () => {
+    const instance = {
+      id: "summary-2",
+      type: "data.recordSummary",
+      title: "Selected employee",
+      props: { recordId: "$selectedSubject" },
+    };
+    const widget = {
+      instance,
+      normalizedInstance: instance,
+      definition: undefined,
+      canonicalDefinition: undefined,
+      originalType: instance.type,
+      canonicalType: instance.type,
+      bindings: {},
+    } as ResolvedWidget;
+
+    const element = renderWidgetFromRegistry(widget);
+    const markup = renderToStaticMarkup(<PageFormProvider>{element}</PageFormProvider>);
+
+    expect(markup).toContain("Not set");
   });
 });

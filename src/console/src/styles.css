@@ -265,6 +265,572 @@
     @apply h-screen min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain;
   }
 
+  /* ---------------------------------------------------------------------- */
+  /* AI Chat Panel (WS8)                                                    */
+  /*                                                                        */
+  /* Floating HR-assistant entry point + slide-in panel. All visual         */
+  /* properties resolve to brand tokens defined in `brandTokensToCssVariables`
+  /* and the .brand-root :root block above. Sits next to .app-style-lab-rail
+  /* because both are persistent right-side floating surfaces.              */
+  /* ---------------------------------------------------------------------- */
+
+  /* Anchored to the screen corner. z-index keeps it above the StyleLabRail
+     when the rail extends to the bottom of the viewport. */
+  .ai-chat-fab {
+    position: fixed;
+    right: var(--ui-gap-md);
+    bottom: var(--ui-gap-md);
+    z-index: 1100;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--action-primary-background);
+    color: var(--action-primary-text);
+    box-shadow: var(--ui-shadow-card);
+    cursor: pointer;
+    transition:
+      transform var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+      background var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-fab:hover {
+    transform: translateY(var(--ui-motion-translate-hover));
+    box-shadow: var(--ui-hover-shadow);
+  }
+
+  .ai-chat-fab:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring), var(--ui-shadow-card);
+  }
+
+  .ai-chat-fab[data-idle="true"] {
+    animation: ai-chat-fab-pulse 2400ms var(--ui-motion-ease) infinite;
+  }
+
+  @keyframes ai-chat-fab-pulse {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.04);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .ai-chat-panel {
+    position: fixed;
+    top: var(--ui-gap-md);
+    right: var(--ui-gap-md);
+    bottom: var(--ui-gap-md);
+    z-index: 1099;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto auto;
+    width: 420px;
+    max-width: calc(100vw - (var(--ui-gap-md) * 2));
+    min-height: 0;
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    border: var(--ui-border-width) solid var(--ui-card-border);
+    border-radius: var(--ui-radius-surface);
+    box-shadow: var(--ui-shadow-card);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(110%);
+    transition:
+      transform var(--ui-motion-medium) var(--ui-motion-ease),
+      opacity var(--ui-motion-fast) var(--ui-motion-ease);
+    overflow: hidden;
+  }
+
+  .ai-chat-panel-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .ai-chat-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-card-padding);
+    border-bottom: var(--ui-divider-width) solid var(--border-default);
+  }
+
+  .ai-chat-panel-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+
+  .ai-chat-panel-glyph {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--action-primary-background);
+    color: var(--action-primary-text);
+    box-shadow: var(--ui-shadow-control);
+    flex: 0 0 auto;
+  }
+
+  .ai-chat-panel-titles {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .ai-chat-panel-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+
+  .ai-chat-panel-subtitle {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-muted);
+  }
+
+  .ai-chat-panel-close {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: var(--ui-border-width) solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+      background var(--ui-motion-fast) var(--ui-motion-ease),
+      color var(--ui-motion-fast) var(--ui-motion-ease),
+      border-color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-panel-close:hover {
+    background: var(--ui-hover-surface);
+    color: var(--text-primary);
+    border-color: var(--ui-hover-border);
+  }
+
+  .ai-chat-panel-close:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-color: var(--ui-focus-border);
+  }
+
+  /* Horizontal scrolling chip row. Scrollbar is hidden in the same spirit as
+     other rails (e.g. .app-nav) — overflow stays scrollable via wheel/touch. */
+  .ai-chat-quick-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-gap-sm) var(--ui-card-padding);
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: var(--ui-divider-width) solid var(--border-default);
+    scrollbar-width: none;
+  }
+
+  .ai-chat-quick-actions::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .ai-chat-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: var(--ui-border-width) solid var(--ui-control-border);
+    border-radius: 999px;
+    background: var(--action-secondary-background);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background var(--ui-motion-fast) var(--ui-motion-ease),
+      border-color var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-chip:hover {
+    background: var(--ui-hover-surface);
+    border-color: var(--ui-hover-border);
+    box-shadow: var(--ui-shadow-control);
+  }
+
+  .ai-chat-chip:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-color: var(--ui-focus-border);
+  }
+
+  .ai-chat-conversation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-md);
+    min-height: 160px;
+    padding: var(--ui-card-padding);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .ai-chat-empty {
+    margin: auto 0;
+    padding: var(--ui-gap-lg) var(--ui-gap-md);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .ai-chat-turn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 85%;
+  }
+
+  .ai-chat-turn-user {
+    align-self: flex-end;
+    padding: 8px 12px;
+    border-radius: var(--ui-radius-surface);
+    background: color-mix(
+      in srgb,
+      var(--action-primary-background) 14%,
+      var(--surface-raised)
+    );
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  .ai-chat-turn-assistant {
+    align-self: flex-start;
+    padding: 6px 10px;
+    border-radius: var(--ui-radius-surface);
+    background: var(--surface-subtle);
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* Markdown rendered into an assistant bubble. Reuses the bubble background;
+     these rules style the inner elements emitted by ReactMarkdown. */
+  .ai-chat-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .ai-chat-markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .ai-chat-markdown p {
+    margin: 0 0 var(--ui-gap-sm);
+    line-height: 1.5;
+  }
+
+  .ai-chat-markdown ul,
+  .ai-chat-markdown ol {
+    margin: 0 0 var(--ui-gap-sm);
+    padding-left: 1.4em;
+    line-height: 1.5;
+  }
+
+  .ai-chat-markdown li + li {
+    margin-top: 2px;
+  }
+
+  .ai-chat-markdown strong {
+    font-weight: 700;
+  }
+
+  .ai-chat-markdown em {
+    font-style: italic;
+  }
+
+  .ai-chat-markdown code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--ui-control-surface-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.92em;
+  }
+
+  .ai-chat-markdown pre {
+    margin: 0 0 var(--ui-gap-sm);
+    padding: var(--ui-gap-sm);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-control-surface-muted);
+    overflow-x: auto;
+  }
+
+  .ai-chat-markdown pre code {
+    padding: 0;
+    background: transparent;
+  }
+
+  .ai-chat-markdown a {
+    color: var(--action-primary-background);
+    text-decoration: underline;
+  }
+
+  .ai-chat-markdown blockquote {
+    margin: 0 0 var(--ui-gap-sm);
+    padding-left: var(--ui-gap-sm);
+    border-left: 3px solid var(--ui-control-border);
+    color: var(--text-muted);
+  }
+
+  .ai-chat-markdown h1,
+  .ai-chat-markdown h2,
+  .ai-chat-markdown h3 {
+    margin: var(--ui-gap-sm) 0 var(--ui-gap-xs);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .ai-chat-markdown h1 {
+    font-size: 1.05em;
+  }
+
+  .ai-chat-markdown h2 {
+    font-size: 1em;
+  }
+
+  .ai-chat-markdown h3 {
+    font-size: 0.95em;
+  }
+
+  .ai-chat-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+  }
+
+  .ai-chat-status-generating {
+    background: color-mix(in srgb, var(--status-info) 12%, var(--surface-raised));
+    color: var(--status-info);
+  }
+
+  .ai-chat-status-fresh {
+    background: color-mix(in srgb, var(--status-success) 14%, var(--surface-raised));
+    color: var(--status-success);
+  }
+
+  .ai-chat-status-cached {
+    background: color-mix(in srgb, var(--status-info) 14%, var(--surface-raised));
+    color: var(--status-info);
+  }
+
+  .ai-chat-status-error {
+    background: color-mix(in srgb, var(--status-error) 14%, var(--surface-raised));
+    color: var(--status-error);
+  }
+
+  .ai-chat-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-card-padding);
+    border-top: var(--ui-divider-width) solid var(--border-default);
+  }
+
+  .ai-chat-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--ui-control-height);
+    max-height: calc(var(--ui-control-height) * 3);
+    padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+    border: var(--ui-border-width) solid var(--ui-control-border);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-control-surface);
+    color: var(--ui-control-text);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    resize: none;
+    box-shadow: var(--ui-shadow-control);
+    transition:
+      border-color var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-input::placeholder {
+    color: var(--ui-control-text-muted);
+  }
+
+  .ai-chat-input:focus-visible {
+    outline: none;
+    border-color: var(--ui-focus-border);
+    box-shadow: var(--ui-focus-ring);
+  }
+
+  .ai-chat-submit {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--ui-control-height);
+    padding: 0 var(--ui-gap-lg);
+    border: var(--ui-border-width) solid var(--action-primary-background);
+    border-radius: var(--ui-radius-control);
+    background: var(--action-primary-background);
+    color: var(--action-primary-text);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: var(--ui-shadow-control);
+    transition:
+      transform var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+      opacity var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-submit:hover:not(:disabled) {
+    transform: translateY(var(--ui-motion-translate-hover));
+    box-shadow: var(--ui-hover-shadow);
+  }
+
+  .ai-chat-submit:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring), var(--ui-shadow-control);
+  }
+
+  .ai-chat-submit:disabled {
+    opacity: var(--ui-disabled-opacity);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .ai-chat-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-gap-sm) var(--ui-card-padding);
+    border-top: var(--ui-divider-width) solid var(--border-default);
+    font-size: 12px;
+  }
+
+  .ai-chat-cache-clear {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .ai-chat-cache-clear:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
+
+  .ai-chat-cache-clear:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-radius: var(--ui-radius-control);
+  }
+
+  .ai-chat-last-source {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .ai-chat-inline-error {
+    margin: 0 var(--ui-card-padding) var(--ui-gap-sm);
+    padding: var(--ui-gap-sm) var(--ui-gap-md);
+    border: var(--ui-border-width) solid
+      color-mix(in srgb, var(--status-error) 42%, transparent);
+    border-radius: var(--ui-radius-control);
+    background: color-mix(in srgb, var(--status-error) 12%, var(--surface-raised));
+    color: var(--status-error);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* WS7 will render this strip at the top of <main> when an assistant-
+     generated page is active. Styled now so the integration tier can drop
+     it in without further CSS changes. */
+  .assistant-view-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-gap-md);
+    padding: var(--ui-gap-sm) var(--ui-page-padding);
+    border-bottom: var(--ui-divider-width) solid var(--border-default);
+    background: color-mix(
+      in srgb,
+      var(--action-secondary-background) 32%,
+      var(--surface-raised)
+    );
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .assistant-view-chip button,
+  .assistant-view-chip a {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--action-primary-background);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  .assistant-view-chip button:hover,
+  .assistant-view-chip a:hover {
+    text-decoration: underline;
+  }
+
+  .assistant-view-chip button:focus-visible,
+  .assistant-view-chip a:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-radius: var(--ui-radius-control);
+  }
+
   .app-sidebar {
     scrollbar-gutter: stable;
     border-right-width: var(--ui-divider-width);
@@ -499,7 +1065,15 @@
   }
 
   .workspace-shell {
-    min-height: 100vh;
+    /* body has `overflow: hidden`, so the shell must size to the viewport and
+       provide its own scroll container — otherwise content past the fold is
+       clipped (notably when WorkflowPageRenderer takes over for AI pages). */
+    height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     @apply grid bg-brand-surface-base;
     grid-template-rows: auto minmax(0, 1fr);
   }
@@ -536,6 +1110,9 @@
     display: grid;
     gap: var(--ui-section-gap);
     padding: var(--ui-page-padding);
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
   }
 
   .page-header {
@@ -3421,10 +3998,12 @@
   .field-library-control select,
   .field-library-control textarea,
   .field-library-input,
+  .field-library-select,
+  .field-library-textarea,
   .table-filters input,
   .table-filters select {
     background: var(--ui-control-surface);
-    border-color: var(--ui-control-border);
+    border-color: var(--ui-control-border-strong);
     color: var(--ui-control-text);
   }
 
@@ -3801,11 +4380,13 @@
   .field-control select,
   .field-control textarea,
   .field-library-input,
+  .field-library-select,
+  .field-library-textarea,
   .table-filters input,
   .table-filters select,
   .reason-capture select,
   .reason-capture textarea {
-    border-color: var(--ui-hairline);
+    border-color: var(--ui-control-border-strong);
     background:
       linear-gradient(180deg, rgb(255 255 255 / 92%), rgb(255 255 255 / 82%)),
       var(--ui-control-surface);
@@ -4216,5 +4797,139 @@
 
   .cluster-board-control {
     grid-template-columns: 1fr;
+  }
+}
+
+/* AI Chat Panel (WS8): mobile breakpoint. Below 720 px the panel takes the
+   full viewport width and the FAB lifts slightly to avoid bottom-bar overlap. */
+@media (max-width: 720px) {
+  .ai-chat-fab {
+    right: var(--ui-gap-md);
+    bottom: calc(var(--ui-gap-md) + 16px);
+  }
+
+  .ai-chat-panel {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+/* Reduced motion: the panel should appear instantly rather than slide, and
+   the FAB idle pulse must not animate. The global reduced-motion block above
+   already truncates transition/animation durations, but we explicitly null
+   the transform so the panel doesn't start off-screen. */
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat-panel {
+    transition: none;
+    transform: none;
+  }
+
+  .ai-chat-fab[data-idle="true"] {
+    animation: none;
+  }
+}
+
+/* Subject picker + employee list widgets share existing field-control control
+   styles for the inner inputs. Outer wrappers add the layout/spacing only —
+   colours come from brand tokens via WidgetRoot's resolved styleProps. */
+@layer components {
+  .subject-picker-widget {
+    display: grid;
+    gap: var(--ui-gap-xs);
+  }
+
+  .subject-picker-widget > label {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    color: var(--ui-control-text);
+  }
+
+  .subject-picker-widget > label em {
+    font-style: normal;
+    font-size: 12px;
+    color: var(--ui-control-text-muted, var(--ui-control-text));
+  }
+
+  .subject-picker-widget > select {
+    width: 100%;
+    min-height: var(--ui-control-height);
+    padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+    border: var(--ui-border-width) solid var(--ui-control-border);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-control-surface);
+    color: var(--ui-control-text);
+    box-shadow: var(--ui-shadow-control);
+  }
+
+  .subject-picker-widget > select:focus {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-color: var(--ui-focus-border);
+  }
+
+  .subject-picker-widget > small {
+    color: var(--ui-control-text-muted, var(--ui-control-text));
+  }
+
+  .employee-list-widget {
+    display: grid;
+    gap: var(--ui-gap-sm);
+  }
+
+  .employee-list-header {
+    display: grid;
+    gap: var(--ui-gap-xs);
+  }
+
+  .employee-list-header > small {
+    color: var(--ui-control-text-muted, var(--ui-control-text));
+  }
+
+  .employee-list-empty {
+    color: var(--ui-control-text-muted, var(--ui-control-text));
+  }
+
+  .employee-list-items {
+    display: grid;
+    gap: var(--ui-gap-xs);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .employee-list-row {
+    display: grid;
+    width: 100%;
+    gap: var(--ui-gap-xs);
+    padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+    text-align: left;
+    background: var(--ui-control-surface-muted, var(--ui-control-surface));
+    border: var(--ui-border-width) solid var(--ui-control-border);
+    border-radius: var(--ui-radius-control);
+    color: var(--ui-control-text);
+    cursor: pointer;
+    transition: background var(--ui-motion-fast) ease,
+      border-color var(--ui-motion-fast) ease,
+      box-shadow var(--ui-motion-fast) ease;
+  }
+
+  .employee-list-row:hover,
+  .employee-list-row:focus-visible {
+    background: var(--ui-control-surface-active, var(--ui-control-surface));
+    border-color: var(--ui-control-border-strong, var(--ui-control-border));
+    box-shadow: var(--ui-focus-ring);
+    outline: none;
+  }
+
+  .employee-list-row > small {
+    color: var(--ui-control-text-muted, var(--ui-control-text));
   }
 }

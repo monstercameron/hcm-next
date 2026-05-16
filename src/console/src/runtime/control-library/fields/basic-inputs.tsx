@@ -45,6 +45,8 @@ export const TextInputControl = (props: FieldControlProps) => {
         {...inputConstraintAttributes(props.config)}
         aria-label={props.config.label}
         className="field-library-input"
+        id={props.config.id}
+        name={props.config.id}
         onChange={(event) =>
           props.onChange(nextScalarValue(props, eventInputValue(event)))
         }
@@ -62,6 +64,8 @@ export const TextareaControl = (props: FieldControlProps) => (
     {...textareaConstraintAttributes(props.config)}
     aria-label={props.config.label}
     className={controlClassNames(props, "field-library-textarea")}
+    id={props.config.id}
+    name={props.config.id}
     onChange={(event) => props.onChange(eventInputValue(event))}
     placeholder={props.config.placeholder}
     style={controlStyleProps(props)}

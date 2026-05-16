@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, CircleAlert, CircleHelp, CircleX } from "lucide-react";
 import type { LabelValueItem, WidgetComponentProps, WidgetStyleProps } from "./types";
 import { StatusBadge, WidgetRoot } from "./primitives";
@@ -9,6 +9,15 @@ import {
   widgetClassName,
   widgetStyleVariables,
 } from "./utils";
+import {
+  usePageForm,
+  type PageFormSubject,
+} from "../../page-form-context.js";
+import {
+  runStartWorkflow,
+  type RunStartWorkflowDeps,
+} from "../../../features/ai/use-start-workflow.js";
+import { fromPromise, systemError, type AppError } from "@hcm-next/foundation";
 
 export type RequestQueueItem = {
   id: string;
@@ -38,6 +47,13 @@ export type EmployeeSummaryConfig = {
     avatarLabel?: string;
   };
   facts?: readonly LabelValueItem[];
+  /**
+   * When true, the widget reads the currently-picked subject from PageFormContext
+   * instead of `employee`. Set by the registry when `props.recordId` equals
+   * `$selectedSubject` or when the props payload contains placeholder values
+   * like "Selected employee" / "Not set".
+   */
+  bindToSelectedSubject?: boolean;
 };
 
 export type RecordSummaryConfig = EmployeeSummaryConfig;
@@ -193,7 +209,23 @@ export function EmployeeSummaryWidget({
   styleProps,
   brandingStyleProps,
 }: WidgetComponentProps<EmployeeSummaryConfig>): JSX.Element {
-  const employee = config.employee;
+  const pageForm = usePageForm();
+  const employee = useMemo<EmployeeSummaryConfig["employee"]>(() => {
+    if (config.bindToSelectedSubject !== true) {
+      return config.employee;
+    }
+    const selected = pageForm.selectedSubject;
+    if (selected === undefined) {
+      // Render the existing "Not set" placeholder when nothing is picked yet.
+      return {
+        displayName: stringValue(config.employee.displayName, "Not set"),
+        jobTitle: "Not set",
+        department: "Not set",
+        manager: "Not set",
+      };
+    }
+    return mergeSubjectIntoEmployee(config.employee, selected);
+  }, [config.bindToSelectedSubject, config.employee, pageForm.selectedSubject]);
   const avatarLabel = stringValue(
     employee.avatarLabel,
     employee.displayName.slice(0, 2).toUpperCase(),
@@ -228,6 +260,20 @@ export function EmployeeSummaryWidget({
     </WidgetRoot>
   );
 }
+
+const mergeSubjectIntoEmployee = (
+  employee: EmployeeSummaryConfig["employee"],
+  subject: PageFormSubject,
+): EmployeeSummaryConfig["employee"] => ({
+  displayName: subject.displayName,
+  jobTitle: stringValue(subject.jobTitle, stringValue(employee.jobTitle, "Not set")),
+  department: stringValue(
+    subject.department,
+    stringValue(employee.department, "Not set"),
+  ),
+  manager: stringValue(subject.manager, stringValue(employee.manager, "Not set")),
+  ...(employee.avatarLabel === undefined ? {} : { avatarLabel: employee.avatarLabel }),
+});
 
 export const RecordSummaryWidget = EmployeeSummaryWidget;
 
@@ -274,46 +320,204 @@ export function ChangeDiffWidget({
 
 export const DiffViewerWidget = ChangeDiffWidget;
 
+const SUBMIT_ACTION_HINTS: ReadonlySet<string> = new Set([
+  "submit",
+  "submit_input",
+  "start",
+  "create",
+]);
+
+const CANCEL_ACTION_HINTS: ReadonlySet<string> = new Set([
+  "cancel",
+  "discard",
+  "reset",
+]);
+
+const isSubmitAction = (action: ApprovalActionConfig): boolean => {
+  const id = action.action.toLowerCase();
+  if (SUBMIT_ACTION_HINTS.has(id)) {
+    return true;
+  }
+  if (id.startsWith("submit") || id.includes("_submit")) {
+    return true;
+  }
+  if (action.variant === "primary") {
+    return true;
+  }
+  return action.label.toLowerCase().includes("submit");
+};
+
+const isCancelAction = (action: ApprovalActionConfig): boolean => {
+  const id = action.action.toLowerCase();
+  if (CANCEL_ACTION_HINTS.has(id)) {
+    return true;
+  }
+  return action.label.toLowerCase().includes("cancel");
+};
+
+const findSubmitAction = (
+  actions: readonly ApprovalActionConfig[],
+): ApprovalActionConfig | undefined => actions.find(isSubmitAction);
+
+const findCancelAction = (
+  actions: readonly ApprovalActionConfig[],
+): ApprovalActionConfig | undefined => actions.find(isCancelAction);
+
+/**
+ * Default boundary deps for the action bar's submit. Exported indirectly via
+ * the optional `deps` prop so tests can stub the fetch / sha1 layer.
+ */
+const DEFAULT_START_WORKFLOW_DEPS: RunStartWorkflowDeps = {
+  fetch: (...args) =>
+    typeof fetch === "function"
+      ? fetch(...args)
+      : Promise.reject(systemError({ reason: "fetch_unavailable" })),
+};
+
+export type ActionBarSubmitDeps = RunStartWorkflowDeps;
+
+type ActionBarWidgetProps = WidgetComponentProps<ApprovalDecisionPanelConfig> & {
+  submitDeps?: ActionBarSubmitDeps;
+};
+
 /** Provides local decision preview controls; server transitions remain external. */
 export function ApprovalDecisionPanelWidget({
   config,
   styleProps,
   brandingStyleProps,
-}: WidgetComponentProps<ApprovalDecisionPanelConfig>): JSX.Element {
+  submitDeps,
+}: ActionBarWidgetProps): JSX.Element {
   const initialAction = config.selectedAction ?? config.actions[0]?.action ?? "";
   const [selectedAction, setSelectedAction] = useState(initialAction);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
+  const [cancelNotice, setCancelNotice] = useState<string | undefined>(undefined);
+  const pageForm = usePageForm();
   const resolvedStyleProps = resolveWidgetStyleProps({
     brandingStyleProps,
     styleProps,
   });
 
+  const submitAction = findSubmitAction(config.actions);
+  const cancelAction = findCancelAction(config.actions);
+  const submissionResult = pageForm.submitResult;
+  const submitDisabled =
+    submitting ||
+    submissionResult !== undefined ||
+    pageForm.workflowIntent === undefined ||
+    pageForm.selectedSubjectId === undefined;
+
+  useEffect(() => {
+    // Reset the selected pill when the props change (new page rendered).
+    setSelectedAction(initialAction);
+  }, [initialAction]);
+
+  const performSubmit = (action: ApprovalActionConfig): void => {
+    setSelectedAction(action.action);
+    setCancelNotice(undefined);
+    if (submissionResult !== undefined) {
+      return;
+    }
+    if (pageForm.workflowIntent === undefined) {
+      setSubmitError("Workflow intent is not set on this page.");
+      return;
+    }
+    if (pageForm.selectedSubjectId === undefined) {
+      setSubmitError("Pick an employee before submitting.");
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(undefined);
+
+    const deps = submitDeps ?? DEFAULT_START_WORKFLOW_DEPS;
+    const input = {
+      intent: pageForm.workflowIntent,
+      subjectId: pageForm.selectedSubjectId,
+      input: pageForm.formValues,
+      ...(pageForm.workflowSubjectType === undefined
+        ? {}
+        : { subjectType: pageForm.workflowSubjectType }),
+      ...(pageForm.actorId === undefined ? {} : { actorId: pageForm.actorId }),
+    };
+
+    void fromPromise(
+      () => runStartWorkflow(input, deps),
+      (cause): AppError =>
+        (cause as AppError | undefined) ??
+        systemError({ reason: "start_workflow_failed" }),
+    ).then((result) => {
+      setSubmitting(false);
+      if (result.ok) {
+        pageForm.setSubmitResult(result.value);
+      } else {
+        setSubmitError(result.error.safeMessage);
+      }
+    });
+  };
+
+  const performCancel = (): void => {
+    setSubmitError(undefined);
+    pageForm.resetForm();
+    setCancelNotice("Reverted");
+  };
+
   return (
     <WidgetRoot className="decision-panel" styleProps={resolvedStyleProps}>
       {config.description !== undefined ? <p>{config.description}</p> : null}
       <div className="button-row">
-        {config.actions.map((action) => (
-          <button
-            aria-pressed={selectedAction === action.action}
-            className={`action-button action-${action.variant ?? "secondary"} ${
-              selectedAction === action.action ? "action-selected" : ""
-            }`}
-            disabled={action.disabled}
-            key={action.action}
-            onClick={() => setSelectedAction(action.action)}
-            title={action.reason}
-            type="button"
-          >
-            {action.label}
-          </button>
-        ))}
+        {config.actions.map((action) => {
+          const isSubmit = submitAction !== undefined && action === submitAction;
+          const isCancel = cancelAction !== undefined && action === cancelAction;
+          const handleClick = isSubmit
+            ? (): void => performSubmit(action)
+            : isCancel
+              ? (): void => performCancel()
+              : (): void => setSelectedAction(action.action);
+          const disabled =
+            action.disabled === true || (isSubmit && submitDisabled);
+          return (
+            <button
+              aria-pressed={selectedAction === action.action}
+              className={`action-button action-${action.variant ?? "secondary"} ${
+                selectedAction === action.action ? "action-selected" : ""
+              }`}
+              disabled={disabled}
+              key={action.action}
+              onClick={handleClick}
+              title={action.reason}
+              type="button"
+            >
+              {action.label}
+            </button>
+          );
+        })}
       </div>
-      <div className="selected-pill">
-        {config.selectedLabel ?? "Selected transition"}:{" "}
-        {selectedAction.length > 0 ? selectedAction : "None"}
-      </div>
+      {submissionResult !== undefined ? (
+        <div className="selected-pill" role="status">
+          Started {submissionResult.workflowInstanceId} · state:{" "}
+          {submissionResult.currentState}
+        </div>
+      ) : (
+        <div className="selected-pill">
+          {config.selectedLabel ?? "Selected transition"}:{" "}
+          {selectedAction.length > 0 ? selectedAction : "None"}
+        </div>
+      )}
+      {submitError !== undefined ? (
+        <p className="status-badge status-error" role="alert">
+          {submitError}
+        </p>
+      ) : null}
+      {cancelNotice !== undefined ? (
+        <span className="selected-pill" role="status">
+          {cancelNotice}
+        </span>
+      ) : null}
     </WidgetRoot>
   );
 }
+
 
 export const ActionBarWidget = ApprovalDecisionPanelWidget;
 
@@ -392,6 +596,12 @@ export function SimulationResultPanelWidget({
       {config.checks.map((check) => {
         const status = check.status ?? "info";
         const Icon = simulationIcon(status);
+        // Only render the explicit status badge when the caller actually
+        // declared one. Otherwise we end up showing a meaningless "info"
+        // pill next to every row, which clutters the checklist without
+        // adding any signal — see polish issue #7 in the AI-page review.
+        const shouldRenderBadge =
+          typeof check.status === "string" && check.status.length > 0;
 
         return (
           <article className="check-row" key={check.id}>
@@ -400,7 +610,9 @@ export function SimulationResultPanelWidget({
               <strong>{check.label}</strong>
               {check.detail !== undefined ? <span>{check.detail}</span> : null}
             </div>
-            <StatusBadge status={status} styleProps={resolvedStyleProps} />
+            {shouldRenderBadge ? (
+              <StatusBadge status={status} styleProps={resolvedStyleProps} />
+            ) : null}
           </article>
         );
       })}

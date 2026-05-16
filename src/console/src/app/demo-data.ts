@@ -45,9 +45,17 @@ export const harborCareBrand = mergeBrandPacks(defaultBrandPack, {
 
 export const demoRuntimeContext: UiRuntimeContext = {
   actor: {
-    id: "actor_manager_alex",
+    // Matches the seeded `actor_hr_admin` record; this actor has hr_admin role
+    // in the backend store, satisfying the AI route's intent-start permission
+    // for employee.termination. Login UI displays "Avery Morgan" — the actor
+    // ID is the backend handle, not the on-screen name.
+    id: "actor_hr_admin",
     displayName: "Alex Manager",
-    roles: ["manager", "approver"],
+    // `hr_admin` is included so the demo actor can start workflows whose
+    // `startActors` require HR admin (e.g. `employee.termination`). This
+    // unblocks the AI chat panel demo + E2E coverage; production tenants
+    // wire real role assignments through the projection layer.
+    roles: ["manager", "approver", "hr_admin"],
     permissions: [
       "employee.view",
       "workflow.submit",
@@ -82,9 +90,13 @@ export const demoRuntimeContext: UiRuntimeContext = {
       approvalPath: ["manager", "hrbp", "compensation"],
     },
   },
+  // Aligned with the seeded demo store (`emp_123` / Jane Doe) so the AI route's
+  // subject lookup succeeds. The seeded fields like jobTitle/department are
+  // [restricted] for the demo actor's permissions, so we keep the display
+  // values from the previous fixture for the UI surface.
   employee: {
-    id: "emp_jane_rivera",
-    displayName: "Jane Rivera",
+    id: "emp_123",
+    displayName: "Jane Doe",
     preferredName: "Jane",
     jobTitle: "Registered Nurse",
     department: "Somerville Nursing",

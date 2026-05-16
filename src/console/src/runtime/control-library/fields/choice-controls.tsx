@@ -36,6 +36,8 @@ export const SelectControl = (props: FieldControlProps) => {
     <select
       aria-label={props.config.label}
       className={controlClassNames(props, "field-library-select")}
+      id={props.config.id}
+      name={props.config.id}
       onChange={(event) => props.onChange(eventInputValue(event))}
       style={controlStyleProps(props)}
       value={scalarInputValue(props.value)}

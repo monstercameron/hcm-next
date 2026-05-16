@@ -54,6 +54,8 @@ export const canonicalWidgetTypeIds = [
   "ui.stepper",
   "ui.modalDrawer",
   "ui.toastCenter",
+  "form.subjectPicker",
+  "data.employeeList",
 ] as const;
 
 export type CanonicalWidgetTypeId = (typeof canonicalWidgetTypeIds)[number];
