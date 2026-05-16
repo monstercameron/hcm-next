@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -50,7 +51,7 @@ func main() {
 		address = defaultAddress
 	}
 
-	service := executor.NewServer(registry)
+	service := executor.NewServer(registry, logger.With("service", "executor"))
 	httpServer := executor.NewHTTPServer(address, service.Routes())
 
 	shutdownContext, stopSignals := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -93,5 +94,6 @@ func newExecutorHandler() (http.Handler, error) {
 		return nil, err
 	}
 
-	return executor.NewServer(registry).Routes(), nil
+	noopLogger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	return executor.NewServer(registry, noopLogger).Routes(), nil
 }

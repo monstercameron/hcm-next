@@ -50,7 +50,7 @@ func main() {
 		address = defaultAddress
 	}
 
-	service := executor.NewServer(registry)
+	service := executor.NewServer(registry, logger.With("service", "executor"))
 	httpServer := executor.NewHTTPServer(address, service.Routes())
 
 	shutdownContext, stopSignals := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

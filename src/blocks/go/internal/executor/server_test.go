@@ -3,6 +3,8 @@ package executor_test
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -130,7 +132,8 @@ func newTestServer(t *testing.T) http.Handler {
 		t.Fatalf("failed to register blocks: %v", err)
 	}
 
-	return executor.NewServer(registry).Routes()
+	testLogger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	return executor.NewServer(registry, testLogger).Routes()
 }
 
 func validExecutePayload(blockName string, input map[string]any) map[string]any {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -23,13 +24,15 @@ var generatedRequestSequence atomic.Uint64
 type Server struct {
 	registry     *Registry
 	maxBodyBytes int64
+	logger       *slog.Logger
 }
 
 // NewServer creates a configured executor HTTP service.
-func NewServer(registry *Registry) *Server {
+func NewServer(registry *Registry, logger *slog.Logger) *Server {
 	return &Server{
 		registry:     registry,
 		maxBodyBytes: defaultMaxBodyBytes,
+		logger:       logger,
 	}
 }
 
@@ -68,6 +71,7 @@ func (server *Server) handleHealth(responseWriter http.ResponseWriter, request *
 func (server *Server) handleExecuteBlock(responseWriter http.ResponseWriter, request *http.Request) {
 	startedAt := time.Now()
 	requestID := requestIDFromHeader(request)
+	correlationID := correlationIDFromHeader(request)
 
 	if request.Method != http.MethodPost {
 		writeErrorResponse(responseWriter, http.StatusMethodNotAllowed, requestID, "", MethodNotAllowedError(request.Method), durationMs(startedAt))
@@ -81,26 +85,60 @@ func (server *Server) handleExecuteBlock(responseWriter http.ResponseWriter, req
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&executionRequest); err != nil {
+		server.logger.Error("block execution request parse failed",
+			"requestId", requestID,
+			"correlationId", correlationID,
+			"error", err.Error(),
+			"durationMs", durationMs(startedAt),
+		)
 		writeErrorResponse(responseWriter, http.StatusBadRequest, requestID, "", InvalidJSONError(err.Error()), durationMs(startedAt))
 		return
 	}
 
 	var trailingValue struct{}
 	if err := decoder.Decode(&trailingValue); err != io.EOF {
+		server.logger.Error("block execution request has trailing content",
+			"requestId", requestID,
+			"correlationId", executionRequest.Context.CorrelationID,
+			"durationMs", durationMs(startedAt),
+		)
 		writeErrorResponse(responseWriter, http.StatusBadRequest, requestID, executionRequest.Context.CorrelationID, InvalidJSONError("request body contains multiple JSON values"), durationMs(startedAt))
 		return
 	}
 
 	if validationError := validateExecutionRequest(executionRequest); validationError != nil {
+		server.logger.Error("block execution request validation failed",
+			"requestId", requestID,
+			"correlationId", executionRequest.Context.CorrelationID,
+			"errorCode", validationError.Code,
+			"durationMs", durationMs(startedAt),
+		)
 		writeErrorResponse(responseWriter, http.StatusBadRequest, requestID, executionRequest.Context.CorrelationID, validationError, durationMs(startedAt))
 		return
 	}
 
+	blockRef := executionRequest.Block.Name + "@" + executionRequest.Block.Version
+	blockLogger := server.logger.With(
+		"requestId", requestID,
+		"correlationId", executionRequest.Context.CorrelationID,
+		"block", blockRef,
+		"workflowInstanceId", executionRequest.WorkflowInstanceID,
+		"actorId", executionRequest.Context.ActorID,
+	)
+
+	blockLogger.Info("block execution started")
+
 	blockResult, executionError := server.registry.Execute(executionRequest)
 	if executionError != nil {
+		blockLogger.Error("block execution failed",
+			"errorCode", executionError.Code,
+			"durationMs", durationMs(startedAt),
+		)
 		writeErrorResponse(responseWriter, httpStatusForExecutionError(executionError), requestID, executionRequest.Context.CorrelationID, executionError, durationMs(startedAt))
 		return
 	}
+
+	blockLogger.Info("block execution completed", "durationMs", durationMs(startedAt))
 
 	executionResponse := ExecutionResponse{
 		RequestID:            requestID,
@@ -116,6 +154,15 @@ func (server *Server) handleExecuteBlock(responseWriter http.ResponseWriter, req
 	}
 
 	writeJSON(responseWriter, http.StatusOK, executionResponse)
+}
+
+func correlationIDFromHeader(request *http.Request) string {
+	correlationID := strings.TrimSpace(request.Header.Get("X-Correlation-Id"))
+	if correlationID != "" {
+		return correlationID
+	}
+
+	return ""
 }
 
 func validateExecutionRequest(request ExecutionRequest) *ExecutionError {
