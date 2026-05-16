@@ -606,9 +606,17 @@ export const ensureUniqueFieldIds = (
   const normalized: RecordValue[] = [];
 
   fields.forEach((field, index) => {
+    // AI generators often emit `name` instead of `id` (JSON-schema habit).
+    // Accept either so the field renders with a stable, unique id.
     const declaredId = stringValue(field.id).trim();
+    const declaredName = stringValue(field.name).trim();
     const label = stringValue(field.label);
-    const candidate = declaredId.length > 0 ? declaredId : slugifyFieldId(label, index);
+    const candidate =
+      declaredId.length > 0
+        ? declaredId
+        : declaredName.length > 0
+          ? declaredName
+          : slugifyFieldId(label, index);
     let uniqueId = candidate;
     let suffix = 1;
 

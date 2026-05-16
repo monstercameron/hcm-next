@@ -90,6 +90,7 @@ export function AiChatPanel({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const conversationRef = useRef<HTMLDivElement | null>(null);
+  const restoreFabFocusRef = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const chat = useChat();
@@ -140,16 +141,19 @@ export function AiChatPanel({
 
   // Move focus to the close button when the panel opens.
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      closeButtonRef.current?.focus();
       return;
     }
-    closeButtonRef.current?.focus();
+    if (restoreFabFocusRef.current) {
+      restoreFabFocusRef.current = false;
+      fabRef.current?.focus();
+    }
   }, [isOpen]);
 
   const closePanel = useCallback(() => {
+    restoreFabFocusRef.current = true;
     setIsOpen(false);
-    // Restore focus to the floating button so keyboard users keep their place.
-    fabRef.current?.focus();
   }, []);
 
   // Escape closes; Tab cycles focus within the panel (focus trap).
@@ -319,17 +323,22 @@ export function AiChatPanel({
 
   return (
     <>
-      <button
-        aria-expanded={isOpen}
-        aria-label="Open HCM assistant"
-        className="ai-chat-fab"
-        data-idle={isIdle ? "true" : "false"}
-        onClick={handleToggleOpen}
-        ref={fabRef}
-        type="button"
-      >
-        {isOpen ? <X aria-hidden size={20} /> : <Sparkles aria-hidden size={20} />}
-      </button>
+      {/* The FAB is hidden while the panel is open — the panel has its own
+          close (X) and the FAB would otherwise intercept clicks on the panel's
+          input/submit area in the corner. */}
+      {isOpen ? null : (
+        <button
+          aria-expanded={isOpen}
+          aria-label="Open HCM assistant"
+          className="ai-chat-fab"
+          data-idle={isIdle ? "true" : "false"}
+          onClick={handleToggleOpen}
+          ref={fabRef}
+          type="button"
+        >
+          <Sparkles aria-hidden size={20} />
+        </button>
+      )}
 
       {isOpen ? (
         <div
