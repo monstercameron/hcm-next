@@ -2,6 +2,17 @@
 
 ## 2026-05-16
 
+- `e55f62d` - Fixed the code-style checker so export declarations without a
+  module specifier do not crash the AST walk. Added a console HTTP boundary
+  helper and routed AI chat/start-workflow fetch calls through it so the
+  external-call rule passes without weakening the architectural check.
+- `9f99732` - Applied Prettier formatting to the AI assistant backend, console
+  runtime, tests, and documentation changes after enabling format enforcement
+  in `test:all`.
+- `c06dcc5` - Documented the implemented AI assistant UI generation flow in
+  `docs/ai-ui-generation.md`, linked it from `docs/plan.md`, and replaced the
+  stale TODO inventory with completed four-workstream status plus follow-up
+  backlog.
 - `b0d640c` - Added GitHub Actions for Node and Go test jobs on push, pull
   request, and manual dispatch. Added pre-commit enforcement for lint-staged,
   code-style checks, Go checks, and `test:all`; added TypeScript and Go style
