@@ -43,6 +43,7 @@ import {
   findWorkflowActionConfig,
   resolveWorkflowString,
   resolveWorkflowTemplate,
+  type WorkflowAiReviewNodeConfig,
   type WorkflowConfig,
   type WorkflowGraphOutcomeConfig,
   type WorkflowApprovalNodeConfig,
@@ -1091,7 +1092,10 @@ async function submitConfiguredInput(
     workflowInstance: input.workflowInstance,
     transition: input.transitionBody.transition,
     sources: templateSources,
-    automaticRouteKeysByNodeId: preflightAutomaticRouteKeys(input.workflowConfig),
+    automaticRouteKeysByNodeId: {
+      ...preflightAutomaticRouteKeys(input.workflowConfig),
+      ...aiReviewAutomaticRouteKeys(input.workflowConfig),
+    },
   });
   const nextInteractionKey =
     graphAdvance.nextInteraction ?? input.actionConfig.nextInteraction ?? "input";
@@ -1136,6 +1140,14 @@ async function submitConfiguredInput(
   if (!updateWorkflowResult.ok) {
     return updateWorkflowResult;
   }
+
+  await executeAiReviewNodes(dependencies, requestContext, {
+    workflowConfig: input.workflowConfig,
+    workflowInstance: updateWorkflowResult.value,
+    traversedNodeIds: new Set(graphAdvance.completedNodes.map((n) => n.nodeId)),
+    templateSources,
+    idempotencyKey: input.transitionBody.idempotencyKey,
+  });
 
   const openedGateResult = openGateForWorkflowState({
     repositories,
@@ -2573,6 +2585,105 @@ function preflightAutomaticRouteKeys(
       })
       .map((node) => [node.nodeId, WORKFLOW_ROUTE_KEYS.VALID]),
   );
+}
+
+function aiReviewAutomaticRouteKeys(
+  workflowConfig: WorkflowConfig,
+): Record<string, string> {
+  return Object.fromEntries(
+    (workflowConfig.graph?.nodes ?? [])
+      .filter((node) => node.type === "ai_review")
+      .map((node) => [node.nodeId, "completed"]),
+  );
+}
+
+async function executeAiReviewNodes(
+  dependencies: AppDependencies,
+  requestContext: ApiRequestContext,
+  options: {
+    workflowConfig: WorkflowConfig;
+    workflowInstance: WorkflowInstanceRecord;
+    traversedNodeIds: Set<string>;
+    templateSources: WorkflowTemplateSources;
+    idempotencyKey: string;
+  },
+): Promise<void> {
+  if (dependencies.aiClient === undefined) {
+    return;
+  }
+
+  const aiReviewNodes = (options.workflowConfig.graph?.nodes ?? []).filter(
+    (node): node is typeof node & { aiReview: WorkflowAiReviewNodeConfig } =>
+      node.type === "ai_review" &&
+      node.aiReview !== undefined &&
+      options.traversedNodeIds.has(node.nodeId),
+  );
+
+  for (const node of aiReviewNodes) {
+    const currentStateResult = resolveWorkflowTemplate(
+      node.aiReview.currentStateTemplate,
+      options.templateSources,
+    );
+    const proposedStateResult = resolveWorkflowTemplate(
+      node.aiReview.proposedStateTemplate,
+      options.templateSources,
+    );
+
+    const changeRequestId = options.workflowInstance.changeRequestId ?? "";
+
+    const reviewResult = await dependencies.aiClient.generateChangeReview(
+      {
+        changeType: node.aiReview.changeType,
+        currentState: currentStateResult.ok
+          ? (currentStateResult.value as Record<string, unknown>)
+          : {},
+        proposedState: proposedStateResult.ok
+          ? (proposedStateResult.value as Record<string, unknown>)
+          : {},
+        visibleFields: node.aiReview.visibleFields,
+        workflowInstanceId: options.workflowInstance.workflowInstanceId,
+        changeRequestId,
+        correlationId: requestContext.correlationId,
+        idempotencyKey: options.idempotencyKey + "_ai_" + node.nodeId,
+      },
+      dependencies.logger,
+    );
+
+    const eventType = reviewResult.ok
+      ? LEDGER_EVENT_TYPES.AI_CHANGE_REVIEW_GENERATED
+      : LEDGER_EVENT_TYPES.AI_CHANGE_REVIEW_FAILED;
+
+    const payload: Record<string, unknown> = reviewResult.ok
+      ? {
+          nodeId: node.nodeId,
+          changeType: node.aiReview.changeType,
+          review: reviewResult.value,
+        }
+      : {
+          nodeId: node.nodeId,
+          changeType: node.aiReview.changeType,
+          errorCode: reviewResult.error.code,
+        };
+
+    const ledgerResult = appendWorkflowLedgerEvent(
+      dependencies.repositories,
+      requestContext,
+      {
+        eventType,
+        workflowInstance: options.workflowInstance,
+        subjectType: options.workflowInstance.subjectType,
+        subjectId: options.workflowInstance.subjectId,
+        payload,
+      },
+    );
+
+    if (!ledgerResult.ok) {
+      dependencies.logger?.warn("ai review ledger event append failed", {
+        nodeId: node.nodeId,
+        errorCode: ledgerResult.error.code,
+      });
+    }
+  }
 }
 
 function transactionPlanAutomaticRouteKeys(
