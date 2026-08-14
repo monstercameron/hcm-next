@@ -115,20 +115,21 @@ node or feature surface as a BusinessIntent merely to satisfy coverage.
 
 ### Secondary test taxonomy and required return contracts
 
-| Test class    | Required when                                                         | Passing return contract                                                                             |
-| ------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `PROPERTY`    | value objects, temporal/decimal/rule/graph invariants                 | generated cases preserve stated algebra, boundaries and canonical result/error                      |
-| `GOLDEN`      | canonical bytes, schemas, transforms, reports or generated artifacts  | exact bytes/digest/diagnostics match a versioned checked-in oracle                                  |
-| `FUZZ`        | parsers, validation, expressions, envelopes or hostile input          | bounded corpus produces no panic/leak and never accepts an invalid semantic value                   |
-| `RACE`        | leases, CAS, queues, caches, timers, idempotency or shared state      | `go test -race` reports zero races and invariant counts show no loss/duplication                    |
-| `INTEGRATION` | database, object store, transport, provider or multi-package boundary | real adapter/harness returns the same typed result, persistence and error semantics                 |
-| `FAULT`       | retry, timeout, ambiguity, crash, recovery or external effects        | each failpoint reaches an allowed durable state with zero lost/duplicate effect                     |
-| `SECURITY`    | identity, AuthZ, tenant, secrets, privacy, DLP or untrusted content   | unauthorized cases deny without existence/data leakage and emit bounded evidence                    |
-| `CONFORMANCE` | interchangeable adapters/domains/channels or specification families   | every implementation passes the same fixtures and semantic digest/error oracle                      |
-| `BROWSER`     | GWC, grpcbridge UI, forms, accessibility or human interaction         | rendered/action result matches API semantics and accessibility/privacy assertions                   |
-| `RECOVERY`    | backup, restore, replay, rebuild, failover or destructive correction  | restored state reaches declared RPO/RTO and verifies ledger/projection/effect invariants            |
-| `BENCHMARK`   | latency, throughput, memory, population, batch or scale claim         | named benchmark reports declared workload, percentile/resource budget and regression bound          |
-| `MUTATION`    | authority-, money-, privacy-, lifecycle- or effect-bearing logic      | seeded semantic mutants are killed; survivors block completion or receive reviewed equivalent proof |
+| Test class    | Required when                                                         | Passing return contract                                                                                                                 |
+| ------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROPERTY`    | value objects, temporal/decimal/rule/graph invariants                 | generated cases preserve stated algebra, boundaries and canonical result/error                                                          |
+| `GOLDEN`      | canonical bytes, schemas, transforms, reports or generated artifacts  | exact bytes/digest/diagnostics match a versioned checked-in oracle                                                                      |
+| `FUZZ`        | parsers, validation, expressions, envelopes or hostile input          | bounded corpus produces no panic/leak and never accepts an invalid semantic value                                                       |
+| `RACE`        | leases, CAS, queues, caches, timers, idempotency or shared state      | `go test -race` reports zero races and invariant counts show no loss/duplication                                                        |
+| `INTEGRATION` | database, object store, transport, provider or multi-package boundary | real adapter/harness returns the same typed result, persistence and error semantics                                                     |
+| `FAULT`       | retry, timeout, ambiguity, crash, recovery or external effects        | each failpoint reaches an allowed durable state with zero lost/duplicate effect                                                         |
+| `SECURITY`    | identity, AuthZ, tenant, secrets, privacy, DLP or untrusted content   | unauthorized cases deny without existence/data leakage and emit bounded evidence                                                        |
+| `CONFORMANCE` | interchangeable adapters/domains/channels or specification families   | every implementation passes the same fixtures and semantic digest/error oracle                                                          |
+| `BROWSER`     | GWC, grpcbridge UI, forms, accessibility or human interaction         | rendered/action result matches API semantics and accessibility/privacy assertions                                                       |
+| `RECOVERY`    | backup, restore, replay, rebuild, failover or destructive correction  | restored state reaches declared RPO/RTO and verifies ledger/projection/effect invariants                                                |
+| `BENCHMARK`   | latency, throughput, memory, population, batch or scale claim         | named benchmark reports declared workload, percentile/resource budget and regression bound                                              |
+| `MUTATION`    | authority-, money-, privacy-, lifecycle- or effect-bearing logic      | seeded semantic mutants are killed; survivors block completion or receive reviewed equivalent proof                                     |
+| `MODEL_BASED` | state machines, lifecycle graphs, orchestration or cross-engine plans | generated command sequences match the reference model, cover declared transitions/invariants and shrink to a reproducible failing trace |
 
 Additional test classes stop being useful when they cannot exercise a distinct
 failure mode or observable contract. `GOV-018` records that boundary per todo;
@@ -519,7 +520,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Competitive positioning](specs/competitive-positioning-and-authority-expansion.md), [Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation).
 
 - [ ] `WEDGE-004` **[GATE_A][SOL_LOW] Bound the Phase 1 mutation/read field set.**
-  - **Depends:** `WEDGE-001`, `WEDGE-003`.
+  - **Depends:** `WEDGE-001`, `WEDGE-003`, `SELECT-001`, `SELECT-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPilotFieldManifestRejectsImplicitField`.
   - **TEST MATRIX:** `PRIMARY=TestPilotFieldManifestRejectsImplicitField`; `GOLDEN=TestTodo_WEDGE_004_Golden`; `SECURITY=TestTodo_WEDGE_004_Security`.
@@ -619,7 +620,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
 
 - [ ] `WEDGE-014` **[GATE_A][SOL_HIGH] Execute the Gate A decision.**
-  - **Depends:** `WEDGE-001`–`WEDGE-013`, `TOOL-001`–`TOOL-014`, `LIB-001`–`LIB-015`, `MODEL-001`–`MODEL-030`, `TRUST-001`–`TRUST-025`, `CAP-001`–`CAP-003`, `INTENT-001`–`INTENT-005`, `INTENT-009`–`INTENT-014`, `INTENT-023`, `INTENT-024`, `GOV-017`–`GOV-029`, `GOVERN-001`–`GOVERN-003`, `WF-COMP-001`–`WF-COMP-005`, `UX-001`–`UX-004`, `API-001`, `AGENT-001`–`AGENT-004`, `INTG-001`–`INTG-010`, `OPS-001`–`OPS-005`, `RECOVERY-001`, `RECOVERY-002`, `COMM-001`–`COMM-003`, `PEOPLE-005`, `COMP-006`, `INTEL-001`, `REPAIR-001`, `REPAIR-003`, `CONF-025`.
+  - **Depends:** `NEXT-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestGateADecisionBlocksMissingEvidence`.
   - **TEST MATRIX:** `PRIMARY=TestGateADecisionBlocksMissingEvidence`; `FAULT=TestTodo_WEDGE_014_Fault`; `MUTATION=TestTodo_WEDGE_014_Mutation`.
@@ -629,7 +630,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation), [authority expansion](specs/competitive-positioning-and-authority-expansion.md).
 
 - [ ] `WEDGE-015` **[GATE_B][SOL_HIGH] Execute the limited-write authority decision.**
-  - **Depends:** `WEDGE-014`, `CONFLICT-001`–`CONFLICT-004`, `APPROVAL-001`–`APPROVAL-008`, `TX-001`–`TX-010`, `WF-RUN-001`–`WF-RUN-025`, `INTG-011`–`INTG-017`, `PROMO-003`–`PROMO-008`, `DATA-007`–`DATA-012`, `DATA-021`, `RESERVE-001`, `EFFECT-001`, `RECON-001`, `RECON-002`, `REPAIR-001`, `REPAIR-002`, `INTENT-007`, `INTENT-008`, `INTENT-015`, `INTENT-016`, `INTENT-020`–`INTENT-022`, `AGENT-005`, `EVIDENCE-001`, `ADMISSION-001`, `ADMISSION-002`, `RECOVERY-003`, `CONF-008`.
+  - **Depends:** `WEDGE-014`, `NEXT-006`, `NEXT-009`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestGateBDecisionBlocksUnresolvedDependency`.
   - **TEST MATRIX:** `PRIMARY=TestGateBDecisionBlocksUnresolvedDependency`; `FAULT=TestTodo_WEDGE_015_Fault`; `SECURITY=TestTodo_WEDGE_015_Security`; `MUTATION=TestTodo_WEDGE_015_Mutation`.
@@ -4464,6 +4465,106 @@ closed.
   - **REFACTOR:** channel-specific presentation never forks business rules or intent definitions.
   - **Refs:** [Accessibility](specs/experience-ui-and-branding.md), [grpcbridge parity](specs/go-only-technology-constitution.md).
 
+- [ ] `UXFLOW-001` **[P0][SOL_HIGH] Define the machine-readable UserFlowRecord and stage vocabulary.**
+  - **Depends:** `UX-001`, `SLICE-001`, `WF-DISC-005`, `MODEL-009`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=describe every participant journey with exact semantic references, states, alternatives, accessibility and test hooks`.
+  - **TEST:** `TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`.
+  - **TEST MATRIX:** `PRIMARY=TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`; `PROPERTY=TestTodo_UXFLOW_001_Property`; `GOLDEN=TestTodo_UXFLOW_001_Golden`; `SECURITY=TestTodo_UXFLOW_001_Security`; `CONFORMANCE=TestTodo_UXFLOW_001_Conformance`; `MUTATION=TestTodo_UXFLOW_001_Mutation`.
+  - **RED:** flow validates without stable flow/version/owner/job/intent references, participant and decision rights, entry/resume paths, requested-versus-resolved data, ordered stages, state matrix, failure/recovery, completion, accessibility/localization/privacy, scenarios/todos/evidence or typed `NOT_APPLICABLE` reason.
+  - **GREEN:** SchemaFlux contract requires every field, stage references one semantic action/result and exact participant-visible state, unknown blocks `FLOW_CONTRACTED`, and generated Go/Protobuf/docs share one canonical digest.
+  - **REFACTOR:** flow prose and diagrams are generated views over one record; they never become a parallel runtime or business-rule registry.
+  - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [experience contract](specs/experience-ui-and-branding.md), [vertical-slice record](workflows/vertical-slices/README.md#complete-vertical-slice-record).
+
+- [ ] `UXFLOW-002` **[P0][SOL_HIGH] Resolve participants, representation, delegation and decision rights per flow stage.**
+  - **Depends:** `UXFLOW-001`, `TRUST-010`, `TRUST-013`, `TRUST-014`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent persona labels, act-as modes and assisted use from silently expanding authority or disclosure`.
+  - **TEST:** `TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`.
+  - **TEST MATRIX:** `PRIMARY=TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`; `PROPERTY=TestTodo_UXFLOW_002_Property`; `GOLDEN=TestTodo_UXFLOW_002_Golden`; `SECURITY=TestTodo_UXFLOW_002_Security`; `CONFORMANCE=TestTodo_UXFLOW_002_Conformance`; `MUTATION=TestTodo_UXFLOW_002_Mutation`.
+  - **RED:** manager/persona/route grants visibility or decision right, delegate inherits full principal scope, interpreter becomes subject, support view becomes impersonation, recused participant retains evidence or flow omits on-behalf-of and representation evidence.
+  - **GREEN:** each stage resolves actual participant, subject, relationship, representation/delegation, assurance, purpose, allowed view/actions/decision and expiry from current governance; denial is non-disclosing and assisted actions preserve attributed evidence.
+  - **REFACTOR:** flows consume PrincipalContext/governance receipts; they never define roles or authorization rules.
+  - **Refs:** [participant vocabulary](user-flows/README.md#participant-vocabulary), [AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md).
+
+- [ ] `UXFLOW-003` **[P0][SOL_HIGH] Give every accepted BusinessIntent an explicit user-flow disposition.**
+  - **Depends:** `UXFLOW-001`, `SLICE-003`, `INTENT-010`, `UX-006`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=distinguish participant-facing roots and children from system-only, admin-only and no-flow intents without inventing public UI`.
+  - **TEST:** `TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`.
+  - **TEST MATRIX:** `PRIMARY=TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`; `PROPERTY=TestTodo_UXFLOW_003_Property`; `GOLDEN=TestTodo_UXFLOW_003_Golden`; `SECURITY=TestTodo_UXFLOW_003_Security`; `CONFORMANCE=TestTodo_UXFLOW_003_Conformance`; `MUTATION=TestTodo_UXFLOW_003_Mutation`.
+  - **RED:** accepted intent lacks disposition, candidate display name is treated as stable identity, system trigger gains human action, child/internal intent is independently discoverable, material background action has no visible parent status or one intent maps to conflicting flows without participant/context qualification.
+  - **GREEN:** registry assigns reviewed `PARTICIPANT_ROOT|PARTICIPANT_CHILD|VISIBLE_SYSTEM_STAGE|ADMIN_OPERATOR|NO_USER_FLOW(reason)` by stable definition and participant/context, links archetype/delta and reports baseline, extension and source-unbound denominators separately.
+  - **REFACTOR:** generate action and flow reverse indexes from the intent registry; display labels remain localized projections.
+  - **Refs:** [flow catalog](user-flows/catalog.md), [BusinessIntent catalog](specs/business-intent-catalog.md), [action discovery](#17-experience-api-and-accessibility).
+
+- [ ] `UXFLOW-004` **[P0][SOL_HIGH] Compile truthful participant-facing state and available actions from multidimensional intent state.**
+  - **Depends:** `UXFLOW-001`, `INTENT-021`, `UX-005`, `UX-007`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every flow renders loading, waiting, stale, partial, unknown, repair and closure without flattening business truth`.
+  - **TEST:** `TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`.
+  - **TEST MATRIX:** `PRIMARY=TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`; `PROPERTY=TestTodo_UXFLOW_004_Property`; `GOLDEN=TestTodo_UXFLOW_004_Golden`; `FAULT=TestTodo_UXFLOW_004_Fault`; `SECURITY=TestTodo_UXFLOW_004_Security`; `CONFORMANCE=TestTodo_UXFLOW_004_Conformance`; `BROWSER=TestTodo_UXFLOW_004_Browser`; `MUTATION=TestTodo_UXFLOW_004_Mutation`.
+  - **RED:** runtime completion displays full success while external consistency/obligation is open, timeout becomes generic failure, ambiguity offers blind retry, stale action remains enabled, empty/denied state leaks existence or completed/cancelled/corrected history is overwritten.
+  - **GREEN:** resolver maps exact runtime/business/external/reconciliation/obligation/operational dimensions plus current authorization/freshness to localized state, evidence refs and only safe actions for every required state matrix row.
+  - **REFACTOR:** one server-owned state presentation contract drives page, message and assistive announcements without owning lifecycle truth.
+  - **Refs:** [state matrix](user-flows/README.md#state-presentation-matrix), [multidimensional completion](specs/business-intent-and-change-request.md), [truthful UX](specs/experience-ui-and-branding.md).
+
+- [ ] `UXFLOW-005` **[P0][SOL_HIGH] Define draft, autosave, validation, simulation, compare and confirmation flow mechanics.**
+  - **Depends:** `UXFLOW-001`, `UXFLOW-004`, `FORM-001`, `INTENT-014`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=let participants safely move from requested input to an exact proposal without client-resolved truth or accidental effects`.
+  - **TEST:** `TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`.
+  - **TEST MATRIX:** `PRIMARY=TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`; `PROPERTY=TestTodo_UXFLOW_005_Property`; `GOLDEN=TestTodo_UXFLOW_005_Golden`; `RACE=TestTodo_UXFLOW_005_Race`; `FAULT=TestTodo_UXFLOW_005_Fault`; `SECURITY=TestTodo_UXFLOW_005_Security`; `CONFORMANCE=TestTodo_UXFLOW_005_Conformance`; `BROWSER=TestTodo_UXFLOW_005_Browser`; `MUTATION=TestTodo_UXFLOW_005_Mutation`.
+  - **RED:** hidden/current-state field is trusted, autosave overwrites concurrent revision, validation loses input/focus, simulation mutates state/effect, masked compare makes material decision, confirmation binds different proposal or duplicate submit creates two intents.
+  - **GREEN:** versioned draft stores requested values only, server snapshot resolves truth, errors preserve accessible field/summary state, simulation is zero-effect, compare exposes permitted provenance/uncertainty and confirmation/idempotency bind the exact proposal digest.
+  - **REFACTOR:** shared mechanics own revision/conflict/presentation; domain schemas, calculations and materiality remain semantic-owner contracts.
+  - **Refs:** [requested input versus truth](user-flows/README.md#requested-input-versus-server-truth), [forms](specs/human-work-forms-and-rules.md), [intent proposals](specs/business-intent-and-change-request.md).
+
+- [ ] `UXFLOW-006` **[P0][SOL_HIGH] Preserve safe interruption, deep-link, session-expiry and cross-device resume.**
+  - **Depends:** `UXFLOW-004`, `UXFLOW-005`, `TRUST-003`, `UX-007`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make long-running HCM work resumable without embedding authority in URLs, stale pages or device storage`.
+  - **TEST:** `TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`.
+  - **TEST MATRIX:** `PRIMARY=TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`; `PROPERTY=TestTodo_UXFLOW_006_Property`; `GOLDEN=TestTodo_UXFLOW_006_Golden`; `RACE=TestTodo_UXFLOW_006_Race`; `FAULT=TestTodo_UXFLOW_006_Fault`; `SECURITY=TestTodo_UXFLOW_006_Security`; `CONFORMANCE=TestTodo_UXFLOW_006_Conformance`; `BROWSER=TestTodo_UXFLOW_006_Browser`; `MUTATION=TestTodo_UXFLOW_006_Mutation`.
+  - **RED:** URL/QR/notification contains bearer authority or sensitive state, browser back repeats effect, expired session leaves data visible, resume trusts cached permission/action, two devices overwrite silently, offline draft stores prohibited fields unprotected or authority loss still opens task.
+  - **GREEN:** opaque expiring locator resolves only after current identity/AuthZ/purpose, stale tokens/actions are replaced, draft CAS exposes conflict, refresh/back are idempotent, sensitive client state clears on expiry and resume returns exact current masked state plus safe alternatives.
+  - **REFACTOR:** deep links locate owner resources; capability gateway reauthorizes every read/action and channel adapters own protected local storage policy.
+  - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [sessions](specs/platform-foundation-gap-closure.md), [Intent Center](#17-experience-api-and-accessibility).
+
+- [ ] `UXFLOW-007` **[P0][SOL_HIGH] Design exact participant recovery for partial, unknown, ambiguous and repair-required outcomes.**
+  - **Depends:** `UXFLOW-004`, `UX-005`, `INTG-014`, `REPAIR-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent unsafe retries and give participants truthful next actions when local business truth and external reality diverge`.
+  - **TEST:** `TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`.
+  - **TEST MATRIX:** `PRIMARY=TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`; `PROPERTY=TestTodo_UXFLOW_007_Property`; `GOLDEN=TestTodo_UXFLOW_007_Golden`; `RACE=TestTodo_UXFLOW_007_Race`; `FAULT=TestTodo_UXFLOW_007_Fault`; `SECURITY=TestTodo_UXFLOW_007_Security`; `CONFORMANCE=TestTodo_UXFLOW_007_Conformance`; `BROWSER=TestTodo_UXFLOW_007_Browser`; `RECOVERY=TestTodo_UXFLOW_007_Recovery`; `MUTATION=TestTodo_UXFLOW_007_Mutation`.
+  - **RED:** provider timeout enables ordinary retry after possible application, partial effect is called failure and rolled back, repair reruns original transaction, unauthorized participant sees provider payload, observation staleness is hidden or completion closes while required verification is unknown.
+  - **GREEN:** state identifies known/unknown components, last safe operation, observation freshness/deadline, business-versus-external outcome and participant-specific `WAIT|REFRESH|REQUEST_HELP|CANCEL_IF_SAFE|CORRECT|OPEN_REPAIR` actions with no duplicate effect.
+  - **REFACTOR:** recovery presentation consumes operation/reconciliation/repair contracts; it does not diagnose provider state itself.
+  - **Refs:** [repair user flow](user-flows/reference/dataops-reconcile-and-repair.md), [integration ambiguity](specs/integration-platform.md), [reconciliation and repair](specs/transaction-ledger-reconciliation-and-repair.md).
+
+- [ ] `UXFLOW-008` **[P0][SOL_HIGH] Compile accessibility, localization and assisted/manual continuity across complete flows.**
+  - **Depends:** `UXFLOW-001`, `UX-003`, `UX-004`, `FORM-004`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prove a participant can complete the entire governed process—not isolated pages—across language, disability, accommodation and non-digital routes`.
+  - **TEST:** `TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`.
+  - **TEST MATRIX:** `PRIMARY=TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`; `PROPERTY=TestTodo_UXFLOW_008_Property`; `GOLDEN=TestTodo_UXFLOW_008_Golden`; `INTEGRATION=TestTodo_UXFLOW_008_Integration`; `FAULT=TestTodo_UXFLOW_008_Fault`; `SECURITY=TestTodo_UXFLOW_008_Security`; `CONFORMANCE=TestTodo_UXFLOW_008_Conformance`; `BROWSER=TestTodo_UXFLOW_008_Browser`; `MUTATION=TestTodo_UXFLOW_008_Mutation`.
+  - **RED:** keyboard/screen-reader/zoom/RTL route loses action/state/error, translation changes legal meaning, interpreter/representative is unattributed, inaccessible upload/signature blocks deadline, fallback channel weakens privacy/identity/validation or manual transcription changes request digest.
+  - **GREEN:** flow scenario covers every stage and transition with WCAG evidence, reviewed locale/template versions, semantic announcements/focus, equivalent accommodations and governed assisted/manual receipt preserving subject/actor/meaning/deadline/privacy and normalized intent result.
+  - **REFACTOR:** page/component checks feed flow coverage but cannot substitute for multi-step participant testing.
+  - **Refs:** [maximal configuration](user-flows/README.md#maximal-configuration), [accessibility contract](specs/experience-ui-and-branding.md#accessibility-contract), [manual continuity](specs/platform-foundation-gap-closure.md#10-accessibility-assurance-platform).
+
+- [ ] `UXFLOW-009` **[PHASE_2][SOL_HIGH] Prove cross-channel flow parity for desktop, mobile, kiosk, secure message and assisted routes.**
+  - **Depends:** `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-008`, `UX-008`, `API-001`, `MSG-001`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure surface adaptation never forks BusinessIntent semantics, governance, validation, recovery or evidence`.
+  - **TEST:** `TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`.
+  - **TEST MATRIX:** `PRIMARY=TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`; `PROPERTY=TestTodo_UXFLOW_009_Property`; `GOLDEN=TestTodo_UXFLOW_009_Golden`; `INTEGRATION=TestTodo_UXFLOW_009_Integration`; `FAULT=TestTodo_UXFLOW_009_Fault`; `SECURITY=TestTodo_UXFLOW_009_Security`; `CONFORMANCE=TestTodo_UXFLOW_009_Conformance`; `BROWSER=TestTodo_UXFLOW_009_Browser`; `MUTATION=TestTodo_UXFLOW_009_Mutation`.
+  - **RED:** equivalent input creates different normalized request/digest/result/error, one channel skips simulation/step-up/confirmation, message action remains valid after workflow change, kiosk leaks prior participant, mobile/offline duplicates effect or assisted route loses evidence.
+  - **GREEN:** enabled channels invoke identical semantic capability/version with independently trusted context, produce the same normalized intent/result and exact channel-specific presentation/evidence differences; unsupported stage hands off safely without deadline loss.
+  - **REFACTOR:** channel renderers and adapters consume generated flow/page/action contracts; no channel-specific domain handler exists.
+  - **Refs:** [surface vocabulary](user-flows/README.md#surface-vocabulary), [channel parity](specs/go-only-technology-constitution.md), [messaging](specs/messaging-and-notification-plane.md).
+
+- [ ] `UXFLOW-010` **[P0][SOL_HIGH] Generate atomic TDD todos and reverse coverage from user-flow findings to a fixed point.**
+  - **Depends:** `UXFLOW-003`, `UXFLOW-004`, `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-007`, `UXFLOW-008`, `UXFLOW-009`, `SLICE-012`, `GOV-028`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=turn every unresolved surface, state, action, accessibility, continuity and test obligation into deduplicated production work`.
+  - **TEST:** `TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`.
+  - **TEST MATRIX:** `PRIMARY=TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`; `PROPERTY=TestTodo_UXFLOW_010_Property`; `GOLDEN=TestTodo_UXFLOW_010_Golden`; `SECURITY=TestTodo_UXFLOW_010_Security`; `CONFORMANCE=TestTodo_UXFLOW_010_Conformance`; `MUTATION=TestTodo_UXFLOW_010_Mutation`.
+  - **RED:** missing PageDefinition/widget/form/action/endpoint/message/state/recovery/accessibility/analytics/test produces no finding, shared gap creates one todo per flow, screen todo absorbs domain invariant, candidate lacks phase/intelligence/dependencies/exact oracle/references or unchanged second pass emits renamed/new duplicates.
+  - **GREEN:** compiler resolves existing semantic owners/todos first, emits stable atomic candidates keyed by owner+contract with every consuming flow/stage/configuration reverse edge, exact browser/API/security/fault oracle and canonical digest; unchanged second pass emits zero new identities.
+  - **REFACTOR:** share finding/todo schemas with vertical-slice convergence while preserving flow-specific participant-visible evidence.
+  - **Refs:** [flow extraction](user-flows/README.md#flow-to-todo-and-tdd-extraction), [initial catalog](user-flows/catalog.md), [vertical-slice gap compiler](workflows/vertical-slices/gap-register.md#fixed-point-rule).
+
 - [ ] `API-001` **[GATE_A][SOL_HIGH] Publish discoverable capability descriptors across gRPC and HTTP.**
   - **Depends:** `CAP-003`, `TOOL-008`, `TOOL-009`, `INTENT-010`, `INTENT-013`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
@@ -6447,20 +6548,20 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_001`; `INTEGRATION=TestTodo_OBS_001_Integration`; `SECURITY=TestTodo_OBS_001_Security`; `MUTATION=TestTodo_OBS_001_Mutation`.
-  - **RED:** Missing service/build/cell/correlation or business payload/high-cardinality worker ID in metric labels fails.
-  - **GREEN:** Typed allowlist separates ledger evidence from telemetry.
-  - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Operations models](data/models/operations-production.md), [DLP](specs/data-classification-and-dlp.md).
+  - **RED:** telemetry without schema/resource version, service/build/environment/cell/process role, owned correlation/outcome or policy version validates; salary/medical/bank/case/prompt/payload data or worker/request identifiers are accepted as metric labels; telemetry is treated as ledger/audit/billing truth.
+  - **GREEN:** one typed signal-neutral envelope and destination allowlist define exact resource/context/classification/cardinality/retention fields, keep ledger/activity/decision/telemetry authority separate and return a field-level rejection before prohibited content reaches any handler/exporter.
+  - **REFACTOR:** generate signal-specific Go definitions and policy registries from the owned schema without exposing OTel or backend types to semantic packages.
+  - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [DLP](specs/data-classification-and-dlp.md).
 
 - [ ] `OBS-002` **[GATE_A][TERRA] Implement Go OTel instrumentation and Collector pipeline.**
   - **Depends:** `OBS-001`, `SVC-002`, `LIB-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_002`; `RACE=TestTodo_OBS_002_Race`; `INTEGRATION=TestTodo_OBS_002_Integration`; `SECURITY=TestTodo_OBS_002_Security`.
-  - **RED:** API/gRPC/worker/queue/connector paths emit correlated OTLP metrics/traces/logs, bounded queues and graceful flush.
-  - **GREEN:** Exporter/privacy failure is explicit and never changes business commit.
-  - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Operations models](data/models/operations-production.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **RED:** API/gRPC/worker/queue/connector path lacks correlated OTLP signal, imports OTel into a domain contract, uses unbounded batching/retry, loses declared records on graceful drain without a drop count, or exporter/privacy failure changes the returned business result or commit.
+  - **GREEN:** owned adapters emit the exact approved metrics/traces/logs through bounded queues, propagate reviewed context, flush within the shutdown deadline and expose drops/degraded export independently while identical instrumented and no-op executions return the same business state/effects.
+  - **REFACTOR:** centralize provider/resource/exporter wiring in `operations/telemetry`; instrumentation libraries remain replaceable mechanics.
+  - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go-only constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `OBS-003` **[GATE_A][TERRA] Deploy portable OSS telemetry backends.**
   - **Depends:** `OBS-002`, `IAC-009`.
@@ -6477,10 +6578,10 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_004`; `INTEGRATION=TestTodo_OBS_004_Integration`; `SECURITY=TestTodo_OBS_004_Security`; `MUTATION=TestTodo_OBS_004_Mutation`.
-  - **RED:** Salary/medical/bank/case/prompt fixtures never escape.
-  - **GREEN:** Bounded labels and risk-tail sampling retain all declared financial/security failures with policy receipt.
-  - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [DLP](specs/data-classification-and-dlp.md), [SLOs](specs/slo-sli-error-budget.md).
+  - **RED:** salary/medical/bank/case/prompt/header/SQL/error/stack fixtures escape, untrusted sampling flags force retention or suppress mandatory traces, metric cardinality exceeds its budget, or privacy-gateway failure exports unreviewed content.
+  - **GREEN:** classification-aware policy redacts or rejects before export, bounded metric dimensions and baggage are enforced, versioned head/tail sampling retains all declared security/financial/irreversible/ambiguous/correctness failures and emits an exact policy receipt/drop reason.
+  - **REFACTOR:** one policy evaluator governs logs, spans, metrics and exemplars; signal adapters do not invent weaker redaction rules.
+  - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [DLP](specs/data-classification-and-dlp.md), [SLOs](specs/slo-sli-error-budget.md).
 
 - [ ] `OBS-005` **[GATE_A][SOL_HIGH] Define semantic metrics, dashboards and alert rules.**
   - **Depends:** `OBS-003`, `OBS-004`, `OPS-001`.
@@ -6493,7 +6594,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [SLO contract](specs/slo-sli-error-budget.md), [incident management](specs/incident-management.md).
 
 - [ ] `OBS-006` **[GATE_A][SOL_HIGH] Monitor telemetry completeness as a first-class dependency.**
-  - **Depends:** `OBS-002`–`OBS-005`, `OPS-003`.
+  - **Depends:** `OBS-002`, `OBS-003`, `OBS-004`, `OBS-005`, `OPS-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_006`; `INTEGRATION=TestTodo_OBS_006_Integration`; `MUTATION=TestTodo_OBS_006_Mutation`.
@@ -6513,7 +6614,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Incident management](specs/incident-management.md), [messaging plane](specs/messaging-and-notification-plane.md).
 
 - [ ] `OBS-008` **[GATE_B][SOL_HIGH] Publish observability evidence and outage runbooks.**
-  - **Depends:** `OBS-003`–`OBS-007`, `RECOVERY-002`.
+  - **Depends:** `OBS-003`, `OBS-004`, `OBS-005`, `OBS-006`, `OBS-007`, `RECOVERY-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_008`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_008`; `GOLDEN=TestTodo_OBS_008_Golden`; `INTEGRATION=TestTodo_OBS_008_Integration`; `FAULT=TestTodo_OBS_008_Fault`; `SECURITY=TestTodo_OBS_008_Security`; `RECOVERY=TestTodo_OBS_008_Recovery`; `MUTATION=TestTodo_OBS_008_Mutation`.
@@ -6521,6 +6622,136 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Delivery manifest is incomplete without config/rule/dashboard/backend digests, cardinality/cost report, restore test and rehearsed collector/backend/privacy/cardinality/noisy-neighbor runbooks.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Incident management](specs/incident-management.md), [operations models](data/models/operations-production.md).
+
+- [ ] `OBS-009` **[P0][SOL_HIGH] Define and implement the versioned structured-log envelope with `log/slog`.**
+  - **Depends:** `OBS-001`, `LIB-012`, `SVC-002`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make every intent and execution path diagnosable through one privacy-safe machine-queryable log contract`.
+  - **TEST:** `TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`.
+  - **TEST MATRIX:** `PRIMARY=TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`; `PROPERTY=TestTodo_OBS_009_Property`; `GOLDEN=TestTodo_OBS_009_Golden`; `FUZZ=FuzzTodo_OBS_009`; `RACE=TestTodo_OBS_009_Race`; `SECURITY=TestTodo_OBS_009_Security`; `MUTATION=TestTodo_OBS_009_Mutation`.
+  - **RED:** record accepts dynamic message text as event identity, missing event/schema/resource/policy/outcome/correlation fields, duplicate keys, invalid type, uncontrolled tenant/worker value, secret/payload, non-canonical time or backend-specific field.
+  - **GREEN:** owned `slog.Handler` normalizes one immutable envelope with exact typed fields, stable dotted event name/version, bounded scope tokens, deterministic key ordering for golden export and field-level `TELEMETRY_FIELD_PROHIBITED` before downstream handling.
+  - **REFACTOR:** generate event/attribute constants and validators from the telemetry schema; application code never assembles ad hoc maps or imports backend encoders.
+  - **Refs:** [structured log envelope](specs/structured-logging-and-opentelemetry.md#structured-log-envelope), [Go dependency policy](#3-third-party-library-and-internal-semantic-package-architecture), [telemetry context](data/models/operations-production.md).
+
+- [ ] `OBS-010` **[P0][SOL_HIGH] Define log event names, severity, outcome and error semantics.**
+  - **Depends:** `OBS-009`, `CAP-003`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent prose, severity drift and raw errors from becoming incompatible operational APIs`.
+  - **TEST:** `TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`.
+  - **TEST MATRIX:** `PRIMARY=TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`; `PROPERTY=TestTodo_OBS_010_Property`; `GOLDEN=TestTodo_OBS_010_Golden`; `SECURITY=TestTodo_OBS_010_Security`; `CONFORMANCE=TestTodo_OBS_010_Conformance`; `MUTATION=TestTodo_OBS_010_Mutation`.
+  - **RED:** retry logs as final failure, denial logs as system error, partial/unknown collapses to success, arbitrary error string/stack becomes alert key, library emits fatal exit or one event name changes meaning without versioning.
+  - **GREEN:** registry returns exact event name/version, `DEBUG|INFO|WARN|ERROR`, typed outcome, error code/type/retryability and safe template for success/failure/partial/unknown/denied/cancelled/degraded; libraries never terminate the process.
+  - **REFACTOR:** semantic result/error mapping is shared with transport and metrics while presentation text stays replaceable and non-authoritative.
+  - **Refs:** [severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [capability errors](specs/capability-registry-and-lifecycle.md), [endpoint errors](specs/http-grpc-endpoint-contract.md).
+
+- [ ] `OBS-011` **[P0][SOL_HIGH] Govern trace-context and baggage propagation at every trust boundary.**
+  - **Depends:** `OBS-001`, `TRUST-006`, `ENDPOINT-001`, `INTG-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=correlate work across channels without allowing trace headers to inject authority, identity, cost or sensitive data`.
+  - **TEST:** `TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`.
+  - **TEST MATRIX:** `PRIMARY=TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`; `PROPERTY=TestTodo_OBS_011_Property`; `GOLDEN=TestTodo_OBS_011_Golden`; `FUZZ=FuzzTodo_OBS_011`; `SECURITY=TestTodo_OBS_011_Security`; `CONFORMANCE=TestTodo_OBS_011_Conformance`; `MUTATION=TestTodo_OBS_011_Mutation`.
+  - **RED:** malformed/oversized trace headers crash or poison context; caller sets tenant/actor/purpose/AuthZ/correlation/evidence via trace/baggage; unreviewed baggage crosses provider boundary; unsampled parent suppresses required risk trace or sampled parent forces unbounded retention.
+  - **GREEN:** bounded parser starts a fresh trace for invalid context with safe security signal, trusted transport independently injects business context, baggage allowlist enforces key/type/size/classification/destination/hop lifetime and egress emits only reviewed fields.
+  - **REFACTOR:** one propagator policy is reused by HTTP, gRPC, workers, queues and connectors with explicit inbound/outbound trust profiles.
+  - **Refs:** [propagation](specs/structured-logging-and-opentelemetry.md#propagation), [trusted request boundary](specs/http-grpc-endpoint-contract.md), [integration trust](specs/integration-platform.md).
+
+- [ ] `OBS-012` **[P0][SOL_HIGH] Define stable span topology, names, attributes and status rules.**
+  - **Depends:** `OBS-001`, `OBS-010`, `WF-RUN-024`, `TX-004`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make intent-to-repair execution traceable without high-cardinality span names or false parentage`.
+  - **TEST:** `TestCanonicalSpanTopologyMatchesCapabilityWorkflowTransactionAndRepairSemantics`.
+  - **TEST MATRIX:** `PRIMARY=TestCanonicalSpanTopologyMatchesCapabilityWorkflowTransactionAndRepairSemantics`; `PROPERTY=TestTodo_OBS_012_Property`; `GOLDEN=TestTodo_OBS_012_Golden`; `RACE=TestTodo_OBS_012_Race`; `CONFORMANCE=TestTodo_OBS_012_Conformance`; `MUTATION=TestTodo_OBS_012_Mutation`.
+  - **RED:** worker/tenant/URL/error appears in span name, long wait keeps one span open, provider acceptance marks business transaction complete, child status contaminates unrelated parent or topology cannot distinguish logical operation from retry attempt.
+  - **GREEN:** versioned registry emits bounded names/attributes/status for transport, capability, intent, workflow node, transaction, DB, outbox/queue, connector, observation, reconciliation, repair, projector and job spans with exact logical-operation and attempt identities.
+  - **REFACTOR:** adapters consume semantic span definitions; instrumentation placement remains beside the owning operation rather than inside domain entities.
+  - **Refs:** [trace topology](specs/structured-logging-and-opentelemetry.md#trace-topology), [workflow runtime](specs/workflow-runtime.md), [transaction contract](specs/transaction-plan-and-commit-coordinator.md).
+
+- [ ] `OBS-013` **[P0][SOL_HIGH] Persist causal telemetry metadata and create span links across durable asynchronous work.**
+  - **Depends:** `OBS-011`, `OBS-012`, `DATA-007`, `JOB-001`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=preserve diagnosis across workflow waits, timers, signals, outbox delivery, redelivery, fan-out and repair without treating telemetry as durable truth`.
+  - **TEST:** `TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan`.
+  - **TEST MATRIX:** `PRIMARY=TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan`; `PROPERTY=TestTodo_OBS_013_Property`; `GOLDEN=TestTodo_OBS_013_Golden`; `RACE=TestTodo_OBS_013_Race`; `FAULT=TestTodo_OBS_013_Fault`; `RECOVERY=TestTodo_OBS_013_Recovery`; `MUTATION=TestTodo_OBS_013_Mutation`.
+  - **RED:** timer/wait holds span open, crash loses business causation, queue redelivery creates unrelated logical operation, fan-out invents one parent chain, duplicate attempt duplicates business effect or stored trace ID becomes authorization/evidence.
+  - **GREEN:** durable envelope stores bounded correlation/causation and optional trace-link metadata, each continuation/partition/attempt creates a finite span with exact links, duplicate delivery reuses logical-operation identity and business behavior is identical when link metadata is missing or expired.
+  - **REFACTOR:** causal business identifiers belong to owner envelopes; trace-link metadata is optional operational context with separate retention.
+  - **Refs:** [trace topology](specs/structured-logging-and-opentelemetry.md#trace-topology), [ledger/outbox](specs/transaction-ledger-reconciliation-and-repair.md), [jobs](#34-batch-scheduling-and-connector-execution-substrate).
+
+- [ ] `OBS-014` **[P0][TERRA] Instrument HTTP, gRPC, database, worker and provider boundaries without payload capture.**
+  - **Depends:** `OBS-002`, `OBS-011`, `OBS-012`, `DB-001`, `ENDPOINT-003`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=obtain complete operational timing and failure evidence at every physical boundary while preserving semantic and privacy isolation`.
+  - **TEST:** `TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior`.
+  - **TEST MATRIX:** `PRIMARY=TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior`; `GOLDEN=TestTodo_OBS_014_Golden`; `RACE=TestTodo_OBS_014_Race`; `INTEGRATION=TestTodo_OBS_014_Integration`; `FAULT=TestTodo_OBS_014_Fault`; `SECURITY=TestTodo_OBS_014_Security`; `BENCHMARK=BenchmarkTodo_OBS_014`; `MUTATION=TestTodo_OBS_014_Mutation`.
+  - **RED:** request/response/body/header/query/SQL bind/provider payload is captured, route uses raw URL, DB instrumentation changes transaction/locking, duplicate middleware emits duplicate spans or no-op versus enabled instrumentation changes return/state/effects/order.
+  - **GREEN:** approved interceptors/hooks emit route/procedure/operation/dependency/status/duration/size-class/retry attributes only, preserve exact business result and transaction semantics, avoid double instrumentation and stay within declared latency/allocation budget.
+  - **REFACTOR:** compose reviewed standard instrumentation behind owned attribute filters; hand-authored spans cover only HCM semantic boundaries not visible to mechanics libraries.
+  - **Refs:** [package boundary](specs/structured-logging-and-opentelemetry.md#package-boundary), [endpoint contract](specs/http-grpc-endpoint-contract.md), [database foundation](#29-postgresql-schema-migrations-ledger-projections-and-storage-adapters).
+
+- [ ] `OBS-015` **[P0][TERRA] Build deterministic in-memory log, trace and metric test exporters.**
+  - **Depends:** `OBS-009`, `OBS-012`, `GOV-018`, `TOOL-014`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=let every todo assert exact telemetry and prohibited absence without a network backend or flaky clocks and IDs`.
+  - **TEST:** `TestTelemetryHarnessReturnsDeterministicLogsSpansMetricsAndDrops`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetryHarnessReturnsDeterministicLogsSpansMetricsAndDrops`; `PROPERTY=TestTodo_OBS_015_Property`; `GOLDEN=TestTodo_OBS_015_Golden`; `RACE=TestTodo_OBS_015_Race`; `FAULT=TestTodo_OBS_015_Fault`; `SECURITY=TestTodo_OBS_015_Security`; `MUTATION=TestTodo_OBS_015_Mutation`.
+  - **RED:** tests require Collector/backend, wall clock/random IDs/map order cause flaky golden, concurrent export races, reset leaks prior tenant data or harness cannot assert missing/prohibited fields, links, exemplars, sampling and drops.
+  - **GREEN:** harness injects deterministic clock/ID/sampler/resource, isolates each test, returns canonically sorted records/spans/links/metric points/drop reasons and supplies exact positive plus `AssertNoProhibitedTelemetry` oracles under race execution.
+  - **REFACTOR:** one conformance kit supports unit, integration, fault and vertical-slice tests; backend smoke tests remain separate.
+  - **Refs:** [testing contract](specs/structured-logging-and-opentelemetry.md#testing-contract), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts), [maximal slices](workflows/vertical-slices/maximal-configuration-profile.md).
+
+- [ ] `OBS-016` **[P0][TERRA] Correlate structured logs, traces, metrics and business identifiers without conflating authority.**
+  - **Depends:** `OBS-009`, `OBS-012`, `OBS-013`, `OBS-015`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=join diagnosis across multiple traces and signals while keeping stable business causation independent from sampled telemetry identifiers`.
+  - **TEST:** `TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority`; `PROPERTY=TestTodo_OBS_016_Property`; `GOLDEN=TestTodo_OBS_016_Golden`; `SECURITY=TestTodo_OBS_016_Security`; `CONFORMANCE=TestTodo_OBS_016_Conformance`; `MUTATION=TestTodo_OBS_016_Mutation`.
+  - **RED:** log lacks active trace/span flags, sampled-out trace breaks BusinessIntent correlation, metric uses correlation ID as label, trace ID becomes idempotency/authorization/evidence key or one tenant can query another through shared correlation.
+  - **GREEN:** logs carry permitted trace/span fields plus owned correlation, controlled exemplars link bounded metrics, long-running intent can span many traces using business causation and query authorization scopes every join independently.
+  - **REFACTOR:** expose typed correlation helpers; prohibit manual propagation of raw identifiers and centralize query-scope enforcement.
+  - **Refs:** [propagation](specs/structured-logging-and-opentelemetry.md#propagation), [metrics and exemplars](specs/structured-logging-and-opentelemetry.md#metrics-and-exemplars), [canonical envelope](specs/canonical-envelope-and-digest.md).
+
+- [ ] `OBS-017` **[P0][SOL_HIGH] Handle errors, stacks and panics without sensitive leakage or lost failure state.**
+  - **Depends:** `OBS-004`, `OBS-010`, `OBS-015`, `SVC-002`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=retain actionable failure diagnosis without trusting arbitrary library/provider error text or allowing panic handling to corrupt business semantics`.
+  - **TEST:** `TestErrorAndPanicTelemetryClassifiesRedactsAndPreservesOwnedFailureBehavior`.
+  - **TEST MATRIX:** `PRIMARY=TestErrorAndPanicTelemetryClassifiesRedactsAndPreservesOwnedFailureBehavior`; `PROPERTY=TestTodo_OBS_017_Property`; `GOLDEN=TestTodo_OBS_017_Golden`; `FUZZ=FuzzTodo_OBS_017`; `FAULT=TestTodo_OBS_017_Fault`; `SECURITY=TestTodo_OBS_017_Security`; `RECOVERY=TestTodo_OBS_017_Recovery`; `MUTATION=TestTodo_OBS_017_Mutation`.
+  - **RED:** cyclic/wrapped/provider error loops or leaks payload/secret/SQL values, raw stack is ordinary log field, panic returns success, double recovery commits twice, logging failure panics recursively or fatal helper exits before owned drain.
+  - **GREEN:** bounded classifier emits safe error type/code/retryability and protected stack reference, marks exact operation failed, panic boundary performs one owned recovery/response/worker disposition, bounded flush reports drops and no telemetry helper terminates or changes commit state.
+  - **REFACTOR:** error classification precedes telemetry and is shared with transport/incident policy; protected forensic artifacts use document/evidence controls.
+  - **Refs:** [severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [export failure](specs/structured-logging-and-opentelemetry.md#export-failure-and-shutdown), [error contract](specs/http-grpc-endpoint-contract.md).
+
+- [ ] `OBS-018` **[GATE_A][SOL_HIGH] Govern runtime log-level and diagnostic-trace elevation.**
+  - **Depends:** `OBS-004`, `OBS-009`, `CONFIG-003`, `TRUST-011`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS; DIRECT=none; WHY=enable incident diagnostics without permanent debug mode, secret capture, cross-tenant surveillance or unbounded telemetry cost`.
+  - **TEST:** `TestDiagnosticElevationRequiresScopedExpiringGovernedConfiguration`.
+  - **TEST MATRIX:** `PRIMARY=TestDiagnosticElevationRequiresScopedExpiringGovernedConfiguration`; `PROPERTY=TestTodo_OBS_018_Property`; `GOLDEN=TestTodo_OBS_018_Golden`; `RACE=TestTodo_OBS_018_Race`; `SECURITY=TestTodo_OBS_018_Security`; `CONFORMANCE=TestTodo_OBS_018_Conformance`; `MUTATION=TestTodo_OBS_018_Mutation`.
+  - **RED:** environment toggle enables global debug indefinitely, elevation captures prohibited content, scope cardinality/volume is unbounded, stale operator retains control, expiry race leaves one process elevated or diagnostic policy changes business/sampling authority.
+  - **GREEN:** signed configuration revision binds actor/purpose/tenant-or-correlation scope/levels/volume budget/start/expiry/approval, all processes converge or report drift, sensitive fields remain prohibited and automatic expiry emits evidence with no business behavior change.
+  - **REFACTOR:** dynamic level filter is an owned handler layer driven by configuration snapshots, not package globals or provider console state.
+  - **Refs:** [diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [configuration](#14-configuration-regulatory-and-reference-data), [support access](specs/platform-foundation-gap-closure.md).
+
+- [ ] `OBS-019` **[GATE_A][SOL_HIGH] Bound telemetry queues, retry, duplication, backpressure and shutdown loss.**
+  - **Depends:** `OBS-002`, `OBS-003`, `OBS-006`, `ADMISSION-002`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure telemetry outage cannot exhaust production resources or silently erase the evidence-quality signal`.
+  - **TEST:** `TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState`; `PROPERTY=TestTodo_OBS_019_Property`; `RACE=TestTodo_OBS_019_Race`; `INTEGRATION=TestTodo_OBS_019_Integration`; `FAULT=TestTodo_OBS_019_Fault`; `RECOVERY=TestTodo_OBS_019_Recovery`; `BENCHMARK=BenchmarkTodo_OBS_019`; `MUTATION=TestTodo_OBS_019_Mutation`.
+  - **RED:** stalled exporter grows memory/goroutines/retries unbounded, telemetry blocks commit, failover duplicates alerts without dedupe identity, shutdown closes exporter before producers, deadline claims complete despite drops or pipeline failure monitors itself only through the failed path.
+  - **GREEN:** bounded queues/retry budgets/drop priority and circuit states cap resources, independent health path reports accepted/exported/rejected/dropped by reason, shutdown follows stop-admit/drain/stop-produce/flush/close order and returns exact `COMPLETE|PARTIAL|TIMED_OUT` receipt.
+  - **REFACTOR:** reuse admission/retry primitives but keep telemetry budgets and failure policy independent from business retry budgets.
+  - **Refs:** [export failure and shutdown](specs/structured-logging-and-opentelemetry.md#export-failure-and-shutdown), [telemetry pipeline health](data/models/operations-production.md), [backpressure](#16-operations-assurance-overload-and-recovery).
+
+- [ ] `OBS-020` **[P0][TERRA] Enforce telemetry schema, semantic-convention and cardinality compatibility in CI.**
+  - **Depends:** `OBS-001`, `OBS-009`, `OBS-010`, `OBS-012`, `GOV-008`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=stop ad hoc logs, attributes, metrics and incompatible convention upgrades before release`.
+  - **TEST:** `TestTelemetrySchemaLinterRejectsUnknownDynamicOrBreakingDefinitions`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetrySchemaLinterRejectsUnknownDynamicOrBreakingDefinitions`; `PROPERTY=TestTodo_OBS_020_Property`; `GOLDEN=TestTodo_OBS_020_Golden`; `CONFORMANCE=TestTodo_OBS_020_Conformance`; `MUTATION=TestTodo_OBS_020_Mutation`.
+  - **RED:** source introduces unknown event/attribute/metric label, dynamic event/span/metric name, missing unit/description/version/owner/budget, duplicate semantic key, backend-specific type leak or breaking rename/removal without compatibility plan and dashboard/alert impact.
+  - **GREEN:** generated registry and static/contract linter return exact file/symbol/semantic defect, compare pinned convention profiles, require additive/versioned migration plus affected query/dashboard/alert updates and emit a signed compatibility report.
+  - **REFACTOR:** applications consume generated identifiers/builders; semantic-convention upgrades are explicit dependency changes rather than ambient library behavior.
+  - **Refs:** [testing contract](specs/structured-logging-and-opentelemetry.md#testing-contract), [library qualification](#3-third-party-library-and-internal-semantic-package-architecture), [release evidence](#31-ci-cd-release-evidence-and-deployment-control).
+
+- [ ] `OBS-021` **[GATE_A][SOL_HIGH] Enforce telemetry query isolation, retention, residency, holds and tenant exit.**
+  - **Depends:** `OBS-003`, `OBS-016`, `RECORDS-COPY-001`, `PRIV-EXIT-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS,BI.PRIVACY; DIRECT=none; WHY=prevent operational backends from becoming an uncontrolled cross-tenant HCM database`.
+  - **TEST:** `TestTelemetryLifecycleAndQueryPolicyPreventsCrossTenantOrExpiredAccess`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetryLifecycleAndQueryPolicyPreventsCrossTenantOrExpiredAccess`; `PROPERTY=TestTodo_OBS_021_Property`; `GOLDEN=TestTodo_OBS_021_Golden`; `INTEGRATION=TestTodo_OBS_021_Integration`; `SECURITY=TestTodo_OBS_021_Security`; `RECOVERY=TestTodo_OBS_021_Recovery`; `MUTATION=TestTodo_OBS_021_Mutation`.
+  - **RED:** query guesses another tenant token/correlation, dashboard joins scopes without authorization, trace/log/metric/exemplar outlives policy, restore resurrects deleted telemetry, legal hold silently applies to all signals or tenant exit omits backend/object/index copies.
+  - **GREEN:** purpose-bound query authorization scopes every signal and join, backend policies enforce signal/class/region retention and approved holds, copy inventory covers primary/index/archive/backup/restore, expiry/exit returns exact deletion or exception evidence and restored copies reapply disposition.
+  - **REFACTOR:** backend adapters translate one records/query policy; operational identifiers remain non-reversible and tenant-name-free.
+  - **Refs:** [diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [records management](specs/records-management-and-disposition.md), [privacy copy inventory](#15-privacy-records-rights-and-tenant-exit).
 
 ## 34. Batch, scheduling and connector execution substrate
 
@@ -10735,3 +10966,1346 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** publication binds configuration approval and compatibility report; frozen impact set emits scoped review/migration intents while existing assignments retain historical job revision until governed change.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+
+## 58. BusinessIntent-to-workflow design convergence
+
+- [ ] `WF-DISC-005` **[P0][SOL_HIGH] Define the machine-readable WorkflowDesignRecord contract.**
+  - **Depends:** `WF-DISC-001`, `INTENT-CONF-001`, `MODEL-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=require every accepted BusinessIntent to have an explicit executable high-level design or an honest direct-capability disposition`.
+  - **TEST:** `TestWorkflowDesignRecordRejectsImplicitExecutionResponsibilities`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowDesignRecordRejectsImplicitExecutionResponsibilities`; `PROPERTY=TestTodo_WF_DISC_005_Property`; `GOLDEN=TestTodo_WF_DISC_005_Golden`; `SECURITY=TestTodo_WF_DISC_005_Security`; `CONFORMANCE=TestTodo_WF_DISC_005_Conformance`; `MUTATION=TestTodo_WF_DISC_005_Mutation`.
+  - **RED:** a record validates while missing execution disposition, archetype, domain profile, trusted input boundary, snapshot policy, engines/capabilities, human work, writes/effects, waits/signals, invalidators, reconciliation, correction/repair or multidimensional completion.
+  - **GREEN:** the typed SchemaFlux contract requires every field, accepts explicit `NOT_APPLICABLE` only with a reason code, emits stable Go/Protobuf registries and produces the same canonical digest across repeated compilation.
+  - **REFACTOR:** generate Markdown tables and indexes from the contract; do not maintain a second handwritten runtime registry.
+  - **Refs:** [workflow design contract](workflows/business-intent-workflow-registry.md#complete-high-level-design-contract), [BusinessIntent required fields](specs/business-intent-catalog.md#required-definition-fields), [workflow context](workflows/_engine/workflow-context-contract.md).
+
+- [ ] `WF-DISC-006` **[P0][SOL_HIGH] Join every accepted BusinessIntent to exactly one workflow design disposition.**
+  - **Depends:** `MODEL-008`, `MODEL-009`, `WF-DISC-005`, `INTENT-025`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn the accepted BusinessIntent manifest into a finite workflow-design coverage obligation without fabricating missing source entries`.
+  - **TEST:** `TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal`.
+  - **TEST MATRIX:** `PRIMARY=TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal`; `PROPERTY=TestTodo_WF_DISC_006_Property`; `GOLDEN=TestTodo_WF_DISC_006_Golden`; `SECURITY=TestTodo_WF_DISC_006_Security`; `CONFORMANCE=TestTodo_WF_DISC_006_Conformance`; `MUTATION=TestTodo_WF_DISC_006_Mutation`.
+  - **RED:** an accepted definition has zero or multiple records, a presentation alias creates another design, an extension is silently counted in the original 530 baseline, or `UNBOUND_SOURCE` passes after the immutable manifest exists.
+  - **GREEN:** generated coverage performs a one-to-one join over the exact accepted release, reports original baseline and extensions separately, and returns `<designed>/<accepted>` with zero missing, duplicate, alias-only or unbound records.
+  - **REFACTOR:** use stable semantic identity and version; display names must never be join keys.
+  - **Refs:** [source-manifest convergence](workflows/business-intent-workflow-registry.md#source-manifest-convergence), [catalog identity](specs/business-intent-catalog.md#catalog-identity), [catalog ingestion](#businessintent-context-required-by-every-todo).
+
+- [ ] `WF-DISC-007` **[P0][SOL_HIGH] Compile archetype plus domain profile plus intent delta into a complete high-level graph.**
+  - **Depends:** `WF-DISC-005`, `WF-DISC-006`, `WF-COMP-001`, `WF-COMP-002`.
+  - **INTENT CONTEXT:** `ROLE=ORCHESTRATION; SETS=BI.ALL; DIRECT=none; WHY=make compact per-intent workflow designs expand into reviewable complete execution responsibilities rather than vague labels`.
+  - **TEST:** `TestWorkflowDesignExpansionProducesCompleteOrderedResponsibilities`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowDesignExpansionProducesCompleteOrderedResponsibilities`; `PROPERTY=TestTodo_WF_DISC_007_Property`; `GOLDEN=TestTodo_WF_DISC_007_Golden`; `FAULT=TestTodo_WF_DISC_007_Fault`; `SECURITY=TestTodo_WF_DISC_007_Security`; `CONFORMANCE=TestTodo_WF_DISC_007_Conformance`; `MUTATION=TestTodo_WF_DISC_007_Mutation`.
+  - **RED:** expansion loses an archetype phase, lets a delta replace a mandatory governance/revalidation/reconciliation responsibility, leaves an external effect unordered or produces a graph with an unreachable closure/repair branch.
+  - **GREEN:** compiler deterministically expands the recipe/profile/delta, reports every inherited/added/justifiably omitted responsibility, emits typed nodes/edges/effects/invalidators/completion policy and produces a stable graph digest.
+  - **REFACTOR:** keep archetype expansion separate from production workflow compilation so exploratory designs cannot be published accidentally.
+  - **Refs:** [workflow archetypes](workflows/_shared/workflow-archetypes.md), [domain profiles](workflows/business-intent-workflow-registry.md#domain-profiles), [workflow compiler](specs/workflow-runtime.md).
+
+- [ ] `WF-DISC-008` **[P0][SOL_HIGH] Prove direct-capability dispositions do not invent fake durable workflows or bypass governance.**
+  - **Depends:** `WF-DISC-007`, `CAP-002`, `INTENT-013`, `WF-RUN-012`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.REGULATORY,BI.ALL; DIRECT=none; WHY=keep pure reads and calculations simple while preserving authorization, evidence and separate action authority`.
+  - **TEST:** `TestDirectCapabilityDispositionIsPureGovernedAndPromotesActionsAsNewIntents`.
+  - **TEST MATRIX:** `PRIMARY=TestDirectCapabilityDispositionIsPureGovernedAndPromotesActionsAsNewIntents`; `PROPERTY=TestTodo_WF_DISC_008_Property`; `GOLDEN=TestTodo_WF_DISC_008_Golden`; `FAULT=TestTodo_WF_DISC_008_Fault`; `SECURITY=TestTodo_WF_DISC_008_Security`; `CONFORMANCE=TestTodo_WF_DISC_008_Conformance`; `MUTATION=TestTodo_WF_DISC_008_Mutation`.
+  - **RED:** a `DIRECT_CAPABILITY` creates domain/outbox/work/timer rows, skips purpose/field/population authorization, returns incomplete data as complete, or an analytical recommendation mutates state without a separately governed BusinessIntent.
+  - **GREEN:** direct execution pins inputs/rules/watermarks, applies governance/DLP, returns typed completeness/uncertainty/trace, records evidence and emits any proposed action only as a new unexecuted intent.
+  - **REFACTOR:** share the same capability gateway and governance contracts with workflow steps; only durability mechanics differ.
+  - **Refs:** [D1 governed direct capability](workflows/_shared/workflow-archetypes.md#d1-governed-direct-capability-no-durable-workflow), [intent boundaries](specs/business-intent-catalog.md#intent-capability-workflow-and-transaction-boundaries), [analysis-to-action](#businessintent-context-required-by-every-todo).
+
+- [ ] `WF-DISC-009` **[P0][SOL_HIGH] Validate every workflow design against model, engine, capability and authority ownership.**
+  - **Depends:** `WF-DISC-007`, `ENGINE-COVERAGE-001`, `DB-COVERAGE-001`, `CAP-002`, `MODEL-021`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent a designed workflow from hiding undefined data, reusable computation, semantic operations or source authority`.
+  - **TEST:** `TestWorkflowDesignReferencesResolveToSingleSemanticOwners`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowDesignReferencesResolveToSingleSemanticOwners`; `PROPERTY=TestTodo_WF_DISC_009_Property`; `GOLDEN=TestTodo_WF_DISC_009_Golden`; `SECURITY=TestTodo_WF_DISC_009_Security`; `CONFORMANCE=TestTodo_WF_DISC_009_Conformance`; `MUTATION=TestTodo_WF_DISC_009_Mutation`.
+  - **RED:** a design reads/writes an unowned entity/property, embeds reusable calculation in workflow, invokes an unregistered capability, assumes a physical system owner, or calls domain persistence/provider adapters directly.
+  - **GREEN:** every data/engine/capability/authority reference resolves to one versioned semantic owner; missing contracts emit atomic todo candidates and block `CONTRACTED` maturity.
+  - **REFACTOR:** generate reverse indexes from owner to consuming intents and fail dependency cycles instead of duplicating ownership prose.
+  - **Refs:** [domain profiles](workflows/business-intent-workflow-registry.md#domain-profiles), [model coverage](data/models/intent-coverage-matrix.md), [platform responsibility boundaries](specs/platform-responsibility-boundaries.md).
+
+- [ ] `WF-DISC-010` **[P0][SOL_HIGH] Generate adversarial scenario matrices from every workflow design.**
+  - **Depends:** `WF-DISC-007`, `WF-DISC-009`, `GOV-018`, `GOV-028`, `TOOL-014`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=turn each high-level BusinessIntent design into exact positive, negative, temporal, concurrency, failure, security and repair obligations`.
+  - **TEST:** `TestWorkflowDesignScenarioGeneratorCoversEveryDeclaredBoundary`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowDesignScenarioGeneratorCoversEveryDeclaredBoundary`; `PROPERTY=TestTodo_WF_DISC_010_Property`; `GOLDEN=TestTodo_WF_DISC_010_Golden`; `RACE=TestTodo_WF_DISC_010_Race`; `FAULT=TestTodo_WF_DISC_010_Fault`; `SECURITY=TestTodo_WF_DISC_010_Security`; `CONFORMANCE=TestTodo_WF_DISC_010_Conformance`; `MUTATION=TestTodo_WF_DISC_010_Mutation`.
+  - **RED:** generated scenarios omit stale approval, authority drift, partial snapshot, conflicting future change, duplicate signal/effect, worker crash, provider ambiguity, confidential-field leak, cancellation boundary, correction, partial external success or failed repair.
+  - **GREEN:** each declared read/write/effect/wait/human decision/compartment/invalidator/completion dimension produces exact fixtures and prohibited/expected states; inapplicable classes require typed justification.
+  - **REFACTOR:** deduplicate mechanics through reusable scenario templates while keeping domain-specific semantic oracles explicit.
+  - **Refs:** [completion policy](workflows/business-intent-workflow-registry.md#completion-policy-common-to-all-mappings), [workflow context edge cases](workflows/samples/workflow-context-edge-cases.md), [test doctrine](#test-doctrine).
+
+- [ ] `WF-DISC-011` **[P0][SOL_HIGH] Prove parent, child, batch and trigger workflow designs preserve independent intent truth.**
+  - **Depends:** `WF-DISC-007`, `INTENT-015`, `INTENT-016`, `INTENT-019`, `INTENT-018`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.TRIGGERS; DIRECT=none; WHY=ensure composite workflows converge without flattening child authorization, idempotency, failure, evidence or completion`.
+  - **TEST:** `TestWorkflowDesignCompositionNeverCollapsesChildOrTriggerOutcome`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowDesignCompositionNeverCollapsesChildOrTriggerOutcome`; `PROPERTY=TestTodo_WF_DISC_011_Property`; `GOLDEN=TestTodo_WF_DISC_011_Golden`; `RACE=TestTodo_WF_DISC_011_Race`; `FAULT=TestTodo_WF_DISC_011_Fault`; `SECURITY=TestTodo_WF_DISC_011_Security`; `CONFORMANCE=TestTodo_WF_DISC_011_Conformance`; `MUTATION=TestTodo_WF_DISC_011_Mutation`.
+  - **RED:** parent completion overwrites a failed child, batch retry reruns successful items, trigger retry duplicates target intent, child inherits broader authority/classification, or cancellation silently crosses an irreversible child boundary.
+  - **GREEN:** composition graph binds typed relationship/policy, each child/firing retains lifecycle/evidence/idempotency/governance, aggregate status is derived without loss and repair targets only affected nodes.
+  - **REFACTOR:** reuse IntentRelationship and IntentCompositionPlan; workflows must not invent a parallel parent-child model.
+  - **Refs:** [composition rules](specs/business-intent-catalog.md#composition-rules), [system trigger designs](workflows/business-intent-workflow-registry.md#system-and-trigger-driven-intents-trigger), [higher-order workflows](workflows/business-intent-workflow-registry.md#higher-order-businessintent-workflows).
+
+- [ ] `WF-DISC-012` **[P0][SOL_HIGH] Gate workflow contraction and implementation on complete design evidence.**
+  - **Depends:** `WF-DISC-004`, `WF-DISC-006`, `WF-DISC-007`, `WF-DISC-008`, `WF-DISC-009`, `WF-DISC-010`, `WF-DISC-011`, `GOV-003`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make workflow research feed production todos and prevent shallow catalog names from masquerading as contracted or implemented behavior`.
+  - **TEST:** `TestWorkflowMaturityRequiresDesignCoverageCompilationScenariosAndOwnedTodos`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowMaturityRequiresDesignCoverageCompilationScenariosAndOwnedTodos`; `PROPERTY=TestTodo_WF_DISC_012_Property`; `GOLDEN=TestTodo_WF_DISC_012_Golden`; `SECURITY=TestTodo_WF_DISC_012_Security`; `CONFORMANCE=TestTodo_WF_DISC_012_Conformance`; `MUTATION=TestTodo_WF_DISC_012_Mutation`.
+  - **RED:** an intent advances to `CONTRACTED`, `IMPLEMENTED` or `VERIFIED` with an unbound design, unresolved reference, unjustified omission, missing adversarial scenario, dangling todo/test/evidence edge or only a catalog name/archetype label.
+  - **GREEN:** maturity gate requires exact manifest join, expanded graph digest, resolved owners/contracts, scenario suite, atomic todo/test traceability and current evidence; report names every blocker and never inflates aggregate coverage.
+  - **REFACTOR:** make the delivery manifest consume generated coverage evidence rather than manually maintained status prose.
+  - **Refs:** [workflow design registry](workflows/business-intent-workflow-registry.md), [workflow discovery states](workflows/README.md), [traceability](#backlog-governance-and-traceability).
+
+---
+
+## 59. Adversarial infrastructure edges and third-party tool qualification
+
+This section closes infrastructure-mechanics gaps found after the intent and
+workflow convergence pass. It does not add HCM semantics to any dependency.
+Candidates remain unapproved until their qualification todo passes; rejection
+is an acceptable result.
+
+- [ ] `LIB-016` **[P0][TERRA] Evaluate Rapid as a test-only property and state-machine generator.**
+  - **Depends:** `LIB-001`, `TOOL-013`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=stress owned value, lifecycle and workflow invariants with generated state sequences without adding a production dependency`.
+  - **TEST:** `TestRapidQualificationShrinksOwnedStateMachineFailure`.
+  - **TEST MATRIX:** `PRIMARY=TestRapidQualificationShrinksOwnedStateMachineFailure`; `PROPERTY=TestTodo_LIB_016_Property`; `GOLDEN=TestTodo_LIB_016_Golden`; `FUZZ=FuzzTodo_LIB_016`; `CONFORMANCE=TestTodo_LIB_016_Conformance`.
+  - **RED:** an injected balance underflow, illegal workflow transition and temporal-overlap defect cannot be found reproducibly, does not shrink to a stable minimal sequence, or requires Rapid in the production module graph.
+  - **GREEN:** a pinned test-only Rapid adapter finds and shrinks every seeded defect, persists deterministic regression seeds, records license/maintenance/replacement evidence and leaves release/runtime dependency graphs unchanged; otherwise the decision is `REJECT` with standard-library alternative.
+  - **REFACTOR:** expose owned generators and invariants so the backend can be removed without changing test meaning.
+  - **Refs:** [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [Rapid](https://github.com/flyingmutant/rapid), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts).
+
+- [ ] `LIB-017` **[P0][SOL_LOW] Evaluate sqlc for typed PostgreSQL adapter plumbing without semantic capture.**
+  - **Depends:** `LIB-001`, `LIB-004`, `TOOL-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=reduce database scan/bind drift while preserving authored SQL, semantic repository ownership and explicit transaction boundaries`.
+  - **TEST:** `TestSQLCQualificationPreservesOwnedRepositoryAndTransactionBoundaries`.
+  - **TEST MATRIX:** `PRIMARY=TestSQLCQualificationPreservesOwnedRepositoryAndTransactionBoundaries`; `GOLDEN=TestTodo_LIB_017_Golden`; `INTEGRATION=TestTodo_LIB_017_Integration`; `CONFORMANCE=TestTodo_LIB_017_Conformance`; `MUTATION=TestTodo_LIB_017_Mutation`.
+  - **RED:** generated code exposes sqlc/pgx types through an owner port, invents repository/domain semantics, hides a temporal predicate/lock/consistency boundary, accepts schema drift or changes bytes across clean generation.
+  - **GREEN:** pinned offline generation produces byte-stable concrete PostgreSQL adapter code from reviewed SQL, strict schema/type checks reject drift, owned repository tests return identical typed results and the manifest records adopt/reject plus removal path.
+  - **REFACTOR:** generate only repetitive adapter mechanics; correctness-bearing SQL and unit-of-work composition remain explicit and human-reviewable.
+  - **Refs:** [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [sqlc](https://github.com/sqlc-dev/sqlc), [PostgreSQL materialization](#26-postgresql-database-and-model-materialization).
+
+- [ ] `LIB-018` **[GATE_A][SOL_HIGH] Qualify AWS SDK for Go v2 behind the provider-neutral object-store adapter.**
+  - **Depends:** `LIB-001`, `ARTIFACT-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.DOCUMENTS,BI.PRIVACY,BI.DATAOPS; DIRECT=none; WHY=provide S3-compatible transport mechanics without making provider keys, versions or retention APIs the artifact domain model`.
+  - **TEST:** `TestAWSSDKAdapterPassesObjectStoreConformanceWithoutTypeLeakage`.
+  - **TEST MATRIX:** `PRIMARY=TestAWSSDKAdapterPassesObjectStoreConformanceWithoutTypeLeakage`; `GOLDEN=TestTodo_LIB_018_Golden`; `RACE=TestTodo_LIB_018_Race`; `INTEGRATION=TestTodo_LIB_018_Integration`; `FAULT=TestTodo_LIB_018_Fault`; `SECURITY=TestTodo_LIB_018_Security`; `CONFORMANCE=TestTodo_LIB_018_Conformance`.
+  - **RED:** an AWS type enters an owned contract, key name becomes artifact identity, retry hides ambiguous completion, checksum/version/hold is dropped or the adapter requires a cloud-specific HCM behavior.
+  - **GREEN:** the pinned adapter maps exact provider version/checksum/precondition/retention/hold results into owned types, passes the same fake/alternate-adapter suite and records endpoint, credential, retry and removal policy.
+  - **REFACTOR:** isolate SDK configuration and error translation in `store/object` provider code; no domain/workflow package imports it.
+  - **Refs:** [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [AWS SDK for Go v2](https://github.com/aws/aws-sdk-go-v2), [artifact contracts](#35-artifact-bytes-and-customer-data-onboarding).
+
+- [ ] `LIB-019` **[P0][SOL_HIGH] Qualify Buf and Protovalidate for schema linting and structural validation only.**
+  - **Depends:** `LIB-001`, `LIB-003`, `TOOL-006`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide deterministic Protobuf lint, compatibility and request-shape mechanics while HCM Next retains all business/governance semantics`.
+  - **TEST:** `TestBufProtovalidateQualificationCannotBecomeBusinessAuthority`.
+  - **TEST MATRIX:** `PRIMARY=TestBufProtovalidateQualificationCannotBecomeBusinessAuthority`; `PROPERTY=TestTodo_LIB_019_Property`; `GOLDEN=TestTodo_LIB_019_Golden`; `FUZZ=FuzzTodo_LIB_019`; `SECURITY=TestTodo_LIB_019_Security`; `CONFORMANCE=TestTodo_LIB_019_Conformance`.
+  - **RED:** unpinned remote modules/plugins are required, a validation rule mutates state or decides AuthZ/legal/eligibility, invalid CEL constraints publish, unrestricted `Any` passes or runtime validation disagrees across gRPC/grpcbridge.
+  - **GREEN:** pinned offline Buf checks and Protovalidate interceptors return owned typed field violations identically across transports, restrict validation to structural/local invariants and remain replaceable behind generated contracts.
+  - **REFACTOR:** SchemaFlux owns definition compilation and HCM semantics; Buf/Protovalidate supply only declared Protobuf mechanics.
+  - **Refs:** [Buf lint rules](https://buf.build/docs/lint/rules/), [Protovalidate Any rules](https://buf.build/docs/reference/protovalidate/rules/any_rules/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `LIB-020` **[P0][SOL_HIGH] Qualify golang.org/x/text behind owned Unicode and locale policies.**
+  - **Depends:** `LIB-001`, `TOOL-013`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.PEOPLE,BI.RECRUITING,BI.EXPERIENCE,BI.DATAOPS,BI.PRIVACY; DIRECT=none; WHY=provide Unicode normalization and language mechanics without making normalization or confusable detection an identity decision`.
+  - **TEST:** `TestXTextQualificationPinsDataAndPreservesOwnedFieldSemantics`.
+  - **TEST MATRIX:** `PRIMARY=TestXTextQualificationPinsDataAndPreservesOwnedFieldSemantics`; `PROPERTY=TestTodo_LIB_020_Property`; `GOLDEN=TestTodo_LIB_020_Golden`; `FUZZ=FuzzTodo_LIB_020`; `SECURITY=TestTodo_LIB_020_Security`; `CONFORMANCE=TestTodo_LIB_020_Conformance`.
+  - **RED:** canonically equivalent input changes digest unpredictably, original text is destroyed, normalization broadens an identifier match, a confusable skeleton auto-merges people or an unpinned Unicode-data update silently changes search/auth behavior.
+  - **GREEN:** owned per-field profiles pin Unicode data/operation, preserve original plus normalized/search forms where authorized, treat confusables as review signals only and emit impact/reindex evidence on version change.
+  - **REFACTOR:** centralize Unicode mechanics in kernel/I18N adapters; domains select owned field policy rather than calling `x/text` directly.
+  - **Refs:** [Go normalization](https://go.dev/blog/normalization), [Unicode UTS #39](https://www.unicode.org/reports/tr39/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `TOOL-021` **[P0][TERRA] Qualify testing/synctest for deterministic in-process time and concurrency tests.**
+  - **Depends:** `TOOL-001`, `TIME-001`, `WF-RUN-002`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove timers, retries and goroutine quiescence quickly without pretending virtual time covers database, process or network behavior`.
+  - **TEST:** `TestSynctestQualificationAdvancesTimersAndDetectsQuiescenceWithoutSleep`.
+  - **TEST MATRIX:** `PRIMARY=TestSynctestQualificationAdvancesTimersAndDetectsQuiescenceWithoutSleep`; `PROPERTY=TestTodo_TOOL_021_Property`; `RACE=TestTodo_TOOL_021_Race`; `FAULT=TestTodo_TOOL_021_Fault`; `CONFORMANCE=TestTodo_TOOL_021_Conformance`.
+  - **RED:** timer/retry tests require wall-clock sleep, leak goroutines, pass before asynchronous assertions settle or claim to validate PostgreSQL/network/process failure using only virtual time.
+  - **GREEN:** pinned Go toolchain runs deterministic fake-time/quiescence fixtures for in-process logic with zero sleeps; test metadata explicitly routes real I/O and crash cases to integration/fault harnesses.
+  - **REFACTOR:** inject owned clocks/schedulers; production packages never depend on test bubbles.
+  - **Refs:** [Go Testing Time](https://go.dev/blog/testing-time), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [workflow runtime](specs/workflow-runtime.md).
+
+- [ ] `TOOL-022` **[GATE_A][SOL_LOW] Qualify Toxiproxy as a test-only network failure injector.**
+  - **Depends:** `TOOL-014`, `LIB-009`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=exercise connector, database and RPC transport failures against exact durable-state and duplicate-effect oracles`.
+  - **TEST:** `TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule`.
+  - **TEST MATRIX:** `PRIMARY=TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule`; `GOLDEN=TestTodo_TOOL_022_Golden`; `RACE=TestTodo_TOOL_022_Race`; `INTEGRATION=TestTodo_TOOL_022_Integration`; `FAULT=TestTodo_TOOL_022_Fault`; `CONFORMANCE=TestTodo_TOOL_022_Conformance`.
+  - **RED:** latency, timeout, reset, half-close, truncation or bandwidth faults are nondeterministic/unrecorded, poison production topology, or tests assert only an RPC error instead of durable workflow/transaction/effect state.
+  - **GREEN:** digest-pinned test containers execute seeded toxic schedules, record proxy/version/timeline, and each scenario returns an allowed typed state with zero lost/duplicate accepted work; release graph contains no proxy dependency.
+  - **REFACTOR:** keep provider-independent fault schedules and allow an alternate injector to satisfy the same harness.
+  - **Refs:** [Toxiproxy](https://github.com/shopify/toxiproxy), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [integration harness](#19-reference-workflow-conformance-harness).
+
+- [ ] `TOOL-023` **[GATE_A][SOL_HIGH] Pin Cosign/Sigstore verification mechanics for release admission.**
+  - **Depends:** `TOOL-017`, `TOOL-018`, `LIB-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=verify the exact production artifact/toolchain/SBOM provenance before any intent-serving workload is admitted`.
+  - **TEST:** `TestCosignAdmissionRejectsWrongSubjectIdentityIssuerOrSBOM`.
+  - **TEST MATRIX:** `PRIMARY=TestCosignAdmissionRejectsWrongSubjectIdentityIssuerOrSBOM`; `GOLDEN=TestTodo_TOOL_023_Golden`; `FAULT=TestTodo_TOOL_023_Fault`; `SECURITY=TestTodo_TOOL_023_Security`; `CONFORMANCE=TestTodo_TOOL_023_Conformance`.
+  - **RED:** unsigned, wrong-digest, untrusted-builder, wrong-issuer, stale-policy, detached-SBOM, expired/bad transparency proof or replayed attestation reaches deployment admission.
+  - **GREEN:** pinned verification tooling checks subject digest, signer/workflow identity, issuer, source/build predicate, SBOM linkage and policy; retained bundles support the declared outage/offline mode and no runtime HCM behavior depends on Sigstore availability.
+  - **REFACTOR:** keep the admission policy owned and tool-neutral; Cosign is a CLI/mechanics implementation, not the trust model.
+  - **Refs:** [Cosign](https://github.com/sigstore/cosign), [GitHub artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `TOOL-024` **[GATE_A][TERRA] Add symbol-aware govulncheck evidence to dependency admission.**
+  - **Depends:** `TOOL-001`, `TOOL-019`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=identify reachable vulnerable Go symbols while preserving owned exploitability, remediation and exception decisions`.
+  - **TEST:** `TestGovulncheckAdmissionClassifiesReachableAndUnreachableFindings`.
+  - **TEST MATRIX:** `PRIMARY=TestGovulncheckAdmissionClassifiesReachableAndUnreachableFindings`; `GOLDEN=TestTodo_TOOL_024_Golden`; `SECURITY=TestTodo_TOOL_024_Security`; `CONFORMANCE=TestTodo_TOOL_024_Conformance`.
+  - **RED:** seeded reachable vulnerable call passes, an unreachable module finding is silently ignored, scan output lacks tool/database/module-graph digests or an exception has no owner/expiry/compensating control.
+  - **GREEN:** pinned `govulncheck` produces reproducible symbol/call evidence joined to the SBOM; policy blocks reachable prohibited findings and records governed disposition for every remaining finding.
+  - **REFACTOR:** scanning informs but never replaces dependency inventory, patch SLA, threat analysis or runtime control evidence.
+  - **Refs:** [Go vulnerability management](https://go.dev/doc/security/vuln/), [dependency policy](#2b-external-go-dependency-qualification-and-semantic-ownership), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `DB-EDGE-001` **[GATE_A][SOL_HIGH] Make PostgreSQL LISTEN/NOTIFY a lossy wake-up hint over durable work tables.**
+  - **Depends:** `DB-001`, `DB-018`, `DATA-006`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=wake durable workflow, outbox and projection workers without treating an ephemeral database notification as accepted work or authority`.
+  - **TEST:** `TestPostgresNotificationLossAndStartupRaceCannotLoseDurableWork`.
+  - **TEST MATRIX:** `PRIMARY=TestPostgresNotificationLossAndStartupRaceCannotLoseDurableWork`; `PROPERTY=TestTodo_DB_EDGE_001_Property`; `RACE=TestTodo_DB_EDGE_001_Race`; `INTEGRATION=TestTodo_DB_EDGE_001_Integration`; `FAULT=TestTodo_DB_EDGE_001_Fault`; `RECOVERY=TestTodo_DB_EDGE_001_Recovery`.
+  - **RED:** dropping every notification loses an outbox/timer/projection row, listener startup during concurrent commit misses work, duplicate hints duplicate a claim, payload becomes the durable record or queue exhaustion makes accepted work unreachable.
+  - **GREEN:** worker commits `LISTEN`, scans the authoritative claim table, then consumes hint-only notifications plus bounded periodic recovery; loss/reorder/duplicate/reconnect fixtures process each logical row under its normal lease/idempotency contract.
+  - **REFACTOR:** share one hint adapter and keep authoritative payload/state in governed tables; PostgreSQL notification channels carry no sensitive business data.
+  - **Refs:** [PostgreSQL LISTEN](https://www.postgresql.org/docs/17/sql-listen.html), [PostgreSQL NOTIFY](https://www.postgresql.org/docs/17/sql-notify.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `DB-EDGE-002` **[GATE_B][SOL_HIGH] Govern PostgreSQL advisory-lock scope, namespace and exhaustion.**
+  - **Depends:** `DB-001`, `DB-018`, `ADMISSION-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=coordinate bounded database mechanics without session-lock leakage, tenant collision or unbounded shared-memory consumption`.
+  - **TEST:** `TestPostgresAdvisoryLocksAreTransactionScopedNamespacedAndBudgeted`.
+  - **TEST MATRIX:** `PRIMARY=TestPostgresAdvisoryLocksAreTransactionScopedNamespacedAndBudgeted`; `PROPERTY=TestTodo_DB_EDGE_002_Property`; `RACE=TestTodo_DB_EDGE_002_Race`; `INTEGRATION=TestTodo_DB_EDGE_002_Integration`; `FAULT=TestTodo_DB_EDGE_002_Fault`; `SECURITY=TestTodo_DB_EDGE_002_Security`; `BENCHMARK=BenchmarkTodo_DB_EDGE_002`.
+  - **RED:** rollback/pool return leaves a session lock, two tenant/resource keys collide, SQL evaluation acquires more locks than the limited result set, reentrancy hides imbalance or lock pressure exhausts shared memory without admission response.
+  - **GREEN:** approved use defaults to transaction-scoped locks with versioned collision-tested key derivation, explicit acquisition order/count budget and typed saturation result; session locks require a separately reviewed owner and cleanup proof.
+  - **REFACTOR:** prefer row/CAS/fence contracts where they express ownership better; advisory locks never become business truth.
+  - **Refs:** [PostgreSQL explicit locking](https://www.postgresql.org/docs/16/explicit-locking.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
+
+- [ ] `DB-EDGE-003` **[GATE_B][SOL_HIGH] Retry serializable transactions only as complete bounded closures.**
+  - **Depends:** `DB-018`, `TX-005`, `ADMISSION-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=preserve exact intent revalidation and commit semantics under PostgreSQL serialization/deadlock failures without duplicating effects`.
+  - **TEST:** `TestSerializableRetryRestartsWholeClosureAndNeverRetriesAmbiguousCommit`.
+  - **TEST MATRIX:** `PRIMARY=TestSerializableRetryRestartsWholeClosureAndNeverRetriesAmbiguousCommit`; `PROPERTY=TestTodo_DB_EDGE_003_Property`; `RACE=TestTodo_DB_EDGE_003_Race`; `INTEGRATION=TestTodo_DB_EDGE_003_Integration`; `FAULT=TestTodo_DB_EDGE_003_Fault`; `MUTATION=TestTodo_DB_EDGE_003_Mutation`.
+  - **RED:** retry reuses a stale read/result, retries only the failed statement, performs external I/O inside the closure, maps a changed unique constraint to success, loops without budget or retries after connection loss makes commit outcome unknown.
+  - **GREEN:** only classified `40001|40P01` restart a pure complete closure from a fresh transaction/snapshot with bounded jitter/admission; changed facts revalidate/recompute, unique conflicts return owned meaning and ambiguous commit enters idempotent resolution rather than retry.
+  - **REFACTOR:** centralize retry classification/telemetry while each semantic owner supplies recomputation and typed conflict mapping.
+  - **Refs:** [PostgreSQL transaction isolation](https://www.postgresql.org/docs/15/transaction-iso.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [transaction plan](specs/transaction-plan-and-commit-coordinator.md).
+
+- [ ] `DB-EDGE-004` **[GATE_A][SOL_HIGH] Prove PostgreSQL pool session hygiene and tenant-state reset.**
+  - **Depends:** `LIB-004`, `DB-001`, `DB-017`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent pooled PostgreSQL session state from crossing tenant, purpose, role or request boundaries`.
+  - **TEST:** `TestPooledConnectionCannotLeakTenantRoleLocksOrSessionState`.
+  - **TEST MATRIX:** `PRIMARY=TestPooledConnectionCannotLeakTenantRoleLocksOrSessionState`; `PROPERTY=TestTodo_DB_EDGE_004_Property`; `RACE=TestTodo_DB_EDGE_004_Race`; `INTEGRATION=TestTodo_DB_EDGE_004_Integration`; `FAULT=TestTodo_DB_EDGE_004_Fault`; `SECURITY=TestTodo_DB_EDGE_004_Security`.
+  - **RED:** a connection returned after `SET ROLE`, tenant/purpose context, advisory lock, temp object, prepared statement or failed transaction exposes that state to the next borrower; cancellation returns an unusable/unknown session as healthy.
+  - **GREEN:** checkout establishes trusted transaction-local context, checkin proves idle/clean state or destroys the connection, tenant/RLS fixtures never cross-contaminate and pool metrics expose discard/reset/failure counts without sensitive labels.
+  - **REFACTOR:** use transaction-local settings and narrow adapter hooks; application packages cannot mutate ambient session state directly.
+  - **Refs:** [pgx qualification](#2b-external-go-dependency-qualification-and-semantic-ownership), [tenant isolation](#26-postgresql-database-and-model-materialization), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `RPC-EDGE-001` **[GATE_A][SOL_HIGH] Classify gRPC deadline, retry and hedging behavior per capability method.**
+  - **Depends:** `LIB-003`, `PROTO-006`, `TX-005`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent transport replay or unbounded waits from duplicating governed intent, transaction or external-effect behavior`.
+  - **TEST:** `TestGRPCRetryPolicyCannotReplayNonIdempotentCapabilityEffect`.
+  - **TEST MATRIX:** `PRIMARY=TestGRPCRetryPolicyCannotReplayNonIdempotentCapabilityEffect`; `PROPERTY=TestTodo_RPC_EDGE_001_Property`; `RACE=TestTodo_RPC_EDGE_001_Race`; `INTEGRATION=TestTodo_RPC_EDGE_001_Integration`; `FAULT=TestTodo_RPC_EDGE_001_Fault`; `SECURITY=TestTodo_RPC_EDGE_001_Security`; `CONFORMANCE=TestTodo_RPC_EDGE_001_Conformance`.
+  - **RED:** a public call has no deadline policy, retries/hedges an effect-bearing method without owned idempotency, `UNAVAILABLE` duplicates intent/effect rows, client cancellation is reported as business rollback or retry amplification defeats admission control.
+  - **GREEN:** generated method manifest declares deadline, wait-for-ready, idempotency, retryable statuses/attempt budget and hedging prohibition/allowance; transparent/configured replay fixtures return one logical result/effect and preserve unknown/committed outcomes accurately.
+  - **REFACTOR:** generate service config and conformance cases from capability effect metadata rather than handwritten client defaults.
+  - **Refs:** [gRPC retry](https://grpc.io/docs/guides/retry/), [gRPC deadlines](https://grpc.io/docs/guides/deadlines/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `PROTO-009` **[P0][SOL_HIGH] Preserve or explicitly reject Protobuf unknown fields and restrict dynamic types.**
+  - **Depends:** `PROTO-001`, `PROTO-008`, `LIB-019`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent mixed-version relays and dynamic envelopes from silently weakening an intent, approval, governance or effect contract`.
+  - **TEST:** `TestMixedVersionProtoRelayNeverSilentlyDropsMaterialUnknownFields`.
+  - **TEST MATRIX:** `PRIMARY=TestMixedVersionProtoRelayNeverSilentlyDropsMaterialUnknownFields`; `PROPERTY=TestTodo_PROTO_009_Property`; `GOLDEN=TestTodo_PROTO_009_Golden`; `FUZZ=FuzzTodo_PROTO_009`; `SECURITY=TestTodo_PROTO_009_Security`; `CONFORMANCE=TestTodo_PROTO_009_Conformance`; `MUTATION=TestTodo_PROTO_009_Mutation`.
+  - **RED:** old relay/JSON bridge/transformation drops a new material field and still returns valid approval/execution, unknown enum becomes a default authorization, unregistered `Any` type URL resolves or canonical digest changes without compatibility classification.
+  - **GREEN:** each boundary declares preserve/reject/ignore policy by message/use, material unknowns block semantic execution with typed compatibility error, allowed relays preserve golden bytes and `Any`/extension types resolve only through the signed registry allowlist.
+  - **REFACTOR:** generate unknown-field and dynamic-type policy from descriptors/registry; domain code never performs ad hoc reflection.
+  - **Refs:** [Buf reflection](https://buf.build/docs/bsr/reflection/), [Protovalidate Any rules](https://buf.build/docs/reference/protovalidate/rules/any_rules/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `ARTIFACT-007` **[GATE_B][SOL_HIGH] Bind artifact identity, multipart completion, retention and legal hold to immutable object versions.**
+  - **Depends:** `ARTIFACT-002`, `ARTIFACT-006`, `LIB-018`, `RECORDS-HOLD-001`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS,BI.PRIVACY,BI.CASES,BI.DATAOPS; DIRECT=none; WHY=keep evidence/artifact truth stable across concurrent upload, provider versioning, retention, hold and repair`.
+  - **TEST:** `TestConcurrentMultipartCompletionBindsOnlyAuthorizedVersionChecksumAndHold`.
+  - **TEST MATRIX:** `PRIMARY=TestConcurrentMultipartCompletionBindsOnlyAuthorizedVersionChecksumAndHold`; `PROPERTY=TestTodo_ARTIFACT_007_Property`; `RACE=TestTodo_ARTIFACT_007_Race`; `INTEGRATION=TestTodo_ARTIFACT_007_Integration`; `FAULT=TestTodo_ARTIFACT_007_Fault`; `SECURITY=TestTodo_ARTIFACT_007_Security`; `RECOVERY=TestTodo_ARTIFACT_007_Recovery`; `MUTATION=TestTodo_ARTIFACT_007_Mutation`.
+  - **RED:** two uploads overwrite by key, completion after cancel binds unknown bytes, returned version/checksum is ignored, orphan parts remain unbounded, legal hold attaches only to `latest` or governance-mode bypass is reported as compliant deletion.
+  - **GREEN:** conditional create/complete binds provider version ID plus verified checksum to immutable ArtifactRevision, losing/ambiguous uploads reconcile then abort/collect safely, and retention/legal hold/delete operate and verify per exact version with truthful evidence.
+  - **REFACTOR:** logical names point to immutable revisions; provider key/version APIs stay adapter details.
+  - **Refs:** [S3 multipart upload](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html), [S3 Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `OBS-022` **[GATE_A][SOL_HIGH] Prove third-party telemetry egress strips sensitive and authority-bearing baggage.**
+  - **Depends:** `OBS-004`, `OBS-011`, `LIB-007`, `EDGE-005`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=retain operational correlation without leaking HCM data or allowing untrusted propagated metadata to influence authorization`.
+  - **TEST:** `TestTelemetryBaggageAllowlistStripsSensitiveUntrustedAndThirdPartyFields`.
+  - **TEST MATRIX:** `PRIMARY=TestTelemetryBaggageAllowlistStripsSensitiveUntrustedAndThirdPartyFields`; `PROPERTY=TestTodo_OBS_022_Property`; `FUZZ=FuzzTodo_OBS_022`; `INTEGRATION=TestTodo_OBS_022_Integration`; `SECURITY=TestTodo_OBS_022_Security`; `CONFORMANCE=TestTodo_OBS_022_Conformance`; `BENCHMARK=BenchmarkTodo_OBS_022`.
+  - **RED:** worker/person/email/medical/pay/bank/free-text/attacker key reaches baggage, log, span, metric label or third-party request; a baggage value changes AuthZ/routing/tenant context; high-cardinality values exhaust the pipeline or redaction failure is silent.
+  - **GREEN:** trusted transport reconstructs an allowlisted bounded correlation context, baggage is never an authority input, third-party egress strips it, collector redaction is defense-in-depth and leak/cardinality fixtures emit a bounded security signal without payload.
+  - **REFACTOR:** generate propagation and telemetry-label policy from classification metadata; domains emit owned semantic events, not raw attributes.
+  - **Refs:** [OpenTelemetry baggage](https://opentelemetry.io/docs/concepts/signals/baggage/), [telemetry transformation](https://opentelemetry.io/docs/collector/transforming-telemetry/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `EXPORT-001` **[GATE_A][SOL_HIGH] Separate safe human-spreadsheet export from exact machine-data export.**
+  - **Depends:** `ADMIN-007`, `TRUST-018`, `ARTIFACT-005`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.DATAOPS,BI.PRIVACY,BI.OPERATIONS; DIRECT=none; WHY=deliver authorized report/evidence data without turning untrusted HCM text into executable spreadsheet formulas or corrupting machine round trips`.
+  - **TEST:** `TestSpreadsheetExportNeutralizesFormulaCellsWhileMachineExportPreservesExactValues`.
+  - **TEST MATRIX:** `PRIMARY=TestSpreadsheetExportNeutralizesFormulaCellsWhileMachineExportPreservesExactValues`; `PROPERTY=TestTodo_EXPORT_001_Property`; `GOLDEN=TestTodo_EXPORT_001_Golden`; `FUZZ=FuzzTodo_EXPORT_001`; `INTEGRATION=TestTodo_EXPORT_001_Integration`; `SECURITY=TestTodo_EXPORT_001_Security`; `CONFORMANCE=TestTodo_EXPORT_001_Conformance`.
+  - **RED:** ASCII/full-width `=+-@`, tab/CR/LF, delimiter/quote breakout or locale delimiter becomes a spreadsheet formula; the same escaping silently changes a machine import value; classification/DLP/manifest omits the transformation profile.
+  - **GREEN:** explicit `HUMAN_SPREADSHEET` profile produces inert golden cells under declared applications/locales and records a transformation warning, while `MACHINE_DATA` uses a non-executable typed format/profile preserving exact values; both bind scope, purpose, schema, digest, classification and expiry.
+  - **REFACTOR:** one export planner chooses typed renderer profiles; never apply presentation escaping to canonical stored data.
+  - **Refs:** [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [DLP](specs/data-classification-and-dlp.md).
+
+---
+
+## 60. Canonical gRPC services, grpcbridge HTTP endpoints and endpoint TDD
+
+Protobuf/gRPC is canonical and grpcbridge is the sole public HTTP projection.
+These todos add endpoint contracts, not HTTP-owned business behavior. Every
+material method resolves to the same registered capability and BusinessIntent
+path regardless of transport.
+
+- [ ] `ENDPOINT-001` **[P0][SOL_HIGH] Define and generate the canonical EndpointDefinition manifest.**
+  - **Depends:** `API-001`, `PROTO-005`, `MSRC-009`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=bind every public gRPC/HTTP method to one capability, intent behavior and owned transport/security contract`.
+  - **TEST:** `TestEndpointManifestRejectsUnownedUnboundOrHandwrittenRoute`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointManifestRejectsUnownedUnboundOrHandwrittenRoute`; `PROPERTY=TestTodo_ENDPOINT_001_Property`; `GOLDEN=TestTodo_ENDPOINT_001_Golden`; `SECURITY=TestTodo_ENDPOINT_001_Security`; `CONFORMANCE=TestTodo_ENDPOINT_001_Conformance`; `MUTATION=TestTodo_ENDPOINT_001_Mutation`.
+  - **RED:** a public method validates without service/method, request/response/error descriptors, capability/version, `CREATES|CONSUMES|EMITS|OBSERVES|NON_MATERIAL` intent disposition, authn/AuthZ/purpose, HTTP binding, idempotency, revision, deadline/retry, budgets, evidence, owner/phase or compatibility policy; handwritten route not in the manifest is reachable.
+  - **GREEN:** SchemaFlux compiles one immutable manifest from reviewed Protobuf/capability/intent sources, grpcbridge and discovery consume its canonical digest, every route has one semantic owner and production startup rejects unregistered handlers.
+  - **REFACTOR:** generate documentation, client metadata, edge policy and test cases from the manifest; do not maintain parallel route registries.
+  - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [capability registry](specs/capability-registry-and-lifecycle.md), [API discovery](#17-experience-api-and-accessibility).
+
+- [ ] `ENDPOINT-002` **[GATE_A][SOL_HIGH] Construct trusted request context identically for gRPC and HTTP.**
+  - **Depends:** `ENDPOINT-001`, `TRUST-001`, `CAP-002`, `EDGE-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=ensure public callers can supply desired business input but cannot select tenant, principal, purpose, assurance, authority or placement`.
+  - **TEST:** `TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`; `PROPERTY=TestTodo_ENDPOINT_002_Property`; `FUZZ=FuzzTodo_ENDPOINT_002`; `INTEGRATION=TestTodo_ENDPOINT_002_Integration`; `SECURITY=TestTodo_ENDPOINT_002_Security`; `CONFORMANCE=TestTodo_ENDPOINT_002_Conformance`; `MUTATION=TestTodo_ENDPOINT_002_Mutation`.
+  - **RED:** body/query/header/gRPC metadata can override `PrincipalContext`, tenant, organization scope, purpose, session assurance, legal/policy, authority or processing placement; equivalent gRPC/HTTP requests resolve different trusted context.
+  - **GREEN:** authenticated interceptors construct trusted context server-side, reject conflicting reserved fields, pass one immutable invocation context to CapabilityGateway and golden vectors produce the same safe decision/evidence references on both transports.
+  - **REFACTOR:** one interceptor chain owns context construction; handlers and domain services never parse ambient headers.
+  - **Refs:** [trusted boundary](specs/http-grpc-endpoint-contract.md#trusted-request-boundary), [organization AuthZ](specs/organization-scope-and-authz.md), [edge admission](#32-production-identity-key-custody-and-edge-enforcement).
+
+- [ ] `ENDPOINT-003` **[P0][SOL_HIGH] Enforce strict request decoding, structural validation and owned error projection.**
+  - **Depends:** `ENDPOINT-001`, `CAP-003`, `LIB-019`, `PROTO-009`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=reject malformed or incompatible public input consistently without confusing transport validation with HCM business authority`.
+  - **TEST:** `TestEndpointValidationAndErrorProjectionParity`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointValidationAndErrorProjectionParity`; `PROPERTY=TestTodo_ENDPOINT_003_Property`; `GOLDEN=TestTodo_ENDPOINT_003_Golden`; `FUZZ=FuzzTodo_ENDPOINT_003`; `INTEGRATION=TestTodo_ENDPOINT_003_Integration`; `SECURITY=TestTodo_ENDPOINT_003_Security`; `CONFORMANCE=TestTodo_ENDPOINT_003_Conformance`.
+  - **RED:** unknown JSON field, duplicate key, invalid UTF-8, ambiguous numeric value, unknown enum, material unknown Protobuf field or invalid local constraint is accepted; HTTP/gRPC disagree on owned code, field path, retryability or zero-effect result; error leaks stack/SQL/policy/secret/restricted value.
+  - **GREEN:** strict bounded decoding plus structural validation returns one owned typed error projected through the declared gRPC status/HTTP status and safe details; every rejected vector persists zero intent/domain/event/outbox/work/effect rows.
+  - **REFACTOR:** validation adapters emit owned violations; business, legal, temporal and cross-aggregate decisions remain capabilities/engines.
+  - **Refs:** [error projection](specs/http-grpc-endpoint-contract.md#canonical-error-projection), [Protobuf compatibility](#29-machine-readable-model-sources-and-public-api-contracts), [capability errors](#6-businessintent-capabilities-governance-and-transaction-integrity).
+
+- [ ] `ENDPOINT-004` **[GATE_B][SOL_HIGH] Unify endpoint idempotency, expected revision, ETag and conflict semantics.**
+  - **Depends:** `ENDPOINT-001`, `CAP-002`, `TX-005`, `INTENT-005`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make client retry and optimistic concurrency safe for intent, decision, workflow and effect-bearing methods`.
+  - **TEST:** `TestEndpointIdempotencyAndRevisionParityUnderConcurrentReplay`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointIdempotencyAndRevisionParityUnderConcurrentReplay`; `PROPERTY=TestTodo_ENDPOINT_004_Property`; `RACE=TestTodo_ENDPOINT_004_Race`; `INTEGRATION=TestTodo_ENDPOINT_004_Integration`; `FAULT=TestTodo_ENDPOINT_004_Fault`; `SECURITY=TestTodo_ENDPOINT_004_Security`; `CONFORMANCE=TestTodo_ENDPOINT_004_Conformance`; `MUTATION=TestTodo_ENDPOINT_004_Mutation`.
+  - **RED:** mismatched header/message idempotency keys pass, same key with changed payload reuses success, concurrent transports create two logical intents/effects, stale `If-Match`/expected revision commits or retry after ambiguous response duplicates work.
+  - **GREEN:** one canonical request digest and principal/tenant/capability scope maps header plus message key; exact replay returns the original result/evidence, mismatch returns conflict, stale revision returns current-safe precondition evidence and concurrency/ambiguity creates one logical operation/effect.
+  - **REFACTOR:** centralize mechanics in gateway/transaction adapters; semantic owners define what revision and material payload mean.
+  - **Refs:** [endpoint common behavior](specs/http-grpc-endpoint-contract.md#common-wire-and-http-behavior), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [RPC retry edge](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification).
+
+- [ ] `ENDPOINT-005` **[GATE_A][SOL_HIGH] Implement authorization-safe list, cursor, field-mask and resource-name semantics.**
+  - **Depends:** `ENDPOINT-002`, `TRUST-006`, `DATA-005`, `PROTO-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose bounded resource inspection without count, existence, field or cross-tenant leakage`.
+  - **TEST:** `TestEndpointListCursorAndFieldMaskCannotBroadenScopeOrRevealExistence`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointListCursorAndFieldMaskCannotBroadenScopeOrRevealExistence`; `PROPERTY=TestTodo_ENDPOINT_005_Property`; `GOLDEN=TestTodo_ENDPOINT_005_Golden`; `FUZZ=FuzzTodo_ENDPOINT_005`; `INTEGRATION=TestTodo_ENDPOINT_005_Integration`; `SECURITY=TestTodo_ENDPOINT_005_Security`; `CONFORMANCE=TestTodo_ENDPOINT_005_Conformance`; `BENCHMARK=BenchmarkTodo_ENDPOINT_005`.
+  - **RED:** display name becomes identity, cursor can be edited/replayed by another principal/tenant/filter, page drift duplicates/skips entries, page size is unbounded, field mask grants a restricted field or forbidden/not-found responses leak existence/count/timing materially.
+  - **GREEN:** opaque IDs, stable ordering and signed expiring cursors bind principal/tenant/scope/filter/watermark; bounded pages and post-authorization field masks return exact completeness/redaction metadata with uniform non-disclosing errors.
+  - **REFACTOR:** reuse generated list/read contracts; owner repositories supply stable keys/watermarks rather than transport offsets.
+  - **Refs:** [endpoint common behavior](specs/http-grpc-endpoint-contract.md#common-wire-and-http-behavior), [AuthZ](specs/organization-scope-and-authz.md), [data plane](#11-authoritative-data-plane-ledger-projections-and-artifacts).
+
+- [ ] `ENDPOINT-006` **[GATE_A][SOL_HIGH] Enforce HTTP media, body, cache, origin and response-header policy.**
+  - **Depends:** `ENDPOINT-001`, `EDGE-001`, `EDGE-002`, `EDGE-004`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make grpcbridge HTTP behavior safe and deterministic without adding an independent REST implementation`.
+  - **TEST:** `TestHTTPEndpointMediaCacheOriginAndBodyPolicy`.
+  - **TEST MATRIX:** `PRIMARY=TestHTTPEndpointMediaCacheOriginAndBodyPolicy`; `PROPERTY=TestTodo_ENDPOINT_006_Property`; `GOLDEN=TestTodo_ENDPOINT_006_Golden`; `FUZZ=FuzzTodo_ENDPOINT_006`; `INTEGRATION=TestTodo_ENDPOINT_006_Integration`; `SECURITY=TestTodo_ENDPOINT_006_Security`; `BROWSER=TestTodo_ENDPOINT_006_Browser`; `CONFORMANCE=TestTodo_ENDPOINT_006_Conformance`.
+  - **RED:** wrong content type/encoding or GET body is accepted, oversized/compression-bomb body reaches decoding, sensitive response is cacheable, Host/Origin/CSRF/redirect is bypassed, unsafe method changes state via prefetch or security headers vary by handler.
+  - **GREEN:** generated route policy enforces method/content type/encoding/body/decompression limits, no-store/private cache rules, canonical security headers, origin/CSRF/host controls and safe `405|406|413|415` responses before business invocation.
+  - **REFACTOR:** grpcbridge middleware consumes endpoint metadata; route handlers contain no custom edge policy.
+  - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [edge controls](#32-production-identity-key-custody-and-edge-enforcement), [DLP](specs/data-classification-and-dlp.md).
+
+- [ ] `ENDPOINT-007` **[GATE_A][SOL_HIGH] Enforce per-method deadlines, cancellation, retry, hedging and resource budgets.**
+  - **Depends:** `ENDPOINT-001`, `RPC-EDGE-001`, `ADMISSION-001`, `EDGE-007`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=bound public work and transport replay according to capability effects and idempotency`.
+  - **TEST:** `TestEndpointMethodPolicyBoundsDeadlineRetryHedgingAndWork`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointMethodPolicyBoundsDeadlineRetryHedgingAndWork`; `PROPERTY=TestTodo_ENDPOINT_007_Property`; `RACE=TestTodo_ENDPOINT_007_Race`; `INTEGRATION=TestTodo_ENDPOINT_007_Integration`; `FAULT=TestTodo_ENDPOINT_007_Fault`; `SECURITY=TestTodo_ENDPOINT_007_Security`; `CONFORMANCE=TestTodo_ENDPOINT_007_Conformance`; `BENCHMARK=BenchmarkTodo_ENDPOINT_007`.
+  - **RED:** method waits without cap, client expands server deadline/budget, cancellation is reported as rollback after commit, write/effect method is hedged, retry storm defeats tenant fairness or gRPC/HTTP use different timeout/retry classification.
+  - **GREEN:** generated method policy caps deadline, payload/work/concurrency, propagates cancellation only to declared safe boundary, permits retries/hedging solely by effect/idempotency class and returns identical typed committed/unknown/cancelled outcomes across transports.
+  - **REFACTOR:** one policy compiler emits gRPC service config, HTTP middleware and test vectors from capability metadata.
+  - **Refs:** [endpoint manifest](specs/http-grpc-endpoint-contract.md#endpoint-manifest), [RPC edge](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [admission](#34-batch-scheduling-and-connector-execution-substrate).
+
+- [ ] `ENDPOINT-008` **[GATE_A][SOL_HIGH] Build the reusable endpoint TDD and transport-parity harness.**
+  - **Depends:** `ENDPOINT-002`–`ENDPOINT-007`, `PROTO-006`, `TOOL-014`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove every public method through direct owner, real interceptor gRPC and grpcbridge HTTP paths with identical semantic outcomes`.
+  - **TEST:** `TestEndpointHarnessDetectsTransportSemanticDivergence`.
+  - **TEST MATRIX:** `PRIMARY=TestEndpointHarnessDetectsTransportSemanticDivergence`; `PROPERTY=TestTodo_ENDPOINT_008_Property`; `GOLDEN=TestTodo_ENDPOINT_008_Golden`; `FUZZ=FuzzTodo_ENDPOINT_008`; `RACE=TestTodo_ENDPOINT_008_Race`; `INTEGRATION=TestTodo_ENDPOINT_008_Integration`; `FAULT=TestTodo_ENDPOINT_008_Fault`; `SECURITY=TestTodo_ENDPOINT_008_Security`; `CONFORMANCE=TestTodo_ENDPOINT_008_Conformance`; `MUTATION=TestTodo_ENDPOINT_008_Mutation`.
+  - **RED:** seeded divergence in presence, trusted context, validation, status/details, idempotency, persisted rows/events/outbox/work/effects, evidence, redaction, deadline or cancellation is missed because tests compare only HTTP/gRPC status.
+  - **GREEN:** one versioned vector runs direct capability/application, in-memory gRPC with production interceptors and real grpcbridge HTTP; it compares canonical request/result/error/evidence digests plus exact durable side-effect counts and kills each seeded transport mutant.
+  - **REFACTOR:** endpoint-specific tests provide fixtures and semantic oracles; harness owns transport mechanics and diagnostics.
+  - **Refs:** [required endpoint tests](specs/http-grpc-endpoint-contract.md#required-test-layers-for-every-endpoint), [grpcbridge parity](#29-machine-readable-model-sources-and-public-api-contracts), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts).
+
+- [ ] `ENDPOINT-009` **[P0][SOL_HIGH] Gate every contracted intent/capability on an explicit endpoint disposition.**
+  - **Depends:** `ENDPOINT-001`, `ENDPOINT-008`, `INTENT-010`, `WF-DISC-012`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent implemented behavior from acquiring an accidental route or remaining unreachable without a reviewed channel decision`.
+  - **TEST:** `TestContractedIntentAndCapabilityEndpointDispositionIsTotal`.
+  - **TEST MATRIX:** `PRIMARY=TestContractedIntentAndCapabilityEndpointDispositionIsTotal`; `PROPERTY=TestTodo_ENDPOINT_009_Property`; `GOLDEN=TestTodo_ENDPOINT_009_Golden`; `SECURITY=TestTodo_ENDPOINT_009_Security`; `CONFORMANCE=TestTodo_ENDPOINT_009_Conformance`; `MUTATION=TestTodo_ENDPOINT_009_Mutation`.
+  - **RED:** `CONTRACTED|IMPLEMENTED|VERIFIED` feature has zero/multiple unjustified public routes, endpoint lacks feature-intent coverage, database entity creates CRUD route, `NO_ENDPOINT` has no reason or internal/event-only capability is publicly reachable.
+  - **GREEN:** exact join assigns `TYPED_PUBLIC_METHOD|GENERIC_INTENT_LIFECYCLE_ONLY|INTERNAL_CAPABILITY_ONLY|EVENT_OR_SCHEDULE_ONLY|NO_ENDPOINT_WITH_JUSTIFICATION`, reports baseline/extensions separately and blocks maturity on every missing, duplicate or incompatible disposition.
+  - **REFACTOR:** generate reverse indexes from intent/capability/feature to methods and remove manually counted endpoint inventories.
+  - **Refs:** [endpoint expansion rule](specs/http-grpc-endpoint-contract.md#expansion-rule), [feature-intent coverage](#6-businessintent-capabilities-governance-and-transaction-integrity), [workflow convergence](#58-businessintent-to-workflow-design-convergence).
+
+- [ ] `EP-REG-001` **[GATE_A][SOL_HIGH] Implement authorized RegistryService intent-definition and capability discovery endpoints.**
+  - **Depends:** `ENDPOINT-008`, `API-001`, `INTENT-001`, `CAP-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=let authorized humans, UIs, agents and applications discover only currently available semantic actions and immutable definitions`.
+  - **TEST:** `TestRegistryEndpointsReturnAuthorizedVersionedDiscoveryParity`.
+  - **TEST MATRIX:** `PRIMARY=TestRegistryEndpointsReturnAuthorizedVersionedDiscoveryParity`; `PROPERTY=TestTodo_EP_REG_001_Property`; `GOLDEN=TestTodo_EP_REG_001_Golden`; `FUZZ=FuzzTodo_EP_REG_001`; `INTEGRATION=TestTodo_EP_REG_001_Integration`; `SECURITY=TestTodo_EP_REG_001_Security`; `CONFORMANCE=TestTodo_EP_REG_001_Conformance`; `MUTATION=TestTodo_EP_REG_001_Mutation`.
+  - **RED:** `List/GetIntentDefinitions` or `List/GetCapabilities` reveals unavailable tenant feature, unauthorized subject/action, draft/quarantined version, hidden schema/policy, unstable ordering or a different descriptor through HTTP and gRPC.
+  - **GREEN:** four methods return authorized phase/tenant/subject-filtered immutable descriptors with stable cursor, schema/capability/intent versions, effect/risk/simulation metadata and identical canonical digest across transports; hidden and absent resources are non-disclosing.
+  - **REFACTOR:** global action/search/SDK discovery consume this service rather than separate registries.
+  - **Refs:** [initial registry endpoints](specs/http-grpc-endpoint-contract.md#registry-and-discovery), [capability registry](specs/capability-registry-and-lifecycle.md), [action discovery](#17-experience-api-and-accessibility).
+
+- [ ] `EP-INTENT-001` **[GATE_A][SOL_HIGH] Implement CreateIntent, GetIntent and ListIntents endpoints.**
+  - **Depends:** `ENDPOINT-008`, `INTENT-001`–`INTENT-003`, `INTENT-012`, `PROTO-002`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=create and inspect typed root/child intents without accepting caller-derived truth or leaking lifecycle state`.
+  - **TEST:** `TestIntentCreateGetListEndpointsPreserveTypedOriginLifecycleAndParity`.
+  - **TEST MATRIX:** `PRIMARY=TestIntentCreateGetListEndpointsPreserveTypedOriginLifecycleAndParity`; `PROPERTY=TestTodo_EP_INTENT_001_Property`; `GOLDEN=TestTodo_EP_INTENT_001_Golden`; `FUZZ=FuzzTodo_EP_INTENT_001`; `RACE=TestTodo_EP_INTENT_001_Race`; `INTEGRATION=TestTodo_EP_INTENT_001_Integration`; `FAULT=TestTodo_EP_INTENT_001_Fault`; `SECURITY=TestTodo_EP_INTENT_001_Security`; `CONFORMANCE=TestTodo_EP_INTENT_001_Conformance`.
+  - **RED:** create accepts unknown/unavailable definition, unregistered payload type, client principal/tenant/current facts, invalid parent authority or duplicate request; read/list conflates lifecycle dimensions, leaks hidden intent, changes ordering or returns different revision/digest by transport.
+  - **GREEN:** create stores one typed `CREATED|DRAFT` IntentInstance with trusted origin and zero domain/effect mutation; exact replay returns it; get/list return authorized multidimensional state, versions, relationships and stable cursor with identical gRPC/HTTP result/evidence.
+  - **REFACTOR:** typed domain façades call the same create application service; list/read use owned projections, never workflow tables directly.
+  - **Refs:** [intent endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [BusinessIntent](specs/business-intent-and-change-request.md), [intent creation](#6-businessintent-capabilities-governance-and-transaction-integrity).
+
+- [ ] `EP-INTENT-002` **[GATE_A][SOL_HIGH] Implement the no-effect SimulateIntent endpoint.**
+  - **Depends:** `EP-INTENT-001`, `INTENT-023`, `WF-RUN-012`, `PROMO-004`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=return a version-pinned proposed outcome, reads/writes/effects/approvals/obligations/cost/repair plan without execution authority`.
+  - **TEST:** `TestSimulateIntentEndpointReturnsCompleteContractWithZeroEffects`.
+  - **TEST MATRIX:** `PRIMARY=TestSimulateIntentEndpointReturnsCompleteContractWithZeroEffects`; `PROPERTY=TestTodo_EP_INTENT_002_Property`; `GOLDEN=TestTodo_EP_INTENT_002_Golden`; `FUZZ=FuzzTodo_EP_INTENT_002`; `RACE=TestTodo_EP_INTENT_002_Race`; `INTEGRATION=TestTodo_EP_INTENT_002_Integration`; `FAULT=TestTodo_EP_INTENT_002_Fault`; `SECURITY=TestTodo_EP_INTENT_002_Security`; `CONFORMANCE=TestTodo_EP_INTENT_002_Conformance`; `MUTATION=TestTodo_EP_INTENT_002_Mutation`.
+  - **RED:** simulation performs domain write, external request, message, WorkItem, timer or committed outbox; omits partial/stale/unknown input, authority, conflicts, costs, obligations, invalidators or repair; replay returns changed result without new pinned snapshot/digest.
+  - **GREEN:** endpoint returns immutable `WorkflowSimulationContract` with exact source/config/rule/authority versions and typed completeness/risk/result; database/provider assertions prove zero authoritative/effect rows and equivalent transport requests return the same digest.
+  - **REFACTOR:** endpoint delegates to execution-mode-aware capability/workflow simulation; it contains no domain-specific calculator.
+  - **Refs:** [simulation endpoint](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [workflow simulation](specs/workflow-runtime.md), [Promotion simulation](reference-workflows/promote-into-management.md).
+
+- [ ] `EP-INTENT-003` **[GATE_B][SOL_HIGH] Implement SubmitIntent, CancelIntent and SupersedeIntent lifecycle endpoints.**
+  - **Depends:** `EP-INTENT-001`, `INTENT-005`, `INTENT-015`, `INTENT-021`, `WF-RUN-010`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=bind an immutable proposal for execution or create governed cancellation/successor instructions without rewriting history`.
+  - **TEST:** `TestIntentSubmitCancelSupersedeEndpointsRespectRevisionAuthorityAndIrreversibility`.
+  - **TEST MATRIX:** `PRIMARY=TestIntentSubmitCancelSupersedeEndpointsRespectRevisionAuthorityAndIrreversibility`; `PROPERTY=TestTodo_EP_INTENT_003_Property`; `GOLDEN=TestTodo_EP_INTENT_003_Golden`; `RACE=TestTodo_EP_INTENT_003_Race`; `INTEGRATION=TestTodo_EP_INTENT_003_Integration`; `FAULT=TestTodo_EP_INTENT_003_Fault`; `SECURITY=TestTodo_EP_INTENT_003_Security`; `CONFORMANCE=TestTodo_EP_INTENT_003_Conformance`; `MUTATION=TestTodo_EP_INTENT_003_Mutation`.
+  - **RED:** submit accepts stale/unapproved proposal or starts twice; cancel implies rollback after irreversible effect, deletes history or races commit incorrectly; supersede mutates original, broadens authority or loses child/effect lineage.
+  - **GREEN:** submit binds exact proposal/governance/approval revision and starts once; cancel returns `CANCELLED|CANCELLATION_PENDING|TOO_LATE|REPAIR_REQUIRED` truthfully; supersede creates an authorized successor relationship and preserves every prior state/evidence; HTTP/gRPC agree exactly.
+  - **REFACTOR:** all three call intent lifecycle capabilities and workflow safe-point contracts; transport owns no state transition.
+  - **Refs:** [intent lifecycle endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [intent lifecycle](specs/business-intent-and-change-request.md), [workflow cancellation](specs/workflow-runtime.md).
+
+- [ ] `EP-INTENT-004` **[GATE_A][SOL_HIGH] Implement ExplainIntent and ListIntentTimeline endpoints.**
+  - **Depends:** `EP-INTENT-001`, `LEDGER-006`, `MODEL-020`, `TRUST-010`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=explain governed decisions and chronology without fabricating causality or exposing restricted evidence`.
+  - **TEST:** `TestIntentExplanationAndTimelineEndpointsPreserveAuthorityProvenanceAndRedaction`.
+  - **TEST MATRIX:** `PRIMARY=TestIntentExplanationAndTimelineEndpointsPreserveAuthorityProvenanceAndRedaction`; `PROPERTY=TestTodo_EP_INTENT_004_Property`; `GOLDEN=TestTodo_EP_INTENT_004_Golden`; `INTEGRATION=TestTodo_EP_INTENT_004_Integration`; `SECURITY=TestTodo_EP_INTENT_004_Security`; `CONFORMANCE=TestTodo_EP_INTENT_004_Conformance`; `MUTATION=TestTodo_EP_INTENT_004_Mutation`.
+  - **RED:** explanation states inference/observation as fact, omits rule/source/version/unknown, exposes medical/compensation/confidential actor data or changes with current policy; timeline orders by ingestion only, overwrites correction or labels external consistency as business failure.
+  - **GREEN:** purpose/field-authorized output pins effective/known time, facts/observations/claims/inferences, decision traces and redactions; timeline preserves append-only business chronology and independent completion dimensions with stable cursor/digest across transports.
+  - **REFACTOR:** compose ledger/provenance/governance projections; endpoint does not reconstruct truth ad hoc.
+  - **Refs:** [intent inspection endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [provenance](specs/provenance-graph-and-lineage.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
+
+- [ ] `EP-PROMO-001` **[GATE_A][SOL_HIGH] Implement the no-effect typed ProposeIntoManagement gRPC and HTTP endpoint.**
+  - **Depends:** `ENDPOINT-008`, `PROMO-007`, `PROMO-001`–`PROMO-004`, `INTENT-004`.
+  - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; KERNEL=CHANGE_REQUEST; WHY=provide the first typed semantic endpoint that creates a governed management-promotion intent from desired outcome only`.
+  - **TEST:** `TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth`.
+  - **TEST MATRIX:** `PRIMARY=TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth`; `PROPERTY=TestTodo_EP_PROMO_001_Property`; `GOLDEN=TestTodo_EP_PROMO_001_Golden`; `FUZZ=FuzzTodo_EP_PROMO_001`; `RACE=TestTodo_EP_PROMO_001_Race`; `INTEGRATION=TestTodo_EP_PROMO_001_Integration`; `FAULT=TestTodo_EP_PROMO_001_Fault`; `SECURITY=TestTodo_EP_PROMO_001_Security`; `CONFORMANCE=TestTodo_EP_PROMO_001_Conformance`; `MUTATION=TestTodo_EP_PROMO_001_Mutation`.
+  - **RED:** request can supply current salary/manager, vacancy, budget, authority, principal or tenant; stale worker revision is ignored; endpoint mutates domains, bypasses capability gateway, creates multiple intents on replay or differs from generic IntentService lifecycle semantics.
+  - **GREEN:** typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one `PromoteWorker` intent/change request plus immutable snapshot/simulation/proposal candidates with zero authoritative mutation and identical HTTP/gRPC digest.
+  - **REFACTOR:** promotion façade only maps typed input to `promotion.propose`; generic lifecycle endpoints own subsequent simulate/submit/inspect operations.
+  - **Refs:** [Promotion endpoint](specs/http-grpc-endpoint-contract.md#gate-b-promotion-slice), [Promotion workflow](reference-workflows/promote-into-management.md), [intent-only request](#5-phase-1-people-organization-position-compensation-and-budget-domains).
+
+- [ ] `EP-WORK-001` **[GATE_B][SOL_HIGH] Implement ListWorkItems and GetWorkItem endpoints.**
+  - **Depends:** `ENDPOINT-008`, `WORK-001`, `WORK-002`, `WORK-007`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORK,BI.ALL; DIRECT=none; WHY=let authorized assignees and delegates inspect bounded human responsibility without evidence-compartment or queue leakage`.
+  - **TEST:** `TestWorkItemReadEndpointsEnforceAssignmentQueueAndEvidenceVisibility`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkItemReadEndpointsEnforceAssignmentQueueAndEvidenceVisibility`; `PROPERTY=TestTodo_EP_WORK_001_Property`; `GOLDEN=TestTodo_EP_WORK_001_Golden`; `RACE=TestTodo_EP_WORK_001_Race`; `INTEGRATION=TestTodo_EP_WORK_001_Integration`; `SECURITY=TestTodo_EP_WORK_001_Security`; `CONFORMANCE=TestTodo_EP_WORK_001_Conformance`; `MUTATION=TestTodo_EP_WORK_001_Mutation`.
+  - **RED:** queue membership leaks other tenants/tasks/counts, stale/delegated/recused principal sees item, manager receives restricted evidence, list ordering/deadline is unstable or get/list show different revision/action set by transport.
+  - **GREEN:** authorized queue snapshot and item detail return current version/claim/deadline/proposal digest, classification-filtered context and server-computed permitted actions using signed stable cursors; prohibited/absent remains non-disclosing.
+  - **REFACTOR:** use Human Work projections and evidence views; endpoints never query workflow/domain tables directly.
+  - **Refs:** [work endpoints](specs/http-grpc-endpoint-contract.md#human-work-and-approvals), [human work](specs/human-work-forms-and-rules.md), [work visibility](#24-human-decision-safety-and-continuity).
+
+- [ ] `EP-WORK-002` **[GATE_B][SOL_HIGH] Implement ClaimWorkItem and ReleaseWorkItem endpoints.**
+  - **Depends:** `EP-WORK-001`, `WORK-003`, `WORK-004`, `ENDPOINT-004`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORK; DIRECT=none; WHY=expose exclusive human-work ownership changes under version, lease, delegation and current authorization`.
+  - **TEST:** `TestWorkItemClaimReleaseEndpointsAreExclusiveVersionBoundAndIdempotent`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkItemClaimReleaseEndpointsAreExclusiveVersionBoundAndIdempotent`; `PROPERTY=TestTodo_EP_WORK_002_Property`; `RACE=TestTodo_EP_WORK_002_Race`; `INTEGRATION=TestTodo_EP_WORK_002_Integration`; `FAULT=TestTodo_EP_WORK_002_Fault`; `SECURITY=TestTodo_EP_WORK_002_Security`; `CONFORMANCE=TestTodo_EP_WORK_002_Conformance`; `MUTATION=TestTodo_EP_WORK_002_Mutation`.
+  - **RED:** two principals/transports claim exclusive item, stale revision steals/releases claim, unauthorized delegate claims, expired lease completes release as current or ambiguous response produces duplicate assignment history.
+  - **GREEN:** atomic CAS creates/releases one versioned claim/lease for current authorized principal/delegate, exact replay returns original result, losers receive safe conflict/current-action data and assignment evidence remains append-only.
+  - **REFACTOR:** endpoint delegates to Human Work claim service and shared idempotency; no transport mutex or session ownership.
+  - **Refs:** [work endpoints](specs/http-grpc-endpoint-contract.md#human-work-and-approvals), [claim semantics](specs/human-work-forms-and-rules.md#claim-reassignment-delegation-and-escalation), [endpoint concurrency](specs/http-grpc-endpoint-contract.md#common-wire-and-http-behavior).
+
+- [ ] `EP-WORK-003` **[GATE_B][SOL_HIGH] Implement CompleteWorkItem and DecideApproval endpoints.**
+  - **Depends:** `EP-WORK-002`, `WORK-006`, `APPROVAL-001`–`APPROVAL-006`, `INTENT-006`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORK,BI.ALL; DIRECT=none; WHY=record authorized human task output or approval decision against the exact work/proposal/evidence revision`.
+  - **TEST:** `TestWorkCompletionAndApprovalEndpointsRejectStaleProposalAuthorityAndDuplicateDecision`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkCompletionAndApprovalEndpointsRejectStaleProposalAuthorityAndDuplicateDecision`; `PROPERTY=TestTodo_EP_WORK_003_Property`; `GOLDEN=TestTodo_EP_WORK_003_Golden`; `RACE=TestTodo_EP_WORK_003_Race`; `INTEGRATION=TestTodo_EP_WORK_003_Integration`; `FAULT=TestTodo_EP_WORK_003_Fault`; `SECURITY=TestTodo_EP_WORK_003_Security`; `CONFORMANCE=TestTodo_EP_WORK_003_Conformance`; `MUTATION=TestTodo_EP_WORK_003_Mutation`.
+  - **RED:** stale task/proposal digest, expired session/claim/delegation, changed manager/SoD, missing required evidence or duplicate/mutated decision completes; restricted evidence appears in response; approval itself executes the business change.
+  - **GREEN:** method rechecks identity/assurance/AuthZ/claim/proposal/decision receipt/SoD, appends exactly one typed completion/approval result and signal, returns current work/intent state/evidence and performs zero domain mutation until workflow/transaction execution.
+  - **REFACTOR:** approval is a specialized WorkItem result; both methods share current-authority and signal publication mechanics.
+  - **Refs:** [approval endpoint](specs/http-grpc-endpoint-contract.md#human-work-and-approvals), [human decisions](specs/human-work-forms-and-rules.md), [approval safety](#24-human-decision-safety-and-continuity).
+
+- [ ] `EP-WF-001` **[GATE_A][SOL_HIGH] Implement GetWorkflow and ListNodeExecutions inspection endpoints.**
+  - **Depends:** `ENDPOINT-008`, `WF-RUN-019`, `ADMIN-002`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.DATAOPS; DIRECT=none; WHY=inspect durable execution truth and multidimensional completion without exposing raw runtime persistence`.
+  - **TEST:** `TestWorkflowInspectionEndpointsReturnAuthorizedConsistentExecutionView`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowInspectionEndpointsReturnAuthorizedConsistentExecutionView`; `PROPERTY=TestTodo_EP_WF_001_Property`; `GOLDEN=TestTodo_EP_WF_001_Golden`; `RACE=TestTodo_EP_WF_001_Race`; `INTEGRATION=TestTodo_EP_WF_001_Integration`; `SECURITY=TestTodo_EP_WF_001_Security`; `CONFORMANCE=TestTodo_EP_WF_001_Conformance`; `MUTATION=TestTodo_EP_WF_001_Mutation`.
+  - **RED:** response conflates runtime/business/external/reconciliation/obligation/operational dimensions, exposes raw payload/secret/restricted task, reads inconsistent instance/node frontier or permits tenant/support enumeration.
+  - **GREEN:** authorized projection pins instance/definition/proposal versions and watermark, returns redacted frontier/nodes/attempts/waits/signals/errors/repairs/evidence with stable pagination and identical transport digest; unavailable projection is explicit.
+  - **REFACTOR:** inspector projection remains rebuildable and non-authoritative; endpoint never reads mutable tables into a fabricated snapshot.
+  - **Refs:** [workflow endpoints](specs/http-grpc-endpoint-contract.md#workflow-operations), [runtime inspector](specs/workflow-runtime.md), [operator surface](#36-operator-surfaces-ownership-and-measurable-production-limits).
+
+- [ ] `EP-WF-002` **[GATE_B][SOL_HIGH] Implement governed Pause, Resume, Cancel and RetryNode workflow endpoints.**
+  - **Depends:** `EP-WF-001`, `WF-RUN-008`, `WF-RUN-010`, `WF-RUN-015`, `INTENT-022`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS; DIRECT=none; WHY=turn operator workflow interventions into governed capabilities/intents rather than direct runtime-row edits`.
+  - **TEST:** `TestWorkflowControlEndpointsRespectSafePointAuthorityIdempotencyAndEffectBoundary`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowControlEndpointsRespectSafePointAuthorityIdempotencyAndEffectBoundary`; `PROPERTY=TestTodo_EP_WF_002_Property`; `RACE=TestTodo_EP_WF_002_Race`; `INTEGRATION=TestTodo_EP_WF_002_Integration`; `FAULT=TestTodo_EP_WF_002_Fault`; `SECURITY=TestTodo_EP_WF_002_Security`; `CONFORMANCE=TestTodo_EP_WF_002_Conformance`; `RECOVERY=TestTodo_EP_WF_002_Recovery`; `MUTATION=TestTodo_EP_WF_002_Mutation`.
+  - **RED:** endpoint directly edits status, pause crosses unsafe commit, resume skips revalidation, cancel claims reversal after irreversible effect, RetryNode targets successful/currently leased/non-idempotent node or repeated call creates duplicate execution/effect.
+  - **GREEN:** each method creates/evaluates the registered operational action, checks support/JIT/SoD/expected version/safe point/current authority, returns `APPLIED|PENDING_SAFE_POINT|DENIED|TOO_LATE|REPAIR_REQUIRED` and appends one intervention/evidence trail with exact runtime transition.
+  - **REFACTOR:** endpoint maps to workflow intervention contracts; operators cannot submit arbitrary target state.
+  - **Refs:** [workflow operations](specs/http-grpc-endpoint-contract.md#workflow-operations), [workflow runtime](specs/workflow-runtime.md), [operator intents](#6-businessintent-capabilities-governance-and-transaction-integrity).
+
+- [ ] `EP-EVID-001` **[GATE_B][SOL_HIGH] Implement GetExecutionReceipt and ExportIntentEvidence endpoints.**
+  - **Depends:** `ENDPOINT-008`, `EVIDENCE-001`, `LEDGER-012`, `ADMIN-007`, `EXPORT-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.DATAOPS,BI.PRIVACY,BI.OPERATIONS; DIRECT=none; WHY=retrieve or generate minimum-necessary verifiable intent execution evidence without ad hoc database export`.
+  - **TEST:** `TestEvidenceEndpointsEnforcePurposeRedactionManifestAndOperationSemantics`.
+  - **TEST MATRIX:** `PRIMARY=TestEvidenceEndpointsEnforcePurposeRedactionManifestAndOperationSemantics`; `PROPERTY=TestTodo_EP_EVID_001_Property`; `GOLDEN=TestTodo_EP_EVID_001_Golden`; `RACE=TestTodo_EP_EVID_001_Race`; `INTEGRATION=TestTodo_EP_EVID_001_Integration`; `FAULT=TestTodo_EP_EVID_001_Fault`; `SECURITY=TestTodo_EP_EVID_001_Security`; `CONFORMANCE=TestTodo_EP_EVID_001_Conformance`; `MUTATION=TestTodo_EP_EVID_001_Mutation`.
+  - **RED:** receipt/export reveals unauthorized fields/existence, omits intent→proposal→approval→transaction→observation→reconciliation lineage, uses ambient current data, creates unbounded synchronous archive, formula-injects spreadsheet output or unsigned/tampered package verifies.
+  - **GREEN:** receipt returns authorized immutable summary/digest; export creates one idempotent long-running operation binding purpose/scope/fields/watermarks/redaction/format/expiry and produces encrypted signed offline-verifiable package with exact exclusions and zero source mutation.
+  - **REFACTOR:** evidence owner composes registered sources; transport streams only authorized artifact/operation references.
+  - **Refs:** [evidence endpoints](specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations), [ledger evidence](specs/transaction-ledger-reconciliation-and-repair.md), [evidence export](specs/platform-responsibility-boundaries.md#audit-evidence-packaging).
+
+- [ ] `EP-OPS-001` **[GATE_A][SOL_HIGH] Implement GetOperation and CancelOperation endpoints for long-running work.**
+  - **Depends:** `ENDPOINT-008`, `PROTO-007`, `SVC-011`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=inspect and request cancellation of resumable long-running endpoint work without equating transport lifetime with business completion`.
+  - **TEST:** `TestLongRunningOperationEndpointsPreserveStateResultErrorAndCancellationTruth`.
+  - **TEST MATRIX:** `PRIMARY=TestLongRunningOperationEndpointsPreserveStateResultErrorAndCancellationTruth`; `PROPERTY=TestTodo_EP_OPS_001_Property`; `GOLDEN=TestTodo_EP_OPS_001_Golden`; `RACE=TestTodo_EP_OPS_001_Race`; `INTEGRATION=TestTodo_EP_OPS_001_Integration`; `FAULT=TestTodo_EP_OPS_001_Fault`; `SECURITY=TestTodo_EP_OPS_001_Security`; `CONFORMANCE=TestTodo_EP_OPS_001_Conformance`; `RECOVERY=TestTodo_EP_OPS_001_Recovery`.
+  - **RED:** losing HTTP/gRPC connection cancels durable accepted work, polling reveals another principal's operation, cursor/result changes after completion, CancelOperation deletes evidence or reports cancelled after irreversible completion and duplicate cancel creates multiple actions.
+  - **GREEN:** operation resource returns immutable owner/request/type/create/update, `PENDING|RUNNING|SUCCEEDED|FAILED|CANCELLATION_REQUESTED|CANCELLED`, progress/completeness, typed result/error/evidence; cancellation is idempotent, policy/safe-boundary aware and recovery preserves state.
+  - **REFACTOR:** all long-running endpoint families reuse one owned Operation contract; it does not replace BusinessIntent or Workflow state.
+  - **Refs:** [operation endpoints](specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations), [streaming contract](#29-machine-readable-model-sources-and-public-api-contracts), [workflow truth](specs/workflow-runtime.md).
+
+- [ ] `EP-HEALTH-001` **[GATE_A][TERRA] Implement non-disclosing gRPC health, `/healthz` and `/readyz` endpoints per process role.**
+  - **Depends:** `ENDPOINT-006`, `SVC-002`, `OPS-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=provide non-material liveness/readiness signals for safe workload routing without exposing tenant or dependency internals`.
+  - **TEST:** `TestHealthAndReadinessEndpointsDistinguishProcessLifeFromAdmissionReadiness`.
+  - **TEST MATRIX:** `PRIMARY=TestHealthAndReadinessEndpointsDistinguishProcessLifeFromAdmissionReadiness`; `PROPERTY=TestTodo_EP_HEALTH_001_Property`; `GOLDEN=TestTodo_EP_HEALTH_001_Golden`; `RACE=TestTodo_EP_HEALTH_001_Race`; `INTEGRATION=TestTodo_EP_HEALTH_001_Integration`; `FAULT=TestTodo_EP_HEALTH_001_Fault`; `SECURITY=TestTodo_EP_HEALTH_001_Security`; `CONFORMANCE=TestTodo_EP_HEALTH_001_Conformance`; `BENCHMARK=BenchmarkTodo_EP_HEALTH_001`.
+  - **RED:** liveness fails for downstream outage and causes restart loop, readiness reports serving before config/key/schema/role dependencies are usable, public response names tenant/database/provider/secret, check performs business write or health traffic exhausts dependencies.
+  - **GREEN:** standard gRPC Health plus HTTP `/healthz` report process-loop life; `/readyz` reports role-specific admission state from bounded cached dependency/control checks, public output is minimal, internal reasons are authorized telemetry and transitions meet latency/load budgets.
+  - **REFACTOR:** commands register role-owned readiness predicates; endpoint framework owns protocol and disclosure policy.
+  - **Refs:** [non-material endpoints](specs/http-grpc-endpoint-contract.md#non-material-service-endpoints), [process roles](#28-modular-monolith-process-roles-and-go-command-binaries), [operations](#16-operations-assurance-overload-and-recovery).
+
+---
+
+## 61. Every-BusinessIntent maximal vertical-slice convergence
+
+These todos turn every accepted BusinessIntent into a complete vertical-slice
+contract while preserving the current source boundary: the 530 numbered baseline
+has 14 named draft definitions and 516 unbound slots; the repository separately
+contains 807 named vocabulary candidates. They cannot be joined by display name.
+
+- [ ] `SLICE-001` **[P0][SOL_HIGH] Define the machine-readable VerticalSliceRecord and expansion contract.**
+  - **Depends:** `WF-DISC-005`, `INTENT-025`, `MODEL-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=require every accepted intent to expose its complete request-to-outcome execution and evidence obligations`.
+  - **TEST:** `TestVerticalSliceRecordRejectsMissingExecutionConfigurationOrEvidenceDimension`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceRecordRejectsMissingExecutionConfigurationOrEvidenceDimension`; `PROPERTY=TestTodo_SLICE_001_Property`; `GOLDEN=TestTodo_SLICE_001_Golden`; `SECURITY=TestTodo_SLICE_001_Security`; `CONFORMANCE=TestTodo_SLICE_001_Conformance`; `MUTATION=TestTodo_SLICE_001_Mutation`.
+  - **RED:** record validates without stable intent/source, owner/family/archetype, MAX profile, initiator/endpoint, trusted boundary, snapshot/data, governance, engines/capabilities, human work, transaction/effects, observation/reconciliation/repair, lifecycle/completion, scenario/tests/todos or phase/evidence; empty value is accepted as not applicable.
+  - **GREEN:** SchemaFlux contract requires every dimension, permits only typed `SUPPORTED|PROHIBITED|UNKNOWN|NOT_APPLICABLE(reason,owner)` applicability, emits stable Go/Protobuf/docs and canonical digest, and unknown blocks contracted maturity.
+  - **REFACTOR:** generate compact registers and expanded slice documents from one source; prose is never the runtime registry.
+  - **Refs:** [vertical-slice program](workflows/vertical-slices/README.md), [workflow design record](workflows/business-intent-workflow-registry.md#complete-high-level-design-contract), [intent definitions](specs/business-intent-catalog.md#required-definition-fields).
+
+- [ ] `SLICE-002` **[P0][SOL_HIGH] Reconcile the exact 530-slot baseline register to the immutable source manifest.**
+  - **Depends:** `SLICE-001`, `MODEL-008`, `INTENT-025`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=replace 516 source-unbound baseline slots with exact stable identities and provenance without fabricating names`.
+  - **TEST:** `TestBaselineVerticalSliceRegisterIsExactGaplessAndSourceBound`.
+  - **TEST MATRIX:** `PRIMARY=TestBaselineVerticalSliceRegisterIsExactGaplessAndSourceBound`; `PROPERTY=TestTodo_SLICE_002_Property`; `GOLDEN=TestTodo_SLICE_002_Golden`; `SECURITY=TestTodo_SLICE_002_Security`; `CONFORMANCE=TestTodo_SLICE_002_Conformance`; `MUTATION=TestTodo_SLICE_002_Mutation`.
+  - **RED:** register differs from exactly `1..530`, source digest/provenance is absent, known draft number/name changes, one number maps twice, one identity spans numbers without alias decision or `UNBOUND_SOURCE` advances maturity.
+  - **GREEN:** generated join has 530 unique stable definition identities with signed source locator/digest, preserves catalog numbering/history, reconciles the 14 current drafts and reports zero unbound/duplicate/unstable rows before slice completeness claims.
+  - **REFACTOR:** baseline register is generated from source manifest plus accepted definition registry; do not edit its rows manually.
+  - **Refs:** [baseline slice register](workflows/vertical-slices/baseline-vertical-slice-register.md), [catalog truth boundary](specs/business-intent-catalog.md#required-definition-fields), [convergence plan](workflows/vertical-slices/plan.md#stage-0--recover-source-truth).
+
+- [ ] `SLICE-003` **[P0][SOL_HIGH] Reconcile all repository vocabulary candidates without promoting display names to identity.**
+  - **Depends:** `SLICE-001`, `WF-DISC-006`, `INTENT-025`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=classify every repository-enumerable material action as baseline, alias, extension, event/capability-only or rejected`.
+  - **TEST:** `TestVocabularyVerticalSliceRegisterReconcilesEveryCandidateAndOverlap`.
+  - **TEST MATRIX:** `PRIMARY=TestVocabularyVerticalSliceRegisterReconcilesEveryCandidateAndOverlap`; `PROPERTY=TestTodo_SLICE_003_Property`; `GOLDEN=TestTodo_SLICE_003_Golden`; `SECURITY=TestTodo_SLICE_003_Security`; `CONFORMANCE=TestTodo_SLICE_003_Conformance`; `MUTATION=TestTodo_SLICE_003_Mutation`.
+  - **RED:** one of 807 current names disappears, new catalog/registry name is not detected, the five cross-source overlaps auto-merge, profile/recipe/source locator is absent or a candidate is counted in the 530 baseline without stable definition proof.
+  - **GREEN:** generated register exactly joins current detailed/compact sources, preserves all overlaps, assigns reviewed `BASELINE|ALIAS|EXTENSION|EVENT_OR_CAPABILITY|REJECTED` disposition and reports baseline and extension coverage separately.
+  - **REFACTOR:** source catalogs own deltas; this register is a generated reverse index rather than another handwritten vocabulary.
+  - **Refs:** [vocabulary slice register](workflows/vertical-slices/vocabulary-vertical-slice-register.md), [gap register](workflows/vertical-slices/gap-register.md), [workflow registry](workflows/business-intent-workflow-registry.md).
+
+- [ ] `SLICE-004` **[P0][SOL_HIGH] Resolve catalog aliases, collisions and cross-domain slice composition explicitly.**
+  - **Depends:** `SLICE-002`, `SLICE-003`, `INTENT-015`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent same-looking names from merging distinct semantics or duplicating one cross-domain intent`.
+  - **TEST:** `TestVerticalSliceIdentityResolutionRequiresQualifiedReviewedDisposition`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceIdentityResolutionRequiresQualifiedReviewedDisposition`; `PROPERTY=TestTodo_SLICE_004_Property`; `GOLDEN=TestTodo_SLICE_004_Golden`; `SECURITY=TestTodo_SLICE_004_Security`; `CONFORMANCE=TestTodo_SLICE_004_Conformance`; `MUTATION=TestTodo_SLICE_004_Mutation`.
+  - **RED:** display/name similarity merges access/commercial entitlements, PIP/case/performance semantics, legal holds, pay equity or compensation correction; alias changes kernel/input/output/effects, or composite profile loses one owner's data/governance/evidence.
+  - **GREEN:** every overlap records stable qualified identities or one canonical definition with alias/profile composition, compatibility/evidence owner and exact rationale; semantic collisions remain separate and no lifecycle history is rewritten.
+  - **REFACTOR:** use catalog identity/relationship objects; do not encode collision exceptions in generators.
+  - **Refs:** [catalog identity](specs/business-intent-catalog.md#catalog-identity), [known overlaps](workflows/vertical-slices/gap-register.md#cross-catalog-overlaps-requiring-one-stable-identity-decision), [composition](specs/business-intent-catalog.md#composition-rules).
+
+- [ ] `SLICE-005` **[P0][SOL_HIGH] Compile MAX-v1 applicability for every vertical slice.**
+  - **Depends:** `SLICE-001`, `GOV-018`, `TIME-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=force every intent to consider all supported initiator, authority, legal, privacy, temporal, failure, lifecycle, evidence, experience and scale configurations`.
+  - **TEST:** `TestMaximalConfigurationCompilerCoversEveryAxisBoundaryAndMandatoryInteraction`.
+  - **TEST MATRIX:** `PRIMARY=TestMaximalConfigurationCompilerCoversEveryAxisBoundaryAndMandatoryInteraction`; `PROPERTY=TestTodo_SLICE_005_Property`; `GOLDEN=TestTodo_SLICE_005_Golden`; `FUZZ=FuzzTodo_SLICE_005`; `SECURITY=TestTodo_SLICE_005_Security`; `CONFORMANCE=TestTodo_SLICE_005_Conformance`; `MUTATION=TestTodo_SLICE_005_Mutation`.
+  - **RED:** slice omits an axis/value/boundary, treats ambient default as supported, silently marks a value inapplicable, applies pairwise coverage to a mandatory high-risk triple/quadruple or lacks phase/owner for deferred configuration.
+  - **GREEN:** compiler returns supported/prohibited/unknown/N-A disposition for every MAX-v1 value, emits positive/boundary/forbidden/pairwise plus all applicable mandatory interactions, records equivalence proof for excluded combinations and stable applicability digest.
+  - **REFACTOR:** domain profiles supply reviewed applicability defaults but each intent delta can narrow/extend only with explicit reason and compatibility impact.
+  - **Refs:** [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md), [test taxonomy](#secondary-test-taxonomy-and-required-return-contracts), [phase depth](execution-plan.md).
+
+- [ ] `SLICE-006` **[P0][SOL_HIGH] Expand definition, MAX-v1, domain profile, archetype and intent delta into one complete graph.**
+  - **Depends:** `SLICE-004`, `SLICE-005`, `WF-DISC-007`.
+  - **INTENT CONTEXT:** `ROLE=ORCHESTRATION; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=produce the full request-to-outcome vertical slice for every accepted definition without handwritten omission`.
+  - **TEST:** `TestVerticalSliceExpansionProducesCompleteOrderedRequestToOutcomeGraph`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceExpansionProducesCompleteOrderedRequestToOutcomeGraph`; `PROPERTY=TestTodo_SLICE_006_Property`; `GOLDEN=TestTodo_SLICE_006_Golden`; `FAULT=TestTodo_SLICE_006_Fault`; `SECURITY=TestTodo_SLICE_006_Security`; `CONFORMANCE=TestTodo_SLICE_006_Conformance`; `MUTATION=TestTodo_SLICE_006_Mutation`.
+  - **RED:** expansion loses mandatory phase/configuration, delta deletes governance/revalidation/evidence/repair, direct capability gains workflow/effects, child/case/batch truth collapses, graph has unreachable failure/closure route or repeated generation changes ordering/digest.
+  - **GREEN:** deterministic graph contains every slice dimension, inherited/added/omitted responsibility provenance, typed nodes/edges/data/effects/invalidators/completion/configuration and stable digest; unknown owner/reference blocks `SLICE_CONTRACTED`.
+  - **REFACTOR:** keep exploratory slice expansion distinct from executable workflow compilation and publication.
+  - **Refs:** [slice expansion](workflows/vertical-slices/README.md#slice-expansion), [archetypes](workflows/_shared/workflow-archetypes.md), [convergence plan](workflows/vertical-slices/plan.md).
+
+- [ ] `SLICE-007` **[P0][SOL_HIGH] Resolve every expanded slice to exact entity properties, engines, capabilities and source authority.**
+  - **Depends:** `SLICE-006`, `MODEL-021`, `ENGINE-COVERAGE-001`, `DB-COVERAGE-001`, `CAP-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show the exact data and reusable/domain computation required by every intent and expose ownerless semantics`.
+  - **TEST:** `TestVerticalSliceDataEngineCapabilityAuthorityClosureIsExact`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceDataEngineCapabilityAuthorityClosureIsExact`; `PROPERTY=TestTodo_SLICE_007_Property`; `GOLDEN=TestTodo_SLICE_007_Golden`; `SECURITY=TestTodo_SLICE_007_Security`; `CONFORMANCE=TestTodo_SLICE_007_Conformance`; `MUTATION=TestTodo_SLICE_007_Mutation`.
+  - **RED:** slice references entity without property-level read/write/effect/freshness/temporal/classification/authority, embeds reusable calculation in workflow, uses unregistered capability, assumes physical system ownership or lacks storage/non-storage disposition.
+  - **GREEN:** each reference resolves to one versioned semantic owner and exact property/authority/snapshot/engine/capability contract; missing references emit atomic owner-keyed findings and reverse indexes show every consuming slice.
+  - **REFACTOR:** deduplicate shared computation only after equivalent semantics are proven; domain invariants stay domain-owned.
+  - **Refs:** [intent entity coverage](data/models/intent-coverage-matrix.md), [model registry](data/models/registry-and-coverage-contracts.md), [gap register](workflows/vertical-slices/gap-register.md).
+
+- [ ] `SLICE-008` **[P0][SOL_HIGH] Resolve maximal governance, human-decision and continuity requirements per slice.**
+  - **Depends:** `SLICE-006`, `GOVERN-002`, `WORK-001`, `TRUST-010`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make AuthZ/legal/privacy/risk/obligations and human decision rights explicit for every configuration`.
+  - **TEST:** `TestVerticalSliceGovernanceAndHumanDecisionMatrixHasNoImplicitAuthority`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceGovernanceAndHumanDecisionMatrixHasNoImplicitAuthority`; `PROPERTY=TestTodo_SLICE_008_Property`; `GOLDEN=TestTodo_SLICE_008_Golden`; `FAULT=TestTodo_SLICE_008_Fault`; `SECURITY=TestTodo_SLICE_008_Security`; `CONFORMANCE=TestTodo_SLICE_008_Conformance`; `MUTATION=TestTodo_SLICE_008_Mutation`.
+  - **RED:** initiator/channel/configuration inherits broader authority, eligibility/legal truth is delegated to manager preference, sensitive evidence crosses compartment, decision omits representation/delegation/recusal/SoD/expiry/appeal or accessibility/manual continuity loses deadline/evidence.
+  - **GREEN:** slice resolves specialist decisions into composed allow/deny/restriction/obligation with exact input/version/explanation, assigns permitted human decision rights and continuity routes per configuration and records revalidation/invalidation triggers.
+  - **REFACTOR:** shared governance/human-work mechanics remain generic; domain/legal decision semantics stay with their owners.
+  - **Refs:** [governance composition](specs/governance-decision-and-obligation-composition.md), [human work](specs/human-work-forms-and-rules.md), [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md).
+
+- [ ] `SLICE-009` **[P0][SOL_HIGH] Resolve transaction, external-effect, observation, reconciliation and repair closure per slice.**
+  - **Depends:** `SLICE-006`, `TX-003`, `EFFECT-001`, `RECON-002`, `REPAIR-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show exactly what changes locally or externally and how every configured outcome becomes observable, reconcilable and repairable`.
+  - **TEST:** `TestVerticalSliceEffectAndOutcomeClosureHandlesPartialAmbiguousAndIrreversibleStates`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceEffectAndOutcomeClosureHandlesPartialAmbiguousAndIrreversibleStates`; `PROPERTY=TestTodo_SLICE_009_Property`; `GOLDEN=TestTodo_SLICE_009_Golden`; `RACE=TestTodo_SLICE_009_Race`; `FAULT=TestTodo_SLICE_009_Fault`; `SECURITY=TestTodo_SLICE_009_Security`; `CONFORMANCE=TestTodo_SLICE_009_Conformance`; `RECOVERY=TestTodo_SLICE_009_Recovery`; `MUTATION=TestTodo_SLICE_009_Mutation`.
+  - **RED:** planned write/effect lacks owner/order/idempotency/irreversible boundary, external acceptance becomes domain fact, partial/ambiguous outcome collapses to success/failure, no fresh observation/reconciliation deadline exists, repair reruns business transaction or cancellation claims reversal.
+  - **GREEN:** slice declares read/write/effect/conflict sets, local commit, every operation/observation/comparison/completion dimension and targeted correction/repair route for success, partial, unknown, late and irreversible states with exact evidence.
+  - **REFACTOR:** reuse transaction/connectivity/reconciliation mechanics; intent-specific expected state and material mismatch remain semantic inputs.
+  - **Refs:** [transaction and repair](specs/transaction-ledger-reconciliation-and-repair.md), [effect graph](#12a-external-effect-reconciliation-repair-and-execution-evidence-convergence), [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md).
+
+- [ ] `SLICE-010` **[P0][SOL_HIGH] Assign exact endpoint, initiator, schedule and event exposure to every slice.**
+  - **Depends:** `SLICE-006`, `ENDPOINT-009`, `INTENT-017`, `INTENT-018`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every intent is reachable only through approved channels and no database entity or trigger creates an accidental public API`.
+  - **TEST:** `TestVerticalSliceExposureDispositionIsExactAndAuthoritySafe`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceExposureDispositionIsExactAndAuthoritySafe`; `PROPERTY=TestTodo_SLICE_010_Property`; `GOLDEN=TestTodo_SLICE_010_Golden`; `FUZZ=FuzzTodo_SLICE_010`; `SECURITY=TestTodo_SLICE_010_Security`; `CONFORMANCE=TestTodo_SLICE_010_Conformance`; `MUTATION=TestTodo_SLICE_010_Mutation`.
+  - **RED:** slice has no/multiple unexplained endpoint dispositions, system trigger becomes human API, agent/partner gets new authority, gRPC/HTTP semantics diverge, schedule/event bypasses BusinessIntent or internal child capability is public.
+  - **GREEN:** every allowed initiator maps to exact typed method/generic lifecycle/event/schedule/internal/no-endpoint disposition with authority attenuation, trusted context, idempotency and parity test; prohibited initiators return non-disclosing denial.
+  - **REFACTOR:** generate endpoint/trigger/schedule manifests and reverse coverage from the slice record.
+  - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [endpoint coverage](#60-canonical-grpc-services-grpcbridge-http-endpoints-and-endpoint-tdd), [trigger model](specs/business-intent-catalog.md#initiator-and-exposure-policy).
+
+- [ ] `SLICE-011` **[P0][SOL_HIGH] Generate exact maximal-configuration scenarios and tests for every slice.**
+  - **Depends:** `SLICE-007`, `SLICE-008`, `SLICE-009`, `SLICE-010`, `GOV-018`, `GOV-028`, `TOOL-014`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=turn every slice/configuration boundary into exact positive, negative, temporal, concurrency, failure, security, repair and scale evidence`.
+  - **TEST:** `TestVerticalSliceScenarioCompilerCoversApplicableMaximalConfiguration`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceScenarioCompilerCoversApplicableMaximalConfiguration`; `PROPERTY=TestTodo_SLICE_011_Property`; `GOLDEN=TestTodo_SLICE_011_Golden`; `FUZZ=FuzzTodo_SLICE_011`; `RACE=TestTodo_SLICE_011_Race`; `FAULT=TestTodo_SLICE_011_Fault`; `SECURITY=TestTodo_SLICE_011_Security`; `CONFORMANCE=TestTodo_SLICE_011_Conformance`; `RECOVERY=TestTodo_SLICE_011_Recovery`; `BENCHMARK=BenchmarkTodo_SLICE_011`; `MUTATION=TestTodo_SLICE_011_Mutation`.
+  - **RED:** applicable MAX value lacks positive/boundary/forbidden case, pairwise coverage omits a pair, mandatory high-risk interaction lacks explicit fixture, oracle asserts only status/no-panic, scale claim lacks benchmark or test name/evidence cannot trace to slice/configuration.
+  - **GREEN:** deterministic compiler emits minimal covering scenarios plus every mandated interaction, exact returned/persisted/prohibited state/effect/evidence oracle, named test class/command/fixture/timeout and stable coverage digest; unjustified omissions block maturity.
+  - **REFACTOR:** reuse mechanics templates while keeping domain semantic outcomes and legally material examples explicit.
+  - **Refs:** [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md), [slice plan testing](workflows/vertical-slices/plan.md#stage-3--generate-tests-and-endpoint-dispositions), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts).
+
+- [ ] `SLICE-012` **[P0][SOL_HIGH] Compile slice findings into atomic deduplicated TDD todos and reverse coverage.**
+  - **Depends:** `SLICE-011`, `GOV-027`, `GOV-028`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=feed every unresolved slice responsibility into executable production work without creating one implementation per intent when semantics are shared`.
+  - **TEST:** `TestVerticalSliceGapCompilerEmitsAtomicOwnerKeyedTodosWithoutDuplication`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceGapCompilerEmitsAtomicOwnerKeyedTodosWithoutDuplication`; `PROPERTY=TestTodo_SLICE_012_Property`; `GOLDEN=TestTodo_SLICE_012_Golden`; `SECURITY=TestTodo_SLICE_012_Security`; `CONFORMANCE=TestTodo_SLICE_012_Conformance`; `MUTATION=TestTodo_SLICE_012_Mutation`.
+  - **RED:** missing property/engine/governance/human/effect/repair/endpoint/test produces no todo, shared gap produces hundreds of implementations, domain-specific invariants collapse into generic engine, dependency/phase/intelligence/test oracle is absent or finding loses consuming slice/configuration edges.
+  - **GREEN:** compiler resolves current ownership/backlog first, then emits stable atomic candidates keyed by semantic owner+contract with dependencies, phase, intelligence, exact TDD oracle/negative dimensions/refs and complete reverse index; covered gap emits zero candidate.
+  - **REFACTOR:** use one finding/todo schema and generate Markdown views; no manual copy of per-slice gap lists.
+  - **Refs:** [gap feedback](workflows/vertical-slices/README.md#output-and-gap-feedback), [gap register](workflows/vertical-slices/gap-register.md), [todo generation](#backlog-governance-and-traceability).
+
+- [ ] `SLICE-013` **[P0][SOL_HIGH] Gate slice maturity and implementation depth by source, contract, phase and current evidence.**
+  - **Depends:** `SLICE-012`, `GOV-003`, `INTENT-CONF-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent candidate mappings and maximal designs from being misreported as contracted, implemented or production-authorized behavior`.
+  - **TEST:** `TestVerticalSliceMaturityRequiresSourceContractsPhaseAuthorityAndFreshEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceMaturityRequiresSourceContractsPhaseAuthorityAndFreshEvidence`; `PROPERTY=TestTodo_SLICE_013_Property`; `GOLDEN=TestTodo_SLICE_013_Golden`; `SECURITY=TestTodo_SLICE_013_Security`; `CONFORMANCE=TestTodo_SLICE_013_Conformance`; `MUTATION=TestTodo_SLICE_013_Mutation`.
+  - **RED:** unbound/candidate row reports designed, unresolved contract reports contracted, later-phase slice creates Phase 1 work, passing happy path reports verified despite missing MAX scenarios or stale/failing/waived evidence is hidden in aggregate.
+  - **GREEN:** maturity transition checks exact source join, complete graph/references/scenarios/todos, phase authority, implementation and current evidence; coverage reports separate denominators and names every blocker/deferred value/waiver.
+  - **REFACTOR:** delivery manifests consume generated slice maturity; dashboards never infer status from checked boxes or prose.
+  - **Refs:** [record maturity](workflows/vertical-slices/README.md#record-maturity), [slice plan reporting](workflows/vertical-slices/plan.md#reporting), [phase gates](execution-plan.md).
+
+- [ ] `SLICE-014` **[P0][SOL_HIGH] Prove vertical-slice gap and todo generation reaches a deterministic fixed point.**
+  - **Depends:** `SLICE-012`, `SLICE-013`, `GOV-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=measure convergence and stop endless backlog growth caused by unstable generation or duplicate findings`.
+  - **TEST:** `TestVerticalSliceConvergenceSecondPassEmitsNoNewTodoIdentity`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceConvergenceSecondPassEmitsNoNewTodoIdentity`; `PROPERTY=TestTodo_SLICE_014_Property`; `GOLDEN=TestTodo_SLICE_014_Golden`; `CONFORMANCE=TestTodo_SLICE_014_Conformance`; `MUTATION=TestTodo_SLICE_014_Mutation`.
+  - **RED:** unchanged inputs reorder slices/scenarios/todos, second pass emits new/renamed duplicate todo, resolved finding persists, missing source is silently dropped or graph digest depends on path/time/map iteration.
+  - **GREEN:** two clean passes over identical manifests produce byte-identical registers, graphs, scenarios, findings, todo candidates and digests; adding/removing one contract creates the exact bounded diff and no unrelated churn.
+  - **REFACTOR:** canonicalize ordering/IDs from stable semantic keys and remove manual/generated dual ownership.
+  - **Refs:** [fixed-point rule](workflows/vertical-slices/gap-register.md#fixed-point-rule), [reproducibility](plan.md#93-reproducibility-contract), [generated drift](#2-go-only-repository-toolchain-and-contract-generation).
+
+- [ ] `SLICE-015` **[P0][TERRA] Publish truthful baseline, vocabulary and vertical-slice coverage reports.**
+  - **Depends:** `SLICE-002`, `SLICE-003`, `SLICE-013`, `SLICE-014`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show exactly what is source-bound, mapped, contracted, implemented and verified without denominator or phase deception`.
+  - **TEST:** `TestVerticalSliceCoverageReportUsesSeparateExactDenominators`.
+  - **TEST MATRIX:** `PRIMARY=TestVerticalSliceCoverageReportUsesSeparateExactDenominators`; `PROPERTY=TestTodo_SLICE_015_Property`; `GOLDEN=TestTodo_SLICE_015_Golden`; `SECURITY=TestTodo_SLICE_015_Security`; `CONFORMANCE=TestTodo_SLICE_015_Conformance`.
+  - **RED:** report mixes 530 baseline and 807 vocabulary, counts aliases/overlaps twice, hides 516 unbound slots, treats deferred as implemented, averages failing MAX configuration away or cannot trace a number to slice/source/scenario/todo/evidence.
+  - **GREEN:** generated report shows exact separate counts and transitions, domain/profile/phase/configuration blockers, overlaps/extensions, todo/test/evidence links and canonical source/graph digest; current initial report returns `14 source-bound, 516 unbound, 807 vocabulary candidates`.
+  - **REFACTOR:** README/dashboard tables consume this artifact rather than hand-maintained counts.
+  - **Refs:** [truthful coverage](workflows/vertical-slices/README.md#truthful-current-coverage), [slice plan reporting](workflows/vertical-slices/plan.md#reporting), [baseline register](workflows/vertical-slices/baseline-vertical-slice-register.md).
+
+## 62. Product-decision and implementation convergence
+
+These todos close the remaining gap between a broad, internally coherent
+architecture and an executable Phase 1 product decision. They do not create new
+HCM scope. They select, bind, rehearse and measure the concrete subset already
+authorized by the master and execution plans.
+
+- [ ] `CLOSE-001` **[P0][SOL_HIGH] Publish one machine-readable design-closure register.**
+  - **Depends:** `SLICE-015`, `SUBSTRATE-COVERAGE-001`, `GOV-026`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=join product, intent, workflow, model, API, security, operations, implementation and commercial readiness without turning document volume into a completeness claim`.
+  - **TEST:** `TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate`.
+  - **TEST MATRIX:** `PRIMARY=TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate`; `PROPERTY=TestTodo_CLOSE_001_Property`; `GOLDEN=TestTodo_CLOSE_001_Golden`; `SECURITY=TestTodo_CLOSE_001_Security`; `CONFORMANCE=TestTodo_CLOSE_001_Conformance`; `MUTATION=TestTodo_CLOSE_001_Mutation`.
+  - **RED:** an accepted intent or Phase 1 dependency lacks exact source, owner, phase, decision state, artifact, todo, test, evidence, expiry or blocker; prose marked complete satisfies an implementation gate; `UNKNOWN`, `DEFERRED` or waived work disappears from totals.
+  - **GREEN:** generated register joins every accepted scope item to stable artifacts and returns `UNSELECTED|UNBOUND|DESIGNED|CONTRACTED|IMPLEMENTED|VERIFIED|DEFERRED|REJECTED` with owner, rationale, evidence digest and expiry; every unresolved item is named and blocks only its declared gate.
+  - **REFACTOR:** generate dashboards and executive summaries from this registry; do not create a second hand-maintained status source.
+  - **Refs:** [vertical-slice coverage](workflows/vertical-slices/README.md#truthful-current-coverage), [platform coverage](specs/platform-capability-coverage-matrix.md), [phase gates](execution-plan.md).
+
+- [ ] `PHASE-001` **[P0][SOL_HIGH] Freeze the candidate Phase 1 scope ceiling and selection slots.**
+  - **Depends:** `GOV-010`, `WEDGE-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn the ChangeOps wedge into an exact bounded release without silently importing the future Workforce OS backlog`.
+  - **TEST:** `TestPhaseOneManifestContainsOnlyAuthorizedSourceBoundExecutableScope`.
+  - **TEST MATRIX:** `PRIMARY=TestPhaseOneManifestContainsOnlyAuthorizedSourceBoundExecutableScope`; `PROPERTY=TestTodo_PHASE_001_Property`; `GOLDEN=TestTodo_PHASE_001_Golden`; `SECURITY=TestTodo_PHASE_001_Security`; `CONFORMANCE=TestTodo_PHASE_001_Conformance`; `MUTATION=TestTodo_PHASE_001_Mutation`.
+  - **RED:** manifest includes source-unbound intent, future native payroll/WFM/talent ownership, endpoint without disposition, capability without owner, workflow without vertical slice, hidden provider dependency or scope item lacking explicit include/defer/reject rationale.
+  - **GREEN:** signed scope ceiling names the maximum candidate intents, capabilities, workflows, user flows, endpoints, models and effects plus explicit provider, jurisdiction, topology and SLO selection slots; all other catalog items remain visibly deferred and cannot create Phase 1 build work.
+  - **REFACTOR:** concrete selection fills slots through `NEXT-002`; selection cannot depend on a supposedly final manifest that already contains the selection.
+  - **Refs:** [Phase 1 execution plan](execution-plan.md), [ChangeOps overlay](plan.md#phase-1-changeops-overlay), [endpoint expansion](specs/http-grpc-endpoint-contract.md#endpoint-expansion-rule).
+
+- [ ] `SELECT-001` **[P0][SOL_HIGH] Select and evidence the first legal jurisdiction and bounded rule-pack scope.**
+  - **Depends:** `PHASE-001`, `LEGAL-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.REGULATORY,BI.PEOPLE,BI.WORKFORCE,BI.REWARDS; DIRECT=none; WHY=replace abstract legal composition with one reviewable jurisdiction, effective window and explicit non-coverage boundary for the pilot`.
+  - **TEST:** `TestPilotJurisdictionSelectionHasAuthoritativeSourcesReviewScopeAndStopConditions`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotJurisdictionSelectionHasAuthoritativeSourcesReviewScopeAndStopConditions`; `PROPERTY=TestTodo_SELECT_001_Property`; `GOLDEN=TestTodo_SELECT_001_Golden`; `SECURITY=TestTodo_SELECT_001_Security`; `CONFORMANCE=TestTodo_SELECT_001_Conformance`; `MUTATION=TestTodo_SELECT_001_Mutation`.
+  - **RED:** selection lacks authoritative source citations, qualified legal owner/reviewer, included intent/rule/filing set, effective and known-at interval, collective/company interaction, uncertainty behavior, update SLA, prohibited legal-advice boundary or stop/reselect threshold.
+  - **GREEN:** signed jurisdiction profile pins sources and versions, maps every Phase 1 legal input/decision/obligation/evidence path, declares exact exclusions and returns `UNKNOWN|HUMAN_REVIEW_REQUIRED` instead of guessing outside the reviewed scope.
+  - **REFACTOR:** selection supplies data to LegalContext and regulatory-pack publication; it never hard-codes law in workflow branches.
+  - **Refs:** [regulatory platform](specs/platform-architecture-catalog.md), [legal context](specs/governance-decision-and-obligation-composition.md), [coverage matrix](specs/platform-capability-coverage-matrix.md).
+
+- [ ] `SELECT-002` **[P0][SOL_HIGH] Select the first design-partner system topology and provider contract.**
+  - **Depends:** `PHASE-001`, `WEDGE-003`, `WEDGE-005`, `WEDGE-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.INTEGRATION,BI.PEOPLE,BI.REWARDS,BI.ACCESS; DIRECT=none; WHY=bind the overlay wedge to real authority systems, editions, APIs, quotas and independently observable downstream outcomes`.
+  - **TEST:** `TestPilotProviderSelectionProvesEditionAuthorityOperationsAndExitViability`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotProviderSelectionProvesEditionAuthorityOperationsAndExitViability`; `PROPERTY=TestTodo_SELECT_002_Property`; `GOLDEN=TestTodo_SELECT_002_Golden`; `INTEGRATION=TestTodo_SELECT_002_Integration`; `FAULT=TestTodo_SELECT_002_Fault`; `SECURITY=TestTodo_SELECT_002_Security`; `CONFORMANCE=TestTodo_SELECT_002_Conformance`; `MUTATION=TestTodo_SELECT_002_Mutation`.
+  - **RED:** generic provider name is accepted without product/edition/region/API entitlement, sandbox fidelity, authority-by-field, webhook/polling behavior, quotas, timeout ambiguity, credential model, data-processing terms, observation path, fallback/exit or commercial limit.
+  - **GREEN:** signed provider topology maps each Phase 1 read/write/effect/observation to exact contract/version and owner, includes sandbox evidence and fault matrix, proves one cross-system independently observed outcome and defines stop/reselect conditions.
+  - **REFACTOR:** provider-specific facts remain configuration and adapter qualification inputs; semantic workflows and capabilities remain provider-neutral.
+  - **Refs:** [integration platform](specs/integration-platform.md), [competitive positioning](specs/competitive-positioning-and-authority-expansion.md), [vendor continuity](#36-operator-surfaces-ownership-and-measurable-production-limits).
+
+- [ ] `PROVIDER-001` **[GATE_A][SOL_HIGH] Materialize the selected provider as an executable contract-test fixture.**
+  - **Depends:** `SELECT-002`, `INTG-012`, `CONN-RT-007`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.PEOPLE,BI.REWARDS,BI.ACCESS; DIRECT=none; WHY=prove selected external mechanics preserve HCM Next authority, idempotency, ambiguity, observation and repair semantics`.
+  - **TEST:** `TestSelectedProviderAdapterPassesPinnedSemanticAndFaultConformanceSuite`.
+  - **TEST MATRIX:** `PRIMARY=TestSelectedProviderAdapterPassesPinnedSemanticAndFaultConformanceSuite`; `GOLDEN=TestTodo_PROVIDER_001_Golden`; `FUZZ=FuzzTodo_PROVIDER_001`; `RACE=TestTodo_PROVIDER_001_Race`; `INTEGRATION=TestTodo_PROVIDER_001_Integration`; `FAULT=TestTodo_PROVIDER_001_Fault`; `SECURITY=TestTodo_PROVIDER_001_Security`; `CONFORMANCE=TestTodo_PROVIDER_001_Conformance`; `RECOVERY=TestTodo_PROVIDER_001_Recovery`; `BENCHMARK=BenchmarkTodo_PROVIDER_001`; `MUTATION=TestTodo_PROVIDER_001_Mutation`.
+  - **RED:** fake accepts unsupported fields or ordering, hides provider request IDs, treats timeout-after-send as failure, duplicates effect on replay, promotes stale response to domain truth, leaks credentials/PII or cannot simulate quota/outage/schema drift/partial application.
+  - **GREEN:** pinned fake and optional sandbox suite return exact normalized results/errors/observations, enforce capability and quota declarations, preserve operation identity and prove redrive/reconciliation/repair without repeating the parent business transaction.
+  - **REFACTOR:** generated fixtures share semantic cases while transport quirks stay inside the selected provider adapter.
+  - **Refs:** [provider adapter boundaries](specs/integration-platform.md), [external effects](specs/transaction-ledger-reconciliation-and-repair.md), [tool qualification](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+
+- [ ] `THREAT-001` **[P0][SOL_HIGH] Compile trust-boundary threat models for every Phase 1 vertical slice.**
+  - **Depends:** `PHASE-001`, `SLICE-008`, `ENDPOINT-005`, `TRUST-019`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=derive threats from real actors, channels, data, decisions, effects and recovery paths rather than maintain one generic security checklist`.
+  - **TEST:** `TestPhaseOneThreatModelCoversEveryTrustBoundaryAssetActorAndAbusePath`.
+  - **TEST MATRIX:** `PRIMARY=TestPhaseOneThreatModelCoversEveryTrustBoundaryAssetActorAndAbusePath`; `PROPERTY=TestTodo_THREAT_001_Property`; `GOLDEN=TestTodo_THREAT_001_Golden`; `FUZZ=FuzzTodo_THREAT_001`; `FAULT=TestTodo_THREAT_001_Fault`; `SECURITY=TestTodo_THREAT_001_Security`; `CONFORMANCE=TestTodo_THREAT_001_Conformance`; `MUTATION=TestTodo_THREAT_001_Mutation`.
+  - **RED:** slice omits actor/asset/trust boundary/data class/entry point/threat/mitigation/detection/recovery/owner/test, ignores confused deputy, tenant crossover, stale authorization, insider abuse, metadata leakage, replay, ambiguous effect, supply-chain or human-social attack, or marks accepted risk without expiry.
+  - **GREEN:** generated threat register maps each slice graph edge to reviewed threats and controls, produces exact negative/security/fault tests, retains residual risk with accountable acceptance and expiry and blocks release for unmitigated critical findings.
+  - **REFACTOR:** threat identities are stable and deduplicated by asset+boundary+attack; shared mitigations retain every consuming slice edge.
+  - **Refs:** [security architecture](specs/platform-responsibility-boundaries.md), [MAX-v1 threats](workflows/vertical-slices/maximal-configuration-profile.md), [risk register](specs/risk-register.md).
+
+- [ ] `THREAT-002` **[GATE_A][SOL_HIGH] Execute adversarial privacy, authorization and abuse journeys.**
+  - **Depends:** `THREAT-001`, `UXFLOW-008`, `ABUSE-008`, `OBS-013`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove hostile and accidental user journeys cannot bypass intent governance or leak sensitive content through UI, API, work, messages, logs, traces, analytics or repair`.
+  - **TEST:** `TestAdversarialJourneysDenyWithoutExistenceMetadataOrTelemetryLeakage`.
+  - **TEST MATRIX:** `PRIMARY=TestAdversarialJourneysDenyWithoutExistenceMetadataOrTelemetryLeakage`; `PROPERTY=TestTodo_THREAT_002_Property`; `GOLDEN=TestTodo_THREAT_002_Golden`; `FUZZ=FuzzTodo_THREAT_002`; `RACE=TestTodo_THREAT_002_Race`; `INTEGRATION=TestTodo_THREAT_002_Integration`; `FAULT=TestTodo_THREAT_002_Fault`; `SECURITY=TestTodo_THREAT_002_Security`; `CONFORMANCE=TestTodo_THREAT_002_Conformance`; `BROWSER=TestTodo_THREAT_002_Browser`; `RECOVERY=TestTodo_THREAT_002_Recovery`; `MUTATION=TestTodo_THREAT_002_Mutation`.
+  - **RED:** alternate channel, deep link, delegated/act-as session, bulk action, retry, export, support tool, log/trace query or partial failure reveals existence/field/count/identity or creates an unauthorized work item, message, intent, effect or repair.
+  - **GREEN:** every adversarial journey returns the declared non-disclosing denial or safe degraded state, produces bounded redacted evidence and zero unauthorized persistence/effects across all equivalent channels and restart/replay paths.
+  - **REFACTOR:** generate journeys from user-flow and threat graphs; keep only high-value hand-authored attack sequences as regression fixtures.
+  - **Refs:** [user flows](user-flows/README.md), [structured telemetry](specs/structured-logging-and-opentelemetry.md), [organization scope and AuthZ](specs/organization-scope-and-authz.md).
+
+- [ ] `TOPOLOGY-001` **[GATE_A][SOL_HIGH] Freeze and verify the first production-cell deployment topology.**
+  - **Depends:** `PHASE-001`, `PERF-ENV-001`, `SELECT-002`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind abstract planes and process roles to one deployable, capacity-sized and recoverable pilot cell`.
+  - **TEST:** `TestPilotCellTopologyMapsEveryProcessDataDependencyBoundaryAndFailureMode`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotCellTopologyMapsEveryProcessDataDependencyBoundaryAndFailureMode`; `PROPERTY=TestTodo_TOPOLOGY_001_Property`; `GOLDEN=TestTodo_TOPOLOGY_001_Golden`; `INTEGRATION=TestTodo_TOPOLOGY_001_Integration`; `FAULT=TestTodo_TOPOLOGY_001_Fault`; `SECURITY=TestTodo_TOPOLOGY_001_Security`; `CONFORMANCE=TestTodo_TOPOLOGY_001_Conformance`; `RECOVERY=TestTodo_TOPOLOGY_001_Recovery`; `BENCHMARK=BenchmarkTodo_TOPOLOGY_001`; `MUTATION=TestTodo_TOPOLOGY_001_Mutation`.
+  - **RED:** a process, queue/timer, database/object store, control distribution, secret/key, edge/egress path, telemetry pipeline, backup, provider, ownership route or capacity limit is absent; diagram and IaC disagree; single failure silently violates an intent completion invariant.
+  - **GREEN:** generated topology and deploy manifest have the same digest-backed inventory, exact network/data/trust paths, zones/failure domains, scaling/degradation/recovery behavior and resource budgets; sandbox deployment passes health, load, drain and restore probes.
+  - **REFACTOR:** derive diagrams and operational inventory from deployable manifests rather than maintain topology pictures separately.
+  - **Refs:** [platform architecture catalog](specs/platform-architecture-catalog.md), [IaC](#31-infrastructure-as-code-and-physical-data-services), [performance](#36-operator-surfaces-ownership-and-measurable-production-limits).
+
+- [ ] `CUSTOMER-001` **[P0][SOL_HIGH] Define the design-partner implementation blueprint and responsibility matrix.**
+  - **Depends:** `WEDGE-001`, `PHASE-001`, `SELECT-001`, `SELECT-002`, `OPS-007`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make customer discovery, configuration, data, identity, integration, legal review, testing, training, cutover and steady-state ownership explicit`.
+  - **TEST:** `TestImplementationBlueprintCoversEveryPilotDependencyDeliverableOwnerAndAcceptanceGate`.
+  - **TEST MATRIX:** `PRIMARY=TestImplementationBlueprintCoversEveryPilotDependencyDeliverableOwnerAndAcceptanceGate`; `PROPERTY=TestTodo_CUSTOMER_001_Property`; `GOLDEN=TestTodo_CUSTOMER_001_Golden`; `SECURITY=TestTodo_CUSTOMER_001_Security`; `CONFORMANCE=TestTodo_CUSTOMER_001_Conformance`; `MUTATION=TestTodo_CUSTOMER_001_Mutation`.
+  - **RED:** blueprint lacks customer/HCM Next/provider owner, prerequisite, input/output artifact, due/expiry, acceptance oracle, data-processing boundary, escalation or fallback for any pilot workstream; assumed customer capability reports ready.
+  - **GREEN:** versioned RACI and implementation graph covers discovery through hypercare, binds every dependency to exact evidence and stop/go gate and returns `UNKNOWN|BLOCKED` for missing or stale customer/provider inputs.
+  - **REFACTOR:** instantiate the reusable blueprint per tenant; customer-specific facts never alter the platform's semantic contracts.
+  - **Refs:** [responsibility boundaries](specs/platform-responsibility-boundaries.md), [customer onboarding](#35-artifact-bytes-and-customer-data-onboarding), [execution plan](execution-plan.md).
+
+- [ ] `CUSTOMER-002` **[GATE_A][SOL_HIGH] Rehearse discovery, data mapping, identity, configuration and migration readiness.**
+  - **Depends:** `CUSTOMER-001`, `ONBOARD-006`, `DATAOPS-006`, `CP-007`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.ACCESS,BI.INTEGRATION,BI.DATAOPS; DIRECT=none; WHY=prove design-partner source data and configuration can reach canonical truth without silent loss, unsafe defaulting or identity corruption`.
+  - **TEST:** `TestPilotReadinessRehearsalClassifiesEverySourceFieldRecordConfigurationAndIdentity`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotReadinessRehearsalClassifiesEverySourceFieldRecordConfigurationAndIdentity`; `PROPERTY=TestTodo_CUSTOMER_002_Property`; `GOLDEN=TestTodo_CUSTOMER_002_Golden`; `FUZZ=FuzzTodo_CUSTOMER_002`; `INTEGRATION=TestTodo_CUSTOMER_002_Integration`; `FAULT=TestTodo_CUSTOMER_002_Fault`; `SECURITY=TestTodo_CUSTOMER_002_Security`; `CONFORMANCE=TestTodo_CUSTOMER_002_Conformance`; `RECOVERY=TestTodo_CUSTOMER_002_Recovery`; `MUTATION=TestTodo_CUSTOMER_002_Mutation`.
+  - **RED:** source field/record/config/identity is dropped, defaulted or merged without disposition/provenance; effective/known time, presence, classification, authority or crosswalk is missing; aggregate totals hide item-level drift.
+  - **GREEN:** rehearsal produces exact `ACCEPT|TRANSFORM|QUARANTINE|REJECT|UNKNOWN` disposition, simulation and row/field/effective-date reconciliation for every input, with zero production mutation and signed readiness blockers.
+  - **REFACTOR:** use DataOps/transform/identity/configuration engines; implementation tooling must not create a second migration semantics stack.
+  - **Refs:** [HRIS DataOps](specs/hris-admin-dataops.md), [customer onboarding](#35-artifact-bytes-and-customer-data-onboarding), [model coverage](data/models/intent-coverage-matrix.md).
+
+- [ ] `CUSTOMER-003` **[GATE_B][SOL_HIGH] Execute dry-run, cutover, rollback and hypercare migration drills.**
+  - **Depends:** `CUSTOMER-002`, `TOPOLOGY-001`, `RECOVERY-004`, `OPS-008`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove the pilot can enter service, abort safely, resume and reconcile without duplicate intent or external effect`.
+  - **TEST:** `TestPilotCutoverDrillMeetsStopGoRollbackRPOAndReconciliationContracts`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotCutoverDrillMeetsStopGoRollbackRPOAndReconciliationContracts`; `PROPERTY=TestTodo_CUSTOMER_003_Property`; `GOLDEN=TestTodo_CUSTOMER_003_Golden`; `RACE=TestTodo_CUSTOMER_003_Race`; `INTEGRATION=TestTodo_CUSTOMER_003_Integration`; `FAULT=TestTodo_CUSTOMER_003_Fault`; `SECURITY=TestTodo_CUSTOMER_003_Security`; `CONFORMANCE=TestTodo_CUSTOMER_003_Conformance`; `RECOVERY=TestTodo_CUSTOMER_003_Recovery`; `BENCHMARK=BenchmarkTodo_CUSTOMER_003`; `MUTATION=TestTodo_CUSTOMER_003_Mutation`.
+  - **RED:** drill lacks freeze/watermark, delta capture, responsibility handoff, stop/go thresholds, rollback boundary, credential/webhook transition, manual continuity, customer communication or item-level reconciliation; retry duplicates accepted intent/effect.
+  - **GREEN:** time-sequenced drill records exact prechecks, cutover decisions, RPO/RTO, rollback/fail-forward result, resumption fences, reconciliation and hypercare ownership; injected failures reach only allowed states and unresolved ambiguity blocks go-live.
+  - **REFACTOR:** generate runbook steps/evidence from the implementation graph and deployment manifests; retain human decision points explicitly.
+  - **Refs:** [recovery](specs/platform-responsibility-boundaries.md), [incident management](specs/incident-management.md), [integration operations](specs/integration-platform.md).
+
+- [ ] `CUSTOMER-004` **[GATE_B][TERRA] Prove administrator, approver, employee and support adoption readiness.**
+  - **Depends:** `CUSTOMER-001`, `UXFLOW-009`, `OPS-010`, `ADMIN-006`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure authorized humans can complete, understand and recover pilot journeys through accessible primary and continuity channels`.
+  - **TEST:** `TestPilotRoleReadinessMeetsTaskAccessibilityComprehensionAndSupportThresholds`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotRoleReadinessMeetsTaskAccessibilityComprehensionAndSupportThresholds`; `PROPERTY=TestTodo_CUSTOMER_004_Property`; `GOLDEN=TestTodo_CUSTOMER_004_Golden`; `SECURITY=TestTodo_CUSTOMER_004_Security`; `CONFORMANCE=TestTodo_CUSTOMER_004_Conformance`; `BROWSER=TestTodo_CUSTOMER_004_Browser`; `BENCHMARK=BenchmarkTodo_CUSTOMER_004`; `MUTATION=TestTodo_CUSTOMER_004_Mutation`.
+  - **RED:** role cannot discover permitted action, distinguish request from committed outcome, understand approval/evidence/deadline, complete accessible flow, recover interrupted work or reach support; training exposes sensitive data or teaches bypass/direct-system mutation.
+  - **GREEN:** representative role cohort meets declared task-success, error, time, accessibility and comprehension thresholds on primary/manual routes; failures create owned product/training/support blockers with expiry and rerun evidence.
+  - **REFACTOR:** training and help content are generated from versioned intent/user-flow contracts and never become an alternate source of product truth.
+  - **Refs:** [user flows](user-flows/README.md), [experience](specs/experience-ui-and-branding.md), [support boundaries](specs/platform-responsibility-boundaries.md).
+
+- [ ] `COMMERCIAL-001` **[P0][SOL_HIGH] Freeze the pilot package, pricing hypothesis and contractual authority boundary.**
+  - **Depends:** `PHASE-001`, `SELECT-002`, `WEDGE-007`, `WEDGE-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.COMMERCIAL,BI.TENANT; DIRECT=none; WHY=ensure what is sold, metered, supported and warranted matches the exact product authority and operational evidence`.
+  - **TEST:** `TestPilotCommercialPackageMatchesReleaseEntitlementsCostsRisksAndExitTerms`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotCommercialPackageMatchesReleaseEntitlementsCostsRisksAndExitTerms`; `PROPERTY=TestTodo_COMMERCIAL_001_Property`; `GOLDEN=TestTodo_COMMERCIAL_001_Golden`; `SECURITY=TestTodo_COMMERCIAL_001_Security`; `CONFORMANCE=TestTodo_COMMERCIAL_001_Conformance`; `MUTATION=TestTodo_COMMERCIAL_001_Mutation`.
+  - **RED:** package promises unselected intent/provider/jurisdiction/SLO, confuses overlay authority with system-of-record ownership, omits implementation/support/provider cost, bills replay/repair duplicates, lacks data processing/retention/exit terms or hides hypothesis/stop threshold.
+  - **GREEN:** signed package maps entitlements and exclusions to the Phase 1 digest, declares price/usage/support/implementation assumptions, legal/authority boundaries, provider pass-throughs, evidence/SLOs, termination/export obligations and quantitative reprice/stop criteria.
+  - **REFACTOR:** commercial views consume entitlement, usage, cost and release registries; contract prose cannot independently enable capability.
+  - **Refs:** [pricing hypothesis](plan.md#511-pricing-hypothesis), [commercial proof](execution-plan.md), [competitive position](specs/competitive-positioning-and-authority-expansion.md).
+
+- [ ] `PILOT-001` **[GATE_B][SOL_HIGH] Run an evidence-bound pilot go/no-go and value-realization review.**
+  - **Depends:** `WEDGE-015`, `COMMERCIAL-001`, `CUSTOMER-003`, `CUSTOMER-004`, `PERF-008`, `THREAT-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=decide whether the ChangeOps wedge is safe, useful and economically credible using current evidence rather than roadmap ambition`.
+  - **TEST:** `TestPilotGoNoGoRejectsMissingStaleWaivedOrBelowThresholdEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestPilotGoNoGoRejectsMissingStaleWaivedOrBelowThresholdEvidence`; `PROPERTY=TestTodo_PILOT_001_Property`; `GOLDEN=TestTodo_PILOT_001_Golden`; `SECURITY=TestTodo_PILOT_001_Security`; `CONFORMANCE=TestTodo_PILOT_001_Conformance`; `BENCHMARK=BenchmarkTodo_PILOT_001`; `MUTATION=TestTodo_PILOT_001_Mutation`.
+  - **RED:** review averages away critical failure, treats missing/stale/expired/waived evidence as pass, reports activity instead of business outcome, excludes implementation/support cost or authorizes expansion without explicit authority/value/risk thresholds.
+  - **GREEN:** decision package reports safety/correctness/SLO/adoption/value/cost/support metrics with denominators and evidence digests, names blockers and waivers, returns `GO|CONDITIONAL_GO|NO_GO|RESELECT`, and permits authority expansion only through a new approved manifest.
+  - **REFACTOR:** retain historical decision packages append-only so later claims can be compared with what was known at each gate.
+  - **Refs:** [execution gates](execution-plan.md), [competitive success measures](specs/competitive-positioning-and-authority-expansion.md), [SLO evidence](specs/slo-sli-error-budget.md).
+
+- [ ] `CLOSE-002` **[P0][SOL_HIGH] Re-run design, slice and implementation gap compilers to a fixed point after concrete selections.**
+  - **Depends:** `SELECT-001`, `SELECT-002`, `THREAT-001`, `TOPOLOGY-001`, `CUSTOMER-001`, `COMMERCIAL-001`, `SLICE-014`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=feed real jurisdiction, provider, topology, customer and commercial facts back into models, workflows, APIs, tests and todos until no ownerless contract remains`.
+  - **TEST:** `TestConcreteSelectionConvergenceSecondPassProducesNoNewGapIdentity`.
+  - **TEST MATRIX:** `PRIMARY=TestConcreteSelectionConvergenceSecondPassProducesNoNewGapIdentity`; `PROPERTY=TestTodo_CLOSE_002_Property`; `GOLDEN=TestTodo_CLOSE_002_Golden`; `FAULT=TestTodo_CLOSE_002_Fault`; `SECURITY=TestTodo_CLOSE_002_Security`; `CONFORMANCE=TestTodo_CLOSE_002_Conformance`; `MUTATION=TestTodo_CLOSE_002_Mutation`.
+  - **RED:** selected fact changes no downstream slice/model/API/threat/test, new gap lacks atomic todo/owner/phase/oracle, unchanged second pass produces new identities, duplicate gap survives under different wording or closure report hides selected-scope unknowns.
+  - **GREEN:** compilers regenerate exact bounded diffs, deduplicate by semantic owner+contract, every selected-scope gap resolves to existing/new atomic todo or explicit rejection and two unchanged clean passes produce byte-identical zero-new-gap output.
+  - **REFACTOR:** make this the single convergence gate invoked by catalog, selection, architecture and pilot changes.
+  - **Refs:** [slice fixed point](workflows/vertical-slices/gap-register.md#fixed-point-rule), [design closure](#product-decision-and-implementation-convergence), [coverage governance](#backlog-governance-and-traceability).
+
+- [ ] `SOURCE-001` **[P0][SOL_HIGH] Attest the immutable BusinessIntent source artifact and lossless catalog recovery.**
+  - **Depends:** `MODEL-008`, `MODEL-009`, `MSRC-001`, `GOV-008`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prove the accepted numbered catalog came losslessly from an authentic immutable source rather than a recomputed hand-authored manifest`.
+  - **TEST:** `TestIntentSourceAttestationRejectsUntrustedAlteredOrLossyRecovery`.
+  - **TEST MATRIX:** `PRIMARY=TestIntentSourceAttestationRejectsUntrustedAlteredOrLossyRecovery`; `PROPERTY=TestTodo_SOURCE_001_Property`; `GOLDEN=TestTodo_SOURCE_001_Golden`; `FUZZ=FuzzTodo_SOURCE_001`; `SECURITY=TestTodo_SOURCE_001_Security`; `CONFORMANCE=TestTodo_SOURCE_001_Conformance`; `MUTATION=TestTodo_SOURCE_001_Mutation`.
+  - **RED:** recomputed digest on modified/reordered/Unicode-normalized rows, unverifiable issuer/locator, missing byte offsets/parser version or untrusted key rotation is accepted and promotes an unbound definition.
+  - **GREEN:** verified source package pins immutable bytes, trusted issuer/key/release lineage, SHA-256, retrieval provenance, parser version and per-row byte/line spans; exactly 530 rows join losslessly and absent evidence leaves rows `UNBOUND_SOURCE` with zero catalog promotion.
+  - **REFACTOR:** generated partitions carry source and parser digests; authenticity verification remains independent of catalog interpretation.
+  - **Refs:** [catalog identity](specs/business-intent-catalog.md#catalog-identity), [source manifest](#canonical-values-schemas-registries-and-model-coverage), [baseline register](workflows/vertical-slices/baseline-vertical-slice-register.md).
+
+- [ ] `BIND-001` **[P0][SOL_HIGH] Bind each published capability to exact models, wire descriptors and one typed Go handler.**
+  - **Depends:** `MSRC-007`, `MSRC-009`, `MODEL-010`, `CAP-001`, `PROTO-005`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every executable semantic capability resolves to one compile-time checked implementation rather than a dangling registry or untyped adapter`.
+  - **TEST:** `TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`.
+  - **TEST MATRIX:** `PRIMARY=TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`; `PROPERTY=TestTodo_BIND_001_Property`; `GOLDEN=TestTodo_BIND_001_Golden`; `INTEGRATION=TestTodo_BIND_001_Integration`; `CONFORMANCE=TestTodo_BIND_001_Conformance`; `MUTATION=TestTodo_BIND_001_Mutation`.
+  - **RED:** missing/duplicate Go symbol, unregistered capability version, wrong request/result descriptor, SchemaFlux digest mismatch or `map[string]any` handler publishes or starts; no handler may run.
+  - **GREEN:** generated binding records intent/version, model release/digest, capability/version, fully qualified typed interface method, build/source digest, effects and Protobuf descriptors; compile/start/publication and in-memory invocation prove descriptor-equivalent typed results.
+  - **REFACTOR:** authored code implements generated interfaces while registries own discovery and version binding.
+  - **Refs:** [capability lifecycle](specs/capability-registry-and-lifecycle.md), [generated registries](#29-machine-readable-model-sources-and-public-api-contracts), [modular Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
+
+- [ ] `MODEL-032` **[P0][SOL_HIGH] Prove canonical property semantics and lineage across SchemaFlux, Protobuf, Go, SQL and storage disposition.**
+  - **Depends:** `MODEL-011`, `MODEL-016`, `MODEL-017`, `DB-002`, `DB-003`, `PROTO-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent property meaning, authority or history from changing between semantic source, wire, runtime and persistence layers`.
+  - **TEST:** `TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`.
+  - **TEST MATRIX:** `PRIMARY=TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`; `PROPERTY=TestTodo_MODEL_032_Property`; `GOLDEN=TestTodo_MODEL_032_Golden`; `FUZZ=FuzzTodo_MODEL_032`; `INTEGRATION=TestTodo_MODEL_032_Integration`; `SECURITY=TestTodo_MODEL_032_Security`; `CONFORMANCE=TestTodo_MODEL_032_Conformance`; `RECOVERY=TestTodo_MODEL_032_Recovery`; `MUTATION=TestTodo_MODEL_032_Mutation`.
+  - **RED:** presence/default/enum/decimal/unit/time/classification/authority changes across layers, SQL round-trip changes digest, intent property lacks tenant-scoped ledger/projection/artifact/provenance path, projection accepts write or external observation becomes domain fact.
+  - **GREEN:** one generated manifest gives lossless mappings and exact authoritative storage, event, projection, artifact and lineage disposition for every material property/result/effect; round-trip/rebuild preserves canonical bytes and lossy/ambiguous mapping fails by entity/property/layer.
+  - **REFACTOR:** generate adapters and coverage from canonical PropertyDefinition; physical stores never redefine semantics.
+  - **Refs:** [registry contracts](data/models/registry-and-coverage-contracts.md), [storage disposition](#26-postgresql-database-and-model-materialization), [provenance](specs/provenance-graph-and-lineage.md).
+
+- [ ] `PROTO-010` **[P0][SOL_HIGH] Require total descriptor-level RPC exposure disposition.**
+  - **Depends:** `PROTO-005`, `MODEL-010`, `CAP-001`, `ENDPOINT-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent declared RPCs or generated handlers from becoming accidental public APIs`.
+  - **TEST:** `TestProtoRpcDispositionIsTotalAndNoAccidentalExposure`.
+  - **TEST MATRIX:** `PRIMARY=TestProtoRpcDispositionIsTotalAndNoAccidentalExposure`; `PROPERTY=TestTodo_PROTO_010_Property`; `GOLDEN=TestTodo_PROTO_010_Golden`; `SECURITY=TestTodo_PROTO_010_Security`; `CONFORMANCE=TestTodo_PROTO_010_Conformance`; `MUTATION=TestTodo_PROTO_010_Mutation`.
+  - **RED:** descriptor method lacks exactly one `PUBLIC_TYPED|PUBLIC_GENERIC|INTERNAL_ONLY|EVENT_OR_SCHEDULE|NO_ENDPOINT` disposition, owner/capability/intent refs, trusted initiator, AuthZ/purpose, retry/idempotency or HTTP/internal rationale; unregistered handler binds.
+  - **GREEN:** disposition manifest is set-equal to descriptor methods and shares a digest with endpoint/grpcbridge generation; every method has exact semantic/security/lifecycle policy and startup exposes no method outside the manifest.
+  - **REFACTOR:** descriptor inventory and endpoint manifests are generated from one source rather than compared by display name.
+  - **Refs:** [endpoint manifest](specs/http-grpc-endpoint-contract.md), [Proto contracts](#29-machine-readable-model-sources-and-public-api-contracts), [endpoint closure](#60-canonical-grpc-services-grpcbridge-http-endpoints-and-endpoint-tdd).
+
+- [ ] `SLICE-016` **[P0][SOL_HIGH] Emit one canonical per-intent closure witness.**
+  - **Depends:** `SOURCE-001`, `SLICE-013`, `SLICE-015`, `BIND-001`, `PROTO-010`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prove each accepted definition is individually traceable from authentic source through behavior, implementation, tests and current evidence`.
+  - **TEST:** `TestPerIntentClosureWitnessCrossJoinIsTotalUniqueAndCurrent`.
+  - **TEST MATRIX:** `PRIMARY=TestPerIntentClosureWitnessCrossJoinIsTotalUniqueAndCurrent`; `PROPERTY=TestTodo_SLICE_016_Property`; `GOLDEN=TestTodo_SLICE_016_Golden`; `SECURITY=TestTodo_SLICE_016_Security`; `CONFORMANCE=TestTodo_SLICE_016_Conformance`; `MUTATION=TestTodo_SLICE_016_Mutation`.
+  - **RED:** any source→slice→model/engine/capability→handler→endpoint→scenario/test/todo/evidence edge is absent, duplicated, stale or aggregate-only while maturity advances.
+  - **GREEN:** every source-bound definition has exactly one digest-backed witness containing all graph and reverse edges, phase/gate, endpoint disposition, test/evidence outputs and expiry; orphan/duplicate/stale edge returns `SLICE_CLOSURE_INCOMPLETE`.
+  - **REFACTOR:** coverage reports consume witnesses; witnesses are generated from registries and never manually asserted.
+  - **Refs:** [vertical slices](workflows/vertical-slices/README.md), [closure register](#product-decision-and-implementation-convergence), [truthful coverage](workflows/vertical-slices/README.md#truthful-current-coverage).
+
+- [ ] `UXFLOW-011` **[P0][SOL_HIGH] Version and migrate active user flows without semantic drift.**
+  - **Depends:** `UXFLOW-001`, `UXFLOW-006`, `UXFLOW-010`, `INTENT-028`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=preserve drafts, tasks, approvals, deep links and confirmations when experience definitions evolve`.
+  - **TEST:** `TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`.
+  - **TEST MATRIX:** `PRIMARY=TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`; `PROPERTY=TestTodo_UXFLOW_011_Property`; `GOLDEN=TestTodo_UXFLOW_011_Golden`; `RACE=TestTodo_UXFLOW_011_Race`; `FAULT=TestTodo_UXFLOW_011_Fault`; `SECURITY=TestTodo_UXFLOW_011_Security`; `CONFORMANCE=TestTodo_UXFLOW_011_Conformance`; `BROWSER=TestTodo_UXFLOW_011_Browser`; `RECOVERY=TestTodo_UXFLOW_011_Recovery`; `MODEL_BASED=TestTodo_UXFLOW_011_ModelBased`; `MUTATION=TestTodo_UXFLOW_011_Mutation`.
+  - **RED:** incompatible publication silently reinterprets active draft/task/approval/action digest, retired action remains callable, stale deep link performs changed action, rollback rewrites history or migration duplicates effect.
+  - **GREEN:** flow versions are immutable; active state stays pinned or follows reviewed successor/replan mapping; stale links return safe read-only/replan outcome and migration receipt proves no lost work or duplicate action.
+  - **REFACTOR:** derive flow migrations from versioned action/state contracts, not route-specific code.
+  - **Refs:** [user-flow contract](user-flows/README.md), [flow archetypes](user-flows/archetypes.md), [intent evolution](#exact-initial-businessintent-delivery-closure).
+
+- [ ] `AUTHN-009` **[GATE_A][SOL_HIGH] Implement subscriber account and digital identity lifecycle revocation fan-out.**
+  - **Depends:** `AUTHN-001`, `AUTHN-002`, `AUTHN-003`, `AUTHN-004`, `MODEL-022`, `TRUST-013`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY,BI.ACCESS,BI.TENANT; DIRECT=none; WHY=ensure suspend, disable, terminate, unlink and recovery invalidate every principal/session/delegation authority derived from the account`.
+  - **TEST:** `TestSubscriberAccountLifecycleRevokesPrincipalSessionsAuthenticatorsAndDelegation`.
+  - **TEST MATRIX:** `PRIMARY=TestSubscriberAccountLifecycleRevokesPrincipalSessionsAuthenticatorsAndDelegation`; `PROPERTY=TestTodo_AUTHN_009_Property`; `GOLDEN=TestTodo_AUTHN_009_Golden`; `RACE=TestTodo_AUTHN_009_Race`; `INTEGRATION=TestTodo_AUTHN_009_Integration`; `FAULT=TestTodo_AUTHN_009_Fault`; `SECURITY=TestTodo_AUTHN_009_Security`; `CONFORMANCE=TestTodo_AUTHN_009_Conformance`; `RECOVERY=TestTodo_AUTHN_009_Recovery`; `MODEL_BASED=TestTodo_AUTHN_009_ModelBased`; `MUTATION=TestTodo_AUTHN_009_Mutation`.
+  - **RED:** disabled/unlinked identity authenticates, live or queued authority survives revocation epoch, token/authenticator/federation/delegation remains usable, weak recovery elevates assurance or concurrent authenticate wins after committed revoke.
+  - **GREEN:** durable account/person/principal/tenant bindings drive immutable lifecycle transitions and revocation epochs; all derived sessions, token families, authenticators and delegation chains are fenced, recovery is assurance-bounded and relink preserves history/evidence.
+  - **REFACTOR:** lifecycle fan-out consumes canonical authority relationships; providers never own HCM Next principal truth.
+  - **Refs:** [security models](data/models/security-trust.md), [identity foundation](specs/platform-foundation-gap-closure.md), [production identity](#32-production-identity-key-custody-and-edge-enforcement).
+
+- [ ] `LEGAL-007` **[PHASE_2][SOL_HIGH] Select, compose, review and safely roll back applicable legal RulePacks.**
+  - **Depends:** `LEGAL-001`, `LEGAL-002`, `RULE-002`, `MODEL-018`, `SELECT-001`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY,BI.PEOPLE,BI.WORKFORCE,BI.REWARDS,BI.PAYROLL; DIRECT=none; WHY=turn resolved jurisdiction context into qualified, version-pinned legal composition without ambient specificity guesses`.
+  - **TEST:** `TestRulePackSelectionCompositionCounselReviewAndRollbackAreDeterministic`.
+  - **TEST MATRIX:** `PRIMARY=TestRulePackSelectionCompositionCounselReviewAndRollbackAreDeterministic`; `PROPERTY=TestTodo_LEGAL_007_Property`; `GOLDEN=TestTodo_LEGAL_007_Golden`; `FAULT=TestTodo_LEGAL_007_Fault`; `SECURITY=TestTodo_LEGAL_007_Security`; `CONFORMANCE=TestTodo_LEGAL_007_Conformance`; `RECOVERY=TestTodo_LEGAL_007_Recovery`; `MODEL_BASED=TestTodo_LEGAL_007_ModelBased`; `MUTATION=TestTodo_LEGAL_007_Mutation`.
+  - **RED:** overlapping government/CBA/contract/company packs choose locale/current/most-specific implicitly, material interpretation lacks current qualified counsel approval, stale/quarantined/withdrawn release evaluates, rollback revives withdrawn law or historical replay uses today's pack.
+  - **GREEN:** resolver pins JurisdictionContext digest, ordered releases and explicit per-family strategy, records included/excluded/conflicts/counsel scope/effective-known time; uncertainty produces zero-effect `UNKNOWN|CONFLICT|REVIEW_REQUIRED`, and rollback fences in-flight work plus emits impact/recompute/reapproval obligations.
+  - **REFACTOR:** selection/composition traces are reusable legal-engine results; workflows consume typed decisions and obligations.
+  - **Refs:** [regulatory computation](specs/platform-architecture-catalog.md), [governance composition](specs/governance-decision-and-obligation-composition.md), [legal models](data/models/rewards-payroll-workforce.md).
+
+- [ ] `IAC-013` **[GATE_A][SOL_HIGH] Select and qualify the concrete IaC toolchain and state authority.**
+  - **Depends:** `IAC-001`, `IAC-012`, `TOOL-025`, `OPS-007`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind provider-neutral deployment contracts to pinned planning/apply/state-lock/recovery mechanics`.
+  - **TEST:** `TestIaCToolchainSelectionRequiresPinnedEngineProvidersStateFencingAndRecovery`.
+  - **TEST MATRIX:** `PRIMARY=TestIaCToolchainSelectionRequiresPinnedEngineProvidersStateFencingAndRecovery`; `PROPERTY=TestTodo_IAC_013_Property`; `GOLDEN=TestTodo_IAC_013_Golden`; `INTEGRATION=TestTodo_IAC_013_Integration`; `FAULT=TestTodo_IAC_013_Fault`; `SECURITY=TestTodo_IAC_013_Security`; `CONFORMANCE=TestTodo_IAC_013_Conformance`; `RECOVERY=TestTodo_IAC_013_Recovery`; `MUTATION=TestTodo_IAC_013_Mutation`.
+  - **RED:** ambient tool/provider version, shared/unlocked state, same reviewer/apply identity, unverified plan, secret output, non-reproducible apply or untested state loss/restore passes admission.
+  - **GREEN:** signed manifest pins engine/providers/modules/images, isolated encrypted state backend and locks, plan/apply roles, promotion and recovery; clean sandbox plan/apply/destroy/restore is digest reproducible and drift is explicit.
+  - **REFACTOR:** tool selection implements owned deployment contracts and remains replaceable behind generated manifests.
+  - **Refs:** [IaC](#31-infrastructure-as-code-and-physical-data-services), [supply chain](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [topology](#product-decision-and-implementation-convergence).
+
+- [ ] `EDGE-010` **[GATE_A][SOL_HIGH] Select and qualify concrete production edge and egress implementations.**
+  - **Depends:** `EDGE-001`, `EDGE-008`, `IAC-004`, `IAC-013`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind ingress, TLS, DNS, WAF, east-west and egress policy to real versioned controls and failure behavior`.
+  - **TEST:** `TestEdgeImplementationManifestRejectsAbstractWildcardOrUnverifiedRouteControl`.
+  - **TEST MATRIX:** `PRIMARY=TestEdgeImplementationManifestRejectsAbstractWildcardOrUnverifiedRouteControl`; `PROPERTY=TestTodo_EDGE_010_Property`; `GOLDEN=TestTodo_EDGE_010_Golden`; `FUZZ=FuzzTodo_EDGE_010`; `INTEGRATION=TestTodo_EDGE_010_Integration`; `FAULT=TestTodo_EDGE_010_Fault`; `SECURITY=TestTodo_EDGE_010_Security`; `CONFORMANCE=TestTodo_EDGE_010_Conformance`; `RECOVERY=TestTodo_EDGE_010_Recovery`; `BENCHMARK=BenchmarkTodo_EDGE_010`; `MUTATION=TestTodo_EDGE_010_Mutation`.
+  - **RED:** abstract WAF/proxy/DNS, wildcard/default route, unpinned version, ownerless certificate, fail-open egress, unlogged bypass or absent outage/replacement path reports ready.
+  - **GREEN:** concrete manifest proves exact route/method/body/TLS/DNS/east-west/egress allowlist, logging/redaction, rate/abuse budgets, ownership, degraded/outage and migration behavior against endpoint and threat registries.
+  - **REFACTOR:** edge products remain adapters to HCM Next route/security policy and cannot define semantic authorization.
+  - **Refs:** [edge enforcement](#32-production-identity-key-custody-and-edge-enforcement), [endpoint contract](specs/http-grpc-endpoint-contract.md), [threat registry](#product-decision-and-implementation-convergence).
+
+- [ ] `PROVIDER-002` **[GATE_A][SOL_HIGH] Detect, quarantine and reconcile selected-provider contract drift.**
+  - **Depends:** `PROVIDER-001`, `INTG-014`, `ROLLOUT-008`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.PEOPLE,BI.REWARDS,BI.ACCESS; DIRECT=none; WHY=prevent live provider schema, entitlement, quota or behavior drift from silently changing accepted intent execution`.
+  - **TEST:** `TestProviderDriftDetectionQuarantinesAffectedOperationsUntilReviewedCompatibility`.
+  - **TEST MATRIX:** `PRIMARY=TestProviderDriftDetectionQuarantinesAffectedOperationsUntilReviewedCompatibility`; `PROPERTY=TestTodo_PROVIDER_002_Property`; `GOLDEN=TestTodo_PROVIDER_002_Golden`; `INTEGRATION=TestTodo_PROVIDER_002_Integration`; `FAULT=TestTodo_PROVIDER_002_Fault`; `SECURITY=TestTodo_PROVIDER_002_Security`; `CONFORMANCE=TestTodo_PROVIDER_002_Conformance`; `RECOVERY=TestTodo_PROVIDER_002_Recovery`; `MUTATION=TestTodo_PROVIDER_002_Mutation`.
+  - **RED:** removed/changed field, API version, permission, quota, error or webhook contract differs from signed topology while new dispatch continues or in-flight ambiguity is hidden.
+  - **GREEN:** recurring probe returns typed diff and affected capabilities/intents, fences new operations, preserves/observes in-flight work and resumes only after compatible adapter/config rollout or explicit `RESELECT`; unknown never reports healthy.
+  - **REFACTOR:** reuse provider schema/support manifests and rollout gates; avoid provider-specific drift logic in workflows.
+  - **Refs:** [integration drift](specs/integration-platform.md), [provider selection](#product-decision-and-implementation-convergence), [progressive rollout](#42-confidential-actors-abuse-detection-and-progressive-rollout).
+
+- [ ] `PROVIDER-003` **[GATE_B][SOL_HIGH] Reconcile selected-provider exit, export, revocation and retained obligations.**
+  - **Depends:** `PROVIDER-002`, `WEDGE-009`, `OPS-009`, `RECORDS-HOLD-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.TENANT,BI.PRIVACY; DIRECT=none; WHY=prove provider exit removes active authority without losing required data, evidence, holds or ambiguous in-flight outcomes`.
+  - **TEST:** `TestProviderExitEnumeratesExportsRevokesAndReconcilesEveryRemoteResource`.
+  - **TEST MATRIX:** `PRIMARY=TestProviderExitEnumeratesExportsRevokesAndReconcilesEveryRemoteResource`; `PROPERTY=TestTodo_PROVIDER_003_Property`; `GOLDEN=TestTodo_PROVIDER_003_Golden`; `INTEGRATION=TestTodo_PROVIDER_003_Integration`; `FAULT=TestTodo_PROVIDER_003_Fault`; `SECURITY=TestTodo_PROVIDER_003_Security`; `CONFORMANCE=TestTodo_PROVIDER_003_Conformance`; `RECOVERY=TestTodo_PROVIDER_003_Recovery`; `MUTATION=TestTodo_PROVIDER_003_Mutation`.
+  - **RED:** provider object/request/webhook/credential remains unenumerated or active, export is incomplete/ambiguous, deletion violates hold/retention, provider outage is treated as zero authority or final evidence cannot be independently verified.
+  - **GREEN:** provider-specific exit inventory dispositions every remote resource and operation, verifies export digests, revokes credentials/endpoints/grants, preserves required holds/evidence, reconciles zero active authority and returns explicit pending/manual/legal obligations for unverifiable remote state.
+  - **REFACTOR:** exit consumes generic tenant/privacy/vendor-continuity contracts plus provider inventory adapter.
+  - **Refs:** [tenant exit](specs/platform-responsibility-boundaries.md), [records](specs/records-management-and-disposition.md), [integration lifecycle](specs/integration-platform.md).
+
+- [ ] `RECOVERY-005` **[GATE_B][SOL_HIGH] Restore ledger, projections, outbox, connector journals, search and artifacts as one fenced consistency set.**
+  - **Depends:** `RECOVERY-003`, `CONN-RT-003`, `EVENT-004`, `DATA-021`, `DB-022`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure restored internal chronology and derived/external work agree before any provider effect can resume`.
+  - **TEST:** `TestCrossPlaneRestoreReconcilesHeadsWatermarksArtifactsAndJournalsWithoutRedrive`.
+  - **TEST MATRIX:** `PRIMARY=TestCrossPlaneRestoreReconcilesHeadsWatermarksArtifactsAndJournalsWithoutRedrive`; `PROPERTY=TestTodo_RECOVERY_005_Property`; `GOLDEN=TestTodo_RECOVERY_005_Golden`; `RACE=TestTodo_RECOVERY_005_Race`; `INTEGRATION=TestTodo_RECOVERY_005_Integration`; `FAULT=TestTodo_RECOVERY_005_Fault`; `SECURITY=TestTodo_RECOVERY_005_Security`; `CONFORMANCE=TestTodo_RECOVERY_005_Conformance`; `RECOVERY=TestTodo_RECOVERY_005_Recovery`; `BENCHMARK=BenchmarkTodo_RECOVERY_005`; `MODEL_BASED=TestTodo_RECOVERY_005_ModelBased`; `MUTATION=TestTodo_RECOVERY_005_Mutation`.
+  - **RED:** restore loses/reorders outbox or attempts, regresses watermark, mismatches artifact/search/projection digest, contacts production destination, auto-redrives timeout-after-send or reports success while remote state is unknown.
+  - **GREEN:** isolated restore verifies exact stream heads, journals, dedupe keys, checkpoints, authority/cutover watermarks, artifact inventory and derived digests within RPO/RTO; dispatch stays fenced and unknown external state becomes `OBSERVATION_PENDING|REPAIR_REQUIRED`.
+  - **REFACTOR:** one recovery manifest coordinates dependency order and verification across adapters; it never rewrites authoritative history.
+  - **Refs:** [disaster recovery](specs/platform-responsibility-boundaries.md), [integration journals](specs/integration-platform.md), [data plane](specs/platform-plane-model.md).
+
+- [ ] `CONN-RT-009` **[GATE_B][SOL_HIGH] Preserve terminal ambiguity and no-redrive fencing across crash and restore.**
+  - **Depends:** `CONN-RT-003`, `CONN-RT-007`, `RECOVERY-005`, `REPAIR-002`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.OPERATIONS; DIRECT=none; WHY=prevent restored workers or lease epochs from repeating accepted, terminal or ambiguous external operations`.
+  - **TEST:** `TestRestoredConnectorOperationRequiresObservationOrGovernedRepairBeforeRedrive`.
+  - **TEST MATRIX:** `PRIMARY=TestRestoredConnectorOperationRequiresObservationOrGovernedRepairBeforeRedrive`; `PROPERTY=TestTodo_CONN_RT_009_Property`; `GOLDEN=TestTodo_CONN_RT_009_Golden`; `RACE=TestTodo_CONN_RT_009_Race`; `INTEGRATION=TestTodo_CONN_RT_009_Integration`; `FAULT=TestTodo_CONN_RT_009_Fault`; `SECURITY=TestTodo_CONN_RT_009_Security`; `CONFORMANCE=TestTodo_CONN_RT_009_Conformance`; `RECOVERY=TestTodo_CONN_RT_009_Recovery`; `MODEL_BASED=TestTodo_CONN_RT_009_ModelBased`; `MUTATION=TestTodo_CONN_RT_009_Mutation`.
+  - **RED:** stale worker/lease dispatches after restore, terminal or timeout-after-send attempt automatically retries, missing provider observation is treated as not applied or governed repair creates a second logical operation accidentally.
+  - **GREEN:** restored epochs fence stale workers, terminal/ambiguous operation is durable `NO_REDRIVE`, observation evidence resolves state, and only approved RepairPlan may create an explicitly related new attempt with distinct effect identity.
+  - **REFACTOR:** connector runtime centralizes restored-state transition rules and provider adapters only supply observation capability.
+  - **Refs:** [connector runtime](specs/integration-platform.md), [repair](specs/transaction-ledger-reconciliation-and-repair.md), [recovery](specs/platform-responsibility-boundaries.md).
+
+- [ ] `DATA-022` **[P0][SOL_HIGH] Prove universal per-intent storage, event, effect and correction lineage.**
+  - **Depends:** `DATA-015`, `SLICE-016`, `MODEL-032`, `LEDGER-012`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=extend Promotion lineage proof to every intent family, composite child and trigger path`.
+  - **TEST:** `TestEveryAcceptedIntentFamilyHasCompleteAuthorizedRebuildableLineage`.
+  - **TEST MATRIX:** `PRIMARY=TestEveryAcceptedIntentFamilyHasCompleteAuthorizedRebuildableLineage`; `PROPERTY=TestTodo_DATA_022_Property`; `GOLDEN=TestTodo_DATA_022_Golden`; `INTEGRATION=TestTodo_DATA_022_Integration`; `FAULT=TestTodo_DATA_022_Fault`; `SECURITY=TestTodo_DATA_022_Security`; `CONFORMANCE=TestTodo_DATA_022_Conformance`; `RECOVERY=TestTodo_DATA_022_Recovery`; `MUTATION=TestTodo_DATA_022_Mutation`.
+  - **RED:** intent/proposal/workflow/transaction/event/projection/outbox/effect/observation/reconciliation/repair/correction link is missing, cross-tenant, over-disclosing or non-rebuildable while aggregate completion reports true.
+  - **GREEN:** family fixtures prove complete authorized redaction-safe lineage with child/trigger causation, exact watermarks/digests and `UNKNOWN|PARTIAL` instead of false completion; correction appends without breaking historical trace.
+  - **REFACTOR:** generate cases from closure witnesses and shared lineage assertions; keep domain-specific events in their owners.
+  - **Refs:** [provenance](specs/provenance-graph-and-lineage.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md), [intent coverage](data/models/intent-coverage-matrix.md).
+
+- [ ] `DATA-023` **[GATE_B][SOL_HIGH] Prove object and artifact backup, restore and cryptographic lifecycle.**
+  - **Depends:** `ARTIFACT-006`, `DATA-016`, `DB-022`, `RECOVERY-005`, `RECORDS-HOLD-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.DOCUMENTS,BI.CASES,BI.PRIVACY,BI.DATAOPS; DIRECT=none; WHY=restore governed bytes and metadata without resurrecting restricted or cryptographically erased content`.
+  - **TEST:** `TestArtifactRestoreReconcilesBytesMetadataKeysHoldsTombstonesAndLineage`.
+  - **TEST MATRIX:** `PRIMARY=TestArtifactRestoreReconcilesBytesMetadataKeysHoldsTombstonesAndLineage`; `PROPERTY=TestTodo_DATA_023_Property`; `GOLDEN=TestTodo_DATA_023_Golden`; `INTEGRATION=TestTodo_DATA_023_Integration`; `FAULT=TestTodo_DATA_023_Fault`; `SECURITY=TestTodo_DATA_023_Security`; `CONFORMANCE=TestTodo_DATA_023_Conformance`; `RECOVERY=TestTodo_DATA_023_Recovery`; `BENCHMARK=BenchmarkTodo_DATA_023`; `MUTATION=TestTodo_DATA_023_Mutation`.
+  - **RED:** missing/orphan bytes or refs, wrong digest/key, lost hold/tombstone, restored deleted content, absent crypto-erasure proof, stale authorization or unmet object RPO/RTO reports restored.
+  - **GREEN:** restore inventories bytes/metadata/refs/digests/key versions/holds/tombstones, re-verifies access and lifecycle, preserves explicit erased/unavailable states and reconciles every artifact to ledger lineage without new domain event/effect.
+  - **REFACTOR:** object-store adapter implements the semantic Artifact lifecycle and independent verifier.
+  - **Refs:** [artifact storage](specs/platform-responsibility-boundaries.md), [records](specs/records-management-and-disposition.md), [recovery](specs/platform-responsibility-boundaries.md).
+
+- [ ] `WF-RUN-026` **[PHASE_2][SOL_HIGH] Migrate pending timers, signals, work and child continuations with workflow state.**
+  - **Depends:** `WF-RUN-017`, `WF-RUN-018`, `WF-RUN-025`, `UXFLOW-011`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent live workflow migration from losing or duplicating separately persisted pending runtime artifacts`.
+  - **TEST:** `TestWorkflowMigrationPreservesPendingTimerSignalWorkAndContinuationIdentity`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkflowMigrationPreservesPendingTimerSignalWorkAndContinuationIdentity`; `PROPERTY=TestTodo_WF_RUN_026_Property`; `GOLDEN=TestTodo_WF_RUN_026_Golden`; `RACE=TestTodo_WF_RUN_026_Race`; `INTEGRATION=TestTodo_WF_RUN_026_Integration`; `FAULT=TestTodo_WF_RUN_026_Fault`; `SECURITY=TestTodo_WF_RUN_026_Security`; `CONFORMANCE=TestTodo_WF_RUN_026_Conformance`; `RECOVERY=TestTodo_WF_RUN_026_Recovery`; `MODEL_BASED=TestTodo_WF_RUN_026_ModelBased`; `MUTATION=TestTodo_WF_RUN_026_Mutation`.
+  - **RED:** migrated instance loses/duplicates timer wake, signal subscription, ready work/approval, child continuation, ownership/deadline or accepts stale lease; partial failure strands mixed old/new artifacts.
+  - **GREEN:** atomic migration transforms and deduplicates every pending artifact under new epoch while preserving semantic identity/owner/deadline; failure leaves old instance runnable or durably `REPAIR_REQUIRED` with zero duplicate continuation.
+  - **REFACTOR:** artifact migration handlers share versioned runtime-state migration contracts and canonical receipts.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [workflow evolution](#8-durable-workflow-runtime-recovery-and-intervention), [user-flow evolution](#product-decision-and-implementation-convergence).
+
+- [ ] `ENGINE-CONF-001` **[P0][SOL_HIGH] Enforce one immutable deterministic request/result contract across shared HCM engines.**
+  - **Depends:** `XFORM-003`, `POP-003`, `ELIG-003`, `CYCLE-003`, `BAL-004`, `QUAL-004`, `DEMAND-003`, `MATCH-004`, `SCENARIO-003`, `ATTEST-004`, `PROGRAM-CONF-001`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure reusable engines propagate context, uncertainty, classification and provenance consistently without hidden effects`.
+  - **TEST:** `TestSharedEngineEnvelopePinsContextPropagatesUnknownAndReplaysDeterministically`.
+  - **TEST MATRIX:** `PRIMARY=TestSharedEngineEnvelopePinsContextPropagatesUnknownAndReplaysDeterministically`; `PROPERTY=TestTodo_ENGINE_CONF_001_Property`; `GOLDEN=TestTodo_ENGINE_CONF_001_Golden`; `FUZZ=FuzzTodo_ENGINE_CONF_001`; `SECURITY=TestTodo_ENGINE_CONF_001_Security`; `CONFORMANCE=TestTodo_ENGINE_CONF_001_Conformance`; `MODEL_BASED=TestTodo_ENGINE_CONF_001_ModelBased`; `MUTATION=TestTodo_ENGINE_CONF_001_Mutation`.
+  - **RED:** engine omits definition/revision, tenant/org/purpose/authority, effective/known time, source watermarks, classification/provenance or digest; converts `UNKNOWN|PARTIAL` to confident result, reads ambient time/config or emits side effect.
+  - **GREEN:** all named engines pass one fixture suite with immutable typed envelope, pinned inputs/context, exact uncertainty/taint propagation, canonical result/explanation digest, deterministic replay and zero persistence/effects.
+  - **REFACTOR:** common envelope belongs to the kernel/engine boundary while domain-specific request/result semantics remain engine-owned.
+  - **Refs:** [engine map](#37-shared-transformation-and-population-engines), [canonical envelope](specs/canonical-envelope-and-digest.md), [epistemic integrity](plan.md#513-preserve-epistemic-integrity).
+
+- [ ] `PERF-009` **[GATE_B][SOL_HIGH] Model and verify long-horizon retention, storage growth and lifecycle cost.**
+  - **Depends:** `PERF-005`, `RECORDS-COPY-001`, `RECORDS-HOLD-001`, `RECORDS-DISP-001`, `DATA-023`, `PERF-007`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prove append-only history, artifacts, holds and telemetry remain operable and affordable beyond short load tests`.
+  - **TEST:** `TestLongHorizonRetentionStorageGrowthAndLifecycleStayWithinBudget`.
+  - **TEST MATRIX:** `PRIMARY=TestLongHorizonRetentionStorageGrowthAndLifecycleStayWithinBudget`; `PROPERTY=TestTodo_PERF_009_Property`; `GOLDEN=TestTodo_PERF_009_Golden`; `INTEGRATION=TestTodo_PERF_009_Integration`; `FAULT=TestTodo_PERF_009_Fault`; `SECURITY=TestTodo_PERF_009_Security`; `CONFORMANCE=TestTodo_PERF_009_Conformance`; `RECOVERY=TestTodo_PERF_009_Recovery`; `BENCHMARK=BenchmarkTodo_PERF_009`; `MODEL_BASED=TestTodo_PERF_009_ModelBased`; `MUTATION=TestTodo_PERF_009_Mutation`.
+  - **RED:** 30/90/365-day modeled growth exceeds partition/WAL/archive/vacuum/index/object/telemetry/legal-hold headroom or cost while benchmark reports pass; lifecycle deletes held data or leaves unbounded bloat.
+  - **GREEN:** versioned workload and retention models predict/measure rollover, maintenance, archive/restore, object lifecycle, held-data exceptions and GB-month cost with declared headroom, alarms and safe capacity expansion thresholds.
+  - **REFACTOR:** growth model consumes real workload, retention and cost registries; it does not embed tenant-specific constants.
+  - **Refs:** [performance](#36-operator-surfaces-ownership-and-measurable-production-limits), [records](specs/records-management-and-disposition.md), [operations models](data/models/operations-production.md).
+
+- [ ] `TOOL-025` **[P0][TERRA] Inventory and attest non-module build, test and release tool inputs.**
+  - **Depends:** `TOOL-017`, `TOOL-018`, `TOOL-019`, `TOOL-023`, `TOOL-024`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=cover generators, plugins, CI actions and container tools outside the Go module graph without granting them semantic ownership`.
+  - **TEST:** `TestToolchainSupplyChainManifestRejectsUntrackedToolInput`.
+  - **TEST MATRIX:** `PRIMARY=TestToolchainSupplyChainManifestRejectsUntrackedToolInput`; `PROPERTY=TestTodo_TOOL_025_Property`; `GOLDEN=TestTodo_TOOL_025_Golden`; `SECURITY=TestTodo_TOOL_025_Security`; `CONFORMANCE=TestTodo_TOOL_025_Conformance`; `MUTATION=TestTodo_TOOL_025_Mutation`.
+  - **RED:** Buf/protoc/plugin, Cosign, scanner, migration tool, container image, downloaded generator or CI action lacks pinned digest/version, source, license/CVE status, owner, update SLA, provenance or replacement path.
+  - **GREEN:** signed manifest set-equals every non-module tool/image/action entering build/test/SBOM/admission, verifies offline, detects drift and records vulnerability/license/update/replacement evidence.
+  - **REFACTOR:** generate release attestations from the same inventory and keep mechanics behind owned interfaces.
+  - **Refs:** [supply chain](#33-cicd-release-admission-and-observability), [tool qualification](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [Go constitution](specs/go-only-technology-constitution.md).
+
+- [ ] `CONFIG-010` **[GATE_A][SOL_HIGH] Revalidate active workloads when configuration dependencies are revoked or become incompatible.**
+  - **Depends:** `CONFIG-003`, `CP-009`, `WF-RUN-018`, `ROLLOUT-008`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent paused or waiting workflows from resuming under revoked rules, forms, mappings, populations, schemas or capabilities`.
+  - **TEST:** `TestActiveWorkloadDependencyRevocationProducesDeterministicInvalidateReplanMigrateOrBlock`.
+  - **TEST MATRIX:** `PRIMARY=TestActiveWorkloadDependencyRevocationProducesDeterministicInvalidateReplanMigrateOrBlock`; `PROPERTY=TestTodo_CONFIG_010_Property`; `GOLDEN=TestTodo_CONFIG_010_Golden`; `RACE=TestTodo_CONFIG_010_Race`; `INTEGRATION=TestTodo_CONFIG_010_Integration`; `FAULT=TestTodo_CONFIG_010_Fault`; `SECURITY=TestTodo_CONFIG_010_Security`; `CONFORMANCE=TestTodo_CONFIG_010_Conformance`; `RECOVERY=TestTodo_CONFIG_010_Recovery`; `MODEL_BASED=TestTodo_CONFIG_010_ModelBased`; `MUTATION=TestTodo_CONFIG_010_Mutation`.
+  - **RED:** dependency revocation/incompatibility leaves timer/task/approval runnable, mixed rule/form/workflow/mapping/population/schema versions silently compose, pending human work remains actionable or replay duplicates effects.
+  - **GREEN:** dependency closure revalidation atomically chooses `INVALIDATED|REPLAN_REQUIRED|MIGRATE_REQUIRED|BLOCKED`, fences pending work, preserves evidence and requires reviewed mixed-object compatibility/migration/dual-read-write or publication blocking before resume.
+  - **REFACTOR:** one compatibility graph serves publication, rollout and live runtime revalidation across all configuration object types.
+  - **Refs:** [configuration control](#30-control-plane-publication-distribution-and-activation), [workflow migration](specs/workflow-runtime.md), [rollout](#42-confidential-actors-abuse-detection-and-progressive-rollout).
+
+- [ ] `GATEB-EVID-001` **[GATE_B][SOL_HIGH] Compile post-authority Gate B operating and continuation evidence.**
+  - **Depends:** `GOV-003`, `GOV-023`, `OPS-008`, `RECOVERY-003`, `RECOVERY-005`, `ASSURANCE-001`, `PILOT-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS,BI.SECURITY,BI.PRIVACY,BI.COMMERCIAL; DIRECT=none; WHY=prevent an authority-expansion gate from passing on prose, aggregate status or stale evidence`.
+  - **TEST:** `TestGateBEvidenceManifestRejectsUnboundStaleFailedOrUnsignedCriterion`.
+  - **TEST MATRIX:** `PRIMARY=TestGateBEvidenceManifestRejectsUnboundStaleFailedOrUnsignedCriterion`; `PROPERTY=TestTodo_GATEB_EVID_001_Property`; `GOLDEN=TestTodo_GATEB_EVID_001_Golden`; `FAULT=TestTodo_GATEB_EVID_001_Fault`; `SECURITY=TestTodo_GATEB_EVID_001_Security`; `CONFORMANCE=TestTodo_GATEB_EVID_001_Conformance`; `RECOVERY=TestTodo_GATEB_EVID_001_Recovery`; `MUTATION=TestTodo_GATEB_EVID_001_Mutation`.
+  - **RED:** removing/expiring a Gate B test, fixture, owner, command, oracle, artifact, retention or approval still yields pass, or waiver grants authority without scope/control/expiry.
+  - **GREEN:** generated manifest maps every acceptance bullet to exact todo/test/fixture/command/result/evidence digest/owner/retention/expiry/sign-off; missing/stale/failed/unsigned returns `GATE_BLOCKED` and grants zero additional authority.
+  - **REFACTOR:** gate decision consumes immutable evidence manifests and retains prior decisions append-only.
+  - **Refs:** [Gate B](execution-plan.md), [evidence governance](#backlog-governance-and-traceability), [authority expansion](specs/competitive-positioning-and-authority-expansion.md).
+
+- [ ] `CROSS-CONF-001` **[PHASE_2][SOL_HIGH] Prove selected-jurisdiction behavior across Promotion and Medical Leave end to end.**
+  - **Depends:** `SELECT-001`, `LEGAL-007`, `PROMO-004`, `LEAVE-006`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE,BI.REGULATORY; DIRECT=none; WHY=prove the same jurisdiction and legal-composition contracts work across a transactional promotion and a long-running protected leave process`.
+  - **TEST:** `TestSelectedJurisdictionPromotionAndLeaveHandleAmbiguityRuleTimeAndReplanConsistently`.
+  - **TEST MATRIX:** `PRIMARY=TestSelectedJurisdictionPromotionAndLeaveHandleAmbiguityRuleTimeAndReplanConsistently`; `PROPERTY=TestTodo_CROSS_CONF_001_Property`; `GOLDEN=TestTodo_CROSS_CONF_001_Golden`; `FAULT=TestTodo_CROSS_CONF_001_Fault`; `SECURITY=TestTodo_CROSS_CONF_001_Security`; `CONFORMANCE=TestTodo_CROSS_CONF_001_Conformance`; `RECOVERY=TestTodo_CROSS_CONF_001_Recovery`; `MODEL_BASED=TestTodo_CROSS_CONF_001_ModelBased`; `MUTATION=TestTodo_CROSS_CONF_001_Mutation`.
+  - **RED:** Promotion omits LegalContext, either flow guesses ambiguous/multi-location jurisdiction, known-at/effective-at rule change rewrites prior result, material change resumes old proposal or `UNKNOWN` still creates approval/work/write/effect.
+  - **GREEN:** both slices pin the same selected jurisdiction and composition releases in snapshots/proposals, preserve historical evaluation, and deterministically return `BLOCKED|REVIEW_REQUIRED|REPLAN_REQUIRED` with successor proposal and zero stale effects for ambiguity or material rule change.
+  - **REFACTOR:** shared jurisdiction/legal fixtures drive domain-specific expected obligations; neither workflow embeds legal rules.
+  - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [Leave slice](#38a-medical-leave-and-return-to-work-convergence-slice), [legal composition](specs/governance-decision-and-obligation-composition.md).
+
+- [ ] `CROSS-CONF-002` **[GATE_A][SOL_HIGH] Enforce tenant commercial entitlement consistently across Promotion and Leave channels.**
+  - **Depends:** `COMM-001`, `PROMO-007`, `LEAVE-001`, `ENDPOINT-009`, `UXFLOW-007`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE,BI.COMMERCIAL; DIRECT=none; WHY=prevent UI, gRPC, grpcbridge, assisted or resumed flows from bypassing suspended, expired or amended pilot entitlement`.
+  - **TEST:** `TestPromotionAndLeaveEntitlementDenialParityAcrossAllInitiationAndResumeChannels`.
+  - **TEST MATRIX:** `PRIMARY=TestPromotionAndLeaveEntitlementDenialParityAcrossAllInitiationAndResumeChannels`; `PROPERTY=TestTodo_CROSS_CONF_002_Property`; `GOLDEN=TestTodo_CROSS_CONF_002_Golden`; `RACE=TestTodo_CROSS_CONF_002_Race`; `INTEGRATION=TestTodo_CROSS_CONF_002_Integration`; `FAULT=TestTodo_CROSS_CONF_002_Fault`; `SECURITY=TestTodo_CROSS_CONF_002_Security`; `CONFORMANCE=TestTodo_CROSS_CONF_002_Conformance`; `BROWSER=TestTodo_CROSS_CONF_002_Browser`; `RECOVERY=TestTodo_CROSS_CONF_002_Recovery`; `MUTATION=TestTodo_CROSS_CONF_002_Mutation`.
+  - **RED:** one channel discovers/submits/resumes an unentitled action, denial omits entitlement fingerprint, suspended/expired contract creates intent/work/message/effect, or amendment retroactively changes already accepted execution.
+  - **GREEN:** action discovery, submit, resume and assisted/manual routes share the pinned entitlement decision and non-disclosing typed denial; zero unauthorized state/effects occur, accepted executions retain their original fingerprint and amendments govern only declared future executions.
+  - **REFACTOR:** all channel adapters invoke one capability/governance entitlement contract rather than duplicating feature flags.
+  - **Refs:** [pilot entitlement](#tenant-lifecycle-placement-sandbox-and-commercial-pilot), [endpoint parity](specs/http-grpc-endpoint-contract.md), [user flows](user-flows/README.md).
+
+## 63. Untraveled operational and delivery surfaces
+
+These are cross-cutting surfaces discovered by tracing how software, evidence,
+communications and trust reach real people and production environments. They do
+not add HCM domain scope. Each closes a boundary that could otherwise invalidate
+an already-designed BusinessIntent path.
+
+- [ ] `CLIENT-001` **[GATE_A][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
+  - **Depends:** `EDGE-004`, `UX-002`, `TOOL-016`, `TOOL-018`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure the browser cannot execute stale, injected or cross-tenant client state that changes governed intent behavior`.
+  - **TEST:** `TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState`.
+  - **TEST MATRIX:** `PRIMARY=TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState`; `PROPERTY=TestTodo_CLIENT_001_Property`; `GOLDEN=TestTodo_CLIENT_001_Golden`; `FUZZ=FuzzTodo_CLIENT_001`; `INTEGRATION=TestTodo_CLIENT_001_Integration`; `FAULT=TestTodo_CLIENT_001_Fault`; `SECURITY=TestTodo_CLIENT_001_Security`; `CONFORMANCE=TestTodo_CLIENT_001_Conformance`; `BROWSER=TestTodo_CLIENT_001_Browser`; `RECOVERY=TestTodo_CLIENT_001_Recovery`; `MUTATION=TestTodo_CLIENT_001_Mutation`.
+  - **RED:** unsigned/unpinned asset, CSP bypass, DOM injection, service-worker downgrade, stale schema/action cache, browser back-forward cache, shared-device residue or local/session storage contains sensitive domain data and still permits submission.
+  - **GREEN:** release manifest binds asset digests and strict CSP/trusted-types policy; cache/service-worker upgrade is atomic, stale actions revalidate server-side, logout/tenant switch clears protected state and browser storage contains only reviewed bounded references.
+  - **REFACTOR:** generated security headers and asset manifests share release provenance; the client remains a non-authoritative intent collector.
+  - **Refs:** [experience boundary](specs/experience-ui-and-branding.md), [edge security](specs/platform-foundation-gap-closure.md), [release provenance](#33-cicd-release-admission-and-observability).
+
+- [ ] `CLIENT-002` **[PHASE_2][SOL_HIGH] Govern mobile, kiosk and offline client device state and resubmission.**
+  - **Depends:** `UX-008`, `UXFLOW-009`, `AUTHN-004`, `EDGE-004`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve identity, privacy and idempotency on shared, intermittently connected and managed or unmanaged devices`.
+  - **TEST:** `TestMobileKioskOfflineStateIsDeviceBoundExpiringPrivateAndIdempotentlyResubmitted`.
+  - **TEST MATRIX:** `PRIMARY=TestMobileKioskOfflineStateIsDeviceBoundExpiringPrivateAndIdempotentlyResubmitted`; `PROPERTY=TestTodo_CLIENT_002_Property`; `GOLDEN=TestTodo_CLIENT_002_Golden`; `FUZZ=FuzzTodo_CLIENT_002`; `RACE=TestTodo_CLIENT_002_Race`; `INTEGRATION=TestTodo_CLIENT_002_Integration`; `FAULT=TestTodo_CLIENT_002_Fault`; `SECURITY=TestTodo_CLIENT_002_Security`; `CONFORMANCE=TestTodo_CLIENT_002_Conformance`; `BROWSER=TestTodo_CLIENT_002_Browser`; `RECOVERY=TestTodo_CLIENT_002_Recovery`; `MODEL_BASED=TestTodo_CLIENT_002_ModelBased`; `MUTATION=TestTodo_CLIENT_002_Mutation`.
+  - **RED:** prior kiosk user data remains, screenshot/clipboard/cache exposes restricted fields, rooted/untrusted device silently raises assurance, offline request uses stale authority or repeated reconnect creates duplicate intent/effect.
+  - **GREEN:** device/session posture constrains permitted flows, protected local state is minimized/encrypted/expiring and cleared on handoff, every reconnect revalidates proposal/governance and replays one client request identity to one durable result.
+  - **REFACTOR:** channel adapters share the canonical request/idempotency contract; device policy never becomes HCM authorization by itself.
+  - **Refs:** [cross-channel flows](user-flows/README.md), [authentication](specs/platform-foundation-gap-closure.md), [experience](specs/experience-ui-and-branding.md).
+
+- [ ] `MAIL-001` **[GATE_B][SOL_HIGH] Operate authenticated transactional-email domains and deliverability controls.**
+  - **Depends:** `MSG-006`, `MSG-007`, `TRUST-017`, `EDGE-010`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.EXPERIENCE,BI.WORK,BI.CASES,BI.DOCUMENTS; DIRECT=none; WHY=ensure email delivery mechanics and domain reputation cannot falsify business notice or expose protected content`.
+  - **TEST:** `TestEmailDomainAuthenticationBounceComplaintAndSuppressionLifecyclePreservesMessageTruth`.
+  - **TEST MATRIX:** `PRIMARY=TestEmailDomainAuthenticationBounceComplaintAndSuppressionLifecyclePreservesMessageTruth`; `PROPERTY=TestTodo_MAIL_001_Property`; `GOLDEN=TestTodo_MAIL_001_Golden`; `INTEGRATION=TestTodo_MAIL_001_Integration`; `FAULT=TestTodo_MAIL_001_Fault`; `SECURITY=TestTodo_MAIL_001_Security`; `CONFORMANCE=TestTodo_MAIL_001_Conformance`; `RECOVERY=TestTodo_MAIL_001_Recovery`; `BENCHMARK=BenchmarkTodo_MAIL_001`; `MUTATION=TestTodo_MAIL_001_Mutation`.
+  - **RED:** missing/failed SPF, DKIM or DMARC; unverified sender domain; provider webhook spoof; bounce/complaint misattribution; global suppression crosses tenant/purpose; domain reputation failure counts as delivered or retry floods a recipient.
+  - **GREEN:** versioned sending-domain profile verifies DNS/authentication and rotation, authenticates feedback, scopes suppression/preferences, rate limits retries and preserves `ACCEPTED|DELIVERED|BOUNCED|COMPLAINED|SUPPRESSED|UNKNOWN` without satisfying legal acknowledgement by transport alone.
+  - **REFACTOR:** provider adapters normalize mechanics into Messaging states; templates and HCM workflow remain independent of email vendor policy.
+  - **Refs:** [messaging plane](specs/messaging-and-notification-plane.md), [destination trust](specs/platform-foundation-gap-closure.md), [integration platform](specs/integration-platform.md).
+
+- [ ] `FULFILL-001` **[PHASE_3][SOL_HIGH] Govern print and postal fulfillment for required physical notices.**
+  - **Depends:** `MSG-013`, `DOC-TEMPLATE-001`, `LOCATION-002`, `TRUST-018`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.REGULATORY,BI.CASES; DIRECT=none; WHY=make physical notice generation, custody, mailing and returned-mail outcomes observable without treating shipment as acknowledgement`.
+  - **TEST:** `TestPhysicalNoticeFulfillmentBindsArtifactAddressCustodyAndDeliveryEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestPhysicalNoticeFulfillmentBindsArtifactAddressCustodyAndDeliveryEvidence`; `PROPERTY=TestTodo_FULFILL_001_Property`; `GOLDEN=TestTodo_FULFILL_001_Golden`; `INTEGRATION=TestTodo_FULFILL_001_Integration`; `FAULT=TestTodo_FULFILL_001_Fault`; `SECURITY=TestTodo_FULFILL_001_Security`; `CONFORMANCE=TestTodo_FULFILL_001_Conformance`; `RECOVERY=TestTodo_FULFILL_001_Recovery`; `MUTATION=TestTodo_FULFILL_001_Mutation`.
+  - **RED:** wrong artifact/address/version enters batch, vendor sees excess fields, chain of custody breaks, duplicate print/mailing occurs, returned mail is ignored or carrier acceptance is treated as recipient acknowledgement.
+  - **GREEN:** fulfillment instruction pins minimized artifact hash, authorized address revision, envelope/privacy profile, vendor operation and custody receipts; results distinguish printed/mailed/in-transit/delivered/returned/unknown and create governed fallback work without duplicate notice.
+  - **REFACTOR:** physical fulfillment is a Messaging/Document effect adapter with independent observations and reconciliation.
+  - **Refs:** [legal notice delivery](specs/messaging-and-notification-plane.md), [document controls](specs/platform-responsibility-boundaries.md), [location model](data/models/people-workforce.md).
+
+- [ ] `SYNTH-001` **[GATE_A][SOL_HIGH] Run tenant-safe production synthetic journeys with hard non-mutation fences.**
+  - **Depends:** `OPS-001`, `ENDPOINT-009`, `SANDBOX-001`, `OBS-016`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=measure real production reachability and semantic readiness without creating workforce truth, messages or provider effects`.
+  - **TEST:** `TestProductionSyntheticJourneyMeasuresRealPathButCannotMutateOrLeakTenantState`.
+  - **TEST MATRIX:** `PRIMARY=TestProductionSyntheticJourneyMeasuresRealPathButCannotMutateOrLeakTenantState`; `PROPERTY=TestTodo_SYNTH_001_Property`; `GOLDEN=TestTodo_SYNTH_001_Golden`; `RACE=TestTodo_SYNTH_001_Race`; `INTEGRATION=TestTodo_SYNTH_001_Integration`; `FAULT=TestTodo_SYNTH_001_Fault`; `SECURITY=TestTodo_SYNTH_001_Security`; `CONFORMANCE=TestTodo_SYNTH_001_Conformance`; `RECOVERY=TestTodo_SYNTH_001_Recovery`; `BENCHMARK=BenchmarkTodo_SYNTH_001`; `MUTATION=TestTodo_SYNTH_001_Mutation`.
+  - **RED:** synthetic principal accesses customer data, uses write-capable credential, creates intent/work/message/outbox/provider call, hides dependency failure behind cached response or synthetic identifiers pollute tenant analytics.
+  - **GREEN:** dedicated synthetic tenant/principal and execution mode traverse edge/auth/config/read/simulation/telemetry paths, hard fence every effect class, report exact dependency/SLO outcome and are excluded from customer/domain metrics while remaining operationally visible.
+  - **REFACTOR:** journeys compile from selected vertical slices with generated safe probes rather than bespoke monitoring scripts.
+  - **Refs:** [SLOs](specs/slo-sli-error-budget.md), [sandbox](specs/platform-responsibility-boundaries.md), [telemetry](specs/structured-logging-and-opentelemetry.md).
+
+- [ ] `ASSURANCE-001` **[GATE_B][SOL_HIGH] Govern independent penetration, privacy and control-assurance evidence.**
+  - **Depends:** `THREAT-002`, `OPS-010`, `SUPPLY-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.SECURITY,BI.PRIVACY,BI.OPERATIONS; DIRECT=none; WHY=ensure independent assessments produce scoped, current and remediated evidence rather than a one-time compliance claim`.
+  - **TEST:** `TestIndependentAssuranceRegisterRejectsUnscopedExpiredUnremediatedOrMisrepresentedEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestIndependentAssuranceRegisterRejectsUnscopedExpiredUnremediatedOrMisrepresentedEvidence`; `PROPERTY=TestTodo_ASSURANCE_001_Property`; `GOLDEN=TestTodo_ASSURANCE_001_Golden`; `SECURITY=TestTodo_ASSURANCE_001_Security`; `CONFORMANCE=TestTodo_ASSURANCE_001_Conformance`; `MUTATION=TestTodo_ASSURANCE_001_Mutation`.
+  - **RED:** penetration/audit/privacy report lacks assessor independence, scope/version/environment/method/date, excluded surfaces, finding severity/owner/deadline, retest evidence or customer-safe claim boundary; open critical finding still permits gate.
+  - **GREEN:** assurance register binds each assessment to release/topology/threat/control versions, tracks findings through remediation and independent retest, expires evidence and generates claims that state exact scope and exclusions without implying unattained certification.
+  - **REFACTOR:** gate and customer evidence consume the register; raw sensitive reports remain compartmented artifacts.
+  - **Refs:** [risk register](specs/risk-register.md), [evidence packaging](specs/platform-responsibility-boundaries.md), [release assurance](#33-cicd-release-admission-and-observability).
+
+- [ ] `RESIDENCY-001` **[GATE_A][SOL_HIGH] Enforce tenant residency and transfer policy across every primary, derived and provider copy.**
+  - **Depends:** `TENANT-001`, `PRIV-001`, `PRIV-003`, `RECORDS-COPY-001`, `RECOVERY-005`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent placement metadata from claiming residency while backups, telemetry, artifacts, support or providers copy data elsewhere`.
+  - **TEST:** `TestResidencyPolicyCoversEveryCopyProcessorRouteBackupAndRecoveryLocation`.
+  - **TEST MATRIX:** `PRIMARY=TestResidencyPolicyCoversEveryCopyProcessorRouteBackupAndRecoveryLocation`; `PROPERTY=TestTodo_RESIDENCY_001_Property`; `GOLDEN=TestTodo_RESIDENCY_001_Golden`; `INTEGRATION=TestTodo_RESIDENCY_001_Integration`; `FAULT=TestTodo_RESIDENCY_001_Fault`; `SECURITY=TestTodo_RESIDENCY_001_Security`; `CONFORMANCE=TestTodo_RESIDENCY_001_Conformance`; `RECOVERY=TestTodo_RESIDENCY_001_Recovery`; `MUTATION=TestTodo_RESIDENCY_001_Mutation`.
+  - **RED:** data class reaches unapproved cell/object replica/backup/telemetry region/provider/support session/model, recovery restores to prohibited region or unknown location is treated as compliant.
+  - **GREEN:** signed residency policy resolves allowed processing/storage/support/transfer locations by class and purpose, admission checks every copy/route/processor, inventory and restore reconcile actual placement, and `UNKNOWN|TRANSFER_REVIEW_REQUIRED` blocks affected processing.
+  - **REFACTOR:** placement, privacy and copy inventories share stable location/processor identities; no adapter infers residency from endpoint hostname.
+  - **Refs:** [tenant placement](data/models/operations-production.md), [privacy flows](specs/platform-responsibility-boundaries.md), [records inventory](specs/records-management-and-disposition.md).
+
+- [ ] `TIME-002` **[GATE_A][SOL_HIGH] Select and operate a concrete authenticated trusted-time quorum profile.**
+  - **Depends:** `TIME-001`, `IAC-013`, `TOOL-025`, `OPS-003`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=turn abstract time health into an authenticated, observable and recoverable production service profile`.
+  - **TEST:** `TestTrustedTimeProfileRequiresAuthenticatedQuorumSkewUncertaintyAndHoldoverPolicy`.
+  - **TEST MATRIX:** `PRIMARY=TestTrustedTimeProfileRequiresAuthenticatedQuorumSkewUncertaintyAndHoldoverPolicy`; `PROPERTY=TestTodo_TIME_002_Property`; `GOLDEN=TestTodo_TIME_002_Golden`; `INTEGRATION=TestTodo_TIME_002_Integration`; `FAULT=TestTodo_TIME_002_Fault`; `SECURITY=TestTodo_TIME_002_Security`; `CONFORMANCE=TestTodo_TIME_002_Conformance`; `RECOVERY=TestTodo_TIME_002_Recovery`; `BENCHMARK=BenchmarkTodo_TIME_002`; `MUTATION=TestTodo_TIME_002_Mutation`.
+  - **RED:** unauthenticated single source, DNS/spoof/step attack, quorum disagreement, leap/smear mismatch, backward jump, excessive uncertainty or expired holdover still authorizes sensitive timestamp decision.
+  - **GREEN:** pinned NTS/authenticated sources and quorum policy expose source epoch/offset/skew/uncertainty/holdover health, alarm and failover evidence; sensitive consumers receive trustworthy receipt or exact `TIME_UNTRUSTED` while sequence ordering remains independent.
+  - **REFACTOR:** infrastructure adapter supplies TimeAuthority receipts to the existing temporal kernel without exposing NTP mechanics to domains.
+  - **Refs:** [trusted time](specs/platform-architecture-catalog.md), [operations model](data/models/operations-production.md), [temporal primitives](data/models/wire-contract-primitives.md).
+
+- [ ] `CONTRACT-ARCHIVE-001` **[GATE_A][SOL_HIGH] Preserve an offline-verifiable archive of every executable historical contract.**
+  - **Depends:** `PROTO-010`, `MODEL-032`, `CONFIG-003`, `EVIDENCE-001`, `TOOL-018`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=keep historical intent, workflow, rule, schema, mapping, endpoint and evidence interpretation possible after retirement or tool change`.
+  - **TEST:** `TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade`.
+  - **TEST MATRIX:** `PRIMARY=TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade`; `PROPERTY=TestTodo_CONTRACT_ARCHIVE_001_Property`; `GOLDEN=TestTodo_CONTRACT_ARCHIVE_001_Golden`; `INTEGRATION=TestTodo_CONTRACT_ARCHIVE_001_Integration`; `FAULT=TestTodo_CONTRACT_ARCHIVE_001_Fault`; `SECURITY=TestTodo_CONTRACT_ARCHIVE_001_Security`; `CONFORMANCE=TestTodo_CONTRACT_ARCHIVE_001_Conformance`; `RECOVERY=TestTodo_CONTRACT_ARCHIVE_001_Recovery`; `MUTATION=TestTodo_CONTRACT_ARCHIVE_001_Mutation`.
+  - **RED:** retired descriptor/schema/config/rule/workflow/mapping disappears, verification requires mutable live registry/network/tool, signing-key rotation invalidates old package or historical bytes are interpreted with current defaults.
+  - **GREEN:** content-addressed archive packages exact sources, generated descriptors, compiler/tool profiles, signatures/trust history and compatibility metadata; offline verifier reproduces canonical interpretation/digest or returns explicit unsupported/tampered result without executing effects.
+  - **REFACTOR:** all publication systems deposit one common archival envelope; archive is immutable evidence, not an activation source.
+  - **Refs:** [canonical digest](specs/canonical-envelope-and-digest.md), [configuration lifecycle](specs/platform-responsibility-boundaries.md), [evidence](specs/transaction-ledger-reconciliation-and-repair.md).
+
+- [ ] `A11Y-001` **[GATE_A][SOL_HIGH] Qualify assistive-technology, browser, locale and input-mode compatibility.**
+  - **Depends:** `UX-003`, `UX-004`, `UXFLOW-009`, `I18N-003`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove WCAG assertions survive actual supported assistive technologies, browsers, zoom, languages and non-pointer input`.
+  - **TEST:** `TestSupportedAssistiveTechnologyBrowserLocaleMatrixCompletesCriticalFlowsEquivalently`.
+  - **TEST MATRIX:** `PRIMARY=TestSupportedAssistiveTechnologyBrowserLocaleMatrixCompletesCriticalFlowsEquivalently`; `PROPERTY=TestTodo_A11Y_001_Property`; `GOLDEN=TestTodo_A11Y_001_Golden`; `SECURITY=TestTodo_A11Y_001_Security`; `CONFORMANCE=TestTodo_A11Y_001_Conformance`; `BROWSER=TestTodo_A11Y_001_Browser`; `MUTATION=TestTodo_A11Y_001_Mutation`.
+  - **RED:** supported screen reader/browser/OS/locale/RTL/200-400% zoom/high-contrast/voice/keyboard combination loses label, focus, state, error, timeout warning, evidence upload, approval or semantic result while automated checker passes.
+  - **GREEN:** versioned support matrix names tested combinations and critical flows, records exact task/result equivalence and defects/waivers/expiry; unsupported combinations receive an accessible continuity route without weaker identity/privacy/deadline semantics.
+  - **REFACTOR:** generate common flow assertions from UserFlowRecord and keep environment-specific drivers separate.
+  - **Refs:** [accessibility assurance](specs/platform-foundation-gap-closure.md), [experience](specs/experience-ui-and-branding.md), [user flows](user-flows/README.md).
+
+- [ ] `STATUS-001` **[GATE_A][TERRA] Publish accurate tenant-scoped service status and incident advisories.**
+  - **Depends:** `OPS-004`, `OPS-005`, `MSG-001`, `OBS-007`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS; DIRECT=none; WHY=communicate service impact and recovery without leaking tenant existence, security detail or speculative root cause`.
+  - **TEST:** `TestStatusPublicationMatchesIncidentScopeStateSLOAndCustomerDisclosurePolicy`.
+  - **TEST MATRIX:** `PRIMARY=TestStatusPublicationMatchesIncidentScopeStateSLOAndCustomerDisclosurePolicy`; `PROPERTY=TestTodo_STATUS_001_Property`; `GOLDEN=TestTodo_STATUS_001_Golden`; `RACE=TestTodo_STATUS_001_Race`; `INTEGRATION=TestTodo_STATUS_001_Integration`; `FAULT=TestTodo_STATUS_001_Fault`; `SECURITY=TestTodo_STATUS_001_Security`; `CONFORMANCE=TestTodo_STATUS_001_Conformance`; `RECOVERY=TestTodo_STATUS_001_Recovery`; `MUTATION=TestTodo_STATUS_001_Mutation`.
+  - **RED:** unaffected tenant sees advisory, affected tenant is omitted, public page reveals tenant/provider/security details, status says operational despite admission block, stale update remains current or resolved incident lacks correction/post-incident commitment.
+  - **GREEN:** incident/SLI scope deterministically drives public and authenticated tenant views with reviewed disclosure, update cadence, timestamps, translations and correction history; publication failure becomes owned incident obligation and never changes technical truth.
+  - **REFACTOR:** status channels render one CustomerAdvisory model; operators do not hand-edit independent state.
+  - **Refs:** [incident management](specs/incident-management.md), [customer communication](specs/platform-foundation-gap-closure.md), [SLOs](specs/slo-sli-error-budget.md).
+
+- [ ] `DIAG-001` **[GATE_A][SOL_HIGH] Harden diagnostic, profiling, metrics and runtime administration surfaces.**
+  - **Depends:** `ADMIN-006`, `EDGE-010`, `OBS-018`, `TRUST-021`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.OPERATIONS,BI.SECURITY; DIRECT=none; WHY=prevent debug and runtime inspection mechanics from bypassing tenant, secret, privacy or availability controls`.
+  - **TEST:** `TestDiagnosticSurfaceRequiresJITScopeRedactionBoundsAndAutomaticExpiry`.
+  - **TEST MATRIX:** `PRIMARY=TestDiagnosticSurfaceRequiresJITScopeRedactionBoundsAndAutomaticExpiry`; `PROPERTY=TestTodo_DIAG_001_Property`; `GOLDEN=TestTodo_DIAG_001_Golden`; `FUZZ=FuzzTodo_DIAG_001`; `RACE=TestTodo_DIAG_001_Race`; `INTEGRATION=TestTodo_DIAG_001_Integration`; `FAULT=TestTodo_DIAG_001_Fault`; `SECURITY=TestTodo_DIAG_001_Security`; `CONFORMANCE=TestTodo_DIAG_001_Conformance`; `RECOVERY=TestTodo_DIAG_001_Recovery`; `BENCHMARK=BenchmarkTodo_DIAG_001`; `MUTATION=TestTodo_DIAG_001_Mutation`.
+  - **RED:** pprof/expvar/metrics/debug/config/goroutine/heap/trace endpoint is public or cross-tenant, contains payload/secret/credential/SQL values, enables unbounded CPU/memory capture, remains enabled after expiry or changes business state.
+  - **GREEN:** diagnostic manifest disables surfaces by default, permits only workload-authenticated JIT purpose/scope/duration/budget, redacts/classifies outputs into protected artifacts, auto-expires and emits complete access/drop evidence with zero business mutation.
+  - **REFACTOR:** process roles register diagnostics through one hardened adapter and no package exposes a listener independently.
+  - **Refs:** [support access](specs/platform-foundation-gap-closure.md), [telemetry diagnostics](specs/structured-logging-and-opentelemetry.md), [edge security](specs/platform-responsibility-boundaries.md).
+
+- [ ] `FORENSIC-001` **[GATE_B][SOL_HIGH] Acquire and preserve incident forensic evidence with bounded chain of custody.**
+  - **Depends:** `OPS-004`, `RECORDS-HOLD-001`, `EVIDENCE-001`, `OBS-021`, `DIAG-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS,BI.SECURITY,BI.PRIVACY; DIRECT=none; WHY=investigate material incidents without unaudited overcollection, evidence mutation or cross-tenant disclosure`.
+  - **TEST:** `TestForensicAcquisitionBindsAuthorityScopeCustodyIntegrityRetentionAndDisclosure`.
+  - **TEST MATRIX:** `PRIMARY=TestForensicAcquisitionBindsAuthorityScopeCustodyIntegrityRetentionAndDisclosure`; `PROPERTY=TestTodo_FORENSIC_001_Property`; `GOLDEN=TestTodo_FORENSIC_001_Golden`; `INTEGRATION=TestTodo_FORENSIC_001_Integration`; `FAULT=TestTodo_FORENSIC_001_Fault`; `SECURITY=TestTodo_FORENSIC_001_Security`; `CONFORMANCE=TestTodo_FORENSIC_001_Conformance`; `RECOVERY=TestTodo_FORENSIC_001_Recovery`; `MUTATION=TestTodo_FORENSIC_001_Mutation`.
+  - **RED:** investigator collects entire tenant/system without necessity, alters source, lacks dual authorization or trusted time, chain of custody breaks, evidence crosses compartment/region, hold/retention is absent or export cannot be independently verified.
+  - **GREEN:** acquisition plan pins incident/purpose/scope/data classes/sources/query/tool/actors, captures content-addressed minimized artifacts with source integrity and custody receipts, enforces compartment/residency/hold/disposition and produces a separately redacted disclosure package.
+  - **REFACTOR:** forensic tooling consumes evidence/artifact and support-access contracts; raw collection never becomes ordinary telemetry or domain fact.
+  - **Refs:** [incident management](specs/incident-management.md), [records](specs/records-management-and-disposition.md), [evidence packaging](specs/platform-responsibility-boundaries.md).
+
+- [ ] `SUBPROCESSOR-001` **[GATE_A][SOL_HIGH] Govern subprocessor inventory, material change, objection and emergency replacement.**
+  - **Depends:** `PRIV-001`, `PRIV-003`, `PROVIDER-002`, `OPS-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PRIVACY,BI.INTEGRATION,BI.TENANT; DIRECT=none; WHY=ensure provider supply-chain changes cannot silently alter processing purpose, location, retention or customer commitments`.
+  - **TEST:** `TestSubprocessorChangeRequiresImpactNoticeObjectionWindowAndActivationFence`.
+  - **TEST MATRIX:** `PRIMARY=TestSubprocessorChangeRequiresImpactNoticeObjectionWindowAndActivationFence`; `PROPERTY=TestTodo_SUBPROCESSOR_001_Property`; `GOLDEN=TestTodo_SUBPROCESSOR_001_Golden`; `INTEGRATION=TestTodo_SUBPROCESSOR_001_Integration`; `FAULT=TestTodo_SUBPROCESSOR_001_Fault`; `SECURITY=TestTodo_SUBPROCESSOR_001_Security`; `CONFORMANCE=TestTodo_SUBPROCESSOR_001_Conformance`; `RECOVERY=TestTodo_SUBPROCESSOR_001_Recovery`; `MODEL_BASED=TestTodo_SUBPROCESSOR_001_ModelBased`; `MUTATION=TestTodo_SUBPROCESSOR_001_Mutation`.
+  - **RED:** new processor/region/purpose/data category/retention appears without inventory diff, risk/transfer review, customer notice/objection interval, contractual approval or exit fallback; emergency replacement becomes permanent silently.
+  - **GREEN:** immutable change revision identifies affected tenants/flows/intents and material differences, completes security/privacy/residency/contract reviews, issues scoped notice and records objections/disposition; activation is fenced until obligations pass and emergency exception has compensating controls and expiry.
+  - **REFACTOR:** provider and processing inventories share one processor identity and change graph; customer communication remains a typed obligation.
+  - **Refs:** [privacy flows](specs/platform-responsibility-boundaries.md), [integration lifecycle](specs/integration-platform.md), [risk register](specs/risk-register.md).
+
+- [ ] `REFDATA-001` **[GATE_A][SOL_HIGH] Operate global and tenant reference datasets through complete source-to-adoption lifecycle.**
+  - **Depends:** `MODEL-005`, `MODEL-018`, `CONFIG-003`, `DATA-021`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=ensure calendars, locations, currencies, codes, classifications and other reference releases cannot change intent behavior through ambient or partially adopted data`.
+  - **TEST:** `TestReferenceDatasetReleasePinsSourceValidityAdoptionImpactAndRollback`.
+  - **TEST MATRIX:** `PRIMARY=TestReferenceDatasetReleasePinsSourceValidityAdoptionImpactAndRollback`; `PROPERTY=TestTodo_REFDATA_001_Property`; `GOLDEN=TestTodo_REFDATA_001_Golden`; `FUZZ=FuzzTodo_REFDATA_001`; `INTEGRATION=TestTodo_REFDATA_001_Integration`; `FAULT=TestTodo_REFDATA_001_Fault`; `SECURITY=TestTodo_REFDATA_001_Security`; `CONFORMANCE=TestTodo_REFDATA_001_Conformance`; `RECOVERY=TestTodo_REFDATA_001_Recovery`; `MODEL_BASED=TestTodo_REFDATA_001_ModelBased`; `MUTATION=TestTodo_REFDATA_001_Mutation`.
+  - **RED:** dataset lacks authoritative source/license/coverage/effective-known interval, malformed or incomplete member publishes, tenant override weakens mandatory value, consumers split across versions silently, rollback revives withdrawn data or affected intents are not identified.
+  - **GREEN:** immutable dataset release pins source/schema/member digests and applicability, validates completeness/conflicts, compiles permitted overrides, publishes through dependency/rollout gates and records consumer adoption/impact/rollback with historical executions staying pinned.
+  - **REFACTOR:** one reference-data service owns release mechanics while each semantic dataset retains a qualified domain/legal owner.
+  - **Refs:** [reference data boundary](specs/platform-responsibility-boundaries.md), [configuration publication](specs/platform-foundation-gap-closure.md), [model registry](data/models/registry-and-coverage-contracts.md).
+
+- [ ] `MASK-001` **[GATE_A][SOL_HIGH] Generate privacy-safe masked and synthetic datasets with measured semantic fidelity.**
+  - **Depends:** `MODEL-023`, `PRIV-001`, `SANDBOX-001`, `DATA-019`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide realistic development, migration and conformance data without copying identifiable workforce truth or destroying edge-case semantics`.
+  - **TEST:** `TestMaskedSyntheticDatasetPreventsReidentificationAndPreservesDeclaredSemanticCoverage`.
+  - **TEST MATRIX:** `PRIMARY=TestMaskedSyntheticDatasetPreventsReidentificationAndPreservesDeclaredSemanticCoverage`; `PROPERTY=TestTodo_MASK_001_Property`; `GOLDEN=TestTodo_MASK_001_Golden`; `FUZZ=FuzzTodo_MASK_001`; `INTEGRATION=TestTodo_MASK_001_Integration`; `FAULT=TestTodo_MASK_001_Fault`; `SECURITY=TestTodo_MASK_001_Security`; `CONFORMANCE=TestTodo_MASK_001_Conformance`; `RECOVERY=TestTodo_MASK_001_Recovery`; `BENCHMARK=BenchmarkTodo_MASK_001`; `MUTATION=TestTodo_MASK_001_Mutation`.
+  - **RED:** direct/quasi identifier survives, linkage or rare cohort enables reidentification, deterministic token crosses tenant/purpose, referential/temporal/decimal/legal edge cases disappear, synthetic row is mistaken for production truth or regeneration cannot be reproduced/destroyed.
+  - **GREEN:** versioned profile declares source authority, field/relationship transforms, privacy risk threshold and fidelity requirements; output passes attack tests and expected invariant/distribution/edge-case coverage, is visibly synthetic, side-effect fenced, expiring and independently destructible.
+  - **REFACTOR:** masking uses Transformation/classification/provenance engines but retains separate privacy-risk and fidelity evaluation.
+  - **Refs:** [masking boundary](specs/platform-responsibility-boundaries.md), [classification](specs/data-classification-and-dlp.md), [sandbox](specs/platform-responsibility-boundaries.md).
+
+## 64. Dependency-ordered execution convergence
+
+These todos turn the planning corpus into two bounded releases. They are scope and
+evidence compilers, not permission to implement deferred HCM domains.
+
+- [ ] `NEXT-001` **[P0][SOL_HIGH] Separate local BusinessIntent source recovery mechanics from external authenticity attestation.**
+  - **Depends:** `GOV-008`, `TOOL-002`, `TOOL-003`, `TOOL-004`, `MODEL-008`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make catalog reconciliation useful without falsely authenticating or promoting missing baseline definitions`.
+  - **TEST:** `TestSourceRecoveryPackagePreservesBytesRowsAndUnboundStatusWithoutIssuerEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestSourceRecoveryPackagePreservesBytesRowsAndUnboundStatusWithoutIssuerEvidence`; `PROPERTY=TestTodo_NEXT_001_Property`; `GOLDEN=TestTodo_NEXT_001_Golden`; `FUZZ=FuzzTodo_NEXT_001`; `SECURITY=TestTodo_NEXT_001_Security`; `CONFORMANCE=TestTodo_NEXT_001_Conformance`; `MUTATION=TestTodo_NEXT_001_Mutation`.
+  - **RED:** parser changes bytes/order/Unicode, loses row spans, maps vocabulary similarity to baseline identity or marks a row source-bound without original bytes plus trusted issuer/release provenance.
+  - **GREEN:** deterministic package freezes the 14 draft, 516 unbound and 807 vocabulary records with canonical bytes/digests/dispositions; absent authenticity evidence leaves every affected row `UNBOUND_SOURCE`, while later verified bytes can join exactly once.
+  - **REFACTOR:** keep recovery/parser evidence reusable; `SOURCE-001` remains the separate external attestation gate.
+  - **Refs:** [catalog identity](specs/business-intent-catalog.md#catalog-identity), [convergence plan](next-steps.md#current-truth).
+
+- [ ] `NEXT-002` **[P0][SOL_HIGH] Publish the selection-bound P1A release and deferred P1B amendment manifests.**
+  - **Depends:** `PHASE-001`, `SELECT-001`, `SELECT-002`, `CUSTOMER-001`, `TOPOLOGY-001`, `COMMERCIAL-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION,BI.OPERATIONS; DIRECT=none; WHY=bind the scope ceiling to real partner, provider, jurisdiction, topology and commercial facts without granting write authority`.
+  - **TEST:** `TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete`.
+  - **TEST MATRIX:** `PRIMARY=TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete`; `PROPERTY=TestTodo_NEXT_002_Property`; `GOLDEN=TestTodo_NEXT_002_Golden`; `SECURITY=TestTodo_NEXT_002_Security`; `CONFORMANCE=TestTodo_NEXT_002_Conformance`; `MUTATION=TestTodo_NEXT_002_Mutation`.
+  - **RED:** one blended manifest grants writes before Gate A, omits a selected external fact, includes unbound/deferred intent or lets P1A create workforce mutation, reservation, WorkItem, timer, message, outbox effect or provider write.
+  - **GREEN:** signed P1A manifest contains exactly the approved read/preflight/simulation/observation scope and hard zero-effect ceiling; separately signed P1B template names only the six candidate write/approval contracts and cannot activate without Gate A plus a new authority digest.
+  - **REFACTOR:** generate release, endpoint, deployment and gate views from the same manifest identities.
+  - **Refs:** [two releases](next-steps.md#two-releases-never-one-blended-phase-1), [execution plan](execution-plan.md).
+
+- [ ] `NEXT-003` **[GATE_A][SOL_HIGH] Compile Gate A evidence from the exact signed P1A manifest.**
+  - **Depends:** `NEXT-002`, `WEDGE-001`–`WEDGE-013`, `NEXT-005`, `NEXT-008`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION,BI.OPERATIONS; DIRECT=none; WHY=make the paid-observation decision depend on current release evidence rather than broad todo-number ranges`.
+  - **TEST:** `TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence`.
+  - **TEST MATRIX:** `PRIMARY=TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence`; `PROPERTY=TestTodo_NEXT_003_Property`; `GOLDEN=TestTodo_NEXT_003_Golden`; `FAULT=TestTodo_NEXT_003_Fault`; `SECURITY=TestTodo_NEXT_003_Security`; `CONFORMANCE=TestTodo_NEXT_003_Conformance`; `RECOVERY=TestTodo_NEXT_003_Recovery`; `MUTATION=TestTodo_NEXT_003_Mutation`.
+  - **RED:** omitted/expired/failed test, owner, command, fixture, artifact, restore, SLO, accessibility or privacy evidence still passes; an out-of-manifest system is required; or any workforce/provider effect is observed.
+  - **GREEN:** manifest closure maps each selected artifact and acceptance claim to an exact oracle, result digest, owner, retention and expiry and returns `GATE_BLOCKED` for any defect; passing evidence can yield a signed decision but never write authority.
+  - **REFACTOR:** `WEDGE-014` consumes only this evidence receipt; phase membership is data, not numeric todo ranges.
+  - **Refs:** [Gate A milestone](next-steps.md#m4-gate-a-decision), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
+
+- [ ] `NEXT-004` **[GATE_A][SOL_HIGH] Bootstrap the smallest production-shaped Go runtime and PostgreSQL chronology.**
+  - **Depends:** `TOOL-001`, `ARCH-GO-001`, `ARCH-GO-018`, `PROTO-001`, `PROTO-002`, `DB-001`, `DB-002`, `DB-006`, `LEDGER-001`, `DATA-007`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.PEOPLE,BI.REWARDS,BI.OPERATIONS; DIRECT=none; WHY=prove one typed intent can traverse generated transport and authoritative persistence before staffing horizontal platform breadth`.
+  - **TEST:** `TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles`.
+  - **TEST MATRIX:** `PRIMARY=TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles`; `GOLDEN=TestTodo_NEXT_004_Golden`; `RACE=TestTodo_NEXT_004_Race`; `INTEGRATION=TestTodo_NEXT_004_Integration`; `FAULT=TestTodo_NEXT_004_Fault`; `SECURITY=TestTodo_NEXT_004_Security`; `RECOVERY=TestTodo_NEXT_004_Recovery`; `MUTATION=TestTodo_NEXT_004_Mutation`.
+  - **RED:** release requires Node/npm, lacks generated service bindings, has competing migration roots, loses ledger/projection/outbox chronology on crash, or restart cannot return the same typed intent/simulation result.
+  - **GREEN:** root Go module builds `hcmnext`, `worker`, `projector` and bootstrap `migrate`; ephemeral PostgreSQL migrates from zero, typed Create/Get/Simulate calls persist one ACID chronology, worker acknowledgement and restart/reconciliation preserve exact digests.
+  - **REFACTOR:** add scheduler/admin and mature migration/deployment qualification only when their first selected runtime behavior requires them.
+  - **Refs:** [physical spine](next-steps.md#m2-production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
+
+- [ ] `NEXT-005` **[GATE_A][SOL_HIGH] Prove the complete P1A Promotion path has zero workforce and external effects.**
+  - **Depends:** `EP-PROMO-001`, `PROMO-001`–`PROMO-004`, `SNAPSHOT-001`–`SNAPSHOT-003`, `INTG-001`–`INTG-010`, `RECON-001`, `RECON-002`, `REPAIR-001`, `REPAIR-003`, `EVIDENCE-001`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION,BI.OPERATIONS; DIRECT=PromoteWorker; WHY=establish the paid observe/preflight/simulation product before requesting authority expansion`.
+  - **TEST:** `TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect`.
+  - **TEST MATRIX:** `PRIMARY=TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect`; `PROPERTY=TestTodo_NEXT_005_Property`; `GOLDEN=TestTodo_NEXT_005_Golden`; `RACE=TestTodo_NEXT_005_Race`; `INTEGRATION=TestTodo_NEXT_005_Integration`; `FAULT=TestTodo_NEXT_005_Fault`; `SECURITY=TestTodo_NEXT_005_Security`; `CONFORMANCE=TestTodo_NEXT_005_Conformance`; `RECOVERY=TestTodo_NEXT_005_Recovery`; `MUTATION=TestTodo_NEXT_005_Mutation`.
+  - **RED:** request smuggles current truth, stale/partial/denied input becomes complete, replay duplicates intent, simulation omits write/effect/approval/conflict/authority/repair detail, or any domain revision/reservation/task/timer/message/outbox/provider mutation appears.
+  - **GREEN:** trusted ingress creates one intent; mixed-source snapshot preserves status/provenance; deterministic simulation and immutable proposal expose complete before/after and uncertainty; handoff/observation/reconciliation/repair recommendation produce one evidence receipt and the prohibited-effect row/request counts remain exactly zero under retry/crash.
+  - **REFACTOR:** the Promotion application package orchestrates owner ports; provider adapters and workflow steps contain no promotion semantics.
+  - **Refs:** [P1A Promotion slice](next-steps.md#m3-p1a-promotion-vertical-slice), [Promotion workflow](reference-workflows/promote-into-management.md).
+
+- [ ] `NEXT-006` **[GATE_B][SOL_HIGH] Select and bind exactly one P1B authority topology.**
+  - **Depends:** `WEDGE-014`, `NEXT-002`, `WEDGE-004`, `SELECT-002`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION; DIRECT=PromoteWorker; WHY=prevent external-authority and local-authority semantics from being implemented simultaneously or confused in ledger evidence`.
+  - **TEST:** `TestP1BAuthorityAmendmentSelectsOneTopologyAndEmitsOnlyTruthfulFacts`.
+  - **TEST MATRIX:** `PRIMARY=TestP1BAuthorityAmendmentSelectsOneTopologyAndEmitsOnlyTruthfulFacts`; `PROPERTY=TestTodo_NEXT_006_Property`; `GOLDEN=TestTodo_NEXT_006_Golden`; `FAULT=TestTodo_NEXT_006_Fault`; `SECURITY=TestTodo_NEXT_006_Security`; `CONFORMANCE=TestTodo_NEXT_006_Conformance`; `MUTATION=TestTodo_NEXT_006_Mutation`.
+  - **RED:** both topologies activate, amendment lacks tenant/field/capability/time/expiry, externally mastered state is emitted as local `DOMAIN_FACT`, or transferred authority writes before explicit partner grant.
+  - **GREEN:** immutable amendment selects `EXTERNAL_AUTHORITY` or `TRANSFERRED_AUTHORITY`, binds exact fields and operations, changes transaction/event expectations accordingly and fails closed at expiry, revocation, ambiguity or topology mismatch.
+  - **REFACTOR:** conditionally admit local command implementations and event types from the authority manifest; do not maintain two speculative write stacks.
+  - **Refs:** [P1B authority](next-steps.md#p1b--one-bounded-authority-amendment), [authority contract](plan.md#91-authority-contract).
+
+- [ ] `NEXT-007` **[CONFORMANCE][SOL_HIGH] Firewall Medical Leave conformance from Gate A/B and Phase 2 implementations.**
+  - **Depends:** `CONF-001`, `LEAVE-001`–`LEAVE-008`, `LEAVE-012`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE,BI.REWARDS,BI.REGULATORY,BI.DOCUMENTS; DIRECT=RequestLeave,ExtendLeave,ReturnFromLeave; WHY=use Leave as a hostile reusable-engine proof without claiming legal coverage or creating production authority`.
+  - **TEST:** `TestLeaveConformanceGraphHasNoGateABOrPhase2ImplementationDependency`.
+  - **TEST MATRIX:** `PRIMARY=TestLeaveConformanceGraphHasNoGateABOrPhase2ImplementationDependency`; `PROPERTY=TestTodo_NEXT_007_Property`; `GOLDEN=TestTodo_NEXT_007_Golden`; `FAULT=TestTodo_NEXT_007_Fault`; `SECURITY=TestTodo_NEXT_007_Security`; `CONFORMANCE=TestTodo_NEXT_007_Conformance`; `MUTATION=TestTodo_NEXT_007_Mutation`.
+  - **RED:** `CONF-004` closure reaches JOIN/SUBWORKFLOW/runtime/provider/legal-delivery implementation, claims real jurisdiction, mutates authoritative state, defaults `UNKNOWN`, leaks medical evidence or extracts a generic engine without cross-domain counterexamples.
+  - **GREEN:** fixed hypothetical fixtures run through contract doubles and golden vectors with zero writes/provider calls, exact partial replan and actor-view noninterference; every engine verdict is `EXTRACT|KEEP_DOMAIN_LOCAL|INSUFFICIENT_EVIDENCE`, and implementation remains a separate decision.
+  - **REFACTOR:** split `LEAVE-015`, notice, evidence-loop, balance-invalidation and readiness todos into contract/vector and later implementation halves before making `CONF-004` depend on them.
+  - **Refs:** [Leave conformance track](next-steps.md#medical-leave-conformance-track), [Leave workflow](workflows/leave/leave-return-to-work.md).
+
+- [ ] `NEXT-008` **[P0][SOL_HIGH] Reject gate dependency inversions and produce gate-scoped assurance closures.**
+  - **Depends:** `GOV-017`, `GOV-023`, `GOV-026`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent an earlier release gate from silently requiring later-phase implementation or certifying itself through circular evidence`.
+  - **TEST:** `TestGateDependencyGraphRejectsLaterPhaseEdgesCyclesAndEvidenceSelfCertification`.
+  - **TEST MATRIX:** `PRIMARY=TestGateDependencyGraphRejectsLaterPhaseEdgesCyclesAndEvidenceSelfCertification`; `PROPERTY=TestTodo_NEXT_008_Property`; `GOLDEN=TestTodo_NEXT_008_Golden`; `SECURITY=TestTodo_NEXT_008_Security`; `CONFORMANCE=TestTodo_NEXT_008_Conformance`; `MUTATION=TestTodo_NEXT_008_Mutation`.
+  - **RED:** Gate A reaches Gate B/C/Phase 2 implementation, Gate B evidence omits required recovery/independent assurance, assurance depends on the gate package it must inform, backup readability substitutes for restore, or broad range expansion changes closure silently.
+  - **GREEN:** compiler expands exact manifest-selected todo/test/evidence edges, rejects later-phase and cyclic paths with a minimal witness, permits explicit contract/vector dependencies, and places independent assurance plus cross-store restore before the final Gate B evidence node.
+  - **REFACTOR:** generate gate graphs and phase-leak reports in CI; scope exceptions require signed exchange and expiry.
+  - **Refs:** [required backlog repairs](next-steps.md#required-backlog-repairs), [backlog governance](#backlog-governance-and-traceability).
+
+- [ ] `NEXT-009` **[GATE_B][SOL_HIGH] Compile the pre-write P1B authority evidence amendment.**
+  - **Depends:** `WEDGE-014`, `NEXT-002`, `NEXT-006`, `NEXT-008`, `GOV-003`, `GOV-023`, `RECOVERY-005`, `ASSURANCE-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION,BI.OPERATIONS; DIRECT=PromoteWorker; WHY=authorize the first bounded write only from complete current evidence, before rather than after the write pilot`.
+  - **TEST:** `TestP1BPreWriteAuthorityEvidenceRejectsMissingStaleCircularOrPostPilotProof`.
+  - **TEST MATRIX:** `PRIMARY=TestP1BPreWriteAuthorityEvidenceRejectsMissingStaleCircularOrPostPilotProof`; `PROPERTY=TestTodo_NEXT_009_Property`; `GOLDEN=TestTodo_NEXT_009_Golden`; `FAULT=TestTodo_NEXT_009_Fault`; `SECURITY=TestTodo_NEXT_009_Security`; `CONFORMANCE=TestTodo_NEXT_009_Conformance`; `RECOVERY=TestTodo_NEXT_009_Recovery`; `MUTATION=TestTodo_NEXT_009_Mutation`.
+  - **RED:** authority relies on future pilot outcomes, self-certifying gate evidence, missing topology/field/provider/expiry, unreadable restore, open critical assurance finding, unowned rollback/repair/incident path or a stale Gate A artifact.
+  - **GREEN:** immutable amendment maps every pre-write criterion to current test command, fixture, exact oracle, result digest, owner, retention, expiry and sign-off; success grants only the selected tenant/intent/capability/field/provider/time scope and every defect returns `GATE_BLOCKED` with zero write authority.
+  - **REFACTOR:** keep pre-write authorization separate from `GATEB-EVID-001`, which evaluates actual bounded-write operation and the post-pilot continue/narrow/stop decision.
+  - **Refs:** [P1B milestone](next-steps.md#m5-p1b-bounded-write-path), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority).
+
+## 65. Additional untraveled operational and delivery surfaces
+
+These continue the cross-cutting inventory from section 63; they remain outside
+the bounded convergence tasks unless selected by a signed release manifest.
+
+- [ ] `IDEMP-001` **[GATE_A][SOL_HIGH] Govern idempotency identity, retention, expiry and tombstones across every ingress and effect layer.**
+  - **Depends:** `TX-006`, `DATA-009`, `INTG-018`, `JOB-001`, `MSG-006`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent API, workflow, job, webhook, message and connector retry layers from using incompatible dedupe identities or forgetting them before replay risk expires`.
+  - **TEST:** `TestCrossLayerIdempotencyLifecyclePreservesOneLogicalActionAcrossRetentionAndReplayBoundaries`.
+  - **TEST MATRIX:** `PRIMARY=TestCrossLayerIdempotencyLifecyclePreservesOneLogicalActionAcrossRetentionAndReplayBoundaries`; `PROPERTY=TestTodo_IDEMP_001_Property`; `GOLDEN=TestTodo_IDEMP_001_Golden`; `FUZZ=FuzzTodo_IDEMP_001`; `RACE=TestTodo_IDEMP_001_Race`; `INTEGRATION=TestTodo_IDEMP_001_Integration`; `FAULT=TestTodo_IDEMP_001_Fault`; `SECURITY=TestTodo_IDEMP_001_Security`; `CONFORMANCE=TestTodo_IDEMP_001_Conformance`; `RECOVERY=TestTodo_IDEMP_001_Recovery`; `MODEL_BASED=TestTodo_IDEMP_001_ModelBased`; `MUTATION=TestTodo_IDEMP_001_Mutation`.
+  - **RED:** same key with different canonical request is accepted, tenant/principal/channel scopes collide, nested retries multiply action, key expires before downstream replay/provider retention, deletion removes duplicate-effect protection or restore resurrects a reusable key without outcome.
+  - **GREEN:** registry defines stable logical-action/effect identities, scope and canonical request/result binding per layer; retention derives from maximum replay/legal/provider horizon, expired records leave privacy-minimized tombstones where required, conflicts return typed result and crash/restore preserves one outcome/effect.
+  - **REFACTOR:** layer adapters map to one lifecycle contract but keep business idempotency distinct from transport delivery dedupe.
+  - **Refs:** [idempotency lifecycle](specs/platform-foundation-gap-closure.md), [transaction idempotency](specs/transaction-plan-and-commit-coordinator.md), [integration operation identity](specs/integration-platform.md).

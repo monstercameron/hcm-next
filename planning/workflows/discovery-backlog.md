@@ -103,3 +103,9 @@ Talent, learning, access, communications, documents, privacy, global mobility,
 safety, regulatory, analytics, DataOps and platform-operation intents remain in
 the broader BusinessIntent catalog. They are dependencies or follow-on workflow
 families, not silently absorbed into the HR service.
+
+Their repository-known vocabulary now has high-level recipe/profile/delta
+coverage in the [BusinessIntent Workflow Design Registry](business-intent-workflow-registry.md).
+Detailed per-intent deep dives remain incremental work. Exact accepted-catalog
+completion remains blocked on the immutable 530-candidate source manifest; an
+unnamed source candidate cannot be honestly designed or counted as verified.

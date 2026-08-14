@@ -62,6 +62,22 @@ The [HR Workflow Data and Property Register](hr-workflow-data-register.md)
 consolidates recurring candidate entities, fields, execution evidence and
 unresolved modeling decisions.
 
+The [BusinessIntent Workflow Design Registry](business-intent-workflow-registry.md)
+maps every repository-known intent to a complete high-level recipe and domain
+profile, including explicit direct-capability dispositions. It also records the
+hard source boundary that prevents a false `530/530` claim until the immutable
+candidate manifest is checked in.
+
+The [Every-BusinessIntent Vertical-Slice Program](vertical-slices/README.md)
+expands those mappings through the
+[MAX-v1 maximal configuration profile](vertical-slices/maximal-configuration-profile.md),
+the [convergence plan](vertical-slices/plan.md), the
+[530-slot baseline register](vertical-slices/baseline-vertical-slice-register.md),
+the [807-name vocabulary register](vertical-slices/vocabulary-vertical-slice-register.md),
+and the [gap register](vertical-slices/gap-register.md). It separates
+accepted numbered slots from the larger repository vocabulary so missing source
+identity cannot masquerade as design completeness.
+
 Workflow-engine exploration:
 
 - [All 17 step-type contracts](_engine/step-types.md)

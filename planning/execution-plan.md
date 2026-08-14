@@ -2,6 +2,10 @@
 
 This document converts the architecture constitution in [plan.md](plan.md) into a bounded Phase 1 delivery plan. When the two documents differ on near-term scope, this execution plan controls implementation sequencing; `plan.md` continues to control architectural invariants and long-term direction.
 
+The dependency-ordered implementation bridge, current blockers, first ten working
+days and separate P1A/P1B release contracts are maintained in
+[next-steps.md](next-steps.md).
+
 ## Phase 1 Outcome
 
 Prove that HCM Next improves one Promotion + Compensation Change workflow for paid design partners without becoming the employee system of record or building the eventual Workforce OS prematurely.

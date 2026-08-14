@@ -12,6 +12,7 @@ Current specification index:
 - [Platform plane model](platform-plane-model.md)
 - [Platform foundation gap closure](platform-foundation-gap-closure.md)
 - [Platform responsibility boundaries](platform-responsibility-boundaries.md)
+- [HTTP and gRPC endpoint contract](http-grpc-endpoint-contract.md)
 - [Canonical envelope and digest](canonical-envelope-and-digest.md)
 - [Capability registry and lifecycle](capability-registry-and-lifecycle.md)
 - [Source authority and external mastering](source-authority-and-external-mastering.md)
@@ -42,6 +43,7 @@ Current specification index:
 - [Messaging and notification plane](messaging-and-notification-plane.md)
 - [HRIS Admin DataOps](hris-admin-dataops.md)
 - [Experience UI and branding](experience-ui-and-branding.md)
+- [User-flow design program](../user-flows/README.md)
 
 ### Assurance, evidence, and operations
 
@@ -50,12 +52,14 @@ Current specification index:
 - [Records management and disposition](records-management-and-disposition.md)
 - [Governance decision and obligation composition](governance-decision-and-obligation-composition.md)
 - [Incident management](incident-management.md)
+- [Structured logging and OpenTelemetry](structured-logging-and-opentelemetry.md)
 
 ### Strategy, inventories, and audit registers
 
 - [Competitive positioning and authority expansion](competitive-positioning-and-authority-expansion.md)
 - [Adversarial gap closure, 2026-08-13](adversarial-gap-closure-2026-08-13.md)
 - [Thirty-two-reviewer adversarial audit, 2026-08-14](adversarial-audit-32-reviewers-2026-08-14.md)
+- [Adversarial edge-case and tooling audit, 2026-08-14](adversarial-edge-and-tooling-audit-2026-08-14.md)
 - [Specification ownership registry](specification-ownership-registry.md)
 - [Platform capability coverage matrix](platform-capability-coverage-matrix.md)
 - [Risk register](risk-register.md)

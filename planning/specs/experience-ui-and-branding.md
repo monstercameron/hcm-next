@@ -30,6 +30,12 @@ governed capability / workflow transition
 Generated UI is data and configuration. It is never arbitrary generated
 JavaScript, HTML, CSS, SQL, or direct database access.
 
+Human journeys, state presentation, interruption/recovery and cross-channel
+continuity are designed in the
+[User-Flow Design Program](../user-flows/README.md). User-flow artifacts consume
+this presentation contract and the BusinessIntent/workflow contracts; they do
+not become another source of business semantics.
+
 ## Presentation Authority Boundary
 
 The experience layer may:
