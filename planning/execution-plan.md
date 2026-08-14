@@ -1,0 +1,449 @@
+# HCM Next Phase 1 Execution Plan
+
+This document converts the architecture constitution in [plan.md](plan.md) into a bounded Phase 1 delivery plan. When the two documents differ on near-term scope, this execution plan controls implementation sequencing; `plan.md` continues to control architectural invariants and long-term direction.
+
+## Phase 1 Outcome
+
+Prove that HCM Next improves one Promotion + Compensation Change workflow for paid design partners without becoming the employee system of record or building the eventual Workforce OS prematurely.
+
+```text
+manager/HR intent
+      -> immutable proposal
+      -> preflight and simulation
+      -> exact approval binding
+      -> execution-time revalidation
+      -> one governed HCM write path
+      -> external observation
+      -> reconciliation or RepairPlan
+      -> complete evidence
+```
+
+The competitive proof is not that HCM Next has workflow, APIs, webhooks, AI, or
+an HCM feature catalog. Those are table stakes in current enterprise suites. The
+pilot must show that cross-system proposal integrity, source authority, conflict
+control, execution-time revalidation, observation, reconciliation, and repair
+remove more risk and operating complexity than the additional control-plane
+dependency introduces. See the [competitive positioning and authority expansion
+contract](specs/competitive-positioning-and-authority-expansion.md).
+
+## Scope Rules
+
+Phase 1 has four implementation-depth labels:
+
+- **IMPLEMENT** — production behavior exists, is operated, and gates the pilot.
+- **MINIMAL CONTRACT** — stable boundary and identifiers exist, with only the pilot behavior implemented.
+- **DESIGN / CONFORMANCE ONLY** — scenarios prevent architectural dead ends; no production subsystem is staffed.
+- **OUT OF PHASE** — no work unless an explicit dependency decision removes comparable scope.
+
+These are the only normative delivery-depth values. Other documents and generated
+sources map to them as follows:
+
+| Alternate wording                                                     | Normative delivery depth                                                                                                  |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `Phase 1 slice`, `GATE_A_IMPLEMENT`, `GATE_B_IMPLEMENT`               | `IMPLEMENT` only after the applicable gate evidence exists; before then `MINIMAL CONTRACT` or `DESIGN / CONFORMANCE ONLY` |
+| `Phase 1 gate`, `CONTRACT ONLY`, `Minimal contract`                   | `MINIMAL CONTRACT`                                                                                                        |
+| `CONFORMANCE ONLY`, `DESIGN_CONFORMANCE_ONLY`, long-term architecture | `DESIGN / CONFORMANCE ONLY`                                                                                               |
+| `Deferred`, `OUT`                                                     | `OUT OF PHASE`                                                                                                            |
+
+Artifact maturity is independent: `DRAFT_CONTRACT`, `CONTRACTED`, `PUBLISHED`,
+`DEPRECATED`, and `RETIRED` describe contract lifecycle, not implementation depth.
+Coverage states (`DEFINED`, `PARTIAL`, `IMPLIED`, `MISSING`, `DEFERRED`) describe
+responsibility coverage, not delivery. No alternate word may silently promote an
+artifact across these axes.
+
+The detailed matrix is authoritative in [Phase 1 of the master plan](plan.md#phase-1-changeops-overlay).
+
+Coverage status is not staffing authority. Every Gate A/B deliverable must appear
+in a named delivery manifest with artifact, owner, estimate, dependency,
+acceptance evidence, operations owner, and displaced scope for late additions.
+The scope-budget, stop conditions, contract-toolchain gate, manual-continuity
+requirements, and negative conformance cases are defined in the
+[2026-08-13 adversarial gap-closure contract](specs/adversarial-gap-closure-2026-08-13.md)
+and the maintained
+[2026-08-14 thirty-two-reviewer audit](specs/adversarial-audit-32-reviewers-2026-08-14.md).
+
+## Legacy Baseline Rule
+
+The repository already documents working legal-name, headcount-approval,
+organization-transfer, workflow-admin, schema-driven UI, and AI-generated-page
+behavior. Treat that behavior as regression input for a clean Go
+reimplementation. Do not extend or deploy the Node/TypeScript and React paths.
+
+```text
+legacy route / fixture / UI contract
+              |
+        capture current evidence
+              |
+       define Protobuf capability
+              |
+       implement complete Go vertical slice
+              |
+  shadow/simulate and compare outcomes
+              |
+      verify Go-native conformance
+              |
+      exclude legacy runtime from release
+```
+
+Historical markdown statements that tests passed do not establish present
+status. The cutover gate uses fresh Go-native CI, ledger, projection, AuthZ, workflow,
+outbox, accessibility, and recovery evidence. See the retained
+[legacy implementation baseline](specs/legacy-implementation-baseline.md).
+
+The language and core-library boundary is governed by [the Go-Only Technology
+Constitution](specs/go-only-technology-constitution.md).
+
+## Capability Coverage Rule
+
+Every newly discovered backend responsibility is added to the [Platform Capability Coverage Matrix](specs/platform-capability-coverage-matrix.md) as `DEFINED`, `PARTIAL`, `IMPLIED`, `MISSING`, or `DEFERRED`, with an owner, evidence link, phase depth, and next closure action. `IMPLIED` or `MISSING` responsibilities required by the pilot must be resolved before implementation; they cannot be hidden inside workflow, connector, or UI code.
+
+For Phase 1, “resolved” means the owner, canonical state, typed API, dependency boundary, fail-open/closed/stale/queued behavior, evidence, security controls, and implementation depth are written and reviewed. The [explicit responsibility boundaries](specs/platform-responsibility-boundaries.md) close the formerly implied shared systems; the [foundation gap-closure contracts](specs/platform-foundation-gap-closure.md) define runtime configuration/bootstrap, identity/session/recovery, hostile-content quarantine, governed global datasets, dependency discovery, idempotency retention, certificate lifecycle, deletion, incident communication, and accessibility assurance.
+
+## HRIS DataOps Operator-Surface Rule
+
+Phase 1 will already need import staging, system comparison, temporal/provenance diagnosis, AuthZ explanation, connector testing/redrive, and configuration diff/promotion to operate the pilot safely. Build these as semantic capabilities with customer-grade authorization and evidence, but productize only the slices a design partner uses independently.
+
+```text
+pilot operational need
+        -> governed internal capability
+        -> safe HRIS-admin workspace
+        -> repeated independent customer use?
+             | yes                 | no
+             v                     v
+       supported DataOps       remain operator-only
+          capability
+```
+
+See [the HRIS Admin Toolkit and DataOps specification](specs/hris-admin-dataops.md).
+
+## Integration Platform Slice
+
+Phase 1 builds one reusable external-system path, not a collection of vendor services:
+
+```text
+ConnectorDefinition
+      + ConnectorConnection
+      + MappingProfile
+      + ExternalReference crosswalk
+               |
+               v
+       ConnectorOperation journal
+               |
+      rate-aware queue + adapter
+               |
+               v
+       external observation
+               |
+        reconcile / redrive
+```
+
+The design-partner system determines the first named connector. That connector must use the shared definition, connection, mapping, permission-diagnostic, capacity, operation, observation, redrive, and reconciliation contracts. Phase 1 does not promise other named connectors, bidirectional coverage for every vendor object, or marketplace certification.
+
+See [the Integration Platform specification](specs/integration-platform.md).
+
+## Communications Plane Slice
+
+Phase 1 communication is intentionally narrow:
+
+```text
+Approval / HumanTask
+        |
+   MessageIntent
+        |
+audience + template + endpoint policy
+        |
+  secure inbox + transactional email
+        |
+delivery observation / acknowledgement
+        |
+   workflow signal
+```
+
+The pilot implements no general omnichannel product. It proves semantic intent, current audience resolution, deterministic rendering, protected inbox delivery, asynchronous provider handling, and honest delivery evidence for Promotion approvals and tasks.
+
+See [the Messaging and Notification Plane specification](specs/messaging-and-notification-plane.md).
+
+## Experience and Branding Slice
+
+Phase 1 implements one Promotion workspace with GoWebComponents over the same
+Protobuf capabilities used by internal Go callers. grpcbridge supplies the web
+transport adaptation; SchemaFlux compiles the selected structured catalogs and
+dependency views without becoming a competing source of schema truth.
+
+```text
+authorized workflow state
+          +
+provenance-bearing field bindings
+          +
+available semantic actions
+          v
+typed PageDefinition -> registered widgets -> GoWebComponents
+```
+
+The slice must retain semantic brand tokens, field filtering before render,
+keyboard and assistive-technology support, and workflow-native actions. It does
+not need pixel parity with the historical React console or a general visual
+builder. No React or TypeScript runtime is shipped.
+See [the experience, dynamic UI, and branding contract](specs/experience-ui-and-branding.md).
+
+## Plane Dependency Rule
+
+Phase 1 remains a vertical slice through the canonical plane model:
+
+```text
+GWC -> grpcbridge -> Identity/Governance -> Control resolution
+                                           |
+                                           v
+                                        Workflow
+                                           |
+                                           v
+                            People + Rewards capabilities
+                                           |
+                                           v
+                         ledger + projection + outbox commit
+                                           |
+                              connector / message effects
+```
+
+Workflow code may coordinate `people.promote` and
+`rewards.compensation.change`; it may not update their tables or construct their
+canonical events. Domain packages own validation, invariants, transaction
+behavior, events, and critical projections. Analytics, search, semantic indexes,
+and reporting remain outside the synchronous pilot command path.
+
+See [the Canonical Platform Plane Model](specs/platform-plane-model.md).
+
+The bounded business semantics are defined by the [People, Employment, and
+Assignment Domain](specs/people-employment-assignment-domain.md), [Organization
+and Relationship Domain](specs/organization-and-relationship-domain.md),
+[Compensation Domain](specs/compensation-domain.md), and [Position and Headcount
+Domain](specs/position-and-headcount-domain.md). [Source Authority](specs/source-authority-and-external-mastering.md), [Identity Resolution](specs/identity-resolution-and-entity-linkage.md), and [Workforce Budget Authority](specs/workforce-budget-authority.md) are shared governed inputs. Approval, idempotency, event,
+configuration, and evidence hashes use the [Canonical Envelope and Digest
+Contract](specs/canonical-envelope-and-digest.md).
+
+The [Business Intent Kernel](specs/business-intent-and-change-request.md) owns the
+multidimensional request lifecycle; the [Conflict Registry](specs/cross-workflow-conflict-and-write-intent.md) closes races at commit; [Classification and DLP](specs/data-classification-and-dlp.md) owns labels and propagation; and [Records Management](specs/records-management-and-disposition.md) owns record declaration through disposition.
+
+The [Business Intent Catalog](specs/business-intent-catalog.md) accepts the
+530-name semantic vocabulary while preventing it from becoming 530 runtime
+classes. Phase 1 contracts only the listed Promotion/Compensation, explanation,
+drift, and repair definitions. All other entries remain non-invocable
+`CATALOGUED` backlog until an owning domain supplies complete schemas,
+governance, side-effect, failure, evidence, reliability, and outcome contracts.
+
+The [Transaction Plan and Commit Coordinator](specs/transaction-plan-and-commit-coordinator.md) owns the immutable approval-bound executable plan and atomic local commit. [Secrets and Credential Leases](specs/secrets-key-custody-and-credential-leases.md) owns material access, [Quality and Invariant Evaluation](specs/data-quality-and-invariant-evaluation.md) owns assessment protocol, and [Provenance](specs/provenance-graph-and-lineage.md) owns authorization-aware lineage completeness.
+
+The [Capability Registry](specs/capability-registry-and-lifecycle.md) is the only
+source of active semantic operations. The [Governance Coordinator](specs/governance-decision-and-obligation-composition.md) composes authoritative policy results. [Incident Management](specs/incident-management.md) owns operational incident truth, while [Reliability Management](specs/slo-sli-error-budget.md) owns measurable SLI/SLO and error-budget consequences.
+
+## Delivery Gates, Staffing Envelope, and Critical Path
+
+Phase 1 is three authority gates, not one architecture-completion gate. Passing an
+earlier gate does not imply permission to perform the next gate's effects.
+
+### Gate A — Paid Design-Partner Observation
+
+Objective: prove customer value without HCM Next owning or executing the employee
+change.
+
+```text
+partner problem and baseline
+          -> incumbent edition/topology and native-capability assessment
+          -> incumbent read/observe connector
+          -> independently owned downstream handoff/observation boundary
+          -> normalized facts + provenance
+          -> promotion proposal and deterministic simulation
+          -> approval binding demonstration
+          -> intended/observed diff and repair recommendation
+          -> GWC workspace used by paid design partner
+          -> measured outcome and proceed/stop decision
+```
+
+Required workstreams and planning estimate:
+
+| Owner                               | Staff assumption | Exit artifact                                                                                                    |
+| ----------------------------------- | ---------------: | ---------------------------------------------------------------------------------------------------------------- |
+| Product/design-partner lead         |                1 | Paid agreement, exact incumbent system/fields, baseline, target, price and stop criteria                         |
+| Go capability/domain team           |                2 | Protobuf read/query/simulation/proposal contracts and deterministic fixtures                                     |
+| Go integration/data team            |                2 | One read/observe connector, mappings/crosswalks, provenance, comparison and reconciliation view                  |
+| Go/GWC experience engineer          |                1 | Accessible Promotion analysis/proposal workspace                                                                 |
+| Shared security/reliability support |       1–2 shared | Tenant isolation, AuthN/AuthZ, content safety, telemetry, deployment and recovery appropriate to read-only scope |
+
+Planning envelope: 7–8 people for approximately 8–12 weeks after partner access
+and sample data exist. This is an estimate, not a commitment; the partner contract
+must replace it with named owners and dates. Critical path is partner data access
+`->` schema/mapping `->` read connector `->` simulation `->` GWC workflow
+`->` observed paid use.
+
+Gate A qualification is not satisfied by a single-system demo or approval artifact.
+The design-partner manifest must identify the licensed incumbent edition and native
+workflow coverage, at least one independently owned downstream system/effect, a
+real consumable handoff plus acknowledgement/observation, eligible transaction
+volume, adoption denominator, bypass sources, customer labor by role, cost-to-serve,
+and numeric proceed/reselect/stop thresholds. If those facts do not demonstrate a
+non-duplicative cross-system failure class, the gate stops or the product claim is
+narrowed explicitly.
+
+Gate A does **not** require write-capable agents, transactional email, generalized
+Human Work, customer config packaging, certificate-compromise drills, automated
+subject deletion across restored backups, production chaos, or automated customer
+incident communications unless the selected customer path directly depends on
+one. It requires explicit boundaries and safe read-only behavior, not full
+implementations.
+
+### Gate B — Limited Write Authority
+
+Objective: permit one design partner's bounded Promotion/Compensation write path.
+Incremental work begins only after Gate A demonstrates repeated value.
+
+```text
+Gate A evidence
+    -> immutable proposal + exact approval binding
+    -> durable workflow slice + one approval task
+    -> multi-stream transaction + outbox
+    -> one governed external write
+    -> observe + reconcile
+    -> RepairPlan / redrive
+    -> limited authority decision
+```
+
+Incremental planning estimate: 5–7 Go engineers plus product/security/domain
+review for approximately 8–12 weeks, refined after Gate A. Gate owner is the
+product lead jointly with the security and domain-authority approvers. Critical
+path is proposal/approval `->` conflict and revalidation `->` durable execution
+`->` external write/idempotency `->` observation/repair.
+
+### Gate C — General Production Authority
+
+Objective: operate broader production authority with the full trust, recovery,
+support, communication, upgrade, deletion, incident, and conformance controls
+appropriate to the contracted domains and scale. Gate C has no date or staffing
+commitment in Phase 1; it is planned only from Gate B operating evidence.
+
+### Scope-Exchange Rule
+
+Any requirement promoted into Gate A or B must identify its gate owner, staff and
+schedule impact, dependency, acceptance evidence, and the equivalent scope removed
+or deferred. No new subsystem becomes mandatory merely because its long-term
+contract is `DEFINED`. If no equivalent scope can be removed, the gate must be
+re-estimated and explicitly reapproved.
+
+## Explicit Non-Goals
+
+- Full payroll, tax, benefits, timekeeping, recruiting, talent, or workforce-access products
+- Reimplementation of every legacy route or screen before the Promotion slice can ship
+- Any Node, npm, TypeScript, React, or Vite dependency in the Phase 1 product build, release image, or runtime
+- General regulatory calculation or government filing engines
+- Kafka, ClickHouse, OpenSearch, vector infrastructure, or a distributed cache as mandatory dependencies
+- General case management, e-signature platform, omnichannel/inbound conversations, or bulk communications
+- Multi-provider model routing, autonomous write-capable agents, or agent-created production workflows
+- Full usage-rating, invoicing, tax, or payment collection
+- Multiple physical tenant cells or live tenant relocation
+- A complete master-data, migration, ontology, or knowledge-management platform
+- General forms/questionnaire, case/service-catalog, arbitrary customer-rule, batch-job, or managed-file-transfer platforms
+- The complete 27-tool HRIS DataOps catalog; only pilot-required operator slices are in scope
+- A broad named-connector catalog, connector marketplace, or certification program
+
+## Gate A Acceptance — Paid Observation
+
+Gate A passes only when:
+
+- A paid design partner repeatedly uses the GWC workspace on its own incumbent
+  data and the agreed time/error/visibility metric improves against baseline.
+- HCM Next reads and observes only the approved fields through one connector;
+  source authority and every transformation remain visible.
+- A dated incumbent-edition/topology assessment proves that the selected failure
+  class is not already governed adequately by licensed native functionality.
+- The topology includes one HCM source and at least one independently owned
+  downstream handoff/observation boundary; otherwise the approved claim is
+  explicitly single-system governance rather than cross-system orchestration.
+- Promotion proposal, deterministic compensation/position simulation, exact
+  approval binding demonstration, and intended-versus-observed comparison work
+  without executing employee mutations.
+- Tenant/org/field/purpose authorization, safe content ingress, workload/client
+  identity, signed build/SBOM, telemetry privacy, and a tested restore match the
+  read-only risk scope.
+- The partner and HCM Next jointly record proceed, change-wedge, or stop evidence.
+- The handoff is consumable by the incumbent/downstream operating process and
+  produces an acknowledgement or observation. Approval binding alone is not proof
+  of cycle-time, quality, audit-effort or adoption improvement.
+- The delivery manifest records customer labor, eligible-volume denominator,
+  bypass taxonomy, cost-to-serve and numeric economic/adoption stop thresholds.
+
+## Gate B Acceptance — Limited Write Authority
+
+The pilot can gain narrowly scoped write authority only when:
+
+- Reference scenarios cover stale approval, concurrent change, future effective date, retry, partial external failure, correction, and replay.
+- UI, HTTP, and gRPC paths share validation, AuthZ, idempotency, ledger, and error
+  semantics. If an agent is included by explicit scope exchange, its path must
+  share the same semantics and tool gateway.
+- The published Promotion graph compiles before execution; invalid types, capabilities, effect/idempotency declarations, and unsafe checkpoints fail publication.
+- Approval recipients are resolved declaratively, approvals bind the exact proposal, and current authority is rechecked when the decision is submitted.
+- Promotion WorkItems, forms, and threshold rules are versioned, typed, deterministic, authorization-safe, and correlated to workflow and ledger evidence.
+- Process death during approval, effective-date wait, connector dispatch and
+  post-submit/pre-commit ambiguity resumes from durable instance/node/operation
+  state without duplicating business effects.
+- The Multi-Stream Transaction Contract commits all local authoritative streams and outbox records atomically.
+- Intended and observed external state reconcile, or the system exposes degraded completion and a governed RepairPlan.
+- Connector redrive cannot repeat the parent transaction, and configuration promotion preserves immutable diff, approval, and rollback evidence.
+- Every external effect has a semantic operation journal, per-resource causal
+  ordering key, expected external version where supported, source-authority fence
+  and cutover watermark, bounded retry/capacity behavior, external-permission
+  diagnostics, pre-send authority revalidation, and an observed reconciliation result.
+- If workflow notification is required by the selected customer path, it emits a
+  semantic MessageIntent and distinguishes provider acceptance, delivery, and
+  acknowledgement. Otherwise transactional messaging remains outside Gate B.
+- Tenant/org/record/field/capability restrictions pass abuse tests. Agent tool
+  mediation is required only if an agent is explicitly included in Gate B.
+- A signed build with SBOM is deployed through the approved path.
+- A restore reproduces ledger, referenced artifacts, critical projections, configuration, and the reference workflow within declared RPO/RTO.
+- Relevant legal-name, headcount approval, and organization-scope fixture
+  behavior is preserved or explicitly superseded by a reviewed contract change.
+- The GoWebComponents workspace passes permission, provenance, available-action,
+  keyboard, screen-reader, contrast, and responsive-layout checks.
+- Product builds, generated artifacts, release SBOMs, and deployed processes
+  prove the Go-only boundary and use GWC, grpcbridge, and SchemaFlux in their
+  assigned core roles.
+- Paid users repeatedly complete the workflow and demonstrate measurable improvement.
+- The selected high-impact decision path produces worker/subject notice,
+  visible-input explanation, correction request and independent human-review/
+  contest evidence without allowing an agent or score to execute adverse action.
+- No pilot dependency remains `IMPLIED` or `MISSING` in the capability coverage matrix.
+- Every pilot workload reports its applied signed configuration fingerprint and can continue from a bounded verified local snapshot when the remote Control Plane is unavailable.
+- Session revocation, step-up authentication, workload identity and tenant/cell
+  placement fencing have exercised evidence.
+- A Pilot Operations Pack names primary/secondary on-call ownership, support hours,
+  severity/escalation rules, time-bounded JIT diagnostic access, incident/customer
+  advisory routes, continuity/redrive/rollback procedures, and an exercised pilot
+  exit/export/revocation runbook. Broad multi-cell and certificate-compromise drills
+  remain Gate C.
+- Uploaded/imported content cannot enter parsing, indexing, RAG, messaging, or workflow use before quarantine inspection and safe-derivative promotion.
+- Every pilot effect has a durable idempotency record whose retention exceeds its retry/redelivery window.
+- Timezone, locale, currency, calendar, shared effective-range semantics and other
+  global reference inputs are version-pinned; every future timer persists its
+  dataset-update policy and is tested under a dataset change.
+- A rolling binary/schema upgrade preserves workflow, ledger, outbox, and
+  projection compatibility and successfully rolls back before its declared
+  irreversible boundary.
+- IdP-outage behavior denies new stale-federation sessions and exercises the
+  explicitly allowed or prohibited emergency path for pilot-critical actions.
+- Every customer-configured outbound destination passes DestinationTrust and
+  negative SSRF/rebinding/redirect tests.
+- The complete authentication and Promotion process has WCAG 2.2 AA criterion,
+  browser/assistive-technology, locale/direction, responsive/error-state and
+  accessible-document evidence plus an equivalent governed human-access route.
+
+## Gate C Acceptance — General Production Authority
+
+Gate C adds, according to contracted domain and risk:
+
+- Full support/JIT, certificate compromise, isolated recovery, restore-game-day,
+  customer incident communication, subject/tenant deletion and backup re-delete,
+  chaos, workload/cell relocation, and broad configuration-package exercises.
+- Messaging, agent, billing, regulatory, analytics, and additional domain gates
+  only when those capabilities are sold or placed in the production path.
+- Quantitative SLO, RPO/RTO, blast-radius, capacity, projection/search lag,
+  reconciliation, and obligation commitments with staffed operational ownership.
+
+Failure to meet the gate produces a narrow remediation plan or a product decision. It does not automatically justify implementing more platform planes.

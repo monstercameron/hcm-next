@@ -1,0 +1,284 @@
+13:## How an agent must execute a todo
+53:## Model-intelligence labels
+66:## Phase and gate labels
+78:## Global completion gates
+99:## 0. Backlog governance and traceability
+101:- [ ] `GOV-001` **[P0][LUNA] Create the delivery-manifest schema.**
+108:- [ ] `GOV-002` **[P0][TERRA] Register every todo in a machine-readable backlog.**
+115:- [ ] `GOV-003` **[P0][TERRA] Build requirement-to-evidence traceability.**
+122:- [ ] `GOV-004` **[P0][LUNA] Add planning-link validation.**
+129:- [ ] `GOV-005` **[P0][TERRA] Enforce implementation-depth vocabulary.**
+136:- [ ] `GOV-006` **[P0][TERRA] Implement the scope-exchange checker.**
+143:- [ ] `GOV-007` **[P0][LUNA] Check todo atomicity.**
+150:- [ ] `GOV-008` **[P0][TERRA] Add test-evidence freshness rules.**
+157:- [ ] `GOV-009` **[P0][LUNA] Add a deferred-scope import guard.**
+164:- [ ] `GOV-010` **[P0][SOL_LOW] Create the authority-gate decision record.**
+171:- [ ] `GOV-011` **[P0][TERRA] Maintain the platform capability coverage matrix in CI.**
+178:- [ ] `GOV-012` **[P0][LUNA] Record terminology and alias conformance.**
+185:- [ ] `GOV-013` **[P0][TERRA] Add architecture-boundary dependency tests.**
+192:- [ ] `GOV-014` **[P0][TERRA] Add plan-contradiction review gates.**
+199:- [ ] `GOV-015` **[P0][LUNA] Generate backlog progress without false completion.**
+208:## 1. Design partner, wedge and commercial proof
+210:- [ ] `WEDGE-001` **[GATE_A][SOL_HIGH] Select a paid design-partner problem.**
+217:- [ ] `WEDGE-002` **[GATE_A][TERRA] Establish baseline outcome metrics.**
+224:- [ ] `WEDGE-003` **[GATE_A][TERRA] Inventory incumbent native capability.**
+231:- [ ] `WEDGE-004` **[GATE_A][SOL_LOW] Bound the Phase 1 mutation/read field set.**
+238:- [ ] `WEDGE-005` **[GATE_A][TERRA] Define the independent downstream handoff.**
+245:- [ ] `WEDGE-006` **[GATE_A][TERRA] Define pilot bypass taxonomy and adoption denominator.**
+252:- [ ] `WEDGE-007` **[GATE_A][TERRA] Measure customer labor and HCM Next cost-to-serve.**
+259:- [ ] `WEDGE-008` **[GATE_A][SOL_LOW] Define numeric proceed/reselect/stop thresholds.**
+266:- [ ] `WEDGE-009` **[GATE_A][TERRA] Define pilot exit and portability obligations.**
+273:- [ ] `WEDGE-010` **[GATE_A][SOL_LOW] Obtain data-processing and security approval.**
+280:- [ ] `WEDGE-011` **[GATE_A][TERRA] Capture representative and adversarial partner fixtures.**
+287:- [ ] `WEDGE-012` **[GATE_A][TERRA] Define the Promotion simulation acceptance story.**
+294:- [ ] `WEDGE-013` **[GATE_A][TERRA] Establish paid-use event evidence.**
+301:- [ ] `WEDGE-014` **[GATE_A][SOL_HIGH] Execute the Gate A decision.**
+308:- [ ] `WEDGE-015` **[GATE_B][SOL_HIGH] Execute the limited-write authority decision.**
+317:## 2. Go-only repository, toolchain and contract generation
+319:- [ ] `TOOL-001` **[P0][TERRA] Create the authoritative Go workspace.**
+326:- [ ] `TOOL-002` **[P0][LUNA] Pin Protobuf and Go generation tools.**
+333:- [ ] `TOOL-003` **[P0][TERRA] Prove reproducible code generation.**
+340:- [ ] `TOOL-004` **[P0][SOL_LOW] Implement the offline SchemaFlux HCM compiler proof.**
+347:- [ ] `TOOL-005` **[P0][TERRA] Reject unresolved SchemaFlux definitions.**
+354:- [ ] `TOOL-006` **[P0][TERRA] Implement Protobuf compatibility checks.**
+361:- [ ] `TOOL-007` **[P0][TERRA] Generate typed Go capability clients.**
+368:- [ ] `TOOL-008` **[P0][SOL_LOW] Prove grpcbridge unary transport parity.**
+375:- [ ] `TOOL-009` **[PHASE_2][SOL_LOW] Prove grpcbridge streaming conformance.**
+382:- [ ] `TOOL-010` **[P0][TERRA] Add generated-code drift enforcement.**
+389:- [ ] `TOOL-011` **[P0][LUNA] Enforce formatting, vet and static analysis.**
+396:- [ ] `TOOL-012` **[P0][TERRA] Enable race tests for concurrent packages.**
+403:- [ ] `TOOL-013` **[P0][TERRA] Establish fuzz-test infrastructure.**
+410:- [ ] `TOOL-014` **[GATE_A][TERRA] Build ephemeral integration-test environments.**
+417:- [ ] `TOOL-015` **[P0][TERRA] Enforce the Go-only build boundary.**
+424:- [ ] `TOOL-016` **[GATE_A][TERRA] Add deterministic build verification.**
+431:- [ ] `TOOL-017` **[GATE_A][TERRA] Generate and validate the SBOM.**
+438:- [ ] `TOOL-018` **[GATE_A][SOL_LOW] Sign and verify release provenance.**
+445:- [ ] `TOOL-019` **[GATE_A][TERRA] Add dependency license and vulnerability policy.**
+452:- [ ] `TOOL-020` **[GATE_B][SOL_LOW] Prove rolling schema/binary upgrade and rollback.**
+461:## 3. Canonical values, schemas, registries and model coverage
+463:- [ ] `MODEL-001` **[P0][TERRA] Implement canonical entity and reference identifiers.**
+470:- [ ] `MODEL-002` **[P0][TERRA] Implement explicit property presence semantics.**
+477:- [ ] `MODEL-003` **[P0][SOL_LOW] Implement fixed-decimal arithmetic.**
+484:- [ ] `MODEL-004` **[P0][SOL_LOW] Implement business-time primitives.**
+491:- [ ] `MODEL-005` **[P0][TERRA] Version timezone and business-calendar datasets.**
+498:- [ ] `MODEL-006` **[P0][SOL_HIGH] Implement canonical envelope normalization.**
+505:- [ ] `MODEL-007` **[P0][SOL_HIGH] Implement versioned digest profiles.**
+512:- [ ] `MODEL-008` **[P0][TERRA] Check in the exact 530-candidate source manifest.**
+519:- [ ] `MODEL-009` **[P0][TERRA] Generate all intent ownership partitions.**
+526:- [ ] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry.**
+533:- [ ] `MODEL-011` **[P0][TERRA] Implement entity/property definition registries.**
+540:- [ ] `MODEL-012` **[P0][SOL_LOW] Implement aggregate ownership registration.**
+547:- [ ] `MODEL-013` **[P0][SOL_LOW] Implement relationship definitions and temporal constraints.**
+554:- [ ] `MODEL-014` **[P0][SOL_LOW] Implement lifecycle definition validation.**
+561:- [ ] `MODEL-015` **[P0][SOL_LOW] Implement negative-state policy registration.**
+568:- [ ] `MODEL-016` **[P0][SOL_HIGH] Bind every intent to exact model behavior.**
+575:- [ ] `MODEL-017` **[P0][TERRA] Implement schema release lifecycle.**
+582:- [ ] `MODEL-018` **[GATE_A][TERRA] Implement governed reference-data releases.**
+589:- [ ] `MODEL-019` **[GATE_A][TERRA] Implement external-code crosswalks.**
+596:- [ ] `MODEL-020` **[GATE_A][SOL_LOW] Implement provenance graph edges.**
+603:- [ ] `MODEL-021` **[GATE_A][SOL_LOW] Implement source-authority assignments.**
+610:- [ ] `MODEL-022` **[GATE_A][SOL_HIGH] Implement exact identity linkage.**
+617:- [ ] `MODEL-023` **[GATE_A][SOL_LOW] Implement data classification propagation.**
+624:- [ ] `MODEL-024` **[GATE_A][SOL_LOW] Implement data-quality evaluation envelopes.**
+631:- [ ] `MODEL-025` **[GATE_B][SOL_HIGH] Implement transaction invariants.**
+638:- [ ] `MODEL-026` **[GATE_A][SOL_LOW] Implement records declarations and retention assignment.**
+645:- [ ] `MODEL-027` **[GATE_B][SOL_HIGH] Implement legal holds.**
+652:- [ ] `MODEL-028` **[GATE_C][SOL_HIGH] Implement verified deletion and backup re-delete.**
+659:- [ ] `MODEL-029` **[GATE_A][SOL_LOW] Implement content-addressed artifact storage.**
+666:- [ ] `MODEL-030` **[P0][TERRA] Generate the model coverage report.**
+675:## 4. Identity, authorization, privacy and trust
+677:- [ ] `TRUST-001` **[GATE_A][SOL_HIGH] Implement authenticated PrincipalContext creation.**
+684:- [ ] `TRUST-002` **[GATE_A][SOL_HIGH] Implement enterprise federation validation.**
+691:- [ ] `TRUST-003` **[GATE_A][SOL_HIGH] Implement session lifecycle and refresh replay detection.**
+698:- [ ] `TRUST-004` **[GATE_B][SOL_HIGH] Implement step-up authentication obligations.**
+705:- [ ] `TRUST-005` **[GATE_B][SOL_HIGH] Exercise session revocation during workflow execution.**
+712:- [ ] `TRUST-006` **[GATE_A][SOL_HIGH] Issue short-lived workload identities.**
+719:- [ ] `TRUST-007` **[GATE_A][SOL_HIGH] Enforce service-to-service authorization.**
+726:- [ ] `TRUST-008` **[GATE_A][SOL_HIGH] Resolve tenant and organization scope.**
+733:- [ ] `TRUST-009` **[GATE_A][SOL_HIGH] Enforce record, population and relationship authorization.**
+740:- [ ] `TRUST-010` **[GATE_A][SOL_HIGH] Enforce field-level and purpose authorization.**
+747:- [ ] `TRUST-011` **[GATE_A][SOL_LOW] Implement explainable authorization decisions.**
+754:- [ ] `TRUST-012` **[GATE_A][SOL_HIGH] Require AuthorizationScope in sensitive repositories.**
+761:- [ ] `TRUST-013` **[GATE_B][SOL_HIGH] Implement bounded delegation.**
+768:- [ ] `TRUST-014` **[GATE_B][SOL_HIGH] Implement separation-of-duties evaluation.**
+775:- [ ] `TRUST-015` **[GATE_A][SOL_HIGH] Store secrets only by governed reference.**
+782:- [ ] `TRUST-016` **[GATE_B][SOL_HIGH] Implement destination-scoped credential leases.**
+789:- [ ] `TRUST-017` **[GATE_A][SOL_HIGH] Implement controlled outbound destination trust.**
+796:- [ ] `TRUST-018` **[GATE_A][SOL_HIGH] Implement DLP inspection and egress receipts.**
+803:- [ ] `TRUST-019` **[GATE_A][SOL_HIGH] Quarantine hostile external content.**
+810:- [ ] `TRUST-020` **[GATE_B][SOL_HIGH] Exercise IdP outage policy.**
+817:- [ ] `TRUST-021` **[GATE_B][SOL_HIGH] Implement time-bounded JIT operator access.**
+824:- [ ] `TRUST-022` **[GATE_C][SOL_HIGH] Implement break-glass containment and review.**
+831:- [ ] `TRUST-023` **[GATE_C][SOL_HIGH] Implement certificate and trust-bundle lifecycle.**
+838:- [ ] `TRUST-024` **[GATE_C][SOL_HIGH] Implement consent, notice and objection lifecycle where processing relies on it.**
+845:- [ ] `TRUST-025` **[GATE_A][SOL_HIGH] Run cross-tenant authorization abuse tests.**
+854:## 5. Phase 1 People, organization, position, compensation and budget domains
+856:- [ ] `PEOPLE-001` **[GATE_A][SOL_LOW] Implement authorized Person and Worker reads.**
+863:- [ ] `PEOPLE-002` **[GATE_A][SOL_LOW] Implement Employment timeline reads.**
+870:- [ ] `PEOPLE-003` **[GATE_A][SOL_LOW] Implement Assignment timeline reads.**
+877:- [ ] `ORG-001` **[GATE_A][SOL_HIGH] Implement canonical organization graph reads.**
+884:- [ ] `ORG-002` **[GATE_A][SOL_HIGH] Implement manager relationship resolution.**
+891:- [ ] `POSITION-001` **[GATE_A][SOL_HIGH] Implement position revision and compatibility reads.**
+898:- [ ] `POSITION-002` **[GATE_A][SOL_HIGH] Calculate position capacity and vacancy.**
+905:- [ ] `COMP-001` **[GATE_A][SOL_HIGH] Implement authorized compensation reads.**
+912:- [ ] `COMP-002` **[GATE_A][SOL_HIGH] Implement deterministic compensation annualization.**
+919:- [ ] `COMP-003` **[GATE_A][SOL_HIGH] Evaluate pay-band position.**
+926:- [ ] `BUDGET-001` **[GATE_A][SOL_HIGH] Implement typed workforce-budget observations.**
+933:- [ ] `PROMO-001` **[GATE_A][SOL_HIGH] Build the immutable Promotion input snapshot.**
+940:- [ ] `PROMO-002` **[GATE_A][SOL_HIGH] Simulate Assignment and organization changes.**
+947:- [ ] `PROMO-003` **[GATE_A][SOL_HIGH] Simulate compensation and budget effects.**
+954:- [ ] `PROMO-004` **[GATE_A][SOL_HIGH] Assemble the full WorkflowSimulationContract.**
+961:- [ ] `POSITION-003` **[GATE_B][SOL_HIGH] Reserve a position for the exact proposal.**
+968:- [ ] `BUDGET-002` **[GATE_B][SOL_HIGH] Reserve Promotion compensation budget.**
+975:- [ ] `PEOPLE-004` **[GATE_B][SOL_HIGH] Execute the bounded People/Assignment Promotion mutation.**
+982:- [ ] `ORG-003` **[GATE_B][SOL_HIGH] Execute bounded manager/organization relationship changes.**
+989:- [ ] `COMP-004` **[GATE_B][SOL_HIGH] Execute bounded base-pay and configured-bonus changes.**
+996:- [ ] `PROMO-005` **[GATE_B][SOL_HIGH] Prove the bounded cross-domain local Promotion commit.**
+1003:- [ ] `PROMO-006` **[CONFORMANCE][SOL_HIGH] Preserve Manager Change as the pure-HRIS boundary fixture.**
+1012:## 6. BusinessIntent, capabilities, governance and transaction integrity
+1014:- [ ] `CAP-001` **[GATE_A][SOL_LOW] Implement immutable CapabilityDefinition versions.**
+1021:- [ ] `CAP-002` **[GATE_A][SOL_HIGH] Implement the governed capability gateway.**
+1028:- [ ] `CAP-003` **[GATE_A][TERRA] Normalize capability errors across transports.**
+1035:- [ ] `INTENT-001` **[GATE_A][SOL_LOW] Implement IntentDefinition resolution.**
+1042:- [ ] `INTENT-002` **[GATE_A][SOL_HIGH] Create typed IntentInstance envelopes.**
+1049:- [ ] `INTENT-003` **[GATE_A][SOL_HIGH] Implement multidimensional intent lifecycle transitions.**
+1056:- [ ] `INTENT-004` **[GATE_A][SOL_HIGH] Implement HCMChangeRequest draft and preflight.**
+1063:- [ ] `INTENT-005` **[GATE_A][SOL_HIGH] Create immutable ProposalRevision artifacts.**
+1070:- [ ] `INTENT-006` **[GATE_A][SOL_HIGH] Invalidate approvals on material proposal change.**
+1077:- [ ] `GOVERN-001` **[GATE_A][SOL_HIGH] Implement governance decision inputs and snapshots.**
+1084:- [ ] `GOVERN-002` **[GATE_A][SOL_HIGH] Compose governance decisions deterministically.**
+1091:- [ ] `GOVERN-003` **[GATE_B][SOL_HIGH] Revalidate governance immediately before effect.**
+1098:- [ ] `CONFLICT-001` **[GATE_A][SOL_HIGH] Normalize proposal write footprints.**
+1105:- [ ] `CONFLICT-002` **[GATE_A][SOL_HIGH] Classify concurrent proposal conflicts.**
+1112:- [ ] `CONFLICT-003` **[GATE_B][SOL_HIGH] Persist write intents and commit-time conflict fences.**
+1119:- [ ] `APPROVAL-001` **[GATE_A][SOL_HIGH] Define ApprovalRequirement and resolution expressions.**
+1126:- [ ] `APPROVAL-002` **[GATE_A][SOL_HIGH] Bind ApprovalDecision to exact proposal and control context.**
+1133:- [ ] `APPROVAL-003` **[GATE_B][SOL_HIGH] Consume approval atomically with executable plan eligibility.**
+1140:- [ ] `TX-001` **[GATE_A][SOL_HIGH] Compile immutable non-executable TransactionPlans.**
+1147:- [ ] `TX-002` **[GATE_B][SOL_HIGH] Resolve and fence the ConsistencyBoundary.**
+1154:- [ ] `TX-003` **[GATE_B][SOL_HIGH] Prepare a TransactionPlan against current stream heads.**
+1161:- [ ] `TX-004` **[GATE_B][SOL_HIGH] Atomically commit all local streams and outbox.**
+1168:- [ ] `TX-005` **[GATE_B][SOL_HIGH] Resolve ambiguous local commit outcomes.**
+1175:- [ ] `TX-006` **[GATE_B][SOL_HIGH] Implement durable semantic idempotency.**
+1182:- [ ] `TX-007` **[GATE_B][SOL_HIGH] Implement append-only business correction.**
+1189:- [ ] `TX-008` **[GATE_B][SOL_HIGH] Prove cancel-before and cancel-after commit semantics.**
+1196:- [ ] `TX-009` **[GATE_B][SOL_HIGH] Add transaction crash-boundary conformance tests.**
+1203:- [ ] `TX-010` **[GATE_B][SOL_HIGH] Enforce per-resource causal effect ordering.**
+1212:## 7. Workflow compiler and all 17 primitive step types
+1214:- [ ] `WF-COMP-001` **[GATE_A][SOL_HIGH] Compile typed workflow inputs, outputs and mappings.**
+1221:- [ ] `WF-COMP-002` **[GATE_A][SOL_HIGH] Validate workflow graph safety.**
+1228:- [ ] `WF-COMP-003` **[GATE_A][SOL_HIGH] Analyze side effects and idempotency at compile time.**
+1235:- [ ] `WF-COMP-004` **[GATE_B][SOL_HIGH] Analyze parallel writes and safe points.**
+1242:- [ ] `WF-COMP-005` **[GATE_A][SOL_HIGH] Compile governance and obligation insertion points.**
+1249:- [ ] `WF-COMP-006` **[GATE_B][SOL_HIGH] Publish immutable compiled workflow versions.**
+1256:- [ ] `WF-STEP-001` **[GATE_A][SOL_HIGH] Implement `CAPABILITY` step conformance.**
+1263:- [ ] `WF-STEP-002` **[GATE_A][TERRA] Implement `DECISION` step conformance.**
+1270:- [ ] `WF-STEP-003` **[GATE_B][SOL_HIGH] Implement `APPROVAL` step conformance.**
+1277:- [ ] `WF-STEP-004` **[GATE_B][SOL_HIGH] Implement `TASK` step conformance.**
+1284:- [ ] `WF-STEP-005` **[GATE_B][SOL_HIGH] Implement `WAIT` step conformance.**
+1291:- [ ] `WF-STEP-006` **[GATE_B][SOL_HIGH] Implement `SIGNAL` step conformance.**
+1298:- [ ] `WF-STEP-007` **[PHASE_2][SOL_HIGH] Implement bounded `PARALLEL` execution.**
+1305:- [ ] `WF-STEP-008` **[PHASE_2][SOL_HIGH] Implement `JOIN` strategies.**
+1312:- [ ] `WF-STEP-009` **[PHASE_2][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
+1319:- [ ] `WF-STEP-010` **[GATE_A][SOL_LOW] Implement deterministic `TRANSFORM`.**
+1326:- [ ] `WF-STEP-011` **[GATE_A][SOL_HIGH] Implement deterministic `RULE`.**
+1333:- [ ] `WF-STEP-012` **[CONFORMANCE][SOL_HIGH] Specify governed `AGENT` step behavior.**
+1340:- [ ] `WF-STEP-013` **[CONFORMANCE][SOL_HIGH] Specify `DOCUMENT` step evidence states.**
+1347:- [ ] `WF-STEP-014` **[GATE_A][SOL_HIGH] Implement `OBSERVE` step conformance.**
+1354:- [ ] `WF-STEP-015` **[GATE_B][SOL_HIGH] Implement `CHECKPOINT` eligibility.**
+1361:- [ ] `WF-STEP-016` **[GATE_B][SOL_HIGH] Implement `COMPENSATE` step conformance.**
+1368:- [ ] `WF-STEP-017` **[GATE_A][SOL_HIGH] Implement multidimensional `END`.**
+1377:## 8. Durable workflow runtime, recovery and intervention
+1379:- [ ] `WF-RUN-001` **[GATE_A][SOL_HIGH] Persist WorkflowInstance and NodeExecution state.**
+1386:- [ ] `WF-RUN-002` **[GATE_B][SOL_HIGH] Implement execution leases and fencing.**
+1393:- [ ] `WF-RUN-003` **[GATE_B][SOL_HIGH] Recover a node after worker death.**
+1400:- [ ] `WF-RUN-004` **[GATE_B][SOL_HIGH] Implement durable workflow timers.**
+1407:- [ ] `WF-RUN-005` **[GATE_B][SOL_HIGH] Implement durable signal subscriptions.**
+1414:- [ ] `WF-RUN-006` **[GATE_B][SOL_HIGH] Implement one immediate-caller retry policy.**
+1421:- [ ] `WF-RUN-007` **[GATE_B][SOL_HIGH] Quarantine poison node execution.**
+1428:- [ ] `WF-RUN-008` **[GATE_B][SOL_HIGH] Implement instance pause at safe points.**
+1435:- [ ] `WF-RUN-009` **[GATE_B][SOL_HIGH] Quarantine a bad workflow version.**
+1442:- [ ] `WF-RUN-010` **[GATE_B][SOL_HIGH] Implement governed workflow cancellation.**
+1449:- [ ] `WF-RUN-011` **[PHASE_2][SOL_HIGH] Propagate cancellation to child workflows.**
+1456:- [ ] `WF-RUN-012` **[GATE_A][SOL_HIGH] Implement side-effect-free `SIMULATE` mode.**
+1463:- [ ] `WF-RUN-013` **[GATE_B][SOL_HIGH] Implement deterministic `REPLAY` mode.**
+1470:- [ ] `WF-RUN-014` **[PHASE_2][SOL_HIGH] Implement isolated `SHADOW` mode.**
+1477:- [ ] `WF-RUN-015` **[GATE_B][SOL_HIGH] Implement typed workflow interventions.**
+1484:- [ ] `WF-RUN-016` **[GATE_B][SOL_HIGH] Implement RepairPlan execution mode.**
+1491:- [ ] `WF-RUN-017` **[PHASE_2][SOL_HIGH] Preview live workflow migration compatibility.**
+1498:- [ ] `WF-RUN-018` **[PHASE_2][SOL_HIGH] Execute approved workflow migration at a safe point.**
+1505:- [ ] `WF-RUN-019` **[GATE_A][SOL_LOW] Implement workflow execution inspection.**
+1512:- [ ] `WF-RUN-020` **[GATE_B][SOL_HIGH] Detect stuck workflows from expected progress.**
+1519:- [ ] `WF-RUN-021` **[GATE_B][SOL_HIGH] Enforce workflow workload limits.**
+1526:- [ ] `WF-RUN-022` **[GATE_B][SOL_HIGH] Prove workflow recovery after database/cell interruption.**
+1535:## 9. Human work, approvals, forms and deterministic business rules
+1537:- [ ] `WORK-001` **[GATE_B][SOL_HIGH] Implement immutable WorkItem lifecycle.**
+1544:- [ ] `WORK-002` **[GATE_B][SOL_HIGH] Resolve Promotion work assignment.**
+1551:- [ ] `WORK-003` **[GATE_B][SOL_HIGH] Make WorkItem claim exclusive.**
+1558:- [ ] `WORK-004` **[GATE_B][SOL_HIGH] Reassign unavailable or unauthorized work.**
+1565:- [ ] `WORK-005` **[GATE_B][SOL_LOW] Implement SLA clocks and escalation signals.**
+1572:- [ ] `WORK-006` **[GATE_B][SOL_HIGH] Complete WorkItem with current authority recheck.**
+1579:- [ ] `FORM-001` **[GATE_A][TERRA] Define the bounded Promotion proposal form.**
+1586:- [ ] `FORM-002` **[GATE_A][SOL_LOW] Compile conditional form visibility and validation.**
+1593:- [ ] `FORM-003` **[GATE_B][SOL_HIGH] Persist immutable Promotion FormSubmission.**
+1600:- [ ] `FORM-004` **[GATE_A][SOL_HIGH] Prove form accessibility and equivalent human route.**
+1607:- [ ] `RULE-001` **[GATE_A][SOL_LOW] Implement bounded deterministic expression compilation.**
+1614:- [ ] `RULE-002` **[GATE_A][SOL_LOW] Implement decision-table evaluation.**
+1621:- [ ] `RULE-003` **[GATE_A][SOL_HIGH] Compile the Promotion approval-threshold rule.**
+1628:- [ ] `RULE-004` **[GATE_B][SOL_HIGH] Re-evaluate material rules before execution.**
+1637:## 10. Phase 1 messaging and secure inbox slice
+1639:- [ ] `MSG-001` **[GATE_B][SOL_HIGH] Create semantic Promotion MessageIntent.**
+1646:- [ ] `MSG-002` **[GATE_B][SOL_HIGH] Resolve current authorized audience.**
+1653:- [ ] `MSG-003` **[GATE_B][SOL_HIGH] Resolve eligible delivery endpoints and preferences.**
+1660:- [ ] `MSG-004` **[GATE_B][SOL_HIGH] Publish deterministic Promotion templates.**
+1667:- [ ] `MSG-005` **[GATE_B][SOL_HIGH] Persist secure inbox messages.**
+1674:- [ ] `MSG-006` **[GATE_B][SOL_HIGH] Dispatch transactional email asynchronously.**
+1681:- [ ] `MSG-007` **[GATE_B][SOL_HIGH] Model honest delivery and recipient states.**
+1688:- [ ] `MSG-008` **[GATE_B][SOL_HIGH] Emit messaging workflow signals.**
+1695:- [ ] `MSG-009` **[GATE_B][SOL_HIGH] Reconcile failed delivery and create fallback work.**
+1702:- [ ] `MSG-010` **[GATE_B][SOL_HIGH] Prove protected content never enters attention email or logs.**
+1709:- [ ] `MSG-011` **[PHASE_2][SOL_HIGH] Implement governed inbound replies and conversations.**
+1716:- [ ] `MSG-012` **[PHASE_2][SOL_HIGH] Implement governed bulk communications.**
+1723:- [ ] `MSG-013` **[PHASE_3][SOL_HIGH] Implement legal-notice delivery requirements.**
+1732:## 11. Authoritative data plane, ledger, projections and artifacts
+1734:- [ ] `DATA-001` **[GATE_A][SOL_HIGH] Define PostgreSQL authoritative storage boundaries.**
+1741:- [ ] `DATA-002` **[GATE_B][SOL_HIGH] Implement stream-head compare-and-swap.**
+1748:- [ ] `DATA-003` **[GATE_A][SOL_HIGH] Persist canonical ledger event envelopes.**
+1755:- [ ] `DATA-004` **[GATE_B][SOL_HIGH] Maintain per-stream hash chains.**
+1762:- [ ] `DATA-005` **[GATE_A][SOL_HIGH] Implement bitemporal authorized event/fact queries.**
+1769:- [ ] `DATA-006` **[GATE_A][SOL_HIGH] Implement critical projection application.**
+1776:- [ ] `DATA-007` **[GATE_B][SOL_HIGH] Commit ledger, critical projection and outbox atomically.**
+1783:- [ ] `DATA-008` **[GATE_B][SOL_HIGH] Dispatch transactional outbox at least once safely.**
+1790:- [ ] `DATA-009` **[GATE_B][SOL_HIGH] Persist event-consumer positions and dedupe.**
+1797:- [ ] `DATA-010` **[GATE_B][SOL_HIGH] Rebuild a projection from canonical sources.**
+1804:- [ ] `DATA-011` **[PHASE_2][SOL_HIGH] Compare and promote a shadow projection version.**
+1811:- [ ] `DATA-012` **[GATE_B][SOL_HIGH] Continuously verify ledger and relational invariants.**
+1818:- [ ] `DATA-013` **[GATE_B][SOL_HIGH] Create replay checkpoints and snapshots.**
+1825:- [ ] `DATA-014` **[GATE_A][SOL_HIGH] Complete provenance publishing.**
+1832:- [ ] `DATA-015` **[GATE_B][SOL_HIGH] Trace Promotion through transaction and repair lineage.**
+1839:- [ ] `DATA-016` **[GATE_A][SOL_HIGH] Enforce artifact retrieval authorization and reference accounting.**
+1846:- [ ] `DATA-017` **[GATE_B][SOL_HIGH] Partition authoritative data without changing semantics.**
+1853:- [ ] `DATA-018` **[GATE_B][SOL_HIGH] Apply records/holds to ledger, outbox and artifacts.**
+1860:- [ ] `DATA-019` **[GATE_B][SOL_HIGH] Prove no cross-tenant sensitive deduplication leak.**
+1867:- [ ] `DATA-020` **[GATE_A][TERRA] Publish data-plane health and freshness.**
+1876:## 12. Integration Platform and first design-partner connector
+1878:- [ ] `INTG-001` **[GATE_A][SOL_LOW] Register immutable ConnectorDefinition versions.**
+1885:- [ ] `INTG-002` **[GATE_A][SOL_HIGH] Implement ConnectorConnection lifecycle.**
+1892:- [ ] `INTG-003` **[GATE_A][SOL_HIGH] Diagnose external credentials and permissions.**
+1899:- [ ] `INTG-004` **[GATE_A][SOL_HIGH] Ingest and quarantine external schema snapshots.**
+1906:- [ ] `INTG-005` **[GATE_A][SOL_LOW] Diff external schema versions and impacts.**
+1913:- [ ] `INTG-006` **[GATE_A][SOL_HIGH] Compile deterministic MappingProfile versions.**
+1920:- [ ] `INTG-007` **[GATE_A][SOL_HIGH] Publish MappingProfile with approval and rollback evidence.**
+1927:- [ ] `INTG-008` **[GATE_A][SOL_HIGH] Implement bounded read/observe pagination and checkpoints.**
+1934:- [ ] `INTG-009` **[GATE_A][SOL_HIGH] Persist ExternalObservation evidence.**
+1941:- [ ] `INTG-010` **[GATE_A][SOL_HIGH] Reconcile intended, canonical and observed pilot fields.**
+1948:- [ ] `INTG-011` **[GATE_B][SOL_HIGH] Persist ConnectorOperation journals before dispatch.**
+1955:- [ ] `INTG-012` **[GATE_B][SOL_HIGH] Revalidate an external operation at dispatch lease time.**
+1962:- [ ] `INTG-013` **[GATE_B][SOL_HIGH] Dispatch one governed external write idempotently.**
+1969:- [ ] `INTG-014` **[GATE_B][SOL_HIGH] Handle timeout-after-send ambiguity.**
+1976:- [ ] `INTG-015` **[GATE_B][SOL_HIGH] Enforce rate-aware fair connector scheduling.**
+1983:- [ ] `INTG-016` **[GATE_B][SOL_HIGH] Redrive one failed operation without rerunning its parent.**
+1990:- [ ] `INTG-017` **[GATE_A][SOL_LOW] Publish connector health and dependency impact.**
+1997:- [ ] `INTG-018` **[PHASE_2][SOL_HIGH] Implement authenticated webhook receipt and replay.**
+2004:- [ ] `INTG-019` **[PHASE_2][SOL_HIGH] Implement resumable SyncJob modes.**
+2011:- [ ] `INTG-020` **[PHASE_3][SOL_HIGH] Implement managed file-transfer lifecycle.**

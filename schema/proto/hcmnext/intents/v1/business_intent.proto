@@ -1,0 +1,443 @@
+syntax = "proto3";
+
+package hcmnext.intents.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1;intentsv1";
+
+import "google/protobuf/timestamp.proto";
+
+// KernelFamily is the stable execution family. Semantic intent names do not
+// add runtime classes.
+enum KernelFamily {
+  KERNEL_FAMILY_UNSPECIFIED = 0;
+  KERNEL_FAMILY_CHANGE_REQUEST = 1;
+  KERNEL_FAMILY_PROCESS_REQUEST = 2;
+  KERNEL_FAMILY_CALCULATION_REQUEST = 3;
+  KERNEL_FAMILY_FILING_REQUEST = 4;
+  KERNEL_FAMILY_CASE = 5;
+  KERNEL_FAMILY_BATCH_OPERATION = 6;
+  KERNEL_FAMILY_ANALYTICAL_REQUEST = 7;
+}
+
+enum DefinitionMaturity {
+  DEFINITION_MATURITY_UNSPECIFIED = 0;
+  DEFINITION_MATURITY_CATALOGUED = 1;
+  DEFINITION_MATURITY_CONTRACTED = 2;
+  DEFINITION_MATURITY_COMPILED = 3;
+  DEFINITION_MATURITY_PUBLISHED = 4;
+  DEFINITION_MATURITY_DEPRECATED = 5;
+  DEFINITION_MATURITY_RETIRED = 6;
+  // Metadata is being specified, but one or more referenced schemas,
+  // capabilities, policies, tests, or owners are not yet resolvable.
+  DEFINITION_MATURITY_DRAFT_CONTRACT = 7;
+}
+
+enum InitiatorKind {
+  INITIATOR_KIND_UNSPECIFIED = 0;
+  INITIATOR_KIND_HUMAN = 1;
+  INITIATOR_KIND_AGENT = 2;
+  INITIATOR_KIND_SERVICE = 3;
+  INITIATOR_KIND_INTEGRATION = 4;
+  INITIATOR_KIND_SCHEDULE = 5;
+  INITIATOR_KIND_RULE = 6;
+  INITIATOR_KIND_SYSTEM_EVENT = 7;
+}
+
+enum ExecutionMode {
+  EXECUTION_MODE_UNSPECIFIED = 0;
+  EXECUTION_MODE_SIMULATE = 1;
+  EXECUTION_MODE_EXECUTE = 2;
+  EXECUTION_MODE_REPLAY = 3;
+  EXECUTION_MODE_REPAIR = 4;
+  EXECUTION_MODE_SHADOW = 5;
+}
+
+enum SideEffectProfile {
+  SIDE_EFFECT_PROFILE_UNSPECIFIED = 0;
+  SIDE_EFFECT_PROFILE_PURE = 1;
+  SIDE_EFFECT_PROFILE_READ_ONLY = 2;
+  SIDE_EFFECT_PROFILE_INTERNAL_MUTATION = 3;
+  SIDE_EFFECT_PROFILE_EXTERNAL_MUTATION = 4;
+  SIDE_EFFECT_PROFILE_IRREVERSIBLE_EXTERNAL_MUTATION = 5;
+}
+
+enum IntentState {
+  INTENT_STATE_UNSPECIFIED = 0;
+  INTENT_STATE_DRAFT = 1;
+  INTENT_STATE_SUBMITTED = 2;
+  INTENT_STATE_ACCEPTED = 3;
+  INTENT_STATE_REJECTED = 4;
+  INTENT_STATE_CANCELLED = 5;
+  INTENT_STATE_SUPERSEDED = 6;
+}
+
+enum ProposalState {
+  PROPOSAL_STATE_UNSPECIFIED = 0;
+  PROPOSAL_STATE_NOT_APPLICABLE = 1;
+  PROPOSAL_STATE_DRAFT = 2;
+  PROPOSAL_STATE_PREFLIGHTED = 3;
+  PROPOSAL_STATE_SIMULATED = 4;
+  PROPOSAL_STATE_SUBMITTED = 5;
+  PROPOSAL_STATE_WITHDRAWN = 6;
+  PROPOSAL_STATE_SUPERSEDED = 7;
+}
+
+enum ApprovalState {
+  APPROVAL_STATE_UNSPECIFIED = 0;
+  APPROVAL_STATE_NOT_REQUIRED = 1;
+  APPROVAL_STATE_PENDING = 2;
+  APPROVAL_STATE_PARTIAL = 3;
+  APPROVAL_STATE_APPROVED = 4;
+  APPROVAL_STATE_REJECTED = 5;
+  APPROVAL_STATE_INVALIDATED = 6;
+}
+
+enum ExecutionState {
+  EXECUTION_STATE_UNSPECIFIED = 0;
+  EXECUTION_STATE_NOT_PLANNED = 1;
+  EXECUTION_STATE_SCHEDULED = 2;
+  EXECUTION_STATE_REVALIDATING = 3;
+  EXECUTION_STATE_EXECUTING = 4;
+  EXECUTION_STATE_COMPLETED = 5;
+  EXECUTION_STATE_BLOCKED = 6;
+  EXECUTION_STATE_REPAIR_REQUIRED = 7;
+}
+
+enum ExternalConsistencyState {
+  EXTERNAL_CONSISTENCY_STATE_UNSPECIFIED = 0;
+  EXTERNAL_CONSISTENCY_STATE_NOT_APPLICABLE = 1;
+  EXTERNAL_CONSISTENCY_STATE_PENDING = 2;
+  EXTERNAL_CONSISTENCY_STATE_CONSISTENT = 3;
+  EXTERNAL_CONSISTENCY_STATE_DEGRADED = 4;
+  EXTERNAL_CONSISTENCY_STATE_UNKNOWN = 5;
+}
+
+enum ReconciliationState {
+  RECONCILIATION_STATE_UNSPECIFIED = 0;
+  RECONCILIATION_STATE_NOT_REQUIRED = 1;
+  RECONCILIATION_STATE_PENDING = 2;
+  RECONCILIATION_STATE_PASSED = 3;
+  RECONCILIATION_STATE_FAILED = 4;
+  RECONCILIATION_STATE_REPAIRING = 5;
+}
+
+enum ClosureState {
+  CLOSURE_STATE_UNSPECIFIED = 0;
+  CLOSURE_STATE_OPEN = 1;
+  CLOSURE_STATE_ELIGIBLE = 2;
+  CLOSURE_STATE_CLOSED = 3;
+  CLOSURE_STATE_REOPENED = 4;
+}
+
+enum BusinessState {
+  BUSINESS_STATE_UNSPECIFIED = 0;
+  BUSINESS_STATE_NOT_STARTED = 1;
+  BUSINESS_STATE_IN_PROGRESS = 2;
+  BUSINESS_STATE_COMPLETED = 3;
+  BUSINESS_STATE_NOT_ACHIEVED = 4;
+  BUSINESS_STATE_CORRECTED = 5;
+  BUSINESS_STATE_UNKNOWN = 6;
+}
+
+enum OperationalState {
+  OPERATIONAL_STATE_UNSPECIFIED = 0;
+  OPERATIONAL_STATE_NORMAL = 1;
+  OPERATIONAL_STATE_DEGRADED = 2;
+  OPERATIONAL_STATE_INCIDENT = 3;
+  OPERATIONAL_STATE_MANUAL_CONTINUITY = 4;
+  OPERATIONAL_STATE_RECOVERING = 5;
+}
+
+enum ObligationState {
+  OBLIGATION_STATE_UNSPECIFIED = 0;
+  OBLIGATION_STATE_NOT_APPLICABLE = 1;
+  OBLIGATION_STATE_PENDING = 2;
+  OBLIGATION_STATE_SATISFIED = 3;
+  OBLIGATION_STATE_OVERDUE = 4;
+  OBLIGATION_STATE_WAIVED = 5;
+  OBLIGATION_STATE_DISPUTED = 6;
+  OBLIGATION_STATE_UNKNOWN = 7;
+}
+
+enum OutcomeState {
+  OUTCOME_STATE_UNSPECIFIED = 0;
+  OUTCOME_STATE_NOT_DEFINED = 1;
+  OUTCOME_STATE_PENDING_OBSERVATION = 2;
+  OUTCOME_STATE_OBSERVED = 3;
+  OUTCOME_STATE_INCONCLUSIVE = 4;
+  OUTCOME_STATE_DISPUTED = 5;
+  OUTCOME_STATE_EXPIRED = 6;
+}
+
+enum ApprovalDecisionKind {
+  APPROVAL_DECISION_KIND_UNSPECIFIED = 0;
+  APPROVAL_DECISION_KIND_APPROVE = 1;
+  APPROVAL_DECISION_KIND_REJECT = 2;
+  APPROVAL_DECISION_KIND_REQUEST_MORE_INFORMATION = 3;
+  APPROVAL_DECISION_KIND_ABSTAIN = 4;
+}
+
+enum IntentRelationshipKind {
+  INTENT_RELATIONSHIP_KIND_UNSPECIFIED = 0;
+  INTENT_RELATIONSHIP_KIND_CHILD_PROCESS = 1;
+  INTENT_RELATIONSHIP_KIND_SUPERSEDES = 2;
+  INTENT_RELATIONSHIP_KIND_CORRECTS = 3;
+  INTENT_RELATIONSHIP_KIND_REPAIRS = 4;
+  INTENT_RELATIONSHIP_KIND_DERIVED_FROM = 5;
+}
+
+message SchemaReference {
+  string schema_id = 1;
+  uint32 version = 2;
+  string protobuf_full_name = 3;
+  string descriptor_digest = 4;
+}
+
+message DefinitionReference {
+  string intent_type_id = 1;
+  uint32 version = 2;
+}
+
+message CanonicalDigestReference {
+  string profile_id = 1;
+  uint32 profile_version = 2;
+  string schema_id = 3;
+  uint32 schema_version = 4;
+  string algorithm_id = 5;
+  uint64 canonical_length = 6;
+  string digest = 7;
+  optional string canonical_bytes_artifact_ref = 8;
+  string scope_binding_digest = 9;
+  optional string intent_id = 10;
+  optional string proposal_revision_id = 11;
+  optional string material_profile_ref = 12;
+}
+
+message IntentDefinition {
+  uint32 catalog_number = 1;
+  DefinitionReference reference = 2;
+  string display_name = 3;
+  string description = 4;
+  string owner_plane = 5;
+  string owner_domain = 6;
+  KernelFamily kernel_family = 7;
+  DefinitionMaturity maturity = 8;
+  SchemaReference input_schema = 9;
+  SchemaReference result_schema = 10;
+  repeated InitiatorKind allowed_initiators = 11;
+  repeated ExecutionMode allowed_execution_modes = 12;
+  SideEffectProfile side_effect_profile = 13;
+  string risk_class = 14;
+  string data_classification_floor = 15;
+  repeated string subject_kinds = 16;
+  repeated string required_capability_refs = 17;
+  repeated string governance_requirement_refs = 18;
+  repeated string precondition_refs = 19;
+  repeated string invariant_refs = 20;
+  string idempotency_policy_ref = 21;
+  string conflict_footprint_rule_ref = 22;
+  string proposal_binding_rule_ref = 23;
+  string revalidation_rule_ref = 24;
+  string cancellation_rule_ref = 25;
+  string compensation_rule_ref = 26;
+  string evidence_rule_ref = 27;
+  string retention_class = 28;
+  string outcome_contract_ref = 29;
+  string slo_class = 30;
+  string availability_policy_ref = 31;
+  string phase_depth = 32;
+}
+
+message PrincipalReference {
+  string principal_id = 1;
+  InitiatorKind kind = 2;
+  string identity_assurance_ref = 3;
+}
+
+message DelegationReference {
+  string delegation_id = 1;
+  string delegating_principal_id = 2;
+  string delegated_principal_id = 3;
+  string authority_digest = 4;
+}
+
+message SubjectReference {
+  string subject_kind = 1;
+  string subject_id = 2;
+  string authority_domain = 3;
+}
+
+// TypedPayload contains protobuf transport/storage bytes. They are not treated
+// as canonical bytes. schema must resolve to a descriptor whose full name
+// matches the encoded message type; canonical_digest is produced by the pinned
+// CanonicalizationProfile after projecting material fields.
+message TypedPayload {
+  SchemaReference schema = 1;
+  bytes protobuf_wire_bytes = 2;
+  CanonicalDigestReference canonical_digest = 3;
+}
+
+message ControlSnapshotReferences {
+  string capability_registry_digest = 1;
+  string policy_bundle_digest = 2;
+  string legal_context_digest = 3;
+  string entitlement_digest = 4;
+  string reference_data_digest = 5;
+  string workflow_definition_digest = 6;
+  string connector_configuration_digest = 7;
+  string classification_taxonomy_digest = 8;
+  string classification_label_set_digest = 9;
+  string classification_propagation_watermark = 10;
+  string dlp_decision_digest = 11;
+  string destination_trust_digest = 12;
+  string purpose_and_residency_digest = 13;
+}
+
+message ProposalRevision {
+  string proposal_revision_id = 1;
+  string intent_id = 2;
+  uint64 revision = 3;
+  CanonicalDigestReference material_proposal_digest = 4;
+  TypedPayload proposal = 5;
+  ControlSnapshotReferences control_snapshots = 6;
+  PrincipalReference created_by = 7;
+  google.protobuf.Timestamp created_at = 8;
+  optional string supersedes_proposal_revision_id = 9;
+  repeated string invalidator_refs = 10;
+}
+
+message ApprovalBinding {
+  string approval_binding_id = 1;
+  string requirement_id = 2;
+  string intent_id = 3;
+  string proposal_revision_id = 4;
+  CanonicalDigestReference approved_proposal_digest = 5;
+  PrincipalReference deciding_principal = 6;
+  repeated DelegationReference delegation_chain = 7;
+  ApprovalDecisionKind decision = 8;
+  string reason_ref = 9;
+  string authority_decision_ref = 10;
+  string resolver_snapshot_digest = 11;
+  string identity_assurance_ref = 12;
+  string separation_of_duties_evidence_ref = 13;
+  google.protobuf.Timestamp decided_at = 14;
+  optional google.protobuf.Timestamp valid_until = 15;
+  repeated string invalidator_refs = 16;
+  optional string invalidated_by_ref = 17;
+  string idempotency_key = 18;
+}
+
+message ExecutionBinding {
+  string execution_binding_id = 1;
+  string intent_id = 2;
+  string proposal_revision_id = 3;
+  CanonicalDigestReference executable_plan_digest = 4;
+  ControlSnapshotReferences revalidated_control_snapshots = 5;
+  string transaction_plan_id = 6;
+  google.protobuf.Timestamp bound_at = 7;
+  optional string replay_of_execution_binding_id = 8;
+  optional string repair_plan_id = 9;
+}
+
+message CancellationDecision {
+  string cancellation_decision_id = 1;
+  string intent_id = 2;
+  PrincipalReference requested_by = 3;
+  string reason_ref = 4;
+  string policy_decision_ref = 5;
+  string effect_disposition_ref = 6;
+  google.protobuf.Timestamp decided_at = 7;
+}
+
+message SupersessionReference {
+  string supersession_id = 1;
+  string superseding_intent_id = 2;
+  string superseded_intent_id = 3;
+  string reason_ref = 4;
+  string propagation_decision_ref = 5;
+  google.protobuf.Timestamp recorded_at = 6;
+}
+
+message CorrectionReference {
+  string correction_id = 1;
+  string correcting_intent_id = 2;
+  string corrected_assertion_or_intent_ref = 3;
+  string reason_ref = 4;
+  string authority_decision_ref = 5;
+  google.protobuf.Timestamp recorded_at = 6;
+}
+
+message ClosureRecord {
+  string closure_record_id = 1;
+  string intent_id = 2;
+  LifecycleDimensions final_dimensions = 3;
+  string obligation_evidence_manifest_ref = 4;
+  string reconciliation_evidence_ref = 5;
+  string outcome_tracking_ref = 6;
+  PrincipalReference closed_by = 7;
+  google.protobuf.Timestamp closed_at = 8;
+  optional string reopened_by_ref = 9;
+}
+
+message LifecycleDimensions {
+  IntentState intent = 1;
+  ProposalState proposal = 2;
+  ApprovalState approval = 3;
+  ExecutionState execution = 4;
+  ExternalConsistencyState external_consistency = 5;
+  ReconciliationState reconciliation = 6;
+  ClosureState closure = 7;
+  BusinessState business = 8;
+  OperationalState operational = 9;
+  ObligationState obligation = 10;
+  OutcomeState outcome = 11;
+}
+
+message IntentInstance {
+  string intent_id = 1;
+  DefinitionReference definition = 2;
+  string tenant_id = 3;
+  string organization_scope_id = 4;
+  optional string billing_account_id = 5;
+  PrincipalReference initiator = 6;
+  repeated DelegationReference delegation_chain = 7;
+  string purpose = 8;
+  repeated SubjectReference subjects = 9;
+  optional google.protobuf.Timestamp requested_effective_at = 10;
+  TypedPayload request = 11;
+  string idempotency_key = 12;
+  string correlation_id = 13;
+  optional string causation_id = 14;
+  string trace_id = 15;
+  string classification = 16;
+  string retention_class = 17;
+  ControlSnapshotReferences control_snapshots = 18;
+  CanonicalDigestReference canonical_request_digest = 19;
+  LifecycleDimensions lifecycle = 20;
+  google.protobuf.Timestamp created_at = 21;
+  ExecutionMode execution_mode = 22;
+  uint64 instance_version = 23;
+  google.protobuf.Timestamp recorded_at = 24;
+  google.protobuf.Timestamp last_transition_at = 25;
+  optional string origin_event_ref = 26;
+  string source_authority_snapshot_digest = 27;
+  string risk_context_digest = 28;
+  repeated ProposalRevision proposal_revisions = 29;
+  repeated ApprovalBinding approval_bindings = 30;
+  repeated ExecutionBinding execution_bindings = 31;
+  repeated CancellationDecision cancellation_decisions = 32;
+  repeated SupersessionReference supersession_references = 33;
+  repeated CorrectionReference correction_references = 34;
+  repeated ClosureRecord closure_records = 35;
+  string lifecycle_compatibility_profile_ref = 36;
+}
+
+message IntentRelationship {
+  string tenant_id = 1;
+  string parent_intent_id = 2;
+  string child_intent_id = 3;
+  uint32 ordinal = 4;
+  string binding_digest = 5;
+  IntentRelationshipKind kind = 6;
+  string propagation_policy_ref = 7;
+}

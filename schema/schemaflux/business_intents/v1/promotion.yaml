@@ -1,0 +1,445 @@
+catalog: hcmnext.business_intents
+catalog_version: 1
+source_contract: hcmnext.intents.v1.IntentDefinition
+definitions:
+  - catalog_number: 36
+    intent_type_id: hcmnext.people.explain_worker_state
+    version: 1
+    display_name: ExplainWorkerState
+    description: Explain the authorized current or historical worker state and its provenance.
+    owner_plane: DOMAIN
+    owner_domain: PEOPLE
+    kernel_family: ANALYTICAL_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.people.v1.ExplainWorkerStateRequest/v1
+    result_schema_ref: hcmnext.people.v1.ExplainWorkerStateResult/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [EXECUTE, REPLAY]
+    side_effect_profile: READ_ONLY
+    risk_class: R1
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [WORKER]
+    required_capabilities: [people.worker.history.explain/v1]
+    governance_requirements: [governance.standard_read/v1, provenance.field_lineage/v1]
+    preconditions: [people.worker_reference_resolves/v1]
+    invariants: [privacy.minimum_necessary/v1]
+    idempotency_scope: tenant+definition+canonical_request
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: NOT_APPLICABLE
+    revalidation_rule: authorization_and_source_visibility_at_read_time/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: analytical_request_and_source_edges/v1
+    retention_class: ANALYTICAL_EXPLANATION
+    outcome_contract: explanation_answered_with_complete_visible_lineage/v1
+    slo_class: INTERACTIVE_READ
+    availability_policy: FAIL_CLOSED_ON_GOVERNANCE_USE_STALE_ALLOWED_PROVENANCE/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 53
+    intent_type_id: hcmnext.people.promote_worker
+    version: 1
+    display_name: PromoteWorker
+    description: Propose and execute a governed upward job or position change for one employment assignment.
+    owner_plane: DOMAIN
+    owner_domain: PEOPLE
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.people.v1.PromoteWorkerRequest/v1
+    result_schema_ref: hcmnext.people.v1.PromoteWorkerResult/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, REPAIR, SHADOW]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R3
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [PERSON, EMPLOYMENT, ASSIGNMENT, POSITION, ORGANIZATION]
+    required_capabilities: [people.promote.plan/v1, people.promote.execute/v1]
+    governance_requirements: [governance.promotion/v1, approval.promotion/v1]
+    preconditions: [people.active_employment/v1, position.target_valid/v1]
+    invariants: [people.single_primary_assignment_when_required/v1, position.capacity_not_exceeded/v1]
+    idempotency_scope: tenant+employment+requested_effective_at+canonical_request
+    conflict_footprint_rule: promotion_affected_fields_and_effective_interval/v1
+    proposal_binding_rule: exact_material_proposal_digest/v1
+    revalidation_rule: promotion_execution_revalidation/v1
+    cancellation_rule: promotion_phase_aware_cancel/v1
+    compensation_rule: promotion_repair_plan/v1
+    evidence_rule: promotion_complete_business_story/v1
+    retention_class: WORKER_TRANSACTION
+    outcome_contract: promotion_executed_reconciled_and_later_outcome_linkable/v1
+    slo_class: EMPLOYEE_TRANSACTION
+    availability_policy: FAIL_CLOSED_QUEUE_AFTER_ACCEPTED/v1
+    phase_depth: GATE_A_CONTRACT_GATE_B_IMPLEMENT
+
+  - catalog_number: 69
+    intent_type_id: hcmnext.rewards.change_base_pay
+    version: 1
+    display_name: ChangeBasePay
+    description: Propose and execute a governed base salary or hourly-rate change.
+    owner_plane: DOMAIN
+    owner_domain: REWARDS
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.rewards.v1.ChangeBasePayRequest/v1
+    result_schema_ref: hcmnext.rewards.v1.ChangeBasePayResult/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, REPAIR, SHADOW]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R4
+    data_classification_floor: RESTRICTED_COMPENSATION
+    subject_kinds: [EMPLOYMENT, ASSIGNMENT, COMPENSATION]
+    required_capabilities: [rewards.compensation.change.plan/v1, rewards.compensation.change.execute/v1]
+    governance_requirements: [governance.compensation_change/v1, approval.compensation_change/v1]
+    preconditions: [rewards.currency_and_pay_basis_valid/v1]
+    invariants: [rewards.non_overlapping_base_pay_intervals/v1]
+    idempotency_scope: tenant+employment+pay_component+effective_at+canonical_request
+    conflict_footprint_rule: base_pay_effective_interval/v1
+    proposal_binding_rule: exact_material_proposal_digest/v1
+    revalidation_rule: compensation_execution_revalidation/v1
+    cancellation_rule: compensation_phase_aware_cancel/v1
+    compensation_rule: append_only_compensation_correction/v1
+    evidence_rule: compensation_change_and_calculation_trace/v1
+    retention_class: COMPENSATION_TRANSACTION
+    outcome_contract: expected_base_pay_observed_and_reconciled/v1
+    slo_class: EMPLOYEE_TRANSACTION
+    availability_policy: FAIL_CLOSED_QUEUE_AFTER_ACCEPTED/v1
+    phase_depth: GATE_A_CONTRACT_GATE_B_IMPLEMENT
+
+  - catalog_number: 81
+    intent_type_id: hcmnext.rewards.simulate_compensation
+    version: 1
+    display_name: SimulateCompensation
+    description: Calculate the effects and warnings of a proposed compensation change without side effects.
+    owner_plane: DOMAIN
+    owner_domain: REWARDS
+    kernel_family: CALCULATION_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.rewards.v1.SimulateCompensationRequest/v1
+    result_schema_ref: hcmnext.rewards.v1.CompensationSimulation/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, SHADOW]
+    side_effect_profile: PURE
+    risk_class: R2
+    data_classification_floor: RESTRICTED_COMPENSATION
+    subject_kinds: [EMPLOYMENT, COMPENSATION, POSITION]
+    required_capabilities: [rewards.compensation.simulate/v1]
+    governance_requirements: [governance.compensation_analysis/v1]
+    preconditions: [rewards.complete_simulation_inputs/v1]
+    invariants: [calculation.deterministic_for_pinned_inputs/v1]
+    idempotency_scope: tenant+definition+canonical_request+control_snapshots
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: simulation_digest_may_become_proposal_input/v1
+    revalidation_rule: recalculate_when_material_input_changes/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: input_rule_and_result_digest/v1
+    retention_class: COMPENSATION_ANALYSIS
+    outcome_contract: reproducible_simulation_with_warnings/v1
+    slo_class: INTERACTIVE_CALCULATION
+    availability_policy: FAIL_CLOSED/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 82
+    intent_type_id: hcmnext.rewards.evaluate_pay_band_position
+    version: 1
+    display_name: EvaluatePayBandPosition
+    description: Calculate a proposed or current pay position against the applicable versioned range.
+    owner_plane: DOMAIN
+    owner_domain: REWARDS
+    kernel_family: CALCULATION_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.rewards.v1.EvaluatePayBandPositionRequest/v1
+    result_schema_ref: hcmnext.rewards.v1.PayBandPositionResult/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY]
+    side_effect_profile: PURE
+    risk_class: R2
+    data_classification_floor: RESTRICTED_COMPENSATION
+    subject_kinds: [EMPLOYMENT, COMPENSATION, PAY_BAND]
+    required_capabilities: [rewards.pay_band.position.evaluate/v1]
+    governance_requirements: [governance.compensation_analysis/v1]
+    preconditions: [rewards.pay_band_and_currency_resolve/v1]
+    invariants: [calculation.deterministic_for_pinned_inputs/v1]
+    idempotency_scope: tenant+definition+canonical_request+reference_data_digest
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: result_digest_may_become_proposal_input/v1
+    revalidation_rule: recalculate_when_band_or_pay_changes/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: band_version_input_and_result_digest/v1
+    retention_class: COMPENSATION_ANALYSIS
+    outcome_contract: reproducible_band_position/v1
+    slo_class: INTERACTIVE_CALCULATION
+    availability_policy: FAIL_CLOSED/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 84
+    intent_type_id: hcmnext.rewards.reserve_compensation_budget
+    version: 1
+    display_name: ReserveCompensationBudget
+    description: Reserve a bounded amount from an authoritative workforce budget for a proposal.
+    owner_plane: DOMAIN
+    owner_domain: WORKFORCE_BUDGET
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.budget.v1.ReserveCompensationBudgetRequest/v1
+    result_schema_ref: hcmnext.budget.v1.BudgetReservation/v1
+    allowed_initiators: [SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, REPAIR]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R3
+    data_classification_floor: RESTRICTED_FINANCIAL
+    subject_kinds: [BUDGET, PROPOSAL]
+    required_capabilities: [budget.compensation.reserve/v1]
+    governance_requirements: [governance.budget_reservation/v1]
+    preconditions: [budget.authority_and_available_balance/v1]
+    invariants: [budget.no_over_reservation/v1]
+    idempotency_scope: tenant+budget+proposal_digest
+    conflict_footprint_rule: budget_amount_and_effective_interval/v1
+    proposal_binding_rule: reservation_bound_to_proposal_digest/v1
+    revalidation_rule: budget_authority_and_balance_at_commit/v1
+    cancellation_rule: release_unconsumed_reservation/v1
+    compensation_rule: release_or_repair_reservation/v1
+    evidence_rule: budget_reservation_lifecycle/v1
+    retention_class: FINANCIAL_CONTROL
+    outcome_contract: reservation_consumed_or_released_exactly_once/v1
+    slo_class: EMPLOYEE_TRANSACTION
+    availability_policy: FAIL_CLOSED/v1
+    phase_depth: GATE_B_IMPLEMENT
+
+  - catalog_number: 85
+    intent_type_id: hcmnext.rewards.release_compensation_budget
+    version: 1
+    display_name: ReleaseCompensationBudget
+    description: Release an unconsumed compensation budget reservation append-only.
+    owner_plane: DOMAIN
+    owner_domain: WORKFORCE_BUDGET
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.budget.v1.ReleaseCompensationBudgetRequest/v1
+    result_schema_ref: hcmnext.budget.v1.BudgetReservationRelease/v1
+    allowed_initiators: [SERVICE, HUMAN]
+    allowed_execution_modes: [EXECUTE, REPLAY, REPAIR]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R3
+    data_classification_floor: RESTRICTED_FINANCIAL
+    subject_kinds: [BUDGET, PROPOSAL]
+    required_capabilities: [budget.compensation.release/v1]
+    governance_requirements: [governance.budget_release/v1]
+    preconditions: [budget.reservation_exists_and_unconsumed/v1]
+    invariants: [budget.release_at_most_once/v1]
+    idempotency_scope: tenant+reservation+release_reason
+    conflict_footprint_rule: reservation_identity/v1
+    proposal_binding_rule: original_reservation_binding/v1
+    revalidation_rule: reservation_unconsumed_at_commit/v1
+    cancellation_rule: NOT_CANCELLABLE_AFTER_COMMIT
+    compensation_rule: append_corrective_budget_event/v1
+    evidence_rule: budget_reservation_lifecycle/v1
+    retention_class: FINANCIAL_CONTROL
+    outcome_contract: reservation_released_exactly_once/v1
+    slo_class: EMPLOYEE_TRANSACTION
+    availability_policy: FAIL_CLOSED/v1
+    phase_depth: GATE_B_IMPLEMENT
+
+  - catalog_number: 366
+    intent_type_id: hcmnext.work.approve_proposal
+    version: 1
+    display_name: ApproveProposal
+    description: Record an authorized approval bound to one immutable material proposal digest.
+    owner_plane: WORKFLOW
+    owner_domain: HUMAN_WORK
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.work.v1.ApproveProposalRequest/v1
+    result_schema_ref: hcmnext.work.v1.ApprovalDecision/v1
+    allowed_initiators: [HUMAN]
+    allowed_execution_modes: [EXECUTE, REPLAY]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R3
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [PROPOSAL, WORK_ITEM]
+    required_capabilities: [work.proposal.approve/v1]
+    governance_requirements: [governance.approval_authority/v1, governance.separation_of_duties/v1]
+    preconditions: [work.proposal_digest_current/v1]
+    invariants: [approval.exact_digest_binding/v1]
+    idempotency_scope: tenant+requirement+proposal_digest+principal
+    conflict_footprint_rule: approval_requirement_and_proposal_digest/v1
+    proposal_binding_rule: exact_material_proposal_digest/v1
+    revalidation_rule: approver_authority_at_decision_time/v1
+    cancellation_rule: invalidate_not_delete/v1
+    compensation_rule: append_approval_invalidation/v1
+    evidence_rule: signed_approval_decision/v1
+    retention_class: BUSINESS_DECISION
+    outcome_contract: approval_available_only_for_bound_proposal/v1
+    slo_class: HUMAN_INTERACTION
+    availability_policy: FAIL_CLOSED_QUEUE_TASK/v1
+    phase_depth: GATE_B_IMPLEMENT
+
+  - catalog_number: 367
+    intent_type_id: hcmnext.work.reject_proposal
+    version: 1
+    display_name: RejectProposal
+    description: Record an authorized rejection of one immutable proposal with a governed reason.
+    owner_plane: WORKFLOW
+    owner_domain: HUMAN_WORK
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.work.v1.RejectProposalRequest/v1
+    result_schema_ref: hcmnext.work.v1.ApprovalDecision/v1
+    allowed_initiators: [HUMAN]
+    allowed_execution_modes: [EXECUTE, REPLAY]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R3
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [PROPOSAL, WORK_ITEM]
+    required_capabilities: [work.proposal.reject/v1]
+    governance_requirements: [governance.approval_authority/v1]
+    preconditions: [work.proposal_digest_current/v1]
+    invariants: [approval.exact_digest_binding/v1]
+    idempotency_scope: tenant+requirement+proposal_digest+principal
+    conflict_footprint_rule: approval_requirement_and_proposal_digest/v1
+    proposal_binding_rule: exact_material_proposal_digest/v1
+    revalidation_rule: approver_authority_at_decision_time/v1
+    cancellation_rule: invalidate_not_delete/v1
+    compensation_rule: append_decision_correction/v1
+    evidence_rule: signed_rejection_decision_and_reason/v1
+    retention_class: BUSINESS_DECISION
+    outcome_contract: rejected_proposal_cannot_execute/v1
+    slo_class: HUMAN_INTERACTION
+    availability_policy: FAIL_CLOSED_QUEUE_TASK/v1
+    phase_depth: GATE_B_IMPLEMENT
+
+  - catalog_number: 457
+    intent_type_id: hcmnext.intelligence.explain_transaction
+    version: 1
+    display_name: ExplainTransaction
+    description: Explain an authorized business transaction through intent, decision, event, effect, and observation evidence.
+    owner_plane: INTELLIGENCE
+    owner_domain: PROVENANCE
+    kernel_family: ANALYTICAL_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.intelligence.v1.ExplainTransactionRequest/v1
+    result_schema_ref: hcmnext.intelligence.v1.TransactionExplanation/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [EXECUTE, REPLAY]
+    side_effect_profile: READ_ONLY
+    risk_class: R2
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [BUSINESS_TRANSACTION]
+    required_capabilities: [provenance.transaction.explain/v1]
+    governance_requirements: [governance.provenance_read/v1]
+    preconditions: [provenance.transaction_reference_resolves/v1]
+    invariants: [privacy.minimum_necessary/v1, provenance.no_hidden_edge_inference/v1]
+    idempotency_scope: tenant+definition+canonical_request+visibility_snapshot
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: NOT_APPLICABLE
+    revalidation_rule: authorization_at_each_edge_traversal/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: explanation_query_and_visible_edge_set/v1
+    retention_class: ANALYTICAL_EXPLANATION
+    outcome_contract: complete_authorized_explanation_or_explicit_gap/v1
+    slo_class: INTERACTIVE_READ
+    availability_policy: FAIL_CLOSED_ON_GOVERNANCE_USE_PARTIAL_WITH_GAPS/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 461
+    intent_type_id: hcmnext.operations.detect_drift
+    version: 1
+    display_name: DetectDrift
+    description: Compare intended, authoritative, derived, and observed state and classify mismatches.
+    owner_plane: OPERATIONS_ASSURANCE
+    owner_domain: RECONCILIATION
+    kernel_family: ANALYTICAL_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.operations.v1.DetectDriftRequest/v1
+    result_schema_ref: hcmnext.operations.v1.DriftReport/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE, SCHEDULE, SYSTEM_EVENT]
+    allowed_execution_modes: [EXECUTE, REPLAY, SHADOW]
+    side_effect_profile: READ_ONLY
+    risk_class: R2
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [BUSINESS_TRANSACTION, EXTERNAL_RESOURCE]
+    required_capabilities: [reconciliation.drift.detect/v1]
+    governance_requirements: [governance.reconciliation_read/v1]
+    preconditions: [reconciliation.comparable_snapshots_exist/v1]
+    invariants: [reconciliation.source_authority_respected/v1]
+    idempotency_scope: tenant+comparison_set+watermarks
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: NOT_APPLICABLE
+    revalidation_rule: report_watermarks_and_authority_versions/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: intended_observed_diff_with_watermarks/v1
+    retention_class: RECONCILIATION_EVIDENCE
+    outcome_contract: every_mismatch_classified_or_explicitly_unknown/v1
+    slo_class: OPERATIONAL_DIAGNOSTIC
+    availability_policy: QUEUE_FOR_LATER/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 463
+    intent_type_id: hcmnext.operations.create_repair_plan
+    version: 1
+    display_name: CreateRepairPlan
+    description: Produce a bounded, governed corrective plan without executing its effects.
+    owner_plane: OPERATIONS_ASSURANCE
+    owner_domain: REPAIR
+    kernel_family: PROCESS_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.operations.v1.CreateRepairPlanRequest/v1
+    result_schema_ref: hcmnext.operations.v1.RepairPlan/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE, SYSTEM_EVENT]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY]
+    side_effect_profile: READ_ONLY
+    risk_class: R3
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [DRIFT, INCIDENT, BUSINESS_TRANSACTION]
+    required_capabilities: [repair.plan.create/v1]
+    governance_requirements: [governance.repair_plan/v1]
+    preconditions: [repair.diagnosis_has_evidence/v1]
+    invariants: [repair.plan_has_bounded_targets/v1]
+    idempotency_scope: tenant+diagnosis_digest+policy_snapshot
+    conflict_footprint_rule: planned_only_until_approved/v1
+    proposal_binding_rule: repair_plan_digest/v1
+    revalidation_rule: repair_targets_revalidated_before_execution/v1
+    cancellation_rule: cancel_unexecuted_plan/v1
+    compensation_rule: repair_plan_must_declare_compensation/v1
+    evidence_rule: diagnosis_to_action_provenance/v1
+    retention_class: REPAIR_EVIDENCE
+    outcome_contract: executable_or_explicitly_blocked_repair_plan/v1
+    slo_class: OPERATIONAL_DIAGNOSTIC
+    availability_policy: QUEUE_FOR_LATER/v1
+    phase_depth: GATE_A_IMPLEMENT
+
+  - catalog_number: 464
+    intent_type_id: hcmnext.operations.simulate_repair
+    version: 1
+    display_name: SimulateRepair
+    description: Evaluate a repair plan against pinned state without performing business effects.
+    owner_plane: OPERATIONS_ASSURANCE
+    owner_domain: REPAIR
+    kernel_family: CALCULATION_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.operations.v1.SimulateRepairRequest/v1
+    result_schema_ref: hcmnext.operations.v1.RepairSimulation/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, SHADOW]
+    side_effect_profile: PURE
+    risk_class: R3
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [REPAIR_PLAN]
+    required_capabilities: [repair.plan.simulate/v1]
+    governance_requirements: [governance.repair_simulation/v1]
+    preconditions: [repair.plan_digest_resolves/v1]
+    invariants: [simulation.no_business_side_effect/v1]
+    idempotency_scope: tenant+repair_plan_digest+state_watermarks
+    conflict_footprint_rule: NONE
+    proposal_binding_rule: simulation_bound_to_repair_plan_digest/v1
+    revalidation_rule: resimulate_when_target_state_changes/v1
+    cancellation_rule: cancel_before_result_commit/v1
+    compensation_rule: NOT_APPLICABLE
+    evidence_rule: repair_input_output_and_warning_digest/v1
+    retention_class: REPAIR_EVIDENCE
+    outcome_contract: reproducible_effect_and_risk_preview/v1
+    slo_class: OPERATIONAL_DIAGNOSTIC
+    availability_policy: FAIL_CLOSED/v1
+    phase_depth: GATE_A_IMPLEMENT

@@ -1,0 +1,37 @@
+catalog: hcmnext.business_intents
+catalog_version: 1
+source_contract: hcmnext.intents.v1.IntentDefinition
+definitions:
+  - catalog_number: 28
+    intent_type_id: hcmnext.people.change_manager
+    version: 1
+    display_name: ChangeManager
+    description: Change the effective-dated manager relationship for one employment assignment without creating an organization cycle.
+    owner_plane: DOMAIN
+    owner_domain: PEOPLE
+    kernel_family: CHANGE_REQUEST
+    maturity: DRAFT_CONTRACT
+    input_schema_ref: hcmnext.people.v1.ChangeManagerRequest/v1
+    result_schema_ref: hcmnext.people.v1.ChangeManagerResult/v1
+    allowed_initiators: [HUMAN, AGENT, SERVICE]
+    allowed_execution_modes: [SIMULATE, EXECUTE, REPLAY, REPAIR, SHADOW]
+    side_effect_profile: INTERNAL_MUTATION
+    risk_class: R2
+    data_classification_floor: CONFIDENTIAL_HR
+    subject_kinds: [PERSON, EMPLOYMENT, ASSIGNMENT, MANAGER_RELATIONSHIP, ORGANIZATION]
+    required_capabilities: [people.manager.change.plan/v1, people.manager.change.execute/v1]
+    governance_requirements: [governance.manager_change/v1, approval.manager_change/v1]
+    preconditions: [people.worker_active_at_effective_time/v1, people.proposed_manager_active_and_eligible/v1, organization.scope_permits_relationship/v1]
+    invariants: [organization.no_self_management/v1, organization.no_manager_cycle/v1, people.non_overlapping_primary_manager_intervals/v1]
+    idempotency_scope: tenant+employment+effective_at+proposed_manager+canonical_request
+    conflict_footprint_rule: manager_relationship_and_context_interval/v1
+    proposal_binding_rule: exact_manager_change_proposal_digest/v1
+    revalidation_rule: manager_change_execution_revalidation/v1
+    cancellation_rule: manager_change_phase_aware_cancel/v1
+    compensation_rule: append_only_manager_relationship_correction/v1
+    evidence_rule: manager_change_complete_business_story/v1
+    retention_class: WORKER_TRANSACTION
+    outcome_contract: expected_manager_observed_and_reconciled/v1
+    slo_class: EMPLOYEE_TRANSACTION
+    availability_policy: FAIL_CLOSED_QUEUE_AFTER_ACCEPTED/v1
+    phase_depth: DESIGN_CONFORMANCE_ONLY
