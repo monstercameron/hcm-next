@@ -22,6 +22,7 @@ package pgxadapter
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -125,7 +126,10 @@ func (c *Conn) Close(ctx context.Context) error { return c.conn.Close(ctx) }
 // Pool is a pgx connection pool exposed through the port. Unlike [Conn] it is
 // safe for concurrent use, and every Exec/Query/QueryRow acquires and releases
 // a connection of its own.
-type Pool struct{ pool *pgxpool.Pool }
+type Pool struct {
+	pool            *pgxpool.Pool
+	hygieneFailures *atomic.Int64
+}
 
 // NewPool opens a pool against url and pings it once, so a bad connection
 // string or an unreachable server fails here rather than on first use.
@@ -139,6 +143,28 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 	for k, v := range runtimeParams {
 		cfg.ConnConfig.RuntimeParams[k] = v
 	}
+	// A pooled connection is a reusable PostgreSQL session. Reset all ambient
+	// state before handing an idle session to a borrower; callers must use SET
+	// LOCAL for request/tenant context. Re-apply trusted runtime parameters
+	// (notably search_path), which DISCARD ALL resets to defaults.
+	params := make(map[string]string, len(runtimeParams))
+	for k, v := range runtimeParams {
+		params[k] = v
+	}
+	var hygieneFailures atomic.Int64
+	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+		if _, err := conn.Exec(ctx, "DISCARD ALL"); err != nil {
+			hygieneFailures.Add(1)
+			return false
+		}
+		for k, v := range params {
+			if _, err := conn.Exec(ctx, "SELECT set_config($1, $2, false)", k, v); err != nil {
+				hygieneFailures.Add(1)
+				return false
+			}
+		}
+		return true
+	}
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
@@ -147,7 +173,19 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 		pool.Close()
 		return nil, err
 	}
-	return &Pool{pool: pool}, nil
+	return &Pool{pool: pool, hygieneFailures: &hygieneFailures}, nil
+}
+
+// WithConn lends one physical connection to fn and releases it afterwards.
+// The next borrower receives a session cleaned by BeforeAcquire. fn must not
+// retain conn after it returns.
+func (p *Pool) WithConn(ctx context.Context, fn func(dbport.Conn) error) error {
+	conn, err := p.pool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	return fn(&Conn{conn: conn.Conn()})
 }
 
 // Exec implements [dbport.Execer].
@@ -180,6 +218,15 @@ func (p *Pool) Ping(ctx context.Context) error { return p.pool.Ping(ctx) }
 
 // Close closes the pool and every connection in it.
 func (p *Pool) Close() { p.pool.Close() }
+
+// HygieneFailures reports sessions rejected while restoring trusted state.
+// It carries no tenant, request, or other sensitive labels.
+func (p *Pool) HygieneFailures() int64 {
+	if p.hygieneFailures == nil {
+		return 0
+	}
+	return p.hygieneFailures.Load()
+}
 
 // Saturation is a snapshot of the pool's connection accounting, reported
 // without handing out pgxpool's own stat type.

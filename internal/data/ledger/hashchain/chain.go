@@ -91,6 +91,9 @@ func frameLinkInput(prevHash, eventDigest string) []byte {
 // algorithm identifier alongside the hex digest. prevHash is [GenesisHash]
 // for a stream's first event.
 func (d *Digester) Link(prevHash, eventDigest string) (algorithm, chainHash string, err error) {
+	if d == nil || d.registry == nil {
+		return "", "", fmt.Errorf("hashchain: digest registry is required")
+	}
 	if eventDigest == "" {
 		return "", "", fmt.Errorf("hashchain: event digest is required to extend a chain")
 	}

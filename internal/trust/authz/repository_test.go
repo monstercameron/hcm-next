@@ -63,6 +63,26 @@ func TestTodo_TRUST_012(t *testing.T) {
 		}
 	})
 
+	t.Run("the planner rejects an unbound tenant or evaluation instant", func(t *testing.T) {
+		principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleCompAdmin)}, purposes: []string{authz.PurposePayrollProcessing}})
+		candidate := authz.ScopeInput{Subject: managed}
+		base := authz.RepositoryQueryRequest{
+			Principal: principal, EffectiveAt: baseInstant,
+			Tenant: tenantAcme, Candidates: []authz.ScopeInput{candidate},
+			Fields: []authz.FieldID{authz.FieldWorkerNumber},
+		}
+		for name, req := range map[string]authz.RepositoryQueryRequest{
+			"zero tenant":  func() authz.RepositoryQueryRequest { r := base; r.Tenant = values.TenantId(""); return r }(),
+			"zero instant": func() authz.RepositoryQueryRequest { r := base; r.EffectiveAt = values.Instant{}; return r }(),
+		} {
+			t.Run(name, func(t *testing.T) {
+				if _, err := authz.PlanRepositoryScope(req); err == nil {
+					t.Fatal("planner accepted an incomplete query boundary")
+				}
+			})
+		}
+	})
+
 	t.Run("the planner intersects tenant, population, field, time and purpose and the gate serves only authorized projections", func(t *testing.T) {
 		principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleManager)}, purposes: []string{authz.PurposeCompensationReview}})
 		scope, err := authz.PlanRepositoryScope(authz.RepositoryQueryRequest{

@@ -67,6 +67,15 @@ var (
 	// ErrInvalidSignature reports a signature that does not verify, is
 	// malformed, or was produced/checked with a key of the wrong size.
 	ErrInvalidSignature = errors.New("config: signature does not verify")
+
+	// Registry validation causes.
+	ErrInvalidObject            = errors.New("config: object kind is unspecified or unknown")
+	ErrMissingOwner             = errors.New("config: object owner is missing")
+	ErrMissingPhase             = errors.New("config: object phase is missing")
+	ErrMissingScope             = errors.New("config: object scope is missing")
+	ErrMissingEffectiveTime     = errors.New("config: object effective time is missing")
+	ErrInvalidEffectiveInterval = errors.New("config: object effective interval is invalid")
+	ErrAlreadyRegistered        = errors.New("config: object version is already registered")
 )
 
 // Error is the single error type this package returns. Unwrap exposes the

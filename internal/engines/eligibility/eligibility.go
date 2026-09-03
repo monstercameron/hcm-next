@@ -78,6 +78,10 @@ var (
 	// ErrResultMissingFacts is returned when an UNKNOWN result does not name
 	// which facts or rules could not be determined.
 	ErrResultMissingFacts = errors.New("eligibility: an UNKNOWN result requires at least one missing-fact reference")
+	// ErrBindingMismatch means a result was not produced for the exact pinned
+	// request context. Such a result must not be treated as a restatement of
+	// the request.
+	ErrBindingMismatch = errors.New("eligibility: result binding does not match request")
 )
 
 // SubjectMatterKind names what an eligibility request is asking about.
@@ -160,10 +164,14 @@ type Request struct {
 	SubjectMatter     SubjectMatterRef
 	RequestedInterval values.EffectiveInterval
 	EffectiveInterval values.EffectiveInterval
-	Jurisdiction      string
-	Snapshots         Snapshots
-	Purpose           string
-	Authority         string
+	// KnownAt is optional for backwards-compatible callers. When supplied it
+	// pins the knowledge-time at which the population/fact/rule snapshot was
+	// assembled; it is carried into every result and its digest.
+	KnownAt      values.KnownAt
+	Jurisdiction string
+	Snapshots    Snapshots
+	Purpose      string
+	Authority    string
 }
 
 // Validate reports whether the request is complete. Every field the RED
@@ -202,7 +210,7 @@ func (r Request) Canonical() []byte {
 	if r.Validate() != nil {
 		return nil
 	}
-	raw, err := writerFor(requestSchema).
+	w := writerFor(requestSchema).
 		Value("subject", r.Subject).
 		String("subject_matter", r.SubjectMatter.String()).
 		Value("requested_interval", r.RequestedInterval).
@@ -212,8 +220,11 @@ func (r Request) Canonical() []byte {
 		String("fact_snapshot", r.Snapshots.FactSnapshotRef).
 		String("rule_snapshot", r.Snapshots.RuleSnapshotRef).
 		String("purpose", r.Purpose).
-		String("authority", r.Authority).
-		Bytes()
+		String("authority", r.Authority)
+	if r.KnownAt.Instant().Validate() == nil {
+		w.Value("known_at", r.KnownAt.Instant())
+	}
+	raw, err := w.Bytes()
 	if err != nil {
 		return nil
 	}
@@ -328,16 +339,40 @@ type Obligation struct {
 
 // Result is the immutable, deterministic answer to one Request.
 type Result struct {
-	Status            Status
-	ProgramVersion    string
-	FactSnapshotRef   string
-	RuleSnapshotRef   string
-	EffectiveInterval values.EffectiveInterval
-	Reasons           []Reason
-	Obligations       []Obligation
-	Evidence          []string
-	MissingFacts      []string
-	Digest            string
+	Status                Status
+	ProgramVersion        string
+	PopulationSnapshotRef string
+	FactSnapshotRef       string
+	RuleSnapshotRef       string
+	EffectiveInterval     values.EffectiveInterval
+	KnownAt               values.KnownAt
+	Reasons               []Reason
+	Obligations           []Obligation
+	Evidence              []string
+	MissingFacts          []string
+	Digest                string
+}
+
+// ValidateBinding verifies the immutable provenance carried by a result. It
+// is useful when replaying a stored result after a late population entrant,
+// removal, or retroactive correction: the old result remains valid evidence,
+// but cannot be mistaken for a result for a new request context.
+func ValidateBinding(req Request, result Result) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+	if result.PopulationSnapshotRef != req.Snapshots.PopulationSnapshotRef ||
+		result.FactSnapshotRef != req.Snapshots.FactSnapshotRef ||
+		result.RuleSnapshotRef != req.Snapshots.RuleSnapshotRef ||
+		result.EffectiveInterval != req.EffectiveInterval {
+		return ErrBindingMismatch
+	}
+	// A supplied knowledge time is part of the binding. An unset request time
+	// intentionally accepts legacy results that predate this field.
+	if req.KnownAt.Instant().Validate() == nil && result.KnownAt != req.KnownAt {
+		return ErrBindingMismatch
+	}
+	return nil
 }
 
 // Validate reports whether the result is a complete, well-formed answer. It
@@ -377,6 +412,7 @@ func (r Result) Canonical() []byte {
 	w := writerFor(resultSchema).
 		String("status", r.Status.String()).
 		String("program_version", r.ProgramVersion).
+		String("population_snapshot", r.PopulationSnapshotRef).
 		String("fact_snapshot", r.FactSnapshotRef).
 		String("rule_snapshot", r.RuleSnapshotRef).
 		Value("effective_interval", r.EffectiveInterval).
@@ -389,6 +425,9 @@ func (r Result) Canonical() []byte {
 	for _, ob := range r.Obligations {
 		w.String("obligation.reason", ob.Reason.String())
 		w.String("obligation.ref", ob.Ref)
+	}
+	if r.KnownAt.Instant().Validate() == nil {
+		w.Value("known_at", r.KnownAt.Instant())
 	}
 	w.SortedStrings("evidence", r.Evidence)
 	w.SortedStrings("missing_facts", r.MissingFacts)

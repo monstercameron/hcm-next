@@ -1,0 +1,143 @@
+// Package pipeline coordinates the RulePack authoring and release stages.
+// It deliberately keeps orchestration separate from the legal domain types:
+// definitions are parsed and validated, review is a distinct transition, and
+// publication is the only operation that registers a signed release.
+package pipeline
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
+)
+
+var (
+	ErrAuthorReviewerSame = errors.New("legal pipeline: author and reviewer must be different people")
+	ErrCounselUncertain   = errors.New("legal pipeline: counsel cannot approve VERIFY or DISPUTED rules")
+	ErrReviewFloor        = errors.New("legal pipeline: REVIEW_STATUS_INSUFFICIENT")
+	ErrPublisherReviewer  = errors.New("legal pipeline: publisher must be different from reviewer")
+	ErrNotPublishable     = errors.New("legal pipeline: candidate is not publishable")
+)
+
+// Draft is the parsed, author-owned definition and its author identity.
+type Draft struct {
+	Definition legal.PackDefinition
+	AuthorID   string
+}
+
+// Reviewed is a validated candidate with an auditable reviewer identity.
+type Reviewed struct {
+	Candidate  legal.PackCandidate
+	AuthorID   string
+	ReviewerID string
+}
+
+// Ingest parses and schema-validates a definition. It performs no review and
+// never returns an evaluable release.
+func Ingest(data []byte, authorID string) (Draft, error) {
+	if authorID == "" {
+		return Draft{}, fmt.Errorf("%w: author identity is required", legal.ErrPackDefinitionField)
+	}
+	d, err := legal.LoadPackDefinition(data)
+	if err != nil {
+		return Draft{}, err
+	}
+	// Candidate validates typed bodies and citations while preserving the
+	// definition as the source of the review transition.
+	if _, err := d.Candidate(); err != nil {
+		return Draft{}, err
+	}
+	return Draft{Definition: d, AuthorID: authorID}, nil
+}
+
+// Review validates a draft and raises its release status. Reviewer and author
+// separation is checked before any candidate is produced. Counsel approval is
+// forbidden while any rule remains uncertain or disputed.
+func Review(d Draft, reviewerID string, status legal.ReviewStatus) (Reviewed, error) {
+	if d.AuthorID == "" || reviewerID == "" {
+		return Reviewed{}, ErrAuthorReviewerSame
+	}
+	if d.AuthorID == reviewerID {
+		return Reviewed{}, ErrAuthorReviewerSame
+	}
+	if status == legal.ReviewStatusCounselApproved {
+		for _, o := range d.Definition.Obligations {
+			marker := strings.ToUpper(strings.TrimSpace(o.Citation.ConfidenceMarker))
+			if marker == "VERIFY" || marker == "DISPUTED" || marker == "" {
+				return Reviewed{}, fmt.Errorf("%w: obligation %s", ErrCounselUncertain, o.ID)
+			}
+		}
+	}
+	d.Definition.ReviewStatus = status.String()
+	c, err := d.Definition.Candidate()
+	if err != nil {
+		return Reviewed{}, err
+	}
+	return Reviewed{Candidate: c, AuthorID: d.AuthorID, ReviewerID: reviewerID}, nil
+}
+
+// Publish signs and registers a reviewed candidate. Vendor baseline requires
+// the publisher signature; counsel-approved releases additionally require the
+// customer-counsel signature. The returned release is immutable by value and
+// is verified before registration.
+func Publish(r Reviewed, publisherID string, publisher *legal.Signer, counselID string, counsel *legal.Signer, registry *legal.Registry) (legal.PackRelease, error) {
+	if publisherID == "" || publisher == nil || registry == nil {
+		return legal.PackRelease{}, ErrNotPublishable
+	}
+	if publisherID == r.ReviewerID {
+		return legal.PackRelease{}, ErrPublisherReviewer
+	}
+	release, err := r.Candidate.Sign(legal.SigningRoleReleasePublisher, publisher)
+	if err != nil {
+		return legal.PackRelease{}, err
+	}
+	if release.ReviewStatus == legal.ReviewStatusCounselApproved {
+		if counselID == "" || counsel == nil || counselID == r.AuthorID || counselID == r.ReviewerID || counselID == publisherID {
+			return legal.PackRelease{}, ErrNotPublishable
+		}
+		release, err = legal.AddSignature(release, legal.SigningRoleCustomerCounsel, counsel)
+		if err != nil {
+			return legal.PackRelease{}, err
+		}
+	}
+	if err := release.Verify(); err != nil {
+		return legal.PackRelease{}, err
+	}
+	if err := registry.Register(release); err != nil {
+		return legal.PackRelease{}, err
+	}
+	return release, nil
+}
+
+// MeetsReviewFloor reports whether a release's status satisfies a tenant's
+// minimum. Unspecified is never a valid floor; ordering follows the contract's
+// assurance progression and treats customer-defined as counsel-approved.
+func MeetsReviewFloor(actual, floor legal.ReviewStatus) bool {
+	if floor == legal.ReviewStatusUnspecified || actual == legal.ReviewStatusUnspecified {
+		return false
+	}
+	rank := func(s legal.ReviewStatus) int {
+		switch s {
+		case legal.ReviewStatusUnreviewed:
+			return 0
+		case legal.ReviewStatusVendorBaseline:
+			return 1
+		case legal.ReviewStatusRequiresCustomerCounselConfiguration:
+			return 1
+		case legal.ReviewStatusCounselApproved, legal.ReviewStatusCustomerDefined:
+			return 2
+		default:
+			return -1
+		}
+	}
+	return rank(actual) >= rank(floor)
+}
+
+// RequireReviewFloor fails closed when a release is below the tenant floor.
+func RequireReviewFloor(release legal.PackRelease, floor legal.ReviewStatus) error {
+	if !MeetsReviewFloor(release.ReviewStatus, floor) {
+		return fmt.Errorf("%w: release=%s floor=%s", ErrReviewFloor, release.ReviewStatus, floor)
+	}
+	return nil
+}

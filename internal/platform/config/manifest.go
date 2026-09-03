@@ -19,13 +19,21 @@ const (
 	DependencyRule
 	DependencyWorkflow
 	DependencyMapping
+	DependencyCapability
+	DependencyConnector
+	DependencyAgent
+	DependencyReference
 )
 
 var dependencyKindWire = map[DependencyKind]string{
-	DependencySchema:   "SCHEMA",
-	DependencyRule:     "RULE",
-	DependencyWorkflow: "WORKFLOW",
-	DependencyMapping:  "MAPPING",
+	DependencySchema:     "SCHEMA",
+	DependencyRule:       "RULE",
+	DependencyWorkflow:   "WORKFLOW",
+	DependencyMapping:    "MAPPING",
+	DependencyCapability: "CAPABILITY",
+	DependencyConnector:  "CONNECTOR",
+	DependencyAgent:      "AGENT",
+	DependencyReference:  "REFERENCE",
 }
 
 // String returns the stable wire token.

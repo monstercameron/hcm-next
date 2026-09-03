@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 // ConditionStatus is one leaf's contribution to the explained result.
@@ -73,14 +74,17 @@ type ConditionExplanation struct {
 // Explanation is the deterministic, side-effect-free account of one
 // request's result.
 type Explanation struct {
-	Subject         string
-	Status          Status
-	Conditions      []ConditionExplanation
-	Authority       string
-	ProgramVersion  string
-	FactSnapshotRef string
-	RuleSnapshotRef string
-	Digest          string
+	Subject               string
+	Status                Status
+	Conditions            []ConditionExplanation
+	Authority             string
+	ProgramVersion        string
+	PopulationSnapshotRef string
+	FactSnapshotRef       string
+	RuleSnapshotRef       string
+	EffectiveInterval     values.EffectiveInterval
+	KnownAt               values.KnownAt
+	Digest                string
 }
 
 // Explain evaluates plan's criteria for req exactly as Evaluate would, and
@@ -106,13 +110,16 @@ func Explain(ctx context.Context, facts FactReader, rules RuleReader, req Reques
 	}
 
 	explanation := Explanation{
-		Subject:         req.Subject.String(),
-		Status:          statusFor(rootState),
-		Conditions:      conditions,
-		Authority:       req.Authority,
-		ProgramVersion:  req.SubjectMatter.Revision,
-		FactSnapshotRef: req.Snapshots.FactSnapshotRef,
-		RuleSnapshotRef: req.Snapshots.RuleSnapshotRef,
+		Subject:               req.Subject.String(),
+		Status:                statusFor(rootState),
+		Conditions:            conditions,
+		Authority:             req.Authority,
+		ProgramVersion:        req.SubjectMatter.Revision,
+		PopulationSnapshotRef: req.Snapshots.PopulationSnapshotRef,
+		FactSnapshotRef:       req.Snapshots.FactSnapshotRef,
+		RuleSnapshotRef:       req.Snapshots.RuleSnapshotRef,
+		EffectiveInterval:     req.EffectiveInterval,
+		KnownAt:               req.KnownAt,
 	}
 
 	w := canonicalbytes.New("hcmnext.engines.eligibility.Explanation", schemaVersion).
@@ -120,9 +127,14 @@ func Explain(ctx context.Context, facts FactReader, rules RuleReader, req Reques
 		String("status", explanation.Status.String()).
 		String("authority", explanation.Authority).
 		String("program_version", explanation.ProgramVersion).
+		String("population_snapshot", explanation.PopulationSnapshotRef).
 		String("fact_snapshot", explanation.FactSnapshotRef).
 		String("rule_snapshot", explanation.RuleSnapshotRef).
+		Value("effective_interval", explanation.EffectiveInterval).
 		Count("conditions", len(conditions))
+	if explanation.KnownAt.Instant().Validate() == nil {
+		w.Value("known_at", explanation.KnownAt.Instant())
+	}
 	for _, c := range conditions {
 		w.Bool("redacted", c.Redacted)
 		w.String("field", c.Field)

@@ -48,15 +48,17 @@ func Evaluate(ctx context.Context, facts FactReader, rules RuleReader, req Reque
 
 	status := statusFor(state)
 	result := Result{
-		Status:            status,
-		ProgramVersion:    req.SubjectMatter.Revision,
-		FactSnapshotRef:   req.Snapshots.FactSnapshotRef,
-		RuleSnapshotRef:   req.Snapshots.RuleSnapshotRef,
-		EffectiveInterval: req.EffectiveInterval,
-		Reasons:           trace.reasons,
-		Obligations:       trace.obligations,
-		Evidence:          trace.evidence,
-		MissingFacts:      trace.missing,
+		Status:                status,
+		ProgramVersion:        req.SubjectMatter.Revision,
+		PopulationSnapshotRef: req.Snapshots.PopulationSnapshotRef,
+		FactSnapshotRef:       req.Snapshots.FactSnapshotRef,
+		RuleSnapshotRef:       req.Snapshots.RuleSnapshotRef,
+		EffectiveInterval:     req.EffectiveInterval,
+		KnownAt:               req.KnownAt,
+		Reasons:               trace.reasons,
+		Obligations:           trace.obligations,
+		Evidence:              trace.evidence,
+		MissingFacts:          trace.missing,
 	}
 	if len(result.Reasons) == 0 {
 		result.Reasons = []Reason{{Kind: ReasonNotApplicable, Ref: "criteria"}}

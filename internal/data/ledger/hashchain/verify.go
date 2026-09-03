@@ -60,6 +60,14 @@ func (d *Digester) VerifyLinks(streamKey string, events []EventDigest, links []C
 
 		ev, link := events[i], links[i]
 
+		if link.StreamKey != "" && link.StreamKey != streamKey {
+			return Head{}, ErrChainBroken{
+				StreamKey: streamKey, Sequence: wantSeq,
+				Reason:   "chain link belongs to a different stream",
+				Expected: streamKey, Actual: link.StreamKey,
+			}
+		}
+
 		if ev.Sequence != wantSeq {
 			return Head{}, ErrChainBroken{
 				StreamKey: streamKey, Sequence: wantSeq, Reason: "event sequence gap or reordering",
@@ -87,9 +95,16 @@ func (d *Digester) VerifyLinks(streamKey string, events []EventDigest, links []C
 			}
 		}
 
-		_, wantChainHash, err := d.Link(expectedPrev, ev.Digest)
+		wantAlgorithm, wantChainHash, err := d.Link(expectedPrev, ev.Digest)
 		if err != nil {
 			return Head{}, err
+		}
+		if link.Algorithm != wantAlgorithm {
+			return Head{}, ErrChainBroken{
+				StreamKey: streamKey, Sequence: wantSeq,
+				Reason:   "chain link uses a different digest algorithm",
+				Expected: wantAlgorithm, Actual: link.Algorithm,
+			}
 		}
 		if link.ChainHash != wantChainHash {
 			return Head{}, ErrChainBroken{

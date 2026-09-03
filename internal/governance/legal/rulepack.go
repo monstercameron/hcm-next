@@ -517,6 +517,20 @@ func (r *Registry) Lookup(j Jurisdiction, date values.LocalDate) (*RulePack, err
 	return &out, nil
 }
 
+// IsRegisteredExact reports whether an exact jurisdiction release is
+// registered and effective on date. Unlike Lookup, it never falls back from
+// a locality to its subdivision; this distinction is required for locality
+// overlay receipts.
+func (r *Registry) IsRegisteredExact(j Jurisdiction, date values.LocalDate) bool {
+	if r == nil || date.Validate() != nil { return false }
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for k, pack := range r.packs {
+		if k.Jurisdiction == j && pack.Window.Contains(date) { return true }
+	}
+	return false
+}
+
 // GetExact returns the exact (jurisdiction, pack id, version) release, or
 // [ErrRuleCoverageUnknown] if it was never registered or has since been
 // removed from this registry instance. [Evaluate] uses this to re-fetch the

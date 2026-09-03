@@ -7,6 +7,11 @@ import (
 
 // Sentinel causes. Classify with [errors.Is]; never by matching strings.
 var (
+	// ErrInvalidAttestation reports an attestation statement that cannot be
+	// published. Publication is fail-closed: incomplete statements never
+	// become selectable versions.
+	ErrInvalidAttestation = errors.New("humanwork: invalid attestation statement")
+
 	// ErrInvalidExpression reports a resolution expression that cannot be
 	// compiled: an unnamed role, a pinned person with no policy reference, a
 	// missing or malformed scope, a combinator with too few children, a quorum

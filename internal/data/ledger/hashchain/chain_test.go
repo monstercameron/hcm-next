@@ -167,6 +167,40 @@ func TestTodo_DATA_004(t *testing.T) {
 		}
 	})
 
+	t.Run("a changed recorded algorithm breaks verification", func(t *testing.T) {
+		events := []hashchain.EventDigest{
+			{Sequence: 1, EventID: uuid.New(), Digest: fixedDigest("algorithm")},
+		}
+		links, err := digester.Fold(streamKey, events)
+		if err != nil {
+			t.Fatalf("fold a clean stream: %v", err)
+		}
+		links[0].Algorithm = "sha512"
+
+		_, err = digester.VerifyLinks(streamKey, events, links)
+		var broken hashchain.ErrChainBroken
+		if !errors.As(err, &broken) || broken.Sequence != 1 {
+			t.Fatalf("algorithm substitution returned %v, want ErrChainBroken at sequence 1", err)
+		}
+	})
+
+	t.Run("a link carrying another stream key is refused", func(t *testing.T) {
+		events := []hashchain.EventDigest{
+			{Sequence: 1, EventID: uuid.New(), Digest: fixedDigest("stream")},
+		}
+		links, err := digester.Fold(streamKey, events)
+		if err != nil {
+			t.Fatalf("fold a clean stream: %v", err)
+		}
+		links[0].StreamKey = "other-stream"
+
+		_, err = digester.VerifyLinks(streamKey, events, links)
+		var broken hashchain.ErrChainBroken
+		if !errors.As(err, &broken) || broken.Sequence != 1 {
+			t.Fatalf("cross-stream link returned %v, want ErrChainBroken at sequence 1", err)
+		}
+	})
+
 	t.Run("a chain link recorded for the wrong event is refused", func(t *testing.T) {
 		events := []hashchain.EventDigest{
 			{Sequence: 1, EventID: uuid.New(), Digest: fixedDigest("a")},

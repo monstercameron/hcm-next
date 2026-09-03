@@ -232,6 +232,12 @@ func PlanRepositoryScope(req RepositoryQueryRequest) (RepositoryScope, error) {
 	if req.Principal == nil {
 		return RepositoryScope{}, fmt.Errorf("%w: nil principal", ErrInvalidPolicyInput)
 	}
+	if err := req.Tenant.Validate(); err != nil {
+		return RepositoryScope{}, fmt.Errorf("%w: query tenant: %v", ErrInvalidPolicyInput, err)
+	}
+	if !req.EffectiveAt.IsSet() {
+		return RepositoryScope{}, fmt.Errorf("%w: query effective instant is not set", ErrInvalidPolicyInput)
+	}
 	if len(req.Candidates) == 0 {
 		return RepositoryScope{}, fmt.Errorf("%w: repository query names no candidates; a wildcard population has no authorized shape", ErrInvalidPolicyInput)
 	}
