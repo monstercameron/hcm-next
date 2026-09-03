@@ -151,10 +151,10 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 - **Medical records**: Retain separately from personnel file for at least 3 years following termination (verify if state law mandates this or if OSHA/ADA federal law applies).
 - **General personnel records**: No maximum retention period specified; employers may retain indefinitely; verify best practice and legal hold obligations.
 
-**Employee access to personnel files**:
+**Employee access to personnel files — resolved 2026-09-03**:
 
-- Hawaii law is not explicit on employee right to access own personnel file; **verify** whether state statute grants this right or if FMLA/ADA federal rights apply.
-- Government employees (state) have access rights under HRS §89-16.5 (exclusive representatives and union access); private sector access rights unclear.
+- **Hawaii has no general statute giving private-sector employees a right to inspect or copy their own personnel file.** HRS § 89-16.5 is the only on-point statute, and it does not create an individual employee right: it lets an **exclusive bargaining representative** (a certified public-sector union) access an employee's personal records when relevant to investigating or processing a grievance, with a duty not to further disclose the contents. That is a public-sector, union-mediated access right, not a general employee right, and it does not extend to private employers.
+- Absent a written employer policy or a collective bargaining agreement provision, a private-sector Hawaii employee has no statutory right to see their own file. Do not model a Hawaii-specific statutory personnel-file deadline; treat it as employer-policy-defined.
 
 **Record format**:
 
@@ -305,7 +305,7 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 - Confirm exact wording of HRS § 378-2.3 pay transparency requirement: "reasonably expected actual wage rate" vs. "reasonably expected wage range" vs. "hourly rate or salary range" (sources differ).
 - Confirm whether HRS § 378-2.3 exemptions include public-sector positions covered by collective bargaining agreements.
 - Confirm exact scope of "technology business" and technology worker exemption from non-competes (HRS Act 158, 2015); does it apply to all tech sector or narrow definition?
-- Verify whether private-sector employees have statutory right to access own personnel files beyond federal FMLA/ADA rights.
+- Resolved 2026-09-03: private-sector employees have **no** statutory right to access their personnel files; HRS § 89-16.5 covers only public-sector union-grievance access, not federal FMLA/ADA rights either (those don't create a file-inspection right).
 - Clarify interaction of HFLL (calendar-year 4 weeks) with FMLA (12-month rolling 12 weeks); can employee take both concurrently or do they run simultaneously?
 - Verify whether reinstatement after HFLL/FMLA/TDI leave must occur at exact same salary if employee promoted/demoted during leave.
 - Confirm whether pay change notice has any statutory waiting period or is informational only (current file states informational).

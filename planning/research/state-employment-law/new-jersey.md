@@ -1,6 +1,6 @@
 # New Jersey Employment Law Research
 
-**State:** New Jersey | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** New Jersey | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -128,13 +128,12 @@ New Jersey recognizes employment-at-will: employers and employees may terminate 
 - Personnel files: retain 2 years after termination; disputed items must be accompanied by employee's written statement.
 - Medical records: store separately; retain at least 3 years post-termination (ADA/HIPAA compliance).
 
-**Employee access to personnel files** (N.J.S.A. 34:8B-1, Personnel Files Act):
+**Employee access to personnel files — correction (2026-09-03 contradiction closure):**
 
-- Employees have right to inspect and copy personnel records during work hours at or near worksite.
-- Access within 7 business days of written request.
-- Employer must retain file 12 months after termination for employee inspection.
-- If employee unable to review at worksite, employer must mail copy upon written request.
-- Employer may charge reasonable copying fee.
+- N.J.S.A. 34:8B-1 is not a personnel-records statute; Title 34, Chapter 8B is New Jersey's staffing/temporary-help service firm registration chapter and contains no employee file-inspection right. No "Personnel Files Act" with a 7-business-day window exists in New Jersey law.
+- **New Jersey has no general private-sector statute giving employees a right to inspect or copy their personnel file.** As with wage records (§ 6, above, which are a statutory right under the Wage Payment Law), personnel files themselves are not covered by a comparable access statute.
+- Employers may voluntarily adopt an inspection policy, and a collective bargaining agreement may grant access; absent one of those, an employee's only recourse is discovery in litigation or a public-records request (public-sector employers only).
+- Do not model a statutory NJ personnel-file inspection deadline; model it as employer-policy-defined (nullable) rather than a hard-coded 7-day or 12-month rule.
 
 **Record format**:
 
@@ -296,7 +295,7 @@ New Jersey recognizes employment-at-will: employers and employees may terminate 
 
 14. [N.J.S.A. 34:11-4.3 (Termination or Suspension of Employment; Final Pay)](https://law.justia.com/codes/new-jersey/title-34/section-34-11-4-3/) — retrieved 2026-09-03
 
-15. [N.J.S.A. 34:8B-1 (Personnel Files Act; Employee Access Rights)](https://law.justia.com/codes/new-jersey/title-34/section-34-8b-1/) — retrieved 2026-09-03
+15. [N.J.S.A. 34:8B-1 (Temporary Help Service Firms and Consulting Firms Act — NOT a personnel-records statute; cited in error in earlier drafts)](https://law.justia.com/codes/new-jersey/title-34/section-34-8b-1/) — retrieved 2026-09-03; New Jersey has no private-sector personnel-file access statute
 
 16. [N.J.S.A. 56:8-163 (Identity Theft Prevention Act; Data Breach Notification)](https://law.justia.com/codes/new-jersey/title-56/section-56-8-163/) — retrieved 2026-09-03
 

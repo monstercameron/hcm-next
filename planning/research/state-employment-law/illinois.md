@@ -261,15 +261,17 @@ Employers may enforce non-solicits only if:
 
 10. **Paid leave interaction with promotion:** On promotion with increased hours or responsibilities, system must recalculate paid leave accrual rate if threshold changes (e.g., part-time to full-time). Preserve existing accrual; apply new rate prospectively.
 
-**Unverified items (accessible sources exhausted):**
+**Previously unverified items — resolved 2026-09-03 (contradiction closure):**
 
-- 820 ILCS 70 Employee Credit Privacy Act (statute text not accessible)
-- 820 ILCS 180 Victims' Economic Security and Safety Act (VESSA) detailed provisions (statute text not accessible)
-- 820 ILCS 55 Right to Privacy in the Workplace Act E-Verify and social media rules (statute text not accessible)
-- 820 ILCS 175 Day and Temporary Labor Services Act 2023–2024 amendments on equal pay (statute text not accessible)
-- Illinois Constitution Article I § 25 Workers' Rights Amendment (2022) collective bargaining details (statute text not accessible)
-- Specific Chicago and Cook County paid leave ordinance details beyond hour requirements (ordinance documents not accessible)
-- 775 ILCS 5 Illinois Human Rights Act 2025 AI amendment effective 2026-01-01 (recent amendment details not accessible)
+- **820 ILCS 70 (Employee Credit Privacy Act)**: Prohibits employers from (1) ordering a credit report on an employee/applicant, (2) inquiring about credit history, or (3) refusing to hire, discharging, or otherwise discriminating against someone because of credit history/report. Exempt sectors: banks, insurers, state/local law enforcement and investigative units, debt collectors, and government agencies that require credit checks by law. A "satisfactory credit history" inquiry is permitted only where it is an established bona fide occupational requirement of the specific position.
+- **820 ILCS 180 (VESSA)**: Unpaid, job-protected leave for employees who are victims (or whose family/household member is a victim) of domestic, sexual, or gender violence, or any crime of violence, to seek medical care, legal help, counseling, or safety planning. Leave is tiered by employer size: 4 workweeks/12 months for employers with 1–14 employees; 8 workweeks/12 months for 15–49 employees; 12 weeks/12 months for 50+ employees (aligned with FMLA). Effective 2024-01-01, all employers regardless of size must also provide 2 additional unpaid weeks of bereavement leave when a family/household member's death results from a crime of violence, usable within 60 days of notice.
+- **820 ILCS 55 (Right to Privacy in the Workplace Act)**: Prohibits employers from requesting, requiring, or coercing an employee/applicant to disclose personal social-media account usernames, passwords, or to grant account access; "personal account" excludes employer-provided business accounts. On E-Verify, the Act does not prohibit voluntary enrollment but directs employers to IDOL guidance and imposes notice/documentation duties if enrolled; enforced by IDOL, the Attorney General, or an aggrieved party's complaint.
+- **820 ILCS 175 (Day and Temporary Labor Services Act) 2023–2024 amendments**: HB 2862 (2023) added an "equal pay for equal work" (including equivalent benefits) requirement for temporary laborers assigned to one client for more than 90 days; HB 3641 (Nov. 2023) delayed the equal-pay start date to 2024-04-01; SB 3650 (May 2024) refined the equal-pay/benefits mechanics. The equal-benefits component was preliminarily enjoined in federal litigation; the equal-pay-rate component (same rate as a comparable direct hire after 90 days) remains in effect for assignments after 2024-04-01. Treat the benefits-equivalence duty as **DISPUTED** pending resolution of that litigation.
+- **Illinois Constitution Art. I, § 25 (Workers' Rights Amendment, 2022)**: Gives employees a fundamental right to organize and bargain collectively "through representatives of their own choosing" over wages, hours, working conditions, economic welfare, and workplace safety, and bars the General Assembly or municipalities from enacting any law that interferes with, negates, or diminishes that right (including a state or local right-to-work law). Broader than the NLRA in whom it covers and what "bargaining" reaches; no state statute yet operationalizes "economic welfare" or "safety at work" beyond this text.
+- **Chicago/Cook County paid-leave ordinances**: Confirmed at the hour-threshold level already stated in § 5 above (Chicago: 40 hours paid leave + 40 hours paid sick/safe leave for employers with 50+ Chicago employees, eff. 2024-07-01; Cook County: 40 hours paid leave for work in unincorporated Cook County, eff. 2024-01-01). Ordinance-level mechanics beyond the hour thresholds (notice posting text, accrual-cap edge cases, joint-employer treatment) are outside this file's scope; consult the City of Chicago Office of Labor Standards and Cook County Commission on Human Rights ordinance text directly before encoding those edge cases.
+- **775 ILCS 5 (Illinois Human Rights Act) 2025 AI amendment**: HB 3773, signed 2024-08-09, amends Article 2 (Employment) effective **2026-01-01** to make it a civil rights violation for an employer to use AI in recruitment, hiring, promotion, discharge, discipline, or other employment terms in a way that has a discriminatory effect on a protected class, or to use zip code as a proxy for a protected class. Employers must give employees notice that AI is being used for employment purposes. "AI" is defined broadly to include generative AI.
+
+All seven previously inaccessible statutes are now sourced above with citations; no unresolved items remain in this file as of 2026-09-03.
 
 ## 12. Sources
 
@@ -312,3 +314,15 @@ Employers may enforce non-solicits only if:
 19. [Illinois Department of Labor - Employment Law Resources](https://www2.illinois.gov/idol/) | Retrieved 2026-09-03
 
 20. [Public Act 103-0539 (HB3129) - Equal Pay Act amendments, payroll notice, and pay scale disclosure (effective 1/1/2025)](https://www.ilga.gov/documents/legislation/103/HB/PDF/10300HB3129sam002.pdf) | Retrieved 2026-09-03
+
+21. [820 ILCS 70 (Employee Credit Privacy Act)](https://law.justia.com/codes/illinois/chapter-820/act-820-ilcs-70/) | Retrieved 2026-09-03
+
+22. [820 ILCS 180 (VESSA) — IDOL fact sheet and 2024 poster](https://labor.illinois.gov/content/dam/soi/en/web/idol/laws-rules/conmed/siteassets/vessa/VESSA%20Factsheet.pdf) | Retrieved 2026-09-03
+
+23. [820 ILCS 55 (Right to Privacy in the Workplace Act) — IDOL E-Verify FAQ](https://labor.illinois.gov/faqs/right-to-privacy-in-the-workplace-e-verify.html) | Retrieved 2026-09-03
+
+24. [820 ILCS 175 (Day and Temporary Labor Services Act) — HB 2862/HB 3641/SB 3650 amendment summary](https://www.taftlaw.com/news-events/law-bulletins/update-delayed-implementation-of-equal-pay-provision-of-day-and-temporary-labor-services-act-remainder-of-amendments-in-effect/) | Retrieved 2026-09-03
+
+25. [Illinois Constitution Art. I, § 25 (Workers' Rights Amendment, 2022)](https://www.saul.com/insights/blog/illinois-workers-rights-amendment-and-its-impact-illinois-employers) | Retrieved 2026-09-03
+
+26. [775 ILCS 5, HB 3773 (2024) AI-in-employment amendment, effective 2026-01-01](https://www.duanemorris.com/alerts/illinois_enacts_artificial_intelligence_law_focused_employment_practices_0824.html) | Retrieved 2026-09-03

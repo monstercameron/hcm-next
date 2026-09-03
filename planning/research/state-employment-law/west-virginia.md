@@ -1,6 +1,6 @@
 # West Virginia Employment Law Research (2026-09-03)
 
-**State:** West Virginia | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** West Virginia | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -140,7 +140,7 @@ Records must be kept at the place of employment and made available to the West V
 
 **Employee Access to Personnel Files**:
 
-West Virginia law (W. Va. Code § 21-3-22, verify) permits any employee to inspect his or her own personnel file during regular business hours at or near the employee's place of employment. Positive identification must be established before access is granted. Copies of file materials shall be provided upon request; a reasonable copying fee may be charged.
+**Correction (2026-09-03 contradiction closure):** W. Va. Code § 21-3-22 is part of the state's public-improvement construction-safety program (Article 3, workplace-safety enforcement); it is not a personnel-records statute and does not grant a private-sector personnel-file inspection right. West Virginia has **no statute requiring private employers to give employees access to their personnel files**; only public-sector employees have file-access rights, under agency-specific administrative rule (e.g., W. Va. Code St. R. § 143-1-19), not a labor-code provision that reaches private employment. Absent a written employer policy or collective bargaining agreement granting access, a private-sector West Virginia employee has no statutory right to inspect or copy their personnel file.
 
 **Record Format**: West Virginia law does not restrict records to paper format. Employers may maintain records digitally, provided they remain accessible, authentic, and non-alterable. Digital records must be retained for the full retention period (2 years).
 
@@ -179,7 +179,7 @@ Employers may not discriminate against registered medical-marijuana users solely
 
 ## 9. Separation: WARN, Severance, Notice, and Non-Competes
 
-**Federal WARN Act**: The federal Worker Adjustment and Retraining Notification Act (29 U.S.C. § 2102) applies to employers with 50+ employees (aggregate) and requires **60 days' written advance notice** for mass layoffs affecting 500+ in a facility or 50+ in a 30-day period. West Virginia has **no supplementary state mini-WARN law**.
+**Federal WARN Act**: The federal Worker Adjustment and Retraining Notification Act (29 U.S.C. § 2102) requires **60 days' written advance notice** for mass layoffs from covered employers meeting the federal employer-size and layoff-size thresholds (see us-federal.md; do not restate the figures here). West Virginia has **no supplementary state mini-WARN law**.
 
 **Severance Pay**: West Virginia imposes **no mandatory severance requirement**. Severance is entirely a matter of employment contract, written policy, or employer discretion. If offered, severance is subject to wage-and-hour rules (timely payment, no non-authorized deductions).
 
@@ -296,7 +296,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 **WARN Act Compliance**:
 
-- If employer has 50+ employees (aggregate) and separation is part of a layoff affecting 50+ in 30 days or 500+ in facility, **federal WARN applies**.
+- If the employer and the layoff meet the federal WARN thresholds (see us-federal.md), **federal WARN applies**.
 - Provide **60 days' written advance notice** to affected employees, unions, and state/local workforce agencies.
 - No West Virginia supplementary state mini-WARN requirement exists.
 
@@ -379,7 +379,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 **WARN and Mass-Separation Data**:
 
-- **Termination.WARNApplicable**: Boolean; set to true if employer has 50+ employees (aggregate) and separation is part of layoff affecting 50+ in 30 days or 500+ in facility.
+- **Termination.WARNApplicable**: Boolean; set to true if the employer and the layoff meet the federal WARN thresholds (see us-federal.md).
 - **Termination.WARNNoticeIssuedDate**: Date 60-day WARN notice was issued (if applicable).
 - **Termination.WARNNoticeRecipients**: List of recipients (employees, unions, state/local workforce agencies).
 - **Termination.StateNoticeRequired**: Boolean; if yes, file separation notice with West Virginia Department of Unemployment Insurance within 10 days.
@@ -389,7 +389,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 1. Does the employer have a written semi-monthly pay schedule, and is it communicated to all employees?
 2. What is the employer's policy on final pay: payment on termination day, next regular payday, or other?
 3. Does the employer offer PTO/vacation, and if so, is accrued leave paid out on termination?
-4. Is the employer subject to federal WARN (50+ employees with mass-layoff potential)? If so, how is 60-day notice coordinated?
+4. Is the employer subject to federal WARN (see us-federal.md for the thresholds)? If so, how is 60-day notice coordinated?
 5. Does the employer use non-compete or non-solicit agreements? Have they been reviewed for West Virginia enforceability under current case law?
 6. Has the employer reviewed pay equity by gender/race for comparable roles (§ 21-5B compliance)?
 7. Does the employer have a written drug-free workplace policy compliant with the Safer Workplace Act (§ 21-3E)?
@@ -411,7 +411,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 12. [West Virginia Code § 21-5-14 (Wage Bond for Construction/Mining)](https://code.wvlegislature.gov/21-5-14/) — retrieved 2026-09-03
 13. [West Virginia Code § 21-1C (West Virginia Jobs Act)](https://code.wvlegislature.gov/21-1C/) — retrieved 2026-09-03
 14. [West Virginia Code § 21-1B-4 (Employment Verification and I-9 Records)](https://code.wvlegislature.gov/21-1B-4/) — retrieved 2026-09-03
-15. [West Virginia Code § 21-3-22 (Employee Access to Personnel Files)](https://code.wvlegislature.gov/21-3-22/) — retrieved 2026-09-03
+15. [West Virginia Code § 21-3-22 (public-improvement construction-safety program; NOT a personnel-records statute — cited in earlier drafts in error)](https://code.wvlegislature.gov/21-3-22/) — retrieved 2026-09-03; no West Virginia statute grants private-sector personnel-file access
 16. [West Virginia Division of Labor – Wage and Hour Resources](https://labor.wv.gov/Wage-Hour/) — retrieved 2026-09-03
 17. [U.S. Department of Labor – Federal WARN Act (29 U.S.C. § 2102)](https://www.dol.gov/agencies/whd/warnact) — applies nationwide; West Virginia has no state mini-WARN — retrieved 2026-09-03
 18. [U.S. Department of Labor – Family and Medical Leave Act (FMLA)](https://www.dol.gov/agencies/whd/fmla) — applies to covered West Virginia employers — retrieved 2026-09-03
@@ -421,6 +421,6 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 ### Items Marked "Verify" or Open Questions
 
 - West Virginia case law on non-compete reasonableness: verify current Court of Appeals and Supreme Court rulings on scope, geography, and duration thresholds as of 2026-09-03.
-- § 21-3-22 Personnel file access statute: confirm exact statutory cite and whether all private employers are covered or only certain employer sizes.
+- Personnel file access: resolved 2026-09-03 — no West Virginia statute grants private-sector employees access; § 21-3-22 was a citation error (see Records and Access section above).
 - § 21-1B-4 I-9 retention requirements: confirm whether West Virginia's 2-year retention requirement (after separation) conflicts with or supplements federal 3-year rule; verify compliance guidance.
 - 2025 legislative changes: SB 427 eliminated work permits for ages 14–15 (effective July 11, 2025); HB 2008/2009/2013 eliminated state employee civil service protections for hires after July 1, 2025. Verify any additional 2025 employment-law changes.

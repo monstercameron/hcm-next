@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-03
+
+- `aef1496` - Moved `internal/kernel/canonical` and `internal/kernel/digest` to `internal/engines/wire/canonical|digest`; updated all import sites, docs, and architecture firewall roles; added `ledger.NewAppenderWithClock` for deterministic clock pinning.
+- `a56a251` - Hardened data plane (aggregates, ledger/hashchain/lineage, artifacts, bitemporal, projection/critical mapper, outbox, provenance, tenancy, health); added `dbport`/`pgxadapter` abstraction and `pgtest` isolation/lock helpers plus seed conformance fixtures.
+- `9fedc43` - Added legal obligation model, pack definitions/releases, and extract pipeline (matrix, research, states); ported CA/NY rulepacks and seeded 50-state `definitions/legal` packs.
+- `ce27a9a` - Rewired intent cell/pgstore/workspace, added `transaction/idempotency` (TX006) and full workflow runtime lanes (frontier, inspect, runtime, version, wait-step) plus `connectivity/observe` fixes.
+- `56c1c93` - Added transport cell/OTel middleware, admin gRPC + `hcmctl`, humanwork workitem/workspace handler, dev token minting, and CLI/projector/worker wiring.
+- `a862456` - Landed architecture qualifications, operation definitions, capability coverage/P1A manifests, generated admin/wire contracts, migrations, and planning/quality toolchains.
+
 ## 2026-05-16
 
 - `51fe847` - Aligned the AI chat Playwright fixture with the seeded demo

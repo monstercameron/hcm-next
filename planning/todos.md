@@ -2797,7 +2797,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** wall-clock timeout never defines transaction truth.
   - **Refs:** [Transaction model](specs/transaction-plan-and-commit-coordinator.md), [repair spec](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `TX-006` **[GATE_B][SOL_HIGH] Implement durable semantic idempotency.**
+- [x] `TX-006` **[GATE_B][SOL_HIGH] Implement durable semantic idempotency.**
   - **Depends:** `MODEL-007`, `TX-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_TX_006`.
@@ -2806,6 +2806,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** `(tenant, capability, effect scope, key)` + same digest returns one stored result/event/effect identity; mismatch returns `IDEMPOTENCY_CONFLICT` with no mutation.
   - **REFACTOR:** idempotency record lifecycle is policy-owned and durable.
   - **Refs:** [Foundation idempotency](specs/platform-foundation-gap-closure.md), [canonical digest](specs/canonical-envelope-and-digest.md).
+  - **Evidence (2026-09-03):** `TestTodo_TX_006` (same key and digest returns the stored result, event, effect and evidence identity without re-running the effect; same key with a different digest returns `IDEMPOTENCY_CONFLICT` and mutates nothing), `TestTodo_TX_006_Golden`, `TestTodo_TX_006_Race` (eight real concurrent connections on one scope and digest: the effect runs exactly once and every successful attempt sees the single winner's identity), `TestTodo_TX_006_Fault` (retention shorter than the caller-declared retry window is refused at `Reserve` with `IDEMPOTENCY_RETENTION_TOO_SHORT` before any row exists), `TestTodo_TX_006_Security` (cross-tenant lookup invisible, unscoped transaction sees nothing, forged cross-tenant reserve refused by RLS), `TestTodo_TX_006_Mutation` in `internal/transaction/idempotency` (`Guard(ctx, tx, store, scope, digest, policy, now, fn)` reserves, runs the effect and completes inside the caller's transaction; `Reserve` is `INSERT ... ON CONFLICT DO NOTHING RETURNING` on the composite primary key; migration `00019_idempotency_record.sql` registered in `definitions/storage/storage-disposition.yaml`; expiry is a caller-owned `RetentionPolicy` applied by an explicit `Expire`, no clock inside); `go test -count=1 ./internal/transaction/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `TX-007` **[GATE_B][SOL_HIGH] Implement append-only business correction.**
   - **Depends:** `TX-004`, `MODEL-014`.

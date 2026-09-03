@@ -142,7 +142,7 @@ When an employee is separated, employers must file a **Separation Notice (DOL-80
 
 - **At-Will Status Field**: Required; mark "at-will" for all Georgia private employees unless written employment contract specifies a term.
 - **Age Tracking**: Required for adverse-action audit trail; flag if separation decision involves employee aged 40–70 (§ 34-1-2 protected class).
-- **Payroll Record Retention**: **Mandatory 4-year retention** after calendar-year end (§ 34-7-2; more stringent than federal 3-year FLSA rule). Enforce retention schedule in system; flag for deletion after 4 years + calendar year.
+- **Payroll Record Retention**: **Recommended 4-year retention** after calendar-year end (O.C.G.A. § 34-4-5 requires records of hours worked and wages paid to stay open to Department of Labor inspection but does not itself state a retention period; 4 years is best practice aligned to federal FLSA's 3-year floor plus a buffer — this is not the same statute as the § 34-7-2 pay-frequency rule cited elsewhere in this file). Enforce retention schedule in system; flag for deletion after 4 years + calendar year.
 - **Separation Records**: Include separation date, reason, final pay date, final pay amount, accrued leave payout; retain for 4 years.
 - **E-Verify Documentation**: Required if employer has 11+ employees (§ 13-10-91). Store verification status and date; flag if unverified on hire or termination.
 - **Lactation Break Accommodation**: If employee is female and lactating, record accommodation request and private-location provision in role/HR notes; no payment deduction allowed.

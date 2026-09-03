@@ -1,6 +1,6 @@
 # Virginia Employment Law Research
 
-**State:** Virginia | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Virginia | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -145,10 +145,10 @@ Virginia is an employment-at-will state under common law.
 - Minor employees: Records kept on premises for 36 months from last work period.
 - Statute of limitations for wage claims: 3 years.
 
-**Employee access to records**:
+**Employee access to records — corrected 2026-09-03**:
 
-- Common law right to inspect personnel file within reasonable time (10–15 business days) at or near worksite during business hours.
-- Employee may obtain copies; employers may charge reasonable copying fee.
+- Virginia's employee-records right is **statutory, not common law**: Va. Code § 8.01-413.1 (effective 2019-07-01, amended since) requires an employer to furnish a current or former employee a copy of records the employer retains, in any format, reflecting the employee's dates of employment, wages or salary during employment, job description and title during employment, and any workplace injuries — within 30 days of a written request (or provide written notice of delay and produce within 30 days of that notice). Reasonable copying fees are allowed; willful refusal exposes the employer to the employee's costs and attorney fees.
+- § 8.01-413.1 is narrower than a full personnel-file law: it reaches the specific record categories above, not every document in the file (performance reviews, disciplinary notes, etc., which remain a matter of employer policy).
 - Disputed information: Employee may submit written disagreement, which must accompany any disclosure to third parties.
 
 **Record format**:
@@ -332,6 +332,8 @@ Virginia is an employment-at-will state under common law.
 1. Virginia Code § 40.1-28.10 (Minimum Wages) — https://law.lis.virginia.gov/vacode/title40.1/chapter3/section40.1-28.10/ — retrieved 2026-09-03
 
 2. Virginia Code § 40.1-29 (Pay Frequency, Final Pay, Deductions, Pay Statements) — https://law.lis.virginia.gov/vacode/title40.1/chapter3/section40.1-29/ — retrieved 2026-09-03
+
+2a. Virginia Code § 8.01-413.1 (Right of employee to copies of employment records) — https://law.lis.virginia.gov/vacode/title8.01/chapter14/section8.01-413.1/ — retrieved 2026-09-03
 
 3. Virginia Code § 40.1-29.2 (Employer Liability for FLSA Violations) — https://law.lis.virginia.gov/vacode/title40.1/chapter3/section40.1-29.2/ — retrieved 2026-09-03
 

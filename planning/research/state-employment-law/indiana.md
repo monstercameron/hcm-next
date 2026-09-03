@@ -1,5 +1,7 @@
 # Indiana Employment Law Research (2026-09-03)
 
+**State:** Indiana | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **At-will employment default**: Indiana recognizes at-will employment by default; no written employment contract required at hire or change unless employer or employee specifics require one.

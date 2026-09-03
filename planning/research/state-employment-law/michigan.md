@@ -1,9 +1,11 @@
 # Michigan Employment Law Research
 
+**State:** Michigan | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **Employment-at-will with public policy exceptions**: Michigan presumes all employment is at-will; exceptions protect employees discharged in violation of law, for refusing illegal acts, for workers' compensation claims, whistleblowing, or jury duty.
-- **Earned Sick Time Act (amended Feb 2025)**: Employers with 11+ employees must provide 72 hours paid sick leave annually (1 hour per 30 hours worked); employers with 10 or fewer must provide 40 hours annually starting October 1, 2025; portable accrual applies.
+- **Earned Sick Time Act (amended Feb 2025)**: Employers with 11+ employees must provide 72 hours paid sick leave annually (1 hour per 30 hours worked); employers with 10 or fewer employees must provide 40 hours paid **plus** 32 hours unpaid (72 hours total), effective October 1, 2025; portable accrual applies.
 - **Minimum wage $13.73 (2026)**: Scheduled increase to $14.05 in October 2027, indexed to inflation thereafter; tipped wage is 40% of minimum through February 2027, then phases to 100% by February 2030.
 - **Overtime after 40 hours weekly**: Improved Workforce Opportunity Wage Act (MCL 408.934a) requires 1.5x regular rate for all hours over 40 in a workweek; no daily or 7th-day overtime unless agreed.
 - **No state family/medical leave law**: Federal FMLA applies; Michigan has no state equivalent (FMLA Equivalent = "No"; federal FLSA/FMLA governs).
@@ -99,7 +101,7 @@ Michigan presumes all employment is at-will under common law: either party may t
 **Earned Sick Time Act (ESTA, amended February 21, 2025)**:
 
 - **Employers with 11+ employees**: Must provide paid sick leave accrual of **1 hour per 30 hours worked**, up to **72 hours per year** (effective February 21, 2025).
-- **Employers with 10 or fewer employees**: Must provide paid sick leave accrual of 1 hour per 30 hours worked, up to **40 hours per year** (effective October 1, 2025) OR provide 40 hours of paid and 32 hours of unpaid leave under amended SB 15 framework (verify final interpretation: "72 hours" vs. "40 hours paid + 32 hours unpaid" for small employers).
+- **Employers with 10 or fewer employees ("small businesses"), resolved 2026-09-03**: Must allow accrual of paid earned sick time (1 hour per 30 hours worked) up to **40 hours per year**, **and, separately, up to 32 hours of unpaid earned sick time per year on top of the 40 paid hours** (not an "either/or" — both entitlements apply together, for up to 72 hours of job-protected leave total). Small employers had until October 1, 2025 to implement; the accrual rate itself took effect February 21, 2025. As an alternative to accrual, a small business may frontload 40 hours of paid sick time at the start of the year for immediate use. Unused paid time carries over up to 40 hours/year unless the employer selects a higher limit.
 - **Uses**: Employee's own serious health condition, care of family member (child, spouse, parent) with serious health condition, workplace closure due to public emergency, or domestic violence/sexual assault-related needs.
 - **Employer requirements**: Accrual is portable (carries over year to year up to 40 hours maximum for large employers; verify carryover cap for small employers). Employers may require reasonable certification (health provider statement) if leave exceeds 3 consecutive days for one reason.
 - **Interaction with pay/role changes**: If employee takes ESTA leave and returns to a different pay or role, any pay reduction must be justified by legitimate business reason (not retaliation for leave use); accrual continues during leave.
@@ -237,7 +239,7 @@ Michigan presumes all employment is at-will under common law: either party may t
 
 2. **Overtime accrual and payment**: Flag any hours over 40 per week for non-exempt employees; calculate 1.5x regular rate; track weekly and pay via regular payroll.
 
-3. **Earned Sick Time accrual**: Model accrual rate of 1 hour per 30 hours worked. Gate entitlement by employer size: 72 hours/year max for 11+ employees (effective 2/21/25); 40 hours/year max for 10 or fewer (effective 10/1/25). Track usage against accrual balance; block payment below statutory minimum when reducing hours during leave.
+3. **Earned Sick Time accrual**: Model accrual rate of 1 hour per 30 hours worked. Gate entitlement by employer size: 72 hours/year paid max for 11+ employees (effective 2/21/25); for 10-or-fewer employers, 40 hours/year paid **plus** 32 hours/year unpaid, both concurrently available (effective 10/1/25). Track usage against accrual balance; block payment below statutory minimum when reducing hours during leave.
 
 4. **Tipped employee wage tracking**: For food/beverage service roles, track tipped wage vs. full minimum wage separately; ensure employer makes up difference if tips + tipped wage fall below full minimum. Model tipped wage phase-out (40% through 2/21/27, then increases to 100% by 2/30).
 
@@ -264,7 +266,7 @@ Michigan presumes all employment is at-will under common law: either party may t
 **Open questions for legal review**:
 
 - Verify whether accrued paid sick leave must be paid out (not forfeited) upon termination or resignation in Michigan.
-- Clarify small-employer ESTA entitlement: Is it "40 hours paid + 32 hours unpaid" under SB 15, or "40 hours paid" under original ESTA; confirm final effective date (October 1, 2025).
+- Resolved 2026-09-03: small-employer (10-or-fewer) ESTA entitlement is **"40 hours paid + 32 hours unpaid"** (72 hours total, both available concurrently), not paid-only; effective date confirmed as October 1, 2025 for small-employer implementation (accrual rate itself effective 2/21/25).
 - Confirm whether implied employment contract doctrine applies in Michigan and what factual patterns trigger it (course of dealing, handbook promises, oral assurances).
 - Verify whether Michigan has any public-sector pay transparency requirements or salary history restrictions beyond state agencies.
 - Clarify whether non-compete agreed after employment begins (post-hire) has different enforceability standard than pre-hire agreements.

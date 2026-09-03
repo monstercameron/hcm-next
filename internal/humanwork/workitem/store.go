@@ -107,7 +107,7 @@ func (s Store) Create(ctx context.Context, ex Executor, item WorkItem, meta Tran
 		return WorkItem{}, err
 	}
 
-	assignJSON, err := json.Marshal(item.Assignment)
+	assignJSON, err := marshalAssignment(item.Assignment)
 	if err != nil {
 		return WorkItem{}, wrap(CodeInvalidRecord, item.WorkItemID.String(), err, "encode assignment")
 	}
@@ -115,7 +115,7 @@ func (s Store) Create(ctx context.Context, ex Executor, item WorkItem, meta Tran
 	row := ex.QueryRow(ctx, `
 		INSERT INTO work_item (`+workItemColumns+`)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-			$18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
+			$18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, COALESCE($29, now()))
 		RETURNING `+workItemColumns,
 		item.TenantID, item.WorkItemID, item.ItemVersion, string(item.Kind), item.WorkType, string(item.Status),
 		item.CorrelationID, item.WorkflowInstanceID, item.NodeID,
@@ -165,7 +165,7 @@ func (s Store) Route(
 			"work item may not route from %s to %s", current.Status, target)
 	}
 
-	assignJSON, err := json.Marshal(assignment)
+	assignJSON, err := marshalAssignment(assignment)
 	if err != nil {
 		return WorkItem{}, wrap(CodeInvalidRecord, workItemID.String(), err, "encode assignment")
 	}

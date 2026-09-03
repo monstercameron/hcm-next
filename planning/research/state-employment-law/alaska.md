@@ -11,7 +11,7 @@
 - **Captive audience ban (Ballot Measure 1):** Effective July 1, 2025, employers cannot require employees to attend meetings primarily about political or religious matters (opinions on legislation, elections, unionization, or religious practices). Retaliation for refusal is prohibited (AS § 23.10.135).
 - **At-will employment:** Default rule; no state notice requirement unless contract, handbook, or implied agreement says otherwise; Alaska courts recognize public-policy exceptions and implied covenant of good faith and fair dealing (AS §§ 23.10.100–.110).
 - **Final pay:** All wages due within 3 working days of employer-initiated termination; within 3 days of the next regular payday if employee-initiated (minimum 3 days after notice received) (AS § 23.05.140).
-- **Pay frequency and notice:** Semi-monthly minimum or more frequent; employers must notify employees in writing at hire and before any change of pay day, place, rate, and pay period (AS § 23.05.140).
+- **Pay frequency and notice:** Semi-monthly minimum or more frequent; employers must notify employees in writing at the time of hire of payday, place of payment, and rate of pay, and of any change to those items by the payday before the change takes effect (AS § 23.05.160 — corrected 2026-09-03; not § 23.05.140, which governs pay periods and final-pay penalties).
 - **Background checks and hiring:** No state ban-the-box law (except Anchorage municipal code § 5.20 for city employers); employers may ask about criminal history at any stage; no state limit on conviction reporting age.
 - **Non-competes:** No state statute; Alaska courts will enforce if deemed "reasonable" and necessary to protect legitimate business interests (trade secrets, confidential information, customer relationships); case-by-case assessment on duration, geography, and scope (verify current Alaska case law).
 - **Remote work:** Alaska has no state income tax, eliminating state withholding for remote workers. Employers must withhold federal income tax, Social Security, Medicare, and Alaska unemployment insurance. Unique: Alaska requires employer SUTA tax withholding from employee wages (unlike most states where only employers contribute).
@@ -40,9 +40,9 @@ The Alaska Commission for Human Rights administers and enforces these protection
 **Notice at hire:** Employers must provide all employees, in writing, at the time of hire:
 
 - Day and place of pay
-- Rate of pay (Alaska Statute § 23.05.140)
+- Rate of pay (Alaska Statute **§ 23.05.160** — corrected 2026-09-03; the earlier citation to § 23.05.140 was wrong, that section covers pay periods and final-pay penalties, not the hire/change notice)
 
-**Notice of pay or role changes:** Employers must provide written notice of any change to pay day, place, or rate before the next pay period is processed (AS § 23.05.140).
+**Notice of pay or role changes — exact statutory wording:** AS § 23.05.160 requires the employer to notify the employee in writing "of any change with respect to [payday, place, and rate] on the payday before the time of change." That is, the change notice is due no later than the payday immediately preceding the payday on which the new rate, place, or schedule first applies — not merely "before the next pay period" and not "before any change" in the abstract. An employer may satisfy the notice by conspicuously posting it at or near the workplace instead of giving individual written notice.
 
 No state statute requires advance notice to employees before a termination; the federal WARN Act (60 days) applies only to employers with 100+ employees experiencing a mass layoff or plant closing.
 
@@ -54,7 +54,7 @@ No state statute requires advance notice to employees before a termination; the 
 
 **Overtime threshold and calculation:** Compensation at 1.5× regular rate for hours exceeding 40 per week or 8 per day, whichever is greater (AS § 23.10.070(b)). Applies to all employers regardless of size. Narrow exemptions include agricultural workers, seamen, employees of businesses with fewer than 4 employees, and certain occupational categories defined in Alaska Administrative Code § 8 AAC 15.320 (verify specific exemptions for particular roles).
 
-**Pay frequency and notice requirements:** Employers must pay employees at least semi-monthly (AS § 23.05.140); more frequent payment is permitted. Upon hire and before any change, employers must provide written notice of payday, place of payment, rate of pay, and pay period start/end dates. Change notice must be given before the affected pay period.
+**Pay frequency and notice requirements:** Employers must pay employees at least semi-monthly (AS § 23.05.140); more frequent payment is permitted. Upon hire, and before any change to payday, place of payment, or rate of pay, employers must provide written notice per **AS § 23.05.160**; the change notice must be given no later than the payday preceding the effective date of the change ("on the payday before the time of change"), which may be earlier than "before the affected pay period" if pay periods and paydays do not align.
 
 **Final pay on termination:** If the employer terminates, all wages due immediately and payable within 3 working days (weekends, holidays, and termination day excluded from the count). If the employee terminates/resigns, wages due at the next regular payday at least 3 days after the employer receives notice of resignation (AS § 23.05.140(f)). Failure to timely pay triggers a penalty of regular wages from demand until paid, capped at 90 working days (AS § 23.05.140(g)). Calculation of 3-working-day deadline excludes the termination day itself.
 
@@ -103,7 +103,7 @@ Salaried exempt employees are presumed to work 40 hours per week for accrual pur
 
 ## 6. Records and Access
 
-**Payroll record retention:** Employers must keep accurate payroll records for at least 3 years, including employee name, address, occupation, daily and weekly hours worked, wages paid each pay period, and deductions made (Alaska Statute § 23.05.080). Records must be sufficient to document compliance with minimum wage, overtime, and paid sick leave obligations.
+**Payroll record retention:** Employers must keep, at the employee's place of employment, a record of each employee's name, address, and occupation, rate of pay and amount paid each pay period, hours worked each day and workweek, and other payroll information the commissioner requires, for at least 3 years (**AS § 23.10.100** — corrected 2026-09-03; the earlier citation to § 23.05.080 was the wrong section number). Records must be sufficient to document compliance with minimum wage, overtime, and paid sick leave obligations.
 
 **Employee access to personnel files:** Employees and former employees have a statutory right to inspect and copy their own personnel files and personnel information maintained by the employer during reasonable business hours under reasonable rules (AS § 23.10.430). Employers may charge the reasonable actual cost of duplication and copying; no statutory fee cap, but charges must not exceed actual costs incurred. Employer may establish reasonable procedures (advance notice, frequency limits on requests) provided they do not circumvent the access right. Records subject to access include employment applications, performance reviews, disciplinary records, wage records, training records, and any other documents in the personnel file.
 
@@ -175,10 +175,10 @@ All three prongs must be satisfied; Alaska does not provide an independent contr
 
 **Promotions and base-pay changes:**
 
-- **Written notice requirement:** Any change in pay rate, payday, or place of pay must be communicated in writing before the next pay period. HCM Next must support a pre-promotion notification workflow and log the date and method of delivery.
+- **Written notice requirement:** Any change in pay rate, payday, or place of pay must be communicated in writing no later than the payday preceding the effective date of the change (AS § 23.05.160's "on the payday before the time of change"), which is stricter than a flat "before the next pay period" rule. HCM Next must support a pre-promotion notification workflow and log the date and method of delivery.
 - **Sick-leave accrual continuity:** Promotion or role change does not reset sick-leave accrual; accrual continues at 1 hour per 30 hours worked. Platform must track and display current sick-leave balance at all times.
 - **Overtime reclassification:** If a promotion or role change affects overtime exemption status (e.g., shifting to executive/administrative exempt role), the platform must validate exemption criteria and alert to the minimum-salary threshold ($1,120/week as of 2026-07-01 for exempt employees).
-- **Pay frequency verification:** If a role change alters pay frequency, the platform must enforce the requirement that final notice goes out before the next pay period.
+- **Pay frequency verification:** If a role change alters pay frequency, the platform must enforce the requirement that final notice goes out by the payday preceding the change (AS § 23.05.160), not merely before the next pay period.
 
 **Terminations:**
 
@@ -189,7 +189,7 @@ All three prongs must be satisfied; Alaska does not provide an independent contr
 
 **Pay-change processing:**
 
-- **Written notice requirement:** When processing a base-pay increase, decrease, or role change affecting pay, system must ensure written notice is generated and delivered to the employee before the next pay period is processed. Log the date, time, and method of notice delivery (email, print, signed acknowledgment).
+- **Written notice requirement:** When processing a base-pay increase, decrease, or role change affecting pay, system must ensure written notice is generated and delivered to the employee no later than the payday before the change takes effect (AS § 23.05.160). Log the date, time, and method of notice delivery (email, print, signed acknowledgment).
 - **Minimum-wage compliance check:** If role change or pay adjustment results in wage below minimum wage ($14.00 as of 7/1/2026), system should alert the user that it violates Alaska law.
 
 **Compensation and equity:**
@@ -222,8 +222,9 @@ All three prongs must be satisfied; Alaska does not provide an independent contr
 2. [Alaska Statute § 23.10.065 – Minimum Wages (FindLaw)](https://codes.findlaw.com/ak/title-23-labor-and-workers-compensation/ak-st-sect-23-10-065/) — Retrieved 2026-09-03
 3. [Alaska Statute § 23.10.070 – Overtime (FindLaw)](https://codes.findlaw.com/ak/title-23-labor-and-workers-compensation/ak-st-sect-23-10-070/) — Retrieved 2026-09-03
 4. [Alaska Statute § 23.10.135 – Paid Sick Leave (Alaska Legislature)](https://www.akleg.gov/basis/Bill/Text/34?Hsid=HB0161A) — Retrieved 2026-09-03
-5. [Alaska Statute § 23.05.080 – Recordkeeping Requirements (FindLaw)](https://codes.findlaw.com/ak/title-23-labor-and-workers-compensation/ak-st-sect-23-05-080/) — Retrieved 2026-09-03
-6. [Alaska Statute § 23.05.140 – Final Paycheck Requirements (FindLaw)](https://codes.findlaw.com/ak/title-23-labor-and-workers-compensation/ak-st-sect-23-05-140/) — Retrieved 2026-09-03
+5. [Alaska Statute § 23.10.100 – Employer to keep records](https://law.justia.com/codes/alaska/title-23/chapter-10/article-3/section-23-10-100/) — Retrieved 2026-09-03 (corrected 2026-09-03; § 23.05.080 was the wrong citation)
+6. [Alaska Statute § 23.05.140 – Pay periods; penalty / final paycheck requirements (FindLaw)](https://codes.findlaw.com/ak/title-23-labor-and-workers-compensation/ak-st-sect-23-05-140/) — Retrieved 2026-09-03
+   6a. [Alaska Statute § 23.05.160 – Notice of wage payments (Justia)](https://law.justia.com/codes/alaska/1997/title-23/chapter-23-05/article-01/sec-23-05-160/) — Retrieved 2026-09-03 (the hire/change notice statute; distinct from § 23.05.140)
 7. [Alaska Statute § 23.10.430 – Employee Access to Personnel Files (FindLaw)](https://law.justia.com/codes/alaska/title-23/chapter-10/article-7/section-23-10-430/) — Retrieved 2026-09-03
 8. [Alaska Statute § 23.20.525 – Independent Contractor Classification ABC Test](https://www.alaskastatutes.org/section/23-20-525/) — Retrieved 2026-09-03
 9. [Alaska Statute § 18.13.200–270 – Biometric Identifiers (Alaska Legislature)](https://www.alaskastatutes.org/section/18-13-200/) — Retrieved 2026-09-03

@@ -10,3 +10,4 @@ gen/
 
 # Go test goldens are byte-exact fixtures; formatters must not touch them.
 **/testdata/**
+definitions/planning/gates/*.md

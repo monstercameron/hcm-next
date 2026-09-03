@@ -1,6 +1,6 @@
 # Ohio Employment Law Research
 
-**State:** Ohio | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Ohio | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

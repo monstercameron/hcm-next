@@ -27,16 +27,16 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	"github.com/monstercameron/hcm-next/internal/transport"
+	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
 	"github.com/monstercameron/hcm-next/internal/transport/edge"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
@@ -90,7 +90,7 @@ type cell struct {
 	t testing.TB
 
 	db    *pgtest.DB
-	pool  *pgxpool.Pool
+	pool  *pgxadapter.Pool
 	store *pgstore.Store
 	app   *app.Cell
 
@@ -122,20 +122,16 @@ func newCell(t *testing.T) *cell {
 
 	db := pgtest.New(t)
 
-	poolCfg, err := pgxpool.ParseConfig(db.URL)
-	if err != nil {
-		t.Fatalf("parse pool config: %v", err)
-	}
 	// The migration tree is schema-relative; pinning search_path on every
 	// pooled connection is what keeps this cell inside its own schema.
-	poolCfg.ConnConfig.RuntimeParams["search_path"] = db.Schema
-	pool, err := pgxpool.NewWithConfig(context.Background(), poolCfg)
+	pool, err := pgxadapter.NewPool(context.Background(), db.URL, map[string]string{"search_path": db.Schema})
 	if err != nil {
 		t.Fatalf("open pool: %v", err)
 	}
 	t.Cleanup(pool.Close)
 
-	store, err := pgstore.New(pool, pgstore.WithCellID(testCellID))
+	store, err := pgstore.New(pool, pgstore.WithCellID(testCellID),
+		pgstore.WithClock(func() time.Time { return baseTime }))
 	if err != nil {
 		t.Fatalf("pgstore.New: %v", err)
 	}
@@ -187,7 +183,7 @@ func newCell(t *testing.T) *cell {
 	}
 	c.app = composed
 
-	grpcServer, err := composed.GRPCServer()
+	grpcServer, err := transportcell.NewGRPCServer(composed)
 	if err != nil {
 		t.Fatalf("GRPCServer: %v", err)
 	}
@@ -210,7 +206,7 @@ func newCell(t *testing.T) *cell {
 	c.grpcIntent = intentsv1.NewIntentServiceClient(conn)
 	c.grpcRegistry = registryv1.NewRegistryServiceClient(conn)
 
-	edgeHandler, err := composed.EdgeHandler()
+	edgeHandler, err := transportcell.NewEdgeHandler(composed)
 	if err != nil {
 		t.Fatalf("EdgeHandler: %v", err)
 	}

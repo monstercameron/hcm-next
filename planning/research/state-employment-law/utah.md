@@ -1,6 +1,6 @@
 # Utah Employment Law Research
 
-**State:** Utah | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Utah | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

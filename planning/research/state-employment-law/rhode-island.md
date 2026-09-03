@@ -1,6 +1,6 @@
 # Rhode Island Employment Law Research
 
-**State:** Rhode Island | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Rhode Island | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

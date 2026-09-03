@@ -1,6 +1,6 @@
 # Washington Employment Law Research
 
-**State:** Washington | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Washington | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

@@ -1,0 +1,265 @@
+syntax = "proto3";
+
+package hcmnext.admin.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1;adminv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+import "hcmnext/intents/v1/intent_service.proto";
+
+// AdminService is the SVC-011/ADMIN-001 governed operator surface: a
+// distinct, operator-scoped gRPC service exposing read, simulate and
+// already-approved-operation capabilities only.
+//
+// Every method here is READ_ONLY or PURE in the
+// internal/capability.EffectClass sense (planning/specs/hris-admin-dataops.md
+// "The toolkit follows three rules"). There is no Create/Submit/Cancel/
+// Supersede/Update/Delete method in this service, in P1A or as a
+// conformance placeholder: an operator that needs to change workforce data
+// uses the same governed BusinessIntent lifecycle every other caller uses
+// (hcmnext.intents.v1.IntentService), under the same authorization
+// decisions - this service only ever reads, simulates or explains.
+//
+// AdminService is hosted by the same process as the ordinary
+// hcmnext.intents.v1.IntentService (internal/operations/admin.Register adds
+// it to the shared *grpc.Server the modular application already builds via
+// internal/transport/grpcserver.NewServer) and reuses that server's whole
+// trusted-request boundary unchanged: the same transport.Admit admission
+// steps, the same envelope.Error projection, the same evidence-ID
+// derivation. What is distinct is the additional per-method authorization
+// predicate every handler runs after admission: the caller's authenticated
+// trust.Principal must carry the reserved operator role
+// (internal/operations/admin.OperatorRole), which an ordinary user or
+// service credential is never issued. A caller admitted by the shared
+// interceptor chain but lacking that role is refused PERMISSION_DENIED
+// before any capability runs (planning/specs/hris-admin-dataops.md,
+// planning/specs/go-only-technology-constitution.md).
+service AdminService {
+  // ListIntents lists BusinessIntent instances for the operator's resolved
+  // tenant/organization scope. Its request/response fields mirror
+  // hcmnext.intents.v1.ListIntentsRequest/Response field for field (buf's
+  // RPC_REQUEST_RESPONSE_UNIQUE lint rule forbids literally reusing one
+  // message as the request or response of two RPCs), and the handler
+  // forwards to the identical transport.IntentHandler.ListIntents port the
+  // ordinary IntentService calls - the same generated hcmnext.intents.v1
+  // types travel underneath, so the CLI, the operator console and the
+  // ordinary API client agree on one schema for "what is an intent", per
+  // ADMIN-001's REFACTOR ("GRPC/grpcbridge/CLI share generated contracts").
+  // The admin surface never widens what a read may return beyond what the
+  // reused handler port itself resolves for the caller's trusted scope.
+  rpc ListIntents(ListIntentsRequest) returns (ListIntentsResponse);
+
+  // GetReleaseManifest renders the current endpoint/capability/intent-
+  // definition discovery document (internal/transport/manifest,
+  // API-001/ENDPOINT-001) for operator inspection: which methods are
+  // SERVED vs REFUSED_P1A vs NOT_EXPOSED, which capabilities exist and
+  // their effect class, which intent definitions are registered. It is a
+  // pure, no-I/O projection of the compiled-in manifest; two calls in the
+  // same release return byte-identical content.
+  rpc GetReleaseManifest(GetReleaseManifestRequest) returns (GetReleaseManifestResponse);
+
+  // ListCapabilityProfiles lists every registered capability
+  // (internal/capability) with its effect class, risk class, lifecycle
+  // status and content digest, so an operator can audit what the running
+  // release is willing to execute and under which side-effect declaration.
+  rpc ListCapabilityProfiles(ListCapabilityProfilesRequest) returns (ListCapabilityProfilesResponse);
+
+  // ExplainTransaction is a governed, read-only passthrough to
+  // internal/domains/intelligence.ExplainTransaction: it reconstructs the
+  // authorized chronology of a business transaction from recorded evidence
+  // and writes nothing. A transaction the operator profile is not entitled
+  // to see returns a WITHHELD explanation with no section detail, never a
+  // distinguishable "not found".
+  rpc ExplainTransaction(ExplainTransactionRequest) returns (ExplainTransactionResponse);
+
+  // GetWorkerState is a governed, read-only passthrough to
+  // internal/domains/people.ExplainWorkerState: it returns the authorized,
+  // bitemporal worker/employment/assignment facts the operator profile may
+  // see, with denied fields named and marked rather than dropped. It
+  // performs no write of any kind.
+  rpc GetWorkerState(GetWorkerStateRequest) returns (GetWorkerStateResponse);
+}
+
+// ListIntentsRequest mirrors hcmnext.intents.v1.ListIntentsRequest (see
+// AdminService.ListIntents).
+message ListIntentsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+  hcmnext.intents.v1.ConsistencyFreshnessHint freshness = 3;
+}
+
+// ListIntentsResponse mirrors hcmnext.intents.v1.ListIntentsResponse (see
+// AdminService.ListIntents).
+message ListIntentsResponse {
+  repeated hcmnext.intents.v1.IntentInstance intents = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 3;
+}
+
+// GetReleaseManifestRequest carries no filter: the manifest is one
+// compiled-in document for the whole running release.
+message GetReleaseManifestRequest {}
+
+// EndpointProfile is one RPC method's discovery row
+// (internal/transport/manifest.EndpointDescriptor).
+message EndpointProfile {
+  string endpoint_id = 1;
+  string service_full_name = 2;
+  string method_name = 3;
+  string owner_domain = 4;
+  repeated string capability_refs = 5;
+  string request_type = 6;
+  string response_type = 7;
+  // disposition is one of SERVED, REFUSED_P1A, NOT_EXPOSED
+  // (internal/transport/manifest.Disposition).
+  string disposition = 8;
+  string disposition_reason = 9;
+}
+
+// IntentDefinitionProfile is one catalog intent definition's discovery row
+// (internal/transport/manifest.IntentDefinitionDescriptor).
+message IntentDefinitionProfile {
+  string definition_ref = 1;
+  string display_name = 2;
+  string owner_domain = 3;
+}
+
+message GetReleaseManifestResponse {
+  // manifest_digest is the EndpointManifest digest this document was
+  // rendered from, so a cached copy can detect staleness.
+  string manifest_digest = 1;
+  repeated EndpointProfile endpoints = 2;
+  repeated CapabilityProfile capabilities = 3;
+  repeated IntentDefinitionProfile intent_definitions = 4;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 5;
+}
+
+message ListCapabilityProfilesRequest {}
+
+// CapabilityProfile is one registered capability's audit row
+// (internal/capability.Record/Definition).
+message CapabilityProfile {
+  string capability_id = 1;
+  uint32 version = 2;
+  string owner_domain = 3;
+  // effect_class is one of PURE, READ_ONLY, INTERNAL_MUTATION,
+  // EXTERNAL_MUTATION, IRREVERSIBLE_EXTERNAL_MUTATION
+  // (internal/capability.EffectClass).
+  string effect_class = 4;
+  string risk_class = 5;
+  // status is one of ACTIVE, DEPRECATED, RETIRED (internal/capability.Status).
+  string status = 6;
+  bool agent_eligible = 7;
+  string digest = 8;
+}
+
+message ListCapabilityProfilesResponse {
+  repeated CapabilityProfile capabilities = 1;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 2;
+}
+
+// TransactionRef names one business transaction. The server always resolves
+// it to the fixed internal/domains/intelligence.KindTransaction entity kind
+// within the request's scoped tenant
+// (internal/domains/intelligence.TransactionQuery.Transaction); the caller
+// only ever supplies the opaque identifier.
+message TransactionRef {
+  string id = 1;
+}
+
+message ExplainTransactionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  TransactionRef transaction = 2;
+  // sections narrows the projection to the named
+  // internal/domains/intelligence.Section tokens (e.g. "REQUEST",
+  // "GOVERNANCE", "LIFECYCLE", "WRITE_SET", "EVENTS", "EFFECTS",
+  // "OBSERVATIONS", "RECONCILIATION", "REPAIR", "PROJECTIONS", "EVIDENCE").
+  // Empty means every section.
+  repeated string sections = 3;
+  // known_at is the knowledge cut-off; unset means the resolved server time.
+  google.protobuf.Timestamp known_at = 4;
+}
+
+// SectionResult is one section's disclosure outcome
+// (internal/domains/intelligence.SectionDisclosure). It deliberately never
+// carries the section's recorded entries themselves - only how many there
+// were - because a drift/audit surface travels to logs and tickets without
+// the underlying evidence attached to it.
+message SectionResult {
+  string section = 1;
+  // access is one of AUTHORIZED, DENIED (internal/domains/intelligence.Access).
+  string access = 2;
+  string denial_reason = 3;
+  int32 entry_count = 4;
+}
+
+message ExplainTransactionResponse {
+  bool disclosed = 1;
+  // disclosure is one of FULL, PARTIAL, WITHHELD
+  // (internal/domains/intelligence.Disclosure).
+  string disclosure = 2;
+  string withheld_reason = 3;
+  // presence is one of PRESENT, ABSENT, or empty when disclosure is
+  // WITHHELD (internal/domains/intelligence.Presence). A withheld
+  // explanation never reports presence: "not found" and "not yours" must
+  // stay indistinguishable.
+  string presence = 12;
+  repeated SectionResult sections = 4;
+  repeated string narrative = 5;
+  string policy_version = 6;
+  string rule_pack_version = 7;
+  string inputs_digest = 8;
+  bool complete = 9;
+  repeated string redactions = 10;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 11;
+}
+
+message GetWorkerStateRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string worker_id = 2;
+  // effective_on is the business date the facts are asked about, as
+  // YYYY-MM-DD (internal/kernel/values.LocalDate).
+  string effective_on = 3;
+  // known_at is the knowledge cut-off; unset means the resolved server time.
+  google.protobuf.Timestamp known_at = 4;
+  // fields narrows the projection to the named
+  // internal/domains/people.FieldID tokens. Empty means every field.
+  repeated string fields = 5;
+}
+
+// FieldResult is one field's disclosure outcome
+// (internal/domains/people.ExplainedFact).
+message FieldResult {
+  string field = 1;
+  // access is one of AUTHORIZED, DENIED (internal/domains/people.Access).
+  string access = 2;
+  string denial_reason = 3;
+  // presence is one of VALUE, ABSENT, NULL, UNKNOWN, REDACTED, UNAVAILABLE,
+  // NOT_APPLICABLE (internal/kernel/values.PresenceState). value is set only
+  // when presence is VALUE; a denied field's presence is always REDACTED
+  // with no value.
+  string presence = 4;
+  string value = 5;
+}
+
+message GetWorkerStateResponse {
+  bool disclosed = 1;
+  // disclosure is one of FULL, PARTIAL, WITHHELD
+  // (internal/domains/people.Disclosure).
+  string disclosure = 2;
+  string withheld_reason = 3;
+  // presence is one of PRESENT, ABSENT, or empty when disclosure is
+  // WITHHELD (internal/domains/people.SubjectPresence). A withheld
+  // explanation never reports presence: "not found" and "not yours" must
+  // stay indistinguishable.
+  string presence = 11;
+  repeated FieldResult fields = 4;
+  repeated string narrative = 5;
+  string policy_version = 6;
+  string rule_pack_version = 7;
+  string inputs_digest = 8;
+  string result_digest = 9;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 10;
+}

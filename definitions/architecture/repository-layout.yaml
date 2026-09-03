@@ -150,9 +150,9 @@ approved_commands:
     - worker
     - projector
     - migrate
+    - hcmctl
   later:
     - scheduler
-    - admin
 
 # The legacy Go module at src/blocks/go is a separate module (its own
 # go.mod, module hcm-next-executor) and is out of scope of this root-module

@@ -1,6 +1,6 @@
 # North Carolina Employment Law Research
 
-**State:** North Carolina | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** North Carolina | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -12,7 +12,7 @@
 - **No state paid sick leave or paid family/medical leave mandate**: Federal FMLA applies if 50+ employees; no state requirement.
 - **School involvement leave (§ 95-28.3)**: 4 hours/calendar year for parent involvement at child's school; retaliation prohibited.
 - **Domestic violence leave (§ 50B-5.5)**: Reasonable time off to obtain protective order; employer cannot discharge/demote/deny promotion.
-- **Salary history ban (2024)**: Prohibits asking applicants about prior wages; state agencies explicitly barred.
+- **No statewide salary-history ban**: North Carolina has no statute restricting private-employer salary-history inquiries; only Executive Order No. 93 (2019, not 2024) bars _state government_ agencies from requesting or relying on applicant salary history. Private employers may still ask.
 - **E-Verify mandate**: Private employers with 25+ employees must use E-Verify for new hires (verified within 3 business days; HB 36, effective July 1, 2013).
 - **Non-competes (§ 75-4)**: Must be written, signed, reasonable in time/territory; enforced narrowly against drafter.
 
@@ -195,7 +195,7 @@ North Carolina follows at-will employment doctrine: employers and employees may 
 
 9. **Lawful products protection** (§ 95-28.2, applies 3+ employees): Promotion cannot be denied or conditioned on employee's lawful off-duty use of lawful products (tobacco, alcohol, etc.).
 
-10. **Salary history compliance** (2024 ban): On hire to promotion, do not ask about or rely on prior wages; compensation based on skills, experience, job requirements.
+10. **Salary history**: No statewide private-sector restriction exists (corrected 2026-09-03 — there is no "2024 ban"; only Executive Order 93 (2019) binds state agencies). For a private-sector HCM Next tenant, salary history may lawfully be used; base compensation-fairness controls on internal policy, not a state mandate, unless the employer is itself a NC state agency.
 
 11. **Records retention** (§ 95-25.15): Retain promotion documents (wage change, effective date, justification, business rationale) per employer record policy (verify whether 3 years or employer-set); support labor commissioner inspection.
 

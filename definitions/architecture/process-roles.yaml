@@ -11,10 +11,11 @@ version: 1
 module: github.com/monstercameron/hcm-next
 
 disposition: >-
-  P1A ships four commands: hcmnext, worker, projector, migrate. scheduler is
-  added when P1B needs durable timers; admin is added when P1B needs a
-  dedicated operator-action surface. Neither later row implies a cmd/
-  directory exists yet.
+  P1A ships four commands: hcmnext, worker, projector, migrate. hcmctl (the
+  operator CLI over the read-only hcmnext.admin.v1 service, SVC-011/ADMIN-001)
+  was promoted from later to initial on 2026-09-03 for the executable
+  prototype. scheduler is added when P1B needs durable timers; the later row
+  does not imply a cmd/ directory exists yet.
 
 processes:
   - command: hcmnext
@@ -175,15 +176,18 @@ processes:
     drain_policy: to-be-determined-at-P1B
     degradation_policy: to-be-determined-at-P1B
 
-  - command: admin
-    status: later
+  - command: hcmctl
+    status: initial
     role: >-
-      Reserved for P1B: operator-action CLI/surface (approvals, repair,
-      operational overrides) per next-steps.md. No cmd/admin directory is
-      expected before P1B.
+      Operator CLI: a thin, one-shot client of hcmnext.admin.v1 (read,
+      simulate and explain only) using the generated Go client, JIT operator
+      token minting, bearer redaction and an evidence id on every call. No
+      business or store logic; every decision is made by the hcmnext process
+      it dials. Operator write actions (approvals, repair, overrides) remain
+      P1B scope and are not exposed by this command.
     semantic_packages:
-      - internal/governance
-      - internal/operations
+      - internal/transport/admin
+      - internal/operations/admin
     dependencies:
       - PostgreSQL (operator-action audit trail)
     criticality: to-be-determined-at-P1B

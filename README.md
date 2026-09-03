@@ -561,6 +561,59 @@ Important starting points:
 
 ## Working in the repository
 
+### Run the prototype locally
+
+The root prototype is Go-only and requires a reachable PostgreSQL server. It
+is non-production software: `hcmnext token` mints development HMAC credentials,
+so use a local-only key of at least 32 bytes and never use it for real data.
+
+Set the database URL and development signing key in PowerShell:
+
+```powershell
+$env:HCMNEXT_DATABASE_URL = "postgres://postgres:postgres@127.0.0.1:5432/hcm_next?sslmode=disable"
+$env:HCMNEXT_DEV_HMAC_KEY = "a-local-development-key-at-least-32-bytes"
+```
+
+The four root commands are `hcmnext` (the API cell), `migrate` (schema and
+fixture seed), `projector` (projection reconciliation), and `worker` (outbox
+consumption). Start a fresh database with:
+
+```powershell
+go run ./cmd/migrate up
+go run ./cmd/migrate seed -tenant=harborcare
+```
+
+Run the API cell after migration and seeding:
+
+```powershell
+go run ./cmd/hcmnext serve -tenant=harborcare -migrate=false -dev-browser-login=true
+```
+
+It listens on gRPC `127.0.0.1:8443` and HTTP `127.0.0.1:8080` by default. The
+Promotion workspace is at <http://127.0.0.1:8080/workspace/promotion>; the
+explicit development-login flag enables its local pasted-token form and must
+remain off outside local development. Mint a development credential for the
+workspace or API with:
+
+```powershell
+$token = go run ./cmd/hcmnext token -tenant=harborcare -subject=local-developer
+```
+
+The projector and worker are separate long-running processes against the same
+database:
+
+```powershell
+go run ./cmd/projector
+go run ./cmd/worker
+```
+
+Focused smoke checks are:
+
+```powershell
+go build ./...
+go test -count=1 ./cmd/migrate ./test/bootstrap ./test/serve ./test/workspace
+```
+
 The existing Go fixture suite can be run with:
 
 ```powershell

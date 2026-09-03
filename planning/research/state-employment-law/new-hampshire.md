@@ -1,6 +1,6 @@
 # New Hampshire Employment Law Research
 
-**State:** New Hampshire | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** New Hampshire | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

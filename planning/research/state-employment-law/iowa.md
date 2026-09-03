@@ -11,7 +11,7 @@
 - **Pay-rate change notice required**: Iowa Code § 91A.3 requires written notice of any change in pay rate at least 3 days before the change becomes effective.
 - **Personnel-file access right**: Iowa Code § 91B.1 grants employees right to access their personnel files within 3 business days; employers may charge reasonable copy fees.
 - **Civil rights protection restricted 2025**: Iowa Code Chapter 216 (Civil Rights Act) no longer covers gender identity as of SF 418 (effective 2025-07-01); sex, race, color, creed, national origin, disability, age remain protected. Enforced by Iowa Civil Rights Act Division.
-- **Multi-state WARN rule**: Federal WARN Act (60 days for 50+ employee separations) applies; Iowa Code § 84C adds state-specific 30-day notice for layoffs affecting 25+ employees.
+- **Multi-state WARN rule**: The federal WARN Act (60 days' notice for covered employers and mass layoffs meeting the federal thresholds — see us-federal.md) applies; Iowa Code § 84C separately adds a state-specific 30-day notice for layoffs affecting 25+ employees regardless of employer size.
 - **No state paid-leave mandate**: No mandatory paid sick leave or paid family leave for private employers (federal FMLA applies if 50+ employees within 75 miles).
 - **Noncompetes enforceable by common law**: Iowa recognizes noncompete and nonsolicitation covenants under common-law reasonableness test ("reasonable as to time, area, and line of business"); no statutory charter; Iowa Code Chapter 553 is antitrust law, not non-compete statute.
 

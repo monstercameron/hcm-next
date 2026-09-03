@@ -1,6 +1,6 @@
 # Vermont Employment Law Research
 
-**State:** Vermont | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Vermont | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 

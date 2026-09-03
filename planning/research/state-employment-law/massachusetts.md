@@ -5,7 +5,7 @@
 ## 1. Summary for HCM Next
 
 - **Employment-at-will with public policy exceptions**: Employers may terminate for any reason unless it violates clear public policy (refusing illegal acts, exercising statutory rights, performing jury duty, filing wage claims, filing personnel record rebuttals).
-- **Pay transparency mandate (July 31, 2025)**: Employers with 25+ employees must disclose pay ranges in ALL external and internal job postings; promotion offers to existing employees must also include pay range.
+- **Pay transparency mandate**: An Act Relative to Salary Range Transparency (the Frances Perkins Workplace Equity Act) was signed 2024-07-31; its pay-range posting duty (M.G.L. c. 149 § 105F) took effect **2025-10-29** for employers with 25+ employees, covering ALL external and internal job postings; promotion offers to existing employees must also include pay range. Its separate pay-data reporting duty (§ 105F(b)) took effect **2025-02-01**. These are two different effective dates for two different duties under the same section — do not merge them into one date.
 - **Salary history ban**: Employers may not inquire about or consider an applicant's previous wage/salary history unless voluntarily disclosed by the candidate (M.G.L. c. 149 § 105A).
 - **EEO-1 pay data reporting**: Employers with 100+ Massachusetts employees must file annual (or biennial, depending on federal requirement) wage-equity reports with the Commonwealth starting February 1, 2025.
 - **Earned Sick Time accrual (paid)**: Employers with 11+ employees must provide 40 hours paid sick time annually (1 hour per 30 hours worked); employees accrue after 90-day eligibility period.
@@ -73,7 +73,7 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 **Salary range disclosure (Frances Perkins Workplace Equity Act, M.G.L. c. 149 § 105F)**:
 
-- Effective July 31, 2025, employers with 25+ employees must include pay range in **all** job postings (external and internal), including promotions.
+- The Act was signed 2024-07-31; the pay-range posting duty itself became effective **2025-10-29** (not 2025-07-31 — that is the enactment/signing date, not the compliance date). Employers with 25+ employees must include pay range in **all** job postings (external and internal), including promotions, from that date. A 2-business-day cure period applies to first violations through 2027-10-29.
 - Pay range defined as the annual salary or hourly wage range the employer reasonably and in good faith expects to pay at time of posting.
 - Failure to disclose may result in penalties and enforcement by Massachusetts Attorney General.
 

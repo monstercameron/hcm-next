@@ -1,6 +1,6 @@
 # New York Employment Law Research
 
-**State:** New York | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** New York | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -147,10 +147,11 @@ New York follows at-will employment doctrine but recognizes significant statutor
 - Medical/disability records: retain separately for at least 3 years post-termination (ADA/HIPAA requirements apply).
 - Personnel files: no comprehensive state-mandated retention schedule; common practice 3 years post-termination; disputed items require employee's written statement affixed to record.
 
-**Employee access to personnel files**:
+**Employee access to personnel files — corrected 2026-09-03 (DISPUTED: legislative status)**:
 
-- No general state statute mandating employee access to personnel files (pending legislation S.2154 would require 5-day access after written request, with employer notice of negative information within 10 days).
-- Under current law (verify status of pending bill), employees may request copies of payroll records and wage statements under § 195(4); employers must retain for dispute resolution.
+- **No general state statute currently mandates employee access to personnel files.** The earlier citation to "pending legislation S.2154" was the wrong bill number; the actual bill is **S.3460 / A.2107** (modeled on Massachusetts's personnel-record law), which would add new Labor Law § 210-b requiring employers to provide a copy of the personnel record within 5 business days of a written request (at no cost), notify employees when negative information is added to the file, retain personnel records for at least 3 years post-termination, and bar retaliation for exercising these rights.
+- **DISPUTED / status as of last verification**: the Senate passed S.3460 on 2026-04-22 (38-21) and the Assembly passed A.2107 on 2026-05-19 (92-49); as of the most recent sources found (through roughly 2026-07), the bill was on the Governor's desk awaiting signature and had **not yet been confirmed signed**. Do not treat § 210-b as current law until enactment is confirmed; if signed, employers get 60 days from enactment to comply.
+- Under current (pre-enactment) law, employees may request copies of payroll records and wage statements under § 195(4); employers must retain those for dispute resolution. This is narrower than a full personnel-file right.
 - Employers may charge reasonable copy fees.
 
 **Record format**:

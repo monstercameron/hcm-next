@@ -1,5 +1,7 @@
 # Delaware Employment Law Research
 
+**State:** Delaware | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **At-will with implied covenant**: Delaware recognizes employment-at-will with an implied covenant of good faith and fair dealing exception (common law; no statutory codification).

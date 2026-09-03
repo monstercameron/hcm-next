@@ -1,18 +1,18 @@
 # Kentucky Employment Law Research
 
-**State:** Kentucky | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Kentucky | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
 - **At-will employment dominates**: Kentucky recognizes at-will employment by default; either party may terminate without cause unless a written contract specifies otherwise.
 - **Minimum wage matches federal**: Kentucky minimum wage is $7.25/hour (KRS 337.275), equal to the federal FLSA floor; no state-specific premium.
 - **Seventh-day overtime is unique**: Kentucky requires premium pay (time-and-a-half) when an employee works all seven consecutive calendar days in a workweek (KRS 337.285); this is stricter than FLSA.
-- **Semi-monthly pay requirement**: Employers must pay wages at least semi-monthly (twice per month) by law; final pay must be within 14 days of termination or on the next regular payday (KRS 337.020, 337.055).
+- **Semi-monthly pay requirement**: Employers must pay wages at least semi-monthly (twice per month) by law; final pay is due on the later of the next regular payday or 14 days after termination, i.e. "whichever last occurs" (KRS 337.020, 337.055).
 - **Payroll records: 4+ years retention**: Employers must retain wage, hour, and payroll records for at least 4 years (KRS 337.320); verify FLSA federal 3-year minimum also applies.
 - **No state paid-leave mandate**: No Kentucky law mandates paid sick leave, paid family leave, or paid time off for private employees; federal FMLA (12 weeks unpaid) applies to covered employers (50+ employees within 75 miles).
 - **Equal pay protection exists**: KRS 337.420–337.433 prohibits sex-based wage discrimination for comparable work; enforced by Kentucky Department of Labor (verify current scope and case law).
 - **Non-competes enforceable under common law**: Kentucky permits non-compete and non-solicit agreements; enforceability depends on reasonableness (scope, geography, duration, legitimate business interest); no statute but case law is well-developed.
-- **No state mini-WARN; federal WARN applies**: Federal WARN Act (60 days notice for mass layoffs affecting 50+ in a 30-day period) applies; Kentucky has no separate state mass-separation notice requirement (verify recent changes).
+- **No state mini-WARN; federal WARN applies**: The federal WARN Act applies to covered employers and mass layoffs meeting the federal thresholds (see us-federal.md); Kentucky has no separate state mass-separation notice requirement.
 - **Data breach notification required**: Kentucky law (verify: likely KRS 365.732 or related statute) requires breach notification "without unreasonable delay" when personal information is exposed; specific timeline unclear, mark "verify."
 
 ## 2. Employment Relationship: At-Will Status and Written Notices
@@ -28,7 +28,7 @@ No Kentucky state law requires written notice to an employee at hire regarding a
 
 **Offer Letter and Contract Terms**: When an employment relationship begins with a written offer letter or employment contract, those terms override at-will status if they specify duration, severance, or notice requirements. Employers should ensure that all offer letters and contracts are carefully drafted and reviewed for enforceability.
 
-**Separation Documentation**: When an employee is separated, employers must file separation documentation (typically Separation Notice, UK-ES form) with the Kentucky Department of Unemployment Insurance for unemployment-insurance purposes, but **no statutory advance notice period to the worker is required** under Kentucky law. Federal WARN Act applies only to covered employers (50+ employees across all US locations; mass layoffs affecting 500 in a facility or 50 in a 30-day period), and Kentucky has no supplementary state mini-WARN act (verify: no Kentucky-specific mass-separation notice requirement found as of 2026-09-03). Employers may separate workers immediately upon at-will termination unless contracted otherwise.
+**Separation Documentation**: When an employee is separated, employers must file separation documentation (typically Separation Notice, UK-ES form) with the Kentucky Department of Unemployment Insurance for unemployment-insurance purposes, but **no statutory advance notice period to the worker is required** under Kentucky law. Federal WARN Act applies only to covered employers meeting the federal employer-size and layoff-size thresholds (see us-federal.md), and Kentucky has no supplementary state mini-WARN act. Employers may separate workers immediately upon at-will termination unless contracted otherwise.
 
 **Public Employees**: Kentucky public-sector employees may have greater statutory protections (e.g., just-cause removal, notice periods, appeals processes); these do not extend to private-sector employees and are governed by state personnel law and union contracts where applicable.
 
@@ -151,7 +151,7 @@ No Kentucky state law mandates paid sick leave or paid family leave for private-
 
 ## 9. Separation: WARN, Severance, Notice, and Noncompetes
 
-**WARN Act**: The federal **Worker Adjustment and Retraining Notification Act** (29 U.S.C. § 2102) requires covered employers (50+ employees across all US locations; layoffs affecting 500 in a single facility or 50 in a 30-day period) to provide **60 days' written notice** before plant closings or mass layoffs. Applies nationwide, including Kentucky. No Kentucky state mini-WARN act has been identified (verify: no separate Kentucky mass-separation statute found as of 2026-09-03).
+**WARN Act**: The federal **Worker Adjustment and Retraining Notification Act** (29 U.S.C. § 2102) requires covered employers to provide **60 days' written notice** before plant closings or mass layoffs meeting the federal employer-size and layoff-size thresholds (see us-federal.md; do not restate the figures here). Applies nationwide, including Kentucky. No Kentucky state mini-WARN act has been identified.
 
 **Severance Pay**: No Kentucky state law mandates severance pay or severance formulas. Severance is entirely a matter of employment contract, written employer policy, or employer discretion. **If an employer chooses to provide severance**, the severance amount must be documented and paid according to the terms offered (e.g., "2 weeks pay per year of service"). Severance is subject to the same wage-and-hour rules as regular wages (must be paid timely, cannot be deducted without authorization). No obligation to provide severance upon termination absent a written agreement, offer letter, or written policy.
 
@@ -159,7 +159,7 @@ No Kentucky state law mandates paid sick leave or paid family leave for private-
 
 - If an **employment contract specifies a notice period** (e.g., "2 weeks' notice required," "30 days' notice for termination without cause"), that contractual obligation is enforceable.
 - If an **employee handbook or company policy** states a notice period, Kentucky courts may consider it an enforceable contract if the employee relied on it.
-- Federal WARN Act (29 U.S.C. § 2102) requires **60 days' advance notice** for mass layoffs (500+ employees in a facility or 50+ in a 30-day period); verify whether your employer meets the threshold.
+- Federal WARN Act (29 U.S.C. § 2102) requires **60 days' advance notice** for mass layoffs meeting the federal thresholds (see us-federal.md); verify whether your employer meets the threshold.
 - **Best practice**: Provide written notice of termination (even if not required) and document the separation reason for unemployment-insurance and discrimination-defense purposes.
 
 **Noncompete and Nonsolicitation Agreements**: Kentucky permits noncompete and nonsolicitation covenants under **Kentucky common law** (no comprehensive statute governs non-competes). Enforceability is determined case-by-case; agreements must satisfy all of the following to be enforceable:
@@ -250,7 +250,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
   - Seventh-day premium (1.5× if employee worked all 7 days in the final week)
   - Accrued vacation payout (if employer policy or contract mandates payout; not required by law but check the employee handbook)
   - Bonus or incentive compensation (if earned or contractually promised)
-- **Ensure payment within 14 days or next regular payday** (whichever is sooner) per KRS 337.055. Model "next regular payday" as the standard final-pay deadline; if the employer extends beyond 14 days, flag as **potential violation**.
+- **Ensure payment by the later of 14 days after termination or the next regular payday** ("whichever last occurs") per KRS 337.055. Model `Max(TerminationDate + 14 days, NextRegularPayday)` as the statutory final-pay deadline; flag as a **potential violation** only if payment is made after that later date.
 - **Flag any deductions** that are not tax-mandated or written-authorized (KRS 337.060); prohibited deductions (uniforms, shortages, damage) should raise an alert.
 
 **Leave Balance Handling**:
@@ -278,16 +278,16 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 - **Document termination rationale** (performance, reduction in force, misconduct, voluntary resignation) for internal compliance and to defend against wrongful-termination or discrimination claims.
 - **No advance written notice is required** under Kentucky law unless:
   - The employment contract specifies a notice period (e.g., "2 weeks").
-  - Federal WARN Act applies (60 days' notice for mass layoffs involving 50+ or 500+ employees; verify threshold).
+  - Federal WARN Act applies to covered employers and mass layoffs meeting the federal thresholds (see us-federal.md).
   - Employer policy or handbook specifies notice (courts may enforce this as an implied contract).
 - **Immediate separation is permissible** for at-will employees absent a contractual obligation.
-- **Provide final paycheck** within 14 days of termination or next regular payday (KRS 337.055).
+- **Provide final paycheck** by the later of 14 days after termination or the next regular payday ("whichever last occurs", KRS 337.055).
 
 **WARN Act and Mass Layoffs**:
 
-- **Federal WARN Act applies** (29 U.S.C. § 2102) if the employer has 50+ employees (aggregate) and the layoff affects **500 or more** in a facility or **50+ in a single 30-day period**.
+- **Federal WARN Act applies** (29 U.S.C. § 2102) if the employer and the layoff meet the federal employer-size and layoff-size thresholds (see us-federal.md; do not restate the figures here).
 - If WARN applies, **provide 60 days' written advance notice** to affected employees, unions (if any), and state/local workforce agencies.
-- **No Kentucky supplementary state mini-WARN law** has been identified; federal WARN is the only mass-layoff notice requirement (verify: no recent Kentucky statutory changes).
+- **No Kentucky supplementary state mini-WARN law** has been identified; federal WARN is the only mass-layoff notice requirement.
 - Failure to comply with WARN carries penalties (back pay, benefits, attorney fees); prioritize compliance if layoff meets WARN thresholds.
 
 **Non-Compete and Non-Solicit Enforcement**:
@@ -311,7 +311,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 **Severance Pay (if offered)**:
 
 - If the employer **chooses to provide severance**, calculate and pay according to the company policy, contract, or offer (e.g., "1 week per year of service").
-- Severance is subject to wage-and-hour rules: must be paid timely (within 14 days or next payday), cannot be deducted without authorization.
+- Severance is subject to wage-and-hour rules: must be paid timely (by the later of 14 days after separation or the next regular payday, per KRS 337.055's "whichever last occurs"), cannot be deducted without authorization.
 - Ensure the severance amount is clearly documented in a **separation letter** or **severance agreement**, including any conditions (e.g., non-disparagement, non-solicitation, non-compete waiver, ADEA release).
 - If the employer requires a **release or waiver** as a condition of severance, ensure it complies with federal law (ADEA Older Workers Benefit Protection Act requires specific language and consideration for 40+ employees).
 
@@ -375,7 +375,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 
 **WARN and Mass-Separation Data**:
 
-- **Termination.WARNApplicable**: Boolean; set to true if employer has 50+ employees (aggregate) and separation is part of a layoff affecting 50+ in 30 days or 500+ in facility.
+- **Termination.WARNApplicable**: Boolean; set to true if the employer and the layoff meet the federal WARN thresholds (see us-federal.md).
 - **Termination.WARNNoticeIssuedDate**: Date 60-day WARN notice was issued (if applicable).
 - **Termination.WARNNoticeRecipients**: List of recipients (employees, unions, state/local workforce agencies).
 - **Termination.StateNoticeRequired**: Boolean; if yes, file Separation Notice (UK-ES) with Kentucky Department of Unemployment Insurance within required timeframe.
@@ -386,7 +386,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 2. Does the employer track seventh-day work patterns (all 7 calendar days in a week)? If so, how is seventh-day premium calculated and paid?
 3. What is the employer's final-pay policy: payment on termination day, next regular payday, or a set number of days?
 4. Does the employer offer PTO/vacation, and if so, is accrued leave paid out on termination?
-5. Is the employer subject to federal WARN (50+ employees with mass-layoff potential)? If so, coordinate with 60-day notice.
+5. Is the employer subject to federal WARN (see us-federal.md for the employer-size and layoff-size thresholds)? If so, coordinate with the 60-day notice.
 6. Does the employer use non-compete or non-solicit agreements? If so, have they been reviewed for Kentucky enforceability?
 7. Has the employer reviewed pay equity by gender/race for comparable roles (KRS 344 compliance)?
 8. Is the employer aware of the Kentucky seventh-day overtime requirement, or are seventh-day scenarios currently unmanaged?
@@ -399,7 +399,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 4. [Kentucky Wage and Hour Law (KRS Chapter 337)](https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=38890) — statutory reference (equal pay protections KRS 337.420–337.433; verify current text and amendments as of 2026-09-03)
 5. [Kentucky Wage and Hour Law (KRS Chapter 337)](https://legislature.ky.gov/laws/statutes/337) — statutory reference (minimum wage 337.275, overtime and seventh-day 337.285, semi-monthly pay 337.020, final pay 337.055, deductions 337.060, records 337.320)
 6. [Kentucky Unemployment Insurance Law (KRS 341.010 et seq.)](https://legislature.ky.gov/laws/statutes/341) — statutory reference (employee classification and coverage)
-7. [Federal Worker Adjustment and Retraining Notification (WARN) Act (29 U.S.C. § 2102)](https://www.dol.gov/agencies/whd/warnact) — federal requirement applicable to Kentucky employers with 50+ employees
+7. [Federal Worker Adjustment and Retraining Notification (WARN) Act (29 U.S.C. § 2102)](https://www.dol.gov/agencies/whd/warnact) — federal requirement applicable to Kentucky employers; see us-federal.md for the employer-size and layoff-size thresholds
 8. [Federal Fair Labor Standards Act (29 U.S.C. § 206–214)](https://www.dol.gov/agencies/whd/flsa) — federal wage and hour floor that Kentucky enforces or supplements
 9. [Kentucky Data Breach Notification Law (KRS 365.732, verify)](https://legislature.ky.gov/laws/statutes/365) — statutory reference for breach notification timeline and requirements (verification recommended on exact section and current language as of 2026-09-03)
 10. [Kentucky Public Records Act (KRS 61.878)](https://legislature.ky.gov/laws/statutes/61) — governs employee access to public-employment records; limited applicability to private sector

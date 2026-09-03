@@ -1,5 +1,7 @@
 # Maryland Employment Law Research
 
+**State:** Maryland | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **At-will employment with statutory exceptions**: Maryland recognizes employment-at-will but prohibits termination for exercising constitutional rights, filing wage/workers' compensation claims, jury duty, military service, or other public-policy violations.

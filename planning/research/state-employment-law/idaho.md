@@ -1,5 +1,7 @@
 # Idaho Employment Law Research
 
+**State:** Idaho | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **At-will employment default**: Idaho recognizes at-will employment as the default relationship; either party may terminate without cause unless an exception applies (common law exceptions: public policy violations, implied contract, breach of good faith).

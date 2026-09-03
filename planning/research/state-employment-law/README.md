@@ -24,7 +24,7 @@ only through a reviewed rule pack.
 | Georgia        | `georgia.md`        | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
 | Hawaii         | `hawaii.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
 | Idaho          | `idaho.md`          | REVIEWED | 2026-09-03 | 2026-09-03                |
-| Illinois       | `illinois.md`       | DRAFTED  | 2026-09-03 | reworked 2026-09-03       |
+| Illinois       | `illinois.md`       | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
 | Indiana        | `indiana.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
 | Iowa           | `iowa.md`           | REVIEWED | 2026-09-03 | 2026-09-03                |
 | Kansas         | `kansas.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
@@ -61,6 +61,7 @@ only through a reviewed rule pack.
 | Washington     | `washington.md`     | REVIEWED | 2026-09-03 | 2026-09-03                |
 | West Virginia  | `west-virginia.md`  | REVIEWED | 2026-09-03 | 2026-09-03                |
 | Wisconsin      | `wisconsin.md`      | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| US federal     | `us-federal.md`     | DRAFTED  | 2026-09-03 |                           |
 | Wyoming        | `wyoming.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
 
 Status values: `QUEUED`, `IN_PROGRESS`, `DRAFTED` (agent finished, unreviewed),
@@ -197,3 +198,169 @@ and a fake at-will statute; Connecticut's body and Sources cited different
 wage sections); Georgia (213 lines, split citations) and Louisiana (249
 lines, New Orleans ordinance removed instead of cited) sent for a final
 rework. In-file Status lines now match this table.
+
+### 2026-09-03 — LEGAL-018 contradiction closure
+
+Closed out the fourteen blocking items listed in the contract's
+[Open Questions](../../specs/legal-rule-packs-and-state-configuration.md#11-open-questions)
+(§11, items 1–14) against primary/official sources. Outcome per item:
+
+1. **Federal baseline stated three ways** — **FIXED (partial) with citation.**
+   The only files that actually disagreed with the federal WARN employer-size
+   threshold (100+ employees) were `kentucky.md` and `west-virginia.md`
+   (both wrongly stated "50+ employees" as the _employer_ coverage
+   threshold, conflating it with the 50-employee _layoff-size_ trigger) and
+   `iowa.md` (incomplete: omitted the 100+ employer-size threshold
+   entirely). All three are corrected and now point to `us-federal.md`
+   instead of restating the figures. A full-corpus scan found the
+   remaining ~44 files already agree with each other (100+ employer size,
+   50/33%/25+ layoff-size triggers as applicable, $7.25 FLSA floor where
+   stated, 3-year FLSA retention floor) — those are not restated here
+   because `us-federal.md` is being authored under `LEGAL-017`, not this
+   ticket; once it lands, a follow-up pass should replace the remaining
+   correct-but-duplicated restatements with references to it per the
+   contract's non-goal in §10.
+2. **Kentucky final pay** — **FIXED with citation.** KRS 337.055's "whichever
+   last occurs" is the _later_ of (next regular payday, termination + 14
+   days) — i.e. `Max(...)`, not `Min(...)`. `kentucky.md`'s summary, §3,
+   §9 (three spots) and §11 all now state the later-of rule consistently;
+   in-file Status corrected `DRAFTED` → `REVIEWED`.
+3. **New Jersey personnel-file citation** — **FIXED with citation.**
+   N.J.S.A. 34:8B-1 is the Temporary Help Service Firms and Consulting
+   Firms Act, not a personnel-records statute. New Jersey has **no**
+   general private-sector personnel-file access statute. `new-jersey.md`
+   §6 and Sources corrected; in-file Status corrected to `REVIEWED`.
+4. **North Carolina salary-history ban (2024)** — **FIXED with citation.**
+   There is no 2024 statute. The only restriction is Executive Order
+   No. 93 (2019), which binds NC _state agencies_ only; private employers
+   may still ask about salary history. `north-carolina.md`'s summary
+   bullet and §11 item 10 (which contradicted the file's own §4) are
+   corrected to match.
+5. **Kansas non-competes** — **FIXED with citation.** SB 241 (2025 Kan.
+   Sess. Laws ch. 74, eff. 2025-07-01) amends K.S.A. 50-163 to presume
+   enforceable two narrow categories of _non-solicitation_ covenant and
+   requires reformation of overbroad ones — it explicitly does not reach
+   traditional non-compete agreements, which remain governed entirely by
+   Kansas common law (`Weber v. Tillman`). `kansas.md` corrected in the
+   summary, §9, §11 and Sources to cite K.S.A. 50-163/SB 241 for
+   non-solicits only and common law for non-competes.
+6. **Massachusetts pay transparency dates** — **FIXED with citation.** One
+   statute (M.G.L. c. 149 § 105F, the Frances Perkins Workplace Equity
+   Act) carries two distinct effective dates for two distinct duties: the
+   pay-range **posting** duty is effective **2025-10-29** (the Act itself
+   was signed/enacted 2024-07-31 — that is not a compliance date), and the
+   pay-**data-reporting** duty is effective **2025-02-01**. `massachusetts.md`'s
+   summary and §4 previously stated "July 31, 2025" for the posting duty,
+   conflating the enactment date with a wrong year; both are corrected to
+   read consistently with §11, which already had the right date.
+7. **Minnesota pay-range posting citation** — **FIXED with citation.**
+   Minn. Stat. § 181.173 (eff. 2025-01-01, via the 2024 Omnibus Labor and
+   Industry Policy Bill, SF 3852) is the operative pay-range-posting
+   statute. § 181.9414, cited in `minnesota.md` §11, was repealed in 2021
+   and governs something else entirely; corrected to § 181.173 to match
+   the Summary and §4.
+8. **Georgia payroll retention citation** — **FIXED with citation.**
+   O.C.G.A. § 34-7-2 is the semi-monthly pay-frequency statute; it does not
+   address record retention. O.C.G.A. § 34-4-5 (records of hours worked
+   and wages paid, open to Department of Labor inspection) is the correct
+   basis for the 4-year retention _best practice_ (the statute itself does
+   not state a fixed period; 4 years aligns to the federal 3-year FLSA
+   floor plus a buffer). `georgia.md` §11 corrected to stop citing
+   § 34-7-2 for retention.
+9. **Illinois `DRAFTED` status** — **FIXED — Status updated to `REVIEWED`.**
+   All seven previously-inaccessible statutes were fetched and are now
+   summarized with citations in `illinois.md` §11: 820 ILCS 70 (Employee
+   Credit Privacy Act), 820 ILCS 180 (VESSA), 820 ILCS 55 (Right to
+   Privacy in the Workplace Act / E-Verify), 820 ILCS 175 (Day and
+   Temporary Labor Services Act 2023–2024 amendments — the equal-**benefits**
+   piece is marked `DISPUTED` pending an ongoing federal injunction; the
+   equal-**pay-rate** piece is in effect), the Illinois Constitution's
+   Workers' Rights Amendment (Art. I § 25), the Chicago/Cook County
+   paid-leave ordinance hour thresholds (already-cited figures confirmed;
+   procedural minutiae beyond the hour thresholds are out of this file's
+   scope), and the 775 ILCS 5 AI-in-employment amendment (HB 3773, eff.
+   2026-01-01). README queue table Status cell corrected `DRAFTED` →
+   `REVIEWED`.
+10. **Alaska pay-change notice wording** — **FIXED with citation.** The
+    governing statute is **AS § 23.05.160** ("Notice of wage payments"),
+    not AS § 23.05.140 (which is the pay-periods/final-pay-penalty
+    section, correctly cited elsewhere in the file for final pay). Its
+    exact wording is "on the payday before the time of change" — i.e. the
+    notice is due by the payday _immediately preceding_ the change, which
+    is stricter than the file's prior "before the next pay period" or
+    "before any change" phrasings. `alaska.md` corrected in the summary,
+    §2 (two spots), §3, and §11 (three spots), plus the Sources list.
+11. **Michigan small-employer ESTA entitlement** — **FIXED with citation.**
+    For employers with 10 or fewer employees, the Earned Sick Time Act
+    (as amended, small-employer compliance date 2025-10-01) requires
+    **both** up to 40 hours of paid earned sick time **and**, separately,
+    up to 32 hours of unpaid earned sick time per year — not an
+    either/or choice (72 hours of job-protected leave total).
+    `michigan.md` corrected in the summary and §5, §11, and the open-questions
+    list.
+12. **Personnel-file access unresolved for ten states** — **FIXED for nine
+    states; DISPUTED for one.**
+    - Arizona, Maryland, Vermont, North Carolina: already correctly stated
+      "no private-sector statutory right" — no change needed, confirmed
+      against primary sources.
+    - New Jersey: fixed under item 3 above (no statute; wrong citation
+      removed).
+    - Hawaii: fixed — HRS § 89-16.5 grants access only to a public-sector
+      union representative investigating a grievance, not to employees
+      generally; `hawaii.md` corrected to state plainly that private-sector
+      employees have no statutory access right.
+    - West Virginia: fixed — the cited W. Va. Code § 21-3-22 is the
+      public-improvement construction-safety program, unrelated to
+      personnel files; West Virginia has no private-sector statute on
+      point. `west-virginia.md` corrected; in-file Status corrected
+      `DRAFTED` → `REVIEWED`.
+    - Virginia: fixed — the right is **statutory** (Va. Code § 8.01-413.1,
+      eff. 2019, 30-day response window), not common law as the file
+      previously said, though it is scoped to specific record categories
+      (dates of employment, wages, job title/description, injuries) rather
+      than the full file.
+    - Alaska (retention basis): fixed — the payroll-record retention
+      statute is **AS § 23.10.100** ("Employer to keep records"), not
+      AS § 23.05.080 as previously cited; corrected in `alaska.md` §6 and
+      Sources.
+    - New York: **DISPUTED** — the earlier citation to "pending bill
+      S.2154" was simply the wrong bill number; the real bill is
+      **S.3460 / A.2107** (New York Labor Law § 210-b, modeled on
+      Massachusetts's law). Both chambers passed it (Senate 2026-04-22,
+      Assembly 2026-05-19), but as of the most recent sources found it was
+      on the Governor's desk with **signature not yet confirmed**. Marked
+      `DISPUTED` in `new-york.md` §6 pending confirmation of enactment;
+      do not model § 210-b as current law until that is verified.
+13. **Pay-statement content unresolved for eighteen states** — **OPEN.**
+    This item is a completeness question against the contract's own
+    Table A, not a small number of wrong citations: 49 of 50 state files
+    already discuss pay-statement/deduction content in some form
+    (`nebraska.md` is the one file with no such section at all), but this
+    pass did not individually re-verify, state-by-state, whether an
+    itemized pay statement is a _mandatory_ requirement versus merely
+    described, for each of the eighteen states Table A marks `?`. That
+    re-verification is a distinct research effort from the citation-level
+    fixes above and is left open for a follow-up pass.
+14. **State UI separation reporting named in only nine files** — **OPEN.**
+    A corpus scan on 2026-09-03 found 13 of 50 files currently name a
+    specific state UI separation-notice form or process (previously
+    reported as nine — the count has moved since the original open
+    question was written, likely from intervening fix passes, but the
+    underlying question is unchanged). Confirming, for the other ~37
+    files, whether the obligation exists and is simply unstated versus
+    genuinely narrower than assumed requires per-state unemployment-agency
+    research this pass did not perform. Left open for a follow-up pass.
+
+**Not part of the fourteen, left open per instruction:** §11 item 15
+(`primary_work_threshold` has no legal source) is unchanged — no default
+value was invented; it remains tenant configuration with no statutory
+basis, as the contract already states.
+
+**Also out of scope for this ticket:** items 12–14 above and the
+federal-baseline propagation in item 1 touch content that `us-federal.md`
+(owned by `LEGAL-017`, authored concurrently) will also affect; this file
+was not created or edited here. `alaska.md` line 12/§2's at-will/public-policy
+citation ("AS §§ 23.10.100–.110") was noticed in passing to be unrelated to
+at-will doctrine (§ 23.10.100 is the recordkeeping statute fixed under item
+12 above) but is outside this pass's fourteen-item scope and was not
+changed; flagging for a follow-up pass rather than fixing opportunistically.
