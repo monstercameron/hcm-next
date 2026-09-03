@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ia-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "IA",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-ia-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "Iowa Code § 91A.3",
+        "note": "Pay-rate change notice required: Iowa Code § 91A.3 requires written notice of any change in pay rate at least 3 days before the change becomes effective.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "BEFORE",
+        "timing_days": 3,
+        "channel": "written",
+        "content_fields": ["pay_rate"]
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-ia-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "§ 91A.6",
+        "note": "Record Retention: Maintain all pay-rate-change notices, promotion records, and wage data for 4 years per § 91A.6.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 4,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ia-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "Iowa Code § 91A.3",
+        "note": "Pay Frequency and Wage Notices: Iowa Code § 91A.3 does not mandate a specific pay frequency, but employers must establish regular paydays and notify employees in writing (at time of hiring and before any change) of:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {}
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ia-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "Iowa Code § 91A.4",
+        "note": "Final pay timing mandated: Iowa Code § 91A.4 requires final wages paid by the next regular payday or within 5 days, whichever occurs first; fail to comply invokes civil penalty.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay timing mandated: Iowa Code § 91A.4 requires final wages paid by the next regular payday or within 5 days, whichever occurs first; fail to comply invokes civil penalty."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-ia-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "§ 84C",
+        "note": "Iowa WARN (§ 84C) - Layoff Scenario: If the system models a future layoff:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Iowa WARN (§ 84C) - Layoff Scenario: If the system models a future layoff:"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ia-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "§ 91D.2",
+        "note": "Equal Pay Compliance (§ 91D.2): When entering a promotion or pay change:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ia-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "Iowa Code § 91A.8",
+        "note": "Failure to pay final wages timely triggers liquidated damages under Iowa Code § 91A.8: the employee may recover double the amount of unpaid wages plus attorney fees and costs.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_fields": ["gross_wages", "deductions", "employer_identification"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-ia-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "§ 91B.1",
+        "note": "Personnel-File Access (§ 91B.1): Model a 3-business-day response window for employee requests to access their personnel file (which includes pay history, promotions, performance notes).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ia-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "SF 418",
+        "note": "Protected Classes under Chapter 216: Iowa Code Chapter 216 (Civil Rights Act) protects employees from discrimination based on sex, race, color, creed, national origin, disability, and age.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "SEPARATION_FILING",
+      "id": "us-ia-separation-filing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Separation and Termination Records: Employers should retain separation notices, final-pay records, and related documentation as part of the 4-year payroll-retention cycle.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ia-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "Iowa Code § 730.5",
+        "note": "Drug and Alcohol Testing: Iowa Code § 730.5 permits drug and alcohol testing of employees and applicants under specified conditions:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ia-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/iowa.md",
+        "section": "§ 715C.1",
+        "note": "Breach Notification (§ 715C.1): If a personnel-file or wage-record breach occurs:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/iowa.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

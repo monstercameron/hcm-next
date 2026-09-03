@@ -28,6 +28,30 @@
 // they do not depend on internal/kernel/digest's Protobuf-canonicalization
 // registry, which requires a schema this package is not permitted to define.
 //
+// # Rule packs come from definition files
+//
+// LEGAL-010 adds the contract's section 3 release family: a checked-in
+// [PackDefinition] under definitions/legal/packs becomes a validated
+// [PackCandidate], and a candidate becomes a digested, ed25519-signed
+// [PackRelease] — which is [RulePack] itself, under an alias. The digest
+// covers exactly the fields the contract's section 3.2 lists, so rewording a
+// citation Note leaves a signed release valid while changing any typed field
+// invalidates it. [Registry.Supersede] closes a prior effective window and
+// links the chain, and [Registry.GetExact] keeps returning a pinned release
+// forever so a historical evaluation stays reproducible.
+//
+// LEGAL-011 extends the obligation vocabulary from ten kinds to twenty-two.
+// The original ten keep their wire tokens, ordinals and shapes; the twelve
+// added by the contract's section 4.2 bring pure trigger predicates and
+// non-removable bindings at the lifecycle steps the contract assigns. An
+// obligation whose trigger is false is recorded as CONSIDERED_NOT_APPLICABLE
+// with the fact that made it false, never omitted.
+//
+// The fifty state drafts under definitions/legal/packs/states are mechanically
+// extracted from the research corpus by internal/governance/legal/extract.
+// They are drafted research at [ReviewStatusUnreviewed], unusable under any
+// nonzero tenant review floor, and not legal advice.
+//
 // # Rule packs are fixtures, not legal advice
 //
 // [CaliforniaPromotionPack] and [NewYorkPromotionPack] are seed packs drawn

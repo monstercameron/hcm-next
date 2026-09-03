@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-az-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "AZ",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "RETENTION",
+      "id": "us-az-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-364",
+        "note": "Payroll record retention (A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "payroll_records",
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-az-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-373",
+        "note": "Flag if pay reduction occurs during or within 30 days of paid sick leave use (may trigger retaliation claim under A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Flag if pay reduction occurs during or within 30 days of paid sick leave use (may trigger retaliation claim under A.R.S."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-az-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-351",
+        "note": "Pay frequency (A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "MONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-az-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-353",
+        "note": "Model a 7-day working-day deadline for final wage payment upon discharge, or link to next regular payday if sooner (A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Model a 7-day working-day deadline for final wage payment upon discharge, or link to next regular payday if sooner (A.R.S."
+      }
+    },
+    {
+      "kind": "E_VERIFY",
+      "id": "us-az-e-verify",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-214",
+        "note": "E-Verify mandate: A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_on_new_hire_only": true,
+        "note": "E-Verify mandate: A.R.S."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-az-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-363",
+        "note": "Minimum wage (A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-az-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-364",
+        "note": "Pay statement content: No detailed state requirement.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_fields": [
+          "gross_wages",
+          "net_wages",
+          "deductions",
+          "hours_worked",
+          "pay_rate",
+          "pay_period",
+          "employer_identification"
+        ],
+        "standard": "RECOMMENDED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-az-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-373",
+        "note": "Flag if pay reduction occurs during or within 30 days of paid sick leave use (may trigger retaliation claim under A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["protected_leave_request"],
+        "lookback_days": 30,
+        "disposition": "FLAG",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "JOB_SECURITY",
+      "id": "us-az-job-security",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 23-1501",
+        "note": "At-will employment: Arizona recognizes pure at-will employment codified in A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard_kind": "AT_WILL",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-az-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 36-2813",
+        "note": "Medical marijuana employment protections: Employers cannot discriminate against registered cardholders or penalize based on positive test result unless employee was impaired or used marijuana on premises during work...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_status": ["medical_cannabis_patient"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-az-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arizona.md",
+        "section": "A.R.S. § 18-551",
+        "note": "Data breach notification (A.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "subject_deadline_days": 45,
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/arizona.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

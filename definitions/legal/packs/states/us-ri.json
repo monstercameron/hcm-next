@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ri-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "RI",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-ri-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-2",
+        "note": "§ 28-14-2 requires written notice at hire of wages, pay rate, and frequency; advance written notice in advance of any change to wage, deduction, or pay frequency.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "BEFORE",
+        "channel": "written",
+        "content_fields": ["pay_rate", "pay_frequency"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-ri-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-6-19",
+        "note": "Salary History Inquiry Block (§ 28-6-19): Disable any form field attempting to request prior salary from external candidates; log queries for compliance risk flagging; only permit external candidate to voluntarily...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-ri-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-2",
+        "note": "Pay Rate Change Notice (§ 28-14-2): On any pay increase or decrease, generate automated notice in advance of effective date (or concurrent with increase) with new rate, frequency, and effective date; document and...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {}
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-ri-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-57-1",
+        "note": "Earned Sick Leave Accrual and Payout (§ 28-57-1): Track accrued sick leave (1 hour per 35 hours worked).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Earned Sick Leave Accrual and Payout (§ 28-57-1): Track accrued sick leave (1 hour per 35 hours worked)."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ri-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-2",
+        "note": "Pay frequency: Weekly (default); employers may petition to pay biweekly/semi-monthly under § 28-14-2 with surety bond if average payroll meets thresholds; advance written notice of any change required.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ri-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-4",
+        "note": "Final Pay Timing (§ 28-14-4): On termination, schedule final paycheck by next regular payday; include all wages due through termination date plus accrued leave payout.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final Pay Timing (§ 28-14-4): On termination, schedule final paycheck by next regular payday; include all wages due through termination date plus accrued leave payout."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-ri-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-6-19",
+        "note": "Pay Transparency Disclosure (§ 28-6-19): Before posting any job or offering promotion, require wage-range input (min/max); block job posting or promotion posting if range empty; timestamp disclosure.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Pay Transparency Disclosure (§ 28-6-19): Before posting any job or offering promotion, require wage-range input (min/max); block job posting or promotion posting if range empty; timestamp disclosure."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-ri-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-59",
+        "note": "Non-Compete Enforceability Check (§ 28-59): At hire and promotion of exempt employees, flag if salary <$37,650/year and non-compete in offer; system should warn that agreement likely unenforceable and recommend removal...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-Compete Enforceability Check (§ 28-59): At hire and promotion of exempt employees, flag if salary <$37,650/year and non-compete in offer; system should warn that agreement likely unenforceable and recommend removal..."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-ri-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-59",
+        "note": "Non-Compete Enforceability Check (§ 28-59): At hire and promotion of exempt employees, flag if salary <$37,650/year and non-compete in offer; system should warn that agreement likely unenforceable and recommend removal...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "note": "Non-Compete Enforceability Check (§ 28-59): At hire and promotion of exempt employees, flag if salary <$37,650/year and non-compete in offer; system should warn that agreement likely unenforceable and recommend removal..."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-ri-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-12-3",
+        "note": "Minimum Wage Compliance (§ 28-12-3): System should flag if any promotion + pay change results in rate <$16.00/hour (2026) and prevent entry unless override justified (verify).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "16.00",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ri-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-6-17",
+        "note": "Pay Equity Audit Flag (§ 28-6-17 et seq.): On promotion + base-pay change, flag if new rate differs significantly from peer rates for \"substantially similar work\" in same employer/county; require manager justification...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["age"],
+        "comparator_standard": "substantially similar work",
+        "documentation_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ri-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-2.1",
+        "note": "Pay Statement Generation (§ 28-14-2.1): Ensure all pay statements/earnings records show hours worked, rate, all deductions with explanation, and gross/net; retain for 3 years for wage-theft audit defense.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "required_fields": [
+          "gross_wages",
+          "net_wages",
+          "deductions",
+          "hours_worked",
+          "pay_rate"
+        ],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-ri-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No Rhode Island-specific ABC test in statute results (verify whether common-law control test applies).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "dimension": "CONTRACTOR",
+        "test_description": "No Rhode Island-specific ABC test in statute results (verify whether common-law control test applies).",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-ri-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-14-19",
+        "note": "Payroll and personnel record retention (§ 28-14-19; § 28-6.4-1):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ri-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-50-1",
+        "note": "Employment-at-will with limited exceptions: Rhode Island recognizes at-will employment but prohibits termination for filing wage claims, workers' compensation claims, jury duty, military service, or exercising...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": [
+          "workers_compensation_claim",
+          "wage_claim",
+          "whistleblower_report",
+          "jury_duty"
+        ],
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ri-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "§ 28-6.5-1(a)(1)",
+        "note": "Drug testing (§ 28-6.5-1(a)(1)):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ri-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/rhode-island.md",
+        "section": "R.I. Gen. Laws § 11-49.3-4",
+        "note": "Data breach notification (R.I.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/rhode-island.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

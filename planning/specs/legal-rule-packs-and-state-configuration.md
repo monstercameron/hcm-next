@@ -581,6 +581,15 @@ Five states in the corpus assert preemption that the promotion flow can hit:
 | OK    | `LEAVE_INTERACTION`                                                        | 40 O.S. § 160                                 |
 | TN    | `LEAVE_INTERACTION`, `WAGE_FLOOR`                                          | Tenn. Code § 50-2-112                         |
 
+A preemption row and a Table A `F` cell for the same state and kind are not a
+contradiction. `F` says the state itself imposes nothing beyond the federal rule
+for that kind; the preemption assertion says localities may not add to it either.
+Texas and Tennessee `WAGE_FLOOR` and Louisiana `LEAVE_INTERACTION` are exactly
+that shape: the state pack carries no obligation of the kind and does carry the
+`LOCALITY_ONLY` assertion. Extraction (2026-09-03) reads obligations from
+section 5 and assertions from this table, and both stay authoritative for their
+own half.
+
 Without preemption modelled as a first-class assertion, a naive
 "most-protective-wins" composition would attach a preempted Milwaukee paid-leave
 obligation to a Wisconsin promotion. That is the concrete failure the assertion
@@ -875,3 +884,22 @@ Non-blocking, but they change the shape of the model:
 17. **CBA and works-council content** uses the same versioned rule interface per
     the architecture catalog, but no research file covers a collective agreement.
     The `source_type` enum reserves `CBA`; nothing populates it.
+
+Extraction findings (2026-09-03), recorded when the fifty draft packs were first
+generated from the corpus and not yet blocking because every affected cell is
+already `?` or already flagged above:
+
+- Eleven `Y` cells have no locatable statutory section in their research file
+  (Arkansas and Connecticut `ANTI_RETALIATION`; Illinois `AUTOMATED_DECISION`;
+  Maryland `FINAL_PAY_DEADLINE`; Montana and Tennessee `SEPARATION_FILING`; New
+  York, Oregon, Washington and Wisconsin `BREACH_NOTIFICATION`; Wyoming
+  `DRUG_TESTING`). Each emits an obligation marked `VERIFY` with the missing
+  citation stated as missing; dropping them would assert the duty does not exist.
+- `DRUG_TESTING` is `?` in thirty-six files and `SEPARATION_FILING` in forty-one.
+  Both kinds need the same dedicated research pass item 14 already demands for
+  separation reporting before any pack that declares them can leave
+  `UNREVIEWED`.
+- Locality (`L`) cells are excluded from state packs by construction, so the
+  section 5 `Y+L` totals will never equal a state-pack inventory. Locality packs
+  are a separate release family and are out of scope until a tenant selects a
+  locality.

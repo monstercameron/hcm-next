@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ma-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "MA",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-ma-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 105A",
+        "note": "Salary history ban: Employers may not inquire about or consider an applicant's previous wage/salary history unless voluntarily disclosed by the candidate (M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-ma-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 52C",
+        "note": "Personnel record access (c.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "personnel_records",
+        "duration_years": 3,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-ma-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "M § 2",
+        "note": "Duration: Paid leave of up to 12 weeks for family reasons, 20 weeks for the employee's own serious health condition, 26 weeks for military caregiving, and 26 weeks combined per benefit year (M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "leave_type": "paid leave",
+        "interaction_rule": "Duration: Paid leave of up to 12 weeks for family reasons, 20 weeks for the employee's own serious health condition, 26 weeks for military caregiving, and 26 weeks combined per benefit year (M.G.L."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ma-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 148",
+        "note": "Wages must be paid on a regular, designated payday, at least weekly (M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "WEEKLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ma-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 150",
+        "note": "Treble damages flag: Any delay in final pay triggers automatic exposure to 3x damages plus attorney fees (M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Treble damages flag: Any delay in final pay triggers automatic exposure to 3x damages plus attorney fees (M.G.L."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-ma-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 105F",
+        "note": "Wage range in promotion offer: On promotion, platform must require entry of new pay range (Frances Perkins Act, § 105F); existing employee (not new hire) must receive range disclosure.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Wage range in promotion offer: On promotion, platform must require entry of new pay range (Frances Perkins Act, § 105F); existing employee (not new hire) must receive range disclosure."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-ma-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 24L",
+        "note": "Non-compete/non-solicit: If non-compete exists, platform must verify garden leave payment (50% salary, pro-rata) and track restricted period; flag any restriction without garden leave as likely unenforceable post-M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-compete/non-solicit: If non-compete exists, platform must verify garden leave payment (50% salary, pro-rata) and track restricted period; flag any restriction without garden leave as likely unenforceable post-M.G.L."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-ma-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "A §§ 71A–71B",
+        "note": "No state mini-WARN: Massachusetts has no enforceable mini-WARN act with statutory penalties.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "note": "No state mini-WARN: Massachusetts has no enforceable mini-WARN act with statutory penalties."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-ma-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 1",
+        "note": "Minimum wage is $15.00/hour (unchanged since January 1, 2023; M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "15.00",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ma-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 105A",
+        "note": "Employers cannot pay employees less than others of a different gender for comparable work in the same workplace (M.G.L.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["gender"],
+        "comparator_standard": "comparable work",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ma-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Federal FLSA requires itemized pay stubs; no specific Massachusetts statute mandates detailed pay stub format beyond federal requirements.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-ma-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "§ 52C",
+        "note": "Personnel record access (c.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "response_days": 10,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ma-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "PFML pay and benefits interaction: Document that pay changes during leave do not affect job restoration upon return (same or equivalent position, same status, pay, benefits, seniority); flag if promotion occurs during...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_activities": ["protected_leave_request"],
+        "lookback_days": 30,
+        "disposition": "FLAG",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ma-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/massachusetts.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No state-level statute regulating private-sector drug testing scope; federal law (pre-employment, reasonable suspicion, post-accident, DOT rules) and FCRA apply if using third-party testing vendors.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment", "reasonable_suspicion", "post_accident"],
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/massachusetts.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

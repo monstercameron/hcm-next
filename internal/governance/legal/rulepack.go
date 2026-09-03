@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -17,6 +18,10 @@ var (
 	ErrRulePackWindow       = errors.New("legal: rule pack effective window is invalid")
 	ErrRulePackDuplicate    = errors.New("legal: rule pack id and version is already registered for this jurisdiction")
 	ErrRuleCoverageUnknown  = errors.New("legal: RULE_COVERAGE_UNKNOWN")
+	// ErrRulePackSupersession is returned when a supersession would leave a
+	// gap or an overlap in the release chain, or would link two releases that
+	// are not the same pack in the same jurisdiction.
+	ErrRulePackSupersession = errors.New("legal: rule pack supersession chain is invalid")
 )
 
 // EffectiveWindow is a half-open [Start, End) calendar-date window: Start is
@@ -96,6 +101,9 @@ func (w EffectiveWindow) String() string {
 // fixture skeleton: [CaliforniaPromotionPack] and [NewYorkPromotionPack] seed
 // it from drafted, unreviewed state research, and every rule inside carries
 // its own [Citation] back to that research.
+// RulePack is also the PackRelease shape of the contract's section 3.1; see
+// the [PackRelease] alias and packdefinition.go for the definition ->
+// candidate -> release pipeline that produces one.
 type RulePack struct {
 	PackID       string
 	Version      uint32
@@ -112,6 +120,190 @@ type RulePack struct {
 	NonCompeteThresholds    []NonCompeteThreshold
 	EVerifyChecks           []EVerifyStatusCheck
 	MiniWARNTriggers        []MiniWARNTrigger
+
+	// The fields below are LEGAL-010's and LEGAL-011's additions. Every one
+	// is optional on a pack built directly in Go, so LEGAL-001's hand-built
+	// fixtures keep validating and evaluating unchanged; the definition-file
+	// loader in packdefinition.go requires them.
+
+	// MinorVersion is the minor half of the contract's major.minor version.
+	// A minor bump is a review-status or confidence-marker change; it is a
+	// new, separately registered release, never an edit.
+	MinorVersion uint32
+	// VocabularyVersion is the [ObligationType] vocabulary this release was
+	// typed against. Zero reads as [VocabularyVersion1].
+	VocabularyVersion VocabularyVersion
+	// SourceType names what authority the release encodes.
+	SourceType SourceType
+	// ReviewStatus is the release's own status, distinct from the per-rule
+	// citation status.
+	ReviewStatus ReviewStatus
+
+	WageFloors           []WageFloorRule
+	PayEquityReviews     []PayEquityReviewRule
+	PayStatements        []PayStatementRule
+	Classifications      []ClassificationRule
+	PersonnelFileRules   []PersonnelFileRule
+	AntiRetaliationRules []AntiRetaliationRule
+	JobSecurityRules     []JobSecurityRule
+	SeparationFilings    []SeparationFilingRule
+	DrugTestingRules     []DrugTestingRule
+	BreachNotifications  []BreachNotificationRule
+	AutomatedDecisions   []AutomatedDecisionRule
+	MonitoringConsents   []MonitoringConsentRule
+
+	// PreemptionAssertions are this subdivision's claims that it preempts
+	// locality-level rules of a named kind.
+	PreemptionAssertions []PreemptionAssertion
+
+	// Supersedes and SupersededBy link the release chain. A superseding
+	// release closes the prior window: the predecessor's End equals the
+	// successor's Start, checked by [Registry.Supersede].
+	Supersedes   *RulePackRelease
+	SupersededBy *RulePackRelease
+
+	// Digest and Signatures are set by [PackCandidate.Sign] and are empty on
+	// a pack built directly in Go. They are excluded from the canonical
+	// encoding they cover.
+	Digest     string
+	Signatures []RoleSignature
+}
+
+// PackRelease is the immutable, digested, signed artifact [Evaluate] reads.
+// The contract's section 3.1 states that RulePack is the PackRelease shape,
+// so this is an alias rather than a parallel type: there is exactly one
+// release struct in this package.
+type PackRelease = RulePack
+
+// EffectiveVocabulary returns the vocabulary the pack was typed against,
+// reading the zero value as [VocabularyVersion1] so a pack built in Go before
+// LEGAL-011 is treated as "the author considered the original ten kinds",
+// never as "the author considered all twenty-two".
+func (p RulePack) EffectiveVocabulary() VocabularyVersion {
+	if p.VocabularyVersion == VocabularyVersionUnspecified {
+		return VocabularyVersion1
+	}
+	return p.VocabularyVersion
+}
+
+// Release returns the version-pinned reference to this pack.
+func (p RulePack) Release() RulePackRelease {
+	return RulePackRelease{
+		PackID:       p.PackID,
+		Version:      p.Version,
+		MinorVersion: p.MinorVersion,
+		Jurisdiction: p.Jurisdiction,
+	}
+}
+
+// obligationRule is the behaviour every typed body shares: it validates, it
+// digests, it says whether it fires, and it renders a one-line human
+// description. Evaluation walks packs through this interface so that adding a
+// kind never adds a switch statement to a call site.
+type obligationRule interface {
+	obligationID() string
+	obligationCitation() Citation
+	validate() error
+	canonicalBody(dst []byte) []byte
+	trigger(p PromotionProposalSnapshot) (bool, NotApplicableReason)
+	describe() string
+}
+
+// typedObligation pairs a rule with the kind it was declared under, in the
+// pack's declared order. The digest and the receipt both walk this list.
+type typedObligation struct {
+	Type ObligationType
+	Rule obligationRule
+}
+
+// obligations returns every obligation in the pack, in kind-ordinal order and
+// within a kind in declared order. That order is the digest's order and the
+// receipt's order, so it is produced in exactly one place.
+func (p RulePack) obligations() []typedObligation {
+	var out []typedObligation
+	add := func(t ObligationType, rules ...obligationRule) {
+		for _, r := range rules {
+			out = append(out, typedObligation{Type: t, Rule: r})
+		}
+	}
+	for _, o := range p.Notices {
+		add(ObligationTypeNotice, o)
+	}
+	for _, o := range p.FieldRestrictions {
+		add(ObligationTypeFieldRestriction, o)
+	}
+	for _, o := range p.RetentionRules {
+		add(ObligationTypeRetention, o)
+	}
+	for _, o := range p.LeaveInteractions {
+		add(ObligationTypeLeaveInteraction, o)
+	}
+	for _, o := range p.PayFrequencyConstraints {
+		add(ObligationTypePayFrequency, o)
+	}
+	for _, o := range p.FinalPayDeadlines {
+		add(ObligationTypeFinalPayDeadline, o)
+	}
+	for _, o := range p.PayTransparencyDuties {
+		add(ObligationTypePayTransparency, o)
+	}
+	for _, o := range p.NonCompeteThresholds {
+		add(ObligationTypeNonCompete, o)
+	}
+	for _, o := range p.EVerifyChecks {
+		add(ObligationTypeEVerify, o)
+	}
+	for _, o := range p.MiniWARNTriggers {
+		add(ObligationTypeMiniWARN, o)
+	}
+	for _, o := range p.WageFloors {
+		add(ObligationTypeWageFloor, o)
+	}
+	for _, o := range p.PayEquityReviews {
+		add(ObligationTypePayEquityReview, o)
+	}
+	for _, o := range p.PayStatements {
+		add(ObligationTypePayStatement, o)
+	}
+	for _, o := range p.Classifications {
+		add(ObligationTypeClassification, o)
+	}
+	for _, o := range p.PersonnelFileRules {
+		add(ObligationTypePersonnelFile, o)
+	}
+	for _, o := range p.AntiRetaliationRules {
+		add(ObligationTypeAntiRetaliation, o)
+	}
+	for _, o := range p.JobSecurityRules {
+		add(ObligationTypeJobSecurity, o)
+	}
+	for _, o := range p.SeparationFilings {
+		add(ObligationTypeSeparationFiling, o)
+	}
+	for _, o := range p.DrugTestingRules {
+		add(ObligationTypeDrugTesting, o)
+	}
+	for _, o := range p.BreachNotifications {
+		add(ObligationTypeBreachNotification, o)
+	}
+	for _, o := range p.AutomatedDecisions {
+		add(ObligationTypeAutomatedDecision, o)
+	}
+	for _, o := range p.MonitoringConsents {
+		add(ObligationTypeMonitoringConsent, o)
+	}
+	return out
+}
+
+// KindCounts returns how many obligations the pack carries per kind. It is
+// what the conformance oracle compares against the contract's section 5
+// matrix.
+func (p RulePack) KindCounts() map[ObligationType]int {
+	counts := map[ObligationType]int{}
+	for _, o := range p.obligations() {
+		counts[o.Type]++
+	}
+	return counts
 }
 
 // Validate reports whether the pack and every obligation inside it are well
@@ -130,64 +322,82 @@ func (p RulePack) Validate() error {
 	if err := p.Window.Validate(); err != nil {
 		return err
 	}
-	for _, o := range p.Notices {
-		if err := o.validate(); err != nil {
+	if p.VocabularyVersion > SupportedVocabularyVersion {
+		return fmt.Errorf("%w: pack %s declares vocabulary %d, this build supports %d",
+			ErrVocabularyVersionUnsupported, p.PackID, p.VocabularyVersion, SupportedVocabularyVersion)
+	}
+	vocab := p.EffectiveVocabulary()
+	seen := map[string]bool{}
+	for _, o := range p.obligations() {
+		if VocabularyOf(o.Type) > vocab {
+			return fmt.Errorf("legal: pack %s declares vocabulary %d but carries a %s obligation added in vocabulary %d",
+				p.PackID, vocab, o.Type, VocabularyOf(o.Type))
+		}
+		if err := o.Rule.validate(); err != nil {
 			return err
 		}
-	}
-	for _, o := range p.FieldRestrictions {
-		if err := o.validate(); err != nil {
+		if err := o.Rule.obligationCitation().ValidateForVocabulary(vocab); err != nil {
 			return err
 		}
-	}
-	for _, o := range p.RetentionRules {
-		if err := o.validate(); err != nil {
-			return err
+		id := o.Rule.obligationID()
+		if seen[id] {
+			return fmt.Errorf("legal: pack %s declares obligation id %q twice", p.PackID, id)
 		}
+		seen[id] = true
 	}
-	for _, o := range p.LeaveInteractions {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.PayFrequencyConstraints {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.FinalPayDeadlines {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.PayTransparencyDuties {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.NonCompeteThresholds {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.EVerifyChecks {
-		if err := o.validate(); err != nil {
-			return err
-		}
-	}
-	for _, o := range p.MiniWARNTriggers {
-		if err := o.validate(); err != nil {
+	for _, a := range p.PreemptionAssertions {
+		if err := a.Validate(); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// packKey identifies one rule pack's registration slot.
+// ValidateForRelease is [RulePack.Validate] plus the release-only rules the
+// contract's sections 3.1 and 7 impose on a published artifact: a declared
+// source type, a declared review status, and — for anything claiming
+// COUNSEL_APPROVED — no rule still marked VERIFY or DISPUTED.
+func (p RulePack) ValidateForRelease() error {
+	if err := p.Validate(); err != nil {
+		return err
+	}
+	if p.SourceType == SourceTypeUnspecified {
+		return fmt.Errorf("%w: pack %s", ErrSourceType, p.PackID)
+	}
+	if p.ReviewStatus == ReviewStatusUnspecified {
+		return fmt.Errorf("%w: pack %s declares no review status", ErrCitationStatus, p.PackID)
+	}
+	if p.ReviewStatus == ReviewStatusCounselApproved {
+		for _, o := range p.obligations() {
+			if o.Rule.obligationCitation().ConfidenceMarker.BlocksCounselApproval() {
+				return fmt.Errorf("legal: pack %s claims COUNSEL_APPROVED but %s %q is still %s",
+					p.PackID, o.Type, o.Rule.obligationID(),
+					o.Rule.obligationCitation().ConfidenceMarker)
+			}
+		}
+	}
+	if p.ReviewStatus.Releasable() {
+		for _, o := range p.obligations() {
+			completer, ok := o.Rule.(releaseCompleter)
+			if !ok {
+				continue
+			}
+			if err := completer.validateComplete(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// packKey identifies one rule pack's registration slot. MinorVersion is part
+// of the key because a minor bump — a cleared VERIFY marker, a raised review
+// status — is a separate release, not an edit of the one already published.
 type packKey struct {
 	Jurisdiction Jurisdiction
 	PackID       string
 	Version      uint32
+	MinorVersion uint32
 }
 
 // Registry publishes [RulePack] versions and answers, for a jurisdiction and
@@ -223,12 +433,40 @@ func (r *Registry) Register(pack RulePack) error {
 	stored.NonCompeteThresholds = append([]NonCompeteThreshold(nil), pack.NonCompeteThresholds...)
 	stored.EVerifyChecks = append([]EVerifyStatusCheck(nil), pack.EVerifyChecks...)
 	stored.MiniWARNTriggers = append([]MiniWARNTrigger(nil), pack.MiniWARNTriggers...)
+	stored.WageFloors = append([]WageFloorRule(nil), pack.WageFloors...)
+	stored.PayEquityReviews = append([]PayEquityReviewRule(nil), pack.PayEquityReviews...)
+	stored.PayStatements = append([]PayStatementRule(nil), pack.PayStatements...)
+	stored.Classifications = append([]ClassificationRule(nil), pack.Classifications...)
+	stored.PersonnelFileRules = append([]PersonnelFileRule(nil), pack.PersonnelFileRules...)
+	stored.AntiRetaliationRules = append([]AntiRetaliationRule(nil), pack.AntiRetaliationRules...)
+	stored.JobSecurityRules = append([]JobSecurityRule(nil), pack.JobSecurityRules...)
+	stored.SeparationFilings = append([]SeparationFilingRule(nil), pack.SeparationFilings...)
+	stored.DrugTestingRules = append([]DrugTestingRule(nil), pack.DrugTestingRules...)
+	stored.BreachNotifications = append([]BreachNotificationRule(nil), pack.BreachNotifications...)
+	stored.AutomatedDecisions = append([]AutomatedDecisionRule(nil), pack.AutomatedDecisions...)
+	stored.MonitoringConsents = append([]MonitoringConsentRule(nil), pack.MonitoringConsents...)
+	stored.PreemptionAssertions = append([]PreemptionAssertion(nil), pack.PreemptionAssertions...)
+	stored.Signatures = append([]RoleSignature(nil), pack.Signatures...)
+	if pack.Supersedes != nil {
+		ref := *pack.Supersedes
+		stored.Supersedes = &ref
+	}
+	if pack.SupersededBy != nil {
+		ref := *pack.SupersededBy
+		stored.SupersededBy = &ref
+	}
 
-	key := packKey{Jurisdiction: pack.Jurisdiction, PackID: pack.PackID, Version: pack.Version}
+	key := packKey{
+		Jurisdiction: pack.Jurisdiction,
+		PackID:       pack.PackID,
+		Version:      pack.Version,
+		MinorVersion: pack.MinorVersion,
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.packs[key]; exists {
-		return fmt.Errorf("%w: %s %s v%d", ErrRulePackDuplicate, pack.Jurisdiction, pack.PackID, pack.Version)
+		return fmt.Errorf("%w: %s %s v%d.%d", ErrRulePackDuplicate,
+			pack.Jurisdiction, pack.PackID, pack.Version, pack.MinorVersion)
 	}
 	r.packs[key] = &stored
 	return nil
@@ -261,7 +499,8 @@ func (r *Registry) Lookup(j Jurisdiction, date values.LocalDate) (*RulePack, err
 			if !pack.Window.Contains(date) {
 				continue
 			}
-			if best == nil || pack.Version > best.Version {
+			if best == nil || pack.Version > best.Version ||
+				(pack.Version == best.Version && pack.MinorVersion > best.MinorVersion) {
 				best = pack
 			}
 		}
@@ -285,12 +524,94 @@ func (r *Registry) Lookup(j Jurisdiction, date values.LocalDate) (*RulePack, err
 func (r *Registry) GetExact(release RulePackRelease) (*RulePack, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	pack, ok := r.packs[packKey{Jurisdiction: release.Jurisdiction, PackID: release.PackID, Version: release.Version}]
+	pack, ok := r.packs[packKey{
+		Jurisdiction: release.Jurisdiction,
+		PackID:       release.PackID,
+		Version:      release.Version,
+		MinorVersion: release.MinorVersion,
+	}]
 	if !ok {
-		return nil, fmt.Errorf("%w: %s %s v%d is not registered", ErrRuleCoverageUnknown, release.Jurisdiction, release.PackID, release.Version)
+		return nil, fmt.Errorf("%w: %s %s v%d.%d is not registered",
+			ErrRuleCoverageUnknown, release.Jurisdiction, release.PackID, release.Version, release.MinorVersion)
 	}
 	out := *pack
 	return &out, nil
+}
+
+// Supersede publishes successor as the replacement for predecessor: it closes
+// the predecessor's effective window at the successor's start date, registers
+// the successor, and links the two through Supersedes/SupersededBy.
+//
+// A published release is never edited, so the closed predecessor is written
+// back as the same (jurisdiction, pack id, version) slot's content rather
+// than as a new release; the closure is the one mutation the contract's
+// section 3.3 sanctions, because "the prior release gains an End equal to the
+// new release's Start" is how an amendment is expressed. [Registry.GetExact]
+// keeps returning the predecessor for any context that pinned it, which is
+// what makes a historical evaluation reproducible.
+func (r *Registry) Supersede(predecessor RulePackRelease, successor RulePack) error {
+	if err := successor.Validate(); err != nil {
+		return err
+	}
+	if predecessor.PackID != successor.PackID {
+		return fmt.Errorf("%w: %s cannot supersede a different pack %s",
+			ErrRulePackSupersession, successor.PackID, predecessor.PackID)
+	}
+	if predecessor.Jurisdiction != successor.Jurisdiction {
+		return fmt.Errorf("%w: %s supersedes across jurisdictions %s -> %s",
+			ErrRulePackSupersession, successor.PackID, predecessor.Jurisdiction, successor.Jurisdiction)
+	}
+	if successor.Version < predecessor.Version ||
+		(successor.Version == predecessor.Version && successor.MinorVersion <= predecessor.MinorVersion) {
+		return fmt.Errorf("%w: successor v%d.%d does not increase on predecessor v%d.%d",
+			ErrRulePackSupersession, successor.Version, successor.MinorVersion,
+			predecessor.Version, predecessor.MinorVersion)
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	prevKey := packKey{
+		Jurisdiction: predecessor.Jurisdiction,
+		PackID:       predecessor.PackID,
+		Version:      predecessor.Version,
+		MinorVersion: predecessor.MinorVersion,
+	}
+	prev, ok := r.packs[prevKey]
+	if !ok {
+		return fmt.Errorf("%w: predecessor %s v%d.%d is not registered",
+			ErrRuleCoverageUnknown, predecessor.PackID, predecessor.Version, predecessor.MinorVersion)
+	}
+	if prev.Window.Start.Compare(successor.Window.Start) >= 0 {
+		return fmt.Errorf("%w: successor starts %s, not after predecessor start %s",
+			ErrRulePackSupersession, successor.Window.Start, prev.Window.Start)
+	}
+	closed, err := NewClosedEffectiveWindow(prev.Window.Start, successor.Window.Start)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrRulePackSupersession, err)
+	}
+
+	successorRef := successor.Release()
+	predecessorRef := prev.Release()
+	stored := successor
+	stored.Supersedes = &predecessorRef
+	newKey := packKey{
+		Jurisdiction: successor.Jurisdiction,
+		PackID:       successor.PackID,
+		Version:      successor.Version,
+		MinorVersion: successor.MinorVersion,
+	}
+	if _, exists := r.packs[newKey]; exists {
+		return fmt.Errorf("%w: %s %s v%d.%d", ErrRulePackDuplicate,
+			successor.Jurisdiction, successor.PackID, successor.Version, successor.MinorVersion)
+	}
+	r.packs[newKey] = &stored
+
+	updatedPrev := *prev
+	updatedPrev.Window = closed
+	updatedPrev.SupersededBy = &successorRef
+	r.packs[prevKey] = &updatedPrev
+	return nil
 }
 
 // PromotionProposalSnapshot is the minimal, evaluation-time snapshot of a
@@ -336,6 +657,96 @@ type PromotionProposalSnapshot struct {
 	// concurrent workforce reduction this transaction is part of, if any.
 	// Zero for an ordinary promotion.
 	WorkforceReductionCount int
+
+	// The facts below are what LEGAL-011's twelve added kinds key on, plus
+	// the leave-program balances the corrected LEAVE_INTERACTION trigger
+	// needs. Every one is a fact about the proposal, never a conclusion: the
+	// snapshot never says "this is retaliation" or "this worker is exempt",
+	// only what happened and when.
+
+	// LeaveProgramBalances names every leave program in which the worker
+	// holds a balance, e.g. "accrued paid sick leave". The corrected
+	// LEAVE_INTERACTION trigger matches a pack's named program against this
+	// list; an empty list with OnProtectedLeave false means no leave rule
+	// binds.
+	LeaveProgramBalances []string
+	// RoleChanged, HoursChanged and PayBasisChanged are the non-pay
+	// dimensions a CLASSIFICATION rule keys on.
+	RoleChanged     bool
+	HoursChanged    bool
+	PayBasisChanged bool
+	// IsDemotion marks a downward role change. With a pay decrease and a
+	// concurrent separation it is one of the three adverse changes a
+	// JOB_SECURITY rule keys on.
+	IsDemotion bool
+	// RecordedProtectedActivities lists protected activities already on
+	// record for this worker, each with how many days before the effective
+	// date it was recorded. ANTI_RETALIATION keys on it.
+	RecordedProtectedActivities []RecordedProtectedActivity
+	// RoleBecomesSafetySensitive and DrugTestOrdered are what a DRUG_TESTING
+	// rule keys on.
+	RoleBecomesSafetySensitive bool
+	DrugTestOrdered            bool
+	// BreachIncidentOpened marks that a personal-data breach incident is open
+	// on this transaction. BREACH_NOTIFICATION keys on it.
+	BreachIncidentOpened bool
+	// AutomatedDecisionApplied marks that a model scored, ranked or
+	// recommended the subject of this transaction. AUTOMATED_DECISION keys on
+	// it.
+	AutomatedDecisionApplied bool
+	// DataCategoriesTouched names the worker-data categories this
+	// transaction reads or writes. MONITORING_CONSENT keys on it.
+	DataCategoriesTouched []string
+}
+
+// RecordedProtectedActivity is one protected activity already on record for
+// the worker, and how long before the transaction's effective date it was
+// recorded. It is a fact, not a finding: recording a complaint is not a claim
+// that an adverse action was retaliation.
+type RecordedProtectedActivity struct {
+	// Kind names the activity in the source system's own vocabulary, e.g.
+	// "workers_compensation_claim".
+	Kind string
+	// DaysBeforeEffectiveDate is how many days before the effective date the
+	// activity was recorded. A negative value means the activity postdates
+	// the effective date and never fires a lookback.
+	DaysBeforeEffectiveDate int
+}
+
+// holdsLeaveBalanceIn reports whether the worker holds a balance in the named
+// leave program. Matching is case-insensitive and whitespace-trimmed, and a
+// pack may name "*" to mean every program it governs.
+func (p PromotionProposalSnapshot) holdsLeaveBalanceIn(program string) bool {
+	want := strings.TrimSpace(program)
+	if want == "" {
+		return false
+	}
+	for _, held := range p.LeaveProgramBalances {
+		if want == "*" || strings.EqualFold(strings.TrimSpace(held), want) {
+			return true
+		}
+	}
+	return false
+}
+
+// isAdverseChange reports whether the proposal is one of the three adverse
+// changes a JOB_SECURITY standard is judged against.
+func (p PromotionProposalSnapshot) isAdverseChange() bool {
+	return p.payDecreased() || p.IsDemotion || p.SeparationConcurrent
+}
+
+// payDecreased reports whether new base pay is strictly below current base
+// pay. Like payRateChanged it returns false, never an error, when the two
+// amounts are unset or not comparable.
+func (p PromotionProposalSnapshot) payDecreased() bool {
+	if p.CurrentBasePay.Validate() != nil || p.NewBasePay.Validate() != nil {
+		return false
+	}
+	cmp, err := p.NewBasePay.Cmp(p.CurrentBasePay)
+	if err != nil {
+		return false
+	}
+	return cmp < 0
 }
 
 // payRateChanged reports whether the snapshot demonstrates a changed base pay
@@ -397,6 +808,19 @@ type EvaluationResult struct {
 	Jurisdiction     Jurisdiction
 	RulePackReleases []RulePackRelease
 	Obligations      []AppliedObligation
+
+	// NotApplicable records every obligation whose trigger predicate
+	// evaluated false, with the fact that made it false. The contract's
+	// section 4.4 forbids silence: an obligation missing from both lists is
+	// a bug, not a "no". Together with Obligations it accounts for every
+	// obligation in every pinned release, which is what makes the result an
+	// audit artifact rather than a list of hits.
+	NotApplicable []ConsideredObligation
+	// NotConsidered records kinds a release could not answer because it was
+	// typed against an older vocabulary than this engine knows. It is never
+	// merged into NotApplicable: "not considered" and "does not apply" are
+	// different findings.
+	NotConsidered []NotConsideredKind
 }
 
 // Evaluate re-fetches every rule-pack release ctx pinned and returns the
@@ -420,6 +844,8 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 	}
 
 	var obligations []AppliedObligation
+	var notApplicable []ConsideredObligation
+	var notConsidered []NotConsideredKind
 	for _, release := range releases {
 		pack, err := registry.GetExact(release)
 		if err != nil {
@@ -429,7 +855,19 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 				RulePackReleases: releases,
 			}, nil
 		}
-		obligations = append(obligations, applicableObligations(*pack, proposal)...)
+		if pack.VocabularyVersion > SupportedVocabularyVersion {
+			return EvaluationResult{
+					Status:           LegalEvaluationStatusRuleCoverageUnknown,
+					Jurisdiction:     ctx.Jurisdiction(),
+					RulePackReleases: releases,
+				}, fmt.Errorf("%w: release %s v%d.%d declares vocabulary %d, this build supports %d",
+					ErrVocabularyVersionUnsupported, pack.PackID, pack.Version, pack.MinorVersion,
+					pack.VocabularyVersion, SupportedVocabularyVersion)
+		}
+		applied, considered := applicableObligations(*pack, proposal)
+		obligations = append(obligations, applied...)
+		notApplicable = append(notApplicable, considered...)
+		notConsidered = append(notConsidered, unconsideredKinds(*pack)...)
 	}
 
 	sort.Slice(obligations, func(i, j int) bool {
@@ -437,6 +875,12 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 			return obligations[i].Type < obligations[j].Type
 		}
 		return obligations[i].ID < obligations[j].ID
+	})
+	sort.Slice(notApplicable, func(i, j int) bool {
+		if notApplicable[i].Type != notApplicable[j].Type {
+			return notApplicable[i].Type < notApplicable[j].Type
+		}
+		return notApplicable[i].ID < notApplicable[j].ID
 	})
 
 	status := LegalEvaluationStatusResolvedAllow
@@ -448,168 +892,78 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 		Jurisdiction:     ctx.Jurisdiction(),
 		RulePackReleases: releases,
 		Obligations:      obligations,
+		NotApplicable:    notApplicable,
+		NotConsidered:    notConsidered,
 	}, nil
 }
 
-// applicableObligations applies the pack's obligations to proposal's facts.
-// Each obligation type's trigger is documented next to it: some are
-// unconditional statutory duties (retention, pay frequency), and some only
-// apply when the proposal's facts raise them (salary-history collection,
-// protected leave, an existing non-compete, a new hire, or a concurrent
-// separation/reduction).
-func applicableObligations(pack RulePack, proposal PromotionProposalSnapshot) []AppliedObligation {
-	var out []AppliedObligation
-
-	if proposal.payRateChanged() {
-		for _, o := range pack.Notices {
-			out = append(out, AppliedObligation{
-				Type: ObligationTypeNotice,
-				ID:   o.ID,
-				Description: fmt.Sprintf("%s notice %s the effective date within %d day(s), channel=%s",
-					o.Who, timingWord(o.TimingDirection), o.TimingDays, o.Channel),
-				Citation: o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindNode, NonRemovable: true,
-					Description: "workflow node: send pay-rate-change notice",
-				},
-			})
-		}
+// unconsideredKinds lists the kinds this engine knows that pack's vocabulary
+// predates. A v1 release evaluated by a v2 engine has not said "WAGE_FLOOR
+// does not apply"; it has said nothing about WAGE_FLOOR at all, and the
+// contract's section 3.2 requires the receipt to say so.
+func unconsideredKinds(pack RulePack) []NotConsideredKind {
+	vocab := pack.EffectiveVocabulary()
+	if vocab >= SupportedVocabularyVersion {
+		return nil
 	}
-
-	if proposal.CollectsSalaryHistory {
-		for _, o := range pack.FieldRestrictions {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypeFieldRestriction,
-				ID:          o.ID,
-				Description: fmt.Sprintf("restricted fields %v in context %q", o.RestrictedFields, o.Context),
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindFieldMask, NonRemovable: true,
-					Description: "field mask: forbid salary-history collection",
-				},
-			})
-		}
-	}
-
-	for _, o := range pack.RetentionRules {
-		out = append(out, AppliedObligation{
-			Type:        ObligationTypeRetention,
-			ID:          o.ID,
-			Description: fmt.Sprintf("retain %s for %d year(s) (%s)", o.RecordClass, o.DurationYears, o.DurationBasis),
-			Citation:    o.Citation,
-			Binding: ObligationBinding{
-				ObligationID: o.ID, Kind: ObligationBindingKindNode, NonRemovable: true,
-				Description: "record-retention schedule",
-			},
-		})
-	}
-
-	if proposal.OnProtectedLeave {
-		for _, o := range pack.LeaveInteractions {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypeLeaveInteraction,
-				ID:          o.ID,
-				Description: fmt.Sprintf("%s: %s", o.LeaveType, o.InteractionRule),
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindGuard, NonRemovable: true,
-					Description: "guard: preserve leave balance/accrual across the pay change",
-				},
-			})
-		}
-	}
-
-	for _, o := range pack.PayFrequencyConstraints {
-		out = append(out, AppliedObligation{
-			Type:        ObligationTypePayFrequency,
-			ID:          o.ID,
-			Description: fmt.Sprintf("minimum frequency %s for %s", o.MinimumFrequency, o.AppliesToWorkerClass),
-			Citation:    o.Citation,
-			Binding: ObligationBinding{
-				ObligationID: o.ID, Kind: ObligationBindingKindGuard, NonRemovable: true,
-				Description: "guard: pay frequency floor",
-			},
-		})
-	}
-
-	if proposal.SeparationConcurrent {
-		for _, o := range pack.FinalPayDeadlines {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypeFinalPayDeadline,
-				ID:          o.ID,
-				Description: fmt.Sprintf("%s: %s", o.Trigger, o.DeadlineDescription),
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindTimer, NonRemovable: true,
-					Description: "timer: final pay deadline",
-				},
-			})
-		}
-	}
-
-	if proposal.IsInternalPromotion {
-		for _, o := range pack.PayTransparencyDuties {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypePayTransparency,
-				ID:          o.ID,
-				Description: fmt.Sprintf("%s: %s", o.Trigger, o.RequiredDisclosure),
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindNode, NonRemovable: true,
-					Description: "workflow node: pay-range disclosure",
-				},
-			})
-		}
-	}
-
-	if proposal.HasExistingNonCompete {
-		for _, o := range pack.NonCompeteThresholds {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypeNonCompete,
-				ID:          o.ID,
-				Description: o.Rule,
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindHumanTask, NonRemovable: true,
-					Description: "human task: non-compete re-check",
-				},
-			})
-		}
-	}
-
-	if proposal.IsNewHire {
-		for _, o := range pack.EVerifyChecks {
-			out = append(out, AppliedObligation{
-				Type:        ObligationTypeEVerify,
-				ID:          o.ID,
-				Description: o.Note,
-				Citation:    o.Citation,
-				Binding: ObligationBinding{
-					ObligationID: o.ID, Kind: ObligationBindingKindGuard, NonRemovable: true,
-					Description: "guard: work-authorization status check",
-				},
-			})
-		}
-	}
-
-	for _, o := range pack.MiniWARNTriggers {
-		if proposal.WorkforceReductionCount < o.EmployeeThreshold {
+	var out []NotConsideredKind
+	for _, t := range AllObligationTypes() {
+		if VocabularyOf(t) <= vocab {
 			continue
 		}
-		out = append(out, AppliedObligation{
-			Type: ObligationTypeMiniWARN,
-			ID:   o.ID,
-			Description: fmt.Sprintf("%d+ affected within %d day(s) requires %d day(s) notice",
-				o.EmployeeThreshold, o.LayoffWindowDays, o.NoticeDays),
-			Citation: o.Citation,
-			Binding: ObligationBinding{
-				ObligationID: o.ID, Kind: ObligationBindingKindTimer, NonRemovable: true,
-				Description: "timer: mini-WARN notice deadline",
-			},
+		out = append(out, NotConsideredKind{
+			Type:              t,
+			PackID:            pack.PackID,
+			PackVersion:       pack.Version,
+			ReleaseVocabulary: vocab,
 		})
 	}
-
 	return out
+}
+
+// applicableObligations walks every obligation the pack declares, in
+// kind-ordinal order, and sorts each into applied or CONSIDERED_NOT_APPLICABLE
+// by its own pure trigger predicate. There is no switch on kind here: the
+// predicate lives on the typed body and the bindings come from
+// [ObligationKindSpec], so adding a kind never edits this function.
+func applicableObligations(pack RulePack, proposal PromotionProposalSnapshot) ([]AppliedObligation, []ConsideredObligation) {
+	var applied []AppliedObligation
+	var considered []ConsideredObligation
+	for _, o := range pack.obligations() {
+		fired, reason := o.Rule.trigger(proposal)
+		if !fired {
+			considered = append(considered, ConsideredObligation{
+				Type:     o.Type,
+				ID:       o.Rule.obligationID(),
+				Reason:   reason,
+				Citation: o.Rule.obligationCitation(),
+			})
+			continue
+		}
+		bindings := bindingsFor(o.Type, o.Rule.obligationID(), bindingDescriptions[o.Type])
+		if len(bindings) == 0 {
+			// A kind with no spec row cannot bind, and an unbindable
+			// statutory obligation must not be reported as satisfied. It is
+			// recorded as not applicable with that as the reason rather than
+			// dropped.
+			considered = append(considered, ConsideredObligation{
+				Type:     o.Type,
+				ID:       o.Rule.obligationID(),
+				Reason:   NotApplicableReason("no lifecycle binding is declared for kind " + o.Type.String()),
+				Citation: o.Rule.obligationCitation(),
+			})
+			continue
+		}
+		applied = append(applied, AppliedObligation{
+			Type:        o.Type,
+			ID:          o.Rule.obligationID(),
+			Description: o.Rule.describe(),
+			Citation:    o.Rule.obligationCitation(),
+			Binding:     bindings[0],
+			Bindings:    bindings,
+		})
+	}
+	return applied, considered
 }
 
 func timingWord(direction string) string {

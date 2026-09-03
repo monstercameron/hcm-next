@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ny-promotion-base-pay-change",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 1,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "NY",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "ny-notice-pay-rate-change",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 195(2)",
+        "note": "written notice of a pay-rate change is due at least 7 days before the change, with an exception for increases",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "BEFORE",
+        "timing_days": 7,
+        "unless_condition": "an increase may instead be reflected on the next regular pay statement rather than preceded by notice",
+        "channel": "written",
+        "content_fields": ["pay_rate", "pay_frequency"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "ny-field-restriction-salary-history",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 194-a",
+        "note": "salary history inquiries prohibited; voluntary disclosure only",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "inquiring about an applicant's or employee's wage history, directly or through a third party"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "ny-retention-wage-hour-records",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 195(4)",
+        "note": "hours, rates, deductions, and pay records retained 6 years",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_hour_records",
+        "duration_years": 6,
+        "duration_basis": "from_record_date",
+        "jurisdiction_override": true
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "ny-leave-interaction-sick-leave",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 196-b",
+        "note": "accrued leave is not forfeited on a role or pay change",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "earned sick and safe leave",
+        "interaction_rule": "accrued sick leave balance carries to the promoted role; an employee returning from Paid Family Leave resumes the promoted role and rate on return"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "ny-pay-frequency-manual-weekly",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 191",
+        "note": "manual workers must be paid weekly",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "WEEKLY",
+        "applies_to_worker_class": "manual workers"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "ny-pay-frequency-clerical-semimonthly",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 191",
+        "note": "clerical and other workers must be paid at least semimonthly",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY",
+        "applies_to_worker_class": "clerical and other workers"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "ny-final-pay-next-payday",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 195",
+        "note": "final wages due by next regular payday",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "all wages due by the next regular payday following termination, whether voluntary or involuntary"
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "ny-pay-transparency-internal-promotion",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law § 194-b",
+        "note": "wage-range disclosure for promotions and transfers",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "a good-faith wage range (minimum and maximum, or minimum and midpoint) and job description must be disclosed for the promotion opportunity"
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "ny-noncompete-reasonableness-recheck",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "BDO Seidman v. Hirshberg, 93 N.Y.2d 382 (1999)",
+        "note": "common-law reasonableness standard for non-competes",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "non-competes remain enforceable only if reasonable in scope, duration, and geography under the common-law BDO Seidman standard; a material pay or role change should trigger re-review of continued reasonableness"
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "ny-warn-mass-layoff",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-york.md",
+        "section": "Labor Law Art. 25-A",
+        "note": "90-day mass-layoff notice, stricter than federal WARN",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "NY WARN applies to employers with 50+ employees for a layoff of 25+ employees (or 1/3 of workforce if under 75 employees) within 30 days",
+        "employee_threshold": 25,
+        "layoff_window_days": 30,
+        "notice_days": 90
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "LEGAL-001 seed fixture, hand-authored; regenerated into a definition file by LEGAL-010",
+    "source_files": ["planning/research/state-employment-law/new-york.md"],
+    "notes": "Drafted, unreviewed research. Not legal advice. This pack stays at UNREVIEWED and is therefore unusable under any nonzero tenant review floor."
+  }
+}

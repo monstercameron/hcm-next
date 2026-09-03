@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ca-promotion-base-pay-change",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 1,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "CA",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "ca-notice-pay-rate-change",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 2810.5",
+        "note": "written notice of a pay-rate, pay-basis, payday, or allowance change is due within 7 calendar days of the change",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "AFTER",
+        "timing_days": 7,
+        "channel": "written",
+        "content_fields": ["pay_rate", "pay_basis", "payday", "allowances"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "ca-field-restriction-salary-history",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 432.3",
+        "note": "employers may not seek an applicant's salary history or rely on it, even voluntarily disclosed, to set pay",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for an applicant or an internal promotion candidate"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "ca-retention-wage-job-title-history",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 432.3",
+        "note": "job title and wage rate history must be retained for the duration of employment plus 3 years",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_rate_and_job_title_history",
+        "duration_years": 3,
+        "duration_basis": "employment_plus_years",
+        "jurisdiction_override": true
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "ca-retention-wage-statements",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 226",
+        "note": "itemized wage statements and deduction records must be retained 3 years",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "itemized_wage_statements",
+        "duration_years": 3,
+        "duration_basis": "from_record_date",
+        "jurisdiction_override": true
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "ca-leave-interaction-paid-sick-leave",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 246",
+        "note": "accrued PSL does not reset on role change or demotion",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "accrued but unused paid sick leave is not forfeited or reduced on a promotion or demotion; the balance carries to the new role"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "ca-pay-frequency-semimonthly",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 204",
+        "note": "wages are due at least semimonthly on designated paydays",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY",
+        "applies_to_worker_class": "covered employees generally"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "ca-final-pay-discharge",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 201",
+        "note": "final wages due immediately upon discharge or mass layoff",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "involuntary_discharge",
+        "deadline_description": "all earned wages, including accrued vacation, are due immediately at the time of discharge"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "ca-final-pay-resignation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 202",
+        "note": "72-hour final-pay window on resignation",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "resignation",
+        "deadline_description": "wages are due within 72 hours of resignation, or immediately if the employee gave 72 hours' notice"
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "ca-pay-transparency-scale-on-request",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code § 432.3",
+        "note": "pay-scale disclosure on request and in job postings",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "the pay scale for the position must be provided upon reasonable request; employers with 15+ employees must also include it in job postings for the position"
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "ca-noncompete-void",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Business and Professions Code §§ 16600, 16600.1 (AB 1076)",
+        "note": "non-competes void; void-clause notice required",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "non-compete and non-solicit clauses are void outside the sale/dissolution-of-business exception; affected current and certain former employees must be notified in writing that the clause is void"
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "ca-warn-mass-layoff",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/california.md",
+        "section": "Labor Code §§ 1400-1408",
+        "note": "60-day mass-layoff notice",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Cal-WARN applies to a covered establishment of 75+ employees ordering a mass layoff of 50+ employees within 30 days",
+        "employee_threshold": 50,
+        "layoff_window_days": 30,
+        "notice_days": 60
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "LEGAL-001 seed fixture, hand-authored; regenerated into a definition file by LEGAL-010",
+    "source_files": ["planning/research/state-employment-law/california.md"],
+    "notes": "Drafted, unreviewed research. Not legal advice. This pack stays at UNREVIEWED and is therefore unusable under any nonzero tenant review floor."
+  }
+}

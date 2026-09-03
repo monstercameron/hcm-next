@@ -3,6 +3,7 @@ package legal
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 // Citation and obligation errors. All are matchable with errors.Is.
@@ -36,8 +37,11 @@ const (
 )
 
 var reviewStatusWire = map[ReviewStatus]string{
-	ReviewStatusUnreviewed:      "UNREVIEWED",
-	ReviewStatusCounselApproved: "COUNSEL_APPROVED",
+	ReviewStatusUnreviewed:                           "UNREVIEWED",
+	ReviewStatusCounselApproved:                      "COUNSEL_APPROVED",
+	ReviewStatusVendorBaseline:                       "VENDOR_BASELINE",
+	ReviewStatusCustomerDefined:                      "CUSTOMER_DEFINED",
+	ReviewStatusRequiresCustomerCounselConfiguration: "REQUIRES_CUSTOMER_COUNSEL_CONFIGURATION",
 }
 
 // String returns the stable wire token.
@@ -61,9 +65,21 @@ type Citation struct {
 	Section string
 	// Note is a short, non-verbatim paraphrase of what the section requires.
 	// It is not a quotation of the statute or of the research file.
+	//
+	// Note is deliberately outside the release digest (contract section
+	// 3.2): rewrapping a research file or correcting a paraphrase must not
+	// invalidate a signed release. Nothing in evaluation may ever read it.
 	Note string
 	// Status is the interpretation's review status.
 	Status ReviewStatus
+	// ConfidenceMarker records whether the citation was checked against the
+	// primary source, is still to be verified, or is disputed between two
+	// sources in the corpus. It is inside the digest.
+	//
+	// It is optional on a [VocabularyVersion1] pack, because LEGAL-001's
+	// hand-built fixtures predate it; [Citation.ValidateForVocabulary]
+	// requires it from vocabulary 2 onwards.
+	ConfidenceMarker ConfidenceMarker
 }
 
 // Validate reports whether the citation is complete.
@@ -76,6 +92,20 @@ func (c Citation) Validate() error {
 	}
 	if c.Status == ReviewStatusUnspecified {
 		return ErrCitationStatus
+	}
+	return nil
+}
+
+// ValidateForVocabulary reports whether the citation is complete for a pack
+// typed against vocabulary v. From [VocabularyVersion2] onwards a confidence
+// marker is mandatory: LEGAL-011's rule is that every rule states how sure
+// the pipeline is, and the absence of a marker is not "confident".
+func (c Citation) ValidateForVocabulary(v VocabularyVersion) error {
+	if err := c.Validate(); err != nil {
+		return err
+	}
+	if v >= VocabularyVersion2 && c.ConfidenceMarker == ConfidenceMarkerUnspecified {
+		return fmt.Errorf("%w: %s %s", ErrConfidenceMarker, c.SourceFile, c.Section)
 	}
 	return nil
 }
@@ -101,17 +131,48 @@ const (
 	ObligationTypeMiniWARN
 )
 
+// The twelve kinds LEGAL-011 adds, from the contract's section 4.2. They take
+// fresh ordinals after the original ten, which keep theirs: an ordinal is
+// part of the release digest through the kind's wire token, and the ten
+// existing tokens and ordinals are frozen by the contract's section 4.1.
+const (
+	ObligationTypeWageFloor ObligationType = iota + 11
+	ObligationTypePayEquityReview
+	ObligationTypePayStatement
+	ObligationTypeClassification
+	ObligationTypePersonnelFile
+	ObligationTypeAntiRetaliation
+	ObligationTypeJobSecurity
+	ObligationTypeSeparationFiling
+	ObligationTypeDrugTesting
+	ObligationTypeBreachNotification
+	ObligationTypeAutomatedDecision
+	ObligationTypeMonitoringConsent
+)
+
 var obligationTypeWire = map[ObligationType]string{
-	ObligationTypeNotice:           "NOTICE",
-	ObligationTypeFieldRestriction: "FIELD_RESTRICTION",
-	ObligationTypeRetention:        "RETENTION",
-	ObligationTypeLeaveInteraction: "LEAVE_INTERACTION",
-	ObligationTypePayFrequency:     "PAY_FREQUENCY",
-	ObligationTypeFinalPayDeadline: "FINAL_PAY_DEADLINE",
-	ObligationTypePayTransparency:  "PAY_TRANSPARENCY",
-	ObligationTypeNonCompete:       "NON_COMPETE",
-	ObligationTypeEVerify:          "E_VERIFY",
-	ObligationTypeMiniWARN:         "MINI_WARN",
+	ObligationTypeNotice:             "NOTICE",
+	ObligationTypeFieldRestriction:   "FIELD_RESTRICTION",
+	ObligationTypeRetention:          "RETENTION",
+	ObligationTypeLeaveInteraction:   "LEAVE_INTERACTION",
+	ObligationTypePayFrequency:       "PAY_FREQUENCY",
+	ObligationTypeFinalPayDeadline:   "FINAL_PAY_DEADLINE",
+	ObligationTypePayTransparency:    "PAY_TRANSPARENCY",
+	ObligationTypeNonCompete:         "NON_COMPETE",
+	ObligationTypeEVerify:            "E_VERIFY",
+	ObligationTypeMiniWARN:           "MINI_WARN",
+	ObligationTypeWageFloor:          "WAGE_FLOOR",
+	ObligationTypePayEquityReview:    "PAY_EQUITY_REVIEW",
+	ObligationTypePayStatement:       "PAY_STATEMENT",
+	ObligationTypeClassification:     "CLASSIFICATION",
+	ObligationTypePersonnelFile:      "PERSONNEL_FILE",
+	ObligationTypeAntiRetaliation:    "ANTI_RETALIATION",
+	ObligationTypeJobSecurity:        "JOB_SECURITY",
+	ObligationTypeSeparationFiling:   "SEPARATION_FILING",
+	ObligationTypeDrugTesting:        "DRUG_TESTING",
+	ObligationTypeBreachNotification: "BREACH_NOTIFICATION",
+	ObligationTypeAutomatedDecision:  "AUTOMATED_DECISION",
+	ObligationTypeMonitoringConsent:  "MONITORING_CONSENT",
 }
 
 // String returns the stable wire token.
@@ -120,6 +181,38 @@ func (t ObligationType) String() string {
 		return w
 	}
 	return "OBLIGATION_TYPE_UNSPECIFIED"
+}
+
+// ParseObligationType maps a wire token back to a kind.
+func ParseObligationType(token string) (ObligationType, error) {
+	for t, w := range obligationTypeWire {
+		if w == token {
+			return t, nil
+		}
+	}
+	return ObligationTypeUnspecified, fmt.Errorf("legal: unknown obligation kind %q", token)
+}
+
+// AllObligationTypes returns every kind in the vocabulary, in ordinal order.
+// It is the completeness oracle's iteration order and the receipt's sort key,
+// so it is derived from the wire table rather than restated by hand.
+func AllObligationTypes() []ObligationType {
+	out := make([]ObligationType, 0, len(obligationTypeWire))
+	for t := range obligationTypeWire {
+		out = append(out, t)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
+}
+
+// VocabularyOf returns the vocabulary version that first declared t. It is
+// how a receipt distinguishes "the author considered this kind and it did not
+// apply" from "the author could not have considered this kind".
+func VocabularyOf(t ObligationType) VocabularyVersion {
+	if t >= ObligationTypeWageFloor {
+		return VocabularyVersion2
+	}
+	return VocabularyVersion1
 }
 
 // NoticeObligation is a duty to notify someone, in a channel, within a
@@ -149,14 +242,11 @@ func (o NoticeObligation) validate() error {
 	if o.ID == "" {
 		return ErrObligationID
 	}
-	if o.TimingDirection != "BEFORE" && o.TimingDirection != "AFTER" {
+	if o.TimingDirection != "" && o.TimingDirection != "BEFORE" && o.TimingDirection != "AFTER" {
 		return fmt.Errorf("legal: notice %q has an unknown timing direction %q", o.ID, o.TimingDirection)
 	}
-	if o.TimingDays <= 0 {
-		return fmt.Errorf("legal: notice %q needs a positive timing window", o.ID)
-	}
-	if o.Channel == "" {
-		return fmt.Errorf("legal: notice %q needs a delivery channel", o.ID)
+	if o.TimingDays < 0 {
+		return fmt.Errorf("legal: notice %q has a negative timing window", o.ID)
 	}
 	return o.Citation.Validate()
 }
@@ -174,9 +264,6 @@ type FieldRestriction struct {
 func (o FieldRestriction) validate() error {
 	if o.ID == "" {
 		return ErrObligationID
-	}
-	if len(o.RestrictedFields) == 0 {
-		return fmt.Errorf("legal: field restriction %q names no restricted fields", o.ID)
 	}
 	return o.Citation.Validate()
 }
@@ -201,11 +288,8 @@ func (o RetentionRule) validate() error {
 	if o.ID == "" {
 		return ErrObligationID
 	}
-	if o.RecordClass == "" {
-		return fmt.Errorf("legal: retention rule %q names no record class", o.ID)
-	}
-	if o.DurationYears <= 0 {
-		return fmt.Errorf("legal: retention rule %q needs a positive duration", o.ID)
+	if o.DurationYears < 0 {
+		return fmt.Errorf("legal: retention rule %q has a negative duration", o.ID)
 	}
 	return o.Citation.Validate()
 }
@@ -224,9 +308,6 @@ func (o LeaveInteraction) validate() error {
 	if o.ID == "" {
 		return ErrObligationID
 	}
-	if o.LeaveType == "" || o.InteractionRule == "" {
-		return fmt.Errorf("legal: leave interaction %q is missing leave type or rule", o.ID)
-	}
 	return o.Citation.Validate()
 }
 
@@ -242,9 +323,6 @@ type PayFrequencyConstraint struct {
 func (o PayFrequencyConstraint) validate() error {
 	if o.ID == "" {
 		return ErrObligationID
-	}
-	if o.MinimumFrequency == "" {
-		return fmt.Errorf("legal: pay frequency constraint %q names no frequency", o.ID)
 	}
 	return o.Citation.Validate()
 }
@@ -395,6 +473,31 @@ type ObligationBinding struct {
 	Kind         ObligationBindingKind
 	NonRemovable bool
 	Description  string
+	// LifecycleStep names the transaction-lifecycle step this binding
+	// attaches to. The contract's sections 4.1 and 4.2 assign the steps and
+	// [ObligationKindSpec] is the only place the assignment lives, so an
+	// obligation can never bind to a step the contract does not give its
+	// kind.
+	LifecycleStep LifecycleStep
+}
+
+// Validate reports whether the binding names a known step and binding kind
+// and is non-removable. Every binding this package produces is statutory, so
+// a removable one is a construction bug rather than a configuration choice.
+func (b ObligationBinding) Validate() error {
+	if b.ObligationID == "" {
+		return ErrObligationID
+	}
+	if b.Kind == ObligationBindingKindUnspecified {
+		return fmt.Errorf("legal: obligation %q binding names no binding kind", b.ObligationID)
+	}
+	if !validLifecycleSteps[b.LifecycleStep] {
+		return fmt.Errorf("legal: obligation %q binds to unknown lifecycle step %q", b.ObligationID, b.LifecycleStep)
+	}
+	if !b.NonRemovable {
+		return fmt.Errorf("legal: obligation %q produced a removable binding", b.ObligationID)
+	}
+	return nil
 }
 
 // AppliedObligation is one obligation [Evaluate] found applicable to a
@@ -404,5 +507,42 @@ type AppliedObligation struct {
 	ID          string
 	Description string
 	Citation    Citation
-	Binding     ObligationBinding
+	// Binding is the primary binding, kept for LEGAL-001 callers that
+	// predate multi-step binding. It is always Bindings[0].
+	Binding ObligationBinding
+	// Bindings is every (lifecycle step, binding kind) pair the contract
+	// assigns this obligation's kind. A kind such as CLASSIFICATION binds at
+	// PREFLIGHT as a GUARD and at APPROVAL as a HUMAN_TASK, and dropping
+	// either one would silently delete a statutory effect.
+	Bindings []ObligationBinding
+}
+
+// NotApplicableReason names why an obligation's trigger predicate evaluated
+// false. It is the fact that made the trigger false, not an explanation of
+// the rule: the contract's section 4.4 makes silence illegal, so every
+// declared obligation is answered either way.
+type NotApplicableReason string
+
+// ConsideredObligation is one obligation whose trigger predicate evaluated
+// false, recorded as CONSIDERED_NOT_APPLICABLE. Its presence is what makes an
+// evaluation receipt an audit artifact rather than a list of hits.
+type ConsideredObligation struct {
+	Type ObligationType
+	ID   string
+	// Reason is the proposal fact that made the trigger false.
+	Reason   NotApplicableReason
+	Citation Citation
+}
+
+// NotConsideredKind is one obligation kind a release could not have answered,
+// because the release was typed against an older vocabulary than this engine
+// knows. It is never the same thing as "the kind does not apply".
+type NotConsideredKind struct {
+	Type ObligationType
+	// PackID and PackVersion name the release whose vocabulary predates the
+	// kind.
+	PackID      string
+	PackVersion uint32
+	// ReleaseVocabulary is the vocabulary the release declared.
+	ReleaseVocabulary VocabularyVersion
 }

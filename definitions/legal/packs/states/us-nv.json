@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-nv-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "NV",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-nv-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.100",
+        "note": "Decrease notice: Any pay decrease requires written notice at least 7 days before the employee works at the lower rate (NRS 608.100).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_days": 7,
+        "channel": "written"
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-nv-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.133",
+        "note": "If the promotion involves a pay change, verify the new pay does not rely on prior salary history (NRS 613.133 prohibition).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-nv-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.115",
+        "note": "Model wage-rate history recording: capture promotion date, previous and new rates, and position for 2-year retention (NRS 608.115).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 2,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-nv-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.0197",
+        "note": "Paid leave (NRS 608.0197): promotion does not reset accrual; earned leave carries forward.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "paid leave",
+        "interaction_rule": "Paid leave (NRS 608.0197): promotion does not reset accrual; earned leave carries forward."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-nv-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.060",
+        "note": "Pay frequency: Wages are due semimonthly (15th and last day of month) by law (NRS 608.060).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-nv-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.4353",
+        "note": "P1A/P1B with pregnancy accommodation: If a promoted or base-pay-changed employee is pregnant or has a pregnancy-related condition, verify whether the role change triggers re-evaluation of reasonable accommodations under...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "P1A/P1B with pregnancy accommodation: If a promoted or base-pay-changed employee is pregnant or has a pregnancy-related condition, verify whether the role change triggers re-evaluation of reasonable accommodations under..."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-nv-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.133",
+        "note": "After the interview, notify the promotee of the wage or salary range for the new position (NRS 613.133 requirement).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "After the interview, notify the promotee of the wage or salary range for the new position (NRS 613.133 requirement)."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-nv-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.195",
+        "note": "Non-compete enforceability: if the promoted employee is hourly, non-competes are void (NRS 613.195); if salary, non-competes are generally unenforceable unless sale-of-business exception applies.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-compete enforceability: if the promoted employee is hourly, non-competes are void (NRS 613.195); if salary, non-competes are generally unenforceable unless sale-of-business exception applies."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-nv-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.250",
+        "note": "Minimum wage is $12.00/hour flat (constitutional amendment effective 2024, NRS 608.250); overtime applies at 8-hour daily or 40-hour weekly threshold (1.5x rate) for employees under 1.5x minimum wage (NRS 608.018).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "12.00",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-nv-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.330",
+        "note": "Equal pay compliance: Verify the new rate does not create unlawful pay disparity based on sex or other protected class (NRS 613.330 general anti-discrimination rule).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_bases": ["sex"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-nv-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.115",
+        "note": "Pay statement requirements: Employers must provide an itemized statement showing gross pay, net pay, deductions (with reason and authorization for each), and hours worked per period (NRS 608.115).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "required_fields": [
+          "gross_wages",
+          "net_wages",
+          "deductions",
+          "hours_worked",
+          "employer_identification"
+        ],
+        "delivery": "ELECTRONIC",
+        "consent_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-nv-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 608.0155",
+        "note": "Independent contractor presumption (NRS 608.0155): A person is presumed to be an independent contractor if:",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "dimension": "CONTRACTOR",
+        "test_description": "Independent contractor presumption (NRS 608.0155): A person is presumed to be an independent contractor if:",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-nv-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.4353",
+        "note": "P1A/P1B with pregnancy accommodation: If a promoted or base-pay-changed employee is pregnant or has a pregnancy-related condition, verify whether the role change triggers re-evaluation of reasonable accommodations under...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-nv-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.4353",
+        "note": "P1A/P1B with pregnancy accommodation: If a promoted or base-pay-changed employee is pregnant or has a pregnancy-related condition, verify whether the role change triggers re-evaluation of reasonable accommodations under...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_activities": ["protected_leave_request"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-nv-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 613.330",
+        "note": "Wage transparency ban: employers cannot enforce pay-secrecy policies; discussion of wages is protected (NRS 613.330).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment", "safety_sensitive_role"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-nv-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nevada.md",
+        "section": "NRS 603",
+        "note": "Nevada privacy law (NRS 603A): Nevada does not have a comprehensive state privacy law parallel to CCPA.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/nevada.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

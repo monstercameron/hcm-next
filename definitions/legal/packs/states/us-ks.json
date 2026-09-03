@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ks-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "KS",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-ks-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "U.S.C. § 211",
+        "note": "Record Retention and Notice: K.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["pay_rate"]
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ks-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Wage Payment Act governs pay frequency and final pay: K.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ks-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Wage Payment Act governs pay frequency and final pay: K.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Wage Payment Act governs pay frequency and final pay: K.S.A."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-ks-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "SB 241",
+        "note": "Noncompetes remain common law; non-solicits are now partly statutory: Non-compete agreements are enforced solely under common-law reasonableness (_Weber v.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Noncompetes remain common law; non-solicits are now partly statutory: Non-compete agreements are enforced solely under common-law reasonableness (_Weber v."
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-ks-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "K.S.A. § 44-701",
+        "note": "Contractor vs.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "dimension": "CONTRACTOR",
+        "test_description": "Contractor vs.",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ks-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Kansas is an at-will employment state.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_activities": ["whistleblower_report"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "SEPARATION_FILING",
+      "id": "us-ks-separation-filing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No mini-WARN act: Federal WARN Act applies (60 days for mass layoffs affecting 50+ in 30 days); Kansas has no state-level mass-separation notice requirement.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "deadline_days": 60,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ks-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Drug Testing: No Kansas statute prohibits pre-employment drug testing.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ks-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Data breach notification: K.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "subject_deadline_days": 5,
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/kansas.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

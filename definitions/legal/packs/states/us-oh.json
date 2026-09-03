@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-oh-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "OH",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "RETENTION",
+      "id": "us-oh-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Record retention (RC 4111.08): System must retain promotion documentation (offer, effective date, wage-change justification, HR approval, equal-pay analysis if conducted) for ≥3 years to support compliance with...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 3,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-oh-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Paid sick leave interaction (Issue 1 effective 2025): On promotion + pay change, if employee uses sick leave before or during promotion period, system must ensure wage upon return is not reduced below promoted rate.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Paid sick leave interaction (Issue 1 effective 2025): On promotion + pay change, if employee uses sick leave before or during promotion period, system must ensure wage upon return is not reduced below promoted rate."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-oh-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay frequency and payday change (RC 4113.15): System must flag if promotion/pay change coincides with payday change.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-oh-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Final pay compliance on separation (RC 4113.15): If termination occurs within promotion period, ensure all wages at promoted rate paid within 15 days of separation (or on next regular payday if sooner); capture in...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay compliance on separation (RC 4113.15): If termination occurs within promotion period, ensure all wages at promoted rate paid within 15 days of separation (or on next regular payday if sooner); capture in..."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-oh-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Ohio mini-WARN Act (RC 4113.31, effective Sept 29, 2025): 60-day advance notice to state/local officials + employees required for plant closing or layoff of 50+ at one site if employer has 100+ total employees or...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "note": "Ohio mini-WARN Act (RC 4113.31, effective Sept 29, 2025): 60-day advance notice to state/local officials + employees required for plant closing or layoff of 50+ at one site if employer has 100+ total employees or...",
+        "notice_days": 60
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-oh-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "Ohio Constitution Art. II § 34a",
+        "note": "Minimum wage $11.00/hour (2026, indexed annually per Ohio Constitution Art.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "11.00",
+          "currency": "USD"
+        },
+        "worker_class": "tipped employees",
+        "basis": "HOURLY",
+        "indexation": "CPI",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-oh-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Equal-pay statute compliance (RC 4111.17): On promotion or pay change, system should flag if new wage for one gender deviates substantially from peer rates for equal work.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_bases": [
+          "sex",
+          "gender",
+          "race",
+          "national_origin",
+          "religion",
+          "age"
+        ],
+        "comparator_standard": "equal work",
+        "standard": "RECOMMENDED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-oh-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "HB 106",
+        "note": "Pay-statement compliance (HB 106 RC 4113.14, effective 4/9/2025): On promotion effective mid-pay-period, system must ensure pay stub issued on next regular payday itemizes both pre- and post-promotion wages separately...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "required_fields": ["pay_rate"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-oh-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "U.S.C. § 2000gg",
+        "note": "Federal Pregnant Workers Fairness Act (PWFA, 42 U.S.C.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-oh-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "R.C. 3796.28",
+        "note": "Medical marijuana (Ohio Medical Marijuana Control Program, R.C.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_status": ["medical_cannabis_patient"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-oh-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/ohio.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Data breach notification (RC 1349.19):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/ohio.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ms-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "MS",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ms-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 71-1-35",
+        "note": "Validation error: \"Manufacturers and public service corporations with 50+ employees must pay wages at least bi-weekly per Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "BIWEEKLY"
+      }
+    },
+    {
+      "kind": "E_VERIFY",
+      "id": "us-ms-e-verify",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 71-11-3",
+        "note": "E-Verify mandatory for ALL employers: Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_on_new_hire_only": true,
+        "note": "E-Verify mandatory for ALL employers: Miss."
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ms-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 71-17-5",
+        "note": "Notice: \"Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["sex"],
+        "comparator_standard": "equal work",
+        "documentation_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ms-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 13-5-35",
+        "note": "Jury Duty Leave: Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["jury_duty", "protected_leave_request"],
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ms-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 41-137-13",
+        "note": "Notice: \"Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_status": [
+          "medical_cannabis_patient",
+          "lawful_off_duty_cannabis_use"
+        ],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ms-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/mississippi.md",
+        "section": "Miss. Code § 75-24-29",
+        "note": "Data breach notification without unreasonable delay: Miss.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/mississippi.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

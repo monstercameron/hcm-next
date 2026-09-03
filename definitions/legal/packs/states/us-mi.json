@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-mi-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "MI",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-mi-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay change notice: Provide written notice to employee of any change in compensation, hours, or pay frequency; timestamp delivery and store in employee record.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["pay_frequency"]
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-mi-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No maximum retention period specified in statute; employers may retain longer for litigation defense or internal records management.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {}
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-mi-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Paid sick leave: Disable manual override of statutory accrual calculation for employers subject to ESTA.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Paid sick leave: Disable manual override of statutory accrual calculation for employers subject to ESTA."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-mi-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay change notice: Provide written notice to employee of any change in compensation, hours, or pay frequency; timestamp delivery and store in employee record.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {}
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-mi-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Final pay timing on discharge: Trigger immediate payment calculation on termination; if amount cannot be determined by close of business, schedule payment for next regular payday with documented reason.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay timing on discharge: Trigger immediate payment calculation on termination; if amount cannot be determined by close of business, schedule payment for next regular payday with documented reason."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-mi-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Minimum wage compliance: Default non-exempt classification; verify hourly rate against Michigan minimum wage ($13.73 in 2026, indexed annually after October 1, 2027).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "13.73",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "indexation": "CPI",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-mi-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Personnel file access: Implement access-tracking for employee file inspections (limit to 2/calendar year).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-mi-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Termination in retaliation for filing workers' compensation claim or unemployment claim.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_activities": ["workers_compensation_claim"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-mi-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No Michigan state statute regulating private-sector drug testing: Employers have wide flexibility to test before hiring (pre-employment), after accidents (post-accident), on reasonable suspicion of impairment, or in...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": [
+          "pre_employment",
+          "reasonable_suspicion",
+          "post_accident",
+          "random",
+          "safety_sensitive_role"
+        ],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-mi-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/michigan.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Breach notification: If unencrypted PII (SSN, account numbers, sensitive identity data) is accessed, flag for legal review and track notification timing (must be without unreasonable delay).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/michigan.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

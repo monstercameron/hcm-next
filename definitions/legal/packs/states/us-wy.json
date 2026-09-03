@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-wy-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "WY",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "RETENTION",
+      "id": "us-wy-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-4-101",
+        "note": "Wage record retention (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 2,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-wy-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-4-101",
+        "note": "Semimonthly pay frequency: Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-wy-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-4-104",
+        "note": "Final pay timing post-promotion (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay timing post-promotion (Wyo."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-wy-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "SF 107",
+        "note": "Non-compete voidness check (SF 107, effective 2025-07-01): On promotion, check if employee subject to non-compete.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-compete voidness check (SF 107, effective 2025-07-01): On promotion, check if employee subject to non-compete."
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-wy-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-4-302",
+        "note": "Equal pay flag (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["age"],
+        "comparator_standard": "comparable work",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-wy-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-4-101(b)",
+        "note": "Itemized pay stub (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "required_fields": ["deductions", "pay_rate"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-wy-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 27-14-101",
+        "note": "Workers' compensation retaliation (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["workers_compensation_claim"],
+        "disposition": "FLAG",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "JOB_SECURITY",
+      "id": "us-wy-job-security",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Handbook implied contract (Trabing v.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard_kind": "HANDBOOK_DISCLAIMER",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-wy-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "the contract's section 5 matrix marks DRUG_TESTING for WY, and no item in wyoming.md evidences the rule; recorded so the gap is visible rather than read as an absence of duty",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-wy-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/wyoming.md",
+        "section": "Wyo. Stat. § 40-12-501",
+        "note": "Data breach notification (Wyo.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/wyoming.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

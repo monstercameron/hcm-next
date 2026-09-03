@@ -122,8 +122,14 @@ type LegalContextInput struct {
 // the same pack ID never silently changes which law a historical context
 // claims to have evaluated under.
 type RulePackRelease struct {
-	PackID       string
-	Version      uint32
+	PackID  string
+	Version uint32
+	// MinorVersion is the minor half of the contract's major.minor release
+	// version. It is zero for every release LEGAL-001 pinned, and it is part
+	// of the registration slot: a minor bump is a separate release, so a
+	// pinned context keeps resolving to exactly the content it evaluated
+	// under.
+	MinorVersion uint32
 	Jurisdiction Jurisdiction
 }
 
@@ -300,7 +306,7 @@ func Resolve(input LegalContextInput, registry *Registry, signer *Signer, now va
 		effectiveDate:          input.EffectiveDate,
 		knownAt:                input.KnownAt,
 		recordedAt:             recordedAt,
-		releases:               []RulePackRelease{{PackID: pack.PackID, Version: pack.Version, Jurisdiction: pack.Jurisdiction}},
+		releases:               []RulePackRelease{pack.Release()},
 		provenance: Provenance{
 			WorkLocationBasis:           "input.work_location",
 			EmploymentJurisdictionBasis: "input.employment_jurisdiction",

@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ky-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "KY",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "RETENTION",
+      "id": "us-ky-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 337.320",
+        "note": "Retain all wage and separation records for 4 years (KRS 337.320): Promotion date, old pay, new pay, effective date, overtime calculations, seventh-day calculations, final-pay records.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 4,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ky-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 337.020",
+        "note": "Enforce KRS 337.020 semi-monthly requirement: Ensure the new pay schedule pays wages at least semi-monthly (twice per calendar month).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ky-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 337.055",
+        "note": "Provide final paycheck by the later of 14 days after termination or the next regular payday (\"whichever last occurs\", KRS 337.055).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Provide final paycheck by the later of 14 days after termination or the next regular payday (\"whichever last occurs\", KRS 337.055)."
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ky-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 344",
+        "note": "Has the employer reviewed pay equity by gender/race for comparable roles (KRS 344 compliance)?",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["gender", "race"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ky-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 337.060",
+        "note": "Deductions and Pay Statements: KRS 337.060 permits only deductions required by law (federal/state income tax, Social Security, child support), court order, or written employee authorization.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_fields": [
+          "gross_wages",
+          "net_wages",
+          "deductions",
+          "employer_identification"
+        ],
+        "consent_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-ky-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 341.010",
+        "note": "Contractor vs.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "dimension": "CONTRACTOR",
+        "test_description": "Contractor vs.",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ky-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Do not use a manager change as a pretext for discrimination (e.g., changing a manager solely to create a basis for termination); such actions may expose the employer to retaliation or constructive-discharge claims.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "SEPARATION_FILING",
+      "id": "us-ky-separation-filing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "File a Separation Notice (UK-ES form or equivalent) with the Kentucky Department of Unemployment Insurance within a specified timeframe (typically within 10 days of separation).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recipient_authority": "state unemployment insurance agency",
+        "deadline_days": 10,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ky-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Drug Testing: No Kentucky law prohibits pre-employment drug testing.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ky-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/kentucky.md",
+        "section": "KRS 365.732",
+        "note": "Data breach notification required: Kentucky law (verify: likely KRS 365.732 or related statute) requires breach notification \"without unreasonable delay\" when personal information is exposed; specific timeline unclear...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/kentucky.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

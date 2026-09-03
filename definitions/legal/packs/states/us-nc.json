@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-nc-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "NC",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-nc-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-25.13",
+        "note": "Written notice at hire or change (§ 95-25.13): Employer must provide written notice of pay rate and paydays at hire; 24 hours' notice required before reduction in wages or wage benefits (amended 2021; verify exact...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["pay_rate", "payday"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-nc-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Salary history: No statewide private-sector restriction exists (corrected 2026-09-03 — there is no \"2024 ban\"; only Executive Order 93 (2019) binds state agencies).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-nc-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-25.15",
+        "note": "Records retention (§ 95-25.15): Retain promotion documents (wage change, effective date, justification, business rationale) per employer record policy (verify whether 3 years or employer-set); support labor...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_years": 3,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-nc-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-28.3",
+        "note": "School involvement leave interaction (§ 95-28.3): If employee uses 4-hour leave and receives promotion, do not reduce post-leave wage below pre-promotion level.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "interaction_rule": "School involvement leave interaction (§ 95-28.3): If employee uses 4-hour leave and receives promotion, do not reduce post-leave wage below pre-promotion level."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-nc-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-25.6",
+        "note": "Pay frequency verification (§ 95-25.6): On promotion, verify payday remains regular (daily through monthly).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "MONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-nc-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-25.6",
+        "note": "Final pay on termination (§ 95-25.6): If termination occurs after promotion, ensure all wages at promoted rate due on \"next regular payday\" for discharge period.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay on termination (§ 95-25.6): If termination occurs after promotion, ensure all wages at promoted rate due on \"next regular payday\" for discharge period."
+      }
+    },
+    {
+      "kind": "E_VERIFY",
+      "id": "us-nc-e-verify",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "HB 36",
+        "note": "E-Verify mandate: Private employers with 25+ employees must use E-Verify for new hires (verified within 3 business days; HB 36, effective July 1, 2013).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_on_new_hire_only": true,
+        "note": "E-Verify mandate: Private employers with 25+ employees must use E-Verify for new hires (verified within 3 business days; HB 36, effective July 1, 2013).",
+        "employee_threshold": 25
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-nc-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay statement content: No state-mandated itemized pay-stub format; federal FLSA requirements apply.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-nc-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-240",
+        "note": "REDA retaliation check (§ 95-240 et seq.): If employee recently filed wage-and-hour, OSHA, or workers' compensation complaint, flag promotion timing to ensure retaliation cannot be inferred (timing shortly before...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["workers_compensation_claim"],
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-nc-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 95-230",
+        "note": "Drug testing (§ 95-230 et seq., Controlled Substance Examination Regulation):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-nc-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/north-carolina.md",
+        "section": "§ 75-65",
+        "note": "Data breach notification (§ 75-65, Identity Theft Protection Act):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "credit_monitoring_required": true,
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/north-carolina.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

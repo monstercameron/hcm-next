@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-vt-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "VT",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-vt-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 342",
+        "note": "Pay rate change notice (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["pay_rate", "effective_date"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-vt-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 495m",
+        "note": "Salary history inquiry prohibition (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-vt-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 342",
+        "note": "21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "wage_records"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-vt-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. §§ 470–474",
+        "note": "Parental and Family Leave: Unpaid; 10+ employees for parental (birth/adoption, 1 year); 15+ employees for family (serious illness, bereavement up to 2 weeks).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "paid family and medical leave",
+        "interaction_rule": "Parental and Family Leave: Unpaid; 10+ employees for parental (birth/adoption, 1 year); 15+ employees for family (serious illness, bereavement up to 2 weeks)."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-vt-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 342",
+        "note": "Pay frequency and final pay: Weekly or biweekly payment required by default; semimonthly/monthly with written notice (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-vt-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 342a",
+        "note": "Promotion timing and final pay: If separation occurs during or shortly after promotion, ensure final paycheck includes all wages at promoted rate from effective date.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Promotion timing and final pay: If separation occurs during or shortly after promotion, ensure final paycheck includes all wages at promoted rate from effective date."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-vt-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 495n",
+        "note": "Pay transparency mandate: Act 155 (2024, effective 2025-07-01) requires employers with 5+ employees to disclose wage/salary range in Vermont job postings; applies to salary, hourly, commission (with statement), and...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Pay transparency mandate: Act 155 (2024, effective 2025-07-01) requires employers with 5+ employees to disclose wage/salary range in Vermont job postings; applies to salary, hourly, commission (with statement), and..."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-vt-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Applies to employers with 50+ employees.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "note": "Applies to employers with 50+ employees.",
+        "employee_threshold": 50,
+        "notice_days": 45
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-vt-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 384",
+        "note": "Minimum wage $14.42/hour (2026): Indexed annually by the lower of 5% or CPI change (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "14.42",
+          "currency": "USD"
+        },
+        "worker_class": "tipped employees",
+        "basis": "HOURLY",
+        "indexation": "CPI",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-vt-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 495",
+        "note": "Equal pay audit (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["age"],
+        "comparator_standard": "equal work",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-vt-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 495(c)",
+        "note": "Wage discussion protection (21 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-vt-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. §§ 512–514",
+        "note": "Drug testing: Strict limits; random/company-wide testing prohibited except when required by federal law.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "permitted_bases": ["random"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-vt-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/vermont.md",
+        "section": "V.S.A. § 2435",
+        "note": "Breach notification: 45-day notice requirement post-discovery for employee data breaches; attorney general notification within 14 days (9 V.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "subject_deadline_days": 45,
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/vermont.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

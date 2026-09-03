@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-me-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "ME",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-me-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 621-A",
+        "note": "At hiring, employer must provide written notice of: rate of remuneration, hours of work, payday schedule, how wages will be paid, and a summary of leave policies (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["payday"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-me-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 628-A",
+        "note": "Salary history ban and equal pay (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-me-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 630-A",
+        "note": "Records retention and access (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "payroll_records",
+        "duration_years": 6,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-me-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 626",
+        "note": "Vacation and paid leave payouts (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid time off",
+        "interaction_rule": "Vacation and paid leave payouts (26 M.R.S."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-me-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 621-A",
+        "note": "Pay frequency and final pay (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "WEEKLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-me-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 621-A",
+        "note": "Pay frequency and final pay (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Pay frequency and final pay (26 M.R.S."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-me-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 599-A",
+        "note": "Non-compete restrictions (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-compete restrictions (26 M.R.S."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-me-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 635",
+        "note": "Severance for plant closings (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Severance for plant closings (26 M.R.S.",
+        "employee_threshold": 100,
+        "notice_days": 90
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-me-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 664",
+        "note": "Minimum wage and overtime (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "14.65",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "indexation": "CPI",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-me-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 628-A",
+        "note": "Salary history ban and equal pay (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["sex", "age"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-me-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 630-A",
+        "note": "Pay statement requirements (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-me-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 664",
+        "note": "Minimum wage and overtime (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "dimension": "OVERTIME_THRESHOLD",
+        "test_description": "Minimum wage and overtime (26 M.R.S.",
+        "salary_threshold": {
+          "amount": "14.65",
+          "currency": "USD"
+        },
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-me-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 630-A",
+        "note": "Records retention and access (26 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "copy_fee_permitted": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-me-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "§ 626-B",
+        "note": "Pay transparency protection: Employees have right to discuss wages with coworkers without retaliation (implied under § 626-B public policy exception).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-me-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "Statute § 683",
+        "note": "Statute § 683: Maine law does not mandate drug testing but permits it under certain conditions if job-related and conducted consistently.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-me-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/maine.md",
+        "section": "M.R.S. § 1348",
+        "note": "Breach notification law (10 M.R.S.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/maine.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ar-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "AR",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "RETENTION",
+      "id": "us-ar-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Employee records retention: Personnel files must be retained 5 years post-separation (state agency standard); federal FLSA requires 3 years for payroll records.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "payroll_records",
+        "duration_years": 5,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ar-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "Ark. Code § 11-4-401",
+        "note": "Semi-monthly pay frequency required for most employees; corporations with $500k+ annual income may pay exempt management once per month (Ark.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ar-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "Ark. Code § 11-4-405",
+        "note": "Final pay due within 7 days of termination if employee requests it, or by next regular payday (Ark.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay due within 7 days of termination if employee requests it, or by next regular payday (Ark."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-ar-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "Ark. Code § 4-75-101",
+        "note": "Verify non-compete is ancillary to employment and limited in time/scope (Ark.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Verify non-compete is ancillary to employment and limited in time/scope (Ark."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-ar-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "Ark. Code § 11-4-211",
+        "note": "Minimum wage: $11.00/hour for employers with 4+ employees (Ark.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "11.00",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ar-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "Ark. Code § 11-4-405",
+        "note": "Sex-based wage discrimination prohibited for employers of any size (Ark.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["sex", "age"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ar-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "the contract's section 5 matrix marks ANTI_RETALIATION for AR, and no item in arkansas.md evidences the rule; recorded so the gap is visible rather than read as an absence of duty",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ar-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "### Drug Testing",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ar-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/arkansas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "### Breach Notification",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/arkansas.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

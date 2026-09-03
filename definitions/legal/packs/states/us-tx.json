@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-tx-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "TX",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-tx-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "§ 61.011",
+        "note": "Pay frequency verification (§ 61.011, 61.012): Confirm payday schedule remains designated (daily through monthly).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "MONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-tx-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "§ 61.014",
+        "note": "Final pay on termination during promotion period (§ 61.014): If termination occurs within 6 days of promotion effective date, ensure final check includes promoted wage rate for days worked at that rate; discharge...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay on termination during promotion period (§ 61.014): If termination occurs within 6 days of promotion effective date, ensure final check includes promoted wage rate for days worked at that rate; discharge..."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-tx-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "§ 15.50",
+        "note": "Non-compete enforceability (§ 15.50): If employee is subject to non-compete on hire or during employment, verify at promotion: (a) is it ancillary to employment agreement (yes, employment relationship is underlying...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-compete enforceability (§ 15.50): If employee is subject to non-compete on hire or during employment, verify at promotion: (a) is it ancillary to employment agreement (yes, employment relationship is underlying..."
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-tx-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay statement content: No state-mandated itemized format; federal FLSA disclosure requirements apply.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-tx-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "§ 451.001",
+        "note": "Workers' compensation retaliation check (§ 451.001): If employee recently filed claim, record promotion timing and business rationale to rebut inference of retaliation.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["workers_compensation_claim"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-tx-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "§ 411.091",
+        "note": "Drug testing: No state law prohibiting or mandating pre-employment drug testing for private employers.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment", "post_accident", "random"],
+        "standard": "RECOMMENDED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-tx-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "TDPSA § 2026",
+        "note": "Data protection if promotion involves access change (TDPSA § 2026, § 521.053): If promotion grants access to personal information (e.g., HR data, SSN, customer lists), ensure data security, breach notification...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "subject_deadline_days": 60,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "MONITORING_CONSENT",
+      "id": "us-tx-monitoring-consent",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Trigger: Data breach of \"personal information\" = first name/initial + last name + one sensitive element (SSN, account, driver license, passport, biometric, financial/medical data, unique ID) if not encrypted.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "data_categories": ["biometric_identifiers"],
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [
+    {
+      "kind": "LEAVE_INTERACTION",
+      "scope": "LOCALITY_ONLY",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "HB 2127",
+        "note": "state preemption of locality rules of this kind, per the rule-pack contract's section 6.4",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "scope": "LOCALITY_ONLY",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/texas.md",
+        "section": "HB 2127",
+        "note": "state preemption of locality rules of this kind, per the rule-pack contract's section 6.4",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      }
+    }
+  ],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/texas.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

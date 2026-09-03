@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ct-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "CT",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-ct-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "§ 31-71f",
+        "note": "On any change of pay or role, employers should provide written notice of new terms to align with § 31-71f disclosure requirements; no specific statutory notice period mandated for pay changes except final pay timing...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written"
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-ct-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-40z",
+        "note": "Employers may not inquire about or direct third parties to inquire about a prospective employee's wage/salary history unless the candidate has voluntarily disclosed it (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-ct-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-49",
+        "note": "Employers must maintain payroll records for 3 years documenting employee name, address, occupation, hours worked (rounded to 15-min increments), wages, and deductions (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "record_class": "payroll_records",
+        "duration_years": 3,
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-ct-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. §§ 31-51kk",
+        "note": "Employers with 75+ employees in Connecticut must provide up to 16 weeks unpaid leave in any 24-month period (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "paid leave",
+        "interaction_rule": "Employers with 75+ employees in Connecticut must provide up to 16 weeks unpaid leave in any 24-month period (Conn."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ct-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-71b",
+        "note": "Wages must be paid weekly on a designated payday (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "WEEKLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ct-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "§ 31-71f",
+        "note": "On any change of pay or role, employers should provide written notice of new terms to align with § 31-71f disclosure requirements; no specific statutory notice period mandated for pay changes except final pay timing...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "On any change of pay or role, employers should provide written notice of new terms to align with § 31-71f disclosure requirements; no specific statutory notice period mandated for pay changes except final pay timing..."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-ct-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-74g",
+        "note": "Public Act 21-30 (effective October 1, 2021) requires employers to disclose the \"wage range\" anticipated for a position to applicants upon the earlier of request or before making an offer (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Public Act 21-30 (effective October 1, 2021) requires employers to disclose the \"wage range\" anticipated for a position to applicants upon the earlier of request or before making an offer (Conn."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-ct-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-49h",
+        "note": "Connecticut enforces reasonable non-compete agreements by common law and statute (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Connecticut enforces reasonable non-compete agreements by common law and statute (Conn."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-ct-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-51u",
+        "note": "Connecticut requires employers conducting a \"mass layoff\" to pay severance at the rate of 2 months' pay for each year of employment (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Connecticut requires employers conducting a \"mass layoff\" to pay severance at the rate of 2 months' pay for each year of employment (Conn."
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-ct-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-58",
+        "note": "Connecticut minimum wage is $16.35 per hour as of January 1, 2025 (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "16.35",
+          "currency": "USD"
+        },
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ct-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-75",
+        "note": "Connecticut's \"equal pay for equal work\" law prohibits sex-based wage discrimination (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["sex", "age"],
+        "comparator_standard": "equal work",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ct-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No specific law mandating itemized pay stubs; federal FLSA applies.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "CLASSIFICATION",
+      "id": "us-ct-classification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Connecticut applies the ABC test to determine contractor vs.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "dimension": "CONTRACTOR",
+        "test_description": "Connecticut applies the ABC test to determine contractor vs.",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-ct-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. § 31-48h",
+        "note": "Medical records must be retained separately from personnel files for at least 3 years following termination (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ct-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "the contract's section 5 matrix marks ANTI_RETALIATION for CT, and no item in connecticut.md evidences the rule; recorded so the gap is visible rather than read as an absence of duty",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ct-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "No state-level statute regulating private-sector drug testing; federal law (pre-employment, reasonable suspicion, post-accident) governs; federal DOT rules apply to transportation.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment", "reasonable_suspicion", "post_accident"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ct-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/connecticut.md",
+        "section": "Conn. Gen. Stat. §§ 36a-692",
+        "note": "Connecticut breach notification law (Conn.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/connecticut.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

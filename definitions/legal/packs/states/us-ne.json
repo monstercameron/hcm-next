@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-ne-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "NE",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-ne-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 48-1230",
+        "note": "Notice of payday changes: If an employer alters regular paydays, 30 days' written notice must be given to each employee before the change takes effect (Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "BEFORE",
+        "timing_days": 30,
+        "channel": "written",
+        "content_fields": ["payday"]
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-ne-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. §§ 48-3801",
+        "note": "Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Neb."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-ne-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 48-1230",
+        "note": "Pay Frequency: No state law mandates a specific pay frequency (weekly, biweekly, semi-monthly, monthly).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-ne-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 48-1230",
+        "note": "Final pay timing: next payday or within 2 weeks of termination, whichever is sooner: Unpaid wages (including accrued vacation/PTO) become due immediately on separation under Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay timing: next payday or within 2 weeks of termination, whichever is sooner: Unpaid wages (including accrued vacation/PTO) become due immediately on separation under Neb."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-ne-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "LB 921",
+        "note": "Nebraska WARN Act (LB 921) requires 90-day notice for mass layoffs of 25+ employees: State mini-WARN applies to separations of 25 or more employees on the same day, for the same reason, expected to last 7+ days; federal...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Nebraska WARN Act (LB 921) requires 90-day notice for mass layoffs of 25+ employees: State mini-WARN applies to separations of 25 or more employees on the same day, for the same reason, expected to last 7+ days; federal...",
+        "employee_threshold": 25,
+        "notice_days": 90
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-ne-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "LB 258",
+        "note": "Minimum wage: $15/hour (2026), with annual increases: Effective January 1, 2026, minimum wage is $15/hour per Initiative 433 (LB 258); increases 1.75% annually starting January 1, 2027, calculated and published by...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "floor_amount": {
+          "amount": "15.00",
+          "currency": "USD"
+        },
+        "worker_class": "tipped employees",
+        "basis": "HOURLY",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-ne-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 48-1219",
+        "note": "Capture job-classification and compensation data: Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "comparator_standard": "equal work",
+        "documentation_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-ne-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 48-1230",
+        "note": "Wage Statements: Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_fields": ["deductions", "hours_worked", "employer_identification"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-ne-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. §§ 48-1219",
+        "note": "Equal Pay Law: Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "SEPARATION_FILING",
+      "id": "us-ne-separation-filing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Retain separation documentation: Maintain final-pay records, separation notices, and related documentation.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-ne-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Nebraska Revised Statutes §§ 48-1901",
+        "note": "Drug and Alcohol Testing: Nebraska Revised Statutes §§ 48-1901 to 48-1910 address drug and alcohol testing in the workplace.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["pre_employment"],
+        "standard": "RECOMMENDED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-ne-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/nebraska.md",
+        "section": "Neb. Rev. Stat. § 87-803",
+        "note": "Data breach notification required without unreasonable delay: Neb.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/nebraska.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

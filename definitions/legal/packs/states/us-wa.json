@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-wa-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "WA",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-wa-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.58.100",
+        "note": "Salary History Block (RCW 49.58.100): Disable any form field requesting prior salary from external candidate in hiring module; log as compliance risk if manager attempts inquiry via notes/comments.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-wa-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.46.210",
+        "note": "Paid Leave Continuity (RCW 49.46.210 + RCW 50A): On promotion within same employer, paid sick leave accrual carries forward; do not reset.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {}
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-wa-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.46.210",
+        "note": "Paid Leave Continuity (RCW 49.46.210 + RCW 50A): On promotion within same employer, paid sick leave accrual carries forward; do not reset.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Paid Leave Continuity (RCW 49.46.210 + RCW 50A): On promotion within same employer, paid sick leave accrual carries forward; do not reset."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-wa-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Payday requirement: At minimum monthly; recommended biweekly or semi-monthly.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "minimum_frequency": "SEMIMONTHLY"
+      }
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-wa-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.48.010",
+        "note": "Final Pay Timing Trigger (RCW 49.48.010): On termination action, auto-calculate deadline based on discharge type (end of established pay period).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final Pay Timing Trigger (RCW 49.48.010): On termination action, auto-calculate deadline based on discharge type (end of established pay period)."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-wa-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.58.110",
+        "note": "Pay-Range Disclosure (RCW 49.58.110): When initiating internal transfer/promotion process: if employee requests, must provide minimum wage/salary for promoted role within standard response time.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Pay-Range Disclosure (RCW 49.58.110): When initiating internal transfer/promotion process: if employee requests, must provide minimum wage/salary for promoted role within standard response time."
+      }
+    },
+    {
+      "kind": "NON_COMPETE",
+      "id": "us-wa-non-compete",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.62.020",
+        "note": "Non-Compete Threshold Recheck (RCW 49.62.020): On promotion, if new salary crosses $123,394.17 threshold (2025; adjust annually), auto-flag: if employee lacks signed NCA with enforceability conditions (income threshold...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "recheck_on_pay_change": true,
+        "rule": "Non-Compete Threshold Recheck (RCW 49.62.020): On promotion, if new salary crosses $123,394.17 threshold (2025; adjust annually), auto-flag: if employee lacks signed NCA with enforceability conditions (income threshold..."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-wa-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "SB 5525",
+        "note": "Washington WARN Act (SB 5525 eff.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "Washington WARN Act (SB 5525 eff.",
+        "notice_days": 60
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-wa-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.58.110",
+        "note": "Pay-Range Disclosure (RCW 49.58.110): When initiating internal transfer/promotion process: if employee requests, must provide minimum wage/salary for promoted role within standard response time.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-wa-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.58",
+        "note": "Equal Pay Audit Flag (RCW 49.58): On promotion + base-pay change, if new rate differs >15% from peer rates for substantially similar work (same/similar role/location/department), flag for manager justification or HR...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["age"],
+        "comparator_standard": "substantially similar work",
+        "documentation_required": true,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-wa-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Pay Statement Update (WAC 296-128-010): On any base-pay change (promotion, merit increase, etc.), system must generate itemized statement showing new rate, effective date, gross, deductions breakdown.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_fields": ["gross_wages", "deductions", "pay_rate"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-wa-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.12.240",
+        "note": "Personnel file access (RCW 49.12.240/250, amended HB 1308 eff.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "response_days": 21,
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-wa-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "RCW 49.76",
+        "note": "Domestic Violence/Sexual Assault Leave (RCW 49.76): Job-protected; cannot retaliate for approved leave use.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["protected_leave_request"],
+        "disposition": "BLOCK",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-wa-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Cannabis: Employers may test; positive not protected (no medical-cardholder exception for employment).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "protected_status": ["lawful_off_duty_cannabis_use"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-wa-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/washington.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "the contract's section 5 matrix marks BREACH_NOTIFICATION for WA, and no item in washington.md evidences the rule; recorded so the gap is visible rather than read as an absence of duty",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/washington.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

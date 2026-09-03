@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-sc-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "SC",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-sc-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-10-30",
+        "note": "Seven-day written notice before wage change (§ 41-10-30): Any increase or decrease in base wage, bonus structure, or commission rate requires seven calendar days' written advance notice before effective date.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "timing_direction": "BEFORE",
+        "channel": "written",
+        "content_fields": ["effective_date"]
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-sc-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-10-30(C)",
+        "note": "Personnel file documentation (§ 41-10-30(C), three-year retention): Record promotion decision, wage change, effective date, business rationale, and seven-day notice delivery in personnel file; retain for three years.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "wage_records",
+        "duration_basis": "from_record_date"
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-sc-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-10-40",
+        "note": "Pay frequency (§ 41-10-40, § 41-10-30):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {}
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-sc-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-10-50",
+        "note": "Final pay timing: § 41-10-50 requires payment of all wages within 48 hours of separation or next regular payday (not exceeding 30 days).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final pay timing: § 41-10-50 requires payment of all wages within 48 hours of separation or next regular payday (not exceeding 30 days)."
+      }
+    },
+    {
+      "kind": "E_VERIFY",
+      "id": "us-sc-e-verify",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-8-20(B)",
+        "note": "E-Verify status verification (§ 41-8-20(B)): Before processing promotion or base-pay increase, verify employee's work authorization status in E-Verify or I-9 file is current and no legal hold/revocation is in place...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "required_on_new_hire_only": true,
+        "note": "E-Verify status verification (§ 41-8-20(B)): Before processing promotion or base-pay increase, verify employee's work authorization status in E-Verify or I-9 file is current and no legal hold/revocation is in place..."
+      }
+    },
+    {
+      "kind": "PAY_STATEMENT",
+      "id": "us-sc-pay-statement",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "(statutory section not stated in the research file)",
+        "note": "Direct deposit permitted if employees receive earnings statements and at least one free withdrawal per deposit period.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-sc-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-1-80",
+        "note": "Workers' compensation retaliation check (§ 41-1-80): If employee recently filed workers' compensation claim, injury report, or participated in related proceeding, flag promotion timing to ensure no retaliation...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_activities": ["workers_compensation_claim"],
+        "lookback_days": 30,
+        "disposition": "FLAG",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "JOB_SECURITY",
+      "id": "us-sc-job-security",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-1-110",
+        "note": "Handbook disclaimer enforcement (§ 41-1-110): If handbook contains job-security language or cause-for-termination clause, verify disclaimer is conspicuously underlined capital letters on first page and signed by...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard_kind": "HANDBOOK_DISCLAIMER",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-sc-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 41-1-15",
+        "note": "Drug testing (§ 41-1-15):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-sc-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/south-carolina.md",
+        "section": "§ 39-1-90",
+        "note": "Data breach notification (§ 39-1-90):",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/south-carolina.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

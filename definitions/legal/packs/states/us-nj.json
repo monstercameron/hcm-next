@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "pack_id": "us-nj-promotion-base-pay-change-draft",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "vocabulary_version": 2,
+  "jurisdiction": {
+    "country": "US",
+    "subdivision": "NJ",
+    "locality_path": [],
+    "level": "SUBDIVISION"
+  },
+  "window": {
+    "start": "2026-01-01"
+  },
+  "source_type": "STATUTE",
+  "review_status": "UNREVIEWED",
+  "obligations": [
+    {
+      "kind": "NOTICE",
+      "id": "us-nj-notice",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 34:11-4.1",
+        "note": "N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "who": "employer_to_worker",
+        "channel": "written",
+        "content_fields": ["payday", "pay_frequency"]
+      }
+    },
+    {
+      "kind": "FIELD_RESTRICTION",
+      "id": "us-nj-field-restriction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:6B-20",
+        "note": "Salary History Inquiry Block (§ 34:6B-20): Disable any form field attempting to request prior salary/wages from external candidates; log any such queries as compliance risk.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "restricted_fields": ["salary_history"],
+        "context": "setting compensation for a promotion or base-pay change"
+      }
+    },
+    {
+      "kind": "RETENTION",
+      "id": "us-nj-retention",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 34:11",
+        "note": "Payroll and personnel record retention (N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "record_class": "payroll_records"
+      }
+    },
+    {
+      "kind": "LEAVE_INTERACTION",
+      "id": "us-nj-leave-interaction",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:11D-1",
+        "note": "Earned Leave Accrual and Termination (§ 34:11D-1): Track accrued sick leave (1 hour per 30 hours worked, 40-hour max per year).",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "leave_type": "accrued paid sick leave",
+        "interaction_rule": "Earned Leave Accrual and Termination (§ 34:11D-1): Track accrued sick leave (1 hour per 30 hours worked, 40-hour max per year)."
+      }
+    },
+    {
+      "kind": "PAY_FREQUENCY",
+      "id": "us-nj-pay-frequency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 34:11-4.2",
+        "note": "Pay frequency and timing (N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {}
+    },
+    {
+      "kind": "FINAL_PAY_DEADLINE",
+      "id": "us-nj-final-pay-deadline",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:11-4.3",
+        "note": "Final Pay Timing (§ 34:11-4.3): Schedule final paycheck by next regular payday following termination; include all wages due.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "termination_any",
+        "deadline_description": "Final Pay Timing (§ 34:11-4.3): Schedule final paycheck by next regular payday following termination; include all wages due."
+      }
+    },
+    {
+      "kind": "PAY_TRANSPARENCY",
+      "id": "us-nj-pay-transparency",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:6B-23",
+        "note": "Pay Transparency Notice (§ 34:6B-23): Before creating or posting a position, require input of wage range (min/max) and benefits description; block job posting if these fields empty; timestamp disclosure.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "trigger": "internal_promotion",
+        "required_disclosure": "Pay Transparency Notice (§ 34:6B-23): Before creating or posting a position, require input of wage range (min/max) and benefits description; block job posting if these fields empty; timestamp disclosure."
+      }
+    },
+    {
+      "kind": "MINI_WARN",
+      "id": "us-nj-mini-warn",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:21-1",
+        "note": "WARN Act Trigger (§ 34:21-1 as amended): If planned layoff affects 100+ employees nationwide or 25+ employees in single event and employer has 100+ employees total, auto-flag and require 90-day notice scheduling (vs.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "note": "WARN Act Trigger (§ 34:21-1 as amended): If planned layoff affects 100+ employees nationwide or 25+ employees in single event and employer has 100+ employees total, auto-flag and require 90-day notice scheduling (vs.",
+        "employee_threshold": 100,
+        "notice_days": 90
+      }
+    },
+    {
+      "kind": "WAGE_FLOOR",
+      "id": "us-nj-wage-floor",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 34:11-56",
+        "note": "Minimum wage (N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PAY_EQUITY_REVIEW",
+      "id": "us-nj-pay-equity-review",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "Diane B. Allen § 10:5-12",
+        "note": "Equal Pay Audit Flag (Diane B.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "protected_bases": ["age"],
+        "comparator_standard": "substantially similar work",
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "PERSONNEL_FILE",
+      "id": "us-nj-personnel-file",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 34:11",
+        "note": "Payroll and personnel record retention (N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "ANTI_RETALIATION",
+      "id": "us-nj-anti-retaliation",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "§ 34:11-4.1",
+        "note": "Wage Theft Act Compliance (§ 34:11-4.1): Document all pay rate changes and provide written notice in advance; failure to provide notice triggers retaliation and wage-theft penalties (200% liquidated damages, attorney...",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "DRUG_TESTING",
+      "id": "us-nj-drug-testing",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 24:6",
+        "note": "Cannabis exception: N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "VERIFY"
+      },
+      "body": {
+        "permitted_bases": ["reasonable_suspicion"],
+        "protected_status": ["lawful_off_duty_cannabis_use"],
+        "standard": "REQUIRED"
+      }
+    },
+    {
+      "kind": "BREACH_NOTIFICATION",
+      "id": "us-nj-breach-notification",
+      "citation": {
+        "source_file": "planning/research/state-employment-law/new-jersey.md",
+        "section": "N.J.S.A. 56:8-163",
+        "note": "Data breach notification (N.J.S.A.",
+        "review_status": "UNREVIEWED",
+        "confidence_marker": "CONFIRMED"
+      },
+      "body": {
+        "standard": "REQUIRED"
+      }
+    }
+  ],
+  "preemption_assertions": [],
+  "provenance": {
+    "generator": "internal/governance/legal/extract v1 (LEGAL-010, LEGAL-011)",
+    "source_files": ["planning/research/state-employment-law/new-jersey.md"],
+    "notes": "Mechanically extracted from the research file's Implications for P1A/P1B section and the rule-pack contract's section 5 matrix. Agent-drafted research, no legal review, not legal advice. Every rule is UNREVIEWED and this pack is unusable under any nonzero tenant review floor. A field the research does not state is left unstated rather than filled in."
+  }
+}

@@ -51,6 +51,17 @@ func appendFieldBool(dst []byte, label string, value bool) []byte {
 	return append(dst, 0x00)
 }
 
+// appendStringSlice appends a length-prefixed count followed by every element
+// as its own labelled field, so that ["a","b"] and ["ab"] can never collide
+// and an empty slice still contributes its label and a zero count.
+func appendStringSlice(dst []byte, label string, values []string) []byte {
+	dst = appendUint32Field(dst, label, uint32(len(values)))
+	for _, v := range values {
+		dst = appendField(dst, label+"[]", v)
+	}
+	return dst
+}
+
 // Signer holds an ed25519 key pair used to sign resolved [LegalContext]
 // values. It is a fixture-grade key holder: this package does not source,
 // rotate, or escrow keys, and production key custody is out of scope for
