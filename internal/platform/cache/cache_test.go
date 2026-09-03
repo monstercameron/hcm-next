@@ -25,6 +25,17 @@ func TestTodo_CACHE_001(t *testing.T) {
 			t.Fatal("expected error for empty version")
 		}
 	})
+	t.Run("key omits namespace or id fails", func(t *testing.T) {
+		if _, err := BuildKey(tenantA, "v1", "", "id"); err == nil {
+			t.Fatal("expected error for empty namespace")
+		}
+		if _, err := BuildKey(tenantA, "v1", "ns", ""); err == nil {
+			t.Fatal("expected error for empty id")
+		}
+		if _, _, _, _, err := ParseKey(tenantA.String() + ":v1::id"); err == nil {
+			t.Fatal("expected error for empty namespace")
+		}
+	})
 
 	t.Run("versioned keys isolate", func(t *testing.T) {
 		c := New[string](Config{MaxEntries: 10, TTL: time.Minute})

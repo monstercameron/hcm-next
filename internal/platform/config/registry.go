@@ -18,18 +18,20 @@ import (
 type ObjectKind string
 
 const (
-	ObjectWorkflow  ObjectKind = "WORKFLOW"
-	ObjectPolicy    ObjectKind = "POLICY"
-	ObjectSchema    ObjectKind = "SCHEMA"
-	ObjectRule      ObjectKind = "RULE"
-	ObjectConnector ObjectKind = "CONNECTOR"
-	ObjectAgent     ObjectKind = "AGENT"
-	ObjectReference ObjectKind = "REFERENCE"
+	ObjectWorkflow   ObjectKind = "WORKFLOW"
+	ObjectPolicy     ObjectKind = "POLICY"
+	ObjectSchema     ObjectKind = "SCHEMA"
+	ObjectRule       ObjectKind = "RULE"
+	ObjectConnector  ObjectKind = "CONNECTOR"
+	ObjectAgent      ObjectKind = "AGENT"
+	ObjectReference  ObjectKind = "REFERENCE"
+	ObjectMapping    ObjectKind = "MAPPING"
+	ObjectCapability ObjectKind = "CAPABILITY"
 )
 
 func (k ObjectKind) Valid() bool {
 	switch k {
-	case ObjectWorkflow, ObjectPolicy, ObjectSchema, ObjectRule, ObjectConnector, ObjectAgent, ObjectReference:
+	case ObjectWorkflow, ObjectPolicy, ObjectSchema, ObjectRule, ObjectConnector, ObjectAgent, ObjectReference, ObjectMapping, ObjectCapability:
 		return true
 	default:
 		return false

@@ -29,6 +29,47 @@ var (
 	ErrSignalBinding   = errors.New("abuse: detector must bind the published signal")
 )
 
+// RejectionCode is the stable wire-level code for a refused ABUSE-001
+// publication. A publication is a preflight gate: a rejection must never
+// create an authoritative row, event, outbox entry, human task, or provider
+// request.
+const RejectionCode = "ABUSE_001_REJECTED"
+
+// ErrRejected is matched by every typed ABUSE-001 publication rejection.
+var ErrRejected = errors.New(RejectionCode)
+
+// Effects makes the zero-effect publication contract explicit to adapters.
+type Effects struct {
+	AuthoritativeRows int
+	BusinessEvents    int
+	OutboxEntries     int
+	HumanWork         int
+	ProviderRequests  int
+}
+
+func (e Effects) IsZero() bool { return e == Effects{} }
+
+// Rejection names the offending contract field, state, and definition
+// version. Cause remains available through errors.Is for existing callers.
+type Rejection struct {
+	Code, Field, State, Version string
+	Effects                     Effects
+	Cause                       error
+}
+
+func (r *Rejection) Error() string {
+	return fmt.Sprintf("%s: field=%s state=%s version=%s", r.Code, r.Field, r.State, r.Version)
+}
+
+func (r *Rejection) Unwrap() []error {
+	if r.Cause == nil {
+		return []error{ErrRejected}
+	}
+	return []error{ErrRejected, r.Cause}
+}
+
+func IsRejected(err error) bool { return errors.Is(err, ErrRejected) }
+
 // Feature is a bounded, named input to a detector. Values and raw payloads
 // never belong in a definition.
 type Feature struct{ Name, Description string }
@@ -76,7 +117,43 @@ type DetectorDefinition struct {
 // Revision is an immutable publication receipt. Digest changes whenever the
 // definition or detector metadata changes, so historical evaluations can cite
 // exactly what was published.
-type Revision struct{ ID, Version, Digest string }
+type Revision struct {
+	ID, Version, Digest string
+	Effects             Effects
+}
+
+func rejection(err error, field, state, version string) error {
+	return &Rejection{Code: RejectionCode, Field: field, State: state, Version: version, Effects: Effects{}, Cause: err}
+}
+
+func classify(err error) (field, state string) {
+	switch {
+	case errors.Is(err, ErrIdentity):
+		return "identity", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrPurpose):
+		return "purpose", "MISSING"
+	case errors.Is(err, ErrFeatures):
+		return "features", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrSource):
+		return "source", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrRetention):
+		return "retention", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrProtectedPolicy):
+		return "protected_attribute_policy", "MISSING"
+	case errors.Is(err, ErrOwner):
+		return "owner", "MISSING"
+	case errors.Is(err, ErrThreshold):
+		return "threshold", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrAction):
+		return "action", "MISSING"
+	case errors.Is(err, ErrEvaluation):
+		return "evaluation", "MISSING_OR_INVALID"
+	case errors.Is(err, ErrSignalBinding):
+		return "signal_ids", "UNBOUND"
+	default:
+		return "publication", "INVALID"
+	}
+}
 
 func validateCommon(id, version, purpose string, features []Feature, sources []Source, retention string, retentionDays int, protected, owner string) error {
 	if strings.TrimSpace(id) == "" || strings.TrimSpace(version) == "" {
@@ -156,10 +233,12 @@ func digest(v any) (string, error) {
 // Publish validates and returns a receipt without creating any side effect.
 func Publish(s SignalDefinition, d DetectorDefinition) (Revision, error) {
 	if err := s.Validate(); err != nil {
-		return Revision{}, err
+		field, state := classify(err)
+		return Revision{}, rejection(err, field, state, d.Version)
 	}
 	if err := d.Validate(); err != nil {
-		return Revision{}, err
+		field, state := classify(err)
+		return Revision{}, rejection(err, field, state, d.Version)
 	}
 	bound := false
 	for _, id := range d.SignalIDs {
@@ -169,7 +248,7 @@ func Publish(s SignalDefinition, d DetectorDefinition) (Revision, error) {
 		}
 	}
 	if !bound {
-		return Revision{}, ErrSignalBinding
+		return Revision{}, rejection(ErrSignalBinding, "signal_ids", "UNBOUND", d.Version)
 	}
 	// Canonicalize all unordered definition collections only in local copies;
 	// callers retain ownership of their definitions and publication is immutable.
@@ -193,5 +272,5 @@ func Publish(s SignalDefinition, d DetectorDefinition) (Revision, error) {
 	if err != nil {
 		return Revision{}, err
 	}
-	return Revision{ID: d.ID, Version: d.Version, Digest: h}, nil
+	return Revision{ID: d.ID, Version: d.Version, Digest: h, Effects: Effects{}}, nil
 }

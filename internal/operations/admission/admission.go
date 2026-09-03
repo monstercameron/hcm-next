@@ -1,0 +1,215 @@
+// Package admission owns the deterministic tenant-aware overload decision.
+// It has no storage or runtime dependencies: callers provide one coherent
+// control-plane snapshot and receive a value-only decision receipt.
+package admission
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+type Criticality string
+
+const (
+	P0 Criticality = "P0"
+	P1 Criticality = "P1"
+	P2 Criticality = "P2"
+	P3 Criticality = "P3"
+	P4 Criticality = "P4"
+)
+
+type Outcome string
+
+const (
+	Admit   Outcome = "ADMIT"
+	Queue   Outcome = "QUEUE"
+	Defer   Outcome = "DEFER"
+	Degrade Outcome = "DEGRADE"
+	Reject  Outcome = "REJECT"
+	// Shed is retained as a protocol synonym for a rejected best-effort item.
+	Shed Outcome = "SHED"
+)
+
+// Descriptive aliases keep call sites readable while the wire values remain
+// the five outcomes owned by ADMISSION-001.
+const (
+	OutcomeAdmit   = Admit
+	OutcomeQueue   = Queue
+	OutcomeDefer   = Defer
+	OutcomeDegrade = Degrade
+	OutcomeReject  = Reject
+	CriticalityP0  = P0
+	CriticalityP1  = P1
+	CriticalityP2  = P2
+	CriticalityP3  = P3
+	CriticalityP4  = P4
+)
+
+// Decision is a complete, deterministic admission receipt.
+type Decision struct {
+	DecisionID   string
+	Outcome      Outcome
+	Reason       string
+	RetryAfter   int
+	Reservation  int
+	TenantID     string
+	CellID       string
+	Criticality  Criticality
+	QuotaVersion string
+	RetryBudget  string
+	Evidence     Evidence
+}
+
+type Evidence struct {
+	TenantID         string
+	CellID           string
+	Criticality      Criticality
+	QuotaLimit       int
+	QuotaConsumed    int
+	QuotaPending     int
+	Capacity         int
+	Requested        int
+	ReservedP0       int
+	RetryRemaining   int
+	PlacementEpoch   uint64
+	ObservedEpoch    uint64
+	QuotaKnown       bool
+	PlacementCurrent bool
+	NoisyTenant      bool
+}
+
+type Request struct {
+	TenantID       string
+	CellID         string
+	PlacementEpoch uint64
+	Criticality    Criticality
+	EstimatedCost  int
+	RetryBudgetID  string
+	RetryAttempt   int
+}
+
+type Snapshot struct {
+	TenantID       string
+	CellID         string
+	PlacementEpoch uint64
+	Quota          Quota
+	Capacity       int
+	ReservedP0     int
+	RetryRemaining int
+	NoisyTenant    bool
+	Draining       bool
+}
+
+type Quota struct {
+	Known    bool
+	Version  string
+	Limit    int
+	Consumed int
+	Pending  int
+}
+
+type Policy struct {
+	QueueRetryAfter   int
+	DeferRetryAfter   int
+	DegradeRetryAfter int
+}
+
+var ErrInvalidInput = errors.New("admission: invalid input")
+
+func (p Policy) normalized() Policy {
+	if p.QueueRetryAfter <= 0 {
+		p.QueueRetryAfter = 5
+	}
+	if p.DeferRetryAfter <= 0 {
+		p.DeferRetryAfter = 15
+	}
+	if p.DegradeRetryAfter <= 0 {
+		p.DegradeRetryAfter = 5
+	}
+	return p
+}
+
+// Decide evaluates exactly one snapshot. It never consults clocks, random
+// state, or mutable globals, so equal inputs always produce equal receipts.
+func Decide(req Request, state Snapshot, policy Policy) Decision {
+	p := policy.normalized()
+	e := Evidence{TenantID: req.TenantID, CellID: req.CellID, Criticality: req.Criticality,
+		QuotaLimit: state.Quota.Limit, QuotaConsumed: state.Quota.Consumed, QuotaPending: state.Quota.Pending,
+		Capacity: state.Capacity, Requested: req.EstimatedCost, ReservedP0: state.ReservedP0,
+		RetryRemaining: state.RetryRemaining, PlacementEpoch: req.PlacementEpoch, ObservedEpoch: state.PlacementEpoch,
+		QuotaKnown: state.Quota.Known, PlacementCurrent: req.PlacementEpoch == state.PlacementEpoch, NoisyTenant: state.NoisyTenant}
+	d := Decision{TenantID: req.TenantID, CellID: req.CellID, Criticality: req.Criticality, QuotaVersion: state.Quota.Version, RetryBudget: req.RetryBudgetID, Evidence: e}
+	finish := func(out Outcome, reason string, retry, reservation int) Decision {
+		d.Outcome, d.Reason, d.RetryAfter, d.Reservation = out, reason, retry, reservation
+		d.DecisionID = id(req, state, d)
+		return d
+	}
+	if req.TenantID == "" || req.CellID == "" || req.EstimatedCost <= 0 || !validCriticality(req.Criticality) {
+		return finish(Reject, "INVALID_CONTEXT", 0, 0)
+	}
+	if state.TenantID != req.TenantID || state.CellID != req.CellID {
+		return finish(Reject, "TENANT_OR_CELL_MISMATCH", 0, 0)
+	}
+	if state.Draining {
+		return finish(Defer, "CELL_DRAINING", p.DeferRetryAfter, 0)
+	}
+	if !state.Quota.Known {
+		return finish(Defer, "QUOTA_UNKNOWN", p.DeferRetryAfter, 0)
+	}
+	if req.PlacementEpoch == 0 || req.PlacementEpoch != state.PlacementEpoch {
+		return finish(Defer, "STALE_PLACEMENT", p.DeferRetryAfter, 0)
+	}
+	if state.Capacity < 0 || state.ReservedP0 < 0 || state.ReservedP0 > state.Capacity {
+		return finish(Reject, "INVALID_CAPACITY_RESERVATION", 0, 0)
+	}
+	if state.RetryRemaining <= 0 && req.RetryAttempt > 0 {
+		return finish(Reject, "RETRY_BUDGET_EXHAUSTED", 0, 0)
+	}
+	used := state.Quota.Consumed + state.Quota.Pending
+	quotaOK := state.Quota.Limit > 0 && used <= state.Quota.Limit-req.EstimatedCost
+	capacity := state.Capacity - req.EstimatedCost
+	if req.Criticality == P0 {
+		if capacity < 0 {
+			return finish(Defer, "P0_CAPACITY_RESERVED", p.DeferRetryAfter, 0)
+		}
+		if !quotaOK {
+			return finish(Defer, "P0_QUOTA_RESERVED", p.DeferRetryAfter, 0)
+		}
+		return finish(Admit, "P0_RESERVED", p.DegradeRetryAfter, req.EstimatedCost)
+	}
+	if !quotaOK || capacity < 0 || (state.NoisyTenant && req.Criticality >= P2) {
+		switch req.Criticality {
+		case P1:
+			return finish(Degrade, "PRESSURE_OR_NOISY_TENANT", p.DegradeRetryAfter, 0)
+		case P2:
+			return finish(Queue, "PRESSURE_OR_NOISY_TENANT", p.QueueRetryAfter, 0)
+		case P3:
+			return finish(Defer, "PRESSURE_OR_NOISY_TENANT", p.DeferRetryAfter, 0)
+		default:
+			return finish(Reject, "BEST_EFFORT_SHED", 0, 0)
+		}
+	}
+	return finish(Admit, "WITHIN_TENANT_QUOTA_AND_CAPACITY", 0, 0)
+}
+
+func validCriticality(c Criticality) bool { return c >= P0 && c <= P4 }
+
+func id(req Request, s Snapshot, d Decision) string {
+	v := strings.Join([]string{req.TenantID, req.CellID, string(req.Criticality), strconv.Itoa(req.EstimatedCost), strconv.Itoa(req.RetryAttempt), req.RetryBudgetID, strconv.FormatUint(req.PlacementEpoch, 10), s.Quota.Version, strconv.Itoa(s.Quota.Limit), strconv.Itoa(s.Quota.Consumed), strconv.Itoa(s.Quota.Pending), strconv.Itoa(s.Capacity), strconv.Itoa(s.ReservedP0), strconv.Itoa(s.RetryRemaining), strconv.FormatBool(s.NoisyTenant), string(d.Outcome), d.Reason}, "|")
+	h := sha256.Sum256([]byte(v))
+	return "adm_" + hex.EncodeToString(h[:])
+}
+
+func (d Decision) Validate() error {
+	if d.DecisionID == "" || d.TenantID == "" || d.CellID == "" || !validCriticality(d.Criticality) || d.Outcome == "" || d.Reason == "" {
+		return fmt.Errorf("%w: incomplete decision", ErrInvalidInput)
+	}
+	if d.RetryAfter < 0 || d.Reservation < 0 {
+		return fmt.Errorf("%w: negative receipt value", ErrInvalidInput)
+	}
+	return nil
+}

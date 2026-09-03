@@ -23,6 +23,7 @@ const (
 	DependencyConnector
 	DependencyAgent
 	DependencyReference
+	DependencyPolicy
 )
 
 var dependencyKindWire = map[DependencyKind]string{
@@ -34,6 +35,7 @@ var dependencyKindWire = map[DependencyKind]string{
 	DependencyConnector:  "CONNECTOR",
 	DependencyAgent:      "AGENT",
 	DependencyReference:  "REFERENCE",
+	DependencyPolicy:     "POLICY",
 }
 
 // String returns the stable wire token.
@@ -114,6 +116,11 @@ type Bundle struct {
 	Signer             string
 	Provenance         string
 	CredentialRefs     []string
+	// TargetScope and MinimumRuntimeVersion are part of the immutable bundle
+	// identity. A bundle compiled for one tenant/cell or runtime floor cannot
+	// be silently reused in another environment.
+	TargetScope           string
+	MinimumRuntimeVersion string
 }
 
 // OrderedDependencies returns Dependencies sorted into the manifest
@@ -186,6 +193,12 @@ func canonicalBundleBytes(b Bundle) []byte {
 	out = appendStr(out, b.CompatibilityRange)
 	out = appendStr(out, b.Signer)
 	out = appendStr(out, b.Provenance)
+	// Preserve the v1 canonical encoding for legacy bundles. The scoped
+	// compiler extension is present only when either new field is populated.
+	if b.TargetScope != "" || b.MinimumRuntimeVersion != "" {
+		out = appendStr(out, b.TargetScope)
+		out = appendStr(out, b.MinimumRuntimeVersion)
+	}
 	refs := append([]string(nil), b.CredentialRefs...)
 	sort.Strings(refs)
 	out = appendStrs(out, refs)

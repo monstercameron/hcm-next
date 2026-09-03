@@ -76,6 +76,12 @@ var (
 	ErrMissingEffectiveTime     = errors.New("config: object effective time is missing")
 	ErrInvalidEffectiveInterval = errors.New("config: object effective interval is invalid")
 	ErrAlreadyRegistered        = errors.New("config: object version is already registered")
+	ErrUnresolvedDependency     = errors.New("config: dependency cannot be resolved")
+	ErrDependencyDigestMismatch = errors.New("config: dependency digest does not match registry")
+	ErrDependencyCycle          = errors.New("config: dependency closure contains a cycle")
+	ErrScopeMismatch            = errors.New("config: dependency scope does not match bundle scope")
+	ErrMissingTargetScope       = errors.New("config: bundle target scope is missing")
+	ErrMissingRuntimeVersion    = errors.New("config: bundle minimum runtime version is missing")
 )
 
 // Error is the single error type this package returns. Unwrap exposes the

@@ -31,6 +31,18 @@ type Config struct {
 	TTL        time.Duration
 }
 
+// Store is the provider-neutral cache contract. Values are addressed only by
+// keys produced by BuildKey, so callers cannot accidentally share data across
+// tenants or cache schema versions.
+type Store[V any] interface {
+	Set(key string, value V) error
+	Get(key string, authorize func(V) bool) (V, bool)
+	GetOrLoad(key string, load func() (V, error), authorize func(V) bool) (V, error)
+	Delete(key string)
+	Clear()
+	Len() int
+}
+
 func (c Config) normalized() Config {
 	if c.MaxEntries <= 0 {
 		c.MaxEntries = DefaultMaxEntries
@@ -110,6 +122,9 @@ func ParseKey(key string) (uuid.UUID, string, string, string, error) {
 	if parts[1] == "" {
 		return uuid.Nil, "", "", "", ErrVersionRequired
 	}
+	if parts[2] == "" || parts[3] == "" || strings.Contains(parts[1], ":") || strings.Contains(parts[2], ":") || strings.Contains(parts[3], ":") {
+		return uuid.Nil, "", "", "", ErrKeyInvalid
+	}
 	return tenant, parts[1], parts[2], parts[3], nil
 }
 
@@ -148,26 +163,48 @@ func (c *Cache[V]) Get(key string, authorize func(V) bool) (V, bool) {
 		return zero, false
 	}
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	el, ok := c.items[key]
 	if !ok {
+		c.mu.Unlock()
 		return zero, false
 	}
 	e := el.Value.(*entry[V])
 	if !c.now().Before(e.expiresAt) {
 		delete(c.items, key)
 		c.order.Remove(el)
+		c.mu.Unlock()
 		return zero, false
 	}
-	if authorize != nil && !authorize(e.value) {
+	value := e.value
+	c.mu.Unlock()
+	// Authorization is deliberately evaluated after lookup and immediately
+	// before returning. A denied value is indistinguishable from a miss.
+	if authorize != nil && !authorize(value) {
+		return zero, false
+	}
+	// Re-check presence after authorization: a concurrent Delete/Clear must
+	// not make a denied or removed entry become recently used again.
+	c.mu.Lock()
+	if current, present := c.items[key]; !present || current != el {
+		c.mu.Unlock()
+		return zero, false
+	}
+	if !c.now().Before(e.expiresAt) {
+		delete(c.items, key)
+		c.order.Remove(el)
+		c.mu.Unlock()
 		return zero, false
 	}
 	c.order.MoveToFront(el)
-	return e.value, true
+	c.mu.Unlock()
+	return value, true
 }
 
 func (c *Cache[V]) GetOrLoad(key string, load func() (V, error), authorize func(V) bool) (V, error) {
 	var zero V
+	if _, _, _, _, err := ParseKey(key); err != nil {
+		return zero, err
+	}
 	if v, ok := c.Get(key, authorize); ok {
 		return v, nil
 	}
@@ -181,7 +218,9 @@ func (c *Cache[V]) GetOrLoad(key string, load func() (V, error), authorize func(
 	if authorize != nil && !authorize(v) {
 		return zero, nil
 	}
-	_ = c.Set(key, v)
+	if err := c.Set(key, v); err != nil {
+		return zero, err
+	}
 	return v, nil
 }
 
