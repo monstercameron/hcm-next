@@ -3,17 +3,23 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os/user"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/schema"
+	fixtureseed "github.com/monstercameron/hcm-next/internal/data/seed"
+	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
 	"github.com/monstercameron/hcm-next/migrations"
 )
@@ -35,6 +41,82 @@ func openMigrateDB(ctx context.Context, url string) (*sql.DB, error) {
 		return nil, fmt.Errorf("connect: %w", err)
 	}
 	return db, nil
+}
+
+// openSeedDB opens the transaction-capable dbport adapter required by the
+// fixture seeder. It intentionally lives beside openMigrateDB: migrate uses
+// database/sql for Goose, while the seed package owns its transaction through
+// the driver-free dbport seam.
+func openSeedDB(ctx context.Context, url string) (*pgxadapter.Conn, error) {
+	conn, err := pgxadapter.Connect(ctx, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("connect: %w", err)
+	}
+	if err := conn.Ping(ctx); err != nil {
+		_ = conn.Close(ctx)
+		return nil, fmt.Errorf("connect: %w", err)
+	}
+	return conn, nil
+}
+
+type seedReceipt struct {
+	Tenant   uuid.UUID `json:"tenant"`
+	Digest   string    `json:"digest"`
+	Inserted int       `json:"inserted"`
+	Skipped  int       `json:"skipped"`
+}
+
+// runSeedCommand loads the deterministic fixture corpus in one transaction.
+// It writes the receipt only after Commit succeeds, so a successful-looking
+// receipt can never describe rolled-back seed work.
+func runSeedCommand(ctx context.Context, db dbport.Beginner, tenant string, out io.Writer) error {
+	if tenant == "" {
+		return fmt.Errorf("seed tenant must not be empty")
+	}
+	tenantID := pgstore.TenantID(tenant)
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin seed transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if err := ensureSeedTenant(ctx, tx, tenantID, tenant); err != nil {
+		return err
+	}
+	summary, err := fixtureseed.Seed(ctx, tx, tenantID)
+	if err != nil {
+		return fmt.Errorf("seed tenant %q: %w", tenant, err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit seed transaction: %w", err)
+	}
+
+	receipt := seedReceipt{
+		Tenant:   summary.TenantID,
+		Digest:   summary.Digest,
+		Inserted: summary.Inserted,
+		Skipped:  summary.Skipped,
+	}
+	if err := json.NewEncoder(out).Encode(receipt); err != nil {
+		return fmt.Errorf("write seed receipt: %w", err)
+	}
+	return nil
+}
+
+// ensureSeedTenant makes the bootstrap seed step runnable immediately after a
+// zero-to-current migration. The tenant identity supplied by the operator is
+// the durable scope; the remaining row values are deterministic local-cell
+// defaults and are left untouched when a tenant was already provisioned.
+func ensureSeedTenant(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, tenant string) error {
+	_, err := tx.Exec(ctx, `
+		INSERT INTO tenant (tenant_id, tenant_key, cell_id, display_name, status, effective_from)
+		VALUES ($1, $2, 'cell-local', $3, 'ACTIVE', timestamptz '2026-01-01T00:00:00Z')
+		ON CONFLICT (tenant_id) DO NOTHING`,
+		tenantID, tenant, tenant)
+	if err != nil {
+		return fmt.Errorf("register seed tenant %q: %w", tenant, err)
+	}
+	return nil
 }
 
 // runMigrateCommand runs command (up|down|status) against db, an

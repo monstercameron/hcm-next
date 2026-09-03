@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
@@ -77,7 +77,7 @@ func newFixture(t *testing.T) *fixture {
 		f.tenant, authorityRef)
 
 	for _, stream := range []string{streamA, streamB} {
-		f.inTx(t, func(tx pgx.Tx) error {
+		f.inTx(t, func(tx dbport.Tx) error {
 			return ledger.EnsureStream(context.Background(), tx, f.tenant, stream, "WORKER", stream)
 		})
 	}
@@ -85,14 +85,14 @@ func newFixture(t *testing.T) *fixture {
 	return f
 }
 
-func (f *fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
+func (f *fixture) inTx(t *testing.T, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(fn); err != nil {
 		t.Fatalf("transaction: %v", err)
 	}
 }
 
-func (f *fixture) inTxErr(fn func(pgx.Tx) error) error {
+func (f *fixture) inTxErr(fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := f.db.Conn.Begin(ctx)
 	if err != nil {
@@ -161,7 +161,7 @@ func (f *fixture) appendLinked(t *testing.T, spec eventSpec) ledger.AppendReceip
 	}
 	appender := ledger.New(ledger.WithClock(func() time.Time { return recordedAt }))
 	var receipt ledger.AppendReceipt
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = appender.Append(context.Background(), tx, req)
 		if appendErr != nil {
@@ -191,7 +191,7 @@ func (f *fixture) appendGap(t *testing.T, spec eventSpec) ledger.AppendReceipt {
 	t.Helper()
 	req := f.request(spec)
 	var receipt ledger.AppendReceipt
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = ledger.Append(context.Background(), tx, req)
 		return appendErr

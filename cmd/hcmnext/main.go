@@ -6,6 +6,7 @@
 //
 //	hcmnext          print the build identity
 //	hcmnext serve    run the P1A cell: gRPC on -grpc-listen, HTTP edge on -http-listen
+//	hcmnext token    mint a bearer credential the -dev-hmac-key verifier accepts
 //
 // # serve
 //
@@ -13,7 +14,21 @@
 // store and publishes it on both transports. The two are handed the same
 // transport.Config, which is what makes their trusted context identical by
 // construction rather than by review. The HTTP edge additionally serves the
-// API-001 discovery document at /v1/discovery.
+// API-001 discovery document at /v1/discovery and, unless -workspace=false,
+// the human-facing Promotion workspace at /workspace/promotion. The workspace
+// is admitted by the same bearer credential as the API and reads through the
+// same governed capability gateway; -workspace=false publishes the API surface
+// alone, and the discovery document then advertises no workspace route.
+//
+// -dev-browser-login=true additionally serves a dev-only pasted-token sign-in
+// form at /workspace/login: off by default, because a workspace that is
+// reachable with an Authorization header must not grow a second, cookie-based
+// way in unless an operator says so explicitly. When it is on, this command
+// prints the exact URL to open once the listeners are up.
+//
+// -otel-exporter selects none (the default), stdout or otlphttp; none means
+// this cell publishes no spans or metrics at all. otlphttp requires
+// -otel-endpoint.
 //
 // Process lifecycle is not this command's business and is not implemented
 // here: configuration precedence, the build banner, signal handling, the
@@ -39,6 +54,15 @@
 // (internal/trust). -dev-hmac-key is the shared signing key and must be at
 // least 32 bytes; there is no default, because a listener with a default
 // signing key is a listener anyone can forge a principal against.
+//
+// # token
+//
+// token mints a bearer credential with the same internal/trust.HMACVerifier
+// serve authenticates with, under the same -dev-hmac-key (or
+// HCMNEXT_DEV_HMAC_KEY), and prints it to stdout. It is the development
+// counterpart of an identity provider: something to hand a curl command, the
+// dev browser sign-in form, or a test, without hand-rolling the token format.
+// See "hcmnext token -h" for its flags.
 package main
 
 import (
@@ -52,16 +76,20 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
+	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
 	"github.com/monstercameron/hcm-next/internal/platform/logging"
+	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 	"github.com/monstercameron/hcm-next/internal/transport"
+	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/migrations"
 )
@@ -78,24 +106,56 @@ const EnvDevHMACKey = "HCMNEXT_DEV_HMAC_KEY"
 // and the Build hook reads them back: a typo between the two is a panic at
 // startup rather than a silently defaulted value.
 const (
-	fieldGRPCListen  = "grpc-listen"
-	fieldHTTPListen  = "http-listen"
-	fieldDatabaseURL = "database-url"
-	fieldDevHMACKey  = "dev-hmac-key"
-	fieldIssuer      = "issuer"
-	fieldAudience    = "audience"
-	fieldTenant      = "tenant"
-	fieldCellID      = "cell-id"
-	fieldMaxDeadline = "max-deadline"
-	fieldMigrate     = "migrate"
+	fieldGRPCListen      = "grpc-listen"
+	fieldHTTPListen      = "http-listen"
+	fieldDatabaseURL     = "database-url"
+	fieldDevHMACKey      = "dev-hmac-key"
+	fieldIssuer          = "issuer"
+	fieldAudience        = "audience"
+	fieldTenant          = "tenant"
+	fieldCellID          = "cell-id"
+	fieldMaxDeadline     = "max-deadline"
+	fieldMigrate         = "migrate"
+	fieldWorkspace       = "workspace"
+	fieldDevBrowserLogin = "dev-browser-login"
+	fieldOTelExporter    = "otel-exporter"
+	fieldOTelEndpoint    = "otel-endpoint"
+)
+
+// otelExporterNone, otelExporterStdout and otelExporterOTLPHTTP are the
+// allowed values of -otel-exporter. otelExporterNone is the default: a
+// listener started with no telemetry flag at all publishes no spans or
+// metrics, rather than exporting to stdout by surprise.
+const (
+	otelExporterNone     = "none"
+	otelExporterStdout   = "stdout"
+	otelExporterOTLPHTTP = "otlphttp"
 )
 
 // shutdownGrace bounds the whole ordered shutdown sequence.
 const shutdownGrace = 20 * time.Second
 
+// telemetryShutdownGrace bounds only flushing the process-local OTel
+// provider. It remains inside the whole service shutdown deadline above, and
+// failed export is intentionally reported without changing the process's
+// business shutdown outcome.
+const telemetryShutdownGrace = 5 * time.Second
+
 // minimumHMACKeyBytes is the shortest development signing key this listener
 // will start with.
 const minimumHMACKeyBytes = 32
+
+// defaultIssuer and defaultAudience are serve's own -issuer/-audience
+// defaults (see serveSpec's ConfigFields below). token shares these same
+// constants for its own -issuer/-audience defaults, so a credential minted
+// with no flags beyond -dev-hmac-key/-tenant/-subject verifies against a
+// serve process started with no flags beyond its own -dev-hmac-key: the two
+// commands cannot drift apart by one of them changing a literal the other
+// did not.
+const (
+	defaultIssuer   = "https://issuer.local.hcm-next.invalid"
+	defaultAudience = "hcm-next-api"
+)
 
 func main() {
 	args := os.Args[1:]
@@ -105,22 +165,26 @@ func main() {
 			info.Module, info.Revision, info.Modified, info.GoVersion)
 		return
 	}
-	if args[0] != "serve" {
-		fmt.Fprintf(os.Stderr, "hcmnext: unknown command %q; usage: hcmnext [serve]\n", args[0])
+	switch args[0] {
+	case "serve":
+		os.Exit(bootstrap.Run(context.Background(), serveSpec(args[1:])))
+	case "token":
+		os.Exit(runToken(args[1:], os.Stdout, os.Stderr, time.Now))
+	default:
+		fmt.Fprintf(os.Stderr, "hcmnext: unknown command %q; usage: hcmnext [serve|token]\n", args[0])
 		os.Exit(1)
 	}
-	os.Exit(bootstrap.Run(context.Background(), serveSpec(args[1:])))
 }
 
 // serveSpec declares the serve role: its configuration, its validation, its
 // database dependency and the workloads bootstrap runs and drains.
 func serveSpec(args []string) bootstrap.Spec {
-	// The pool the store needs is *pgxpool.Pool, and bootstrap's DBPool port
-	// is deliberately narrower than that. The factory therefore keeps the
-	// concrete pool for Build while still handing bootstrap the port it owns,
-	// so there is exactly one pool, opened and closed once, on bootstrap's
+	// The store needs a pool it can Begin and Query on, and bootstrap's DBPool
+	// port is deliberately narrower than that. The factory therefore keeps the
+	// adapter for Build while still handing bootstrap the port it owns, so
+	// there is exactly one pool, opened and closed once, on bootstrap's
 	// schedule rather than on this file's.
-	var pool *pgxpool.Pool
+	var pool *pgxadapter.Pool
 
 	return bootstrap.Spec{
 		Role:   bootstrap.RoleHCMNext,
@@ -131,26 +195,26 @@ func serveSpec(args []string) bootstrap.Spec {
 			{Name: fieldHTTPListen, Usage: "address the HTTP edge listens on", Default: "127.0.0.1:8080"},
 			{Name: fieldDatabaseURL, Env: EnvDatabaseURL, Usage: "PostgreSQL connection URL"},
 			{Name: fieldDevHMACKey, Env: EnvDevHMACKey, Usage: "development HMAC signing key, at least 32 bytes", Secret: true},
-			{Name: fieldIssuer, Usage: "the only credential issuer this listener accepts", Default: "https://issuer.local.hcm-next.invalid"},
-			{Name: fieldAudience, Usage: "the audience this listener answers to", Default: "hcm-next-api"},
+			{Name: fieldIssuer, Usage: "the only credential issuer this listener accepts", Default: defaultIssuer},
+			{Name: fieldAudience, Usage: "the audience this listener answers to", Default: defaultAudience},
 			{Name: fieldTenant, Usage: "tenant slug to register on start; empty registers none"},
 			{Name: fieldCellID, Usage: "cell identifier a registered tenant is bound to", Default: "cell-local"},
 			{Name: fieldMaxDeadline, Usage: "server-imposed cap on every request deadline", Default: "30s", Kind: bootstrap.KindDuration},
 			{Name: fieldMigrate, Usage: "apply pending migrations before the listeners start", Default: "true", Kind: bootstrap.KindBool},
+			{Name: fieldWorkspace, Usage: "serve the human-facing Promotion workspace on the HTTP edge", Default: "true", Kind: bootstrap.KindBool},
+			{Name: fieldDevBrowserLogin, Usage: "dev-only: serve a pasted-token sign-in form for the workspace at " + workspace.PathLogin, Default: "false", Kind: bootstrap.KindBool},
+			{Name: fieldOTelExporter, Usage: "OTel exporter: none, stdout, or otlphttp", Default: otelExporterNone},
+			{Name: fieldOTelEndpoint, Usage: "OTLP/HTTP collector endpoint; required when -" + fieldOTelExporter + "=" + otelExporterOTLPHTTP},
 		},
 		Validate:         validateServeConfig,
 		DatabaseURLField: fieldDatabaseURL,
 		DBPoolFactory: func(ctx context.Context, url string) (bootstrap.DBPool, error) {
-			opened, err := pgxpool.New(ctx, url)
+			opened, err := pgxadapter.NewPool(ctx, url, nil)
 			if err != nil {
 				return nil, fmt.Errorf("connect: %w", err)
 			}
-			if err := opened.Ping(ctx); err != nil {
-				opened.Close()
-				return nil, fmt.Errorf("ping: %w", err)
-			}
 			pool = opened
-			return poolPort{pool: opened}, nil
+			return opened, nil
 		},
 		Build: func(ctx context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 			return buildServe(ctx, deps, pool)
@@ -158,12 +222,6 @@ func serveSpec(args []string) bootstrap.Spec {
 		ShutdownDeadline: shutdownGrace,
 	}
 }
-
-// poolPort adapts the concrete pool to bootstrap's narrow database port.
-type poolPort struct{ pool *pgxpool.Pool }
-
-func (p poolPort) Ping(ctx context.Context) error { return p.pool.Ping(ctx) }
-func (p poolPort) Close()                         { p.pool.Close() }
 
 // validateServeConfig rejects a configuration a listener must not start on.
 func validateServeConfig(values *bootstrap.Values) error {
@@ -181,12 +239,28 @@ func validateServeConfig(values *bootstrap.Values) error {
 	if _, err := values.Bool(fieldMigrate); err != nil {
 		return err
 	}
+	if _, err := values.Bool(fieldWorkspace); err != nil {
+		return err
+	}
+	if _, err := values.Bool(fieldDevBrowserLogin); err != nil {
+		return err
+	}
+	switch exporter := values.String(fieldOTelExporter); exporter {
+	case otelExporterNone, otelExporterStdout:
+	case otelExporterOTLPHTTP:
+		if values.String(fieldOTelEndpoint) == "" {
+			return fmt.Errorf("-%s is required when -%s=%s", fieldOTelEndpoint, fieldOTelExporter, otelExporterOTLPHTTP)
+		}
+	default:
+		return fmt.Errorf("-%s must be one of %s, %s, %s; got %q",
+			fieldOTelExporter, otelExporterNone, otelExporterStdout, otelExporterOTLPHTTP, exporter)
+	}
 	return nil
 }
 
 // buildServe applies the schema, composes the cell and returns the two
 // listeners as workloads plus their graceful-stop steps.
-func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxpool.Pool) (bootstrap.Runtime, error) {
+func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool) (bootstrap.Runtime, error) {
 	values := deps.Values
 
 	migrate, err := values.Bool(fieldMigrate)
@@ -223,22 +297,51 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxpool.Pool) (b
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
+	workspaceEnabled, err := values.Bool(fieldWorkspace)
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
+	devBrowserLogin, err := values.Bool(fieldDevBrowserLogin)
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
+	telemetryProvider, err := newServeTelemetryProvider(ctx, deps.Identity, values.String(fieldCellID),
+		values.String(fieldOTelExporter), values.String(fieldOTelEndpoint))
+	if err != nil {
+		return bootstrap.Runtime{}, fmt.Errorf("build telemetry provider: %w", err)
+	}
+	telemetryCommitted := false
+	defer func() {
+		if telemetryCommitted || telemetryProvider == nil {
+			return
+		}
+		logTelemetryShutdown(deps.Logger, telemetryProvider.Shutdown(context.Background()))
+	}()
 	cell, err := app.NewCell(app.CellConfig{
-		Store:       store,
-		Verifier:    verifier,
-		Audience:    values.String(fieldAudience),
-		MaxDeadline: maxDeadline,
-		Logger:      transport.LoggerFunc(requestLogger(deps.Logger)),
+		Store:           store,
+		Verifier:        verifier,
+		Audience:        values.String(fieldAudience),
+		MaxDeadline:     maxDeadline,
+		Logger:          transport.LoggerFunc(requestLogger(deps.Logger)),
+		Workspace:       &workspaceEnabled,
+		DevBrowserLogin: devBrowserLogin,
+		Telemetry:       telemetryProvider,
 	})
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
 
-	grpcServer, err := cell.GRPCServer()
+	// internal/transport/cell chains the otelmw interceptors itself when this
+	// cell was composed with a Telemetry provider (nil, when
+	// -otel-exporter=none, means neither call adds one); no interceptor
+	// options are passed here. It is the composition adapter, not app.Cell
+	// directly, because only internal/transport may import grpc-go/Connect
+	// (LIB-003).
+	grpcServer, err := transportcell.NewGRPCServer(cell)
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
-	edgeHandler, err := cell.EdgeHandler()
+	edgeHandler, err := transportcell.NewEdgeHandler(cell)
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
@@ -254,13 +357,29 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxpool.Pool) (b
 	}
 	httpServer := &http.Server{Handler: edgeHandler, ReadHeaderTimeout: 10 * time.Second}
 
+	workspacePath := "disabled"
+	if workspaceEnabled {
+		workspacePath = workspace.PathPromotion
+	}
 	deps.Logger.Info("hcmnext.serving",
 		"grpc", grpcListener.Addr().String(),
 		"http", httpListener.Addr().String(),
 		"discovery", app.DiscoveryPath,
+		"workspace", workspacePath,
+		"dev_browser_login", devBrowserLogin,
+		"otel_exporter", values.String(fieldOTelExporter),
 		"definitions", cell.Definitions.Len(),
 		"capabilities", len(cell.Capabilities.List()))
+	if devBrowserLogin {
+		loginURL := "http://" + httpListener.Addr().String() + workspace.PathLogin
+		deps.Logger.Info("hcmnext.dev_browser_login_enabled", "url", loginURL)
+		fmt.Fprintf(os.Stdout, "hcmnext: open %s and paste a bearer credential (see: hcmnext token) to sign in\n", loginURL)
+	}
 
+	// From here bootstrap owns the provider's lifetime through the ordered
+	// shutdown step below. Earlier returns leave this function responsible for
+	// cleaning up the partially composed provider.
+	telemetryCommitted = true
 	return bootstrap.Runtime{
 		Workloads: []bootstrap.Workload{
 			{
@@ -305,8 +424,81 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxpool.Pool) (b
 					}
 				},
 			},
+			{
+				Name: "shutdown-telemetry",
+				Run: func(stepCtx context.Context) error {
+					if telemetryProvider == nil {
+						return nil
+					}
+					logTelemetryShutdown(deps.Logger, telemetryProvider.Shutdown(stepCtx))
+					return nil
+				},
+			},
 		},
 	}, nil
+}
+
+// newServeTelemetryProvider constructs the bounded, policy-enforced provider
+// for this API process, or returns (nil, nil) when exporter is
+// otelExporterNone: CellConfig.Telemetry treats nil as off, and a listener
+// started with no -otel-exporter flag should publish no spans or metrics at
+// all rather than defaulting to some exporter nobody asked for.
+//
+// The resource deliberately contains only service and deployment identity;
+// request-specific identifiers are admitted and filtered later by otelmw and
+// the telemetry evaluator.
+func newServeTelemetryProvider(ctx context.Context, instanceID, cellID, exporter, endpoint string) (*hcmotel.Provider, error) {
+	if exporter == otelExporterNone {
+		return nil, nil
+	}
+
+	var trace hcmotel.TraceConfig
+	var metric hcmotel.MetricConfig
+	switch exporter {
+	case otelExporterStdout:
+		trace = hcmotel.TraceConfig{Kind: hcmotel.ExporterKindStdout}
+		metric = hcmotel.MetricConfig{Kind: hcmotel.ExporterKindStdout}
+	case otelExporterOTLPHTTP:
+		trace = hcmotel.TraceConfig{Kind: hcmotel.ExporterKindOTLP, Endpoint: endpoint}
+		metric = hcmotel.MetricConfig{Kind: hcmotel.ExporterKindOTLP, Endpoint: endpoint}
+	default:
+		// validateServeConfig already rejects any other value before Build
+		// runs; this default only guards a future caller of this function
+		// that skipped that gate.
+		return nil, fmt.Errorf("newServeTelemetryProvider: unknown -%s %q", fieldOTelExporter, exporter)
+	}
+
+	allowlist, err := telemetry.DefaultAllowlist()
+	if err != nil {
+		return nil, fmt.Errorf("compile telemetry allowlist: %w", err)
+	}
+	evaluator := telemetry.NewEvaluator(
+		allowlist,
+		telemetry.DefaultExportPolicy(telemetry.DefaultPolicyVersion),
+		telemetry.DefaultSamplingPolicy(),
+	)
+	return hcmotel.NewProvider(ctx, hcmotel.Config{
+		Resource: telemetry.NewResourceFromBuild(
+			buildinfo.Current(), "hcmnext", instanceID, "development", cellID, "",
+			telemetry.ProcessRoleAPI, telemetry.TenantClassStandard,
+		),
+		Evaluator:       evaluator,
+		ShutdownTimeout: telemetryShutdownGrace,
+		Trace:           trace,
+		Metric:          metric,
+	})
+}
+
+// logTelemetryShutdown records exporter degradation independently. Telemetry
+// is observational: a failed flush must never rewrite the API's result or
+// turn an otherwise clean process shutdown into a business failure.
+func logTelemetryShutdown(logger bootstrap.Logger, report hcmotel.ShutdownReport) {
+	if report.Err() == nil && !report.DeadlineExceeded {
+		return
+	}
+	logger.Error("hcmnext.telemetry_shutdown_degraded",
+		"error", report.Err(),
+		"deadline_exceeded", report.DeadlineExceeded)
 }
 
 // requestLogger emits one structured record per completed request. It is

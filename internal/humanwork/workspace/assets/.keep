@@ -1,0 +1,12 @@
+This directory holds the optional GWC/WASM progressive-enhancement bundle for
+the Promotion workspace. A stock checkout carries only this marker file, and
+the workspace then serves the server-rendered document alone.
+
+To build the bundle into this directory:
+
+    GOOS=js GOARCH=wasm go build -o internal/humanwork/workspace/assets/uxqual.wasm ./tools/uxqual/cmd/uxqualwasm
+    cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" internal/humanwork/workspace/assets/wasm_exec.js
+
+Neither file is committed: the server-rendered page is already the qualified
+renderer (definitions/ux/workspace-renderer-decision.yaml), so a multi-megabyte
+binary in the source tree would buy nothing a reader can see.

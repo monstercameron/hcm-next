@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
@@ -242,13 +242,13 @@ type fakeProjectorPool struct{}
 
 func (fakeProjectorPool) Ping(context.Context) error { return nil }
 func (fakeProjectorPool) Close()                     {}
-func (fakeProjectorPool) Begin(context.Context) (pgx.Tx, error) {
+func (fakeProjectorPool) Begin(context.Context) (dbport.Tx, error) {
 	return nil, errors.New("fakeProjectorPool: Begin not implemented")
 }
-func (fakeProjectorPool) Query(context.Context, string, ...any) (pgx.Rows, error) {
+func (fakeProjectorPool) Query(context.Context, string, ...any) (dbport.Rows, error) {
 	return nil, errors.New("fakeProjectorPool: Query not implemented")
 }
-func (fakeProjectorPool) QueryRow(context.Context, string, ...any) pgx.Row {
+func (fakeProjectorPool) QueryRow(context.Context, string, ...any) dbport.Row {
 	return nil
 }
 

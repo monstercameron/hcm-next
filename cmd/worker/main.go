@@ -25,10 +25,10 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
 
@@ -171,49 +171,30 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	return bootstrap.Runtime{Workloads: []bootstrap.Workload{wl}}, nil
 }
 
-// workerPool is the subset of a *pgxpool.Pool this role needs beyond
-// bootstrap's own Ping/Close DBPool port: outbox.NewConsumer needs Begin,
-// and activeTenants listing needs Query. bootstrap's default DBPoolFactory
-// (PgxPoolFactory) returns an unexported type exposing only Ping/Close, so
-// this role supplies pgxDBPoolFactory instead, whose *dbPool return value
-// satisfies this interface too.
+// workerPool is the database capability this role needs beyond bootstrap's own
+// Ping/Close DBPool port: outbox.NewConsumer needs Begin, and activeTenants
+// listing needs Query. bootstrap's default DBPoolFactory (PgxPoolFactory)
+// returns an unexported type exposing only Ping/Close, so this role supplies
+// pgxDBPoolFactory instead, whose *pgxadapter.Pool return value satisfies this
+// interface too. Both added methods are stated in [dbport] terms; the driver
+// itself is reached only through the adapter this composition root constructs.
 type workerPool interface {
 	bootstrap.DBPool
-	Begin(ctx context.Context) (pgx.Tx, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	dbport.Beginner
+	Query(ctx context.Context, sql string, args ...any) (dbport.Rows, error)
 }
 
-// dbPool adapts a *pgxpool.Pool to workerPool.
-type dbPool struct{ pool *pgxpool.Pool }
-
-func (d *dbPool) Ping(ctx context.Context) error { return d.pool.Ping(ctx) }
-func (d *dbPool) Close()                         { d.pool.Close() }
-func (d *dbPool) Begin(ctx context.Context) (pgx.Tx, error) {
-	return d.pool.Begin(ctx)
-}
-func (d *dbPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	return d.pool.Query(ctx, sql, args...)
-}
-
-// pgxDBPoolFactory opens a pgxpool.Pool against url and pings it once, so a
-// bad connection string or unreachable server fails Run before any workload
+// pgxDBPoolFactory opens a pgx pool against url and pings it once, so a bad
+// connection string or unreachable server fails Run before any workload
 // starts, matching bootstrap.PgxPoolFactory's own contract.
 func pgxDBPoolFactory(ctx context.Context, url string) (bootstrap.DBPool, error) {
-	pool, err := pgxpool.New(ctx, url)
-	if err != nil {
-		return nil, err
-	}
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, err
-	}
-	return &dbPool{pool: pool}, nil
+	return pgxadapter.NewPool(ctx, url, nil)
 }
 
 // pgxTenantLister lists active tenants over any pool that can Query.
 type pgxTenantLister struct {
 	pool interface {
-		Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+		Query(ctx context.Context, sql string, args ...any) (dbport.Rows, error)
 	}
 }
 

@@ -87,6 +87,30 @@ func TestTodo_SVC_013(t *testing.T) {
 				}
 			})
 		}
+
+		t.Run("seed_requires_a_tenant_slug", func(t *testing.T) {
+			for _, args := range [][]string{
+				{"-database-url=postgres://x"},
+			} {
+				v, err := bootstrap.ParseConfig(args, noEnv, fields)
+				if err != nil {
+					t.Fatalf("ParseConfig(%v): %v", args, err)
+				}
+				if err := validateConfig("seed")(v); err == nil {
+					t.Fatalf("validateConfig(seed) accepted %v", args)
+				}
+			}
+
+			v, err := bootstrap.ParseConfig([]string{
+				"-database-url=postgres://x", "-tenant=harborcare",
+			}, noEnv, fields)
+			if err != nil {
+				t.Fatalf("ParseConfig(valid seed): %v", err)
+			}
+			if err := validateConfig("seed")(v); err != nil {
+				t.Fatalf("validateConfig(seed): %v", err)
+			}
+		})
 	})
 
 	t.Run("config_precedence_and_redaction", func(t *testing.T) {
@@ -144,6 +168,18 @@ func TestTodo_SVC_013(t *testing.T) {
 
 		code := bootstrap.Run(context.Background(), s)
 		if code != bootstrap.ExitConfigError {
+			t.Fatalf("exit code = %d, want ExitConfigError (%d)", code, bootstrap.ExitConfigError)
+		}
+	})
+
+	t.Run("bootstrap_run_rejects_seed_without_tenant_before_touching_the_network", func(t *testing.T) {
+		s := spec("seed", []string{"-database-url=postgres://x"})
+		s.Getenv = func(string) (string, bool) { return "", false }
+		s.Logger = discardLogger()
+		s.Stdout = io.Discard
+		s.Stderr = io.Discard
+
+		if code := bootstrap.Run(context.Background(), s); code != bootstrap.ExitConfigError {
 			t.Fatalf("exit code = %d, want ExitConfigError (%d)", code, bootstrap.ExitConfigError)
 		}
 	})

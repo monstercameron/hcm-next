@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
@@ -36,7 +36,7 @@ const (
 // implements it. Append runs inside the caller's own transaction and
 // performs no external call of any kind (internal/data/ledger/append.go).
 type Appender interface {
-	Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (AppendReceipt, error)
+	Append(ctx context.Context, tx dbport.Tx, req AppendRequest) (AppendReceipt, error)
 }
 
 // Reader reads back committed ledger events for replay and verification.

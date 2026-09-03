@@ -33,10 +33,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
@@ -163,48 +162,25 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	return bootstrap.Runtime{Workloads: []bootstrap.Workload{wl}}, nil
 }
 
-// projectorPool is the subset of a *pgxpool.Pool this role needs beyond
-// bootstrap's own Ping/Close DBPool port: projection.NewReconciler needs
-// Begin, and both the normal and -rebuild sweep queries need Query/QueryRow
+// projectorPool is the database capability this role needs beyond bootstrap's
+// own Ping/Close DBPool port: projection.NewReconciler needs Begin, and both
+// the normal and -rebuild sweep queries need Query/QueryRow
 // (datalogger.Querier). bootstrap's default DBPoolFactory (PgxPoolFactory)
-// returns an unexported type exposing only Ping/Close, so this role
-// supplies pgxDBPoolFactory instead, whose *dbPool return value satisfies
-// this interface too.
+// returns an unexported type exposing only Ping/Close, so this role supplies
+// pgxDBPoolFactory instead, whose *pgxadapter.Pool return value satisfies this
+// interface too. Every method here is stated in [dbport] terms; the driver
+// itself is reached only through the adapter this composition root constructs.
 type projectorPool interface {
 	bootstrap.DBPool
-	Begin(ctx context.Context) (pgx.Tx, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	dbport.Beginner
+	dbport.Querier
 }
 
-// dbPool adapts a *pgxpool.Pool to projectorPool.
-type dbPool struct{ pool *pgxpool.Pool }
-
-func (d *dbPool) Ping(ctx context.Context) error { return d.pool.Ping(ctx) }
-func (d *dbPool) Close()                         { d.pool.Close() }
-func (d *dbPool) Begin(ctx context.Context) (pgx.Tx, error) {
-	return d.pool.Begin(ctx)
-}
-func (d *dbPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	return d.pool.Query(ctx, sql, args...)
-}
-func (d *dbPool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	return d.pool.QueryRow(ctx, sql, args...)
-}
-
-// pgxDBPoolFactory opens a pgxpool.Pool against url and pings it once, so a
-// bad connection string or unreachable server fails Run before any workload
+// pgxDBPoolFactory opens a pgx pool against url and pings it once, so a bad
+// connection string or unreachable server fails Run before any workload
 // starts, matching bootstrap.PgxPoolFactory's own contract.
 func pgxDBPoolFactory(ctx context.Context, url string) (bootstrap.DBPool, error) {
-	pool, err := pgxpool.New(ctx, url)
-	if err != nil {
-		return nil, err
-	}
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, err
-	}
-	return &dbPool{pool: pool}, nil
+	return pgxadapter.NewPool(ctx, url, nil)
 }
 
 // pgxProjectionLister lists the (tenant, projection, stream) checkpoints one
@@ -212,8 +188,7 @@ func pgxDBPoolFactory(ctx context.Context, url string) (bootstrap.DBPool, error)
 // default, or every registered checkpoint when rebuild is set.
 type pgxProjectionLister struct {
 	pool interface {
-		Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-		QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+		dbport.Querier
 	}
 	rebuild bool
 }
@@ -229,7 +204,7 @@ func (l pgxProjectionLister) Due(ctx context.Context) ([]projection.StreamProjec
 // checkpoint regardless of whether it is currently behind its stream head -
 // the query -rebuild substitutes for ReconcileDue's narrower one.
 func allProjections(ctx context.Context, q interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Query(ctx context.Context, sql string, args ...any) (dbport.Rows, error)
 }) ([]projection.StreamProjection, error) {
 	rows, err := q.Query(ctx, `SELECT tenant_id, projection_name, stream_key FROM projection_checkpoint`)
 	if err != nil {

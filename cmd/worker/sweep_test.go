@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
@@ -327,10 +327,10 @@ type fakeWorkerPool struct{}
 
 func (fakeWorkerPool) Ping(context.Context) error { return nil }
 func (fakeWorkerPool) Close()                     {}
-func (fakeWorkerPool) Begin(context.Context) (pgx.Tx, error) {
+func (fakeWorkerPool) Begin(context.Context) (dbport.Tx, error) {
 	return nil, errors.New("fakeWorkerPool: Begin not implemented")
 }
-func (fakeWorkerPool) Query(context.Context, string, ...any) (pgx.Rows, error) {
+func (fakeWorkerPool) Query(context.Context, string, ...any) (dbport.Rows, error) {
 	return nil, errors.New("fakeWorkerPool: Query not implemented")
 }
 

@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
 
@@ -18,18 +18,13 @@ func TestMain(m *testing.M) {
 	pgtest.RunMain(m)
 }
 
-// schemaScopedPool opens a *pgxpool.Pool against db's isolated test schema:
-// db.URL alone connects to the server's default search_path, so the
-// schema pgtest.New created (and applied every migration to) has to be
-// pinned explicitly the same way pgtest.NewEmpty pins it for db.SQL.
-func schemaScopedPool(t *testing.T, db *pgtest.DB) *pgxpool.Pool {
+// schemaScopedPool opens a pool against db's isolated test schema: db.URL
+// alone connects to the server's default search_path, so the schema
+// pgtest.New created (and applied every migration to) has to be pinned
+// explicitly the same way pgtest.NewEmpty pins it for db.SQL.
+func schemaScopedPool(t *testing.T, db *pgtest.DB) *pgxadapter.Pool {
 	t.Helper()
-	cfg, err := pgxpool.ParseConfig(db.URL)
-	if err != nil {
-		t.Fatalf("parse pool config: %v", err)
-	}
-	cfg.ConnConfig.RuntimeParams["search_path"] = db.Schema
-	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	pool, err := pgxadapter.NewPool(context.Background(), db.URL, map[string]string{"search_path": db.Schema})
 	if err != nil {
 		t.Fatalf("open pool: %v", err)
 	}
@@ -93,7 +88,7 @@ func TestWorkerIntegrationDispatchesOutboxViaBootstrap(t *testing.T) {
 	s := spec([]string{"-database-url=postgres://ignored/db", "-poll-interval=25ms"})
 	s.Getenv = func(string) (string, bool) { return "", false }
 	s.DBPoolFactory = func(context.Context, string) (bootstrap.DBPool, error) {
-		return &dbPool{pool: pool}, nil
+		return pool, nil
 	}
 	s.Logger = discardLogger()
 	s.Stdout = io.Discard

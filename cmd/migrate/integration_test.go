@@ -3,14 +3,76 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	fixtureseed "github.com/monstercameron/hcm-next/internal/data/seed"
+	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 )
 
 func TestMain(m *testing.M) {
 	pgtest.RunMain(m)
+}
+
+func TestSeedCommandSeedsOnceAndEmitsStableReceipt(t *testing.T) {
+	db := pgtest.New(t)
+	ctx := context.Background()
+	const tenant = "harborcare"
+	tenantID := pgstore.TenantID(tenant)
+	plan, err := fixtureseed.Plan()
+	if err != nil {
+		t.Fatalf("seed plan: %v", err)
+	}
+
+	var first bytes.Buffer
+	if err := runSeedCommand(ctx, db.Conn, tenant, &first); err != nil {
+		t.Fatalf("first seed: %v", err)
+	}
+	var firstReceipt seedReceipt
+	if err := json.Unmarshal(first.Bytes(), &firstReceipt); err != nil {
+		t.Fatalf("decode first receipt %q: %v", first.String(), err)
+	}
+	if firstReceipt.Tenant != tenantID || firstReceipt.Digest == "" || firstReceipt.Inserted != len(plan) || firstReceipt.Skipped != 0 {
+		t.Fatalf("first receipt = %+v, want tenant/digest/new inserts", firstReceipt)
+	}
+	var tenantKey, cellID, displayName string
+	var effectiveFrom time.Time
+	if err := db.Conn.QueryRow(ctx, `
+		SELECT tenant_key, cell_id, display_name, effective_from FROM tenant WHERE tenant_id = $1`, tenantID,
+	).Scan(&tenantKey, &cellID, &displayName, &effectiveFrom); err != nil {
+		t.Fatalf("read seeded tenant: %v", err)
+	}
+	if tenantKey != tenant || cellID != "cell-local" || displayName != tenant || effectiveFrom.UTC().Format(time.RFC3339) != "2026-01-01T00:00:00Z" {
+		t.Fatalf("seeded tenant = key=%q cell=%q display=%q effective_from=%s", tenantKey, cellID, displayName, effectiveFrom.UTC().Format(time.RFC3339))
+	}
+	var seededRows int
+	if err := db.Conn.QueryRow(ctx, `SELECT count(*) FROM definition_version WHERE tenant_id = $1`, tenantID).Scan(&seededRows); err != nil {
+		t.Fatalf("count seeded rows: %v", err)
+	}
+	if seededRows != len(plan) {
+		t.Fatalf("definition_version rows for %s = %d, want %d", tenantID, seededRows, len(plan))
+	}
+
+	var second bytes.Buffer
+	if err := runSeedCommand(ctx, db.Conn, tenant, &second); err != nil {
+		t.Fatalf("second seed: %v", err)
+	}
+	var secondReceipt seedReceipt
+	if err := json.Unmarshal(second.Bytes(), &secondReceipt); err != nil {
+		t.Fatalf("decode second receipt %q: %v", second.String(), err)
+	}
+	if secondReceipt.Tenant != tenantID || secondReceipt.Digest != firstReceipt.Digest || secondReceipt.Inserted != 0 || secondReceipt.Skipped != len(plan) {
+		t.Fatalf("second receipt = %+v, want matching digest and an idempotent skip", secondReceipt)
+	}
+
+	wantFirst := `{"tenant":"` + tenantID.String() + `","digest":"` + firstReceipt.Digest + `","inserted":` + strconv.Itoa(len(plan)) + `,"skipped":0}` + "\n"
+	if first.String() != wantFirst {
+		t.Fatalf("first receipt = %q, want %q", first.String(), wantFirst)
+	}
 }
 
 // TestTodo_SVC_013_Integration proves migrate's actual up/status/down

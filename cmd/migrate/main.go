@@ -8,6 +8,7 @@
 //	migrate up      apply every pending migration
 //	migrate down    roll back the most recently applied migration
 //	migrate status  report the schema version, digest and per-migration state
+//	migrate seed    load the deterministic Promotion fixture for -tenant
 //
 // migrate is not a long-running server: process-roles.yaml marks it
 // "operator-invoked" with no readiness probe and "not applicable" drain, so
@@ -35,6 +36,8 @@ import (
 // EnvDatabaseURL names the server this command migrates, matching
 // cmd/worker's and cmd/projector's convention.
 const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
+
+const fieldTenant = "tenant"
 
 // migrationTimeout bounds one migrate invocation, matching the original
 // command's own budget. Unlike the original (which ran against a bare
@@ -71,6 +74,10 @@ func migrateConfigFields() []bootstrap.Field {
 			Kind:   bootstrap.KindString,
 			Secret: true,
 		},
+		{
+			Name:  fieldTenant,
+			Usage: "tenant slug to seed (required by the seed subcommand)",
+		},
 	}
 }
 
@@ -86,7 +93,9 @@ func spec(command string, rest []string) bootstrap.Spec {
 		// need a database/sql.DB (via pgx's stdlib adapter), not
 		// bootstrap's narrower DBPool port, so this role opens its own
 		// connection inside the Workload (openMigrateDB in migrate.go)
-		// instead.
+		// instead. The seed workload opens its own pgx adapter connection for
+		// the same reason: it needs the transaction-scoped dbport adapter, not
+		// bootstrap's narrower DBPool port.
 		// No HealthAddr: migrate is operator-invoked and short-lived
 		// (process-roles.yaml: "not applicable" liveness/readiness,
 		// drain_policy "not applicable"), so it serves no health endpoint.
@@ -97,6 +106,16 @@ func spec(command string, rest []string) bootstrap.Spec {
 				Run: func(ctx context.Context) error {
 					ctx, cancel := context.WithTimeout(ctx, migrationTimeout)
 					defer cancel()
+
+					if command == "seed" {
+						conn, err := openSeedDB(ctx, url)
+						if err != nil {
+							return err
+						}
+						defer func() { _ = conn.Close(ctx) }()
+
+						return runSeedCommand(ctx, conn, deps.Values.String(fieldTenant), os.Stdout)
+					}
 
 					db, err := openMigrateDB(ctx, url)
 					if err != nil {
@@ -119,10 +138,14 @@ func validateConfig(command string) func(*bootstrap.Values) error {
 	return func(v *bootstrap.Values) error {
 		switch command {
 		case "up", "down", "status":
+		case "seed":
+			if v.String(fieldTenant) == "" {
+				return fmt.Errorf("-%s is required for the seed subcommand", fieldTenant)
+			}
 		case "":
-			return fmt.Errorf("usage: migrate up|down|status")
+			return fmt.Errorf("usage: migrate up|down|status|seed")
 		default:
-			return fmt.Errorf("unknown command %q; usage: migrate up|down|status", command)
+			return fmt.Errorf("unknown command %q; usage: migrate up|down|status|seed", command)
 		}
 		if v.String("database-url") == "" {
 			return fmt.Errorf("%s is not set; pass -database-url or set the environment variable", EnvDatabaseURL)
