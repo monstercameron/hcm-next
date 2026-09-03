@@ -6,11 +6,111 @@ package celqual
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 )
+
+const CandidateModule = "github.com/google/cel-go"
+
+// Qualification is the machine-readable pre-admission decision.  Keeping
+// this record dependency-free is intentional: a candidate that is not yet
+// admitted must not be needed to run the gate that rejects it.
+type Qualification struct {
+	Version         int           `yaml:"version"`
+	Todo            string        `yaml:"todo"`
+	Module          string        `yaml:"module"`
+	Verdict         string        `yaml:"verdict"`
+	BackendContract string        `yaml:"backend_contract"`
+	Decision        string        `yaml:"decision"`
+	Evidence        []EvidenceRow `yaml:"evidence"`
+}
+
+// EvidenceRow is one test declared in the qualification record that carries
+// the LIB-005 matrix evidence for the owned boundary.
+type EvidenceRow struct {
+	Test    string `yaml:"test"`
+	Package string `yaml:"package"`
+}
+
+// LoadQualification reads the architecture decision without importing CEL-Go.
+func LoadQualification(path string) (Qualification, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return Qualification{}, fmt.Errorf("celqual: read qualification: %w", err)
+	}
+	var q Qualification
+	if err := yaml.Unmarshal(b, &q); err != nil {
+		return Qualification{}, fmt.Errorf("celqual: parse qualification: %w", err)
+	}
+	return q, nil
+}
+
+func ValidateQualification(q Qualification) error {
+	if q.Version != 1 || q.Todo != "LIB-005" || q.Module != CandidateModule {
+		return errors.New("celqual: qualification identity drifted")
+	}
+	if q.Verdict != "NOT_ADMITTED" {
+		return fmt.Errorf("celqual: candidate verdict %q is not NOT_ADMITTED", q.Verdict)
+	}
+	if q.BackendContract != "tools/quality/celqual" || !strings.Contains(q.Decision, "BLOCKED_PENDING_DEPENDENCY_ADMISSION") {
+		return errors.New("celqual: decision does not preserve the dependency gate")
+	}
+	return nil
+}
+
+func ReleaseGraph(root string, targets ...string) ([]string, error) {
+	if len(targets) == 0 {
+		return nil, errors.New("celqual: release graph requires a target")
+	}
+	c := exec.Command("go", append([]string{"list", "-deps", "-f", "{{.ImportPath}}"}, targets...)...)
+	c.Dir = root
+	b, err := c.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("celqual: go list: %w\n%s", err, b)
+	}
+	seen := map[string]struct{}{}
+	for _, s := range strings.Split(string(b), "\n") {
+		if s = strings.TrimSpace(s); s != "" {
+			seen[s] = struct{}{}
+		}
+	}
+	out := make([]string, 0, len(seen))
+	for s := range seen {
+		out = append(out, s)
+	}
+	sort.Strings(out)
+	return out, nil
+}
+
+func FindRepoRoot(path string) (string, error) {
+	i, err := os.Stat(path)
+	if err != nil {
+		return "", err
+	}
+	d := path
+	if !i.IsDir() {
+		d = filepath.Dir(d)
+	}
+	for {
+		if _, err = os.Stat(filepath.Join(d, "go.mod")); err == nil {
+			return d, nil
+		}
+		p := filepath.Dir(d)
+		if p == d {
+			break
+		}
+		d = p
+	}
+	return "", errors.New("celqual: repository root not found")
+}
 
 type Contract struct {
 	MaxNodes         int

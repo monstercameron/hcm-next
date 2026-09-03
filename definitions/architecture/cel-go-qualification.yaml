@@ -33,3 +33,5 @@ evidence:
     package: tools/quality/celqual
   - test: TestTodo_LIB_005_Conformance
     package: tools/quality/celqual
+  - test: TestTodo_LIB_005_AdmissionDecision
+    package: tools/quality/celqual

@@ -54,6 +54,50 @@ func TestSemanticPortsRemainAllowed(t *testing.T) {
 	}
 }
 
+func TestSemanticEdgesCannotImportAdapters(t *testing.T) {
+	root := fixture(t, map[string]string{
+		"internal/transport/http.go": "package transport\nimport _ \"github.com/monstercameron/hcm-next/internal/data/pgxadapter\"\n",
+		"internal/operations/use.go": "package operations\nimport _ \"github.com/monstercameron/hcm-next/internal/data/postgres\"\n",
+	})
+	fs := Check(root)
+	if len(fs) != 1 || fs[0].Code != "semantic-imports-technology" {
+		t.Fatalf("expected transport adapter violation, got %#v", fs)
+	}
+}
+
+func TestPrivateDriverFieldsDoNotLeak(t *testing.T) {
+	root := fixture(t, map[string]string{
+		"internal/data/pgxadapter/adapter.go": `package pgxadapter
+import "github.com/jackc/pgx/v5"
+type Adapter struct { conn *pgx.Conn }
+func New() *Adapter { return nil }
+`,
+	})
+	if fs := Check(root); len(fs) != 0 {
+		t.Fatalf("private implementation field reported as API leak: %#v", fs)
+	}
+}
+
+func TestExportedDriverTypesAreRejected(t *testing.T) {
+	root := fixture(t, map[string]string{
+		"internal/data/cache/adapter.go": `package cache
+import "github.com/jackc/pgx/v5"
+type Adapter struct { Conn *pgx.Conn }
+func Open(*pgx.Conn) *Adapter { return nil }
+`,
+	})
+	fs := Check(root)
+	count := 0
+	for _, f := range fs {
+		if f.Code == "driver-leak" {
+			count++
+		}
+	}
+	if count != 2 {
+		t.Fatalf("expected field and parameter leaks, got %#v", fs)
+	}
+}
+
 func TestCheckIsDeterministic(t *testing.T) {
 	root := fixture(t, map[string]string{"internal/data/cache/a.go": "package cache\ntype Invariant struct{}\n"})
 	a, b := Check(root), Check(root)

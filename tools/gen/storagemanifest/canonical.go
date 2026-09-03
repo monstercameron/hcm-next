@@ -21,6 +21,12 @@ func CanonicalPropertyClosure(reg *model.Registry, properties PropertyMappingMan
 		return []error{fmt.Errorf("canonical property closure: build canonical SQL mappings: %w", err)}
 	}
 	var errs []error
+	if properties.RegistryDigest != reg.Digest() {
+		errs = append(errs, fmt.Errorf("SQL manifest registry digest %q does not match canonical registry %q", properties.RegistryDigest, reg.Digest()))
+	}
+	if dispositions.RegistryDigest != reg.Digest() {
+		errs = append(errs, fmt.Errorf("disposition manifest registry digest %q does not match canonical registry %q", dispositions.RegistryDigest, reg.Digest()))
+	}
 	seen := map[string]bool{}
 	got := map[string]PropertySQLMapping{}
 	for _, p := range properties.Properties {
@@ -58,6 +64,25 @@ func CanonicalPropertyClosure(reg *model.Registry, properties PropertyMappingMan
 			errs = append(errs, fmt.Errorf("entity %s appears more than once in disposition manifest", d.EntityRef))
 		}
 		dispByEntity[d.EntityRef] = d
+	}
+	wantEntities := map[string]model.EntityDefinition{}
+	for _, e := range reg.Entities() {
+		wantEntities[e.Ref.String()] = e
+	}
+	for ref, d := range dispByEntity {
+		e, ok := wantEntities[ref]
+		if !ok {
+			errs = append(errs, fmt.Errorf("disposition manifest contains unregistered entity %s", ref))
+			continue
+		}
+		if d.Key != e.Key || d.Owner != e.OwnerDomain || d.Class != string(e.Class) {
+			errs = append(errs, fmt.Errorf("entity %s disposition identity drifts from canonical registry", ref))
+		}
+	}
+	for ref := range wantEntities {
+		if _, ok := dispByEntity[ref]; !ok {
+			errs = append(errs, fmt.Errorf("entity %s has no disposition row", ref))
+		}
 	}
 	for _, p := range want.Properties {
 		entity := p.Entity

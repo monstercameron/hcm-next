@@ -22,7 +22,7 @@ func document(component string) sbom.Document {
 
 // TestReleaseContainsNoLegacyRuntime is TOOL-015's primary boundary test.
 func TestReleaseContainsNoLegacyRuntime(t *testing.T) {
-	for _, name := range []string{"github.com/acme/telemetry/v2", "google.golang.org/grpc"} {
+	for _, name := range []string{"github.com/acme/telemetry/v2", "google.golang.org/grpc", "github.com/acme/reactive-streams"} {
 		if err := releaseboundary.Check(document(name)); err != nil {
 			t.Errorf("allowed Go component %q rejected: %v", name, err)
 		}
@@ -31,6 +31,20 @@ func TestReleaseContainsNoLegacyRuntime(t *testing.T) {
 		if err := releaseboundary.Check(document(name)); err == nil {
 			t.Errorf("excluded component %q accepted", name)
 		}
+	}
+}
+
+func TestReleaseBoundaryChecksSubjectAndReplacement(t *testing.T) {
+	d := document("github.com/acme/telemetry")
+	d.Subject.Name = "node-worker"
+	if err := releaseboundary.Check(d); err == nil {
+		t.Fatal("excluded runtime in SBOM subject accepted")
+	}
+
+	d = document("github.com/acme/telemetry")
+	d.Components[1].Replacement = &sbom.Replacement{Name: "github.com/acme/react-runtime", Version: "v1.0.0"}
+	if err := releaseboundary.Check(d); err == nil {
+		t.Fatal("excluded runtime in replacement module accepted")
 	}
 }
 

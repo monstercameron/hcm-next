@@ -1,6 +1,11 @@
 package celqual
 
-import "testing"
+import (
+	"path/filepath"
+	"runtime"
+	"strings"
+	"testing"
+)
 
 func contract() Contract {
 	return Contract{MaxNodes: 32, MaxCost: 48, AllowedVariables: map[string]struct{}{"employee": {}, "amount": {}, "approved": {}}}
@@ -41,6 +46,54 @@ func TestTodo_LIB_005_Conformance(t *testing.T) {
 	for _, e := range []string{"approved", "amount > 0", "employee == employee"} {
 		if _, err := contract().Validate(e); err != nil {
 			t.Errorf("%q: %v", e, err)
+		}
+	}
+	_, file, _, _ := runtime.Caller(0)
+	root, err := FindRepoRoot(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	q, err := LoadQualification(filepath.Join(root, "definitions", "architecture", "cel-go-qualification.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]bool{"TestCELBackendQualification": false, "TestTodo_LIB_005_Golden": false, "FuzzTodo_LIB_005": false, "TestTodo_LIB_005_Integration": false, "TestTodo_LIB_005_Fault": false, "TestTodo_LIB_005_Conformance": false, "TestTodo_LIB_005_AdmissionDecision": false}
+	for _, row := range q.Evidence {
+		if _, ok := want[row.Test]; !ok || want[row.Test] || row.Package != "tools/quality/celqual" {
+			t.Fatalf("invalid or duplicate evidence row: %#v", row)
+		}
+		want[row.Test] = true
+	}
+	for name, found := range want {
+		if !found {
+			t.Errorf("missing evidence %s", name)
+		}
+	}
+}
+
+func TestTodo_LIB_005_AdmissionDecision(t *testing.T) {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("caller")
+	}
+	root, err := FindRepoRoot(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	q, err := LoadQualification(filepath.Join(root, "definitions", "architecture", "cel-go-qualification.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateQualification(q); err != nil {
+		t.Fatal(err)
+	}
+	graph, err := ReleaseGraph(root, "./cmd/hcmnext", "./cmd/migrate", "./cmd/projector", "./cmd/worker")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, dep := range graph {
+		if dep == CandidateModule || strings.HasPrefix(dep, CandidateModule+"/") {
+			t.Fatalf("NOT_ADMITTED candidate reached release graph: %s", dep)
 		}
 	}
 }

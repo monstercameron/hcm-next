@@ -151,8 +151,26 @@ func exportedContext(file *ast.File, n ast.Node) bool {
 			}
 		case *ast.GenDecl:
 			for _, s := range x.Specs {
-				if ts, ok := s.(*ast.TypeSpec); ok && ts.Name.IsExported() && contains(ts.Type, n) {
+				ts, ok := s.(*ast.TypeSpec)
+				if !ok || !ts.Name.IsExported() || !contains(ts.Type, n) {
+					continue
+				}
+				st, ok := ts.Type.(*ast.StructType)
+				if !ok {
 					return true
+				}
+				for _, field := range st.Fields.List {
+					if !contains(field.Type, n) {
+						continue
+					}
+					if len(field.Names) == 0 {
+						return true
+					}
+					for _, name := range field.Names {
+						if name.IsExported() {
+							return true
+						}
+					}
 				}
 			}
 		}
@@ -189,7 +207,7 @@ func driverImport(p string) bool {
 	return strings.HasPrefix(p, "github.com/jackc/pgx") || p == "database/sql" || strings.Contains(p, "/go-redis") || strings.Contains(p, "/minio-go")
 }
 func semanticPath(p string) bool {
-	for _, root := range []string{"intent", "workflow", "ledger", "domains", "transaction", "humanwork"} {
+	for _, root := range []string{"intent", "workflow", "ledger", "domains", "transaction", "humanwork", "transport"} {
 		if strings.HasPrefix(p, "internal/"+root+"/") || p == "internal/"+root {
 			return true
 		}

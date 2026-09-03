@@ -43,6 +43,49 @@ func TestCrossCuttingPackagesRejectOmniscientImports(t *testing.T) {
 	}
 }
 
+func TestCrossCuttingOverlayRootsRejectConcreteDomains(t *testing.T) {
+	// These overlays are deliberately listed independently: omitting one from
+	// the checker would otherwise leave a policy hole until its first package
+	// happened to be implemented.
+	for _, root := range []string{
+		"internal/trust/authn",
+		"internal/trust/authz",
+		"internal/privacy",
+		"internal/governance/privacy",
+		"internal/dlp",
+		"internal/secrets",
+		"internal/agent",
+		"internal/intelligence",
+		"internal/operations",
+		"internal/admission",
+		"internal/rollout",
+		"internal/recovery",
+	} {
+		if v := crosscut.CheckEdge(module(), module()+"/"+root, module()+"/internal/domains/people/store"); v == nil {
+			t.Errorf("%s must not import concrete domain stores", root)
+		}
+	}
+}
+
+func TestCrossCuttingOverlaysRejectDeferredPackages(t *testing.T) {
+	for _, root := range []string{
+		"internal/trust/authz",
+		"internal/privacy",
+		"internal/dlp",
+		"internal/secrets",
+		"internal/operations",
+		"internal/admission",
+		"internal/rollout",
+		"internal/recovery",
+	} {
+		for _, deferred := range []string{"internal/agent/runtime", "internal/intelligence/ranker"} {
+			if v := crosscut.CheckEdge(module(), module()+"/"+root, module()+"/"+deferred); v == nil {
+				t.Errorf("%s must not require deferred package %s", root, deferred)
+			}
+		}
+	}
+}
+
 func TestTodo_ARCH_GO_026_Property(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		e := [2]string{module() + "/internal/trust/authz", module() + "/internal/domains/people/store"}

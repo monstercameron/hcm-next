@@ -12,6 +12,16 @@ import (
 
 var crossCuttingRoots = []string{
 	"internal/trust",
+	// Governance and safety overlays are cross-cutting even when their
+	// implementation packages are introduced incrementally. Keep the policy
+	// explicit so a newly-created overlay cannot accidentally bypass it.
+	"internal/privacy",
+	"internal/governance/privacy",
+	"internal/dlp",
+	"internal/secrets",
+	"internal/admission",
+	"internal/rollout",
+	"internal/recovery",
 	// Intelligence and agents are optional overlays in Phase 1. Keeping their
 	// roots here means introducing either package cannot silently acquire a
 	// synchronous domain/store dependency.
