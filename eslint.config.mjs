@@ -64,6 +64,7 @@ export default tseslint.config(
       "src/platform/foundation/result/from-promise.ts",
       "src/platform/foundation/result/from-throwable.ts",
       "src/platform/data-store/client/transaction.ts",
+      "src/platform/client-device-state/device-state.ts",
     ],
     rules: {
       "no-restricted-syntax": "off",

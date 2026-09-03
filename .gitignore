@@ -85,3 +85,5 @@ blob-report/
 *.jpg
 *.jpeg
 *.webp
+
+.gocache*

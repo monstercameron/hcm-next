@@ -15,6 +15,7 @@ const ignoredPathSegments = new Set([
 ]);
 
 const allowedTryCatchFiles = new Set([
+  "src/platform/client-device-state/device-state.ts",
   "src/platform/data-store/client/transaction.ts",
   "src/platform/foundation/result/from-promise.ts",
   "src/platform/foundation/result/from-throwable.ts",
