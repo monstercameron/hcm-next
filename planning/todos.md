@@ -4782,7 +4782,7 @@ closed.
   - **Refs:** [Experience plane](specs/experience-ui-and-branding.md), [intelligence model](data/models/assurance-intelligence-platform.md).
   - **Evidence (2026-09-03):** `TestTodo_UX_001`, `TestTodo_UX_001_Security` in `tools/uxqual/contract` (renderer-independent Promotion workspace contract; unauthorized fields and actions are absent, never blanked); `go test -count=1 ./tools/uxqual/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `UX-002` **[GATE_A][TERRA] Implement the Promotion workspace using GoWebComponents.**
+- [x] `UX-002` **[GATE_A][TERRA] Implement the Promotion workspace using GoWebComponents.**
   - **Depends:** `UX-001`, `TOOL-008`, `TOOL-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_UX_002`.
@@ -4813,7 +4813,7 @@ closed.
   - **Refs:** [Locale semantics](data/models/wire-contract-primitives.md), [globalization](plan.md).
   - **Evidence (2026-09-03):** `TestTodo_UX_004`, `TestTodo_UX_004_Golden`, `TestTodo_UX_004_Integration`, `TestTodo_UX_004_Fault`, `TestTodo_UX_004_Security`, `TestTodo_UX_004_Browser` and `FuzzTodo_UX_004` in `internal/humanwork/workspace` and `test/workspace`; strict `en-US`/`de-DE` date, currency and number round trips make unsupported-locale fallback and missing translations visible, canonicalize values before intent comparison, and keep `LocaleContext` limited to requested/resolved/fallback locale data with no legal-jurisdiction authority. `go test -count=1 ./internal/humanwork/workspace ./test/workspace`, targeted browser/integration runs, a two-second fuzz run and `go vet` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02.
 
-- [ ] `UX-005` **[GATE_B][SOL_HIGH] Make UI error, ambiguity and recovery states truthful.**
+- [x] `UX-005` **[GATE_B][SOL_HIGH] Make UI error, ambiguity and recovery states truthful.**
   - **Depends:** `UX-002`, `TX-010`, `INTG-014`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_UX_005`.
@@ -4823,7 +4823,7 @@ closed.
   - **REFACTOR:** client never guesses provider outcome.
   - **Refs:** [Multidimensional completion](plan.md#63-change-request-lifecycle), [integration ambiguity](specs/integration-platform.md).
 
-- [ ] `UX-006` **[PHASE_2][SOL_HIGH] Generate universal and contextual action discovery from the feature-intent registry.**
+- [x] `UX-006` **[PHASE_2][SOL_HIGH] Generate universal and contextual action discovery from the feature-intent registry.**
   - **Depends:** `INTENT-010`, `CAP-003`, `TRUST-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestUniversalActionDiscoveryRejectsUnavailableOrDivergentAction`.
@@ -4833,7 +4833,7 @@ closed.
   - **REFACTOR:** UI labels, favorites and recent actions are projections over stable semantic IDs, not independent command registries.
   - **Refs:** [Experience plane](specs/experience-ui-and-branding.md), [feature-intent conformance](#6-businessintent-capabilities-governance-and-transaction-integrity).
 
-- [ ] `UX-007` **[PHASE_2][SOL_HIGH] Build one governed Intent Center for drafts, tasks, approvals, messages and lifecycle inspection.**
+- [x] `UX-007` **[PHASE_2][SOL_HIGH] Build one governed Intent Center for drafts, tasks, approvals, messages and lifecycle inspection.**
   - **Depends:** `INTENT-014`, `INTENT-021`, `WORK-001`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestIntentCenterPreservesAuthorityAndLifecycleTruth`.
@@ -4843,7 +4843,7 @@ closed.
   - **REFACTOR:** center composes owner APIs and projections; it owns no workflow, approval, messaging or intent truth.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [Messaging](specs/messaging-and-notification-plane.md).
 
-- [ ] `UX-008` **[PHASE_2][TERRA] Prove semantic equivalence for desktop, mobile, kiosk and accessibility-assisted intent creation.**
+- [x] `UX-008` **[PHASE_2][TERRA] Prove semantic equivalence for desktop, mobile, kiosk and accessibility-assisted intent creation.**
   - **Depends:** `UX-003`, `UX-006`, `FORM-004`, `INTENT-013`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestIntentCreationChannelAccessibilityParity`.
@@ -4853,7 +4853,7 @@ closed.
   - **REFACTOR:** channel-specific presentation never forks business rules or intent definitions.
   - **Refs:** [Accessibility](specs/experience-ui-and-branding.md), [grpcbridge parity](specs/go-only-technology-constitution.md).
 
-- [ ] `UXFLOW-001` **[P0][SOL_HIGH] Define the machine-readable UserFlowRecord and stage vocabulary.**
+- [x] `UXFLOW-001` **[P0][SOL_HIGH] Define the machine-readable UserFlowRecord and stage vocabulary.**
   - **Depends:** `UX-001`, `SLICE-001`, `WF-DISC-005`, `MODEL-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=describe every participant journey with exact semantic references, states, alternatives, accessibility and test hooks`.
   - **TEST:** `TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`.
@@ -4863,7 +4863,7 @@ closed.
   - **REFACTOR:** flow prose and diagrams are generated views over one record; they never become a parallel runtime or business-rule registry.
   - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [experience contract](specs/experience-ui-and-branding.md), [vertical-slice record](workflows/vertical-slices/README.md#complete-vertical-slice-record).
 
-- [ ] `UXFLOW-002` **[P0][SOL_HIGH] Resolve participants, representation, delegation and decision rights per flow stage.**
+- [x] `UXFLOW-002` **[P0][SOL_HIGH] Resolve participants, representation, delegation and decision rights per flow stage.**
   - **Depends:** `UXFLOW-001`, `TRUST-010`, `TRUST-013`, `TRUST-014`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent persona labels, act-as modes and assisted use from silently expanding authority or disclosure`.
   - **TEST:** `TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`.
@@ -4873,7 +4873,7 @@ closed.
   - **REFACTOR:** flows consume PrincipalContext/governance receipts; they never define roles or authorization rules.
   - **Refs:** [participant vocabulary](user-flows/README.md#participant-vocabulary), [AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md).
 
-- [ ] `UXFLOW-003` **[P0][SOL_HIGH] Give every accepted BusinessIntent an explicit user-flow disposition.**
+- [x] `UXFLOW-003` **[P0][SOL_HIGH] Give every accepted BusinessIntent an explicit user-flow disposition.**
   - **Depends:** `UXFLOW-001`, `SLICE-003`, `INTENT-010`, `UX-006`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=distinguish participant-facing roots and children from system-only, admin-only and no-flow intents without inventing public UI`.
   - **TEST:** `TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`.
@@ -4883,7 +4883,7 @@ closed.
   - **REFACTOR:** generate action and flow reverse indexes from the intent registry; display labels remain localized projections.
   - **Refs:** [flow catalog](user-flows/catalog.md), [BusinessIntent catalog](specs/business-intent-catalog.md), [action discovery](#17-experience-api-and-accessibility).
 
-- [ ] `UXFLOW-004` **[P0][SOL_HIGH] Compile truthful participant-facing state and available actions from multidimensional intent state.**
+- [x] `UXFLOW-004` **[P0][SOL_HIGH] Compile truthful participant-facing state and available actions from multidimensional intent state.**
   - **Depends:** `UXFLOW-001`, `INTENT-021`, `UX-005`, `UX-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=ensure every flow renders loading, waiting, stale, partial, unknown, repair and closure without flattening business truth`.
   - **TEST:** `TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`.
@@ -4893,7 +4893,7 @@ closed.
   - **REFACTOR:** one server-owned state presentation contract drives page, message and assistive announcements without owning lifecycle truth.
   - **Refs:** [state matrix](user-flows/README.md#state-presentation-matrix), [multidimensional completion](specs/business-intent-and-change-request.md), [truthful UX](specs/experience-ui-and-branding.md).
 
-- [ ] `UXFLOW-005` **[P0][SOL_HIGH] Define draft, autosave, validation, simulation, compare and confirmation flow mechanics.**
+- [x] `UXFLOW-005` **[P0][SOL_HIGH] Define draft, autosave, validation, simulation, compare and confirmation flow mechanics.**
   - **Depends:** `UXFLOW-001`, `UXFLOW-004`, `FORM-001`, `INTENT-014`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=let participants safely move from requested input to an exact proposal without client-resolved truth or accidental effects`.
   - **TEST:** `TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`.
@@ -4903,7 +4903,7 @@ closed.
   - **REFACTOR:** shared mechanics own revision/conflict/presentation; domain schemas, calculations and materiality remain semantic-owner contracts.
   - **Refs:** [requested input versus truth](user-flows/README.md#requested-input-versus-server-truth), [forms](specs/human-work-forms-and-rules.md), [intent proposals](specs/business-intent-and-change-request.md).
 
-- [ ] `UXFLOW-006` **[P0][SOL_HIGH] Preserve safe interruption, deep-link, session-expiry and cross-device resume.**
+- [x] `UXFLOW-006` **[P0][SOL_HIGH] Preserve safe interruption, deep-link, session-expiry and cross-device resume.**
   - **Depends:** `UXFLOW-004`, `UXFLOW-005`, `TRUST-003`, `UX-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make long-running HCM work resumable without embedding authority in URLs, stale pages or device storage`.
   - **TEST:** `TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`.
@@ -4913,7 +4913,7 @@ closed.
   - **REFACTOR:** deep links locate owner resources; capability gateway reauthorizes every read/action and channel adapters own protected local storage policy.
   - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [sessions](specs/platform-foundation-gap-closure.md), [Intent Center](#17-experience-api-and-accessibility).
 
-- [ ] `UXFLOW-007` **[P0][SOL_HIGH] Design exact participant recovery for partial, unknown, ambiguous and repair-required outcomes.**
+- [x] `UXFLOW-007` **[P0][SOL_HIGH] Design exact participant recovery for partial, unknown, ambiguous and repair-required outcomes.**
   - **Depends:** `UXFLOW-004`, `UX-005`, `INTG-014`, `REPAIR-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prevent unsafe retries and give participants truthful next actions when local business truth and external reality diverge`.
   - **TEST:** `TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`.
@@ -4923,7 +4923,7 @@ closed.
   - **REFACTOR:** recovery presentation consumes operation/reconciliation/repair contracts; it does not diagnose provider state itself.
   - **Refs:** [repair user flow](user-flows/reference/dataops-reconcile-and-repair.md), [integration ambiguity](specs/integration-platform.md), [reconciliation and repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `UXFLOW-008` **[P0][SOL_HIGH] Compile accessibility, localization and assisted/manual continuity across complete flows.**
+- [x] `UXFLOW-008` **[P0][SOL_HIGH] Compile accessibility, localization and assisted/manual continuity across complete flows.**
   - **Depends:** `UXFLOW-001`, `UX-003`, `UX-004`, `FORM-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prove a participant can complete the entire governed process—not isolated pages—across language, disability, accommodation and non-digital routes`.
   - **TEST:** `TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`.
@@ -4933,7 +4933,7 @@ closed.
   - **REFACTOR:** page/component checks feed flow coverage but cannot substitute for multi-step participant testing.
   - **Refs:** [maximal configuration](user-flows/README.md#maximal-configuration), [accessibility contract](specs/experience-ui-and-branding.md#accessibility-contract), [manual continuity](specs/platform-foundation-gap-closure.md#10-accessibility-assurance-platform).
 
-- [ ] `UXFLOW-009` **[PHASE_2][SOL_HIGH] Prove cross-channel flow parity for desktop, mobile, kiosk, secure message and assisted routes.**
+- [x] `UXFLOW-009` **[PHASE_2][SOL_HIGH] Prove cross-channel flow parity for desktop, mobile, kiosk, secure message and assisted routes.**
   - **Depends:** `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-008`, `UX-008`, `API-001`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure surface adaptation never forks BusinessIntent semantics, governance, validation, recovery or evidence`.
   - **TEST:** `TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`.
@@ -4943,7 +4943,7 @@ closed.
   - **REFACTOR:** channel renderers and adapters consume generated flow/page/action contracts; no channel-specific domain handler exists.
   - **Refs:** [surface vocabulary](user-flows/README.md#surface-vocabulary), [channel parity](specs/go-only-technology-constitution.md), [messaging](specs/messaging-and-notification-plane.md).
 
-- [ ] `UXFLOW-010` **[P0][SOL_HIGH] Generate atomic TDD todos and reverse coverage from user-flow findings to a fixed point.**
+- [x] `UXFLOW-010` **[P0][SOL_HIGH] Generate atomic TDD todos and reverse coverage from user-flow findings to a fixed point.**
   - **Depends:** `UXFLOW-003`, `UXFLOW-004`, `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-007`, `UXFLOW-008`, `UXFLOW-009`, `SLICE-012`, `GOV-028`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn every unresolved surface, state, action, accessibility, continuity and test obligation into deduplicated production work`.
   - **TEST:** `TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`.
@@ -5583,7 +5583,7 @@ closed.
   - **REFACTOR:** ApprovalTask remains a WorkItem specialization and decision-time authority is re-evaluated separately by `APPROVAL-002`/`APPROVAL-005`.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [approval runtime](specs/workflow-runtime.md), [messaging](specs/messaging-and-notification-plane.md).
 
-- [ ] `FORM-005` **[GATE_B][SOL_HIGH] Persist encrypted resumable form drafts without creating effects.**
+- [x] `FORM-005` **[GATE_B][SOL_HIGH] Persist encrypted resumable form drafts without creating effects.**
   - **Depends:** `FORM-001`, `FORM-002`, `DATA-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_005`.
@@ -5633,7 +5633,7 @@ closed.
   - **Refs:** [human work](specs/human-work-forms-and-rules.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
   - **Evidence (2026-09-03):** `TestTodo_WORK_010`, `TestTodo_WORK_010_Golden`, `TestTodo_WORK_010_Security`, `TestTodo_WORK_010_Mutation` in `internal/humanwork/workitem` (migration `00022_work_item_decision.sql`: append-once `work_item_decision` keyed by (tenant, work item) with the forbid_mutation trigger, registered in `definitions/storage/storage-disposition.yaml`; `RecordDecision` refuses a body whose digest differs from the item's completed output digest, a non-COMPLETED item or a kind mismatch; `steps/approval.Complete` and `steps/task.Submit` record the full typed decision or submission in the completion transaction); `go test -count=1 ./internal/humanwork/... ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `FORM-006` **[GATE_B][SOL_HIGH] Preserve authority and deadlines through alternate human channels.**
+- [x] `FORM-006` **[GATE_B][SOL_HIGH] Preserve authority and deadlines through alternate human channels.**
   - **Depends:** `FORM-004`, `FORM-005`, `MSG-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_006`.
@@ -7700,7 +7700,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Provenance](specs/provenance-graph-and-lineage.md), [AuthZ](specs/organization-scope-and-authz.md).
   - **Evidence (2026-09-03):** `TestTodo_ADMIN_003`, `_Property`, `_Security`, `_Mutation` in `internal/operations/explorer` (stream listing, event detail, chain verification reporting the exact broken sequence, correction lineage, bitemporal reads with the caller's decision enforced in SQL) and `TestTodo_ADMIN_003`, `_Security`, `_Mutation` in `internal/operations/authzsim` (`Simulate` wrapping `authz.Simulate` with policy-version match, `DiffDecisions` field-by-field, zero writes); `go test -count=1 ./internal/operations/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `ADMIN-004` **[GATE_A][SOL_HIGH] Implement connector/config operations centers.**
+- [x] `ADMIN-004` **[GATE_A][SOL_HIGH] Implement connector/config operations centers.**
   - **Depends:** `ADMIN-001`, `CONN-RT-007`, `CP-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_004`.
@@ -7710,7 +7710,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration platform](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md).
 
-- [ ] `ADMIN-005` **[GATE_B][SOL_HIGH] Implement incident and repair center.**
+- [x] `ADMIN-005` **[GATE_B][SOL_HIGH] Implement incident and repair center.**
   - **Depends:** `ADMIN-001`, `OPS-004`, `SVC-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_005`.
@@ -7720,7 +7720,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Incident management](specs/incident-management.md), [repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `ADMIN-006` **[GATE_A][SOL_HIGH] Implement support-safe diagnostic sessions.**
+- [x] `ADMIN-006` **[GATE_A][SOL_HIGH] Implement support-safe diagnostic sessions.**
   - **Depends:** `ADMIN-001`, `TRUST-021`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_006`.
@@ -7730,7 +7730,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Support access](specs/platform-responsibility-boundaries.md), [HRIS DataOps](specs/hris-admin-dataops.md).
 
-- [ ] `ADMIN-007` **[GATE_A][SOL_HIGH] Run resumable evidence exports with offline verification.**
+- [x] `ADMIN-007` **[GATE_A][SOL_HIGH] Run resumable evidence exports with offline verification.**
   - **Depends:** `ADMIN-001`, `LEDGER-012`, `TRUST-018`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_007`.
@@ -11380,7 +11380,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `I18N-001` **[PHASE_2][SOL_HIGH] Define LocaleContext and immutable translation catalog revisions.**
+- [x] `I18N-001` **[PHASE_2][SOL_HIGH] Define LocaleContext and immutable translation catalog revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLocaleAndTranslationCatalogRejectInvalidFallbackAndUnreviewedLegalContent`.
@@ -11390,7 +11390,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `I18N-002` **[PHASE_2][SOL_HIGH] Resolve translations and format names, dates, numbers and money deterministically.**
+- [x] `I18N-002` **[PHASE_2][SOL_HIGH] Resolve translations and format names, dates, numbers and money deterministically.**
   - **Depends:** `I18N-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLocalizationResolutionReturnsVersionedTextFormattingAndDirection`.
@@ -11400,7 +11400,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `I18N-003` **[CONFORMANCE][SOL_HIGH] Invalidate localized derivatives and prove channel parity.**
+- [x] `I18N-003` **[CONFORMANCE][SOL_HIGH] Invalidate localized derivatives and prove channel parity.**
   - **Depends:** `I18N-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLegalTranslationChangeInvalidatesRenderedDerivativesAcrossChannels`.
@@ -11500,7 +11500,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `REPORT-001` **[PHASE_2][SOL_HIGH] Define immutable report and dashboard definitions.**
+- [x] `REPORT-001` **[PHASE_2][SOL_HIGH] Define immutable report and dashboard definitions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestReportDefinitionRejectsUnknownFieldsMetricsParametersAndUnsafeDefaults`.
@@ -11510,7 +11510,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `REPORT-002` **[PHASE_2][SOL_HIGH] Execute, render and export reports with authorization and watermarks.**
+- [x] `REPORT-002` **[PHASE_2][SOL_HIGH] Execute, render and export reports with authorization and watermarks.**
   - **Depends:** `REPORT-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestReportExecutionBindsAuthorizationPopulationWatermarkAndExactOutput`.
@@ -11520,7 +11520,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `REPORT-003` **[CONFORMANCE][SOL_HIGH] Schedule dashboards and reproduce historical report results.**
+- [x] `REPORT-003` **[CONFORMANCE][SOL_HIGH] Schedule dashboards and reproduce historical report results.**
   - **Depends:** `REPORT-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestScheduledReportAndDashboardRefreshRemainReproducibleAndNonDisclosing`.
@@ -12585,7 +12585,7 @@ authorized by the master and execution plans.
   - **REFACTOR:** coverage reports consume witnesses; witnesses are generated from registries and never manually asserted.
   - **Refs:** [vertical slices](workflows/vertical-slices/README.md), [closure register](#product-decision-and-implementation-convergence), [truthful coverage](workflows/vertical-slices/README.md#truthful-current-coverage).
 
-- [ ] `UXFLOW-011` **[P0][SOL_HIGH] Version and migrate active user flows without semantic drift.**
+- [x] `UXFLOW-011` **[P0][SOL_HIGH] Version and migrate active user flows without semantic drift.**
   - **Depends:** `UXFLOW-001`, `UXFLOW-006`, `UXFLOW-010`, `INTENT-028`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve drafts, tasks, approvals, deep links and confirmations when experience definitions evolve`.
   - **TEST:** `TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`.
@@ -12785,7 +12785,7 @@ communications and trust reach real people and production environments. They do
 not add HCM domain scope. Each closes a boundary that could otherwise invalidate
 an already-designed BusinessIntent path.
 
-- [ ] `CLIENT-001` **[GATE_C][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
+- [x] `CLIENT-001` **[GATE_C][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
   - **Depends:** `EDGE-004`, `UX-002`, `TOOL-016`, `TOOL-018`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure the browser cannot execute stale, injected or cross-tenant client state that changes governed intent behavior`.
   - **TEST:** `TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState`.
@@ -12795,7 +12795,7 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** generated security headers and asset manifests share release provenance; the client remains a non-authoritative intent collector.
   - **Refs:** [experience boundary](specs/experience-ui-and-branding.md), [edge security](specs/platform-foundation-gap-closure.md), [release provenance](#33-cicd-release-admission-and-observability).
 
-- [ ] `CLIENT-002` **[PHASE_2][SOL_HIGH] Govern mobile, kiosk and offline client device state and resubmission.**
+- [x] `CLIENT-002` **[PHASE_2][SOL_HIGH] Govern mobile, kiosk and offline client device state and resubmission.**
   - **Depends:** `UX-008`, `UXFLOW-009`, `AUTHN-004`, `EDGE-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve identity, privacy and idempotency on shared, intermittently connected and managed or unmanaged devices`.
   - **TEST:** `TestMobileKioskOfflineStateIsDeviceBoundExpiringPrivateAndIdempotentlyResubmitted`.
@@ -12885,7 +12885,7 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** generate common flow assertions from UserFlowRecord and keep environment-specific drivers separate.
   - **Refs:** [accessibility assurance](specs/platform-foundation-gap-closure.md), [experience](specs/experience-ui-and-branding.md), [user flows](user-flows/README.md).
 
-- [ ] `STATUS-001` **[GATE_A][TERRA] Publish accurate tenant-scoped service status and incident advisories.**
+- [x] `STATUS-001` **[GATE_A][TERRA] Publish accurate tenant-scoped service status and incident advisories.**
   - **Depends:** `OPS-004`, `OPS-005`, `MSG-001`, `OBS-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS; DIRECT=none; WHY=communicate service impact and recovery without leaking tenant existence, security detail or speculative root cause`.
   - **TEST:** `TestStatusPublicationMatchesIncidentScopeStateSLOAndCustomerDisclosurePolicy`.

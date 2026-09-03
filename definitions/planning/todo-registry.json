@@ -439,7 +439,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Integration platform](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMIN-005",
@@ -462,7 +462,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Incident management](specs/incident-management.md), [repair](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMIN-006",
@@ -484,7 +484,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Support access](specs/platform-responsibility-boundaries.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMIN-007",
@@ -509,7 +509,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Audit evidence](specs/platform-responsibility-boundaries.md), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMIN-008",
@@ -760,7 +760,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Talent/experience/case models](data/models/talent-experience-cases.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `ANON-001` test matrix and acceptance behavior in `internal/trust/confidentialactor`; PASS; `go test -p 1 ./internal/trust/confidentialactor` and `go vet ./internal/trust/confidentialactor` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ANON-002",
@@ -2162,7 +2163,8 @@
     "refactor": "transaction bundling occurs through explicit unit-of-work capabilities and never by leaking database transactions across package APIs",
     "refs": "[Database materialization](#26-postgresql-database-and-model-materialization), [platform responsibilities](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `ARCH-GO-025` test matrix and acceptance behavior in `tools/quality/storagearch`; PASS; `go test -p 1 ./tools/quality/storagearch` and `go vet ./tools/quality/storagearch` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-026",
@@ -2189,7 +2191,8 @@
     "refactor": "no context object grants ambient access to every HCM fact or adapter",
     "refs": "[Platform planes](specs/platform-plane-model.md), [Phase 1 scope](execution-plan.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `ARCH-GO-026` test matrix and acceptance behavior in `tools/policy/crosscut`; PASS; `go test -p 1 ./tools/policy/crosscut` and `go vet ./tools/policy/crosscut` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-027",
@@ -3122,7 +3125,8 @@
     "refactor": "Leave, scheduling and qualification consume the same availability facts without sharing domain rules",
     "refs": "[People/workforce models](data/models/people-workforce.md), [wire time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `AVAIL-001` test matrix and acceptance behavior in `internal/domains/availability`; PASS; `go test -p 1 ./internal/domains/availability` and `go vet ./internal/domains/availability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "AVAIL-002",
@@ -3200,7 +3204,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire primitives](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `BAL-001` test matrix and acceptance behavior in `internal/domains/balance`; PASS; `go test -p 1 ./internal/domains/balance` and `go vet ./internal/domains/balance` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "BAL-002",
@@ -4357,7 +4362,7 @@
     "refactor": "generated security headers and asset manifests share release provenance; the client remains a non-authoritative intent collector",
     "refs": "[experience boundary](specs/experience-ui-and-branding.md), [edge security](specs/platform-foundation-gap-closure.md), [release provenance](#33-cicd-release-admission-and-observability)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CLIENT-002",
@@ -4392,7 +4397,7 @@
     "refactor": "channel adapters share the canonical request/idempotency contract; device policy never becomes HCM authorization by itself",
     "refs": "[cross-channel flows](user-flows/README.md), [authentication](specs/platform-foundation-gap-closure.md), [experience](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CLOCK-001",
@@ -6606,7 +6611,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Model conventions](data/models/modeling-conventions.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `CUSTOM-001` test matrix and acceptance behavior in `internal/customobject`; PASS; `go test -p 1 ./internal/customobject` and `go vet ./internal/customobject` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "CUSTOM-002",
@@ -6906,7 +6912,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `CYCLE-001` test matrix and acceptance behavior in `internal/engines/cycle`; PASS; `go test -p 1 ./internal/engines/cycle` and `go vet ./internal/engines/cycle` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "CYCLE-002",
@@ -9113,7 +9120,8 @@
     "refactor": "renderer receives field-masked typed bindings only",
     "refs": "[Document templates](data/models/connectivity-access-content.md), [experience localization](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `DOC-TEMPLATE-001` test matrix and acceptance behavior in `internal/documents/template`; PASS; `go test -p 1 ./internal/documents/template` and `go vet ./internal/documents/template` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "EDGE-001",
@@ -9415,7 +9423,8 @@
     "refactor": "graph declares business dependencies while connector queues enforce provider capacity independently",
     "refs": "[Transaction plan](specs/transaction-plan-and-commit-coordinator.md), [integration operation journal](specs/integration-platform.md), [workflow side effects](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `EFFECT-001` test matrix and acceptance behavior in `internal/effectgraph`; PASS; `go test -p 1 ./internal/effectgraph` and `go vet ./internal/effectgraph` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ELIG-001",
@@ -9591,7 +9600,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Wire time](data/models/wire-contract-primitives.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `ELIG-007` test matrix and acceptance behavior in `internal/engines/eligibility`; PASS; `go test -p 1 ./internal/engines/eligibility` and `go vet ./internal/engines/eligibility` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ELIG-008",
@@ -11057,7 +11067,7 @@
     "refactor": "draft retention and deletion follow classification policy",
     "refs": "[Workflow context](workflows/_engine/workflow-context-contract.md), [forms](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "FORM-006",
@@ -11085,7 +11095,7 @@
     "refactor": "assisted route never grants the assistant decision authority",
     "refs": "[Accessible experience](specs/experience-ui-and-branding.md), [workflow context](workflows/_engine/workflow-context-contract.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "FULFILL-001",
@@ -12262,7 +12272,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "I18N-002",
@@ -12291,7 +12301,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "I18N-003",
@@ -12320,7 +12330,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-001",
@@ -13712,7 +13722,8 @@
     "refactor": "provider-specific checks normalize to shared findings",
     "refs": "[Connector test bench](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `INTG-003` test matrix and acceptance behavior in `internal/connectivity/diagnostics`; PASS; `go test -p 1 ./internal/connectivity/diagnostics` and `go vet ./internal/connectivity/diagnostics` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "INTG-004",
@@ -14824,7 +14835,8 @@
     "refactor": "gRPC, grpcbridge, agent and admin surfaces invoke the same capability and resolve current truth server-side",
     "refs": "[Leave workflow](workflows/leave/leave-return-to-work.md), [BusinessIntent catalog](specs/business-intent-catalog.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `LEAVE-001` test matrix and acceptance behavior in `internal/domains/leave`; PASS; `go test -p 1 ./internal/domains/leave` and `go vet ./internal/domains/leave` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEAVE-002",
@@ -15485,7 +15497,8 @@
     "refactor": "crypto algorithm/version is recorded per event/epoch",
     "refs": "[Ledger integrity](specs/transaction-ledger-reconciliation-and-repair.md), [crypto models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `LEDGER-007` test matrix and acceptance behavior in `internal/data/ledger/hashchain`; PASS; `go test -p 1 ./internal/data/ledger/hashchain` and `go vet ./internal/data/ledger/hashchain` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEDGER-008",
@@ -15915,7 +15928,8 @@
     "refactor": "`Jurisdiction.Locality` becomes the last element of `locality_path` with the canonical encoding distinguishing an empty path from a one-element empty string; existing single-jurisdiction callers keep compiling",
     "refs": "[Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model), [Legal and Compliance Plane](specs/platform-architecture-catalog.md#912-legal-and-compliance-plane)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `LEGAL-009` test matrix and acceptance behavior in `internal/governance/legal`; PASS; `go test -p 1 ./internal/governance/legal` and `go vet ./internal/governance/legal` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-010",
@@ -16283,7 +16297,8 @@
     "refactor": "keep a backend-neutral bounded IR and conformance suite so CEL can be upgraded or replaced without changing proposal/workflow/rule digests silently",
     "refs": "[Rules and forms](specs/human-work-forms-and-rules.md), [Transformation engine](#37-shared-transformation-and-population-engines)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestCELBackendQualification`, `TestTodo_LIB_005_{Golden,Fuzz,Integration,Fault,Conformance}`, and `TestTodo_LIB_005_AdmissionDecision` in `tools/quality/celqual` validate the owned bounded contract, deterministic vectors, and that `github.com/google/cel-go` is absent from release targets. `definitions/architecture/cel-go-qualification.yaml` remains `NOT_ADMITTED`: no pinned CEL-Go adapter or real backend execution evidence exists, so LIB-005 remains open. Runtime/planning packages are unchanged; no `go.mod` entry was added"
   },
   {
     "id": "LIB-006",
@@ -17888,7 +17903,8 @@
     "refactor": "hold queries are authorization- and compartment-aware",
     "refs": "[Records management](specs/records-management-and-disposition.md), [privacy model](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `MODEL-027` test matrix and acceptance behavior in `internal/governance/legalhold`; PASS; `go test -p 1 ./internal/governance/legalhold` and `go vet ./internal/governance/legalhold` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-028",
@@ -18029,7 +18045,8 @@
     "refactor": "generate adapters and coverage from canonical PropertyDefinition; physical stores never redefine semantics",
     "refs": "[registry contracts](data/models/registry-and-coverage-contracts.md), [storage disposition](#26-postgresql-database-and-model-materialization), [provenance](specs/provenance-graph-and-lineage.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `MODEL-032` test matrix and acceptance behavior in `tools/gen/storagemanifest`; PASS; `go test -p 1 ./tools/gen/storagemanifest` and `go vet ./tools/gen/storagemanifest` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSG-001",
@@ -18055,7 +18072,8 @@
     "refactor": "Gate A does not require transactional messaging unless partner path scope-exchanges it",
     "refs": "[Messaging spec](specs/messaging-and-notification-plane.md), [communications slice](execution-plan.md#communications-plane-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `MSG-001` test matrix and acceptance behavior in `internal/messaging`; PASS; `go test -p 1 ./internal/messaging` and `go vet ./internal/messaging` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSG-002",
@@ -19221,7 +19239,8 @@
     "refactor": "semantic result/error mapping is shared with transport and metrics while presentation text stays replaceable and non-authoritative",
     "refs": "[severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [capability errors](specs/capability-registry-and-lifecycle.md), [endpoint errors](specs/http-grpc-endpoint-contract.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `OBS-010` test matrix and acceptance behavior in `internal/platform/observability`; PASS; `go test -p 1 ./internal/platform/observability` and `go vet ./internal/platform/observability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-011",
@@ -19250,7 +19269,8 @@
     "refactor": "one propagator policy is reused by HTTP, gRPC, workers, queues and connectors with explicit inbound/outbound trust profiles",
     "refs": "[propagation](specs/structured-logging-and-opentelemetry.md#propagation), [trusted request boundary](specs/http-grpc-endpoint-contract.md), [integration trust](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `OBS-011` test matrix and acceptance behavior in `internal/platform/telemetry/boundary`; PASS; `go test -p 1 ./internal/platform/telemetry/boundary` and `go vet ./internal/platform/telemetry/boundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-012",
@@ -20081,7 +20101,8 @@
     "refactor": "matrix/project relationships are distinct typed edges, not extra parent columns",
     "refs": "[Organization domain](specs/organization-and-relationship-domain.md), [org models](data/models/people-workforce.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `ORG-001` test matrix and acceptance behavior in `internal/domains/organization`; PASS; `go test -p 1 ./internal/domains/organization` and `go vet ./internal/domains/organization` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ORG-002",
@@ -23721,7 +23742,8 @@
     "refactor": "dependency closure is semantic and versioned; domain-specific materiality rules are inputs rather than workflow branches",
     "refs": "[Provenance graph](specs/provenance-graph-and-lineage.md), [proposal revalidation](specs/business-intent-and-change-request.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "REPLAN-002",
@@ -23824,7 +23846,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "REPORT-002",
@@ -23853,7 +23875,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "REPORT-003",
@@ -23882,7 +23904,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "REPRO-001",
@@ -23935,7 +23957,8 @@
     "refactor": "Position and Budget own domain validation while sharing lifecycle/fencing primitives; protocol does not invent remote ACID",
     "refs": "[Position reservation](specs/position-and-headcount-domain.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `RESERVE-001` test matrix and acceptance behavior in `internal/resource/reservation`; PASS; `go test -p 1 ./internal/resource/reservation` and `go vet ./internal/resource/reservation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "RESIDENCY-001",
@@ -25933,7 +25956,7 @@
     "refactor": "status channels render one CustomerAdvisory model; operators do not hand-edit independent state",
     "refs": "[incident management](specs/incident-management.md), [customer communication](specs/platform-foundation-gap-closure.md), [SLOs](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "STORE-001",
@@ -27081,7 +27104,8 @@
     "refactor": "one physical cell is acceptable; logical fencing is not optional",
     "refs": "[Tenant cells](data/models/operations-production.md), [lifecycle ownership](specs/platform-responsibility-boundaries.md#tenant-provisioning-and-lifecycle)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `TENANT-001` test matrix and acceptance behavior in `internal/domains/tenant`; PASS; `go test -p 1 ./internal/domains/tenant` and `go vet ./internal/domains/tenant` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TENANT-002",
@@ -27659,7 +27683,8 @@
     "refactor": "the check reads the release SBOM, not the repository tree",
     "refs": "[Release gates](specs/go-only-technology-constitution.md#release-gates), [cutover rules](specs/legacy-implementation-baseline.md#cutover-rules)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `TOOL-015` test matrix and acceptance behavior in `tools/quality/releaseboundary`; PASS; `go test -p 1 ./tools/quality/releaseboundary` and `go vet ./tools/quality/releaseboundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-016",
@@ -28243,7 +28268,8 @@
     "refactor": "database defense-in-depth may narrow but never broaden scope",
     "refs": "[Data-layer enforcement](plan.md#16-strategic-decisions), [organization AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `TRUST-012` test matrix and acceptance behavior in `internal/trust/authz`; PASS; `go test -p 1 ./internal/trust/authz` and `go vet ./internal/trust/authz` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-013",
@@ -28415,7 +28441,8 @@
     "refactor": "rescans are replay-safe and old unsafe derivatives are revoked",
     "refs": "[Foundation content safety](specs/platform-foundation-gap-closure.md), [document processing models](data/models/connectivity-access-content.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `TRUST-019` test matrix and acceptance behavior in `internal/trust/content`; PASS; `go test -p 1 ./internal/trust/content` and `go vet ./internal/trust/content` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-020",
@@ -29055,7 +29082,7 @@
     "refactor": "use GWC primitives without coupling domain rules to component code",
     "refs": "[Go-only runtime](plan.md#518-go-core-contract-first-and-open-source-first), [Gate A UX](execution-plan.md#gate-a--paid-design-partner-observation)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UX-003",
@@ -29133,7 +29160,7 @@
     "refactor": "client never guesses provider outcome",
     "refs": "[Multidimensional completion](plan.md#63-change-request-lifecycle), [integration ambiguity](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UX-006",
@@ -29160,7 +29187,7 @@
     "refactor": "UI labels, favorites and recent actions are projections over stable semantic IDs, not independent command registries",
     "refs": "[Experience plane](specs/experience-ui-and-branding.md), [feature-intent conformance](#6-businessintent-capabilities-governance-and-transaction-integrity)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UX-007",
@@ -29188,7 +29215,7 @@
     "refactor": "center composes owner APIs and projections; it owns no workflow, approval, messaging or intent truth",
     "refs": "[Human work](specs/human-work-forms-and-rules.md), [Messaging](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UX-008",
@@ -29216,7 +29243,7 @@
     "refactor": "channel-specific presentation never forks business rules or intent definitions",
     "refs": "[Accessibility](specs/experience-ui-and-branding.md), [grpcbridge parity](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UX-QUAL-001",
@@ -29269,7 +29296,7 @@
     "refactor": "flow prose and diagrams are generated views over one record; they never become a parallel runtime or business-rule registry",
     "refs": "[user-flow record](user-flows/README.md#userflowrecord), [experience contract](specs/experience-ui-and-branding.md), [vertical-slice record](workflows/vertical-slices/README.md#complete-vertical-slice-record)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-002",
@@ -29297,7 +29324,7 @@
     "refactor": "flows consume PrincipalContext/governance receipts; they never define roles or authorization rules",
     "refs": "[participant vocabulary](user-flows/README.md#participant-vocabulary), [AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-003",
@@ -29325,7 +29352,7 @@
     "refactor": "generate action and flow reverse indexes from the intent registry; display labels remain localized projections",
     "refs": "[flow catalog](user-flows/catalog.md), [BusinessIntent catalog](specs/business-intent-catalog.md), [action discovery](#17-experience-api-and-accessibility)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-004",
@@ -29355,7 +29382,7 @@
     "refactor": "one server-owned state presentation contract drives page, message and assistive announcements without owning lifecycle truth",
     "refs": "[state matrix](user-flows/README.md#state-presentation-matrix), [multidimensional completion](specs/business-intent-and-change-request.md), [truthful UX](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-005",
@@ -29386,7 +29413,7 @@
     "refactor": "shared mechanics own revision/conflict/presentation; domain schemas, calculations and materiality remain semantic-owner contracts",
     "refs": "[requested input versus truth](user-flows/README.md#requested-input-versus-server-truth), [forms](specs/human-work-forms-and-rules.md), [intent proposals](specs/business-intent-and-change-request.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-006",
@@ -29417,7 +29444,7 @@
     "refactor": "deep links locate owner resources; capability gateway reauthorizes every read/action and channel adapters own protected local storage policy",
     "refs": "[user-flow record](user-flows/README.md#userflowrecord), [sessions](specs/platform-foundation-gap-closure.md), [Intent Center](#17-experience-api-and-accessibility)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-007",
@@ -29449,7 +29476,7 @@
     "refactor": "recovery presentation consumes operation/reconciliation/repair contracts; it does not diagnose provider state itself",
     "refs": "[repair user flow](user-flows/reference/dataops-reconcile-and-repair.md), [integration ambiguity](specs/integration-platform.md), [reconciliation and repair](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-008",
@@ -29480,7 +29507,7 @@
     "refactor": "page/component checks feed flow coverage but cannot substitute for multi-step participant testing",
     "refs": "[maximal configuration](user-flows/README.md#maximal-configuration), [accessibility contract](specs/experience-ui-and-branding.md#accessibility-contract), [manual continuity](specs/platform-foundation-gap-closure.md#10-accessibility-assurance-platform)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-009",
@@ -29513,7 +29540,7 @@
     "refactor": "channel renderers and adapters consume generated flow/page/action contracts; no channel-specific domain handler exists",
     "refs": "[surface vocabulary](user-flows/README.md#surface-vocabulary), [channel parity](specs/go-only-technology-constitution.md), [messaging](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-010",
@@ -29546,7 +29573,7 @@
     "refactor": "share finding/todo schemas with vertical-slice convergence while preserving flow-specific participant-visible evidence",
     "refs": "[flow extraction](user-flows/README.md#flow-to-todo-and-tdd-extraction), [initial catalog](user-flows/catalog.md), [vertical-slice gap compiler](workflows/vertical-slices/gap-register.md#fixed-point-rule)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "UXFLOW-011",
@@ -29579,7 +29606,7 @@
     "refactor": "derive flow migrations from versioned action/state contracts, not route-specific code",
     "refs": "[user-flow contract](user-flows/README.md), [flow archetypes](user-flows/archetypes.md), [intent evolution](#exact-initial-businessintent-delivery-closure)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WAGE-001",
@@ -32150,7 +32177,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rules and decisions](data/models/rules-and-decisions.md), [integration mappings](specs/integration-platform.md), [DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Declared `XFORM-001` test matrix and acceptance behavior in `internal/engines/transformation`; PASS; `go test -p 1 ./internal/engines/transformation` and `go vet ./internal/engines/transformation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "XFORM-002",
