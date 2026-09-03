@@ -1,0 +1,25 @@
+# TOOL-022 provider-independent Toxiproxy qualification contract.
+version: 1
+tool: Toxiproxy
+verdict: QUALIFIED
+scope:
+  covers:
+    - seeded and ordered latency, timeout, reset, half-close, truncation and bandwidth schedules
+    - recording proxy identity, schedule and timeline for each scenario
+    - durable workflow/transaction and duplicate-effect oracle semantics
+  excludes:
+    - production topology or application runtime dependency on a proxy
+    - nondeterministic live network behavior in unit tests
+    - real endpoint, database or external-process availability
+routing:
+  in_process_contract: "tools/quality/toxiproxykit"
+  live_faults: "TOOL-014 ephemeral integration environment with a digest-pinned injector"
+evidence:
+  - {test: TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule, package: tools/quality/toxiproxykit}
+  - {test: TestTodo_TOOL_022_Golden, package: tools/quality/toxiproxykit}
+  - {test: TestTodo_TOOL_022_Race, package: tools/quality/toxiproxykit}
+  - {test: TestTodo_TOOL_022_Integration, package: tools/quality/toxiproxykit}
+  - {test: TestTodo_TOOL_022_Fault, package: tools/quality/toxiproxykit}
+  - {test: TestTodo_TOOL_022_Conformance, package: tools/quality/toxiproxykit}
+command: "go test -count=1 ./tools/quality/toxiproxykit/..."
+recorded: "2026-09-03"

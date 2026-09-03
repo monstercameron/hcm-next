@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/tools/policy/crosscut"
@@ -36,6 +37,9 @@ func TestCrossCuttingPackagesRejectOmniscientImports(t *testing.T) {
 	}
 	if v := crosscut.CheckEdge(module(), module()+"/internal/trust/authz", module()+"/internal/intelligence/ranker"); v == nil {
 		t.Fatal("intelligence import must be rejected in Phase 1")
+	}
+	if v := crosscut.CheckEdge(module(), module()+"/internal/intelligence/explain", module()+"/internal/domains/people"); v == nil {
+		t.Fatal("intelligence must not import a concrete domain")
 	}
 }
 
@@ -100,6 +104,60 @@ func TestTodo_ARCH_GO_026_Conformance(t *testing.T) {
 func TestTodo_ARCH_GO_026_Mutation(t *testing.T) {
 	if v := crosscut.CheckEdge(module(), module()+"/internal/trust/authz", module()+"/internal/domains/people/store"); v == nil {
 		t.Fatal("mutation should still be caught")
+	}
+}
+
+func TestScanDirChecksProductionImportsAndSkipsTests(t *testing.T) {
+	root := t.TempDir()
+	write := func(name, body string) {
+		t.Helper()
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("internal/trust/authz/policy.go", `package authz
+import _ "github.com/monstercameron/hcm-next/internal/domains/people/store"
+`)
+	write("internal/operations/reconciler.go", `package operations
+import _ "github.com/monstercameron/hcm-next/internal/agent/runtime"
+`)
+	// Test-only adapter usage must not create a production boundary finding.
+	write("internal/trust/authz/policy_test.go", `package authz
+import _ "github.com/monstercameron/hcm-next/internal/data/postgres"
+`)
+	got, err := crosscut.ScanDir(root, module())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("ScanDir returned %d violations, want 2: %+v", len(got), got)
+	}
+	if got[0].File > got[1].File {
+		t.Fatalf("violations are not deterministic/sorted: %+v", got)
+	}
+	for _, v := range got {
+		if strings.HasSuffix(v.File, "_test.go") {
+			t.Errorf("test file leaked into scan: %+v", v)
+		}
+		if v.File == "" {
+			t.Errorf("source file missing from violation: %+v", v)
+		}
+	}
+}
+
+func TestScanDirRejectsMalformedProductionSource(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "internal", "trust"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "internal", "trust", "bad.go"), []byte("package trust\nimport ("), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := crosscut.ScanDir(root, module()); err == nil {
+		t.Fatal("expected malformed source error")
 	}
 }
 

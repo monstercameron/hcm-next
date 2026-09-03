@@ -71,6 +71,78 @@ type Requirements struct {
 	FailurePreservation string   `yaml:"failure_preservation"`
 }
 
+// ValidateQualification verifies the complete, machine-readable decision
+// record before any adoption decision is considered. Keeping this check in
+// the dependency-free qualification package means a malformed or accidentally
+// optimistic record cannot bypass the REJECT boundary just because its YAML
+// still parses successfully.
+func ValidateQualification(q Qualification) error {
+	if q.Version != 1 || q.Todo != "LIB-009" || q.Module != CandidateModule {
+		return fmt.Errorf("testcontainerskit: qualification identity is invalid (version=%d todo=%q module=%q)", q.Version, q.Todo, q.Module)
+	}
+	if q.Role != "test-only" || q.Verdict != "REJECT" {
+		return fmt.Errorf("testcontainerskit: qualification must remain a test-only REJECT (role=%q verdict=%q)", q.Role, q.Verdict)
+	}
+	if !q.RuntimeDependencyGraphUnchanged {
+		return errors.New("testcontainerskit: runtime dependency graph must be unchanged")
+	}
+	if q.RuntimeProbe.ModuleInGoMod != "absent" || q.RuntimeProbe.ModuleInGoSum != "absent" || q.RuntimeProbe.DockerDaemon != "unavailable_at_recording" {
+		return fmt.Errorf("testcontainerskit: runtime probe does not describe a no-admission review: %#v", q.RuntimeProbe)
+	}
+	wantWorkloads := []string{"postgres", "s3", "smtp", "provider"}
+	if !slicesEqual(q.AdoptionRequirements.Workloads, wantWorkloads) {
+		return fmt.Errorf("testcontainerskit: adoption workloads = %v, want %v", q.AdoptionRequirements.Workloads, wantWorkloads)
+	}
+	if q.AdoptionRequirements.ImagePin != "each workload image must use an immutable sha256 digest; floating tags are forbidden" ||
+		q.AdoptionRequirements.Namespace != "each run must use an opaque tc- prefixed namespace unique to that run" ||
+		q.AdoptionRequirements.Readiness != "readiness must be deterministic and bounded to two minutes or less" ||
+		q.AdoptionRequirements.Cleanup != "cleanup may target only the harness-owned run namespace" ||
+		q.AdoptionRequirements.FailurePreservation != "failures must preserve diagnostic evidence until explicit operator cleanup" {
+		return errors.New("testcontainerskit: adoption requirements drifted")
+	}
+	if strings.TrimSpace(q.Decision) == "" || !strings.Contains(q.Decision, "REJECT:") || !strings.Contains(q.Decision, CandidateModule) {
+		return errors.New("testcontainerskit: decision must retain the rejected module basis")
+	}
+	if strings.TrimSpace(q.RemovalPath) == "" || q.Command != "go test -count=1 ./tools/quality/testcontainerskit" {
+		return errors.New("testcontainerskit: removal path or qualification command is missing")
+	}
+	if len(q.Evidence) != 6 {
+		return fmt.Errorf("testcontainerskit: evidence rows = %d, want 6", len(q.Evidence))
+	}
+	wantTests := map[string]bool{
+		"TestTestcontainersQualification": false,
+		"TestTodo_LIB_009_Property":       false,
+		"TestTodo_LIB_009_Golden":         false,
+		"TestTodo_LIB_009_Race":           false,
+		"TestTodo_LIB_009_Integration":    false,
+		"TestTodo_LIB_009_Conformance":    false,
+	}
+	for _, row := range q.Evidence {
+		if _, ok := wantTests[row.Test]; !ok || wantTests[row.Test] || row.Package != "tools/quality/testcontainerskit" {
+			return fmt.Errorf("testcontainerskit: invalid evidence row %#v", row)
+		}
+		wantTests[row.Test] = true
+	}
+	for test, found := range wantTests {
+		if !found {
+			return fmt.Errorf("testcontainerskit: evidence missing %s", test)
+		}
+	}
+	return nil
+}
+
+func slicesEqual(got, want []string) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // AdoptionPlan is an owned, dependency-free pre-admission contract. A future
 // adapter must satisfy it before Testcontainers is added to go.mod; no
 // Testcontainers type crosses this boundary.

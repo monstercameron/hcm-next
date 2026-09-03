@@ -1,0 +1,90 @@
+package releaseboundary_test
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/monstercameron/hcm-next/tools/quality/releaseboundary"
+	"github.com/monstercameron/hcm-next/tools/quality/sbom"
+)
+
+func document(component string) sbom.Document {
+	return sbom.Document{
+		Schema:     sbom.Schema,
+		Generator:  sbom.Generator{Name: "hcmnext-sbom", Version: "test", Go: "go1.26.3"},
+		Graph:      sbom.GraphSource{Tool: "go version -m", Version: "go1.26.3"},
+		Subject:    sbom.Subject{Name: "hcmnext-api", Digest: "sha256:" + strings.Repeat("a", 64)},
+		Components: []sbom.Component{{Type: "go-module", Name: "example.invalid/app", Version: "(devel)", Hash: "sha256:" + strings.Repeat("b", 64), SourceDigest: "sha256:" + strings.Repeat("c", 64), License: "MIT", Main: true}, {Type: "go-module", Name: component, Version: "v1.0.0", Hash: "h1:" + strings.Repeat("A", 44), SourceDigest: "sha256:" + strings.Repeat("d", 64), License: "MIT"}},
+	}
+}
+
+// TestReleaseContainsNoLegacyRuntime is TOOL-015's primary boundary test.
+func TestReleaseContainsNoLegacyRuntime(t *testing.T) {
+	for _, name := range []string{"github.com/acme/telemetry/v2", "google.golang.org/grpc"} {
+		if err := releaseboundary.Check(document(name)); err != nil {
+			t.Errorf("allowed Go component %q rejected: %v", name, err)
+		}
+	}
+	for _, name := range []string{"github.com/acme/node-runtime", "github.com/acme/typescript-runtime", "github.com/acme/react-renderer", "github.com/acme/vite-runtime"} {
+		if err := releaseboundary.Check(document(name)); err == nil {
+			t.Errorf("excluded component %q accepted", name)
+		}
+	}
+}
+
+func TestTodo_TOOL_015_Golden(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "release.sbom.json")
+	d := document("google.golang.org/grpc")
+	data, err := d.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := releaseboundary.CheckFile(path); err != nil {
+		t.Fatalf("valid SBOM rejected: %v", err)
+	}
+	bad := document("npm")
+	data, err = bad.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := releaseboundary.CheckFile(path); err == nil {
+		t.Fatal("excluded SBOM accepted")
+	}
+}
+
+// TestTodo_TOOL_015_Integration proves the public file boundary is enforced
+// when a release SBOM is supplied by the build pipeline.
+func TestTodo_TOOL_015_Integration(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "release.sbom.json")
+	data, err := document("github.com/acme/react-runtime").Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := releaseboundary.CheckFile(path); err == nil {
+		t.Fatal("release pipeline accepted a legacy runtime")
+	}
+}
+
+func TestCheckFileErrors(t *testing.T) {
+	if err := releaseboundary.CheckFile(""); err == nil {
+		t.Fatal("empty path accepted")
+	}
+	path := filepath.Join(t.TempDir(), "bad.json")
+	if err := os.WriteFile(path, []byte("{"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := releaseboundary.CheckFile(path); err == nil {
+		t.Fatal("malformed SBOM accepted")
+	}
+}

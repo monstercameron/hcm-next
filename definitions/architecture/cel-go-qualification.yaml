@@ -1,0 +1,35 @@
+# LIB-005 qualification record. CEL-Go is intentionally not admitted yet.
+version: 1
+todo: LIB-005
+module: github.com/google/cel-go
+verdict: NOT_ADMITTED
+backend_contract: tools/quality/celqual
+bounded_subset:
+  ambient_time: forbidden
+  randomness: forbidden
+  io_and_network: forbidden
+  reflection_and_provider_escape: forbidden
+  unknown_values: explicit_contract_required
+  map_iteration: canonicalization_required
+  max_nodes: 32
+  max_cost: 48
+decision: >-
+  BLOCKED_PENDING_DEPENDENCY_ADMISSION: the module is not present in go.mod or
+  dependency-roles.yaml. The backend-neutral checker and golden vectors qualify
+  the owned boundary only; no CEL-Go runtime is reachable from production code.
+replacement_path: >-
+  Admit a pinned CEL-Go version through LIB-001, implement an adapter behind
+  this contract, and rerun every LIB-005 matrix test before production use.
+evidence:
+  - test: TestCELBackendQualification
+    package: tools/quality/celqual
+  - test: TestTodo_LIB_005_Golden
+    package: tools/quality/celqual
+  - test: FuzzTodo_LIB_005
+    package: tools/quality/celqual
+  - test: TestTodo_LIB_005_Integration
+    package: tools/quality/celqual
+  - test: TestTodo_LIB_005_Fault
+    package: tools/quality/celqual
+  - test: TestTodo_LIB_005_Conformance
+    package: tools/quality/celqual

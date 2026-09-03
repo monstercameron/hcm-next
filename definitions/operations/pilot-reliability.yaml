@@ -1,0 +1,52 @@
+version: 1
+module: pilot-path
+effective_at: "2026-09-01T00:00:00Z"
+owner: reliability-management
+slis:
+  - id: pilot.read.availability
+    version: v1
+    capability: pilot.read
+    query: transaction_path_success_events / transaction_path_valid_events
+    denominator: valid transaction-path read observations
+    window: 1h
+    staleness_bound: 5m
+    owner: pilot-operations
+    availability_target: 0.995
+    latency_target_ms: 750
+  - id: pilot.write.availability
+    version: v1
+    capability: pilot.write
+    query: transaction_path_good_commits / transaction_path_valid_commits
+    denominator: valid transaction-path write observations
+    window: 1h
+    staleness_bound: 5m
+    owner: pilot-operations
+    availability_target: 0.99
+    latency_target_ms: 1000
+slos:
+  - id: pilot.read.slo
+    version: v1
+    sli: pilot.read.availability
+    target: 0.995
+    latency_target_ms: 750
+    window: 1h
+    owner: reliability-management
+    breach_action: freeze risky releases and declare incident
+    at_risk_action: increase sampling and review capacity
+    contractual: false
+  - id: pilot.write.slo
+    version: v1
+    sli: pilot.write.availability
+    target: 0.99
+    latency_target_ms: 1000
+    window: 1h
+    owner: reliability-management
+    breach_action: freeze risky releases and shed lower-priority work
+    at_risk_action: increase sampling and review capacity
+    contractual: false
+error_budget_actions:
+  - id: pilot-half-budget
+    version: v1
+    threshold: 0.5
+    action: increase sampling and review capacity
+    owner: reliability-management

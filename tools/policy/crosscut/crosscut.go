@@ -1,11 +1,22 @@
 package crosscut
 
 import (
+	"fmt"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 )
 
 var crossCuttingRoots = []string{
 	"internal/trust",
+	// Intelligence and agents are optional overlays in Phase 1. Keeping their
+	// roots here means introducing either package cannot silently acquire a
+	// synchronous domain/store dependency.
+	"internal/intelligence",
+	"internal/agent",
 	"internal/platform/telemetry",
 	"internal/platform/bootstrap",
 	"internal/operations",
@@ -57,6 +68,7 @@ func isForbiddenTarget(importedRel string) bool {
 }
 
 type Violation struct {
+	File     string `json:",omitempty"`
 	Importer string
 	Imported string
 	Rule     string
@@ -92,6 +104,67 @@ func CheckGraph(module string, edges [][2]string) []Violation {
 		}
 	}
 	return out
+}
+
+// ScanDir parses production Go files below root and checks each direct import
+// made by a cross-cutting package. Tests and testdata are deliberately
+// excluded: they may use fixtures or adapters without changing the compiled
+// dependency graph. Imports are parsed rather than loaded, so this checker
+// remains useful while a package is being developed or is platform-specific.
+func ScanDir(root, module string) ([]Violation, error) {
+	var violations []Violation
+	fset := token.NewFileSet()
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			if info.Name() == ".git" || info.Name() == "vendor" || info.Name() == "testdata" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		file, err := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
+		if err != nil {
+			return fmt.Errorf("parse %s: %w", path, err)
+		}
+		rel, err := filepath.Rel(root, filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		pkg := strings.TrimSuffix(filepath.ToSlash(rel), "/")
+		if pkg == "." {
+			pkg = ""
+		}
+		importer := module
+		if pkg != "" {
+			importer += "/" + pkg
+		}
+		for _, spec := range file.Imports {
+			imported := strings.Trim(spec.Path.Value, `"`)
+			if v := CheckEdge(module, importer, imported); v != nil {
+				v.File = path
+				violations = append(violations, *v)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(violations, func(i, j int) bool {
+		if violations[i].File != violations[j].File {
+			return violations[i].File < violations[j].File
+		}
+		if violations[i].Imported != violations[j].Imported {
+			return violations[i].Imported < violations[j].Imported
+		}
+		return violations[i].Rule < violations[j].Rule
+	})
+	return violations, nil
 }
 
 func AllowedPorts() []string {

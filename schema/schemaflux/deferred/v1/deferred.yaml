@@ -1,0 +1,290 @@
+# Deferred-domain SchemaFlux sources (MSRC-006).
+#
+# These are reviewed conformance vocabulary only. Every definition is DRAFT,
+# uncovered, and read-model shaped; EXTERNAL_OBSERVATION is an explicit
+# authority gate and must not be interpreted as a production mutation boundary.
+# They are intentionally outside entities/v1 so MSRC-007 cannot publish them
+# until each domain receives a funded Go model and authority registration.
+family: deferred
+family_version: 1
+source_docs:
+  - planning/data/models/rewards-payroll-workforce.md
+  - planning/data/models/talent-experience-cases.md
+  - planning/data/models/assurance-intelligence-platform.md
+entities:
+  - name: PayrollSource
+    version: 1
+    key: payroll_source
+    owner_domain: PAYROLL
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/rewards-payroll-workforce.md#payroll
+    summary: Deferred payroll enrollment, calculation and settlement vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.PayrollSource.source_key
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+  - name: BenefitsSource
+    version: 1
+    key: benefits_source
+    owner_domain: BENEFITS
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/rewards-payroll-workforce.md#benefits
+    summary: Deferred benefits programs, elections and carrier vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.BenefitsSource.source_key
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+  - name: TimeSource
+    version: 1
+    key: time_source
+    owner_domain: TIME
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/rewards-payroll-workforce.md#time-attendance-and-scheduling
+    summary: Deferred time, attendance, schedule and balance vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.TimeSource.source_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.operations_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+  - name: LeaveSource
+    version: 1
+    key: leave_source
+    owner_domain: LEAVE
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/rewards-payroll-workforce.md#leave-absence-and-accommodation
+    summary: Deferred leave, absence, accommodation and protected evidence vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.LeaveSource.source_key
+        presence: REQUIRED
+        classification: MEDICAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+  - name: RecruitingSource
+    version: 1
+    key: recruiting_source
+    owner_domain: RECRUITING
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#recruiting-and-ats
+    summary: Deferred recruiting, candidate, screening and offer vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.RecruitingSource.source_key
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+  - name: TalentSource
+    version: 1
+    key: talent_source
+    owner_domain: TALENT
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#talent-and-performance
+    summary: Deferred goals, performance, succession and mobility vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.TalentSource.source_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+  - name: LearningSource
+    version: 1
+    key: learning_source
+    owner_domain: LEARNING
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#learning-and-skills
+    summary: Deferred learning, skills, credentials and certification vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.LearningSource.source_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+  - name: CaseSource
+    version: 1
+    key: case_source
+    owner_domain: CASES
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#employee-experience-and-cases
+    summary: Deferred employee-relations and case coordination vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.CaseSource.source_key
+        presence: REQUIRED
+        classification: CASE
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+  - name: MobilitySource
+    version: 1
+    key: mobility_source
+    owner_domain: MOBILITY
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#global-mobility-and-immigration
+    summary: Deferred mobility, immigration, work authorization and tax residence vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.MobilitySource.source_key
+        presence: REQUIRED
+        classification: IMMIGRATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+  - name: SafetySource
+    version: 1
+    key: safety_source
+    owner_domain: SAFETY
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/talent-experience-cases.md#safety-and-workplace
+    summary: Deferred workplace incident, injury and regulatory reporting vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.SafetySource.source_key
+        presence: REQUIRED
+        classification: MEDICAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+  - name: RegulatorySource
+    version: 1
+    key: regulatory_source
+    owner_domain: REGULATORY
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: Deferred regulatory obligation, filing and compliance evidence vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.RegulatorySource.source_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+  - name: AnalyticsSource
+    version: 1
+    key: analytics_source
+    owner_domain: ANALYTICS
+    class: READ_MODEL
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    command_boundary: EXTERNAL_OBSERVATION
+    source_ref: planning/data/models/assurance-intelligence-platform.md#reporting-metrics-and-analytics
+    summary: Deferred report, metric, dataset and disclosure vocabulary.
+    properties:
+      - name: source_key
+        go_type: string
+        schema_path: hcmnext.deferred.v1.AnalyticsSource.source_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT

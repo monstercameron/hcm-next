@@ -64,6 +64,9 @@ func acceptedPlan() testcontainerskit.AdoptionPlan {
 // contract is still checked without downloading or importing the candidate.
 func TestTestcontainersQualification(t *testing.T) {
 	q := loadQualification(t)
+	if err := testcontainerskit.ValidateQualification(q); err != nil {
+		t.Fatalf("qualification contract: %v", err)
+	}
 	if q.Version != 1 || q.Todo != "LIB-009" || q.Module != testcontainerskit.CandidateModule {
 		t.Fatalf("qualification identity = %#v", q)
 	}
@@ -86,6 +89,31 @@ func TestTestcontainersQualification(t *testing.T) {
 		if strings.Contains(string(data), testcontainerskit.CandidateModule) {
 			t.Fatalf("%s admits %s despite REJECT", name, testcontainerskit.CandidateModule)
 		}
+	}
+}
+
+// TestTodo_LIB_009_QualificationContract ensures each decision-record field
+// is part of the admission contract, rather than merely decorative YAML.
+func TestTodo_LIB_009_QualificationContract(t *testing.T) {
+	base := loadQualification(t)
+	cases := []struct {
+		name string
+		edit func(*testcontainerskit.Qualification)
+	}{
+		{"optimistic verdict", func(q *testcontainerskit.Qualification) { q.Verdict = "ADOPT" }},
+		{"admitted module", func(q *testcontainerskit.Qualification) { q.RuntimeProbe.ModuleInGoMod = "present" }},
+		{"missing workload", func(q *testcontainerskit.Qualification) { q.AdoptionRequirements.Workloads = nil }},
+		{"missing evidence", func(q *testcontainerskit.Qualification) { q.Evidence = q.Evidence[:5] }},
+		{"changed command", func(q *testcontainerskit.Qualification) { q.Command = "go test ./..." }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			q := base
+			tc.edit(&q)
+			if err := testcontainerskit.ValidateQualification(q); err == nil {
+				t.Fatal("invalid qualification accepted")
+			}
+		})
 	}
 }
 
