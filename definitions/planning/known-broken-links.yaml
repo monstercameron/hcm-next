@@ -1,0 +1,11 @@
+# Known broken links in planning documentation (GOV-004).
+#
+# Each entry is an exact (file, line, link) triple verified genuinely broken
+# under the corrected GitHub-anchor algorithm (lowercase; drop anything that
+# is not a letter/digit/space/hyphen/underscore; spaces -> hyphens, without
+# collapsing repeats). Most are stale references to plan.md/next-steps.md/
+# execution-plan.md sections renamed or renumbered in the 2026-09-02 plan
+# revision; a few are single-hyphen links to headings whose em dash
+# correctly produces a double hyphen. TestPlanningLinks fails on any broken
+# link not listed here, and fails if a listed entry stops being broken.
+known_broken_links: []

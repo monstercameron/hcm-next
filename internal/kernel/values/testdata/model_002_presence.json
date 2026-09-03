@@ -1,0 +1,69 @@
+{
+  "_owner": "kernel",
+  "_phase": "P1A",
+  "_todo": "MODEL-002",
+  "_note": "Wire form is <STATE>[:<escaped reason>] for non-VALUE states and VALUE:<strict base64url> for a value. No state encodes as an empty string, so a never-populated field can never decode as a state.",
+  "vectors": [
+    { "state": "ABSENT", "reason": "", "wire": "ABSENT" },
+    { "state": "NULL", "reason": "", "wire": "NULL" },
+    { "state": "UNKNOWN", "reason": "", "wire": "UNKNOWN" },
+    {
+      "state": "UNKNOWN",
+      "reason": "upstream connector offline",
+      "wire": "UNKNOWN:upstream%20connector%20offline"
+    },
+    { "state": "REDACTED", "reason": "", "wire": "REDACTED" },
+    {
+      "state": "REDACTED",
+      "reason": "classification: HIGHLY_RESTRICTED",
+      "wire": "REDACTED:classification%3A%20HIGHLY_RESTRICTED"
+    },
+    { "state": "UNAVAILABLE", "reason": "", "wire": "UNAVAILABLE" },
+    {
+      "state": "UNAVAILABLE",
+      "reason": "legal hold",
+      "wire": "UNAVAILABLE:legal%20hold"
+    },
+    { "state": "NOT_APPLICABLE", "reason": "", "wire": "NOT_APPLICABLE" },
+    {
+      "state": "NOT_APPLICABLE",
+      "reason": "worker is not on a pay cycle",
+      "wire": "NOT_APPLICABLE:worker%20is%20not%20on%20a%20pay%20cycle"
+    },
+    {
+      "_note": "the empty string is a real value and is not ABSENT",
+      "state": "VALUE",
+      "reason": "",
+      "value": "",
+      "wire": "VALUE:"
+    },
+    {
+      "state": "VALUE",
+      "reason": "",
+      "value": "gross-pay",
+      "wire": "VALUE:Z3Jvc3MtcGF5"
+    },
+    {
+      "_note": "a value that looks like a state token still encodes as a VALUE",
+      "state": "VALUE",
+      "reason": "",
+      "value": "UNKNOWN",
+      "wire": "VALUE:VU5LTk9XTg"
+    }
+  ],
+  "invalid_wire": [
+    "",
+    "PRESENT",
+    "STALE",
+    "UNSPECIFIED",
+    "PRESENCE_UNSPECIFIED",
+    "VALUE",
+    "value:Z3Jvc3MtcGF5",
+    "ABSENT:",
+    "NULL:x:y",
+    "VALUE:Z3Jvc3MtcGF5:extra",
+    "VALUE:!!!",
+    "UNKNOWN:%2f",
+    "UNKNOWN:%41"
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "_owner": "kernel",
+  "_phase": "P1A",
+  "_todo": "MODEL-003",
+  "_encoding": "canonical_hex = sign byte (00 zero, 01 positive, 02 negative) || declared scale as big-endian int32 || magnitude length as big-endian uint32 || minimal big-endian unscaled magnitude. Money appends the three uppercase currency bytes.",
+  "decimals": [
+    { "text": "0", "scale": 0, "string": "0", "canonical_hex": "000000000000000000" },
+    {
+      "text": "0.00",
+      "scale": 2,
+      "string": "0.00",
+      "canonical_hex": "000000000200000000"
+    },
+    { "text": "1", "scale": 0, "string": "1", "canonical_hex": "01000000000000000101" },
+    {
+      "text": "1.00",
+      "scale": 2,
+      "string": "1.00",
+      "canonical_hex": "01000000020000000164"
+    },
+    {
+      "text": "-1.00",
+      "scale": 2,
+      "string": "-1.00",
+      "canonical_hex": "02000000020000000164"
+    },
+    {
+      "text": "1.25",
+      "scale": 2,
+      "string": "1.25",
+      "canonical_hex": "0100000002000000017d"
+    },
+    {
+      "text": "-1.25",
+      "scale": 2,
+      "string": "-1.25",
+      "canonical_hex": "0200000002000000017d"
+    },
+    {
+      "text": "1234.56",
+      "scale": 2,
+      "string": "1234.56",
+      "canonical_hex": "01000000020000000301e240"
+    },
+    {
+      "_note": "same number at a wider declared scale is different canonical bytes: scale is material",
+      "text": "1234.56",
+      "scale": 4,
+      "string": "1234.5600",
+      "canonical_hex": "010000000400000003bc6100"
+    },
+    {
+      "text": "0.075000",
+      "scale": 6,
+      "string": "0.075000",
+      "canonical_hex": "0100000006000000030124f8"
+    },
+    {
+      "text": "999999999999999999",
+      "scale": 0,
+      "string": "999999999999999999",
+      "canonical_hex": "0100000000000000080de0b6b3a763ffff"
+    }
+  ],
+  "rounding": [
+    { "text": "2.5", "from_scale": 1, "to_scale": 0, "mode": "HALF_EVEN", "want": "2" },
+    { "text": "3.5", "from_scale": 1, "to_scale": 0, "mode": "HALF_EVEN", "want": "4" },
+    {
+      "text": "-2.5",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_EVEN",
+      "want": "-2"
+    },
+    {
+      "text": "-3.5",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_EVEN",
+      "want": "-4"
+    },
+    { "text": "2.5", "from_scale": 1, "to_scale": 0, "mode": "HALF_UP", "want": "3" },
+    { "text": "-2.5", "from_scale": 1, "to_scale": 0, "mode": "HALF_UP", "want": "-3" },
+    {
+      "text": "2.5",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_AWAY_FROM_ZERO",
+      "want": "3"
+    },
+    {
+      "text": "-2.5",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_AWAY_FROM_ZERO",
+      "want": "-3"
+    },
+    { "text": "2.5", "from_scale": 1, "to_scale": 0, "mode": "FLOOR", "want": "2" },
+    { "text": "-2.5", "from_scale": 1, "to_scale": 0, "mode": "FLOOR", "want": "-3" },
+    { "text": "2.5", "from_scale": 1, "to_scale": 0, "mode": "CEILING", "want": "3" },
+    { "text": "-2.5", "from_scale": 1, "to_scale": 0, "mode": "CEILING", "want": "-2" },
+    {
+      "text": "2.9",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "TOWARD_ZERO",
+      "want": "2"
+    },
+    {
+      "text": "-2.9",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "TOWARD_ZERO",
+      "want": "-2"
+    },
+    {
+      "text": "2.1",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "AWAY_FROM_ZERO",
+      "want": "3"
+    },
+    {
+      "text": "-2.1",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "AWAY_FROM_ZERO",
+      "want": "-3"
+    },
+    {
+      "text": "1.005",
+      "from_scale": 3,
+      "to_scale": 2,
+      "mode": "HALF_EVEN",
+      "want": "1.00"
+    },
+    {
+      "text": "1.015",
+      "from_scale": 3,
+      "to_scale": 2,
+      "mode": "HALF_EVEN",
+      "want": "1.02"
+    },
+    {
+      "text": "1.005",
+      "from_scale": 3,
+      "to_scale": 2,
+      "mode": "HALF_AWAY_FROM_ZERO",
+      "want": "1.01"
+    },
+    {
+      "text": "-1.005",
+      "from_scale": 3,
+      "to_scale": 2,
+      "mode": "HALF_AWAY_FROM_ZERO",
+      "want": "-1.01"
+    },
+    { "text": "0.5", "from_scale": 1, "to_scale": 0, "mode": "HALF_EVEN", "want": "0" },
+    {
+      "text": "-0.5",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_EVEN",
+      "want": "0"
+    },
+    {
+      "_note": "rounding a negative value to zero must not produce negative zero",
+      "text": "-0.4",
+      "from_scale": 1,
+      "to_scale": 0,
+      "mode": "HALF_EVEN",
+      "want": "0"
+    },
+    {
+      "text": "1.500",
+      "from_scale": 3,
+      "to_scale": 1,
+      "mode": "EXACT_REQUIRED",
+      "want": "1.5"
+    },
+    {
+      "text": "1.005",
+      "from_scale": 3,
+      "to_scale": 2,
+      "mode": "EXACT_REQUIRED",
+      "error": "ErrInexact"
+    },
+    {
+      "text": "1.5",
+      "from_scale": 1,
+      "to_scale": 3,
+      "mode": "EXACT_REQUIRED",
+      "want": "1.500"
+    }
+  ],
+  "money": [
+    {
+      "text": "1234.50",
+      "currency": "USD",
+      "scale": 2,
+      "string": "1234.50 USD",
+      "canonical_hex": "01000000020000000301e23a555344"
+    },
+    {
+      "text": "-0.01",
+      "currency": "EUR",
+      "scale": 2,
+      "string": "-0.01 EUR",
+      "canonical_hex": "02000000020000000101455552"
+    },
+    {
+      "text": "0.00",
+      "currency": "JPY",
+      "scale": 2,
+      "string": "0.00 JPY",
+      "canonical_hex": "0000000002000000004a5059"
+    }
+  ],
+  "invalid_decimals": [
+    { "text": "NaN", "scale": 2 },
+    { "text": "sNaN", "scale": 2 },
+    { "text": "Infinity", "scale": 2 },
+    { "text": "-Infinity", "scale": 2 },
+    { "text": "-0", "scale": 2 },
+    { "text": "-0.00", "scale": 2 },
+    { "text": "1.234", "scale": 2 },
+    { "text": "1e2", "scale": 2 },
+    { "text": "", "scale": 0 },
+    { "text": "+1", "scale": 0 },
+    { "text": "1.", "scale": 2 },
+    { "text": ".5", "scale": 2 },
+    { "text": "1,5", "scale": 2 },
+    { "text": " 1", "scale": 2 },
+    { "text": "0x10", "scale": 2 }
+  ]
+}

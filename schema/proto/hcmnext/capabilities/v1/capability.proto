@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package hcmnext.capabilities.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1;capabilitiesv1";
+
+// CapabilitySideEffectProfile mirrors the kernel side-effect classification
+// at capability granularity: can invoking this capability cause a material
+// mutation or effect, and of what class.
+enum CapabilitySideEffectProfile {
+  CAPABILITY_SIDE_EFFECT_PROFILE_UNSPECIFIED = 0;
+  CAPABILITY_SIDE_EFFECT_PROFILE_PURE = 1;
+  CAPABILITY_SIDE_EFFECT_PROFILE_READ_ONLY = 2;
+  CAPABILITY_SIDE_EFFECT_PROFILE_INTERNAL_MUTATION = 3;
+  CAPABILITY_SIDE_EFFECT_PROFILE_EXTERNAL_MUTATION = 4;
+  CAPABILITY_SIDE_EFFECT_PROFILE_IRREVERSIBLE_EXTERNAL_MUTATION = 5;
+}
+
+// SchemaRef names one versioned Protobuf schema by descriptor identity.
+message SchemaRef {
+  string schema_id = 1;
+  uint32 version = 2;
+  string protobuf_full_name = 3;
+}
+
+// DataDomainFieldSet names the data domains and, within them, the field
+// paths a capability reads or writes. An empty field_paths list means the
+// entire named domains.
+message DataDomainFieldSet {
+  repeated string data_domains = 1;
+  repeated string field_paths = 2;
+}
+
+// CapabilityDefinition is the core (required from the first endpoint) shape
+// of one registered capability, per
+// planning/specs/capability-registry-and-lifecycle.md. Extensions
+// (consistency/freshness, obligations, execution modes, bulk/population/cost
+// limits, SLO class, provenance, transport bindings, dependencies,
+// retention/evidence policy, conformance results) are added only when a real
+// consumer reads them.
+message CapabilityDefinition {
+  string capability_id = 1;
+  uint32 version = 2;
+  string owner_domain = 3;
+  SchemaRef request_schema = 4;
+  SchemaRef response_schema = 5;
+  SchemaRef error_schema = 6;
+  CapabilitySideEffectProfile side_effect_profile = 7;
+  DataDomainFieldSet read_data = 8;
+  DataDomainFieldSet write_data = 9;
+  string risk_class = 10;
+  string idempotency_policy_ref = 11;
+  // agent_eligible defaults to false: an agent initiator is not eligible to
+  // invoke this capability unless explicitly declared eligible.
+  bool agent_eligible = 12;
+}

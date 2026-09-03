@@ -1,0 +1,8 @@
+# Known unresolved todo dependencies in planning/todos.md (GOV-002 / GOV-016).
+#
+# Each entry is an exact (from, to) edge verified genuinely unresolved after
+# correct Depends parsing (backtick-token extraction, en-dash/hyphen/"to"
+# range expansion, [RETIRED] resolves-as-satisfied). TestTodoRegistryMatchesMarkdown
+# fails on any unresolved edge not listed here, and fails if a listed edge
+# stops being unresolved (stale allow-list entry).
+known_defects: []

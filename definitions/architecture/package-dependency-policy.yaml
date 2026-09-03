@@ -1,0 +1,126 @@
+# Machine-readable package dependency policy (ARCH-GO-002).
+#
+# Consumed by tools/policy/depedge. Encodes the layer order
+# kernel <- engines <- domains <- capabilities <- workflow/application <- transport,
+# with transaction/ledger/data modelled as ports/adapters rather than ranked
+# layers: business code depends on the port (the package itself, e.g.
+# internal/transaction or internal/data), never on a concrete adapter
+# subpackage underneath one.
+#
+# See planning/specs/platform-responsibility-boundaries.md and
+# planning/specs/platform-plane-model.md for the normative dependency
+# invariants this manifest turns into an evaluable rule set.
+
+version: 1
+module: github.com/monstercameron/hcm-next
+
+disposition: >-
+  Rules describe semantic ownership direction, not directory-depth
+  heuristics: a rule names a layer/port relationship, and roots are only
+  how that relationship is currently located on disk.
+
+# Ranked layers. Rank order encodes the allowed dependency direction: a
+# package may import a layer with a lower-or-equal rank; importing a higher
+# rank ("upward") is forbidden unless an explicit exception applies.
+layers:
+  - name: kernel
+    rank: 0
+    roots:
+      - internal/kernel
+  - name: engines
+    rank: 1
+    roots:
+      - internal/engines
+  - name: domains
+    rank: 2
+    roots:
+      - internal/domains
+  - name: capabilities
+    rank: 3
+    roots:
+      - internal/capability
+  - name: workflow
+    rank: 4
+    roots:
+      - internal/workflow
+  - name: transport
+    rank: 5
+    roots:
+      - internal/transport
+
+# business_layers identifies which ranked layers are "business packages" for
+# the concrete-adapter rule: they may depend on a port, never on the
+# concrete adapter underneath one.
+business_layers:
+  - domains
+  - capabilities
+  - workflow
+
+# Ports/adapters are not ranked against the layers above. A layer may import
+# the port package itself (e.g. internal/data, internal/ledger,
+# internal/transaction); it may never import a path matched by
+# concrete_adapter_markers below, which names the implementation
+# subpackages underneath a port.
+ports_and_adapters:
+  - name: transaction
+    roots:
+      - internal/transaction
+  - name: ledger
+    roots:
+      - internal/ledger
+  - name: data
+    roots:
+      - internal/data
+
+# Path globs (one "*" wildcard segment, matched against the module-relative
+# import path) identifying a concrete adapter implementation rather than a
+# port interface. Business layers (business_layers, above) must not import
+# these paths directly.
+concrete_adapter_markers:
+  - internal/data/postgres
+  - internal/data/*/postgres
+  - internal/data/adapters
+  - internal/data/*/adapters
+  - internal/connectivity/*/adapters
+  - internal/transaction/adapters
+
+# Path globs identifying a domain's own persistence subpackage. Workflow
+# must never import these directly; it reaches domain state only through
+# domain capabilities.
+domain_persistence_markers:
+  - internal/domains/*/store
+  - internal/domains/*/persistence
+  - internal/domains/*/repository
+
+# Forbidden-edge rules, named exactly so violations can cite one identifier.
+# tools/policy/depedge implements each rule; this list documents intent and
+# gives CI output a stable vocabulary.
+rules:
+  - name: kernel-must-not-import-upward
+    description: >-
+      internal/kernel may not import any higher-ranked layer or any
+      port/adapter. Kernel stays dependency-minimal (ARCH-GO-004).
+  - name: engine-must-not-import-domain-implementation
+    description: >-
+      internal/engines/* may not import internal/domains/*; domains adapt
+      their facts into engine requests, not the reverse (ARCH-GO-008).
+  - name: workflow-must-not-import-domain-persistence
+    description: >-
+      internal/workflow/* may not import a path matched by
+      domain_persistence_markers; workflow coordinates typed capability
+      results, never domain tables directly (ARCH-GO-007, platform-plane-model.md).
+  - name: transport-must-not-import-store
+    description: >-
+      internal/transport/* may not import a data or ledger port/adapter
+      directly; transport adapts protocol only (ARCH-GO-002).
+  - name: business-must-not-import-concrete-adapter
+    description: >-
+      A business_layers package may not import a path matched by
+      concrete_adapter_markers; it depends on the port package instead.
+
+# Reviewed, narrow exceptions. Each entry names the exact importer/imported
+# pair (module-relative import paths) it waives, plus owner/rationale/expiry
+# per the ARCH-GO-002 GREEN clause. Empty until a real exception is needed;
+# widening scope always requires a new entry, never editing an existing one
+# in place beyond its expiry review.
+exceptions: []

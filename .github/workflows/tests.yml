@@ -36,7 +36,7 @@ jobs:
         run: npm test
 
   go:
-    name: Go tests
+    name: Go tests (legacy src/blocks/go)
     runs-on: ubuntu-latest
 
     steps:
@@ -52,3 +52,44 @@ jobs:
       - name: Run Go tests
         working-directory: src/blocks/go
         run: go test ./...
+
+  go-core:
+    name: Go tests (root module)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      HCMNEXT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build root module
+        run: go build ./...
+
+      - name: Run the quality gate (gofmt, go vet, staticcheck)
+        run: go run ./tools/quality
+
+      - name: Run root module tests with the race detector
+        run: go test -race ./...

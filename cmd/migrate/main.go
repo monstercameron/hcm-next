@@ -1,0 +1,290 @@
+// Command migrate is a composition root. It wires packages; it owns no semantics.
+//
+// It applies the embedded SQL-first migration tree with Goose over pgx, and
+// journals every step per DB-006: artifact digest, tool version, checksum, owner,
+// start and finish, and the resulting status.
+//
+//	migrate up      apply every pending migration
+//	migrate down    roll back the most recently applied migration
+//	migrate status  report the schema version, digest and per-migration state
+//
+// The target server is HCMNEXT_DATABASE_URL.
+package main
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"os"
+	"os/user"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
+
+	"github.com/monstercameron/hcm-next/internal/data/schema"
+	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	"github.com/monstercameron/hcm-next/migrations"
+)
+
+// EnvDatabaseURL names the server this command migrates.
+const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
+
+// releaseOwner is the team accountable for this schema artifact.
+const releaseOwner = "data-plane"
+
+func main() {
+	if err := run(os.Args[1:], os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "migrate: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(args []string, out *os.File) error {
+	if len(args) != 1 {
+		return fmt.Errorf("usage: migrate up|down|status")
+	}
+	command := args[0]
+	switch command {
+	case "up", "down", "status":
+	default:
+		return fmt.Errorf("unknown command %q; usage: migrate up|down|status", command)
+	}
+
+	url := os.Getenv(EnvDatabaseURL)
+	if url == "" {
+		return fmt.Errorf("%s is not set", EnvDatabaseURL)
+	}
+
+	info := buildinfo.Current()
+	toolVersion := toolVersion(info)
+
+	connCfg, err := pgx.ParseConfig(url)
+	if err != nil {
+		return fmt.Errorf("parse %s: %w", EnvDatabaseURL, err)
+	}
+	db := stdlib.OpenDB(*connCfg)
+	defer func() { _ = db.Close() }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		return fmt.Errorf("connect: %w", err)
+	}
+
+	provider, err := goose.NewProvider(
+		goose.DialectPostgres, db, migrations.FS,
+		goose.WithVerbose(false),
+		goose.WithDisableGlobalRegistry(true),
+	)
+	if err != nil {
+		return fmt.Errorf("build migration provider: %w", err)
+	}
+
+	files, err := migrations.Files()
+	if err != nil {
+		return err
+	}
+	digest, err := migrations.ArtifactDigest()
+	if err != nil {
+		return err
+	}
+
+	switch command {
+	case "status":
+		return status(ctx, provider, out, digest, files)
+	case "up":
+		return up(ctx, provider, db, out, digest, files, toolVersion)
+	default:
+		return down(ctx, provider, db, out, digest, files, toolVersion)
+	}
+}
+
+func toolVersion(info buildinfo.Info) string {
+	revision := info.Revision
+	if revision == "" {
+		revision = "unknown"
+	}
+	if info.Modified {
+		revision += "+modified"
+	}
+	return fmt.Sprintf("hcmnext-migrate/%s (%s)", revision, info.GoVersion)
+}
+
+// releaseVersion binds the release identity to the artifact it was built from.
+func releaseVersion(files []migrations.File, digest string) string {
+	return fmt.Sprintf("p1a-%05d-%s", files[len(files)-1].Version, digest[:12])
+}
+
+func newJournal(db *sql.DB, toolVersion string) (*schema.Journal, error) {
+	who := "unknown"
+	if current, err := user.Current(); err == nil && current.Username != "" {
+		who = current.Username
+	}
+	return schema.NewJournal(db, toolVersion, who, schema.WithTrustedTimeSource("HOST_CLOCK")), nil
+}
+
+// prepare records the release and refuses to proceed when an already applied
+// migration no longer matches the bytes in this build.
+func prepare(ctx context.Context, db *sql.DB, digest string, files []migrations.File, tool string) (*schema.Journal, string, error) {
+	journal, err := newJournal(db, tool)
+	if err != nil {
+		return nil, "", err
+	}
+	version := releaseVersion(files, digest)
+	release := schema.Release{
+		Version:            version,
+		ArtifactDigest:     digest,
+		SourceDigest:       digest,
+		ToolVersion:        tool,
+		CompatibilityClass: schema.CompatibilityBackward,
+		Owner:              releaseOwner,
+		Reversible:         true,
+	}
+	if err := journal.EnsureRelease(ctx, release); err != nil {
+		return nil, "", err
+	}
+	releaseID, err := journal.ReleaseID(ctx, version)
+	if err != nil {
+		return nil, "", err
+	}
+	if err := journal.VerifyChecksums(ctx, releaseID, files); err != nil {
+		return nil, "", fmt.Errorf("startup blocked: %w", err)
+	}
+	return journal, version, nil
+}
+
+func up(ctx context.Context, provider *goose.Provider, db *sql.DB, out *os.File, digest string, files []migrations.File, tool string) error {
+	// The journal tables live in the first migration, so that one is applied
+	// before the journal can record anything. The loop below then journals it
+	// like any other, through the already-applied path.
+	if _, err := provider.ApplyVersion(ctx, files[0].Version, true); err != nil &&
+		!errors.Is(err, goose.ErrAlreadyApplied) {
+		return fmt.Errorf("apply %s: %w", files[0].Name, err)
+	}
+
+	journal, version, err := prepare(ctx, db, digest, files, tool)
+	if err != nil {
+		return err
+	}
+	releaseID, err := journal.ReleaseID(ctx, version)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		applied, err := journal.Applied(ctx, releaseID, file)
+		if err != nil {
+			return err
+		}
+		if applied {
+			continue
+		}
+
+		entry, err := journal.Begin(ctx, releaseID, file, schema.DirectionUp)
+		if err != nil {
+			return err
+		}
+		_, applyErr := provider.ApplyVersion(ctx, file.Version, true)
+		switch {
+		case errors.Is(applyErr, goose.ErrAlreadyApplied):
+			// Applied by the bootstrap step above, or by a build that predates
+			// the journal. Record it rather than replaying it.
+			if err := journal.Succeed(ctx, entry); err != nil {
+				return err
+			}
+			fmt.Fprintf(out, "recorded %s (already applied)\n", file.Name)
+		case applyErr != nil:
+			if journalErr := journal.Fail(ctx, entry, applyErr); journalErr != nil {
+				return errors.Join(applyErr, journalErr)
+			}
+			return fmt.Errorf("apply %s: %w", file.Name, applyErr)
+		default:
+			if err := journal.Succeed(ctx, entry); err != nil {
+				return err
+			}
+			fmt.Fprintf(out, "applied %s\n", file.Name)
+		}
+	}
+
+	return report(ctx, provider, out, digest, version)
+}
+
+func down(ctx context.Context, provider *goose.Provider, db *sql.DB, out *os.File, digest string, files []migrations.File, tool string) error {
+	journal, version, err := prepare(ctx, db, digest, files, tool)
+	if err != nil {
+		return err
+	}
+	releaseID, err := journal.ReleaseID(ctx, version)
+	if err != nil {
+		return err
+	}
+
+	current, err := provider.GetDBVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("read schema version: %w", err)
+	}
+	var target migrations.File
+	for _, file := range files {
+		if file.Version == current {
+			target = file
+		}
+	}
+	if target.Version == 0 {
+		return fmt.Errorf("no embedded migration matches the applied version %d", current)
+	}
+
+	entry, err := journal.Begin(ctx, releaseID, target, schema.DirectionDown)
+	if err != nil {
+		return err
+	}
+	result, err := provider.Down(ctx)
+	if err != nil {
+		if journalErr := journal.Fail(ctx, entry, err); journalErr != nil {
+			return errors.Join(err, journalErr)
+		}
+		return fmt.Errorf("roll back %s: %w", target.Name, err)
+	}
+	if err := journal.Succeed(ctx, entry); err != nil {
+		return err
+	}
+	// The up-entry is no longer in effect; the down-entry is the evidence.
+	if err := journal.MarkRolledBack(ctx, releaseID, target.Version); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "rolled back %s\n", result.Source.Path)
+
+	return report(ctx, provider, out, digest, version)
+}
+
+func status(ctx context.Context, provider *goose.Provider, out *os.File, digest string, files []migrations.File) error {
+	statuses, err := provider.Status(ctx)
+	if err != nil {
+		return fmt.Errorf("read migration status: %w", err)
+	}
+	for _, s := range statuses {
+		applied := "-"
+		if !s.AppliedAt.IsZero() {
+			applied = s.AppliedAt.UTC().Format(time.RFC3339)
+		}
+		fmt.Fprintf(out, "%-9s %-32s %s\n", s.State, s.Source.Path, applied)
+	}
+	return report(ctx, provider, out, digest, releaseVersion(files, digest))
+}
+
+func report(ctx context.Context, provider *goose.Provider, out *os.File, digest, version string) error {
+	current, err := provider.GetDBVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("read schema version: %w", err)
+	}
+	target, err := migrations.TargetVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "schema version %d of %d, release %s, migration digest %s:%s\n",
+		current, target, version, migrations.DigestAlgorithm, digest)
+	return nil
+}

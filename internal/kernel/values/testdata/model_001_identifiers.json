@@ -1,0 +1,104 @@
+{
+  "_owner": "kernel",
+  "_phase": "P1A",
+  "_todo": "MODEL-001",
+  "encoding_version": 1,
+  "entity_ids": [
+    {
+      "kind": "worker",
+      "id": "01HZY6R8N2QK4V8B0C3M5T7X9A",
+      "canonical": "eid:v1:worker:01HZY6R8N2QK4V8B0C3M5T7X9A"
+    },
+    {
+      "kind": "position",
+      "id": "01J9Q0M3ZQ8F7B4T2N6VW5XH1K",
+      "canonical": "eid:v1:position:01J9Q0M3ZQ8F7B4T2N6VW5XH1K"
+    },
+    {
+      "kind": "pay_group",
+      "id": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+      "canonical": "eid:v1:pay_group:3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+    },
+    {
+      "kind": "legal_entity_2",
+      "id": "00000000-0000-0000-0000-000000000000",
+      "canonical": "eid:v1:legal_entity_2:00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "entity_refs": [
+    {
+      "tenant": "acme-corp",
+      "kind": "worker",
+      "id": "01HZY6R8N2QK4V8B0C3M5T7X9A",
+      "canonical": "eref:v1:acme-corp:worker:01HZY6R8N2QK4V8B0C3M5T7X9A"
+    },
+    {
+      "tenant": "globex",
+      "kind": "worker",
+      "id": "01HZY6R8N2QK4V8B0C3M5T7X9A",
+      "canonical": "eref:v1:globex:worker:01HZY6R8N2QK4V8B0C3M5T7X9A"
+    },
+    {
+      "tenant": "t7",
+      "kind": "pay_group",
+      "id": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+      "canonical": "eref:v1:t7:pay_group:3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+    }
+  ],
+  "resource_keys": [
+    {
+      "tenant": "acme-corp",
+      "resource_type": "pay_group",
+      "segments": ["north-america"],
+      "canonical": "rkey:v1:acme-corp:pay_group:north-america"
+    },
+    {
+      "tenant": "acme-corp",
+      "resource_type": "pay_group",
+      "segments": ["north-america", "2026 Q1"],
+      "canonical": "rkey:v1:acme-corp:pay_group:north-america/2026%20Q1"
+    },
+    {
+      "tenant": "acme-corp",
+      "resource_type": "pay_group",
+      "segments": ["a/b"],
+      "canonical": "rkey:v1:acme-corp:pay_group:a%2Fb"
+    },
+    {
+      "tenant": "acme-corp",
+      "resource_type": "pay_group",
+      "segments": ["a%2Fb"],
+      "canonical": "rkey:v1:acme-corp:pay_group:a%252Fb"
+    },
+    {
+      "_note": "already NFC",
+      "tenant": "acme-corp",
+      "resource_type": "job_profile",
+      "segments": ["Müller"],
+      "canonical": "rkey:v1:acme-corp:job_profile:M%C3%BCller"
+    },
+    {
+      "_note": "NFD input normalizes to the same canonical bytes",
+      "tenant": "acme-corp",
+      "resource_type": "job_profile",
+      "segments": ["Müller"],
+      "canonical": "rkey:v1:acme-corp:job_profile:M%C3%BCller"
+    }
+  ],
+  "invalid_canonical_text": [
+    "",
+    "eid:v1:worker:",
+    "eid:v1:Worker:01HZY6R8N2QK4V8B0C3M5T7X9A",
+    "eid:v2:worker:01HZY6R8N2QK4V8B0C3M5T7X9A",
+    "eid:v1:worker:3F2504E0-4F89-41D3-9A0C-0305E82C3301",
+    "eref:v1::worker:01HZY6R8N2QK4V8B0C3M5T7X9A",
+    "rkey:v1:acme-corp:pay_group:",
+    "rkey:v1:acme-corp:pay_group:a//b",
+    "rkey:v1:acme-corp:pay_group:%2f",
+    "rkey:v1:acme-corp:pay_group:%41",
+    "rev:v1:unspecified:s7",
+    "rev:v1::s7",
+    "rev:v1:worker:s07",
+    "rev:v1:worker:x7"
+  ]
+}

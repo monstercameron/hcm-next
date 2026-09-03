@@ -281,7 +281,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** generate Go validation from the SchemaFlux definition; no parallel handwritten rules.
   - **Refs:** [Execution-plan scope rules](execution-plan.md#scope-rules), [adversarial gap closure](specs/adversarial-gap-closure-2026-08-13.md).
 
-- [ ] `GOV-002` **[P0][TERRA] Register every todo in a machine-readable backlog.**
+- [x] `GOV-002` **[P0][TERRA] Register every todo in a machine-readable backlog.**
+  - **Evidence (2026-09-03):** `TestTodoRegistryMatchesMarkdown` in `tools/planning/todoregistry`; `go test -count=1 ./tools/planning/todoregistry/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `GOV-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodoRegistryMatchesMarkdown`.
@@ -301,7 +302,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** emit the crosswalk from SchemaFlux dependency data.
   - **Refs:** [Platform coverage rule](execution-plan.md#capability-coverage-rule), [coverage matrix](specs/platform-capability-coverage-matrix.md).
 
-- [ ] `GOV-004` **[P0][LUNA] Add planning-link validation.**
+- [x] `GOV-004` **[P0][LUNA] Add planning-link validation.**
+  - **Evidence (2026-09-03):** `TestPlanningLinks` in `tools/planning/links`; `go test -count=1 ./tools/planning/links/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** none.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlanningLinks`.
@@ -713,7 +715,8 @@ accessibility / delegation / representation / human escalation
 
 > **Disposition (2026-09-02):** P1A for the root module, pinned Go/Protobuf/grpc-go, generation drift, fmt/vet/race/fuzz and ephemeral environments. `TOOL-004` and `TOOL-008` are the SchemaFlux and grpcbridge qualification fixtures with fallbacks. `TOOL-015`, `TOOL-017`, `TOOL-018` are P1B release-image checks. `TOOL-009` and `TOOL-020` are Gate C. The heading keeps its old name for anchor stability; the boundary is Go core, not Go only.
 
-- [ ] `TOOL-001` **[P0][TERRA] Create the authoritative Go workspace.**
+- [x] `TOOL-001` **[P0][TERRA] Create the authoritative Go workspace.**
+  - **Evidence (2026-09-03):** `TestGoWorkspacePolicy` in `tools/policy/workspace`; `go test -count=1 ./tools/policy/workspace/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `GOV-009`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGoWorkspacePolicy`.
@@ -723,7 +726,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** packages follow semantic ownership; commands are composition roots and never dictate module/package boundaries.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [legacy baseline](specs/legacy-implementation-baseline.md).
 
-- [ ] `TOOL-002` **[P0][LUNA] Pin Protobuf and Go generation tools.**
+- [x] `TOOL-002` **[P0][LUNA] Pin Protobuf and Go generation tools.**
+  - **Evidence (2026-09-03):** `TestGeneratorLockRejectsFloatingVersion` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGeneratorLockRejectsFloatingVersion`.
@@ -733,7 +737,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** provide one Go-driven generation command.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [business intent catalog](specs/business-intent-catalog.md#go-only-implementation-boundary).
 
-- [ ] `TOOL-003` **[P0][TERRA] Prove reproducible code generation.**
+- [x] `TOOL-003` **[P0][TERRA] Prove reproducible code generation.**
+  - **Evidence (2026-09-03):** `TestGeneratedTreeIsReproducible` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGeneratedTreeIsReproducible`.
@@ -803,7 +808,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** ship only transports that pass the qualification matrix.
   - **Refs:** [Phase 2 promotion evidence](plan.md#phase-2-hcm-workflow-operating-layer).
 
-- [ ] `TOOL-010` **[P0][TERRA] Add generated-code drift enforcement.**
+- [x] `TOOL-010` **[P0][TERRA] Add generated-code drift enforcement.**
+  - **Evidence (2026-09-03):** `TestGeneratedArtifactsCurrent` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-003`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGeneratedArtifactsCurrent`.
@@ -813,7 +819,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** avoid checking in generated artifacts unless the toolchain policy explicitly requires it.
   - **Refs:** [Go-only implementation boundary](specs/business-intent-catalog.md#go-only-implementation-boundary).
 
-- [ ] `TOOL-011` **[P0][LUNA] Enforce formatting, vet and static analysis.**
+- [x] `TOOL-011` **[P0][LUNA] Enforce formatting, vet and static analysis.**
+  - **Evidence (2026-09-03):** `TestTodo_TOOL_011` in `tools/quality`; `go test -count=1 ./tools/quality/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_011`.
@@ -824,6 +831,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Production correctness](plan.md#519-platform-correctness-is-business-correctness).
 
 - [ ] `TOOL-012` **[P0][TERRA] Enable race tests for concurrent packages.**
+  - **Evidence (partial, 2026-09-03):** `TestTodo_TOOL_012` in `tools/quality` PASS; not complete: Test written; skips locally because -race is unsupported on windows/arm64; runs in the go-core CI job.
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_012`.
@@ -833,7 +841,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** replace sleeps with deterministic synchronization and fake clocks.
   - **Refs:** [Conflict contract](plan.md#92-conflict-contract), [workflow runtime](specs/workflow-runtime.md).
 
-- [ ] `TOOL-013` **[P0][TERRA] Establish fuzz-test infrastructure.**
+- [x] `TOOL-013` **[P0][TERRA] Establish fuzz-test infrastructure.**
+  - **Evidence (2026-09-03):** `TestTodo_TOOL_013, FuzzTodo_TOOL_013` in `tools/quality`; `go test -count=1 ./tools/quality/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_013`.
@@ -901,7 +910,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** policy rejects a prohibited license, known critical exploitable vulnerability or dependency without security owner/upgrade path.
   - **GREEN:** accepted dependencies record rationale, pin, owner, response SLA and replacement path.
   - **REFACTOR:** exception approvals expire and are digest-bound.
-  - **Refs:** [Open-source-first principle](plan.md#518-go-only-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
+  - **Refs:** [Open-source-first principle](plan.md#518-go-core-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
 
 - [ ] `TOOL-020` **[GATE_C][SOL_LOW] Prove rolling schema/binary upgrade and rollback.**
   - **Depends:** `TOOL-006`, `DATA-001`, `DATA-002`, `DATA-007`, `WF-RUN-001`, `WF-RUN-002`, `TX-004`.
@@ -919,7 +928,8 @@ accessibility / delegation / representation / human escalation
 
 > **Disposition (2026-09-02):** P1A, with exactly four initial commands (`hcmnext`, `worker`, `projector`, `migrate`) per next-steps.md; `scheduler` and `admin` are sequenced after P1A. Package roots for deferred planes may exist only as empty directories.
 
-- [ ] `ARCH-GO-001` **[P0][SOL_HIGH] Publish the canonical repository-layout manifest.**
+- [x] `ARCH-GO-001` **[P0][SOL_HIGH] Publish the canonical repository-layout manifest.**
+  - **Evidence (2026-09-03):** `TestRepositoryLayoutRejectsUnownedOrMisplacedPackage` in `tools/policy/layout`; `go test -count=1 ./tools/policy/layout/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`, `GOV-013`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestRepositoryLayoutRejectsUnownedOrMisplacedPackage`.
@@ -929,7 +939,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** directory presence never implies deployed service or implemented authority.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [platform planes](specs/platform-plane-model.md), [implementation-depth vocabulary](plan.md#phase-1-implementation-depth-matrix).
 
-- [ ] `ARCH-GO-002` **[P0][SOL_HIGH] Define the machine-readable package dependency policy.**
+- [x] `ARCH-GO-002` **[P0][SOL_HIGH] Define the machine-readable package dependency policy.**
+  - **Evidence (2026-09-03):** `TestPackageDependencyPolicyRejectsReverseEdges` in `tools/policy/depedge`; `go test -count=1 ./tools/policy/depedge/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `ARCH-GO-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestPackageDependencyPolicyRejectsReverseEdges`.
@@ -939,7 +950,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** dependency rules describe semantic ownership rather than directory-depth heuristics.
   - **Refs:** [Architecture boundaries](specs/platform-responsibility-boundaries.md), [platform plane model](specs/platform-plane-model.md).
 
-- [ ] `ARCH-GO-003` **[P0][TERRA] Enforce package boundaries from the Go import graph.**
+- [x] `ARCH-GO-003` **[P0][TERRA] Enforce package boundaries from the Go import graph.**
+  - **Evidence (2026-09-03):** `TestGoImportGraphPolicy` in `tools/policy/importgraph`; `go test -count=1 ./tools/policy/importgraph/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `ARCH-GO-002`, `TOOL-011`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGoImportGraphPolicy`.
@@ -1210,7 +1222,8 @@ provide infrastructure mechanics.** A named candidate is not approved merely
 because it appears below. Its todo must produce a pinned, reviewed qualification
 or an explicit rejection and replacement decision.
 
-- [ ] `LIB-001` **[P0][SOL_HIGH] Publish the dependency-role and ownership manifest.**
+- [x] `LIB-001` **[P0][SOL_HIGH] Publish the dependency-role and ownership manifest.**
+  - **Evidence (2026-09-03):** `TestDependencyRoleManifestRejectsUnclassifiedModule` in `tools/policy/depmanifest`; `go test -count=1 ./tools/policy/depmanifest/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`, `TOOL-019`, `GOV-013`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestDependencyRoleManifestRejectsUnclassifiedModule`.
@@ -1218,7 +1231,7 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestDependencyRoleManifestRejectsUnclassifiedModule` fails for a direct or transitive production module without exact version/digest, role `PROJECT_CORE|INFRASTRUCTURE_MECHANIC|DEV_TEST_ONLY|PROHIBITED`, semantic owner, allowed import roots, license/security owner, upgrade SLA, data/process exposure and replacement path; it also fails if any module other than Go, GWC, grpcbridge or SchemaFlux is labeled `PROJECT_CORE`.
   - **GREEN:** the manifest classifies the complete module graph and explicitly records Protobuf/gRPC, pgx, CEL-Go, apd, OpenTelemetry, Goose, Testcontainers, go-oidc/x/oauth2 and optional JOSE/JWK candidates as replaceable mechanics subject to their qualification todos.
   - **REFACTOR:** generate SBOM annotations, architecture rules and dependency documentation from this one source rather than parallel allowlists.
-  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [open-source-first principle](plan.md#518-go-only-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [open-source-first principle](plan.md#518-go-core-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
 
 - [ ] `LIB-002` **[P0][SOL_HIGH] Enforce the third-party semantic firewall in the Go import graph.**
   - **Depends:** `LIB-001`, `ARCH-GO-002`, `ARCH-GO-003`.
@@ -1367,6 +1380,7 @@ or an explicit rejection and replacement decision.
 > **Disposition (2026-09-02):** P1A for canonical identifiers, money/time value types, digest references, the fourteen-definition registry (`MODEL-010`), lifecycle validation for the five dimensions (`MODEL-014`) and negative-state policy. `MODEL-008`, `MODEL-009` are RETIRED; `MODEL-016` binds the fourteen, not a count. Entity/property registries beyond the fourteen definitions' needs are DEFERRED.
 
 - [ ] `MODEL-001` **[P0][TERRA] Implement canonical entity and reference identifiers.**
+  - **Evidence (partial, 2026-09-03):** `TestTodo_MODEL_001, FuzzTodo_MODEL_001` in `internal/kernel/values` PASS; not complete: Go canonical text/bytes proven; Protobuf round-trip against hcmnext.common.v1 not yet written (wave 2).
   - **Depends:** `TOOL-002`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_001`.
@@ -1376,7 +1390,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** one shared value package; no domain-specific string aliases.
   - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `MODEL-002` **[P0][TERRA] Implement explicit property presence semantics.**
+- [x] `MODEL-002` **[P0][TERRA] Implement explicit property presence semantics.**
+  - **Evidence (2026-09-03):** `TestPresenceNeverCollapsesUnknown` in `internal/kernel/values`; `go test -count=1 ./internal/kernel/values/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPresenceNeverCollapsesUnknown`.
@@ -1384,9 +1399,10 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestPresenceNeverCollapsesUnknown` proves `ABSENT`, `NULL`, `UNKNOWN`, `REDACTED`, `UNAVAILABLE` and `NOT_APPLICABLE` cannot decode as a zero value.
   - **GREEN:** every state round-trips distinctly and unauthorized serialization returns `REDACTED` without revealing the value.
   - **REFACTOR:** generated wrappers replace ad hoc pointer/zero-value conventions.
-  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md#presence-and-unknown-state), [negative-state contract](data/models/registry-and-coverage-contracts.md).
+  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [negative-state contract](data/models/registry-and-coverage-contracts.md).
 
-- [ ] `MODEL-003` **[P0][SOL_LOW] Implement fixed-decimal arithmetic.**
+- [x] `MODEL-003` **[P0][SOL_LOW] Implement fixed-decimal arithmetic.**
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_003, FuzzTodo_MODEL_003` in `internal/kernel/values`; `go test -count=1 ./internal/kernel/values/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-001`, `LIB-006`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_003`.
@@ -1394,9 +1410,10 @@ or an explicit rejection and replacement decision.
   - **RED:** vectors reject NaN, infinity, negative zero, excess scale, overflow and implicit currency conversion.
   - **GREEN:** HCM Next-owned Money, Percentage, Quantity and Rate return exact bytes/scale and declared rounding for positive, negative and midpoint cases through the qualified decimal backend.
   - **REFACTOR:** all financial domains consume one audited decimal kernel; no `apd` type or mutable context escapes it.
-  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md#fixed-precision-values), [compensation domain](specs/compensation-domain.md).
+  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [compensation domain](specs/compensation-domain.md).
 
-- [ ] `MODEL-004` **[P0][SOL_LOW] Implement business-time primitives.**
+- [x] `MODEL-004` **[P0][SOL_LOW] Implement business-time primitives.**
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_004, FuzzTodo_MODEL_004` in `internal/kernel/values`; `go test -count=1 ./internal/kernel/values/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_004`.
@@ -1404,9 +1421,10 @@ or an explicit rejection and replacement decision.
   - **RED:** vectors fail on invalid local dates, DST gaps/overlaps without resolution, inverted intervals and conflated date/instant values.
   - **GREEN:** Instant, LocalDate, LocalTime, ZonedDateTime, half-open EffectiveInterval, RecordedAt, KnownAt, PayPeriod and BusinessDay preserve exact semantics.
   - **REFACTOR:** domains may add constraints but cannot redefine interval boundaries.
-  - **Refs:** [Effective-time principle](plan.md#55-effective-time-and-recorded-time-are-different), [wire time primitives](data/models/wire-contract-primitives.md#temporal-primitives).
+  - **Refs:** [Effective-time principle](plan.md#55-effective-time-and-recorded-time-are-different), [wire time primitives](data/models/wire-contract-primitives.md).
 
-- [ ] `MODEL-005` **[P0][TERRA] Version timezone and business-calendar datasets.**
+- [x] `MODEL-005` **[P0][TERRA] Version timezone and business-calendar datasets.**
+  - **Evidence (2026-09-03):** `TestTimerDatasetChangePolicy` in `internal/kernel/values`; `go test -count=1 ./internal/kernel/values/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-004`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTimerDatasetChangePolicy`.
@@ -1416,7 +1434,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** dataset refresh never silently rewrites an existing deadline.
   - **Refs:** [Globalization principle](plan.md#511-globalization-is-a-business-dimension), [foundation gap closure](specs/platform-foundation-gap-closure.md).
 
-- [ ] `MODEL-006` **[P0][SOL_HIGH] Implement canonical envelope normalization.**
+- [x] `MODEL-006` **[P0][SOL_HIGH] Implement canonical envelope normalization.**
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_006, FuzzTodo_MODEL_006` in `internal/kernel/canonical`; `go test -count=1 ./internal/kernel/canonical/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-002`–`MODEL-005`, `TOOL-004`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_006`.
@@ -1426,7 +1445,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** callers submit values, never their own authoritative digest.
   - **Refs:** [Canonical envelope contract](specs/canonical-envelope-and-digest.md), [reproducibility](plan.md#93-reproducibility-contract).
 
-- [ ] `MODEL-007` **[P0][SOL_HIGH] Implement versioned digest profiles.**
+- [x] `MODEL-007` **[P0][SOL_HIGH] Implement versioned digest profiles.**
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_007, FuzzTodo_MODEL_007` in `internal/kernel/digest`; `go test -count=1 ./internal/kernel/digest/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-006`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_007`.
@@ -1456,7 +1476,7 @@ or an explicit rejection and replacement decision.
   - **RED:** completeness test reports every missing/duplicate/out-of-range number, unqualified ID and ownerless entry.
   - **GREEN:** generated baseline partitions contain exactly the original 530 entries, including distinct access/commercial `GrantEntitlement` identities; separately versioned extension partitions contain reviewed additions, and the accepted-catalog union has no duplicate semantic ID or number collision.
   - **REFACTOR:** catalog numbers and IDs never change when display labels change.
-  - **Refs:** [Catalog coverage partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [intent coverage matrix](data/models/intent-coverage-matrix.md).
+  - **Refs:** [Catalog coverage partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [intent coverage matrix](data/models/intent-coverage-matrix.md).
 
 - [ ] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry for the fourteen drafted definitions.**
   - **Depends:** `TOOL-006`.
@@ -1476,7 +1496,7 @@ or an explicit rejection and replacement decision.
   - **RED:** publication rejects properties without concrete type, presence, authority, temporal, classification, correction and retention semantics.
   - **GREEN:** every registered property resolves owner aggregate, schema path and applicable policies.
   - **REFACTOR:** generate docs/dependency indexes from the registry.
-  - **Refs:** [Registry entities](data/models/registry-and-coverage-contracts.md#machine-checkable-registry-entities), [business model catalog](data/models/README.md).
+  - **Refs:** [Registry entities](data/models/registry-and-coverage-contracts.md), [business model catalog](data/models/README.md).
 
 - [ ] `MODEL-012` **[P0][SOL_LOW] Implement aggregate ownership registration.**
   - **Depends:** `MODEL-011`.
@@ -1516,7 +1536,7 @@ or an explicit rejection and replacement decision.
   - **RED:** definition compilation rejects an applicable `UNKNOWN/PARTIAL/DEGRADED/AMBIGUOUS/REDACTED/UNAVAILABLE/STALE` state without policy.
   - **GREEN:** policy yields exactly `BLOCK`, `ROUTE_HUMAN`, `ALLOW_WITH_WARNING`, `USE_STALE`, `CREATE_OBLIGATION`, `CREATE_REPAIR`, `DEGRADE`, or `PERMIT_CLOSURE`, plus evidence/expiry/revalidation.
   - **REFACTOR:** common policies are referenced, not copied.
-  - **Refs:** [Negative-state policy](data/models/registry-and-coverage-contracts.md#negative-state-policy-contract).
+  - **Refs:** [Negative-state policy](data/models/registry-and-coverage-contracts.md).
 
 - [ ] `MODEL-016` **[P0][SOL_HIGH] Bind each of the fourteen definitions to exact model behavior.**
   - **Depends:** `MODEL-010`–`MODEL-015`.
@@ -2048,7 +2068,7 @@ or an explicit rejection and replacement decision.
   - **RED:** caller can assert current salary/manager/position vacancy/budget/authority, select principal/tenant/session/locale/legal context, omit expected subject revision/client request ID, produce different semantics over gRPC and grpcbridge, bypass CapabilityGateway/Intent creation, or cause a domain mutation during propose/preflight.
   - **GREEN:** generated request accepts only subject, desired job/position/org/manager/compensation, effective date, reason, expected subject revision and client request ID; trusted interceptors inject immutable security/tenant contexts and both transports follow `CapabilityGateway -> application Promotion service -> IntentService -> preflight`, resolving current facts server-side with zero domain mutation.
   - **REFACTOR:** browser, CLI, agent and partner clients invoke the same semantic capability and cannot smuggle server-owned facts through extension fields.
-  - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [identity boundary](specs/organization-scope-and-authz.md), [capability parity](plan.md#57-capability-parity-is-non-negotiable).
+  - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [identity boundary](specs/organization-scope-and-authz.md), [capability parity](plan.md#59-every-product-action-is-a-governed-capability).
 
 - [ ] `SNAPSHOT-001` **[GATE_A][SOL_HIGH] Resolve a consistent multi-domain read snapshot.**
   - **Depends:** `MODEL-020`, `MODEL-021`, `TRUST-003`, `TRUST-004`.
@@ -2304,7 +2324,7 @@ or an explicit rejection and replacement decision.
   - **RED:** workflow runtime completion overwrites Business/Consistency/Obligation dimensions, duplicate terminal signal appends conflicting state, or stale workflow instance updates a superseding intent revision.
   - **GREEN:** one idempotent correlation contract appends each independent dimension from authoritative workflow/transaction/reconciliation evidence and preserves `Business=COMPLETED` with `ConsistencyState=DEGRADED` and `Reconciliation=REPAIR_REQUIRED` when applicable.
   - **REFACTOR:** intent consumes typed outcome receipts rather than reading workflow tables directly.
-  - **Refs:** [Independent lifecycle dimensions](specs/business-intent-catalog.md#independent-lifecycle-dimensions), [workflow completion](specs/workflow-runtime.md).
+  - **Refs:** [Independent lifecycle dimensions](specs/business-intent-catalog.md#lifecycle-dimensions), [workflow completion](specs/workflow-runtime.md).
 
 - [ ] `INTENT-008` **[GATE_B][SOL_HIGH] Close an Intent only under its explicit completion policy.**
   - **Depends:** `INTENT-007`, `RECON-002`, `REPAIR-002`, `MODEL-014`.
@@ -2314,7 +2334,7 @@ or an explicit rejection and replacement decision.
   - **RED:** runtime `COMPLETED`, provider acceptance, stale observation, unresolved mandatory obligation, open required repair or unknown terminal dimension silently closes the intent.
   - **GREEN:** versioned completion policy returns `CLOSED`, `CLOSED_DEGRADED`, `OPEN_REPAIR`, `BLOCKED_OBLIGATION`, or `UNKNOWN`; closure appends exact satisfied/waived/deferred dimensions, evidence refs, owner and reopen conditions.
   - **REFACTOR:** closure never rewrites workflow, transaction, observation or repair history.
-  - **Refs:** [Outcome management](plan.md#58-multidimensional-completion), [repair semantics](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Refs:** [Outcome management](plan.md#63-change-request-lifecycle), [repair semantics](specs/transaction-ledger-reconciliation-and-repair.md).
 
 - [ ] `FEATURE-001` **[DESIGN][TERRA] Check in the exact 49-group feature-to-intent intake manifest.**
   - **Depends:** `GOV-008`.
@@ -2344,7 +2364,7 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestMaterialFeatureIntentClassification` rejects a feature that asks, proposes, changes, calculates, processes, files, investigates, communicates, repairs, plans, schedules or answers a material HCM matter without a typed IntentDefinition; it also rejects treating static rendering, transport health or an internal retry mechanic as a new business intent without semantic purpose.
   - **GREEN:** a versioned classifier returns exactly `INTENT_CREATOR|INTENT_CONSUMER|CHILD_INTENT_EMITTER|INTENT_OBSERVER|NON_MATERIAL_MECHANIC`, with materiality, business purpose, subject, authority/effect/result significance, owner and rationale; uncertain classification is `REVIEW_REQUIRED`, never implicit bypass.
   - **REFACTOR:** BusinessIntent is the semantic instruction boundary, not a wrapper around every function call or UI click.
-  - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [business intent catalog](specs/business-intent-catalog.md), [capability parity](plan.md#57-capability-parity-is-non-negotiable).
+  - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [business intent catalog](specs/business-intent-catalog.md), [capability parity](plan.md#59-every-product-action-is-a-governed-capability).
 
 - [ ] `INTENT-010` **[DESIGN][SOL_HIGH] Create the machine-readable FeatureIntentCoverage registry.**
   - **Depends:** `FEATURE-002`, `INTENT-009`, `TOOL-004`, `MODEL-010`.
@@ -3540,7 +3560,8 @@ decomposed under [§26](#26-postgresql-database-and-model-materialization) and
 must cite the concrete `DB-*` and `LEDGER-*` work it exercises before it can be
 closed.
 
-- [ ] `DATA-001` **[GATE_A][SOL_HIGH] Define PostgreSQL authoritative storage boundaries.**
+- [x] `DATA-001` **[GATE_A][SOL_HIGH] Define PostgreSQL authoritative storage boundaries.**
+  - **Evidence (2026-09-03):** `TestTodo_DATA_001` in `internal/data/schema`; `go test -count=1 ./internal/data/schema/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-012`, `MODEL-020`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DATA_001`.
@@ -3551,6 +3572,7 @@ closed.
   - **Refs:** [Data plane](specs/platform-plane-model.md), [ledger specification](specs/transaction-ledger-reconciliation-and-repair.md).
 
 - [ ] `DATA-002` **[GATE_B][SOL_HIGH] Implement stream-head compare-and-swap.**
+  - **Evidence (partial, 2026-09-03):** `TestTodo_DATA_002` in `internal/data/ledger` PASS; not complete: Single-stream CAS with two concurrent appenders passes with -count=5; -race class deferred to the go-core CI job; multi-stream lock ordering is LEDGER-003.
   - **Depends:** `DATA-001`, `LEDGER-003`, `TX-003`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DATA_002`.
@@ -3560,7 +3582,8 @@ closed.
   - **REFACTOR:** stream identity remains semantic and tenant-scoped.
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [stream models](data/models/kernel-governance-and-evidence.md).
 
-- [ ] `DATA-003` **[GATE_A][SOL_HIGH] Persist canonical ledger event envelopes.**
+- [x] `DATA-003` **[GATE_A][SOL_HIGH] Persist canonical ledger event envelopes.**
+  - **Evidence (2026-09-03):** `TestTodo_DATA_003` in `internal/data/ledger`; `go test -count=1 ./internal/data/ledger/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `DATA-001`, `MODEL-007`, `LEDGER-002`, `LEDGER-004`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DATA_003`.
@@ -3988,7 +4011,7 @@ closed.
   - **RED:** provider acceptance, stale/partial/redacted/unknown observation, insufficient coverage, legitimate concurrent change or expired deadline is reported `PASS`; optional effect blocks mandatory completion without policy.
   - **GREEN:** versioned policy evaluates expected population/fields, authority, tolerance, observation freshness/coverage and effect criticality into `PASS`, `MISMATCH`, `PARTIAL`, `UNKNOWN`, `WAIVED`, or `REPAIR_REQUIRED`, with exact terminal-dimension contribution and next action.
   - **REFACTOR:** comparison result and business completion policy remain separate typed decisions.
-  - **Refs:** [Multidimensional completion](plan.md#58-multidimensional-completion), [reconciliation contract](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Refs:** [Multidimensional completion](plan.md#63-change-request-lifecycle), [reconciliation contract](specs/transaction-ledger-reconciliation-and-repair.md).
 
 - [ ] `REPAIR-001` **[GATE_A][SOL_HIGH] Generate a canonical RepairPlan from reconciliation findings.**
   - **Depends:** `INTG-010`, `GOVERN-002`, `TX-001`, `MODEL-014`.
@@ -4052,7 +4075,7 @@ closed.
   - **RED:** unknown target, lossy conversion, missing required reference crosswalk or nondeterministic transform compiles.
   - **GREEN:** compiler returns an immutable mapping digest, typed diagnostics and declared reads/writes; the golden fixture maps every accepted cell identically.
   - **REFACTOR:** import and connector mappings share one transformation kernel.
-  - **Refs:** [Mapping and crosswalk](specs/hris-admin-dataops.md), [SchemaFlux](plan.md#29-one-implementation-language-and-runtime-policy).
+  - **Refs:** [Mapping and crosswalk](specs/hris-admin-dataops.md), [SchemaFlux](plan.md#518-go-core-contract-first-and-open-source-first).
 
 - [ ] `DATAOPS-004` **[GATE_A][SOL_HIGH] Validate every staged row with stable error identity.**
   - **Depends:** `DATAOPS-003`, `RULE-004`.
@@ -4166,7 +4189,7 @@ closed.
   - **RED:** expired/not-yet-effective contract or out-of-scope capability is allowed by UI, HTTP, gRPC, workflow or connector path.
   - **GREEN:** every channel returns the same allow/deny code and immutable contract/entitlement fingerprint; amendments affect new executions only.
   - **REFACTOR:** no variable rating or invoice engine is introduced in Phase 1.
-  - **Refs:** [Phase 1 commercial scope](plan.md#51-phase-1-build-only-the-spine), [execution exclusions](execution-plan.md#phase-1-exclusions).
+  - **Refs:** [Phase 1 commercial scope](plan.md#cross-phase-foundation-track), [execution exclusions](execution-plan.md#explicit-non-goals).
 
 - [ ] `COMM-002` **[GATE_A][TERRA] Record external/manual pilot invoice evidence.**
   - **Depends:** `COMM-001`, `DATA-014`.
@@ -4176,7 +4199,7 @@ closed.
   - **RED:** amount differs from signed contract, duplicate external reference mutates history or issued invoice artifact lacks tenant isolation/hash.
   - **GREEN:** append-only evidence records contract fingerprint, external invoice ID, amount/currency, dates/status, artifact hash and reconciliation state; duplicate replay returns the original record.
   - **REFACTOR:** invoice generation, tax calculation and payment collection remain out of Phase 1.
-  - **Refs:** [Pricing hypothesis](plan.md#511-pricing-hypothesis), [Phase 1 scope](execution-plan.md#phase-1-exclusions).
+  - **Refs:** [Pricing hypothesis](plan.md#125-commercial-architecture-hypotheses), [Phase 1 scope](execution-plan.md#explicit-non-goals).
 
 - [ ] `COMM-003` **[GATE_A][SOL_LOW] Produce deterministic pilot economic evidence.**
   - **Depends:** `COMM-002`, `WEDGE-013`.
@@ -4186,7 +4209,7 @@ closed.
   - **RED:** missing price/labor/provider/infra/adoption/bypass field or nonnumeric threshold passes the gate.
   - **GREEN:** `PilotEconomicEvidence` reconciles the pilot interval and returns exactly `PROCEED`, `RESELECT`, or `STOP` from versioned thresholds; customer view omits confidential margin detail.
   - **REFACTOR:** evidence calculations remain reproducible from immutable inputs.
-  - **Refs:** [Commercial proof](plan.md#515-validation-and-stop-rules), [Gate A evidence](execution-plan.md#gate-a-acceptance--paid-observation).
+  - **Refs:** [Commercial proof](next-steps.md#non-negotiable-stop-rules), [Gate A evidence](execution-plan.md#gate-a-acceptance--paid-observation).
 
 - [ ] `SANDBOX-001` **[GATE_A][TERRA] Create and reset a synthetic Promotion sandbox with a hard side-effect fence.**
   - **Depends:** `TENANT-002`, `TOOL-014`, `PROMO-002`.
@@ -4384,7 +4407,7 @@ closed.
   - **RED:** incident closes without bounded affected set, owner, mitigation, reconciliation/repair link, monitoring window or review.
   - **GREEN:** valid transitions append evidence from `DETECTED` through `REVIEWED`; invalid transition returns `INCIDENT_TRANSITION_INVALID` with no state change.
   - **REFACTOR:** technical alerts aggregate into business incidents by correlation and affected set.
-  - **Refs:** [Incident management](specs/incident-management.md), [operations assurance](plan.md#47-operations-assurance).
+  - **Refs:** [Incident management](specs/incident-management.md), [operations assurance](plan.md#112-operational-readiness).
 
 - [ ] `OPS-005` **[GATE_A][SOL_HIGH] Publish tenant-scoped customer advisories from incidents.**
   - **Depends:** `OPS-004`, `MSG-003`, `TRUST-011`.
@@ -4538,7 +4561,7 @@ closed.
   - **RED:** read/analyze/draft fixture requires TypeScript/Node, bypasses grpcbridge or renders an unavailable action.
   - **GREEN:** Go-only workspace renders worker snapshot, simulation, proposal, warnings and allowed actions from the server contract; browser fixture contains no unsupported runtime.
   - **REFACTOR:** use GWC primitives without coupling domain rules to component code.
-  - **Refs:** [Go-only runtime](plan.md#29-one-implementation-language-and-runtime-policy), [Gate A UX](execution-plan.md#gate-a--paid-design-partner-observation).
+  - **Refs:** [Go-only runtime](plan.md#518-go-core-contract-first-and-open-source-first), [Gate A UX](execution-plan.md#gate-a--paid-design-partner-observation).
 
 - [ ] `UX-003` **[GATE_A][TERRA] Pass the WCAG 2.2 AA pilot release gate.**
   - **Depends:** `UX-002`, `FORM-004`.
@@ -4568,7 +4591,7 @@ closed.
   - **RED:** timeout/partial/degraded/repair-required result is presented as generic failure or success and retry can duplicate effect.
   - **GREEN:** UI maps typed result to exact state, safe next actions and correlation/evidence reference; duplicate click returns same logical transaction.
   - **REFACTOR:** client never guesses provider outcome.
-  - **Refs:** [Multidimensional completion](plan.md#57-completion-is-multidimensional), [integration ambiguity](specs/integration-platform.md).
+  - **Refs:** [Multidimensional completion](plan.md#63-change-request-lifecycle), [integration ambiguity](specs/integration-platform.md).
 
 - [ ] `UX-006` **[PHASE_2][SOL_HIGH] Generate universal and contextual action discovery from the feature-intent registry.**
   - **Depends:** `INTENT-010`, `CAP-003`, `TRUST-011`.
@@ -4708,7 +4731,7 @@ closed.
   - **RED:** generated routes disagree on schema/version/AuthZ/purpose/side effects/idempotency/intent behavior, a material endpoint lacks FeatureIntentCoverage, or an unregistered/direct-domain endpoint is callable.
   - **GREEN:** descriptor digest, gRPC method and HTTP binding round-trip the same golden request/result/error schema, capability metadata and `creates|consumes|emits|observes|non_material` intent classification.
   - **REFACTOR:** grpcbridge is the only HTTP projection path for governed APIs.
-  - **Refs:** [Capability parity](plan.md#57-capability-parity-is-non-negotiable), [developer platform](specs/platform-responsibility-boundaries.md).
+  - **Refs:** [Capability parity](plan.md#59-every-product-action-is-a-governed-capability), [developer platform](specs/platform-responsibility-boundaries.md).
 
 - [ ] `API-002` **[GATE_A][SOL_HIGH] Enforce API lifecycle compatibility and deprecation evidence.**
   - **Depends:** `API-001`, `MODEL-017`.
@@ -4786,7 +4809,7 @@ closed.
   - **RED:** fixture lacks inputs, clock, version set, authority map, fault schedule, expected events/states/effects or stable digest.
   - **GREEN:** runner executes `SIMULATE`, `REPLAY`, fault/recovery and evidence comparison and returns exact per-dimension result plus manifest digest.
   - **REFACTOR:** conformance invokes public capabilities only.
-  - **Refs:** [Reference workflows](workflows/README.md), [architecture acceptance](plan.md#75-architecture-acceptance-questions).
+  - **Refs:** [Reference workflows](workflows/README.md), [architecture acceptance](reference-workflows/reference-suite.md#foundational-questions-the-suite-must-close).
 
 - [ ] `CONF-002` **[CONFORMANCE][SOL_HIGH] Prove Recruit, Hire and Onboard semantics.**
   - **Depends:** `CONF-001`, `WF-STEP-001`, `WF-STEP-005`, `WF-STEP-009`, `WF-STEP-013`.
@@ -5068,7 +5091,7 @@ closed.
   - **RED:** a transfer, termination, leave, org move, compensation change or reservation created after approval is absent from execution preflight.
   - **GREEN:** preflight compares pinned and current footprints/effective intervals and returns `CLEAR`, `REAPPROVAL_REQUIRED`, `REPLAN_REQUIRED`, or `BLOCKED`; blocked path commits zero business effects.
   - **REFACTOR:** conflict policy is versioned by domain/property and explains every overlap.
-  - **Refs:** [Conflict control](specs/transaction-ledger-reconciliation-and-repair.md), [execution revalidation](plan.md#74-reference-workflow-lessons-that-must-become-platform-contracts).
+  - **Refs:** [Conflict control](specs/transaction-ledger-reconciliation-and-repair.md), [execution revalidation](reference-workflows/reference-suite.md#shared-platform-primitives-revealed).
 
 - [ ] `APPROVAL-004` **[GATE_A][SOL_HIGH] Enforce separation of duties, delegation and fallback during approver resolution.**
   - **Depends:** `APPROVAL-001`, `TRUST-015`.
@@ -5098,7 +5121,7 @@ closed.
   - **RED:** fixture includes unknown ID, free-form category, malformed range, cycle or Gate A dependency on Gate B/C implementation and validation reports exact file/line/code.
   - **GREEN:** the complete generated graph resolves every edge, is acyclic and proves Gate A closure contains no write-authority or deferred implementation node.
   - **REFACTOR:** explicitly declared external gates require owner, artifact, phase and acceptance digest.
-  - **Refs:** [Plan hierarchy](plan.md), [execution dependencies](execution-plan.md#critical-path).
+  - **Refs:** [Plan hierarchy](plan.md), [execution dependencies](execution-plan.md#delivery-gates-staffing-envelope-and-critical-path).
 
 - [ ] `DOC-001` **[P0][LUNA] Enforce normative planning-document integrity in CI.**
   - **Depends:** `GOV-004`, `GOV-016`.
@@ -5362,7 +5385,8 @@ VALUE_OBJECT          embedded typed columns; no independent identity
 EXTERNAL_ONLY         observation/reference only; never silently persisted as truth
 ```
 
-- [ ] `DB-001` **[P0][TERRA] Bootstrap the Go PostgreSQL migration and test harness.**
+- [x] `DB-001` **[P0][TERRA] Bootstrap the Go PostgreSQL migration and test harness.**
+  - **Evidence (2026-09-03):** `TestTodo_DB_001` in `internal/data/pgtest`; `go test -count=1 ./internal/data/pgtest/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`, `TOOL-002`, `TOOL-014`, `LIB-004`, `LIB-008`, `LIB-009`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_001`.
@@ -5402,7 +5426,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** constraints that cannot live in SQL are named invariants with transactional enforcement and continuous verification.
   - **Refs:** [Relationship map](data/models/relationship-map.md), [registry contracts](data/models/registry-and-coverage-contracts.md).
 
-- [ ] `DB-005` **[GATE_A][SOL_HIGH] Create shared tenant, organization, cell and temporal database primitives.**
+- [x] `DB-005` **[GATE_A][SOL_HIGH] Create shared tenant, organization, cell and temporal database primitives.**
+  - **Evidence (2026-09-03):** `TestTodo_DB_005` in `internal/data/schema`; `go test -count=1 ./internal/data/schema/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `DB-001`, `DB-003`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_005`.
@@ -5412,7 +5437,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** business time is explicit and never inferred from `created_at`.
   - **Refs:** [Wire temporal primitives](data/models/wire-contract-primitives.md), [tenant placement](data/models/operations-production.md).
 
-- [ ] `DB-006` **[GATE_A][SOL_HIGH] Create schema-release and migration-journal tables.**
+- [x] `DB-006` **[GATE_A][SOL_HIGH] Create schema-release and migration-journal tables.**
+  - **Evidence (2026-09-03):** `TestTodo_DB_006` in `internal/data/schema`; `go test -count=1 ./internal/data/schema/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `DB-001`, `MODEL-017`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_006`.
@@ -5422,7 +5448,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** irreversible migrations declare restore/repair boundary before activation.
   - **Refs:** [Schema registry](data/models/dataops-configuration.md), [upgrade governance](specs/platform-foundation-gap-closure.md).
 
-- [ ] `DB-007` **[GATE_A][SOL_HIGH] Materialize canonical registry and control-artifact tables.**
+- [x] `DB-007` **[GATE_A][SOL_HIGH] Materialize canonical registry and control-artifact tables.**
+  - **Evidence (2026-09-03):** `TestTodo_DB_007` in `internal/data/schema`; `go test -count=1 ./internal/data/schema/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `DB-002`, `DB-003`, `DB-006`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_007`.
@@ -5596,7 +5623,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** P1A for stream, head, event and payload-schema tables and the single-stream append with CAS. P1B for multi-stream commit, hash chains and corrections. Integrity epochs and external anchors are Gate C.
 
-- [ ] `LEDGER-001` **[GATE_A][SOL_HIGH] Create ledger stream, head, event and payload-schema tables.**
+- [x] `LEDGER-001` **[GATE_A][SOL_HIGH] Create ledger stream, head, event and payload-schema tables.**
+  - **Evidence (2026-09-03):** `TestTodo_LEDGER_001` in `internal/data/schema`; `go test -count=1 ./internal/data/schema/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `DB-005`, `DB-006`, `DB-007`, `MODEL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_LEDGER_001`.
@@ -5606,7 +5634,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** stream name is semantic identity; physical partition is replaceable.
   - **Refs:** [Ledger models](data/models/kernel-governance-and-evidence.md), [ledger spec](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `LEDGER-002` **[GATE_A][SOL_HIGH] Implement the canonical single-stream append API in Go.**
+- [x] `LEDGER-002` **[GATE_A][SOL_HIGH] Implement the canonical single-stream append API in Go.**
+  - **Evidence (2026-09-03):** `TestTodo_LEDGER_002, FuzzTodo_LEDGER_002` in `internal/data/ledger`; `go test -count=1 ./internal/data/ledger/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `LEDGER-001`, `DB-018`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_LEDGER_002`.
@@ -5626,7 +5655,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** multi-stream transaction stays within one PostgreSQL consistency boundary.
   - **Refs:** [Multi-stream plan](data/models/kernel-governance-and-evidence.md), [commit coordinator](specs/transaction-plan-and-commit-coordinator.md).
 
-- [ ] `LEDGER-004` **[GATE_A][SOL_HIGH] Enforce assertion authority and typed payload references.**
+- [x] `LEDGER-004` **[GATE_A][SOL_HIGH] Enforce assertion authority and typed payload references.**
+  - **Evidence (2026-09-03):** `TestTodo_LEDGER_004` in `internal/data/ledger`; `go test -count=1 ./internal/data/ledger/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `LEDGER-002`, `MODEL-020`, `MODEL-021`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_LEDGER_004`.
@@ -5750,7 +5780,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** P1A with four commands (`hcmnext`, `worker`, `projector`, `migrate`); `scheduler` and `admin` are added when P1B needs timers and operator actions.
 
-- [ ] `SVC-001` **[P0][SOL_HIGH] Publish the process-role and semantic-ownership manifest.**
+- [x] `SVC-001` **[P0][SOL_HIGH] Publish the process-role and semantic-ownership manifest.**
+  - **Evidence (2026-09-03):** `TestTodo_SVC_001` in `tools/policy/processroles`; `go test -count=1 ./tools/policy/processroles/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `ARCH-GO-001`, `ARCH-GO-018`, `GOV-001`, `DB-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_SVC_001`.
@@ -5984,7 +6015,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Model catalog](data/models/README.md), [documentation integrity](#22-dependency-closure-additions).
 
-- [ ] `PROTO-001` **[P0][SOL_HIGH] Define shared Protobuf wire primitives and canonical errors.**
+- [x] `PROTO-001` **[P0][SOL_HIGH] Define shared Protobuf wire primitives and canonical errors.**
+  - **Evidence (2026-09-03):** `TestTodo_PROTO_001` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `MSRC-002`, `MODEL-001`–`MODEL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_PROTO_001`.
@@ -5994,7 +6026,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [canonical envelope](specs/canonical-envelope-and-digest.md).
 
-- [ ] `PROTO-002` **[P0][SOL_HIGH] Generate BusinessIntent and registry service contracts.**
+- [x] `PROTO-002` **[P0][SOL_HIGH] Generate BusinessIntent and registry service contracts.**
+  - **Evidence (2026-09-03):** `TestTodo_PROTO_002` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `PROTO-001`, `MSRC-009`, `TOOL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_PROTO_002`.
@@ -6024,7 +6057,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [HRIS DataOps](specs/hris-admin-dataops.md), [integration platform](specs/integration-platform.md).
 
-- [ ] `PROTO-005` **[P0][TERRA] Generate and verify Go bindings and descriptor sets.**
+- [x] `PROTO-005` **[P0][TERRA] Generate and verify Go bindings and descriptor sets.**
+  - **Evidence (2026-09-03):** `TestTodo_PROTO_005` in `tools/gen`; `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
   - **Depends:** `PROTO-002`–`PROTO-004`, `TOOL-002`, `TOOL-003`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_PROTO_005`.
@@ -8092,7 +8126,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** return before readiness, duplicate return, active restriction is discarded, absence ends without availability restoration, or payroll/benefits/schedule/access provider failure rewrites local return truth.
   - **GREEN:** local transaction appends LeaveEnded and availability restoration once, preserves active restrictions, queues normal-pay/benefit/schedule/access effects and closes only after versioned obligation/reconciliation policy.
   - **REFACTOR:** external return treatment remains observed effects, not proof of the local Leave end.
-  - **Refs:** [Outcome management](plan.md#58-multidimensional-completion), [workflow runtime](specs/workflow-runtime.md).
+  - **Refs:** [Outcome management](plan.md#63-change-request-lifecycle), [workflow runtime](specs/workflow-runtime.md).
 
 - [ ] `LEAVE-014` **[PHASE_2][SOL_HIGH] Generate, deliver and reconcile the Leave determination notice.**
   - **Depends:** `LEAVE-006`, `LEAVE-017`, `LEGAL-004`, `DOC-TEMPLATE-001`, `MSG-001`–`MSG-009`.
@@ -10474,7 +10508,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** application without candidate/requisition/posting revisions, duplicate application under declared uniqueness policy, posting after requisition closure, candidacy without consent/purpose, or transition from terminal `WITHDRAWN|REJECTED|HIRED` is accepted and appends a recruiting event.
   - **GREEN:** immutable aggregate revisions enforce exact IDs, source/consent, effective/known times and allowed state machines; invalid commands return `MISSING_PARENT|DUPLICATE_APPLICATION|REQUISITION_CLOSED|INVALID_CANDIDACY_TRANSITION` with zero events/outbox.
   - **REFACTOR:** Person/prospect identity, job/position truth and CRM membership remain referenced owners rather than copied ATS facts.
-  - **Refs:** [Recruiting intents](specs/business-intent-catalog.md#catalog-coverage-partitions), [talent models](data/models/talent-experience-cases.md), [recruit workflow](workflows/lifecycle/recruit-hire-onboard.md).
+  - **Refs:** [Recruiting intents](specs/business-intent-catalog.md#vocabulary-list-non-normative), [talent models](data/models/talent-experience-cases.md), [recruit workflow](workflows/lifecycle/recruit-hire-onboard.md).
 
 - [ ] `RECRUIT-002` **[PHASE_3][SOL_HIGH] Govern candidacy stages, screening, assessments, interviews and evidence.**
   - **Depends:** `RECRUIT-001`, `APPT-004`, `ARTIFACT-005`, `WORK-003`, `GOVERN-002`.
@@ -10638,7 +10672,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** quote without source/revision/base/quote currency, effective-at, known-at, market convention or freshness is selected; duplicate providers silently override each other.
   - **GREEN:** resolver returns one `FXQuoteRevision|UNKNOWN|STALE|CONFLICT` with source priority, observed/effective/known time, confidence and canonical digest; no ambient current rate is available.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 ### Conformance-first future domain owners
 
@@ -10650,7 +10684,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** provider assertion without subject/document/source/assurance/purpose is trusted, work authorization lacks jurisdiction/category/validity or raw identity evidence enters ordinary projections.
   - **GREEN:** typed verification session returns `VERIFIED|REVIEW_REQUIRED|REJECTED|EXPIRED|UNKNOWN`, binds protected artifacts/provider observations and creates a separate effective-dated authorization result.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `PROOF-002` **[CONFORMANCE][SOL_HIGH] Prove review, expiration, renewal, correction and provider ambiguity semantics.**
   - **Depends:** `PROOF-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10660,7 +10694,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** expired/unknown authorization permits work, provider timeout is retried as success, renewal overwrites prior evidence, reviewer conflict is ignored or correction changes historical eligibility.
   - **GREEN:** fixtures create dated review/renewal intents, preserve prior evidence, block unsafe employment/scheduling, quarantine ambiguity and reconcile fresh provider state without identity leakage.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `ER-001` **[PHASE_4][SOL_HIGH] Define allegation, investigation, interview, finding, discipline and grievance semantics.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10670,7 +10704,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** investigation has no allegation/participants/purpose, conflicted investigator acts, interview statement is edited, finding lacks evidence standard or discipline bypasses legal/representation review.
   - **GREEN:** ER revisions extend Case with protected allegation, recusal, interview/statement, evidence-weight, finding, discipline/grievance and retaliation-safeguard contracts.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `ER-002` **[CONFORMANCE][SOL_HIGH] Prove appeal, grievance, settlement, retaliation and correction chronology.**
   - **Depends:** `ER-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10680,7 +10714,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** appeal overwrites finding, settlement erases allegation, retaliation signal is exposed to subject manager, grievance deadline disappears or correction removes original discipline.
   - **GREEN:** successor proceedings preserve compartments and chronology, deadlines/holds/representation remain explicit and evidence package returns exact redacted history without causal overclaim.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `MOBILITY-001` **[PHASE_4][SOL_HIGH] Define home/host assignment, relocation and immigration milestone revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10690,7 +10724,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** international assignment lacks home/host employment/location/payroll, visa milestone/source/expiry, relocation owner or privacy-transfer basis yet becomes active.
   - **GREEN:** immutable mobility plan binds home/host facts, legs, authorization milestones, relocation package, payroll/tax/PE/privacy obligations and returns `READY|CONDITIONAL|BLOCKED|UNKNOWN`.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `MOBILITY-002` **[CONFORMANCE][SOL_HIGH] Prove extension, country change, return, vendor reconciliation and retro correction.**
   - **Depends:** `MOBILITY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10700,7 +10734,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** host-country/date change preserves stale visa/tax/payroll/privacy approval, vendor acceptance counts complete, return leaves host effects active or retro correction rewrites mobility history.
   - **GREEN:** material change creates successor plan and scoped reevaluation, provider observations reconcile per obligation, return closes each host effect independently and corrections preserve dated prior truth.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SAFETY-001` **[PHASE_4][SOL_HIGH] Define incident, injury, reportability, claim, restriction and corrective-action semantics.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10710,7 +10744,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** incident/injury facts share unrestricted record, reportability is guessed, claim/payment lacks authority, restriction is free text or corrective action closes without verification.
   - **GREEN:** typed revisions separate operational/medical/claim/regulatory compartments, return deterministic reportability and work-restriction states, and bind corrective actions to evidence/owner/due rule.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SAFETY-002` **[CONFORMANCE][SOL_HIGH] Prove filing, workers-comp payment, restriction clearance and correction reconciliation.**
   - **Depends:** `SAFETY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10720,7 +10754,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** provider claim acceptance equals paid, filing timeout blindly resubmits, clearance deletes restriction, payment reversal rewrites ledger or retro incident change omits amended filing.
   - **GREEN:** fixtures separate submission/acceptance/payment/settlement, append clearance/reversal/correction, generate amendments/repairs and close only after fresh observations and obligations.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SKILL-001` **[PHASE_3][SOL_HIGH] Define skill ontology, proficiency, evidence, equivalence and expiration.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10730,7 +10764,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** skill hierarchy/equivalence cycles, self-asserted proficiency becomes verified, evidence expiry is ignored or external taxonomy overwrites canonical skill.
   - **GREEN:** versioned SkillDefinition graph and WorkerSkillEvidence return `VERIFIED|ASSERTED|EXPIRED|DISPUTED|UNKNOWN`, preserve source/proficiency/effective time and reject unsafe equivalence.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SKILL-002` **[CONFORMANCE][SOL_HIGH] Prove correction and parity across qualification, recruiting, learning and planning.**
   - **Depends:** `SKILL-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10740,7 +10774,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** consumers use different proficiency/equivalence revisions, correction deletes old assessment, expired credential remains qualified or hidden evidence leaks in candidate ranking.
   - **GREEN:** all consumers resolve one pinned skill/evidence digest with purpose-safe explanation; successor evidence triggers scoped reevaluation and historical decisions retain original basis.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `CAREER-001` **[PHASE_4][SOL_HIGH] Define career preferences, target roles and development objectives.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10750,7 +10784,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** manager/model overwrites worker preference, target role lacks job revision, sensitive mobility preference leaks, or predicted fit becomes domain fact.
   - **GREEN:** immutable worker-authored preference and separately sourced assessment/recommendation revisions bind visibility, target JobProfile, effective time and epistemic class.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `CAREER-002` **[CONFORMANCE][SOL_HIGH] Prove internal-mobility recommendation, correction and consent semantics.**
   - **Depends:** `CAREER-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10760,7 +10794,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** worker is recommended/applied without consent, denied role leaks, ranking uses protected attribute, stale preference persists or correction rewrites prior recommendation.
   - **GREEN:** authorized population/eligibility/matching returns explained candidates, action creates separate application intent, withdrawal stops future use and corrections preserve provenance.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SUCCESSION-001` **[PHASE_4][SOL_HIGH] Define critical-role, succession-slate, successor readiness and risk revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10770,7 +10804,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** slate lacks position/job revision, unauthorized manager nominates, readiness/risk is unlabeled opinion, hidden nominee leaks or one current slate has conflicting revisions.
   - **GREEN:** immutable slate binds role, candidates, nominator/assessment sources, readiness `READY_NOW|READY_LATER|NOT_READY|UNKNOWN`, risk, visibility and effective/known times.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `SUCCESSION-002` **[CONFORMANCE][SOL_HIGH] Prove calibration, correction, vacancy use and non-guarantee semantics.**
   - **Depends:** `SUCCESSION-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10780,7 +10814,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** calibration overwrites assessments, slate order directly fills vacancy/promotes, stale readiness is used, candidate views confidential rank or correction erases original.
   - **GREEN:** calibration appends decisions, vacancy creates separately governed selection intent, explanations state non-guarantee, restricted visibility holds and successor revisions preserve history.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `MERIT-001` **[PHASE_4][SOL_HIGH] Define merit cycle, population, budget, recommendation and calibration semantics.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10790,7 +10824,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** live population changes after launch, manager exceeds budget/range, recommendation uses stale salary/performance, protected feature drives outcome or calibration edits proposal silently.
   - **GREEN:** cycle revision binds population/snapshot/budget/rules, exact recommendations and calibration decisions with `PROPOSED|ADJUSTED|APPROVED|FINALIZED` and deterministic totals.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `MERIT-002` **[CONFORMANCE][SOL_HIGH] Prove concurrent budgeting, correction, finalization and compensation-child intents.**
   - **Depends:** `MERIT-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10800,7 +10834,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** concurrent recommendations overspend, rounding loses money, finalization hides rejected worker, correction rewrites award or retry duplicates base-pay child intent.
   - **GREEN:** exact decimal conservation holds, per-worker outcomes remain explicit, successor correction is append-only and deterministic child ChangeBasePay intents emit once after finalization.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `INCENTIVE-001` **[PHASE_4][SOL_HIGH] Define incentive/commission plans, measures, attainment and award revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10810,7 +10844,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** award lacks plan/period/measure source, attainment changes after approval, negative/threshold/cap semantics are implicit or ineligible worker receives payout.
   - **GREEN:** versioned plan and award calculation bind eligibility, measures/watermarks, formula, thresholds/caps, exact amount/currency, approval and `CALCULATED|APPROVED|FINALIZED`.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `INCENTIVE-002` **[CONFORMANCE][SOL_HIGH] Prove restatement, clawback, payroll-input and external-measure reconciliation.**
   - **Depends:** `INCENTIVE-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10820,7 +10854,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** restated sales measure overwrites award, clawback becomes negative history deletion, provider timeout duplicates payout or payroll uses unapproved award.
   - **GREEN:** successor calculation identifies delta, governed correction/clawback and one payroll input are emitted, external measures remain observations and settlement reconciles independently.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `EQUITY-001` **[PHASE_4][SOL_HIGH] Define equity plan, grant, vesting schedule and acceptance revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10830,7 +10864,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** grant lacks plan/pool/instrument/currency/quantity, vesting dates overlap, approval/acceptance digest differs or grant exceeds authorized pool.
   - **GREEN:** immutable grant binds exact plan/pool, units, price/currency, vesting schedule, approvals/documents and lifecycle `PROPOSED|ACCEPTED|ACTIVE|CANCELLED|SETTLED`.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `EQUITY-002` **[CONFORMANCE][SOL_HIGH] Prove vesting, forfeiture, correction, tax/payroll effect and provider reconciliation.**
   - **Depends:** `EQUITY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10840,7 +10874,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** termination erases vested lot, forfeiture affects vested units, correction rewrites grant, provider statement counts authoritative or tax/payroll effect is omitted.
   - **GREEN:** append-only lot events calculate vested/unvested/forfeited exactly, corrections create successor grant/effects and provider/tax/payroll outcomes reconcile with explicit unknown/repair states.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `ASSET-001` **[PHASE_3][SOL_HIGH] Define equipment inventory, custody, assignment and return revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10850,7 +10884,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** asset lacks inventory identity/owner/classification, is assigned to two workers, custody transfer lacks receipt or reported return closes on employee assertion alone.
   - **GREEN:** CAS-fenced custody revisions bind asset, worker/location, condition, assignee/issuer receipts, effective time and `AVAILABLE|ASSIGNED|LOST|RETURN_PENDING|RETURNED|RETIRED`.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `ASSET-002` **[CONFORMANCE][SOL_HIGH] Prove loss, recovery, offboarding and external inventory reconciliation.**
   - **Depends:** `ASSET-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10860,7 +10894,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** lost asset disappears, offboarding closes with mandatory return open, MDM observation equals physical custody, timeout duplicates wipe/recovery or correction overwrites chain.
   - **GREEN:** offboarding obligation remains open by policy, logical/physical observations are distinct, scoped recovery/repair executes once and append-only custody chain verifies every handoff.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `CONTACT-001` **[PHASE_2][SOL_HIGH] Define normalized contact endpoint revision and verification challenge lifecycle.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10870,7 +10904,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** email/phone normalizes to ambiguous value, duplicate endpoint links identities, challenge token is stored plaintext/replayed/cross-purpose or unverified endpoint becomes primary.
   - **GREEN:** endpoint revision binds normalized/masked value, type/purpose/priority/source; hashed one-time challenge binds subject/endpoint/purpose/expiry and returns `VERIFIED|EXPIRED|CONSUMED|INVALID`.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [ ] `CONTACT-002` **[CONFORMANCE][SOL_HIGH] Prove reissue, primary selection, correction and external-contact reconciliation.**
   - **Depends:** `CONTACT-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10880,7 +10914,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** reissue leaves old challenge valid, work-verified endpoint becomes personal recovery, removal deletes history, provider observation overwrites Person truth or retry sends duplicate challenge.
   - **GREEN:** old challenge revokes atomically, purpose-specific primary selection is deterministic, successor correction preserves evidence and external mismatches create bounded repair without Messaging owning contact truth.
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](plan.md#6-explicit-authority-expansion-path).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 ### Shared and high-priority engine continuation
 
@@ -10892,7 +10926,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** conversion uses float, reverses a zero/invalid quote, triangulates through an unapproved currency, mixes quote times or omits currency-specific rounding.
   - **GREEN:** result returns source amount, exact decimal operations, every quote revision/path, rounding profile, converted amount and remainder; invalid inputs return typed error and no financial state.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `FX-003` **[CONFORMANCE][SOL_HIGH] Correct and reconcile FX rates across compensation, budget, payroll and analytics.**
   - **Depends:** `FX-002`, `GOVERN-002`, `LEDGER-003`.
@@ -10902,7 +10936,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** provider restatement overwrites a quote, silently changes approved proposal, recomputes unrelated currencies or makes historical report use today's rate.
   - **GREEN:** correction appends successor quote, impact graph identifies affected derived results/intents, approved artifacts require explicit replan and cross-domain golden vectors produce identical conversion digest.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `I18N-001` **[PHASE_2][SOL_HIGH] Define LocaleContext and immutable translation catalog revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10912,7 +10946,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** caller chooses unsupported locale, fallback cycles, translation key changes meaning in place, or legal text is published without reviewer/source/effective interval.
   - **GREEN:** catalog revision binds BCP-47 locale, fallback DAG, key/source/classification/reviewer/effective interval and legal-review status; invalid publication creates no active catalog.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `I18N-002` **[PHASE_2][SOL_HIGH] Resolve translations and format names, dates, numbers and money deterministically.**
   - **Depends:** `I18N-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10922,7 +10956,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** missing key falls back nondeterministically, plural/gender branch is guessed, RTL direction is omitted, or formatting depends on host locale/tzdb.
   - **GREEN:** result binds locale/catalog/CLDR-tzdb-format profile, selected fallback path, plural/gender case, direction and exact rendered value; unknown remains explicit.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `I18N-003` **[CONFORMANCE][SOL_HIGH] Invalidate localized derivatives and prove channel parity.**
   - **Depends:** `I18N-002`, `GOVERN-002`, `LEDGER-003`.
@@ -10932,7 +10966,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** updated legal translation leaves old document/message/form/knowledge/GWC derivative active, or channels render different semantic content without policy.
   - **GREEN:** dependency index invalidates exact derivatives, regeneration preserves source/version/reviewer lineage and conformance fixtures match meaning, direction, accessibility and acknowledgement digest across channels.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `LOCATION-001` **[PHASE_2][SOL_HIGH] Define canonical Address, WorkLocation and Worksite revision identities.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10942,7 +10976,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** home address, worksite, tax residence and mailing endpoint share one mutable record, or revision lacks source/effective/known time and confidence.
   - **GREEN:** distinct typed revisions preserve normalized components, locality/timezone candidates, source authority, confidence, effective/known interval and correction lineage.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `LOCATION-002` **[PHASE_2][SOL_HIGH] Normalize addresses and resolve timezone, locality and jurisdiction candidates.**
   - **Depends:** `LOCATION-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10952,7 +10986,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** partial/ambiguous address yields one certain jurisdiction, geocoder/provider acceptance becomes fact, postal normalization loses original evidence or timezone is inferred from tenant default.
   - **GREEN:** resolver returns normalized address plus ranked locality/timezone/jurisdiction candidates, confidence, source/release and `RESOLVED|AMBIGUOUS|PARTIAL|UNKNOWN`; no legal decision is made.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `LOCATION-003` **[CONFORMANCE][SOL_HIGH] Correct location revisions and emit governed downstream impact.**
   - **Depends:** `LOCATION-002`, `GOVERN-002`, `LEDGER-003`.
@@ -10962,7 +10996,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** retroactive location correction overwrites history, misses affected legal/tax/payroll/leave/schedule periods or directly mutates downstream domains.
   - **GREEN:** successor revision and impact plan identify exact subjects/intervals/rule releases and emit bounded reevaluation intents; unaffected periods remain unchanged and downstream outcomes reconcile independently.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `SERVICE-001` **[PHASE_3][SOL_HIGH] Define service periods, credit sources and seniority dimensions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10972,7 +11006,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** service period overlaps without policy, acquisition/union credit lacks authority, leave/termination is treated uniformly across dimensions or one service date serves every purpose.
   - **GREEN:** typed periods and credit revisions bind employment/source, break type, applicable service dimensions, rules and effective/known times; invalid chronology returns exact conflict.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `SERVICE-002` **[PHASE_3][SOL_HIGH] Calculate continuous service, adjusted dates and seniority with bridging rules.**
   - **Depends:** `SERVICE-001`, `GOVERN-002`, `LEDGER-003`.
@@ -10982,7 +11016,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** calculation ignores break threshold, bridges without rule, double-counts concurrent employment, uses ambient date or produces one ordering for company/job/unit seniority.
   - **GREEN:** pinned history/rules return exact credited duration, adjusted date and dimension-specific seniority rank with operation trace and `KNOWN|PARTIAL|UNKNOWN`.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `SERVICE-003` **[CONFORMANCE][SOL_HIGH] Correct service history and trigger affected eligibility safely.**
   - **Depends:** `SERVICE-002`, `GOVERN-002`, `LEDGER-003`.
@@ -10992,7 +11026,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** retro correction overwrites prior result, silently revokes vested outcome, fails to reevaluate leave/benefit/PTO/severance/promotion dependencies or recalculates unrelated workers.
   - **GREEN:** successor result preserves old explanation, dependency graph emits scoped reevaluation/replan intents and material approved outcomes require governed correction rather than mutation.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `CBA-001` **[PHASE_4][SOL_HIGH] Define agreement revisions, bargaining units and applicability.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11002,7 +11036,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** worker is placed in unit by free text, expired agreement applies, overlapping agreements resolve silently or membership lacks representation/source/effective evidence.
   - **GREEN:** immutable agreement/unit/membership revisions return `APPLICABLE|NOT_APPLICABLE|CONFLICT|UNKNOWN` with precedence basis, representative and effective/known interval.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `CBA-002` **[PHASE_4][SOL_HIGH] Compose CBA wage, schedule, leave, seniority and discipline constraints.**
   - **Depends:** `CBA-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11012,7 +11046,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** company rule overrides mandatory statute/agreement, most-favorable rule is assumed without policy, unknown applicability permits action or seniority list uses stale service result.
   - **GREEN:** typed composition returns obligations/prohibitions/calculations with source clause/release and `ALLOW|ALLOW_WITH_OBLIGATIONS|BLOCK|UNKNOWN`; mandatory restrictions survive.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `CBA-003` **[CONFORMANCE][SOL_HIGH] Generate representation/grievance obligations and analyze agreement changes.**
   - **Depends:** `CBA-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11022,7 +11056,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** agreement change silently alters approved schedules/pay/leave/discipline, misses represented population or grievance/arbitration deadline, or manager waives representation.
   - **GREEN:** frozen affected population and impact graph create typed consultation/notice/grievance/reevaluation intents with calendars/evidence; prior decisions remain historically explainable.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `REPORT-001` **[PHASE_2][SOL_HIGH] Define immutable report and dashboard definitions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11032,7 +11066,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** report references unknown field/metric/population, parameter default broadens scope, dashboard embeds mutable query or definition changes in place.
   - **GREEN:** versioned definition binds typed parameters, fields/metrics/population, sorting/aggregation, disclosure policy, render/export formats, owner and compatibility digest.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `REPORT-002` **[PHASE_2][SOL_HIGH] Execute, render and export reports with authorization and watermarks.**
   - **Depends:** `REPORT-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11042,7 +11076,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** cached/admin execution leaks denied rows/counts, mixed watermarks claim one as-of state, export differs from viewed result or provider timeout returns partial as complete.
   - **GREEN:** execution plan binds principal/purpose/field/population scope and source watermarks; result returns `COMPLETE|PARTIAL|STALE|UNKNOWN`, exact row/aggregate digest and identical authorized render/export semantics.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `REPORT-003` **[CONFORMANCE][SOL_HIGH] Schedule dashboards and reproduce historical report results.**
   - **Depends:** `REPORT-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11052,7 +11086,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** schedule runs under creator's expired authority, dashboard refresh mixes versions, delivery leaks attachment/link, or historical rerun uses current definition/data without disclosure.
   - **GREEN:** each run reauthorizes, pins definition/data/control versions, stores evidence and secure delivery intent; historical reproduction states exact/recomputed/unavailable and never fabricates equality.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `TAXPROFILE-001` **[PHASE_4][SOL_HIGH] Define worker tax profile, registration, election and exemption revisions.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11062,7 +11096,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** election lacks worker/jurisdiction/form/version/evidence, exemption has no expiry, registration overlaps inconsistently or bank/HR caller lowers tax classification.
   - **GREEN:** immutable profile revisions preserve jurisdiction registration, filing status/elections/exemptions, evidence authority, effective/known intervals and restricted classification.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `TAXPROFILE-002` **[PHASE_4][SOL_HIGH] Validate, effective-date and correct worker tax elections.**
   - **Depends:** `TAXPROFILE-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11072,7 +11106,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** missing/expired form is accepted, late election rewrites closed payroll, correction deletes original or same effective date has two winners.
   - **GREEN:** validation returns `VALID|INCOMPLETE|INVALID|EXPIRED|UNKNOWN`; accepted successor is CAS-fenced, closed periods create retro/correction intent and current resolution is deterministic.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `TAXPROFILE-003` **[CONFORMANCE][SOL_HIGH] Produce version-pinned tax input and prove payroll/tax parity.**
   - **Depends:** `TAXPROFILE-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11082,7 +11116,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** tax calculation/payroll use different profile revisions, unknown registration defaults resident, redacted election becomes zero withholding or snapshot changes after payroll freeze.
   - **GREEN:** immutable snapshot binds profile/registration/election/form/rule releases and presence states; Tax and Payroll conformance consume identical digest and block unsafe unknowns.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYINPUT-001` **[PHASE_5][SOL_HIGH] Define earning and deduction definitions plus worker assignments.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11092,7 +11126,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** earning/deduction lacks code/type/currency/taxability/accounting/owner, recurrence has no period rule or overlapping worker assignments resolve silently.
   - **GREEN:** immutable definitions and assignments bind calculation/tax/accounting semantics, amount/rate/formula, limits, recurrence and effective/known intervals; conflicts reject with zero payroll input.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYINPUT-002` **[PHASE_5][SOL_HIGH] Calculate recurring and one-time payroll inputs with limits and arrears.**
   - **Depends:** `PAYINPUT-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11102,7 +11136,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** float arithmetic, pre/post-tax ambiguity, cap/floor order drift, one-time duplicate, deduction below protected floor or arrears disappear.
   - **GREEN:** pinned definitions/assignments/period produce exact typed earning/deduction lines, taxable treatment, applied/deferred amount, remaining limit/arrears and trace; replay digest is stable.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYINPUT-003` **[CONFORMANCE][SOL_HIGH] Correct assignments and freeze a complete payroll-input snapshot.**
   - **Depends:** `PAYINPUT-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11112,7 +11146,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** retro assignment mutates finalized run, correction omits dependent periods, snapshot misses time/benefit/tax/garnishment source or changes after cutoff.
   - **GREEN:** append-only correction emits affected-run plan; immutable snapshot records every input revision/presence/watermark and finalized runs require explicit payroll correction, never in-place rewrite.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYMETHOD-001` **[PHASE_4][SOL_HIGH] Define classified payment destinations, verification and split priority.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11122,7 +11156,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** raw bank data enters ordinary worker projection/log, destination lacks token/provider/owner/verification, split exceeds 100 percent or priority cycles.
   - **GREEN:** restricted destination revision stores governed token/reference, masked display, verification state, currency/country, exact split/priority and effective interval; invalid input emits no destination event.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYMETHOD-002` **[PHASE_4][SOL_HIGH] Govern direct-deposit changes with step-up, fraud and cooling controls.**
   - **Depends:** `PAYMETHOD-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11132,7 +11166,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** caller-selected account, weak session, anomalous bulk change, stale verification, self-approval or change inside protected payroll window commits.
   - **GREEN:** change binds verified destination, principal/session assurance, risk/fraud decision, proposal/approval and activation policy; unsafe cases return `STEP_UP_REQUIRED|REVIEW_REQUIRED|REPLAN_REQUIRED|BLOCKED` with zero activation.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `PAYMETHOD-003` **[CONFORMANCE][SOL_HIGH] Observe prenote and reconcile payroll settlement destinations.**
   - **Depends:** `PAYMETHOD-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11142,7 +11176,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** prenote submission counts verified, provider timeout triggers duplicate, payroll uses superseded destination, returned payment marks worker paid or mismatch overwrites intent.
   - **GREEN:** observations remain external and fresh; expected/used/settled destination comparison returns exact state, quarantines ambiguity and creates separate repair/payment-return intent without rewriting payroll.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `JOBARCH-001` **[PHASE_3][SOL_HIGH] Define job profiles, families, levels, grades and immutable lifecycle.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -11152,7 +11186,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** job has no family/level, family hierarchy cycles, grade/career level conflict, published profile mutates or retired job accepts new position without policy.
   - **GREEN:** versioned graph enforces stable IDs, hierarchy DAG, lifecycle `DRAFT|PUBLISHED|RETIRED|SUPERSEDED`, effective/known time and compatibility diagnostics.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `JOBARCH-002` **[PHASE_3][SOL_HIGH] Assign classifications, skills, credentials and compensation relationships.**
   - **Depends:** `JOBARCH-001`, `GOVERN-002`, `LEDGER-003`.
@@ -11162,7 +11196,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** exemption/classification is free text, required skill/license lacks proficiency/validity, pay grade currency mismatches or generic Job engine owns skill/compensation truth.
   - **GREEN:** job revision references versioned classification, Qualification requirements, skill/credential and grade/band definitions with authority and effective interval; unresolved reference blocks publication.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `JOBARCH-003` **[CONFORMANCE][SOL_HIGH] Publish, retire and impact-analyze job revisions.**
   - **Depends:** `JOBARCH-002`, `GOVERN-002`, `LEDGER-003`.
@@ -11172,7 +11206,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** breaking revision activates without approval, retirement or supersession strands positions/requisitions/workers, impact omits compensation/qualification/access/talent dependencies or silently updates them.
   - **GREEN:** publication binds configuration approval and compatibility report; frozen impact set emits scoped review/migration intents while existing assignments retain historical job revision until governed change.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
-  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+  - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 ## 58. BusinessIntent-to-workflow design convergence
 
@@ -11894,7 +11928,7 @@ authorized by the master and execution plans.
   - **RED:** manifest includes source-unbound intent, future native payroll/WFM/talent ownership, endpoint without disposition, capability without owner, workflow without vertical slice, hidden provider dependency or scope item lacking explicit include/defer/reject rationale.
   - **GREEN:** signed scope ceiling names the maximum candidate intents, capabilities, workflows, user flows, endpoints, models and effects plus explicit provider, jurisdiction, topology and SLO selection slots; all other catalog items remain visibly deferred and cannot create Phase 1 build work.
   - **REFACTOR:** concrete selection fills slots through `NEXT-002`; selection cannot depend on a supposedly final manifest that already contains the selection.
-  - **Refs:** [Phase 1 execution plan](execution-plan.md), [ChangeOps overlay](plan.md#phase-1-changeops-overlay), [endpoint expansion](specs/http-grpc-endpoint-contract.md#endpoint-expansion-rule).
+  - **Refs:** [Phase 1 execution plan](execution-plan.md), [ChangeOps overlay](plan.md#phase-1-changeops-overlay), [endpoint expansion](specs/http-grpc-endpoint-contract.md#expansion-rule).
 
 - [ ] `SELECT-001` **[P0][SOL_HIGH] Select and evidence the first legal jurisdiction and bounded rule-pack scope.**
   - **Depends:** `PHASE-001`, `LEGAL-001`.
@@ -12004,7 +12038,7 @@ authorized by the master and execution plans.
   - **RED:** package promises unselected intent/provider/jurisdiction/SLO, confuses overlay authority with system-of-record ownership, omits implementation/support/provider cost, bills replay/repair duplicates, lacks data processing/retention/exit terms or hides hypothesis/stop threshold.
   - **GREEN:** signed package maps entitlements and exclusions to the Phase 1 digest, declares price/usage/support/implementation assumptions, legal/authority boundaries, provider pass-throughs, evidence/SLOs, termination/export obligations and quantitative reprice/stop criteria.
   - **REFACTOR:** commercial views consume entitlement, usage, cost and release registries; contract prose cannot independently enable capability.
-  - **Refs:** [pricing hypothesis](plan.md#511-pricing-hypothesis), [commercial proof](execution-plan.md), [competitive position](specs/competitive-positioning-and-authority-expansion.md).
+  - **Refs:** [pricing hypothesis](plan.md#125-commercial-architecture-hypotheses), [commercial proof](execution-plan.md), [competitive position](specs/competitive-positioning-and-authority-expansion.md).
 
 - [ ] `PILOT-001` **[GATE_B][SOL_HIGH] Run an evidence-bound pilot go/no-go and value-realization review.**
   - **Depends:** `WEDGE-015`, `COMMERCIAL-001`, `CUSTOMER-003`, `CUSTOMER-004`, `PERF-008`, `THREAT-002`.
@@ -12472,7 +12506,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **RED:** omitted/expired/failed test, owner, command, fixture, artifact, restore, SLO, accessibility or privacy evidence still passes; an out-of-manifest system is required; or any workforce/provider effect is observed.
   - **GREEN:** manifest closure maps each selected artifact and acceptance claim to an exact oracle, result digest, owner, retention and expiry and returns `GATE_BLOCKED` for any defect; passing evidence can yield a signed decision but never write authority.
   - **REFACTOR:** `WEDGE-014` consumes only this evidence receipt; phase membership is data, not numeric todo ranges.
-  - **Refs:** [Gate A milestone](next-steps.md#m4-gate-a-decision), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
+  - **Refs:** [Gate A milestone](next-steps.md#m4--gate-a-decision), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
 
 - [ ] `NEXT-004` **[GATE_A][SOL_HIGH] Bootstrap the smallest production-shaped Go runtime and PostgreSQL chronology.**
   - **Depends:** `TOOL-001`, `ARCH-GO-001`, `ARCH-GO-018`, `PROTO-001`, `PROTO-002`, `DB-001`, `DB-002`, `DB-006`, `LEDGER-001`, `DATA-007`.
@@ -12482,7 +12516,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **RED:** release requires Node/npm, lacks generated service bindings, has competing migration roots, loses ledger/projection/outbox chronology on crash, or restart cannot return the same typed intent/simulation result.
   - **GREEN:** root Go module builds `hcmnext`, `worker`, `projector` and bootstrap `migrate`; ephemeral PostgreSQL migrates from zero, typed Create/Get/Simulate calls persist one ACID chronology, worker acknowledgement and restart/reconciliation preserve exact digests.
   - **REFACTOR:** add scheduler/admin and mature migration/deployment qualification only when their first selected runtime behavior requires them.
-  - **Refs:** [physical spine](next-steps.md#m2-production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
+  - **Refs:** [physical spine](next-steps.md#m2--production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
 
 - [ ] `NEXT-005` **[GATE_A][SOL_HIGH] Prove the complete P1A Promotion path has zero workforce and external effects.**
   - **Depends:** `EP-PROMO-001`, `PROMO-001`–`PROMO-004`, `SNAPSHOT-001`–`SNAPSHOT-003`, `INTG-001`–`INTG-010`, `RECON-001`, `RECON-002`, `REPAIR-001`, `REPAIR-003`, `EVIDENCE-001`.
@@ -12492,7 +12526,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **RED:** request smuggles current truth, stale/partial/denied input becomes complete, replay duplicates intent, simulation omits write/effect/approval/conflict/authority/repair detail, or any domain revision/reservation/task/timer/message/outbox/provider mutation appears.
   - **GREEN:** trusted ingress creates one intent; mixed-source snapshot preserves status/provenance; deterministic simulation and immutable proposal expose complete before/after and uncertainty; handoff/observation/reconciliation/repair recommendation produce one evidence receipt and the prohibited-effect row/request counts remain exactly zero under retry/crash.
   - **REFACTOR:** the Promotion application package orchestrates owner ports; provider adapters and workflow steps contain no promotion semantics.
-  - **Refs:** [P1A Promotion slice](next-steps.md#m3-p1a-promotion-vertical-slice), [Promotion workflow](reference-workflows/promote-into-management.md).
+  - **Refs:** [P1A Promotion slice](next-steps.md#m3--p1a-promotion-vertical-slice), [Promotion workflow](reference-workflows/promote-into-management.md).
 
 - [ ] `NEXT-006` **[GATE_B][SOL_HIGH] Select and bind exactly one P1B authority topology.**
   - **Depends:** `WEDGE-014`, `NEXT-002`, `WEDGE-004`, `SELECT-002`.
@@ -12532,7 +12566,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **RED:** authority relies on future pilot outcomes, self-certifying gate evidence, missing topology/field/provider/expiry, unreadable restore, open critical assurance finding, unowned rollback/repair/incident path or a stale Gate A artifact.
   - **GREEN:** immutable amendment maps every pre-write criterion to current test command, fixture, exact oracle, result digest, owner, retention, expiry and sign-off; success grants only the selected tenant/intent/capability/field/provider/time scope and every defect returns `GATE_BLOCKED` with zero write authority.
   - **REFACTOR:** keep pre-write authorization separate from `GATEB-EVID-001`, which evaluates actual bounded-write operation and the post-pilot continue/narrow/stop decision.
-  - **Refs:** [P1B milestone](next-steps.md#m5-p1b-bounded-write-path), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority).
+  - **Refs:** [P1B milestone](next-steps.md#m5--p1b-bounded-write-path), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority).
 
 ## 65. Additional untraveled operational and delivery surfaces
 

@@ -1,0 +1,193 @@
+{
+  "_owner": "kernel",
+  "_phase": "P1A",
+  "_todo": "MODEL-004",
+  "_encoding": "canonical_hex for an instant is tag 01 || int64 UTC seconds big-endian || uint32 nanoseconds big-endian. For a local date it is tag 02 || int32 year big-endian || month byte || day byte. The distinct tags are why a date can never share canonical bytes with an instant.",
+  "instants": [
+    {
+      "unix_seconds": 0,
+      "nanos": 0,
+      "rfc3339": "1970-01-01T00:00:00Z",
+      "canonical_hex": "01000000000000000000000000"
+    },
+    {
+      "unix_seconds": 1,
+      "nanos": 0,
+      "rfc3339": "1970-01-01T00:00:01Z",
+      "canonical_hex": "01000000000000000100000000"
+    },
+    {
+      "unix_seconds": -1,
+      "nanos": 0,
+      "rfc3339": "1969-12-31T23:59:59Z",
+      "canonical_hex": "01ffffffffffffffff00000000"
+    },
+    {
+      "unix_seconds": 1000000000,
+      "nanos": 0,
+      "rfc3339": "2001-09-09T01:46:40Z",
+      "canonical_hex": "01000000003b9aca0000000000"
+    },
+    {
+      "_note": "nanosecond precision survives; RFC 3339 trims trailing zeros only",
+      "unix_seconds": 0,
+      "nanos": 1,
+      "rfc3339": "1970-01-01T00:00:00.000000001Z",
+      "canonical_hex": "01000000000000000000000001"
+    }
+  ],
+  "local_dates": [
+    { "text": "1970-01-01", "canonical_hex": "02000007b20101" },
+    { "text": "2024-02-29", "canonical_hex": "02000007e8021d" },
+    { "text": "2026-01-31", "canonical_hex": "02000007ea011f" },
+    { "text": "9999-12-31", "canonical_hex": "020000270f0c1f" }
+  ],
+  "zoned": [
+    {
+      "_note": "unambiguous local time",
+      "date": "2026-06-15",
+      "time": "09:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "REJECT_GAP",
+      "want_instant": "2026-06-15T13:30:00Z",
+      "want_offset_seconds": -14400
+    },
+    {
+      "_note": "spring-forward gap: 02:30 never happens on 2026-03-08",
+      "date": "2026-03-08",
+      "time": "02:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "REJECT_GAP",
+      "want_error": "ErrDSTGap"
+    },
+    {
+      "date": "2026-03-08",
+      "time": "02:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "EARLIER",
+      "want_instant": "2026-03-08T07:00:00Z",
+      "want_offset_seconds": -14400
+    },
+    {
+      "date": "2026-03-08",
+      "time": "02:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "LATER",
+      "want_instant": "2026-03-08T07:00:00Z",
+      "want_offset_seconds": -14400
+    },
+    {
+      "_note": "fall-back fold: 01:30 happens twice on 2026-11-01",
+      "date": "2026-11-01",
+      "time": "01:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "REJECT_GAP",
+      "want_error": "ErrDSTAmbiguous"
+    },
+    {
+      "date": "2026-11-01",
+      "time": "01:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "EARLIER",
+      "want_instant": "2026-11-01T05:30:00Z",
+      "want_offset_seconds": -14400
+    },
+    {
+      "date": "2026-11-01",
+      "time": "01:30:00",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "disambiguation": "LATER",
+      "want_instant": "2026-11-01T06:30:00Z",
+      "want_offset_seconds": -18000
+    },
+    {
+      "_note": "southern-hemisphere fold runs the other way round",
+      "date": "2026-04-05",
+      "time": "02:30:00",
+      "zone": "Australia/Sydney",
+      "tzdb_version": "2026a",
+      "disambiguation": "EARLIER",
+      "want_instant": "2026-04-04T15:30:00Z",
+      "want_offset_seconds": 39600
+    },
+    {
+      "date": "2026-04-05",
+      "time": "02:30:00",
+      "zone": "Australia/Sydney",
+      "tzdb_version": "2026a",
+      "disambiguation": "LATER",
+      "want_instant": "2026-04-04T16:30:00Z",
+      "want_offset_seconds": 36000
+    },
+    {
+      "_note": "a zone with no DST at all resolves under any policy",
+      "date": "2026-03-08",
+      "time": "02:30:00",
+      "zone": "UTC",
+      "tzdb_version": "2026a",
+      "disambiguation": "REJECT_GAP",
+      "want_instant": "2026-03-08T02:30:00Z",
+      "want_offset_seconds": 0
+    }
+  ],
+  "interval_overlaps": [
+    {
+      "_note": "adjacent half-open ranges never overlap",
+      "a_start": "2026-01-01",
+      "a_end": "2026-02-01",
+      "b_start": "2026-02-01",
+      "b_end": "2026-03-01",
+      "want_overlap": false
+    },
+    {
+      "a_start": "2026-01-01",
+      "a_end": "2026-02-01",
+      "b_start": "2026-01-31",
+      "b_end": "2026-03-01",
+      "want_overlap": true
+    },
+    {
+      "a_start": "2026-01-01",
+      "a_end": "2026-02-01",
+      "b_start": "2026-01-01",
+      "b_end": "2026-02-01",
+      "want_overlap": true
+    },
+    {
+      "a_start": "2026-01-01",
+      "a_end": "2026-01-02",
+      "b_start": "2026-03-01",
+      "b_end": "2026-04-01",
+      "want_overlap": false
+    },
+    {
+      "_note": "containment is an overlap",
+      "a_start": "2026-01-01",
+      "a_end": "2026-12-01",
+      "b_start": "2026-06-01",
+      "b_end": "2026-07-01",
+      "want_overlap": true
+    }
+  ],
+  "invalid_local_dates": [
+    "",
+    "2026-02-30",
+    "2025-02-29",
+    "2026-13-01",
+    "2026-00-01",
+    "2026-01-00",
+    "2026-01-32",
+    "2026-1-1",
+    "20260101",
+    "0000-01-01",
+    "2026-01-01T00:00:00Z",
+    "2026/01/01"
+  ]
+}

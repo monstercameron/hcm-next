@@ -1,0 +1,2 @@
+go test fuzz v1
+string("rev:v1:0:o\r0000")

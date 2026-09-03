@@ -1,0 +1,200 @@
+# Process-role and semantic-ownership manifest (SVC-001, minimal).
+#
+# Consumed by tools/policy/processroles. Maps runtime execution to exactly
+# the commands under cmd/ (status: initial) plus the two commands sequenced
+# after P1A (status: later, no directory expected yet). Many semantic
+# packages may run inside one process; changing process placement must
+# never change a package's API or data authority
+# (planning/specs/platform-plane-model.md, planning/next-steps.md).
+
+version: 1
+module: github.com/monstercameron/hcm-next
+
+disposition: >-
+  P1A ships four commands: hcmnext, worker, projector, migrate. scheduler is
+  added when P1B needs durable timers; admin is added when P1B needs a
+  dedicated operator-action surface. Neither later row implies a cmd/
+  directory exists yet.
+
+processes:
+  - command: hcmnext
+    status: initial
+    role: >-
+      Primary API/service process: Experience/API plane entrypoint (gRPC
+      today, the qualified transport edge once wired) fronting Identity,
+      Governance, Control resolution and read/query capability dispatch.
+    semantic_packages:
+      - internal/transport
+      - internal/trust
+      - internal/governance
+      - internal/capability
+      - internal/intent
+    dependencies:
+      - PostgreSQL (read path; internal/data)
+      - gRPC/Protobuf contracts (gen/go)
+    criticality: critical
+    concurrency: >-
+      One process per replica; stateless request handling, horizontally
+      scaled behind the transport edge.
+    probes:
+      liveness: process responds to its own health RPC/HTTP endpoint
+      readiness: PostgreSQL connectivity and pinned Control-plane configuration resolve
+    data_access:
+      reads: [tenant, intent, capability, snapshot, proposal, observation]
+      writes: [intent, proposal, snapshot draft state within P1A's persisted-record set]
+    queues: []
+    slo: Read/query capability latency budget owned by experience-and-transport; see planning/specs for the exact P1A SLO once published.
+    drain_policy: Stop accepting new requests, finish in-flight RPCs within the shutdown grace period, then exit.
+    degradation_policy: >-
+      Analytics/search/intelligence unavailability does not block material
+      requests (platform-plane-model.md, Intelligence Isolation); a failed
+      PostgreSQL readiness probe takes the replica out of rotation.
+
+  - command: worker
+    status: initial
+    role: >-
+      Durable/background execution process: workflow runtime, compensable
+      steps, connector observation intake and asynchronous capability
+      handlers that must not block the request path.
+    semantic_packages:
+      - internal/workflow
+      - internal/engines
+      - internal/connectivity
+      - internal/operations
+    dependencies:
+      - PostgreSQL (workflow/outbox state; internal/data, internal/ledger)
+      - Connector-observation intake (internal/connectivity)
+    criticality: critical
+    concurrency: >-
+      One or more replicas consuming leased work; concurrency bounded by
+      lease/queue backpressure, not goroutine count alone.
+    probes:
+      liveness: process heartbeats its own lease/lock renewal
+      readiness: PostgreSQL connectivity and pending-work queue reachability
+    data_access:
+      reads: [workflow state, ledger events, outbox entries, observation records]
+      writes:
+        [
+          workflow state,
+          ledger events (append-only),
+          outbox entries,
+          observation records,
+        ]
+    queues:
+      - workflow-timer/signal queue (durable, PostgreSQL-backed in P1A/P1B)
+      - connector-observation intake queue
+    slo: Workflow step latency and durability budget owned by workflow-runtime; see planning/specs/workflow-runtime.md.
+    drain_policy: Stop leasing new work, finish or checkpoint in-flight steps, release leases cleanly before exit.
+    degradation_policy: >-
+      A stalled connector or downstream provider degrades that connector's
+      observation lane only; it must not stall unrelated workflow steps
+      (platform-plane-model.md Connectivity Plane isolation).
+
+  - command: projector
+    status: initial
+    role: >-
+      Rebuildable-projection process: consumes the outbox/event stream and
+      maintains serving/search/analytical projections; never performs an
+      authoritative domain write.
+    semantic_packages:
+      - internal/data
+      - internal/ledger
+      - internal/operations
+    dependencies:
+      - PostgreSQL (outbox consumption and projection tables; internal/data)
+    criticality: important-not-critical
+    concurrency: >-
+      One or more replicas partitioned by consumer checkpoint; replay-safe
+      and horizontally scalable.
+    probes:
+      liveness: process advances its consumer checkpoint
+      readiness: PostgreSQL connectivity and outbox reachability
+    data_access:
+      reads: [outbox entries, ledger events]
+      writes:
+        [
+          serving/search/analytical projection tables only; never ledger or domain-of-record tables,
+        ]
+    queues:
+      - outbox consumer checkpoint
+    slo: Projection staleness budget owned by data-and-ledger; staleness is exposed, never hidden (platform-plane-model.md Data Subplanes).
+    drain_policy: Finish the in-flight batch, persist the consumer checkpoint, then exit; safe to restart from the last committed checkpoint.
+    degradation_policy: >-
+      Projector unavailability degrades read freshness only; it never blocks
+      hcmnext's material command path or worker's workflow execution.
+
+  - command: migrate
+    status: initial
+    role: >-
+      Bootstrap migration command: applies the authoritative Goose migration
+      tree. Split from mature expand/backfill/cutover rehearsal tooling per
+      planning/next-steps.md M2 scope.
+    semantic_packages:
+      - migrations
+      - internal/data
+    dependencies:
+      - PostgreSQL (DDL/DML execution; github.com/pressly/goose/v3)
+    criticality: critical-but-operator-invoked
+    concurrency: Single invocation per environment; not a long-running server process.
+    probes:
+      liveness: not applicable (short-lived CLI invocation)
+      readiness: PostgreSQL connectivity and migration-lock acquisition before applying any step
+    data_access:
+      reads: [schema_migrations/goose version table]
+      writes:
+        [
+          DDL/DML for every registered migration; the highest write-privilege process in the fleet,
+        ]
+    queues: []
+    slo: Not a serving process; success/failure and elapsed time are the only tracked signals.
+    drain_policy: Not applicable; a migration run either completes, fails cleanly under goose's transactional guarantees, or is retried after operator review.
+    degradation_policy: A failed migration blocks the deploy it belongs to; it does not degrade already-running hcmnext/worker/projector replicas.
+
+  - command: scheduler
+    status: later
+    role: >-
+      Reserved for P1B: durable future-date timer firing (one future-date
+      timer per next-steps.md P1B scope) and other time-driven workflow
+      signals. No cmd/scheduler directory is expected before P1B.
+    semantic_packages:
+      - internal/workflow
+      - internal/operations
+    dependencies:
+      - PostgreSQL (durable timer state)
+    criticality: to-be-determined-at-P1B
+    concurrency: to-be-determined-at-P1B
+    probes:
+      liveness: to-be-determined-at-P1B
+      readiness: to-be-determined-at-P1B
+    data_access:
+      reads: [workflow timer state]
+      writes: [workflow timer state, workflow signal delivery]
+    queues:
+      - durable timer queue
+    slo: to-be-determined-at-P1B
+    drain_policy: to-be-determined-at-P1B
+    degradation_policy: to-be-determined-at-P1B
+
+  - command: admin
+    status: later
+    role: >-
+      Reserved for P1B: operator-action CLI/surface (approvals, repair,
+      operational overrides) per next-steps.md. No cmd/admin directory is
+      expected before P1B.
+    semantic_packages:
+      - internal/governance
+      - internal/operations
+    dependencies:
+      - PostgreSQL (operator-action audit trail)
+    criticality: to-be-determined-at-P1B
+    concurrency: to-be-determined-at-P1B
+    probes:
+      liveness: to-be-determined-at-P1B
+      readiness: to-be-determined-at-P1B
+    data_access:
+      reads: [governance decisions, operations incidents/repair records]
+      writes: [operator-action audit trail]
+    queues: []
+    slo: to-be-determined-at-P1B
+    drain_policy: to-be-determined-at-P1B
+    degradation_policy: to-be-determined-at-P1B

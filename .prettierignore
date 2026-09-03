@@ -3,3 +3,7 @@ dist/
 coverage/
 node_modules/
 package-lock.json
+
+# Generated or digest-compared artifacts must not be reformatted
+definitions/planning/todo-registry.json
+gen/

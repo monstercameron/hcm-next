@@ -1,0 +1,188 @@
+# Canonical repository-layout manifest (ARCH-GO-001).
+#
+# This is the machine-readable source of truth consumed by
+# tools/policy/layout. It pins the one-module-first repository shape, the
+# declared internal/ package roots, the approved process (cmd/*) set and the
+# legacy-module exemption. Nothing here implies a package is implemented or a
+# process is deployed; presence only records where code of that kind is
+# allowed to live.
+#
+# See planning/specs/go-only-technology-constitution.md and
+# planning/specs/platform-plane-model.md for the normative prose this
+# manifest encodes, and planning/next-steps.md for the four-command
+# disposition (2026-09-02).
+
+version: 1
+module: github.com/monstercameron/hcm-next
+
+disposition: >-
+  P1A ships exactly four initial commands (hcmnext, worker, projector,
+  migrate) per planning/next-steps.md. scheduler and admin are sequenced
+  after P1A; their rows below exist so ownership and layer are pre-declared,
+  not so the directories may exist yet.
+
+# Top-level roots a production Go package may live under. Anything else is a
+# layout violation. "Production" excludes the legacy module and non-Go
+# vendor trees declared below.
+allowed_roots:
+  - name: cmd
+    description: >-
+      Composition-root command binaries. Every second-level directory name
+      must be an approved command from approved_commands.initial.
+  - name: api
+    description: >-
+      Reserved for API/service composition surfaces. May be empty until a
+      phase requires a distinct package here; internal/transport is the
+      current home for transport adaptation.
+  - name: definitions
+    description: >-
+      Machine-readable architecture, planning and policy manifests. Never
+      executable; consumed by tools/policy and tools/planning.
+  - name: internal
+    description: >-
+      Semantic package roots. Every second-level directory name must be a
+      declared root in internal_package_roots.
+  - name: migrations
+    description: Authoritative Goose migration tree (owned outside tools/policy).
+  - name: test
+    description: >-
+      Cross-package conformance, integration and browser test suites that do
+      not belong to a single internal package.
+  - name: tools
+    description: >-
+      Developer and CI tooling. Excluded from the release image; internal
+      structure is not constrained by this manifest beyond being under tools/.
+  - name: gen
+    description: >-
+      Generated Protobuf/Go artifacts. Content is owned by the generator
+      (TOOL-002/TOOL-004), never hand-edited; internal structure is not
+      constrained by this manifest.
+
+# Declared internal/<root> package roots (ARCH-GO-001 GREEN). Directory
+# presence never implies the package is implemented or the plane is
+# deployed; empty directories for deferred planes are expected.
+internal_package_roots:
+  - name: kernel
+    owner: platform-foundation
+    layer: kernel
+    phase: P1A
+    description: Identity/reference/revision, temporal, decimal/money, digest and evidence primitives.
+  - name: intent
+    owner: intent-and-capability
+    layer: intent
+    phase: P1A
+    description: BusinessIntent definitions, instances, families, lifecycle, proposals/change requests.
+  - name: capability
+    owner: intent-and-capability
+    layer: capability
+    phase: P1A
+    description: Capability descriptors, modes, side-effect declarations, handlers/gateway/discovery.
+  - name: governance
+    owner: governance-and-trust
+    layer: governance
+    phase: P1A
+    description: AuthZ/legal/privacy/entitlement/risk/DLP composition over independent policy subsystems.
+  - name: workflow
+    owner: workflow-runtime
+    layer: workflow
+    phase: P1B
+    description: Workflow definition, compiler, durable runtime and thin step adapters.
+  - name: engines
+    owner: shared-engines
+    layer: engines
+    phase: P1A
+    description: Reusable transform/rules/population/eligibility/etc. engines independent of domains.
+  - name: domains
+    owner: domain-teams
+    layer: domains
+    phase: P1A
+    description: HCM domain packages (people, organization, position, compensation, ...).
+  - name: transaction
+    owner: transaction-and-conflict
+    layer: transaction
+    phase: P1B
+    description: Transaction plan/participants/prepare/commit/receipt and conflict analysis (port/adapter).
+  - name: ledger
+    owner: data-and-ledger
+    layer: data
+    phase: P1A
+    description: Append-only ledger event truth (port/adapter).
+  - name: data
+    owner: data-and-ledger
+    layer: data
+    phase: P1A
+    description: Repositories, projections, outbox and other serving/distribution stores (port/adapter).
+  - name: humanwork
+    owner: connectivity
+    layer: connectivity
+    phase: deferred
+    description: Human messaging (email/SMS/inbox/push/Slack/Teams); deferred beyond P1A scope.
+  - name: connectivity
+    owner: connectivity
+    layer: connectivity
+    phase: P1A
+    description: System integration connectors, APIs, webhooks, files, government gateways.
+  - name: trust
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: Identity/session/federation/workload-identity primitives.
+  - name: operations
+    owner: operations-and-assurance
+    layer: operations
+    phase: P1A
+    description: Telemetry, SLOs, reconciliation, incidents, integrity, DR overlays.
+  - name: platform
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Process bootstrap, build identity, config, telemetry and reliability plumbing shared by commands.
+  - name: transport
+    owner: experience-and-transport
+    layer: transport
+    phase: P1A
+    description: Experience/API transport adaptation (grpcbridge or fallback edge, protocol exposure).
+
+# Approved process set (companion to definitions/architecture/process-roles.yaml, SVC-001).
+approved_commands:
+  initial:
+    - hcmnext
+    - worker
+    - projector
+    - migrate
+  later:
+    - scheduler
+    - admin
+
+# The legacy Go module at src/blocks/go is a separate module (its own
+# go.mod, module hcm-next-executor) and is out of scope of this root-module
+# policy. It is historical implementation evidence per the Go technology
+# constitution's "Legacy Repository Treatment" and is not extended with new
+# behavior.
+legacy_module_exemptions:
+  - path: src/blocks/go
+    module: hcm-next-executor
+    reason: >-
+      Separate Go module with its own go.mod/go.sum; not part of the root
+      module's package graph and not governed by this layout policy.
+    owner: platform-foundation
+    expiry: P1B
+
+# Time-boxed, reviewed exceptions to the rules above. Each waiver documents a
+# real, currently-observed condition rather than hiding it: the layout
+# checker still classifies these paths, and TestRepositoryLayoutRejectsUnownedOrMisplacedPackage
+# reports every waived path via t.Logf so the exception stays visible. A
+# waiver expiring without resolution is expected to be re-reviewed, not
+# silently renewed.
+waivers:
+  - path_prefix: node_modules/
+    kind: non_source_vendor_tree
+    observed: "2026-09-02"
+    owner: platform-foundation
+    rationale: >-
+      npm-managed vendor tree. "go list ./..." resolves a stray Go source
+      file bundled inside the "flatted" npm package
+      (node_modules/flatted/golang/pkg/flatted/flatted.go). It is vendored
+      third-party npm package content, not HCM Next production Go source,
+      so it is out of scope of this policy rather than a real violation.
+    expiry: P1B

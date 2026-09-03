@@ -1,0 +1,208 @@
+syntax = "proto3";
+
+package hcmnext.intents.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1;intentsv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+// ConsistencyFreshnessHint lets a caller state its tolerance for reading a
+// bounded-stale or eventually-consistent replica instead of the strongly
+// consistent primary. It is a hint the server may ignore; it never grants
+// authority the caller does not otherwise have.
+enum ConsistencyFreshnessHint {
+  CONSISTENCY_FRESHNESS_HINT_UNSPECIFIED = 0;
+  CONSISTENCY_FRESHNESS_HINT_STRONG = 1;
+  CONSISTENCY_FRESHNESS_HINT_BOUNDED_STALE = 2;
+  CONSISTENCY_FRESHNESS_HINT_EVENTUAL = 3;
+}
+
+// PlannedWrite is one typed domain write a SimulateIntent call determined it
+// would perform, without performing it.
+message PlannedWrite {
+  string target_ref = 1;
+  string operation = 2;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 3;
+}
+
+// PlannedEffect is one typed external effect a SimulateIntent call
+// determined it would cause, without causing it.
+message PlannedEffect {
+  string effect_kind = 1;
+  string target_ref = 2;
+  string description = 3;
+}
+
+// Finding is one simulation-time diagnostic (policy result, validation
+// outcome, warning) surfaced to the caller.
+message Finding {
+  string code = 1;
+  string message = 2;
+  string severity = 3;
+}
+
+// UncertaintyNote records one dimension along which the simulation result is
+// not fully certain (e.g. a dependency answered with stale data).
+message UncertaintyNote {
+  string dimension = 1;
+  string description = 2;
+}
+
+// ZeroEffectReceipt is returned when simulation determines the proposal
+// would cause no material write or effect, so the caller can distinguish
+// "simulated and found to do nothing" from "not simulated".
+message ZeroEffectReceipt {
+  bool zero_effect = 1;
+  string reason_ref = 2;
+}
+
+// SimulationArtifact is the immutable, no-effect result of SimulateIntent:
+// the full set of planned writes/effects, findings, uncertainty and the
+// material proposal digest that a subsequent SubmitIntent/approval binds.
+message SimulationArtifact {
+  string intent_id = 1;
+  string proposal_revision_id = 2;
+  CanonicalDigestReference material_proposal_digest = 3;
+  repeated PlannedWrite planned_writes = 4;
+  repeated PlannedEffect planned_effects = 5;
+  repeated Finding findings = 6;
+  repeated UncertaintyNote uncertainty = 7;
+  ZeroEffectReceipt zero_effect_receipt = 8;
+}
+
+message CreateIntentRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  DefinitionReference definition = 3;
+  PrincipalReference initiator = 4;
+  repeated SubjectReference subjects = 5;
+  TypedPayload request = 6;
+  ExecutionMode execution_mode = 7;
+  optional string parent_intent_id = 8;
+  optional string origin_event_ref = 9;
+}
+
+message CreateIntentResponse {
+  IntentInstance intent = 1;
+}
+
+message GetIntentRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string intent_id = 2;
+  ConsistencyFreshnessHint freshness = 3;
+}
+
+message GetIntentResponse {
+  IntentInstance intent = 1;
+}
+
+message ListIntentsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+  ConsistencyFreshnessHint freshness = 3;
+}
+
+message ListIntentsResponse {
+  repeated IntentInstance intents = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message SimulateIntentRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string intent_id = 2;
+  uint64 expected_instance_version = 3;
+  TypedPayload proposal = 4;
+}
+
+message SimulateIntentResponse {
+  SimulationArtifact simulation = 1;
+}
+
+message SubmitIntentRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string intent_id = 3;
+  string proposal_revision_id = 4;
+  uint64 expected_instance_version = 5;
+}
+
+message SubmitIntentResponse {
+  IntentInstance intent = 1;
+}
+
+message CancelIntentRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string intent_id = 3;
+  uint64 expected_instance_version = 4;
+  string reason_ref = 5;
+}
+
+message CancelIntentResponse {
+  IntentInstance intent = 1;
+}
+
+message SupersedeIntentRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string superseded_intent_id = 3;
+  uint64 expected_instance_version = 4;
+  DefinitionReference definition = 5;
+  TypedPayload request = 6;
+  string reason_ref = 7;
+}
+
+message SupersedeIntentResponse {
+  IntentInstance superseding_intent = 1;
+}
+
+message ExplainIntentRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string intent_id = 2;
+  string purpose = 3;
+}
+
+message ExplainIntentResponse {
+  string intent_id = 1;
+  repeated hcmnext.common.v1.EvidenceRef evidence_refs = 2;
+  string explanation_text = 3;
+}
+
+// TimelineEvent is one stable, redacted entry in an intent's business
+// chronology.
+message TimelineEvent {
+  string event_id = 1;
+  string kind = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string description = 4;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 5;
+}
+
+message ListIntentTimelineRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string intent_id = 2;
+  hcmnext.common.v1.PageRequest page = 3;
+}
+
+message ListIntentTimelineResponse {
+  repeated TimelineEvent events = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+// IntentService is the BusinessIntent lifecycle surface: create, read,
+// simulate, submit, cancel, supersede, explain and inspect the timeline of
+// one BusinessIntent instance, across all three kernel families. See
+// planning/specs/http-grpc-endpoint-contract.md#initial-endpoint-inventory.
+service IntentService {
+  rpc CreateIntent(CreateIntentRequest) returns (CreateIntentResponse);
+  rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
+  rpc ListIntents(ListIntentsRequest) returns (ListIntentsResponse);
+  rpc SimulateIntent(SimulateIntentRequest) returns (SimulateIntentResponse);
+  rpc SubmitIntent(SubmitIntentRequest) returns (SubmitIntentResponse);
+  rpc CancelIntent(CancelIntentRequest) returns (CancelIntentResponse);
+  rpc SupersedeIntent(SupersedeIntentRequest) returns (SupersedeIntentResponse);
+  rpc ExplainIntent(ExplainIntentRequest) returns (ExplainIntentResponse);
+  rpc ListIntentTimeline(ListIntentTimelineRequest) returns (ListIntentTimelineResponse);
+}

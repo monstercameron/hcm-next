@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package hcmnext.registry.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1;registryv1";
+
+import "hcmnext/capabilities/v1/capability.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+message ListIntentDefinitionsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+}
+
+message ListIntentDefinitionsResponse {
+  repeated hcmnext.intents.v1.IntentDefinition intent_definitions = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetIntentDefinitionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.intents.v1.DefinitionReference definition = 2;
+}
+
+message GetIntentDefinitionResponse {
+  hcmnext.intents.v1.IntentDefinition intent_definition = 1;
+}
+
+message ListCapabilitiesRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+}
+
+message ListCapabilitiesResponse {
+  repeated hcmnext.capabilities.v1.CapabilityDefinition capabilities = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetCapabilityRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string capability_id = 2;
+  uint32 version = 3;
+}
+
+message GetCapabilityResponse {
+  hcmnext.capabilities.v1.CapabilityDefinition capability = 1;
+}
+
+// RegistryService is the authorized, tenant/phase-filtered discovery surface
+// for immutable IntentDefinition and CapabilityDefinition descriptors. See
+// planning/specs/http-grpc-endpoint-contract.md#initial-endpoint-inventory.
+service RegistryService {
+  rpc ListIntentDefinitions(ListIntentDefinitionsRequest) returns (ListIntentDefinitionsResponse);
+  rpc GetIntentDefinition(GetIntentDefinitionRequest) returns (GetIntentDefinitionResponse);
+  rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
+  rpc GetCapability(GetCapabilityRequest) returns (GetCapabilityResponse);
+}

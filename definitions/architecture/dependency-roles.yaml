@@ -1,0 +1,429 @@
+# Dependency-role and ownership manifest (LIB-001).
+#
+# Consumed by tools/policy/depmanifest. Classifies every module declared in
+# the root go.mod's require block (direct and the "notable indirect ones"
+# per LIB-001's own phrasing) so nothing enters the build ungoverned.
+#
+# Governing rule (planning/todos.md, section 2B): HCM Next owns HCM
+# semantics; third-party libraries provide infrastructure mechanics. Per the
+# LIB-001 RED clause, PROJECT_CORE is reserved for exactly the entries in
+# project_core_reserved below (Go itself, GWC, grpcbridge, SchemaFlux) and
+# for nothing else — every module row in this file MUST NOT be
+# PROJECT_CORE.
+#
+# Roles: PROJECT_CORE | INFRASTRUCTURE_MECHANIC | DEV_TEST_ONLY | PROHIBITED.
+#
+# Scope note: this manifest classifies go.mod's own require list rather than
+# the full "go list -m all" build list. Go's module graph pruning (module
+# graph pruning, Go 1.17+) already keeps go.mod's indirect requires to the
+# modules actually needed to build packages this module imports; "go list -m
+# all" additionally enumerates modules that ship in a dependency's own
+# go.mod but are never built into anything HCM Next produces (for example
+# unused cloud-provider SDKs pulled in only for MVS version bookkeeping by
+# grpc-go's or testcontainers-go's own go.mod). Governing those would create
+# manifest rows with no owner able to give a meaningful upgrade SLA or
+# exposure statement. TOOL-019 (dependency-graph pruning/audit) is the place
+# to decide whether any such module warrants an explicit PROHIBITED row.
+
+version: 1
+module: github.com/monstercameron/hcm-next
+source: go.mod require block
+
+project_core_reserved:
+  - name: go (toolchain)
+    note: The Go standard library and toolchain itself; not a go.mod module.
+  - name: GWC / GoWebComponents
+    note: Preferred UI library; not yet a go.mod dependency (qualification fixture runs before P1B).
+  - name: grpcbridge
+    note: Preferred transport edge; not yet a go.mod dependency (qualification fixture runs in M2).
+  - name: SchemaFlux
+    note: Preferred definition generator; not yet a go.mod dependency (qualification fixture runs in M2).
+
+# Prefix-based defaults for maintainability (LIB-001 GREEN: "keep
+# golang.org/x/* and google.golang.org/* families classifiable by prefix
+# rule"). tools/policy/depmanifest applies a family rule only when no exact
+# module row below matches; every module currently in go.mod already has an
+# exact row, so these defaults only cover a *future* addition to go.mod
+# within these families until someone gives it its own row.
+family_rules:
+  - prefix: golang.org/x/
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    upgrade_sla: Tracks the Go project's own release cadence; security patch within 14 days.
+    exposure: >-
+      Supporting Go-ecosystem mechanics. Exact exposure depends on which x/
+      package; add an exact row once a package in this family is imported
+      directly by production (non-tools/tests) code.
+    replacement_strategy: >-
+      No blanket replacement; each x/ package is evaluated against the Go
+      standard-library-first selection order on first direct import.
+    allowed_import_roots: []
+  - prefix: google.golang.org/
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    upgrade_sla: Tracks google.golang.org/grpc and google.golang.org/protobuf's own pins; security patch within 7 days.
+    exposure: >-
+      Protobuf/gRPC wire and transport mechanics. Exact exposure depends on
+      the specific module; add an exact row once imported directly.
+    replacement_strategy: Tracks the qualified gRPC/Protobuf toolchain decision (TOOL-002, TOOL-008).
+    allowed_import_roots: []
+
+# Exact classification for every module in go.mod's require block.
+modules:
+  - path: github.com/BurntSushi/toml
+    version: v1.4.1-0.20240526193622-a339e1f7089c
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks pressly/goose/v3's own pin.
+    exposure: Build-time-only transitive dependency of goose's provider parsing; no direct import by HCM Next packages.
+    replacement_strategy: Tracks pressly/goose/v3; no independent replacement needed unless goose is replaced.
+
+  - path: github.com/cockroachdb/apd/v3
+    version: v3.2.3
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: kernel
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/kernel]
+    direct_import_expected: true
+    upgrade_sla: Minor within 90 days; security patch within 7 days.
+    exposure: >-
+      In-process arbitrary-precision arithmetic backing kernel decimal/money
+      primitives (ARCH-GO-004: may be imported only inside the owning
+      kernel value package and must never escape its exported API).
+    replacement_strategy: shopspring/decimal or a hand-rolled decimal type if apd's API or performance regresses; the kernel decimal API is the seam.
+
+  - path: github.com/fergusstrange/embedded-postgres
+    version: v1.34.0
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [test, tools]
+    direct_import_expected: true
+    upgrade_sla: Best-effort; never shipped in the release image (TOOL-015).
+    exposure: Spawns a local PostgreSQL binary/process for isolated integration-test environments only (TOOL-014).
+    replacement_strategy: Testcontainers-go against a real postgres image is the qualified alternative once TOOL-014 selects it.
+
+  - path: github.com/google/uuid
+    version: v1.6.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: kernel
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/kernel]
+    direct_import_expected: true
+    upgrade_sla: Minor within 90 days.
+    exposure: Pure in-process identifier generation; no network or data exposure.
+    replacement_strategy: A crypto/rand-backed hand-rolled UUID generator if this package's maintenance lapses; the kernel identity API is the seam.
+
+  - path: github.com/jackc/pgpassfile
+    version: v1.0.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/jackc/pgx/v5's own pin.
+    exposure: Reads local .pgpass credential files at connect time; transitive pgx dependency, not imported directly.
+    replacement_strategy: Tracks github.com/jackc/pgx/v5; no independent replacement path.
+
+  - path: github.com/jackc/pgservicefile
+    version: v0.0.0-20240606120523-5a60cdf6a761
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/jackc/pgx/v5's own pin.
+    exposure: Reads local pg_service.conf files at connect time; transitive pgx dependency, not imported directly.
+    replacement_strategy: Tracks github.com/jackc/pgx/v5; no independent replacement path.
+
+  - path: github.com/jackc/pgx/v5
+    version: v5.10.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/data, internal/ledger, migrations]
+    direct_import_expected: true
+    upgrade_sla: Minor within 60 days; security patch within 7 days.
+    exposure: >-
+      Owns the PostgreSQL wire-protocol connection: direct network and data
+      exposure, isolated behind the internal/data and internal/ledger
+      port/adapter boundary (package-dependency-policy.yaml).
+    replacement_strategy: github.com/lib/pq is the declared fallback driver already in go.mod; database/sql is the abstraction seam.
+
+  - path: github.com/jackc/puddle/v2
+    version: v2.2.2
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/jackc/pgx/v5's own pin.
+    exposure: In-process connection-pool bookkeeping for pgx's connection pool; transitive pgx dependency, not imported directly.
+    replacement_strategy: Tracks github.com/jackc/pgx/v5; no independent replacement path.
+
+  - path: github.com/lib/pq
+    version: v1.10.9
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/data, internal/ledger, migrations]
+    direct_import_expected: true
+    upgrade_sla: Best-effort; not the primary driver.
+    exposure: Alternate database/sql PostgreSQL driver, retained for goose dialect compatibility today.
+    replacement_strategy: jackc/pgx/v5 is primary; drop this once goose's migration runner no longer needs a database/sql driver.
+
+  - path: github.com/mfridman/interpolate
+    version: v0.0.2
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks pressly/goose/v3's own pin.
+    exposure: Transitive dependency of goose for environment-variable interpolation in migration files; not imported directly.
+    replacement_strategy: Tracks pressly/goose/v3.
+
+  - path: github.com/pressly/goose/v3
+    version: v3.28.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: data-and-ledger
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [migrations, cmd]
+    direct_import_expected: true
+    upgrade_sla: Minor within 60 days; security patch within 7 days.
+    exposure: >-
+      Executes DDL/DML migration files against PostgreSQL at "migrate"
+      command runtime; the highest write-privilege dependency in the graph.
+    replacement_strategy: A hand-rolled SQL migration runner if goose's maintenance or safety model regresses; the migration file format is the seam.
+
+  - path: github.com/sethvargo/go-retry
+    version: v0.4.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: operations-and-assurance
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/operations, internal/connectivity, internal/data]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: In-process backoff/retry scheduling only; performs no I/O of its own.
+    replacement_strategy: A hand-rolled exponential-backoff helper; low switching cost.
+
+  - path: github.com/xi2/xz
+    version: v0.0.0-20171230120015-48954b6210f8
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [test, tools]
+    direct_import_expected: false
+    upgrade_sla: Best-effort; never shipped in the release image.
+    exposure: Transitive dependency of embedded-postgres, used to extract its bundled PostgreSQL binary at test time only.
+    replacement_strategy: Removed entirely once TOOL-014 replaces embedded-postgres with Testcontainers.
+
+  - path: go.uber.org/multierr
+    version: v1.11.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: operations-and-assurance
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's own pin.
+    exposure: In-process error aggregation only; transitive dependency, not imported directly today.
+    replacement_strategy: errors.Join (standard library) once the transitive requirement pulling this in is gone.
+
+  - path: golang.org/x/exp/typeparams
+    version: v0.0.0-20231108232855-2478ac86f678
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: false
+    upgrade_sla: Tracks honnef.co/go/tools's own pin.
+    exposure: Static-analysis-time-only transitive dependency of staticcheck.
+    replacement_strategy: Tracks honnef.co/go/tools.
+
+  - path: golang.org/x/mod
+    version: v0.38.0
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: go.mod parsing (golang.org/x/mod/modfile) used only by tools/policy governance checks; never the production request path.
+    replacement_strategy: Hand-rolled go.mod line scanning if this package becomes unavailable; low switching cost.
+
+  - path: golang.org/x/net
+    version: v0.58.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/transport]
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's own pin; security patch within 7 days.
+    exposure: grpc-go's HTTP/2 transport framing; carries all gRPC traffic. Transitive dependency, not imported directly.
+    replacement_strategy: Tracks google.golang.org/grpc.
+
+  - path: golang.org/x/sync
+    version: v0.22.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform, internal/operations, internal/workflow]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: In-process errgroup/singleflight-style concurrency helpers only.
+    replacement_strategy: A hand-rolled sync.WaitGroup-based equivalent; low switching cost.
+
+  - path: golang.org/x/sys
+    version: v0.47.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks upstream pins; security patch within 7 days.
+    exposure: OS syscall wrappers; transitive dependency of the grpc/pgx/staticcheck ecosystem, not imported directly.
+    replacement_strategy: No independent replacement; tracks whichever dependency requires it.
+
+  - path: golang.org/x/text
+    version: v0.41.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Best-effort.
+    exposure: In-process text encoding/normalization; transitive dependency of grpc-go and pgx, not imported directly.
+    replacement_strategy: Tracks google.golang.org/grpc and github.com/jackc/pgx/v5.
+
+  - path: golang.org/x/tools
+    version: v0.48.0
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: go/packages-based import-graph and static-analysis tooling used by tools/policy and by staticcheck; never the production request path.
+    replacement_strategy: No replacement; foundational to Go's own analysis tooling.
+
+  - path: google.golang.org/genproto/googleapis/rpc
+    version: v0.0.0-20260831171406-18b4a7587f8a
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/transport, gen]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's own pin.
+    exposure: Canonical gRPC status/error code definitions carried on the wire.
+    replacement_strategy: Tracks google.golang.org/grpc.
+
+  - path: google.golang.org/grpc
+    version: v1.83.2
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/transport, gen, cmd]
+    direct_import_expected: true
+    upgrade_sla: Minor within 60 days; security patch within 7 days.
+    exposure: >-
+      Terminates and originates all gRPC network traffic. Not PROJECT_CORE
+      per the LIB-001 RED clause even though it carries the canonical
+      contract; it remains a qualified, replaceable RPC mechanic.
+    replacement_strategy: grpc-gateway/connect-go is the qualified transport-edge fallback (TOOL-008); grpc-go itself has no realistic replacement as the canonical RPC runtime this release.
+
+  - path: google.golang.org/grpc/cmd/protoc-gen-go-grpc
+    version: v1.6.2
+    role: DEV_TEST_ONLY
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's own pin.
+    exposure: Codegen-time-only tool (declared in the go.mod tool block); absent from built binaries.
+    replacement_strategy: Tracks google.golang.org/grpc.
+
+  - path: google.golang.org/protobuf
+    version: v1.36.12
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [gen, internal/transport]
+    direct_import_expected: true
+    upgrade_sla: Minor within 60 days; security patch within 7 days.
+    exposure: Wire encoding for every canonical Protobuf contract.
+    replacement_strategy: No realistic replacement; Protobuf is the canonical wire contract per the Go technology constitution.
+
+  - path: github.com/rogpeppe/go-internal
+    version: v1.16.0
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Best-effort.
+    exposure: >-
+      Indirect test-only dependency of gopkg.in/yaml.v3 (fmtsort) recorded by
+      go mod tidy; never imported by HCM Next code and never on the production
+      request path.
+    replacement_strategy: Disappears if yaml.v3 is replaced; no action.
+  - path: gopkg.in/yaml.v3
+    version: v3.0.1
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: >-
+      Parses definitions/architecture/*.yaml governance manifests inside
+      tools/policy at test/build time; not read on the production request
+      path today. If a future production package parses YAML configuration
+      at runtime, this row's allowed_import_roots and exposure must be
+      revised alongside that change.
+    replacement_strategy: encoding/json against a JSON-rendered manifest, or a hand-rolled parser, if yaml.v3 becomes unavailable.
+
+  - path: honnef.co/go/tools
+    version: v0.8.1
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools]
+    direct_import_expected: true
+    upgrade_sla: Best-effort.
+    exposure: Static-analysis tool (staticcheck), declared in the go.mod tool block; absent from built binaries.
+    replacement_strategy: golang.org/x/tools/go/analysis-based custom analyzers if staticcheck's maintenance lapses.

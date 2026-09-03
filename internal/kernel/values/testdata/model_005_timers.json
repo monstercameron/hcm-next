@@ -1,0 +1,142 @@
+{
+  "_owner": "kernel",
+  "_phase": "P1A",
+  "_todo": "MODEL-005",
+  "_note": "Every replay below runs against the historical dataset tzdb=2026a, calendar=2026.1 that the timer reference names. Only RECALCULATE may move a deadline; PIN and REVIEW_REQUIRED keep it and record the difference as evidence.",
+  "replays": [
+    {
+      "_note": "dataset republished and the deadline would move: PIN holds it",
+      "policy": "PIN",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T06:30:00Z",
+      "current_tzdb_version": "2027b",
+      "current_calendar_version": "2027.1",
+      "want_effective": "2026-11-01T05:30:00Z",
+      "want_review_required": false,
+      "want_would_change": true
+    },
+    {
+      "policy": "RECALCULATE",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T06:30:00Z",
+      "current_tzdb_version": "2027b",
+      "current_calendar_version": "2027.1",
+      "want_effective": "2026-11-01T06:30:00Z",
+      "want_review_required": false,
+      "want_would_change": true
+    },
+    {
+      "policy": "REVIEW_REQUIRED",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T06:30:00Z",
+      "current_tzdb_version": "2027b",
+      "current_calendar_version": "2027.1",
+      "want_effective": "2026-11-01T05:30:00Z",
+      "want_review_required": true,
+      "want_would_change": true
+    },
+    {
+      "_note": "republish that does not move the deadline: nothing to review",
+      "policy": "REVIEW_REQUIRED",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T05:30:00Z",
+      "current_tzdb_version": "2027b",
+      "current_calendar_version": "2027.1",
+      "want_effective": "2026-11-01T05:30:00Z",
+      "want_review_required": false,
+      "want_would_change": false
+    },
+    {
+      "_note": "no republish at all",
+      "policy": "PIN",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T05:30:00Z",
+      "current_tzdb_version": "2026a",
+      "current_calendar_version": "2026.1",
+      "want_effective": "2026-11-01T05:30:00Z",
+      "want_review_required": false,
+      "want_would_change": false
+    },
+    {
+      "policy": "RECALCULATE",
+      "pinned": "2026-11-01T05:30:00Z",
+      "recomputed": "2026-11-01T05:30:00Z",
+      "current_tzdb_version": "2026a",
+      "current_calendar_version": "2026.1",
+      "want_effective": "2026-11-01T05:30:00Z",
+      "want_review_required": false,
+      "want_would_change": false
+    }
+  ],
+  "references": [
+    {
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "calendar_ref": "us-federal",
+      "calendar_version": "2026.1",
+      "policy": "PIN",
+      "want_valid": true
+    },
+    {
+      "zone": "Australia/Sydney",
+      "tzdb_version": "2026a",
+      "calendar_ref": "au-nsw",
+      "calendar_version": "2026.2",
+      "policy": "RECALCULATE",
+      "want_valid": true
+    },
+    {
+      "zone": "UTC",
+      "tzdb_version": "2026a",
+      "calendar_ref": "global",
+      "calendar_version": "1",
+      "policy": "REVIEW_REQUIRED",
+      "want_valid": true
+    },
+    {
+      "_note": "no tzdb version",
+      "zone": "America/New_York",
+      "tzdb_version": "",
+      "calendar_ref": "us-federal",
+      "calendar_version": "2026.1",
+      "policy": "PIN",
+      "want_valid": false
+    },
+    {
+      "_note": "no calendar version",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "calendar_ref": "us-federal",
+      "calendar_version": "",
+      "policy": "PIN",
+      "want_valid": false
+    },
+    {
+      "_note": "no zone",
+      "zone": "",
+      "tzdb_version": "2026a",
+      "calendar_ref": "us-federal",
+      "calendar_version": "2026.1",
+      "policy": "PIN",
+      "want_valid": false
+    },
+    {
+      "_note": "unknown zone",
+      "zone": "Mars/Olympus",
+      "tzdb_version": "2026a",
+      "calendar_ref": "us-federal",
+      "calendar_version": "2026.1",
+      "policy": "PIN",
+      "want_valid": false
+    },
+    {
+      "_note": "no policy",
+      "zone": "America/New_York",
+      "tzdb_version": "2026a",
+      "calendar_ref": "us-federal",
+      "calendar_version": "2026.1",
+      "policy": "",
+      "want_valid": false
+    }
+  ]
+}
