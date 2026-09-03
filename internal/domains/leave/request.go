@@ -152,6 +152,10 @@ func Bind(r RequestLeave, c TrustedContext) (ProcessRequest, error) {
 	}
 	digest := sha256.Sum256(canonical(r, c))
 	children := append([]ChildKind(nil), childKinds...)
+	// ProcessRequest is the trusted-boundary output. Do not retain aliases to
+	// caller-owned slices: changing a request after binding must not mutate the
+	// process payload (or make its digest describe different semantics).
+	r.EvidenceRefs = append([]string(nil), r.EvidenceRefs...)
 	return ProcessRequest{Request: r, Context: c, DefinitionType: RequestLeaveIntentType, DefinitionVersion: RequestLeaveIntentVersion, Family: intent.FamilyChangeRequest, ChildKinds: children, CanonicalDigest: hex.EncodeToString(digest[:])}, nil
 }
 

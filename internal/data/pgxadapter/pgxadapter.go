@@ -145,14 +145,27 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 	}
 	// A pooled connection is a reusable PostgreSQL session. Reset all ambient
 	// state before handing an idle session to a borrower; callers must use SET
-	// LOCAL for request/tenant context. Re-apply trusted runtime parameters
-	// (notably search_path), which DISCARD ALL resets to defaults.
+	// LOCAL for request/tenant context. DISCARD ALL does not reset an assumed
+	// role or session-level advisory locks, so those are reset explicitly too.
+	// Re-apply trusted runtime parameters (notably search_path), which DISCARD
+	// ALL resets to defaults.
 	params := make(map[string]string, len(runtimeParams))
 	for k, v := range runtimeParams {
 		params[k] = v
 	}
 	var hygieneFailures atomic.Int64
 	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+		// RESET ROLE returns from SET ROLE to the login role. The unlock-all call
+		// is intentionally unconditional: unlike transaction-scoped locks,
+		// session advisory locks survive a transaction and DISCARD ALL.
+		if _, err := conn.Exec(ctx, "RESET ROLE"); err != nil {
+			hygieneFailures.Add(1)
+			return false
+		}
+		if _, err := conn.Exec(ctx, "SELECT pg_advisory_unlock_all()"); err != nil {
+			hygieneFailures.Add(1)
+			return false
+		}
 		if _, err := conn.Exec(ctx, "DISCARD ALL"); err != nil {
 			hygieneFailures.Add(1)
 			return false

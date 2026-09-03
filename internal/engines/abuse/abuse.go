@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 )
 
 var (
@@ -25,6 +26,7 @@ var (
 	ErrThreshold       = errors.New("abuse: threshold is required")
 	ErrAction          = errors.New("abuse: action is required")
 	ErrEvaluation      = errors.New("abuse: evaluation plan is required")
+	ErrSignalBinding   = errors.New("abuse: detector must bind the published signal")
 )
 
 // Feature is a bounded, named input to a detector. Values and raw payloads
@@ -77,17 +79,17 @@ type DetectorDefinition struct {
 type Revision struct{ ID, Version, Digest string }
 
 func validateCommon(id, version, purpose string, features []Feature, sources []Source, retention string, retentionDays int, protected, owner string) error {
-	if id == "" || version == "" {
+	if strings.TrimSpace(id) == "" || strings.TrimSpace(version) == "" {
 		return ErrIdentity
 	}
-	if purpose == "" {
+	if strings.TrimSpace(purpose) == "" {
 		return ErrPurpose
 	}
 	if len(features) == 0 {
 		return ErrFeatures
 	}
 	for _, f := range features {
-		if f.Name == "" || f.Description == "" {
+		if strings.TrimSpace(f.Name) == "" || strings.TrimSpace(f.Description) == "" {
 			return fmt.Errorf("%w: feature", ErrFeatures)
 		}
 	}
@@ -95,17 +97,20 @@ func validateCommon(id, version, purpose string, features []Feature, sources []S
 		return ErrSource
 	}
 	for _, s := range sources {
-		if s.Name == "" || s.Quality == "" {
+		if strings.TrimSpace(s.Name) == "" || strings.TrimSpace(s.Quality) == "" {
 			return fmt.Errorf("%w: source", ErrSource)
 		}
 	}
-	if retention == "" && retentionDays <= 0 {
+	if strings.TrimSpace(retention) == "" && retentionDays <= 0 {
 		return ErrRetention
 	}
-	if protected == "" {
+	if retentionDays < 0 {
+		return ErrRetention
+	}
+	if strings.TrimSpace(protected) == "" {
 		return ErrProtectedPolicy
 	}
-	if owner == "" {
+	if strings.TrimSpace(owner) == "" {
 		return ErrOwner
 	}
 	return nil
@@ -123,17 +128,17 @@ func (d DetectorDefinition) Validate() error {
 		return fmt.Errorf("%w: signal ids", ErrSource)
 	}
 	for _, id := range d.SignalIDs {
-		if id == "" {
+		if strings.TrimSpace(id) == "" {
 			return fmt.Errorf("%w: signal id", ErrSource)
 		}
 	}
-	if d.Threshold.Metric == "" || d.Threshold.Window == "" || math.IsNaN(d.Threshold.Value) || math.IsInf(d.Threshold.Value, 0) {
+	if strings.TrimSpace(d.Threshold.Metric) == "" || strings.TrimSpace(d.Threshold.Window) == "" || math.IsNaN(d.Threshold.Value) || math.IsInf(d.Threshold.Value, 0) {
 		return ErrThreshold
 	}
-	if d.Action == "" {
+	if strings.TrimSpace(d.Action) == "" {
 		return ErrAction
 	}
-	if d.Evaluation.Method == "" || d.Evaluation.Dataset == "" || d.Evaluation.Metrics == "" {
+	if strings.TrimSpace(d.Evaluation.Method) == "" || strings.TrimSpace(d.Evaluation.Dataset) == "" || strings.TrimSpace(d.Evaluation.Metrics) == "" {
 		return ErrEvaluation
 	}
 	return nil
@@ -156,6 +161,22 @@ func Publish(s SignalDefinition, d DetectorDefinition) (Revision, error) {
 	if err := d.Validate(); err != nil {
 		return Revision{}, err
 	}
+	bound := false
+	for _, id := range d.SignalIDs {
+		if id == s.ID {
+			bound = true
+			break
+		}
+	}
+	if !bound {
+		return Revision{}, ErrSignalBinding
+	}
+	// Canonicalize all unordered definition collections only in local copies;
+	// callers retain ownership of their definitions and publication is immutable.
+	s.Features = append([]Feature(nil), s.Features...)
+	sort.Slice(s.Features, func(i, j int) bool { return s.Features[i].Name < s.Features[j].Name })
+	s.Sources = append([]Source(nil), s.Sources...)
+	sort.Slice(s.Sources, func(i, j int) bool { return s.Sources[i].Name < s.Sources[j].Name })
 	ids := append([]string(nil), d.SignalIDs...)
 	sort.Strings(ids)
 	d.SignalIDs = ids

@@ -89,3 +89,34 @@ func TestTodo_TRUST_013_RedelegationIsBoundedAndAttributable(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestTodo_TRUST_013_RedelegationCannotExceedParentBounds(t *testing.T) {
+	p := delegationScope()
+	first := delegationGrant()
+	first.AllowRedelegation, first.MaxDepth = true, 2
+	a, err := trust.EvaluateDelegation(trust.DelegationRequest{Grant: first, Delegator: p, Delegate: p, EvaluatedAt: baseTime, CurrentRevocationEpoch: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	second := delegationGrant()
+	second.GrantID, second.ParentGrantID, second.Delegator, second.Delegate = "grant-2", first.GrantID, "delegate-1", "delegate-2"
+	second.AllowRedelegation, second.MaxDepth = true, 2
+	b, err := trust.EvaluateDelegation(trust.DelegationRequest{Grant: second, Delegator: p, Delegate: p, Parent: &a, EvaluatedAt: baseTime, CurrentRevocationEpoch: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	third := delegationGrant()
+	third.GrantID, third.ParentGrantID, third.Delegator, third.Delegate = "grant-3", second.GrantID, "delegate-2", "delegate-3"
+	third.AllowRedelegation, third.MaxDepth = true, 3
+	if _, err := trust.EvaluateDelegation(trust.DelegationRequest{Grant: third, Delegator: p, Delegate: p, Parent: &b, EvaluatedAt: baseTime, CurrentRevocationEpoch: 2}); !errors.Is(err, trust.ErrRedelegationNotPermitted) {
+		t.Fatalf("depth error = %v, want ErrRedelegationNotPermitted", err)
+	}
+	a.AllowRedelegation = false
+	if _, err := trust.EvaluateDelegation(trust.DelegationRequest{Grant: second, Delegator: p, Delegate: p, Parent: &a, EvaluatedAt: baseTime, CurrentRevocationEpoch: 2}); !errors.Is(err, trust.ErrRedelegationNotPermitted) {
+		t.Fatalf("parent permission error = %v, want ErrRedelegationNotPermitted", err)
+	}
+	second.ParentGrantID = "wrong-parent"
+	if _, err := trust.EvaluateDelegation(trust.DelegationRequest{Grant: second, Delegator: p, Delegate: p, Parent: &a, EvaluatedAt: baseTime, CurrentRevocationEpoch: 2}); !errors.Is(err, trust.ErrRedelegationNotPermitted) {
+		t.Fatalf("parent linkage error = %v, want ErrRedelegationNotPermitted", err)
+	}
+}

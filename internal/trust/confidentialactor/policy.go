@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Mode identifies how an actor's identity is handled.
@@ -63,13 +64,15 @@ type Intake struct {
 }
 
 var (
-	ErrModeRequired       = errors.New("confidentialactor: disclosure mode is required")
-	ErrModeInvalid        = errors.New("confidentialactor: disclosure mode is invalid")
-	ErrEvidenceRequired   = errors.New("confidentialactor: identity evidence is required")
-	ErrEvidenceForbidden  = errors.New("confidentialactor: identity evidence is forbidden")
-	ErrAbuseRequired      = errors.New("confidentialactor: abuse controls are required")
-	ErrRevelationRequired = errors.New("confidentialactor: revelation policy is required")
-	ErrDownstreamRequired = errors.New("confidentialactor: downstream disclosure limits are required")
+	ErrModeRequired               = errors.New("confidentialactor: disclosure mode is required")
+	ErrModeInvalid                = errors.New("confidentialactor: disclosure mode is invalid")
+	ErrEvidenceRequired           = errors.New("confidentialactor: identity evidence is required")
+	ErrEvidenceForbidden          = errors.New("confidentialactor: identity evidence is forbidden")
+	ErrAbuseRequired              = errors.New("confidentialactor: abuse controls are required")
+	ErrRevelationRequired         = errors.New("confidentialactor: revelation policy is required")
+	ErrRevelationEvidenceRequired = errors.New("confidentialactor: revelation requires evidence")
+	ErrDownstreamRequired         = errors.New("confidentialactor: downstream disclosure limits are required")
+	ErrExpiryInvalid              = errors.New("confidentialactor: downstream expiry is invalid")
 )
 
 func (m Mode) Valid() bool {
@@ -109,8 +112,27 @@ func (i Intake) Validate() error {
 	if i.Mode == ModeAnonymous && i.Revelation.Allowed {
 		errs = append(errs, errors.New("confidentialactor: anonymous identity cannot be revealed"))
 	}
+	if i.Revelation.Allowed && !i.Revelation.RequiresEvidence {
+		errs = append(errs, ErrRevelationEvidenceRequired)
+	}
 	if len(i.Downstream.Recipients) == 0 || len(i.Downstream.Fields) == 0 || strings.TrimSpace(i.Downstream.Expiry) == "" {
 		errs = append(errs, ErrDownstreamRequired)
+	} else {
+		for _, recipient := range i.Downstream.Recipients {
+			if strings.TrimSpace(recipient) == "" {
+				errs = append(errs, ErrDownstreamRequired)
+				break
+			}
+		}
+		for _, field := range i.Downstream.Fields {
+			if strings.TrimSpace(field) == "" {
+				errs = append(errs, ErrDownstreamRequired)
+				break
+			}
+		}
+		if _, err := time.Parse(time.RFC3339, i.Downstream.Expiry); err != nil {
+			errs = append(errs, ErrExpiryInvalid)
+		}
 	}
 	if len(errs) > 0 {
 		return errors.Join(errs...)

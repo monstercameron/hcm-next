@@ -1,6 +1,7 @@
 package authz_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -24,6 +25,17 @@ func TestTodo_TRUST_012_Security(t *testing.T) {
 		foreign:   {authz.FieldWorkerNumber: "V-0001"},
 	})
 	empty := authz.NewRepositoryGate(nil)
+
+	t.Run("an unavailable nil repository gate fails closed", func(t *testing.T) {
+		var unavailable *authz.RepositoryGate
+		projections, err := unavailable.Query(authz.RepositoryScope{}, nil, baseInstant)
+		if !errors.Is(err, authz.ErrScopeRequired) {
+			t.Fatalf("nil gate Query error = %v, want ErrScopeRequired", err)
+		}
+		if projections != nil {
+			t.Fatalf("nil gate Query projections = %v, want nil", projections)
+		}
+	})
 
 	t.Run("a denied scope is indistinguishable from an empty store", func(t *testing.T) {
 		principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleManager)}, purposes: []string{authz.PurposeCompensationReview}})

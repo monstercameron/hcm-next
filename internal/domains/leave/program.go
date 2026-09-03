@@ -107,6 +107,12 @@ func (p LeaveProgramRevision) Validate() error {
 	if len(p.Scope) == 0 || len(p.EligibilityRuleRefs) == 0 {
 		return fmt.Errorf("%w: scope and eligibility rules are required", ErrInvalidProgram)
 	}
+	if err := validateRefs("scope", p.Scope); err != nil {
+		return err
+	}
+	if err := validateRefs("eligibility rules", p.EligibilityRuleRefs); err != nil {
+		return err
+	}
 	if err := p.Effective.Validate(); err != nil {
 		return fmt.Errorf("%w: effective interval: %v", ErrInvalidProgram, err)
 	}
@@ -116,14 +122,41 @@ func (p LeaveProgramRevision) Validate() error {
 	if len(p.EvidenceRequirements) == 0 || len(p.NoticeRequirements) == 0 {
 		return fmt.Errorf("%w: evidence and notice requirements are required", ErrInvalidProgram)
 	}
+	if err := validateRefs("evidence requirements", p.EvidenceRequirements); err != nil {
+		return err
+	}
+	if err := validateRefs("notice requirements", p.NoticeRequirements); err != nil {
+		return err
+	}
 	if err := p.Interaction.validate(); err != nil {
 		return err
 	}
 	if strings.TrimSpace(p.BalanceSource) == "" || len(p.ReturnObligations) == 0 {
 		return fmt.Errorf("%w: balance source and return obligations are required", ErrInvalidProgram)
 	}
+	if err := validateRefs("return obligations", p.ReturnObligations); err != nil {
+		return err
+	}
 	if p.UnknownPolicy != UnknownBlocks && p.UnknownPolicy != UnknownReview && p.UnknownPolicy != UnknownNotApplicable {
 		return fmt.Errorf("%w: unknown policy %q", ErrInvalidProgram, p.UnknownPolicy)
+	}
+	return nil
+}
+
+// validateRefs rejects blank and duplicate identifiers. These fields are
+// semantic sets: accepting duplicate/blank members would make two apparently
+// equivalent rule-pack revisions canonicalize differently or hide a missing
+// policy input.
+func validateRefs(name string, refs []string) error {
+	seen := make(map[string]struct{}, len(refs))
+	for _, ref := range refs {
+		if strings.TrimSpace(ref) == "" {
+			return fmt.Errorf("%w: %s contains a blank reference", ErrInvalidProgram, name)
+		}
+		if _, ok := seen[ref]; ok {
+			return fmt.Errorf("%w: %s contains duplicate reference %q", ErrInvalidProgram, name, ref)
+		}
+		seen[ref] = struct{}{}
 	}
 	return nil
 }
@@ -203,6 +236,9 @@ func (c *ProgramCatalog) Append(p LeaveProgramRevision) error {
 	defer c.mu.Unlock()
 	prior := c.streams[minted.ProgramID]
 	if len(prior) > 0 {
+		if minted.Revision == prior[len(prior)-1].Revision {
+			return fmt.Errorf("%w: %w", ErrDuplicateRevision, ErrRevisionOrder)
+		}
 		if minted.Revision != prior[len(prior)-1].Revision+1 {
 			return ErrRevisionOrder
 		}

@@ -51,6 +51,20 @@ func TestPooledConnectionCannotLeakTenantRoleLocksOrSessionState(t *testing.T) {
 	if setting != "" {
 		t.Fatalf("tenant setting leaked as %q", setting)
 	}
+	var currentRole, loginRole string
+	if err := p.QueryRow(ctx, "SELECT current_user, session_user").Scan(&currentRole, &loginRole); err != nil {
+		t.Fatalf("read role: %v", err)
+	}
+	if currentRole != loginRole {
+		t.Fatalf("role leaked as %q (login role %q)", currentRole, loginRole)
+	}
+	var existingLocks int
+	if err := p.QueryRow(ctx, "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid()").Scan(&existingLocks); err != nil {
+		t.Fatalf("probe existing advisory locks: %v", err)
+	}
+	if existingLocks != 0 {
+		t.Fatalf("advisory locks leaked before probe: %d", existingLocks)
+	}
 	var locked bool
 	if err := p.QueryRow(ctx, "SELECT pg_try_advisory_lock(8294004)").Scan(&locked); err != nil {
 		t.Fatalf("probe advisory lock: %v", err)

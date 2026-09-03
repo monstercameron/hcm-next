@@ -136,7 +136,14 @@ func (b BudgetAuthorityRef) Fresh(asOf time.Time, maxAge time.Duration) error {
 	if maxAge < 0 {
 		return fmt.Errorf("%w: negative freshness window", ErrInvalidObservation)
 	}
-	if maxAge > 0 && asOf.Sub(b.Evidence.SourceWatermark.Time()) > maxAge {
+	// A reading cannot be fresh relative to an as-of instant that predates the
+	// reading itself. Treat this as invalid observation data rather than a
+	// negative age (which would otherwise pass the freshness check).
+	watermark := b.Evidence.SourceWatermark.Time()
+	if asOf.Before(watermark) {
+		return fmt.Errorf("%w: as-of precedes source watermark", ErrInvalidObservation)
+	}
+	if maxAge > 0 && asOf.Sub(watermark) > maxAge {
 		return ErrStale
 	}
 	return nil
@@ -152,7 +159,9 @@ func (b BudgetAuthorityRef) Canonical() []byte {
 		String("scope", b.Scope).String("period", b.Period).String("currency", b.Currency).
 		String("unit", string(b.Unit)).String("baseline_version", b.BaselineVersion).
 		Value("available_quantity", b.AvailableQuantity).String("observation_id", b.Evidence.ObservationID).
-		Value("source_watermark", b.Evidence.SourceWatermark).String("digest", b.Evidence.Digest).Bytes()
+		Value("source_watermark", b.Evidence.SourceWatermark).
+		Value("retrieved_at", b.Evidence.RetrievedAt).
+		String("digest", b.Evidence.Digest).Bytes()
 	if err != nil {
 		return nil
 	}

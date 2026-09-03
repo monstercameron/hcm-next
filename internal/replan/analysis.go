@@ -129,21 +129,31 @@ func Analyze(old, current Snapshot, nodes []Node) Result {
 	// Detect cycles over the whole declared graph; allowing one would make the
 	// closure incomplete even when the cycle is not currently changed.
 	state := make(map[string]uint8, len(byID))
+	path := make([]string, 0, len(byID))
+	pathIndex := make(map[string]int, len(byID))
 	var visit func(string)
 	visit = func(id string) {
 		if state[id] == 1 {
-			invalid[id] = "dependency cycle"
+			// Mark every member of the back-edge cycle, rather than only the
+			// node where DFS happened to encounter the back edge.
+			for _, member := range path[pathIndex[id]:] {
+				invalid[member] = "dependency cycle"
+			}
 			return
 		}
 		if state[id] == 2 {
 			return
 		}
 		state[id] = 1
+		pathIndex[id] = len(path)
+		path = append(path, id)
 		for _, dep := range byID[id].Dependencies {
 			if _, ok := byID[dep]; ok {
 				visit(dep)
 			}
 		}
+		path = path[:len(path)-1]
+		delete(pathIndex, id)
 		state[id] = 2
 	}
 	ids := make([]string, 0, len(byID))
@@ -174,7 +184,11 @@ func Analyze(old, current Snapshot, nodes []Node) Result {
 		if reason, ok := invalid[id]; ok {
 			f.Status, f.Reason = Unknown, reason
 		} else if reason, ok := affected[id]; ok {
-			if byID[id].Kind == Fact {
+			// Facts and calculations can be regenerated from the current
+			// snapshot. A write/effect/obligation/decision is a material
+			// proposal artifact and must be invalidated before it can be
+			// reconsidered.
+			if byID[id].Kind == Fact || byID[id].Kind == Calculation {
 				f.Status = Recompute
 			} else {
 				f.Status = Invalidate

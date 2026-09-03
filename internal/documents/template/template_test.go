@@ -34,7 +34,7 @@ func published(t *testing.T) Template {
 	return got
 }
 
-func TestTodoDOC_TEMPLATE_001(t *testing.T) {
+func TestTodo_DOC_TEMPLATE_001(t *testing.T) {
 	tpl := published(t)
 	a, err := tpl.Render(goodBindings())
 	if err != nil {
@@ -46,6 +46,74 @@ func TestTodoDOC_TEMPLATE_001(t *testing.T) {
 	}
 	if a.Digest == "" || a.Digest != b.Digest || string(a.Content) != "Hello Ada (2026-09-03)" {
 		t.Fatalf("non-deterministic or unexpected artifact: %#v", a)
+	}
+}
+
+func TestTodo_DOC_TEMPLATE_001_Golden(t *testing.T) {
+	tpl := published(t)
+	a, err := tpl.Render(goodBindings())
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Hello Ada (2026-09-03)"
+	if string(a.Content) != want {
+		t.Fatalf("content = %q, want %q", a.Content, want)
+	}
+	sum := sha256.Sum256([]byte(want))
+	if a.Digest != "sha256:"+hex.EncodeToString(sum[:]) {
+		t.Fatalf("digest = %q", a.Digest)
+	}
+}
+
+func TestTodo_DOC_TEMPLATE_001_Integration(t *testing.T) {
+	tpl := published(t)
+	if tpl.Publication == nil || tpl.Publication.TemplateDigest != tpl.Digest() || len(tpl.Publication.Fixtures) != 1 {
+		t.Fatalf("publication did not retain approval and fixture metadata: %#v", tpl.Publication)
+	}
+	retired, err := tpl.Retire("superseded", "offer-v2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if retired.Publication.Successor != "offer-v2" || retired.Publication.RetiredReason != "superseded" {
+		t.Fatalf("retirement metadata = %#v", retired.Publication)
+	}
+}
+
+func TestTodo_DOC_TEMPLATE_001_Browser(t *testing.T) {
+	tpl := published(t)
+	if tpl.Definition.AccessibilityVersion == "" || tpl.Definition.Format == "" {
+		t.Fatal("published template must carry accessibility and format metadata")
+	}
+}
+
+func TestTodo_DOC_TEMPLATE_001_Security(t *testing.T) {
+	tpl := published(t)
+	_, err := tpl.Render(map[string]Binding{
+		"name": {Kind: String, Value: "Ada"}, "start": {Kind: Date, Value: "2026-09-03"},
+		"secret": {Kind: String, Value: "must not be traversed"},
+	})
+	if err == nil || !errors.Is(err, ErrInvalid) {
+		t.Fatalf("unknown field binding err = %v, want ErrInvalid", err)
+	}
+}
+
+func TestTodo_DOC_TEMPLATE_001_ApplicabilitySnapshot(t *testing.T) {
+	locales := []string{"en-US"}
+	draft, err := New(definition())
+	if err != nil {
+		t.Fatal(err)
+	}
+	tpl, err := draft.Publish(Publication{
+		TemplateDigest: draft.Digest(), Fixtures: []Fixture{{Name: "golden", Bindings: goodBindings()}},
+		Approval:      Approval{ApprovalID: "approval-1", ApprovedBy: "hr"},
+		Applicability: Applicability{Locales: locales, Jurisdictions: []string{"US-NC"}, Classifications: []string{"CONFIDENTIAL"}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	locales[0] = "fr-FR"
+	if tpl.Publication.Applicability.Locales[0] != "en-US" {
+		t.Fatal("publication applicability aliases caller memory")
 	}
 }
 

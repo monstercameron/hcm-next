@@ -88,6 +88,10 @@ func (h Hold) Active() bool { return !h.ReleasedAt.IsSet() }
 type Record struct {
 	Tenant, Compartment, Ref, ParentRef, ClassRef string
 	ParentClassRef                                string
+	// Ancestors contains any further parents between this record and its
+	// root.  It is optional for callers that only have a direct parent; when
+	// present, every ancestor is checked against active holds.
+	Ancestors []Record
 }
 
 // Evidence is emitted for every blocked disposition and every lifecycle
@@ -166,17 +170,24 @@ func (s *Store) DecideDisposition(r Record, evidenceID string, at values.Instant
 	defer s.mu.Unlock()
 	for _, h := range s.holds {
 		if h.Active() && h.Scope.matches(r) {
-			e := Evidence{ID: evidenceID, Action: "DISPOSITION", RecordRef: r.Ref, HoldID: h.ID, Code: "HOLD_BLOCKED", Tenant: r.Tenant, Compartment: r.Compartment, At: at}
-			s.evidence = append(s.evidence, e)
-			return Decision{Code: "HOLD_BLOCKED", HoldID: h.ID, Evidence: e}
+			return s.blockedLocked(r, evidenceID, at, h)
 		}
 		if h.Active() && r.ParentRef != "" && h.Scope.matches(Record{Tenant: r.Tenant, Compartment: r.Compartment, Ref: r.ParentRef, ClassRef: r.ParentClassRef}) {
-			e := Evidence{ID: evidenceID, Action: "DISPOSITION", RecordRef: r.Ref, HoldID: h.ID, Code: "HOLD_BLOCKED", Tenant: r.Tenant, Compartment: r.Compartment, At: at}
-			s.evidence = append(s.evidence, e)
-			return Decision{Code: "HOLD_BLOCKED", HoldID: h.ID, Evidence: e}
+			return s.blockedLocked(r, evidenceID, at, h)
+		}
+		for _, ancestor := range r.Ancestors {
+			if h.Active() && h.Scope.matches(ancestor) {
+				return s.blockedLocked(r, evidenceID, at, h)
+			}
 		}
 	}
 	return Decision{Allowed: true, Code: "DISPOSITION_ALLOWED"}
+}
+
+func (s *Store) blockedLocked(r Record, evidenceID string, at values.Instant, h Hold) Decision {
+	e := Evidence{ID: evidenceID, Action: "DISPOSITION", RecordRef: r.Ref, HoldID: h.ID, Code: "HOLD_BLOCKED", Tenant: r.Tenant, Compartment: r.Compartment, At: at}
+	s.evidence = append(s.evidence, e)
+	return Decision{Code: "HOLD_BLOCKED", HoldID: h.ID, Evidence: e}
 }
 
 // EvaluateDisposition is the error-returning form of DecideDisposition.

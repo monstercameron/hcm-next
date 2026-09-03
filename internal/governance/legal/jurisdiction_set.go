@@ -133,14 +133,22 @@ func finishSet(set JurisdictionSet, input JurisdictionSetInput, registry *Regist
 	// Locality overlays are supplied as locality-bearing work facts. A
 	// locality release must be exact; Registry.Lookup intentionally falls back
 	// to the state release, so use IsRegisteredExact here.
+	seenOverlays := map[Jurisdiction]struct{}{}
+	seenUnregistered := map[Jurisdiction]struct{}{}
 	for _, w := range input.WorkLocations {
 		if w.Jurisdiction.Locality == "" {
 			continue
 		}
 		if registry.IsRegisteredExact(w.Jurisdiction, input.EffectiveDate) {
-			set.Overlays = append(set.Overlays, w.Jurisdiction)
+			if _, seen := seenOverlays[w.Jurisdiction]; !seen {
+				seenOverlays[w.Jurisdiction] = struct{}{}
+				set.Overlays = append(set.Overlays, w.Jurisdiction)
+			}
 		} else {
-			set.UnregisteredLocalities = append(set.UnregisteredLocalities, w.Jurisdiction)
+			if _, seen := seenUnregistered[w.Jurisdiction]; !seen {
+				seenUnregistered[w.Jurisdiction] = struct{}{}
+				set.UnregisteredLocalities = append(set.UnregisteredLocalities, w.Jurisdiction)
+			}
 		}
 	}
 	sort.Slice(set.Overlays, func(i, j int) bool { return set.Overlays[i].String() < set.Overlays[j].String() })

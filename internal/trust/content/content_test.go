@@ -91,3 +91,58 @@ func TestTodo_TRUST_019_RescanRevokesOldDerivative(t *testing.T) {
 		t.Fatalf("history lost: %d", got)
 	}
 }
+
+// TestTodo_TRUST_019_Mutation protects the fail-closed quarantine boundary:
+// changing any processing dependency must not make untrusted bytes promotable.
+func TestTodo_TRUST_019_Mutation(t *testing.T) {
+	cases := []struct {
+		name      string
+		scan      Scanner
+		transform Transformer
+		state     State
+	}{
+		{"scanner unavailable", nil, transformer, Quarantined},
+		{"scanner unsafe", scanner(VerdictUnsafe), transformer, Rejected},
+		{"scanner unscannable", scanner(VerdictUnscannable), transformer, Rejected},
+		{"transformer unavailable", scanner(VerdictSafe), nil, Quarantined},
+		{"transformer failure", scanner(VerdictSafe), func(context.Context, []byte) ([]byte, error) {
+			return nil, errors.New("transform failed")
+		}, Rejected},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			a, err := New(Ingress{ID: tc.name, Tenant: "t", Source: "upload", Filename: "x.pdf", DeclaredMIME: "application/pdf"}, []byte("%PDF-data"), time.Unix(1, 0))
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = a.Rescan(context.Background(), policy(), tc.scan, tc.transform, time.Unix(2, 0))
+			if err == nil || a.Snapshot().State != tc.state {
+				t.Fatalf("state=%s err=%v", a.Snapshot().State, err)
+			}
+			if _, err := a.Promoted(); !errors.Is(err, ErrNotPromotable) {
+				t.Fatalf("quarantined artifact promoted: %v", err)
+			}
+		})
+	}
+}
+
+func FuzzTodo_TRUST_019(f *testing.F) {
+	f.Add([]byte("%PDF-data"))
+	f.Fuzz(func(t *testing.T, payload []byte) {
+		if len(payload) == 0 {
+			return
+		}
+		a, err := New(Ingress{ID: "fuzz", Tenant: "t", Source: "upload", Filename: "x.pdf", DeclaredMIME: "application/pdf"}, payload, time.Unix(1, 0))
+		if err != nil {
+			return
+		}
+		_ = a.Rescan(context.Background(), policy(), scanner(VerdictSafe), transformer, time.Unix(2, 0))
+		if a.Snapshot().State == Safe {
+			if _, err := a.Promoted(); err != nil {
+				t.Fatalf("safe artifact not promotable: %v", err)
+			}
+		} else if _, err := a.Promoted(); !errors.Is(err, ErrNotPromotable) {
+			t.Fatalf("non-safe artifact promoted: %v", err)
+		}
+	})
+}

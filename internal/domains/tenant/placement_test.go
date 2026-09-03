@@ -91,4 +91,29 @@ func TestPlacementValidation(t *testing.T) {
 	if _, err := tenant.Sign(bad, placementKey); !errors.Is(err, tenant.ErrInvalidPlacement) {
 		t.Fatalf("zero epoch error = %v, want ErrInvalidPlacement", err)
 	}
+	if _, err := bad.Digest(); !errors.Is(err, tenant.ErrInvalidPlacement) {
+		t.Fatalf("invalid placement digest error = %v, want ErrInvalidPlacement", err)
+	}
+}
+
+func TestPlacementSignatureAndDigestAreIndependent(t *testing.T) {
+	p, err := tenant.Sign(validPlacement(), placementKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest, err := p.Digest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The signature authenticates the canonical placement, while the digest
+	// identifies that placement. Neither identity may change merely because
+	// the other representation is carried alongside it.
+	p.Signature = "00"
+	got, err := p.Digest()
+	if err != nil || got != digest {
+		t.Fatalf("digest changed with signature: got %q (err %v), want %q", got, err, digest)
+	}
+	if err := tenant.Verify(p, placementKey); !errors.Is(err, tenant.ErrInvalidSignature) {
+		t.Fatalf("tampered signature error = %v, want ErrInvalidSignature", err)
+	}
 }

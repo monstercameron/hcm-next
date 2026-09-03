@@ -47,3 +47,54 @@ func TestReadFailsClosedAuthorization(t *testing.T) {
 		t.Fatalf("unauthorized units leaked: %+v", r.Units)
 	}
 }
+
+// Matrix coverage for ORG-001's named contract tests.
+func TestTodo_ORG_001(t *testing.T) {
+	TestReadAsOfAndScopeClosure(t)
+	TestValidateRejectsCycleDuplicateAndCrossTenant(t)
+}
+
+func TestTodo_ORG_001_Golden(t *testing.T) {
+	at := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+	s := Snapshot{Tenant: "t1", Watermark: "w9", ResolverPolicyVersion: "p3", Units: []OrganizationUnit{org("root"), org("parent"), org("child")}, Edges: []RelationshipEdge{edge("z", "parent", "child"), edge("a", "root", "parent")}}
+	r, err := Ancestry(s, ReadRequest{Tenant: "t1", Root: "child", AsOf: at})
+	if err != nil || len(r.Units) != 3 || r.Units[0].ID != "child" || r.Watermark != "w9" || r.ResolverPolicyVersion != "p3" {
+		t.Fatalf("ancestry=%+v err=%v", r, err)
+	}
+}
+
+func TestTodo_ORG_001_Mutation(t *testing.T) {
+	at := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+	old := org("old")
+	end := at.Add(-time.Hour)
+	old.EffectiveTo = &end
+	if err := (Snapshot{Tenant: "t1", Units: []OrganizationUnit{old}}).Validate(at); err != nil {
+		t.Fatal(err)
+	}
+	bad := org("bad")
+	bad.EffectiveTo = &bad.EffectiveFrom
+	if _, err := Read(Snapshot{Tenant: "t1", Units: []OrganizationUnit{bad}}, ReadRequest{Tenant: "t1", Root: "bad", AsOf: at}); !errors.Is(err, ErrOrphan) {
+		t.Fatalf("invalid interval should be inactive/orphan: %v", err)
+	}
+}
+
+func TestTodo_ORG_001_Property(t *testing.T) {
+	at := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+	s := Snapshot{Tenant: "t1", Units: []OrganizationUnit{org("r"), org("a"), org("b")}, Edges: []RelationshipEdge{edge("2", "r", "b"), edge("1", "r", "a")}}
+	r, err := Descendency(s, ReadRequest{Tenant: "t1", Root: "r", AsOf: at})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r.Edges) != 2 || r.Edges[0].ID != "1" || r.Units[0].ID != "a" {
+		t.Fatalf("non-deterministic result=%+v", r)
+	}
+}
+
+func TestTodo_ORG_001_Security(t *testing.T) {
+	at := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+	s := Snapshot{Tenant: "t1", Units: []OrganizationUnit{org("r"), org("denied"), org("secret")}, Edges: []RelationshipEdge{edge("1", "r", "denied"), edge("2", "denied", "secret")}}
+	r, err := Read(s, ReadRequest{Tenant: "t1", Root: "r", AsOf: at, Authorize: func(n OrganizationUnit) bool { return n.ID != "denied" }})
+	if err != nil || len(r.Units) != 1 || r.Units[0].ID != "r" {
+		t.Fatalf("denied intermediary traversal leaked scope: %+v err=%v", r, err)
+	}
+}

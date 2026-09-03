@@ -155,6 +155,12 @@ func (s *Store) Save(req SaveRequest) (Draft, error) {
 		if old.draft.TenantID != req.TenantID || old.draft.PrincipalID != req.PrincipalID {
 			return Draft{}, ErrDenied
 		}
+		// A draft is pinned to the form definition it was created from. A
+		// caller must rebase rather than silently moving its answers to a
+		// different form or version.
+		if old.draft.FormID != req.FormID || old.draft.FormVersion != req.FormVersion {
+			return Draft{}, ErrRebase
+		}
 		if old.draft.Revision != req.ExpectedRevision {
 			return Draft{}, ErrConflict
 		}
@@ -173,6 +179,9 @@ func (s *Store) Save(req SaveRequest) (Draft, error) {
 }
 
 func (s *Store) Resume(req ResumeRequest) (ResumeResult, error) {
+	if err := validateIdentity(req.TenantID, req.PrincipalID, req.FormID, req.FormVersion); err != nil || req.ID == "" {
+		return ResumeResult{Outcome: Denied}, ErrInvalidInput
+	}
 	s.mu.RLock()
 	rec, ok := s.records[req.ID]
 	s.mu.RUnlock()
@@ -207,6 +216,21 @@ func (s *Store) Submit(req ResumeRequest, validate ValidateFunc) (SubmitResult, 
 		return SubmitResult{Effects: EffectCounters{}}, fmt.Errorf("%w: %v", ErrValidation, err)
 	}
 	s.mu.Lock()
+	// Validation may take time. Re-check the revision before creating the
+	// immutable submission so a concurrent save cannot submit stale answers.
+	current, ok := s.records[req.ID]
+	if !ok {
+		s.mu.Unlock()
+		return SubmitResult{Effects: EffectCounters{}}, ErrNotFound
+	}
+	if current.draft.TenantID != req.TenantID || current.draft.PrincipalID != req.PrincipalID || current.draft.FormID != req.FormID {
+		s.mu.Unlock()
+		return SubmitResult{Effects: EffectCounters{}}, ErrDenied
+	}
+	if current.draft.Revision != r.Draft.Revision {
+		s.mu.Unlock()
+		return SubmitResult{Effects: EffectCounters{}}, ErrConflict
+	}
 	s.seq++
 	id := fmt.Sprintf("submission-%d", s.seq)
 	s.mu.Unlock()

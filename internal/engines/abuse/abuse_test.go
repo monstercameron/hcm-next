@@ -24,6 +24,7 @@ func TestTodo_ABUSE_001(t *testing.T) {
 		mutate func(*abuse.DetectorDefinition)
 		want   error
 	}{
+		{"identity", func(d *abuse.DetectorDefinition) { d.ID = "" }, abuse.ErrIdentity},
 		{"purpose", func(d *abuse.DetectorDefinition) { d.Purpose = "" }, abuse.ErrPurpose},
 		{"features", func(d *abuse.DetectorDefinition) { d.Features = nil }, abuse.ErrFeatures},
 		{"source quality", func(d *abuse.DetectorDefinition) { d.Sources[0].Quality = "" }, abuse.ErrSource},
@@ -39,6 +40,27 @@ func TestTodo_ABUSE_001(t *testing.T) {
 			d := detector()
 			tc.mutate(&d)
 			if _, err := abuse.Publish(signal(), d); !errors.Is(err, tc.want) {
+				t.Fatalf("error=%v, want %v", err, tc.want)
+			}
+		})
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*abuse.SignalDefinition)
+		want   error
+	}{
+		{"identity", func(s *abuse.SignalDefinition) { s.Version = "" }, abuse.ErrIdentity},
+		{"purpose", func(s *abuse.SignalDefinition) { s.Purpose = "" }, abuse.ErrPurpose},
+		{"features", func(s *abuse.SignalDefinition) { s.Features = nil }, abuse.ErrFeatures},
+		{"source quality", func(s *abuse.SignalDefinition) { s.Sources[0].Quality = "" }, abuse.ErrSource},
+		{"retention", func(s *abuse.SignalDefinition) { s.Retention = ""; s.RetentionDays = 0 }, abuse.ErrRetention},
+		{"protected policy", func(s *abuse.SignalDefinition) { s.ProtectedAttributePolicy = "" }, abuse.ErrProtectedPolicy},
+		{"owner", func(s *abuse.SignalDefinition) { s.Owner = "" }, abuse.ErrOwner},
+	} {
+		t.Run("signal "+tc.name, func(t *testing.T) {
+			s := signal()
+			tc.mutate(&s)
+			if _, err := abuse.Publish(s, detector()); !errors.Is(err, tc.want) {
 				t.Fatalf("error=%v, want %v", err, tc.want)
 			}
 		})
@@ -66,6 +88,22 @@ func TestTodo_ABUSE_001_Mutation(t *testing.T) {
 	}
 	if base.Digest == changed.Digest {
 		t.Fatal("detector version mutation did not change publication digest")
+	}
+	// Reordering unordered signal metadata must not create a new revision.
+	s := signal()
+	s.Features = []abuse.Feature{{Name: "z", Description: "z"}, {Name: "a", Description: "a"}}
+	ordered := s
+	ordered.Features = []abuse.Feature{{Name: "a", Description: "a"}, {Name: "z", Description: "z"}}
+	a, err := abuse.Publish(s, detector())
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := abuse.Publish(ordered, detector())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.Digest != b.Digest {
+		t.Fatalf("signal metadata order changed publication digest: %q != %q", a.Digest, b.Digest)
 	}
 }
 

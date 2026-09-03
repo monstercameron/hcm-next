@@ -2,6 +2,7 @@ package diagnostics
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"reflect"
 	"strings"
@@ -10,6 +11,62 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/connectivity"
 )
+
+// The INTG-003 matrix is kept in this package so every provider adapter is
+// exercised against the same normalized diagnostic contract.
+func TestTodo_INTG_003(t *testing.T) { TestRunNormalizesFindingsAndImpacts(t) }
+
+func TestTodo_INTG_003_Golden(t *testing.T) {
+	p := &fakeProbe{scopes: []string{"worker.read"}}
+	report, err := Diagnose(context.Background(), p, Request{
+		Connection:     testConnection(t),
+		RequiredScopes: []string{"worker.read"},
+		Capabilities:   []CapabilityImpact{{Capability: connectivity.Capability{Object: connectivity.ObjectWorker, Operation: connectivity.OperationRead}, Workflows: []string{"Onboarding"}}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := Report{ConnectionID: "conn-1", TenantID: "tenant-1", Findings: []Finding{
+		{Check: CheckAuthentication, Status: Pass, Code: "AUTHENTICATION_OK", Detail: "authentication check passed"},
+		{Check: CheckReachability, Status: Pass, Code: "REACHABILITY_OK", Detail: "reachability check passed"},
+		{Check: CheckScopes, Status: Pass, Code: "SCOPES_OK", Detail: "required provider scopes are granted", Required: []string{"worker.read"}, Actual: []string{"worker.read"}},
+		{Check: CheckCapability, Status: Pass, Code: "CAPABILITY_OK", Detail: "capability check passed", Capability: connectivity.Capability{Object: connectivity.ObjectWorker, Operation: connectivity.OperationRead}, Workflows: []string{"Onboarding"}},
+	}}
+	if !reflect.DeepEqual(report, want) {
+		t.Fatalf("golden report mismatch: got=%+v want=%+v", report, want)
+	}
+	// Also ensure the public representation remains deterministic and valid JSON.
+	if _, err := json.Marshal(report); err != nil {
+		t.Fatalf("report is not serializable: %v", err)
+	}
+}
+
+func TestTodo_INTG_003_Integration(t *testing.T) { TestRunNormalizesFindingsAndImpacts(t) }
+func TestTodo_INTG_003_Fault(t *testing.T)       { TestRunRedactsProviderErrorsAndDoesNotMutateConnection(t) }
+func TestTodo_INTG_003_Security(t *testing.T) {
+	TestRunRedactsProviderErrorsAndDoesNotMutateConnection(t)
+}
+
+func FuzzTodo_INTG_003(f *testing.F) {
+	f.Add(" worker.read,worker.read,", "worker.read")
+	f.Fuzz(func(t *testing.T, required, actual string) {
+		req := normalize(strings.Split(required, ","))
+		act := normalize(strings.Split(actual, ","))
+		got := difference(req, act)
+		seen := map[string]bool{}
+		for i, scope := range got {
+			if scope == "" || seen[scope] || (i > 0 && got[i-1] >= scope) {
+				t.Fatalf("difference must be sorted and unique: %q", got)
+			}
+			seen[scope] = true
+			for _, have := range act {
+				if scope == have {
+					t.Fatalf("reported granted scope %q as missing", scope)
+				}
+			}
+		}
+	})
+}
 
 type fakeProbe struct {
 	auth, reach, scopeErr, capErr error

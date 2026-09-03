@@ -41,6 +41,12 @@ func NewAppender(digester *Digester) *Appender {
 // [ErrLinkAlreadyRecorded]: chain links are append-only, exactly like the
 // events they extend.
 func (a *Appender) Append(ctx context.Context, tx dbport.Tx, receipt datalogger.AppendReceipt) (ChainedLink, error) {
+	if a == nil || a.digester == nil {
+		return ChainedLink{}, fmt.Errorf("hashchain: appender digester is required")
+	}
+	if receipt.Sequence < 1 {
+		return ChainedLink{}, fmt.Errorf("hashchain: append receipt for stream %s has invalid sequence %d", receipt.StreamKey, receipt.Sequence)
+	}
 	if receipt.Digest == "" {
 		return ChainedLink{}, fmt.Errorf("hashchain: append receipt for stream %s carries no digest", receipt.StreamKey)
 	}

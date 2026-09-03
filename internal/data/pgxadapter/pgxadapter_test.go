@@ -3,6 +3,7 @@ package pgxadapter
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
@@ -30,9 +31,11 @@ func TestNewPoolInvalidURL(t *testing.T) {
 }
 
 func TestConnectRuntimeParams(t *testing.T) {
-	_, err := Connect(context.Background(), "postgres://user:pass@localhost:5432/db?sslmode=disable", map[string]string{"search_path": "public"})
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	_, err := Connect(ctx, "postgres://user:pass@localhost:5432/db?sslmode=disable", map[string]string{"search_path": "public"})
 	if err == nil {
-		t.Log("Connect attempted dial, may fail without server")
+		t.Fatal("Connect unexpectedly succeeded without a test server")
 	}
 }
 

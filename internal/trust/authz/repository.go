@@ -367,6 +367,12 @@ func NewRepositoryGate(records map[values.EntityRef]map[FieldID]string) *Reposit
 // denied fields are omitted, redacted fields carry only
 // [RedactedPlaceholder].
 func (g *RepositoryGate) Query(scope RepositoryScope, requested []values.EntityRef, at values.Instant) ([]Projection, error) {
+	// A nil gate is an unavailable data layer, not an invitation to bypass
+	// authorization. Treat it exactly like any other repository access that
+	// cannot be evaluated and fail closed before dereferencing the receiver.
+	if g == nil {
+		return nil, ErrScopeRequired
+	}
 	if scope.Zero() {
 		return nil, ErrScopeRequired
 	}

@@ -62,3 +62,37 @@ func TestProgramValidationRequiresPolicyInputs(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestProgramValidationRejectsBlankAndDuplicatePolicyRefs(t *testing.T) {
+	cases := []struct {
+		name string
+		edit func(*LeaveProgramRevision)
+	}{
+		{"blank scope", func(p *LeaveProgramRevision) { p.Scope = []string{"worker", " "} }},
+		{"duplicate eligibility", func(p *LeaveProgramRevision) {
+			p.EligibilityRuleRefs = []string{"eligibility:medical", "eligibility:medical"}
+		}},
+		{"blank evidence", func(p *LeaveProgramRevision) { p.EvidenceRequirements = []string{""} }},
+		{"duplicate return obligation", func(p *LeaveProgramRevision) { p.ReturnObligations = []string{"readiness-review", "readiness-review"} }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := testProgram(t, 1)
+			tc.edit(&p)
+			if _, err := NewProgramRevision(p); !errors.Is(err, ErrInvalidProgram) {
+				t.Fatalf("err = %v", err)
+			}
+		})
+	}
+}
+
+func TestProgramCatalogDuplicateRevisionHasTypedErrors(t *testing.T) {
+	cat := NewProgramCatalog()
+	if err := cat.Append(testProgram(t, 1)); err != nil {
+		t.Fatal(err)
+	}
+	err := cat.Append(testProgram(t, 1))
+	if !errors.Is(err, ErrDuplicateRevision) || !errors.Is(err, ErrRevisionOrder) {
+		t.Fatalf("duplicate error = %v", err)
+	}
+}

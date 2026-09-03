@@ -30,6 +30,9 @@ func (c Capability) valid() bool { return c.Object != "" && c.Version != "" && c
 type CapabilitySet []Capability
 
 func (s CapabilitySet) Supports(want Capability) bool {
+	if !want.valid() {
+		return false
+	}
 	for _, have := range s {
 		if have == want {
 			return true
@@ -141,6 +144,30 @@ func (t Typed[T]) check(ctx context.Context, op Operation) error {
 		return fail("typed.check", ErrUnsupported, "capability %s/%s/%s is not advertised", t.Schema.Name(), op, t.Schema.Version())
 	}
 	return nil
+}
+
+// Negotiate asks the underlying adapter to establish the exact capabilities
+// required by this typed client. Negotiation is kept on the typed boundary so
+// generated SDKs cannot accidentally negotiate an untyped/vendor surface.
+func (t Typed[T]) Negotiate(ctx context.Context, operations ...Operation) error {
+	if err := CheckContext(ctx); err != nil {
+		return err
+	}
+	if t.Connector == nil || t.Schema == nil {
+		return fail("typed.negotiate", ErrInvalid, "connector and schema are required")
+	}
+	if len(operations) == 0 {
+		return fail("typed.negotiate", ErrInvalid, "at least one operation is required")
+	}
+	want := make(CapabilitySet, 0, len(operations))
+	for _, op := range operations {
+		c := t.capability(op)
+		if !c.valid() {
+			return fail("typed.negotiate", ErrInvalid, "schema identity is incomplete")
+		}
+		want = append(want, c)
+	}
+	return t.Connector.Negotiate(ctx, want)
 }
 
 func (t Typed[T]) Read(ctx context.Context, cursor string, limit int, since time.Time) (Page[T], error) {
@@ -263,7 +290,15 @@ type Error struct {
 	Detail string
 }
 
-func (e *Error) Error() string { return e.Op + ": " + e.Cause.Error() + ": " + e.Detail }
+func (e *Error) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if e.Cause == nil {
+		return e.Op + ": " + e.Detail
+	}
+	return e.Op + ": " + e.Cause.Error() + ": " + e.Detail
+}
 func (e *Error) Unwrap() error { return e.Cause }
 func fail(op string, cause error, f string, a ...any) error {
 	return &Error{Op: op, Cause: cause, Detail: fmt.Sprintf(f, a...)}
@@ -271,6 +306,9 @@ func fail(op string, cause error, f string, a ...any) error {
 
 // CheckContext preserves cancellation identity for adapters and generated SDKs.
 func CheckContext(ctx context.Context) error {
+	if ctx == nil {
+		return fail("adapter.context", ErrInvalid, "context is required")
+	}
 	select {
 	case <-ctx.Done():
 		return fail("adapter.context", ErrCanceled, "%v", ctx.Err())

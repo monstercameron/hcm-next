@@ -79,6 +79,10 @@ type EffectiveAuthority struct {
 	NotBefore           time.Time
 	ExpiresAt           time.Time
 	DecisionID          string
+	// These bounds are carried forward so a later redelegation cannot
+	// silently acquire permission or depth that its parent did not grant.
+	AllowRedelegation bool
+	MaxDepth          uint8
 }
 
 var (
@@ -94,7 +98,9 @@ var (
 // ValidateDelegation validates grant shape and immutable bounds without
 // evaluating it against authority snapshots.
 func ValidateDelegation(g DelegationGrant) error {
-	if !printableASCII(g.GrantID, 1, 200) || !printableASCII(g.Delegator, 1, 200) || !printableASCII(g.Delegate, 1, 200) || g.Delegator == g.Delegate {
+	if !printableASCII(g.GrantID, 1, 200) || (g.RootID != "" && !printableASCII(g.RootID, 1, 200)) ||
+		(g.ParentGrantID != "" && !printableASCII(g.ParentGrantID, 1, 200)) ||
+		!printableASCII(g.Delegator, 1, 200) || !printableASCII(g.Delegate, 1, 200) || g.Delegator == g.Delegate {
 		return fmt.Errorf("%w: grant actors", ErrInvalidDelegation)
 	}
 	if g.RootID == "" {
@@ -112,8 +118,12 @@ func ValidateDelegation(g DelegationGrant) error {
 	if g.RequiredAssurance == AssuranceUnspecified || g.RequiredAssurance > AssuranceHigh {
 		return fmt.Errorf("%w: assurance", ErrInvalidDelegation)
 	}
-	if len(g.Capabilities) == 0 || len(g.Resources) == 0 || len(g.Purposes) == 0 {
+	if len(g.Capabilities) == 0 || len(g.Resources) == 0 || len(g.Purposes) == 0 ||
+		!printableSet(g.Capabilities) || !printableSet(g.Resources) || !printableSet(g.Fields) || !printableSet(g.Purposes) {
 		return fmt.Errorf("%w: empty scope", ErrInvalidDelegation)
+	}
+	if g.ParentGrantID != "" && g.MaxDepth == 0 {
+		return fmt.Errorf("%w: redelegation depth", ErrInvalidDelegation)
 	}
 	return nil
 }
@@ -124,6 +134,9 @@ func EvaluateDelegation(req DelegationRequest) (EffectiveAuthority, error) {
 	g := req.Grant
 	if err := ValidateDelegation(g); err != nil {
 		return EffectiveAuthority{}, err
+	}
+	if g.RootID == "" {
+		g.RootID = g.GrantID
 	}
 	if req.EvaluatedAt.IsZero() {
 		return EffectiveAuthority{}, fmt.Errorf("%w: evaluation time", ErrInvalidDelegation)
@@ -144,7 +157,10 @@ func EvaluateDelegation(req DelegationRequest) (EffectiveAuthority, error) {
 		return EffectiveAuthority{}, ErrDelegationExpanded
 	}
 	if req.Parent != nil {
-		if !g.AllowRedelegation || req.Parent.Delegate != g.Delegator || req.Parent.RootID != g.RootID || len(req.Parent.Chain) >= int(g.MaxDepth)+1 {
+		if !g.AllowRedelegation || !req.Parent.AllowRedelegation || req.Parent.Delegate != g.Delegator ||
+			req.Parent.RootID != g.RootID || g.ParentGrantID != req.Parent.GrantID ||
+			len(req.Parent.Chain) == 0 || req.Parent.Chain[len(req.Parent.Chain)-1] != req.Parent.GrantID ||
+			len(req.Parent.Chain)+1 > int(g.MaxDepth) || (req.Parent.MaxDepth != 0 && len(req.Parent.Chain)+1 > int(req.Parent.MaxDepth)) {
 			return EffectiveAuthority{}, ErrRedelegationNotPermitted
 		}
 		if req.Parent.GrantID == g.GrantID || slices.Contains(req.Parent.Chain, g.GrantID) {
@@ -179,9 +195,18 @@ func EvaluateDelegation(req DelegationRequest) (EffectiveAuthority, error) {
 	if req.Parent != nil {
 		chain = append(slices.Clone(req.Parent.Chain), g.GrantID)
 	}
-	e := EffectiveAuthority{GrantID: g.GrantID, RootID: g.RootID, Chain: chain, Delegator: g.Delegator, Delegate: g.Delegate, Tenant: g.Tenant, OrganizationScopeID: g.OrganizationScopeID, Capabilities: capabilities, Resources: resources, Fields: fields, Purposes: purposes, Assurance: minAssurance(req.Delegator.Assurance, req.Delegate.Assurance), NotBefore: nb, ExpiresAt: exp}
+	e := EffectiveAuthority{GrantID: g.GrantID, RootID: g.RootID, Chain: chain, Delegator: g.Delegator, Delegate: g.Delegate, Tenant: g.Tenant, OrganizationScopeID: g.OrganizationScopeID, Capabilities: capabilities, Resources: resources, Fields: fields, Purposes: purposes, Assurance: minAssurance(req.Delegator.Assurance, req.Delegate.Assurance), NotBefore: nb, ExpiresAt: exp, AllowRedelegation: g.AllowRedelegation, MaxDepth: g.MaxDepth}
 	e.DecisionID = delegationDecisionID(e)
 	return e, nil
+}
+
+func printableSet(set []string) bool {
+	for _, s := range set {
+		if !printableASCII(s, 1, 200) {
+			return false
+		}
+	}
+	return true
 }
 
 func intersect(sets ...[]string) []string {

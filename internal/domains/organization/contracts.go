@@ -42,6 +42,9 @@ type OrganizationUnit struct {
 }
 
 func (n OrganizationUnit) active(at time.Time) bool {
+	if n.EffectiveTo != nil && !n.EffectiveFrom.Before(*n.EffectiveTo) {
+		return false
+	}
 	return !at.Before(n.EffectiveFrom) && (n.EffectiveTo == nil || at.Before(*n.EffectiveTo))
 }
 
@@ -53,6 +56,9 @@ type RelationshipEdge struct {
 }
 
 func (e RelationshipEdge) active(at time.Time) bool {
+	if e.EffectiveTo != nil && !e.EffectiveFrom.Before(*e.EffectiveTo) {
+		return false
+	}
 	return !at.Before(e.EffectiveFrom) && (e.EffectiveTo == nil || at.Before(*e.EffectiveTo))
 }
 
@@ -163,6 +169,13 @@ func Read(s Snapshot, q ReadRequest) (ReadResult, error) {
 		allowed[typ] = true
 	}
 	closure := map[string]bool{q.Root: true}
+	// Authorization is part of graph traversal, not merely response shaping:
+	// a caller must not discover an authorized descendant through a denied
+	// intermediary node.
+	authorized := map[string]bool{}
+	if q.Authorize != nil {
+		authorized[q.Root] = true
+	}
 	changed := true
 	for changed {
 		changed = false
@@ -170,11 +183,11 @@ func Read(s Snapshot, q ReadRequest) (ReadResult, error) {
 			if !e.active(q.AsOf) || e.Tenant != q.Tenant || (len(allowed) > 0 && !allowed[e.Type]) {
 				continue
 			}
-			if closure[e.Source] && !closure[e.Target] {
+			if closure[e.Source] && !closure[e.Target] && (q.Authorize == nil || authorizeUnit(units[e.Target], q.Authorize, authorized)) {
 				closure[e.Target] = true
 				changed = true
 			}
-			if closure[e.Target] && !closure[e.Source] {
+			if closure[e.Target] && !closure[e.Source] && (q.Authorize == nil || authorizeUnit(units[e.Source], q.Authorize, authorized)) {
 				closure[e.Source] = true
 				changed = true
 			}
@@ -203,19 +216,84 @@ func Read(s Snapshot, q ReadRequest) (ReadResult, error) {
 	return result, nil
 }
 
+func authorizeUnit(n OrganizationUnit, authorize Authorizer, cache map[string]bool) bool {
+	if ok, seen := cache[n.ID]; seen {
+		return ok
+	}
+	ok := authorize != nil && authorize(n)
+	cache[n.ID] = ok
+	return ok
+}
+
 // Read is also available as a method for repository adapters.
 func (s Snapshot) Read(q ReadRequest) (ReadResult, error) { return Read(s, q) }
 
 // Ancestry returns the authorized root-to-parent scope for a unit.
 func Ancestry(s Snapshot, q ReadRequest) (ReadResult, error) {
-	q.EdgeTypes = []EdgeType{Hierarchy}
-	return Read(s, q)
+	return directionalRead(s, q, false)
 }
 
 // Descendency returns the authorized parent-to-descendant scope for a unit.
 // The read contract returns the same verified closure so callers cannot
 // accidentally combine independently-watermarked traversals.
 func Descendency(s Snapshot, q ReadRequest) (ReadResult, error) {
+	return directionalRead(s, q, true)
+}
+
+func directionalRead(s Snapshot, q ReadRequest, descendants bool) (ReadResult, error) {
 	q.EdgeTypes = []EdgeType{Hierarchy}
-	return Read(s, q)
+	if q.Tenant == "" || q.Tenant != s.Tenant || q.AsOf.IsZero() {
+		return Read(s, q)
+	}
+	if err := s.Validate(q.AsOf); err != nil {
+		return ReadResult{}, err
+	}
+	units := make(map[string]OrganizationUnit, len(s.Units))
+	for _, n := range s.Units {
+		if n.Tenant == q.Tenant && n.active(q.AsOf) {
+			units[n.ID] = n
+		}
+	}
+	root, ok := units[q.Root]
+	if !ok {
+		return ReadResult{}, fmt.Errorf("%w: root %s", ErrOrphan, q.Root)
+	}
+	auth := map[string]bool{}
+	if q.Authorize != nil && !authorizeUnit(root, q.Authorize, auth) {
+		return ReadResult{}, ErrUnauthorized
+	}
+	closure := map[string]bool{q.Root: true}
+	changed := true
+	for changed {
+		changed = false
+		for _, e := range s.Edges {
+			if !e.active(q.AsOf) || e.Tenant != q.Tenant || e.Type != Hierarchy {
+				continue
+			}
+			from, to := e.Source, e.Target
+			if !descendants {
+				from, to = to, from
+			}
+			if closure[from] && !closure[to] && (q.Authorize == nil || authorizeUnit(units[to], q.Authorize, auth)) {
+				closure[to] = true
+				changed = true
+			}
+		}
+	}
+	result := ReadResult{Watermark: s.Watermark, ResolverPolicyVersion: s.ResolverPolicyVersion}
+	for id := range closure {
+		result.Units = append(result.Units, units[id])
+	}
+	visible := map[string]bool{}
+	for _, n := range result.Units {
+		visible[n.ID] = true
+	}
+	for _, e := range s.Edges {
+		if e.active(q.AsOf) && e.Type == Hierarchy && visible[e.Source] && visible[e.Target] {
+			result.Edges = append(result.Edges, e)
+		}
+	}
+	sort.Slice(result.Units, func(i, j int) bool { return result.Units[i].ID < result.Units[j].ID })
+	sort.Slice(result.Edges, func(i, j int) bool { return result.Edges[i].ID < result.Edges[j].ID })
+	return result, nil
 }

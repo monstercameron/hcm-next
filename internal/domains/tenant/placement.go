@@ -56,6 +56,9 @@ func (p Placement) canonical() ([]byte, error) {
 
 // Digest identifies the logical placement independent of its signature.
 func (p Placement) Digest() (string, error) {
+	if err := p.Validate(); err != nil {
+		return "", err
+	}
 	b, err := p.canonical()
 	if err != nil {
 		return "", err

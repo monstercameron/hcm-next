@@ -45,3 +45,83 @@ func TestDigestStableAcrossSchemaFieldOrder(t *testing.T) {
 		t.Fatalf("digest changed: %s != %s", da, db)
 	}
 }
+
+// The registry's XFORM-001 matrix is intentionally kept beside the contract;
+// these tests are small independent checks so a future implementation cannot
+// satisfy the primary case while dropping one of the safety boundaries.
+func TestTodo_XFORM_001(t *testing.T) { TestValidateAndDigest(t) }
+
+func TestTodo_XFORM_001_Property(t *testing.T) {
+	d := definition()
+	for _, op := range []OperationKind{OpCopy, OpRename} {
+		d.Operations[0].Kind = op
+		if err := d.Validate(); err != nil {
+			t.Fatalf("%s: %v", op, err)
+		}
+	}
+	d.Operations[0].Kind = OpConvert
+	d.Operations[0].TargetType = TypeInt
+	d.Operations[0].Destination = Path{Schema: "worker", Field: "age", Type: TypeInt}
+	if err := d.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTodo_XFORM_001_Golden(t *testing.T) {
+	d := definition()
+	digest, err := d.Digest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	const want = "sha256:"
+	if len(digest) != len(want)+64 || digest[:len(want)] != want {
+		t.Fatalf("digest %q is not a sha256 golden shape", digest)
+	}
+}
+
+func FuzzTodo_XFORM_001(f *testing.F) {
+	f.Add("people-copy", "shared-engines", "P1A")
+	f.Add("", "owner", "phase")
+	f.Fuzz(func(t *testing.T, name, owner, phase string) {
+		d := definition()
+		d.Name, d.Owner, d.Phase = name, owner, phase
+		// Validation must be total for arbitrary metadata and never panic.
+		_ = d.Validate()
+	})
+}
+
+func TestTodo_XFORM_001_Conformance(t *testing.T) {
+	cases := []struct {
+		name   string
+		mutate func(*TransformationDefinition)
+		want   error
+	}{
+		{"ambient", func(d *TransformationDefinition) { d.AmbientDependencies = []string{"TZ"} }, ErrAmbientDependency},
+		{"arbitrary", func(d *TransformationDefinition) { d.Operations[0].Kind = "script" }, ErrArbitraryCode},
+		{"side-effects", func(d *TransformationDefinition) { d.SideEffects = SideEffectPolicy("write") }, ErrUndeclaredEffect},
+		{"untyped", func(d *TransformationDefinition) { d.Operations[0].Destination.Type = TypeBool }, ErrUntypedPath},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			d := definition()
+			tc.mutate(&d)
+			if !errors.Is(d.Validate(), tc.want) {
+				t.Fatalf("got %v, want %v", d.Validate(), tc.want)
+			}
+		})
+	}
+}
+
+func TestTodo_XFORM_001_Mutation(t *testing.T) {
+	d := definition()
+	d.Limits.MaxOperations = 0
+	if !errors.Is(d.Validate(), ErrInvalidDefinition) {
+		t.Fatal("zero operation budget must be rejected")
+	}
+	d = definition()
+	d.Compatibility.MaximumSourceVersion = 0
+	d.Compatibility.MinimumSourceVersion = 2
+	if err := d.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

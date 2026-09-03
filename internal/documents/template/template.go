@@ -162,6 +162,7 @@ func (t Template) Publish(p Publication) (Template, error) {
 		}
 	}
 	p.Fixtures = cloneFixtures(p.Fixtures)
+	p.Applicability = cloneApplicability(p.Applicability)
 	return Template{Definition: cloneDefinition(t.Definition), State: Published, SourceDigest: t.SourceDigest, Publication: &p}, nil
 }
 
@@ -173,6 +174,8 @@ func (t Template) Retire(reason, successor string) (Template, error) {
 		return Template{}, fmt.Errorf("%w: retirement reason is required", ErrInvalid)
 	}
 	p := *t.Publication
+	p.Fixtures = cloneFixtures(p.Fixtures)
+	p.Applicability = cloneApplicability(p.Applicability)
 	p.RetiredReason, p.Successor = reason, successor
 	return Template{Definition: cloneDefinition(t.Definition), State: Retired, SourceDigest: t.SourceDigest, Publication: &p}, nil
 }
@@ -302,4 +305,12 @@ func cloneFixtures(in []Fixture) []Fixture {
 		}
 	}
 	return out
+}
+
+func cloneApplicability(in Applicability) Applicability {
+	return Applicability{
+		Locales:         append([]string(nil), in.Locales...),
+		Jurisdictions:   append([]string(nil), in.Jurisdictions...),
+		Classifications: append([]string(nil), in.Classifications...),
+	}
 }

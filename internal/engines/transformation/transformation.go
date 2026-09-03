@@ -111,6 +111,11 @@ type TransformationDefinition struct {
 	Limits        ResourceLimits   `json:"limits"`
 	Failure       FailurePolicy    `json:"failure"`
 	SideEffects   SideEffectPolicy `json:"side_effects"`
+	// AmbientDependencies names inputs that would be resolved from process,
+	// network, clock, locale, or other ambient state. They are deliberately
+	// forbidden: every value consumed by a transformation must be in its
+	// typed source schema (or a literal declared by an operation).
+	AmbientDependencies []string `json:"ambient_dependencies,omitempty"`
 }
 
 func validType(t Type) bool {
@@ -163,6 +168,9 @@ func (d TransformationDefinition) Validate() error {
 	if d.SideEffects != SideEffectsNone {
 		return fmt.Errorf("%w: side effects must be none", ErrUndeclaredEffect)
 	}
+	if len(d.AmbientDependencies) != 0 {
+		return fmt.Errorf("%w: %v", ErrAmbientDependency, d.AmbientDependencies)
+	}
 	if d.Compatibility.MinimumSourceVersion < 1 || (d.Compatibility.MaximumSourceVersion > 0 && d.Compatibility.MaximumSourceVersion < d.Compatibility.MinimumSourceVersion) {
 		return fmt.Errorf("%w: invalid compatibility", ErrInvalidDefinition)
 	}
@@ -177,6 +185,12 @@ func (d TransformationDefinition) Validate() error {
 			}
 			if op.Kind == OpConvert && !validType(op.TargetType) {
 				return ErrUntypedPath
+			}
+			if op.Kind != OpConvert && op.Source.Type != op.Destination.Type {
+				return fmt.Errorf("%w: source and destination types differ", ErrUntypedPath)
+			}
+			if op.Kind == OpConvert && op.TargetType != op.Destination.Type {
+				return fmt.Errorf("%w: conversion target and destination types differ", ErrUntypedPath)
 			}
 		case OpDefault:
 			if !pathIn(op.Destination, d.Destination) || op.Literal == "" {

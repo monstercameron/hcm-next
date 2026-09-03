@@ -56,6 +56,35 @@ func TestTodo_ANON_001_Security(t *testing.T) {
 	}
 }
 
+func TestTodo_ANON_001_ExplicitRevelationEvidence(t *testing.T) {
+	i := validIntake(ModeKnown)
+	i.Revelation.RequiresEvidence = false
+	if err := i.Validate(); err == nil || !errors.Is(err, ErrRevelationEvidenceRequired) {
+		t.Fatalf("revelation without evidence requirement accepted: %v", err)
+	}
+}
+
+func TestTodo_ANON_001_DownstreamLimitsRejectBlankOrInvalidValues(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*Intake)
+		want   error
+	}{
+		{"blank recipient", func(i *Intake) { i.Downstream.Recipients = []string{"  "} }, ErrDownstreamRequired},
+		{"blank field", func(i *Intake) { i.Downstream.Fields = []string{""} }, ErrDownstreamRequired},
+		{"invalid expiry", func(i *Intake) { i.Downstream.Expiry = "tomorrow" }, ErrExpiryInvalid},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := validIntake(ModeKnown)
+			tt.mutate(&i)
+			if err := i.Validate(); err == nil || !errors.Is(err, tt.want) {
+				t.Fatalf("invalid downstream limit accepted or wrong error: %v", err)
+			}
+		})
+	}
+}
+
 func TestCanonicalRecipientsDoesNotMutateInput(t *testing.T) {
 	i := validIntake(ModeKnown)
 	i.Downstream.Recipients = []string{"z", "a"}

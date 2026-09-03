@@ -64,6 +64,16 @@ func (d Diagnostic) Error() string {
 	return fmt.Sprintf("effectgraph: %s (%s): %s", d.Code, d.NodeID, d.Detail)
 }
 
+// Unwrap lets callers classify a failed compilation without parsing the
+// human-readable diagnostic.  A cycle is the one graph-wide sentinel; all
+// other diagnostics are malformed graph input.
+func (d Diagnostic) Unwrap() error {
+	if d.Code == "CYCLE" {
+		return ErrCycle
+	}
+	return ErrInvalidGraph
+}
+
 var (
 	ErrInvalidGraph = errors.New("effectgraph: invalid graph")
 	ErrCycle        = errors.New("effectgraph: dependency cycle")
@@ -89,6 +99,7 @@ func Compile(g Graph) (CompiledGraph, error) {
 	}
 	nodes := make([]EffectNode, len(g.Nodes))
 	ids := make(map[string]bool, len(g.Nodes))
+	idempotency := make(map[string]string, len(g.Nodes))
 	for i, n := range g.Nodes {
 		nodes[i] = cloneNode(n)
 		if n.ID == "" {
@@ -107,17 +118,28 @@ func Compile(g Graph) (CompiledGraph, error) {
 		if n.IdempotencyKey == "" {
 			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "MISSING_IDEMPOTENCY", Detail: "stable idempotency key is required"}
 		}
-		if n.DispatchCondition == "" || n.Deadline == "" || n.FailurePolicy == "" || n.RepairPolicy == "" {
-			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "INCOMPLETE_POLICY", Detail: "dispatch condition, deadline, failure and repair policy are required"}
+		if prior, ok := idempotency[n.IdempotencyKey]; ok {
+			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "DUPLICATE_EFFECT_KEY", Detail: fmt.Sprintf("idempotency key is already used by %s", prior)}
+		}
+		idempotency[n.IdempotencyKey] = n.ID
+		if n.DispatchCondition == "" || n.Deadline == "" || n.FailurePolicy == "" || n.CompensationPolicy == "" || n.RepairPolicy == "" || n.TerminalContribution == "" {
+			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "INCOMPLETE_POLICY", Detail: "dispatch condition, deadline, failure, compensation, repair and terminal policies are required"}
 		}
 		if !validOrdering(n.Ordering) {
 			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "INVALID_ORDERING", Detail: string(n.Ordering)}
 		}
-		if n.Ordering == ProviderConditional && n.ExpectedVersion == "" {
+		if n.Ordering == Strict && n.OrderingKey == "" {
+			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "MISSING_ORDERING_KEY", Detail: "strict effects require a resource ordering key"}
+		}
+		if n.Ordering == ProviderConditional && (n.OrderingKey == "" || n.ExpectedVersion == "") {
 			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "MISSING_PROVIDER_PRECONDITION", Detail: "provider-conditional effects require an expected external version"}
 		}
-		if n.Irreversible && (!n.Observation.Required || n.Observation.Profile == "") {
-			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "IRREVERSIBLE_NEEDS_OBSERVATION", Detail: "irreversible effects require an observation contract"}
+		if !n.Observation.Required || n.Observation.Profile == "" {
+			code := "MISSING_OBSERVATION"
+			if n.Irreversible {
+				code = "IRREVERSIBLE_NEEDS_OBSERVATION"
+			}
+			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: code, Detail: "effects require an observation contract"}
 		}
 		if n.Irreversible && n.RepairPolicy == "NONE" {
 			return CompiledGraph{}, Diagnostic{NodeID: n.ID, Code: "IRREVERSIBLE_NEEDS_REPAIR", Detail: "irreversible effects require a repair route"}

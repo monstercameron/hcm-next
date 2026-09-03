@@ -2,6 +2,8 @@ package legalhold_test
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -81,4 +83,81 @@ func TestTodo_MODEL_027_Security(t *testing.T) {
 	if got, err := s.Holds("tenant-1", "other-compartment", true); err != nil || len(got) != 0 {
 		t.Fatalf("compartment isolation = %#v, %v", got, err)
 	}
+}
+
+// TestTodo_MODEL_027_Mutation exercises lifecycle mutations that must not
+// create a second hold or accidentally reactivate a released one.
+func TestTodo_MODEL_027_Mutation(t *testing.T) {
+	s := legalhold.NewStore()
+	h := hold()
+	if err := s.Create(h); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Create(h); !errors.Is(err, legalhold.ErrInvalidHold) {
+		t.Fatalf("duplicate create = %v", err)
+	}
+	if err := s.Release("missing", h.CreatedAt); !errors.Is(err, legalhold.ErrUnknownHold) {
+		t.Fatalf("unknown release = %v", err)
+	}
+	if err := s.Release(h.ID, instant(2026, time.February, 1)); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Release(h.ID, instant(2026, time.March, 1)); err != nil {
+		t.Fatalf("release should be idempotent: %v", err)
+	}
+	got, _ := s.Holds(h.Tenant, h.Compartment, true)
+	if len(got) != 1 || !got[0].ReleasedAt.IsSet() {
+		t.Fatalf("released hold = %#v", got)
+	}
+}
+
+func TestTodo_MODEL_027_AncestorArtifact(t *testing.T) {
+	s := legalhold.NewStore()
+	if err := s.Create(hold()); err != nil {
+		t.Fatal(err)
+	}
+	d := s.DecideDisposition(legalhold.Record{
+		Tenant: "tenant-1", Compartment: "case-7", Ref: "artifact-1",
+		Ancestors: []legalhold.Record{{Tenant: "tenant-1", Compartment: "case-7", Ref: "record-1"}},
+	}, "artifact-evidence", instant(2026, time.January, 3))
+	if d.Allowed || d.Code != "HOLD_BLOCKED" {
+		t.Fatalf("ancestor artifact = %+v", d)
+	}
+}
+
+func TestTodo_MODEL_027_Race(t *testing.T) {
+	s := legalhold.NewStore()
+	h := hold()
+	if err := s.Create(h); err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			r := legalhold.Record{Tenant: h.Tenant, Compartment: h.Compartment, Ref: fmt.Sprintf("record-%d", i%2)}
+			s.DecideDisposition(r, fmt.Sprintf("evidence-%d", i), h.CreatedAt)
+		}(i)
+	}
+	wg.Add(1)
+	go func() { defer wg.Done(); _ = s.Release(h.ID, instant(2026, time.February, 1)) }()
+	wg.Wait()
+}
+
+func FuzzTodo_MODEL_027(f *testing.F) {
+	f.Add("tenant-1", "case-7", "record-1", "reason")
+	f.Fuzz(func(t *testing.T, tenant, compartment, ref, reason string) {
+		s := legalhold.NewStore()
+		h := legalhold.Hold{ID: "fuzz", Tenant: tenant, Compartment: compartment,
+			Scope:  legalhold.Scope{Tenant: tenant, Compartment: compartment, RecordRefs: []string{ref}},
+			Reason: reason, Authority: "authority", CreatedAt: instant(2026, time.January, 2)}
+		err := s.Create(h)
+		if err == nil {
+			d := s.DecideDisposition(legalhold.Record{Tenant: tenant, Compartment: compartment, Ref: ref}, "fuzz-evidence", h.CreatedAt)
+			if !d.Allowed && d.Code != "HOLD_BLOCKED" {
+				t.Fatalf("unexpected decision: %+v", d)
+			}
+		}
+	})
 }

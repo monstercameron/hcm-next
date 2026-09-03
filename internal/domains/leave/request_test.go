@@ -77,3 +77,38 @@ func TestTodo_LEAVE_001_Conformance(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestTodo_LEAVE_001_Golden(t *testing.T) {
+	p, err := leave.Bind(request(t), leave.TrustedContext{TenantID: values.TenantId("tenant-a"), OrganizationScopeID: "org:1", PrincipalID: "principal:1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "hcmnext.workforce.leave_request"
+	if p.DefinitionType != want || p.DefinitionVersion != 1 || p.Family != intent.FamilyChangeRequest {
+		t.Fatalf("identity = %q/v%d/%q, want %q/v1/%q", p.DefinitionType, p.DefinitionVersion, p.Family, want, intent.FamilyChangeRequest)
+	}
+	wantChildren := []leave.ChildKind{leave.ChildLeave, leave.ChildAvailability, leave.ChildBalance, leave.ChildPayroll, leave.ChildBenefits, leave.ChildSchedule, leave.ChildAccess, leave.ChildReturn}
+	for i, want := range wantChildren {
+		if p.ChildKinds[i] != want {
+			t.Fatalf("child %d = %q, want %q", i, p.ChildKinds[i], want)
+		}
+	}
+	if len(p.CanonicalDigest) != 64 {
+		t.Fatalf("canonical digest = %q, want sha256 hex", p.CanonicalDigest)
+	}
+}
+
+func TestTodo_LEAVE_001_Mutation(t *testing.T) {
+	r := request(t)
+	p, err := leave.Bind(r, leave.TrustedContext{TenantID: values.TenantId("tenant-a"), OrganizationScopeID: "org:1", PrincipalID: "principal:1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.EvidenceRefs[0] = "evidence:caller-mutated"
+	if p.Request.EvidenceRefs[0] != "evidence:request-1" {
+		t.Fatal("bound process retained caller-owned evidence slice")
+	}
+	if p.ChildKinds[0] != leave.ChildLeave {
+		t.Fatalf("bound child vocabulary changed unexpectedly: %q", p.ChildKinds[0])
+	}
+}

@@ -60,7 +60,10 @@ func (d *Digester) VerifyLinks(streamKey string, events []EventDigest, links []C
 
 		ev, link := events[i], links[i]
 
-		if link.StreamKey != "" && link.StreamKey != streamKey {
+		// Stream identity is part of the link's authenticated context.  Do not
+		// treat an omitted key as a wildcard: a link read from an untrusted
+		// export must name the stream it belongs to explicitly.
+		if link.StreamKey != streamKey {
 			return Head{}, ErrChainBroken{
 				StreamKey: streamKey, Sequence: wantSeq,
 				Reason:   "chain link belongs to a different stream",

@@ -57,7 +57,8 @@ type Phase struct {
 type Policies struct{ Cutoff, Late, Reopen, Restatement string }
 
 func (p Policies) valid() bool {
-	return p.Cutoff != "" && p.Late != "" && p.Reopen != "" && p.Restatement != ""
+	return strings.TrimSpace(p.Cutoff) != "" && strings.TrimSpace(p.Late) != "" &&
+		strings.TrimSpace(p.Reopen) != "" && strings.TrimSpace(p.Restatement) != ""
 }
 
 // BusinessCycle is the complete cycle definition. Slices are copied by
@@ -107,7 +108,7 @@ func (c BusinessCycle) Validate() error {
 		return ErrPeriods
 	}
 	for _, p := range c.Periods {
-		if p.ID == "" || p.Start.IsZero() || p.End.IsZero() || !p.Start.Before(p.End) {
+		if strings.TrimSpace(p.ID) == "" || p.Start.IsZero() || p.End.IsZero() || !p.Start.Before(p.End) {
 			return ErrPeriods
 		}
 	}
@@ -115,7 +116,7 @@ func (c BusinessCycle) Validate() error {
 		return ErrPhases
 	}
 	for _, p := range c.Phases {
-		if p.ID == "" || p.Name == "" || p.Start.IsZero() || p.End.IsZero() || !p.Start.Before(p.End) {
+		if strings.TrimSpace(p.ID) == "" || strings.TrimSpace(p.Name) == "" || p.Start.IsZero() || p.End.IsZero() || !p.Start.Before(p.End) {
 			return ErrPhases
 		}
 	}

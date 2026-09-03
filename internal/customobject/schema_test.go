@@ -32,6 +32,55 @@ func TestCompileProducesStableSortedSchemaFluxDigest(t *testing.T) {
 	}
 }
 
+// TestTodo_CUSTOM_001 is the primary test named by the planning registry.
+// Keep the assertions at the contract boundary: callers receive a typed,
+// bounded descriptor and a SchemaFlux content digest, never executable input.
+func TestTodo_CUSTOM_001(t *testing.T) {
+
+	schema, err := Compile(CustomObjectType{
+		Name: "Vehicle", Namespace: "tenant.fleet", Owner: "OPERATIONS", Version: 7,
+		Fields: []Field{
+			{Name: "registration", Type: "string", Required: true},
+			{Name: "active", Type: "bool"},
+		},
+		Limits: Limits{MaxFields: 8},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if schema.Name != "Vehicle" || schema.Namespace != "tenant.fleet" || schema.Owner != "OPERATIONS" || schema.Version != 7 {
+		t.Fatalf("compiled metadata = %+v", schema)
+	}
+	if schema.Limits.MaxFields != 8 || len(schema.Fields) != 2 {
+		t.Fatalf("compiled bounds/fields = %+v", schema)
+	}
+	if schema.Digest == "" || len(schema.Digest) != len("sha256:")+64 || schema.Digest[:len("sha256:")] != "sha256:" {
+		t.Fatalf("invalid SchemaFlux digest %q", schema.Digest)
+	}
+}
+
+// TestTodo_CUSTOM_001_Golden is the golden matrix case: equivalent source
+// definitions compile to the same canonical descriptor and digest.
+func TestTodo_CUSTOM_001_Golden(t *testing.T) {
+	first := validSource()
+	second := validSource()
+	second.Fields[0], second.Fields[1] = second.Fields[1], second.Fields[0]
+	a, err := CompileSchema(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := CompileSchema(second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.Digest != b.Digest {
+		t.Fatalf("canonical digest changed with field order: %q != %q", a.Digest, b.Digest)
+	}
+	if a.Fields[0].Name != "active" || a.Fields[1].Name != "registration" {
+		t.Fatalf("golden field order = %+v", a.Fields)
+	}
+}
+
 func TestCompileRejectsUnsafeDefinitions(t *testing.T) {
 	cases := []struct {
 		name   string

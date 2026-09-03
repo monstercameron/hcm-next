@@ -14,6 +14,7 @@ type Purpose string
 const (
 	PurposeApprovalRequired Purpose = "APPROVAL_REQUIRED"
 	PurposeTaskAssigned     Purpose = "TASK_ASSIGNED"
+	PurposeDetermination    Purpose = "DETERMINATION"
 	PurposeReminder         Purpose = "REMINDER"
 	PurposeWorkflowUpdate   Purpose = "WORKFLOW_UPDATE"
 	PurposeEmployeeMessage  Purpose = "EMPLOYEE_MESSAGE"
@@ -27,6 +28,7 @@ const (
 const (
 	ApprovalRequired = PurposeApprovalRequired
 	TaskAssigned     = PurposeTaskAssigned
+	Determination    = PurposeDetermination
 	Reminder         = PurposeReminder
 	WorkflowUpdate   = PurposeWorkflowUpdate
 	EmployeeMessage  = PurposeEmployeeMessage
@@ -37,7 +39,7 @@ const (
 
 func (p Purpose) valid() bool {
 	switch p {
-	case PurposeApprovalRequired, PurposeTaskAssigned, PurposeReminder,
+	case PurposeApprovalRequired, PurposeTaskAssigned, PurposeDetermination, PurposeReminder,
 		PurposeWorkflowUpdate, PurposeEmployeeMessage, PurposeNotice,
 		PurposeLegalNotice, PurposeIncident:
 		return true
