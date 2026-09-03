@@ -1,0 +1,367 @@
+generatedby: tools/gen/storagemanifest (DB-003)
+registrydigest: sha256:549c7cb6693d0cfb6b0256920e198dcc339c408674d12e6ae5561b27c60bab74
+properties:
+  - propertyref: approval_binding.approved_proposal_digest
+    entity: ApprovalBinding/v1
+    columns:
+      - name: approved_proposal_digest
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: approval_binding.decision
+    entity: ApprovalBinding/v1
+    columns:
+      - name: decision
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: approval_binding.reason_ref
+    entity: ApprovalBinding/v1
+    columns:
+      - name: reason_ref
+        sqltype: text
+    notnull: false
+    defaultbehavior: NULLABLE_NO_DEFAULT
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: assignment.effective_interval
+    entity: Assignment/v1
+    columns:
+      - name: effective_interval_from
+        sqltype: timestamptz
+      - name: effective_interval_to
+        sqltype: timestamptz
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: assignment.manager_relationship
+    entity: Assignment/v1
+    columns:
+      - name: manager_relationship
+        sqltype: text
+    notnull: false
+    defaultbehavior: NULLABLE_NO_DEFAULT
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: assignment.position_ref
+    entity: Assignment/v1
+    columns:
+      - name: position_ref
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: budget_reservation.amount
+    entity: BudgetReservation/v1
+    columns:
+      - name: amount
+        sqltype: numeric(19,4)
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: budget_reservation.available_balance
+    entity: BudgetReservation/v1
+    columns:
+      - name: available_balance
+        sqltype: numeric(19,4)
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: budget_reservation.expiry
+    entity: BudgetReservation/v1
+    columns:
+      - name: expiry
+        sqltype: timestamptz
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: budget_reservation.state
+    entity: BudgetReservation/v1
+    columns:
+      - name: state
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: compensation_component.amount
+    entity: CompensationComponent/v1
+    columns:
+      - name: amount
+        sqltype: numeric(19,4)
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: compensation_component.effective_interval
+    entity: CompensationComponent/v1
+    columns:
+      - name: effective_interval_from
+        sqltype: timestamptz
+      - name: effective_interval_to
+        sqltype: timestamptz
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: compensation_grade.grade_code
+    entity: CompensationGrade/v1
+    columns:
+      - name: grade_code
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: compensation_package.base_component_ref
+    entity: CompensationPackage/v1
+    columns:
+      - name: base_component_ref
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: compensation_package.currency
+    entity: CompensationPackage/v1
+    columns:
+      - name: currency
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: connector_operation.watermark
+    entity: ConnectorOperation/v1
+    columns:
+      - name: watermark
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: employment.status
+    entity: Employment/v1
+    columns:
+      - name: status
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: evidence_record.digest
+    entity: EvidenceRecord/v1
+    columns:
+      - name: digest
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: execution_binding.transaction_plan_id
+    entity: ExecutionBinding/v1
+    columns:
+      - name: transaction_plan_id
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: intent_instance.lifecycle
+    entity: IntentInstance/v1
+    columns:
+      - name: lifecycle_request_state
+        sqltype: text
+      - name: lifecycle_execution_state
+        sqltype: text
+      - name: lifecycle_business_state
+        sqltype: text
+      - name: lifecycle_consistency_state
+        sqltype: text
+      - name: lifecycle_obligation_state
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: job.title
+    entity: Job/v1
+    columns:
+      - name: title
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: legal_entity.registered_name
+    entity: LegalEntity/v1
+    columns:
+      - name: registered_name
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: observation.observed_state
+    entity: Observation/v1
+    columns:
+      - name: observed_state
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: organization_relationship.effective_interval
+    entity: OrganizationRelationship/v1
+    columns:
+      - name: effective_interval_from
+        sqltype: timestamptz
+      - name: effective_interval_to
+        sqltype: timestamptz
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: organization_relationship.manager_ref
+    entity: OrganizationRelationship/v1
+    columns:
+      - name: manager_ref
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: organization_unit.hierarchy_path
+    entity: OrganizationUnit/v1
+    columns:
+      - name: hierarchy_path
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: person.identity
+    entity: Person/v1
+    columns:
+      - name: identity
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: ENCRYPTED_AT_REST
+    searchpolicy: NONE
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: position.capacity
+    entity: Position/v1
+    columns:
+      - name: capacity
+        sqltype: integer
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: position.pay_band_ref
+    entity: Position/v1
+    columns:
+      - name: pay_band_ref
+        sqltype: text
+    notnull: false
+    defaultbehavior: NULLABLE_NO_DEFAULT
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: position_occupancy.occupant_ref
+    entity: PositionOccupancy/v1
+    columns:
+      - name: occupant_ref
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: proposal_revision.material_digest
+    entity: ProposalRevision/v1
+    columns:
+      - name: material_digest
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "IMMUTABLE_NO_CORRECTION: column is write-once; no UPDATE, no compensating row"
+  - propertyref: repair_plan.targets
+    entity: RepairPlan/v1
+    columns:
+      - name: targets
+        sqltype: text[]
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: transaction_plan.status
+    entity: TransactionPlan/v1
+    columns:
+      - name: status
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"
+  - propertyref: worker.status
+    entity: Worker/v1
+    columns:
+      - name: status
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "SUPERSEDES: prior row retained, new effective-dated row inserted; no UPDATE of the value in place"
+  - propertyref: worker_summary.snapshot_ref
+    entity: WorkerSummary/v1
+    columns:
+      - name: snapshot_ref
+        sqltype: text
+    notnull: true
+    defaultbehavior: NONE_CALLER_MUST_SUPPLY
+    encryptionpolicy: PLAINTEXT
+    searchpolicy: EXACT_MATCH
+    constraintnote: "APPENDS_CORRECTION: correction is a new ledger_event; original row is immutable"

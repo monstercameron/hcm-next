@@ -1,0 +1,47 @@
+[
+  {
+    "Ref": "AssignmentPosition/v1",
+    "Source": "Assignment/v1",
+    "Target": "Position/v1",
+    "Cardinality": "ONE_TO_ONE",
+    "Exclusive": true,
+    "AllowCycles": true,
+    "TenantScoped": true
+  },
+  {
+    "Ref": "EmploymentLegalEntity/v1",
+    "Source": "Employment/v1",
+    "Target": "LegalEntity/v1",
+    "Cardinality": "ONE_TO_ONE",
+    "Exclusive": true,
+    "AllowCycles": true,
+    "TenantScoped": true
+  },
+  {
+    "Ref": "ManagerRelationship/v1",
+    "Source": "Assignment/v1",
+    "Target": "Assignment/v1",
+    "Cardinality": "ONE_TO_ONE",
+    "Exclusive": true,
+    "AllowCycles": false,
+    "TenantScoped": true
+  },
+  {
+    "Ref": "OrganizationHierarchy/v1",
+    "Source": "OrganizationUnit/v1",
+    "Target": "OrganizationUnit/v1",
+    "Cardinality": "ONE_TO_ONE",
+    "Exclusive": true,
+    "AllowCycles": false,
+    "TenantScoped": true
+  },
+  {
+    "Ref": "PositionOccupant/v1",
+    "Source": "Position/v1",
+    "Target": "PositionOccupancy/v1",
+    "Cardinality": "ONE_TO_MANY",
+    "Exclusive": false,
+    "AllowCycles": true,
+    "TenantScoped": true
+  }
+]

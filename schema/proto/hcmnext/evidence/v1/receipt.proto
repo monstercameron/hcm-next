@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package hcmnext.evidence.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1";
+
+import "google/protobuf/timestamp.proto";
+
+// AuthorityKind says whether HCM Next owns a fact or is merely reporting one
+// it observed somewhere else. The distinction is the whole point of the
+// source-authority contract: an observed incumbent value must never be
+// published as a local domain fact (internal/domains/evidence AuthorityKind).
+enum AuthorityKind {
+  AUTHORITY_KIND_UNSPECIFIED = 0;
+  AUTHORITY_KIND_LOCAL_AUTHORITATIVE = 1;
+  AUTHORITY_KIND_EXTERNAL_OBSERVATION = 2;
+  AUTHORITY_KIND_DERIVED = 3;
+}
+
+// SourceAuthority names the system that is authoritative for a fact and the
+// effective-dated policy under which that authority was decided
+// (internal/domains/evidence SourceAuthority).
+message SourceAuthority {
+  AuthorityKind kind = 1;
+  string system = 2;
+  string policy_ref = 3;
+}
+
+// Provenance is where a fact came from and when it was recorded. Every
+// disclosed fact carries one; a fact that cannot say where it came from is an
+// assertion, not an explanation (internal/domains/evidence Provenance).
+message Provenance {
+  string source = 1;
+  string evidence_ref = 2;
+  google.protobuf.Timestamp recorded_at = 3;
+}
+
+// ControlVersion is one pinned control artifact a P1A result cites: a rule
+// pack, a catalog, a calendar dataset, a policy bundle
+// (internal/domains/evidence ControlVersion).
+message ControlVersion {
+  string name = 1;
+  string version = 2;
+}
+
+// ReceiptMode is the execution depth a zero-effect receipt certifies. P1A
+// never emits anything beyond these two (internal/domains/evidence Mode).
+enum ReceiptMode {
+  RECEIPT_MODE_UNSPECIFIED = 0;
+  RECEIPT_MODE_PREFLIGHT = 1;
+  RECEIPT_MODE_SIMULATE = 2;
+}
+
+// EffectCounters counts everything a P1A intent is forbidden to do. Each
+// field is a separate count rather than one boolean, because "we wrote
+// nothing" and "we enqueued nothing" are different promises, and a failure of
+// one must not be reported as a failure of the other
+// (internal/domains/evidence EffectCounters).
+message EffectCounters {
+  int32 domain_writes = 1;
+  int32 reservations = 2;
+  int32 work_items = 3;
+  int32 timers = 4;
+  int32 messages = 5;
+  int32 outbox_entries = 6;
+  int32 provider_calls = 7;
+  int32 approval_bindings = 8;
+}
+
+// ZeroEffectReceipt is the artifact a P1A calculation hands back to prove it
+// changed nothing. It binds the intent identity, the mode, the lifecycle
+// dimensions it left the intent in, the exact control versions it read, and
+// the digests of its input and its result. Every counter is always zero: a
+// non-zero counter here is a contract violation, never a valid receipt
+// (internal/domains/evidence ZeroEffectReceipt).
+message ZeroEffectReceipt {
+  string intent_type = 1;
+  string intent_version = 2;
+  ReceiptMode mode = 3;
+  string request_state = 4;
+  string execution_state = 5;
+  repeated ControlVersion controls = 6;
+  string inputs_digest = 7;
+  string result_digest = 8;
+  EffectCounters counters = 9;
+}

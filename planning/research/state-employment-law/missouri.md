@@ -1,4 +1,6 @@
-# Missouri Employment Law Research (2026-09-03)
+# Missouri Employment Law Research
+
+**State:** Missouri | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -95,7 +97,7 @@
 
 **Payroll Record Retention**: Employers must retain payroll records and documents related to wages for at least 3 years under federal FLSA (29 U.S.C. § 211). No Missouri statute specifies a longer retention period. The 3-year federal rule applies.
 
-**Personnel Files and Employee Access**: No comprehensive Missouri personnel-file access statute. Employees may access their own records under common law and the Missouri Open Records Act (O.C.G.A. § 50-18-70 principles) on request, but no specific timeline is codified. Private employers are not required to disclose internal evaluations or reference letters if confidentiality is preserved.
+**Personnel Files and Employee Access**: No comprehensive Missouri personnel-file access statute. Employees may access their own records under common law and employer policy on request; the Missouri Sunshine Law (RSMo ch. 610) governs public bodies only and gives private-sector employees no access right; no timeline is codified. Private employers are not required to disclose internal evaluations or reference letters if confidentiality is preserved.
 
 **Record Format**: No state requirement for paper vs. electronic. Employers may maintain records digitally, provided they remain accessible and authentic.
 
@@ -125,7 +127,7 @@
 
 **Background Checks**: Permitted and common. Employers may conduct criminal-history checks via:
 
-- The Missouri State Highway Patrol's Missouri Crime Information Center (GCIC) with fingerprints or name-based search.
+- The Missouri State Highway Patrol's Criminal Justice Information Services Division (MACHS) with fingerprints or name-based search.
 - Third-party consumer-reporting agencies (CRAs) subject to the Fair Credit Reporting Act (FCRA, 15 U.S.C. § 1681 et seq.), which requires written disclosure and authorization.
 - Employment-screening firms.
 

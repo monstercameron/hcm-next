@@ -1,0 +1,389 @@
+// Package runtimedecision implements the WF-RUN-000 policy check: the
+// durable-workflow-runtime build-or-adopt decision
+// (definitions/runtime/durable-runtime-decision.yaml) must be complete
+// against planning/specs/workflow-runtime.md's "Build or adopt" contract
+// before P1B runtime code exists, and every evidence item it claims already
+// exists in this repository must actually be present on disk.
+package runtimedecision
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
+// Evidence statuses.
+const (
+	StatusExists  = "EXISTS"
+	StatusPending = "PENDING"
+)
+
+// Evaluation results against one non-negotiable.
+const (
+	ResultPass    = "PASS"
+	ResultFail    = "FAIL"
+	ResultPartial = "PARTIAL"
+	ResultUnknown = "UNKNOWN"
+	ResultPending = "PENDING"
+)
+
+var validEvaluationResults = map[string]struct{}{
+	ResultPass:    {},
+	ResultFail:    {},
+	ResultPartial: {},
+	ResultUnknown: {},
+	ResultPending: {},
+}
+
+// Owner is one accountable owner recorded on the decision.
+type Owner struct {
+	Name string `yaml:"name"`
+	Role string `yaml:"role"`
+}
+
+// NonNegotiable is one of the four fixed criteria from
+// planning/specs/workflow-runtime.md's "Build or adopt" section.
+type NonNegotiable struct {
+	ID          string `yaml:"id"`
+	Description string `yaml:"description"`
+}
+
+// Evaluation is one candidate's scored result against one non-negotiable.
+type Evaluation struct {
+	NonNegotiable string `yaml:"non_negotiable"`
+	Result        string `yaml:"result"`
+	Reason        string `yaml:"reason"`
+	PendingTodo   string `yaml:"pending_todo,omitempty"`
+}
+
+// Evidence is one link in a candidate's evidence trail: either a path that
+// must exist in this repository (Status EXISTS), or an explicit forward
+// reference to the todo that will produce it (Status PENDING).
+type Evidence struct {
+	Description string `yaml:"description"`
+	Path        string `yaml:"path,omitempty"`
+	Test        string `yaml:"test,omitempty"`
+	Status      string `yaml:"status"`
+	PendingTodo string `yaml:"pending_todo,omitempty"`
+}
+
+// Candidate is one runtime option evaluated by the decision record.
+type Candidate struct {
+	Name            string       `yaml:"name"`
+	Kind            string       `yaml:"kind"`
+	Module          string       `yaml:"module,omitempty"`
+	Version         string       `yaml:"version,omitempty"`
+	Selected        bool         `yaml:"selected"`
+	Summary         string       `yaml:"summary"`
+	Evaluation      []Evaluation `yaml:"evaluation"`
+	Evidence        []Evidence   `yaml:"evidence"`
+	RejectionReason string       `yaml:"rejection_reason,omitempty"`
+}
+
+// SelectedOption is the signed choice the decision record makes.
+type SelectedOption struct {
+	Candidate  string `yaml:"candidate"`
+	Choice     string `yaml:"choice"`
+	Rationale  string `yaml:"rationale"`
+	SignedBy   string `yaml:"signed_by"`
+	SignedDate string `yaml:"signed_date"`
+}
+
+// RejectedOption records why one non-selected candidate was not chosen.
+type RejectedOption struct {
+	Candidate string `yaml:"candidate"`
+	Reason    string `yaml:"reason"`
+}
+
+// Consequence is one downstream todo's stated impact from the choice made.
+type Consequence struct {
+	Todo   string `yaml:"todo"`
+	Impact string `yaml:"impact"`
+}
+
+// ReevaluationTrigger names when and why this decision must be reopened.
+type ReevaluationTrigger struct {
+	Description string `yaml:"description"`
+	GatingTodo  string `yaml:"gating_todo,omitempty"`
+	Blocks      string `yaml:"blocks,omitempty"`
+}
+
+// Decision is the parsed form of a WF-RUN-000 durable-runtime decision
+// record.
+type Decision struct {
+	SchemaVersion       int                 `yaml:"schema_version"`
+	TodoID              string              `yaml:"todo_id"`
+	Title               string              `yaml:"title"`
+	Status              string              `yaml:"status"`
+	DecisionDate        string              `yaml:"decision_date"`
+	Owners              []Owner             `yaml:"owners"`
+	ReviewBy            string              `yaml:"review_by"`
+	NonNegotiables      []NonNegotiable     `yaml:"non_negotiables"`
+	Candidates          []Candidate         `yaml:"candidates"`
+	SelectedOption      SelectedOption      `yaml:"selected_option"`
+	RejectedOptions     []RejectedOption    `yaml:"rejected_options"`
+	Consequences        []Consequence       `yaml:"consequences"`
+	ReevaluationTrigger ReevaluationTrigger `yaml:"reevaluation_trigger"`
+	RollbackPlan        string              `yaml:"rollback_plan"`
+}
+
+// Load reads and parses the decision record at path.
+func Load(path string) (*Decision, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("runtimedecision: reading %s: %w", path, err)
+	}
+	var d Decision
+	if err := yaml.Unmarshal(data, &d); err != nil {
+		return nil, fmt.Errorf("runtimedecision: parsing %s: %w", path, err)
+	}
+	return &d, nil
+}
+
+// Result is the outcome of validating a Decision.
+type Result struct {
+	OK       bool
+	Findings []string
+}
+
+// Error renders a non-OK Result as a single error, one finding per line.
+func (r Result) Error() error {
+	if r.OK {
+		return nil
+	}
+	return fmt.Errorf("runtime decision record is incomplete or unevidenced:\n- %s", strings.Join(r.Findings, "\n- "))
+}
+
+// Validate checks d for completeness against the WF-RUN-000 / build-or-adopt
+// contract and, for every evidence item claiming to already exist, that the
+// path is actually present under repoRoot. repoRoot is the absolute path of
+// the repository root (the directory containing go.mod); evidence paths are
+// interpreted relative to it.
+func Validate(d *Decision, repoRoot string) Result {
+	var findings []string
+	add := func(format string, args ...any) {
+		findings = append(findings, fmt.Sprintf(format, args...))
+	}
+
+	if d.SchemaVersion < 1 {
+		add("schema_version must be >= 1, got %d", d.SchemaVersion)
+	}
+	if strings.TrimSpace(d.TodoID) == "" {
+		add("todo_id is required")
+	}
+	if strings.TrimSpace(d.Status) == "" {
+		add("status is required")
+	}
+	if strings.TrimSpace(d.DecisionDate) == "" {
+		add("decision_date is required")
+	}
+	if strings.TrimSpace(d.ReviewBy) == "" {
+		add("review_by is required")
+	}
+	if strings.TrimSpace(d.RollbackPlan) == "" {
+		add("rollback_plan is required")
+	}
+	if len(d.Owners) == 0 {
+		add("at least one owner is required")
+	}
+	for i, o := range d.Owners {
+		if strings.TrimSpace(o.Name) == "" {
+			add("owners[%d].name is required", i)
+		}
+		if strings.TrimSpace(o.Role) == "" {
+			add("owners[%d].role is required", i)
+		}
+	}
+
+	// The build-or-adopt contract fixes exactly four non-negotiables.
+	nnByID := make(map[string]NonNegotiable, len(d.NonNegotiables))
+	if len(d.NonNegotiables) != 4 {
+		add("non_negotiables must list exactly the 4 non-negotiables from workflow-runtime.md's build-or-adopt section, found %d", len(d.NonNegotiables))
+	}
+	for i, nn := range d.NonNegotiables {
+		if strings.TrimSpace(nn.ID) == "" {
+			add("non_negotiables[%d].id is required", i)
+			continue
+		}
+		if strings.TrimSpace(nn.Description) == "" {
+			add("non_negotiables[%s].description is required", nn.ID)
+		}
+		if _, dup := nnByID[nn.ID]; dup {
+			add("non_negotiables[%s] is duplicated", nn.ID)
+		}
+		nnByID[nn.ID] = nn
+	}
+
+	// RED: "the decision record lacks at least one evaluated candidate".
+	if len(d.Candidates) == 0 {
+		add("at least one evaluated candidate is required")
+	}
+
+	selectedCount := 0
+	var selectedCandidate *Candidate
+	candidateNames := make(map[string]struct{}, len(d.Candidates))
+	for i := range d.Candidates {
+		c := &d.Candidates[i]
+		label := c.Name
+		if label == "" {
+			label = fmt.Sprintf("candidates[%d]", i)
+		}
+		candidateNames[c.Name] = struct{}{}
+
+		if strings.TrimSpace(c.Name) == "" {
+			add("candidates[%d].name is required", i)
+		}
+		if strings.TrimSpace(c.Kind) == "" {
+			add("candidate %q: kind is required", label)
+		}
+		if strings.TrimSpace(c.Summary) == "" {
+			add("candidate %q: summary is required", label)
+		}
+		if c.Selected {
+			selectedCount++
+			selectedCandidate = c
+		}
+
+		// RED: "a pass/fail result against each of the four
+		// non-negotiables". A candidate must carry exactly one
+		// evaluation entry per declared non-negotiable, with a
+		// recognized result and a non-empty reason. UNKNOWN/PENDING
+		// are recognized results (an honestly-marked absence of
+		// fixture evidence is not the same as a missing field), but
+		// FAIL/UNKNOWN/PARTIAL/PENDING on the selected candidate is
+		// further constrained below.
+		seen := make(map[string]struct{}, len(c.Evaluation))
+		for _, e := range c.Evaluation {
+			if strings.TrimSpace(e.NonNegotiable) == "" {
+				add("candidate %q: evaluation entry missing non_negotiable id", label)
+				continue
+			}
+			if _, known := nnByID[e.NonNegotiable]; !known {
+				add("candidate %q: evaluation references unknown non-negotiable %q", label, e.NonNegotiable)
+			}
+			seen[e.NonNegotiable] = struct{}{}
+			if _, ok := validEvaluationResults[e.Result]; !ok {
+				add("candidate %q: evaluation[%s].result %q is not one of PASS/FAIL/PARTIAL/UNKNOWN/PENDING", label, e.NonNegotiable, e.Result)
+			}
+			if strings.TrimSpace(e.Reason) == "" {
+				add("candidate %q: evaluation[%s] is missing a reason", label, e.NonNegotiable)
+			}
+		}
+		for id := range nnByID {
+			if _, ok := seen[id]; !ok {
+				add("candidate %q: missing an evaluation result for non-negotiable %q", label, id)
+			}
+		}
+
+		// Evidence: every claimed-existing path must exist; every
+		// pending item must name the todo that will produce it.
+		for j, ev := range c.Evidence {
+			switch ev.Status {
+			case StatusExists:
+				if strings.TrimSpace(ev.Path) == "" {
+					add("candidate %q: evidence[%d] status EXISTS requires a path", label, j)
+					continue
+				}
+				full := filepath.Join(repoRoot, filepath.FromSlash(ev.Path))
+				if _, err := os.Stat(full); err != nil {
+					add("candidate %q: evidence[%d] claims path %q exists but it does not (%v)", label, j, ev.Path, err)
+				}
+			case StatusPending:
+				if strings.TrimSpace(ev.PendingTodo) == "" {
+					add("candidate %q: evidence[%d] status PENDING requires pending_todo", label, j)
+				}
+			default:
+				add("candidate %q: evidence[%d] status %q is not EXISTS or PENDING", label, j, ev.Status)
+			}
+		}
+	}
+
+	if selectedCount == 0 {
+		add("exactly one candidate must be marked selected: true, found 0")
+	} else if selectedCount > 1 {
+		add("exactly one candidate must be marked selected: true, found %d", selectedCount)
+	}
+
+	// RED: "or a signed choice".
+	if strings.TrimSpace(d.SelectedOption.Choice) == "" {
+		add("selected_option.choice is required (e.g. BUILD or ADOPT:<module>@<version>)")
+	}
+	if strings.TrimSpace(d.SelectedOption.Rationale) == "" {
+		add("selected_option.rationale is required")
+	}
+	if strings.TrimSpace(d.SelectedOption.SignedBy) == "" {
+		add("selected_option.signed_by is required (an unsigned choice is not a decision)")
+	}
+	if strings.TrimSpace(d.SelectedOption.SignedDate) == "" {
+		add("selected_option.signed_date is required")
+	}
+	if strings.TrimSpace(d.SelectedOption.Candidate) == "" {
+		add("selected_option.candidate is required")
+	} else if selectedCandidate == nil {
+		add("selected_option.candidate %q does not match any candidate marked selected: true", d.SelectedOption.Candidate)
+	} else if d.SelectedOption.Candidate != selectedCandidate.Name {
+		add("selected_option.candidate %q does not match the selected candidate's name %q", d.SelectedOption.Candidate, selectedCandidate.Name)
+	}
+
+	// "rejects a record whose selected option lacks evidence."
+	if selectedCandidate != nil && len(selectedCandidate.Evidence) == 0 {
+		add("selected candidate %q has no evidence entries", selectedCandidate.Name)
+	}
+
+	// "rejected options with reasons": every non-selected candidate should
+	// be accounted for in rejected_options with a non-empty reason.
+	rejectedByName := make(map[string]RejectedOption, len(d.RejectedOptions))
+	for i, r := range d.RejectedOptions {
+		if strings.TrimSpace(r.Candidate) == "" {
+			add("rejected_options[%d].candidate is required", i)
+			continue
+		}
+		if strings.TrimSpace(r.Reason) == "" {
+			add("rejected_options[%s].reason is required", r.Candidate)
+		}
+		if _, known := candidateNames[r.Candidate]; !known {
+			add("rejected_options references unknown candidate %q", r.Candidate)
+		}
+		rejectedByName[r.Candidate] = r
+	}
+	for _, c := range d.Candidates {
+		if c.Selected {
+			continue
+		}
+		if _, ok := rejectedByName[c.Name]; !ok {
+			add("candidate %q is not selected but has no matching rejected_options entry", c.Name)
+		}
+	}
+
+	if len(d.Consequences) == 0 {
+		add("at least one consequence entry is required (impact on the dependent WF-RUN todos)")
+	}
+	for i, c := range d.Consequences {
+		if strings.TrimSpace(c.Todo) == "" {
+			add("consequences[%d].todo is required", i)
+		}
+		if strings.TrimSpace(c.Impact) == "" {
+			add("consequences[%s].impact is required", c.Todo)
+		}
+	}
+
+	if strings.TrimSpace(d.ReevaluationTrigger.Description) == "" {
+		add("reevaluation_trigger.description is required (names the P1B re-evaluation trigger)")
+	}
+
+	sort.Strings(findings)
+	return Result{OK: len(findings) == 0, Findings: findings}
+}
+
+// ValidateFile loads path and validates it in one call.
+func ValidateFile(path, repoRoot string) (Result, error) {
+	d, err := Load(path)
+	if err != nil {
+		return Result{}, err
+	}
+	return Validate(d, repoRoot), nil
+}

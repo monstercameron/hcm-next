@@ -34,11 +34,11 @@ func mandatoryNegativeStates() []intent.NegativeState {
 
 // All returns the fourteen drafted definitions, in catalog order.
 //
-// One deliberate departure from schema/schemaflux/business_intents/v1: the
-// source YAML declares CreateRepairPlan as PROCESS_REQUEST, a family that has
-// been retired. The catalog specification lists it as ANALYTICAL_REQUEST with a
-// READ_ONLY side effect, which is what this table uses. The YAML is stale, not
-// authoritative, and correcting it is outside this package.
+// The source YAML under schema/schemaflux/business_intents/v1 and this table
+// agree on every family: CreateRepairPlan is ANALYTICAL_REQUEST with a
+// READ_ONLY side effect (the YAML briefly declared the retired PROCESS_REQUEST
+// family and was corrected on 2026-09-03; tools/gen/schemaflux cross-checks
+// the two and reports any future divergence).
 func All() []intent.Definition {
 	return []intent.Definition{
 		changeManager(),

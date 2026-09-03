@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package hcmnext.integration.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/integration/v1/connection.proto";
+import "hcmnext/integration/v1/connector.proto";
+import "hcmnext/integration/v1/observation.proto";
+
+message ListConnectorDefinitionsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+}
+
+message ListConnectorDefinitionsResponse {
+  repeated ConnectorDefinition connector_definitions = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetConnectorDefinitionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string connector_id = 2;
+  string connector_version = 3;
+}
+
+message GetConnectorDefinitionResponse {
+  ConnectorDefinition connector_definition = 1;
+}
+
+message ListConnectorConnectionsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+}
+
+message ListConnectorConnectionsResponse {
+  repeated ConnectorConnection connections = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetConnectorConnectionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string connection_id = 2;
+}
+
+message GetConnectorConnectionResponse {
+  ConnectorConnection connection = 1;
+}
+
+// DiagnosticResult is one check's outcome within a connector test bench run.
+enum DiagnosticResult {
+  DIAGNOSTIC_RESULT_UNSPECIFIED = 0;
+  DIAGNOSTIC_RESULT_PASS = 1;
+  DIAGNOSTIC_RESULT_FAIL = 2;
+  DIAGNOSTIC_RESULT_SKIPPED = 3;
+}
+
+// DiagnosticCheck is one named, non-mutating capability probe
+// (planning/specs/hris-admin-dataops.md "Authentication and External
+// Permission Diagnostics").
+message DiagnosticCheck {
+  string name = 1;
+  DiagnosticResult result = 2;
+  string detail = 3;
+}
+
+// ConnectionDiagnostic is the Connector Test Bench result: what a connection
+// can and cannot do right now, and which workflows are affected. It reports
+// capability, never credential material
+// (planning/specs/hris-admin-dataops.md "Connector Operations: Test Bench and
+// Redrive"; planning/specs/integration-platform.md "Authentication and
+// External Permission Diagnostics").
+message ConnectionDiagnostic {
+  string connection_id = 1;
+  repeated DiagnosticCheck checks = 2;
+  repeated string impact = 3;
+  repeated string affected_workflow_refs = 4;
+  google.protobuf.Timestamp tested_at = 5;
+}
+
+message TestConnectorConnectionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string connection_id = 2;
+  repeated ObjectKind objects = 3;
+}
+
+message TestConnectorConnectionResponse {
+  ConnectionDiagnostic diagnostic = 1;
+}
+
+message ListExternalObservationsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string connection_id = 2;
+  optional ObjectKind object = 3;
+  hcmnext.common.v1.PageRequest page = 4;
+}
+
+message ListExternalObservationsResponse {
+  repeated ExternalObservation observations = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetExternalObservationRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string observation_id = 2;
+}
+
+message GetExternalObservationResponse {
+  ExternalObservation observation = 1;
+}
+
+// IntegrationService is the P1A Integration Platform read and diagnostic
+// surface: connector/connection discovery, the connector test bench, and
+// persisted external observations
+// (planning/specs/integration-platform.md; planning/specs/hris-admin-dataops.md
+// "Connector Operations: Test Bench and Redrive").
+//
+// Total P1A disposition: every method is IMPLEMENT and every one is read-only
+// or non-mutating. There is no write, subscribe, reconcile or redrive method
+// on this service in any phase shown here: WRITE/SUBSCRIBE/RECONCILE
+// connector verbs and failed-operation redrive are P1B
+// (planning/specs/hris-admin-dataops.md "Phasing" — "Connector test bench:
+// IMPLEMENT read-only, first connector [P1A]; add redrive [P1B]") and are not
+// named by any spec as public endpoints yet, so no such method is declared.
+service IntegrationService {
+  // P1A disposition: IMPLEMENT. Authorized, phase/tenant-filtered connector
+  // definition discovery.
+  rpc ListConnectorDefinitions(ListConnectorDefinitionsRequest) returns (ListConnectorDefinitionsResponse);
+  // P1A disposition: IMPLEMENT.
+  rpc GetConnectorDefinition(GetConnectorDefinitionRequest) returns (GetConnectorDefinitionResponse);
+  // P1A disposition: IMPLEMENT. Read-only; credential material is never
+  // returned (credential_ref is always an opaque reference).
+  rpc ListConnectorConnections(ListConnectorConnectionsRequest) returns (ListConnectorConnectionsResponse);
+  // P1A disposition: IMPLEMENT.
+  rpc GetConnectorConnection(GetConnectorConnectionRequest) returns (GetConnectorConnectionResponse);
+  // P1A disposition: IMPLEMENT, read-only. Runs synthetic, non-mutating
+  // capability probes only; it never issues a real provider write and never
+  // returns credential material.
+  rpc TestConnectorConnection(TestConnectorConnectionRequest) returns (TestConnectorConnectionResponse);
+  // P1A disposition: IMPLEMENT. Read-only access to persisted
+  // ExternalObservation evidence.
+  rpc ListExternalObservations(ListExternalObservationsRequest) returns (ListExternalObservationsResponse);
+  // P1A disposition: IMPLEMENT.
+  rpc GetExternalObservation(GetExternalObservationRequest) returns (GetExternalObservationResponse);
+}

@@ -1,6 +1,6 @@
 # Minnesota Employment Law Research
 
-**State:** Minnesota | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Minnesota | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -20,7 +20,7 @@
 
 - **Paid Family and Medical Leave (PFML) (Ch. 268B)**: Effective Jan 1, 2026. Up to 12 weeks paid leave per year for bonding, family care, pregnancy, serious health condition, qualifying exigency, safety leave. Benefit = 90% of wage up to 50% of state average weekly wage, plus 66% above. Job-protected; employer cost-share with employee (verify premium structure). Pending legislation may repeal effective July 1, 2025 (verify status).
 
-- **Salary history and pay transparency (§ 363A.08, § 181.9414, § 181.172)**: No salary history inquiries permitted (effective Jan 1, 2022). § 181.9414 (effective 2025) requires salary range in job postings for 30+ employee employers. § 181.172 protects employee wage disclosure from retaliation; no non-disclosure agreements enforceabel.
+- **Salary history and pay transparency (§ 363A.08, § 181.173, § 181.172)**: No salary history inquiries permitted (effective Jan 1, 2022). § 181.173 (effective 2024) requires salary range in job postings for 30+ employee employers. § 181.172 protects employee wage disclosure from retaliation; no non-disclosure agreements enforceable.
 
 - **Personnel file access (§ 181.960–181.966)**: Current employees may inspect records once per 6 months; former employees once per year, free copy available. Inspection within 30 days of written request (extendable to 35). No refusal permitted; violation = injunctive relief + damages possible.
 
@@ -44,7 +44,7 @@ Minnesota is at-will employment with limited exceptions for public policy violat
 
 ## 3. Wages: Minimum, Overtime, Pay Frequency, Final Pay, Deductions, and Pay Statements
 
-**Minimum wage:** § 177.24 sets base rate adjusted annually for inflation (no tip credit allowed). Effective Jan 1, 2026: $11.41/hour statewide (5.0% adjustment from prior year); $16.37/hour in Minneapolis (all employer sizes); St. Paul: $16.37/hour for large employers (101+ employees), micro employers $14.25, small employers phased $15–$16.37 based on size and timing. Minimum wage applies to all employees unless specifically exempted; agricultural workers covered. No piece-rate or commission deduction permitted to fall below minimum wage. Training wage for employees under 20 is 90% of state minimum ($10.27 as of Jan 1, 2026); applies only first 90 days of employment. Disabled workers subject to individual assessment; no blanket subminimum permitted.
+**Minimum wage:** § 177.24 sets base rate adjusted annually for inflation (no tip credit allowed). Effective Jan 1, 2026: $11.41/hour statewide; $16.37/hour in Minneapolis (all employer sizes); St. Paul tiered by size: $16.37 (large/macro, 101+ employees and small, 6-100 employees), $14.25 (micro, ≤5 employees). Effective Jan 1, 2025: $11.13/hour statewide; St. Paul tiered $15.97 (large/macro), $15.00 (small), $13.25 (micro). No tip credit allowed. Training wage for employees under 20 is 90% of state minimum; applies first 90 days only. Applies to all employees unless specifically exempted; agricultural workers covered. No piece-rate or commission deduction permitted to fall below minimum wage.
 
 **Overtime:** § 177.25 requires 1.5x regular rate for hours exceeding 48/week. Threshold is 48 hours per workweek (not 40 as under FLSA; Minnesota is a 48-hour state). Regular rate includes all compensation except: bonuses, gifts, severance, payments for time not worked. No overtime pay required for agricultural labor, certain exempt categories, or workers with valid collective bargaining agreement providing alternative compensation. Public employers and political subdivisions may offer compensatory time off (1.5 hours per overtime hour) in lieu of overtime pay if employee agrees; employee may cash out unused comp time on termination. Motor vehicle salespeople, healthcare facility workers (14-day agreed period), silo constructors (piece-rate), and air carrier employees (voluntary hour-trading) exempt.
 
@@ -64,11 +64,13 @@ Minnesota is at-will employment with limited exceptions for public policy violat
 
 **Salary history ban:** § 363A.08 subd. 8 (effective Jan 1, 2022) prohibits inquiring into, considering, or requiring disclosure of applicant's prior wage, salary, earnings, benefits, or compensation for applicants for employment. Employees cannot be required to disclose pay history to employer; ban covers all inquiry methods (direct, indirect, third-party reference checks, background check vendors). "Pay history" includes: current/prior wages, salary, earnings, benefits, bonuses, stock options, or any other compensation from any source. Exceptions: (1) if applicant voluntarily discloses (not solicited), employer may consider; (2) employment verification for background check purposes (verify prior earnings amount only for eligibility, not for setting compensation). Penalties: civil remedies available; employee may sue for damages and attorney's fees; penalties include actual damages plus civil penalty per violation (verify exact penalty structure—penalties vary by source). Applies regardless of employer size (no employee-count threshold).
 
-**Pay range disclosure:** § 181.9414 requires employers with 30+ employees (as of 2025 effective date—verify current threshold if implemented; law recently passed, effective date 2025) to include salary range in all job postings (internal and external). "Salary range" means employer's reasonable estimate of hourly rate or annual salary for the position; must reflect actual range employer would pay for role. Third-party recruiters posting on behalf of 30+ employee employers must also disclose range on posting. No requirement to disclose range in responses to individual applicant inquiries if not yet posted. Penalty: civil enforcement by labor commissioner or private action; damages available for violations.
+**Pay range disclosure:** § 181.173 (effective 2024) requires employers with 30+ employees to include starting salary range and general description of benefits/compensation in all job postings. "Salary range" = employer's good faith estimate of minimum and maximum annual salary or hourly compensation based on role. Employers may alternatively list fixed pay rate instead of range; ranges cannot be open-ended. Third-party recruiters posting on behalf of 30+ employee employers must also disclose range. No requirement to disclose range in individual applicant inquiries if not yet posted. Penalty: civil enforcement by labor commissioner or private action; damages available.
 
 **Wage and job-title record retention:** § 181.032 and § 363A.08 require employers to maintain job title and wage rate history (including start date and end date for each rate) for each employee throughout employment plus 3 years post-separation, accessible for wage audit by Minnesota labor commissioner. Cannot be discarded or destroyed during retention period. Records must identify: employee name, job title, pay rate, pay frequency, effective date of each change.
 
-**Pay equity reporting:** No mandatory state equal-pay audit or pay equity pay-gap data reporting to state agency. No equivalent to California's SB 973 pay data transparency rules. Federal EEO-1 filing applies to employers with 100+ employees (federal, not state, requirement). Minnesota courts apply federal Equal Pay Act (29 USC § 206(d)) standards for gender-based pay discrimination; no separate state equal-pay statute with different standards.
+**Equal pay statute:** § 181.67 (Equal Pay for Equal Work Law) prohibits employers from paying employees of one sex less than employees of the opposite sex for equal work on jobs requiring equal skill, effort, and responsibility under similar working conditions. Wage differentials permitted if based on seniority system, merit system, quantity/quality production, or any factor other than sex (§ 181.66–181.71). Retaliation for wage discrimination complaints also prohibited. Applies to all employers regardless of size.
+
+**Pay equity reporting:** No mandatory state equal-pay audit or pay equity pay-gap data reporting to state agency. No equivalent to California's SB 973 pay data transparency rules. Federal EEO-1 filing applies to employers with 100+ employees (federal, not state, requirement).
 
 **Wage disclosure protection:** § 181.172 prohibits employer from: (1) requiring nondisclosure of own wages as employment condition; (2) requiring employee to waive right to disclose wages; (3) retaliating against employee for disclosing own wages; (4) retaliating for discussing voluntarily disclosed wages of coworkers. "Retaliation" includes discharge, discipline, penalty, interference, threat, restraint, coercion, or discrimination. Does not prohibit employer from keeping wage information confidential in system or from limiting payroll staff access (legitimate business purpose); protects employee's right to discuss, not employer's obligation to disclose. Applies to current and former employees. Remedies: civil action, back pay, front pay, reinstatement, expungement of adverse records.
 
@@ -102,7 +104,7 @@ Minnesota is at-will employment with limited exceptions for public policy violat
 
 ## 7. Privacy and Data: Privacy Law Coverage, Biometric Monitoring, Breach Notification
 
-**Data privacy law:** Minnesota has not enacted a comprehensive consumer privacy statute equivalent to CCPA/CPRA for employee data as of Sept 2026 (verify—no dedicated employee privacy law found covering HCM data). State data-handling practices governed by public records law (Minn. Stat. § 13.01 et seq.) for government employers; federal privacy rules apply (e.g., HIPAA for health data, FCRA for background checks). Employers should assume employee data in HCM systems is subject to employee privacy expectations and reasonable data protection practices. No "right to know" or "right to delete" statute for Minnesota employees; however, personnel file access rights (§§ 181.960–181.966) allow employees to inspect and copy records within 30 days.
+**Data privacy law:** Minnesota Consumer Data Privacy Act (Minn. Stat. ch. 325O, effective July 31, 2025) establishes comprehensive privacy rights for personal data collected by businesses. Employees and HR data processed in employment context are exempt from most MCPA requirements (verify exact exemption scope—employment exemption likely applies to payroll, benefits, hiring data; clarify whether training/development/performance data subject to MCPA). Additionally, state data-handling practices governed by public records law (Minn. Stat. § 13.01 et seq.) for government employers; federal privacy rules apply (HIPAA for health data, FCRA for background checks). Employers should maintain reasonable data security for employee data in HCM systems. Personnel file access rights (§§ 181.960–181.966) allow employees to inspect and copy records within 30 days.
 
 **Breach notification:** § 325E.61 requires any person/business conducting business in Minnesota (even if data stored elsewhere) that owns or licenses "personal information" of Minnesota residents to notify affected residents without unreasonable delay upon discovery of breach of security. "Personal information" = unencrypted or unredacted data that can identify individual (SSN, driver's license, financial account, etc.). Timeline: "most expedient time possible" and "without unreasonable delay," consistent with legitimate law enforcement needs and scope-of-breach assessment (typically 30–60 days standard practice). Applies to employee/payroll data breaches (SSN, bank account info in HCM systems). Written notice to employee (email to known address or registered mail) required. Notice must include: description of breach, types of information compromised, approximate number of affected individuals, recommended protective actions (credit monitoring, etc.), employer's breach response plan. Government entities notifying of breach must include: type of data, number of affected individuals, employee's name if disciplined, disposition of disciplinary action. No private right of action (government enforcement only), but employers should proactively notify to avoid regulatory action.
 
@@ -114,7 +116,7 @@ Minnesota is at-will employment with limited exceptions for public policy violat
 
 ## 8. Hiring and Background: Ban-the-Box, Background Checks, Drug Testing, E-Verify
 
-**Ban-the-box (conviction history):** No Minnesota state ban-the-box law for private employers found (federal EEOC guidance applies to candidates with prior conviction history; some sources suggest Minneapolis ordinance may exist—verify local ordinance). Private employers may inquire about criminal history on application or interview; no state-law restriction. However, if conviction inquiry is used to screen out applicant, employer must assess: job-relatedness, nature/severity of crime, time since conviction, rehabilitation. Federal FCRA compliance required if third-party criminal background check used (verify accuracy, dispute rights, notice requirements).
+**Ban-the-box (conviction history):** § 364.021 prohibits public and private employers from inquiring into, considering, or requiring disclosure of applicant's criminal record or history until applicant has been selected for interview or, if no interview, before conditional offer of employment is made. Employer may notify applicants upfront that certain criminal histories disqualify applicant from specific positions (conditional disqualification permitted). Exceptions: Department of Corrections and employers with statutory duty requiring criminal background check during hiring. If conviction inquiry is used to screen out applicant post-interview, employer must assess: job-relatedness, nature/severity of crime, time since conviction, rehabilitation. Federal FCRA compliance required if third-party criminal background check used (accuracy, dispute rights, adverse action notice).
 
 **Background checks:** No state-specific background check limitations beyond federal FCRA compliance (Fair Credit Reporting Act, 15 USC § 1681 et seq.). Employer must: (1) obtain written consent; (2) provide FCRA disclosure and authorization form; (3) provide "Notice of Adverse Action" if background check will be used to deny employment (including right to dispute/explain); (4) provide final adverse action notice if denied. Minnesota courts apply federal FCRA standards. No additional state-level restrictions on scope of background check (driving records, credit reports, conviction history all permissible if job-related and compliant with FCRA).
 
@@ -228,33 +230,30 @@ When HCM Next processes a promotion and/or base-pay increase for a Minnesota emp
 
 ## 12. Sources
 
-1. [Minn. Stat. § 181.032 (Wage Statements and Notice)](https://www.revisor.mn.gov/statutes/cite/181.032) | Retrieved Sept 3, 2026
-2. [Minn. Stat. § 181.101 (Pay Frequency)](https://www.revisor.mn.gov/statutes/cite/181.101) | Retrieved Sept 3, 2026
-3. [Minn. Stat. § 181.13 (Final Pay on Discharge)](https://www.revisor.mn.gov/statutes/cite/181.13) | Retrieved Sept 3, 2026
-4. [Minn. Stat. § 181.14 (Final Pay on Resignation)](https://www.revisor.mn.gov/statutes/cite/181.14) | Retrieved Sept 3, 2026
-5. [Minn. Stat. § 177.24 (Minimum Wage)](https://www.revisor.mn.gov/statutes/cite/177.24) | Retrieved Sept 3, 2026
-6. [Minn. Stat. § 177.25 (Overtime)](https://www.revisor.mn.gov/statutes/cite/177.25) | Retrieved Sept 3, 2026
-7. [Minn. Stat. § 177.253–177.254 (Meal and Rest Breaks)](https://www.revisor.mn.gov/statutes/cite/177.253) | Retrieved Sept 3, 2026
-8. [Minn. Stat. § 181.79 (Wage Deductions)](https://www.revisor.mn.gov/statutes/cite/181.79) | Retrieved Sept 3, 2026
-9. [Minn. Stat. § 181.9445–181.9448 (Earned Sick and Safe Time)](https://www.revisor.mn.gov/statutes/cite/181.9445) | Retrieved Sept 3, 2026
-10. [Minn. Stat. § 181.939 (Pregnancy Accommodations)](https://www.revisor.mn.gov/statutes/cite/181.939) | Retrieved Sept 3, 2026
-11. [Minn. Stat. Ch. 268B (Paid Family and Medical Leave)](https://www.revisor.mn.gov/statutes/cite/268B) | Retrieved Sept 3, 2026
-12. [Minn. Stat. § 181.960–181.966 (Personnel File Access)](https://www.revisor.mn.gov/statutes/cite/181.960) | Retrieved Sept 3, 2026
-13. [Minn. Stat. § 181.172 (Wage Disclosure Protection)](https://www.revisor.mn.gov/statutes/cite/181.172) | Retrieved Sept 3, 2026
-14. [Minn. Stat. § 363A.08 subd. 8 (Salary History Ban)](https://www.revisor.mn.gov/statutes/cite/363a.08) | Retrieved Sept 3, 2026
-15. [Minn. Stat. § 181.9414 (Pay Transparency in Job Postings)](https://www.revisor.mn.gov/statutes/cite/181.9414) | Retrieved Sept 3, 2026
-16. [Minn. Stat. § 181.988 (Non-Compete Void)](https://www.revisor.mn.gov/statutes/cite/181.988) | Retrieved Sept 3, 2026
-17. [Minn. Stat. § 181.9881 (Non-Solicitation of Service-Provider Employees)](https://www.revisor.mn.gov/statutes/cite/181.9881) | Retrieved Sept 3, 2026
-18. [Minn. Stat. § 325E.61 (Data Breach Notification)](https://www.revisor.mn.gov/statutes/cite/325e.61) | Retrieved Sept 3, 2026
-19. [Minn. Stat. § 181.75 (Polygraph Restrictions)](https://www.revisor.mn.gov/statutes/cite/181.75) | Retrieved Sept 3, 2026
-20. [Minn. Stat. § 181.950–181.957 (Drug and Alcohol Testing)](https://www.revisor.mn.gov/statutes/cite/181.950) | Retrieved Sept 3, 2026
-21. [Minn. Stat. § 181.723 (Contractor Classification)](https://www.revisor.mn.gov/statutes/cite/181.723) | Retrieved Sept 3, 2026
-22. [Minn. Stat. § 363A (Human Rights Act)](https://www.revisor.mn.gov/statutes/cite/363A) | Retrieved Sept 3, 2026
-23. [Minnesota Department of Labor and Industry – Wage Theft](https://www.dli.mn.gov/business/employment-practices/wage-theft-law) | Retrieved Sept 3, 2026
-24. [Minnesota Department of Labor and Industry – Minimum Wage 2026](https://www.dli.mn.gov/minwage) | Retrieved Sept 3, 2026
-25. [City of Minneapolis Minimum Wage Ordinance](https://minimumwage.minneapolismn.gov/) | Retrieved Sept 3, 2026
-26. [City of Saint Paul Minimum Wage Ordinance](https://www.stpaul.gov/departments/human-rights-equal-economic-opportunity/labor-standards-enforcement-and-education/minimum-wage) | Retrieved Sept 3, 2026
-27. [Minnesota Department of Labor and Industry – Earned Sick and Safe Time](https://www.dli.mn.gov/sick-leave) | Retrieved Sept 3, 2026
-28. [Minnesota Department of Labor and Industry – Paid Leave Protections](https://dli.mn.gov/paid-leave-protections) | Retrieved Sept 3, 2026
-29. [Minnesota Department of Labor and Industry – Wage Disclosure Protection](https://www.dli.mn.gov/workers/worker-rights-and-protection/wage-disclosure-protection-faqs) | Retrieved Sept 3, 2026
-30. [Minnesota Department of Labor and Industry – Personnel File Access](https://www.dli.mn.gov/business/employment-practices/personnel-file-faqs) | Retrieved Sept 3, 2026
+1. [Minn. Stat. § 364.021 (Ban-the-Box)](https://www.revisor.mn.gov/statutes/cite/364.021) — retrieved 2026-09-03
+2. [Minn. Stat. § 181.67 (Equal Pay for Equal Work)](https://www.revisor.mn.gov/statutes/cite/181.67) — retrieved 2026-09-03
+3. [Minn. Stat. § 181.032 (Wage Statements and Notice)](https://www.revisor.mn.gov/statutes/cite/181.032) — retrieved 2026-09-03
+4. [Minn. Stat. § 181.101 (Pay Frequency)](https://www.revisor.mn.gov/statutes/cite/181.101) — retrieved 2026-09-03
+5. [Minn. Stat. § 181.13 (Final Pay on Discharge)](https://www.revisor.mn.gov/statutes/cite/181.13) — retrieved 2026-09-03
+6. [Minn. Stat. § 181.14 (Final Pay on Resignation)](https://www.revisor.mn.gov/statutes/cite/181.14) — retrieved 2026-09-03
+7. [Minn. Stat. § 177.24 (Minimum Wage)](https://www.revisor.mn.gov/statutes/cite/177.24) — retrieved 2026-09-03
+8. [Minn. Stat. § 177.25 (Overtime)](https://www.revisor.mn.gov/statutes/cite/177.25) — retrieved 2026-09-03
+9. [Minn. Stat. § 177.253–177.254 (Meal and Rest Breaks)](https://www.revisor.mn.gov/statutes/cite/177.253) — retrieved 2026-09-03
+10. [Minn. Stat. § 181.79 (Wage Deductions)](https://www.revisor.mn.gov/statutes/cite/181.79) — retrieved 2026-09-03
+11. [Minn. Stat. § 181.9445–181.9448 (Earned Sick and Safe Time)](https://www.revisor.mn.gov/statutes/cite/181.9445) — retrieved 2026-09-03
+12. [Minn. Stat. § 181.939 (Pregnancy Accommodations)](https://www.revisor.mn.gov/statutes/cite/181.939) — retrieved 2026-09-03
+13. [Minn. Stat. Ch. 268B (Paid Family and Medical Leave)](https://www.revisor.mn.gov/statutes/cite/268B) — retrieved 2026-09-03
+14. [Minn. Stat. § 181.960–181.966 (Personnel File Access)](https://www.revisor.mn.gov/statutes/cite/181.960) — retrieved 2026-09-03
+15. [Minn. Stat. § 181.172 (Wage Disclosure Protection)](https://www.revisor.mn.gov/statutes/cite/181.172) — retrieved 2026-09-03
+16. [Minn. Stat. § 363A.08 subd. 8 (Salary History Ban)](https://www.revisor.mn.gov/statutes/cite/363a.08) — retrieved 2026-09-03
+17. [Minn. Stat. § 181.173 (Pay Transparency in Job Postings)](https://www.revisor.mn.gov/statutes/cite/181.173) — retrieved 2026-09-03
+18. [Minn. Stat. § 181.988 (Non-Compete Void)](https://www.revisor.mn.gov/statutes/cite/181.988) — retrieved 2026-09-03
+19. [Minn. Stat. § 181.9881 (Non-Solicitation of Service-Provider Employees)](https://www.revisor.mn.gov/statutes/cite/181.9881) — retrieved 2026-09-03
+20. [Minn. Stat. § 325E.61 (Data Breach Notification)](https://www.revisor.mn.gov/statutes/cite/325e.61) — retrieved 2026-09-03
+21. [Minn. Stat. § 181.75 (Polygraph Restrictions)](https://www.revisor.mn.gov/statutes/cite/181.75) — retrieved 2026-09-03
+22. [Minn. Stat. § 181.950–181.957 (Drug and Alcohol Testing)](https://www.revisor.mn.gov/statutes/cite/181.950) — retrieved 2026-09-03
+23. [Minn. Stat. § 181.723 (Contractor Classification)](https://www.revisor.mn.gov/statutes/cite/181.723) — retrieved 2026-09-03
+24. [Minn. Stat. § 363A (Human Rights Act)](https://www.revisor.mn.gov/statutes/cite/363A) — retrieved 2026-09-03
+25. [Minnesota Department of Labor and Industry – Minimum Wage 2026](https://www.dli.mn.gov/minwage) — retrieved 2026-09-03
+26. [City of Minneapolis Minimum Wage Ordinance](https://minimumwage.minneapolismn.gov/) — retrieved 2026-09-03
+27. [City of Saint Paul Minimum Wage Ordinance](https://www.stpaul.gov/departments/human-rights-equal-economic-opportunity/labor-standards-enforcement-and-education/minimum-wage) — retrieved 2026-09-03

@@ -1,0 +1,467 @@
+schema_version: 1
+todo_id: WF-RUN-000
+title: "Durable workflow runtime: build-or-adopt decision"
+status: DECIDED
+decision_date: "2026-09-03"
+owners:
+  - name: workflow-runtime
+    role: domain owner (definitions/architecture/repository-layout.yaml internal_package_roots[workflow])
+  - name: data-and-ledger
+    role: owns the internal/data/outbox and internal/data/projection evidence this record relies on
+review_by: "2026-09-03"
+
+refs:
+  - "planning/todos.md#WF-RUN-000"
+  - "planning/specs/workflow-runtime.md#build-or-adopt"
+  - "planning/specs/go-only-technology-constitution.md"
+  - "planning/next-steps.md#p1b--one-bounded-authority-amendment"
+
+# The four non-negotiables from planning/specs/workflow-runtime.md
+# "Build or adopt". Every candidate below is scored against every one of
+# these by id.
+non_negotiables:
+  - id: NN1
+    description: "The business ledger stays outside the engine's own history store."
+  - id: NN2
+    description: "Tenant isolation, fencing tokens, and stable effect idempotency are preserved."
+  - id: NN3
+    description: "Node execution, timers, and leases are inspectable through the same typed projections this contract defines."
+  - id: NN4
+    description: "Safe-point pause and version pinning behave as specified here."
+
+candidates:
+  - name: "In-house Postgres-backed runtime (internal/data/outbox + internal/data/projection, extended for workflow instances/nodes)"
+    kind: BUILD
+    selected: true
+    summary: >
+      Extend the transactional-outbox and checkpointed-projection primitives
+      already built and tested in this repo (owner: data-and-ledger, DATA-007/
+      DATA-008/DATA-006) with the WorkflowInstance/NodeExecution tables
+      WF-RUN-001 defines. No new runtime process, server, or non-Postgres
+      dependency is introduced; everything runs inside the existing Go
+      product core against the existing PostgreSQL store, matching the
+      go-only-technology-constitution's binding decision that the product
+      core, its data access and its workers stay in Go with PostgreSQL as
+      the initial store.
+    evaluation:
+      - non_negotiable: NN1
+        result: PASS
+        reason: >
+          internal/ledger and internal/data/ledger already own the
+          append-only business ledger. internal/data/outbox and
+          internal/data/projection are declared, in their own package docs,
+          as a distribution queue and a rebuildable, non-authoritative read
+          checkpoint respectively -- neither becomes a second ledger, and a
+          workflow runtime built as a peer to them (its own
+          instance/node/frontier tables, referencing ledger sequence
+          numbers by digest) keeps the same separation.
+      - non_negotiable: NN2
+        result: PARTIAL
+        reason: >
+          The dispatch-level primitive already has per-message tenant
+          scoping, a lease (outbox.WithLease) and idempotent
+          Ack/Fail transitions, proved by
+          TestOutboxConsumerHandlerIsIdempotentByMessageID. That is
+          evidence the *pattern* (Postgres row lease + status transition +
+          tenant-scoped key) works in this codebase. It is not yet evidence
+          for the node-execution-level fencing token WF-RUN-002 specifies
+          (worker identity, heartbeat, fence-stale rejection) -- that table
+          and its conformance fixture do not exist yet. Marked PARTIAL, not
+          PASS, until WF-RUN-002 ships its own fixture.
+      - non_negotiable: NN3
+        result: PASS
+        reason: >
+          projection.Checkpoint{Tenant, ProjectionName, StreamKey,
+          LastAppliedSequence, LastAppliedDigest, Status} is exactly the
+          shape this non-negotiable asks for: a typed, queryable projection
+          of execution progress, compare-and-swap advanced, proved by
+          TestApplyAdvancesIdempotentlyAndRejectsGaps and
+          TestReconcilerCatchesUpFromLedger. WF-RUN-001's
+          WorkflowInstance/NodeExecution projections do not exist yet, but
+          the pattern this non-negotiable requires (typed projection table,
+          not an opaque engine-internal history blob) is already
+          established and tested in this repo.
+      - non_negotiable: NN4
+        result: PENDING
+        reason: >
+          Safe-point pause and version pinning are explicitly OUT for P1A
+          and IMPLEMENT for P1B in workflow-runtime.md's Phase Classification
+          table (WF-RUN-008, WF-RUN-009). No code or fixture exists for this
+          non-negotiable yet on any candidate, in-house or adopted. This is
+          not evidence of failure; it is an honest PENDING pointed at the
+          todos that will produce the evidence.
+          pending_todo: WF-RUN-008
+    evidence:
+      - description: "Transactional outbox: enqueue-with-ledger-append, lease, idempotent Ack/Fail"
+        path: "internal/data/outbox/outbox.go"
+        status: EXISTS
+      - description: "Outbox commit: one ledger append + one projection advance + one outbox enqueue, one transaction"
+        path: "internal/data/outbox/commit.go"
+        status: EXISTS
+      - description: "Outbox consumer: lease, batch claim, idempotent handler test"
+        path: "internal/data/outbox/consumer.go"
+        status: EXISTS
+      - description: "Outbox restart/reconcile and idempotent-consumer test"
+        path: "internal/data/outbox/next004_test.go"
+        test: "TestLedgerOutboxProjectionAppendRestartsAndReconciles"
+        status: EXISTS
+      - description: "Outbox consumer idempotency-by-message-ID test"
+        path: "internal/data/outbox/next004_test.go"
+        test: "TestOutboxConsumerHandlerIsIdempotentByMessageID"
+        status: EXISTS
+      - description: "Checkpoint: typed, compare-and-swap projection watermark"
+        path: "internal/data/projection/projection.go"
+        status: EXISTS
+      - description: "Checkpoint apply is idempotent and rejects sequence gaps"
+        path: "internal/data/projection/projection_test.go"
+        test: "TestApplyAdvancesIdempotentlyAndRejectsGaps"
+        status: EXISTS
+      - description: "Reconciler catches a projection up from the ledger after a gap"
+        path: "internal/data/projection/reconcile.go"
+        status: EXISTS
+      - description: "Reconciler catch-up test"
+        path: "internal/data/projection/projection_test.go"
+        test: "TestReconcilerCatchesUpFromLedger"
+        status: EXISTS
+      - description: "WorkflowInstance/NodeExecution persistence, restart safety, CONFLICT_STALE_INSTANCE (not built yet)"
+        status: PENDING
+        pending_todo: WF-RUN-001
+      - description: "Execution lease acquire/heartbeat/expire/reclaim with LEASE_LOST/FENCE_STALE fixture (not built yet)"
+        status: PENDING
+        pending_todo: WF-RUN-002
+      - description: "Safe-point pause and version-pin conformance fixture (not built yet, required before P1B per next-steps.md)"
+        status: PENDING
+        pending_todo: WF-RUN-008
+
+  - name: "Temporal (Go SDK go.temporal.io/sdk)"
+    kind: ADOPT
+    module: "go.temporal.io/sdk"
+    version: "unresolved (no qualification spike run)"
+    selected: false
+    summary: >
+      Widely used durable-execution platform with an official Go SDK.
+      Workflow/activity code is Go; durable execution history and the
+      scheduler live in Temporal Server (or Temporal Cloud), a separately
+      operated multi-component system the SDK talks to over gRPC.
+    evaluation:
+      - non_negotiable: NN1
+        result: UNKNOWN
+        reason: >
+          Plausible in principle -- business ledger writes would still
+          happen from activities against our own Postgres ledger, with
+          Temporal's own execution history remaining an internal replay
+          mechanism rather than the business record. Not verified against
+          any fixture in this repo.
+      - non_negotiable: NN2
+        result: UNKNOWN
+        reason: >
+          Temporal has workflow IDs, task tokens and activity heartbeats
+          that provide analogous (not identical) guarantees to fencing
+          tokens; whether they compose with our per-tenant isolation model
+          without a bespoke adapter has not been tested.
+      - non_negotiable: NN3
+        result: UNKNOWN
+        reason: >
+          Temporal exposes its own visibility/history APIs and schema, not
+          the typed instance/node/lease projections this contract defines.
+          An adapter layer would be required; its cost has not been
+          evaluated.
+      - non_negotiable: NN4
+        result: UNKNOWN
+        reason: >
+          Temporal has its own versioning (GetVersion) and signal/pause
+          primitives; mapping them onto this spec's exact safe-point and
+          version-pinning semantics has not been attempted.
+    evidence:
+      - description: "Qualification spike / conformance fixture run against go.temporal.io/sdk"
+        status: PENDING
+        pending_todo: WF-RUN-000
+    rejection_reason: >
+      Not rejected on technical merit -- rejected for P1A because it adds a
+      new, separately operated distributed system (Temporal Server or a
+      Temporal Cloud vendor dependency) in exchange for P1A's minimal,
+      no-timer, simulate-mode-only persistence need, which the already-built
+      and already-tested in-house outbox/projection primitives already
+      cover. None of the four non-negotiables have been run against an
+      actual fixture, so this is deferred, not disqualified: the mandatory
+      pre-P1B re-evaluation (see reevaluation_trigger below) is the gate
+      where a real spike would need to produce PASS/FAIL evidence before
+      Temporal could be adopted.
+
+  - name: "Restate (Go SDK)"
+    kind: ADOPT
+    module: "github.com/restatedev/sdk-go"
+    version: "unresolved (no qualification spike run)"
+    selected: false
+    summary: >
+      Durable-execution / workflows-as-code runtime with a Go SDK; the
+      durable log and state store is the Restate server, a separately
+      operated service (not part of this repo's PostgreSQL store).
+    evaluation:
+      - non_negotiable: NN1
+        result: UNKNOWN
+        reason: "Not spiked; same shape of question as Temporal's NN1 above."
+      - non_negotiable: NN2
+        result: UNKNOWN
+        reason: "Not spiked."
+      - non_negotiable: NN3
+        result: UNKNOWN
+        reason: "Not spiked; Restate's own state/journal introspection is not this contract's typed projection shape."
+      - non_negotiable: NN4
+        result: UNKNOWN
+        reason: "Not spiked."
+    evidence:
+      - description: "Qualification spike / conformance fixture run against Restate's Go SDK"
+        status: PENDING
+        pending_todo: WF-RUN-000
+    rejection_reason: >
+      Rejected for P1A for the same reason as Temporal: it requires
+      operating a separate, non-Postgres durable-log service in exchange
+      for capability P1A does not need yet, and no fixture evidence exists
+      either way. Deferred to the pre-P1B re-evaluation.
+
+  - name: "DBOS Transact"
+    kind: ADOPT
+    module: "unresolved -- no confirmed, currently-maintained Go SDK identified during this record's research"
+    version: "n/a"
+    selected: false
+    summary: >
+      Lighter-weight durable-execution library that runs embedded against
+      an application's own Postgres database rather than a separate server
+      -- architecturally the closest external candidate to this record's
+      selected in-house approach. Its SDK history is Python- and
+      TypeScript-first; this record could not confirm a production-grade,
+      officially supported Go SDK as of the research performed for this
+      decision, and does not assert one exists or does not exist beyond
+      that.
+    evaluation:
+      - non_negotiable: NN1
+        result: UNKNOWN
+        reason: >
+          Plausible given the Postgres-embedded model, but unverified, and
+          blocked on confirming Go-language support at all.
+      - non_negotiable: NN2
+        result: UNKNOWN
+        reason: "Blocked on the same Go-SDK-availability question; not spiked."
+      - non_negotiable: NN3
+        result: UNKNOWN
+        reason: "Not spiked."
+      - non_negotiable: NN4
+        result: UNKNOWN
+        reason: "Not spiked."
+    evidence:
+      - description: "Confirmation of a maintained Go SDK, followed by a qualification spike"
+        status: PENDING
+        pending_todo: WF-RUN-000
+    rejection_reason: >
+      Rejected for P1A primarily because this record could not confirm a
+      maintained, production-grade Go SDK during its research -- the
+      go-only-technology-constitution requires the product core to be
+      Go-authored, and adopting a library whose primary SDKs are Python/
+      TypeScript would mean running a second-language process or an
+      unofficial/community binding, which is not a decision to make without
+      a spike. If a maintained Go SDK is confirmed before the pre-P1B
+      re-evaluation, DBOS should be re-scored on its technical merits at
+      that time.
+
+  - name: "river (github.com/riverqueue/river) as a durable-execution foundation"
+    kind: ADOPT
+    module: "github.com/riverqueue/river"
+    version: "unresolved (no qualification spike run)"
+    selected: false
+    summary: >
+      Go-native, Postgres-backed background job queue (retries, unique
+      jobs, periodic jobs, no separate server process) -- the same
+      architectural family as this record's selected in-house primitives,
+      but a general job queue rather than a workflow engine: it has no
+      built-in concept of a multi-node workflow instance, a typed
+      node-execution graph, or the inspector contract this spec defines.
+    evaluation:
+      - non_negotiable: NN1
+        result: PASS
+        reason: >
+          river writes only to its own job tables in the caller's Postgres
+          database; the business ledger would remain wherever the caller
+          puts it, same as the in-house approach. This one is a structural
+          fact about river's design, not a fixture result.
+      - non_negotiable: NN2
+        result: UNKNOWN
+        reason: >
+          river has per-job uniqueness and retry state, not a workflow-level
+          fencing-token/lease contract across a multi-node instance; whether
+          it composes with WF-RUN-002's exact contract has not been spiked.
+      - non_negotiable: NN3
+        result: FAIL
+        reason: >
+          river has no concept of a workflow instance or a node-execution
+          graph to project; WF-RUN-001's typed instance/node projections
+          would have to be built on top of it from scratch, at which point
+          river is contributing only the job-claim/retry primitive that
+          internal/data/outbox already provides in this repo, tested, with
+          no new dependency.
+      - non_negotiable: NN4
+        result: UNKNOWN
+        reason: "Not spiked; river has no native safe-point/version-pinning concept to evaluate."
+    evidence:
+      - description: "Qualification spike comparing river's job-claim primitive to internal/data/outbox's existing lease/idempotency behavior"
+        status: PENDING
+        pending_todo: WF-RUN-000
+    rejection_reason: >
+      Rejected for P1A because it would add a second Postgres-backed job
+      primitive alongside the one already built and tested in
+      internal/data/outbox, without covering the parts of this spec (typed
+      workflow instance/node projections, WF-RUN-001) that internal/data/
+      outbox does not yet cover either -- adopting river would not remove
+      any work WF-RUN-001..WF-RUN-025 still has to do. Not evaluated for
+      P1B; if the P1B scheduler grows job-queue needs (fan-out, periodic
+      jobs) beyond what the in-house tables cover, river is worth a spike
+      at that time on its own merits, separate from the workflow-instance
+      question this record answers.
+
+# goose (github.com/pressly/goose/v3, already a direct dependency of this
+# module per go.mod) is a SQL migration tool, not a durable-execution
+# candidate. It is named in the WF-RUN-000 todo text as an example of the
+# "Go library + plain Postgres, no separate server" family this record's
+# selected in-house approach also belongs to, not as a workflow-runtime
+# candidate in its own right. Recorded here only to avoid a reader
+# mistaking its absence from the candidates list above for an oversight.
+non_candidate_note: >
+  "goose" in the WF-RUN-000 todo text names the migration tool already
+  used by this repo (go.mod: github.com/pressly/goose/v3), cited as an
+  example of a Go-library-plus-Postgres tool with no separate server --
+  the same shape as the selected in-house runtime -- not as a
+  durable-execution engine to evaluate.
+
+selected_option:
+  candidate: "In-house Postgres-backed runtime (internal/data/outbox + internal/data/projection, extended for workflow instances/nodes)"
+  choice: "BUILD"
+  rationale: >
+    P1A needs only MINIMAL instance/node persistence for simulate mode,
+    with no timers, no leases, and no external effects
+    (planning/next-steps.md P1A scope; workflow-runtime.md's Phase
+    Classification table). The in-house Postgres-backed primitives that
+    cover the same shape of problem (transactional outbox for
+    at-least-once dispatch with lease and idempotent handling; checkpointed
+    projection for typed, inspectable, compare-and-swap-advanced execution
+    state) are already built, tested and running in this repository at
+    zero new dependency cost, and already PASS two of the four
+    non-negotiables (NN1, NN3) with the pattern this record used to
+    evaluate them. None of the ADOPT candidates have been run against a
+    single non-negotiable fixture; adopting one on qualitative appeal alone
+    is exactly the shortcut the build-or-adopt gate exists to prevent. BUILD
+    now, for P1A/early P1B scope, with a hard, named, blocking
+    re-evaluation gate before P1B scheduler/timer/lease code is written
+    (see reevaluation_trigger), keeps the option to adopt open without
+    letting an unevaluated preference become the default.
+  signed_by: "workflow-runtime (domain owner)"
+  signed_date: "2026-09-03"
+
+rejected_options:
+  - candidate: "Temporal (Go SDK go.temporal.io/sdk)"
+    reason: >
+      Requires operating a separate Temporal Server or Temporal Cloud
+      dependency for capability P1A does not need yet; zero non-negotiables
+      have fixture evidence. See the candidate's rejection_reason above.
+  - candidate: "Restate (Go SDK)"
+    reason: >
+      Requires operating a separate, non-Postgres durable-log service for
+      capability P1A does not need yet; zero non-negotiables have fixture
+      evidence. See the candidate's rejection_reason above.
+  - candidate: "DBOS Transact"
+    reason: >
+      No maintained, production-grade Go SDK was confirmed during this
+      record's research; re-score if one is confirmed before the pre-P1B
+      re-evaluation. See the candidate's rejection_reason above.
+  - candidate: "river (github.com/riverqueue/river) as a durable-execution foundation"
+    reason: >
+      Duplicates the job-claim/lease primitive internal/data/outbox already
+      provides, tested, and does not cover the typed workflow-instance/
+      node-execution projection this spec requires (WF-RUN-001) any more
+      than the in-house approach does. See the candidate's rejection_reason
+      above.
+
+# Impact of the BUILD choice on the WF-RUN todo range the spec names
+# (workflow-runtime.md "Build or adopt": "the consequences for
+# WF-RUN-001-WF-RUN-025").
+consequences:
+  - todo: WF-RUN-001
+    impact: "Persist WorkflowInstance and NodeExecution state as new tables beside internal/data/outbox and internal/data/projection, following the same optimistic-version/typed-projection pattern those packages already use."
+  - todo: WF-RUN-002
+    impact: "Implement execution leases and fencing as new Go code over Postgres (row lease + fencing token), extending the lease pattern internal/data/outbox/consumer.go already exercises for message dispatch to node execution."
+  - todo: WF-RUN-003
+    impact: "Recover a node after worker death using the same lease-expiry-plus-replay approach the outbox consumer uses for redelivery, applied to node attempts instead of messages."
+  - todo: WF-RUN-004
+    impact: "Durable workflow timers require new Postgres-backed timer wheel/table code; no existing package in this repo covers timers today, so this is net-new BUILD work regardless of this decision."
+  - todo: WF-RUN-005
+    impact: "Durable signal subscriptions require new code; not covered by any existing package."
+  - todo: WF-RUN-006
+    impact: "Retry policy sits on top of the node-execution/lease tables WF-RUN-001/002 add; no adopted engine's built-in retry semantics are inherited since BUILD was chosen."
+  - todo: WF-RUN-007
+    impact: "Poison-node quarantine is new state on the node-execution table WF-RUN-001 adds."
+  - todo: WF-RUN-008
+    impact: "Safe-point pause is the concrete fixture that resolves this record's NN4 PENDING result; it must land, and be evaluated against both BUILD and any ADOPT candidate, before the pre-P1B re-evaluation can close out NN4."
+  - todo: WF-RUN-009
+    impact: "Workflow-version quarantine is new state on the instance table WF-RUN-001 adds."
+  - todo: WF-RUN-010
+    impact: "Governed cancellation is new code over the instance/node tables; no external engine's cancellation API is inherited."
+  - todo: WF-RUN-011
+    impact: "Child-workflow cancellation propagation is PHASE_2 scope; unaffected by this P1A/P1B-scoped decision."
+  - todo: WF-RUN-012
+    impact: "SIMULATE mode is GATE_A/P1A scope and does not depend on this decision beyond needing instance/node persistence (WF-RUN-001) to exist."
+  - todo: WF-RUN-013
+    impact: "Deterministic REPLAY mode is GATE_B scope; an adopted engine could have supplied replay for free, but BUILD means this is bespoke work against the in-house tables."
+  - todo: WF-RUN-014
+    impact: "Isolated SHADOW mode is PHASE_2 scope; unaffected by this decision now."
+  - todo: WF-RUN-015
+    impact: "Typed interventions are new code over the instance/node tables this decision's chosen approach adds."
+  - todo: WF-RUN-016
+    impact: "RepairPlan execution mode is new code; not covered by any existing package."
+  - todo: WF-RUN-017
+    impact: "Live-migration compatibility preview is PHASE_2 scope; unaffected by this decision now."
+  - todo: WF-RUN-018
+    impact: "Migration execution at a safe point is PHASE_2 scope; unaffected by this decision now."
+  - todo: WF-RUN-019
+    impact: "Execution inspection reads the typed projections WF-RUN-001 adds, following the same read-only inspector shape internal/data/projection already establishes for checkpoints."
+  - todo: WF-RUN-020
+    impact: "Stuck-workflow detection is a query over the instance/node tables and their expected-progress metadata; new code, same tables."
+  - todo: WF-RUN-021
+    impact: "Workload limits are enforced in the scheduler this decision keeps in-house rather than delegating to an adopted engine's built-in admission control."
+  - todo: WF-RUN-022
+    impact: "Proving recovery after a database/cell interruption is testable directly against Postgres transactions and the lease/fencing design WF-RUN-002/003 add, the same failure-injection style internal/data/outbox/next004_test.go already uses."
+  - todo: WF-RUN-023
+    impact: "Starting a workflow from an immutable ProposalRevision is new code over the instance table; unaffected by BUILD vs ADOPT beyond where that table lives."
+  - todo: WF-RUN-024
+    impact: "Deterministic frontier advancement is scheduler logic this decision keeps in-house rather than an adopted engine's own frontier/history mechanism."
+  - todo: WF-RUN-025
+    impact: "Committing node completion and continuation scheduling atomically follows the same one-transaction pattern internal/data/outbox/commit.go already proves for ledger-append + projection-advance + outbox-enqueue, extended to node-completion + continuation-scheduling."
+
+reevaluation_trigger:
+  description: >
+    This record's ADOPT candidates are scored UNKNOWN, not FAIL: no
+    conformance fixture has been run against any of them. Before P1B
+    scheduler, timer, or lease implementation code is written (the same
+    "before P1B code" gate workflow-runtime.md's build-or-adopt section and
+    this repo's WF-RUN-000 dependency chain already require), this decision
+    must be re-opened and re-scored with real evidence -- at minimum, the
+    four non-negotiables run as executable conformance fixtures against
+    both the in-house build (as it stands after WF-RUN-001/002/008 land)
+    and at least the Temporal candidate, since it is the most mature
+    external option. A changed choice at that point does not require
+    discarding WF-RUN-001's instance/node schema if it stays behind the
+    typed projection contract NN3 requires.
+  gating_todo: WF-RUN-000
+  blocks: "P1B implementation of WF-RUN-002 through WF-RUN-026 scheduler/timer/lease code"
+
+rollback_plan: >
+  The selected BUILD choice has a low-cost rollback because it introduces
+  no new dependency and no new operational surface: if the pre-P1B
+  re-evaluation instead selects an ADOPT candidate, the in-house
+  WorkflowInstance/NodeExecution tables and their data (built under
+  WF-RUN-001) are migrated into the adopted engine's activities/tasks as a
+  one-time backfill, keeping the business ledger (internal/ledger,
+  internal/data/ledger) untouched throughout, since NN1 already requires
+  the ledger to sit outside whichever engine's own history store is in use.
+  If a partially-built in-house scheduler needs to be abandoned mid-P1B, no
+  external system needs to be decommissioned and no data migrates out of
+  this repo's own PostgreSQL instance -- the rollback is deleting the
+  in-house scheduler code and tables, not unwinding a vendor integration.

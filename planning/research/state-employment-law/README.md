@@ -10,58 +10,58 @@ only through a reviewed rule pack.
 
 ## Queue
 
-| State          | File                | Status       | Researched | Reviewed   |
-| -------------- | ------------------- | ------------ | ---------- | ---------- |
-| Alabama        | `alabama.md`        | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Alaska         | `alaska.md`         | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Arizona        | `arizona.md`        | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Arkansas       | `arkansas.md`       | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| California     | `california.md`     | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Colorado       | `colorado.md`       | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Connecticut    | `connecticut.md`    | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Delaware       | `delaware.md`       | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| Florida        | `florida.md`        | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Georgia        | `georgia.md`        | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Hawaii         | `hawaii.md`         | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| Idaho          | `idaho.md`          | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| Illinois       | `illinois.md`       | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| Indiana        | `indiana.md`        | REVIEWED     | 2026-09-03 | 2026-09-03 |
-| Iowa           | `iowa.md`           | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Kansas         | `kansas.md`         | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Kentucky       | `kentucky.md`       | DRAFTED      | 2026-09-03 |            |
-| Louisiana      | `louisiana.md`      | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Maine          | `maine.md`          | NEEDS_REWORK | 2026-09-03 | 2026-09-03 |
-| Maryland       | `maryland.md`       | DRAFTED      | 2026-09-03 |            |
-| Massachusetts  | `massachusetts.md`  | DRAFTED      | 2026-09-03 |            |
-| Michigan       | `michigan.md`       | DRAFTED      | 2026-09-03 |            |
-| Minnesota      | `minnesota.md`      | DRAFTED      | 2026-09-03 |            |
-| Mississippi    | `mississippi.md`    | DRAFTED      | 2026-09-03 |            |
-| Missouri       | `missouri.md`       | DRAFTED      | 2026-09-03 |            |
-| Montana        | `montana.md`        | DRAFTED      | 2026-09-03 |            |
-| Nebraska       | `nebraska.md`       | DRAFTED      | 2026-09-03 |            |
-| Nevada         | `nevada.md`         | DRAFTED      | 2026-09-03 |            |
-| New Hampshire  | `new-hampshire.md`  | DRAFTED      | 2026-09-03 |            |
-| New Jersey     | `new-jersey.md`     | DRAFTED      | 2026-09-03 |            |
-| New Mexico     | `new-mexico.md`     | DRAFTED      | 2026-09-03 |            |
-| New York       | `new-york.md`       | DRAFTED      | 2026-09-03 |            |
-| North Carolina | `north-carolina.md` | DRAFTED      | 2026-09-03 |            |
-| North Dakota   | `north-dakota.md`   | DRAFTED      | 2026-09-03 |            |
-| Ohio           | `ohio.md`           | DRAFTED      | 2026-09-03 |            |
-| Oklahoma       | `oklahoma.md`       | DRAFTED      | 2026-09-03 |            |
-| Oregon         | `oregon.md`         | DRAFTED      | 2026-09-03 |            |
-| Pennsylvania   | `pennsylvania.md`   | DRAFTED      | 2026-09-03 |            |
-| Rhode Island   | `rhode-island.md`   | DRAFTED      | 2026-09-03 |            |
-| South Carolina | `south-carolina.md` | DRAFTED      | 2026-09-03 |            |
-| South Dakota   | `south-dakota.md`   | DRAFTED      | 2026-09-03 |            |
-| Tennessee      | `tennessee.md`      | DRAFTED      | 2026-09-03 |            |
-| Texas          | `texas.md`          | DRAFTED      | 2026-09-03 |            |
-| Utah           | `utah.md`           | IN_PROGRESS  |            |            |
-| Vermont        | `vermont.md`        | IN_PROGRESS  |            |            |
-| Virginia       | `virginia.md`       | IN_PROGRESS  |            |            |
-| Washington     | `washington.md`     | IN_PROGRESS  |            |            |
-| West Virginia  | `west-virginia.md`  | QUEUED       |            |            |
-| Wisconsin      | `wisconsin.md`      | QUEUED       |            |            |
-| Wyoming        | `wyoming.md`        | QUEUED       |            |            |
+| State          | File                | Status   | Researched | Reviewed                  |
+| -------------- | ------------------- | -------- | ---------- | ------------------------- |
+| Alabama        | `alabama.md`        | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Alaska         | `alaska.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Arizona        | `arizona.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Arkansas       | `arkansas.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| California     | `california.md`     | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Colorado       | `colorado.md`       | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Connecticut    | `connecticut.md`    | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Delaware       | `delaware.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Florida        | `florida.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Georgia        | `georgia.md`        | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Hawaii         | `hawaii.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Idaho          | `idaho.md`          | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Illinois       | `illinois.md`       | DRAFTED  | 2026-09-03 | reworked 2026-09-03       |
+| Indiana        | `indiana.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Iowa           | `iowa.md`           | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Kansas         | `kansas.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Kentucky       | `kentucky.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Louisiana      | `louisiana.md`      | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Maine          | `maine.md`          | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Maryland       | `maryland.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Massachusetts  | `massachusetts.md`  | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Michigan       | `michigan.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Minnesota      | `minnesota.md`      | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Mississippi    | `mississippi.md`    | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Missouri       | `missouri.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Montana        | `montana.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Nebraska       | `nebraska.md`       | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Nevada         | `nevada.md`         | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| New Hampshire  | `new-hampshire.md`  | REVIEWED | 2026-09-03 | 2026-09-03                |
+| New Jersey     | `new-jersey.md`     | REVIEWED | 2026-09-03 | 2026-09-03                |
+| New Mexico     | `new-mexico.md`     | REVIEWED | 2026-09-03 | 2026-09-03                |
+| New York       | `new-york.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| North Carolina | `north-carolina.md` | REVIEWED | 2026-09-03 | 2026-09-03                |
+| North Dakota   | `north-dakota.md`   | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Ohio           | `ohio.md`           | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Oklahoma       | `oklahoma.md`       | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Oregon         | `oregon.md`         | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Pennsylvania   | `pennsylvania.md`   | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Rhode Island   | `rhode-island.md`   | REVIEWED | 2026-09-03 | 2026-09-03                |
+| South Carolina | `south-carolina.md` | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| South Dakota   | `south-dakota.md`   | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Tennessee      | `tennessee.md`      | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Texas          | `texas.md`          | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Utah           | `utah.md`           | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Vermont        | `vermont.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Virginia       | `virginia.md`       | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Washington     | `washington.md`     | REVIEWED | 2026-09-03 | 2026-09-03                |
+| West Virginia  | `west-virginia.md`  | REVIEWED | 2026-09-03 | 2026-09-03                |
+| Wisconsin      | `wisconsin.md`      | REVIEWED | 2026-09-03 | fixed+reviewed 2026-09-03 |
+| Wyoming        | `wyoming.md`        | REVIEWED | 2026-09-03 | 2026-09-03                |
 
 Status values: `QUEUED`, `IN_PROGRESS`, `DRAFTED` (agent finished, unreviewed),
 `REVIEWED` (orchestrator read it), `NEEDS_REWORK`.
@@ -143,6 +143,8 @@ Indiana), 12 NEEDS_REWORK. Rework items, per state:
 - Maine: state the actual minimum wage, tip credit, PFMLA replacement rate,
   and the non-compete salary threshold instead of "(verify)" everywhere.
 
+Rework outcome note (2026-09-03): the Virginia rewrite found that Va. Code § 40.1-28.7:12 (wage-range transparency) is a real statute effective 2026-09-03, so the orchestrator's earlier assumption that Virginia has no pay-transparency law was wrong; the file now describes it with a "verify" marker.
+
 Also flagged by the orchestrator: hawaii.md does not mention the HRS
 § 378-2.4 salary-history ban (2019); massachusetts.md refers to "CTDPA"
 (Connecticut's act) in the privacy section; nebraska.md cites § 87-404
@@ -155,3 +157,43 @@ tend to invent a chapter number for non-competes. Every
 Normalisation for the rewrite pass: bare template headings, one metadata
 line under the H1 (`**State:** X | **Researched:** date | **Status:** ...`),
 Sources as numbered markdown links each ending `— retrieved 2026-09-03`.
+
+### 2026-09-03 — batch 3–5 (24 files)
+
+Reviewer verdict: 9 REVIEWED (Maryland, Michigan, New Jersey, New York, North
+Dakota, Pennsylvania, Rhode Island, Washington, plus Kentucky after fixes),
+15 NEEDS_REWORK, dominated by cross-file boilerplate contamination (agency
+names and statute numbers copied from another state's draft: GCIC, NCDOL,
+NHDOL/NHES, RSA 651:5, O.C.G.A. § 50-18-70, N.J.S.A. 43:21-19, NDCC
+§ 12.1-33-02.2). The orchestrator applied those textual fixes directly; the
+Kentucky final-pay rule was inverted (KRS 337.055 is "whichever last
+occurs") and is corrected; Mississippi and Nevada are being expanded; the
+Kentucky equal-pay chapter, the North Carolina "salary history ban" claim,
+an Ohio source link and the Montana §12 narrative are being verified.
+
+Standing instruction for any future draft: the "independent contractor
+classification", "background checks" and "personnel file access" subsections
+must name only the state's own agencies and statutes.
+
+### 2026-09-03 — final pass, N–W (18 files)
+
+12 REVIEWED as drafted; 6 fixed by the orchestrator and marked REVIEWED:
+Ohio and Oklahoma carried New Mexico's § 50-11 / § 26-2B-9 citations (now
+R.C. ch. 3796 and 40 O.S. § 500); South Carolina had an invented equal-pay
+chapter (§ 41-12), an invented non-compete exception (§ 41-7) and NCDOL;
+Wisconsin claimed a Milwaukee minimum-wage ordinance that § 104.001(2)
+preempts; Nebraska's sections were renumbered to the template; Nevada's
+trailing section was folded into Sources. Virginia's § 40.1-28.7:12 was
+confirmed real by fetching law.lis.virginia.gov (15-business-day cure
+window still to add). West Virginia: confirm whether ch. 5 art. 11 or ch.
+16B art. 17 is the operative Human Rights Act citation.
+
+### 2026-09-03 — final pass, A–M (18 files)
+
+12 REVIEWED; 4 fixed by the orchestrator and marked REVIEWED (Massachusetts
+carried Connecticut's 16-week/24-month leave figures and a CTDPA reference;
+Alabama invented an "APDPA"; Colorado had an extra section, a duplicate §12
+and a fake at-will statute; Connecticut's body and Sources cited different
+wage sections); Georgia (213 lines, split citations) and Louisiana (249
+lines, New Orleans ordinance removed instead of cited) sent for a final
+rework. In-file Status lines now match this table.

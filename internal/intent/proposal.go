@@ -467,10 +467,14 @@ func encodeAttachment(e *enc, a AttachmentRef) {
 // usable before a digest exists, and it is the only definition of "materially
 // unchanged" the kernel has.
 func MaterialEqual(a, b ProposalRevision) bool {
-	// Revision identity is part of the material list, so two revisions of the
-	// same proposal are compared on everything else.
+	// Revision identity and lineage are part of the material list, so two
+	// revisions of the same proposal are compared on everything else: every
+	// successor names a different predecessor, and that link alone must not
+	// make a revision material (INTENT-006 keeps approvals across immaterial
+	// revisions).
 	a.ProposalRevisionID, b.ProposalRevisionID = "", ""
 	a.Revision, b.Revision = 0, 0
+	a.SupersedesRevisionID, b.SupersedesRevisionID = nil, nil
 	return string(a.MaterialPayload().WireBytes) == string(b.MaterialPayload().WireBytes)
 }
 

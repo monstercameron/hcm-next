@@ -1,0 +1,151 @@
+# P1A capability manifest fixture (MSRC-001 / TOOL-004).
+#
+# No manifest file exists yet under schema/schemaflux for capabilities, so
+# this fixture is the qualification generator's own source for them, derived
+# field-for-field from internal/capability's BOOTSTRAP table
+# (internal/capability/bootstrap.go bootstrapDefinitions()). Do not hand-edit
+# a value here without also checking it against that table:
+# tools/gen/schemaflux's cross-check test fails if this fixture drifts from
+# the live table's ten entries.
+schema_version: 1
+source: internal/capability/bootstrap.go (bootstrapDefinitions)
+capabilities:
+  - id: hcmnext.people.explain_worker_state
+    version: 1
+    owner_domain: people
+    effect_class: READ_ONLY
+    read_domains: [worker, employment]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:people.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.people.explain_worker_state/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.people.promote_worker
+    version: 1
+    owner_domain: people
+    effect_class: READ_ONLY
+    read_domains: [worker, employment, position]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:people.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.people.promote_worker/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.rewards.simulate_compensation
+    version: 1
+    owner_domain: rewards
+    effect_class: READ_ONLY
+    read_domains: [compensation, budget]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:rewards.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.rewards.simulate_compensation/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.rewards.evaluate_pay_band_position
+    version: 1
+    owner_domain: rewards
+    effect_class: READ_ONLY
+    read_domains: [compensation]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:rewards.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.rewards.evaluate_pay_band_position/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.intelligence.explain_transaction
+    version: 1
+    owner_domain: intelligence
+    effect_class: READ_ONLY
+    read_domains: [transaction_ledger]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:intelligence.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.intelligence.explain_transaction/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.operations.detect_drift
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    read_domains: [projection, ledger]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:operations.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.operations.detect_drift/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.operations.create_repair_plan
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    read_domains: [projection, ledger]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:operations.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.operations.create_repair_plan/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.operations.simulate_repair
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    read_domains: [projection, ledger]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:operations.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.operations.simulate_repair/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.registry.resolve_capability
+    version: 1
+    owner_domain: registry
+    effect_class: READ_ONLY
+    read_domains: [capability_registry]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:registry.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.registry.resolve_capability/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE
+
+  - id: hcmnext.registry.explain_capability
+    version: 1
+    owner_domain: registry
+    effect_class: READ_ONLY
+    read_domains: [capability_registry]
+    risk_class: LOW
+    idempotency_policy_ref: idempotency.read-safe.v1
+    authz_scope_ref: "scope:registry.read"
+    legal_basis_ref: legal.p1a.observation-only.v1
+    entitlement_ref: entitlement.pilot.p1a.v1
+    slo_class_ref: slo.interactive.p95-2s.v1
+    test_ref: "conformance:hcmnext.registry.explain_capability/v1"
+    storage_disposition: BOOTSTRAP_COMPILED_GO_TABLE

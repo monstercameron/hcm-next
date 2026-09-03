@@ -1,0 +1,11 @@
+object: WORKER
+schema_version: workday.worker/2026.1
+snapshot_id: workday.worker/2026.1#bb4b9990f416
+page_sequence: 1
+record_count: 2
+complete: false
+classification: EXTERNAL_OBSERVATION
+freshness: FRESH
+observation_id: d67fd210-8adb-599b-9e2d-d1b5e12c603d
+content_digest: sha256:9a721d7a999d083c6698a857f3e6e45d2855989ba069c072f12b09dd0166ba77
+canonical_length: 2980

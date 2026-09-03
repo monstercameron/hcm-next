@@ -1,5 +1,7 @@
 # Connecticut Employment Law Research
 
+**State:** Connecticut | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **Employment-at-will with exceptions**: Connecticut recognizes wrongful discharge for termination violating clear public policy (filed wage claims, workers' comp claims, jury duty, religious freedom); implied employment contracts may also create obligations.
@@ -25,16 +27,16 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 
 **Required written notices at hire and on change**:
 
-- At time of hiring, employer must advise employees in writing of the rate of remuneration, hours of employment, wage payment schedules, and make available (in writing or posted) all employment practices and policies regarding wages, vacation, sick leave, benefits, and policy changes (Conn. Gen. Stat. § 31-74d).
-- On any change of pay or role, employers should provide written notice of new terms to align with § 31-74d disclosure requirements; no specific statutory notice period mandated for pay changes except final pay timing (see § 3 below).
+- At time of hiring, employer must advise employees in writing of the rate of remuneration, hours of employment, wage payment schedules, and make available (in writing or posted) all employment practices and policies regarding wages, vacation, sick leave, benefits, and policy changes (Conn. Gen. Stat. § 31-71f).
+- On any change of pay or role, employers should provide written notice of new terms to align with § 31-71f disclosure requirements; no specific statutory notice period mandated for pay changes except final pay timing (see § 3 below).
 
 ## 3. Wages: Minimum Wage, Overtime, Pay Frequency, Final Pay, Deductions
 
 **Minimum wage**:
 
-- Connecticut minimum wage varies by sector. As of 2026, verify current rates on Connecticut Department of Labor website; the state has indexed minimum wage to inflation (verify exact current rate).
-- "Restaurant and Hotel Workers" have a different rate than general minimum wage.
-- "Mercantile Trade (Retail)" employees have yet another rate.
+- Connecticut minimum wage is $16.35 per hour as of January 1, 2025 (Conn. Gen. Stat. § 31-58).
+- Effective January 1, 2026, the minimum wage increases to $16.94 per hour, adjusted annually by the Connecticut Labor Commissioner based on the prior calendar year's change in the federal Employment Cost Index (ECI) (PA 19-4; announced by October 15 each year).
+- Special rates for specific sectors ("Restaurant and Hotel Workers," "Mercantile Trade (Retail)") are indexed to the same ECI-based adjustment mechanism.
 - No subminimum wage allowed for minors or any class of worker.
 
 **Overtime**:
@@ -45,18 +47,18 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 
 **Pay frequency**:
 
-- Wages must be paid weekly on a designated payday (Conn. Gen. Stat. § 31-71).
+- Wages must be paid weekly on a designated payday (Conn. Gen. Stat. § 31-71b).
 - Payment via cash, check, or direct deposit (with written employee consent).
 
 **Final pay on termination**:
 
 - **Laid-off employees**: Full wages and accrued leave due on next regular payday.
-- **Discharged employees**: Full wages and accrued leave due "the next business day" (Conn. Gen. Stat. § 31-71a).
+- **Discharged employees**: Full wages and accrued leave due "the next business day" (Conn. Gen. Stat. § 31-71c).
 - **Resigned employees**: Full wages due on next regular payday unless employee does not provide notice; verify current case law on notice requirements.
 
 **Permitted deductions**:
 
-- Employers cannot withhold wages except as required by law, with written employee authorization on an approved form, or for court-ordered garnishments, tax withholdings, medical/retirement plans (Conn. Gen. Stat. § 31-72).
+- Employers cannot withhold wages except as required by law, with written employee authorization on an approved form, or for court-ordered garnishments, tax withholdings, medical/retirement plans (Conn. Gen. Stat. § 31-71e).
 - No deductions for "tools of trade" or similar employer-imposed costs.
 
 **Pay statement requirements**:
@@ -73,7 +75,7 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 
 **Salary history ban**:
 
-- Employers may not inquire about or direct third parties to inquire about a prospective employee's wage/salary history unless the candidate has voluntarily disclosed it (Conn. Gen. Stat. § 31-48e, enacted by PA 18-8).
+- Employers may not inquire about or direct third parties to inquire about a prospective employee's wage/salary history unless the candidate has voluntarily disclosed it (Conn. Gen. Stat. § 31-40z, enacted by PA 18-8). (Conn. Gen. Stat. § 31-40z)
 
 **Pay data reporting**:
 
@@ -81,7 +83,7 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 
 **Equal pay statute**:
 
-- Connecticut's "equal pay for equal work" law prohibits sex-based wage discrimination: employers cannot pay employees of one sex less than employees of the opposite sex for equal work performed under similar working conditions and requiring equal skill, effort, and responsibility (Conn. Gen. Stat. § 31-48e).
+- Connecticut's "equal pay for equal work" law prohibits sex-based wage discrimination (Conn. Gen. Stat. § 31-75): employers cannot pay employees of one sex less than employees of the opposite sex for equal work performed under similar working conditions and requiring equal skill, effort, and responsibility (Conn. Gen. Stat. § 31-40z).
 - Employer defense: the wage differential is based on seniority, merit, production quality, or system other than sex.
 
 ## 5. Leave and Time: Paid Sick Leave, Family Leave, FMLA, Interaction with Pay/Role Changes
@@ -99,6 +101,15 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 - Eligibility: 12+ months tenure (non-consecutive) and 1,000 work-hours in prior 12 months.
 - Qualifying reasons: birth/adoption, child care within first year, serious health condition of employee or family member, spouse/child/parent military service, organ donation.
 - Job restoration: employee must be restored to same or equivalent position upon return.
+
+**Connecticut Paid Family and Medical Leave (CT PFML)**:
+
+- Connecticut administers a paid family and medical leave insurance program (Conn. Gen. Stat. §§ 31-49e et seq.) through the Connecticut Paid Leave Authority (established by PA 19-29).
+- **Eligibility and contributions**: The program covers all employers with 1+ Connecticut employees. Employees contribute 0.5% of wages (up to the annually adjusted Social Security taxable wage base; for 2026, maximum annual contribution is approximately $922.50 on wages up to $184,500).
+- **Wage replacement and duration**: Eligible employees receive wage replacement benefits for up to 12 weeks (or more in some cases) of partially paid leave for qualifying family and medical reasons, plus 12 days of PFML for family violence-related matters.
+- **Benefit calculation**: Two-tier wage replacement system: 95% of weekly earnings up to the state minimum wage, and 60% of weekly earnings above that threshold, capped at 60 times the state minimum wage (approximately $1,016.40 weekly for 2026).
+- **Contribution and benefit history**: Contributions began January 1, 2021; benefits began January 1, 2022. The program is income-replacement only and does not provide job protection (job protection is provided by CTFMLA, above).
+- **Eligibility requirements for benefits**: Employees must have earned at least $2,325 in the highest-earning quarter of the first four of the five most recently completed quarters (base-period calculation).
 
 **Interaction with pay/role changes**:
 
@@ -246,31 +257,45 @@ Connecticut is an employment-at-will state: either party may terminate the relat
 
 ## 12. Sources
 
-1. Connecticut General Statutes § 31-1 (Employment-at-will doctrine) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-2. Connecticut General Statutes § 31-51q (Wrongful termination—public policy exceptions) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-3. Connecticut General Statutes § 31-74d (Required notice of wages, hours, policies at hire and on change) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-4. Connecticut General Statutes §§ 31-51kk to 31-51qq (Family and Medical Leave Act) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-5. Connecticut General Statutes § 31-57y (Paid sick leave) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-6. Connecticut General Statutes § 31-74g (Wage range disclosure, PA 21-30) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-7. Connecticut General Statutes § 31-48e (Salary history ban; equal pay law) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-8. Connecticut General Statutes § 31-58 (Overtime) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-9. Connecticut General Statutes § 31-71 (Weekly wage payment) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-10. Connecticut General Statutes § 31-71a (Final pay on discharge and layoff) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-11. Connecticut General Statutes § 31-72 (Permitted wage deductions) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-12. Connecticut General Statutes § 31-49 (Payroll record retention—three years) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-13. Connecticut General Statutes § 31-48h (Personnel and medical record retention, employee access) — https://www.cga.ct.gov/current/pub/chap_563a.htm (retrieved 2026-09-03)
-14. Connecticut General Statutes § 31-48a (Electronic surveillance of employees—restrooms, lockers, lounges) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-15. Connecticut General Statutes Chapter 743jj (Connecticut Data Privacy Act, PA 22-15) — https://portal.ct.gov/ag/sections/privacy/the-connecticut-data-privacy-act (retrieved 2026-09-03)
-16. Connecticut General Statutes § 46a-80 (State employment—no disqualification based solely on prior conviction) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-17. Connecticut General Statutes § 54-142a (Arrest/erased conviction records—cannot be disseminated for employment) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-18. Connecticut General Statutes § 31-49h (Non-compete and non-solicitation agreements; PA 26-12 amendment effective 10/1/26) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-19. Connecticut General Statutes § 31-51t (Information packet on layoff) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-20. Connecticut General Statutes § 31-51u (Severance pay on mass layoff) — https://www.cga.ct.gov/current/pub/chap_557.htm (retrieved 2026-09-03)
-21. Connecticut Department of Labor — Wage and Hour — https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/wage-and-hour (retrieved 2026-09-03)
-22. Connecticut Department of Labor — Paid Sick Leave FAQs — https://portal.ct.gov/dol/knowledge-base/articles/legal/connecticut-family-and-medical-leave-act (retrieved 2026-09-03)
-23. Connecticut Department of Labor — WARN Act and Downsizing — https://portal.ct.gov/dol/knowledge-base/articles/employment-and-training/rapid-response/warn-act-and-other-downsizing-layoff-related-laws (retrieved 2026-09-03)
-24. Connecticut Department of Labor — Worker Misclassification FAQs — https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/jecworkermisclassification (retrieved 2026-09-03)
-25. Connecticut General Statutes § 36a-692 to 36a-701 (Breach notification law) — https://www.cga.ct.gov/current/pub/chap_560.htm (retrieved 2026-09-03)
-26. Connecticut Attorney General — Connecticut Data Privacy Act — https://portal.ct.gov/ag/sections/privacy/the-connecticut-data-privacy-act (retrieved 2026-09-03)
-27. Public Act 21-30 — Wage Range Disclosure FAQs — https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/salary-range-disclosure-law-faqs (retrieved 2026-09-03)
-28. Public Act 26-12 — Wage Theft and Workers' Rights (general contractor liability, wage range + benefits in postings) — https://portal.ct.gov/governor/news/press-releases/2026/05-2026/governor-lamont-signs-legislation-protecting-workers-rights (retrieved 2026-09-03)
+1. [Connecticut General Statutes § 31-1 (Employment-at-will doctrine)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-1) — retrieved 2026-09-03
+2. [Connecticut General Statutes § 31-51q (Wrongful termination—public policy exceptions)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51q) — retrieved 2026-09-03
+3. [Connecticut General Statutes § 31-71f (Required notice of wages, hours, policies at hire and on change)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-74d) — retrieved 2026-09-03
+4. [Connecticut General Statutes §§ 31-51kk to 31-51qq (Connecticut Family and Medical Leave Act)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51kk) — retrieved 2026-09-03
+5. [Connecticut General Statutes § 31-57y (Paid sick leave)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-57y) — retrieved 2026-09-03
+6. [Connecticut General Statutes § 31-49e et seq. (Paid Family and Medical Leave Insurance; definitions and program administration)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-49e) — retrieved 2026-09-03
+7. [Connecticut General Statutes § 31-74g (Wage range disclosure, PA 21-30)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-74g) — retrieved 2026-09-03
+8. [Connecticut General Statutes § 31-40z (Salary history ban; wage-range disclosure)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-48e) — retrieved 2026-09-03
+9. [Connecticut General Statutes § 31-58 (Minimum wage and overtime)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-58) — retrieved 2026-09-03
+10. [Connecticut General Statutes § 31-71b (Wage payment frequency)](https://cga.ct.gov/current/pub/chap_558.htm#sec_31-71b) — retrieved 2026-09-03
+11. [Connecticut General Statutes § 31-71c (Final pay on discharge and resignation)](https://cga.ct.gov/current/pub/chap_558.htm#sec_31-71c) — retrieved 2026-09-03
+12. [Connecticut General Statutes § 31-71e (Permitted wage deductions)](https://cga.ct.gov/current/pub/chap_558.htm#sec_31-71e) — retrieved 2026-09-03
+13. [Connecticut General Statutes § 31-71f (Notice of pay rate, hours, and paydays at hire and on change)](https://cga.ct.gov/current/pub/chap_558.htm#sec_31-71f) — retrieved 2026-09-03
+14. [Connecticut General Statutes § 31-49 (Payroll record retention—three years)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-49) — retrieved 2026-09-03
+15. [Connecticut General Statutes § 31-13a (Personnel file access; notice of discipline within one business day)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-13a) — retrieved 2026-09-03
+16. [Connecticut General Statutes § 31-40z (Salary history ban and wage-range disclosure)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-40z) — retrieved 2026-09-03
+17. [Connecticut General Statutes § 31-75 (Equal pay for equal work)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-75) — retrieved 2026-09-03
+18. [Connecticut General Statutes § 31-48a (Electronic surveillance of employees—restrooms, lockers, lounges)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-48a) — retrieved 2026-09-03
+19. [Connecticut General Statutes § 31-51i (Ban-the-box; criminal record inquiry restrictions, 2017)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51i) — retrieved 2026-09-03
+20. [Connecticut General Statutes § 31-51x (Drug testing by private employers)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51x) — retrieved 2026-09-03
+21. [Connecticut General Statutes § 31-48d (Electronic monitoring notice to employees)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-48d) — retrieved 2026-09-03
+22. [Connecticut General Statutes § 31-51tt (Social media and employment)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51tt) — retrieved 2026-09-03
+23. [Connecticut General Statutes Chapter 743jj; § 1-620 et seq. (Connecticut Data Privacy Act, PA 22-15)](https://portal.ct.gov/ag/sections/privacy/the-connecticut-data-privacy-act) — retrieved 2026-09-03
+24. [Connecticut General Statutes § 36a-701b (Breach notification; 60 days)](https://cga.ct.gov/current/pub/chap_560.htm#sec_36a-701b) — retrieved 2026-09-03
+25. [Connecticut General Statutes § 20-14p (Non-competes for physicians)](https://cga.ct.gov/current/pub/chap_557.htm#sec_20-14p) — retrieved 2026-09-03
+26. [Connecticut General Statutes § 31-49h (Non-compete and non-solicitation agreements; PA 26-12 amendment effective 10/1/26)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-49h) — retrieved 2026-09-03
+27. [Connecticut General Statutes § 31-51ll (Family violence leave)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51ll) — retrieved 2026-09-03
+28. [Connecticut General Statutes § 31-51m (Whistleblower protection)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51m) — retrieved 2026-09-03
+29. [Connecticut General Statutes § 31-51t (Information packet on layoff)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51t) — retrieved 2026-09-03
+30. [Connecticut General Statutes § 31-51u (Severance pay on mass layoff)](https://cga.ct.gov/current/pub/chap_557.htm#sec_31-51u) — retrieved 2026-09-03
+31. [Connecticut General Statutes § 46a-60 (CHRO discrimination; 1+ employees since 2019 for harassment)](https://cga.ct.gov/current/pub/chap_560.htm#sec_46a-60) — retrieved 2026-09-03
+32. [Connecticut General Statutes § 54-142a (Arrest/erased conviction records—cannot be disseminated for employment)](https://cga.ct.gov/current/pub/chap_557.htm#sec_54-142a) — retrieved 2026-09-03
+33. [Connecticut Department of Labor — Minimum Wage 2026 announcement](https://portal.ct.gov/governor/news/press-releases/2025/09-2025/governor-lamont-announces-minimum-wage-will-increase) — retrieved 2026-09-03
+34. [Connecticut Paid Leave Authority — Paid Family and Medical Leave Insurance Program](https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/paid-family-and-medical-leave-insurance-program) — retrieved 2026-09-03
+35. [Connecticut Department of Labor — Wage and Hour](https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/wage-and-hour) — retrieved 2026-09-03
+36. [Connecticut Department of Labor — Paid Sick Leave FAQs](https://portal.ct.gov/dol/knowledge-base/articles/legal/connecticut-paid-sick-leave) — retrieved 2026-09-03
+37. [Connecticut Department of Labor — WARN Act and Downsizing](https://portal.ct.gov/dol/knowledge-base/articles/employment-and-training/rapid-response/warn-act-and-other-downsizing-layoff-related-laws) — retrieved 2026-09-03
+38. [Connecticut Department of Labor — Worker Misclassification FAQs](https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/jecworkermisclassification) — retrieved 2026-09-03
+39. [Connecticut General Statutes § 36a-692 to 36a-701 (Breach notification law)](https://cga.ct.gov/current/pub/chap_560.htm#sec_36a-692) — retrieved 2026-09-03
+40. [Public Act 21-30 — Wage Range Disclosure FAQs](https://portal.ct.gov/dol/divisions/wage-and-workplace-standards/salary-range-disclosure-law-faqs) — retrieved 2026-09-03
+41. [Public Act 26-12 — Wage Theft and Workers' Rights (general contractor liability, wage range + benefits in postings)](https://portal.ct.gov/governor/news/press-releases/2026/05-2026/governor-lamont-signs-legislation-protecting-workers-rights) — retrieved 2026-09-03
+42. [Public Act 19-4 — Minimum Wage Indexed to Employment Cost Index](https://cga.ct.gov/2019/act/pa/2019PA-00004-R00SB-00001-PA.htm) — retrieved 2026-09-03

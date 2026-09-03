@@ -386,7 +386,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Workflow inspector](specs/workflow-runtime.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ADMIN_002`, `_Golden`, `_Race`, `_Security`, `_Mutation` in `internal/operations/inspector` (`BuildWorkflowView` over a compiled workflow plus an `ExecutionTrace` port with a minimal simulation-receipt source: graph with statuses, safe points, effect summary, pending human work, lifecycle dimensions, digest; denied authz fields collapse to a typed UNKNOWN status); `go test -count=1 ./internal/operations/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ADMIN-003",
@@ -411,7 +412,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Provenance](specs/provenance-graph-and-lineage.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ADMIN_003`, `_Property`, `_Security`, `_Mutation` in `internal/operations/explorer` (stream listing, event detail, chain verification reporting the exact broken sequence, correction lineage, bitemporal reads with the caller's decision enforced in SQL) and `TestTodo_ADMIN_003`, `_Security`, `_Mutation` in `internal/operations/authzsim` (`Simulate` wrapping `authz.Simulate` with policy-version match, `DiffDecisions` field-by-field, zero writes); `go test -count=1 ./internal/operations/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ADMIN-004",
@@ -925,7 +927,8 @@
     "refactor": "grpcbridge is the only HTTP projection path for governed APIs",
     "refs": "[Capability parity](plan.md#59-every-product-action-is-a-governed-capability), [developer platform](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_API_001` in `internal/transport/manifest` (`RenderDiscoveryDocument`: pure projection of the manifest for gRPC and HTTP, no transport binding); PASS; serving it is part of the app wiring; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/manifest/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "API-002",
@@ -1119,7 +1122,8 @@
     "refactor": "task recipient and actual decision authority stay distinct",
     "refs": "[Workflow approval model](specs/workflow-runtime.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_APPROVAL_001`, `_Mutation`, `FuzzTodo_APPROVAL_001` in `internal/humanwork` (bounded resolution expressions NAMED/ROLE/RELATIONSHIP/GROUP/ANY/ALL/QUORUM with depth and node caps, `ApprovalRequirement` compile with quorum, deadline, escalation and separation constraints, `DeriveRequirements` from the rules engine tier; UNKNOWN_BLOCKED refused); `go test -count=1 ./internal/humanwork/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "APPROVAL-002",
@@ -1144,7 +1148,8 @@
     "refactor": "duplicate identical submission replays the same decision ID",
     "refs": "[Approval binding](plan.md#53-approval-must-bind-to-an-immutable-proposal), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_APPROVAL_002`, `_Golden`, `_Security`, `_Mutation` in `internal/intent/approval` (`ApprovalDecision` bound to the exact ProposalRevision digest, server-held projection seam, control snapshot refs, approver principal reference and injected clock; a decision for another digest is refused; `Vote` cannot carry a client digest); `go test -count=1 ./internal/intent/approval/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "APPROVAL-003",
@@ -1192,7 +1197,8 @@
     "refactor": "recipient routing and decision authority remain separate",
     "refs": "[Approval model](specs/workflow-runtime.md), [delegation](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_APPROVAL_004`, `_Mutation` in `internal/humanwork` (`Resolve`: requester/subject/dual-role/manager-chain exclusions, delegation scope and expiry, authority floor, fallback may not broaden authority, explained by rule id); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/humanwork/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "APPROVAL-005",
@@ -1560,7 +1566,8 @@
     "refactor": "no `kernel/common`, service locator, configuration singleton or infrastructure client is permitted",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [canonical digest](specs/canonical-envelope-and-digest.md), [model conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestKernelImportsOnlyAllowedDependencies` PASS (synthetic); `TestTodo_ARCH_GO_004_Integration` FAIL: internal/kernel/canonical and internal/kernel/digest import google.golang.org/protobuf (and grpc); decision pending between a documented waiver (canonical profiles are defined over protobuf descriptors) and moving those two packages out of kernel; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-005",
@@ -1586,7 +1593,8 @@
     "refactor": "typed generated interfaces may implement handler contracts without introducing `any`, reflection dispatch or global registries",
     "refs": "[BusinessIntent](specs/business-intent-and-change-request.md), [capability lifecycle](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestIntentCapabilityPackagesRejectDomainRulesAndAdapters` plus `TestTodo_ARCH_GO_005_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-006",
@@ -1612,7 +1620,8 @@
     "refactor": "each subsystem retains semantic owner and independent conformance tests; governance never becomes a generic policy garbage drawer",
     "refs": "[Governance composition](specs/governance-decision-and-obligation-composition.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestGovernanceCompositionRejectsPolicyImplementationImports` plus `TestTodo_ARCH_GO_006_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-007",
@@ -1638,7 +1647,8 @@
     "refactor": "`step/transform` delegates to `engine/transform`, `step/rule` to `engine/rules`, and delivery/document/integration steps create semantic intents rather than transport calls",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [workflow step catalog](workflows/_engine/step-types.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestWorkflowLayersRejectRuntimeCompilerAndDomainPersistenceCycles` plus `TestTodo_ARCH_GO_007_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-008",
@@ -1664,7 +1674,8 @@
     "refactor": "package-private implementation types prevent domain-specific extension from leaking into the shared engine",
     "refs": "[Engine coverage](#37-shared-transformation-and-population-engines), [model conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEnginePackagesRejectDomainAndAdapterImports` plus `TestTodo_ARCH_GO_008_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-009",
@@ -1688,7 +1699,8 @@
     "refactor": "common shape is a coverage contract, not inheritance or a generic engine framework",
     "refs": "[Engine todos](#37-shared-transformation-and-population-engines), [registry contracts](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEnginePackageContractCompleteness` and `TestTodo_ARCH_GO_009_Integration` now PASS (`checked 7 engine packages, 0 with contract gaps`): every `internal/engines/*` package exposes `Version()`, a Compile/Evaluate pair and an `Explain`; additive changes to canonicalbytes, payband, rules, population, eligibility with tests; supersedes the partial line above; branch plan-revision-2026-09-02; `go test -count=1 ./.../...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-010",
@@ -1719,7 +1731,8 @@
     "refactor": "keep one package per domain until actual import-cycle, ownership or size evidence justifies an internal subpackage",
     "refs": "[People domain](specs/people-employment-assignment-domain.md), [organization domain](specs/organization-and-relationship-domain.md), [compensation](specs/compensation-domain.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDomainOwnershipRejectsAnemicAndCrossDomainPersistence` plus `TestTodo_ARCH_GO_010_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-011",
@@ -1746,7 +1759,8 @@
     "refactor": "shared immutable plan/value contracts break the existing conceptual cycle; no callback/service-locator escape hatch",
     "refs": "[Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [conflict control](specs/cross-workflow-conflict-and-write-intent.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTransactionConflictDependencyDirection` plus `TestTodo_ARCH_GO_011_Integration` (passes against the real tree) in `tools/policy/archrules`, rules in `definitions/architecture/architecture-rules.yaml`; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-012",
@@ -1772,7 +1786,8 @@
     "refactor": "PostgreSQL transaction features remain adapter capabilities exposed through narrow interfaces, not leaked handles",
     "refs": "[Ledger spec](specs/transaction-ledger-reconciliation-and-repair.md), [database materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestLedgerPackageRejectsConcreteStoreDependency` PASS (synthetic); `TestTodo_ARCH_GO_012_Integration` FAIL: internal/ledger imports pgx/v5 for its Tx type; fix with LIB-004; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-013",
@@ -1796,7 +1811,8 @@
     "refactor": "avoid one interface per struct; introduce a port only at a real ownership/test/adapter boundary",
     "refs": "[Platform responsibilities](specs/platform-responsibility-boundaries.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPortOwnershipRejectsCentralRepositoryAndProviderInterfaces` and `TestTodo_ARCH_GO_013_Integration` now PASS against the real tree (`Querier` port moved to `internal/connectivity/observe`, 0 adapter-owned interfaces); supersedes the partial line above; branch plan-revision-2026-09-02; `go test -count=1 ./.../...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ARCH-GO-014",
@@ -3825,7 +3841,7 @@
     "refs": "[Plane model](specs/platform-plane-model.md), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_CAP_002`, `TestTodo_CAP_002_Golden`, `TestTodo_CAP_002_Security`, `TestTodo_CAP_002_Mutation` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS; gateway refuses write-effect capabilities in P1A, records invocation evidence via `EvidenceSink`, typed errors; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_CAP_002`, `TestTodo_CAP_002_Golden`, `TestTodo_CAP_002_Security`, `TestTodo_CAP_002_Mutation` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS; gateway refuses write-effect capabilities in P1A, records invocation evidence via `EvidenceSink`, typed errors; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CAP-003",
@@ -3851,7 +3867,7 @@
     "refs": "[Transport strategy](plan.md#16-strategic-decisions), [canonical envelope](specs/canonical-envelope-and-digest.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_CAP_003`, `TestTodo_CAP_003_Golden`, `FuzzTodo_CAP_003` in `internal/transport/envelope`; `TestTodo_CAP_003_Integration`, `TestTodo_CAP_003_Fault` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; one typed `envelope.Error` projected identically to gRPC status details and the connect-go HTTP edge, no raw internal error text leaks; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_CAP_003`, `TestTodo_CAP_003_Golden`, `FuzzTodo_CAP_003` in `internal/transport/envelope`; `TestTodo_CAP_003_Integration`, `TestTodo_CAP_003_Fault` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; one typed `envelope.Error` projected identically to gRPC status details and the connect-go HTTP edge, no raw internal error text leaks; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CAREER-001",
@@ -4816,7 +4832,7 @@
     "refs": "[Compensation domain](specs/compensation-domain.md), [simulation contract](specs/workflow-runtime.md), [Business Intent draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
     "done": true,
-    "evidence": "`TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects`, `TestTodo_COMP_006_Security/_Property/_Golden`, `FuzzTodo_COMP_006` in `internal/domains/rewards` plus `internal/engines/payband` (`TestEvaluatePayBandPosition*`, `FuzzEvaluatePayBandPosition`); `go test -count=1 ./internal/domains/... ./internal/engines/...` PASS; exact apd decimals, byte-identical result for identical inputs, zero effect counters; branch plan-revision-2026-09-02"
+    "evidence": "`TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects`, `TestTodo_COMP_006_Security/_Property/_Golden`, `FuzzTodo_COMP_006` in `internal/domains/rewards` plus `internal/engines/payband` (`TestEvaluatePayBandPosition*`, `FuzzEvaluatePayBandPosition`); `go test -count=1 ./internal/domains/... ./internal/engines/...` PASS; exact apd decimals, byte-identical result for identical inputs, zero effect counters; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CONF-001",
@@ -4843,7 +4859,8 @@
     "refactor": "conformance invokes public capabilities only",
     "refs": "[Reference workflows](workflows/README.md), [architecture acceptance](reference-workflows/reference-suite.md#foundational-questions-the-suite-must-close)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONF_001`, `_Golden`, `_Conformance`, `_Fault`, `_Recovery`, `_Mutation` in `tools/conformance` (typed model parsed from planning/reference-workflows, vocabulary read live from planning/specs/workflow-runtime.md, eleven deterministic checks, JSON+markdown report with digest, `go run ./tools/conformance`; promote-into-management 11 PASS/0 FAIL); `go test -count=1 ./tools/conformance/...` PASS on windows/arm64 (Go 1.26.3); `Runner` port awaits internal/workflow; branch plan-revision-2026-09-02. Executed section: `internal/workflow/simulate` (SIMULATE-mode interpreter; `TestSimulateModeExecutesThePromotionReferenceWithZeroEffects`, `TestSimulateModeRefusesWriteClassNodes`, `TestSimulateReceiptIsByteStable`, `TestTodo_WF_SIM_001`..`_014`) and `tools/conformance/runner.PlanRunner` (`TestConformanceReportGainsAnExecutedReceiptSection`); the promotion reference runs 6 nodes, 4 work items would await, lifecycle ends SIMULATED/NOT_PLANNED/NOT_STARTED/NOT_APPLICABLE/PENDING, all effect counters zero; `go test -count=1 ./internal/workflow/... ./tools/conformance/...` PASS"
   },
   {
     "id": "CONF-002",
@@ -5029,7 +5046,7 @@
       "RACE": "TestTodo_CONF_008_Race"
     },
     "red": "caller-owned current facts are trusted; simulation creates side effects; task is not proposal-bound; crash strands frontier; stale approval/snapshot/reservation reaches commit; failed compensation-read entitlement rolls back committed promotion; runtime completion closes the intent; or repair reruns any local Promotion mutation",
-    "green": "golden trace proves intent-only ingress, mixed-authority snapshot, zero-effect simulation, immutable proposal, four governed approvals, durable effective-date wait, execution revalidation, fenced position/budget holds, one atomic People/Org/Position/Comp commit, effect DAG, fresh observations, business `COMPLETED` plus external `DEGRADED`/reconciliation `REPAIR_REQUIRED`, targeted IAM repair, final consistent closure and verifiable execution receipt",
+    "green": "golden trace proves intent-only ingress, mixed-authority snapshot, zero-effect simulation, a signed `LegalEvaluationReceipt` naming the pinned rule-pack releases, the applied and considered-not-applicable obligations, and the composition trace, immutable proposal, four governed approvals, durable effective-date wait, execution revalidation, fenced position/budget holds, one atomic People/Org/Position/Comp commit, effect DAG, fresh observations, business `COMPLETED` plus external `DEGRADED`/reconciliation `REPAIR_REQUIRED`, targeted IAM repair, final consistent closure and verifiable execution receipt",
     "refactor": "domain capability composition remains customer-configurable",
     "refs": "[Promotion workflow](workflows/rewards/promotion-into-management.md), [reference suite](reference-workflows/reference-suite.md)",
     "retired": false,
@@ -5551,7 +5568,8 @@
     "refactor": "secret values are compared by metadata/fingerprint and never disclosed",
     "refs": "[Configuration diff](specs/hris-admin-dataops.md), [environment governance](plan.md#111-environment-and-change-governance)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONFIG_001`, `_Golden`, `_Security` in `internal/platform/config` (`Diff` over typed snapshots: order-independent, secrets compared by fingerprint only, semantic-class and ref changes classified breaking); `go test -count=1 ./internal/platform/config/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "CONFIG-002",
@@ -5576,7 +5594,8 @@
     "refactor": "bundle contains credential references only",
     "refs": "[Configuration packages](specs/platform-responsibility-boundaries.md), [config promotion](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONFIG_002`, `_Property`, `_Golden`, `_Security`, `_Conformance` in `internal/platform/config` (`Bundle`, canonical digest, ed25519 `SignBundle`/`VerifyBundle` distinguishing TAMPERED from INVALID_SIGNATURE); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/platform/config/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CONFIG-003",
@@ -5659,7 +5678,8 @@
     "refactor": "compiler/domain capabilities generate footprints; clients cannot underdeclare them",
     "refs": "[Conflict/write intent](specs/cross-workflow-conflict-and-write-intent.md), [conflict principle](plan.md#54-concurrent-changes-are-a-business-problem)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONFLICT_001`, `_Property`, `_Golden`, `_Mutation` in `internal/transaction/conflict` (`WriteFootprint`, `FieldPath` ancestor detection, alias normalisation, interval overlap via kernel `EffectiveInterval`, canonical digest); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transaction/conflict/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CONFLICT-002",
@@ -5680,7 +5700,8 @@
     "refactor": "domain-specific merge rules are versioned inputs",
     "refs": "[Conflict contract](plan.md#92-conflict-contract), [conflict spec](specs/cross-workflow-conflict-and-write-intent.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONFLICT_002`, `_Race` in `internal/transaction/conflict` (`ClassifyConflict` symmetric under pair order, declared supersession/dependency before merge rules, else HARD_CONFLICT; `ClassifyAll`); ARCH-GO-011 direction holds (0 violations); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transaction/conflict/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "CONFLICT-003",
@@ -7117,7 +7138,7 @@
     "refs": "[Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [stream models](data/models/kernel-governance-and-evidence.md)",
     "retired": false,
     "done": false,
-    "evidence": "`TestTodo_DATA_002` in `internal/data/ledger` PASS; not complete: Single-stream CAS with two concurrent appenders passes with -count=5; -race class deferred to the go-core CI job; multi-stream lock ordering is LEDGER-003"
+    "evidence": "`TestTodo_DATA_002` in `internal/data/ledger` PASS; not complete: Single-stream CAS with two concurrent appenders passes with -count=5; -race class deferred to the go-core CI job; multi-stream lock ordering is LEDGER-003; `go test -count=1 ./internal/data/ledger/...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATA-003",
@@ -7168,7 +7189,8 @@
     "refactor": "wall clock is evidence, never sequence authority",
     "refs": "[Ledger integrity](specs/transaction-ledger-reconciliation-and-repair.md), [trusted time](plan.md#16-strategic-decisions)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_004` (10 subtests: gap, reorder, duplicate, altered digest, wrong prior hash, substituted event each located at the exact sequence), `TestTodo_DATA_004_Golden` in `internal/data/ledger/hashchain` (chain_hash = digest(prev_hash || event_digest) through `internal/kernel/digest`; side table `ledger_hash_chain_link` from `hashchain.SchemaDDL`, being folded into migration 00014); `go test -count=1 ./internal/data/ledger/...` PASS via embedded-postgres; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DATA-005",
@@ -7194,7 +7216,8 @@
     "refactor": "query API labels chronology versus current authority",
     "refs": "[Temporal analytics](plan.md#16-strategic-decisions), [effective-date debugger](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_005` (11 subtests), `TestTodo_DATA_005_Property`, `_Property_MonotonicKnowledge`, `_Security` (SQL-level proofs that denied fields and subjects never enter the result set), `_Mutation` in `internal/data/bitemporal` (`Query`/`AsOf`/`KnownAt` over ledger_event with five modes, correction vs supersession via self-join, keyset pagination, `BuildEvidence` query digest); `go test -count=1 ./internal/data/bitemporal/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); optional index recorded in the package doc; branch plan-revision-2026-09-02"
   },
   {
     "id": "DATA-006",
@@ -7220,7 +7243,8 @@
     "refactor": "projections remain reconstructable and non-authoritative",
     "refs": "[Canonical history/read planes](plan.md#515-one-canonical-history-many-rebuildable-read-planes), [ledger projections](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_006`, `_Golden`, `_Race` in `internal/data/projection/critical` (`Apply` decodes generated IntentInstance/ProposalRevision protobufs into the migration-00004 row shapes under its own checkpoint, CAS-guarded upsert and append-only revision insert, out-of-order refused with `projection.ErrSequenceGap`, replay is a no-op; `Commit` composes with `outbox.Commit` in one transaction; `Verify` recomputes from the ledger and diffs); `go test -count=1 ./internal/data/projection/critical/... ./internal/data/provenance/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATA-007",
@@ -7414,7 +7438,8 @@
     "refactor": "rebuild compares count/hash/watermark before promotion",
     "refs": "[Provenance graph](specs/provenance-graph-and-lineage.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_014`, `_Golden`, `_Race` in `internal/data/provenance` (`Publish` refuses records without evidence ids or digests, deterministic record id, idempotent republish, `provenance.published` outbox message as protobuf Struct; `Lineage` reports COMPLETE/PARTIAL/UNKNOWN against the ledger stream; table `provenance_record` folded into migration 00015 with RLS); `go test -count=1 ./internal/data/projection/critical/... ./internal/data/provenance/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATA-015",
@@ -7468,7 +7493,8 @@
     "refactor": "raw object-store URLs never become product authority",
     "refs": "[Artifact truth](plan.md#515-one-canonical-history-many-rebuildable-read-planes), [records management](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_016`, `_Golden`, `_Security` (purpose, classification, guessed id, cross-tenant, stale grant, RLS at the DB layer), `_Recovery` in `internal/data/artifacts` (`Retrieve` is the only bytes-returning path; denials write a durable refusal row in the same transaction; append-only reference log with distinct-owner count; `SweepCandidates` uses MODEL-026 retention classes and never lists a referenced artifact; no deletion exists); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/artifacts/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DATA-017",
@@ -7565,7 +7591,8 @@
     "refactor": "worker IDs are not high-cardinality metric labels",
     "refs": "[Operational readiness](plan.md#112-operational-readiness), [telemetry governance](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATA_020`, `_Golden`, `_Recovery` (real `projection.Reconciler` flips DEGRADED to HEALTHY) in `internal/data/health` (`Probe.Run` never returns an error; UNKNOWN outranks DEGRADED outranks HEALTHY; deterministic snapshot digest; telemetry samples under the existing catalog names); `go test -count=1 ./internal/data/health/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATA-021",
@@ -7681,7 +7708,8 @@
     "refactor": "streaming readers cap memory and preserve byte/row provenance",
     "refs": "[HRIS DataOps and onboarding](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_001` and matrix variants in `internal/domains/dataops/importing` (immutable content-addressed `Batch`/`Row` via `StageBatch`/`StageCSV`, no mutation API, bounded columns/cells/rows/bytes); `go test -count=1 ./internal/domains/dataops/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATAOPS-002",
@@ -7703,7 +7731,8 @@
     "refactor": "large-file profiling remains bounded and records approximation error where sampling is used",
     "refs": "[Import pipeline](specs/hris-admin-dataops.md), [data quality](specs/data-quality-and-invariant-evaluation.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_002` and matrix variants in `internal/domains/dataops/importing` (deterministic `Profile` with type inference, exact min/max via math/big, bounded distinct tracking, byte-stable digest); `go test -count=1 ./internal/domains/dataops/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATAOPS-003",
@@ -7728,7 +7757,8 @@
     "refactor": "import and connector mappings share one transformation kernel",
     "refs": "[Mapping and crosswalk](specs/hris-admin-dataops.md), [SchemaFlux](plan.md#518-go-core-contract-first-and-open-source-first)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_003` and matrix variants in `internal/domains/dataops/importing` (`Compile` against `internal/intent/model.Registry` with a closed transform set; unresolved property or transform is a typed compile error); `go test -count=1 ./internal/domains/dataops/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATAOPS-004",
@@ -7751,7 +7781,8 @@
     "refactor": "validation performs no domain writes and exposes bounded error samples plus full artifact",
     "refs": "[Import validation](specs/hris-admin-dataops.md), [quality layers](specs/data-quality-and-invariant-evaluation.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_004` and matrix variants in `internal/domains/dataops/importing` (`ValidateBatch` with stable sha256(batch|row|property|rule) error identities and a closed rule vocabulary; re-runs yield identical error sets); `go test -count=1 ./internal/domains/dataops/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DATAOPS-005",
@@ -7827,7 +7858,8 @@
     "refactor": "debugger queries temporal APIs rather than reconstructing from logs",
     "refs": "[Effective-date debugger](specs/hris-admin-dataops.md), [temporal semantics](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_007`, `_Property`, `_Security`, `FuzzTodo_DATAOPS_007` in `internal/domains/dataops` (`ExplainFieldHistory` over a `FieldHistory` port using the `internal/engines/effectivedate` bitemporal timeline); `go test -count=1 ./internal/domains/... ./internal/engines/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DATAOPS-008",
@@ -7850,7 +7882,8 @@
     "refactor": "comparison is pure; repair is a separate governed intent",
     "refs": "[Cross-system diff](specs/hris-admin-dataops.md), [source authority](specs/source-authority-and-external-mastering.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_008`, `_Security`, `FuzzTodo_DATAOPS_008`, `TestDetectDriftReportsBoundedPopulationWithZeroEffects` in `internal/domains/dataops` (`DiffRecord` via `internal/engines/fielddiff` with seven relations and repair-safe classification; `DetectDrift` over an `ObservationReader` port, zero-effect receipt); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/domains/dataops/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-001",
@@ -7907,7 +7940,8 @@
     "refactor": "no handwritten second entity inventory; prose-only unregistered names are reported separately as coverage failures",
     "refs": "[Registry contracts](data/models/registry-and-coverage-contracts.md), [model catalog](data/models/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_002`, `_Golden`, `_Race`, `_Integration`, `_Security`, `_Mutation` (model-to-storage disposition manifest `definitions/model/storage-disposition.yaml`; hints verified against a scan of migrations/\\*.sql, unverified hints reported as MISMATCH — most business entities have no physical stream kind or table yet) in `tools/gen/storagemanifest`; `go test -count=1 ./tools/gen/storagemanifest/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-003",
@@ -7934,7 +7968,8 @@
     "refactor": "generated Go/Protobuf/SQL mappings share canonical primitive definitions",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_003`, `_Property`, `_Race`, `_Integration`, `_Fault`, `_Security` (`definitions/model/property-sql-mappings.yaml`, Go type to SQL column mapping) in `tools/gen/storagemanifest`; `go test -count=1 ./tools/gen/storagemanifest/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-004",
@@ -7961,7 +7996,8 @@
     "refactor": "constraints that cannot live in SQL are named invariants with transactional enforcement and continuous verification",
     "refs": "[Relationship map](data/models/relationship-map.md), [registry contracts](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_004`, `_Property`, `_Race`, `_Integration`, `_Security`, `_Mutation` (`definitions/model/relationship-lifecycle-constraints.yaml`; generated DDL compared with the live IntentInstance five-dimension CHECK; integration tests insert/reject rows in embedded Postgres) in `tools/gen/storagemanifest`; `go test -count=1 ./tools/gen/storagemanifest/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-005",
@@ -8074,7 +8110,8 @@
     "refactor": "large/sensitive evidence remains an artifact reference",
     "refs": "[People/workforce models](data/models/people-workforce.md), [initial aggregates](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_008`, `_Security`, `_Mutation` in `internal/data/aggregates` (migration 00011: person, identity_claim, worker, employment, assignment as bitemporal fact logs with `PRIMARY KEY (tenant_id, row_id)`, the shared `aggregate_entity` identity spine so every entity and cross-entity reference carries a tenant-qualified foreign key, `aggregate_forbid_inplace_update` trigger, RLS per migration 00008); `go test -count=1 ./internal/data/aggregates/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DB-009",
@@ -8102,7 +8139,8 @@
     "refactor": "graph closure/path projections are rebuildable and checked against authoritative edges",
     "refs": "[People/workforce models](data/models/people-workforce.md), [position domain](specs/position-and-headcount-domain.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_009`, `_Security` (org-cycle and FTE over-commit refused) in `internal/data/aggregates` (migration 00012: legal_entity, organization_unit, job, job_position, position_occupancy); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/aggregates/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-010",
@@ -8128,7 +8166,8 @@
     "refactor": "payroll results remain external/conformance-only in Phase 1",
     "refs": "[Rewards models](data/models/rewards-payroll-workforce.md), [compensation domain](specs/compensation-domain.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_010`, `_Security` (currency mismatch, invalid band range, budget over-commit refused; exact `values.Money`/`values.Decimal`) in `internal/data/aggregates` (migration 00013: compensation_package, compensation_component, compensation_band, workforce_budget, budget_reservation); `LoadFixtures` materialises the fixture corpus across all 15 tables; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/aggregates/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-011",
@@ -8322,7 +8361,8 @@
     "refactor": "repository filters remain defense in depth, not the only boundary",
     "refs": "[Organization/AuthZ](specs/organization-scope-and-authz.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_017`, `_Race`, `_Integration`, `_Fault`, `_Security`, `_NilTenantRejected` in `internal/data/tenancy` (migration 00008: least-privilege `hcmnext_app` role, FORCE ROW LEVEL SECURITY with a `tenant_isolation` policy on every tenant-scoped table and each ledger_event partition, `CREATE ROLE` guarded for duplicate_object and unique_violation; `tenancy.WithTenant` sets `app.tenant_id` per transaction; cross-tenant reads return nothing); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/tenancy/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-018",
@@ -8384,7 +8424,8 @@
     "refactor": "test/design-partner seeds are separately packaged and environment fenced",
     "refs": "[Promotion fixture](reference-workflows/promote-into-management.md), [model registry](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_019`, `_Golden`, `_Race`, `_Integration`, `_Security` in `internal/data/seed` (idempotent seeder over migration 00003's registry with digest-checked conflicts and a pinned artifact digest over 21 registrations). Follow-up: re-point the seeder at the person/employment/position/compensation tables from migrations 00011–00013; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/seed/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "DB-020",
@@ -9366,7 +9407,8 @@
     "refactor": "eligibility describes qualification under rules; it neither grants authorization nor records human approval",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [governance composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ELIG_001`, `_Property`, `_Golden`, `_Security`, `_Mutation` in `internal/engines/eligibility` (Request/Result bound to program, fact and rule snapshots; PASS/FAIL/PARTIAL/UNKNOWN lattice with no short-circuit; Explain with per-leaf redaction). Note: the ELIG section is marked DEFERRED in the 2026-09-02 disposition; implemented as a pure engine with no P1A consumer yet; `go test -count=1 ./internal/engines/eligibility/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ELIG-002",
@@ -9390,7 +9432,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [capability lifecycle](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ELIG_002`, `_Property`, `_Golden` in `internal/engines/eligibility` (Request/Result bound to program, fact and rule snapshots; PASS/FAIL/PARTIAL/UNKNOWN lattice with no short-circuit; Explain with per-leaf redaction). Note: the ELIG section is marked DEFERRED in the 2026-09-02 disposition; implemented as a pure engine with no P1A consumer yet; `go test -count=1 ./internal/engines/eligibility/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ELIG-003",
@@ -9415,7 +9458,8 @@
     "refactor": "domain engines compose multiple eligibility results; workflow only coordinates their use",
     "refs": "[Rules and decisions](data/models/rules-and-decisions.md), [source authority](specs/source-authority-and-external-mastering.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ELIG_003`, `_Property`, `_Golden`, `_Mutation` in `internal/engines/eligibility` (Request/Result bound to program, fact and rule snapshots; PASS/FAIL/PARTIAL/UNKNOWN lattice with no short-circuit; Explain with per-leaf redaction). Note: the ELIG section is marked DEFERRED in the 2026-09-02 disposition; implemented as a pure engine with no P1A consumer yet; `go test -count=1 ./internal/engines/eligibility/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ELIG-004",
@@ -9439,7 +9483,8 @@
     "refactor": "completeness and eligibility remain separate axes in stored evidence",
     "refs": "[Model conventions](data/models/modeling-conventions.md), [governance composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ELIG_004`, `_Property`, `_Fault`, `_Security` in `internal/engines/eligibility` (Request/Result bound to program, fact and rule snapshots; PASS/FAIL/PARTIAL/UNKNOWN lattice with no short-circuit; Explain with per-leaf redaction). Note: the ELIG section is marked DEFERRED in the 2026-09-02 disposition; implemented as a pure engine with no P1A consumer yet; `go test -count=1 ./internal/engines/eligibility/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ELIG-005",
@@ -9464,7 +9509,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[AuthZ explanations](specs/organization-scope-and-authz.md), [provenance](specs/provenance-graph-and-lineage.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ELIG_005`, `_Property`, `_Golden`, `_Recovery`, `_Mutation` in `internal/engines/eligibility` (Request/Result bound to program, fact and rule snapshots; PASS/FAIL/PARTIAL/UNKNOWN lattice with no short-circuit; Explain with per-leaf redaction). Note: the ELIG section is marked DEFERRED in the 2026-09-02 disposition; implemented as a pure engine with no P1A consumer yet; `go test -count=1 ./internal/engines/eligibility/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ELIG-006",
@@ -9571,7 +9617,8 @@
     "refactor": "generate documentation, client metadata, edge policy and test cases from the manifest; do not maintain parallel route registries",
     "refs": "[endpoint contract](specs/http-grpc-endpoint-contract.md), [capability registry](specs/capability-registry-and-lifecycle.md), [API discovery](#17-experience-api-and-accessibility)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEndpointManifestRejectsUnownedUnboundOrHandwrittenRoute` plus `TestTodo_ENDPOINT_001_Golden` in `internal/transport/manifest` (13 RPCs discovered from protoregistry, reviewed rule table, 10 SERVED / 3 REFUSED_P1A, generated `definitions/api/endpoint-manifest.json` via `tools/policy/endpointmanifest`, presence table reproduces `internal/transport/validate.go` with zero diff); `go test -count=1 ./internal/transport/manifest/... ./tools/policy/endpointmanifest/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ENDPOINT-002",
@@ -9601,7 +9648,7 @@
     "refs": "[trusted boundary](specs/http-grpc-endpoint-contract.md#trusted-request-boundary), [organization AuthZ](specs/organization-scope-and-authz.md), [edge admission](#32-production-identity-key-custody-and-edge-enforcement)",
     "retired": false,
     "done": true,
-    "evidence": "`TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`, `TestTodo_ENDPOINT_002_{Property,Integration,Security,Conformance,Mutation}`, `FuzzTodo_ENDPOINT_002` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; both transports share one `transport.Config` and overwrite request `scope`/`initiator` server-side; branch plan-revision-2026-09-02"
+    "evidence": "`TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`, `TestTodo_ENDPOINT_002_{Property,Integration,Security,Conformance,Mutation}`, `FuzzTodo_ENDPOINT_002` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; both transports share one `transport.Config` and overwrite request `scope`/`initiator` server-side; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ENDPOINT-003",
@@ -9631,7 +9678,7 @@
     "refs": "[error projection](specs/http-grpc-endpoint-contract.md#canonical-error-projection), [Protobuf compatibility](#29-machine-readable-model-sources-and-public-api-contracts), [capability errors](#6-businessintent-capabilities-governance-and-transaction-integrity)",
     "retired": false,
     "done": true,
-    "evidence": "`TestEndpointValidationAndErrorProjectionParity`, `TestTodo_ENDPOINT_003_{Golden,Property,Integration,Security,Conformance}`, `FuzzTodo_ENDPOINT_003` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; strict JSON decoding (unknown fields rejected), presence validation table in `internal/transport/validate.go` pending replacement by the ENDPOINT-001 manifest; branch plan-revision-2026-09-02"
+    "evidence": "`TestEndpointValidationAndErrorProjectionParity`, `TestTodo_ENDPOINT_003_{Golden,Property,Integration,Security,Conformance}`, `FuzzTodo_ENDPOINT_003` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; strict JSON decoding (unknown fields rejected), presence validation table in `internal/transport/validate.go` pending replacement by the ENDPOINT-001 manifest; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ENDPOINT-004",
@@ -9815,7 +9862,8 @@
     "refactor": "generate reverse indexes from intent/capability/feature to methods and remove manually counted endpoint inventories",
     "refs": "[endpoint expansion rule](specs/http-grpc-endpoint-contract.md#expansion-rule), [feature-intent coverage](#6-businessintent-capabilities-governance-and-transaction-integrity), [workflow convergence](#58-businessintent-to-workflow-design-convergence)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestContractedIntentAndCapabilityEndpointDispositionIsTotal` in `internal/transport/manifest` (14 intents + 10 capabilities each classified into one of five disposition categories; missing = RED); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/manifest/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "ENGINE-CONF-001",
@@ -10949,7 +10997,8 @@
     "refactor": "accommodations do not weaken business controls",
     "refs": "[Accessibility foundation](specs/platform-foundation-gap-closure.md), [forms spec](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_FORM_004`, `_Integration` (SSR-route and GWC-route form submissions produce the same intent digest as the direct capability call), `_Browser`, `_Mutation`, `FuzzTodo_FORM_004` in `tools/uxqual/forms` (required-field semantics and aria-describedby error association checks; the GWC renderer lacks native required/aria-invalid so SSR is the accessible route, recorded in `definitions/ux/forms/promotion-form-accessibility-decision.yaml`); `go test -count=1 ./internal/governance/privacy/... ./tools/uxqual/forms/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "FORM-005",
@@ -11343,7 +11392,8 @@
     "refactor": "generate Go validation from the SchemaFlux definition; no parallel handwritten rules",
     "refs": "[Execution-plan scope rules](execution-plan.md#scope-rules), [adversarial gap closure](specs/adversarial-gap-closure-2026-08-13.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDeliveryManifestRejectsMissingRequiredFields`, `TestTodo_GOV_001_Golden` in `tools/planning/manifest` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-002",
@@ -11388,7 +11438,8 @@
     "refactor": "emit the crosswalk from SchemaFlux dependency data",
     "refs": "[Platform coverage rule](execution-plan.md#capability-coverage-rule), [coverage matrix](specs/platform-capability-coverage-matrix.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestRequirementTraceabilityRejectsOrphans`, `TestTodo_GOV_003_Golden`, `_Race` in `tools/planning/traceability` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-004",
@@ -11430,7 +11481,8 @@
     "refactor": "centralize normalization in one Go package consumed by planning and release checks",
     "refs": "[Execution-plan scope rules](execution-plan.md#scope-rules), [cross-phase foundation track](plan.md#cross-phase-foundation-track)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDepthVocabularyRejectsSilentPromotion`, `TestTodo_GOV_005_Golden`, `_Conformance` in `tools/planning/depthvocab` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-006",
@@ -11452,7 +11504,8 @@
     "refactor": "reuse delivery-manifest identities instead of free-form references",
     "refs": "[Scope-exchange rule](execution-plan.md#scope-exchange-rule), [portfolio discipline](plan.md#312-portfolio-discipline)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestScopeExchangeRejectsUnfundedAddition`, `TestTodo_GOV_006_Golden` in `tools/planning/scopeexchange` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-007",
@@ -11473,7 +11526,8 @@
     "refactor": "permit a small declared test matrix without turning one todo into a subsystem epic",
     "refs": "[Near-term planning priorities](plan.md#17-near-term-planning-priorities)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodoAtomicity`, `TestTodo_GOV_007_Golden` (36 advisory two-verb titles listed by `plancheck atomicity`) in `tools/planning/atomicity` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-008",
@@ -11494,7 +11548,8 @@
     "refactor": "deduplicate identical artifact metadata through content addressing",
     "refs": "[Legacy baseline rule](execution-plan.md#legacy-baseline-rule), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEvidenceFreshnessRejectsHistoricalClaim`, `TestTodo_GOV_008_Golden` (allow-list `known_evidence_freshness_gaps` in definitions/planning/known-defects.yaml, expiry 2026-10-15) in `tools/planning/evidence` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-009",
@@ -11516,7 +11571,8 @@
     "refactor": "drive the forbidden set from the implementation-depth registry",
     "refs": "[Explicit non-goals](execution-plan.md#explicit-non-goals), [Phase 1 scope](plan.md#phase-1-changeops-overlay)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPhaseOneImportsRejectDeferredSubsystems`, `TestTodo_GOV_009_Property`, `_Golden` in `tools/planning/deferredimports` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-010",
@@ -11584,7 +11640,8 @@
     "refactor": "emit glossary links in generated documentation",
     "refs": "[Identity contract](plan.md#94-identity-and-permission-contract), [model registry](data/models/registry-and-coverage-contracts.md#canonical-boundary-decisions)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestCanonicalTerms`, `TestTodo_GOV_012_Golden`, `_Conformance` in `tools/planning/terminology` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-013",
@@ -11628,7 +11685,8 @@
     "refactor": "retain suppressions only with owner, rationale and expiry",
     "refs": "[Master-plan hierarchy](plan.md), [reference suite scope](plan.md#75-reference-workflow-integration-suite)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPlanningContradictions`, `TestTodo_GOV_014_Golden` in `tools/planning/plancontradiction` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-015",
@@ -12697,7 +12755,8 @@
     "refactor": "explanation queries owned evidence/provenance contracts and remains independent of model-generated narration",
     "refs": "[Ledger and repair](specs/transaction-ledger-reconciliation-and-repair.md), [provenance](specs/provenance-graph-and-lineage.md), [initial draft intents](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestExplainTransactionReconstructsAuthorizedChronologyWithoutCausalFabrication`, `TestTodo_INTEL_001_{Property,Golden,Integration,Security,Conformance,Mutation}` in `internal/domains/intelligence` (`ExplainTransaction` over a `TransactionHistory` port with authorization-input redaction, deterministic); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/domains/intelligence/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-001",
@@ -12720,7 +12779,7 @@
     "refs": "[Business intent catalog](specs/business-intent-catalog.md), [intent kernel](plan.md#61-business-intent-and-transaction-kernel)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_INTENT_001`, `_Golden` in `internal/intent` (`Registry.Resolve/ResolveText/ResolveForInstantiation`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_INTENT_001`, `_Golden` in `internal/intent` (`Registry.Resolve/ResolveText/ResolveForInstantiation`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-002",
@@ -12748,7 +12807,7 @@
     "refs": "[Intent instance envelope](specs/business-intent-catalog.md#instance-envelope), [BusinessIntent contract](specs/business-intent-and-change-request.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_INTENT_002`, `_Golden`, `_Race`, `_Security`, `_Mutation`, `FuzzTodo_INTENT_002` in `internal/intent` (typed `Instance` envelope, server-supplied `PrincipalReference`, idempotency digest via `hcmnext.idempotent_request` v1 through `protomap.Digester`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_INTENT_002`, `_Golden`, `_Race`, `_Security`, `_Mutation`, `FuzzTodo_INTENT_002` in `internal/intent` (typed `Instance` envelope, server-supplied `PrincipalReference`, idempotency digest via `hcmnext.idempotent_request` v1 through `protomap.Digester`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-003",
@@ -12772,7 +12831,7 @@
     "refs": "[Five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [change lifecycle](plan.md#63-change-request-lifecycle), [lifecycle budget](plan.md#63a-lifecycle-budget)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_INTENT_003`, `_Security`, `_Mutation` in `internal/intent` with the six fixed legality rules in `internal/intent/lifecycle/rules.go` and `Machine.Apply/Replay`; `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_INTENT_003`, `_Security`, `_Mutation` in `internal/intent` with the six fixed legality rules in `internal/intent/lifecycle/rules.go` and `Machine.Apply/Replay`; `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-004",
@@ -12797,7 +12856,7 @@
     "refs": "[ChangeRequest contract](specs/business-intent-and-change-request.md), [change lifecycle](plan.md#63-change-request-lifecycle)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_INTENT_004`, `_Golden`, `_Mutation` in `internal/intent` (`Draft`, `Preflight` through the `Preflighter` port; non-empty `DeclaredEffects` fails with `ErrEffectInPreflight`); domain half in `internal/domains/promotion` (`TestPreflightPromotion*`, seven ported legacy scenarios); `go test -count=1 ./internal/intent/... ./internal/domains/...` PASS. Wiring the kernel port to the promotion package is tracked under NEXT-004/NEXT-005; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_INTENT_004`, `_Golden`, `_Mutation` in `internal/intent` (`Draft`, `Preflight` through the `Preflighter` port; non-empty `DeclaredEffects` fails with `ErrEffectInPreflight`); domain half in `internal/domains/promotion` (`TestPreflightPromotion*`, seven ported legacy scenarios); `go test -count=1 ./internal/intent/... ./internal/domains/...` PASS. Wiring the kernel port to the promotion package is tracked under NEXT-004/NEXT-005; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-005",
@@ -12822,7 +12881,7 @@
     "refs": "[Approval binding principle](plan.md#53-approval-must-bind-to-an-immutable-proposal), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_INTENT_005`, `_Golden`, `_Mutation` in `internal/intent` (`NewProposalRevision`, `ProposalLedger.Append`, digest via `hcmnext.proposal` v1, control snapshots revalidated not hashed, material bytes encoding in `materialbytes.go`); zero-effect receipt in `internal/domains/evidence`; `go test -count=1 ./internal/intent/...` PASS. Open: a `MaterialProposal` proto message should replace the kernel encoding (recorded in `internal/intent/materialbytes.go`); branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_INTENT_005`, `_Golden`, `_Mutation` in `internal/intent` (`NewProposalRevision`, `ProposalLedger.Append`, digest via `hcmnext.proposal` v1, control snapshots revalidated not hashed, material bytes encoding in `materialbytes.go`); zero-effect receipt in `internal/domains/evidence`; `go test -count=1 ./internal/intent/...` PASS. Open: a `MaterialProposal` proto message should replace the kernel encoding (recorded in `internal/intent/materialbytes.go`); branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-006",
@@ -12846,7 +12905,8 @@
     "refactor": "materiality is the `PROPOSAL` canonicalization profile's material list; nothing else decides",
     "refs": "[Materiality rule](specs/business-intent-and-change-request.md#materiality-rule-for-control-snapshots), [proposal material context](specs/canonical-envelope-and-digest.md#proposal-material-context)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_006`, `_Mutation` in `internal/intent/approval` (`Assess`: APPROVAL_STANDS / NEW_REVISION / BLOCKED from the material-field set; control-snapshot revalidation is immaterial); kernel `intent.MaterialEqual` now also neutralises `SupersedesRevisionID` so lineage alone is never material; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/intent/approval/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTENT-007",
@@ -13558,7 +13618,8 @@
     "refactor": "named connector uses shared runtime, not bespoke domain service",
     "refs": "[Integration Platform](specs/integration-platform.md), [integration slice](execution-plan.md#integration-platform-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTG_001`, `_Golden`, `_Fault`, `_Race`, `_Integration`, `FuzzTodo_INTG_001` in `internal/connectivity` (immutable versioned `ConnectorDefinition` registry with digests); `go test -count=1 ./internal/connectivity/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "INTG-002",
@@ -13586,7 +13647,8 @@
     "refactor": "connection instance cannot broaden definition capabilities",
     "refs": "[Integration connections](specs/integration-platform.md), [integration models](data/models/connectivity-access-content.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTG_002`, `_Security`, `_Fault`, `_Integration`, `FuzzTodo_INTG_002` in `internal/connectivity` (`ConnectorConnection` lifecycle DRAFT→VALIDATING→READY→ACTIVE/DEGRADED/SUSPENDED/QUARANTINED/REVOKED with legality table and transition evidence; credentials as opaque refs only); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/connectivity/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTG-003",
@@ -13744,7 +13806,8 @@
     "refactor": "full/incremental/delta modes share checkpoint contract",
     "refs": "[Sync engine](specs/integration-platform.md), [Gate A connector](execution-plan.md#gate-a--paid-design-partner-observation)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTG_008`, `_Fault`, `_Security` (reflects over `Connector` to prove no mutating method), `FuzzTodo_INTG_008` in `internal/connectivity/observe`; `TestTodo_INTG_008_Integration` in `observe/adapters/postgres` (fenced checkpoints decided in one upsert, stale worker cannot rewind, unstable ordering rejected); PASS via embedded-postgres; branch plan-revision-2026-09-02; `go test -count=1 ./internal/connectivity/observe/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTG-009",
@@ -13771,7 +13834,8 @@
     "refactor": "protected raw payload retention is separate from normalized observation",
     "refs": "[External outcomes](plan.md#56-external-outcomes-must-be-observed), [integration platform](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTG_009`, `_Golden`, `_Mutation`, `_Fault`, `FuzzTodo_INTG_009` in `internal/connectivity/observe`; `TestTodo_INTG_009_Integration`, `_Fault_Integration` in `observe/adapters/postgres` (append-only `external_observation` and `observation_checkpoint` tables from migration 00007, deterministic UUIDv5 observation ids, content digest excludes retrieval time, replay verification); fake incumbent HRIS in `internal/connectivity/fakeincumbent` with call log; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/connectivity/observe/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "INTG-010",
@@ -15330,7 +15394,8 @@
     "refactor": "current truth is a projection over immutable chronology",
     "refs": "[Correction models](data/models/kernel-governance-and-evidence.md), [business correction](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEDGER_005`, `_Property`, `_Security` in `internal/data/ledger/lineage` (corrections and supersessions over the existing corrects_stream_key/corrects_sequence columns; `Ancestors`/`Descendants`/`EffectiveCurrent` deterministic and cycle-guarded; `Append` validates targets in-tenant; direct UPDATE/DELETE refused with rows proven byte-identical); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/ledger/lineage/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "LEDGER-006",
@@ -15591,9 +15656,10 @@
     "red": "missing legal entity/work location/employment jurisdiction/effective time/known time/rule release returns `LEGAL_CONTEXT_UNKNOWN`; locale alone never supplies jurisdiction",
     "green": "result contains jurisdiction hierarchy, legal entity, applicable release IDs, effective/known times, provenance and uncertainty with a stable digest",
     "refactor": "contextual uncertainty blocks only capabilities whose legal contract requires certainty",
-    "refs": "[Regulatory platform](plan.md), [context separation](data/models/wire-contract-primitives.md)",
+    "refs": "[Regulatory platform](plan.md), [context separation](data/models/wire-contract-primitives.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_001`, `_Golden`, `_Race`, `_Security`, `_Mutation` in `internal/governance/legal` (`Resolve` derives a signed ed25519 LegalContext from work location, legal entity and employment jurisdiction, refusing with `ErrLegalContextUnknown` when ambiguous; `Evaluate` applies versioned `RulePack`s with ten typed obligation kinds; California and New York packs seeded from `planning/research/state-employment-law/{california,new-york}.md`, every citation marked unreviewed); `go test -count=1 ./internal/governance/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Superseded scope: single-jurisdiction resolution is extended by `LEGAL-009` (`JurisdictionSet` with locality overlays); the ten-kind vocabulary is `vocabulary_version` 1 and is extended to twenty-two by `LEGAL-011`"
   },
   {
     "id": "LEGAL-002",
@@ -15604,7 +15670,8 @@
     "depends": [
       "MODEL-018",
       "MODEL-020",
-      "CONFIG-002"
+      "CONFIG-002",
+      "LEGAL-015"
     ],
     "test": "TestTodo_LEGAL_002",
     "test_matrix": {
@@ -15616,9 +15683,9 @@
       "SECURITY": "TestTodo_LEGAL_002_Security"
     },
     "red": "unsigned/unreviewed/stale/duplicate/jurisdictionless or citationless content activates",
-    "green": "approved release records source citations, separated reviewers, applicability interval, interpretation status, supersession chain, digest and rollback target",
+    "green": "approved release records source citations, separated reviewers, applicability interval, `ReviewStatus`, per-rule `ConfidenceMarker`, supersession chain, digest and rollback target; a release below the tenant's review floor returns `REVIEW_STATUS_INSUFFICIENT` rather than evaluating",
     "refactor": "historical calculation continues resolving its pinned version",
-    "refs": "[Rule packs and regulatory platform](plan.md), [regulatory content operations](specs/platform-responsibility-boundaries.md)",
+    "refs": "[Rule packs and regulatory platform](plan.md), [regulatory content operations](specs/platform-responsibility-boundaries.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md)",
     "retired": false,
     "done": false
   },
@@ -15642,10 +15709,10 @@
       "RACE": "TestTodo_LEGAL_003_Race",
       "SECURITY": "TestTodo_LEGAL_003_Security"
     },
-    "red": "changed rule cannot identify affected tenants/workers/calculations/workflows/notices/pending approvals or silently rewrites historical results",
+    "red": "changed rule cannot identify affected tenants/workers/calculations/workflows/notices/pending approvals or silently rewrites historical results; or a changed rule is assessed against the execution date rather than the transaction's business effective date",
     "green": "deterministic report returns affected scopes and required recompute/notice/reapproval/hold actions while old outcomes retain original rule release",
     "refactor": "impact query is read-only and watermark-bound",
-    "refs": "[Regulatory change](plan.md), [dependency graph](specs/hris-admin-dataops.md)",
+    "refs": "[Regulatory change](plan.md), [dependency graph](specs/hris-admin-dataops.md), [Time axes](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model)",
     "retired": false,
     "done": false
   },
@@ -15670,8 +15737,8 @@
     },
     "red": "missing authority/trigger/due-date calendar/evidence/responsible party or contradictory obligation reports satisfied",
     "green": "each obligation has type, authority, subject, trigger, due-at calculation/version, action, evidence, owner, risk and `OPEN/SATISFIED/WAIVED/OVERDUE/BLOCKED` status",
-    "refactor": "waiver requires explicit authority and never deletes the original obligation",
-    "refs": "[Obligation engine and statutory calendar](plan.md)",
+    "refactor": "waiver requires explicit authority and never deletes the original obligation; obligation types come from the rule-pack vocabulary; this todo adds deadline computation and status, not new kinds",
+    "refs": "[Obligation engine and statutory calendar](plan.md), [Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds)",
     "retired": false,
     "done": false
   },
@@ -15720,7 +15787,7 @@
       "RACE": "TestTodo_LEGAL_006_Race",
       "SECURITY": "TestTodo_LEGAL_006_Security"
     },
-    "red": "overlap/concurrency/offset/stack/most-protective semantics are collapsed, company policy narrows mandatory protection, manager approval changes statutory eligibility, or unknown evidence becomes approval/denial",
+    "red": "overlap/concurrency/offset/stack/most-protective semantics are collapsed, company policy narrows mandatory protection, manager approval changes statutory eligibility, or unknown evidence becomes approval/denial; or an accrued statutory leave balance is reset or forfeited by a promotion or demotion when the worker is not on leave",
     "green": "immutable composition lists each program/authority/release, eligibility result, interaction strategy, protected/paid interval constraints, required evidence/notices/effects and `VALID|CONFLICT|REVIEW_REQUIRED|UNKNOWN` state with calculation trace",
     "refactor": "workflow coordinates; entitlement engine computes",
     "refs": "[Rule composition](plan.md), [leave workflow](workflows/leave/leave-return-to-work.md)",
@@ -15756,6 +15823,284 @@
     "green": "resolver pins JurisdictionContext digest, ordered releases and explicit per-family strategy, records included/excluded/conflicts/counsel scope/effective-known time; uncertainty produces zero-effect `UNKNOWN|CONFLICT|REVIEW_REQUIRED`, and rollback fences in-flight work plus emits impact/recompute/reapproval obligations",
     "refactor": "selection/composition traces are reusable legal-engine results; workflows consume typed decisions and obligations",
     "refs": "[regulatory computation](specs/platform-architecture-catalog.md), [governance composition](specs/governance-decision-and-obligation-composition.md), [legal models](data/models/rewards-payroll-workforce.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-008",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Register the rule-pack contract and validate the fifty-state configuration matrix",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "GOV-004",
+      "LEGAL-001"
+    ],
+    "test": "TestLegalMatrixCoversEveryResearchFile",
+    "test_matrix": {
+      "FUZZ": "FuzzLegalMatrixParse",
+      "GOLDEN": "TestTodo_LEGAL_007_Golden",
+      "PRIMARY": "TestLegalMatrixCoversEveryResearchFile"
+    },
+    "red": "`TestLegalMatrixCoversEveryResearchFile` fails when a matrix row has no research file, a research file has no matrix row, a cell holds a value outside `{Y,L,P,F,?}`, a stated column total disagrees with the counted cells, or the spec is absent from `specs/README.md` and `specs/specification-ownership-registry.md`",
+    "green": "the parsed matrix has exactly fifty rows keyed to the fifty state files, every cell is a legend value, both column-total blocks recompute exactly, and the ownership registry names an accountable role and a review trigger for the contract",
+    "refactor": "the parser is a `tools/planning` subcommand of `plancheck`, sharing the todo-registry file walker; no second Markdown scanner",
+    "refs": "[Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md), [state employment-law research](research/state-employment-law/README.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-009",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Resolve a JurisdictionSet with locality overlays and multi-state attribution",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-001",
+      "LEGAL-008",
+      "MODEL-018",
+      "TIME-001"
+    ],
+    "test": "TestTodo_LEGAL_008",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_008_Golden",
+      "MUTATION": "TestTodo_LEGAL_008_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_008",
+      "PROPERTY": "TestTodo_LEGAL_008_Property",
+      "RACE": "TestTodo_LEGAL_008_Race",
+      "SECURITY": "TestTodo_LEGAL_008_Security"
+    },
+    "red": "work split across subdivisions with no configured `primary_work_threshold`, or with no subdivision at or above it, resolves to a single jurisdiction; a registered locality is dropped from the overlay set; an unregistered locality disappears without a receipt note; or a locality-level jurisdiction is returned as `primary`",
+    "green": "`Resolve` returns one `PRIMARY` subdivision plus deduplicated `OVERLAY` jurisdictions ordered coarse to fine, records which attribution rule `A1`–`A6` fired and the remote-work policy applied, refuses with `LEGAL_CONTEXT_UNKNOWN` and reason `MULTI_STATE_UNRESOLVED` when no subdivision clears the threshold, and keeps the resolved set inside the signed `LegalContext` digest",
+    "refactor": "`Jurisdiction.Locality` becomes the last element of `locality_path` with the canonical encoding distinguishing an empty path from a one-element empty string; existing single-jurisdiction callers keep compiling",
+    "refs": "[Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model), [Legal and Compliance Plane](specs/platform-architecture-catalog.md#912-legal-and-compliance-plane)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-010",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Publish rule packs as a digested, signed, superseding release family",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-001",
+      "LEGAL-008",
+      "MODEL-020",
+      "CONFIG-002"
+    ],
+    "test": "TestTodo_LEGAL_009",
+    "test_matrix": {
+      "FUZZ": "FuzzPackDefinitionLoader",
+      "GOLDEN": "TestTodo_LEGAL_009_Golden",
+      "MUTATION": "TestTodo_LEGAL_009_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_009",
+      "PROPERTY": "TestTodo_LEGAL_009_Property",
+      "RACE": "TestTodo_LEGAL_009_Race",
+      "SECURITY": "TestTodo_LEGAL_009_Security"
+    },
+    "red": "rewording a citation `Note` changes the release digest; changing a typed body field leaves it unchanged; a published release is editable in place; a superseding release does not close the prior effective window; a release typed against an unknown `vocabulary_version` evaluates as \"no obligations\"; or a forged signature over a valid digest verifies",
+    "green": "the digest covers exactly the fields listed in the contract's section 3.2 and nothing else; `supersedes`/`superseded_by` link the chain and the prior window's `End` equals the successor's `Start`; an unsupported `vocabulary_version` returns `VOCABULARY_VERSION_UNSUPPORTED`; and `GetExact` keeps returning the pinned release forever",
+    "refactor": "the loader produces `RulePack` from a checked-in definition file; the two seed packs are regenerated through it rather than hand-built in Go",
+    "refs": "[Rule-pack definition family](specs/legal-rule-packs-and-state-configuration.md#3-rule-pack-definition-family), [canonical envelope and digest](specs/canonical-envelope-and-digest.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-011",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Add the twelve obligation kinds and bind each to a lifecycle step",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-010",
+      "WF-STEP-008",
+      "MODEL-026"
+    ],
+    "test": "TestTodo_LEGAL_010",
+    "test_matrix": {
+      "FUZZ": "FuzzTodo_LEGAL_010",
+      "GOLDEN": "TestTodo_LEGAL_010_Golden",
+      "MUTATION": "TestTodo_LEGAL_010_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_010",
+      "PROPERTY": "TestTodo_LEGAL_010_Property",
+      "SECURITY": "TestTodo_LEGAL_010_Security"
+    },
+    "red": "an obligation whose trigger is false is absent from the result instead of recorded as `CONSIDERED_NOT_APPLICABLE`; `LEAVE_INTERACTION` fires only when the worker is already on leave; a new kind carries no `Citation`; an obligation binds to a lifecycle step the contract does not assign it; or any binding is removable",
+    "green": "the twenty-two kinds each validate their typed body, carry a complete `Citation` with a `ConfidenceMarker`, produce a `NonRemovable` `ObligationBinding` of the declared kind, and resolve into exactly one of `obligations_applied` or `obligations_not_applicable` for every registered release; the existing ten keep their wire tokens and ordinals",
+    "refactor": "trigger predicates are pure functions of the proposal snapshot and the typed body, with no registry or clock access",
+    "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds), [workflow runtime](specs/workflow-runtime.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-012",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Compose obligations across overlapping jurisdictions with per-kind comparators",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-009",
+      "LEGAL-011",
+      "GOVERN-001"
+    ],
+    "test": "TestTodo_LEGAL_011",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_011_Golden",
+      "MUTATION": "TestTodo_LEGAL_011_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_011",
+      "PROPERTY": "TestTodo_LEGAL_011_Property",
+      "RACE": "TestTodo_LEGAL_011_Race"
+    },
+    "red": "composing the same jurisdiction set in a different order changes the receipt bytes; a single global \"most protective wins\" rule is applied across kinds; a mandatory retention maximum shorter than another jurisdiction's minimum is silently resolved; or a non-compete voided in one jurisdiction survives composition",
+    "green": "each kind applies its declared comparator, composition is commutative, associative and idempotent over the jurisdiction set, mutually impossible obligations return `CONTRADICTORY_REQUIREMENTS` with both obligations and both citations, and the composition trace names the inputs, comparator and winner per kind",
+    "refactor": "comparators are registered per kind in one table; no `switch` on kind is duplicated at a call site",
+    "refs": "[Evaluation semantics](specs/legal-rule-packs-and-state-configuration.md#6-evaluation-semantics), [governance decision and obligation composition](specs/governance-decision-and-obligation-composition.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-013",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Enforce state preemption of locality obligations",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-012"
+    ],
+    "test": "TestTodo_LEGAL_012",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_012_Golden",
+      "MUTATION": "TestTodo_LEGAL_012_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_012",
+      "PROPERTY": "TestTodo_LEGAL_012_Property"
+    },
+    "red": "a Milwaukee paid-leave obligation attaches to a Wisconsin promotion; a preemption assertion removes a subdivision- or country-level obligation; a preemption assertion for one kind removes an obligation of another kind; or a preemption is applied without a citation",
+    "green": "`PreemptionAssertion` removes only `LOCALITY` obligations of the named kind before composition, each removal is recorded in the receipt with the asserting jurisdiction and the removed obligation ids, and the five asserting states (`WI`, `LA`, `TX`, `OK`, `TN`) each pass a golden vector",
+    "refactor": "preemption is a distinct evaluation stage between release pinning and trigger evaluation; it never runs inside a comparator",
+    "refs": "[Preemption](specs/legal-rule-packs-and-state-configuration.md#64-preemption), [state employment-law research](research/state-employment-law/README.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-014",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Emit a signed LegalEvaluationReceipt",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-012",
+      "MODEL-023",
+      "MODEL-029"
+    ],
+    "test": "TestTodo_LEGAL_013",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_013_Golden",
+      "MUTATION": "TestTodo_LEGAL_013_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_013",
+      "RACE": "TestTodo_LEGAL_013_Race",
+      "RECOVERY": "TestTodo_LEGAL_013_Recovery",
+      "SECURITY": "TestTodo_LEGAL_013_Security"
+    },
+    "red": "a receipt omits the `CONSIDERED_NOT_APPLICABLE` set, the composition trace, the attribution rule that fired or the pinned release digests; a receipt stops verifying once its releases are unregistered; or a tampered receipt verifies",
+    "green": "the receipt carries every field in the contract's section 6.5, verifies offline against its embedded key after a canonical round trip, remains verifiable when the registry no longer holds the releases, and is the artifact `ObligationState` transitions are evidenced by",
+    "refactor": "the receipt reuses the `LegalContext` signing and verification path; no second signature implementation",
+    "refs": "[Receipt](specs/legal-rule-packs-and-state-configuration.md#65-receipt), [provenance graph and lineage](specs/provenance-graph-and-lineage.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-015",
+    "phase": "PHASE_2",
+    "model": "SOL_HIGH",
+    "title": "Run the rule-pack authoring and review pipeline with separated signers",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-010",
+      "LEGAL-002",
+      "TRUST-011",
+      "CONFIG-002"
+    ],
+    "test": "TestTodo_LEGAL_014",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_014_Golden",
+      "MUTATION": "TestTodo_LEGAL_014_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_014",
+      "SECURITY": "TestTodo_LEGAL_014_Security"
+    },
+    "red": "a pack reaches `COUNSEL_APPROVED` while any rule carries `VERIFY` or `DISPUTED`; the author signs their own release; an extractor broadens a research recommendation into a statutory requirement; or a release below the tenant's review floor evaluates",
+    "green": "the six `ReviewStatus` values and three `ConfidenceMarker` values are enforced end to end, `VENDOR_BASELINE` requires the publisher signature and `COUNSEL_APPROVED` additionally requires the customer-counsel signature over the same digest, author and reviewer and key holder are distinct principals, and a release below the tenant floor returns `REVIEW_STATUS_INSUFFICIENT`",
+    "refactor": "extraction emits a machine-readable diff against the research file so a reviewer sees exactly which sentence produced which typed field",
+    "refs": "[Authoring and review pipeline](specs/legal-rule-packs-and-state-configuration.md#7-authoring-and-review-pipeline), [rule provenance](specs/platform-architecture-catalog.md#rule-provenance)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-016",
+    "phase": "CONFORMANCE",
+    "model": "TERRA",
+    "title": "Prove every registered pack against the canonical promotion vector",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-011",
+      "LEGAL-013",
+      "LEGAL-014",
+      "CONF-001"
+    ],
+    "test": "TestTodo_LEGAL_015",
+    "test_matrix": {
+      "CONFORMANCE": "TestTodo_LEGAL_015_Conformance",
+      "GOLDEN": "TestTodo_LEGAL_015_Golden",
+      "PRIMARY": "TestTodo_LEGAL_015",
+      "PROPERTY": "TestTodo_LEGAL_015_Property"
+    },
+    "red": "a registered pack fails to load, carries a `Citation` whose `source_file` does not exist, or produces no receipt; a matrix cell marked `Y` has no obligation of that kind in the pack; a cell marked `F` has one; or a state with a `?` in a flow-consumed kind is releasable",
+    "green": "every registered release evaluates the one canonical promotion-and-base-pay proposal, the receipt matches its checked-in golden file byte for byte, the matrix and the packs agree cell by cell, and the three boundary vectors (Virginia 2026-09-02/04, Ohio 2025-09-28/30, Wisconsin with and without a Milwaukee overlay) each produce the declared difference",
+    "refactor": "the canonical proposal is one shared fixture; per-state divergence lives only in the release, never in the proposal",
+    "refs": "[Test strategy](specs/legal-rule-packs-and-state-configuration.md#8-test-strategy), [reference suite](reference-workflows/reference-suite.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-017",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Research and publish the US federal employment-law baseline",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-008"
+    ],
+    "test": "TestFederalBaselineIsStatedOnce",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_016_Golden",
+      "PRIMARY": "TestFederalBaselineIsStatedOnce"
+    },
+    "red": "`TestFederalBaselineIsStatedOnce` fails while two state research files state different federal WARN employee thresholds, different FLSA minimum wages, or different FLSA record-retention periods, or while no country-level `US` research file exists",
+    "green": "one `planning/research/state-employment-law/us-federal.md` states the FLSA, WARN, FMLA, FCRA and I-9 baselines once with citations, every state file's federal restatement either matches it or is replaced by a reference to it, and the contradiction scan reports zero disagreements",
+    "refactor": "the scan is a `plancheck` subcommand reusing the matrix parser, not a one-off script",
+    "refs": "[Non-goals](specs/legal-rule-packs-and-state-configuration.md#10-non-goals), [state employment-law research](research/state-employment-law/README.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "LEGAL-018",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Close the fourteen blocking research contradictions before any pack release",
+    "section": "20. Regulatory platform and content operations",
+    "depends": [
+      "LEGAL-008",
+      "LEGAL-017"
+    ],
+    "test": "TestBlockingResearchQuestionsAreTracked",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_LEGAL_017_Golden",
+      "PRIMARY": "TestBlockingResearchQuestionsAreTracked"
+    },
+    "red": "a blocking question listed in the contract's section 11 has no entry in the research review log; a state whose file still contains a listed contradiction is marked releasable in the matrix; or the Illinois file remains `DRAFTED` while an Illinois release exists",
+    "green": "each of the fourteen blocking items resolves to a corrected research file with a citation, or to a `DISPUTED` `ConfidenceMarker` recorded in the matrix and the review log; and no state with an unresolved item is releasable above `UNREVIEWED`",
+    "refactor": "the blocking list lives in the research `README.md` review log, and the contract's section 11 references it rather than restating it",
+    "refs": "[Open questions](specs/legal-rule-packs-and-state-configuration.md#11-open-questions), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
     "done": false
   },
@@ -15813,7 +16158,8 @@
     "refactor": "allow narrowly evidenced standard-library use without wrapper ceremony; exceptions are owner-, rationale-, version- and expiry-bound",
     "refs": "[Package dependency policy](#2a-modular-go-monolith-and-semantic-package-architecture), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestThirdPartySemanticFirewall` PASS (synthetic RED); `TestTodo_LIB_002_Integration` and `_Golden` FAIL on the real tree: pgx imported from composition roots and adapters outside its allowed roots (widened 2026-09-03 for cmd, internal/intent/app/pgstore, internal/connectivity/observe/adapters/postgres, internal/platform/bootstrap) and protobuf imported by internal/kernel/{canonical,digest}; kernel canonical/digest need protobuf reflection by design of the canonical-envelope spec; waiver or relocation pending; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-003",
@@ -15837,7 +16183,8 @@
     "refactor": "generated wire code remains isolated from authored domains and grpc-go types do not cross capability/domain ports",
     "refs": "[Public API contracts](#29-machine-readable-model-sources-and-public-api-contracts), [grpcbridge boundary](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestGRPCBackendQualification` PASS; `TestTodo_LIB_003_Integration` FAIL: protobuf/grpc imported by internal/kernel/{canonical,digest}, internal/intent and internal/intent/app outside [gen, internal/transport, internal/intent/protomap]; disposition pending (see LIB-002); `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-004",
@@ -15865,7 +16212,8 @@
     "refactor": "share connection/configuration mechanics without inventing an ORM-shaped domain model or leaking database handles upward",
     "refs": "[Database materialization](#26-postgresql-database-and-model-materialization), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestPGXAdapterQualification` PASS; `TestTodo_LIB_004_Integration` FAIL: 25 exported signatures in internal/data/\\* adapters, internal/intent/app/pgstore and cmd/hcmnext expose pgx.Tx/Rows/Conn; internal/ledger port imports pgx (ARCH-GO-012). Fix plan: port-level transaction abstraction after the in-flight data lanes finish; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-005",
@@ -15917,7 +16265,8 @@
     "refactor": "callers cannot depend on apd representation or context, permitting a backend replacement without domain/schema changes",
     "refs": "[Wire decimal primitives](data/models/wire-contract-primitives.md), [fixed-decimal todo](#3-canonical-values-schemas-registries-and-model-coverage)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDecimalBackendQualification`, `TestTodo_LIB_006_Conformance` (0 violations on the real tree) in `tools/policy/libfirewall`; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/libfirewall/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "LIB-007",
@@ -15942,7 +16291,8 @@
     "refactor": "business evidence remains ledger-owned; replacing collector/exporter libraries does not alter business contracts",
     "refs": "[Observability](#33-cicd-release-admission-and-observability), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestOTelBackendQualification`, `TestTodo_LIB_007_Integration` (0 direct imports) in `tools/policy/libfirewall`; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/libfirewall/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "LIB-008",
@@ -15967,7 +16317,8 @@
     "refactor": "HCM Next owns compatibility, fencing and evidence semantics; Goose supplies ordering/execution mechanics only",
     "refs": "[Database migration framework](specs/platform-foundation-gap-closure.md), [database materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestGooseBackendQualification` PASS; `TestTodo_LIB_008_Integration` FAIL: goose imported by internal/data/pgtest (test support) outside [migrations, cmd]; disposition: widen to internal/data/pgtest at integration; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-009",
@@ -16814,7 +17165,7 @@
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
     "done": true,
-    "evidence": "proto round-trip clause closed: `TestTodo_MODEL_001`, `_Property`, `_Golden`, `_Fault`, `_Security`, `_Integration`, `FuzzTodo_MODEL_001` in `internal/intent/protomap` (kernel values \u003c-\u003e `hcmnext.common.v1`/`hcmnext.intents.v1`); `go test -count=1 ./internal/intent/protomap/...` PASS; supersedes the partial line above; branch plan-revision-2026-09-02"
+    "evidence": "proto round-trip clause closed: `TestTodo_MODEL_001`, `_Property`, `_Golden`, `_Fault`, `_Security`, `_Integration`, `FuzzTodo_MODEL_001` in `internal/intent/protomap` (kernel values \u003c-\u003e `hcmnext.common.v1`/`hcmnext.intents.v1`); `go test -count=1 ./internal/intent/protomap/...` PASS; supersedes the partial line above; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "MODEL-002",
@@ -17066,7 +17417,8 @@
     "refactor": "generate docs/dependency indexes from the registry",
     "refs": "[Registry entities](data/models/registry-and-coverage-contracts.md), [business model catalog](data/models/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_011`, `_Property`, `_Golden`, `_Security`, `FuzzTodo_MODEL_011` (23 entities: the fourteen named plus nine supporting; property paths grounded in `definitions.Bindings()`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-012",
@@ -17091,7 +17443,8 @@
     "refactor": "root promotion requires explicit registry/version migration",
     "refs": "[Aggregate registry](data/models/registry-and-coverage-contracts.md#initial-aggregate-registry), [lifecycle assignments](data/models/registry-and-coverage-contracts.md#aggregate-lifecycle-assignment-registry)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_012` and matrix variants (aggregate ownership registration) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-013",
@@ -17116,7 +17469,8 @@
     "refactor": "graph projections remain rebuildable from relationship facts",
     "refs": "[Relationship map](data/models/relationship-map.md), [organization domain](specs/organization-and-relationship-domain.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_013` and matrix variants (relationship definitions with bitemporal constraints via kernel `EffectiveInterval`/`RecordedAt`/`KnownAt`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-014",
@@ -17140,7 +17494,7 @@
     "refs": "[Lifecycle profiles](data/models/registry-and-coverage-contracts.md#initial-lifecycle-profiles)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_MODEL_014`, `_Property`, `_Golden`, `FuzzTodo_MODEL_014` in `internal/intent/lifecycle` (five dimensions, profile validation, append-only history); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_MODEL_014`, `_Property`, `_Golden`, `FuzzTodo_MODEL_014` in `internal/intent/lifecycle` (five dimensions, profile validation, append-only history); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "MODEL-015",
@@ -17166,7 +17520,7 @@
     "refs": "[Negative-state policy](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_MODEL_015`, `_Property`, `_Golden`, `_Fault`, `FuzzTodo_MODEL_015` in `internal/intent` (negative-state policy registration, three shared policies in `definitions/policies.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_MODEL_015`, `_Property`, `_Golden`, `_Fault`, `FuzzTodo_MODEL_015` in `internal/intent` (negative-state policy registration, three shared policies in `definitions/policies.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "MODEL-016",
@@ -17197,7 +17551,7 @@
     "refs": "[Covered entity set](data/models/README.md), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_MODEL_016`, `_Property`, `_Golden`, `_Race`, `_Mutation`, `FuzzTodo_MODEL_016` in `internal/intent` (binding coverage report `14/14 BOUND`, `internal/intent/definitions/bindings.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_MODEL_016`, `_Property`, `_Golden`, `_Race`, `_Mutation`, `FuzzTodo_MODEL_016` in `internal/intent` (binding coverage report `14/14 BOUND`, `internal/intent/definitions/bindings.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "MODEL-017",
@@ -17223,7 +17577,8 @@
     "refactor": "external schema snapshots remain observations, not canonical internal releases",
     "refs": "[DataOps configuration models](data/models/dataops-configuration.md), [schema registry boundary](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_017` and matrix variants (schema release lifecycle DRAFT/RELEASED/DEPRECATED/RETIRED on `lifecycle.Profile`, digests) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-018",
@@ -17247,7 +17602,8 @@
     "refactor": "capacity-bearing Position remains outside reference data",
     "refs": "[DataOps models](data/models/dataops-configuration.md), [position contract](specs/position-and-headcount-domain.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_018`, `_Property`, `_Golden`, `FuzzTodo_MODEL_018`, `_Race` in `internal/intent/model` (`refdata.go`: dataset kinds, DRAFT→VALIDATED→APPROVED→RELEASED→DEPRECATED release profile on the schemarelease pattern, `ResolveReference` as-of with provenance); `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-019",
@@ -17272,7 +17628,8 @@
     "refactor": "corrections append mapping revisions and trigger impact analysis",
     "refs": "[Integration mapping](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_019`, `_Property`, `_Golden`, `FuzzTodo_MODEL_019`, `_Integration`, `_Fault` in `internal/intent/model` (`crosswalk.go`: versioned effective-dated mappings with precedence, RESOLVED/UNKNOWN/AMBIGUOUS/OUT_OF_EFFECTIVE_RANGE, reverse lookup, append-only revision with impact analysis); `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-020",
@@ -17297,7 +17654,8 @@
     "refactor": "edge storage may change; semantic lineage IDs remain stable",
     "refs": "[Provenance contract](specs/provenance-graph-and-lineage.md), [epistemic integrity](plan.md#513-preserve-epistemic-integrity)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestMaterialValueRequiresLineage`, `_Property`, `_Golden`, `_Security`, `FuzzTodo_MODEL_020` (provenance graph edges; `RequireLineage`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-021",
@@ -17321,7 +17679,8 @@
     "refactor": "external observation authority never silently promotes to domain authority",
     "refs": "[Source authority](specs/source-authority-and-external-mastering.md), [authority contract](plan.md#91-authority-contract)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_021` and matrix variants (source-authority assignments per property; `ResolveAuthority`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-022",
@@ -17347,7 +17706,8 @@
     "refactor": "Candidate, Worker and former employment remain concurrent roles/relationships",
     "refs": "[Identity resolution](specs/identity-resolution-and-entity-linkage.md), [Person model](data/models/people-workforce.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_022`, `_Property`, `_Golden`, `FuzzTodo_MODEL_022`, `_Fault`, `_Security` in `internal/intent/model` (`identity.go`: links validated to confidence exactly 1.0 — no fuzzy matching, AMBIGUOUS on collision, tenant/purpose policy before ambiguity is revealed, do-not-merge constraints, append-only merge/separate with redirects and provenance); `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-023",
@@ -17372,7 +17732,8 @@
     "refactor": "classification IDs are stable and enforcement is repository/serializer independent",
     "refs": "[Classification/DLP](specs/data-classification-and-dlp.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_023` and matrix variants (classification propagation through relationships and derived fields) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-024",
@@ -17396,7 +17757,8 @@
     "refactor": "validation, quality, invariant and reconciliation remain distinct evaluator families",
     "refs": "[Quality/invariant spec](specs/data-quality-and-invariant-evaluation.md), [model catalog](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_024`, `_Property`, `_Golden`, `FuzzTodo_MODEL_024` in `internal/intent/model` (`quality.go`: PRESENCE/FORMAT/RANGE/REFERENTIAL/CROSS_FIELD rules, UNKNOWN never coerced to PASS, order-independent byte-stable composition); `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-025",
@@ -17445,11 +17807,12 @@
       "PROPERTY": "TestTodo_MODEL_026_Property"
     },
     "red": "material evidence/artifact without record class, retention schedule, authority and disposition owner fails persistence",
-    "green": "declaration derives an explainable effective retention schedule and next action date",
+    "green": "declaration derives an explainable effective retention schedule and next action date from the composed `RETENTION` obligations of the pinned rule-pack releases, applying the longest-minimum rule per record class; a record class with no applicable obligation is `RETENTION_UNKNOWN`, never a platform default",
     "refactor": "ledger stores minimal durable facts and destructible payload references",
-    "refs": "[Records management](specs/records-management-and-disposition.md), [privacy contract](plan.md#95-privacy-contract)",
+    "refs": "[Records management](specs/records-management-and-disposition.md), [privacy contract](plan.md#95-privacy-contract), [Per-kind composition](specs/legal-rule-packs-and-state-configuration.md#63-per-kind-composition)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_026` and matrix variants (records declarations, `RetentionClass.EffectiveRetention` with jurisdiction-keyed overrides — consumed by the artifacts sweep) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-027",
@@ -17529,7 +17892,8 @@
     "refactor": "provider/backend may change without changing artifact identity",
     "refs": "[Canonical history](plan.md#515-one-canonical-history-many-rebuildable-read-planes), [document models](data/models/connectivity-access-content.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_029`, `_Property`, `_Golden`, `_Security`, `FuzzTodo_MODEL_029` in `internal/data/artifacts` (content-addressed `Put`/`PutStream` with sha256 while streaming, size cap, idempotent by content id, identity drift refused; companion schema `\u003ccore\u003e_artifact_store` from migration 00010 with RLS and forbid_mutation triggers); `go test -count=1 ./internal/data/artifacts/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-030",
@@ -17553,7 +17917,8 @@
     "refactor": "Markdown dashboard is generated from machine evidence",
     "refs": "[Registry status](data/models/registry-and-coverage-contracts.md#minimum-conformance-proof-per-intent), [model README](data/models/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_030`, `_Property` (model coverage report; `Registry.Digest()` pure over sorted slices, byte-identical across runs) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-031",
@@ -17976,7 +18341,8 @@
     "refactor": "keep the manifest behind its semantic owner; do not grow it to cover exploratory models",
     "refs": "[Covered entity set](data/models/README.md), [draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MSRC_001`, `TestTodo_MSRC_001_Golden` in `tools/gen/schemaflux` (`definitions/generation/definition-sources.yaml`: 14 definitions + 10 capability manifest entries with source file, stable id, owner, digest); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/gen/schemaflux/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "MSRC-002",
@@ -18008,7 +18374,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MSRC_002`, `_Property`, `_Golden`, `_Fault`, `_Security`, `_Mutation` in `tools/gen/schemaflux/sources` (`schema/schemaflux/metamodel/v1/metamodel.yaml`: primitives mapped to kernel value types, presence rules, identity/reference/revision key forms, bitemporal fields, classification and retention attributes, each entry citing its Go anchor in `internal/intent/model`; `schema/schemaflux/registries/v1/registries.yaml` mirrors the Go authority and retention catalogs); `go test -count=1 ./tools/gen/schemaflux/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSRC-003",
@@ -18038,7 +18405,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Kernel models](data/models/kernel-governance-and-evidence.md), [BusinessIntent kernel](specs/business-intent-and-change-request.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MSRC_003`, `_Property`, `_Golden`, `_Mutation` (kernel, governance and evidence sources under `schema/schemaflux/entities/v1`, cross-checked entity by entity against `internal/intent/model.Catalog()`); `go test -count=1 ./tools/gen/schemaflux/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSRC-004",
@@ -18064,7 +18432,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[People models](data/models/people-workforce.md), [rewards models](data/models/rewards-payroll-workforce.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MSRC_004`, `_Golden`, `_Race` (people, position, compensation and budget sources: 15 entities and 5 relationships matching the Go registry); `go test -count=1 ./tools/gen/schemaflux/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSRC-005",
@@ -18091,7 +18460,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Connectivity models](data/models/connectivity-access-content.md), [operations models](data/models/operations-production.md), [DataOps models](data/models/dataops-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MSRC_005`, `_Golden`, `_Integration`, `_Fault`, `_Security`, `_Mutation` (connectivity, assurance, operations and dataops sources, most marked `covered: false` as DRAFT until their Go registries exist; generated manifest `definitions/generation/model-sources.yaml` with 114 entities, 5 relationships, 39 authorities, 8 retention classes); `go test -count=1 ./tools/gen/schemaflux/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MSRC-006",
@@ -18356,8 +18726,8 @@
     "refactor": "add scheduler/admin and mature migration/deployment qualification only when their first selected runtime behavior requires them",
     "refs": "[physical spine](next-steps.md#m2--production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture)",
     "retired": false,
-    "done": false,
-    "evidence": "ledger/outbox/projection slice: `TestLedgerOutboxProjectionAppendRestartsAndReconciles`, `TestOutboxConsumerHandlerIsIdempotentByMessageID` in `internal/data/outbox`; `TestApplyAdvancesIdempotentlyAndRejectsGaps`, `TestReconcilerCatchesUpFromLedger` in `internal/data/projection`; `TestKernelDigesterComputesAndVerifies` in `internal/ledger`; `go test -count=1` PASS via embedded-postgres; `cmd/worker` and `cmd/projector` wired with graceful shutdown. Remaining: `TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` end-to-end through the served gRPC edge (after Wave 2 wiring)"
+    "done": true,
+    "evidence": "`TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` (8 subtests) in `test/bootstrap`: migrates from zero, serves the registry on gRPC and the connect edge, one create writes ledger+projection+outbox in one transaction, failed append leaves no partial chronology, simulate identical on both transports, restart returns the same typed intent, replayed idempotency key yields one intent, worker killed mid-batch loses nothing and never double-applies, reconciler restores the projection; composition in `internal/intent/app` (`NewCell`) with the Postgres store adapter `internal/intent/app/pgstore`; `cmd/hcmnext serve`; `go test -count=1 ./test/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); supersedes the partial line above; branch plan-revision-2026-09-02"
   },
   {
     "id": "NEXT-005",
@@ -18408,7 +18778,8 @@
     "refactor": "the Promotion application package orchestrates owner ports; provider adapters and workflow steps contain no promotion semantics",
     "refs": "[P1A Promotion slice](next-steps.md#m3--p1a-promotion-vertical-slice), [Promotion workflow](reference-workflows/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect` (8 subtests) in `test/bootstrap`: full-database fingerprint before/after the promotion path excluding chronology tables, seeded stand-in workforce table unchanged, self-checking oracle RED, httptest connector endpoint and http.DefaultTransport recorder both at zero calls, outbox restricted to intent.created, Submit/Cancel/Supersede refused with FAILED_PRECONDITION `p1a.no_governed_write`; `go test -count=1 ./test/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "NEXT-006",
@@ -18558,7 +18929,8 @@
     "refactor": "generate signal-specific Go definitions and policy registries from the owned schema without exposing OTel or backend types to semantic packages",
     "refs": "[structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OBS_001`, `_Integration`, `_Security`, `_Mutation` in `internal/platform/telemetry` (Resource with cell/tenant-class only, context propagation keys, fail-closed attribute allow-list, `BuildEnvelope` rejection before any handler; contract YAML `definitions/telemetry/resource-contract.yaml` with a drift-guard test); `go test -count=1 ./internal/platform/telemetry/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-002",
@@ -18583,7 +18955,8 @@
     "refactor": "centralize provider/resource/exporter wiring in `operations/telemetry`; instrumentation libraries remain replaceable mechanics",
     "refs": "[structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OBS_002`, `_Race`, `_Integration`, `_Security`, `TestCollectorPipelineConfigParsesWithReceiversProcessorsExporters`, `TestCollectorPipelineConfigRedactionCoversEveryProhibitedClassKey` in `internal/platform/telemetry/otel` (redacting tracer/span decorator routing every attribute through the frozen policy evaluator, exactly the five catalog instruments registered, correlation/request/evidence/principal ids propagated from the logging context, stdout/OTLP-HTTP/test exporters, bounded shutdown report; Collector pipeline `definitions/telemetry/collector/otel-collector.yaml` with a redaction processor covering every PROHIBITED class); transport interceptors are the follow-up; `go test -count=1 ./internal/platform/telemetry/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-003",
@@ -18631,7 +19004,8 @@
     "refactor": "one policy evaluator governs logs, spans, metrics and exemplars; signal adapters do not invent weaker redaction rules",
     "refs": "[structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [DLP](specs/data-classification-and-dlp.md), [SLOs](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OBS_004` plus three variants in `internal/platform/telemetry` (classify → cardinality cap with deterministic overflow bucket → export decision; sampling from a server-computed retention class only; PROHIBITED classes can never map to a sink); `definitions/telemetry/policy.yaml`; `go test -count=1 ./internal/platform/telemetry/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "OBS-005",
@@ -18656,7 +19030,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[SLO contract](specs/slo-sli-error-budget.md), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OBS_005`, `_Race`, `_Integration`, `_Fault` in `internal/platform/telemetry` (versioned metric catalog for the P1A cell: intent.created, intent.simulated, ledger.append, outbox.lag, edge.parity; panel and alert validation); `definitions/telemetry/{metrics-catalog,dashboards,alerts}.yaml` with drift-guard tests; `go test -count=1 ./internal/platform/telemetry/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "OBS-006",
@@ -18682,7 +19057,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Operations models](data/models/operations-production.md), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OBS_006`, `_Integration`, `_Mutation` in `internal/platform/telemetry` (`Check(required, sink, faults, now)` over a read-only sink: UNKNOWN on nil sink, DEGRADED on any missing signal or fault, never HEALTHY on incomplete evidence); `go test -count=1 ./internal/platform/telemetry/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "OBS-007",
@@ -18766,7 +19142,8 @@
     "refactor": "generate event/attribute constants and validators from the telemetry schema; application code never assembles ad hoc maps or imports backend encoders",
     "refs": "[structured log envelope](specs/structured-logging-and-opentelemetry.md#structured-log-envelope), [Go dependency policy](#3-third-party-library-and-internal-semantic-package-architecture), [telemetry context](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`, `TestTodo_OBS_009_{Golden,Property,Race,Security}`, `FuzzTodo_OBS_009` in `internal/platform/logging` (versioned slog JSON envelope, redaction denylist, principal reference validation, size/cardinality caps); `go test -count=1 ./internal/platform/logging/...` PASS on windows/arm64 (Go 1.26.3). Scoped to the platform handler; the telemetry-plane owner package is OBS-001/OBS-002's; branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-010",
@@ -19167,7 +19544,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [source authority](specs/source-authority-and-external-mastering.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ONBOARD_001`, `_Golden`, `_Race`, `_Security`, `_Mutation` in `internal/connectivity/onboarding` (ed25519-signed `OnboardingManifest` with connector/connection/object/field/budget/reference pins; `Preflight.Run` refuses on the first signature, version, capability, schema or budget mismatch with a typed code and field); `go test -count=1 ./internal/connectivity/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ONBOARD-002",
@@ -19189,7 +19567,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [integration sync](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ONBOARD_002`, `_Golden` in `internal/connectivity/onboarding` (`Extractor.Extract` over `observe.Runner` with checkpoints; resumes without duplicate or lost records; a changed connector snapshot id aborts with `ErrSnapshotChanged` before any read); `go test -count=1 ./internal/connectivity/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ONBOARD-003",
@@ -19213,7 +19592,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Identity resolution](specs/identity-resolution-and-entity-linkage.md), [DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ONBOARD_003`, `_Golden`, `_Fault` in `internal/connectivity/onboarding` (`Adjudicator.Adjudicate` through pinned crosswalk snapshots: EXACT/CANDIDATE/UNMATCHED/CONFLICT outcomes, never guesses, refuses stale pins; reviewer resolution only among presented candidates); `go test -count=1 ./internal/connectivity/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ONBOARD-004",
@@ -19235,7 +19615,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[DataOps](specs/hris-admin-dataops.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ONBOARD_004`, `FuzzTodo_ONBOARD_004` in `internal/connectivity/onboarding` (`BudgetGuard` for pages/records/bytes/wall time from an injected clock stopping at a resumable checkpoint; `FieldFilterConnector` allow-list; poison rows quarantined with reasons while the batch continues); `go test -count=1 ./internal/connectivity/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ONBOARD-005",
@@ -21024,7 +21405,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Kernel models](data/models/kernel-governance-and-evidence.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_001`, `_Property`, `_Golden`, `_Mutation` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-002",
@@ -21050,7 +21432,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [relationship map](data/models/relationship-map.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_002`, `_Property`, `_Golden`, `_Security`, `_Mutation` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-003",
@@ -21074,7 +21457,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger queries](specs/transaction-ledger-reconciliation-and-repair.md), [wire time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_003`, `_Property`, `_Mutation` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-004",
@@ -21100,7 +21484,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[AuthZ](specs/organization-scope-and-authz.md), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_004`, `_Property`, `_Security`, `_Mutation` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-005",
@@ -21124,7 +21509,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Canonical digest](specs/canonical-envelope-and-digest.md), [assurance models](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_005`, `_Property`, `_Golden` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-006",
@@ -21147,7 +21533,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[DataOps diff](specs/hris-admin-dataops.md), [privacy models](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_006`, `_Property`, `_Golden`, `_Security` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-007",
@@ -21170,7 +21557,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [AuthZ explanations](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_007`, `_Property`, `_Mutation` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-008",
@@ -21192,7 +21580,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Negative states](data/models/modeling-conventions.md), [source authority](specs/source-authority-and-external-mastering.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_008`, `_Property` in `internal/engines/population` (Definition/Revision → Compile → Resolve with three-valued outcomes → ApplyRestrictions from an input decision → Freeze digested Snapshot → Diff → Explain; kernel values only, no float64); `go test -count=1 ./internal/engines/population/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POP-009",
@@ -21345,9 +21734,9 @@
       "SECURITY": "TestTodo_PRIV_001_Security"
     },
     "red": "pilot field reaches connector/export/model/telemetry path without controller, processor/subprocessor, region, purpose, lawful basis, retention and transfer assessment",
-    "green": "every approved flow resolves to versioned `ProcessingActivity` and `ProcessingDataFlow`; each occurrence records recipient/region/category receipt",
+    "green": "every approved flow resolves to versioned `ProcessingActivity` and `ProcessingDataFlow`; each occurrence records recipient/region/category receipt; the inventory records the `MONITORING_CONSENT` and `BREACH_NOTIFICATION` obligations of the applicable rule-pack releases so the notification deadlines are jurisdiction-derived, not a single global timer",
     "refactor": "inventory changes are governed configuration, not prose updates",
-    "refs": "[Privacy and records model](specs/records-management-and-disposition.md), [governance plane](plan.md)",
+    "refs": "[Privacy and records model](specs/records-management-and-disposition.md), [governance plane](plan.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md)",
     "retired": false,
     "done": false
   },
@@ -21374,7 +21763,8 @@
     "refactor": "mandatory legal basis and optional consent are never conflated",
     "refs": "[Consent and preferences](data/models/kernel-governance-and-evidence.md), [privacy governance](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_PRIV_002`, `_Security`, `_Browser`, `_Mutation` in `internal/governance/privacy` (typed `Notice` with digest, `Presentation` evidence bound to notice digest/version/locale/time, `OptionalProcessing` consent with expiry and append-only withdrawal, `EvaluateAuthority` deny-by-default with mandatory-basis refusal and RESTRICT_PROCESSING/REQUIRE_DELETION obligations on withdrawal; accessible presentation document scored by the uxqual fixture); `go test -count=1 ./internal/governance/privacy/... ./tools/uxqual/forms/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "PRIV-003",
@@ -22090,7 +22480,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_PROTO_003` in `tools/gen/contracts` (workflow/v1 `WorkflowService` 6 RPCs and humanwork/v1 `WorkService` 7 RPCs; every RPC carries a P1A disposition comment verified through descriptor SourceCodeInfo; UNSPECIFIED zero values; `buf generate` byte-identical twice; no existing gen/ file changed); `go test -count=1 ./tools/gen/contracts/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "PROTO-004",
@@ -22118,7 +22509,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [integration platform](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_PROTO_004` in `tools/gen/contracts` (dataops/v1 `DataOpsService` 4 RPCs, integration/v1 `IntegrationService` 7 read-only RPCs, evidence/v1 `EvidenceService` 3 + `OperationsService` 2; `RepairPlan` has no execute RPC anywhere; 32 new enums with zero values; idempotent generation); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/gen/contracts/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "PROTO-005",
@@ -22172,7 +22564,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Experience/API plane](specs/platform-plane-model.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_PROTO_006` (13 methods × both backends: domain result, typed error, evidence ids, deadline propagation, refusal of every reserved metadata key including the three REFUSED_P1A methods), `_Golden`, `_Race`, `_Integration`, `_Conformance`, `FuzzTodo_PROTO_006` in `internal/transport/clients` over the selected connect-go edge; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/clients/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "PROTO-007",
@@ -22252,7 +22645,8 @@
     "refactor": "generate unknown-field and dynamic-type policy from descriptors/registry; domain code never performs ad hoc reflection",
     "refs": "[Buf reflection](https://buf.build/docs/bsr/reflection/), [Protovalidate Any rules](https://buf.build/docs/reference/protovalidate/rules/any_rules/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestMixedVersionProtoRelayNeverSilentlyDropsMaterialUnknownFields` in `internal/transport/manifest` (59 reachable messages walked; `TypedPayload` is the single dynamically-typed message with a catalog-derived allowlist; unknown-field injection test); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/manifest/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "PROTO-010",
@@ -22280,7 +22674,8 @@
     "refactor": "descriptor inventory and endpoint manifests are generated from one source rather than compared by display name",
     "refs": "[endpoint manifest](specs/http-grpc-endpoint-contract.md), [Proto contracts](#29-machine-readable-model-sources-and-public-api-contracts), [endpoint closure](#60-canonical-grpc-services-grpcbridge-http-endpoints-and-endpoint-tdd)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestProtoRpcDispositionIsTotalAndNoAccidentalExposure` in `internal/transport/manifest` (every RPC in every generated service has exactly one disposition); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/manifest/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "PROVIDER-001",
@@ -22746,10 +23141,10 @@
       "PRIMARY": "TestTodo_RECORDS_DISP_001",
       "SECURITY": "TestTodo_RECORDS_DISP_001_Security"
     },
-    "red": "unknown series/custodian, schedule conflict, uncertain cutoff, missing archive acknowledgement or active hold returns eligible",
+    "red": "unknown series/custodian, schedule conflict, uncertain cutoff, missing archive acknowledgement or active hold returns eligible; or a mandatory destruction maximum shorter than another jurisdiction's minimum for the same record class is resolved silently instead of reported as a conflict",
     "green": "return per-copy action, composed schedule, cutoff/correction history and blockers as `ELIGIBLE`, `BLOCKED_WITH_REASONS` or `REPAIR_REQUIRED`; deletion count is `0`",
     "refactor": "Gate A remains non-destructive",
-    "refs": "[Records management](specs/records-management-and-disposition.md), [retention governance](plan.md)",
+    "refs": "[Records management](specs/records-management-and-disposition.md), [retention governance](plan.md), [Per-kind composition](specs/legal-rule-packs-and-state-configuration.md#63-per-kind-composition)",
     "retired": false,
     "done": false
   },
@@ -23104,7 +23499,8 @@
     "refactor": "automated diagnosis may propose; deterministic capability/governance contracts define what can execute",
     "refs": "[Repair plans](specs/transaction-ledger-reconciliation-and-repair.md), [workflow repair mode](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_REPAIR_001`, `_Golden`, `_Race`, `_Fault`, `_Mutation` in `internal/domains/repair` (`CreateRepairPlan`: canonical, digested, non-executable recommendation; `Validate` rejects `Executable: true`, no Execute exists); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/domains/repair/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "REPAIR-002",
@@ -23165,7 +23561,8 @@
     "refactor": "reuse transaction/effect simulation contracts while keeping repair diagnosis, simulation and execution separate authorities",
     "refs": "[Repair architecture](specs/transaction-ledger-reconciliation-and-repair.md), [workflow simulation](specs/workflow-runtime.md), [initial draft intents](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSimulateRepairReturnsBoundImpactAndZeroCorrectiveEffects`, `TestTodo_REPAIR_003_{Property,Golden,Integration,Fault,Security,Conformance,Mutation}`, `FuzzTodo_REPAIR_003` in `internal/domains/repair` (pure simulation, residual diffs, zero-effect receipt); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/domains/repair/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "REPLAN-001",
@@ -23431,10 +23828,10 @@
       "RECOVERY": "TestTodo_RESIDENCY_001_Recovery",
       "SECURITY": "TestTodo_RESIDENCY_001_Security"
     },
-    "red": "data class reaches unapproved cell/object replica/backup/telemetry region/provider/support session/model, recovery restores to prohibited region or unknown location is treated as compliant",
+    "red": "data class reaches unapproved cell/object replica/backup/telemetry region/provider/support session/model, recovery restores to prohibited region or unknown location is treated as compliant; or a residency decision is derived from `LocaleContext` rather than the resolved `JurisdictionSet`",
     "green": "signed residency policy resolves allowed processing/storage/support/transfer locations by class and purpose, admission checks every copy/route/processor, inventory and restore reconcile actual placement, and `UNKNOWN|TRANSFER_REVIEW_REQUIRED` blocks affected processing",
     "refactor": "placement, privacy and copy inventories share stable location/processor identities; no adapter infers residency from endpoint hostname",
-    "refs": "[tenant placement](data/models/operations-production.md), [privacy flows](specs/platform-responsibility-boundaries.md), [records inventory](specs/records-management-and-disposition.md)",
+    "refs": "[tenant placement](data/models/operations-production.md), [privacy flows](specs/platform-responsibility-boundaries.md), [records inventory](specs/records-management-and-disposition.md), [Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model)",
     "retired": false,
     "done": false
   },
@@ -23740,7 +24137,8 @@
     "refactor": "publication rejects ambiguous tables unless conflict strategy is explicit",
     "refs": "[Rules specification](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_RULE_002`, `_Property`, `_Golden`, `_Race`, `_Fault`, `FuzzTodo_RULE_002` in `internal/engines/rules` (typed decision tables, FIRST/UNIQUE/COLLECT hit policies, exact decimal comparisons, fail-closed on unknown inputs, canonical digest, per-row trace); `go test -count=1 ./internal/engines/rules/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "RULE-003",
@@ -23765,7 +24163,8 @@
     "refactor": "customer parameter changes create a new rule version/impact analysis",
     "refs": "[Promotion reference](reference-workflows/promote-into-management.md), [rules spec](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_RULE_003`, `_Property`, `_Golden`, `_Mutation`, `FuzzTodo_RULE_003` in `internal/engines/rules` (`hcmnext.rules.promotion_approval_threshold` v2026.1 compiled from the reference promotion workflow and the RaiseApprovalTable example; UNKNOWN inputs map to `UNKNOWN_BLOCKED`, never to STANDARD); `go test -count=1 ./internal/engines/rules/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "RULE-004",
@@ -25426,7 +25825,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Data plane](specs/platform-plane-model.md), [model catalog](data/models/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_STORE_001`, `_Integration`, `_Fault`, `_Recovery`, `_Mutation` in `internal/data/tenancy/storagedisposition` over `definitions/storage/storage-disposition.yaml` (31 live base tables across migrations 00001–00014 with owner, plane, tenant column, retention and encryption class; cross-checked against the live schema); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/tenancy/storagedisposition/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "STORE-002",
@@ -25478,7 +25878,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Operations models](data/models/operations-production.md), [SLOs](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_STORE_003` (stale projection and unacked-outbox RED clauses), `_Golden`, `_Integration`, `_Fault` (probe error yields UNKNOWN), `_Recovery`, `BenchmarkTodo_STORE_003` in `internal/data/health` (per-store freshness, saturation against declared budgets and pool stats, recovery state); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/health/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "SUB-001",
@@ -26072,7 +26473,8 @@
     "refactor": "bootstrap owns process lifecycle only, never domain registration or business decisions",
     "refs": "[Go technology constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SVC_002`, `TestTodo_SVC_002_Integration` in `internal/platform/bootstrap` (`bootstrap.Run(ctx, Spec)`: role vocabulary from process-roles.yaml, config precedence flag\u003eenv\u003edefault with secret redaction, STARTING/READY/DRAINING/STOPPED health with loopback handler, run-group first-error cancellation and panic recovery, ordered shutdown with hard deadline, pgxpool factory plus fake pool, exit-code mapping); `go test -count=1 ./internal/platform/bootstrap/...` PASS on windows/arm64 (Go 1.26.3). Migration of cmd/worker, cmd/projector, cmd/migrate, cmd/hcmnext onto it is pending (SVC-003/007/013); branch plan-revision-2026-09-02"
   },
   {
     "id": "SVC-003",
@@ -26100,7 +26502,8 @@
     "refactor": "internal APIs remain in semantic packages; the command owns flags/process lifecycle, not HCM semantics",
     "refs": "[Execution plan transport boundary](execution-plan.md), [platform architecture](specs/platform-architecture-catalog.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`cmd/hcmnext serve` composes the cell on `bootstrap.Run` (role hcmnext: typed config with redacted secret, build banner, slog handler from `internal/platform/logging`, health state machine, ordered shutdown draining HTTP then gRPC, exit codes); the cell serves all eight P1A intents over gRPC and the connect edge plus `GET /v1/discovery`; proven by `TestAllEightP1AIntentsSimulateOverBothTransportsWithZeroEffects`, `TestP1ARefusesAReadTheBootstrapPolicyDenies`, `TestP1AServesTheDiscoveryDocument` in `test/bootstrap`; `go test -count=1 ./test/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SVC-004",
@@ -26204,7 +26607,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Data plane](specs/transaction-ledger-reconciliation-and-repair.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SVC_007` (sweep control flow, config precedence and redaction, `-rebuild` flag, incompatible pool refused) and `TestTodo_SVC_007_Integration` (three ledger events reconciled end to end through `bootstrap.Run`, checkpoint 0 to 3) in `cmd/projector`; `go test -count=1 ./cmd/projector/...` PASS via embedded-postgres; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "SVC-008",
@@ -26372,7 +26776,8 @@
     "refactor": "data backfills use governed job/repair contracts when business semantics are required rather than embedding domain behavior in migration SQL/command",
     "refs": "[Database materialization](#26-postgresql-database-and-model-materialization), [migration release](#33-cicd-release-admission-and-observability)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SVC_013` (subcommand parsing, validation, redaction, fast-fail before any network touch, no health endpoint) and `TestTodo_SVC_013_Integration` (up / idempotent re-run / status / down) in `cmd/migrate`; one-shot workload on `bootstrap.Run`, journaled apply retained; `go test -count=1 ./cmd/migrate/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "SYNTH-001",
@@ -26736,7 +27141,8 @@
     "refactor": "business effective time remains distinct from host clock time",
     "refs": "[Trusted time](data/models/operations-production.md), [canonical time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TIME_001`, `_Property`, `_Mutation`, `_Security`, `FuzzTodo_TIME_001` in `internal/platform/timeauth` (`Clock`/`FakeClock`, `Monitor` health TRUSTED/DEGRADED/UNTRUSTED from drift samples, temporal `Evidence`, `RequireTrusted` refusing with `ErrTimeUntrusted`); `go test -count=1 ./internal/platform/timeauth/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TIME-002",
@@ -26857,7 +27263,8 @@
     "refactor": "the generator produces registries and fixtures only; Protobuf remains canonical wire truth and no second business schema exists",
     "refs": "[SchemaFlux qualification fixture](specs/go-only-technology-constitution.md#schemaflux-preferred-definition-generation), [registry bootstrap profile](specs/capability-registry-and-lifecycle.md#bootstrap-profile)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSchemaFluxOfflineFixture`, `TestTodo_TOOL_004_Golden`, `TestTodo_TOOL_004_Conformance` in `tools/gen/schemaflux`. Decision: **SchemaFlux v1.2.0 disqualified** (every public builder dials a model provider; a network-blocking transport proves 4 real dials; the offline stand-in returns placeholder text) — the fallback is the native deterministic Go compiler in `tools/gen/schemaflux` over the YAML sources, byte-identical across runs, zero mismatches against `internal/intent/definitions`; record at `definitions/generation/schemaflux-qualification.yaml`; `go test -count=1 ./tools/gen/schemaflux/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-005",
@@ -26878,7 +27285,8 @@
     "refactor": "diagnostics are shared by the CLI and the workspace",
     "refs": "[Draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TOOL_005`, `TestTodo_TOOL_005_Golden` in `tools/gen/schemaflux` (six unresolved-reference classes each rejected with a typed `UnresolvedReferenceError` citing file:line); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/gen/schemaflux/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-006",
@@ -26925,7 +27333,8 @@
     "refactor": "keep transport concerns out of domain messages",
     "refs": "[Every action is a capability](plan.md#59-every-product-action-is-a-governed-capability), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestGeneratedClientParity`, `TestTodo_TOOL_007_{Golden,Integration,Conformance}` in `internal/transport/clients` and `TestRenderIsDeterministic`, `TestGeneratedClientsCurrent` (drift check) in `tools/gen/clients` (generator reads protoregistry plus `definitions/api/endpoint-manifest.json`; generated `IntentClient` (9) and `RegistryClient` (4) each with gRPC and connect backends sharing one `envelope.Error` decoding); `go test -count=1 ./internal/transport/clients/... ./tools/gen/clients/...` PASS on windows/arm64 (Go 1.26.3). Follow-up: delete the superseded hand-written `internal/transport/edge/client.go`; branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-008",
@@ -26950,7 +27359,7 @@
     "refs": "[grpcbridge qualification fixture](specs/go-only-technology-constitution.md#grpcbridge-preferred-transport-edge), [endpoint contract](specs/http-grpc-endpoint-contract.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestGRPCBridgeUnaryParity`, `TestTodo_TOOL_008_{Golden,Integration,Security,Conformance}` in `internal/transport/edge`; `go test -count=1 ./internal/transport/edge/...` PASS. Decision: **connect-go v1.20.0 selected** as the P1A edge. grpcbridge v1.1.2 rejected for this fixture (WebSocket-only tunnel, no unary HTTP projection, 8 extra module requirements); grpc-gateway v2 deferred (needs genproto/googleapis/api and the ENDPOINT-001 route manifest). FAILED_PRECONDITION is re-projected to HTTP 412 by `statusOverrideMiddleware`. Rationale recorded in `internal/transport/edge/doc.go`; branch plan-revision-2026-09-02"
+    "evidence": "`TestGRPCBridgeUnaryParity`, `TestTodo_TOOL_008_{Golden,Integration,Security,Conformance}` in `internal/transport/edge`; `go test -count=1 ./internal/transport/edge/...` PASS. Decision: **connect-go v1.20.0 selected** as the P1A edge. grpcbridge v1.1.2 rejected for this fixture (WebSocket-only tunnel, no unary HTTP projection, 8 extra module requirements); grpc-gateway v2 deferred (needs genproto/googleapis/api and the ENDPOINT-001 route manifest). FAILED_PRECONDITION is re-projected to HTTP 412 by `statusOverrideMiddleware`. Rationale recorded in `internal/transport/edge/doc.go`; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-009",
@@ -27042,7 +27451,7 @@
     "refs": "[Conflict contract](plan.md#92-conflict-contract), [workflow runtime](specs/workflow-runtime.md)",
     "retired": false,
     "done": false,
-    "evidence": "`TestTodo_TOOL_012` in `tools/quality` PASS; not complete: Test written; skips locally because -race is unsupported on windows/arm64; runs in the go-core CI job"
+    "evidence": "`go test -race -count=1 ./...` is now an explicit step in the go-core CI job; the race class is proven only when that Linux job runs (local windows/arm64 cannot); result FAIL until the named gap closes; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-013",
@@ -27091,7 +27500,8 @@
     "refactor": "preserve failed environments only through an explicit diagnostic policy",
     "refs": "[Environment governance](plan.md#111-environment-and-change-governance), [tenant sandbox boundary](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "CI half done: job `go-core-ephemeral-pg` in .github/workflows/tests.yml runs the pgtest suite on an ephemeral embedded Postgres with `HCMNEXT_TEST_PG_CACHE` cached; the in-repo `TestEnvironmentIsolation` RED/GREEN test is still to be written; `go test -count=1 ./.../...`; result FAIL until the named gap closes; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-015",
@@ -27135,7 +27545,8 @@
     "refactor": "normalize build paths, timestamps and archive ordering",
     "refs": "[Supply-chain security](specs/platform-architecture-catalog.md), [Trust baseline](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TOOL_016` (RED: builds without -trimpath differ; GREEN: -trimpath -buildvcs=false CGO_ENABLED=0 builds are byte-identical, real toolchain), `TestTodo_TOOL_016_Golden` in `tools/quality/buildverify`; `go test -count=1 ./tools/quality/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-017",
@@ -27201,7 +27612,8 @@
     "refactor": "exception approvals expire and are digest-bound",
     "refs": "[Open-source-first principle](plan.md#518-go-core-contract-first-and-open-source-first), [risk register](specs/risk-register.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TOOL_019`, `_Golden`, `_Security` in `tools/policy/depadmission` (SPDX detection from the module cache, allow/deny lists and reviewed overrides in `definitions/architecture/dependency-admission.yaml`, unknown license = FAIL; current go.mod: 30 modules all ALLOW); CI job `dependency-admission` in .github/workflows/tests.yml; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/depadmission/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-020",
@@ -27257,7 +27669,8 @@
     "refactor": "inject owned clocks/schedulers; production packages never depend on test bubbles",
     "refs": "[Go Testing Time](https://go.dev/blog/testing-time), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [workflow runtime](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSynctestQualificationAdvancesTimersAndDetectsQuiescenceWithoutSleep`, `TestTodo_TOOL_021_{Property,Race,Fault,Conformance}` in `tools/quality/synctestkit` (real testing/synctest: virtual time, quiescence, lease-loop fixture 90s virtual in \u003c5s wall); verdict QUALIFIED in `definitions/toolchain/synctest-qualification.yaml`; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/quality/synctestkit/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-022",
@@ -27333,7 +27746,8 @@
     "refactor": "scanning informs but never replaces dependency inventory, patch SLA, threat analysis or runtime control evidence",
     "refs": "[Go vulnerability management](https://go.dev/doc/security/vuln/), [dependency policy](#2b-external-go-dependency-qualification-and-semantic-ownership), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestGovulncheckAdmissionClassifiesReachableAndUnreachableFindings`, `TestTodo_TOOL_024_{Golden,Security,Conformance}` in `tools/policy/depadmission` (parses govulncheck JSON, reachable vs module-only findings, digest-bound exceptions with owner/expiry, absent scanner = SKIPPED_WITH_REASON never PASS); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/depadmission/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOOL-025",
@@ -27362,7 +27776,8 @@
     "refactor": "generate release attestations from the same inventory and keep mechanics behind owned interfaces",
     "refs": "[supply chain](#33-cicd-release-admission-and-observability), [tool qualification](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [Go constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestToolchainSupplyChainManifestRejectsUntrackedToolInput` plus golden/property/security/conformance/mutation tests in `tools/quality/toolinventory` (`definitions/toolchain/tool-inventory.yaml` from gen/TOOLS.lock, go.mod tool directives, package.json/package-lock.json, .husky; drift test); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/quality/toolinventory/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TOPOLOGY-001",
@@ -27444,7 +27859,8 @@
     "refactor": "provider adapters cannot create authorization grants",
     "refs": "[Platform foundation identity lifecycle](specs/platform-foundation-gap-closure.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_002`, `FuzzTodo_TRUST_002`, `_Integration`, `_Security`, `_Mutation` in `internal/trust/federation` (native JWS RS256/ES256/EdDSA verification, per-tenant issuer allow-list, audience, exp/nbf with injected clock skew, required claims, tenant binding, `KeySource` port; scoped to assertion validation — the OAuth authorization-code/PKCE flow awaits LIB-010); `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-003",
@@ -27468,7 +27884,8 @@
     "refactor": "session storage exposes no reusable bearer secret in logs/evidence",
     "refs": "[Platform IAM boundary](plan.md#94-identity-and-permission-contract), [foundation gap closure](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_003`, `FuzzTodo_TRUST_003`, `_Security`, `_Recovery`, `_Mutation` in `internal/trust/session` (server-side records, single-use refresh rotation, family-wide revoke on replay, idle and absolute timeouts, evidence records); `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-004",
@@ -27541,7 +27958,8 @@
     "refactor": "use open workload-identity protocols and eliminate long-lived shared service secrets",
     "refs": "[Platform correctness](plan.md#519-platform-correctness-is-business-correctness), [secrets contract](specs/secrets-key-custody-and-credential-leases.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_006`, `FuzzTodo_TRUST_006`, `_Integration`, `_Security`, `_Mutation` in `internal/trust/workload` (ed25519 workload identities ≤ 15 minutes bound to the process-roles.yaml vocabulary, rotation-aware key source); `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-007",
@@ -27565,7 +27983,8 @@
     "refactor": "network reachability never implies authority",
     "refs": "[Platform trust](specs/platform-architecture-catalog.md), [AuthZ contract](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_007`, `FuzzTodo_TRUST_007`, `_Integration`, `_Security`, `_Mutation` in `internal/trust/workload` (service-to-service `Authorize` over an allow matrix compiled from process-roles.yaml data_access, deny-by-default, explainable); `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-008",
@@ -27589,7 +28008,8 @@
     "refactor": "single-company customers use the same resolver without fake hierarchy",
     "refs": "[Organization security principle](plan.md#510-organization-scope-is-a-security-primitive), [organization AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_008`, `_Security`, `_Mutation`, `FuzzTodo_TRUST_008` in `internal/trust/authz` (`ResolveTenantScope` with org-unit closure walk and mandatory cross-tenant deny); `go test -count=1 ./internal/trust/authz/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-009",
@@ -27612,7 +28032,8 @@
     "refactor": "relationship resolution is bitemporal and source-attributed",
     "refs": "[Authorization model](specs/organization-scope-and-authz.md), [relationship models](data/models/people-workforce.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_009`, `_Security`, `_Mutation`, `FuzzTodo_TRUST_009` in `internal/trust/authz` (`ResolveAuthorizationScope` over bitemporal source-attributed relationship facts, `FilterPopulation`); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/trust/authz/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TRUST-010",
@@ -27636,7 +28057,8 @@
     "refactor": "one field registry drives API, UI, export, connector and agent filtering",
     "refs": "[Data AuthZ](specs/organization-scope-and-authz.md), [classification/DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_010`, `_Security`, `_Mutation`, `FuzzTodo_TRUST_010` in `internal/trust/authz` (`ResolveFields`: closed field registry, purpose-bound grants, deny-by-default, ALLOW/DENIED/REDACTED/WITHHELD rulings); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/trust/authz/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TRUST-011",
@@ -27661,7 +28083,8 @@
     "refactor": "explanations cannot reveal hidden policy/resource facts",
     "refs": "[HRIS AuthZ simulator](specs/hris-admin-dataops.md), [authorization intents](data/models/intent-coverage-matrix.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_011`, `_Golden`, `_Security`, `FuzzTodo_TRUST_011` in `internal/trust/authz` (`Enforce`/`Simulate` share one pure evaluator; `Decision` carries matched rule IDs, inputs digest, evidence ID and `Explain()`); PASS. Follow-up: derive `internal/domains/people.AuthorizationDecision` from `authz.Decision` during app wiring; branch plan-revision-2026-09-02; `go test -count=1 ./internal/trust/authz/...` on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TRUST-012",
@@ -28217,7 +28640,7 @@
     "refs": "[Transaction plan contract](specs/transaction-plan-and-commit-coordinator.md), [Gate A matrix](plan.md#phase-1-implementation-depth-matrix)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_TX_001`, `_Race`, `_Mutation` in `internal/intent` (`CompilePlan` produces an immutable non-executable `TransactionPlan`; no Execute exists); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_TX_001`, `_Race`, `_Mutation` in `internal/intent` (`CompilePlan` produces an immutable non-executable `TransactionPlan`; no Execute exists); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "TX-002",
@@ -28242,7 +28665,8 @@
     "refactor": "boundary is explicit data, not deployment assumption",
     "refs": "[Model consistency boundary](data/models/kernel-governance-and-evidence.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TX_002`, `_Race`, `_Security`, `_Mutation`, `_Integration` (drives a real `intent.CompilePlan` output) in `internal/transaction` (`ResolveConsistencyBoundary`: admission selectors, non-local participants never promoted to the ACID set, unmatched local participant fails closed, tenant and coordinator-epoch checks, `Fence` token, canonical `LockOrder`, digest); P1A value-only slice, no execution; `go test -count=1 ./internal/transaction/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TX-003",
@@ -28468,7 +28892,8 @@
     "refactor": "UI is a capability client, never a hidden mutation path",
     "refs": "[Experience plane](specs/experience-ui-and-branding.md), [intelligence model](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_UX_001`, `TestTodo_UX_001_Security` in `tools/uxqual/contract` (renderer-independent Promotion workspace contract; unauthorized fields and actions are absent, never blanked); `go test -count=1 ./tools/uxqual/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "UX-002",
@@ -28677,7 +29102,8 @@
     "refactor": "the workspace contract (`UX-001`) is renderer-independent; only the renderer changes",
     "refs": "[GWC qualification fixture](specs/go-only-technology-constitution.md#gwc--gowebcomponents-preferred-ui), [experience slice](execution-plan.md#experience-and-branding-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestWorkspaceQualificationFixture`, `TestTodo_UX_QUAL_001_{Browser,Security,Conformance}` in `tools/uxqual/qual` (keyboard order, landmarks/labels/live region, WCAG 2.2 AA contrast from shared tokens, 320px reflow, masked-field never rendered, native and `GOOS=js GOARCH=wasm` builds). Decision: **GoWebComponents v5.0.1 selected**; the Go html/template SSR fallback stays green under the same fixture; record `definitions/ux/workspace-renderer-decision.yaml` (review-by 2026-10-03). Pending: manual NVDA/VoiceOver pass and the Playwright spec run (`tools/uxqual/browser`, Chromium install blocked by a lockfile); branch plan-revision-2026-09-02; `go test -count=1 ./tools/uxqual/qual/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "UXFLOW-001",
@@ -29404,7 +29830,8 @@
     "refactor": "runtime never interprets arbitrary draft configuration",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [step types](workflows/_engine/step-types.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_COMP_001`, `_Golden`, `_Mutation` (typed inputs/outputs/mappings) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-COMP-002",
@@ -29427,7 +29854,8 @@
     "refactor": "graph diagnostics identify node/edge/schema source locations",
     "refs": "[Workflow kernel](plan.md#10-workflow-execution-kernel), [step coverage](workflows/_engine/step-type-coverage.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_COMP_002`, `_Property`, `_Fault`, `_Mutation` (reachability proof, termination, typed edges) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-COMP-003",
@@ -29451,7 +29879,8 @@
     "refactor": "capability manifests remain the source of effect truth",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [simulation contract](workflows/_shared/exploration-contract.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_COMP_003`, `_Race`, `_Mutation` (effect truth from the capability manifest; P1A refuses every write class; promotion reference compiles zero-effect) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-COMP-004",
@@ -29499,7 +29928,8 @@
     "refactor": "workflow coordinates results; it does not implement legal/AuthZ semantics",
     "refs": "[Workflow context layers](workflows/_engine/workflow-context-layers.md), [governance composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_COMP_005`, `_Security`, `_Mutation` (governance and obligation insertion points, compiler-placed safe points) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-COMP-006",
@@ -29892,7 +30322,8 @@
     "refactor": "migration, shadow mode, replay and the intervention taxonomy are not adoption criteria",
     "refs": "[Build or adopt](specs/workflow-runtime.md#build-or-adopt), [next-steps P1B](next-steps.md#p1b--one-bounded-authority-amendment)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced` (12 RED cases), `TestTodo_WF_RUN_000_{Golden,Integration,Conformance}` in `tools/policy/runtimedecision`; record at `definitions/runtime/durable-runtime-decision.yaml`; `go test -count=1 ./tools/policy/runtimedecision/...` PASS. Decision: BUILD on the in-house Postgres outbox/projection primitives for P1A; Temporal, Restate, DBOS Transact and river recorded as not yet evaluated against a conformance fixture (no invented benchmarks); blocking re-evaluation gate before any P1B scheduler/lease/timer code; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-RUN-001",
@@ -30592,7 +31023,8 @@
     "refactor": "persist invocation ID rather than copying unrestricted result",
     "refs": "[CAPABILITY step](workflows/_engine/step-types.md#1-capability)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_001`, `_Golden`, `_Fault`, `_Conformance`, `_Mutation`, `_Security` (CAPABILITY step against `internal/capability` records) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-STEP-002",
@@ -30615,7 +31047,8 @@
     "refactor": "no side effect or hidden current-state read",
     "refs": "[DECISION step](workflows/_engine/step-types.md#2-decision)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_002`, `_Golden`, `_Conformance` (DECISION) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-STEP-003",
@@ -30814,7 +31247,8 @@
     "refactor": "reuse the constrained transformation engine",
     "refs": "[TRANSFORM step](workflows/_engine/step-types.md#10-transform)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_010`, `_Golden` (deterministic TRANSFORM) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-STEP-011",
@@ -30929,7 +31363,8 @@
     "refactor": "retry exhaustion creates degraded/repair state, not false completion",
     "refs": "[OBSERVE step](workflows/_engine/step-types.md#14-observe), [external outcomes principle](plan.md#56-external-outcomes-must-be-observed)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_014`, `_Conformance`, `_Mutation` (OBSERVE) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WF-STEP-015",
@@ -31007,7 +31442,8 @@
     "refactor": "phase-specific workflows select allowed terminal combinations declaratively from the fixed kernel rules, not a per-definition lattice",
     "refs": "[END step](workflows/_engine/step-types.md#17-end), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [completion model](reference-workflows/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_017`, `_Mutation` (END over the five dimensions delegated to `lifecycle.Check`) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "WORK-001",

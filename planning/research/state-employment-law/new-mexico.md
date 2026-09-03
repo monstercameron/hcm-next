@@ -174,7 +174,7 @@ New Mexico follows the at-will employment doctrine: both employers and employees
 **Background checks**:
 
 - Federal FCRA applies; no additional state restrictions for private employers.
-- Annulled records (§ 651:5) must not be disclosed by candidate or used against applicant.
+- Expunged records (NMSA 1978 § 29-3A-1 et seq., Criminal Record Expungement Act, verify) need not be disclosed by the applicant.
 - Third-party background check providers must comply with FCRA notice, dispute, adverse-action procedures.
 
 **Drug testing**:
@@ -215,7 +215,7 @@ New Mexico follows the at-will employment doctrine: both employers and employees
 
 **Independent contractor classification**:
 
-- New Mexico courts apply "ABC Test" (common law), though IRS, NHES, NHDOL, and USDOL each have separate tests.
+- New Mexico courts apply "ABC Test" (common law), though the IRS, the New Mexico Department of Workforce Solutions, and the USDOL each apply separate tests.
 - Prongs: (A) worker free from control/direction contractually and in fact; (B) work outside usual course of employer's business or outside all places of business; (C) worker customarily engaged in independently established trade/business of same nature.
 - For discrimination/retaliation/harassment: "right to control" test may apply.
 - Misclassification enforcement by NMDOL, Department of Revenue, Attorney General, Workers' Comp Commission; penalties include back wages, reclassification.

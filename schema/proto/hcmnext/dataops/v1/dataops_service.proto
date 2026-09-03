@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package hcmnext.dataops.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/dataops/v1/dataops.proto";
+import "hcmnext/dataops/v1/history.proto";
+import "hcmnext/dataops/v1/repair.proto";
+
+message ExplainFieldHistoryRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.EntityRef subject = 2;
+  repeated string fields = 3;
+  hcmnext.common.v1.LocalDate as_of_effective = 4;
+  google.protobuf.Timestamp as_known_at = 5;
+  bool include_claims = 6;
+}
+
+message ExplainFieldHistoryResponse {
+  HistoryExplanation explanation = 1;
+}
+
+message DiffRecordRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.EntityRef subject = 2;
+  repeated string fields = 3;
+  // connection_id names the integration.v1 ConnectorConnection the observed
+  // side is compared against.
+  string connection_id = 4;
+  // evaluated_at is the instant the comparison is judged at. Comparison never
+  // reads a wall clock internally; a caller that omits it accepts the
+  // server's request-received instant, which is recorded in the result for
+  // replay.
+  optional google.protobuf.Timestamp evaluated_at = 5;
+  string freshness_policy_ref = 6;
+}
+
+message DiffRecordResponse {
+  RecordDiff diff = 1;
+}
+
+message CreateRepairPlanRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  // plan_id is caller-supplied so that two calls over identical evidence
+  // produce byte-identical plans (internal/domains/repair
+  // CreateRepairPlanRequest.PlanID).
+  string plan_id = 3;
+  // diff_digest binds the plan to the exact prior DiffRecord result it
+  // corrects; the server re-resolves and revalidates the comparison by
+  // digest rather than accepting a caller-supplied comparison.
+  string diff_digest = 4;
+  string local_system = 5;
+  string external_system = 6;
+  RepairApprovalPolicy approval = 7;
+  string authority_policy_version = 8;
+}
+
+message CreateRepairPlanResponse {
+  // plan is always non-executable in P1A: RepairPlan.executable is false and
+  // not_executable_reason is populated
+  // (planning/next-steps.md "P1A" — "operations.create_repair_plan/v1 as a
+  // recommendation only").
+  RepairPlan plan = 1;
+}
+
+message SimulateRepairRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  // plan_digest binds this simulation to the exact prior CreateRepairPlan
+  // result; the server re-resolves the plan and the current comparison by
+  // digest rather than accepting a caller-supplied plan or diff.
+  string plan_digest = 2;
+}
+
+message SimulateRepairResponse {
+  RepairSimulation simulation = 1;
+}
+
+// DataOpsService is the P1A HRIS DataOps operator surface: cross-system diff,
+// the effective-date debugger, and the repair recommendation/simulation pair
+// (planning/specs/hris-admin-dataops.md "The P1A Slice and Its Product
+// Test"; planning/next-steps.md "P1A").
+//
+// Total P1A disposition: every method below is IMPLEMENT. None of them
+// writes a domain, employment, assignment, organization, position,
+// compensation or budget fact, reserves anything, creates a WorkItem or timer,
+// or causes a committed external effect
+// (planning/next-steps.md "P1A" zero-effect ceiling); CreateRepairPlan
+// produces a non-executable recommendation only and SimulateRepair performs a
+// pure in-memory projection.
+service DataOpsService {
+  // P1A disposition: IMPLEMENT. Read-only effective-date debugger
+  // (planning/specs/hris-admin-dataops.md "Effective-Date Debugger").
+  rpc ExplainFieldHistory(ExplainFieldHistoryRequest) returns (ExplainFieldHistoryResponse);
+  // P1A disposition: IMPLEMENT. Read-only cross-system diff
+  // (planning/specs/hris-admin-dataops.md "Cross-System Data Diff").
+  rpc DiffRecord(DiffRecordRequest) returns (DiffRecordResponse);
+  // P1A disposition: IMPLEMENT as a non-executable recommendation only. There
+  // is no ExecuteRepairPlan method in this service, in P1A or as a
+  // conformance placeholder: repair execution is a later, separately staffed
+  // authority amendment (planning/next-steps.md "P1B").
+  rpc CreateRepairPlan(CreateRepairPlanRequest) returns (CreateRepairPlanResponse);
+  // P1A disposition: IMPLEMENT as a pure, no-effect projection.
+  rpc SimulateRepair(SimulateRepairRequest) returns (SimulateRepairResponse);
+}

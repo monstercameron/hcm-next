@@ -1,0 +1,185 @@
+generatedby: tools/gen/storagemanifest (DB-002)
+registrydigest: sha256:549c7cb6693d0cfb6b0256920e198dcc339c408674d12e6ae5561b27c60bab74
+migrationfiles:
+  - 00001_platform_control.sql
+  - 00002_tenant_primitives.sql
+  - 00003_definition_registry.sql
+  - 00004_intent_and_proposal.sql
+  - 00005_ledger.sql
+  - 00006_projection_and_outbox.sql
+  - 00007_connectivity.sql
+  - 00008_tenant_isolation.sql
+  - 00010_artifacts.sql
+  - 00011_people_aggregates.sql
+  - 00012_organization_aggregates.sql
+  - 00013_compensation_aggregates.sql
+  - 00014_ledger_hash_chain.sql
+entities:
+  - entityref: ApprovalBinding/v1
+    key: approval_binding
+    owner: GOVERNANCE
+    class: EVIDENCE
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no table "approval_binding" in the migrated schema; needs a migration
+  - entityref: Assignment/v1
+    key: assignment
+    owner: PEOPLE
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "ASSIGNMENT" in the migrated schema; needs a migration
+  - entityref: BudgetReservation/v1
+    key: budget_reservation
+    owner: REWARDS
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "BUDGET_RESERVATION" in the migrated schema; needs a migration
+  - entityref: CompensationComponent/v1
+    key: compensation_component
+    owner: REWARDS
+    class: CHILD
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: 'owner root CompensationPackage/v1 has no physical disposition: no ledger_stream.stream_kind "COMPENSATION_PACKAGE" in the migrated schema; needs a migration'
+  - entityref: CompensationGrade/v1
+    key: compensation_grade
+    owner: REWARDS
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "COMPENSATION_GRADE" in the migrated schema; needs a migration
+  - entityref: CompensationPackage/v1
+    key: compensation_package
+    owner: REWARDS
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "COMPENSATION_PACKAGE" in the migrated schema; needs a migration
+  - entityref: ConnectorOperation/v1
+    key: connector_operation
+    owner: OPERATIONS
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=INTEGRATION_OPERATION
+    mismatchdetail: ""
+  - entityref: Employment/v1
+    key: employment
+    owner: PEOPLE
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=EMPLOYMENT
+    mismatchdetail: ""
+  - entityref: EvidenceRecord/v1
+    key: evidence_record
+    owner: GOVERNANCE
+    class: EVIDENCE
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no table "evidence_artifact" in the migrated schema; needs a migration
+  - entityref: ExecutionBinding/v1
+    key: execution_binding
+    owner: GOVERNANCE
+    class: EVIDENCE
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no table "execution_binding" in the migrated schema; needs a migration
+  - entityref: IntentInstance/v1
+    key: intent_instance
+    owner: GOVERNANCE
+    class: AGGREGATE_ROOT
+    disposition: TABLE
+    target: table intent_instance
+    mismatchdetail: ""
+  - entityref: Job/v1
+    key: job
+    owner: WORK
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "JOB" in the migrated schema; needs a migration
+  - entityref: LegalEntity/v1
+    key: legal_entity
+    owner: GOVERNANCE
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "LEGAL_ENTITY" in the migrated schema; needs a migration
+  - entityref: Observation/v1
+    key: observation
+    owner: OPERATIONS
+    class: EVIDENCE
+    disposition: TABLE
+    target: table external_observation
+    mismatchdetail: ""
+  - entityref: OrganizationRelationship/v1
+    key: organization_relationship
+    owner: WORK
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "ORGANIZATION_RELATIONSHIP" in the migrated schema; needs a migration
+  - entityref: OrganizationUnit/v1
+    key: organization_unit
+    owner: WORK
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "ORGANIZATION_UNIT" in the migrated schema; needs a migration
+  - entityref: Person/v1
+    key: person
+    owner: PEOPLE
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=PERSON
+    mismatchdetail: ""
+  - entityref: Position/v1
+    key: position
+    owner: WORK
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=POSITION
+    mismatchdetail: ""
+  - entityref: PositionOccupancy/v1
+    key: position_occupancy
+    owner: WORK
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "POSITION_OCCUPANCY" in the migrated schema; needs a migration
+  - entityref: ProposalRevision/v1
+    key: proposal_revision
+    owner: GOVERNANCE
+    class: AGGREGATE_ROOT
+    disposition: TABLE
+    target: table proposal_revision
+    mismatchdetail: ""
+  - entityref: RepairPlan/v1
+    key: repair_plan
+    owner: OPERATIONS
+    class: AGGREGATE_ROOT
+    disposition: MISMATCH
+    target: ""
+    mismatchdetail: no ledger_stream.stream_kind "REPAIR_PLAN" in the migrated schema; needs a migration
+  - entityref: TransactionPlan/v1
+    key: transaction_plan
+    owner: GOVERNANCE
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=TRANSACTION
+    mismatchdetail: ""
+  - entityref: Worker/v1
+    key: worker
+    owner: PEOPLE
+    class: AGGREGATE_ROOT
+    disposition: EVENT
+    target: ledger_event via ledger_stream.stream_kind=WORKER
+    mismatchdetail: ""
+  - entityref: WorkerSummary/v1
+    key: worker_summary
+    owner: PEOPLE
+    class: READ_MODEL
+    disposition: PROJECTION
+    target: table projection_checkpoint
+    mismatchdetail: ""

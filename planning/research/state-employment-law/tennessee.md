@@ -182,7 +182,7 @@ Tennessee follows at-will employment doctrine: employers and employees may termi
 **Independent contractor classification**: Common law "right to control" test with eight factors; no single factor determinative.
 
 - Key factors: Control/direction; integral to business; permanency; contractor's equipment investment; profit/loss opportunity; independent judgment; independent business operation; totality of circumstances.
-- Enforcement by NCDOL, Revenue Department, Attorney General; remedies include back wages, reclassification, penalties.
+- Enforcement by the Tennessee Department of Labor and Workforce Development, the Department of Revenue, and the Attorney General; remedies include back wages, reclassification, penalties.
 
 **Remote workers**: No specific statute; standard employment law applies regardless of work location. If work performed in Tennessee (remote or on-site), Tennessee law applies.
 

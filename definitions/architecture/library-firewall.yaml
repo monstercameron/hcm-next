@@ -1,0 +1,81 @@
+# Library-firewall qualification data (LIB-002/003/004/006/007/008).
+#
+# Consumed by tools/policy/libfirewall. This file does not replace or
+# duplicate definitions/architecture/dependency-roles.yaml (LIB-001, edited
+# by a different agent/lane): the generic LIB-002 firewall
+# (libfirewall.CheckImport) reads allowed_import_roots directly from that
+# manifest. This file adds only the narrower, module-specific qualification
+# detail each of LIB-003/004/006/007/008 needs and that dependency-roles.yaml
+# does not (yet) carry at row granularity: which import paths count as
+# "the module" for AST leak-scanning purposes, which concrete types must
+# never leak past their owning package's exported API, and one explicitly
+# orchestrator-granted business-side exception for LIB-003 that
+# dependency-roles.yaml's own pgx/protobuf/grpc rows do not list yet.
+#
+# See planning/specs/go-only-technology-constitution.md and the LIB-003/
+# LIB-004/LIB-006/LIB-007/LIB-008 todo entries in planning/todos.md.
+
+version: 1
+module: github.com/monstercameron/hcm-next
+
+# LIB-003: Protobuf/grpc-go qualified as wire and RPC mechanics only.
+#
+# dependency-roles.yaml's google.golang.org/protobuf and .../grpc rows list
+# allowed_import_roots: [gen, internal/transport]. The LIB-003 assignment
+# additionally grants internal/intent/protomap as the one authored
+# Protobuf<->domain-type translation seam (it exists precisely to keep every
+# other business package out of direct Protobuf contact), so this list is
+# strictly wider than, and does not remove any entry from, the
+# dependency-roles.yaml row. TestGRPCBackendQualification checks against
+# this list, not the narrower dependency-roles.yaml one, because it is
+# qualifying the specific LIB-003 boundary the orchestrator defined; the
+# broader LIB-002 firewall (TestThirdPartySemanticFirewall) separately
+# checks the real tree against dependency-roles.yaml's own row and reports
+# any mismatch as a manifest-completeness finding.
+protobuf_grpc:
+  modules:
+    - google.golang.org/protobuf
+    - google.golang.org/grpc
+    - connectrpc.com/connect
+    - google.golang.org/genproto/googleapis/rpc
+  allowed_import_roots:
+    - gen
+    - internal/transport
+    - internal/intent/protomap
+    - cmd
+
+# LIB-004: pgx/v5 confined behind the PostgreSQL adapter boundary. The
+# leak-scan runs over dependency-roles.yaml's own pgx row
+# (allowed_import_roots: [internal/data, internal/ledger, migrations]) via
+# depmanifest, not a separate list here, so this file only needs to name the
+# concrete types that must never appear in an exported signature/alias
+# anywhere in the graph, even inside those allowed roots.
+pgx_leak_types:
+  - github.com/jackc/pgx/v5.Tx
+  - github.com/jackc/pgx/v5.Rows
+  - github.com/jackc/pgx/v5.Conn
+
+# LIB-006: apd/v3 confined behind the decimal kernel. Same pattern: the scan
+# scope comes from dependency-roles.yaml's apd row
+# (allowed_import_roots: [internal/kernel]); this only names the leaked type.
+apd_leak_types:
+  - github.com/cockroachdb/apd/v3.Decimal
+
+# LIB-007: OpenTelemetry not imported by production code before OBS-002.
+# dependency-roles.yaml's go.opentelemetry.io/ family_rule already carries
+# allowed_import_roots: [] (transitive-only, "add an exact row when internal/
+# imports any of them directly" — that has not happened yet), so the
+# generic LIB-002 firewall already enforces "zero direct imports" today;
+# this entry only pins the module prefix for the AST leak-scan / reporting
+# so this file's tests read the family the same way dependency-roles.yaml
+# names it.
+otel_module_prefix: go.opentelemetry.io/
+
+# LIB-008: goose confined to the SQL-first migration runner. Scan scope
+# comes from dependency-roles.yaml's goose row
+# (allowed_import_roots: [migrations, cmd]). marker_comment is the required
+# review marker on any hand-authored Go migration file (as opposed to a
+# goose embed/registration boilerplate file); its absence is what RED means
+# by "a Go migration lacking explicit need, idempotency and resumable
+# failure contract" until a fuller review-evidence format exists.
+goose_go_migration_marker: "GOOSE-GO-MIGRATION-REVIEWED:"

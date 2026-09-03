@@ -224,7 +224,7 @@ Oregon recognizes employment-at-will; employers and employees may terminate with
 
 ## 10. Classification and Multi-State: Contractor Tests, Remote Workers, Reciprocity
 
-**Independent contractor classification (ABC Test, ORS 43:21-19(i)(6) unemployment law)**:
+**Independent contractor classification (ORS 670.600 economic-reality/right-to-control test for most purposes; ORS 657.040 for unemployment insurance; verify)**:
 
 - Worker deemed employee unless employer proves all three:
   - (A) Worker exercises total control over when/how work is performed.

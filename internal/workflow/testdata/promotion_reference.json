@@ -1,0 +1,1373 @@
+{
+  "workflow_id": "hcmnext.workflows.promote_into_management",
+  "version": 1,
+  "name": "Promote into management (simulation)",
+  "input_schema": {
+    "schema_id": "PromoteIntoManagementInput/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.PromoteIntoManagementInput"
+  },
+  "output_schema": {
+    "schema_id": "PromoteIntoManagementResult/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.PromoteIntoManagementResult"
+  },
+  "variables_schema": {
+    "schema_id": "PromoteIntoManagementVariables/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.PromoteIntoManagementVariables"
+  },
+  "inputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "target_job_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      }
+    },
+    {
+      "path": "proposed_base_pay",
+      "type": {
+        "kind": "MONEY"
+      }
+    },
+    {
+      "path": "effective_date",
+      "type": {
+        "kind": "LOCAL_DATE"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "terminal_code",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "tenant_scope": "acme",
+  "organization_scope": "acme/engineering",
+  "risk_class": "HIGH",
+  "declared_modes": [
+    "SIMULATE"
+  ],
+  "terminal_profile": "SIMULATE_ONLY",
+  "start_node_id": "snapshot_worker",
+  "nodes": [
+    {
+      "id": "snapshot_worker",
+      "type": "CAPABILITY",
+      "input_schema": {
+        "schema_id": "hcmnext.people.explain_worker_state.request/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "output_schema": {
+        "schema_id": "hcmnext.people.explain_worker_state.response/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "effective_date",
+          "type": {
+            "kind": "LOCAL_DATE"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "current_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "current_level",
+          "type": {
+            "kind": "STRING"
+          }
+        },
+        {
+          "path": "manager_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "employment_active",
+          "type": {
+            "kind": "BOOL"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "effective_date",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "effective_date",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "required_context": [
+        {
+          "kind": "LegalContext",
+          "field_paths": [
+            "jurisdiction",
+            "applicable_rule_versions"
+          ],
+          "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+          "maximum_classification": "CONFIDENTIAL_HR",
+          "max_age_seconds": 3600,
+          "required_watermarks": [
+            "legal.policy.version"
+          ],
+          "pinned": true,
+          "missing_behavior": "UNKNOWN"
+        }
+      ],
+      "capability": {
+        "id": "hcmnext.people.explain_worker_state",
+        "version": 1,
+        "operation_mode": "SIMULATE",
+        "authority_scopes": [
+          "scope:people.read"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "required_decisions": [
+          "AUTHZ",
+          "LEGAL",
+          "PURPOSE",
+          "RISK"
+        ],
+        "revalidation_boundary": "PRE_EXECUTION",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "simulate_compensation",
+      "type": "CAPABILITY",
+      "input_schema": {
+        "schema_id": "hcmnext.rewards.simulate_compensation.request/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "output_schema": {
+        "schema_id": "hcmnext.rewards.simulate_compensation.response/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "target_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "proposed_base_pay",
+          "type": {
+            "kind": "MONEY"
+          }
+        },
+        {
+          "path": "effective_date",
+          "type": {
+            "kind": "LOCAL_DATE"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "annualized_delta",
+          "type": {
+            "kind": "MONEY"
+          }
+        },
+        {
+          "path": "raise_ratio",
+          "type": {
+            "kind": "DECIMAL"
+          }
+        },
+        {
+          "path": "cost_center",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "snapshot_worker",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "target_job_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "target_job_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "proposed_base_pay",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "proposed_base_pay",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "effective_date",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "effective_date",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "capability": {
+        "id": "hcmnext.rewards.simulate_compensation",
+        "version": 1,
+        "operation_mode": "SIMULATE",
+        "authority_scopes": [
+          "scope:rewards.read"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "required_decisions": [
+          "AUTHZ",
+          "LEGAL",
+          "PURPOSE",
+          "RISK"
+        ],
+        "obligation_refs": [
+          "obligation.regulatory_manager_training"
+        ],
+        "revalidation_boundary": "PRE_EXECUTION",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "evaluate_band",
+      "type": "CAPABILITY",
+      "input_schema": {
+        "schema_id": "hcmnext.rewards.evaluate_pay_band_position.request/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "output_schema": {
+        "schema_id": "hcmnext.rewards.evaluate_pay_band_position.response/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "inputs": [
+        {
+          "path": "target_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "proposed_base_pay",
+          "type": {
+            "kind": "MONEY"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "band_position",
+          "type": {
+            "kind": "STRING"
+          }
+        },
+        {
+          "path": "within_band",
+          "type": {
+            "kind": "BOOL"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "target_job_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "target_job_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "proposed_base_pay",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "proposed_base_pay",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "capability": {
+        "id": "hcmnext.rewards.evaluate_pay_band_position",
+        "version": 1,
+        "operation_mode": "SIMULATE",
+        "authority_scopes": [
+          "scope:rewards.read"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "required_decisions": [
+          "AUTHZ",
+          "LEGAL",
+          "PURPOSE",
+          "RISK"
+        ],
+        "revalidation_boundary": "PRE_EXECUTION",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "build_proposal",
+      "type": "TRANSFORM",
+      "input_schema": {
+        "schema_id": "PromotionProposalDraft/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.PromotionProposalDraft"
+      },
+      "output_schema": {
+        "schema_id": "PromotionProposal/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.PromotionProposal"
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "current_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "target_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "proposed_base_pay",
+          "type": {
+            "kind": "MONEY"
+          }
+        },
+        {
+          "path": "raise_ratio",
+          "type": {
+            "kind": "DECIMAL"
+          }
+        },
+        {
+          "path": "band_position",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "proposal_digest",
+          "type": {
+            "kind": "STRING"
+          }
+        },
+        {
+          "path": "raise_ratio",
+          "type": {
+            "kind": "DECIMAL"
+          }
+        },
+        {
+          "path": "band_position",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "snapshot_worker",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "current_job_id",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "snapshot_worker",
+            "path": "current_job_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "target_job_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "target_job_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "proposed_base_pay",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "proposed_base_pay",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "raise_ratio",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "simulate_compensation",
+            "path": "raise_ratio",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "band_position",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "evaluate_band",
+            "path": "band_position",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "transform": {
+        "transform_ref": "transforms.promotion.build_proposal",
+        "version": 1,
+        "normalization_profile": "hcmnext.canonical.proposal/v1",
+        "input_taint": [
+          {
+            "source": "worker_id",
+            "level": "TRUSTED"
+          },
+          {
+            "source": "current_job_id",
+            "level": "TRUSTED"
+          },
+          {
+            "source": "raise_ratio",
+            "level": "TRUSTED"
+          },
+          {
+            "source": "band_position",
+            "level": "TRUSTED"
+          }
+        ],
+        "output_taint": "TRUSTED",
+        "limits": {
+          "max_input_bytes": 65536,
+          "max_output_bytes": 65536,
+          "max_steps": 5000
+        }
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "revalidation_boundary": "NONE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "raise_threshold",
+      "type": "DECISION",
+      "input_schema": {
+        "schema_id": "RaiseThresholdInput/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.RaiseThresholdInput"
+      },
+      "output_schema": {
+        "schema_id": "RaiseThresholdResult/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.RaiseThresholdResult"
+      },
+      "inputs": [
+        {
+          "path": "raise_ratio",
+          "type": {
+            "kind": "DECIMAL"
+          }
+        },
+        {
+          "path": "band_position",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "route_key",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "raise_ratio",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "build_proposal",
+            "path": "raise_ratio",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "band_position",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "build_proposal",
+            "path": "band_position",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "decision": {
+        "evaluator_ref": "engines.decisiontable",
+        "evaluator_version": 1,
+        "rule_ref": "rules.compensation.raise_threshold/v3",
+        "input_digest_profile": "hcmnext.workflow.InputMappingSet/v1",
+        "routes": [
+          {
+            "key": "WITHIN_THRESHOLD",
+            "predicate": "raise_ratio_at_or_below_threshold",
+            "precedence": 10
+          },
+          {
+            "key": "EXCEEDS_THRESHOLD",
+            "predicate": "raise_ratio_above_threshold",
+            "precedence": 20
+          }
+        ],
+        "default_route": "WITHIN_THRESHOLD"
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "revalidation_boundary": "NONE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "observe_projection",
+      "type": "OBSERVE",
+      "input_schema": {
+        "schema_id": "hcmnext.operations.detect_drift.request/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "output_schema": {
+        "schema_id": "hcmnext.operations.detect_drift.response/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "expected_job_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "effective_date",
+          "type": {
+            "kind": "LOCAL_DATE"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "path": "observed_job_id",
+          "type": {
+            "kind": "STRING",
+            "nullable": true,
+            "brand": "JobID"
+          }
+        },
+        {
+          "path": "drift_detected",
+          "type": {
+            "kind": "BOOL"
+          }
+        },
+        {
+          "path": "source_watermark",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "snapshot_worker",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "expected_job_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "target_job_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "effective_date",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "effective_date",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "capability": {
+        "id": "hcmnext.operations.detect_drift",
+        "version": 1,
+        "operation_mode": "SIMULATE",
+        "authority_scopes": [
+          "scope:operations.read"
+        ]
+      },
+      "observe": {
+        "evidence_kind": "AUTHORITATIVE_READ",
+        "source_authority": "people.employment.projection",
+        "expected_state_fields": [
+          "expected_job_id"
+        ],
+        "required_watermarks": [
+          "people.employment.stream_head"
+        ],
+        "max_age_seconds": 300,
+        "comparison_profile": "comparison.employment.job_assignment/v1",
+        "retry_exhaustion_route": "end_degraded"
+      },
+      "retry": {
+        "max_attempts": 3,
+        "backoff_ref": "policy.retry.observation.bounded/v1"
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "required_decisions": [
+          "AUTHZ",
+          "LEGAL",
+          "PURPOSE",
+          "RISK"
+        ],
+        "revalidation_boundary": "PRE_EXECUTION",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "end_simulated_consistent",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        },
+        {
+          "path": "drift_detected",
+          "type": {
+            "kind": "BOOL"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "SIMULATION_COMPLETE"
+          }
+        },
+        {
+          "target": "drift_detected",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "observe_projection",
+            "path": "drift_detected",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "SIMULATION_COMPLETE",
+        "runtime_status": "COMPLETED",
+        "completion_mapping": {
+          "BusinessState": "NOT_STARTED",
+          "ConsistencyState": "NOT_APPLICABLE",
+          "ExecutionState": "NOT_PLANNED",
+          "ObligationState": "SATISFIED",
+          "RequestState": "SIMULATED"
+        }
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ],
+        "approval_requirements": [
+          "approval.current_manager"
+        ],
+        "revalidation_boundary": "PRE_CLOSURE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "end_requires_finance_approval",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        },
+        {
+          "path": "proposal_digest",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "SIMULATION_APPROVAL_REQUIRED"
+          }
+        },
+        {
+          "target": "proposal_digest",
+          "source": {
+            "kind": "NODE_OUTPUT",
+            "node_id": "build_proposal",
+            "path": "proposal_digest",
+            "type": {
+              "kind": ""
+            }
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "SIMULATION_APPROVAL_REQUIRED",
+        "runtime_status": "COMPLETED",
+        "completion_mapping": {
+          "BusinessState": "NOT_STARTED",
+          "ConsistencyState": "NOT_APPLICABLE",
+          "ExecutionState": "NOT_PLANNED",
+          "ObligationState": "PENDING",
+          "RequestState": "SIMULATED"
+        },
+        "outstanding_obligation_refs": [
+          "obligation.finance_partner_approval"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "obligation_refs": [
+          "obligation.finance_partner_approval",
+          "obligation.simulation_evidence_retained"
+        ],
+        "approval_requirements": [
+          "approval.current_manager",
+          "approval.finance_partner"
+        ],
+        "revalidation_boundary": "PRE_CLOSURE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "end_degraded",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "SIMULATION_DEGRADED"
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "SIMULATION_DEGRADED",
+        "runtime_status": "BLOCKED",
+        "completion_mapping": {
+          "BusinessState": "UNKNOWN",
+          "ConsistencyState": "UNKNOWN",
+          "ExecutionState": "BLOCKED",
+          "ObligationState": "PENDING",
+          "RequestState": "SIMULATED"
+        },
+        "outstanding_obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ],
+        "revalidation_boundary": "PRE_CLOSURE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "end_unknown",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "SIMULATION_UNKNOWN"
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "SIMULATION_UNKNOWN",
+        "runtime_status": "BLOCKED",
+        "completion_mapping": {
+          "BusinessState": "UNKNOWN",
+          "ConsistencyState": "UNKNOWN",
+          "ExecutionState": "BLOCKED",
+          "ObligationState": "PENDING",
+          "RequestState": "SIMULATED"
+        },
+        "outstanding_obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ]
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ],
+        "revalidation_boundary": "PRE_CLOSURE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    },
+    {
+      "id": "end_rejected",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "SIMULATION_REJECTED"
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "SIMULATION_REJECTED",
+        "runtime_status": "COMPLETED",
+        "completion_mapping": {
+          "BusinessState": "NOT_ACHIEVED",
+          "ConsistencyState": "NOT_APPLICABLE",
+          "ExecutionState": "NOT_PLANNED",
+          "ObligationState": "NOT_APPLICABLE",
+          "RequestState": "REJECTED"
+        }
+      },
+      "governance": {
+        "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+        "classification": "CONFIDENTIAL_HR",
+        "obligation_refs": [
+          "obligation.simulation_evidence_retained"
+        ],
+        "revalidation_boundary": "PRE_CLOSURE",
+        "data_access_manifest_ref": "dam.promotion.simulation/v1"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "snapshot_worker",
+      "to": "simulate_compensation",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "snapshot_worker",
+      "to": "end_rejected",
+      "route_key": "REJECTED"
+    },
+    {
+      "from": "snapshot_worker",
+      "to": "end_unknown",
+      "route_key": "UNKNOWN"
+    },
+    {
+      "from": "snapshot_worker",
+      "to": "end_unknown",
+      "route_key": "AMBIGUOUS"
+    },
+    {
+      "from": "simulate_compensation",
+      "to": "evaluate_band",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "simulate_compensation",
+      "to": "end_rejected",
+      "route_key": "REJECTED"
+    },
+    {
+      "from": "simulate_compensation",
+      "to": "end_unknown",
+      "route_key": "UNKNOWN"
+    },
+    {
+      "from": "simulate_compensation",
+      "to": "end_unknown",
+      "route_key": "AMBIGUOUS"
+    },
+    {
+      "from": "evaluate_band",
+      "to": "build_proposal",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "evaluate_band",
+      "to": "end_rejected",
+      "route_key": "REJECTED"
+    },
+    {
+      "from": "evaluate_band",
+      "to": "end_unknown",
+      "route_key": "UNKNOWN"
+    },
+    {
+      "from": "evaluate_band",
+      "to": "end_unknown",
+      "route_key": "AMBIGUOUS"
+    },
+    {
+      "from": "build_proposal",
+      "to": "raise_threshold",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "build_proposal",
+      "to": "end_unknown",
+      "route_key": "FAILED"
+    },
+    {
+      "from": "raise_threshold",
+      "to": "observe_projection",
+      "route_key": "WITHIN_THRESHOLD"
+    },
+    {
+      "from": "raise_threshold",
+      "to": "end_requires_finance_approval",
+      "route_key": "EXCEEDS_THRESHOLD"
+    },
+    {
+      "from": "raise_threshold",
+      "to": "end_unknown",
+      "route_key": "UNKNOWN"
+    },
+    {
+      "from": "observe_projection",
+      "to": "end_simulated_consistent",
+      "route_key": "PASS"
+    },
+    {
+      "from": "observe_projection",
+      "to": "end_degraded",
+      "route_key": "FAIL"
+    },
+    {
+      "from": "observe_projection",
+      "to": "end_degraded",
+      "route_key": "PARTIAL"
+    },
+    {
+      "from": "observe_projection",
+      "to": "end_unknown",
+      "route_key": "UNKNOWN"
+    }
+  ],
+  "approval_requirements": [
+    {
+      "id": "approval.current_manager",
+      "resolver_expression": "CurrentManagerOf(worker)",
+      "scope": "acme/engineering",
+      "quorum": 1,
+      "separation_of_duties": true,
+      "effective_as_of_policy": "PROPOSAL_DIGEST_BOUND"
+    },
+    {
+      "id": "approval.finance_partner",
+      "resolver_expression": "FinancePartnerFor(cost_center)",
+      "scope": "acme/engineering",
+      "quorum": 1,
+      "separation_of_duties": true,
+      "effective_as_of_policy": "PROPOSAL_DIGEST_BOUND"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "obligation.finance_partner_approval",
+      "authority": "customer.policy.compensation",
+      "insertion_point": "APPROVAL",
+      "required_action": "Obtain Finance Partner approval for the receiving cost center",
+      "responsible_party": "FinancePartnerFor(cost_center)",
+      "satisfaction_condition": "approval binding recorded against the current material proposal digest",
+      "source_version": "rules.compensation.raise_threshold/v3",
+      "reevaluation_policy": "REEVALUATE",
+      "mandatory": true
+    },
+    {
+      "id": "obligation.regulatory_manager_training",
+      "authority": "regulation.jurisdiction.resolver",
+      "insertion_point": "SIMULATION",
+      "required_action": "Report mandatory manager training resulting from the promotion",
+      "responsible_party": "learning.assignments",
+      "satisfaction_condition": "simulation artifact lists the resolved training assignments",
+      "source_version": "regulation.manager-training/v2",
+      "reevaluation_policy": "REQUIRE_REVIEW",
+      "mandatory": false
+    },
+    {
+      "id": "obligation.simulation_evidence_retained",
+      "authority": "records.retention",
+      "insertion_point": "CLOSURE",
+      "required_action": "Retain the simulation artifact and its evidence references",
+      "responsible_party": "operations.records",
+      "satisfaction_condition": "simulation artifact digest recorded with the terminal result",
+      "source_version": "records.retention.hr-simulation/v1",
+      "reevaluation_policy": "PIN",
+      "mandatory": true
+    }
+  ],
+  "limits": {
+    "max_fan_out": 4,
+    "max_depth": 12,
+    "max_nodes": 24
+  },
+  "failure_policy_ref": "policy.workflow.failure.simulation/v1",
+  "cancellation_policy_ref": "policy.workflow.cancellation.simulation/v1",
+  "migration_policy_ref": "policy.workflow.migration.pinned/v1",
+  "retention_policy_ref": "policy.workflow.retention.hr-simulation/v1"
+}

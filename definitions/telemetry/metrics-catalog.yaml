@@ -1,0 +1,43 @@
+# Semantic metric catalog for the P1A cell (OBS-005).
+#
+# Owned schema for internal/platform/telemetry.MetricCatalog. Every label
+# named below must be a bounded-cardinality key in
+# resource-contract.yaml's attribute_allowlist
+# (internal/platform/telemetry.ValidateCatalog enforces this); dashboards.yaml
+# and alerts.yaml reference these metric names and must not name one this
+# file does not declare.
+
+version: 1
+cell: P1A
+
+metrics:
+  - name: intent.created
+    type: counter
+    unit: "1"
+    version: 1
+    labels: [cell_id, tenant_class, outcome]
+    description: BusinessIntent creation attempts, by outcome.
+  - name: intent.simulated
+    type: counter
+    unit: "1"
+    version: 1
+    labels: [cell_id, tenant_class, outcome]
+    description: BusinessIntent simulation runs, by outcome.
+  - name: ledger.append
+    type: counter
+    unit: "1"
+    version: 1
+    labels: [cell_id, outcome]
+    description: Ledger append attempts, by outcome.
+  - name: outbox.lag
+    type: gauge
+    unit: ms
+    version: 1
+    labels: [cell_id]
+    description: Age of the oldest unpublished outbox entry.
+  - name: edge.parity
+    type: gauge
+    unit: "1"
+    version: 1
+    labels: [cell_id, edge]
+    description: 1 when a replication/consistency edge is in parity, 0 otherwise.

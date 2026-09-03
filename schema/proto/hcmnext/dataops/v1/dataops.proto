@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package hcmnext.dataops.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/evidence/v1/receipt.proto";
+
+// PresenceValue carries one string-typed value together with the reason it is
+// not a concrete value, when it is not one. It is the wire projection of the
+// shared Presence[T] vocabulary
+// (schema/proto/hcmnext/common/v1/common.proto Presence) applied to the
+// string-encoded field values every DataOps comparison and history read
+// carries.
+message PresenceValue {
+  hcmnext.common.v1.Presence presence = 1;
+  string value = 2;
+}
+
+// Access is the per-field disclosure outcome of a DataOps diagnostic (cross-
+// system diff or field-history explanation).
+enum Access {
+  ACCESS_UNSPECIFIED = 0;
+  ACCESS_AUTHORIZED = 1;
+  ACCESS_DENIED = 2;
+}
+
+// Disclosure is what the caller is being told at the whole-subject level.
+enum Disclosure {
+  DISCLOSURE_UNSPECIFIED = 0;
+  DISCLOSURE_FULL = 1;
+  DISCLOSURE_PARTIAL = 2;
+  DISCLOSURE_WITHHELD = 3;
+}
+
+// ValueKind names the declared type of one compared or disclosed field value.
+enum ValueKind {
+  VALUE_KIND_UNSPECIFIED = 0;
+  VALUE_KIND_STRING = 1;
+  VALUE_KIND_NUMBER = 2;
+  VALUE_KIND_BOOLEAN = 3;
+  VALUE_KIND_DATE = 4;
+  VALUE_KIND_INSTANT = 5;
+  VALUE_KIND_ENTITY_REF = 6;
+}
+
+// Verdict classifies one field comparison. VERDICT_MISMATCH is the only
+// verdict that reflects an actual disagreement; the three epistemic verdicts
+// (STALE, UNKNOWN, REDACTED) are deliberately distinct so a stale, unreadable
+// or unauthorized value is never reported as a disagreement
+// (internal/domains/dataops Verdict).
+enum Verdict {
+  VERDICT_UNSPECIFIED = 0;
+  VERDICT_MATCH = 1;
+  VERDICT_MISMATCH = 2;
+  VERDICT_STALE = 3;
+  VERDICT_UNKNOWN = 4;
+  VERDICT_REDACTED = 5;
+  VERDICT_NOT_APPLICABLE = 6;
+}
+
+// RepairSafety is a non-binding recommendation attached to a mismatch finding
+// about whether it could be corrected mechanically. Nothing in the wire
+// contract acts on it; REPAIR_SAFETY_SAFE never means "repaired"
+// (internal/domains/dataops RepairSafety).
+enum RepairSafety {
+  REPAIR_SAFETY_UNSPECIFIED = 0;
+  REPAIR_SAFETY_NOT_REQUIRED = 1;
+  REPAIR_SAFETY_SAFE = 2;
+  REPAIR_SAFETY_UNSAFE = 3;
+  REPAIR_SAFETY_UNDECIDABLE = 4;
+}
+
+// ObservationWatermark is the read provenance of one external observation
+// page, cited by a finding or a report without copying the observed values
+// into it (internal/domains/dataops ObservationWatermark).
+message ObservationWatermark {
+  string source = 1;
+  string schema_version = 2;
+  google.protobuf.Timestamp retrieved_at = 3;
+  string cursor = 4;
+  string digest = 5;
+  int32 records = 6;
+}
+
+// CanonicalField is one field of the HCM Next side of a comparison, carrying
+// the authority and provenance that make it citable
+// (internal/domains/dataops CanonicalField).
+message CanonicalField {
+  string field = 1;
+  ValueKind kind = 2;
+  PresenceValue value = 3;
+  optional google.protobuf.Timestamp updated_at = 4;
+  hcmnext.common.v1.EffectiveTimeRange effective = 5;
+  google.protobuf.Timestamp known_at = 6;
+  uint64 revision = 7;
+  hcmnext.evidence.v1.SourceAuthority authority = 8;
+  hcmnext.evidence.v1.Provenance provenance = 9;
+}
+
+// CanonicalRecord is the HCM Next side of a comparison for one subject at one
+// bitemporal coordinate (internal/domains/dataops CanonicalRecord).
+message CanonicalRecord {
+  hcmnext.common.v1.EntityRef subject = 1;
+  bool exists = 2;
+  repeated CanonicalField fields = 3;
+  uint64 watermark = 4;
+  hcmnext.common.v1.LocalDate as_of_effective = 5;
+  google.protobuf.Timestamp as_known_at = 6;
+}
+
+// ObservedField is one field as an external system reported it. The absence
+// of updated_at is load-bearing: a source that cannot say when it last
+// changed a field cannot be used to decide which side is ahead
+// (internal/domains/dataops ObservedField).
+message ObservedField {
+  string field = 1;
+  ValueKind kind = 2;
+  PresenceValue value = 3;
+  optional google.protobuf.Timestamp updated_at = 4;
+}
+
+// ObservedRecord is one external system's view of one subject
+// (internal/domains/dataops ObservedRecord).
+message ObservedRecord {
+  hcmnext.common.v1.EntityRef subject = 1;
+  string external_id = 2;
+  bool exists = 3;
+  repeated ObservedField fields = 4;
+  string digest = 5;
+}
+
+// FieldFinding is one field's comparison outcome. No finding carries a
+// compared value: a drift report travels to dashboards, tickets and exports,
+// and the values it compared do not have to travel with it
+// (internal/domains/dataops FieldFinding).
+message FieldFinding {
+  hcmnext.common.v1.EntityRef subject = 1;
+  string field = 2;
+  Access access = 3;
+  Verdict verdict = 4;
+  string reason = 5;
+  RepairSafety safety = 6;
+  string safety_reason = 7;
+  optional hcmnext.evidence.v1.SourceAuthority canonical_authority = 8;
+  optional google.protobuf.Timestamp canonical_updated_at = 9;
+  optional google.protobuf.Timestamp external_updated_at = 10;
+  uint64 canonical_revision = 11;
+  ObservationWatermark observation = 12;
+  repeated string allowed_next = 13;
+}
+
+// VerdictCounts partitions one comparison's findings by verdict.
+message VerdictCounts {
+  int32 match = 1;
+  int32 mismatch = 2;
+  int32 stale = 3;
+  int32 unknown = 4;
+  int32 redacted = 5;
+  int32 not_applicable = 6;
+}
+
+// SafetyCounts partitions one comparison's mismatches by repair safety.
+message SafetyCounts {
+  int32 not_required = 1;
+  int32 safe = 2;
+  int32 unsafe = 3;
+  int32 undecidable = 4;
+}
+
+// RecordDiff is the comparison of one subject across two systems
+// (internal/domains/dataops RecordDiff).
+message RecordDiff {
+  hcmnext.common.v1.EntityRef subject = 1;
+  bool canonical_exists = 2;
+  bool observed_exists = 3;
+  repeated FieldFinding findings = 4;
+  VerdictCounts verdicts = 5;
+  SafetyCounts safety = 6;
+  string digest = 7;
+}

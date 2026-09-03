@@ -67,14 +67,21 @@ func gofmtViolations(root string) ([]string, error) {
 		return nil, nil
 	}
 
-	args := append([]string{"-l"}, files...)
-	cmd := exec.Command("gofmt", args...)
-	cmd.Dir = root
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("gofmt -l failed: %w\n%s", err, stderr.String())
+	// Windows caps a command line at 32 KB and the tree holds more Go files
+	// than fit in one argv, so gofmt runs over bounded chunks.
+	const chunkSize = 200
+	var stdout bytes.Buffer
+	for start := 0; start < len(files); start += chunkSize {
+		end := min(start+chunkSize, len(files))
+		args := append([]string{"-l"}, files[start:end]...)
+		cmd := exec.Command("gofmt", args...)
+		cmd.Dir = root
+		var stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			return nil, fmt.Errorf("gofmt -l failed: %w\n%s", err, stderr.String())
+		}
 	}
 
 	var violations []string

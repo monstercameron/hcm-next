@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package hcmnext.integration.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/integration/v1/connector.proto";
+
+// LifecycleState is one connection's position in its governed lifecycle
+// (internal/connectivity LifecycleState). REVOKED is terminal; a revoked
+// credential is never resurrected by a state change.
+enum LifecycleState {
+  LIFECYCLE_STATE_UNSPECIFIED = 0;
+  LIFECYCLE_STATE_DRAFT = 1;
+  LIFECYCLE_STATE_VALIDATING = 2;
+  LIFECYCLE_STATE_READY = 3;
+  LIFECYCLE_STATE_ACTIVE = 4;
+  LIFECYCLE_STATE_DEGRADED = 5;
+  LIFECYCLE_STATE_SUSPENDED = 6;
+  LIFECYCLE_STATE_QUARANTINED = 7;
+  LIFECYCLE_STATE_REVOKED = 8;
+}
+
+// Environment separates a connection's deployment context. A SANDBOX
+// connection must never be readable as if it were PRODUCTION data
+// (internal/connectivity Environment).
+enum Environment {
+  ENVIRONMENT_UNSPECIFIED = 0;
+  ENVIRONMENT_SANDBOX = 1;
+  ENVIRONMENT_PRODUCTION = 2;
+}
+
+// EndpointPolicy bounds where a connection may talk to
+// (internal/connectivity EndpointPolicy).
+message EndpointPolicy {
+  repeated string allowed_hosts = 1;
+  bool require_tls = 2;
+  string egress_profile = 3;
+}
+
+// TransitionEvidence is what justifies one lifecycle change. Every recorded
+// transition carries it (internal/connectivity TransitionEvidence).
+message TransitionEvidence {
+  string reason = 1;
+  string actor_ref = 2;
+  string evidence_ref = 3;
+  google.protobuf.Timestamp occurred_at = 4;
+}
+
+// Transition is one recorded lifecycle change (internal/connectivity
+// Transition).
+message Transition {
+  uint64 sequence = 1;
+  LifecycleState from = 2;
+  LifecycleState to = 3;
+  TransitionEvidence evidence = 4;
+}
+
+// ConnectorConnection is one tenant's bound, narrowing instance of a
+// published ConnectorDefinition version. credential_ref is always an opaque
+// "scheme://path" reference (internal/connectivity CredentialRef): credential
+// material itself never crosses this boundary
+// (internal/connectivity ConnectorConnection;
+// planning/specs/integration-platform.md "ConnectorConnection").
+message ConnectorConnection {
+  string connection_id = 1;
+  string tenant_id = 2;
+  string org_id = 3;
+  string system_id = 4;
+  Environment environment = 5;
+  string residency = 6;
+  string connector_id = 7;
+  string connector_version = 8;
+  AuthMode auth_mode = 9;
+  string credential_ref = 10;
+  repeated string scopes = 11;
+  EndpointPolicy endpoint_policy = 12;
+  repeated Capability capabilities = 13;
+  Bounds bounds = 14;
+  LifecycleState state = 15;
+  uint64 state_version = 16;
+  repeated Transition history = 17;
+  google.protobuf.Timestamp created_at = 18;
+}

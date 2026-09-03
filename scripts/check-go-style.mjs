@@ -27,13 +27,22 @@ const runGofmtCheck = (label, goFiles) => {
     return;
   }
 
-  const gofmtOutput = execFileSync("gofmt", ["-l", ...goFiles], {
-    encoding: "utf8",
-  });
-  const unformattedFiles = gofmtOutput
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter(Boolean);
+  // Windows caps a command line at 32 KB and the repository holds more Go
+  // files than fit in one argv, so gofmt runs over bounded chunks.
+  const chunkSize = 200;
+  const unformattedFiles = [];
+  for (let start = 0; start < goFiles.length; start += chunkSize) {
+    const chunk = goFiles.slice(start, start + chunkSize);
+    const gofmtOutput = execFileSync("gofmt", ["-l", ...chunk], {
+      encoding: "utf8",
+    });
+    for (const line of gofmtOutput.split(/\r?\n/u)) {
+      const trimmed = line.trim();
+      if (trimmed) {
+        unformattedFiles.push(trimmed);
+      }
+    }
+  }
 
   if (unformattedFiles.length > 0) {
     process.stderr.write(

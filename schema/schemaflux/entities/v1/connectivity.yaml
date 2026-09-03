@@ -1,0 +1,382 @@
+# connectivity entity sources (MSRC-005).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from connectivity-access-content.md's integration/document/communication sections with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: connectivity
+family_version: 1
+source_docs:
+  - planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+  - planning/data/models/connectivity-access-content.md#documents-forms-and-signatures
+  - planning/data/models/connectivity-access-content.md#communications
+entities:
+  - name: ConnectorOperation
+    version: 1
+    key: connector_operation
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ConnectorOperationLifecycle
+    command_boundary: EXTERNAL_OBSERVATION
+    stream_kind: INTEGRATION_OPERATION
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      One business/workflow-bound external operation: resource key, causal predecessor/sequence, mapped payload hash and expected external version.
+    properties:
+      - name: watermark
+        go_type: string
+        schema_path: hcmnext.intents.v1.ConnectorOperation.watermark
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.connector_operation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: ACTIVE
+
+  - name: ConnectorDefinition
+    version: 1
+    key: connector_definition
+    aliases: []
+    owner_domain: OPERATIONS
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Vendor/version, supported objects/capabilities, auth/read/write/event modes and pagination/rate/idempotency/observation semantics (see internal/connectivity.ConnectorDefinition, the live Go implementation of this same concept).
+    properties:
+      - name: connector_id
+        go_type: string
+        schema_path: hcmnext.integration.v1.ConnectorDefinition.connector_id
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.connector_definition/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: ConnectorConnection
+    version: 1
+    key: connector_connection
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Tenant/org/system/account connector instance: DRAFT|VALIDATING|READY|ACTIVE|DEGRADED|SUSPENDED|REVOKED|QUARANTINED lifecycle.
+    properties:
+      - name: lifecycle_state
+        go_type: string
+        schema_path: hcmnext.integration.v1.ConnectorConnection.lifecycle_state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.connector_definition/v1
+        correction: SUPERSEDES
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: ConnectorHealth
+    version: 1
+    key: connector_health
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Authentication/scope/schema/API status, latency/error/throttle/queue metrics and affected capabilities/workflows.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.integration.v1.ConnectorHealth.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.connectivity_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: IntegrationReceipt
+    version: 1
+    key: integration_receipt
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Raw artifact/hash/content/schema/parser receipt with trust profile/auth result and dedupe/authority/sequence/disposition refs.
+    properties:
+      - name: raw_hash
+        go_type: string
+        schema_path: hcmnext.integration.v1.IntegrationReceipt.raw_hash
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.connectivity_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: MappingProfile
+    version: 1
+    key: mapping_profile
+    aliases: []
+    owner_domain: OPERATIONS
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Source/destination schemas, field rules/transforms/defaults/lookups and canonicalization/presence/lossiness policies.
+    properties:
+      - name: version
+        go_type: string
+        schema_path: hcmnext.integration.v1.MappingProfile.version
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.connectivity_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: SyncJob
+    version: 1
+    key: sync_job
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Connection/object/direction/mode sync run: source snapshot/filter/cursor/watermark and population/counts/delta refs.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.integration.v1.SyncJob.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.connectivity_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: EventSubscription
+    version: 1
+    key: event_subscription
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Subscriber/event filter, tenant/org/population scope, delivery mode/destination/schema version and cursor/generation/expiry.
+    properties:
+      - name: cursor
+        go_type: string
+        schema_path: hcmnext.integration.v1.EventSubscription.cursor
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.connectivity_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: WebhookReceipt
+    version: 1
+    key: webhook_receipt
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Signature/timestamp/replay/schema results, immutable payload artifact/hash and mapped subjects/correlation.
+    properties:
+      - name: payload_hash
+        go_type: string
+        schema_path: hcmnext.integration.v1.WebhookReceipt.payload_hash
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.connectivity_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: ExternalConflict
+    version: 1
+    key: external_conflict
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#integration-and-external-system-entities
+    summary: >-
+      Canonical resource/field/effective interval with candidate source assertions/versions/authorities and conflict class/status.
+    properties:
+      - name: conflict_class
+        go_type: string
+        schema_path: hcmnext.integration.v1.ExternalConflict.conflict_class
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.connectivity_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: ArtifactObject
+    version: 1
+    key: artifact_object
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#documents-forms-and-signatures
+    summary: >-
+      Immutable object-store locator with media type/byte size/canonical digest and encryption/key/residency/availability refs.
+    properties:
+      - name: canonical_digest
+        go_type: string
+        schema_path: hcmnext.integration.v1.ArtifactObject.canonical_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.connectivity_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: Document
+    version: 1
+    key: document
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/connectivity-access-content.md#documents-forms-and-signatures
+    summary: >-
+      Document type/owner/subject refs, current version ref, lifecycle and classification/compartment/retention/hold refs.
+    properties:
+      - name: document_type
+        go_type: string
+        schema_path: hcmnext.integration.v1.Document.document_type
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.connectivity_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: MessageIntent
+    version: 1
+    key: message_intent
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/connectivity-access-content.md#communications
+    summary: >-
+      Purpose, tenant/org, audience expression, template/content/parameter refs and delivery/response requirements.
+    properties:
+      - name: purpose
+        go_type: string
+        schema_path: hcmnext.integration.v1.MessageIntent.purpose
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.message_intent/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+  - name: DeliveryAttempt
+    version: 1
+    key: delivery_attempt
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/connectivity-access-content.md#communications
+    summary: >-
+      Plan/endpoint/provider attempt with semantic idempotency, payload hash and QUEUED|SUBMITTED|...|AMBIGUOUS status.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.integration.v1.DeliveryAttempt.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.message_intent/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: CONNECTIVITY_EVIDENCE
+        status: DRAFT
+
+relationships: []

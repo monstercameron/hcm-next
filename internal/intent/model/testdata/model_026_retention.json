@@ -1,0 +1,45 @@
+[
+  {
+    "ClassRef": "COMPENSATION_RECORD",
+    "DefaultPeriodDays": 2555,
+    "Overrides": null,
+    "TriggerEvent": "RECORD_CREATED",
+    "DispositionOwner": "records-management",
+    "AuthorityRef": "authority.compensation_package/v1"
+  },
+  {
+    "ClassRef": "GOVERNANCE_EVIDENCE",
+    "DefaultPeriodDays": 3650,
+    "Overrides": null,
+    "TriggerEvent": "RECORD_CREATED",
+    "DispositionOwner": "governance",
+    "AuthorityRef": "authority.intent_instance/v1"
+  },
+  {
+    "ClassRef": "OPERATIONAL_EVIDENCE",
+    "DefaultPeriodDays": 1095,
+    "Overrides": null,
+    "TriggerEvent": "RECORD_CREATED",
+    "DispositionOwner": "operations",
+    "AuthorityRef": "authority.observation/v1"
+  },
+  {
+    "ClassRef": "REFERENCE_DATA",
+    "DefaultPeriodDays": 3650,
+    "Overrides": null,
+    "TriggerEvent": "RECORD_SUPERSEDED",
+    "DispositionOwner": "data-governance",
+    "AuthorityRef": "authority.job/v1"
+  },
+  {
+    "ClassRef": "WORKER_TRANSACTION",
+    "DefaultPeriodDays": 2555,
+    "Overrides": {
+      "US-CA": 1460,
+      "US-NY": 2190
+    },
+    "TriggerEvent": "EMPLOYMENT_END",
+    "DispositionOwner": "records-management",
+    "AuthorityRef": "authority.employment/v1"
+  }
+]

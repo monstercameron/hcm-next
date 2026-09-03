@@ -1,4 +1,6 @@
-# Montana Employment Law Research (2026-09-03)
+# Montana Employment Law Research
+
+**State:** Montana | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -91,7 +93,7 @@ Montana abolished at-will employment by statute for employees who complete a pro
 
 **Ban-the-Box**: Montana has NO ban-the-box law. Employers may inquire about criminal history on applications, during interviews, or via background check at any time in the hiring process.
 
-**Background Checks**: Permitted. Employers may use criminal-history checks via Montana Crime Information Center (GCIC) or third-party providers with fingerprints or name-based consent. No state law restricts timing or scope for most private employers.
+**Background Checks**: Permitted. Employers may use criminal-history checks via Montana Department of Justice Criminal Records (Montana Criminal History Information, verify) or third-party providers with fingerprints or name-based consent. No state law restricts timing or scope for most private employers.
 
 **Drug Testing** (MCA § 39-2-205 to 39-2-211, Workforce Drug and Alcohol Testing Act): Permitted, but only for employees in qualifying positions:
 
@@ -204,21 +206,19 @@ The platform should prompt employers to answer the following questions when sett
 
 10. **Breach Notification Procedures**: If employee data is breached, does the employer have a process for notifying affected individuals? What is the target timeline (e.g., 3–5 business days)? _Platform action_: Implement breach-notification workflow; set default deadline of 3 business days from discovery; escalate if timeline is at risk.
 
-## 12. Sources
-
 ### Summary of Unique Montana Constraints
 
 To summarize, Montana's employment law regime creates three critical compliance obligations for HCM Next:
 
-1. **Probation-to-good-cause transition**: The platform must track probation end dates and enforce a mandatory good-cause requirement for all terminations after probation expires. This is the defining feature of Montana employment law and requires explicit workflow gates.
+- **Probation-to-good-cause transition**: The platform must track probation end dates and enforce a mandatory good-cause requirement for all terminations after probation expires. This is the defining feature of Montana employment law and requires explicit workflow gates.
 
-2. **Internal grievance exhaustion**: If the employer has documented appeal procedures, the platform must enforce a 90-day exhaustion deadline and track compliance with the 7-day notification requirement. Non-compliance waives exhaustion and exposes the employer to wrongful-discharge liability without the safe harbor of these procedures.
+- **Internal grievance exhaustion**: If the employer has documented appeal procedures, the platform must enforce a 90-day exhaustion deadline and track compliance with the 7-day notification requirement. Non-compliance waives exhaustion and exposes the employer to wrongful-discharge liability without the safe harbor of these procedures.
 
-3. **Final pay timing**: The platform must calculate and enforce final-pay requirements (immediate for discharge unless written policy extends to next payday or 15 days for voluntary separation). Violations carry penalties and create wage-theft claims.
+- **Final pay timing**: The platform must calculate and enforce final-pay requirements (immediate for discharge unless written policy extends to next payday or 15 days for voluntary separation). Violations carry penalties and create wage-theft claims.
 
 These three elements—probation tracking, grievance procedure enforcement, and final-pay calculation—are the core HCM Next obligations for Montana compliance. All other rules (discrimination, non-competes, drug testing, data breach notification) are standard employment-law constraints that apply in most states; Montana adds the probation-good-cause framework as a structural difference from at-will employment.
 
----
+## 12. Sources
 
 1. [Montana Code Annotated Title 39, Chapter 2, Part 9 (Wrongful Discharge From Employment Act)](https://mca.legmt.gov/bills/mca/title_0390/chapter_0020/part_0090/sections_index.html) — retrieved 2026-09-03
 2. [MCA § 39-2-904 (Elements of wrongful discharge)](https://mca.legmt.gov/bills/mca/title_0390/chapter_0020/part_0090/section_0040/0390-0020-0090-0040.html) — retrieved 2026-09-03

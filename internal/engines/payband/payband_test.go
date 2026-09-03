@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -308,5 +309,82 @@ func assertCents(t *testing.T, label string, got values.Money, wantCents int64) 
 	want := centsText(wantCents)
 	if got.Amount().String() != want {
 		t.Fatalf("%s = %s, want %s", label, got.Amount(), want)
+	}
+}
+
+// TestVersionIsStable is the ARCH-GO-009 engine package contract test for
+// payband's Version(): it reports a fixed, positive contract version with
+// no dependency on any Band, Position or wall clock.
+func TestVersionIsStable(t *testing.T) {
+	if v := Version(); v != Version() || v <= 0 {
+		t.Fatalf("Version() = %d, want a stable positive contract version", v)
+	}
+}
+
+// TestCompileBuildsALookupCatalogAndRejectsCollisions is the band-catalog
+// validation step ARCH-GO-009 asks payband to expose as Compile: every band
+// in a published set is validated and indexed by scope, so a caller can
+// Lookup the one band that governs a position without re-validating or
+// re-scanning the whole catalog on every Evaluate.
+func TestCompileBuildsALookupCatalogAndRejectsCollisions(t *testing.T) {
+	band := testBand(t)
+	other := band
+	other.ID = "BAND-OPS-P4-USEAST"
+	other.Scope.Grade = "P4"
+
+	catalog, err := Compile([]Band{band, other})
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if catalog.Len() != 2 {
+		t.Fatalf("catalog has %d bands, want 2", catalog.Len())
+	}
+	got, ok := catalog.Lookup(band.Scope)
+	if !ok || got.ID != band.ID {
+		t.Fatalf("Lookup(%+v) = %+v, %t, want %+v, true", band.Scope, got, ok, band)
+	}
+	if _, ok := catalog.Lookup(Scope{JobCode: "NOPE", Grade: "P9", PayZone: "US-WEST"}); ok {
+		t.Fatal("Lookup found a band for a scope that was never published")
+	}
+}
+
+// TestCompileRejectsAnInvalidBand proves Compile fails the whole publish,
+// not just the one bad band, when a candidate band fails its own Validate.
+func TestCompileRejectsAnInvalidBand(t *testing.T) {
+	invalid := testBand(t)
+	invalid.Version = ""
+	if _, err := Compile([]Band{invalid}); !errors.Is(err, ErrBandIdentity) {
+		t.Fatalf("Compile error = %v, want ErrBandIdentity", err)
+	}
+}
+
+// TestCompileRejectsTwoBandsWithTheSameScope proves a catalog cannot publish
+// two bands that would leave Lookup with an ambiguous answer for one scope.
+func TestCompileRejectsTwoBandsWithTheSameScope(t *testing.T) {
+	band := testBand(t)
+	duplicateScope := band
+	duplicateScope.ID = "BAND-OPS-P3-USEAST-V2"
+	duplicateScope.Version = "2026.2"
+
+	if _, err := Compile([]Band{band, duplicateScope}); !errors.Is(err, ErrCatalogDuplicateScope) {
+		t.Fatalf("Compile error = %v, want ErrCatalogDuplicateScope", err)
+	}
+}
+
+// TestPositionExplainNamesTheBandAndTheHeadlineNumbers is the ARCH-GO-009
+// engine package contract test for payband's Explain: it names the band the
+// position was computed from and its headline numbers, for an audit log or
+// review screen.
+func TestPositionExplainNamesTheBandAndTheHeadlineNumbers(t *testing.T) {
+	band := testBand(t)
+	position, err := Evaluate(band, money(t, "112000.00"))
+	if err != nil {
+		t.Fatalf("Evaluate: %v", err)
+	}
+	explanation := position.Explain()
+	for _, want := range []string{band.ID, band.Version, "IN_BAND", "1.0000", "0.5000"} {
+		if !strings.Contains(explanation, want) {
+			t.Errorf("Explain() = %q, want it to contain %q", explanation, want)
+		}
 	}
 }

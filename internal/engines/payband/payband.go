@@ -44,6 +44,12 @@ const (
 	schemaVersion  = 1
 )
 
+// Version reports this engine's own package contract version: the schema
+// version every canonical encoder in this package agrees on (see
+// bandSchema/positionSchema above). It is part of the ARCH-GO-009 engine
+// package contract, not a business-facing evaluation input.
+func Version() int { return schemaVersion }
+
 // Engine errors. All are matchable with errors.Is.
 var (
 	// ErrBandIdentity is returned when a band carries no id or no version. An
@@ -65,6 +71,12 @@ var (
 	// ErrScaleMismatch is returned when the amount and the band bounds declare
 	// different decimal scales.
 	ErrScaleMismatch = errors.New("payband: amount and band bounds declare different decimal scales")
+	// ErrCatalogDuplicateScope is returned by Compile when two bands in the
+	// same catalog publish the same (job, grade, pay zone) scope. A catalog
+	// lookup answers "the band for this scope," and two candidate answers is
+	// a publish-time contradiction, not something Evaluate should have to
+	// guess its way through.
+	ErrCatalogDuplicateScope = errors.New("payband: catalog has more than one band for the same scope")
 )
 
 // Placement is where an amount sits relative to a band's bounds.
@@ -204,6 +216,59 @@ func (b Band) String() string {
 	return fmt.Sprintf("%s@%s [%s..%s..%s]", b.ID, b.Version, b.Minimum, b.Midpoint, b.Maximum)
 }
 
+// Catalog is a validated, immutable set of pay bands published together,
+// indexed by scope so a caller can look up the one band that governs a
+// given job/grade/pay-zone without re-validating or re-scanning the whole
+// publish on every Evaluate call. Build one with Compile; the zero Catalog
+// has no bands.
+type Catalog struct {
+	bands map[string]Band
+}
+
+// scopeKey renders a scope as a stable map key. It is not itself part of any
+// wire format - Band.Canonical already frames scope field-by-field - it only
+// needs to be collision-free for the three strings a scope is made of.
+func scopeKey(s Scope) string {
+	return s.JobCode + "\x00" + s.Grade + "\x00" + s.PayZone
+}
+
+// Lookup returns the band published for scope, or false when the catalog has
+// no band for it.
+func (c Catalog) Lookup(scope Scope) (Band, bool) {
+	b, ok := c.bands[scopeKey(scope)]
+	return b, ok
+}
+
+// Len returns the number of bands in the catalog.
+func (c Catalog) Len() int { return len(c.bands) }
+
+// Compile is the band catalog validation step: it validates every band in
+// bands and assembles them into a Catalog keyed by scope, failing the whole
+// publish when any one band is internally invalid or when two bands claim
+// the same scope. Both are failures a caller wants to catch once, at
+// publish time, rather than discover later as a wrong or ambiguous
+// Evaluate lookup.
+//
+// Compile is a pure function of bands: the same slice, in the same order,
+// always either fails with the same error or produces a Catalog whose
+// Lookup answers are the same regardless of Go's slice iteration being in
+// declared order.
+func Compile(bands []Band) (Catalog, error) {
+	out := make(map[string]Band, len(bands))
+	for _, b := range bands {
+		if err := b.Validate(); err != nil {
+			return Catalog{}, fmt.Errorf("payband: compile: %w", err)
+		}
+		key := scopeKey(b.Scope)
+		if _, dup := out[key]; dup {
+			return Catalog{}, fmt.Errorf("%w: job %q grade %q zone %q",
+				ErrCatalogDuplicateScope, b.Scope.JobCode, b.Scope.Grade, b.Scope.PayZone)
+		}
+		out[key] = b
+	}
+	return Catalog{bands: out}, nil
+}
+
 // Position is the evaluated position of one amount in one band. It carries the
 // band identity and version it was computed from, so the result is auditable
 // on its own without re-resolving the catalog.
@@ -269,6 +334,16 @@ func (p Position) Canonical() []byte {
 		return nil
 	}
 	return raw
+}
+
+// Explain renders a compact, human-readable narrative of where the position
+// sits in the band it was computed from: the band it cites, the placement,
+// the compa-ratio, the range penetration and the quartile. It is meant for
+// audit logs and review screens; branch on Placement/Quartile/CompaRatio
+// for anything programmatic.
+func (p Position) Explain() string {
+	return fmt.Sprintf("band %s@%s: amount %s is %s (compa-ratio %s, range penetration %s, quartile %d)",
+		p.BandID, p.BandVersion, p.Amount, p.Placement, p.CompaRatio, p.RangePenetration, p.Quartile)
 }
 
 // Evaluate returns the position of amount in band.

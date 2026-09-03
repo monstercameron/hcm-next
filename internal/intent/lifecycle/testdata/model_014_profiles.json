@@ -17,7 +17,12 @@
       "REOPENED"
     ],
     "Initial": "UNSPECIFIED",
-    "Terminal": ["REJECTED", "WITHDRAWN", "CANCELLED", "SUPERSEDED"],
+    "Terminal": [
+      "REJECTED",
+      "WITHDRAWN",
+      "CANCELLED",
+      "SUPERSEDED"
+    ],
     "Edges": [
       {
         "From": "UNSPECIFIED",

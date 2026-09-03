@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package hcmnext.dataops.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/dataops/v1/dataops.proto";
+import "hcmnext/evidence/v1/receipt.proto";
+
+// AssertionClass labels what kind of statement an assertion is. An observed
+// incumbent value and a locally mastered fact can sit on the same timeline;
+// the effective-date debugger must keep them apart rather than let an
+// observation quietly become a domain fact
+// (internal/domains/dataops AssertionClass).
+enum AssertionClass {
+  ASSERTION_CLASS_UNSPECIFIED = 0;
+  ASSERTION_CLASS_DOMAIN_FACT = 1;
+  ASSERTION_CLASS_EXTERNAL_OBSERVATION = 2;
+  ASSERTION_CLASS_CLAIM = 3;
+  ASSERTION_CLASS_WORKFLOW_PROPOSAL = 4;
+  ASSERTION_CLASS_PROJECTION = 5;
+}
+
+// ChangeKind says why one assertion exists relative to the ones before it. A
+// SUPERSESSION means the world changed on a date; a CORRECTION means the
+// record was wrong about a date it already covered. Collapsing the two
+// distinction is how a retroactive fix reads as if it "never happened"
+// (internal/domains/dataops ChangeKind).
+enum ChangeKind {
+  CHANGE_KIND_UNSPECIFIED = 0;
+  CHANGE_KIND_INITIAL = 1;
+  CHANGE_KIND_SUPERSESSION = 2;
+  CHANGE_KIND_CORRECTION = 3;
+  CHANGE_KIND_RETRACTION = 4;
+}
+
+// Assertion is one effective-dated, recorded statement about one field
+// (internal/domains/dataops Assertion).
+message Assertion {
+  string id = 1;
+  string field = 2;
+  ValueKind kind = 3;
+  PresenceValue value = 4;
+  hcmnext.common.v1.EffectiveTimeRange effective = 5;
+  google.protobuf.Timestamp known_at = 6;
+  uint64 revision = 7;
+  AssertionClass class = 8;
+  ChangeKind change = 9;
+  // corrects is the id of the assertion this one corrects or retracts, and is
+  // unset for an INITIAL or SUPERSESSION.
+  optional string corrects = 10;
+  hcmnext.evidence.v1.SourceAuthority authority = 11;
+  hcmnext.evidence.v1.Provenance provenance = 12;
+}
+
+// ExplainedAssertion is one assertion as disclosed, with its position in the
+// two timelines made explicit. A correction never removes what it corrects:
+// the superseded assertion stays in the timeline, marked
+// (internal/domains/dataops ExplainedAssertion).
+message ExplainedAssertion {
+  Assertion assertion = 1;
+  bool superseded = 2;
+  optional string superseded_by = 3;
+  bool effective_at_as_of = 4;
+  bool known_at_as_of = 5;
+  bool in_force = 6;
+}
+
+// FieldTimeline is one field's disclosed history. A denied field carries
+// ACCESS_DENIED, a denial reason and no versions at all
+// (internal/domains/dataops FieldTimeline).
+message FieldTimeline {
+  string field = 1;
+  Access access = 2;
+  string denial_reason = 3;
+  ValueKind value_kind = 4;
+  repeated ExplainedAssertion versions = 5;
+  optional string in_force_id = 6;
+  bool asserted = 7;
+  int32 correction_count = 8;
+}
+
+// HistoryExplanation is the effective-date debugger result: ordered
+// assertions with effective and recorded intervals, authority class,
+// correction lineage and field-level redaction reasons, plus a zero-effect
+// receipt (internal/domains/dataops HistoryExplanation;
+// planning/specs/hris-admin-dataops.md "Effective-Date Debugger").
+message HistoryExplanation {
+  string operation = 1;
+  string operation_version = 2;
+  hcmnext.common.v1.EntityRef subject = 3;
+  bool exists = 4;
+  Disclosure disclosure = 5;
+  string withheld_reason = 6;
+  hcmnext.common.v1.LocalDate as_of_effective = 7;
+  google.protobuf.Timestamp as_known_at = 8;
+  bool include_claims = 9;
+  repeated FieldTimeline fields = 10;
+  uint64 watermark = 11;
+  repeated string narrative = 12;
+  string policy_version = 13;
+  string rule_pack_version = 14;
+  string inputs_digest = 15;
+  string result_digest = 16;
+  hcmnext.evidence.v1.EffectCounters effects = 17;
+  hcmnext.evidence.v1.ZeroEffectReceipt receipt = 18;
+}

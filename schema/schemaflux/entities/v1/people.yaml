@@ -1,0 +1,552 @@
+# people entity sources (MSRC-004).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from people-workforce.md's party/worker/employment/organization sections with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: people
+family_version: 1
+source_docs:
+  - planning/data/models/people-workforce.md#party-and-identity
+  - planning/data/models/people-workforce.md#worker-and-employment
+  - planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+entities:
+  - name: Person
+    version: 1
+    key: person
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    stream_kind: PERSON
+    invariants:
+      - invariant.person_identity_unique/v1
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      Party root: preferred/legal names, demographic facts, contact points, addresses and identity links.
+    properties:
+      - name: identity
+        go_type: string
+        schema_path: hcmnext.people.v1.Person.identity
+        presence: REQUIRED
+        classification: PII
+        temporal: POINT_IN_TIME
+        authority_ref: authority.person/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: lifecycle_state
+        go_type: string
+        schema_path: hcmnext.people.v1.Person.lifecycle_state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.person/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: Worker
+    version: 1
+    key: worker
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    stream_kind: WORKER
+    invariants:
+      - invariant.worker_references_person/v1
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      A person acting in the WORKER role: worker number, employment refs and hire/service date refs.
+    properties:
+      - name: status
+        go_type: lifecycle.StateID
+        schema_path: hcmnext.people.v1.Worker.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.worker/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: worker_number
+        go_type: string
+        schema_path: hcmnext.people.v1.Worker.worker_number
+        presence: OPTIONAL
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.worker/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: Employment
+    version: 1
+    key: employment
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: EmploymentLifecycle
+    command_boundary: LOCAL_ACID
+    stream_kind: EMPLOYMENT
+    invariants:
+      - invariant.employment_dates_ordered/v1
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      Worker-to-legal-entity employment: type/classification, agreement refs, status revisions and primary assignment.
+    properties:
+      - name: status
+        go_type: lifecycle.StateID
+        schema_path: hcmnext.people.v1.Employment.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.employment/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: legal_entity_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.Employment.legal_entity_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.employment/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: Assignment
+    version: 1
+    key: assignment
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.assignment_within_employment/v1
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      One job/position/org/location/manager assignment revision series under an employment, with FTE and remote-work arrangement.
+    properties:
+      - name: manager_relationship
+        go_type: string
+        schema_path: hcmnext.people.v1.Assignment.manager_relationship_ref
+        presence: OPTIONAL
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assignment/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: position_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.Assignment.position_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assignment/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: effective_interval
+        go_type: values.EffectiveInterval
+        schema_path: hcmnext.people.v1.Assignment.effective_interval
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assignment/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: OrganizationUnit
+    version: 1
+    key: organization_unit
+    aliases: [Organization]
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.organization_hierarchy_acyclic/v1
+    source_ref: planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+    summary: >-
+      Organization type/code/name revisions, hierarchy relationship refs and leader/HRBP/finance-partner relationships.
+    properties:
+      - name: hierarchy_path
+        go_type: string
+        schema_path: hcmnext.people.v1.OrganizationUnit.hierarchy_path
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.organization_unit/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: ACTIVE
+
+  - name: OrganizationRelationship
+    version: 1
+    key: organization_relationship
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.manager_relationship_acyclic/v1
+    source_ref: planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+    summary: >-
+      A PRIMARY_MANAGER/HRBP/RECRUITER/... typed effective-dated edge between a subject and a related entity.
+    properties:
+      - name: manager_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.OrganizationRelationship.manager_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.organization_relationship/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: effective_interval
+        go_type: values.EffectiveInterval
+        schema_path: hcmnext.people.v1.OrganizationRelationship.effective_interval
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.organization_relationship/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: LegalEntity
+    version: 1
+    key: legal_entity
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+    summary: >-
+      Registered/legal names, registration/tax identifiers, incorporation jurisdictions and payroll establishments.
+    properties:
+      - name: registered_name
+        go_type: string
+        schema_path: hcmnext.people.v1.LegalEntity.registered_name
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.legal_entity/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: ACTIVE
+
+  - name: WorkerSummary
+    version: 1
+    key: worker_summary
+    aliases: []
+    owner_domain: PEOPLE
+    class: READ_MODEL
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: NO_BUSINESS_LIFECYCLE
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      Rebuildable field/value/authority-tuple snapshot of a worker's current state with completeness/unknowns and canonical digest.
+    properties:
+      - name: snapshot_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.WorkerSummary.snapshot_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.worker_summary/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: ACTIVE
+
+  - name: PersonNameRevision
+    version: 1
+    key: person_name_revision
+    aliases: []
+    owner_domain: PEOPLE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      LEGAL/PREFERRED/FORMER/ALIAS structured name revision with usage jurisdictions and verification state.
+    properties:
+      - name: structured_name
+        go_type: string
+        schema_path: hcmnext.people.v1.PersonNameRevision.structured_name
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: ContactPoint
+    version: 1
+    key: contact_point
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      A channel-scoped contact endpoint owner with verification/ownership/purpose states.
+    properties:
+      - name: channel
+        go_type: string
+        schema_path: hcmnext.people.v1.ContactPoint.channel
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: Address
+    version: 1
+    key: address
+    aliases: []
+    owner_domain: PEOPLE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      A postal address owner with validation/normalization/geocode evidence revisions.
+    properties:
+      - name: postal_address
+        go_type: string
+        schema_path: hcmnext.people.v1.Address.postal_address
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: IdentityClaim
+    version: 1
+    key: identity_claim
+    aliases: []
+    owner_domain: PEOPLE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      A typed, namespaced identity claim: normalized hash, issuer/assurance, allowed purposes and validity/revocation refs.
+    properties:
+      - name: normalized_hash
+        go_type: string
+        schema_path: hcmnext.people.v1.IdentityClaim.normalized_hash
+        presence: REQUIRED
+        classification: PII
+        temporal: IMMUTABLE
+        authority_ref: authority.people_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: PersonRole
+    version: 1
+    key: person_role
+    aliases: []
+    owner_domain: PEOPLE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#party-and-identity
+    summary: >-
+      CANDIDATE/WORKER/CONTRACTOR/DEPENDENT/ALUMNUS/FORMER_WORKER/REPRESENTATIVE/APPLICANT role over a person.
+    properties:
+      - name: role_type
+        go_type: string
+        schema_path: hcmnext.people.v1.PersonRole.role_type
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: EmploymentStatusRevision
+    version: 1
+    key: employment_status_revision
+    aliases: []
+    owner_domain: PEOPLE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      PENDING/ACTIVE/SUSPENDED/LEAVE/ENDED/REINSTATED employment status with reason code and protected detail ref.
+    properties:
+      - name: status_code
+        go_type: string
+        schema_path: hcmnext.people.v1.EmploymentStatusRevision.status_code
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: AssignmentRevision
+    version: 1
+    key: assignment_revision
+    aliases: []
+    owner_domain: PEOPLE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      Assignment type, primary flag, job/position/org/location refs and manager relationship refs for one effective interval.
+    properties:
+      - name: primary_flag
+        go_type: bool
+        schema_path: hcmnext.people.v1.AssignmentRevision.primary_flag
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.people_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: WorkerLifecycleTransition
+    version: 1
+    key: worker_lifecycle_transition
+    aliases: []
+    owner_domain: PEOPLE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+    summary: >-
+      From/to worker state transition with intent/transaction/evidence refs, reason and guard receipts.
+    properties:
+      - name: to_state
+        go_type: string
+        schema_path: hcmnext.people.v1.WorkerLifecycleTransition.to_state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.people_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+relationships:
+  - name: ManagerRelationship
+    version: 1
+    source_entity: Assignment/v1
+    target_entity: Assignment/v1
+    cardinality: ONE_TO_ONE
+    exclusive: true
+    allow_cycles: false
+    tenant_scoped: true
+    covered: true
+    source_ref: planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+
+  - name: OrganizationHierarchy
+    version: 1
+    source_entity: OrganizationUnit/v1
+    target_entity: OrganizationUnit/v1
+    cardinality: ONE_TO_ONE
+    exclusive: true
+    allow_cycles: false
+    tenant_scoped: true
+    covered: true
+    source_ref: planning/data/models/people-workforce.md#organizations-legal-entities-and-relationships
+
+  - name: AssignmentPosition
+    version: 1
+    source_entity: Assignment/v1
+    target_entity: Position/v1
+    cardinality: ONE_TO_ONE
+    exclusive: true
+    allow_cycles: true
+    tenant_scoped: true
+    covered: true
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment
+
+  - name: EmploymentLegalEntity
+    version: 1
+    source_entity: Employment/v1
+    target_entity: LegalEntity/v1
+    cardinality: ONE_TO_ONE
+    exclusive: true
+    allow_cycles: true
+    tenant_scoped: true
+    covered: true
+    source_ref: planning/data/models/people-workforce.md#worker-and-employment

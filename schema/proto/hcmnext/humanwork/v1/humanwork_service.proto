@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package hcmnext.humanwork.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1;humanworkv1";
+
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/humanwork/v1/humanwork.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+message ListWorkItemsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.PageRequest page = 2;
+}
+
+message ListWorkItemsResponse {
+  repeated WorkItem work_items = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message GetWorkItemRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string work_item_id = 2;
+}
+
+message GetWorkItemResponse {
+  WorkItem work_item = 1;
+}
+
+message ClaimWorkItemRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string work_item_id = 3;
+  uint64 expected_item_version = 4;
+}
+
+message ClaimWorkItemResponse {
+  WorkItem work_item = 1;
+}
+
+message ReleaseWorkItemRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string work_item_id = 3;
+  uint64 expected_item_version = 4;
+  string reason_ref = 5;
+}
+
+message ReleaseWorkItemResponse {
+  WorkItem work_item = 1;
+}
+
+message CompleteWorkItemRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string work_item_id = 3;
+  uint64 expected_item_version = 4;
+  string output_artifact_ref = 5;
+  optional string form_submission_ref = 6;
+  repeated hcmnext.common.v1.EvidenceRef evidence_refs = 7;
+}
+
+message CompleteWorkItemResponse {
+  WorkItem work_item = 1;
+}
+
+message DecideApprovalRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string work_item_id = 3;
+  uint64 expected_item_version = 4;
+  string proposal_revision_id = 5;
+  hcmnext.intents.v1.ApprovalDecisionKind decision = 6;
+  string reason_ref = 7;
+}
+
+message DecideApprovalResponse {
+  ApprovalDecisionResult decision = 1;
+}
+
+message GetThresholdTableRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string table_id = 2;
+}
+
+message GetThresholdTableResponse {
+  ThresholdTable table = 1;
+}
+
+// WorkService is the human work queue/task and approval surface named in
+// planning/specs/http-grpc-endpoint-contract.md#human-work-and-approvals.
+//
+// Total P1A disposition: the six WorkItem/approval methods are P1B
+// (planning/specs/human-work-forms-and-rules.md "Phase Classification" —
+// "Approval WorkItem: create, claim, complete: OUT" for P1A); a P1A server
+// must refuse each with ERROR_CODE_FAILED_PRECONDITION and create/claim/
+// complete/decide nothing. GetThresholdTable is the one read P1A implements
+// ("Threshold decision table from tenant config: IMPLEMENT (read-only)").
+service WorkService {
+  // P1A disposition: REFUSE. WorkItem queues do not exist before P1B.
+  rpc ListWorkItems(ListWorkItemsRequest) returns (ListWorkItemsResponse);
+  // P1A disposition: REFUSE. See ListWorkItems.
+  rpc GetWorkItem(GetWorkItemRequest) returns (GetWorkItemResponse);
+  // P1A disposition: REFUSE. Claim/lease semantics are a P1B acceptance item.
+  rpc ClaimWorkItem(ClaimWorkItemRequest) returns (ClaimWorkItemResponse);
+  // P1A disposition: REFUSE. See ClaimWorkItem.
+  rpc ReleaseWorkItem(ReleaseWorkItemRequest) returns (ReleaseWorkItemResponse);
+  // P1A disposition: REFUSE. Completion authority/version/reason/evidence
+  // rechecking is a P1B acceptance item.
+  rpc CompleteWorkItem(CompleteWorkItemRequest) returns (CompleteWorkItemResponse);
+  // P1A disposition: REFUSE. Approval binding to an exact proposal digest is
+  // a P1B acceptance item; P1A demonstrates but does not enforce it
+  // (planning/specs/workflow-runtime.md "Phase Classification").
+  rpc DecideApproval(DecideApprovalRequest) returns (DecideApprovalResponse);
+  // P1A disposition: IMPLEMENT. Read-only tenant-configured threshold table.
+  rpc GetThresholdTable(GetThresholdTableRequest) returns (GetThresholdTableResponse);
+}

@@ -1,0 +1,83 @@
+{
+  "catalog_version": "harborcare.positions/2026.1",
+  "source_system": "workday.incumbent",
+  "authority_policy": "positions.source_authority/2026.1",
+  "recorded_at": "2026-01-02T00:00:00Z",
+  "positions": [
+    {
+      "id": "POS-SWE-118",
+      "version": "2026.1",
+      "job_code": "ENG-SWE3",
+      "grade": "P3",
+      "org_unit": "eng-platform",
+      "location": "San Francisco, CA",
+      "pay_zone": "US-WEST",
+      "status": "filled",
+      "headcount": "1",
+      "incumbent_worker_number": "W-1001",
+      "effective_from": "2024-01-01",
+      "recorded_at": "2024-01-02T09:15:00Z",
+      "evidence_ref": "evd_position_swe_118"
+    },
+    {
+      "id": "POS-SWE-119",
+      "version": "2026.1",
+      "job_code": "ENG-SWE3",
+      "grade": "P3",
+      "org_unit": "eng-platform",
+      "location": "San Francisco, CA",
+      "pay_zone": "US-WEST",
+      "status": "vacant",
+      "headcount": "1",
+      "incumbent_worker_number": "",
+      "effective_from": "2023-06-01",
+      "recorded_at": "2023-06-01T11:30:00Z",
+      "evidence_ref": "evd_position_swe_119"
+    },
+    {
+      "id": "POS-HRBP-204",
+      "version": "2026.1",
+      "job_code": "OPS-HRBP2",
+      "grade": "P2",
+      "org_unit": "people-ops",
+      "location": "Boston, MA",
+      "pay_zone": "US-EAST",
+      "status": "filled",
+      "headcount": "1",
+      "incumbent_worker_number": "W-1002",
+      "effective_from": "2024-04-01",
+      "recorded_at": "2024-04-01T14:02:00Z",
+      "evidence_ref": "evd_position_hrbp_204"
+    },
+    {
+      "id": "POS-HRBP-205",
+      "version": "2026.1",
+      "job_code": "OPS-HRBP2",
+      "grade": "P2",
+      "org_unit": "people-ops",
+      "location": "Boston, MA",
+      "pay_zone": "US-EAST",
+      "status": "filled",
+      "headcount": "1",
+      "incumbent_worker_number": "W-1004",
+      "effective_from": "2026-08-17",
+      "recorded_at": "2026-08-17T08:00:00Z",
+      "evidence_ref": "evd_position_hrbp_205"
+    },
+    {
+      "id": "POS-NURSE-330",
+      "version": "2026.1",
+      "job_code": "CLN-NURSE4",
+      "grade": "N4",
+      "org_unit": "clinical-ops",
+      "location": "Boston, MA",
+      "pay_zone": "US-EAST",
+      "status": "vacant",
+      "headcount": "2",
+      "incumbent_worker_number": "",
+      "effective_from": "2026-02-01",
+      "recorded_at": "2026-02-01T00:00:00Z",
+      "evidence_ref": "evd_position_nurse_330"
+    }
+  ]
+}

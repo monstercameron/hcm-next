@@ -1,0 +1,16 @@
+{
+  "RuleRef": "quality.pay_rate_range",
+  "Status": "PASS",
+  "Findings": [
+    {
+      "RuleRef": "quality.pay_rate_range",
+      "Path": "assignment.pay_rate",
+      "Status": "PASS",
+      "Severity": "BLOCKING",
+      "Detail": "within range",
+      "RemediationOwner": "payroll-ops"
+    }
+  ],
+  "SourceWatermark": "2026-05-30T00:00:00Z",
+  "Digest": "sha256:a897a9a59a18a265dd70fef4bcd66165cfff80cee42a77aa1daa50455ca52787"
+}

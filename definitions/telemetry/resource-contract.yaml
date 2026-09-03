@@ -1,0 +1,112 @@
+# Telemetry resource, context and privacy contract (OBS-001).
+#
+# Owned schema for the signal-neutral envelope implemented in
+# internal/platform/telemetry. This file is the source of truth for the
+# attribute allow-list: internal/platform/telemetry's DefaultAllowlist is
+# tested (contract_test.go) against a load of this exact file, so the Go
+# registry and the published contract can never silently drift apart.
+#
+# Telemetry diagnoses software. It is not a business ledger, audit log,
+# billing source, authorization fact or proof that an external effect
+# completed (planning/specs/structured-logging-and-opentelemetry.md,
+# "Scope").
+
+version: 1
+schema_version: 1
+
+# Resource identifies the process instance that produced a signal. It is
+# service-and-build identity, never business or tenant identity: tenant_class
+# is a bounded bucket below, never a tenant id, workspace name or org name.
+resource_fields:
+  - name: schema_version
+    required: true
+  - name: service_name
+    required: true
+  - name: service_version
+    required: true
+  - name: service_instance_id
+    required: true
+  - name: environment
+    required: true
+  - name: cell_id
+    required: true
+  - name: region
+    required: false
+  - name: process_role
+    required: true
+  - name: build_digest
+    required: true
+  - name: tenant_class
+    required: false
+
+# Context-propagation keys are the only identifiers a caller may attach
+# in-process; each is a bounded, opaque token, never a structured payload.
+context_propagation_keys:
+  - name: correlation_id
+    required: true
+    max_length: 128
+  - name: request_id
+    required: false
+    max_length: 128
+  - name: evidence_ref
+    required: false
+    max_length: 256
+  - name: principal_ref
+    required: false
+    max_length: 128
+
+# Attribute allow-list. A key not listed here classifies as PROHIBITED
+# everywhere internal/platform/telemetry checks it (fail closed by
+# construction). max_cardinality is required (> 0) whenever "metric" is
+# among signals.
+attribute_allowlist:
+  - key: cell_id
+    class: OPERATIONAL_PUBLIC
+    signals: [resource, log, span, metric]
+    max_cardinality: 64
+    description: Bounded cell identifier; never a tenant identity.
+  - key: environment
+    class: OPERATIONAL_PUBLIC
+    signals: [resource, log, span, metric]
+    max_cardinality: 8
+    description: Deployment environment name.
+  - key: process_role
+    class: OPERATIONAL_PUBLIC
+    signals: [resource, log, span, metric]
+    max_cardinality: 16
+    description: Runtime role of the emitting process.
+  - key: tenant_class
+    class: OPERATIONAL_PUBLIC
+    signals: [resource, log, span, metric]
+    max_cardinality: 8
+    description: Bounded tenant tier bucket, never a tenant id.
+  - key: outcome
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 8
+    description: Typed operation outcome.
+  - key: capability_id
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 128
+    description: Registry-owned capability identifier.
+  - key: workflow_node
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 128
+    description: Registry-owned workflow node name.
+  - key: edge
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 32
+    description: Named replication/consistency edge for parity checks.
+  - key: error_type
+    class: OPERATIONAL_RESTRICTED
+    signals: [log, span]
+    max_cardinality: 0
+    description: Classified error type; unbounded on logs/traces only, never a metric label.
+  - key: correlation_id
+    class: OPERATIONAL_RESTRICTED
+    signals: [log, span]
+    max_cardinality: 0
+    description: Business correlation identifier; never a metric label.

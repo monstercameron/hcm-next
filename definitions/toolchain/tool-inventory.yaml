@@ -1,0 +1,148 @@
+version: 1
+tools:
+  - name: buf
+    category: protobuf_toolchain
+    version: 1.72.0
+    digest: sha256:82b76897ffe433b32ebfa492d7b68b1c838c849770d26b20a0b0e652f5869838
+    source: https://github.com/bufbuild/buf
+    license: Apache-2.0
+    cve_status: PENDING_MANUAL_REVIEW
+    owner: platform-toolchain
+    update_sla: reviewed on every buf.yaml/gen/TOOLS.lock bump
+    replacement_path: protoc CLI directly invoked with the pinned protoc-gen-go/protoc-gen-go-grpc plugins (see buf.gen.yaml)
+    derived_from: gen/TOOLS.lock
+  - name: embedded-postgres
+    category: database_fixture
+    version: v1.34.0
+    digest: sha256:6fab576749f36bd626d3e39f094f23619a12caca1b9ed43f9f54c4e81517e832
+    source: https://github.com/fergusstrange/embedded-postgres
+    license: MIT
+    cve_status: PENDING_GOVULNCHECK
+    owner: platform-toolchain
+    update_sla: tracks the pinned go.mod require version
+    replacement_path: TOOL-014 ephemeral integration environment against a real PostgreSQL container
+    derived_from: go.mod
+    note: the selected PostgreSQL binary series is set independently in internal/data/pgtest/embedded.go; verify it manually on a module version bump
+  - name: eslint
+    category: node_toolchain
+    version: 9.39.4
+    source: https://www.npmjs.com/package/eslint
+    license: see package-lock.json
+    cve_status: PENDING_NPM_AUDIT
+    owner: platform-toolchain
+    update_sla: tracks the resolved package-lock.json version
+    replacement_path: go vet/staticcheck cover the Go slice only; no replacement covers the JS/TS slice
+    derived_from: package-lock.json
+    note: package-lock.json records no integrity hash for this root-level direct devDependency; pinned by exact resolved version only
+  - name: husky
+    category: node_toolchain
+    version: 9.1.7
+    source: https://www.npmjs.com/package/husky
+    license: see package-lock.json
+    cve_status: PENDING_NPM_AUDIT
+    owner: platform-toolchain
+    update_sla: tracks the resolved package-lock.json version
+    replacement_path: a hand-maintained .git/hooks/pre-commit script
+    derived_from: package-lock.json
+    note: package-lock.json records no integrity hash for this root-level direct devDependency; pinned by exact resolved version only
+  - name: husky:pre-commit
+    category: git_hook
+    version: content-pinned
+    digest: sha256:7be013ed1f6b8efa3b5333bbeb37a08acb97ca77da7d234a4b07719d6a49f31b
+    source: .husky/pre-commit
+    license: N/A (repository-owned script)
+    cve_status: N/A (owned script, not a third-party binary)
+    owner: platform-toolchain
+    update_sla: reviewed on every .husky change via normal code review
+    replacement_path: direct edit of .husky/pre-commit under code review
+    derived_from: .husky/pre-commit
+  - name: lint-staged
+    category: node_toolchain
+    version: 15.5.2
+    source: https://www.npmjs.com/package/lint-staged
+    license: see package-lock.json
+    cve_status: PENDING_NPM_AUDIT
+    owner: platform-toolchain
+    update_sla: tracks the resolved package-lock.json version
+    replacement_path: running the full check suite on every commit instead of a staged-files subset
+    derived_from: package-lock.json
+    note: package-lock.json records no integrity hash for this root-level direct devDependency; pinned by exact resolved version only
+  - name: node
+    category: node_runtime
+    version: ">=20.11.0"
+    digest: sha256:2873ebf2fa338ebce4b7ccd4b0c6aad6dd200e6546f989d11d6f4bd63dd17c38
+    source: https://nodejs.org
+    license: MIT
+    cve_status: PENDING_MANUAL_REVIEW
+    owner: platform-toolchain
+    update_sla: tracks package.json engines.node
+    replacement_path: "none: Node is the pinned dev/build toolchain runtime"
+    derived_from: package.json
+    note: minimum-version constraint (package.json engines), not an exact pin; the exact installed version is whatever the build host resolves
+  - name: npm
+    category: node_runtime
+    version: ">=10.0.0"
+    digest: sha256:c9db3723f4562734ef37fb538d3e0fd0addb6b376bfa38e45800b7ee3295fc7f
+    source: https://www.npmjs.com
+    license: Artistic-2.0
+    cve_status: PENDING_MANUAL_REVIEW
+    owner: platform-toolchain
+    update_sla: tracks package.json engines.npm
+    replacement_path: "none: npm is the pinned package manager"
+    derived_from: package.json
+    note: minimum-version constraint (package.json engines), not an exact pin; the exact installed version is whatever the build host resolves
+  - name: prettier
+    category: node_toolchain
+    version: 3.8.3
+    source: https://www.npmjs.com/package/prettier
+    license: see package-lock.json
+    cve_status: PENDING_NPM_AUDIT
+    owner: platform-toolchain
+    update_sla: tracks the resolved package-lock.json version
+    replacement_path: gofmt/goimports for Go, hand-formatting for the rest (no drop-in replacement for JS/TS/YAML/MD)
+    derived_from: package-lock.json
+    note: package-lock.json records no integrity hash for this root-level direct devDependency; pinned by exact resolved version only
+  - name: protoc-gen-go
+    category: protobuf_toolchain
+    version: v1.36.12
+    digest: sha256:e9bd8a17414e9691ff357e3fe20e572a25343236a2e58fd844569cfddac7bd28
+    source: google.golang.org/protobuf/cmd/protoc-gen-go
+    license: BSD-3-Clause
+    cve_status: PENDING_GOVULNCHECK
+    owner: platform-toolchain
+    update_sla: tracks the pinned go.mod require version
+    replacement_path: SchemaFlux-driven generation once TOOL-004 qualifies it
+    derived_from: go.mod
+  - name: protoc-gen-go-grpc
+    category: protobuf_toolchain
+    version: v1.6.2
+    digest: sha256:aa84f0b8252e76be4ee0e17b1040558531ab8ff37f5ea71847dc7fd12cccf0a0
+    source: google.golang.org/grpc/cmd/protoc-gen-go-grpc
+    license: BSD-3-Clause
+    cve_status: PENDING_GOVULNCHECK
+    owner: platform-toolchain
+    update_sla: tracks the pinned go.mod require version
+    replacement_path: connect-go generated stubs (already the selected transport edge, see TOOL-008)
+    derived_from: go.mod
+  - name: staticcheck
+    category: go_static_analysis
+    version: v0.8.1
+    digest: sha256:555111de1ec12eef18fc8836ae95e45f04c67776dd5d5801f58dd04e5ccda3f9
+    source: honnef.co/go/tools/cmd/staticcheck
+    license: MIT
+    cve_status: PENDING_GOVULNCHECK
+    owner: platform-toolchain
+    update_sla: tracks the pinned go.mod require version
+    replacement_path: go vet alone (reduced analyzer coverage) pending an alternative static analyzer
+    derived_from: go.mod
+  - name: vitest
+    category: node_toolchain
+    version: 2.1.9
+    source: https://www.npmjs.com/package/vitest
+    license: see package-lock.json
+    cve_status: PENDING_NPM_AUDIT
+    owner: platform-toolchain
+    update_sla: tracks the resolved package-lock.json version
+    replacement_path: the Go test suite covers the Go slice only; no replacement covers the JS/TS slice
+    derived_from: package-lock.json
+    note: package-lock.json records no integrity hash for this root-level direct devDependency; pinned by exact resolved version only

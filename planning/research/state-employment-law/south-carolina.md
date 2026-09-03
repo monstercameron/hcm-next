@@ -12,8 +12,6 @@
 - **Human Affairs Law protections**: Applies to employers with 15+ employees (§ 1-13-10 et seq.); prohibits discrimination on race, religion, color, sex, age, national origin, disability; Pregnancy Accommodations Act (§ 1-13-30(P), 2018) requires reasonable accommodations.
 - **Handbook disclaimer**: § 41-1-110 allows employers to disclaim implied contract if disclaimer appears in underlined capital letters on first page and employee signs (effective 2004).
 - **Non-compete enforceability**: Common law; must be written, signed, reasonable in time/territory; strictly construed against drafter; no blue-pencil modification.
-- **Paid sick leave**: § 41-1-27 (effective Jan 1, 2025) governs administration if offered; no mandate for all employers; employees may use three days/year for chronic illness without certification.
-- **Personnel file access**: Employees have right to examine own personnel files within 72 hours; right continues seven years post-employment.
 
 ## 2. Employment Relationship: At-Will Status and Exceptions
 
@@ -70,7 +68,7 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 
 **Pay transparency mandate**: No state-wide requirement for salary range disclosure in job postings or on request.
 
-**Equal pay** (§ 41-12, SC Equal Pay for Equal Work Act):
+**Equal pay**: no South Carolina equal-pay statute (Title 41 has no such chapter); the federal Equal Pay Act (29 U.S.C. § 206(d)) and Title VII apply.
 
 - Prohibits discrimination in wages on basis of sex for substantially similar work.
 - No explicit private right of action stated; enforcement by state agency.
@@ -86,12 +84,7 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 
 ## 5. Leave and Time: Paid Sick Leave, PFML, Other Mandated Leave
 
-**Paid sick leave** (§ 41-1-27, effective Jan 1, 2025):
-
-- No statewide mandate requiring employers to offer paid sick leave.
-- For employers who DO offer paid sick leave: employees may use up to three days/calendar year for chronic illness or related medical condition without requiring health care provider certification.
-- Employers may require certification for other paid sick leave uses.
-- Employees accrue paid sick leave if employer chooses to offer it; timing and accrual rate set by employer policy.
+**Paid sick leave**: No state rule; employer policy and federal law apply. Employers may offer paid sick leave at their discretion; no state mandate or minimum accrual requirement.
 
 **Paid family and medical leave (PFML)**: No state mandate; federal FMLA (12 weeks unpaid, 50+ employees, if applicable) is sole statutory floor.
 
@@ -112,13 +105,7 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 - Employers must maintain true and accurate wage, hour, and employment records for three years.
 - Records must be available for inspection by Department of Labor, Licensing and Regulation.
 
-**Employee access to personnel files** (§ 30-1-31):
-
-- Employees have inherent right to examine or obtain copies of personnel files.
-- Employer must comply within 72 hours of request during normal business hours.
-- Employer must provide file in entirety with no information removed, edited, or altered.
-- Employer may charge up to $10 to defray copying costs.
-- Right to access continues for seven years after termination of employment.
+**Employee access to personnel files**: No state rule; employer policy applies. South Carolina does not mandate employee access to personnel records or impose timing/format requirements; employers may establish their own disclosure policies.
 
 **Record format**: No state mandate for electronic vs. paper format; either acceptable if retention and access requirements met.
 
@@ -172,7 +159,7 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 - Valid legitimate business interests: trade secrets, customer relationships, confidential information, goodwill.
 - **No specific time/territory standard in statute; reasonableness determined case-by-case; restrictive interpretation favors employee.**
 
-**Statutory exception** (§ 41-7, nonprofit non-competes):
+**Statutory exception**: none. S.C. Code ch. 41-7 is the right-to-work law and contains no non-compete provision; non-competes are governed by common law only.
 
 - Non-competes are null and void and unenforceable if employer is a nonprofit corporation with annual gross revenue exceeding $1 billion.
 
@@ -184,7 +171,7 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 
 - South Carolina courts apply eight-factor test; no single factor determinative.
 - Factors: (1) Control/direction by hiring entity, (2) Integral to hiring entity's business, (3) Permanency of relationship, (4) Contractor's investment in facilities/equipment, (5) Opportunities for profit and loss, (6) Initiative and judgment in market competition, (7) Degree of independent business operation, (8) Totality of circumstances.
-- Misclassification enforcement by NCDOL, Revenue Department, Attorney General.
+- Misclassification enforcement by the South Carolina Department of Labor, Licensing and Regulation (LLR), the Department of Revenue, and the Attorney General.
 
 **Remote workers**: No specific statute; standard employment law applies regardless of work location. If work is performed in South Carolina (remote or on-site), South Carolina law applies to that work.
 
@@ -256,18 +243,12 @@ South Carolina follows at-will employment doctrine: employers and employees may 
 
 12. [South Carolina Code § 41-1-15 - Drug testing confidentiality and prevention program](https://www.scstatehouse.gov/code/t41c001.php) — retrieved 2026-09-03
 
-13. [South Carolina Code § 41-1-27 - Paid sick leave administration (effective Jan 1, 2025)](https://www.scstatehouse.gov/code/t41c001.php) — retrieved 2026-09-03
+13. [South Carolina Code § 39-1-90 - Data breach notification requirements](https://www.scstatehouse.gov/code/t39c001.php) — retrieved 2026-09-03
 
-14. [South Carolina Code § 30-1-31 - Employee right to examine personnel files (72-hour access, 7-year post-termination)](https://www.scstatehouse.gov/code/t30c001.php) — retrieved 2026-09-03
+14. [South Carolina Code § 41-7 - Right-to-work law and union dues deductions](https://www.scstatehouse.gov/code/t41c007.php) — retrieved 2026-09-03
 
-15. [South Carolina Code § 39-1-90 - Data breach notification requirements](https://www.scstatehouse.gov/code/t39c001.php) — retrieved 2026-09-03
+15. [South Carolina Department of Labor, Licensing and Regulation - Employment Laws Overview](https://www.scstatehouse.gov/code/title41.php) — retrieved 2026-09-03
 
-16. [South Carolina Code § 41-7 - Right-to-work law and union dues deductions](https://www.scstatehouse.gov/code/t41c007.php) — retrieved 2026-09-03
+16. [South Carolina Code § 38-99 - Insurance Data Security Act](https://www.scstatehouse.gov/code/t38c099.php) — retrieved 2026-09-03
 
-17. [South Carolina Department of Labor, Licensing and Regulation - Employment Laws Overview](https://www.scstatehouse.gov/code/title41.php) — retrieved 2026-09-03
-
-18. [South Carolina Code § 38-99 - Insurance Data Security Act](https://www.scstatehouse.gov/code/t38c099.php) — retrieved 2026-09-03
-
-19. [South Carolina Common Law - Non-compete enforceability (written, signed, reasonable time/territory, strictly construed)](https://www.scstatehouse.gov/query.php) — retrieved 2026-09-03
-
-20. [South Carolina Code § 41-7 (nonprofit non-compete exception) - $1B+ annual revenue](https://www.scstatehouse.gov/code/t41c007.php) — retrieved 2026-09-03
+17. [South Carolina Common Law - Non-compete enforceability (written, signed, reasonable time/territory, strictly construed)](https://www.scstatehouse.gov/query.php) — retrieved 2026-09-03

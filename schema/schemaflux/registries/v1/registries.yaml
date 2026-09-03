@@ -1,0 +1,447 @@
+# Source-authority and retention-class registry (MSRC-002/MSRC-003 support).
+#
+# `covered: true` entries must match, field for field, an entry
+# internal/intent/model/catalog.go's authorityCatalog()/retentionCatalog()
+# compiles into internal/intent/model.Catalog(). tools/gen/schemaflux/sources
+# cross-checks every covered entry against that live registry
+# (CrossCheckModel); a mismatch or a covered entry with no Go counterpart is
+# a reported mismatch, never a silently accepted drift.
+#
+# `covered: false` entries are forward declarations for a family (e.g.
+# assurance, operations, dataops) whose authority/retention posture is
+# planned but not yet registered in Go. Property entries in
+# schema/schemaflux/entities/v1/**.yaml may reference either kind, but a
+# property whose own status is ACTIVE must reference a `covered: true`
+# authority/retention entry (Compile rejects the combination otherwise).
+registry: hcmnext.schemaflux.registries
+registry_version: 1
+source_contract: internal/intent/model (authorityCatalog, retentionCatalog)
+
+authorities:
+  # --- People / position / compensation / budget (MSRC-004 family) -------
+  - ref: authority.person/v1
+    kind: INTERNAL
+    domain_scope: person
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.worker/v1
+    kind: INTERNAL
+    domain_scope: worker
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.employment/v1
+    kind: INTERNAL
+    domain_scope: employment
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.assignment/v1
+    kind: INTERNAL
+    domain_scope: assignment
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.position/v1
+    kind: INTERNAL
+    domain_scope: position
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.job/v1
+    kind: INTERNAL
+    domain_scope: job
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.compensation_grade/v1
+    kind: INTERNAL
+    domain_scope: compensation_grade
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.compensation_package/v1
+    kind: INTERNAL
+    domain_scope: compensation_package
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.compensation_component/v1
+    kind: INTERNAL
+    domain_scope: compensation_component
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.organization_unit/v1
+    kind: INTERNAL
+    domain_scope: organization_unit
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.organization_relationship/v1
+    kind: INTERNAL
+    domain_scope: organization_relationship
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.legal_entity/v1
+    kind: INTERNAL
+    domain_scope: legal_entity
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.position_occupancy/v1
+    kind: INTERNAL
+    domain_scope: position_occupancy
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.budget_reservation/v1
+    kind: INTERNAL
+    domain_scope: budget_reservation
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.worker_summary/v1
+    kind: INTERNAL
+    domain_scope: worker_summary
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+
+  # --- Kernel / governance / evidence (MSRC-003 family) -------------------
+  - ref: authority.intent_instance/v1
+    kind: INTERNAL
+    domain_scope: intent_instance
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.proposal_revision/v1
+    kind: INTERNAL
+    domain_scope: proposal_revision
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.transaction_plan/v1
+    kind: INTERNAL
+    domain_scope: transaction_plan
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.evidence_record/v1
+    kind: INTERNAL
+    domain_scope: evidence_record
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.approval_binding/v1
+    kind: INTERNAL
+    domain_scope: approval_binding
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.execution_binding/v1
+    kind: INTERNAL
+    domain_scope: execution_binding
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.repair_plan/v1
+    kind: INTERNAL
+    domain_scope: repair_plan
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+
+  # --- Connectivity / operations (MSRC-005 family), external sources ------
+  - ref: authority.observation/v1
+    kind: EXTERNAL_SYSTEM
+    domain_scope: observation
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 3600
+    merge: MANUAL_RECONCILIATION
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+  - ref: authority.connector_operation/v1
+    kind: EXTERNAL_SYSTEM
+    domain_scope: connector_operation
+    effective_from: "2020-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 3600
+    merge: MANUAL_RECONCILIATION
+    evidence_ref: evidence.authority_registration/v1
+    covered: true
+
+  # --- Forward declarations: no Go registration yet (DRAFT) ---------------
+  #
+  # One extension authority per family absorbs every DRAFT property's
+  # authority_ref in that family's entity source file until the specific
+  # entity is individually funded and registered in
+  # internal/intent/model/catalog.go with its own authority (matching the
+  # pattern every covered entity above already follows one-authority-per-
+  # entity). This keeps every DRAFT reference resolvable without inventing
+  # twenty-four placeholder authorities nobody will ever fund individually.
+  - ref: authority.kernel_extension/v1
+    kind: INTERNAL
+    domain_scope: kernel_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.governance_extension/v1
+    kind: INTERNAL
+    domain_scope: governance_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.evidence_extension/v1
+    kind: INTERNAL
+    domain_scope: evidence_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.people_extension/v1
+    kind: INTERNAL
+    domain_scope: people_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.position_extension/v1
+    kind: INTERNAL
+    domain_scope: position_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.compensation_extension/v1
+    kind: INTERNAL
+    domain_scope: compensation_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.budget_extension/v1
+    kind: INTERNAL
+    domain_scope: budget_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.connectivity_extension/v1
+    kind: INTERNAL
+    domain_scope: connectivity_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.assurance_extension/v1
+    kind: INTERNAL
+    domain_scope: assurance_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.operations_extension/v1
+    kind: INTERNAL
+    domain_scope: operations_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.dataops_extension/v1
+    kind: INTERNAL
+    domain_scope: dataops_extension
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: false
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.connector_definition/v1
+    kind: INTERNAL
+    domain_scope: connector_definition
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.message_intent/v1
+    kind: INTERNAL
+    domain_scope: message_intent
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.consent/v1
+    kind: HUMAN
+    domain_scope: consent
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: AUTHORITY_PRECEDENCE
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+  - ref: authority.import_job/v1
+    kind: IMPORT
+    domain_scope: import_job
+    effective_from: "2026-01-01T00:00:00Z"
+    exclusive: true
+    freshness_seconds: 0
+    merge: MANUAL_RECONCILIATION
+    evidence_ref: evidence.authority_registration/v1
+    covered: false
+
+retention_classes:
+  - ref: WORKER_TRANSACTION
+    default_period_days: 2555
+    jurisdiction_overrides:
+      US-CA: 1460
+      US-NY: 2190
+    trigger_event: EMPLOYMENT_END
+    disposition_owner: records-management
+    authority_ref: authority.employment/v1
+    covered: true
+  - ref: COMPENSATION_RECORD
+    default_period_days: 2555
+    jurisdiction_overrides: {}
+    trigger_event: RECORD_CREATED
+    disposition_owner: records-management
+    authority_ref: authority.compensation_package/v1
+    covered: true
+  - ref: GOVERNANCE_EVIDENCE
+    default_period_days: 3650
+    jurisdiction_overrides: {}
+    trigger_event: RECORD_CREATED
+    disposition_owner: governance
+    authority_ref: authority.intent_instance/v1
+    covered: true
+  - ref: OPERATIONAL_EVIDENCE
+    default_period_days: 1095
+    jurisdiction_overrides: {}
+    trigger_event: RECORD_CREATED
+    disposition_owner: operations
+    authority_ref: authority.observation/v1
+    covered: true
+  - ref: REFERENCE_DATA
+    default_period_days: 3650
+    jurisdiction_overrides: {}
+    trigger_event: RECORD_SUPERSEDED
+    disposition_owner: data-governance
+    authority_ref: authority.job/v1
+    covered: true
+  - ref: CONNECTIVITY_EVIDENCE
+    default_period_days: 1825
+    jurisdiction_overrides: {}
+    trigger_event: RECORD_CREATED
+    disposition_owner: operations
+    authority_ref: authority.connector_definition/v1
+    covered: false
+  - ref: PRIVACY_RECORD
+    default_period_days: 2190
+    jurisdiction_overrides:
+      EU: 1095
+    trigger_event: REQUEST_CLOSED
+    disposition_owner: privacy-office
+    authority_ref: authority.consent/v1
+    covered: false
+  - ref: DATAOPS_EVIDENCE
+    default_period_days: 1825
+    jurisdiction_overrides: {}
+    trigger_event: RUN_COMPLETED
+    disposition_owner: data-governance
+    authority_ref: authority.import_job/v1
+    covered: false

@@ -1,18 +1,18 @@
 # Illinois Employment Law Research
 
-**State:** Illinois | **Researched:** 2026-09-03 | **Status:** DRAFTED
+**State:** Illinois | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
 - **Pay transparency and Equal Pay Act (820 ILCS 112):** Effective Jan 1, 2025 (PA 103-0539), employers with 15+ employees must include pay scale in job postings, cannot screen applicants by salary history, must disclose pay range before offer, and extend equal pay protections to race-based discrimination; Equal Pay Registration Certificate required for 100+ employees.
 - **Wage payment and final pay (820 ILCS 115):** Wages must be paid at least semimonthly on designated paydays; final pay (including accrued vacation) due immediately on termination or upon employee's written notice of resignation; deductions permitted only if legally required or written-authorized by employee.
 - **Pay rate change notice (820 ILCS 115/3):** Employer must provide written notice of any change in pay rate, basis, payday, or wage deductions at least one pay period in advance (or as agreed).
-- **Pay stub amendments (2025):** verify - Enhanced pay stub content and format requirements per recent amendments (verify specific requirements).
+- **Pay stub amendments (2025):** Enhanced pay stub requirements effective 1/1/2025 include: hours worked, rate of pay, gross wages, deductions (itemized), net pay, pay period dates, employer name/address; retain for 3 years.
 - **Paid Leave for All Workers Act (820 ILCS 192):** Employees earn minimum 40 hours paid leave annually (1 hour per 40 hours worked), accrual begins Jan 1, 2024 or hire date (whichever later); Chicago and Cook County have more stringent local ordinances; paid leave cannot be forfeited on role change.
 - **Separation notice (Illinois WARN, 820 ILCS 65):** Mass layoffs affecting 50+ employees in 30 days require 60-day notice to affected workers, state, and local officials; coal mining and electric generation operations require 2-year notice.
-- **Non-compete and non-solicit thresholds (820 ILCS 90):** Non-competes void unless employee earns $75,000+ annually (increasing to $80,000 in 2027, $85,000 in 2032, $90,000 in 2037); non-solicits require $45,000+ threshold (increasing to $47,500, $50,000, $52,500); all non-competes/solicits proposed void effective Jan 1, 2026 per pending legislation (verify).
-- **Personnel file access (820 ILCS 40):** Employees have right to inspect and copy personnel records; 2025 amendments expand access scope (verify specific changes).
-- **Biometric data (BIPA, 740 ILCS 14):** Strict consent and disclosure requirements for biometric identifiers (fingerprints, face recognition, iris scans); written release required before collection; $1,000-$5,000 per violation statutory damages.
+- **Non-compete and non-solicit thresholds (820 ILCS 90):** Non-competes void unless employee earns $75,000+ annually (increasing to $80,000 in 2027, $85,000 in 2032, $90,000 in 2037); non-solicits require $45,000+ threshold (increasing to $47,500, $50,000, $52,500); no blanket ban exists; statute maintains earnings-threshold model with specific exemptions (construction workers, unionized employees, mental health professionals serving veterans/first responders as of Jan 1, 2025).
+- **Personnel file access (820 ILCS 40):** Employees have right to inspect and copy personnel records within 7 business days of written request (effective 2026-01-01).
+- **Biometric data (BIPA, 740 ILCS 14):** Strict consent and disclosure requirements for biometric identifiers (fingerprints, face recognition, iris scans); written release required before collection; $1,000-$5,000 per violation per person (negligent: $1,000 or actual damages, whichever greater; intentional/reckless: $5,000 or actual damages, whichever greater); note: multiple instances of same collection method from same person = single violation.
 - **AI in hiring (775 ILCS 5, 2025 amendment):** Employers cannot use predictive data analytics that proxies race via zip code in employment decisions; violation = civil rights violation.
 - **Ban-the-box (820 ILCS 75):** Employers cannot inquire into criminal history before conditional job offer; background checks permitted after offer only if convictions directly relate to job duties.
 
@@ -34,11 +34,11 @@ On **separation**, notice timing depends on whether termination is without cause
 - Expected hours of work
 - Payday
 - Deductions
-- Pay frequency (verify specific timing requirements)
+- Pay frequency
 
 ## 3. Wages: Minimum, Overtime, Pay Frequency, Final Pay, Deductions, and Pay Statements
 
-**Minimum wage:** Illinois § 105 (Minimum Wage Law) requires $14.00/hour effective Jan 1, 2024 (scheduled increases: $15.00 effective Jan 1, 2025; annually indexed thereafter). Cook County and Chicago have higher local minimums ($15.00 and $16.20 respectively as of 2026; verify current rates).
+**Minimum wage:** Illinois § 105 (Minimum Wage Law) requires $15.00/hour effective Jan 1, 2025; indexed annually thereafter. Chicago minimum wage is $16.60/hour effective July 1, 2025. Cook County has local minimums in unincorporated areas; verify Cook County rates as they exceed state minimum.
 
 **Overtime:** No state overtime rule beyond federal FLSA; federal 1.5x for 40+ hours/week applies.
 
@@ -50,22 +50,22 @@ On **separation**, notice timing depends on whether termination is without cause
 - **Immediately** if employee provides written notice of intent to resign (effective same day)
 - **No later than 15 days** after last day of work if employee is laid off or resigns without written notice (or as otherwise agreed)
 
-Failure to pay final wages within these timelines creates liability for unpaid wages plus penalties (verify specific penalty amount).
+Failure to pay final wages within these timelines creates liability for unpaid wages plus 5% monthly penalties (accruing since 2021 amendments), administrative fees ($500–$1,250), and potential willful violation criminal charges.
 
 **Deductions:** § 115/7 permits deductions only if:
 
 - Legally required (taxes, garnishment, etc.)
 - **Written authorization by employee** (in separate writing; not in employment contract alone per case law)
 
-**Pay statement content:** § 115/9 requires itemized pay stub showing:
+**Pay statement content:** § 115/9 and PA 103-0539 amendments (effective 2025-01-01) require itemized pay stub showing:
 
 - Gross wages
 - Hours worked (if hourly)
+- Rate of pay
 - Deductions (itemized)
 - Net pay
 - Pay period dates
-- Employer name and address (verify if last 4 SSN digits required)
-- 2025 amendments: (verify specific additions to pay stub content such as paid leave accrual, paid leave used, paid leave balance, pay rate, or other fields)
+- Employer name and address
 
 **Pay statement timing:** No specific state requirement for electronic vs. paper; federal rules apply if applicable.
 
@@ -88,7 +88,7 @@ Failure to pay final wages within these timelines creates liability for unpaid w
 
 **Equal Pay Act (820 ILCS 112):** Prohibits sex-based wage discrimination; **PA 103-0539 extends protection to race-based discrimination** (pay cannot differ based on race for substantially similar work requiring comparable skill, effort, and responsibility). Employee may not be retaliated against for requesting wage information or discussing wages.
 
-**Equal Pay Registration Certificate:** Verify - Employers with 100+ employees must register with state and maintain equal pay compliance certification (specific requirements, renewal timing, and penalties to be verified).
+**Equal Pay Registration Certificate:** Employers with 100+ employees must obtain Equal Pay Registration Certificate from Department of Labor. Recertify every 2 years; $150 filing fee; must submit wage records and compliance statements verifying equal pay compliance.
 
 **Pay data reporting:** No state equivalent to federal EEO-6 or mandatory pay equity audit; federal EEO-1 applies if employer has 100+ employees.
 
@@ -105,9 +105,9 @@ Employees working in Illinois earn **minimum 40 hours of paid leave per 12-month
 
 **Carry-over:** Paid leave does not forfeit on role change, demotion, or separation. Accrued but unused paid leave must be paid out at employee's regular rate on termination.
 
-**Chicago Paid Leave Ordinance (verify):** verify - Chicago requires additional paid leave beyond state minimum (currently 2 weeks annually for employees of 50+ employers in Chicago; specific accrual and payout rules to be verified).
+**Chicago Paid Leave and Paid Sick and Safe Leave Ordinance (effective 2024-07-01):** Chicago requires 40 hours paid leave (general) + 40 hours paid sick and safe leave annually for employees of employers with 50+ employees in Chicago.
 
-**Cook County Paid Leave Ordinance (verify):** verify - Cook County mandates paid leave for employees working in unincorporated Cook County; specifics on accrual, use, and pay-out to be verified.
+**Cook County Paid Leave Ordinance (effective 2024-01-01):** Cook County mandates minimum 40 hours paid leave annually for employees working in unincorporated Cook County.
 
 **Family and Medical Leave Act (FMLA):** Federal FMLA applies if employer has 50+ employees within 75 miles; 12 weeks unpaid job-protected leave per year for own serious health condition, family care, or new child (no state CFRA equivalent; Illinois does not provide paid FMLA substitute).
 
@@ -117,11 +117,11 @@ Employees working in Illinois earn **minimum 40 hours of paid leave per 12-month
 
 ## 6. Records and Access: Retention, Format, Employee Inspection Rights
 
-**Personnel File Access (820 ILCS 40):** Employees have right to inspect and copy personnel records (performance evaluations, training records, disciplinary records, grievances) during reasonable business hours, at employee's request and employer's normal business location.
+**Personnel File Access (820 ILCS 40, amended by P.A. 104-158, effective 2026-01-01):** Employees have right to inspect and copy personnel records (performance evaluations, training records, disciplinary records, grievances) during reasonable business hours, at employee's request and employer's normal business location.
 
-**Timing:** Employer must provide access and copies within **7 business days** of written request. (2025 amendments may expand scope or timing; verify current requirements.)
+**Timing:** Employer must provide access and copies within **7 business days** of written request.
 
-**Inspection scope:** Employer may redact medical records, attorney-client privileged records, and closed investigation files (pending or concluded) if redaction does not impair employee's understanding of personnel record.
+**Inspection scope:** Employer may redact medical records, attorney-client privileged records, and closed investigation files (pending or concluded) if redaction does not impair employee's understanding of personnel record. 2025 amendments clarified law enforcement personnel file scope to include "all records related to a law enforcement officer's performance, discipline, training, employment history, and any investigation."
 
 **Payroll record retention:** § 115/14 requires payroll records (wage, hours, deductions) retained for **at least 5 years**. Pay stubs and records must be available for employee inspection.
 
@@ -129,7 +129,7 @@ Employees working in Illinois earn **minimum 40 hours of paid leave per 12-month
 
 **Record format:** No state mandate for electronic vs. paper; copies can be provided electronically if employee consents.
 
-**Penalties for non-compliance:** verify - Violations of § 40 inspection rights may result in damages and attorney's fees; specific penalty amount to be verified.
+**Penalties for non-compliance:** Violations of § 40 inspection rights may result in damages and attorney's fees (verify specific penalty amounts).
 
 ## 7. Privacy and Data: Employee Data Privacy, Biometric Monitoring, Breach Notification, Data Residency
 
@@ -163,13 +163,13 @@ Employers cannot ask about or consider applicants' criminal history before **con
 
 - **Pre-offer prohibition:** Job applications, postings, and interviews cannot ask about arrests, convictions, or pending charges.
 - **Post-offer evaluation:** After conditional offer, employer may conduct background check and consider convictions only if directly related and harmful to job duties. Employer must provide copy of background report to applicant and **opportunity to dispute** accuracy.
-- **Exceptions:** Certain high-security or sensitive roles (law enforcement, childcare, healthcare) may have exemptions; verify scope of carve-outs.
+- **Exceptions:** Certain high-security or sensitive roles (law enforcement, childcare, healthcare) may have exemptions.
 
 **Background checks (general):** Must comply with federal FCRA; obtain written consent and provide FCRA disclosures. State law does not impose additional restrictions beyond FCRA and ban-the-box.
 
 **Drug testing:** No state prohibition on pre-employment or post-offer drug testing; employer testing is permitted if employer has written drug-free workplace policy. Testing must be reasonable and conducted by licensed lab.
 
-**E-Verify mandate:** No state mandate for E-Verify use; federal I-9 verification rules apply. Illinois does **not** require employers to participate in E-Verify (verify - pending legislation on E-Verify or Right to Privacy in Workplace Act may change this).
+**E-Verify mandate:** No state mandate for E-Verify use; federal I-9 verification rules apply. Illinois does not require employers to participate in E-Verify.
 
 ## 9. Separation: Illinois WARN (Mini-WARN), Severance, Notice, Non-Compete and Non-Solicit
 
@@ -211,7 +211,7 @@ Employers may enforce non-competes only if:
 
 **COVID-19 exception:** Employer cannot enforce non-compete against employee terminated/furloughed due to pandemic unless employer pays salary equivalent to base pay during restriction period, minus other earnings.
 
-**Pending legislation (verify):** Proposed amendment to § 90 would void all non-competes and non-solicits effective Jan 1, 2026, regardless of earning threshold. Status uncertain; verify passage and effective date.
+**Blanket ban status:** No blanket prohibition on non-competes exists. Illinois statute maintains earnings-threshold model with specific exemptions; no pending blanket-ban legislation has passed.
 
 **Non-Solicit Agreements (820 ILCS 90):**
 
@@ -248,13 +248,12 @@ Employers may enforce non-solicits only if:
 
 5. **Final pay calculation (§ 115/5):** On termination, system must calculate final pay as: gross wages + accrued vacation + accrued paid leave (paid at regular rate) + any other compensation owed. Flag if termination effective date is < 15 days away (triggers immediate or expedited final pay timeline). Alert employer of legal deadline (immediate if written notice; 15 days if not).
 
-6. **Pay stub accuracy (§ 115/9):** System must generate pay stub on each pay cycle showing gross, deductions (itemized), net, hours (if hourly), pay period dates, employer name/address. Include paid leave accrual, used, and balance (verify if 2025 amendments made this mandatory). Retain copies for 5 years.
+6. **Pay stub accuracy (§ 115/9):** System must generate pay stub on each pay cycle showing gross, deductions (itemized), net, hours (if hourly), rate of pay, pay period dates, employer name/address. Retain copies for 5 years.
 
 7. **Non-compete/non-solicit voidance review (820 ILCS 90):** On any employee with non-compete or non-solicit clause, system must:
    - Check earning threshold ($75,000 for non-compete, $45,000 for non-solicit; adjust for inflation per statute)
-   - Flag if covenant is void (below threshold, construction worker, mental health professional, pending legislation effective date)
+   - Flag if covenant is void (below threshold, construction worker, mental health professional as of Jan 1, 2025)
    - Record 14-day review period before agreement becomes binding
-   - Alert employer of proposed 2026 blanket voidance if legislation passes (verify status)
 
 8. **Biometric data consent (BIPA, 740 ILCS 14):** If system collects biometric data (fingerprint clock, facial recognition, etc.) for time-tracking or access control, obtain separate written consent before collection. Document purpose, retention period (max 3 years or employee request), and secure storage. Audit deletion on termination (10 business days max).
 
@@ -262,15 +261,15 @@ Employers may enforce non-solicits only if:
 
 10. **Paid leave interaction with promotion:** On promotion with increased hours or responsibilities, system must recalculate paid leave accrual rate if threshold changes (e.g., part-time to full-time). Preserve existing accrual; apply new rate prospectively.
 
-**Open questions:**
+**Unverified items (accessible sources exhausted):**
 
-- Does PA 103-0539 pay scale disclosure requirement apply retroactively to open job requisitions, or only new postings filed after 1/1/2025?
-- Does 2025 amendment to § 40 (Personnel Record Review Act) expand inspection scope (e.g., to include disciplinary notes, investigation summaries, or only final reviews)?
-- What is the specific penalty amount for late final pay under § 115/5?
-- Does 820 ILCS 192 paid leave accrue during unpaid leave (FMLA, disability, jury duty)?
-- What is the current status of proposed non-compete/non-solicit blanket ban (pending 1/1/2026 effective date)?
-- Does § 192 require Chicago/Cook County paid leave accrual to be tracked separately from state minimum?
-- Do BIPA penalties apply to accidental/incidental biometric collection (e.g., employee appears in security camera footage)?
+- 820 ILCS 70 Employee Credit Privacy Act (statute text not accessible)
+- 820 ILCS 180 Victims' Economic Security and Safety Act (VESSA) detailed provisions (statute text not accessible)
+- 820 ILCS 55 Right to Privacy in the Workplace Act E-Verify and social media rules (statute text not accessible)
+- 820 ILCS 175 Day and Temporary Labor Services Act 2023–2024 amendments on equal pay (statute text not accessible)
+- Illinois Constitution Article I § 25 Workers' Rights Amendment (2022) collective bargaining details (statute text not accessible)
+- Specific Chicago and Cook County paid leave ordinance details beyond hour requirements (ordinance documents not accessible)
+- 775 ILCS 5 Illinois Human Rights Act 2025 AI amendment effective 2026-01-01 (recent amendment details not accessible)
 
 ## 12. Sources
 

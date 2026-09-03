@@ -1,0 +1,277 @@
+# compensation entity sources (MSRC-004).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from rewards-payroll-workforce.md's compensation and rewards section (not payroll/tax/benefits/time/leave, which are MSRC-006 deferred domains) with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: compensation
+family_version: 1
+source_docs:
+  - planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+entities:
+  - name: CompensationGrade
+    version: 1
+    key: compensation_grade
+    aliases: [PayBand]
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Grade code/name, job/level refs, progression/order and currency/localization.
+    properties:
+      - name: grade_code
+        go_type: string
+        schema_path: hcmnext.rewards.v1.CompensationGrade.grade_code
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.compensation_grade/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: ACTIVE
+
+  - name: CompensationPackage
+    version: 1
+    key: compensation_package
+    aliases: [Compensation]
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: CompensationPackageLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.compensation_currency_consistent/v1
+    child_refs:
+      - CompensationComponent/v1
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Worker/employment/assignment refs, component refs, currency/frequency summary and effective interval.
+    properties:
+      - name: base_component_ref
+        go_type: string
+        schema_path: hcmnext.rewards.v1.CompensationPackage.base_component_ref
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_package/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+      - name: currency
+        go_type: string
+        schema_path: hcmnext.rewards.v1.CompensationPackage.currency
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_package/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+
+  - name: CompensationComponent
+    version: 1
+    key: compensation_component
+    aliases: []
+    owner_domain: REWARDS
+    class: CHILD
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      One BASE_PAY|BONUS_TARGET|ALLOWANCE|COMMISSION|EQUITY|... component of a compensation package.
+    properties:
+      - name: amount
+        go_type: values.Decimal
+        schema_path: hcmnext.rewards.v1.CompensationComponent.amount
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_component/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+      - name: effective_interval
+        go_type: values.EffectiveInterval
+        schema_path: hcmnext.rewards.v1.CompensationComponent.effective_interval
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_component/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+
+  - name: CompensationBand
+    version: 1
+    key: compensation_band
+    aliases: []
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Grade/job/location/jurisdiction refs, minimum/midpoint/maximum Money, frequency/basis and market/source/version.
+    properties:
+      - name: minimum
+        go_type: values.Money
+        schema_path: hcmnext.rewards.v1.CompensationBand.minimum
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: CompensationChangeProposal
+    version: 1
+    key: compensation_change_proposal
+    aliases: []
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Worker/package refs, current/proposed component refs, reason, effective date and band-position/compliance/budget simulations.
+    properties:
+      - name: reason
+        go_type: string
+        schema_path: hcmnext.rewards.v1.CompensationChangeProposal.reason
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: IMMUTABLE
+        authority_ref: authority.compensation_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: CompensationSimulation
+    version: 1
+    key: compensation_simulation
+    aliases: []
+    owner_domain: REWARDS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Current/proposed totals and annualized values, band/compa-ratio/range penetration and payroll/tax/benefit/budget effects.
+    properties:
+      - name: compa_ratio
+        go_type: values.Percentage
+        schema_path: hcmnext.rewards.v1.CompensationSimulation.compa_ratio
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: IMMUTABLE
+        authority_ref: authority.compensation_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: PayBasis
+    version: 1
+    key: pay_basis
+    aliases: []
+    owner_domain: REWARDS
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      SALARY|HOURLY|DAILY|PIECE|COMMISSION|MIXED basis, unit, standard hours/calendar and annualization/proration rule refs.
+    properties:
+      - name: kind
+        go_type: string
+        schema_path: hcmnext.rewards.v1.PayBasis.kind
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: BandPositionResult
+    version: 1
+    key: band_position_result
+    aliases: []
+    owner_domain: REWARDS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Annualized comparable amount, compa-ratio/range penetration and BELOW|WITHIN|ABOVE|UNKNOWN result for a worker/band revision.
+    properties:
+      - name: result
+        go_type: string
+        schema_path: hcmnext.rewards.v1.BandPositionResult.result
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: IMMUTABLE
+        authority_ref: authority.compensation_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: RewardGrant
+    version: 1
+    key: reward_grant
+    aliases: []
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Worker/type/amount/units/percentage/currency grant with vesting/performance conditions and approval/document refs.
+    properties:
+      - name: grant_type
+        go_type: string
+        schema_path: hcmnext.rewards.v1.RewardGrant.grant_type
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.compensation_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+relationships: []

@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package hcmnext.workflow.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1;workflowv1";
+
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/workflow/v1/workflow.proto";
+
+message GetWorkflowRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string instance_id = 2;
+}
+
+message GetWorkflowResponse {
+  WorkflowInstance instance = 1;
+}
+
+message ListNodeExecutionsRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string instance_id = 2;
+  hcmnext.common.v1.PageRequest page = 3;
+}
+
+message ListNodeExecutionsResponse {
+  repeated NodeExecution node_executions = 1;
+  hcmnext.common.v1.PageResponse page = 2;
+}
+
+message PauseWorkflowRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string instance_id = 3;
+  uint64 expected_instance_version = 4;
+  string reason_ref = 5;
+}
+
+message PauseWorkflowResponse {
+  WorkflowInstance instance = 1;
+}
+
+message ResumeWorkflowRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string instance_id = 3;
+  uint64 expected_instance_version = 4;
+  string reason_ref = 5;
+}
+
+message ResumeWorkflowResponse {
+  WorkflowInstance instance = 1;
+}
+
+message CancelWorkflowRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string instance_id = 3;
+  uint64 expected_instance_version = 4;
+  string reason_ref = 5;
+}
+
+message CancelWorkflowResponse {
+  WorkflowInstance instance = 1;
+}
+
+message RetryNodeRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string instance_id = 3;
+  string node_id = 4;
+  uint32 expected_attempt = 5;
+}
+
+message RetryNodeResponse {
+  NodeExecution node_execution = 1;
+}
+
+// WorkflowService is the workflow instance/inspection and operational
+// intervention surface named in
+// planning/specs/http-grpc-endpoint-contract.md#workflow-operations.
+//
+// Every method below carries a total P1A disposition comment: P1A implements
+// the read-only inspector only
+// (planning/specs/workflow-runtime.md "Phase Classification" — "Read-only
+// inspector: IMPLEMENT"; "Quarantine, cancellation, RepairPlan route: OUT").
+// The four operational-intervention methods exist on the wire because the
+// endpoint contract names them, but a P1A server implementation must refuse
+// every one of them with ERROR_CODE_FAILED_PRECONDITION
+// (hcmnext.common.v1.ErrorCode) and never perform the transition.
+service WorkflowService {
+  // P1A disposition: IMPLEMENT. Authorized runtime/business/completion
+  // dimensions read (read-only inspector).
+  rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
+  // P1A disposition: IMPLEMENT. Stable execution inspection (read-only
+  // inspector).
+  rpc ListNodeExecutions(ListNodeExecutionsRequest) returns (ListNodeExecutionsResponse);
+  // P1A disposition: REFUSE. Pause/resume/cancel/retry are P1B acceptance
+  // items (planning/specs/workflow-runtime.md "Phase 1 Acceptance Contract");
+  // a P1A server must return ERROR_CODE_FAILED_PRECONDITION and perform no
+  // transition.
+  rpc PauseWorkflow(PauseWorkflowRequest) returns (PauseWorkflowResponse);
+  // P1A disposition: REFUSE. See PauseWorkflow.
+  rpc ResumeWorkflow(ResumeWorkflowRequest) returns (ResumeWorkflowResponse);
+  // P1A disposition: REFUSE. See PauseWorkflow. Cancellation before/after
+  // approval and after an ambiguous external effect is a P1B acceptance item.
+  rpc CancelWorkflow(CancelWorkflowRequest) returns (CancelWorkflowResponse);
+  // P1A disposition: REFUSE. See PauseWorkflow. Bounded retry exhaustion into
+  // a typed RepairPlan or human route is a P1B acceptance item.
+  rpc RetryNode(RetryNodeRequest) returns (RetryNodeResponse);
+}

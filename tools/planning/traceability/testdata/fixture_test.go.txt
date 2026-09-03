@@ -1,0 +1,7 @@
+package fixture
+
+func TestRealExample(t *testing.T) {}
+
+func TestRealExample_Golden(t *testing.T) {}
+
+func FuzzRealExample(f *testing.F) {}

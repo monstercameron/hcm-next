@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package hcmnext.workflow.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1;workflowv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+// StepType names one runtime primitive of the Workflow Execution Kernel. The
+// ten core primitives plus the three structural ones are the whole
+// vocabulary; CHECKPOINT, RULE, AGENT and DOCUMENT are deliberately absent
+// because they are attributes or capabilities, not node types. See
+// planning/specs/workflow-runtime.md#kernel-vocabulary.
+enum StepType {
+  STEP_TYPE_UNSPECIFIED = 0;
+  STEP_TYPE_CAPABILITY = 1;
+  STEP_TYPE_DECISION = 2;
+  STEP_TYPE_TRANSFORM = 3;
+  STEP_TYPE_OBSERVE = 4;
+  STEP_TYPE_END = 5;
+  // P1A disposition: OUT. APPROVAL/TASK/WAIT/SIGNAL/COMPENSATE are P1B
+  // primitives (planning/specs/workflow-runtime.md "Phase Classification").
+  // The wire vocabulary carries them now so a P1B compiled plan does not
+  // require a breaking schema change.
+  STEP_TYPE_APPROVAL = 6;
+  STEP_TYPE_TASK = 7;
+  STEP_TYPE_WAIT = 8;
+  STEP_TYPE_SIGNAL = 9;
+  STEP_TYPE_COMPENSATE = 10;
+  // P1A disposition: OUT. Gated behind P1B evidence
+  // (planning/specs/workflow-runtime.md "Kernel Vocabulary").
+  STEP_TYPE_PARALLEL = 11;
+  STEP_TYPE_JOIN = 12;
+  STEP_TYPE_SUBWORKFLOW = 13;
+}
+
+// WorkflowVersionState is the lifecycle/operational state of one published
+// workflow definition version.
+enum WorkflowVersionState {
+  WORKFLOW_VERSION_STATE_UNSPECIFIED = 0;
+  WORKFLOW_VERSION_STATE_DRAFT = 1;
+  WORKFLOW_VERSION_STATE_VALIDATED = 2;
+  WORKFLOW_VERSION_STATE_PUBLISHED = 3;
+  WORKFLOW_VERSION_STATE_ACTIVE = 4;
+  WORKFLOW_VERSION_STATE_QUARANTINED = 5;
+  WORKFLOW_VERSION_STATE_DEPRECATED = 6;
+  WORKFLOW_VERSION_STATE_RETIRED = 7;
+}
+
+// RuntimeStatus is the workflow instance's own execution status. It sits
+// beside the intent's five lifecycle dimensions
+// (hcmnext.intents.v1.LifecycleDimensions) and never substitutes for them.
+enum RuntimeStatus {
+  RUNTIME_STATUS_UNSPECIFIED = 0;
+  RUNTIME_STATUS_CREATED = 1;
+  RUNTIME_STATUS_RUNNING = 2;
+  RUNTIME_STATUS_WAITING = 3;
+  // P1A disposition: OUT. Truthful PAUSE_REQUESTED/PAUSED reporting is a P1B
+  // acceptance item.
+  RUNTIME_STATUS_PAUSE_REQUESTED = 4;
+  RUNTIME_STATUS_PAUSED = 5;
+  RUNTIME_STATUS_BLOCKED = 6;
+  RUNTIME_STATUS_REPAIR_REQUIRED = 7;
+  RUNTIME_STATUS_QUARANTINED = 8;
+  RUNTIME_STATUS_CANCELLING = 9;
+  RUNTIME_STATUS_CANCELLED = 10;
+  RUNTIME_STATUS_SUPERSEDED = 11;
+  RUNTIME_STATUS_COMPLETED = 12;
+}
+
+// NodeExecutionStatus is one node execution attempt's status.
+enum NodeExecutionStatus {
+  NODE_EXECUTION_STATUS_UNSPECIFIED = 0;
+  NODE_EXECUTION_STATUS_READY = 1;
+  NODE_EXECUTION_STATUS_RUNNING = 2;
+  NODE_EXECUTION_STATUS_SUCCEEDED = 3;
+  NODE_EXECUTION_STATUS_WAITING = 4;
+  NODE_EXECUTION_STATUS_FAILED = 5;
+  NODE_EXECUTION_STATUS_RETRYING = 6;
+  NODE_EXECUTION_STATUS_SKIPPED = 7;
+  NODE_EXECUTION_STATUS_OVERRIDDEN = 8;
+  NODE_EXECUTION_STATUS_COMPENSATED = 9;
+  NODE_EXECUTION_STATUS_CANCELLED = 10;
+}
+
+// WorkflowDefinitionReference names one immutable published workflow
+// definition version.
+message WorkflowDefinitionReference {
+  string workflow_id = 1;
+  uint32 version = 2;
+}
+
+// NodeDefinition is one declared node of a workflow graph. Only the P1A step
+// types (CAPABILITY, DECISION, TRANSFORM, OBSERVE, END) compile in P1A; the
+// remaining STEP_TYPE values are accepted on the wire so a definition authored
+// against the full vocabulary need not be rewritten when P1B compiles it.
+message NodeDefinition {
+  string node_id = 1;
+  StepType node_type = 2;
+  string input_mapping_ref = 3;
+  string output_schema_ref = 4;
+  optional string capability_ref = 5;
+  optional string resolver_ref = 6;
+  optional string rule_ref = 7;
+  hcmnext.intents.v1.SideEffectProfile side_effect_profile = 8;
+  // safe_point is true only where the compiler places a safe point; the
+  // author declares intent, the compiler decides placement
+  // (planning/specs/workflow-runtime.md "Safe Points and Atomic Regions").
+  bool safe_point = 9;
+  repeated string required_context_refs = 10;
+}
+
+// Edge is one declared transition between two nodes along a named route key.
+message Edge {
+  string from_node_id = 1;
+  string to_node_id = 2;
+  string route_key = 3;
+}
+
+// WorkflowDefinition is one authored, versioned workflow graph. Published
+// graphs are immutable; a change produces a new version
+// (planning/specs/workflow-runtime.md "Declarative Definition and Type
+// System").
+message WorkflowDefinition {
+  WorkflowDefinitionReference reference = 1;
+  string name = 2;
+  string input_schema_ref = 3;
+  string output_schema_ref = 4;
+  optional string variables_schema_ref = 5;
+  repeated NodeDefinition nodes = 6;
+  repeated Edge edges = 7;
+  hcmnext.common.v1.ScopeContext tenant_scope = 8;
+  string risk_class = 9;
+  WorkflowVersionState state = 10;
+}
+
+// CompiledWorkflowPlan is the immutable output of the compiler: normalized
+// nodes/edges, resolved references and a compiler fingerprint. The full
+// compiled shape (read/write/effect sets, timer/signal indexes, compensation
+// paths) is internal to the compiler; the wire projection exposes what an
+// inspector needs to explain a plan.
+message CompiledWorkflowPlan {
+  WorkflowDefinitionReference reference = 1;
+  string compiler_fingerprint = 2;
+  string compiler_version = 3;
+  repeated string safe_point_node_ids = 4;
+  hcmnext.intents.v1.CanonicalDigestReference plan_digest = 5;
+}
+
+// WorkflowInstance is one durable execution of a compiled workflow plan.
+message WorkflowInstance {
+  string instance_id = 1;
+  string tenant_id = 2;
+  optional string cell_id = 3;
+  WorkflowDefinitionReference definition = 4;
+  string compiled_plan_digest = 5;
+  repeated hcmnext.common.v1.EntityRef business_subject_refs = 6;
+  optional string business_transaction_id = 7;
+  hcmnext.intents.v1.ExecutionMode execution_mode = 8;
+  RuntimeStatus runtime_status = 9;
+  hcmnext.intents.v1.LifecycleDimensions lifecycle = 10;
+  string input_ref = 11;
+  optional string variable_revision_head = 12;
+  repeated string current_node_ids = 13;
+  optional string effective_context_ref = 14;
+  optional string last_checkpoint_ref = 15;
+  uint64 instance_version = 16;
+  string correlation_id = 17;
+  google.protobuf.Timestamp created_at = 18;
+  optional google.protobuf.Timestamp started_at = 19;
+  optional google.protobuf.Timestamp completed_at = 20;
+}
+
+// NodeExecution is one durable attempt of one node within one workflow
+// instance.
+message NodeExecution {
+  string node_execution_id = 1;
+  string workflow_instance_id = 2;
+  string node_id = 3;
+  uint32 attempt = 4;
+  NodeExecutionStatus status = 5;
+  string input_snapshot_ref = 6;
+  optional string output_artifact_ref = 7;
+  optional string capability_execution_id = 8;
+  optional string authorization_decision_id = 9;
+  optional string decision_id = 10;
+  optional string human_task_id = 11;
+  optional string error_class = 12;
+  optional google.protobuf.Timestamp retry_at = 13;
+  optional string execution_lease_id = 14;
+  optional google.protobuf.Timestamp started_at = 15;
+  optional google.protobuf.Timestamp completed_at = 16;
+  string trace_id = 17;
+}

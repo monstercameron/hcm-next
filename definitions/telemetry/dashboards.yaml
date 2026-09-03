@@ -1,0 +1,36 @@
+# Generated dashboard definitions for the P1A cell (OBS-005).
+#
+# Owned schema mirrored by internal/platform/telemetry.P1ACellDashboards
+# and validated by internal/platform/telemetry.ValidateDashboard: every
+# panel's metric must exist in metrics-catalog.yaml, and every group_by
+# dimension must be one of that metric's own declared labels *and* a
+# bounded-cardinality key in resource-contract.yaml (never an unbounded
+# query, per the OBS-005 RED clause).
+
+version: 1
+
+dashboards:
+  - id: p1a-cell-overview
+    title: P1A Cell Overview
+    version: 1
+    panels:
+      - title: Intent creation outcome
+        metric: intent.created
+        aggregation: rate
+        group_by: [cell_id, outcome]
+      - title: Intent simulation outcome
+        metric: intent.simulated
+        aggregation: rate
+        group_by: [cell_id, outcome]
+      - title: Ledger append outcome
+        metric: ledger.append
+        aggregation: rate
+        group_by: [cell_id, outcome]
+      - title: Outbox lag
+        metric: outbox.lag
+        aggregation: max
+        group_by: [cell_id]
+      - title: Edge parity
+        metric: edge.parity
+        aggregation: min
+        group_by: [cell_id, edge]

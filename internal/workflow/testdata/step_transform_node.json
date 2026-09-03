@@ -1,0 +1,204 @@
+{
+  "id": "build_proposal",
+  "type": "TRANSFORM",
+  "depth": 3,
+  "safe_point": false,
+  "input_schema": {
+    "schema_id": "PromotionProposalDraft/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.PromotionProposalDraft"
+  },
+  "output_schema": {
+    "schema_id": "PromotionProposal/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.PromotionProposal"
+  },
+  "inputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "current_job_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      }
+    },
+    {
+      "path": "target_job_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      }
+    },
+    {
+      "path": "proposed_base_pay",
+      "type": {
+        "kind": "MONEY"
+      }
+    },
+    {
+      "path": "raise_ratio",
+      "type": {
+        "kind": "DECIMAL"
+      }
+    },
+    {
+      "path": "band_position",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "proposal_digest",
+      "type": {
+        "kind": "STRING"
+      }
+    },
+    {
+      "path": "raise_ratio",
+      "type": {
+        "kind": "DECIMAL"
+      }
+    },
+    {
+      "path": "band_position",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "mappings": [
+    {
+      "target": "band_position",
+      "target_type": {
+        "kind": "STRING"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "evaluate_band",
+      "source_path": "band_position",
+      "source_type": {
+        "kind": "STRING"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "current_job_id",
+      "target_type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "snapshot_worker",
+      "source_path": "current_job_id",
+      "source_type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "proposed_base_pay",
+      "target_type": {
+        "kind": "MONEY"
+      },
+      "source_kind": "WORKFLOW_INPUT",
+      "source_path": "proposed_base_pay",
+      "source_type": {
+        "kind": "MONEY"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "raise_ratio",
+      "target_type": {
+        "kind": "DECIMAL"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "simulate_compensation",
+      "source_path": "raise_ratio",
+      "source_type": {
+        "kind": "DECIMAL"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "target_job_id",
+      "target_type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      },
+      "source_kind": "WORKFLOW_INPUT",
+      "source_path": "target_job_id",
+      "source_type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "worker_id",
+      "target_type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "snapshot_worker",
+      "source_path": "worker_id",
+      "source_type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      },
+      "pinned_input": true
+    }
+  ],
+  "routes": [
+    "FAILED",
+    "SUCCEEDED"
+  ],
+  "transform": {
+    "transform_ref": "transforms.promotion.build_proposal",
+    "version": 1,
+    "normalization_profile": "hcmnext.canonical.proposal/v1",
+    "input_digest": "fd1f2af02014c807f51da95d8b27f016d01cb8912a92fce4e746e776f6aefe7a",
+    "lineage": [
+      "input:band_position=TRUSTED",
+      "input:current_job_id=TRUSTED",
+      "input:raise_ratio=TRUSTED",
+      "input:worker_id=TRUSTED",
+      "output=TRUSTED"
+    ],
+    "output_taint": "TRUSTED",
+    "limits": {
+      "max_input_bytes": 65536,
+      "max_output_bytes": 65536,
+      "max_steps": 5000
+    }
+  },
+  "effect_class": "PURE",
+  "allowed_modes": [
+    "SIMULATE",
+    "EXECUTE",
+    "REPLAY",
+    "REPAIR",
+    "SHADOW"
+  ],
+  "governance": {
+    "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+    "classification": "CONFIDENTIAL_HR",
+    "required_decisions": null,
+    "revalidation_boundary": "NONE",
+    "data_access_manifest_ref": "dam.promotion.simulation/v1"
+  },
+  "evidence_refs": [
+    "transform_execution_id",
+    "input_digest",
+    "taint_manifest_ref"
+  ]
+}

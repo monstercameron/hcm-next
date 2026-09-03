@@ -1,0 +1,618 @@
+# Physical storage-disposition registry (STORE-001).
+#
+# Every base table declared by migrations/*.sql must have exactly one entry
+# here, and every entry here must name a table that actually exists in the
+# live schema; internal/data/tenancy/storagedisposition's registry_test.go
+# (TestTodo_STORE_001 and its matrix) proves both directions against
+# internal/data/pgtest's real, fully migrated PostgreSQL schema, so this file
+# cannot drift silently from the schema it describes. The loader lives under
+# internal/data/tenancy/storagedisposition rather than here because
+# definitions/ is declared never-executable
+# (definitions/architecture/repository-layout.yaml).
+#
+# Scope. This registry covers the data plane's own physical base tables —
+# the ones migrations/*.sql creates directly in the schema Goose applies into
+# (current_schema()). It does not yet enumerate caches, search indexes or
+# telemetry stores (planning/todos.md's fuller STORE-001 RED clause), because
+# none of those exist as separate physical systems in this phase; when one is
+# introduced, it gets a row here the same way a table does.
+#
+# migrations/00010_artifacts.sql's content-addressed artifact tables
+# (artifact, artifact_reference_event, artifact_retrieval_refusal) are
+# deliberately excluded: that migration creates them in a separate PostgreSQL
+# schema precisely so they never enter current_schema()'s base-table set
+# (its own header comment explains why, citing the same frozen
+# internal/data/schema golden test this registry's own tests route around by
+# living outside definitions/). They are out of the "live schema" this
+# registry is checked against, not merely unregistered.
+#
+# A table's physical partitions (ledger_event_p0..p3) are not listed
+# separately: they are physical storage for their single logical table, not
+# distinct authoritative stores, and pg_class flags them relispartition so a
+# live-schema walk excludes them the same way internal/data/schema's own
+# baseTables() helper does.
+
+version: 1
+module: github.com/monstercameron/hcm-next
+source: migrations/00001_platform_control.sql .. migrations/00009_promotion_seed_registries.sql
+
+disposition: >-
+  Every row is either PERMANENT (an append-only historical or evidentiary
+  record: the table is itself the source of truth and is never truncated or
+  rebuilt from anything else), OPERATIONAL (live, mutable serving state that
+  is authoritative for its own column values but does not carry irreplaceable
+  history), or REBUILDABLE (derived, resumable state that a documented
+  rebuild_source can reconstruct from scratch with no loss of authoritative
+  fact -- 00006's own comment calls projection_checkpoint and outbox exactly
+  this). No table in this phase carries column-level encryption beyond
+  whatever the deployment's disk/volume layer provides, so every
+  encryption_class is currently PLATFORM_MANAGED; a table gaining a
+  sensitive, individually-encrypted column moves to FIELD_LEVEL and that
+  change must land in the same commit as the schema change that requires it.
+
+retention_classes:
+  - name: PERMANENT
+    description: >-
+      Append-only; the table is the source of truth for its own history and
+      is never truncated. Enforced in the schema by the forbid_mutation
+      trigger where one is attached (definition_version, proposal_revision,
+      ledger_event, external_observation); schema_release and
+      migration_journal are permanent by convention and by the DB-006
+      contract in internal/data/schema/journal.go, not by a trigger.
+  - name: OPERATIONAL
+    description: >-
+      Mutable, live-serving state. Authoritative for its current column
+      values, but not itself a rebuildable derivative of another table.
+  - name: REBUILDABLE
+    description: >-
+      Derived, resumable progress state. rebuild_source names the
+      append-only table it can be fully reconstructed from; losing a
+      REBUILDABLE table's rows is an availability incident, never a data-loss
+      incident.
+
+encryption_classes:
+  - name: PLATFORM_MANAGED
+    description: >-
+      Relies on the deployment's disk/volume/backup encryption; no
+      column-level cryptography inside this table.
+  - name: FIELD_LEVEL
+    description: >-
+      Carries at least one individually encrypted column. Not used by any
+      table in this phase; reserved for when one is added.
+
+# data_role classifies what part of the DATA plane architecture
+# (planning/specs/platform-plane-model.md) a table plays in: LEDGER (the
+# append-only fact stream and its stream/authority/schema registries),
+# PROJECTION or OUTBOX (the two rebuildable subplanes 00006 introduces),
+# REGISTRY (a versioned control-plane definition/pointer table), or CONTROL
+# (platform bookkeeping that is neither a business fact nor a serving view).
+tables:
+  - table: schema_release
+    migration: 00001_platform_control.sql
+    owner_package: internal/data/schema
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Not tenant scoped by design (DATA-001): it describes the schema itself,
+      not a tenant's business truth. One row per released schema artifact
+      digest (DB-006).
+
+  - table: migration_journal
+    migration: 00001_platform_control.sql
+    owner_package: internal/data/schema
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Not tenant scoped, for the same reason as schema_release. Records every
+      migration application/rollback attempt (DB-006).
+
+  - table: tenant
+    migration: 00002_tenant_primitives.sql
+    owner_package: internal/data/schema
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      The tenant registry itself; tenant_id is its own primary key rather
+      than a foreign reference. Governed by migration 00008's
+      tenant_isolation row level security policy the same as every other
+      tenant-scoped table.
+
+  - table: definition_version
+    migration: 00003_definition_registry.sql
+    owner_package: internal/data/schema
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable definition history with supersession lineage (DB-007). Also
+      the physical substrate internal/data/seed's DB-019 registrations use
+      for the Promotion fixture's canonical schema/capability/intent/
+      reference/person/employment/position/compensation entries.
+
+  - table: definition_active_pointer
+    migration: 00003_definition_registry.sql
+    owner_package: internal/data/schema
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: definition_version
+    notes: >-
+      "A convenience that can never invent a version" (00003's own comment):
+      fully reconstructable by taking, per (tenant, kind, key), the highest
+      published definition_version.
+
+  - table: intent_instance
+    migration: 00004_intent_and_proposal.sql
+    owner_package: internal/intent/app/pgstore
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      The five-dimension intent lifecycle state (DATA-001). Written alongside
+      its backing ledger_event by internal/intent/app/pgstore's
+      AppendIntent, inside the same transaction.
+
+  - table: proposal_revision
+    migration: 00004_intent_and_proposal.sql
+    owner_package: internal/intent/app/pgstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable proposal history for an intent. As of this migration only
+      internal/data/schema's and internal/data/ledger's fixtures exercise it
+      directly; internal/intent/app/pgstore is its semantic owner and is
+      expected to gain the production write path in a later todo.
+
+  - table: payload_schema
+    migration: 00005_ledger.sql
+    owner_package: internal/intent/app/pgstore
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registers the wire schema every ledger_event/outbox row's schema_ref
+      points at; foreign-keyed from both.
+
+  - table: authority_assignment
+    migration: 00005_ledger.sql
+    owner_package: internal/data/ledger
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Source-authority assignments a DOMAIN_FACT/EXTERNAL_OBSERVATION
+      ledger_event must cite (spec 8.5); read by internal/data/ledger's
+      append path.
+
+  - table: ledger_stream
+    migration: 00005_ledger.sql
+    owner_package: internal/data/ledger
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: Stream registry; one row per (tenant, stream_key).
+
+  - table: stream_head
+    migration: 00005_ledger.sql
+    owner_package: internal/data/ledger
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: ledger_event
+    notes: >-
+      Cached tip of each stream (sequence and digest). Reconstructable in
+      full by folding a stream's ledger_event rows in sequence order;
+      internal/data/projection/reconcile.go already reads both tables
+      together for exactly this kind of check.
+
+  - table: ledger_event
+    migration: 00005_ledger.sql
+    owner_package: internal/data/ledger
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    partitions: [ledger_event_p0, ledger_event_p1, ledger_event_p2, ledger_event_p3]
+    notes: >-
+      The authoritative fact stream (LEDGER-001/004); PARTITION BY HASH
+      (tenant_id) into four partitions. Every other DATA-plane table in this
+      registry that is not itself PERMANENT is rebuildable from this one.
+
+  - table: projection_checkpoint
+    migration: 00006_projection_and_outbox.sql
+    owner_package: internal/data/projection
+    plane: DATA
+    data_role: PROJECTION
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: REBUILDABLE
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: ledger_event
+    notes: >-
+      "Both are rebuildable" (00006's own header comment). Replaying a
+      stream's ledger_event rows from sequence 1 reproduces every checkpoint.
+
+  - table: outbox
+    migration: 00006_projection_and_outbox.sql
+    owner_package: internal/data/outbox
+    plane: DATA
+    data_role: OUTBOX
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: REBUILDABLE
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: ledger_event
+    notes: >-
+      Idempotent at-least-once distribution state (effect_identity is
+      unique per tenant), rebuildable from the committing ledger_event.
+
+  - table: external_observation
+    migration: 00007_connectivity.sql
+    owner_package: internal/connectivity/observe/adapters/postgres
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-009: immutable EXTERNAL_OBSERVATION evidence, one row per observed
+      connector page. Landed after migration 00008 was first drafted; DB-017's
+      tenant_isolation policy and hcmnext_app's grants cover it explicitly
+      (see 00008's own comments) even though the frozen
+      internal/data/schema tenantScopedTables list has not (as of this
+      writing) been updated to name it.
+
+  - table: observation_checkpoint
+    migration: 00007_connectivity.sql
+    owner_package: internal/connectivity/observe/adapters/postgres
+    plane: DATA
+    data_role: PROJECTION
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: REBUILDABLE
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: external_observation
+    notes: >-
+      INTG-008: fenced resume point of one bounded observation traversal.
+      Same landed-after-00008-was-drafted note as external_observation above.
+
+  # DB-008/009/010 domain aggregate tables (migrations/00011..00013), all
+  # landed after migration 00008 was drafted and merged. Unlike
+  # external_observation/observation_checkpoint above, DB-017 tenant
+  # isolation needed no help from 00008 for these: each migration declares
+  # its own ENABLE/FORCE ROW LEVEL SECURITY, a tenant_isolation policy
+  # identical in shape to 00008's, and hcmnext_app's SELECT/INSERT/UPDATE
+  # grant (never DELETE), following the pattern 00008 established. Every
+  # table here is one bitemporal fact log (planning/data/models/
+  # modeling-conventions.md): effective_from/effective_to is business time,
+  # recorded_at/superseded_at is system time, and the shared
+  # aggregate_forbid_inplace_update trigger permits an UPDATE only to close
+  # out a superseded row, never a free-form edit -- so append_only is false
+  # (an UPDATE statement is genuinely accepted) while retention_class is
+  # still PERMANENT (no version's content is ever lost; superseded rows stay
+  # exactly where they are as history). No production Go adapter writes them
+  # yet as of this writing (DB-018's repository layer is the next todo in
+  # this chain), so owner_package names the domain each migration's own
+  # header comment declares rather than an existing call site.
+
+  - table: aggregate_entity
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/data/aggregates
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008/009/010 shared identity spine: one row per (tenant_id, entity_id), registered by internal/data/aggregates' Put helper before the entity's first fact row so every aggregate table and cross-entity reference carries a tenant-qualified foreign key."
+
+  - table: person
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008: party identity. lifecycle_state is the aggregate's own state, not a role."
+
+  - table: identity_claim
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008: a typed, effective-dated claim linking a hashed raw identifier to a person."
+
+  - table: worker
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008: the Worker role layered on a Person."
+
+  - table: employment
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008: the employment relationship between a worker and an employing entity."
+
+  - table: assignment
+    migration: 00011_people_aggregates.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-008: one worker's assignment to organization/job/position."
+
+  - table: legal_entity
+    migration: 00012_organization_aggregates.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-009: the employing/legal-entity aggregate."
+
+  - table: organization_unit
+    migration: 00012_organization_aggregates.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-009: one node of the organization hierarchy (parent_organization_ref forms the tree)."
+
+  - table: job
+    migration: 00012_organization_aggregates.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-009: the job/job-code catalog entry."
+
+  - table: job_position
+    migration: 00012_organization_aggregates.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-009: one headcount position."
+
+  - table: position_occupancy
+    migration: 00012_organization_aggregates.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-009: which assignment currently occupies a position, and its capacity consumption."
+
+  - table: compensation_package
+    migration: 00013_compensation_aggregates.sql
+    owner_package: internal/domains/rewards
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-010: one worker's compensation package, grouping its components."
+
+  - table: compensation_component
+    migration: 00013_compensation_aggregates.sql
+    owner_package: internal/domains/rewards
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-010: one priced component of a compensation package. Money is
+      numeric(19, 4), never float (planning/data/models/
+      modeling-conventions.md).
+
+  - table: compensation_band
+    migration: 00013_compensation_aggregates.sql
+    owner_package: internal/domains/rewards
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-010: the physical pay-band catalog, keyed by (job_code, grade,
+      pay_zone). internal/data/seed's DB-019 registrations currently publish
+      the same fixture bands into definition_version (CONFIG) instead, because
+      this table did not exist yet when DB-019 was implemented; pointing the
+      seeder at this table instead is follow-up work, not done here.
+
+  - table: workforce_budget
+    migration: 00013_compensation_aggregates.sql
+    owner_package: internal/domains/rewards
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-010: a workforce budget an organization/cost-center owns."
+
+  - table: budget_reservation
+    migration: 00013_compensation_aggregates.sql
+    owner_package: internal/domains/rewards
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DB-010: a reservation of budget capacity against a workforce_budget."
+
+  - table: provenance_record
+    migration: 00015_provenance.sql
+    owner_package: internal/data/provenance
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "DATA-014: append-only provenance records (source authority, evidence ids, digests) for every ledger event and external observation; record id is deterministic over (tenant, source kind, source ref)."
+
+  - table: ledger_hash_chain_link
+    migration: 00014_ledger_hash_chain.sql
+    owner_package: internal/data/ledger/hashchain
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DATA-004: a tamper-evident hash chain over ledger_event, one link per
+      (tenant, stream_key, sequence): chain_hash[n] folds chain_hash[n-1]
+      together with that event's own digest. Mechanically it IS a pure
+      function of ledger_event's stored digests, so a naive reading would call
+      it REBUILDABLE the way stream_head is -- but that classification is
+      deliberately not used here: silently regenerating the chain from
+      ledger_event's *current* contents would recompute a self-consistent
+      chain over whatever is there after the fact, defeating the one property
+      this table exists to provide (proof that no event was deleted,
+      reordered or altered since it was appended -- see
+      internal/data/ledger/hashchain's own doc.go). It is therefore PERMANENT
+      like ledger_event itself, enforced by the same forbid_mutation trigger,
+      and its "rebuild" path is a from-scratch chain plus an explicit
+      mismatch report (internal/data/ledger/hashchain.Verify), never a quiet
+      replacement.

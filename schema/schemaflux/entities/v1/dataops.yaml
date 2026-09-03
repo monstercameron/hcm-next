@@ -1,0 +1,307 @@
+# dataops entity sources (MSRC-005).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from dataops-configuration.md's import/batch/schema/reference/configuration sections with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: dataops
+family_version: 1
+source_docs:
+  - planning/data/models/dataops-configuration.md#import-and-staging
+  - planning/data/models/dataops-configuration.md#batch-export-and-comparison
+  - planning/data/models/dataops-configuration.md#schema-and-data-contracts
+  - planning/data/models/dataops-configuration.md#reference-mastering-and-crosswalks
+  - planning/data/models/dataops-configuration.md#configuration-packaging-and-promotion
+entities:
+  - name: ImportJob
+    version: 1
+    key: import_job
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/dataops-configuration.md#import-and-staging
+    summary: >-
+      Tenant/org/owner/purpose, source receipt/artifact, parser/encoding metadata and commit/correction/partial-execution policies.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ImportJob.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.import_job/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: ImportRun
+    version: 1
+    key: import_run
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#import-and-staging
+    summary: >-
+      Import job revision, execution mode, source artifact/hash, partition/checkpoint refs and counts/control totals/errors/status.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ImportRun.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.dataops_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: StagedRecord
+    version: 1
+    key: staged_record
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#import-and-staging
+    summary: >-
+      Run/batch/source row identity, raw/normalized/canonical digests, schema/mapping/crosswalk/identity decisions.
+    properties:
+      - name: canonical_digest
+        go_type: string
+        schema_path: hcmnext.dataops.v1.StagedRecord.canonical_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.dataops_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: BatchOperation
+    version: 1
+    key: batch_operation
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/dataops-configuration.md#batch-export-and-comparison
+    summary: >-
+      Intent/type/owner/purpose, stable population snapshot/query digest, chunks/priority/criticality and per-item/aggregate status.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.dataops.v1.BatchOperation.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.dataops_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: ExportDefinition
+    version: 1
+    key: export_definition
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#batch-export-and-comparison
+    summary: >-
+      Version/owner/purpose, governed query/fields/schema/mapping/format and destination/delivery/DLP/retention/schedule policies.
+    properties:
+      - name: purpose
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ExportDefinition.purpose
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.dataops_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: SystemComparison
+    version: 1
+    key: system_comparison
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/dataops-configuration.md#batch-export-and-comparison
+    summary: >-
+      Left/right systems/snapshots, resource/field/population/effective/known-at scope and authority/tolerance/normalization policy.
+    properties:
+      - name: result
+        go_type: string
+        schema_path: hcmnext.dataops.v1.SystemComparison.result
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.dataops_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: Schema
+    version: 1
+    key: schema
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#schema-and-data-contracts
+    summary: >-
+      Canonical name/kind/owner/domain and global/tenant/org scope for one schema identity.
+    properties:
+      - name: kind
+        go_type: string
+        schema_path: hcmnext.dataops.v1.Schema.kind
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.dataops_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: SchemaRelease
+    version: 1
+    key: schema_release
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#schema-and-data-contracts
+    summary: >-
+      Schema/version/parent, canonical descriptor/artifact hash and generated Protobuf/Go/SchemaFlux artifact refs.
+    properties:
+      - name: descriptor_hash
+        go_type: string
+        schema_path: hcmnext.dataops.v1.SchemaRelease.descriptor_hash
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.dataops_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: ReferenceConcept
+    version: 1
+    key: reference_concept
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/dataops-configuration.md#reference-mastering-and-crosswalks
+    summary: >-
+      Dataset/domain/kind/steward and canonical identity/lifecycle for one mastered reference concept.
+    properties:
+      - name: steward
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ReferenceConcept.steward
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.dataops_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: ConfigurationPackage
+    version: 1
+    key: configuration_package
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/dataops-configuration.md#configuration-packaging-and-promotion
+    summary: >-
+      Content-addressed manifest of workflow/policy/schema/mapping/reference/rule/agent/template/feature/connector refs with dependency lock.
+    properties:
+      - name: manifest_digest
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ConfigurationPackage.manifest_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.dataops_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+  - name: ConfigurationPublication
+    version: 1
+    key: configuration_publication
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/dataops-configuration.md#configuration-packaging-and-promotion
+    summary: >-
+      Package/target environment/scope, impact/conformance/approval/signature refs and canary/ramp/cutover/effective times.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ConfigurationPublication.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.dataops_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: DATAOPS_EVIDENCE
+        status: DRAFT
+
+relationships: []

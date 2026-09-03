@@ -43,6 +43,32 @@ var (
 // has to be interpreted by convention.
 const DigestAlgorithm = "sha256"
 
+// contractVersion is this package's own wire-format contract version: the
+// tagged length-prefixed framing New/Field/Digest implement. It is bumped
+// only when that framing itself changes in a way that would change the
+// bytes produced for an unchanged set of fields; it is independent of the
+// schema/version pair a caller passes to New, which versions the caller's
+// own type shape rather than canonicalbytes' wire format.
+const contractVersion = 1
+
+// Version reports canonicalbytes' own wire-format contract version. It is
+// part of the ARCH-GO-009 engine package contract, not a value used by any
+// caller's encoding.
+func Version() int { return contractVersion }
+
+// Explain describes, in one line, the wire encoding profile a digest from
+// this package is computed over: for audit logs and documentation, not for
+// programmatic branching.
+func Explain() string {
+	return fmt.Sprintf(
+		"canonicalbytes v%d: tagged length-prefixed stream (uvarint tag length + tag + uvarint payload length + payload); "+
+			"opened by a $schema/$schema_version field pair; values written through each kernel type's own Canonical() encoding; "+
+			"sets framed via a sorted order plus their own count so map iteration order can never affect the bytes; "+
+			"digest is %s over the completed stream",
+		contractVersion, DigestAlgorithm,
+	)
+}
+
 // Canonicalizer is any value carrying exactly one canonical byte encoding.
 // Every kernel value type in internal/kernel/values satisfies it.
 type Canonicalizer interface {

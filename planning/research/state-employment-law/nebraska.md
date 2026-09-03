@@ -1,4 +1,6 @@
-# Nebraska Employment Law Research (2026-09-03)
+# Nebraska Employment Law Research
+
+**State:** Nebraska | **Researched:** 2026-09-03 | **Status:** DRAFTED
 
 ## 1. Summary for HCM Next
 
@@ -41,9 +43,13 @@ Nebraska is an at-will employment state. Unless a written employment contract sp
 
 **Final Paycheck on Termination**: When an employer (other than a political subdivision) separates an employee from payroll, unpaid wages (including accrued vacation/PTO if legally owed) become due on **the next regular payday or within two weeks of the date of termination, whichever is sooner** (Neb. Rev. Stat. § 48-1230).
 
-**Wage Statements**: On each regular payday, employers must deliver or make available to each employee a wage statement showing, at minimum: (1) employer identity, (2) hours for which the employee was paid, (3) wages earned, and (4) deductions made.
+**Wage Statements**: Neb. Rev. Stat. § 48-1230 requires employers to deliver or make available to each employee on each regular payday a wage statement showing, at minimum: (1) identity of the employer, (2) hours for which the employee was paid, (3) wages earned by the employee, and (4) deductions made. Exempt employees are exempt from hour-documentation requirements unless the employer has a policy of paying them overtime, bonuses, or hour-based compensation.
 
-**Deductions and Wage Reductions**: Federal FLSA governs permissible deductions (only those required by law, court order, or authorized by employee in writing are allowed). No state-specific prohibitions on voluntary deductions (beyond federal law) found.
+**Deductions and Wage Reductions**: Federal FLSA governs permissible deductions (only those required by law, court order, or authorized by employee in writing are allowed). No state-specific prohibitions on voluntary deductions (beyond federal law) found. Written authorization from the employee is required before any voluntary deduction is withheld; notice of intent to reduce pay rates must be communicated to the employee before such rates take effect.
+
+**Pay-Frequency Flexibility and Notice Timing**: Employers have no state-mandated minimum pay frequency (weekly, biweekly, semi-monthly, or monthly are all permitted) provided wages are paid in full on regular designated paydays. However, **Thirty days' written notice is mandatory before any change to regular paydays takes effect** (Neb. Rev. Stat. § 48-1230). This notice must be delivered to the employee in advance of the effective date.
+
+**Wage Payment Penalties**: Employers who violate wage-payment requirements (Neb. Rev. Stat. §§ 48-1231 to 48-1234) are liable for unpaid wages plus a civil penalty. The exact penalty structure appears in §§ 48-1231 (attorney's fees and court costs for wage claims) and 48-1232 (additional wage damages for willful violations) (verify: specific penalty percentages and recovery mechanisms). Prevailing employees in wage disputes may recover attorney's fees and court costs.
 
 ## 4. Pay Transparency and Equity
 
@@ -57,21 +63,28 @@ Nebraska is an at-will employment state. Unless a written employment contract sp
 
 **Protected Classes**: Title VII (race, color, religion, sex, national origin), ADA (disability), ADEA (age if employer has 25+ employees), and Nebraska Fair Employment Practice Act (Neb. Rev. Stat. §§ 48-1101 to 48-1127) apply. Protected characteristics include sex, disability, physical or mental limitations, pregnancy, childbirth, related medical conditions, marital status, and protective hairstyles (braids, locks, twists). Covered employers must make reasonable accommodations for qualified individuals' known limitations unless undue hardship would result.
 
-**Pay Data Reporting**: No Nebraska state law requires employers to report pay equity data. Federal EEO-1 reporting applies to employers with 100+ employees.
+**Pay Data Reporting**: No Nebraska state law requires employers to report pay equity data to state agencies. Federal EEO-1 reporting applies to employers with 100+ employees.
+
+**Age Discrimination**: Neb. Rev. Stat. § 48-1001 (Part 10 of the Fair Employment Practice Act) prohibits discrimination based on age in hiring, promotion, compensation, termination, and other terms and conditions of employment. Applies to employers with **20 or more employees**. The Act protects workers of all ages but is often asserted by employees age 40 and older. No explicit age range is specified in state law; federal ADEA (age 40+, employers 20+ employees) provides parallel protection and operates concurrently.
+
+**Retaliation Protection**: Neb. Rev. Stat. § 48-1114 (part of Fair Employment Practice Act) explicitly prohibits employers from retaliating against employees who inquire about, discuss, or disclose wages, benefits, or other terms and conditions of employment. Retaliation includes discharge, discipline, harassment, demotion, or any adverse action because an employee engaged in protected wage-disclosure activity. Employees have the right to discuss compensation without employer interference or threat.
 
 ## 5. Leave and Time: Paid Sick Leave, Family Leave, and Other Mandated Leave
 
-**Paid Sick Leave (Nebraska Healthy Families and Workplaces Act, Initiative 436, LB 415)**
+**Paid Sick Leave (Nebraska Healthy Families and Workplaces Act, Initiative 436, effective October 1, 2025)**
 
-Effective October 1, 2025, employers with **11 or more employees** must provide paid sick leave. (verify: employers with fewer than 11 employees are exempt).
+Neb. Rev. Stat. §§ 48-3801 to 48-3811 establish paid sick leave requirements. Applies to employers with **11 or more employees**; LB 415 (2025) exempts employers with 10 or fewer employees, temporary workers, and employees under age 16.
 
-- **Accrual**: Employees begin accruing paid sick time after 80 hours of consecutive employment at a rate of **1 hour per 30 hours worked**.
-- **Annual usage caps**: A small business (11–19 employees) is not required to permit use of more than 40 hours/year; other employers (20+) not required to permit more than 56 hours/year. However, employers may provide higher limits.
-- **Carryover**: Accrued paid sick time **shall be carried over to the following year**. Alternatively, employers may pay employees for unused time at the end of a year and provide fresh paid sick time at the start of the next year.
-- **Transfer**: When an employee transfers within the same employer, all accrued unused paid sick time is retained.
-- **Rehire**: If an employee is rehired within 12 months after separation, previously accrued unused paid sick time "shall be reinstated."
-- **Compensation**: Paid sick time must be compensated at the same hourly rate and with the same benefits (including health insurance) as the employee typically earns, with a minimum of state minimum wage. Commission-based or piece-rate employees are compensated using an average weekly rate converted to an hourly amount based on 40-hour workweek.
-- **Notice requirement**: Employers must give written notice to employees at the commencement of employment or by September 15, 2025, whichever is later: (1) beginning October 1, 2025, employees are entitled to paid sick time; (2) the amount of paid sick time; (3) the terms of its use; (4) that retaliation for requesting/using paid sick time is prohibited.
+- **Accrual**: Employees begin accruing paid sick time after 80 hours of employment at a rate of **1 hour per 30 hours worked**. Accrual starts on hire or on the first day of employment, whichever is later.
+- **Annual usage caps and employer size tiers**:
+  - Small businesses (11–19 employees): not required to permit use of more than 40 hours/year.
+  - Larger employers (20+): not required to permit use of more than 56 hours/year.
+  - Employers may provide higher limits; statutory minimums floor the requirement.
+- **Carryover and payout**: Accrued paid sick time **shall carry over to the following year** unless the employer implements a "use-it-or-lose-it" policy combined with payout of unused time at year-end and provision of fresh time at year start. If a payout-and-refresh cycle is used, employees must receive notice at the start of each year.
+- **Transfer and re-hire**: When an employee transfers within the same employer, all accrued unused paid sick time transfers. If an employee is rehired within 12 months after separation, previously accrued unused paid sick time "shall be reinstated" (verify: whether reinstatement applies to all former employees or only those meeting specific criteria).
+- **Compensation rate**: Paid sick time must be compensated at the same hourly rate and with the same benefits (including health insurance) as the employee typically earns, with a minimum of Nebraska minimum wage. Commission-based or piece-rate employees receive compensation calculated as an average weekly rate converted to an hourly amount based on a standard 40-hour workweek.
+- **Notice requirement**: Employers must provide written notice to employees—at hire or by September 15, 2025, whichever is later—specifying: (1) that employees are entitled to paid sick time beginning October 1, 2025; (2) the amount of paid sick time employees accrue and may use; (3) the terms and conditions for using paid sick time; (4) that retaliation, discrimination, or discharge for requesting or using paid sick time is prohibited.
+- **Prohibited retaliation**: Employers may not interfere with, restrain, or deny use of paid sick time, nor retaliate against employees who exercise their right to use paid sick time or who file a complaint or participate in a proceeding related to paid sick leave rights.
 
 **Federal FMLA**: The Family and Medical Leave Act (29 U.S.C. §§ 2601–2654) provides 12 weeks unpaid leave per 12 months for qualifying reasons (serious health condition, family member care, military exigency, military caregiver leave, childbirth/adoption). Applies to employers with 50+ employees within 75 miles. Employers must maintain health insurance during leave.
 
@@ -96,7 +109,7 @@ Effective October 1, 2025, employers with **11 or more employees** must provide 
 
 ## 7. Privacy and Data: Employee Data, Biometric Monitoring, Breach Notification
 
-**Data Privacy Law**: Nebraska has a limited Data Privacy Act (Neb. Rev. Stat. §§ 87-1101 to 87-1130). Unlike CCPA or GDPR, it does not impose comprehensive employee data-protection requirements on private employers collecting employee data for employment purposes.
+**Data Privacy Law**: Nebraska Data Privacy Act (Neb. Rev. Stat. §§ 87-1101 to 87-1130, effective January 1, 2025, Laws 2024, LB 1074) is a limited consumer privacy law modeled on CCPA/CPRA but does **not comprehensively regulate employee data** in the way that California's CCPA does. The Act applies to "controllers" processing personal information of Nebraska residents for commercial purposes. Employee data collected and processed for employment purposes (payroll, tax compliance, benefits administration, background checks) is generally outside the scope of the Data Privacy Act (verify: specific exemptions for employment data or B2B processing). Employers should not assume the Act imposes CCPA-like obligations for employee personal information; however, data breaches affecting employee personal information still trigger Neb. Rev. Stat. § 87-803 breach-notification requirements.
 
 **Workplace Privacy Act**: Neb. Rev. Stat. §§ 48-3501 to 48-3511 restrict employer access to employee Internet accounts, personal social media accounts, and personal devices without employee consent. Employers may not demand access to personal accounts or require employees to disclose credentials.
 
@@ -118,7 +131,7 @@ Effective October 1, 2025, employers with **11 or more employees** must provide 
 
 **Background Checks**: Permitted. Employers commonly obtain criminal-history checks via the Nebraska Crime Information Center (NCIC) with fingerprints or name-based consent.
 
-**Drug Testing**: No state law prohibits pre-employment or workplace drug testing. Employers may establish drug-testing policies and drug-free workplace policies. A drug test is not considered a medical examination under Nebraska law and can be conducted separately.
+**Drug and Alcohol Testing**: Nebraska Revised Statutes §§ 48-1901 to 48-1910 address drug and alcohol testing in the workplace. Section 48-1901 establishes legislative intent "to help in the treatment and elimination of drug and alcohol use and abuse in the workplace while protecting the employee's rights." Critically, **the statute does not require employers to conduct drug or alcohol testing**, nor does it prescribe specific procedures, timing, or notice requirements for testing. Employers retain discretion to implement or abstain from testing policies. No state law prohibits pre-employment or workplace drug testing. Employers may establish drug-testing policies and drug-free workplace policies. Testing must comply with federal law (e.g., DOT-regulated industries, federal contractors) but faces no additional Nebraska-specific procedural mandate (verify: whether §§ 48-1902 to 48-1910 contain employee-protection provisions for tested employees).
 
 **E-Verify**: **Required for public contractors only** (Neb. Rev. Stat. § 4-114). Every contract between a public employer and public contractor must contain a provision requiring the contractor to use E-Verify (or equivalent federal work-authorization verification system) for employees physically performing services in Nebraska. This requirement does not apply to contracts awarded by public employers prior to October 1, 2009.
 
@@ -142,8 +155,19 @@ Effective October 1, 2025, employers with **11 or more employees** must provide 
 
 **Noncompete and Nonsolicitation Agreements**:
 
-- **Enforceability**: Neb. Rev. Stat. § 87-404 applies to noncompete covenants. If restrictions in a non-compete agreement are found unreasonable in restraining competition, an arbitrator or court may reform the agreement to make the restrictions reasonable and enforceable, then enforce the reformed terms (verify: this authority appears in the franchise context; general enforceability under common law requires case-law review for strictness standards).
-- **Status**: Nebraska has not enacted a blanket prohibition or approval statute for noncompetes. Enforceability is determined by common law and case law (verify: recent Nebraska Supreme Court precedent on blue-penciling and scope of noncompetes; enforcement may vary by fact pattern and industry).
+- **Statutory framework**: Neb. Rev. Stat. § 87-404 applies **only to franchise-relationship noncompetes** (Franchise Practices Act context) and is not the governing law for general employment noncompetes.
+- **Enforceability under common law**: Nebraska enforces noncompete agreements under common-law principles, applying a **strict reasonableness test without blue-pencilling authority** (the court cannot modify an overly broad covenant to make it enforceable; instead, the covenant is simply unenforceable). Covenants are enforceable if they are reasonable in scope, duration, and geography, and reasonably protect a legitimate business interest (e.g., trade secrets, confidential information, substantial relationships with prospective or existing customers).
+- **Customer nonsolicits**: Nebraska law limits nonsolicitation covenants to customers **with whom the employee actually dealt** during employment (verify: _H&R Block v. Cardoso_ and _Gaver v. Schneider's O.K. Tire_, Nebraska Supreme Court cases establishing that customer restrictions cannot extend to all customers of the business, only those with whom the employee had direct contact). Courts reject overbroad customer lists as unreasonable restraints.
+- **Reformation not available**: Unlike some jurisdictions, Nebraska does not permit courts to "blue-pencil" or reform overly broad noncompetes to make them enforceable. An agreement deemed unreasonable in its full scope is unenforceable in its entirety (verify: this approach differs from states allowing judicial modification).
+- **Burden and proof**: Employers asserting noncompete enforceability bear the burden of proving the agreement is reasonable in scope, duration, and geography, and that it protects a legitimate business interest. Employee receives deference in disputes.
+
+### Local ordinances (Omaha and Lincoln)
+
+**Omaha**: No city-level employment law restrictions beyond state and federal law found. Omaha ordinances do not establish their own minimum wage, paid leave, pay-transparency, or ban-the-box requirements for private employers.
+
+**Lincoln**: No city-level employment law restrictions beyond state and federal law found. Lincoln ordinances do not establish their own minimum wage, paid leave, pay-transparency, or ban-the-box requirements for private employers.
+
+Both cities defer to state law for employment regulation; employers should monitor state statutory changes rather than city ordinances for employment-law compliance.
 
 ## 10. Classification and Multi-State Rules
 
@@ -161,7 +185,23 @@ Effective October 1, 2025, employers with **11 or more employees** must provide 
 - **No comprehensive remote-work statute**: Nebraska does not impose specific remote-work employment law beyond unemployment insurance coordination rules.
 - **Choice of law**: If work is performed in Nebraska, Nebraska law applies to many statutory protections (minimum wage, paid sick leave, final pay timing, etc.).
 
-## 11. Implications for HCM Next (P1A/P1B: Promotion and Base-Pay Change)
+### Statutory leave and jury/voting/military duty (supplement to section 5)
+
+**Jury Duty**: Neb. Rev. Stat. § 25-1640 provides that an employer shall not penalize, threaten, or coerce an employee for service on jury duty. Employees may not be discharged, threatened, or otherwise disciplined for attending court or jury service. No requirement for paid jury duty leave; state law prohibits only retaliation.
+
+**Voting Leave**: Neb. Rev. Stat. § 32-922 requires employers to allow employees **two hours** to vote during an election. Employees may take time off at the beginning or end of the workday to vote in any statewide or federal election; employers must permit this time without penalty or loss of wages.
+
+**Military Service**: Neb. Rev. Stat. § 55-160 (Uniformed Services Employment and Reemployment Rights Act § 4301 et seq. USERRA applies uniformly) requires employers to grant unpaid leave for military service and reemploy veterans returning from active duty. Employees serving in the uniformed services (Army, Navy, Air Force, Marines, Coast Guard, National Guard, Reserves) have the right to reemployment with restoration of seniority and benefits after service ends. Health insurance and benefits continuation during military leave follow federal USERRA rules.
+
+**Absence of Mandated Leaves Not Covered**:
+
+- **No paid family/medical leave beyond FMLA**: Beyond the federal Family and Medical Leave Act (29 U.S.C. §§ 2601–2654) and paid sick leave (Initiative 436), Nebraska does not mandate paid leave for births, adoptions, serious health conditions of family members, or care obligations.
+- **No salary-history ban**: Employers may inquire about and consider prior compensation when making offers or determining pay.
+- **No pay-transparency law**: No requirement to disclose salary ranges in job postings or to applicants, or to provide comparative pay data on request.
+- **No personnel-file access for private employees**: Private-sector employees have no statutory right to access their personnel files (public-school employees have limited access rights under Neb. Rev. Stat. § 79-8,109).
+- **No mini-WARN beyond state WARN (25+ threshold)**: Federal WARN Act (60 days for 50+ workers in 30-day period, employers with 100+ employees) applies; Nebraska's state WARN (90 days for 25+ employees, any employer size) provides broader coverage, but no additional notice requirement below these thresholds.
+
+## 11. Implications for P1A/P1B
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker based in Nebraska:
 
@@ -236,6 +276,13 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 13. [Neb. Rev. Stat. § 77-2753 (Tax-Related Record Retention)](https://nebraskalegislature.gov/laws/statutes.php?statute=77-2753) — retrieved 2026-09-03
 14. [Neb. Rev. Stat. § 79-8,109 (Public School Employee Personnel File Access)](https://nebraskalegislature.gov/laws/statutes.php?statute=79-8%2C109) — retrieved 2026-09-03
 15. [Neb. Rev. Stat. §§ 48-3501 to 48-3511 (Workplace Privacy Act)](https://nebraskalegislature.gov/laws/statutes.php?statute=48-3501) — retrieved 2026-09-03
-16. [Nebraska Legislature – Legislative Bill 258 (Minimum Wage Initiative 433)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB258.pdf) — retrieved 2026-09-03
-17. [Nebraska Legislature – Legislative Bill 415 (Paid Sick Leave Initiative 436/LB 415)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB415.pdf) — retrieved 2026-09-03
-18. [Nebraska Legislature – Legislative Bill 921 (Nebraska WARN Act)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB921.pdf) — retrieved 2026-09-03
+16. [Neb. Rev. Stat. § 48-1001 (Age Discrimination Prohibition)](https://nebraskalegislature.gov/laws/statutes.php?statute=48-1001) — retrieved 2026-09-03
+17. [Neb. Rev. Stat. § 48-1114 (Retaliation for Wage Disclosure)](https://nebraskalegislature.gov/laws/statutes.php?statute=48-1114) — retrieved 2026-09-03
+18. [Neb. Rev. Stat. §§ 48-1901 to 48-1910 (Drug and Alcohol Testing in the Workplace)](https://nebraskalegislature.gov/laws/statutes.php?statute=48-1901) — retrieved 2026-09-03
+19. [Neb. Rev. Stat. §§ 87-1101 to 87-1130 (Nebraska Data Privacy Act)](https://nebraskalegislature.gov/laws/statutes.php?statute=87-1101) — retrieved 2026-09-03
+20. [Neb. Rev. Stat. § 25-1640 (Jury Duty Retaliation Prohibition)](https://nebraskalegislature.gov/laws/statutes.php?statute=25-1640) — retrieved 2026-09-03
+21. [Neb. Rev. Stat. § 32-922 (Voting Leave)](https://nebraskalegislature.gov/laws/statutes.php?statute=32-922) — retrieved 2026-09-03
+22. [Neb. Rev. Stat. § 55-160 (Military Service Leave/USERRA)](https://nebraskalegislature.gov/laws/statutes.php?statute=55-160) — retrieved 2026-09-03
+23. [Nebraska Legislature – Legislative Bill 258 (Minimum Wage Initiative 433)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB258.pdf) — retrieved 2026-09-03
+24. [Nebraska Legislature – Legislative Bill 415 (Paid Sick Leave Initiative 436/LB 415)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB415.pdf) — retrieved 2026-09-03
+25. [Nebraska Legislature – Legislative Bill 921 (Nebraska WARN Act)](https://nebraskalegislature.gov/FloorDocs/109/PDF/Slip/LB921.pdf) — retrieved 2026-09-03

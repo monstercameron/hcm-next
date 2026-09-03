@@ -1,0 +1,46 @@
+{
+  "ID": "hcmnext.model.reference_release/v1",
+  "States": [
+    "DRAFT",
+    "VALIDATED",
+    "APPROVED",
+    "RELEASED",
+    "DEPRECATED"
+  ],
+  "Initial": "DRAFT",
+  "Terminal": [
+    "DEPRECATED"
+  ],
+  "Rules": [
+    {
+      "From": "DRAFT",
+      "To": "VALIDATED",
+      "RequiresGovernance": false,
+      "RetentionClass": "REFERENCE_DATA_LIFECYCLE"
+    },
+    {
+      "From": "VALIDATED",
+      "To": "DRAFT",
+      "RequiresGovernance": false,
+      "RetentionClass": "REFERENCE_DATA_LIFECYCLE"
+    },
+    {
+      "From": "VALIDATED",
+      "To": "APPROVED",
+      "RequiresGovernance": true,
+      "RetentionClass": "REFERENCE_DATA_LIFECYCLE"
+    },
+    {
+      "From": "APPROVED",
+      "To": "RELEASED",
+      "RequiresGovernance": true,
+      "RetentionClass": "REFERENCE_DATA_LIFECYCLE"
+    },
+    {
+      "From": "RELEASED",
+      "To": "DEPRECATED",
+      "RequiresGovernance": true,
+      "RetentionClass": "REFERENCE_DATA_LIFECYCLE"
+    }
+  ]
+}

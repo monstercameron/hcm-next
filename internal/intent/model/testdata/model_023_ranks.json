@@ -1,0 +1,38 @@
+[
+  {
+    "Label": "PUBLIC",
+    "Rank": 0
+  },
+  {
+    "Label": "INTERNAL",
+    "Rank": 1
+  },
+  {
+    "Label": "PII",
+    "Rank": 2
+  },
+  {
+    "Label": "COMPENSATION",
+    "Rank": 3
+  },
+  {
+    "Label": "BANK",
+    "Rank": 3
+  },
+  {
+    "Label": "MEDICAL",
+    "Rank": 3
+  },
+  {
+    "Label": "IMMIGRATION",
+    "Rank": 3
+  },
+  {
+    "Label": "CASE",
+    "Rank": 3
+  },
+  {
+    "Label": "SPECIAL_CATEGORY",
+    "Rank": 4
+  }
+]

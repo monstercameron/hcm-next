@@ -1,0 +1,342 @@
+{
+  "tool_version": "hcm-next/tools/conformance (CONF-001) v1",
+  "execution_mode": "SIMULATE",
+  "fixed_clock": "2000-01-01T00:00:00Z",
+  "root_path": "planning/reference-workflows",
+  "runtime_spec_path": "planning/specs/workflow-runtime.md",
+  "context_spec_path": "planning/workflows/_engine/workflow-context-contract.md",
+  "vocabulary": {
+    "core": [
+      "APPROVAL",
+      "CAPABILITY",
+      "COMPENSATE",
+      "DECISION",
+      "END",
+      "OBSERVE",
+      "SIGNAL",
+      "TASK",
+      "TRANSFORM",
+      "WAIT"
+    ],
+    "structural": [
+      "JOIN",
+      "PARALLEL",
+      "SUBWORKFLOW"
+    ],
+    "retired": [
+      "AGENT",
+      "CHECKPOINT",
+      "DOCUMENT",
+      "RULE"
+    ]
+  },
+  "documents": [
+    {
+      "source_path": "planning/reference-workflows/promote-into-management.md",
+      "title": "Promote Into Management: Cross-Domain Reference Workflow",
+      "workflows": [
+        {
+          "id": "promote-into-management",
+          "kind": "STANDALONE_WORKFLOW_DOCUMENT",
+          "title": "Promote Into Management: Cross-Domain Reference Workflow",
+          "summary": {
+            "pass": 11,
+            "fail": 0,
+            "unknown": 0
+          },
+          "checks": [
+            {
+              "id": "CHK-001",
+              "name": "RetiredPrimitiveNameNotUsedAsNodeType",
+              "status": "PASS",
+              "detail": "no retired node-type keyword (CHECKPOINT, RULE, AGENT, DOCUMENT) found at the start of a line",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-002",
+              "name": "StructuralPrimitiveGatedAnnotation",
+              "status": "PASS",
+              "detail": "2 structural-primitive mention(s) all carry a P1B/gate annotation",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-003",
+              "name": "SafePointAttributeConvention",
+              "status": "PASS",
+              "detail": "safe point expressed as a [safe_point ...] node attribute, matching the retired CHECKPOINT -\u003e safe_point:true mapping",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-004",
+              "name": "CapabilityInvocationPresent",
+              "status": "PASS",
+              "detail": "18 distinct capability reference(s) found",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-005",
+              "name": "ApprovalResolverPresence",
+              "status": "PASS",
+              "detail": "4 resolver expression(s), 0 cardinality keyword(s) found",
+              "refs": [
+                "planning/workflows/_engine/workflow-context-contract.md#7-human-identity-approvals-and-work"
+              ]
+            },
+            {
+              "id": "CHK-006",
+              "name": "CompletionFiveDimensionsDeclared",
+              "status": "PASS",
+              "detail": "all five intent completion dimensions declared, with no undeclared sixth dimension",
+              "refs": [
+                "planning/workflows/_engine/workflow-context-contract.md#10-completion-intervention-and-explainability"
+              ]
+            },
+            {
+              "id": "CHK-007",
+              "name": "ScenarioSectionPresent",
+              "status": "PASS",
+              "detail": "12 conformance scenario(s) declared",
+              "refs": [
+                "planning/todos.md#CONF-001"
+              ]
+            },
+            {
+              "id": "CHK-008",
+              "name": "DiagramStepsNonEmpty",
+              "status": "PASS",
+              "detail": "largest diagram has 17 step line(s) (111 total across 12 diagram(s))",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-009",
+              "name": "PreconditionsOrRevalidationDeclared",
+              "status": "PASS",
+              "detail": "12 explicit revalidation precondition line(s) extracted",
+              "refs": [
+                "planning/specs/workflow-runtime.md#phase-1-acceptance-contract"
+              ]
+            },
+            {
+              "id": "CHK-010",
+              "name": "NoUndeclaredMutableGlobalState",
+              "status": "PASS",
+              "detail": "no undeclared global mutable map[string]... pattern found",
+              "refs": [
+                "planning/specs/workflow-runtime.md#kernel-vocabulary"
+              ]
+            },
+            {
+              "id": "CHK-011",
+              "name": "AtomicCoreVsDownstreamEffectSeparation",
+              "status": "PASS",
+              "detail": "document separates an atomic/commit step from a subsequent observe/reconcile step for its external effects",
+              "refs": [
+                "planning/specs/workflow-runtime.md#authoritative-core-versus-downstream-effects"
+              ]
+            }
+          ],
+          "scenarios": [
+            {
+              "index": 1,
+              "description": "Happy path with exact proposal, reservations, approvals, acknowledgement, commit, effects, and reconciliation."
+            },
+            {
+              "index": 2,
+              "description": "Position or budget reservation expires before execution."
+            },
+            {
+              "index": 3,
+              "description": "Manager/team/organization changes after approval and forces rebase."
+            },
+            {
+              "index": 4,
+              "description": "Legal or compensation policy version changes before effective date."
+            },
+            {
+              "index": 5,
+              "description": "Payroll cutoff makes the requested date invalid or retroactive."
+            },
+            {
+              "index": 6,
+              "description": "Competing transfer, termination, leave, or promotion wins the conflict race."
+            },
+            {
+              "index": 7,
+              "description": "Core commit succeeds and one downstream effect permanently fails."
+            },
+            {
+              "index": 8,
+              "description": "Duplicate outbox delivery never duplicates payroll, access, learning, document, message, usage, or billing effects."
+            },
+            {
+              "index": 9,
+              "description": "Sensitive access expansion requires step-up or additional approval."
+            },
+            {
+              "index": 10,
+              "description": "Team notification is prevented from releasing early."
+            },
+            {
+              "index": 11,
+              "description": "Repair succeeds without rewriting original business history."
+            },
+            {
+              "index": 12,
+              "description": "Analytics/search/semantic systems are unavailable while the business transaction still executes safely."
+            }
+          ],
+          "capabilities": [
+            "access.entitlements.recalculate",
+            "approvals.resolve",
+            "budget.compensation.reserve",
+            "communications.send",
+            "compensation.direct_reports.read",
+            "documents.generate",
+            "documents.signature.request",
+            "learning.assign",
+            "payroll.worker.sync",
+            "people.job.change",
+            "people.manager.change",
+            "people.worker.read",
+            "positions.fill",
+            "positions.reserve",
+            "reconciliation.verify",
+            "regulation.obligations.resolve",
+            "rewards.compensation.change",
+            "rewards.compensation.simulate"
+          ],
+          "actors": [
+            "CompensationPartnerFor(Jane)",
+            "CurrentManagerOf(Jane)",
+            "FinancePartnerFor(cost_center)",
+            "HRBPFor(Jane)"
+          ],
+          "steps": [
+            "Promote Jane to Engineering Manager on 2026-10-01",
+            "position: ENG-MGR-42",
+            "manager: Susan",
+            "responsibility: Team Phoenix",
+            "base pay: 165,000 USD",
+            "bonus target: 15 percent",
+            "Parent ChangeRequest",
+            "+-- People promotion change",
+            "+-- Position reservation/fill change",
+            "+-- Compensation change",
+            "+-- Budget reservation/consumption",
+            "+-- Document and acknowledgement process",
+            "+-- Payroll external effect",
+            "+-- Access recalculation effect",
+            "+-- Talent/Learning child work",
+            "+-- Messaging child intents",
+            "`-- Reconciliation/repair process",
+            "resolve Person/Worker/Employment",
+            "immutable ProposalRevision",
+            "PEOPLE                      REWARDS                      FINANCE",
+            "job/level/position/org       pay/band/bonus/range       headcount/cost/budget",
+            "legal + AuthZ + privacy + entitlement + risk",
+            "conflict and dependency scan",
+            "deterministic SimulationArtifact",
+            "People       job, level, position, manager, organization, direct reports",
+            "Rewards      base pay, band, bonus target, currency and annualized delta",
+            "Finance      budget reservation, variable exposure and cost-center attribution",
+            "Payroll      earning-profile delta, cutoff and retro expectation",
+            "Access       grants, revocations, sensitive manager access and review requirement",
+            "Talent       management profile/competency changes",
+            "Learning     mandatory manager and jurisdictional training",
+            "Regulatory   jurisdiction, notice, consultation and training obligations",
+            "Documents    localized promotion letter and acceptance requirement",
+            "Messaging    employee, team and operational audience/delivery plans",
+            "Risk         aggregate and per-effect risk with required approvals",
+            "CurrentManagerOf(Jane)",
+            "HRBPFor(Jane)",
+            "CompensationPartnerFor(Jane)",
+            "raise exceeds customer threshold?",
+            "/       \\",
+            "no         yes -\u003e FinancePartnerFor(cost_center)",
+            "\\       /",
+            "localized promotion document",
+            "employee acknowledgement/signature when policy or law requires",
+            "worker and employment active",
+            "target job/level/position valid",
+            "position reservation current",
+            "budget reservation current and sufficient",
+            "manager and Team Phoenix relationship graph current",
+            "compensation band/rules current",
+            "no overlapping termination, transfer, leave, promotion, or org change conflict",
+            "approval authority and separation of duties still valid",
+            "document/acknowledgement obligations satisfied",
+            "LegalContext and applicable rule versions current",
+            "payroll cutoff/effective-date compatibility current",
+            "access policy and sensitive-entitlement risk current",
+            "[safe_point]",
+            "multi-stream expected sequences",
+            "+-- employment/assignment job and level",
+            "+-- position reservation consumption and occupancy",
+            "+-- manager/organization relationship",
+            "+-- compensation effective interval",
+            "+-- budget reservation consumption (only if locally authoritative/co-located)",
+            "ONE ACID COMMIT",
+            "ledger events + critical projections + intent transitions + outbox",
+            "AUTHORITATIVE CORE COMMITTED",
+            "PAYROLL           ACCESS                 TALENT          LEARNING",
+            "sync + observe   recalc + provision     profile update     assignments",
+            "DOCUMENTS                 MESSAGING",
+            "archive evidence       employee/team/operations",
+            "effect reconciliation",
+            "People        SUCCESS",
+            "Rewards       SUCCESS",
+            "Position      SUCCESS",
+            "Payroll       SUCCESS",
+            "Access        PARTIAL: compensation.direct_reports.read missing",
+            "Talent        SUCCESS",
+            "Learning      SUCCESS",
+            "Documents     SUCCESS",
+            "Messaging     employee delivered; team scheduled",
+            "RequestState       APPROVED         (closure policy decides when CLOSED)",
+            "ExecutionState     COMMITTED",
+            "BusinessState      COMPLETED",
+            "ConsistencyState   DEGRADED         (RepairPlan and incident linked)",
+            "ObligationState    SATISFIED",
+            "AccessDriftDetected",
+            "-\u003e diagnose rejected provisioning operation",
+            "-\u003e RepairPlan bound to expected entitlement and observation",
+            "-\u003e simulate",
+            "-\u003e approve only if IAM repair policy requires it",
+            "-\u003e redrive with original semantic idempotency identity",
+            "-\u003e observe",
+            "-\u003e reconcile",
+            "-\u003e ConsistencyState = CONSISTENT",
+            "people.worker.read",
+            "people.job.change",
+            "people.manager.change",
+            "positions.reserve",
+            "positions.fill",
+            "rewards.compensation.simulate",
+            "rewards.compensation.change",
+            "budget.compensation.reserve",
+            "regulation.obligations.resolve",
+            "approvals.resolve",
+            "documents.generate",
+            "documents.signature.request",
+            "payroll.worker.sync",
+            "access.entitlements.recalculate",
+            "learning.assign",
+            "communications.send",
+            "reconciliation.verify"
+          ]
+        }
+      ]
+    }
+  ],
+  "manifest_digest": "85816ab2839216b1c81ee05e1c6292ff52b5b5dece5b39967ce8a7b94d28d2dd"
+}

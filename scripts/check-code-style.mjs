@@ -21,6 +21,7 @@ const allowedTryCatchFiles = new Set([
 ]);
 
 const allowedProcessEnvFiles = new Set([
+  "tools/uxqual/browser/playwright.config.mjs",
   "src/api/dependencies.ts",
   "src/api/main.ts",
   "src/console/playwright.config.mjs",

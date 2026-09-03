@@ -1,0 +1,42 @@
+# Generated alert rules for the P1A cell (OBS-005).
+#
+# Owned schema mirrored by internal/platform/telemetry.P1ACellAlertRules
+# and validated by internal/platform/telemetry.ValidateAlertRule: a ratio
+# alert always names an explicit numerator and denominator metric (never an
+# implicit/ambiguous denominator), and any rule referencing a gauge metric
+# declares max_staleness so a stalled or missing signal never silently
+# reads as healthy (the two OBS-005 RED clauses).
+
+version: 1
+
+alerts:
+  - id: ledger-append-conversion-low
+    version: 1
+    numerator: ledger.append
+    denominator: intent.created
+    condition: "<"
+    threshold: 0.90
+    for: 5m
+    severity: warning
+    description: >-
+      Fewer than 90% of created intents reach a ledger append over 5
+      minutes (explicit numerator/denominator: no implicit ratio
+      denominator).
+  - id: outbox-lag-high
+    version: 1
+    metric: outbox.lag
+    condition: ">"
+    threshold: 60000
+    for: 5m
+    max_staleness: 2m
+    severity: critical
+    description: Outbox publish lag exceeds 60s.
+  - id: edge-parity-lost
+    version: 1
+    metric: edge.parity
+    condition: "<"
+    threshold: 1
+    for: 5m
+    max_staleness: 2m
+    severity: critical
+    description: A replication/consistency edge has lost parity.

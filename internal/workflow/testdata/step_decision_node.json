@@ -1,0 +1,111 @@
+{
+  "id": "raise_threshold",
+  "type": "DECISION",
+  "depth": 4,
+  "safe_point": false,
+  "input_schema": {
+    "schema_id": "RaiseThresholdInput/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.RaiseThresholdInput"
+  },
+  "output_schema": {
+    "schema_id": "RaiseThresholdResult/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.RaiseThresholdResult"
+  },
+  "inputs": [
+    {
+      "path": "raise_ratio",
+      "type": {
+        "kind": "DECIMAL"
+      }
+    },
+    {
+      "path": "band_position",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "route_key",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "mappings": [
+    {
+      "target": "band_position",
+      "target_type": {
+        "kind": "STRING"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "build_proposal",
+      "source_path": "band_position",
+      "source_type": {
+        "kind": "STRING"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "raise_ratio",
+      "target_type": {
+        "kind": "DECIMAL"
+      },
+      "source_kind": "NODE_OUTPUT",
+      "source_node": "build_proposal",
+      "source_path": "raise_ratio",
+      "source_type": {
+        "kind": "DECIMAL"
+      },
+      "pinned_input": true
+    }
+  ],
+  "routes": [
+    "EXCEEDS_THRESHOLD",
+    "UNKNOWN",
+    "WITHIN_THRESHOLD"
+  ],
+  "decision": {
+    "evaluator_ref": "engines.decisiontable",
+    "evaluator_version": 1,
+    "rule_ref": "rules.compensation.raise_threshold/v3",
+    "input_digest_profile": "hcmnext.workflow.InputMappingSet/v1",
+    "input_digest": "e5dfd8ba069af34d1cb130c409ad906e9cebe3393487ebe9ff389cf7b3a7e937",
+    "routes": [
+      {
+        "key": "WITHIN_THRESHOLD",
+        "predicate": "raise_ratio_at_or_below_threshold",
+        "precedence": 10
+      },
+      {
+        "key": "EXCEEDS_THRESHOLD",
+        "predicate": "raise_ratio_above_threshold",
+        "precedence": 20
+      }
+    ],
+    "default_route": "WITHIN_THRESHOLD"
+  },
+  "effect_class": "PURE",
+  "allowed_modes": [
+    "SIMULATE",
+    "EXECUTE",
+    "REPLAY",
+    "REPAIR",
+    "SHADOW"
+  ],
+  "governance": {
+    "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+    "classification": "CONFIDENTIAL_HR",
+    "required_decisions": null,
+    "revalidation_boundary": "NONE",
+    "data_access_manifest_ref": "dam.promotion.simulation/v1"
+  },
+  "evidence_refs": [
+    "decision_id",
+    "evaluated_input_digest",
+    "evaluation_trace_ref"
+  ]
+}

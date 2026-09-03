@@ -1,0 +1,253 @@
+# assurance entity sources (MSRC-005).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from assurance-intelligence-platform.md's privacy/consent/records section (not the billing, agent or analytics sections of that file, which are outside MSRC-005's scope) with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: assurance
+family_version: 1
+source_docs:
+  - planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+entities:
+  - name: ProcessingAuthority
+    version: 1
+    key: processing_authority
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Subject/controller/purpose lawful basis, jurisdiction/rule refs, scope/fields/operations/recipients and withdrawal behavior.
+    properties:
+      - name: lawful_basis
+        go_type: string
+        schema_path: hcmnext.dataops.v1.ProcessingAuthority.lawful_basis
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: Consent
+    version: 1
+    key: consent
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Data subject/controller/purpose notice version and GRANTED|REFUSED|WITHDRAWN|EXPIRED|INVALID state with identity/evidence.
+    properties:
+      - name: state
+        go_type: string
+        schema_path: hcmnext.dataops.v1.Consent.state
+        presence: REQUIRED
+        classification: PII
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.consent/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: DataSubjectRequest
+    version: 1
+    key: data_subject_request
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      ACCESS|RECTIFY|ERASE|RESTRICT|PORTABILITY|OBJECT|REVIEW request with intake/identity-proof/purpose/scope and legal deadline.
+    properties:
+      - name: request_type
+        go_type: string
+        schema_path: hcmnext.dataops.v1.DataSubjectRequest.request_type
+        presence: REQUIRED
+        classification: PII
+        temporal: IMMUTABLE
+        authority_ref: authority.assurance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: LegalHold
+    version: 1
+    key: legal_hold
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Matter/authority/reason, scope/match predicates/custodians and placed/released actors/times.
+    properties:
+      - name: reason
+        go_type: string
+        schema_path: hcmnext.dataops.v1.LegalHold.reason
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: DataCopy
+    version: 1
+    key: data_copy
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      AUTHORITATIVE|PROJECTION|SEARCH|VECTOR|CACHE|TELEMETRY|... copy of a canonical asset with field/category scope and retention/hold refs.
+    properties:
+      - name: copy_type
+        go_type: string
+        schema_path: hcmnext.dataops.v1.DataCopy.copy_type
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: DeletionPlan
+    version: 1
+    key: deletion_plan
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Subject/record/data scope, authority/retention/hold decisions, copy inventory and per-target ordering/retry/deadline.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.dataops.v1.DeletionPlan.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.assurance_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: RetentionSchedule
+    version: 1
+    key: retention_schedule
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Record class/jurisdiction trigger, minimum/maximum duration, disposition method/exceptions and authority/citation refs.
+    properties:
+      - name: minimum_duration_days
+        go_type: uint32
+        schema_path: hcmnext.dataops.v1.RetentionSchedule.minimum_duration_days
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: RecordDeclaration
+    version: 1
+    key: record_declaration
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Entity/artifact/data asset record series/class, owner/custodian, cutoff trigger and retention schedule version.
+    properties:
+      - name: record_series
+        go_type: string
+        schema_path: hcmnext.dataops.v1.RecordDeclaration.record_series
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.assurance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+  - name: PrivacyBreachAssessment
+    version: 1
+    key: privacy_breach_assessment
+    aliases: []
+    owner_domain: OPERATIONS_ASSURANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/assurance-intelligence-platform.md#privacy-consent-and-records
+    summary: >-
+      Incident/data subjects/data classes, awareness time/evidence, scope/likelihood/severity and jurisdictions/notification deadlines.
+    properties:
+      - name: severity
+        go_type: string
+        schema_path: hcmnext.dataops.v1.PrivacyBreachAssessment.severity
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.assurance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: PRIVACY_RECORD
+        status: DRAFT
+
+relationships: []

@@ -137,7 +137,7 @@ New Hampshire is an employment-at-will state; both employers and employees may t
 
 **Employee privacy—monitoring, social media**:
 
-- RSA 3-712 (Maryland precedent; verify NH equivalent): No statute bans workplace email/internet monitoring or general video monitoring of work areas; reasonable expectation of privacy doctrine applies (common law).
+- No New Hampshire statute bans workplace email/internet monitoring or general video monitoring of work areas; reasonable expectation of privacy doctrine applies (common law).
 - Social media: Employers may view publicly available content but should avoid discrimination claims.
 
 **Data residency and processing**:

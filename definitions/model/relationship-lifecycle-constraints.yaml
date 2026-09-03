@@ -1,0 +1,149 @@
+generatedby: tools/gen/storagemanifest (DB-004)
+registrydigest: sha256:549c7cb6693d0cfb6b0256920e198dcc339c408674d12e6ae5561b27c60bab74
+relationships:
+  - relationshipref: AssignmentPosition/v1
+    tablename: relationship_assignment_position
+    sql: |
+      -- AssignmentPosition/v1: Assignment/v1 -> Position/v1, ONE_TO_ONE, EXCLUSIVE, TENANT_SCOPED
+      CREATE TABLE IF NOT EXISTS relationship_assignment_position (
+          tenant_id      tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+          source_ref     semantic_key NOT NULL,
+          target_ref     semantic_key NOT NULL,
+          effective_from timestamptz  NOT NULL,
+          effective_to   timestamptz,
+          recorded_at    timestamptz  NOT NULL DEFAULT now()
+      );
+      ALTER TABLE relationship_assignment_position ADD CONSTRAINT relationship_assignment_position_exclusive
+          EXCLUDE USING gist (tenant_id WITH =, source_ref WITH =,
+              tstzrange(effective_from, effective_to) WITH &&);
+    comparable: false
+    conformancenote: 'NO_PHYSICAL_TABLE: "relationship_assignment_position" is not in the migrated schema; this fragment is a DB-004 migration proposal'
+  - relationshipref: EmploymentLegalEntity/v1
+    tablename: relationship_employment_legal_entity
+    sql: |
+      -- EmploymentLegalEntity/v1: Employment/v1 -> LegalEntity/v1, ONE_TO_ONE, EXCLUSIVE, TENANT_SCOPED
+      CREATE TABLE IF NOT EXISTS relationship_employment_legal_entity (
+          tenant_id      tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+          source_ref     semantic_key NOT NULL,
+          target_ref     semantic_key NOT NULL,
+          effective_from timestamptz  NOT NULL,
+          effective_to   timestamptz,
+          recorded_at    timestamptz  NOT NULL DEFAULT now()
+      );
+      ALTER TABLE relationship_employment_legal_entity ADD CONSTRAINT relationship_employment_legal_entity_exclusive
+          EXCLUDE USING gist (tenant_id WITH =, source_ref WITH =,
+              tstzrange(effective_from, effective_to) WITH &&);
+    comparable: false
+    conformancenote: 'NO_PHYSICAL_TABLE: "relationship_employment_legal_entity" is not in the migrated schema; this fragment is a DB-004 migration proposal'
+  - relationshipref: ManagerRelationship/v1
+    tablename: relationship_manager_relationship
+    sql: |
+      -- ManagerRelationship/v1: Assignment/v1 -> Assignment/v1, ONE_TO_ONE, EXCLUSIVE, ACYCLIC, TENANT_SCOPED
+      CREATE TABLE IF NOT EXISTS relationship_manager_relationship (
+          tenant_id      tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+          source_ref     semantic_key NOT NULL,
+          target_ref     semantic_key NOT NULL,
+          effective_from timestamptz  NOT NULL,
+          effective_to   timestamptz,
+          recorded_at    timestamptz  NOT NULL DEFAULT now(),
+          CONSTRAINT relationship_manager_relationship_no_self_cycle CHECK (source_ref <> target_ref)
+      );
+      ALTER TABLE relationship_manager_relationship ADD CONSTRAINT relationship_manager_relationship_exclusive
+          EXCLUDE USING gist (tenant_id WITH =, source_ref WITH =,
+              tstzrange(effective_from, effective_to) WITH &&);
+    comparable: false
+    conformancenote: 'NO_PHYSICAL_TABLE: "relationship_manager_relationship" is not in the migrated schema; this fragment is a DB-004 migration proposal'
+  - relationshipref: OrganizationHierarchy/v1
+    tablename: relationship_organization_hierarchy
+    sql: |
+      -- OrganizationHierarchy/v1: OrganizationUnit/v1 -> OrganizationUnit/v1, ONE_TO_ONE, EXCLUSIVE, ACYCLIC, TENANT_SCOPED
+      CREATE TABLE IF NOT EXISTS relationship_organization_hierarchy (
+          tenant_id      tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+          source_ref     semantic_key NOT NULL,
+          target_ref     semantic_key NOT NULL,
+          effective_from timestamptz  NOT NULL,
+          effective_to   timestamptz,
+          recorded_at    timestamptz  NOT NULL DEFAULT now(),
+          CONSTRAINT relationship_organization_hierarchy_no_self_cycle CHECK (source_ref <> target_ref)
+      );
+      ALTER TABLE relationship_organization_hierarchy ADD CONSTRAINT relationship_organization_hierarchy_exclusive
+          EXCLUDE USING gist (tenant_id WITH =, source_ref WITH =,
+              tstzrange(effective_from, effective_to) WITH &&);
+    comparable: false
+    conformancenote: 'NO_PHYSICAL_TABLE: "relationship_organization_hierarchy" is not in the migrated schema; this fragment is a DB-004 migration proposal'
+  - relationshipref: PositionOccupant/v1
+    tablename: relationship_position_occupant
+    sql: |
+      -- PositionOccupant/v1: Position/v1 -> PositionOccupancy/v1, ONE_TO_MANY, TENANT_SCOPED
+      CREATE TABLE IF NOT EXISTS relationship_position_occupant (
+          tenant_id      tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+          source_ref     semantic_key NOT NULL,
+          target_ref     semantic_key NOT NULL,
+          effective_from timestamptz  NOT NULL,
+          effective_to   timestamptz,
+          recorded_at    timestamptz  NOT NULL DEFAULT now()
+      );
+    comparable: false
+    conformancenote: 'NO_PHYSICAL_TABLE: "relationship_position_occupant" is not in the migrated schema; this fragment is a DB-004 migration proposal'
+lifecyclechecks:
+  - entityref: IntentInstance/v1
+    column: business_state
+    generatedvalues:
+      - COMPLETED
+      - CORRECTED
+      - IN_PROGRESS
+      - NOT_ACHIEVED
+      - NOT_STARTED
+      - UNKNOWN
+    sql: CHECK (business_state IN ('COMPLETED', 'CORRECTED', 'IN_PROGRESS', 'NOT_ACHIEVED', 'NOT_STARTED', 'UNKNOWN'))
+    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+  - entityref: IntentInstance/v1
+    column: consistency_state
+    generatedvalues:
+      - CONSISTENT
+      - DEGRADED
+      - NOT_APPLICABLE
+      - PENDING_OBSERVATION
+      - REPAIRING
+      - UNKNOWN
+    sql: CHECK (consistency_state IN ('CONSISTENT', 'DEGRADED', 'NOT_APPLICABLE', 'PENDING_OBSERVATION', 'REPAIRING', 'UNKNOWN'))
+    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+  - entityref: IntentInstance/v1
+    column: execution_state
+    generatedvalues:
+      - BLOCKED
+      - COMMITTED
+      - EXECUTING
+      - NOT_PLANNED
+      - REPAIR_REQUIRED
+      - REVALIDATING
+      - SCHEDULED
+    sql: CHECK (execution_state IN ('BLOCKED', 'COMMITTED', 'EXECUTING', 'NOT_PLANNED', 'REPAIR_REQUIRED', 'REVALIDATING', 'SCHEDULED'))
+    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+  - entityref: IntentInstance/v1
+    column: obligation_state
+    generatedvalues:
+      - NOT_APPLICABLE
+      - OVERDUE
+      - PENDING
+      - SATISFIED
+      - UNKNOWN
+      - WAIVED
+    sql: CHECK (obligation_state IN ('NOT_APPLICABLE', 'OVERDUE', 'PENDING', 'SATISFIED', 'UNKNOWN', 'WAIVED'))
+    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+  - entityref: IntentInstance/v1
+    column: request_state
+    generatedvalues:
+      - APPROVED
+      - CANCELLED
+      - CLOSED
+      - DRAFT
+      - PREFLIGHTED
+      - REJECTED
+      - REOPENED
+      - SIMULATED
+      - SUBMITTED
+      - SUPERSEDED
+      - WITHDRAWN
+    sql: CHECK (request_state IN ('APPROVED', 'CANCELLED', 'CLOSED', 'DRAFT', 'PREFLIGHTED', 'REJECTED', 'REOPENED', 'SIMULATED', 'SUBMITTED', 'SUPERSEDED', 'WITHDRAWN'))
+    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"

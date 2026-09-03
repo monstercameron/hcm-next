@@ -70,8 +70,15 @@ func TestTodo_DB_001(t *testing.T) {
 	if down.Source.Version != target {
 		t.Fatalf("rolled back version %d, want %d", down.Source.Version, target)
 	}
-	if tableExists(t, db, "outbox") {
-		t.Fatal("outbox still present after rolling back the migration that creates it")
+	// The rolled-back migration is whichever is newest, so assert on the
+	// version ledger rather than on a table a specific migration creates
+	// (later migrations may add no table at all, e.g. RLS-only changes).
+	rolledBack, err := provider.GetDBVersion(ctx)
+	if err != nil {
+		t.Fatalf("read version after rollback: %v", err)
+	}
+	if rolledBack != target-1 {
+		t.Fatalf("schema version %d after rollback, want %d", rolledBack, target-1)
 	}
 
 	// Re-apply it.
@@ -79,7 +86,7 @@ func TestTodo_DB_001(t *testing.T) {
 		t.Fatalf("re-apply latest migration: %v", err)
 	}
 	if !tableExists(t, db, "outbox") {
-		t.Fatal("outbox missing after re-applying the migration that creates it")
+		t.Fatal("outbox missing after re-applying the latest migration")
 	}
 	version, err = provider.GetDBVersion(ctx)
 	if err != nil {
@@ -156,11 +163,14 @@ func TestTodo_DB_001_Golden(t *testing.T) {
 		"00005_ledger.sql",
 		"00006_projection_and_outbox.sql",
 	}
-	if len(files) != len(want) {
-		t.Fatalf("migration tree holds %d files, want %d", len(files), len(want))
+	// The first six migrations are the golden platform spine; later
+	// migrations are appended by their owning planes, so only the prefix is
+	// pinned by name while every file must keep a contiguous version.
+	if len(files) < len(want) {
+		t.Fatalf("migration tree holds %d files, want at least %d", len(files), len(want))
 	}
 	for i, f := range files {
-		if f.Name != want[i] {
+		if i < len(want) && f.Name != want[i] {
 			t.Fatalf("migration %d is %q, want %q", i, f.Name, want[i])
 		}
 		if int64(i+1) != f.Version {

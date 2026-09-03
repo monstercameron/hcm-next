@@ -1,0 +1,345 @@
+{
+  "interpreter_version": "hcmnext.workflow.simulate/v1",
+  "compiler_version": "hcmnext.workflow.compiler/v1",
+  "workflow_id": "hcmnext.workflows.promote_into_management",
+  "workflow_version": 1,
+  "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+  "mode": "SIMULATE",
+  "terminal_profile": "SIMULATE_ONLY",
+  "inputs_digest": "1d4057ae2d586e9d7c81d97a95621aeb3ef391d5fb11fe7a807414e35ebce633",
+  "started_at": "2026-09-03T12:00:00Z",
+  "ended_at": "2026-09-03T12:00:01.75Z",
+  "elapsed_virtual_ns": 1750000000,
+  "trace": [
+    {
+      "order": 1,
+      "node_id": "snapshot_worker",
+      "type": "CAPABILITY",
+      "depth": 0,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00Z",
+      "exited_at": "2026-09-03T12:00:00.25Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "simulate_compensation",
+      "input_digest": "f439948aa51ed6f23547f4beeca58e9edac8c245e76f81d63db76ac05ac906b7",
+      "output_digest": "9db8893e3652a5b853368cec3428a116434a5dc3bd78f607a47ef26417d376f8",
+      "detail": "explained 8 authorized worker fields as of 2026-10-01 under people.explain.rules/1.0.0",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:a60a61aab694fdbbad3522def5096429"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:0a87f30d039bad24adfdb677a16ece63"
+        },
+        {
+          "ref": "request_digest",
+          "id": "f439948aa51ed6f23547f4beeca58e9edac8c245e76f81d63db76ac05ac906b7"
+        },
+        {
+          "ref": "output_digest",
+          "id": "9db8893e3652a5b853368cec3428a116434a5dc3bd78f607a47ef26417d376f8"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "node_id": "simulate_compensation",
+      "type": "CAPABILITY",
+      "depth": 1,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00.25Z",
+      "exited_at": "2026-09-03T12:00:00.5Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "evaluate_band",
+      "input_digest": "83b18de181e30b995a832c6dbf6f54599f86937503040e173f936b6832329b57",
+      "output_digest": "cfa24c2871d6f26c890fe51f066c607c188b0d8ba4adf840d3b34164e8c20a1e",
+      "detail": "annualized base moves by 15000.00 USD (9.0909%) under rewards.annualization/1.0.0",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:0963fcfa0d8aa5ce3110f229df844117"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:088f6affa10a56a53b6d4d3346295a24"
+        },
+        {
+          "ref": "request_digest",
+          "id": "83b18de181e30b995a832c6dbf6f54599f86937503040e173f936b6832329b57"
+        },
+        {
+          "ref": "output_digest",
+          "id": "cfa24c2871d6f26c890fe51f066c607c188b0d8ba4adf840d3b34164e8c20a1e"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "node_id": "evaluate_band",
+      "type": "CAPABILITY",
+      "depth": 2,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00.5Z",
+      "exited_at": "2026-09-03T12:00:00.75Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "build_proposal",
+      "input_digest": "fb9a1bff2c83b2d516ee12d6196f622524bc2ab71742e7e254925fe46a454837",
+      "output_digest": "2b2f0fe96365e6cb931c1e5de0adb165268a520fe357492ff9f8d494a746cde3",
+      "detail": "band BAND-ENG-P3-USWEST@2026.1 places 180000.00 USD IN_BAND (compa-ratio 1.0526, outcome WITHIN_BAND)",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:5ca53365d6f214b636f6eb5457a5d3b3"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:84ba4718120956740cd3f424de0105a3"
+        },
+        {
+          "ref": "request_digest",
+          "id": "fb9a1bff2c83b2d516ee12d6196f622524bc2ab71742e7e254925fe46a454837"
+        },
+        {
+          "ref": "output_digest",
+          "id": "2b2f0fe96365e6cb931c1e5de0adb165268a520fe357492ff9f8d494a746cde3"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "node_id": "build_proposal",
+      "type": "TRANSFORM",
+      "depth": 3,
+      "safe_point": false,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:00.75Z",
+      "exited_at": "2026-09-03T12:00:01Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "raise_threshold",
+      "input_digest": "7f04861e335640dd035889f996d766915218dca3a4e69a23510f94212389019c",
+      "output_digest": "635eea040c2626490c64513f4b3072bf2df267f81041f94113e7542062ee8053",
+      "detail": "proposal sha256:2591babb0 simulated: preflight READY, compensation EVALUATED, executable=true",
+      "evidence": [
+        {
+          "ref": "transform_execution_id",
+          "id": "ev:abea0ccd5ea36f1338df49dc8a66e969"
+        },
+        {
+          "ref": "input_digest",
+          "id": "7f04861e335640dd035889f996d766915218dca3a4e69a23510f94212389019c"
+        },
+        {
+          "ref": "taint_manifest_ref",
+          "id": "fb75cc098db623100c0c61caa884690f5c687646ad036b2696918bd5b318443f"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "node_id": "raise_threshold",
+      "type": "DECISION",
+      "depth": 4,
+      "safe_point": false,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:01Z",
+      "exited_at": "2026-09-03T12:00:01.25Z",
+      "elapsed_ns": 250000000,
+      "outcome": "WITHIN_THRESHOLD",
+      "route_key": "WITHIN_THRESHOLD",
+      "next_node_id": "observe_projection",
+      "input_digest": "ca5b9d299ec7e32a2aca4b7b3928d4d36222eeef00c9406c2ce411a30c3dadfe",
+      "output_digest": "87c91ae38d3d03565d36750c20d2b3b52b2e05f3b7eacc091dd9cd02e8542979",
+      "detail": "tier STANDARD from hcmnext.rules.promotion_approval_threshold@2026.1 row otherwise-standard (increase 9.0909%, band IN_BAND, budget SUFFICIENT)",
+      "evidence": [
+        {
+          "ref": "decision_id",
+          "id": "ev:b412ec0244f87ccdd74f72329e27f557"
+        },
+        {
+          "ref": "evaluated_input_digest",
+          "id": "ca5b9d299ec7e32a2aca4b7b3928d4d36222eeef00c9406c2ce411a30c3dadfe"
+        },
+        {
+          "ref": "evaluation_trace_ref",
+          "id": "hcmnext.rules.promotion_approval_threshold@2026.1#otherwise-standard"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "node_id": "observe_projection",
+      "type": "OBSERVE",
+      "depth": 5,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:01.25Z",
+      "exited_at": "2026-09-03T12:00:01.5Z",
+      "elapsed_ns": 250000000,
+      "outcome": "PASS",
+      "route_key": "PASS",
+      "next_node_id": "end_simulated_consistent",
+      "input_digest": "d3ab22600e285cab1cf60194ccd3d2362081a67ee8cf7ece8fc3480950d69d43",
+      "output_digest": "4cc338f971d23de0deceb3a982d5b84575ad3ecdce9bba4526c813e525500715",
+      "detail": "projection agrees with the proposed placement at people.employment.stream_head@42",
+      "evidence": [
+        {
+          "ref": "observation_id",
+          "id": "ev:e2ad9b5de6aa124c90980c92ed96ad37"
+        },
+        {
+          "ref": "source_watermark",
+          "id": "people.employment.stream_head@42"
+        },
+        {
+          "ref": "reconciliation_result_id",
+          "id": "ev:fc3553d22c60c5db945620ec7d712d78"
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "node_id": "end_simulated_consistent",
+      "type": "END",
+      "depth": 6,
+      "safe_point": true,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:01.5Z",
+      "exited_at": "2026-09-03T12:00:01.75Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SIMULATION_COMPLETE",
+      "input_digest": "a933eeec5dd7699d1c275513a232d4d8cc021c041e1897ea02de3c191fd5c504",
+      "output_digest": "87c91ae38d3d03565d36750c20d2b3b52b2e05f3b7eacc091dd9cd02e8542979",
+      "detail": "reached terminal SIMULATION_COMPLETE with runtime status COMPLETED",
+      "evidence": [
+        {
+          "ref": "workflow_result_id",
+          "id": "ev:fbf3d4d95e7018cfb84ddb4e815552be"
+        }
+      ]
+    }
+  ],
+  "work_items": [
+    {
+      "node_id": "end_simulated_consistent",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.current_manager/v1",
+      "stage": 1,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:delegate-10 via DELEGATED",
+        "principal:manager-1 via DIRECT"
+      ],
+      "excluded": [
+        "principal:delegate-11 [humanwork.delegation.expired] delegation delegation:manager-lapsed is not valid at 2026-09-03T12:00:00Z",
+        "principal:delegate-12 [humanwork.delegation.out_of_scope] delegation delegation:manager-admin-only does not cover req.promotion.current_manager/v1 at the required authority and scope"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:81321fce965ddc709d49c9b41cef3d5e37cb2ec153b9d952198d9ed2ec3a1322",
+      "requirement_digest": "sha256:c4b1234d77c2de9232b9e69f17056fd60cd638b180515f2d8175574eef1a3a99",
+      "tier": "STANDARD",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    },
+    {
+      "node_id": "end_simulated_consistent",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.hrbp/v1",
+      "stage": 2,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:hrbp-2 via DIRECT"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:0a275b277993207df4c43fe6d288019c6b995e77c612a39fc3fe89e9b40485f0",
+      "requirement_digest": "sha256:c3f958ae95461fda68b7aa04af81d122aea0fb9fe5aa02ad7a15fc24381f7f8e",
+      "tier": "STANDARD",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    },
+    {
+      "node_id": "end_simulated_consistent",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.compensation_partner/v1",
+      "stage": 3,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:comp-3 via DIRECT"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:a4334e42eb1379a5e4d283abdeb9ea554755277450417d05b9770b4ff2ddd911",
+      "requirement_digest": "sha256:1003bd9071d453ef1b4e2e66918116ae97e21752d9cabc8ef3a093273e3e8070",
+      "tier": "STANDARD",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    }
+  ],
+  "terminal": {
+    "node_id": "end_simulated_consistent",
+    "terminal_code": "SIMULATION_COMPLETE",
+    "runtime_status": "COMPLETED"
+  },
+  "lifecycle": {
+    "request_state": "SIMULATED",
+    "execution_state": "NOT_PLANNED",
+    "business_state": "NOT_STARTED",
+    "consistency_state": "NOT_APPLICABLE",
+    "obligation_state": "SATISFIED"
+  },
+  "counters": {
+    "domain_writes": 0,
+    "reservations": 0,
+    "work_items": 0,
+    "timers": 0,
+    "messages": 0,
+    "outbox_entries": 0,
+    "provider_calls": 0,
+    "approval_bindings": 0
+  },
+  "controls": [
+    {
+      "name": "hcmnext.domains.fixtures.corpus",
+      "version": "harborcare-demo"
+    },
+    {
+      "name": "hcmnext.domains.promotion.policy",
+      "version": "people.promotion.policy.in_grade/1.0.0"
+    },
+    {
+      "name": "hcmnext.domains.rewards.annualization",
+      "version": "rewards.annualization/1.0.0"
+    },
+    {
+      "name": "hcmnext.workflow.compiler",
+      "version": "hcmnext.workflow.compiler/v1"
+    },
+    {
+      "name": "hcmnext.workflow.plan",
+      "version": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc"
+    },
+    {
+      "name": "hcmnext.workflow.simulate",
+      "version": "hcmnext.workflow.simulate/v1"
+    }
+  ],
+  "zero_effect_digest": "58beeb4ff2088c8f1ba3995e63faed6280021198b26bb779449b4fd5c1248c53",
+  "digest": "3dbd08d8c171a69110f744898ed4c77b285a004f8c9ce7d2495339cabc546a57"
+}

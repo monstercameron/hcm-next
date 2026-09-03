@@ -1,0 +1,59 @@
+{
+  "ID": "hcmnext.model.schema_release/v1",
+  "States": [
+    "DRAFT",
+    "VALIDATED",
+    "APPROVED",
+    "ACTIVE",
+    "SUPERSEDED",
+    "RETIRED"
+  ],
+  "Initial": "DRAFT",
+  "Terminal": [
+    "RETIRED"
+  ],
+  "Rules": [
+    {
+      "From": "DRAFT",
+      "To": "VALIDATED",
+      "RequiresGovernance": false,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "VALIDATED",
+      "To": "DRAFT",
+      "RequiresGovernance": false,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "VALIDATED",
+      "To": "APPROVED",
+      "RequiresGovernance": true,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "APPROVED",
+      "To": "ACTIVE",
+      "RequiresGovernance": true,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "ACTIVE",
+      "To": "SUPERSEDED",
+      "RequiresGovernance": false,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "ACTIVE",
+      "To": "RETIRED",
+      "RequiresGovernance": true,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    },
+    {
+      "From": "SUPERSEDED",
+      "To": "RETIRED",
+      "RequiresGovernance": true,
+      "RetentionClass": "SCHEMA_LIFECYCLE"
+    }
+  ]
+}

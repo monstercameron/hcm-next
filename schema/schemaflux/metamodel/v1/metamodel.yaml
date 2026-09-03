@@ -1,0 +1,368 @@
+# HCM SchemaFlux metamodel (MSRC-002).
+#
+# This file is the shared vocabulary every source file under
+# schema/schemaflux/entities/v1/**, schema/schemaflux/registries/v1/** and any
+# later family adds. It does not invent a second type system: every primitive,
+# enum and key form here is a direct restatement of a type or constant that
+# already exists in Go, so that "the YAML source" and "the compiled registry"
+# can never drift into two different vocabularies. The exact Go anchor is
+# named on every entry (`kernel_value_type`, `go_symbol`, or `go_constants`).
+#
+# Frozen Go anchors this metamodel restates:
+#   - internal/kernel/values      (wire primitive value types)
+#   - internal/intent/model       (entity/property/relationship/authority/
+#                                   retention/classification registry types)
+# Prose anchors:
+#   - planning/data/models/wire-contract-primitives.md
+#   - planning/data/models/modeling-conventions.md
+#   - planning/specs/canonical-envelope-and-digest.md
+#
+# tools/gen/schemaflux/sources is the loader/validator that parses this file
+# and every schema/schemaflux/entities/v1/*.yaml and
+# schema/schemaflux/registries/v1/*.yaml source, resolves cross-references,
+# and cross-checks the result against internal/intent/model.Catalog().
+metamodel: hcmnext.schemaflux.metamodel
+metamodel_version: 1
+
+# ---------------------------------------------------------------------------
+# Primitive types: the wire-contract-primitives.md conceptual types, each
+# mapped to the concrete internal/kernel/values Go type that already
+# implements it. A property's `go_type` field in an entity source file must
+# name either one of these kernel value types, a scalar Go primitive
+# (string, bool, uint32, int32, int64, []string, []byte), or a
+# generated-lifecycle type (lifecycle.StateID, lifecycle.Dimensions).
+# ---------------------------------------------------------------------------
+primitive_types:
+  - name: EntityId
+    kernel_value_type: values.EntityId
+    description: entity_type_id, tenant partition, opaque ULID-or-UUID bytes, canonical text encoding/version.
+  - name: EntityRef
+    kernel_value_type: values.EntityRef
+    description: entity_type_id, entity_id, revision selector, tenant/org scope, authority expectation.
+  - name: ResourceKey
+    kernel_value_type: values.ResourceKey
+    description: resource_type, tenant/org/partition, canonical key bytes, ordering class/version.
+  - name: RevisionToken
+    kernel_value_type: values.RevisionToken
+    description: aggregate/entity ref, monotonic revision or opaque CAS bytes, source authority/epoch, issued-at.
+  - name: FixedDecimal
+    kernel_value_type: values.Decimal
+    description: signed unscaled integer, declared scale, explicit RoundingMode; overflow is an error.
+  - name: Money
+    kernel_value_type: values.Money
+    description: FixedDecimal amount, ISO-4217 currency, declared minor-unit profile.
+  - name: Percentage
+    kernel_value_type: values.Percentage
+    description: FixedDecimal fraction where 1.0 = 100 percent, declared scale/rounding.
+  - name: Quantity
+    kernel_value_type: values.Quantity
+    description: FixedDecimal value, unit code, dimension/conversion profile.
+  - name: Rate
+    kernel_value_type: values.Rate
+    description: Money-or-Quantity numerator over a Quantity-or-TimeUnit denominator, basis/calendar/rounding.
+  - name: TemporalInstant
+    kernel_value_type: values.Instant
+    description: UTC seconds + nanos; trusted-time proof and uncertainty are carried separately, never inline.
+  - name: LocalDate
+    kernel_value_type: values.LocalDate
+    description: calendar date with no implicit timezone; never silently converted to midnight UTC.
+  - name: LocalTime
+    kernel_value_type: values.LocalTime
+    description: time-of-day with no implicit timezone.
+  - name: ZonedDateTime
+    kernel_value_type: values.ZonedDateTime
+    description: LocalDate + LocalTime + ZoneRef + Disambiguation for skipped/repeated local times.
+  - name: TemporalInterval
+    kernel_value_type: values.EffectiveInterval
+    description: start inclusive, end exclusive or unbounded; INSTANT or LOCAL_DATE kind (see bitemporal_fields).
+  - name: RecordedAt
+    kernel_value_type: values.RecordedAt
+    description: trusted platform receipt/commit time; never moves backward for a correction.
+  - name: KnownAt
+    kernel_value_type: values.KnownAt
+    description: earliest time the asserted fact was available to its stated authority.
+  - name: PresenceValue
+    kernel_value_type: values.Presence[T]
+    description: PresenceState (PRESENT|ABSENT|NULL|UNKNOWN|REDACTED|NOT_APPLICABLE|STALE|UNAVAILABLE) plus typed value or reason.
+  - name: CanonicalDigest
+    kernel_value_type: string (sha256:<hex> form; see tools/gen/schemaflux.Digest)
+    description: algorithm + canonicalization profile/version + digest bytes; the qualification-fixture digest is a plain content digest, not the canonical envelope profile.
+  - name: LifecycleStatus
+    go_symbol: lifecycle.StateID / lifecycle.Dimensions
+    description: lifecycle profile/version/state identifier and, for IntentInstance, the five-dimension tuple.
+
+# ---------------------------------------------------------------------------
+# Presence rules: PropertyDefinition.Presence (internal/intent/model/property.go).
+# ---------------------------------------------------------------------------
+presence_rules:
+  - value: REQUIRED
+    go_symbol: model.PresenceRequired
+    description: the property must carry a value whenever its owning entity is published.
+  - value: OPTIONAL
+    go_symbol: model.PresenceOptional
+    description: the property may be ABSENT with no further condition.
+  - value: CONDITIONAL
+    go_symbol: model.PresenceConditional
+    description: presence depends on another declared condition (e.g. worker_type, jurisdiction).
+
+# ---------------------------------------------------------------------------
+# Identity, reference and revision key forms: internal/intent/model/ref.go and
+# internal/kernel/values/identity.go. Every entity/relationship/property id in
+# schema/schemaflux/entities/v1/**  must be shaped one of these ways; the
+# loader rejects a source value that does not match the named pattern.
+# ---------------------------------------------------------------------------
+identity_key_forms:
+  - name: entity_ref
+    pattern: "^[A-Z][A-Za-z0-9]*/v[1-9][0-9]*$"
+    go_symbol: model.EntityRef / model.ParseEntityRef
+    example: Employment/v1
+    description: canonical PascalCase entity name plus a positive material version. No free-form alias substitutes for this identity.
+  - name: relationship_ref
+    pattern: "^[A-Z][A-Za-z0-9]*/v[1-9][0-9]*$"
+    go_symbol: model.RelationshipRef
+    example: ManagerRelationship/v1
+  - name: entity_key
+    pattern: "^[a-z][a-z0-9_]*$"
+    go_symbol: model.validEntityKey (unexported; enforced via EntityDefinition.Validate)
+    example: compensation_package
+    description: snake_case identifier; the leading segment of every property_ref this entity owns.
+  - name: property_ref
+    pattern: '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$'
+    go_symbol: model.PropertyRef
+    example: employment.status
+    description: "<entity_key>.<path>; PropertyRef.EntityKey() must equal the owning entity's Key."
+  - name: authority_assignment_ref
+    pattern: '^authority\.[a-z][a-z0-9_]*/v[1-9][0-9]*$'
+    go_symbol: model.SourceAuthorityAssignment.AssignmentRef
+    example: authority.employment/v1
+  - name: retention_class_ref
+    pattern: "^[A-Z][A-Z0-9_]*$"
+    go_symbol: model.RetentionClass.ClassRef
+    example: WORKER_TRANSACTION
+  - name: evidence_ref
+    pattern: '^evidence\.[a-z][a-z0-9_]*/v[1-9][0-9]*$'
+    go_symbol: model.SourceAuthorityAssignment.EvidenceRef
+    example: evidence.authority_registration/v1
+
+# ---------------------------------------------------------------------------
+# Revision key forms: internal/kernel/values/identity.go RevisionToken.
+# ---------------------------------------------------------------------------
+revision_key_forms:
+  - name: sequence_revision
+    go_symbol: values.NewSequenceRevision
+    fields: [stream, sequence]
+    description: monotonic per-stream sequence number; the ledger-backed revision form.
+  - name: opaque_revision
+    go_symbol: values.NewOpaqueRevision
+    fields: [stream, cas_bytes]
+    description: opaque compare-and-swap token for stores with no native sequence, e.g. an external system's ETag.
+
+# ---------------------------------------------------------------------------
+# Bitemporal fields: modeling-conventions.md's TemporalPoint plus
+# internal/kernel/values EffectiveInterval/RecordedAt/KnownAt. An entity
+# property with temporal EFFECTIVE_DATED must declare effective_interval
+# semantics through its owning entity/aggregate, not reinvent
+# valid_from/valid_to.
+# ---------------------------------------------------------------------------
+bitemporal_fields:
+  - name: effective_interval
+    kernel_value_type: values.EffectiveInterval
+    required_for_temporal: [EFFECTIVE_DATED]
+    description: half-open [start_inclusive, end_exclusive) business-time interval; INSTANT or LOCAL_DATE kind.
+  - name: known_at
+    kernel_value_type: values.KnownAt
+    required_for_temporal: [EFFECTIVE_DATED, POINT_IN_TIME]
+    description: earliest time the asserting authority had the fact; cannot be after recorded_at without an explicit future-knowledge claim.
+  - name: recorded_at
+    kernel_value_type: values.RecordedAt
+    required_for_temporal: [EFFECTIVE_DATED, POINT_IN_TIME, IMMUTABLE]
+    description: trusted platform receipt/commit time; a correction appends a new assertion and never moves this backward.
+  - name: observed_at
+    kernel_value_type: values.Instant
+    required_for_temporal: []
+    description: optional; set only for externally-observed facts (source authority EXTERNAL_SYSTEM).
+  - name: received_at
+    kernel_value_type: values.Instant
+    required_for_temporal: []
+    description: optional; may precede or follow source occurred_at and preserves uncertainty.
+
+# ---------------------------------------------------------------------------
+# Temporal behaviors: PropertyDefinition.Temporal (property.go).
+# ---------------------------------------------------------------------------
+temporal_behaviors:
+  - value: EFFECTIVE_DATED
+    go_symbol: model.TemporalEffectiveDated
+    requires_bitemporal: [effective_interval, known_at, recorded_at]
+  - value: POINT_IN_TIME
+    go_symbol: model.TemporalPointInTime
+    requires_bitemporal: [known_at, recorded_at]
+  - value: IMMUTABLE
+    go_symbol: model.TemporalImmutable
+    requires_bitemporal: [recorded_at]
+
+# ---------------------------------------------------------------------------
+# Correction behaviors: PropertyDefinition.Correction (property.go).
+# ---------------------------------------------------------------------------
+correction_behaviors:
+  - value: SUPERSEDES
+    go_symbol: model.CorrectionSupersedes
+    description: a new revision replaces the prior one as the current authoritative value.
+  - value: APPENDS_CORRECTION
+    go_symbol: model.CorrectionAppends
+    description: a correction is appended alongside the original; both remain readable.
+  - value: IMMUTABLE_NO_CORRECTION
+    go_symbol: model.CorrectionNoCorrection
+    description: the property can never be corrected once recorded (e.g. a digest or decision).
+
+# ---------------------------------------------------------------------------
+# Entity classes: EntityDefinition.Class (entity.go).
+# ---------------------------------------------------------------------------
+entity_classes:
+  - value: AGGREGATE_ROOT
+    go_symbol: model.ClassAggregateRoot
+    description: consistency and command boundary with stable identity; requires an AggregateDefinition.
+  - value: CHILD
+    go_symbol: model.ClassChild
+    description: owned by exactly one aggregate root's ChildRefs; no independent mutation authority.
+  - value: VALUE
+    go_symbol: model.ClassValue
+    description: typed value without independent lifecycle.
+  - value: EVENT
+    go_symbol: model.ClassEvent
+    description: immutable occurrence record.
+  - value: EVIDENCE
+    go_symbol: model.ClassEvidence
+    description: immutable proof of assertion, decision, effect or observation; never a commanded aggregate root.
+  - value: READ_MODEL
+    go_symbol: model.ClassReadModel
+    description: reconstructable read model; carries NO_BUSINESS_LIFECYCLE, never authoritative merely because convenient.
+
+# ---------------------------------------------------------------------------
+# Definition statuses: shared by EntityDefinition and PropertyDefinition
+# (entity.go DefinitionStatus). `covered: false` entities in the entity
+# source files (drawn from planning/data/models/**.md prose with no funded
+# Go registration yet) MUST NOT declare status ACTIVE — see
+# tools/gen/schemaflux/sources's Compile, which rejects that combination as
+# an unresolved vocabulary reference.
+# ---------------------------------------------------------------------------
+definition_statuses:
+  - value: DRAFT
+    go_symbol: model.StatusDraft
+  - value: ACTIVE
+    go_symbol: model.StatusActive
+  - value: DEPRECATED
+    go_symbol: model.StatusDeprecated
+  - value: RETIRED
+    go_symbol: model.StatusRetired
+
+# ---------------------------------------------------------------------------
+# Classification labels and retention attributes: MODEL-023/MODEL-026
+# (classification.go, retention.go). Labels are listed in ascending
+# propagation rank; a derived value can never be classified more weakly than
+# the strongest label among its sources (model.Strongest/model.Propagate).
+# ---------------------------------------------------------------------------
+classification_labels:
+  - value: PUBLIC
+    rank: 0
+    go_symbol: model.ClassPublic
+  - value: INTERNAL
+    rank: 1
+    go_symbol: model.ClassInternal
+  - value: PII
+    rank: 2
+    go_symbol: model.ClassPII
+  - value: COMPENSATION
+    rank: 3
+    go_symbol: model.ClassCompensation
+  - value: BANK
+    rank: 3
+    go_symbol: model.ClassBank
+  - value: MEDICAL
+    rank: 3
+    go_symbol: model.ClassMedical
+  - value: IMMIGRATION
+    rank: 3
+    go_symbol: model.ClassImmigration
+  - value: CASE
+    rank: 3
+    go_symbol: model.ClassCase
+  - value: SPECIAL_CATEGORY
+    rank: 4
+    go_symbol: model.ClassSpecialCategory
+
+retention_attributes:
+  - field: class_ref
+    pattern_ref: retention_class_ref
+    description: stable retention-class identity, e.g. WORKER_TRANSACTION.
+  - field: default_period_days
+    go_type: uint32
+    description: retention floor applied when no jurisdiction override exists; zero is invalid unless an override exists.
+  - field: jurisdiction_overrides
+    go_type: map[string]uint32
+    description: ISO-3166-2-style jurisdiction code -> retention period in days.
+  - field: trigger_event
+    go_type: string
+    description: event the retention clock starts from, e.g. EMPLOYMENT_END, RECORD_CREATED, RECORD_SUPERSEDED.
+  - field: disposition_owner
+    go_type: string
+    description: team/role accountable for disposition at the end of the retention period.
+  - field: authority_ref
+    pattern_ref: authority_assignment_ref
+    description: the authority assignment this retention class's trigger evidence is bound to.
+
+# ---------------------------------------------------------------------------
+# Source authority: AuthorityKind and MergePolicy (authority.go). Every
+# property's authority_ref must resolve to an entry in
+# schema/schemaflux/registries/v1/registries.yaml.
+# ---------------------------------------------------------------------------
+authority_kinds:
+  - value: INTERNAL
+    go_symbol: model.AuthorityInternal
+  - value: EXTERNAL_SYSTEM
+    go_symbol: model.AuthorityExternalSystem
+  - value: HUMAN
+    go_symbol: model.AuthorityHuman
+  - value: IMPORT
+    go_symbol: model.AuthorityImport
+  - value: AGENT
+    go_symbol: model.AuthorityAgent
+
+merge_policies:
+  - value: LAST_WRITE_WINS
+    go_symbol: model.MergeLastWriteWins
+  - value: AUTHORITY_PRECEDENCE
+    go_symbol: model.MergeAuthorityPrecedence
+  - value: MANUAL_RECONCILIATION
+    go_symbol: model.MergeManualReconciliation
+
+# ---------------------------------------------------------------------------
+# Aggregate command boundaries: ConsistencyBoundary (aggregate.go).
+# ---------------------------------------------------------------------------
+consistency_boundaries:
+  - value: LOCAL_ACID
+    go_symbol: model.BoundaryLocalACID
+    description: single-root, single-database-transaction boundary; never spans two roots.
+  - value: CROSS_AGGREGATE_TRANSACTION
+    go_symbol: model.BoundaryCrossAggregateTransaction
+    description: the declared BusinessTransaction + TransactionParticipant boundary; requires at least one invariant_ref.
+  - value: EXTERNAL_OBSERVATION
+    go_symbol: model.BoundaryExternalObservation
+    description: not a transaction; an external system is a durable effect with observation/reconciliation/repair.
+
+# ---------------------------------------------------------------------------
+# Relationship cardinalities: Cardinality (relationship.go).
+# ---------------------------------------------------------------------------
+cardinalities:
+  - value: ONE_TO_ONE
+    go_symbol: model.CardinalityOneToOne
+  - value: ONE_TO_MANY
+    go_symbol: model.CardinalityOneToMany
+  - value: MANY_TO_MANY
+    go_symbol: model.CardinalityManyToMany
+
+# ---------------------------------------------------------------------------
+# The affirmative no-lifecycle marker for a READ_MODEL root (entity.go
+# NoBusinessLifecycle). Listed explicitly so a loader never treats an empty
+# lifecycle_assignment string as equivalent to this declared value.
+# ---------------------------------------------------------------------------
+no_business_lifecycle: NO_BUSINESS_LIFECYCLE

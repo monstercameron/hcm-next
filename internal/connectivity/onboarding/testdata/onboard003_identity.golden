@@ -1,0 +1,4 @@
+W-EXACT -> outcome=EXACT canonical="person-e" candidates=[] crosswalk=crosswalk.worker.workday->hcmnext@2026.09.01
+W-CANDIDATE -> outcome=CANDIDATE canonical="" candidates=[person-c] crosswalk=crosswalk.worker.workday->hcmnext@2026.09.01
+W-CONFLICT -> outcome=CONFLICT canonical="" candidates=[person-x1 person-x2] crosswalk=crosswalk.worker.workday->hcmnext@2026.09.01
+W-UNMATCHED -> outcome=UNMATCHED canonical="" candidates=[] crosswalk=crosswalk.worker.workday->hcmnext@2026.09.01

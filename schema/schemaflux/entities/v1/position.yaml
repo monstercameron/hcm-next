@@ -1,0 +1,305 @@
+# position entity sources (MSRC-004).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from people-workforce.md's jobs/positions/workforce-planning section with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: position
+family_version: 1
+source_docs:
+  - planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+entities:
+  - name: Position
+    version: 1
+    key: position
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    stream_kind: POSITION
+    invariants:
+      - invariant.position_capacity_non_negative/v1
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Job/org/legal-entity/location refs, capacity and unit, occupancy/overlap policy and availability/freeze/lifecycle states.
+    properties:
+      - name: capacity
+        go_type: uint32
+        schema_path: hcmnext.people.v1.Position.capacity
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.position/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+      - name: pay_band_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.Position.pay_band_ref
+        presence: OPTIONAL
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.position/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: Job
+    version: 1
+    key: job
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Code, title/localized titles, family/profile/level/grade refs and compensation band refs.
+    properties:
+      - name: title
+        go_type: string
+        schema_path: hcmnext.people.v1.Job.title
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.job/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: ACTIVE
+
+  - name: PositionOccupancy
+    version: 1
+    key: position_occupancy
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.occupancy_within_capacity/v1
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      One position/assignment/worker occupancy: allocation/FTE, primary flag and effective interval.
+    properties:
+      - name: occupant_ref
+        go_type: string
+        schema_path: hcmnext.people.v1.PositionOccupancy.occupant_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.position_occupancy/v1
+        correction: SUPERSEDES
+        retention_class_ref: WORKER_TRANSACTION
+        status: ACTIVE
+
+  - name: PositionRevision
+    version: 1
+    key: position_revision
+    aliases: []
+    owner_domain: WORK
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Job/org/legal-entity/location/budget/headcount refs, capacity quantity/unit/precision and occupancy policy for one revision.
+    properties:
+      - name: canonical_digest
+        go_type: string
+        schema_path: hcmnext.people.v1.PositionRevision.canonical_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.position_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: PositionReservation
+    version: 1
+    key: position_reservation
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: AccountLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Reserved capacity against a position/proposal with HELD|CONSUMED|RELEASE_PENDING|RELEASED|AMBIGUOUS|EXPIRED state and fence/expiry.
+    properties:
+      - name: state
+        go_type: string
+        schema_path: hcmnext.people.v1.PositionReservation.state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.position_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: WORKER_TRANSACTION
+        status: DRAFT
+
+  - name: JobFamily
+    version: 1
+    key: job_family
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Code/name, optional parent family ref, career track and level-framework refs.
+    properties:
+      - name: code
+        go_type: string
+        schema_path: hcmnext.people.v1.JobFamily.code
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.position_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: DRAFT
+
+  - name: JobLevel
+    version: 1
+    key: job_level
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Framework/family ref, code/title/rank, progression criteria and management/individual-contributor track.
+    properties:
+      - name: rank
+        go_type: uint32
+        schema_path: hcmnext.people.v1.JobLevel.rank
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.position_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: DRAFT
+
+  - name: WorkforcePlan
+    version: 1
+    key: workforce_plan
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Scenario/version, horizon, organization/legal-entity scope, assumptions and demand/headcount/budget line refs.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.people.v1.WorkforcePlan.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.position_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: DRAFT
+
+  - name: HeadcountPlanLine
+    version: 1
+    key: headcount_plan_line
+    aliases: []
+    owner_domain: WORK
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Plan/org/job/location/cost-center refs, planned positions/FTE/cost for one period and approved/reserved/consumed quantities.
+    properties:
+      - name: planned_fte
+        go_type: values.Quantity
+        schema_path: hcmnext.people.v1.HeadcountPlanLine.planned_fte
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.position_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: REFERENCE_DATA
+        status: DRAFT
+
+  - name: VacancyProjection
+    version: 1
+    key: vacancy_projection
+    aliases: []
+    owner_domain: WORK
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Available FTE/head units and earliest fill date for a position/capacity interval, with blocking reservation/freeze refs.
+    properties:
+      - name: earliest_fill_date
+        go_type: values.LocalDate
+        schema_path: hcmnext.people.v1.VacancyProjection.earliest_fill_date
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.position_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: REFERENCE_DATA
+        status: DRAFT
+
+relationships:
+  - name: PositionOccupant
+    version: 1
+    source_entity: Position/v1
+    target_entity: PositionOccupancy/v1
+    cardinality: ONE_TO_MANY
+    exclusive: false
+    allow_cycles: true
+    tenant_scoped: true
+    covered: true
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning

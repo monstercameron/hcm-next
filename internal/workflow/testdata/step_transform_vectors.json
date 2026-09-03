@@ -1,0 +1,101 @@
+[
+  {
+    "name": "all_trusted",
+    "input_taint": [
+      {
+        "source": "worker_id",
+        "level": "TRUSTED"
+      }
+    ],
+    "output_taint": "TRUSTED",
+    "compiled": {
+      "transform_ref": "transforms.promotion.build_proposal",
+      "version": 1,
+      "normalization_profile": "hcmnext.canonical.proposal/v1",
+      "input_digest": "fd1f2af02014c807f51da95d8b27f016d01cb8912a92fce4e746e776f6aefe7a",
+      "lineage": [
+        "input:worker_id=TRUSTED",
+        "output=TRUSTED"
+      ],
+      "output_taint": "TRUSTED",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_steps": 5000
+      }
+    }
+  },
+  {
+    "name": "derived_with_pinned_lookup",
+    "input_taint": [
+      {
+        "source": "worker_id",
+        "level": "TRUSTED"
+      },
+      {
+        "source": "raise_ratio",
+        "level": "DERIVED"
+      }
+    ],
+    "lookups": [
+      {
+        "ref": "reference.pay_bands",
+        "snapshot_digest": "sha256:pinned-pay-bands"
+      }
+    ],
+    "output_taint": "DERIVED",
+    "compiled": {
+      "transform_ref": "transforms.promotion.build_proposal",
+      "version": 1,
+      "normalization_profile": "hcmnext.canonical.proposal/v1",
+      "lookups": [
+        {
+          "ref": "reference.pay_bands",
+          "snapshot_digest": "sha256:pinned-pay-bands"
+        }
+      ],
+      "input_digest": "fd1f2af02014c807f51da95d8b27f016d01cb8912a92fce4e746e776f6aefe7a",
+      "lineage": [
+        "input:raise_ratio=DERIVED",
+        "input:worker_id=TRUSTED",
+        "lookup:reference.pay_bands@sha256:pinned-pay-bands",
+        "output=DERIVED"
+      ],
+      "output_taint": "DERIVED",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_steps": 5000
+      }
+    }
+  },
+  {
+    "name": "tainted_downgraded_by_receipt",
+    "input_taint": [
+      {
+        "source": "band_position",
+        "level": "TAINTED"
+      }
+    ],
+    "sanitizer": "sanitizer.receipt.promotion/v1",
+    "output_taint": "TRUSTED",
+    "compiled": {
+      "transform_ref": "transforms.promotion.build_proposal",
+      "version": 1,
+      "normalization_profile": "hcmnext.canonical.proposal/v1",
+      "input_digest": "fd1f2af02014c807f51da95d8b27f016d01cb8912a92fce4e746e776f6aefe7a",
+      "lineage": [
+        "input:band_position=TAINTED",
+        "sanitizer:sanitizer.receipt.promotion/v1",
+        "output=TRUSTED"
+      ],
+      "output_taint": "TRUSTED",
+      "sanitizer_receipt_ref": "sanitizer.receipt.promotion/v1",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_steps": 5000
+      }
+    }
+  }
+]

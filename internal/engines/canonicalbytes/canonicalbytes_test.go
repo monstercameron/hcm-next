@@ -3,6 +3,7 @@ package canonicalbytes_test
 import (
 	"bytes"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
@@ -121,5 +122,29 @@ func TestNestedWriterPropagatesItsFailure(t *testing.T) {
 	_, err := canonicalbytes.New("outer", 1).Nested("inner", broken).Bytes()
 	if !errors.Is(err, canonicalbytes.ErrUnencodable) {
 		t.Fatalf("error = %v, want ErrUnencodable", err)
+	}
+}
+
+// TestVersionAndExplainAreStable is the ARCH-GO-009 engine package contract
+// test for canonicalbytes: Version() reports a fixed, positive contract
+// version and Explain() describes the encoding profile in terms of this
+// package's own vocabulary (tag/length framing and its digest algorithm),
+// and both are pure - no clock, no randomness, no dependency on any Writer
+// state - so repeated calls never disagree with each other.
+func TestVersionAndExplainAreStable(t *testing.T) {
+	if v := canonicalbytes.Version(); v != canonicalbytes.Version() || v <= 0 {
+		t.Fatalf("Version() = %d, want a stable positive contract version", v)
+	}
+
+	first := canonicalbytes.Explain()
+	second := canonicalbytes.Explain()
+	if first != second {
+		t.Fatalf("Explain() is not stable: %q vs %q", first, second)
+	}
+	if first == "" {
+		t.Fatal("Explain() must not be empty")
+	}
+	if !strings.Contains(first, canonicalbytes.DigestAlgorithm) {
+		t.Fatalf("Explain() = %q, want it to name the digest algorithm %q", first, canonicalbytes.DigestAlgorithm)
 	}
 }

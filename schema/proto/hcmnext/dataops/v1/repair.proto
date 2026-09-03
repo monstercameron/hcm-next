@@ -1,0 +1,268 @@
+syntax = "proto3";
+
+package hcmnext.dataops.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/dataops/v1/dataops.proto";
+import "hcmnext/evidence/v1/receipt.proto";
+
+// RepairConfidence is how far a diagnosis is prepared to commit to its own
+// conclusion (internal/domains/repair Confidence).
+enum RepairConfidence {
+  REPAIR_CONFIDENCE_UNSPECIFIED = 0;
+  REPAIR_CONFIDENCE_LOW = 1;
+  REPAIR_CONFIDENCE_MEDIUM = 2;
+  REPAIR_CONFIDENCE_HIGH = 3;
+}
+
+// RepairProblemClass is what kind of problem a diagnosis says a mismatch is.
+// The class decides which corrective actions are even considered
+// (internal/domains/repair ProblemClass).
+enum RepairProblemClass {
+  REPAIR_PROBLEM_CLASS_UNSPECIFIED = 0;
+  REPAIR_PROBLEM_CLASS_FIELD_DRIFT = 1;
+  REPAIR_PROBLEM_CLASS_UNORDERED_CONFLICT = 2;
+  REPAIR_PROBLEM_CLASS_MAPPING_DEFECT = 3;
+  REPAIR_PROBLEM_CLASS_COVERAGE_GAP = 4;
+  REPAIR_PROBLEM_CLASS_NONE = 5;
+}
+
+// RepairAction is what a repair step proposes. The vocabulary contains no
+// delete, truncate or rewrite action: there is deliberately no way to express
+// a destructive action on the wire, so no server policy has to be trusted to
+// forbid one (internal/domains/repair Action).
+enum RepairAction {
+  REPAIR_ACTION_UNSPECIFIED = 0;
+  REPAIR_ACTION_REFRESH_PROJECTION = 1;
+  REPAIR_ACTION_PROPOSE_EXTERNAL_UPDATE = 2;
+  REPAIR_ACTION_HUMAN_REVIEW = 3;
+  REPAIR_ACTION_MAPPING_REVIEW = 4;
+}
+
+// RepairHistoryTreatment is how a step relates to what is already recorded.
+// APPEND_CORRECTION is the only value P1A recognises: a repair step never
+// deletes or rewrites recorded history (internal/domains/repair
+// HistoryTreatment).
+enum RepairHistoryTreatment {
+  REPAIR_HISTORY_TREATMENT_UNSPECIFIED = 0;
+  REPAIR_HISTORY_TREATMENT_APPEND_CORRECTION = 1;
+}
+
+// RepairRiskClass is how much could go wrong if a step were executed
+// (internal/domains/repair RiskClass).
+enum RepairRiskClass {
+  REPAIR_RISK_CLASS_UNSPECIFIED = 0;
+  REPAIR_RISK_CLASS_LOW = 1;
+  REPAIR_RISK_CLASS_MEDIUM = 2;
+  REPAIR_RISK_CLASS_HIGH = 3;
+}
+
+// RepairPreconditionKind names something that must still be true when a plan
+// is revalidated. Every kind pins a digest or a revision; none is a judgement
+// that could be re-made differently later
+// (internal/domains/repair PreconditionKind).
+enum RepairPreconditionKind {
+  REPAIR_PRECONDITION_KIND_UNSPECIFIED = 0;
+  REPAIR_PRECONDITION_KIND_DIFF_DIGEST_UNCHANGED = 1;
+  REPAIR_PRECONDITION_KIND_CANONICAL_REVISION_UNCHANGED = 2;
+  REPAIR_PRECONDITION_KIND_OBSERVATION_DIGEST_UNCHANGED = 3;
+  REPAIR_PRECONDITION_KIND_AUTHORITY_POLICY_UNCHANGED = 4;
+}
+
+// RepairSimulationStatus is the SimulateRepair verdict
+// (internal/domains/repair Status).
+enum RepairSimulationStatus {
+  REPAIR_SIMULATION_STATUS_UNSPECIFIED = 0;
+  REPAIR_SIMULATION_STATUS_VALID = 1;
+  REPAIR_SIMULATION_STATUS_REPLAN_REQUIRED = 2;
+  REPAIR_SIMULATION_STATUS_NO_LONGER_REQUIRED = 3;
+  REPAIR_SIMULATION_STATUS_BLOCKED = 4;
+  REPAIR_SIMULATION_STATUS_UNKNOWN = 5;
+}
+
+// RepairDiagnosis is what the platform believes is wrong, how sure it is,
+// what it relies on and what it does not know. Unknowns are a first-class
+// field: a diagnosis that lists nothing it failed to establish is
+// indistinguishable from one that checked everything
+// (internal/domains/repair Diagnosis).
+message RepairDiagnosis {
+  string id = 1;
+  hcmnext.common.v1.EntityRef subject = 2;
+  RepairProblemClass problem = 3;
+  RepairConfidence confidence = 4;
+  repeated string evidence_refs = 5;
+  repeated string unknowns = 6;
+  string diff_digest = 7;
+  repeated string actionable_fields = 8;
+  repeated string blocked_fields = 9;
+}
+
+// RepairPrecondition is one pinned fact that must still hold at revalidation
+// (internal/domains/repair Precondition).
+message RepairPrecondition {
+  RepairPreconditionKind kind = 1;
+  string ref = 2;
+  string expected = 3;
+}
+
+// RepairTarget is the exact field of the exact subject in the exact named
+// system a repair step would touch (internal/domains/repair Target).
+message RepairTarget {
+  string system = 1;
+  hcmnext.common.v1.EntityRef subject = 2;
+  string field = 3;
+}
+
+// RepairStep is one ordered corrective action in a plan. Every field exists
+// because a repair that omitted it would be unreviewable: what is changing,
+// from what to what, under which pinned evidence, how often it may be
+// attempted, what would prove it worked and how it would be undone
+// (internal/domains/repair Step).
+message RepairStep {
+  int32 ordinal = 1;
+  RepairAction action = 2;
+  RepairTarget target = 3;
+  PresenceValue expected_current = 4;
+  PresenceValue expected_post = 5;
+  ValueKind value_kind = 6;
+  RepairHistoryTreatment treatment = 7;
+  RepairRiskClass risk = 8;
+  repeated RepairPrecondition preconditions = 9;
+  string idempotency_key = 10;
+  int32 max_attempts = 11;
+  // write_set names what would be written, one entry per touched resource. A
+  // writing step with an empty write set is a hidden effect and is rejected.
+  repeated string write_set = 12;
+  repeated string downstream_effects = 13;
+  bool requires_approval = 14;
+  repeated string approval_roles = 15;
+  repeated string sod_excluded_roles = 16;
+  string observation = 17;
+  string success = 18;
+  string rollback = 19;
+  string reason = 20;
+}
+
+// SkippedField is one field a repair plan's comparison flagged but the plan
+// deliberately did not act on (internal/domains/repair SkippedField).
+message SkippedField {
+  string field = 1;
+  string reason = 2;
+}
+
+// RepairPlan is the immutable, non-executable recommendation a repair
+// diagnosis produces: an ordered set of corrective steps bound to the exact
+// diagnosis and comparison they came from. There is no execute RPC anywhere
+// in this service: executable is always false in P1A and
+// not_executable_reason says why
+// (internal/domains/repair RepairPlan;
+// planning/next-steps.md "P1A" — "operations.create_repair_plan/v1 as a
+// recommendation only").
+message RepairPlan {
+  string intent_type = 1;
+  string intent_version = 2;
+  string id = 3;
+  string tenant_id = 4;
+  hcmnext.common.v1.EntityRef subject = 5;
+  RepairDiagnosis diagnosis = 6;
+  string diff_digest = 7;
+  repeated RepairStep steps = 8;
+  RepairRiskClass risk = 9;
+  bool requires_approval = 10;
+  repeated string approval_roles = 11;
+  repeated string sod_excluded_roles = 12;
+  repeated SkippedField skipped_fields = 13;
+  // executable is always false in P1A; there is no server-side path that
+  // would ever set it true in this release.
+  bool executable = 14;
+  string not_executable_reason = 15;
+  string execution_state = 16;
+  string policy_version = 17;
+  string rule_pack_version = 18;
+  string inputs_digest = 19;
+  string digest = 20;
+  hcmnext.evidence.v1.EffectCounters effects = 21;
+  hcmnext.evidence.v1.ZeroEffectReceipt receipt = 22;
+}
+
+// RepairApprovalPolicy is the governance input a plan is built under
+// (internal/domains/repair ApprovalPolicy).
+message RepairApprovalPolicy {
+  string version = 1;
+  repeated string roles_for_external_write = 2;
+  repeated string roles_for_review = 3;
+  repeated string sod_excluded_roles = 4;
+}
+
+// ProjectedField is one field's before/after under a simulated repair plan
+// (internal/domains/repair ProjectedField).
+message ProjectedField {
+  string field = 1;
+  string system = 2;
+  RepairAction action = 3;
+  PresenceValue before = 4;
+  PresenceValue after = 5;
+  bool changed = 6;
+  string reason = 7;
+}
+
+// RepairRiskNote is one declared risk of a plan, attached to the field that
+// carries it (internal/domains/repair RiskNote).
+message RepairRiskNote {
+  string field = 1;
+  RepairRiskClass risk_class = 2;
+  string token = 3;
+}
+
+// RepairCost is what a plan would cost if it were executed. Every count is
+// proposed, not performed (internal/domains/repair Cost).
+message RepairCost {
+  int32 steps = 1;
+  int32 local_writes = 2;
+  int32 external_writes = 3;
+  int32 human_reviews = 4;
+  int32 mapping_reviews = 5;
+  int32 approvals = 6;
+  int32 max_attempts = 7;
+}
+
+// RepairSimulation is the pure, no-effect projection of a repair plan against
+// the current evidence: what would change, what would still not agree, and
+// what it would cost, with a zero-effect receipt proving the simulation
+// itself wrote nothing (internal/domains/repair RepairSimulation;
+// planning/next-steps.md "P1A" — "operations.simulate_repair/v1").
+message RepairSimulation {
+  string intent_type = 1;
+  string intent_version = 2;
+  string plan_id = 3;
+  string plan_digest = 4;
+  string diff_digest = 5;
+  string current_diff_digest = 6;
+  string tenant_id = 7;
+  hcmnext.common.v1.EntityRef subject = 8;
+  RepairSimulationStatus status = 9;
+  string status_reason = 10;
+  repeated ProjectedField projected = 11;
+  repeated FieldFinding residual_findings = 12;
+  VerdictCounts residual_counts = 13;
+  string projected_diff_digest = 14;
+  repeated RepairRiskNote risks = 15;
+  bool requires_approval = 16;
+  repeated string approval_roles = 17;
+  repeated string sod_excluded_roles = 18;
+  RepairCost cost = 19;
+  repeated string observation_expectations = 20;
+  repeated string success_criteria = 21;
+  repeated string rollback_expectations = 22;
+  // caveats always includes the no-guarantee token: a projection is not a
+  // promise of correction.
+  repeated string caveats = 23;
+  string policy_version = 24;
+  string rule_pack_version = 25;
+  string inputs_digest = 26;
+  string result_digest = 27;
+  hcmnext.evidence.v1.EffectCounters effects = 28;
+  hcmnext.evidence.v1.ZeroEffectReceipt receipt = 29;
+}

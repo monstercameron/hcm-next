@@ -7,3 +7,6 @@ package-lock.json
 # Generated or digest-compared artifacts must not be reformatted
 definitions/planning/todo-registry.json
 gen/
+
+# Go test goldens are byte-exact fixtures; formatters must not touch them.
+**/testdata/**

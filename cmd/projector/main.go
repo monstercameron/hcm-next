@@ -1,120 +1,252 @@
-// Command projector is a composition root. It wires packages; it owns no
-// semantics.
+// Command projector is a thin composition root built on
+// internal/platform/bootstrap.Run: it resolves this role's typed
+// configuration, opens the database pool, and hands bootstrap one Workload
+// (the reconcile loop in reconcile.go). It owns no projection semantics of
+// its own beyond that wiring.
 //
-// It runs the projection reconciler (internal/data/projection): each sweep
-// finds every checkpoint behind its stream's current head and replays the
-// missing ledger events to catch it up (DATA-010). This is the out-of-band
-// complement to internal/data/outbox.Commit's synchronous, same-transaction
-// advance - a projection that ever falls behind (a missed synchronous
-// commit, or a projection registered after events already existed) catches
-// up here instead of staying stuck. Restart safety needs nothing special:
-// ReconcileOne recomputes "how far behind" from the database on every call,
-// so killing and restarting projector mid-sweep just repeats whatever the
-// last sweep had not finished.
+// The Workload runs the projection reconciler (internal/data/projection):
+// each sweep finds every checkpoint behind its stream's current head and
+// replays the missing ledger events to catch it up (DATA-010). This is the
+// out-of-band complement to internal/data/outbox.Commit's synchronous,
+// same-transaction advance - a projection that ever falls behind (a missed
+// synchronous commit, or a projection registered after events already
+// existed) catches up here instead of staying stuck. Restart safety needs
+// nothing special: ReconcileOne recomputes "how far behind" from the
+// database on every call, so killing and restarting projector mid-sweep
+// just repeats whatever the last sweep had not finished.
+//
+// -rebuild (or HCMNEXT_PROJECTOR_REBUILD) switches the sweep from
+// "checkpoints currently behind their stream head" (the default,
+// inexpensive filter) to every registered checkpoint, unconditionally.
+// ReconcileOne's own currency check makes revisiting an already-current
+// checkpoint a safe, side-effect-free no-op, so -rebuild trades sweep cost
+// for a full re-verification pass - useful right after registering a new
+// projection consumer, or recovering from suspected checkpoint drift - as
+// DATA-010's "rebuild a projection from canonical sources" without needing
+// any new primitive from internal/data/projection.
 //
 // The target server is HCMNEXT_DATABASE_URL, overridable with -database-url.
 package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
-	"log"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
 
 // EnvDatabaseURL names the server this command connects to, matching
-// cmd/migrate's convention.
+// cmd/worker's and cmd/migrate's convention.
 const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
 
-func main() {
-	info := buildinfo.Current()
-	fmt.Fprintf(os.Stdout, "projector %s revision=%s modified=%t go=%s\n", info.Module, info.Revision, info.Modified, info.GoVersion)
+// EnvHealthAddr, if set, is the loopback host:port the health/readiness
+// endpoint is served on; empty (the default) disables it.
+const EnvHealthAddr = "HCMNEXT_PROJECTOR_HEALTH_ADDR"
 
-	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "projector: %v\n", err)
-		os.Exit(1)
+func main() {
+	os.Exit(bootstrap.Run(context.Background(), spec(os.Args[1:])))
+}
+
+// projectorConfigFields declares every flag/env-backed value this role
+// accepts. It is a function rather than a package variable so callers never
+// share (and risk mutating) one backing array.
+func projectorConfigFields() []bootstrap.Field {
+	return []bootstrap.Field{
+		{
+			Name:   "database-url",
+			Env:    EnvDatabaseURL,
+			Usage:  "PostgreSQL connection URL (" + EnvDatabaseURL + " if unset)",
+			Kind:   bootstrap.KindString,
+			Secret: true,
+		},
+		{
+			Name:    "poll-interval",
+			Env:     "HCMNEXT_PROJECTOR_POLL_INTERVAL",
+			Usage:   "how long to sleep between sweeps that found nothing behind",
+			Default: "2s",
+			Kind:    bootstrap.KindDuration,
+		},
+		{
+			Name:    "rebuild",
+			Env:     "HCMNEXT_PROJECTOR_REBUILD",
+			Usage:   "reconcile every registered checkpoint every sweep instead of only those currently behind",
+			Default: "false",
+			Kind:    bootstrap.KindBool,
+		},
+		{
+			Name:  "health-addr",
+			Env:   EnvHealthAddr,
+			Usage: "loopback host:port (127.0.0.1, localhost or ::1) to serve the health/readiness endpoint on; empty disables it",
+			Kind:  bootstrap.KindString,
+		},
 	}
 }
 
-func run(args []string) error {
-	fs := flag.NewFlagSet("projector", flag.ContinueOnError)
-	databaseURL := fs.String("database-url", os.Getenv(EnvDatabaseURL), "PostgreSQL connection URL ("+EnvDatabaseURL+" if unset)")
-	pollInterval := fs.Duration("poll-interval", 2*time.Second, "how long to sleep between sweeps that found nothing behind")
-	if err := fs.Parse(args); err != nil {
-		return err
+// spec builds the full projector Spec for args. It pre-resolves health-addr
+// with the same precedence bootstrap.Run itself applies (flag > env >
+// default) because Spec.HealthAddr, unlike every other projector setting,
+// is a plain field bootstrap.Run reads before it ever parses
+// Spec.ConfigFields; the pre-parse below is a pure, side-effect-free rerun
+// of exactly the parse Run performs moments later, so a bad flag here is
+// simply reported again (correctly, with the banner and full error) by
+// Run's own parse.
+func spec(args []string) bootstrap.Spec {
+	fields := projectorConfigFields()
+	healthAddr := ""
+	if values, err := bootstrap.ParseConfig(args, nil, fields); err == nil {
+		healthAddr = values.String("health-addr")
 	}
-	if *databaseURL == "" {
+
+	return bootstrap.Spec{
+		Role:             bootstrap.RoleProjector,
+		Args:             args,
+		ConfigFields:     fields,
+		Validate:         validateConfig,
+		DatabaseURLField: "database-url",
+		DBPoolFactory:    pgxDBPoolFactory,
+		HealthAddr:       healthAddr,
+		Build:            build,
+	}
+}
+
+// validateConfig fails config resolution (before any listener or workload
+// starts) on a missing database URL or an unparsable typed field.
+func validateConfig(v *bootstrap.Values) error {
+	if v.String("database-url") == "" {
 		return fmt.Errorf("%s is not set; pass -database-url or set the environment variable", EnvDatabaseURL)
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	pool, err := pgxpool.New(ctx, *databaseURL)
-	if err != nil {
-		return fmt.Errorf("connect: %w", err)
+	if _, err := v.Duration("poll-interval"); err != nil {
+		return err
 	}
-	defer pool.Close()
-	if err := pool.Ping(ctx); err != nil {
-		return fmt.Errorf("ping: %w", err)
+	if _, err := v.Bool("rebuild"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// build resolves the reconcile loop's dependencies from deps and returns it
+// as this role's single Workload. It is the one place projector's Spec
+// touches projection-specific types.
+func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
+	pool, ok := deps.DB.(projectorPool)
+	if !ok {
+		return bootstrap.Runtime{}, fmt.Errorf("projector: database pool %T does not support projection reconciliation (Begin/Query/QueryRow)", deps.DB)
+	}
+
+	pollInterval, err := deps.Values.Duration("poll-interval")
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
+	rebuild, err := deps.Values.Bool("rebuild")
+	if err != nil {
+		return bootstrap.Runtime{}, err
 	}
 
 	reconciler := projection.NewReconciler(pool, datalogger.NewReader())
-	log.Printf("projector: reconciling projections (poll-interval=%s)", *pollInterval)
+	lister := pgxProjectionLister{pool: pool, rebuild: rebuild}
+	logger := deps.Logger
 
-	for {
-		select {
-		case <-ctx.Done():
-			log.Print("projector: shutting down")
-			return nil
-		default:
-		}
+	logger.Info("projector.reconciler_configured", "poll_interval", pollInterval.String(), "rebuild", rebuild)
 
-		didWork, err := sweep(ctx, pool, reconciler)
-		if err != nil {
-			log.Printf("projector: sweep: %v", err)
-		}
-		if didWork {
-			continue
-		}
-		select {
-		case <-ctx.Done():
-			log.Print("projector: shutting down")
-			return nil
-		case <-time.After(*pollInterval):
-		}
+	wl := bootstrap.Workload{
+		Name: "projection-reconciler",
+		Run: func(ctx context.Context) error {
+			return runReconcileLoop(ctx, logger, lister, reconciler, pollInterval)
+		},
 	}
+	return bootstrap.Runtime{Workloads: []bootstrap.Workload{wl}}, nil
 }
 
-// sweep catches up every projection currently behind its stream head, and
-// reports whether any work was found.
-func sweep(ctx context.Context, pool *pgxpool.Pool, reconciler *projection.Reconciler) (bool, error) {
-	due, err := projection.ReconcileDue(ctx, pool)
-	if err != nil {
-		return false, fmt.Errorf("list due: %w", err)
-	}
+// projectorPool is the subset of a *pgxpool.Pool this role needs beyond
+// bootstrap's own Ping/Close DBPool port: projection.NewReconciler needs
+// Begin, and both the normal and -rebuild sweep queries need Query/QueryRow
+// (datalogger.Querier). bootstrap's default DBPoolFactory (PgxPoolFactory)
+// returns an unexported type exposing only Ping/Close, so this role
+// supplies pgxDBPoolFactory instead, whose *dbPool return value satisfies
+// this interface too.
+type projectorPool interface {
+	bootstrap.DBPool
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
 
-	didWork := false
-	for _, target := range due {
-		applied, err := reconciler.ReconcileOne(ctx, target)
-		if err != nil {
-			log.Printf("projector: reconcile %s/%s: %v", target.ProjectionName, target.StreamKey, err)
-			continue
-		}
-		if applied > 0 {
-			didWork = true
-			log.Printf("projector: caught up %s/%s by %d event(s)", target.ProjectionName, target.StreamKey, applied)
-		}
+// dbPool adapts a *pgxpool.Pool to projectorPool.
+type dbPool struct{ pool *pgxpool.Pool }
+
+func (d *dbPool) Ping(ctx context.Context) error { return d.pool.Ping(ctx) }
+func (d *dbPool) Close()                         { d.pool.Close() }
+func (d *dbPool) Begin(ctx context.Context) (pgx.Tx, error) {
+	return d.pool.Begin(ctx)
+}
+func (d *dbPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return d.pool.Query(ctx, sql, args...)
+}
+func (d *dbPool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return d.pool.QueryRow(ctx, sql, args...)
+}
+
+// pgxDBPoolFactory opens a pgxpool.Pool against url and pings it once, so a
+// bad connection string or unreachable server fails Run before any workload
+// starts, matching bootstrap.PgxPoolFactory's own contract.
+func pgxDBPoolFactory(ctx context.Context, url string) (bootstrap.DBPool, error) {
+	pool, err := pgxpool.New(ctx, url)
+	if err != nil {
+		return nil, err
 	}
-	return didWork, nil
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
+	return &dbPool{pool: pool}, nil
+}
+
+// pgxProjectionLister lists the (tenant, projection, stream) checkpoints one
+// sweep should reconcile: ReconcileDue's cheap "currently behind" filter by
+// default, or every registered checkpoint when rebuild is set.
+type pgxProjectionLister struct {
+	pool interface {
+		Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+		QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	}
+	rebuild bool
+}
+
+func (l pgxProjectionLister) Due(ctx context.Context) ([]projection.StreamProjection, error) {
+	if l.rebuild {
+		return allProjections(ctx, l.pool)
+	}
+	return projection.ReconcileDue(ctx, l.pool)
+}
+
+// allProjections lists every registered (tenant, projection, stream)
+// checkpoint regardless of whether it is currently behind its stream head -
+// the query -rebuild substitutes for ReconcileDue's narrower one.
+func allProjections(ctx context.Context, q interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}) ([]projection.StreamProjection, error) {
+	rows, err := q.Query(ctx, `SELECT tenant_id, projection_name, stream_key FROM projection_checkpoint`)
+	if err != nil {
+		return nil, fmt.Errorf("projector: list all projections: %w", err)
+	}
+	defer rows.Close()
+
+	var out []projection.StreamProjection
+	for rows.Next() {
+		var sp projection.StreamProjection
+		if err := rows.Scan(&sp.Tenant, &sp.ProjectionName, &sp.StreamKey); err != nil {
+			return nil, fmt.Errorf("projector: list all projections: scan: %w", err)
+		}
+		out = append(out, sp)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("projector: list all projections: %w", err)
+	}
+	return out, nil
 }

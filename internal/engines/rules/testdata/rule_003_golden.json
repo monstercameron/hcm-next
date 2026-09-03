@@ -1,0 +1,17 @@
+{
+  "table_id": "hcmnext.rules.promotion_approval_threshold",
+  "table_version": "2026.1",
+  "table_digest": "sha256:b5444018e1f51eb51ca41e2144d4fdd9fa08eb2af4a078d9582eccab08141003",
+  "cases": [
+    { "increase_percent": "5.0000", "band_position": "IN_BAND", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "STANDARD", "row": "otherwise-standard" },
+    { "increase_percent": "10.0000", "band_position": "IN_BAND", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "STANDARD", "row": "otherwise-standard" },
+    { "increase_percent": "10.0001", "band_position": "IN_BAND", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "FINANCE_REQUIRED", "row": "increase-exceeds-finance-threshold" },
+    { "increase_percent": "25.0000", "band_position": "IN_BAND", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "EXECUTIVE_REQUIRED", "row": "increase-exceeds-executive-threshold" },
+    { "increase_percent": "2.0000", "band_position": "ABOVE_MAXIMUM", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "FINANCE_REQUIRED", "row": "resulting-pay-above-band-maximum" },
+    { "increase_percent": "2.0000", "band_position": "IN_BAND", "budget_authority": "INSUFFICIENT", "grade_change": false, "tier": "FINANCE_REQUIRED", "row": "insufficient-budget-authority" },
+    { "increase_percent": "2.0000", "band_position": "IN_BAND", "budget_authority": "SUFFICIENT", "grade_change": true, "tier": "FINANCE_REQUIRED", "row": "grade-change-standard" },
+    { "increase_percent": "2.0000", "band_position": "ABOVE_MAXIMUM", "budget_authority": "SUFFICIENT", "grade_change": true, "tier": "EXECUTIVE_REQUIRED", "row": "grade-change-above-band-maximum" },
+    { "increase_percent": "2.0000", "band_position": "UNKNOWN", "budget_authority": "SUFFICIENT", "grade_change": false, "tier": "UNKNOWN_BLOCKED", "row": "unknown-band-position" },
+    { "increase_percent": "2.0000", "band_position": "IN_BAND", "budget_authority": "UNKNOWN", "grade_change": false, "tier": "UNKNOWN_BLOCKED", "row": "unknown-budget-authority" }
+  ]
+}

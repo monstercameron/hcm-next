@@ -1,0 +1,57 @@
+{
+  "Decision": {
+    "DecisionID": "decision-00000001-0000-7000-8000-000000000000",
+    "Binding": {
+      "RequirementID": "req.promotion.hrbp/v1",
+      "RequirementRevision": 1,
+      "IntentID": "intent:promote:9001",
+      "ProposalRevisionID": "revision-00000001-0000-7000-8000-000000000000",
+      "ProposalDigest": {
+        "ProfileID": "hcmnext.proposal",
+        "ProfileVersion": 1,
+        "SchemaID": "hcmnext.intents.v1",
+        "SchemaVersion": 1,
+        "AlgorithmID": "sha256",
+        "CanonicalLength": 1657,
+        "Digest": "0f7cc7a09df551706056d066aa0054e8230f3bf14cb6ef7da580d7157f307c5a",
+        "ScopeBindingDigest": "900acc7963600baf2a067addec8b18eb3c465703f3aeb5b3cebe1d31f2db55d6",
+        "CanonicalBytesArtifactRef": null,
+        "IntentID": "intent:promote:9001",
+        "ProposalRevisionID": "revision-00000001-0000-7000-8000-000000000000",
+        "MaterialProfileRef": "hcmnext.proposal@v1"
+      },
+      "TaskVersion": 1,
+      "RenderedProjectionDigest": "sha256:75e6241580e4dba69ecebe987776b62737aee7fe919c8c0ec32c76b17a1f9723",
+      "ControlSnapshots": {
+        "CapabilityRegistryDigest": "cap-registry-1",
+        "PolicyBundleDigest": "policy-bundle-1",
+        "LegalContextDigest": "legal-1",
+        "EntitlementDigest": "entitlement-1",
+        "ReferenceDataDigest": "reference-1",
+        "WorkflowDefinitionDigest": "",
+        "ConnectorConfigurationDigest": "",
+        "ClassificationTaxonomyDigest": "taxonomy-1",
+        "ClassificationLabelSetDigest": "labels-1",
+        "ClassificationPropagationWatermark": "",
+        "DLPDecisionDigest": "dlp-1",
+        "DestinationTrustDigest": "",
+        "PurposeAndResidencyDigest": ""
+      },
+      "RequirementDigest": "sha256:31a5b765bd489d20ec332b660af063833c6becf55659525325284d13388ed693",
+      "ResolutionExpressionDigest": "sha256:0a275b277993207df4c43fe6d288019c6b995e77c612a39fc3fe89e9b40485f0"
+    },
+    "Outcome": "APPROVED",
+    "Approver": {
+      "PrincipalID": "principal:hrbp-2",
+      "IdentityAssuranceRef": "assurance.mfa_session/v1",
+      "SessionRef": "session:fixture",
+      "Via": "DIRECT",
+      "DelegationID": ""
+    },
+    "AuthorityDecisionRef": "authz:decision:fixture",
+    "Reason": "reason.promotion_supported/v1",
+    "DecidedAt": "2026-09-03T12:00:00Z",
+    "VoteDigest": "sha256:f91a71353c9b04b4a4f4290acc60b79f79e4984cad6ec990c0ec808312b0a36c"
+  },
+  "Digest": "sha256:37c4351f7a30b1d386299e4aba6c092bccff85ce9e651528d90c888579ad110a"
+}

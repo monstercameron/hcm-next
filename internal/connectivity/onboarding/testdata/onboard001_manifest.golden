@@ -1,0 +1,10 @@
+manifest_id: manifest-harborcare-2026-09
+tenant_id: 5e3f1c2b-0000-4000-8000-000000000001
+owner_ref: user:ops@harborcare
+source_authority_ref: authority.incumbent.hris
+connector: fake.incumbent.hris@1.0.0
+connection_id: conn-fake-incumbent
+objects: [WORKER POSITION COMPENSATION]
+budget: pages=1024 records=65536 bytes=16777216 wall=1h0m0s
+digest: sha256:9e70bf7748a0c967dc407965e11fb34d2249df14b8f513e131d2a358eff24863
+signer_key_id: key-2026-09

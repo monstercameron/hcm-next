@@ -1,0 +1,120 @@
+{
+  "source": "src/blocks/go/internal/blocks/compensation/preflight_test.go and src/tests/e2e/compensation-change.e2e.spec.ts",
+  "note": "Ported legacy compensation-change preflight cases. Amounts, currency, pay basis, effective and evaluation dates and business reasons are the legacy fixture values; the surrounding promotion target and pay band are the P1A context the same rules now run inside.",
+  "worker": "omar-reyes",
+  "target": { "job_code": "OPS-HRBP3", "grade": "P3", "pay_zone": "US-EAST" },
+  "budget_available": "50000.00",
+  "scenarios": [
+    {
+      "name": "legacy_valid_compensation_change",
+      "legacy_case": "TestExecutePreflightValidCompensationChange",
+      "current_amount": "93000.00",
+      "proposed_amount": "98000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "READY",
+      "expect_codes": [],
+      "forbid_codes": [
+        "compensation.not_a_raise",
+        "compensation.increase_over_ten_percent"
+      ]
+    },
+    {
+      "name": "legacy_rejects_non_raise",
+      "legacy_case": "TestExecutePreflightRejectsNonRaise",
+      "current_amount": "93000.00",
+      "proposed_amount": "93000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "BLOCKED",
+      "expect_codes": ["compensation.not_a_raise"],
+      "forbid_codes": []
+    },
+    {
+      "name": "legacy_warns_on_large_raise",
+      "legacy_case": "TestExecutePreflightWarnsOnLargeRaise",
+      "current_amount": "93000.00",
+      "proposed_amount": "105000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "READY",
+      "expect_codes": ["compensation.increase_over_ten_percent"],
+      "forbid_codes": ["compensation.not_a_raise"]
+    },
+    {
+      "name": "legacy_requires_business_reason",
+      "legacy_case": "validatePreflightInput compensation.business_reason_required",
+      "current_amount": "93000.00",
+      "proposed_amount": "98000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "",
+      "expect_status": "BLOCKED",
+      "expect_codes": ["compensation.business_reason_required"],
+      "forbid_codes": []
+    },
+    {
+      "name": "legacy_rejects_currency_change",
+      "legacy_case": "validatePreflightInput compensation.currency_change_not_supported_v0",
+      "current_amount": "93000.00",
+      "proposed_amount": "98000.00",
+      "current_currency": "USD",
+      "proposed_currency": "EUR",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "NEEDS_DATA",
+      "expect_codes": [
+        "compensation.currency_change_not_supported_v0",
+        "promotion.pay_band_not_found"
+      ],
+      "forbid_codes": []
+    },
+    {
+      "name": "legacy_rejects_retroactive_beyond_policy",
+      "legacy_case": "blockshared.EffectiveDateValidation maxPastDays=180",
+      "current_amount": "93000.00",
+      "proposed_amount": "98000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2025-10-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "BLOCKED",
+      "expect_codes": ["compensation.effective_at_too_far_in_past"],
+      "forbid_codes": []
+    },
+    {
+      "name": "legacy_e2e_compensation_fixture",
+      "legacy_case": "src/tests/e2e/compensation-change.e2e.spec.ts compensationFixture(98000)",
+      "current_amount": "93000.00",
+      "proposed_amount": "98000.00",
+      "current_currency": "USD",
+      "proposed_currency": "USD",
+      "bonus_target_percent": "0.0500",
+      "effective_at": "2026-06-01",
+      "evaluation_at": "2026-05-15",
+      "business_reason": "retention_adjustment",
+      "expect_status": "READY",
+      "expect_codes": [],
+      "forbid_codes": ["compensation.not_a_raise"]
+    }
+  ]
+}

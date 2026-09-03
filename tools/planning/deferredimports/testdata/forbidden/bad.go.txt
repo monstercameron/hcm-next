@@ -1,0 +1,9 @@
+package bad
+
+import (
+	"context"
+
+	"github.com/segmentio/kafka-go"
+)
+
+func UseKafka(ctx context.Context) *kafka.Reader { return nil }

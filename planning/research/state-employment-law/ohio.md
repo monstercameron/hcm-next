@@ -127,7 +127,7 @@ At-will employment is the default in Ohio. Either party may terminate without ca
 - Employer cannot terminate employee due to pregnancy or temporary disability from pregnancy/childbirth (RC 4112-5-05 administrative rule).
 - Policy excluding pregnant workers from employment is prima facie sex discrimination.
 - Maternity-leave policies must account for individual medical status and capacity; insufficient/no maternity leave leading to termination = unlawful sex discrimination.
-- Federal Pregnant Workers Fairness Act (PWFA, 29 U.S.C. § 2601 et seq., effective June 27, 2023) allows reasonable accommodations (light duty, modified schedule, etc.) without retaliation; Ohio employers covered.
+- Federal Pregnant Workers Fairness Act (PWFA, 42 U.S.C. § 2000gg et seq., effective June 27, 2023) allows reasonable accommodations (light duty, modified schedule, etc.) without retaliation; Ohio employers covered.
 - No state-mandated paid maternity leave.
 
 **Military leave** (RC 5903; RC 5923):
@@ -179,7 +179,7 @@ At-will employment is the default in Ohio. Either party may terminate without ca
 - No state statute banning workplace email, internet, or video monitoring; reasonable expectation of privacy doctrine (common law) applies.
 - Employers may monitor work-provided devices and work-time usage without restriction (verify case law on personal device use during work hours).
 - No prohibition on social-media monitoring or consideration of publicly available content in employment decisions (subject to anti-discrimination laws).
-- Employer may not discriminate based on lawful off-duty conduct; tobacco-use protections in RC 50-11 (apply to discrimination, not monitoring).
+- Employer may not discriminate based on lawful off-duty conduct; Ohio has no lawful-off-duty-conduct or tobacco-use statute for private employers (no state rule; federal law applies).
 
 **Data residency and processing**:
 
@@ -208,7 +208,7 @@ At-will employment is the default in Ohio. Either party may terminate without ca
 - Permissible scenarios: pre-employment, reasonable-suspicion, post-accident, random (per written policy).
 - Ohio Bur. of Workers' Comp (BWC) Drug-Free Safety Program (voluntary) offers incentives for drug-free workplace certification; not mandatory.
 - Policy should be written, communicated, and consistently applied.
-- Medical marijuana (Lynn and Erin Compassionate Use Act, § 26-2B-9): lawful off-duty use; employers not required to accommodate but cannot discriminate based on legal use (verify scope of protection).
+- Medical marijuana (Ohio Medical Marijuana Control Program, R.C. ch. 3796; R.C. 3796.28): employers need not accommodate use, may maintain drug-free workplace policies, and may discipline or refuse to hire for use (verify scope of protection).
 
 **E-Verify mandate**:
 
@@ -381,7 +381,7 @@ At-will employment is the default in Ohio. Either party may terminate without ca
 
 30. [Gcheck - Ohio's Ban-the-Box Law for Public and Private Employers](https://gcheck.com/blog/ohios-ban-the-box-law-compliance-for-public-and-private-employers/) — retrieved 2026-09-03
 
-31. [Ohio House of Representatives - RC 5903 Military Leave for Public Employees](https://ohiohouse.gov/legislation/135/hb106) — retrieved 2026-09-03
+31. [Ohio Revised Code § 5903.02 - Military Leave Reinstatement Rights](https://codes.ohio.gov/ohio-revised-code/section-5903.02) — retrieved 2026-09-03
 
 32. [McDonald Hopkins - Ohio E-Verify Requirements for Commercial Construction (Effective March 20, 2026)](https://www.mcdonaldhopkins.com/insights/news/ohio-requires-e-verify-for-commercial-construction-employers-beginning-march-20-2026) — retrieved 2026-09-03
 

@@ -1,0 +1,26 @@
+connector_id: fake.incumbent.hris
+vendor: HCM Next
+product: Fake Incumbent HRIS
+version: 1.0.0
+maturity: PREVIEW
+objects: [WORKER POSITION COMPENSATION]
+capabilities:
+  - WORKER:READ
+  - POSITION:READ
+  - COMPENSATION:READ
+auth_modes: [OAUTH2_CLIENT_CREDENTIALS]
+read_modes: [FULL INCREMENTAL DELTA]
+write_modes: []
+event_modes: []
+schema_refs:
+  - WORKER -> workday.worker/2026.1 (workday.worker/2026.1)
+  - POSITION -> workday.position/2026.1 (workday.position/2026.1)
+  - COMPENSATION -> workday.compensation/2026.1 (workday.compensation/2026.1)
+bounds: page=2 pages=64 records=1024 bytes=8192 interval=0s
+pagination: KEYSET sort=sort_key tie=external_id stable=true ttl=15m0s
+rate: rpm=600 concurrency=4 burst=20
+idempotency: field=Idempotency-Key retention=24h0m0s reads_idempotent=true
+observation: watermark=recorded_at budget=24h0m0s completeness=true
+reconciliation: keys=[external_id] comparable=[job_code grade pay_zone] point_read=true
+health: probe=WORKER interval=1m0s degrade_after=3
+digest: sha256:f25ba33424bd4b45e12281a8d90c27eb54b598e032d01eb8e1c7610e409c0ee3

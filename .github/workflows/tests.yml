@@ -91,5 +91,104 @@ jobs:
       - name: Run the quality gate (gofmt, go vet, staticcheck)
         run: go run ./tools/quality
 
-      - name: Run root module tests with the race detector
-        run: go test -race ./...
+      # TOOL-012: the race class only runs for real on Linux CI; the local
+      # dev machine (windows/arm64) has no race detector support, so
+      # tools/quality's TestTodo_TOOL_012 skips itself there. This is that
+      # promised Linux run, covering every concurrent package under
+      # ./... (transaction, workflow, queue, cache, connector) plus the
+      # deliberately racy fixture in tools/quality/testdata/racefixture,
+      # which TestTodo_TOOL_012 shells out to under -race as its own
+      # RED/GREEN proof.
+      - name: Run root module tests with the race detector (TOOL-012)
+        run: go test -race -count=1 ./...
+
+  go-core-ephemeral-pg:
+    name: Go tests (ephemeral embedded PostgreSQL, TOOL-014)
+    runs-on: ubuntu-latest
+
+    # No postgres service container here, and HCMNEXT_TEST_DATABASE_URL is
+    # deliberately left unset: this job proves the OTHER supported path
+    # through internal/data/pgtest, where each `go test` process downloads
+    # (once, from cache) and starts its own throwaway PostgreSQL server on
+    # a free port, and tears it down when the process exits. That is the
+    # TOOL-014 "ephemeral integration-test environment" contract; the
+    # go-core job's shared service container plus per-test schema
+    # isolation (see internal/data/pgtest's own package doc) is the other
+    # supported path, and is what every other Postgres-backed suite in
+    # this repository runs against for speed.
+    env:
+      HCMNEXT_TEST_PG_CACHE: ${{ github.workspace }}/.cache/embedded-postgres
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Keyed on the pinned PostgreSQL version (internal/data/pgtest's own
+      # versionString), so a future version bump downloads fresh instead of
+      # silently reusing a stale archive under a name embedded-postgres no
+      # longer looks for.
+      - name: Cache the embedded PostgreSQL binary archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.HCMNEXT_TEST_PG_CACHE }}
+          key: embedded-postgres-linux-amd64-17.5.0
+
+      - name: Run the ephemeral-PostgreSQL harness itself
+        run: go test -count=1 ./internal/data/pgtest/...
+
+  dependency-admission:
+    name: Dependency license & vulnerability admission (TOOL-019/TOOL-024)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download modules
+        run: go mod download
+
+      # govulncheck needs golang.org/x/vuln/cmd/govulncheck, which is not
+      # in go.mod's tool block (it is not a build-time dependency, and the
+      # offline development machine cannot reach its vulnerability
+      # database), and it needs network access to that database. Both are
+      # true here and only here: this step never runs on a developer
+      # machine. A nonzero exit here means "found something" (or, rarely,
+      # a scan failure); either way the JSON stream it already wrote is
+      # what tools/policy/depadmission evaluates, so the step's own exit
+      # code is deliberately not fatal to the job.
+      - name: Run govulncheck (network required; CI-only)
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest -json ./... > govulncheck.json || true
+
+      # TOOL-019/TOOL-024: classify every go.mod-required module's license
+      # against definitions/architecture/dependency-admission.yaml, join
+      # dependency-roles.yaml's ownership/SLA/replacement governance via
+      # tools/policy/depmanifest, and classify govulncheck's findings as
+      # reachable (blocks admission unless a governed exception covers the
+      # exact module/version/vulnerability triple) or unreachable (always
+      # recorded). -require-vuln-evidence turns missing or incomplete
+      # govulncheck evidence into a hard failure here, where network access
+      # makes "missing" a real problem rather than the offline default.
+      - name: Evaluate dependency admission
+        run: go run ./tools/policy/depadmission/cmd/depadmission -govulncheck-json govulncheck.json -require-vuln-evidence -out dependency-admission-report.json
+
+      - name: Upload admission report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-admission-report
+          path: |
+            dependency-admission-report.json
+            govulncheck.json
+          retention-days: 30

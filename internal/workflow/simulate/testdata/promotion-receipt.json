@@ -1,0 +1,335 @@
+{
+  "interpreter_version": "hcmnext.workflow.simulate/v1",
+  "compiler_version": "hcmnext.workflow.compiler/v1",
+  "workflow_id": "hcmnext.workflows.promote_into_management",
+  "workflow_version": 1,
+  "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+  "mode": "SIMULATE",
+  "terminal_profile": "SIMULATE_ONLY",
+  "inputs_digest": "7e8a324ee2c3ab1535d5722f1269d8aa473280f7ee3f6c07a4153f10c5b36ebf",
+  "started_at": "2026-09-03T12:00:00Z",
+  "ended_at": "2026-09-03T12:00:01.5Z",
+  "elapsed_virtual_ns": 1500000000,
+  "trace": [
+    {
+      "order": 1,
+      "node_id": "snapshot_worker",
+      "type": "CAPABILITY",
+      "depth": 0,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00Z",
+      "exited_at": "2026-09-03T12:00:00.25Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "simulate_compensation",
+      "input_digest": "f439948aa51ed6f23547f4beeca58e9edac8c245e76f81d63db76ac05ac906b7",
+      "output_digest": "9db8893e3652a5b853368cec3428a116434a5dc3bd78f607a47ef26417d376f8",
+      "detail": "explained 8 authorized worker fields as of 2026-10-01 under people.explain.rules/1.0.0",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:a60a61aab694fdbbad3522def5096429"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:0a87f30d039bad24adfdb677a16ece63"
+        },
+        {
+          "ref": "request_digest",
+          "id": "f439948aa51ed6f23547f4beeca58e9edac8c245e76f81d63db76ac05ac906b7"
+        },
+        {
+          "ref": "output_digest",
+          "id": "9db8893e3652a5b853368cec3428a116434a5dc3bd78f607a47ef26417d376f8"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "node_id": "simulate_compensation",
+      "type": "CAPABILITY",
+      "depth": 1,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00.25Z",
+      "exited_at": "2026-09-03T12:00:00.5Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "evaluate_band",
+      "input_digest": "a6a69d7a5a210e35dba33640fee0fb20c6ab5789e25ebfa41bd354b51a18270c",
+      "output_digest": "cfa24c2871d6f26c890fe51f066c607c188b0d8ba4adf840d3b34164e8c20a1e",
+      "detail": "annualized base moves by 15000.00 USD (9.0909%) under rewards.annualization/1.0.0",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:0963fcfa0d8aa5ce3110f229df844117"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:088f6affa10a56a53b6d4d3346295a24"
+        },
+        {
+          "ref": "request_digest",
+          "id": "a6a69d7a5a210e35dba33640fee0fb20c6ab5789e25ebfa41bd354b51a18270c"
+        },
+        {
+          "ref": "output_digest",
+          "id": "cfa24c2871d6f26c890fe51f066c607c188b0d8ba4adf840d3b34164e8c20a1e"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "node_id": "evaluate_band",
+      "type": "CAPABILITY",
+      "depth": 2,
+      "safe_point": false,
+      "effect_class": "READ_ONLY",
+      "entered_at": "2026-09-03T12:00:00.5Z",
+      "exited_at": "2026-09-03T12:00:00.75Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "build_proposal",
+      "input_digest": "43232a981916820c548f107740e54dd4d8b79f24a6c5c8136af4b0e39ba20b13",
+      "output_digest": "2b2f0fe96365e6cb931c1e5de0adb165268a520fe357492ff9f8d494a746cde3",
+      "detail": "band BAND-ENG-M1-USWEST@2026.1 places 180000.00 USD IN_BAND (compa-ratio 0.8867, outcome WITHIN_BAND)",
+      "evidence": [
+        {
+          "ref": "capability_execution_id",
+          "id": "ev:5ca53365d6f214b636f6eb5457a5d3b3"
+        },
+        {
+          "ref": "governance_decision_id",
+          "id": "ev:84ba4718120956740cd3f424de0105a3"
+        },
+        {
+          "ref": "request_digest",
+          "id": "43232a981916820c548f107740e54dd4d8b79f24a6c5c8136af4b0e39ba20b13"
+        },
+        {
+          "ref": "output_digest",
+          "id": "2b2f0fe96365e6cb931c1e5de0adb165268a520fe357492ff9f8d494a746cde3"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "node_id": "build_proposal",
+      "type": "TRANSFORM",
+      "depth": 3,
+      "safe_point": false,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:00.75Z",
+      "exited_at": "2026-09-03T12:00:01Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "next_node_id": "raise_threshold",
+      "input_digest": "3504c52063ef7d5f3894a00bc9d6504ef8e2a68941d8f1b7c8a2c6194b9e235e",
+      "output_digest": "aabbe7198b92cfa3cef715b9512164a48f612c6570bc4bc5b4f348efd4bf218d",
+      "detail": "proposal sha256:36e9a2df0 simulated: preflight READY, compensation EVALUATED, executable=true",
+      "evidence": [
+        {
+          "ref": "transform_execution_id",
+          "id": "ev:abea0ccd5ea36f1338df49dc8a66e969"
+        },
+        {
+          "ref": "input_digest",
+          "id": "3504c52063ef7d5f3894a00bc9d6504ef8e2a68941d8f1b7c8a2c6194b9e235e"
+        },
+        {
+          "ref": "taint_manifest_ref",
+          "id": "fb75cc098db623100c0c61caa884690f5c687646ad036b2696918bd5b318443f"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "node_id": "raise_threshold",
+      "type": "DECISION",
+      "depth": 4,
+      "safe_point": false,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:01Z",
+      "exited_at": "2026-09-03T12:00:01.25Z",
+      "elapsed_ns": 250000000,
+      "outcome": "EXCEEDS_THRESHOLD",
+      "route_key": "EXCEEDS_THRESHOLD",
+      "next_node_id": "end_requires_finance_approval",
+      "input_digest": "ca5b9d299ec7e32a2aca4b7b3928d4d36222eeef00c9406c2ce411a30c3dadfe",
+      "output_digest": "87c91ae38d3d03565d36750c20d2b3b52b2e05f3b7eacc091dd9cd02e8542979",
+      "detail": "tier FINANCE_REQUIRED from hcmnext.rules.promotion_approval_threshold@2026.1 row grade-change-standard (increase 9.0909%, band IN_BAND, budget SUFFICIENT)",
+      "evidence": [
+        {
+          "ref": "decision_id",
+          "id": "ev:b412ec0244f87ccdd74f72329e27f557"
+        },
+        {
+          "ref": "evaluated_input_digest",
+          "id": "ca5b9d299ec7e32a2aca4b7b3928d4d36222eeef00c9406c2ce411a30c3dadfe"
+        },
+        {
+          "ref": "evaluation_trace_ref",
+          "id": "hcmnext.rules.promotion_approval_threshold@2026.1#grade-change-standard"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "node_id": "end_requires_finance_approval",
+      "type": "END",
+      "depth": 5,
+      "safe_point": true,
+      "effect_class": "PURE",
+      "entered_at": "2026-09-03T12:00:01.25Z",
+      "exited_at": "2026-09-03T12:00:01.5Z",
+      "elapsed_ns": 250000000,
+      "outcome": "SIMULATION_APPROVAL_REQUIRED",
+      "input_digest": "8d4f97486f2f56feec61865695a5317ccf4e8a25906c0dca0cedde4629187c73",
+      "output_digest": "87c91ae38d3d03565d36750c20d2b3b52b2e05f3b7eacc091dd9cd02e8542979",
+      "detail": "reached terminal SIMULATION_APPROVAL_REQUIRED with runtime status COMPLETED",
+      "evidence": [
+        {
+          "ref": "workflow_result_id",
+          "id": "ev:bf42d4f5c79eedc51f218b02cdd10500"
+        }
+      ]
+    }
+  ],
+  "work_items": [
+    {
+      "node_id": "end_requires_finance_approval",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.current_manager/v1",
+      "stage": 1,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:delegate-10 via DELEGATED",
+        "principal:manager-1 via DIRECT"
+      ],
+      "excluded": [
+        "principal:delegate-11 [humanwork.delegation.expired] delegation delegation:manager-lapsed is not valid at 2026-09-03T12:00:00Z",
+        "principal:delegate-12 [humanwork.delegation.out_of_scope] delegation delegation:manager-admin-only does not cover req.promotion.current_manager/v1 at the required authority and scope"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:81321fce965ddc709d49c9b41cef3d5e37cb2ec153b9d952198d9ed2ec3a1322",
+      "requirement_digest": "sha256:4be19206f1caf1961d0493849ddb4026eccfee30b607b719fa90f4d54d60d784",
+      "tier": "FINANCE_REQUIRED",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    },
+    {
+      "node_id": "end_requires_finance_approval",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.hrbp/v1",
+      "stage": 2,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:hrbp-2 via DIRECT"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:0a275b277993207df4c43fe6d288019c6b995e77c612a39fc3fe89e9b40485f0",
+      "requirement_digest": "sha256:99c5ddb90f9a24ede03c03098fe6853a767bae9232ffead9a73012ab726321e7",
+      "tier": "FINANCE_REQUIRED",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    },
+    {
+      "node_id": "end_requires_finance_approval",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.compensation_partner/v1",
+      "stage": 3,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:comp-3 via DIRECT"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:a4334e42eb1379a5e4d283abdeb9ea554755277450417d05b9770b4ff2ddd911",
+      "requirement_digest": "sha256:b858200a45d70f1b2c7e351081031914d313dba0fb23ed948527e72576da0922",
+      "tier": "FINANCE_REQUIRED",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    },
+    {
+      "node_id": "end_requires_finance_approval",
+      "kind": "APPROVAL",
+      "state": "WOULD_AWAIT",
+      "requirement_id": "req.promotion.finance_partner/v1",
+      "stage": 4,
+      "quorum_min": 1,
+      "outcome": "RESOLVED",
+      "candidates": [
+        "principal:finance-4 via DIRECT"
+      ],
+      "fallback_used": false,
+      "expression_digest": "sha256:2eae247e967b47e3f7275ffe282a560cbb042339a7851aeaa99b9caa9364b227",
+      "requirement_digest": "sha256:dcd85c737b341eaa01926b10ab5d887ff3880b8d8dc1d72cb49b8e2df02bc294",
+      "tier": "FINANCE_REQUIRED",
+      "decide_by": "2026-09-13T12:00:00Z",
+      "expiry": "2026-10-03T12:00:00Z"
+    }
+  ],
+  "terminal": {
+    "node_id": "end_requires_finance_approval",
+    "terminal_code": "SIMULATION_APPROVAL_REQUIRED",
+    "runtime_status": "COMPLETED",
+    "outstanding_obligation_refs": [
+      "obligation.finance_partner_approval"
+    ]
+  },
+  "lifecycle": {
+    "request_state": "SIMULATED",
+    "execution_state": "NOT_PLANNED",
+    "business_state": "NOT_STARTED",
+    "consistency_state": "NOT_APPLICABLE",
+    "obligation_state": "PENDING"
+  },
+  "counters": {
+    "domain_writes": 0,
+    "reservations": 0,
+    "work_items": 0,
+    "timers": 0,
+    "messages": 0,
+    "outbox_entries": 0,
+    "provider_calls": 0,
+    "approval_bindings": 0
+  },
+  "controls": [
+    {
+      "name": "hcmnext.domains.fixtures.corpus",
+      "version": "harborcare-demo"
+    },
+    {
+      "name": "hcmnext.domains.promotion.policy",
+      "version": "people.promotion.policy/1.0.0"
+    },
+    {
+      "name": "hcmnext.domains.rewards.annualization",
+      "version": "rewards.annualization/1.0.0"
+    },
+    {
+      "name": "hcmnext.workflow.compiler",
+      "version": "hcmnext.workflow.compiler/v1"
+    },
+    {
+      "name": "hcmnext.workflow.plan",
+      "version": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc"
+    },
+    {
+      "name": "hcmnext.workflow.simulate",
+      "version": "hcmnext.workflow.simulate/v1"
+    }
+  ],
+  "zero_effect_digest": "8e801960686be3427e9c68b55ea4477decde359e3ee8db25c73ec441c314e22d",
+  "digest": "b40aeb17de0cb7e5bf2c7b35abd71c2e79f24ea38dea0e830d7fc22d80d28b41"
+}

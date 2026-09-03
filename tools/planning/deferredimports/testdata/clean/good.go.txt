@@ -1,0 +1,8 @@
+package good
+
+import (
+	"context"
+	"fmt"
+)
+
+func UseNothingForbidden(ctx context.Context) string { return fmt.Sprintf("ok") }

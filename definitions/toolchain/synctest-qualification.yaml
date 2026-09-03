@@ -1,0 +1,42 @@
+# TOOL-021 testing/synctest qualification verdict.
+#
+# Scope: testing/synctest is qualified ONLY for deterministic in-process
+# timer, retry-backoff and goroutine-quiescence assertions against pure,
+# in-memory fixtures (see tools/quality/synctestkit). It is explicitly NOT
+# qualified to stand in for PostgreSQL, network, or external-process fault
+# behavior; those remain the responsibility of the TOOL-014 ephemeral
+# integration environment and the TOOL-022 Toxiproxy fault harness.
+#
+# This file is asserted against, not merely referenced, by
+# TestTodo_TOOL_021_Conformance in tools/quality/synctestkit: changing the
+# verdict, dropping an exclusion, or letting the evidence list drift from
+# the package's actual tests fails that test.
+version: 1
+tool: testing/synctest
+qualified_go_version: "1.26.3"
+verdict: QUALIFIED
+scope:
+  covers:
+    - deterministic virtual-time timer advancement (time.Sleep, time.After) inside a synctest bubble
+    - goroutine quiescence detection via synctest.Wait()
+    - race-free concurrent access to in-memory fixtures shaped like the outbox consumer's lease-acquire/renew/release loop
+  excludes:
+    - PostgreSQL transaction, lock, or connection behavior
+    - real network I/O or external-process failure and latency
+    - anything that requires a real database or a real network endpoint to be meaningful
+routing:
+  in_process_timer_and_retry_logic: "testing/synctest (tools/quality/synctestkit)"
+  database_and_network_faults: "TOOL-014 ephemeral integration environments, TOOL-022 Toxiproxy fault harness"
+evidence:
+  - test: TestSynctestQualificationAdvancesTimersAndDetectsQuiescenceWithoutSleep
+    package: tools/quality/synctestkit
+  - test: TestTodo_TOOL_021_Property
+    package: tools/quality/synctestkit
+  - test: TestTodo_TOOL_021_Race
+    package: tools/quality/synctestkit
+  - test: TestTodo_TOOL_021_Fault
+    package: tools/quality/synctestkit
+  - test: TestTodo_TOOL_021_Conformance
+    package: tools/quality/synctestkit
+command: "go test -count=1 ./tools/quality/synctestkit/..."
+recorded: "2026-09-03"

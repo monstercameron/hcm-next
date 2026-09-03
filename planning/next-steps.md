@@ -108,7 +108,7 @@ Exit: paid non-duplicative problem evidence exists, or the program stops/reselec
 ### M1 — concrete selections and bound P1A manifest
 
 Select the first provider product/edition/API entitlement, independently observed
-downstream boundary, hypothetical-to-reviewed legal scope, customer RACI and
+downstream boundary, hypothetical-to-reviewed legal scope (one jurisdiction set, one tenant review floor, and the obligation kinds from the fifty-state matrix that the partner's promotion flow consumes), customer RACI and
 deployment target. Then sign the concrete P1A manifest and digest. The current
 `PHASE-001` must act as a scope ceiling first; selection cannot logically depend on
 a manifest that already requires the selection.

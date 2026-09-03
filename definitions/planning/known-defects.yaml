@@ -6,3 +6,20 @@
 # fails on any unresolved edge not listed here, and fails if a listed edge
 # stops being unresolved (stale allow-list entry).
 known_defects: []
+
+# Known evidence-freshness gaps in planning/todos.md (GOV-008).
+#
+# NOTE: planning/todos.md is a live, actively-edited backlog (other sessions
+# complete todos concurrently); this list is a snapshot as of 2026-09-03 and
+# will drift - re-run `go test ./tools/planning/evidence/...` to see current
+# unallowed gaps if this test starts failing again. Each entry is an exact
+# (id, issue) pair verified genuinely missing under evidence.CheckFreshness:
+# an Evidence field that is present and dated but omits one structured
+# freshness subfield (toolchain version, environment, exact go test command,
+# or branch/commit attribution) that sibling entries in the same corpus do
+# supply. These predate the GOV-008 rule; owner and expiry force a revisit
+# rather than a silent permanent exemption.
+# TestEvidenceFreshnessRejectsHistoricalClaim fails on any freshness gap not
+# listed here, fails if a listed entry stops being a gap (stale allow-list
+# entry), and fails once an entry's expiry has passed.
+known_evidence_freshness_gaps:

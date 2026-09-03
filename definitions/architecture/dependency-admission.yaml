@@ -1,0 +1,88 @@
+# Dependency license and vulnerability admission policy (TOOL-019/TOOL-024).
+#
+# Consumed by tools/policy/depadmission. This file governs the two things
+# dependency-roles.yaml (LIB-001) does not: which SPDX license families are
+# admissible at all, and which specific reachable vulnerability findings
+# have a reviewed, time-boxed exception. Per-module ownership, security
+# owner, upgrade SLA and replacement strategy stay in dependency-roles.yaml
+# and are not duplicated here; tools/policy/depadmission joins the two
+# files (via tools/policy/depmanifest) rather than re-declaring ownership.
+#
+# See planning/specs/go-only-technology-constitution.md ("Every dependency
+# requires ... license review ... vulnerability response ...") and the
+# TOOL-019/TOOL-024 entries in planning/todos.md.
+
+version: 1
+
+license:
+  # SPDX identifiers admissible in the release. Permissive and weak-copyleft
+  # families only; every one of them is exercised by an actual dependency
+  # in go.mod today except BSD-2-Clause and MPL-2.0, kept allow-listed
+  # ahead of need because they are common in the wider Go ecosystem and a
+  # future addition should not require a policy change just to be
+  # classified.
+  allow:
+    - MIT
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - Apache-2.0
+    - ISC
+    - MPL-2.0
+    - Public-Domain
+
+  # No dependency in go.mod is currently classified into any of these;
+  # they are named so a future addition fails admission immediately
+  # instead of silently landing as "allowed by omission".
+  deny:
+    - GPL-2.0
+    - GPL-3.0
+    - AGPL-3.0
+    - SSPL-1.0
+
+  # A module whose repository ships no machine-detectable LICENSE/COPYING
+  # file at all - or, like yaml.v3 below, ships one whose free text mixes
+  # more than one license family and would only ever add reviewer noise
+  # over a keyword heuristic - is not silently treated as "no evidence".
+  # Its SPDX identifier is instead a reviewed, explicit line here. Every
+  # override's spdx value must itself appear in `allow` or `deny` above;
+  # tools/policy/depadmission classifies an override the same way it
+  # classifies a detected license.
+  unknown_license_disposition: FAIL
+  overrides:
+    gopkg.in/yaml.v3:
+      spdx: MIT
+      owner: platform-foundation
+      note: >-
+        The upstream LICENSE file itself states it covers two licenses:
+        the files ported from libyaml (apic.go, emitterc.go, parserc.go,
+        readerc.go, scannerc.go, writerc.go, yamlh.go, yamlprivateh.go)
+        under MIT, and the remaining project files under Apache-2.0. Both
+        families are independently allow-listed above, so either
+        classification is admissible; MIT is recorded here to keep the
+        report deterministic instead of depending on which keyword a
+        text heuristic happens to match first.
+    github.com/xi2/xz:
+      spdx: Public-Domain
+      owner: platform-foundation
+      note: >-
+        LICENSE states the package (a modified port of the XZ Embedded
+        decoder) "have been put into the public domain. You can do
+        whatever you want with these files." Recorded explicitly because
+        public-domain dedications carry no SPDX identifier in the
+        GPL/BSD/MIT/Apache families a text heuristic otherwise looks for.
+
+vulnerability:
+  # Exceptions are the only way a reachable finding (see
+  # tools/policy/depadmission's Finding.Reachable: a traced call chain
+  # reaches the vulnerable symbol, not just an import) can be admitted.
+  # Every field below is mandatory: TOOL-024's RED clause requires an
+  # exception missing owner, expiry, compensating_control or
+  # module_version to be treated as if it were absent. module_version
+  # digest-binds the exception to one pinned version; bumping the
+  # dependency - even to a version that turns out to still be vulnerable -
+  # requires a new, separately reviewed exception, not an inherited one.
+  #
+  # None on file today: go.mod carries no dependency with a known reachable
+  # vulnerability requiring a waiver. This list exists so the first real
+  # one has a place to go without a schema change.
+  exceptions: []

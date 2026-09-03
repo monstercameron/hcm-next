@@ -1,0 +1,39 @@
+# Redaction, cardinality, sampling and export policy (OBS-004).
+#
+# Owned schema for internal/platform/telemetry's Evaluator. Consumed by
+# ExportPolicy/SamplingPolicy conversion in
+# internal/platform/telemetry/contract.go and checked against the
+# compiled-in defaults in internal/platform/telemetry/defaults.go
+# (contract_test.go), so the two can never silently drift apart.
+#
+# PROHIBITED never maps to a non-empty sink list: prohibited content must
+# never have an export path, under any policy version.
+
+version: 1
+
+export_policy:
+  - class: OPERATIONAL_PUBLIC
+    sinks: [metrics_backend, log_backend, trace_backend]
+  - class: OPERATIONAL_RESTRICTED
+    sinks: [log_backend, trace_backend]
+  - class: PROHIBITED
+    sinks: []
+
+# The bucket every value beyond a key's cardinality budget collapses into
+# (internal/platform/telemetry.CardinalityGovernor.Cap).
+cardinality_overflow_value: "__overflow__"
+
+# Head sampling: a declared forced-retention class always retains,
+# regardless of success_sample_rate or the correlation id's hash. An
+# untrusted caller has no field here to request forced retention or
+# suppression through.
+sampling:
+  version: 1
+  success_sample_rate: 0.1
+  forced_retention_classes:
+    - security_denial
+    - financial_mutation
+    - irreversible_effect
+    - ambiguous_result
+    - correctness_failure
+    - telemetry_pipeline_failure

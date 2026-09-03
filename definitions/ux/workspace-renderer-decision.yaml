@@ -1,0 +1,175 @@
+todo: UX-QUAL-001
+workspace: Promotion request, approval and timeline workspace (UX-001 contract)
+decision_date: "2026-09-03"
+review_by: "2026-10-03"
+selected_renderer: gwc
+
+summary: >-
+  Both the GWC (GoWebComponents v5.0.1) renderer and the Go html/template SSR
+  fallback pass every UX-QUAL-001 criterion against the UX-001 workspace
+  contract fixture (tools/uxqual/testdata). Per the go-only technology
+  constitution ("GWC owns the browser and presentation runtime when
+  qualified"), GWC is pinned as the renderer. The SSR renderer
+  (tools/uxqual/render/ssr) is kept and stays green in the same fixture as
+  the named fallback; it ships if a later re-run regresses GWC's score.
+
+method: >-
+  tools/uxqual/qual.TestWorkspaceQualificationFixture renders the same
+  masked WorkspaceContract fixture (tools/uxqual/testdata/fixture.go) through
+  both renderers and scores six gates: Buildable, Keyboard-only completion,
+  Screen-reader semantics, WCAG 2.2 AA contrast, Reflow at 320px, and Never
+  renders a masked field. GWC's structural criteria are scored against the
+  document its own native SSR path (ui.RenderToString) produces from the
+  exact same component tree tools/uxqual/render/gwc/mount_wasm.go mounts
+  live in a browser -- not a separate hand-authored document. Re-run with:
+  `go test -count=1 ./tools/uxqual/qual/...`.
+
+candidates:
+  gwc:
+    package: github.com/monstercameron/hcm-next/tools/uxqual/render/gwc
+    criteria:
+      - name: "Buildable (GOOS=js GOARCH=wasm)"
+        pass: true
+        detail: >-
+          `GOOS=js GOARCH=wasm go build ./tools/uxqual/render/gwc/...`
+          succeeds. This depends on go.mod/go.sum already carrying entries
+          for GWC v5.0.1's transitive dependencies
+          (github.com/fxamacker/cbor/v2, github.com/yuin/goldmark), added by
+          another lane's work on 2026-09-03; this lane does not edit
+          go.mod/go.sum. If a future go.sum change removes those entries,
+          this criterion and the fixture will fail again and this decision
+          must be re-run.
+      - name: "Keyboard-only completion"
+        pass: true
+        detail: >-
+          12 natively-focusable controls (native <input>/<textarea>/
+          <button>/<a href>) in DOM order, zero positive tabindex. DOM order
+          equals the WorkspaceContract.Request.Fields/Actions order, so tab
+          order is derivable from the contract alone.
+      - name: "Screen-reader semantics"
+        pass: true
+        detail: >-
+          Landmarks present (header=1 [banner], nav=1, main=1,
+          footer=1 [contentinfo]); all 5 rendered inputs have a matching
+          <label for>; one live region (role="status" aria-live="polite")
+          on the simulation status banner.
+      - name: "WCAG 2.2 AA contrast"
+        pass: true
+        detail: >-
+          Renderer-independent: both renderers import
+          tools/uxqual/tokens.Palette. All 11 foreground/background pairs
+          tools/uxqual/tokens.TextPairs declares are >= 4.5:1 (WCAG 2.2 AA,
+          1.4.3), computed by tools/uxqual/tokens.ContrastRatio.
+      - name: "Reflow at 320px"
+        pass: true
+        detail: >-
+          No bare `width:<n>px` declaration in the emitted stylesheet
+          (tools/uxqual/tokens.WorkspaceCSS, shared verbatim by both
+          renderers) exceeds 320px; layout uses rem/%/max-width, and the one
+          grid breakpoint only adds columns above 640px.
+      - name: "Never renders a masked field"
+        pass: true
+        detail: >-
+          The fixture's masked field (nationalId) and masked action
+          (force_execute) are absent from GWC's rendered document. GWC's
+          renderer (tools/uxqual/render/gwc/renderer.go) only ever consumes
+          contract.WorkspaceContract -- it does not import or reference
+          contract.SourceRecord's AllFields/AllActions, so it structurally
+          cannot render what it never receives (checked by source-text scan
+          in TestTodo_UX_QUAL_001_Security).
+    notes: >-
+      GWC has no raw-text/innerHTML sink by design (see
+      github.com/monstercameron/GoWebComponents/v5/html/raw_html.go's doc
+      comment), so a literal CSS blob cannot be a text child in the
+      component tree without being HTML-entity-escaped. The workspace
+      stylesheet is therefore assembled as a plain string
+      (tools/uxqual/render/gwc.Stylesheet/Document), mirroring how GWC's own
+      css.CriticalCSS()/StyleBlock() are documented to work (string
+      concatenation into the SSR head, not a node).
+
+  ssr:
+    package: github.com/monstercameron/hcm-next/tools/uxqual/render/ssr
+    criteria:
+      - name: "Buildable (native)"
+        pass: true
+        detail: "`go build ./tools/uxqual/render/ssr/...` succeeds; no external runtime dependency beyond the Go standard library and tools/uxqual/tokens."
+      - name: "Keyboard-only completion"
+        pass: true
+        detail: "13 natively-focusable controls in DOM order, zero positive tabindex."
+      - name: "Screen-reader semantics"
+        pass: true
+        detail: 'Landmarks present (header=1, nav=1, main=1, footer=1); all 5 rendered inputs labeled; one live region (role="status" aria-live="polite").'
+      - name: "WCAG 2.2 AA contrast"
+        pass: true
+        detail: "Same shared token palette as GWC; all 11 pairs >= 4.5:1."
+      - name: "Reflow at 320px"
+        pass: true
+        detail: "Same shared stylesheet (tools/uxqual/tokens.WorkspaceCSS) as GWC; no fixed width exceeds 320px."
+      - name: "Never renders a masked field"
+        pass: true
+        detail: "The masked field/action are absent; the SSR renderer (tools/uxqual/render/ssr/ssr.go) only consumes contract.WorkspaceContract, never contract.SourceRecord."
+    notes: >-
+      Ships with zero JavaScript: every action is a native <form>/<button>
+      full-page POST. This is the P1B fallback the go-only technology
+      constitution names if GWC ever regresses; it is exercised by the same
+      fixture on every run, not revisited only when GWC fails.
+
+pending:
+  - item: >-
+      Manual screen-reader pass with NVDA (Windows) and VoiceOver (macOS)
+      against the live-mounted GWC workspace (tools/uxqual/cmd/uxqualwasm),
+      per the go-only technology constitution's named fixture ("a
+      screen-reader pass (NVDA on Windows, VoiceOver on macOS)").
+    status: PENDING
+    owner: TBD
+    reason: >-
+      Automated evidence today is (a) structural HTML parsing in
+      tools/uxqual/qual (golang.org/x/net/html: landmarks, label-for
+      associations, role/aria-live presence) and (b) a real-Chromium
+      Playwright pass (tools/uxqual/browser/workspace.a11y.spec.mjs:
+      keyboard Tab traversal, Chromium's computed accessibility tree,
+      320px viewport reflow) against the static documents
+      tools/uxqual/cmd/genfixtures renders. Neither substitutes for an
+      actual assistive-technology pass; this lane has no NVDA/VoiceOver
+      environment available.
+  - item: >-
+      Run the Playwright browser pass
+      (tools/uxqual/browser/workspace.a11y.spec.mjs) in an environment with
+      Chromium installed for the pinned @playwright/test version (this
+      environment's cached Chromium build did not match; the run command is
+      in tools/uxqual/browser/playwright.config.mjs's header comment).
+    status: PENDING
+    owner: TBD
+    reason: >-
+      `npx playwright test --config=tools/uxqual/browser/playwright.config.mjs`
+      failed with "Executable doesn't exist" for the pinned Chromium build
+      in this sandbox. `npx playwright install chromium` was run to fix
+      that, but failed on an active lockfile at
+      %LOCALAPPDATA%\ms-playwright\__dirlock, meaning another concurrent
+      session in this shared environment was installing browsers at the
+      same time; this lane does not remove another session's in-flight
+      lock. The spec is written and self-contained (loads static files via
+      file://, no webServer) -- re-run once Chromium is installed for the
+      pinned @playwright/test version.
+  - item: >-
+      Re-run this fixture if go.mod/go.sum ever drop the GWC v5.0.1
+      transitive dependency entries this decision's Buildable criterion
+      currently relies on (github.com/fxamacker/cbor/v2,
+      github.com/yuin/goldmark), since this lane cannot add them back.
+    status: PENDING
+    owner: TBD
+    reason: >-
+      Those entries were added by a different lane's concurrent work on
+      2026-09-03, not by tools/uxqual; this lane must not edit
+      go.mod/go.sum, so it cannot restore them if they regress.
+
+rationale: >-
+  The go-only technology constitution states a preference is not a
+  dependency: GWC ships only after passing this fixture. It now does, on
+  the real component tree tools/uxqual/render/gwc/renderer.go builds and
+  tools/uxqual/qual scores on every `go test` run (not a one-time manual
+  check), so re-qualification is automatic and continuous rather than a
+  point-in-time audit. The Go SSR fallback is not deleted or deprioritized:
+  it is scored by the identical fixture on the identical contract, so a
+  future GWC regression has a proven, currently-green landing spot with no
+  extra work at that time.

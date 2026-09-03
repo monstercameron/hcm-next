@@ -1,0 +1,134 @@
+# budget entity sources (MSRC-004).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from the budget/headcount-authorization entities in rewards-payroll-workforce.md and people-workforce.md with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: budget
+family_version: 1
+source_docs:
+  - planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+  - planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+entities:
+  - name: BudgetReservation
+    version: 1
+    key: budget_reservation
+    aliases: []
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: AccountLifecycle
+    command_boundary: LOCAL_ACID
+    invariants:
+      - invariant.budget_no_over_reservation/v1
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      A bounded hold against a workforce budget for a proposal: amount/currency, owner/fence/expiry and consumption/release refs.
+    properties:
+      - name: available_balance
+        go_type: values.Decimal
+        schema_path: hcmnext.rewards.v1.BudgetReservation.available_balance
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: POINT_IN_TIME
+        authority_ref: authority.budget_reservation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+      - name: amount
+        go_type: values.Decimal
+        schema_path: hcmnext.rewards.v1.BudgetReservation.amount
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: POINT_IN_TIME
+        authority_ref: authority.budget_reservation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+      - name: expiry
+        go_type: values.Instant
+        schema_path: hcmnext.rewards.v1.BudgetReservation.expiry
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.budget_reservation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+      - name: state
+        go_type: lifecycle.StateID
+        schema_path: hcmnext.rewards.v1.BudgetReservation.state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.budget_reservation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: COMPENSATION_RECORD
+        status: ACTIVE
+
+  - name: CompensationBudget
+    version: 1
+    key: compensation_budget
+    aliases: []
+    owner_domain: REWARDS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/rewards-payroll-workforce.md#compensation-and-rewards
+    summary: >-
+      Org/cost-center/cycle/period authoritative budget: amount/currency, approved/reserved/consumed and source authority.
+    properties:
+      - name: approved_amount
+        go_type: values.Money
+        schema_path: hcmnext.rewards.v1.CompensationBudget.approved_amount
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.budget_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+  - name: HeadcountBudgetAuthorization
+    version: 1
+    key: headcount_budget_authorization
+    aliases: []
+    owner_domain: WORK
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: AccountLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/people-workforce.md#jobs-positions-and-workforce-planning
+    summary: >-
+      Plan/line/org/job/location/cost-center approved quantity/FTE/money/period with approver authority and reserved/consumed projections.
+    properties:
+      - name: approved_quantity
+        go_type: values.Quantity
+        schema_path: hcmnext.people.v1.HeadcountBudgetAuthorization.approved_quantity
+        presence: REQUIRED
+        classification: COMPENSATION
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.budget_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: COMPENSATION_RECORD
+        status: DRAFT
+
+relationships: []

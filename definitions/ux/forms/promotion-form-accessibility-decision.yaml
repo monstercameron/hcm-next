@@ -1,0 +1,103 @@
+todo: FORM-004
+workspace: Promotion request form accessibility and equivalent human route
+decision_date: "2026-09-03"
+review_by: "2026-10-03"
+
+# accessible_route names which renderer this lane's own two form-specific
+# criteria (required-field semantics, error association) are proven against
+# unconditionally -- the renderer FORM-004's accessible route ships as
+# today, independent of definitions/ux/workspace-renderer-decision.yaml's
+# separate UX-QUAL-001 renderer pick (which covers the six criteria that
+# renderer decision already scores GWC as passing).
+accessible_route: ssr
+
+summary: >-
+  tools/uxqual/forms adds two FORM-004 criteria UX-QUAL-001's fixture
+  (tools/uxqual/qual) does not define: CheckRequiredFieldSemantics (every
+  required field renders both the native `required` attribute and
+  aria-required="true") and CheckErrorAssociation (every field with a
+  validation error carries aria-invalid="true" and an aria-describedby that
+  resolves to a real element). Scored against the Promotion request fixture
+  with one field's validation error populated
+  (tools/uxqual/forms.FixtureWithValidationError), the Go SSR fallback
+  (tools/uxqual/render/ssr) passes both; the GWC renderer
+  (tools/uxqual/render/gwc) fails both. Both renderers are frozen for this
+  lane (owned by another lane's finished UX-001/UX-QUAL-001 work), so this
+  is a documented, verified gap rather than a fix: SSR is FORM-004's
+  accessible route today.
+
+method: >-
+  tools/uxqual/forms.TestTodo_FORM_004 renders
+  tools/uxqual/forms.FixtureWithValidationError() through both renderers
+  and scores tools/uxqual/qual's Keyboard/ScreenReader/Contrast/Reflow/
+  Masking criteria plus this package's CheckRequiredFieldSemantics and
+  CheckErrorAssociation against RequiredFieldIDs/ErroredFieldIDs. Re-run
+  with `go test -count=1 ./tools/uxqual/forms/...`.
+
+gwc_known_gaps:
+  required_field_semantics: true
+  error_association: true
+
+candidates:
+  ssr:
+    package: github.com/monstercameron/hcm-next/tools/uxqual/render/ssr
+    required_field_semantics: pass
+    error_association: pass
+    detail: >-
+      tools/uxqual/render/ssr/ssr.go's inputTag sets both `required
+      aria-required="true"` when Validation.Required, and both
+      `aria-describedby="<id>-error" aria-invalid="true"` when
+      Validation.Message is non-empty.
+  gwc:
+    package: github.com/monstercameron/hcm-next/tools/uxqual/render/gwc
+    required_field_semantics: fail
+    error_association: fail
+    detail: >-
+      tools/uxqual/render/gwc/renderer.go's fieldNode sets
+      `aria-required="true"` via html.Props.Aria but never sets the native
+      GoWebComponents v5 html.Props.Required bool field (which would emit
+      the native `required` attribute), and never sets aria-invalid or
+      aria-describedby on a field's control even when
+      Validation.Message is non-empty -- it only renders the visible
+      `<p id="<id>-error">` sibling. This lane's constraints freeze
+      tools/uxqual/render/gwc; it cannot be edited here.
+
+equivalent_route:
+  kind: CAPABILITY_CALL
+  capability_id: people.promote
+  capability_version: v1
+  proof: >-
+    tools/uxqual/forms.TestTodo_FORM_004_Integration extracts a real SSR (and
+    GWC) rendered document's submitted answers
+    (tools/uxqual/forms.ExtractFormAnswers), builds an IntentInstance via
+    FromFormSubmission, independently builds the same typed
+    PromotionRequestInputs and an IntentInstance via FromCapabilityCall, and
+    asserts both routes' IntentInstance.Digest are equal -- and that
+    changing any one typed input changes both.
+
+pending:
+  - item: >-
+      A named human-work-task alternative (planning/specs/human-work-forms-
+      and-rules.md's other equivalent-route option) is not built: Phase 1
+      packages Promotion approval as an approval WorkItem with a typed
+      reason field, not a form-backed task (FORM-001 RETIRED,
+      planning/todos.md, 2026-09-02). Add one if a later phase reintroduces
+      a form-backed human-work task for this request type.
+    status: PENDING
+    owner: TBD
+  - item: >-
+      200% text zoom and a real assistive-technology (NVDA/VoiceOver) pass
+      against the rendered Promotion form are not exercised here, matching
+      the same PENDING items definitions/ux/workspace-renderer-decision.yaml
+      already records for the same underlying documents -- this lane adds
+      no new automated coverage for those two, only the two named criteria
+      above.
+    status: PENDING
+    owner: TBD
+  - item: >-
+      Re-run if tools/uxqual/render/gwc is ever changed by another lane: if
+      it starts setting the native `required` attribute and
+      aria-invalid/aria-describedby, gwc_known_gaps above and
+      TestTodo_FORM_004's assertions must be updated together.
+    status: PENDING
+    owner: TBD

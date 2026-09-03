@@ -1,0 +1,16 @@
+{
+  "ResultNodeID": "res1",
+  "Nodes": [
+    {
+      "NodeID": "src1",
+      "Kind": "SOURCE_ASSERTION",
+      "Redacted": false
+    },
+    {
+      "NodeID": "xform1",
+      "Kind": "TRANSFORMATION",
+      "Redacted": false
+    }
+  ],
+  "Complete": true
+}

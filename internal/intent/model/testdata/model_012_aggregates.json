@@ -1,0 +1,180 @@
+[
+  {
+    "Root": "Assignment/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": [
+      "invariant.assignment_within_employment/v1"
+    ]
+  },
+  {
+    "Root": "BudgetReservation/v1",
+    "Lifecycle": "AccountLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": [
+      "invariant.budget_no_over_reservation/v1"
+    ]
+  },
+  {
+    "Root": "CompensationGrade/v1",
+    "Lifecycle": "RevisionedReferenceLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "CompensationPackage/v1",
+    "Lifecycle": "CompensationPackageLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": [
+      "CompensationComponent/v1"
+    ],
+    "Invariants": [
+      "invariant.compensation_currency_consistent/v1"
+    ]
+  },
+  {
+    "Root": "ConnectorOperation/v1",
+    "Lifecycle": "ConnectorOperationLifecycle",
+    "Boundary": "EXTERNAL_OBSERVATION",
+    "StreamKind": "INTEGRATION_OPERATION",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "Employment/v1",
+    "Lifecycle": "EmploymentLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "EMPLOYMENT",
+    "Children": null,
+    "Invariants": [
+      "invariant.employment_dates_ordered/v1"
+    ]
+  },
+  {
+    "Root": "IntentInstance/v1",
+    "Lifecycle": "RequestLifecycle",
+    "Boundary": "CROSS_AGGREGATE_TRANSACTION",
+    "StreamKind": "TRANSACTION",
+    "Children": null,
+    "Invariants": [
+      "invariant.intent_five_dimensions/v1"
+    ]
+  },
+  {
+    "Root": "Job/v1",
+    "Lifecycle": "RevisionedReferenceLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "LegalEntity/v1",
+    "Lifecycle": "RevisionedReferenceLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "OrganizationRelationship/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": [
+      "invariant.manager_relationship_acyclic/v1"
+    ]
+  },
+  {
+    "Root": "OrganizationUnit/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": [
+      "invariant.organization_hierarchy_acyclic/v1"
+    ]
+  },
+  {
+    "Root": "Person/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "PERSON",
+    "Children": null,
+    "Invariants": [
+      "invariant.person_identity_unique/v1"
+    ]
+  },
+  {
+    "Root": "Position/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "POSITION",
+    "Children": null,
+    "Invariants": [
+      "invariant.position_capacity_non_negative/v1"
+    ]
+  },
+  {
+    "Root": "PositionOccupancy/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": [
+      "invariant.occupancy_within_capacity/v1"
+    ]
+  },
+  {
+    "Root": "ProposalRevision/v1",
+    "Lifecycle": "ImmutableEvidenceLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "RepairPlan/v1",
+    "Lifecycle": "PlanLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  },
+  {
+    "Root": "TransactionPlan/v1",
+    "Lifecycle": "PlanLifecycle",
+    "Boundary": "CROSS_AGGREGATE_TRANSACTION",
+    "StreamKind": "TRANSACTION",
+    "Children": null,
+    "Invariants": [
+      "invariant.transaction_plan_participants_declared/v1"
+    ]
+  },
+  {
+    "Root": "Worker/v1",
+    "Lifecycle": "RevisionedFactLifecycle",
+    "Boundary": "LOCAL_ACID",
+    "StreamKind": "WORKER",
+    "Children": null,
+    "Invariants": [
+      "invariant.worker_references_person/v1"
+    ]
+  },
+  {
+    "Root": "WorkerSummary/v1",
+    "Lifecycle": "NO_BUSINESS_LIFECYCLE",
+    "Boundary": "",
+    "StreamKind": "",
+    "Children": null,
+    "Invariants": null
+  }
+]

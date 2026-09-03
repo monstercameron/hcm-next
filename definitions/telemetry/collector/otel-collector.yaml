@@ -1,0 +1,213 @@
+# OpenTelemetry Collector pipeline (OBS-002 GREEN: "Collector pipeline").
+#
+# This is the deployment-agnostic pipeline shape planning/specs/
+# platform-architecture-catalog.md 9.21.8 "Governed Observability" names:
+# App/gRPC/Workflow instrumentation -> Telemetry Privacy Gateway (classify ->
+# redact/hash/drop) -> Cardinality Governor -> Sampling Policy Engine ->
+# OpenTelemetry Collectors -> metrics/traces/logs -> pipeline health. The
+# in-process half of that pipeline (classify, cardinality cap, sampling
+# decision) is internal/platform/telemetry's Evaluator, already applied to
+# every signal before it ever reaches this Collector
+# (internal/platform/telemetry/otel's redacting Tracer/Span/Metrics). This
+# file's `attributes` processor is a second, independent redaction layer at
+# the Collector boundary — defense in depth, not the primary control — so a
+# gap in one layer (a future signal path that forgets to go through the Go
+# Evaluator, a third-party instrumentation library emitting straight to this
+# Collector) does not silently become the only layer.
+#
+# internal/platform/telemetry/otel/collector_test.go parses this exact file
+# and asserts every key in definitions/telemetry/collector's canonical
+# prohibited-attribute set (mirroring internal/platform/logging's own
+# default denylist plus planning/todos.md OBS-001's RED fixture list —
+# "salary/medical/bank/case/prompt/payload data or worker/request
+# identifiers") appears as a delete action here, so the two can never
+# silently drift apart.
+#
+# ---------------------------------------------------------------------------
+# Local run recipe (no Docker, no docker-compose)
+# ---------------------------------------------------------------------------
+#
+# 1. Download the "contrib" distribution of the OpenTelemetry Collector for
+#    your platform from the upstream release page (a single static binary,
+#    no package manager, no daemon install):
+#      https://github.com/open-telemetry/opentelemetry-collector-releases/releases
+#    Pick the asset named otelcol-contrib_<version>_<os>_<arch>.tar.gz (the
+#    "contrib" build; this pipeline only uses the otlp receiver and the
+#    attributes/batch/memory_limiter/debug/otlp processors/exporters, which
+#    ship in "contrib" as well as the smaller "core" distribution — either
+#    works).
+#
+# 2. Extract it and run it directly against this file, from the repository
+#    root:
+#      ./otelcol-contrib --config definitions/telemetry/collector/otel-collector.yaml
+#    (On Windows: otelcol-contrib.exe --config definitions\telemetry\collector\otel-collector.yaml)
+#
+# 3. Point a Go process's OBS-002 Provider at it:
+#      Config.Trace.Kind  = otel.ExporterKindOTLP
+#      Config.Trace.Endpoint = "localhost:4318"   (this file's otlp/http receiver)
+#      Config.Metric.Kind = otel.ExporterKindOTLP
+#      Config.Metric.Endpoint = "localhost:4318"
+#      Config.Trace.Insecure / Config.Metric.Insecure = true (plain HTTP, local dev only)
+#
+# 4. Watch the `debug` exporter's own stdout for a human-readable trace of
+#    every signal the Collector received and, after this pipeline's
+#    processors ran, would forward downstream — this is the fastest way to
+#    confirm the redaction processor actually stripped a given key locally,
+#    without standing up a real backend.
+#
+# 5. The `otlp/placeholder` exporter's endpoint is deliberately a
+#    same-machine placeholder (OBS-003's portable OSS backends — Prometheus/
+#    Loki/Tempo/Grafana-compatible — are a separate, later deployment; this
+#    repository does not deploy them). Point it at a real OTLP-compatible
+#    backend's endpoint once one exists; until then the Collector logs (and
+#    discards, once retries are exhausted) attempts to reach it, which is
+#    expected and harmless for local instrumentation testing — the `debug`
+#    exporter is what a local run actually reads.
+#
+# 6. Stop the Collector with Ctrl+C (SIGINT); it drains its export queues
+#    before exiting, the same bounded-flush-on-shutdown discipline
+#    structured-logging-and-opentelemetry.md's "Export, failure and
+#    shutdown" requires of every stage in this pipeline, this process
+#    included.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Recommended first in every pipeline: bounds the Collector's own memory
+  # before any other processing, independent of what the redaction/batch
+  # processors below do.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # Second independent redaction layer (see file header). Every key below is
+  # deleted outright rather than hashed or truncated: OBS-001's contract
+  # treats an unregistered/prohibited key as carrying content this pipeline
+  # must never retain any form of, not content to pseudonymize.
+  attributes/redact_prohibited:
+    actions:
+      - key: password
+        action: delete
+      - key: passwd
+        action: delete
+      - key: secret
+        action: delete
+      - key: token
+        action: delete
+      - key: access_token
+        action: delete
+      - key: refresh_token
+        action: delete
+      - key: api_key
+        action: delete
+      - key: authorization
+        action: delete
+      - key: ssn
+        action: delete
+      - key: social_security_number
+        action: delete
+      - key: bank_account
+        action: delete
+      - key: bank_account_number
+        action: delete
+      - key: bank_routing
+        action: delete
+      - key: routing_number
+        action: delete
+      - key: credit_card
+        action: delete
+      - key: card_number
+        action: delete
+      - key: cvv
+        action: delete
+      - key: medical
+        action: delete
+      - key: medical_record
+        action: delete
+      - key: medical_condition
+        action: delete
+      - key: diagnosis
+        action: delete
+      - key: prompt
+        action: delete
+      - key: raw_identity
+        action: delete
+      - key: email
+        action: delete
+      - key: email_address
+        action: delete
+      - key: phone
+        action: delete
+      - key: phone_number
+        action: delete
+      - key: date_of_birth
+        action: delete
+      - key: dob
+        action: delete
+      - key: salary
+        action: delete
+      - key: compensation
+        action: delete
+      - key: base_pay
+        action: delete
+      - key: case_notes
+        action: delete
+      - key: case_file
+        action: delete
+      - key: worker_id
+        action: delete
+      - key: request_body
+        action: delete
+      - key: payload
+        action: delete
+
+  # Batches after redaction/limiting so no per-signal export path bypasses
+  # bounded batching (OBS-002 RED: "uses unbounded batching/retry" — bounded
+  # here mirrors the bounded BatchSpanProcessor/PeriodicReader configuration
+  # internal/platform/telemetry/otel's Provider applies in-process).
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+    send_batch_max_size: 1024
+
+exporters:
+  # Human-readable stdout exporter: the fastest local feedback loop (see the
+  # run recipe above) and the one exporter every environment can rely on
+  # even before a real backend exists.
+  debug:
+    verbosity: detailed
+
+  # Placeholder OTLP exporter: OBS-003 (portable OSS telemetry backends —
+  # Prometheus/Loki/Tempo/Grafana-compatible) decides and deploys the real
+  # backend this eventually points at. This repository does not deploy one;
+  # the endpoint below is a same-machine placeholder so the pipeline is
+  # syntactically complete and locally runnable without a live backend
+  # (unreached-endpoint export errors are expected and harmless until
+  # OBS-003 lands one).
+  otlp/placeholder:
+    endpoint: localhost:4317
+    tls:
+      insecure: true
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 30s
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/redact_prohibited, batch]
+      exporters: [debug, otlp/placeholder]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/redact_prohibited, batch]
+      exporters: [debug, otlp/placeholder]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/redact_prohibited, batch]
+      exporters: [debug, otlp/placeholder]

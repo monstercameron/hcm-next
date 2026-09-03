@@ -1,0 +1,308 @@
+syntax = "proto3";
+
+package hcmnext.evidence.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/evidence/v1/receipt.proto";
+
+// Section is one part of a transaction explanation. Sections are the unit of
+// authorization: a caller may be granted the chronology without the write
+// set, and the explanation reports which parts it withheld rather than
+// silently shrinking (internal/domains/intelligence Section).
+enum Section {
+  SECTION_UNSPECIFIED = 0;
+  SECTION_REQUEST = 1;
+  SECTION_GOVERNANCE = 2;
+  SECTION_LIFECYCLE = 3;
+  SECTION_WRITE_SET = 4;
+  SECTION_EVENTS = 5;
+  SECTION_EFFECTS = 6;
+  SECTION_OBSERVATIONS = 7;
+  SECTION_RECONCILIATION = 8;
+  SECTION_REPAIR = 9;
+  SECTION_PROJECTIONS = 10;
+  SECTION_EVIDENCE = 11;
+}
+
+// AuthorizationEffect is one authorization ruling
+// (internal/domains/intelligence Effect).
+enum AuthorizationEffect {
+  AUTHORIZATION_EFFECT_UNSPECIFIED = 0;
+  AUTHORIZATION_EFFECT_ALLOW = 1;
+  AUTHORIZATION_EFFECT_DENY = 2;
+}
+
+// SectionAccess is the per-section disclosure outcome
+// (internal/domains/intelligence Access).
+enum SectionAccess {
+  SECTION_ACCESS_UNSPECIFIED = 0;
+  SECTION_ACCESS_AUTHORIZED = 1;
+  SECTION_ACCESS_DENIED = 2;
+}
+
+// TransactionDisclosure is the whole-transaction disclosure outcome
+// (internal/domains/intelligence Disclosure).
+enum TransactionDisclosure {
+  TRANSACTION_DISCLOSURE_UNSPECIFIED = 0;
+  TRANSACTION_DISCLOSURE_FULL = 1;
+  TRANSACTION_DISCLOSURE_PARTIAL = 2;
+  TRANSACTION_DISCLOSURE_WITHHELD = 3;
+}
+
+// TransactionPresence is what the record says about the transaction's
+// existence. It is unset on a WITHHELD explanation, because existence itself
+// is not disclosed then (internal/domains/intelligence Presence).
+enum TransactionPresence {
+  TRANSACTION_PRESENCE_UNSPECIFIED = 0;
+  TRANSACTION_PRESENCE_PRESENT = 1;
+  TRANSACTION_PRESENCE_ABSENT = 2;
+}
+
+// LinkBasis is why one record points at another. There is exactly one legal
+// non-zero value, and it is not "a noticed pattern"
+// (internal/domains/intelligence LinkBasis).
+enum LinkBasis {
+  LINK_BASIS_UNSPECIFIED = 0;
+  LINK_BASIS_RECORDED_REFERENCE = 1;
+}
+
+// Epistemic labels what kind of knowledge one explanation element is, so a
+// reader never has to infer from position whether something was asserted,
+// merely observed, or could not be established
+// (internal/domains/intelligence Epistemic).
+enum Epistemic {
+  EPISTEMIC_UNSPECIFIED = 0;
+  EPISTEMIC_ASSERTED = 1;
+  EPISTEMIC_OBSERVED = 2;
+  EPISTEMIC_DERIVED = 3;
+  EPISTEMIC_UNKNOWN = 4;
+  EPISTEMIC_REDACTED = 5;
+  EPISTEMIC_ABSENT = 6;
+}
+
+// AuthorizationRuling is one decision plus the policy token explaining it
+// (internal/domains/intelligence Ruling). A DENY must always carry a reason.
+message AuthorizationRuling {
+  AuthorizationEffect effect = 1;
+  string reason = 2;
+}
+
+// SectionRuling names one section and the ruling that applies to it, used to
+// carry the caller's already-evaluated per-section authorization decision.
+message SectionRuling {
+  Section section = 1;
+  AuthorizationRuling ruling = 2;
+}
+
+// PrincipalRef identifies who acted. on_behalf_of is separate from principal
+// id because a delegated action and a direct one are different facts
+// (internal/domains/intelligence PrincipalRef).
+message PrincipalRef {
+  string kind = 1;
+  string id = 2;
+  optional string on_behalf_of = 3;
+}
+
+// ExplainedRequest is the REQUEST section as disclosed
+// (internal/domains/intelligence ExplainedRequest).
+message ExplainedRequest {
+  string intent_type = 1;
+  string intent_version = 2;
+  string family = 3;
+  string mode = 4;
+  hcmnext.common.v1.Presence purpose_presence = 5;
+  optional string purpose = 6;
+  hcmnext.common.v1.Presence requester_presence = 7;
+  optional string requester = 8;
+  hcmnext.common.v1.Presence subjects_presence = 9;
+  repeated hcmnext.common.v1.EntityRef subject_refs = 10;
+  optional google.protobuf.Timestamp requested_at = 11;
+  string request_digest = 12;
+  string proposal_digest = 13;
+  Epistemic epistemic = 14;
+}
+
+// TransitionRecord is one recorded lifecycle move
+// (internal/domains/intelligence Transition).
+message TransitionRecord {
+  string dimension = 1;
+  string from = 2;
+  string to = 3;
+  google.protobuf.Timestamp at = 4;
+  PrincipalRef actor = 5;
+  string reason = 6;
+  uint64 sequence = 7;
+  string digest = 8;
+}
+
+// WriteSetEntry is one thing the transaction wrote
+// (internal/domains/intelligence WriteSetEntry).
+message WriteSetEntry {
+  string resource = 1;
+  string kind = 2;
+  uint64 revision = 3;
+  string digest = 4;
+}
+
+// LedgerEventRecord is one appended ledger event
+// (internal/domains/intelligence LedgerEvent).
+message LedgerEventRecord {
+  string id = 1;
+  string type = 2;
+  google.protobuf.Timestamp at = 3;
+  uint64 revision = 4;
+  string digest = 5;
+}
+
+// EffectRecord is one durable external-effect intent or provider call
+// (internal/domains/intelligence EffectRecord).
+message EffectRecord {
+  string id = 1;
+  string channel = 2;
+  string state = 3;
+  google.protobuf.Timestamp at = 4;
+  string digest = 5;
+}
+
+// ObservationLink is one external observation recorded against a
+// transaction. Its authority kind is always AUTHORITY_KIND_EXTERNAL_OBSERVATION:
+// an observation that claimed local authority would be a domain fact
+// smuggled in as evidence (internal/domains/intelligence ObservationLink).
+message ObservationLink {
+  string id = 1;
+  string source = 2;
+  google.protobuf.Timestamp at = 3;
+  string digest = 4;
+  SourceAuthority authority = 5;
+  LinkBasis basis = 6;
+}
+
+// ReconciliationLink is one recorded reconciliation outcome
+// (internal/domains/intelligence ReconciliationLink).
+message ReconciliationLink {
+  string id = 1;
+  string outcome = 2;
+  google.protobuf.Timestamp at = 3;
+  string digest = 4;
+  LinkBasis basis = 5;
+}
+
+// RepairLink is one repair plan raised against a transaction. executable is
+// carried explicitly so an explanation can state that a plan existed and was
+// never executable, which is the whole P1A repair claim
+// (internal/domains/intelligence RepairLink).
+message RepairLink {
+  string plan_id = 1;
+  string plan_digest = 2;
+  bool executable = 3;
+  google.protobuf.Timestamp at = 4;
+  string digest = 5;
+  LinkBasis basis = 6;
+}
+
+// ProjectionLink is one derived projection a transaction fed, with its
+// freshness resolved against the ledger head
+// (internal/domains/intelligence ProjectionLink, ExplainedProjection).
+message ProjectionLink {
+  string name = 1;
+  string version = 2;
+  uint64 revision = 3;
+  string digest = 4;
+  bool stale = 5;
+  bool comparable = 6;
+  Epistemic epistemic = 7;
+}
+
+// EvidenceLink is one immutable evidence artifact reference
+// (internal/domains/intelligence EvidenceLink).
+message EvidenceLink {
+  string ref = 1;
+  string kind = 2;
+}
+
+// ChronologyEntry is one element on the merged, deterministically ordered
+// timeline over every disclosed section. Adjacency means "recorded in this
+// order", never "caused by" (internal/domains/intelligence ChronologyEntry).
+message ChronologyEntry {
+  google.protobuf.Timestamp at = 1;
+  Section section = 2;
+  string kind = 3;
+  string ref = 4;
+  string digest = 5;
+  Epistemic epistemic = 6;
+  LinkBasis basis = 7;
+}
+
+// ExplanationGap is one part of the record that could not be established.
+// Gaps are reported rather than smoothed over
+// (internal/domains/intelligence Gap).
+message ExplanationGap {
+  Section section = 1;
+  string reason = 2;
+}
+
+// Completeness says whether an explanation is whole, and where it is not.
+// gaps are "we do not have it"; redactions are "you may not see it" — they
+// are reported separately because they are different answers
+// (internal/domains/intelligence Completeness).
+message Completeness {
+  bool complete = 1;
+  repeated ExplanationGap gaps = 2;
+  repeated string redactions = 3;
+}
+
+// SectionDisclosureRecord is one section's disclosure outcome
+// (internal/domains/intelligence SectionDisclosure).
+message SectionDisclosureRecord {
+  Section section = 1;
+  SectionAccess access = 2;
+  string denial_reason = 3;
+  int32 entries = 4;
+}
+
+// Explanation is the reconstructed, authorized chronology of one business
+// transaction: what was asked, decided, written, observed, reconciled and
+// repaired, assembled from recorded evidence with nothing inferred and
+// nothing silently widened past what the caller's authorization decision
+// covers (internal/domains/intelligence Explanation;
+// planning/specs/hris-admin-dataops.md "AuthZ Simulator and Explainer").
+message Explanation {
+  string intent_type = 1;
+  string intent_version = 2;
+  hcmnext.common.v1.EntityRef transaction = 3;
+  TransactionDisclosure disclosure = 4;
+  TransactionPresence presence = 5;
+  string withheld_reason = 6;
+  google.protobuf.Timestamp as_known_at = 7;
+  repeated SectionDisclosureRecord sections = 8;
+  ExplainedRequest request = 9;
+  repeated ControlVersion controls = 10;
+  repeated TransitionRecord transitions = 11;
+  repeated WriteSetEntry write_set = 12;
+  repeated LedgerEventRecord events = 13;
+  repeated EffectRecord effects = 14;
+  repeated ObservationLink observations = 15;
+  repeated ReconciliationLink reconciliations = 16;
+  repeated RepairLink repairs = 17;
+  repeated ProjectionLink projections = 18;
+  repeated EvidenceLink evidence_refs = 19;
+  repeated ChronologyEntry chronology = 20;
+  uint64 ledger_head = 21;
+  // evidence_precedence names the fixed rule applied when a projection and
+  // the ledger disagree. It is always "LEDGER_OVER_PROJECTION"
+  // (internal/domains/intelligence EvidencePrecedence): the value is not
+  // configurable and is carried so a consumer never has to hardcode it.
+  string evidence_precedence = 22;
+  Completeness completeness = 23;
+  uint64 watermark = 24;
+  repeated string narrative = 25;
+  string policy_version = 26;
+  string rule_pack_version = 27;
+  string inputs_digest = 28;
+  string result_digest = 29;
+  EffectCounters effect_counters = 30;
+  ZeroEffectReceipt receipt = 31;
+}

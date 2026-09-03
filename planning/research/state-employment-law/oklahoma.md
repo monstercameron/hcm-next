@@ -150,7 +150,7 @@ Oklahoma is an at-will employment state: employers and employees may terminate t
 - No state law banning workplace email/internet monitoring or video monitoring of work areas.
 - Reasonable expectation of privacy doctrine applies (common law).
 
-**Tobacco use** (50 O.S. § 50-11 et seq., Employee Privacy Act):
+**Tobacco use** (40 O.S. § 500 et seq., Oklahoma Employee Privacy Act — lawful off-duty tobacco use):
 
 - Employer may not discriminate against or discipline employee for lawful off-duty tobacco use.
 - No requirement for employer accommodation of tobacco use on-site.
@@ -267,7 +267,7 @@ Oklahoma is an at-will employment state: employers and employees may terminate t
 
 **Open questions for legal review**:
 
-- Verify whether implied contract for "cause-only termination" (OKC 1.3.2, Weiner v. McGraw-Hill, Inc.) can be formed after hire or only at hire.
+- Verify whether implied contract for "cause-only termination" (Oklahoma implied-contract case law, e.g. Hinson v. Cameron, 1987 OK 49; verify) can be formed after hire or only at hire.
 - Clarify scope of "established customers" under § 219A non-solicitation (specific names, customer list, defined territory).
 - Verify whether workers' comp retaliation extends to all employment actions (including promotion deferral or pay increase denial).
 - Confirm whether SQ 832 rejection (June 2026) affects any pending legislation on minimum wage (2026-2027 session).

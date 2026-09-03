@@ -142,7 +142,7 @@ South Dakota recognizes at-will employment: either party may terminate at will w
 
 **Employee monitoring**: No state statute restricting workplace email, internet, or video monitoring; common-law reasonable-expectation-of-privacy doctrine applies.
 
-**Biometric data**: No specific state law; federal BIPA applies to employers with operations in Illinois.
+**Biometric data**: No specific state law; the Illinois Biometric Information Privacy Act (740 ILCS 14, a state law) applies only to employers with Illinois operations.
 
 **Data residency/processing**: No state law mandating data residency; employers may store/process in-state or out-of-state provided breach notification laws met.
 

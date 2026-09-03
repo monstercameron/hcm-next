@@ -1,9 +1,11 @@
 # Massachusetts Employment Law Research
 
+**State:** Massachusetts | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **Employment-at-will with public policy exceptions**: Employers may terminate for any reason unless it violates clear public policy (refusing illegal acts, exercising statutory rights, performing jury duty, filing wage claims, filing personnel record rebuttals).
-- **Pay transparency mandate (Oct 29, 2025)**: Employers with 25+ employees must disclose pay ranges in ALL external and internal job postings; promotion offers to existing employees must also include pay range.
+- **Pay transparency mandate (July 31, 2025)**: Employers with 25+ employees must disclose pay ranges in ALL external and internal job postings; promotion offers to existing employees must also include pay range.
 - **Salary history ban**: Employers may not inquire about or consider an applicant's previous wage/salary history unless voluntarily disclosed by the candidate (M.G.L. c. 149 § 105A).
 - **EEO-1 pay data reporting**: Employers with 100+ Massachusetts employees must file annual (or biennial, depending on federal requirement) wage-equity reports with the Commonwealth starting February 1, 2025.
 - **Earned Sick Time accrual (paid)**: Employers with 11+ employees must provide 40 hours paid sick time annually (1 hour per 30 hours worked); employees accrue after 90-day eligibility period.
@@ -17,7 +19,7 @@
 
 Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law): either party may terminate without cause or advance notice.
 
-**Exceptions to at-will status**:
+**Exceptions to at-will status** (all create private right of action for wrongful discharge):
 
 - Termination for filing or asserting workers' compensation claim, unemployment insurance claim, or wage enforcement claim.
 - Termination for refusing to commit illegal acts or for exercising constitutional rights (free speech, assembly, religious freedom).
@@ -28,9 +30,10 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 **Required written notices at hire and on change**:
 
-- At hiring, employer must provide written disclosure of: wage rate, hours of employment, payment schedules, benefits (paid leave, health insurance, policies), deductions, and all workplace policies.
-- No statutory waiting period mandated for pay-change notices, but employers should provide notice before or contemporaneous with the change to satisfy transparency obligations.
-- On promotion or role change, employer must disclose new pay range and affected benefits (PFML eligibility, sick leave accrual rate, etc.).
+- At hiring, employer must provide written disclosure of: wage rate (hourly or salary), hours of employment, payment schedules (payday, frequency), benefits (paid leave entitlements, health insurance eligibility, policies), deductions (taxes, court orders, voluntary), workplace policies, and wage theft prevention notice.
+- No statutory waiting period mandated for pay-change notices; employers should provide notice before or contemporaneous with the change to satisfy transparency and good-faith dealing obligations.
+- On promotion or role change, employer must disclose new pay range and affected benefits (PFML eligibility, sick leave accrual changes, benefits enrollment if changed).
+- Failure to provide required notices may support wage theft or breach of contract claims; platform should enforce completion before pay or role changes take effect.
 
 ## 3. Wages: Minimum Wage, Overtime, Pay Frequency, Final Pay, Deductions
 
@@ -42,8 +45,8 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 **Overtime**:
 
 - Nonexempt employees must be paid 1.5x regular rate for all hours over 40 per week (M.G.L. c. 151 § 1A); minimum overtime rate is $22.50/hour based on $15 minimum wage.
-- Massachusetts calculates overtime weekly only (no daily or 7th-day overtime mandates).
-- Exempt categories: executive, professional, outside salesperson, agricultural worker, domestic worker (verify exact exemptions; platform should default to non-exempt and require justification).
+- Massachusetts calculates overtime weekly only (no daily or 7th-day overtime mandates); overtime is cumulative within each workweek.
+- Exempt categories: executive (managerial duties, salary floor of 2.5x minimum wage), professional (intellectual work, discretion, judgment), outside salesperson, agricultural worker, domestic worker (verify exact exemptions and salary floors; platform should default to non-exempt and require documented justification for each exemption claimed).
 
 **Pay frequency and final pay**:
 
@@ -54,20 +57,23 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 **Permitted deductions**:
 
-- Only deductions required by law (taxes, garnishments, court orders), with employee written authorization, or for court-ordered restitution are permitted (M.G.L. c. 149 § 148).
-- No deductions for "tools of trade," uniforms, or other employer-imposed costs.
-- Paid time off (sick leave, vacation) cannot be forfeited except as specifically allowed by statute (e.g., sick leave may vest annually).
+- Only deductions required by law (federal/state taxes, Social Security/Medicare, garnishments, court orders), with employee written authorization, or for court-ordered restitution are permitted (M.G.L. c. 149 § 148).
+- Prohibited deductions: uniforms, tools of trade, equipment required for work, safety equipment, cell phone charges, vehicle costs, or employer-imposed business expenses.
+- No deductions for breaking company property, cash shortages, or attendance unless employee has written agreement for full liability and reasonable advance notice.
+- Paid time off (sick leave, vacation) cannot be forfeited except as specifically allowed by statute (e.g., earned sick time may vest and accrue annually; vacation accrual may be subject to payout on separation depending on company policy and contract terms).
+- Platform should prohibit deductions outside the permitted categories and flag attempts to deduct prohibited items.
 
 **Pay statement content**:
 
 - Employers must maintain payroll records documenting employee name, address, occupation, daily/weekly hours, wage rate, deductions, and gross/net pay for at least 3 years (M.G.L. c. 149 § 49).
-- Federal FLSA requires itemized pay stubs; no specific Massachusetts statute mandates detailed pay stub format.
+- Federal FLSA requires itemized pay stubs; no specific Massachusetts statute mandates detailed pay stub format beyond federal requirements.
+- Platform should generate pay stubs documenting: gross pay, overtime pay (if any), deductions (taxes, garnishments, authorized), net pay, year-to-date totals, accrued paid leave, and pay period dates.
 
 ## 4. Pay Transparency and Equity
 
 **Salary range disclosure (Frances Perkins Workplace Equity Act, M.G.L. c. 149 § 105F)**:
 
-- Effective October 29, 2025, employers with 25+ employees must include pay range in **all** job postings (external and internal), including promotions.
+- Effective July 31, 2025, employers with 25+ employees must include pay range in **all** job postings (external and internal), including promotions.
 - Pay range defined as the annual salary or hourly wage range the employer reasonably and in good faith expects to pay at time of posting.
 - Failure to disclose may result in penalties and enforcement by Massachusetts Attorney General.
 
@@ -85,10 +91,12 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 **Equal pay statute (M.G.L. c. 149 § 105A)**:
 
-- Employers cannot pay employees less than others of a different gender for comparable work (M.G.L. c. 149 § 105A).
-- "Wages" includes all forms of remuneration: salary, commissions, bonuses, profit-sharing, deferred compensation, vacation, retirement, insurance, expense accounts, paid time off.
-- Employer defenses: wage differential is based on seniority, merit, quality of production, or system other than gender.
-- Employer may not ask about, consider, or disclose prior salary history.
+- Employers cannot pay employees less than others of a different gender for comparable work in the same workplace (M.G.L. c. 149 § 105A).
+- "Wages" includes all forms of remuneration: salary, commissions, bonuses, profit-sharing, deferred compensation, vacation, retirement, insurance, expense accounts, paid time off, stock options.
+- Comparable work test: jobs need not be identical but must require substantially equal skill, effort, and responsibility under similar working conditions.
+- Employer defenses: wage differential is based on established seniority system, merit system, system measuring earnings by quality/quantity of work, or legitimate business factor other than gender.
+- Employer may not ask about, consider, or disclose prior salary history in any hiring or compensation decision.
+- Remedies: Back pay, front pay, reasonable attorney fees, and treble damages in cases of deliberate violation.
 
 ## 5. Leave and Time: Paid Sick Leave, PFML, and Interaction with Pay/Role Changes
 
@@ -104,7 +112,7 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 **Paid Family and Medical Leave (M.G.L. c. 175M)**:
 
 - **Eligibility**: Private employees who have worked for employer for 12+ months and worked 1,000+ hours in prior 12 months.
-- **Duration**: Up to 16 weeks unpaid leave in any 24-month period.
+- **Duration**: Paid leave of up to 12 weeks for family reasons, 20 weeks for the employee's own serious health condition, 26 weeks for military caregiving, and 26 weeks combined per benefit year (M.G.L. c. 175M § 2). Weekly benefit: 80% of the portion of average weekly wage at or below 50% of the state average weekly wage, plus 50% of the portion above, capped (cap $1,170.64 in 2025; verify 2026).
 - **Qualifying reasons**: Birth/adoption, child care (first year), serious health condition (employee or family member), spouse/child/parent military service, organ donation.
 - **Contribution rates** (effective 2026; shifted January 1, 2027):
   - Employers with 25+ covered individuals: 0.88% of eligible wages (medical 0.42%, family 0.18% shifted to employer).
@@ -112,11 +120,31 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 - **Job restoration** (M.G.L. c. 175M § 2(e)): Upon return, employee must be restored to same or equivalent position with same status, pay, benefits, seniority, and length-of-service credit; exceptions for economic layoffs or term-limited positions.
 - **Benefits protection**: Accrued vacation, sick leave, bonuses, advancement, seniority, and length-of-service credit are not affected by PFML leave.
 
+**Small necessities leave (M.G.L. c. 149 § 52D)**:
+
+- Employees may use up to 24 hours (3 days) per year for: child/elderly parent/spouse care during school/daycare closure, medical/dental appointments, emergency shelter, legal service related to domestic violence, or other school/daycare-related activities.
+- Employers with 50+ employees must provide; employers with fewer than 50 may provide unpaid leave.
+- Can be taken in minimum 2-hour increments where practicable.
+
+**Domestic violence leave (M.G.L. c. 149 § 52E)**:
+
+- Applies to employers with 50+ employees.
+- Employees experiencing domestic violence, sexual assault, or stalking may take reasonable leave to seek legal assistance, medical attention, counseling, or safe housing.
+- Employer must maintain confidentiality; cannot disclose without consent.
+- Retaliation for taking leave is prohibited.
+
+**Lactation and nursing (M.G.L. c. 149 § 105D)**:
+
+- Employers must provide reasonable break time and private space (other than bathroom) for nursing mothers to express breast milk during work hours.
+- Applies to all employers; not limited by size threshold.
+- Breaks should be paid if possible; at minimum, reasonable unpaid breaks must be provided.
+
 **Interaction with pay or role changes**:
 
 - If employee is promoted or receives pay increase during leave, employer must honor the change upon return (or verify applicable case law).
-- Sick leave accrual continues during unpaid leave; platform must track accrual clock.
+- Sick leave accrual continues during unpaid PFML leave; platform must track accrual clock.
 - If employee returns from PFML and is promoted within 30 days, employer should document that promotion is not a retaliatory action (though burden is on employee to prove retaliation).
+- Small necessities and domestic violence leave do not reset paid time-off benefits or seniority upon return.
 
 ## 6. Records and Access: Retention, Employee Access, Format
 
@@ -147,14 +175,21 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 **Employee data privacy**:
 
-- No specific state employee-data privacy law separate from consumer privacy; Massachusetts Data Privacy Act (201 CMR 17.00 and related) applies to personal information security.
-- **Verify**: Whether CTDPA-style "sensitive data" applies to employee biometric data (fingerprints, voiceprints for timekeeping); likely requires consent for collection/processing.
+- Massachusetts has **no comprehensive consumer data privacy law** as of 2026-09-03 (pending bills; verify current status).
+- **Written Information Security Program (WISP)**: Employers holding personal information of Massachusetts residents must establish written security policies and procedures (201 CMR 17.00). This applies to employee data.
+- **Privacy right**: M.G.L. c. 214 § 1B provides a constitutional privacy right; scope as applied to employee data remains subject to judicial interpretation.
+- **Personnel record privacy**: M.G.L. c. 149 § 52C addresses personnel record access and notification requirements (see Section 6).
 
 **Electronic monitoring and biometric data**:
 
 - Illegal to operate electronic surveillance devices in areas designed for health/personal comfort (restrooms, locker rooms, lounges) or possessions safeguarding (M.G.L. c. 149 § 31).
 - No statutory ban on email, internet, or general workplace video monitoring (subject to reasonable expectation of privacy doctrine).
-- **Biometric data**: If employer uses fingerprint or facial recognition for timekeeping, verify applicability of CTDPA or other privacy rules; safer approach is to obtain written employee consent.
+- **Biometric data**: Massachusetts has no statute restricting biometric data collection (fingerprint, facial recognition, voiceprint timekeeping); employers should obtain written employee consent as best practice; verify whether any pending bills impose restrictions (verify).
+
+**Lie detector tests**:
+
+- Employers cannot require, request, or suggest that employees take lie detector (polygraph) tests as a condition of employment or continued employment (M.G.L. c. 149 § 19B).
+- Employers must inform job applicants that lie detector tests cannot be required; failure to disclose is unlawful.
 
 **Breach notification (M.G.L. c. 93H)**:
 
@@ -172,32 +207,37 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 **Ban-the-box (M.G.L. c. 151B § 4(9½))**:
 
 - Employers **cannot ask about criminal history on the initial written job application**.
-- Criminal history inquiries may be made later in hiring process (during or after interview).
+- Criminal history inquiries may be made later in hiring process (during or after interview stage).
 - **Look-back periods**: Misdemeanor convictions more than 3 years before application are protected (unless applicant was incarcerated during that period).
 - **Fully protected convictions**: First convictions for drunkenness, simple assault, minor traffic violations; all sealed or expunged records; arrests/detentions not resulting in conviction.
-- **Exceptions**: Employers may ask on initial application if federal or state law creates mandatory/presumptive disqualification for specific conviction types for that position.
+- **Exceptions**: Employers may ask on initial application if federal or state law creates mandatory/presumptive disqualification for specific conviction types for that position (e.g., childcare, security, financial services roles).
+- Platform should enforce sequential ordering: remove criminal history from initial application form; enable inquiry field only after interview stage.
 
 **Background checks**:
 
 - No state statute restricting private-sector background checks; federal Fair Credit Reporting Act (FCRA) applies.
-- If using third-party consumer reporting agency, FCRA procedures (notice, dispute rights, adverse-action procedures) are mandatory.
+- If using third-party consumer reporting agency, FCRA procedures are mandatory: (1) written notice before background check; (2) pre-adverse action notice and opportunity to dispute if employer proposes to take adverse action based on report; (3) final adverse-action notice with copy of report and FCRA dispute procedures.
+- Employers must comply with M.G.L. c. 149 § 52C requirements when adding background check results to personnel file (10-day notification if information is or may be used negatively).
+- Recommended: Conduct background checks after interview to align with ban-the-box practice, even if not legally required for all positions.
 
 **Drug testing**:
 
-- No state-level statute regulating private-sector drug testing; federal law (pre-employment, reasonable suspicion, post-accident, DOT rules) governs.
-- Employers should verify local ordinances in jurisdictions where employees work.
+- No state-level statute regulating private-sector drug testing scope; federal law (pre-employment, reasonable suspicion, post-accident, DOT rules) and FCRA apply if using third-party testing vendors.
+- Employers should verify local ordinances in jurisdictions where employees work; some municipalities restrict drug testing or require notice.
+- Positive test results must be handled consistently with personnel record notification requirements (M.G.L. c. 149 § 52C).
 
 **E-Verify mandate**:
 
-- No Massachusetts state mandate for private-sector E-Verify; federal I-9 and E-Verify requirements apply.
+- No Massachusetts state mandate for private-sector E-Verify; federal I-9 verification and E-Verify requirements (for certain federal contractors) apply.
+- Public employers may be subject to state or federal E-Verify mandates depending on grant/contract conditions.
 
 ## 9. Separation: Mini-WARN, Severance, Notice, Non-Compete/Non-Solicit
 
-**Mini-WARN Act and severance**:
+**Plant closing and WARN**:
 
-- Massachusetts does **not** have a mini-WARN act. Federal WARN Act (60 days' notice for employers with 100+ employees and mass layoff affecting 50+ or plant closing) applies.
-- Massachusetts plant-closing law (M.G.L. c. 151A §§ 71A–71B) requires notice but is **not currently funded or enforced**.
-- **Verify**: Current status of state plant-closing enforcement; federal WARN Act is the operative requirement.
+- **No state mini-WARN**: Massachusetts has no enforceable mini-WARN act with statutory penalties. State plant-closing notice law (M.G.L. c. 151A §§ 71A–71B, 1984) requires notice to state and affected parties but is largely voluntary and not funded or enforced.
+- **Federal WARN Act applies**: Employers with 100+ employees planning a mass layoff (50+ affected) or plant closing must provide 60 days' notice to affected workers, state labor agency, and local government (29 U.S.C. § 2101). This is the **operative requirement** for Massachusetts workforces.
+- **Health insurance continuation**: Verify applicability of M.G.L. c. 149 § 182 (standards for quasi-public agency financing; plant-closing assistance programs) to determine if COBRA or state continuation-of-coverage rules supplement federal WARN (verify).
 
 **Non-compete enforceability (M.G.L. c. 149 § 24L)**:
 
@@ -209,10 +249,11 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 - **Garden leave exception**: If agreement meets garden leave requirements, it is **not a noncompete** and different rules may apply.
 - Courts may modify unreasonable restrictions using blue-pencil doctrine.
 
-**Non-solicitation enforceability**:
+**Non-solicitation and confidentiality enforceability**:
 
 - Non-solicitation of employees or customers (restriction on recruiting/hiring) is not a "noncompete" if restriction duration does not exceed 1 year and is no more restrictive than necessary in scope, geography, and employer definition.
-- Enforced under same reasonableness standard as noncompetes.
+- Non-solicitation agreements enforced under reasonableness standard but do not require garden leave payment (unlike noncompetes).
+- Trade secret and confidentiality agreements are enforceable without garden leave if they protect legitimate business interests and are reasonable in scope.
 
 ## 10. Classification and Multi-State: Contractor Tests, Remote Workers, Reciprocity
 
@@ -229,11 +270,12 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 - No Massachusetts statute specifically addresses remote work classification; standard employment law applies regardless of work location.
 - If remote employee works for Massachusetts employer or performs work in Massachusetts, Massachusetts law applies.
 
-**Multi-state employment (reciprocity)**:
+**Multi-state employment (reciprocity and choice of law)**:
 
-- No reciprocity doctrine in Massachusetts statute.
-- If employee works across state lines, Massachusetts law applies to work performed in the state; concurrent application of other states' laws is possible.
-- **Platform requirement**: Flag when workforce change affects employees in multiple states to ensure multi-state compliance checks.
+- No reciprocity doctrine in Massachusetts statute; no presumption that one state's law yields to another.
+- If employee works across state lines or for multi-state employer, Massachusetts law applies to work performed in Massachusetts.
+- Concurrent application of multiple states' employment laws is possible when employee works in or resides in multiple jurisdictions.
+- Platform design: Flag when workforce change affects employees in multiple states, trigger compliance checklists for each affected state, and require explicit acknowledgment of multi-state liability.
 
 ## 11. Implications for P1A/P1B: Promotion and Base-Pay Change Obligations
 
@@ -249,7 +291,7 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 
 5. **Sick leave accrual**: Model 40-hour annual entitlement for employers with 11+ employees (1 hour per 30 hours worked); 90-day eligibility gate; accrual continues during unpaid leave; cannot be forfeited except vesting per statute.
 
-6. **PFML eligibility**: Gate 16-week leave for Massachusetts employees with 12+ months tenure, 1,000+ prior-year hours, and employer with 25+ covered individuals; contribution rates shift effective 1/1/27 (0.88% total); track 24-month rolling leave usage.
+6. **PFML eligibility**: Gate PFML (12/20/26-week) leave for Massachusetts employees with 12+ months tenure, 1,000+ prior-year hours, and employer with 25+ covered individuals; contribution rates shift effective 1/1/27 (0.88% total); track 24-month rolling leave usage.
 
 7. **PFML pay and benefits interaction**: Document that pay changes during leave do not affect job restoration upon return (same or equivalent position, same status, pay, benefits, seniority); flag if promotion occurs during PFML return window (30 days post-return) for retaliation risk audit.
 
@@ -278,68 +320,62 @@ Massachusetts is an employment-at-will state (M.G.L. c. 149 § 1 and common law)
 - Clarify whether PFML promotion during return window (within 30 days post-leave) requires special documentation to defend against retaliation claim.
 - Confirm whether implied employment contract doctrine has been applied in recent Massachusetts case law and what factual patterns trigger it.
 - Verify whether paid time off (vacation, bonuses) must be treated as "wages" for final-pay purposes or if sick leave alone is sufficient.
-- Determine scope of CTDPA "sensitive data" consent requirement for employee biometric data (fingerprint timekeeping) vs. customer/applicant data only.
+- Massachusetts has no comprehensive privacy statute; determine whether 201 CMR 17.00 WISP obligations cover biometric timekeeping data and whether pending biometric bills change that (verify).
 - Confirm whether Frances Perkins Act § 105F pay range disclosure must include benefits description or pay range only.
 - Verify look-back period and scope of ban-the-box exceptions for specific job categories (e.g., childcare, security, financial services).
 
 ## 12. Sources
 
-1. Massachusetts General Laws Chapter 149, Section 148 (Wage Act—final pay on discharge/resignation, treble damages) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section148 (retrieved 2026-09-03)
+1. [Massachusetts General Laws Chapter 149, Section 148—Wage Act](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section148) — retrieved 2026-09-03
 
-2. Massachusetts General Laws Chapter 149, Section 150 (Treble damages and attorney fees for wage violations) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section150 (retrieved 2026-09-03)
+2. [Massachusetts General Laws Chapter 149, Section 150—Treble damages and attorney fees](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section150) — retrieved 2026-09-03
 
-3. Massachusetts General Laws Chapter 151, Section 1 (Minimum wage and overtime—1.5x for hours over 40/week) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151/Section1 (retrieved 2026-09-03)
+3. [Massachusetts General Laws Chapter 151, Section 1—Minimum wage and overtime](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151/Section1) — retrieved 2026-09-03
 
-4. Massachusetts General Laws Chapter 151, Section 1A (Overtime rates and exemptions) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151/Section1A (retrieved 2026-09-03)
+4. [Massachusetts General Laws Chapter 151, Section 1A—Overtime rates and exemptions](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151/Section1A) — retrieved 2026-09-03
 
-5. Massachusetts General Laws Chapter 149, Section 105A (Equal pay for equal work; salary history ban) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section105A (retrieved 2026-09-03)
+5. [Massachusetts General Laws Chapter 149, Section 105A—Equal pay and salary history ban](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section105A) — retrieved 2026-09-03
 
-6. Massachusetts General Laws Chapter 149, Section 105F (Frances Perkins Workplace Equity Act—pay range disclosure, EEO-1 reporting for 100+ employees) — https://malegislature.gov/Laws/SessionLaws/Acts/2024/Chapter141 (retrieved 2026-09-03)
+6. [Massachusetts General Laws Chapter 149, Section 105F—Frances Perkins Workplace Equity Act](https://malegislature.gov/Laws/SessionLaws/Acts/2024/Chapter141) — retrieved 2026-09-03
 
-7. Massachusetts General Laws Chapter 149, Section 148C (Earned Sick Time accrual—1 hour per 30 hours, 40 hours annual cap, 90-day eligibility) — https://www.mass.gov/info-details/mass-general-laws-c149-ss-148c (retrieved 2026-09-03)
+7. [Massachusetts General Laws Chapter 149, Section 148C—Earned Sick Time](https://www.mass.gov/info-details/mass-general-laws-c149-ss-148c) — retrieved 2026-09-03
 
-8. Massachusetts General Laws Chapter 175M (Paid Family and Medical Leave Act—16 weeks, contribution rates, job restoration, benefits protection) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter175M (retrieved 2026-09-03)
+8. [Massachusetts General Laws Chapter 175M—Paid Family and Medical Leave Act](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter175M) — retrieved 2026-09-03
 
-9. Massachusetts General Laws Chapter 149, Section 52C (Personnel records—access within 5 business days, 10-day notification of negative information, 3-year retention) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section52C (retrieved 2026-09-03)
+9. [Massachusetts General Laws Chapter 149, Section 52C—Personnel records access](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section52C) — retrieved 2026-09-03
 
-10. Massachusetts General Laws Chapter 149, Section 24L (Noncompetition Agreement Act—garden leave, reasonableness, less restrictive alternatives) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section24L (retrieved 2026-09-03)
+10. [Massachusetts General Laws Chapter 149, Section 24L—Noncompetition Agreement Act](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section24L) — retrieved 2026-09-03
 
-11. Massachusetts General Laws Chapter 151B, Section 4(9½) (Ban-the-box—criminal history inquiry timing, look-back periods, protected records) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151B (retrieved 2026-09-03)
+11. [Massachusetts General Laws Chapter 151B, Section 4(9½)—Ban-the-box](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151B) — retrieved 2026-09-03
 
-12. Massachusetts General Laws Chapter 149, Section 148B (Independent contractor ABC test—control, scope, customary trade) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section148B (retrieved 2026-09-03)
+12. [Massachusetts General Laws Chapter 149, Section 148B—Independent contractor ABC test](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section148B) — retrieved 2026-09-03
 
-13. Massachusetts General Laws Chapter 149, Section 100 (Meal breaks—30 minutes after 6 hours work) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section100 (retrieved 2026-09-03)
+13. [Massachusetts General Laws Chapter 149, Section 100—Meal breaks](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section100) — retrieved 2026-09-03
 
-14. Massachusetts General Laws Chapter 149, Section 19B (Lie detector tests—prohibition on use or requirement as employment condition; notice requirement on applications) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section19B (retrieved 2026-09-03)
+14. [Massachusetts General Laws Chapter 149, Section 19B—Lie detector tests](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section19B) — retrieved 2026-09-03
 
-15. Massachusetts General Laws Chapter 93H (Data breach notification—"as soon as practicable," notification to AG and affected residents, free credit monitoring) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter93H (retrieved 2026-09-03)
+15. [Massachusetts General Laws Chapter 93H—Data breach notification](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter93H) — retrieved 2026-09-03
 
-16. Massachusetts General Laws Chapter 149, Section 182 (Standards for companies financed by quasi-public agencies; plant closing notice and assistance) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section182 (retrieved 2026-09-03)
+16. [Massachusetts General Laws Chapter 149, Section 182—Quasi-public agency standards](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section182) — retrieved 2026-09-03
 
-17. Massachusetts General Laws Chapter 151A, Sections 71A–71B (Plant Closing Law—notice requirement, unenforced) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151A (retrieved 2026-09-03)
+17. [Massachusetts General Laws Chapter 151A, Sections 71A–71B—Plant Closing Law](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter151A) — retrieved 2026-09-03
 
-18. Massachusetts General Laws Chapter 149, Section 49 (Payroll record retention—3 years minimum: name, address, hours, wages, deductions) — https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section49 (retrieved 2026-09-03)
+18. [Massachusetts General Laws Chapter 149, Section 49—Payroll record retention](https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section49) — retrieved 2026-09-03
 
-19. Massachusetts Department of Labor — Wage and Hour Laws — https://www.mass.gov/info-details/massachusetts-law-about-wages (retrieved 2026-09-03)
+19. [National Law Review—Massachusetts Enacts Pay Transparency and Reporting Requirements](https://natlawreview.com/article/massachusetts-enacts-pay-transparency-and-reporting-requirements-employers) — retrieved 2026-09-03
 
-20. Massachusetts Department of Labor — Earned Sick Time FAQs and Regulations (940 CMR § 33.03) — https://www.mass.gov/info-details/mass-general-laws-c149-ss-148c (retrieved 2026-09-03)
+20. [201 CMR 17.00—Standards for Safeguarding Employee Personal Information](https://www.mass.gov/regulations/201-cmr-17000-standards-for-safeguarding-employee-personal-information) — retrieved 2026-09-03
 
-21. Massachusetts Department of Labor — Paid Family and Medical Leave (PFML)—contribution rates, job restoration, benefits protection — https://www.mass.gov/info-details/paid-family-and-medical-leave-employer-contribution-rates-and-calculator (retrieved 2026-09-03)
+21. [Massachusetts Department of Labor—Earned Sick Time FAQs](https://www.mass.gov/info-details/mass-general-laws-c149-ss-148c) — retrieved 2026-09-03
 
-22. Massachusetts Department of Labor — PFML Mandatory Workplace Poster — https://www.mass.gov/doc/2026-pfml-mandatory-workplace-poster-english/download (retrieved 2026-09-03)
+22. [Massachusetts Department of Labor—Paid Family and Medical Leave](https://www.mass.gov/info-details/paid-family-and-medical-leave-employer-contribution-rates-and-calculator) — retrieved 2026-09-03
 
-23. Massachusetts Department of Labor — Independent Contractor Classification (ABC Test) — https://www.mass.gov/info-details/massachusetts-law-about-independent-contractors (retrieved 2026-09-03)
+23. [Massachusetts Department of Labor—Independent Contractor Classification](https://www.mass.gov/info-details/massachusetts-law-about-independent-contractors) — retrieved 2026-09-03
 
-24. Massachusetts Attorney General — Frances Perkins Workplace Equity Act FAQs (pay range disclosure, EEO-1 reporting) — https://www.mass.gov/doc/ago-wage-transparency-act-faqs-revised-11132025/download (retrieved 2026-09-03)
+24. [Massachusetts Attorney General—Pay Transparency in Massachusetts](https://www.mass.gov/info-details/pay-transparency-in-massachusetts) — retrieved 2026-09-03
 
-25. Massachusetts Attorney General — Pay Transparency in Massachusetts — https://www.mass.gov/info-details/pay-transparency-in-massachusetts (retrieved 2026-09-03)
+25. [Massachusetts Commission Against Discrimination (MCAD)—Workplace Discrimination Guidelines](https://www.mass.gov/info-details/overview-of-anti-discrimination-laws-enforced-by-the-mcad) — retrieved 2026-09-03
 
-26. Massachusetts Commission Against Discrimination (MCAD) — Guidelines on Workplace Harassment — https://www.mass.gov/info-details/overview-of-anti-discrimination-laws-enforced-by-the-mcad (retrieved 2026-09-03)
+26. [Massachusetts Attorney General—Data Breach Notification Law](https://www.mass.gov/info-details/report-a-data-breach) — retrieved 2026-09-03
 
-27. Massachusetts Attorney General — Data Breach Notification Law (M.G.L. c. 93H)—notification timeline, content, affected parties — https://www.mass.gov/info-details/report-a-data-breach (retrieved 2026-09-03)
-
-28. Massachusetts Attorney General — Prevention and Elimination of Discrimination and Retaliation in the Workplace (2025) — https://www.mass.gov/doc/doc-239-the-prevention-and-elimination-of-discrimination-and-retaliation-in-the-workplace/download (retrieved 2026-09-03)
-
-29. Mass.gov — Massachusetts Employment Law: Hiring Employees (ban-the-box, background checks) — https://www.mass.gov/info-details/massachusetts-law-about-hiring-employees (retrieved 2026-09-03)
-
-30. National Law Review — Massachusetts Enacts Pay Transparency and Reporting Requirements (Frances Perkins Act overview) — https://natlawreview.com/article/massachusetts-enacts-pay-transparency-and-reporting-requirements-employers (retrieved 2026-09-03)
+27. [Massachusetts Employment Law—Hiring Employees and Ban-the-Box](https://www.mass.gov/info-details/massachusetts-law-about-hiring-employees) — retrieved 2026-09-03

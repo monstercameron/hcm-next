@@ -1,0 +1,146 @@
+# Architecture-rules manifest (ARCH-GO-004 through ARCH-GO-013).
+#
+# Consumed by tools/policy/archrules. This file does not edit or duplicate
+# definitions/architecture/repository-layout.yaml or
+# package-dependency-policy.yaml (both owned by a different lane/agent): it
+# adds the narrower rule data those two manifests do not yet carry at the
+# granularity ARCH-GO-004..013 need -- an explicit external-import allow-list
+# for the kernel, named forbidden-edge pairs for the intent/capability,
+# governance, workflow, transaction/conflict and ledger boundaries, the
+# required symbol shape for a shared engine package, and the adapter-marker
+# globs the port-ownership check uses.
+#
+# See planning/specs/platform-responsibility-boundaries.md and the
+# ARCH-GO-004..013 todo entries in planning/todos.md.
+
+version: 1
+module: github.com/monstercameron/hcm-next
+
+# ARCH-GO-004: internal/kernel stays dependency-minimal. Every kernel
+# subpackage's non-stdlib imports must match one of these prefixes; nothing
+# else, including Protobuf/gRPC, may appear inside internal/kernel/*.
+kernel:
+  root: internal/kernel
+  allowed_external_import_prefixes:
+    - github.com/cockroachdb/apd/v3
+    - github.com/google/uuid
+    - golang.org/x/text
+
+# ARCH-GO-005: intent owns behavior, capability owns semantic invocation.
+# capability must never import intent's own application/orchestration
+# subpackage (that would make capability depend on intent's behavior rather
+# than the reverse), and capability must not itself contain a concrete
+# domain/store/provider implementation subpackage.
+intent_capability:
+  intent_root: internal/intent
+  capability_root: internal/capability
+  forbidden_capability_imports:
+    - internal/intent/app
+  capability_forbidden_content_markers:
+    - internal/capability/*/store
+    - internal/capability/*/postgres
+    - internal/capability/*/provider
+    - internal/capability/*/adapters
+
+# ARCH-GO-006: governance composes independent policy subsystems
+# (authorization, rules, and governance's own composition) without a cycle,
+# and none of the composed subsystems may import governance back (that
+# would let a subsystem authorize its own output through the very composer
+# meant to check it).
+governance_composition:
+  governance_root: internal/governance
+  composed_roots:
+    - internal/trust/authz
+    - internal/engines/rules
+
+# ARCH-GO-007: workflow definition/compiler/runtime/step separation.
+# definition must not import compiler or runtime (the model must not know
+# how it is compiled or executed); compiler must not import a concrete
+# store; runtime must not import a domain's own persistence subpackage
+# (reusing package-dependency-policy.yaml's domain_persistence_markers
+# shape, since runtime observes the same invariant workflow already does at
+# the coarser internal/workflow layer level).
+workflow_layers:
+  definition_root: internal/workflow/definition
+  compiler_root: internal/workflow/compiler
+  runtime_root: internal/workflow/runtime
+  step_root: internal/workflow/step
+  forbidden_edges:
+    - { from: internal/workflow/definition, to: internal/workflow/compiler }
+    - { from: internal/workflow/definition, to: internal/workflow/runtime }
+  compiler_forbidden_content_markers:
+    - internal/workflow/compiler/*/postgres
+    - internal/workflow/compiler/*/store
+  domain_persistence_markers:
+    - internal/domains/*/store
+    - internal/domains/*/persistence
+    - internal/domains/*/repository
+
+# ARCH-GO-008: engines independent of domains and of each other's internals.
+# package-dependency-policy.yaml already forbids engine-to-domain edges at
+# the layer level (engine-must-not-import-domain-implementation); this adds
+# the cross-engine rule: one engine may import a sibling engine's own root
+# package (a public, versioned contract) but never a subpackage beneath it
+# (an unexported-by-convention implementation detail).
+engines:
+  root: internal/engines
+
+# ARCH-GO-009: every internal/engines/<name> package must expose this
+# minimal, consistent shape. required_any carries the "where applicable"
+# qualifier: Compile/Evaluate is only required once either one is present
+# (a pure-evaluation engine with no separate compile step need not invent
+# one), but Version and Explain are unconditional.
+engine_contract:
+  root: internal/engines
+  required_symbols:
+    - Version
+  paired_symbols:
+    - [Compile, Evaluate]
+  required_any_of:
+    - [Explain, ExplainResult, Explanation]
+
+# ARCH-GO-010: domain semantic ownership. No central internal/repository
+# package may exist, and a domain must not import a *different* domain's
+# own persistence subpackage (cross-domain writes happen through
+# capabilities/transactions, never a direct table reach-around).
+domain_ownership:
+  root: internal/domains
+  forbidden_central_repository_package: internal/repository
+  persistence_markers:
+    - internal/domains/*/store
+    - internal/domains/*/persistence
+    - internal/domains/*/repository
+
+# ARCH-GO-011: transaction coordination vs conflict analysis. transaction
+# (prepare/commit/coordinator) may depend on transaction/conflict (it calls
+# conflict analysis before committing), but conflict must never import back
+# up into the coordinator's own internals -- that direction is the cycle
+# ARCH-GO-011 exists to forbid.
+transaction_conflict:
+  transaction_root: internal/transaction
+  conflict_root: internal/transaction/conflict
+  forbidden_edges:
+    - { from: internal/transaction/conflict, to: internal/transaction }
+
+# ARCH-GO-012: semantic ledger ownership independent of PostgreSQL.
+ledger_independent:
+  ledger_root: internal/ledger
+  forbidden_import_prefixes:
+    - github.com/jackc/pgx
+    - github.com/lib/pq
+    - database/sql
+
+# ARCH-GO-013: interfaces beside consumers, adapters below ownership. No
+# central internal/repository package (shared with ARCH-GO-010's own
+# finding), and a package matching adapter_markers must not itself declare
+# an exported interface type -- a port belongs to its consumer's package,
+# an adapter only implements one.
+port_ownership:
+  forbidden_central_repository_package: internal/repository
+  adapter_markers:
+    - internal/data/postgres
+    - internal/data/*/postgres
+    - internal/data/adapters
+    - internal/data/*/adapters
+    - internal/connectivity/*/adapters
+    - internal/transaction/adapters

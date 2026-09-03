@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package hcmnext.evidence.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/evidence/v1/explanation.proto";
+import "hcmnext/evidence/v1/receipt.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+// ExecutionReceipt is the addressable resource wrapping one immutable
+// ZeroEffectReceipt: a stable id and issuance time on top of the receipt
+// payload itself, which carries no identity of its own beyond its digests.
+message ExecutionReceipt {
+  string receipt_id = 1;
+  ZeroEffectReceipt receipt = 2;
+  google.protobuf.Timestamp issued_at = 3;
+}
+
+message GetExecutionReceiptRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string receipt_id = 2;
+}
+
+message GetExecutionReceiptResponse {
+  ExecutionReceipt execution_receipt = 1;
+}
+
+message ExplainTransactionRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  hcmnext.common.v1.EntityRef transaction = 2;
+  // sections is the requested projection; empty means every section.
+  repeated Section sections = 3;
+  google.protobuf.Timestamp as_known_at = 4;
+}
+
+message ExplainTransactionResponse {
+  Explanation explanation = 1;
+}
+
+// OperationState is the coarse status of one long-running operation.
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  OPERATION_STATE_RUNNING = 1;
+  OPERATION_STATE_SUCCEEDED = 2;
+  OPERATION_STATE_FAILED = 3;
+  OPERATION_STATE_CANCELLED = 4;
+}
+
+// Operation is the typed long-running-work resource named in
+// planning/specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations
+// ("accepted long-running work: typed Operation response").
+message Operation {
+  string operation_id = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  OperationState state = 3;
+  // result is populated only when state is OPERATION_STATE_SUCCEEDED.
+  optional hcmnext.intents.v1.TypedPayload result = 4;
+  // error is populated only when state is OPERATION_STATE_FAILED.
+  optional hcmnext.common.v1.ErrorDetail error = 5;
+  string metadata_ref = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message ExportIntentEvidenceRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string intent_id = 3;
+  string purpose = 4;
+}
+
+message ExportIntentEvidenceResponse {
+  Operation operation = 1;
+}
+
+message GetOperationRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string operation_id = 2;
+}
+
+message GetOperationResponse {
+  Operation operation = 1;
+}
+
+message CancelOperationRequest {
+  string idempotency_key = 1;
+  hcmnext.common.v1.ScopeContext scope = 2;
+  string operation_id = 3;
+  string reason_ref = 4;
+}
+
+message CancelOperationResponse {
+  Operation operation = 1;
+}
+
+// EvidenceService is the immutable-receipt and transaction-explanation
+// surface named in
+// planning/specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations.
+//
+// Total P1A disposition: every method is IMPLEMENT. GetExecutionReceipt and
+// ExplainTransaction are pure reads; ExportIntentEvidence starts a governed
+// resumable export that writes only the export artifact and its own
+// Operation record, never a domain, employment, assignment, organization,
+// position, compensation or budget fact.
+service EvidenceService {
+  // P1A disposition: IMPLEMENT. Authorized immutable receipt read.
+  rpc GetExecutionReceipt(GetExecutionReceiptRequest) returns (GetExecutionReceiptResponse);
+  // P1A disposition: IMPLEMENT. Purpose-scoped decision/evidence explanation
+  // (planning/specs/hris-admin-dataops.md "AuthZ Simulator and Explainer").
+  rpc ExplainTransaction(ExplainTransactionRequest) returns (ExplainTransactionResponse);
+  // P1A disposition: IMPLEMENT. Starts a governed resumable export operation;
+  // the export artifact itself is the only thing written.
+  rpc ExportIntentEvidence(ExportIntentEvidenceRequest) returns (ExportIntentEvidenceResponse);
+}
+
+// OperationsService is the generic long-running-operation surface named in
+// planning/specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations.
+//
+// Total P1A disposition: both methods are IMPLEMENT. GetOperation is a pure
+// read; CancelOperation requests cancellation under the owning operation's
+// own policy and never forces an inconsistent state.
+service OperationsService {
+  // P1A disposition: IMPLEMENT. Current long-running operation state/result/
+  // error.
+  rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
+  // P1A disposition: IMPLEMENT. Cancellation request under operation policy;
+  // it does not force an operation into a state its owner has not reached.
+  rpc CancelOperation(CancelOperationRequest) returns (CancelOperationResponse);
+}

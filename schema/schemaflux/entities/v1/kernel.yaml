@@ -1,0 +1,347 @@
+# kernel entity sources (MSRC-003).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from planning/data/models/kernel-governance-and-evidence.md's intent and transaction kernel section with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: kernel
+family_version: 1
+source_docs:
+  - planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+entities:
+  - name: IntentInstance
+    version: 1
+    key: intent_instance
+    aliases: [BusinessIntent]
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: RequestLifecycle
+    command_boundary: CROSS_AGGREGATE_TRANSACTION
+    stream_kind: TRANSACTION
+    invariants:
+      - invariant.intent_five_dimensions/v1
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Platform intent identity: subtype registration, subject/scope, request payload digest and the five lifecycle dimensions coordinating a governed request end to end.
+    properties:
+      - name: lifecycle
+        go_type: lifecycle.Dimensions
+        schema_path: hcmnext.intents.v1.IntentInstance.lifecycle
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.intent_instance/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+      - name: definition_ref
+        go_type: string
+        schema_path: hcmnext.intents.v1.IntentInstance.definition_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.intent_instance/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+      - name: idempotency_key
+        go_type: string
+        schema_path: hcmnext.intents.v1.IntentInstance.idempotency_key
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.intent_instance/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: ProposalRevision
+    version: 1
+    key: proposal_revision
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      One immutable revision of a proposal's material write/effect/reservation/approval set and its canonical material digest, which approval binds.
+    properties:
+      - name: material_digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.ProposalRevision.material_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.proposal_revision/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+      - name: write_set_ref
+        go_type: "[]string"
+        schema_path: hcmnext.intents.v1.ProposalRevision.write_set_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.proposal_revision/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: TransactionPlan
+    version: 1
+    key: transaction_plan
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: PlanLifecycle
+    command_boundary: CROSS_AGGREGATE_TRANSACTION
+    stream_kind: TRANSACTION
+    invariants:
+      - invariant.transaction_plan_participants_declared/v1
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      One atomic multi-stream commit plan: expected stream heads, participants, reservations and the commit/abort/ambiguity outcome.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.intents.v1.TransactionPlan.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.transaction_plan/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+      - name: expected_stream_heads
+        go_type: "[]string"
+        schema_path: hcmnext.intents.v1.TransactionPlan.expected_stream_heads
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.transaction_plan/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: TransactionCommitReceipt
+    version: 1
+    key: transaction_commit_receipt
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Immutable proof one transaction plan committed: resulting stream heads, appended event refs and canonical commit digest.
+    properties:
+      - name: canonical_commit_digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.TransactionCommitReceipt.canonical_commit_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: TransactionAbortRecord
+    version: 1
+    key: transaction_abort_record
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Proof a transaction attempt did not commit: failed precondition/conflict refs and reservation disposition.
+    properties:
+      - name: reason
+        go_type: string
+        schema_path: hcmnext.intents.v1.TransactionAbortRecord.reason
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: CancellationDecision
+    version: 1
+    key: cancellation_decision
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      A policy-evaluated cancellation decision for an intent or workflow: safe point, required compensation and result state.
+    properties:
+      - name: result_state
+        go_type: string
+        schema_path: hcmnext.intents.v1.CancellationDecision.result_state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: SupersessionLink
+    version: 1
+    key: supersession_link
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Declares that a replacement intent supersedes a prior one and the disposition of approvals/reservations/effects/obligations.
+    properties:
+      - name: replacement_intent_ref
+        go_type: string
+        schema_path: hcmnext.intents.v1.SupersessionLink.replacement_intent_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: CorrectionReference
+    version: 1
+    key: correction_reference
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Links a corrective intent to the original assertion/transaction it corrects, with original and corrected effective intervals.
+    properties:
+      - name: target_transaction_ref
+        go_type: string
+        schema_path: hcmnext.intents.v1.CorrectionReference.target_transaction_ref
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: ClosureRecord
+    version: 1
+    key: closure_record
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      Evidence an intent closed: completion dimensions, approval certificate, obligation/reconciliation manifests and unresolved refs.
+    properties:
+      - name: completion_dimensions
+        go_type: string
+        schema_path: hcmnext.intents.v1.ClosureRecord.completion_dimensions
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: IntentRelationship
+    version: 1
+    key: intent_relationship
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      A typed DECOMPOSES_TO/DEPENDS_ON/BLOCKS/SUPERSEDES/CORRECTS/REPAIRS/CAUSED_BY/ANALYZES edge between two intents.
+    properties:
+      - name: relationship
+        go_type: string
+        schema_path: hcmnext.intents.v1.IntentRelationship.relationship
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.kernel_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: IntentResult
+    version: 1
+    key: intent_result
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#intent-and-transaction-kernel
+    summary: >-
+      The current-revision handle for an intent's typed result: COMPLETE/PARTIAL/UNKNOWN/AMBIGUOUS/STALE/REDACTED/UNAVAILABLE/FAILED.
+    properties:
+      - name: result_kind
+        go_type: string
+        schema_path: hcmnext.intents.v1.IntentResult.result_kind
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.kernel_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+relationships: []

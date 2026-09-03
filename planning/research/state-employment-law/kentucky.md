@@ -1,4 +1,6 @@
-# Kentucky Employment Law Research (2026-09-03)
+# Kentucky Employment Law Research
+
+**State:** Kentucky | **Researched:** 2026-09-03 | **Status:** DRAFTED
 
 ## 1. Summary for HCM Next
 
@@ -8,7 +10,7 @@
 - **Semi-monthly pay requirement**: Employers must pay wages at least semi-monthly (twice per month) by law; final pay must be within 14 days of termination or on the next regular payday (KRS 337.020, 337.055).
 - **Payroll records: 4+ years retention**: Employers must retain wage, hour, and payroll records for at least 4 years (KRS 337.320); verify FLSA federal 3-year minimum also applies.
 - **No state paid-leave mandate**: No Kentucky law mandates paid sick leave, paid family leave, or paid time off for private employees; federal FMLA (12 weeks unpaid) applies to covered employers (50+ employees within 75 miles).
-- **Equal pay protection exists**: KRS 344 (Kentucky Civil Rights Act) prohibits sex-based wage discrimination for comparable work; enforced by Kentucky Commission on Human Rights (verify current scope and case law).
+- **Equal pay protection exists**: KRS 337.420–337.433 prohibits sex-based wage discrimination for comparable work; enforced by Kentucky Department of Labor (verify current scope and case law).
 - **Non-competes enforceable under common law**: Kentucky permits non-compete and non-solicit agreements; enforceability depends on reasonableness (scope, geography, duration, legitimate business interest); no statute but case law is well-developed.
 - **No state mini-WARN; federal WARN applies**: Federal WARN Act (60 days notice for mass layoffs affecting 50+ in a 30-day period) applies; Kentucky has no separate state mass-separation notice requirement (verify recent changes).
 - **Data breach notification required**: Kentucky law (verify: likely KRS 365.732 or related statute) requires breach notification "without unreasonable delay" when personal information is exposed; specific timeline unclear, mark "verify."
@@ -38,7 +40,7 @@ No Kentucky state law requires written notice to an employee at hire regarding a
 
 **Pay Frequency**: KRS 337.020 requires employers to pay employees **at least semi-monthly** (twice per month). Employers may not adopt longer pay cycles (e.g., monthly for non-exempt workers). Dates must be fixed and regular. No state law prohibits weekly or biweekly pay (more frequent is permissible).
 
-**Final Paycheck on Termination or Resignation**: KRS 337.055 mandates that all earned wages be paid in full to a separated employee **within 14 days of termination or on the next regular payday, whichever is earlier**. Verification: confirm whether "next regular payday" after 14 days triggers payment or if 14 days is an absolute cap. Disputes over final pay (e.g., disputed commissions, benefits valuations) should be clarified in writing.
+**Final Paycheck on Termination or Resignation**: KRS 337.055 mandates that all earned wages be paid in full to a separated employee **on the next regular payday or within 14 days of separation, whichever occurs last** (statutory wording: "whichever last occurs"). Disputes over final pay (e.g., disputed commissions, benefits valuations) should be clarified in writing.
 
 **Deductions and Pay Statements**: KRS 337.060 permits only deductions required by law (federal/state income tax, Social Security, child support), court order, or **written employee authorization**. Employers may not deduct for uniforms, equipment, cash shortages, or "training clawbacks" unless explicitly authorized in a signed agreement. No specific pay-statement content requirement found in Kentucky statute; federal FLSA minimum applies (must show gross, deductions, net).
 
@@ -68,7 +70,7 @@ Violations of KRS 337.060 may constitute wage theft and expose employers to civi
 
 **Pay Range Disclosure**: No Kentucky state law requires salary ranges in job postings or on request. Federal rules do not mandate pay transparency; this remains employer discretion.
 
-**Equal Pay Law**: **KRS 344 (Kentucky Civil Rights Act)** Chapter 34, Section 344.260 (verify exact cite) prohibits sex-based wage discrimination. The statute protects against paying employees of one sex at a lower rate than the opposite sex for "substantially equal work" requiring "the same or essentially the same knowledge, skills, efforts and responsibilities," considering skill, effort, and responsibility and working conditions. Enforced by the **Kentucky Commission on Human Rights (KCHR)** (verify: exact agency name and enforcement timeline as of 2026-09-03). Exceptions to equal pay may apply for:
+**Equal Pay Law**: **KRS 337.420–337.433** prohibits sex-based wage discrimination. The statute protects against paying employees of one sex at a lower rate than the opposite sex for "comparable work" requiring "the same or essentially the same knowledge, skills, efforts and responsibilities," considering skill, effort, and responsibility and working conditions. Enforced by the **Kentucky Department of Labor** (verify: exact agency name and enforcement timeline as of 2026-09-03). Exceptions to equal pay may apply for:
 
 - Seniority systems (longer tenure justifies higher pay)
 - Merit systems (measurable performance differences)
@@ -337,7 +339,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 - **Termination.TerminationDate**: Date employment ended (last day worked or separation effective date).
 - **Termination.TerminationReason**: Enum (Voluntary Resignation, Reduction in Force, Performance Termination, Misconduct, Retirement, Other); affects unemployment-insurance eligibility and potential legal defenses.
 - **Termination.NoticeProvidedDate**: Date written notice (if any) was provided; compare to TerminationDate to verify contract compliance.
-- **Termination.FinalPayDueDate**: Calculate as `Min(TerminationDate + 14 calendar days, NextRegularPayday)` per KRS 337.055; flag if FinalPayAmount is not paid by this date.
+- **Termination.FinalPayDueDate**: Calculate as `Max(TerminationDate + 14 calendar days, NextRegularPayday)` per KRS 337.055 ("whichever last occurs"); flag if FinalPayAmount is not paid by this date.
 - **Termination.FinalPayAmount**: Gross amount (before taxes/deductions):
   - Earned regular wages through TerminationDate
   - Unpaid overtime at 1.5× (hours over 40 in final workweek)
@@ -394,7 +396,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 1. [U.S. Department of Labor – Kentucky Minimum Wage and Overtime](https://www.dol.gov/agencies/whd/minimum-wage/state) — retrieved 2026-09-03 (confirms $7.25 minimum wage and seventh-day overtime requirement)
 2. [U.S. Department of Labor – Family and Medical Leave Act (FMLA) Overview](https://www.dol.gov/agencies/whd/fmla) — retrieved 2026-09-03 (covers FMLA applicability to Kentucky employers)
 3. [U.S. Equal Employment Opportunity Commission (EEOC) – Employment Discrimination Laws](https://www.eeoc.gov) — retrieved 2026-09-03 (federal Title VII, ADA, ADEA coverage and enforcement in Kentucky)
-4. [Kentucky Civil Rights Act (KRS 344)](https://legislature.ky.gov/laws/statutes/344) — statutory reference (employment discrimination and equal pay protections; verify current text and amendments as of 2026-09-03)
+4. [Kentucky Wage and Hour Law (KRS Chapter 337)](https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=38890) — statutory reference (equal pay protections KRS 337.420–337.433; verify current text and amendments as of 2026-09-03)
 5. [Kentucky Wage and Hour Law (KRS Chapter 337)](https://legislature.ky.gov/laws/statutes/337) — statutory reference (minimum wage 337.275, overtime and seventh-day 337.285, semi-monthly pay 337.020, final pay 337.055, deductions 337.060, records 337.320)
 6. [Kentucky Unemployment Insurance Law (KRS 341.010 et seq.)](https://legislature.ky.gov/laws/statutes/341) — statutory reference (employee classification and coverage)
 7. [Federal Worker Adjustment and Retraining Notification (WARN) Act (29 U.S.C. § 2102)](https://www.dol.gov/agencies/whd/warnact) — federal requirement applicable to Kentucky employers with 50+ employees

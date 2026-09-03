@@ -1,8 +1,6 @@
 # Florida Employment Law Research
 
-**Jurisdiction:** Florida (FL)  
-**Researched:** 2026-09-03  
-**Status:** DRAFTED (unreviewed)
+**State:** Florida | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
 ## 1. Summary for HCM Next
 
@@ -31,6 +29,8 @@ Florida is an at-will employment state. Both employer and employee may terminate
 
 4. **Workers' Compensation Retaliation (Fla. Stat. § 440.205):** Employer cannot discharge, discriminate against, or retaliate against employee for filing a workers' compensation claim or in connection with a work-related injury.
 
+5. **Wrongful Combinations Against Workers (Fla. Stat. § 448.045):** Unlawful for two or more persons to agree, conspire, or combine to prevent any person from procuring work or to cause discharge from employment. Also unlawful to verbally or in writing threaten injury to life, property, or business to cause discharge or prevent procurement of work. Violation is a misdemeanor of the first degree.
+
 **No state requirement for notice of separation.** WARN Act (federal; 20 CFR 639) applies if mass layoff or plant closure affects 50+ employees at a site where employer has 100+ employees.
 
 **No written notice required at hire.** Employers may establish pay terms orally or in writing. No mandatory written employment agreement or at-will notice required by state law.
@@ -57,9 +57,9 @@ Florida is an at-will employment state. Both employer and employee may terminate
 
 **Pay data reporting:** No state-mandated pay equity reporting or data disclosure requirements for private employers.
 
-**Equal pay law:** Fla. Civil Rights Act (Fla. Stat. § 760.10) and federal Equal Pay Act (EPA) both apply. Employers may not discriminate based on sex by paying lower wages for equal work requiring equal skill, effort, responsibility, and performed under similar working conditions. Employers may justify a pay difference by proving a seniority system, merit system, production-based compensation, or a reasonable factor other than sex. Violations of state equal pay can result in up to $10,000 civil penalty per violation plus injunctive relief. Federal EPA remedies apply concurrently.
+**Equal pay law:** Fla. Stat. § 448.07 prohibits employers from discriminating based on sex in wages. Employers shall not pay employees at a rate less than the rate paid to employees of the opposite sex for equal work on jobs requiring equal skill, effort, and responsibility, performed under similar working conditions. Differences justified by seniority, merit, production-based pay, or other factors not based on sex are permitted. Remedy: employee may recover unpaid wages, capped at 1 year prior to filing claim, plus court costs and attorney fees under Fla. Stat. § 448.08. The Fla. Civil Rights Act (Fla. Stat. § 760.10) applies concurrently for sex-based discrimination claims, with civil penalties up to $10,000 per violation plus injunctive relief. Federal Equal Pay Act (29 U.S.C. § 206(d)) also applies; employer is not exempted under § 448.07 if subject to FLSA. Violations may result in dual liability under state and federal law.
 
-**Protected classes:** Fla. Civil Rights Act prohibits discrimination based on race, color, religion, sex, national origin, age (40+), disability, marital status, and familial status. Sexual orientation and gender identity protections vary by municipality (Miami, Tampa, Tallahassee, Orlando, Jacksonville, Gainesville, and others have local ordinances); state law does not yet cover these.
+**Protected classes:** Fla. Civil Rights Act (Fla. Stat. § 760.01 et seq.) applies to employers with 15+ employees and prohibits discrimination based on race, color, religion, sex, national origin, age (40+), disability, marital status, and familial status. Sexual orientation and gender identity protections vary by municipality (Miami-Dade, Tampa, Tallahassee, Orlando, Jacksonville, Gainesville have local ordinances); state law does not cover these classes statewide. Additionally, employers may not discriminate based on sickle-cell trait (Fla. Stat. § 448.075) or require sickle-cell screening as condition of employment (Fla. Stat. § 448.076). Medical marijuana use is not protected; employers may terminate for use or positive test without violating state law (Fla. Stat. § 381.986).
 
 ## 5. Leave and Time: Paid Leave, Mandated Leave, Interaction with Pay/Role Change
 
@@ -69,7 +69,11 @@ Florida is an at-will employment state. Both employer and employee may terminate
 
 **Workers' Compensation leave (Fla. Stat. § 440.102):** Employees with work-connected compensable injuries are carried in full-pay status for up to 40 work hours without being required to use accrued personal leave, available for Workers' Compensation-related appointments.
 
-**Other mandated leave:** No state mandate for military leave, voting leave, or other leave types beyond federal requirements (jury duty, FMLA, military USERRA).
+**Military leave (Fla. Stat. § 250.482):** National Guard members ordered into state active duty may not be penalized for absence. Upon return from state active duty, the member is entitled to all seniority earned prior to activation. Employers may not require use of vacation, annual, compensatory, or other leave for the absence period (though returning members may request use of accrued leave if paid). Employers may not discharge a returning member for one year following return, except for cause (amended effective July 1, 2009). Applies where federal Uniformed Services Employment and Reemployment Rights Act (USERRA) does not apply; where both apply, the more favorable provision governs.
+
+**Voting leave:** No state mandate; employers must comply with federal law (29 U.S.C. § 256) and follow federal elections law where applicable.
+
+**Other mandated leave:** No state requirement for general personal leave, bereavement leave, or other leave types beyond federal requirements (jury duty, FMLA, military USERRA).
 
 **Interaction with pay/role change:** Changing an employee's pay rate or role does not automatically trigger accrual or payout of leave. Leave balances and policies continue unless explicitly modified by the employer. No "use-it-or-lose-it" prohibition; employers may set reasonable limits on accrual or carryover (verify state common law on notice requirements for policy changes).
 
@@ -105,7 +109,9 @@ Florida is an at-will employment state. Both employer and employee may terminate
 
 **Drug testing:** No state prohibition on pre-employment or workplace drug testing. FCRA disclosures and consent required if third-party testing used. Safety-sensitive positions (transportation, healthcare, etc.) may require testing.
 
-**E-Verify (SB 1718, eff. July 1, 2023):** Mandatory for private employers with 25+ employees (statewide headcount, not Florida-only). Applies to all newly hired employees (excludes independent contractors). Employers must verify employment eligibility using federal E-Verify system by electronically matching I-9 Form against Social Security Administration and Department of Homeland Security records. Must retain I-9 and employment eligibility documents for 3 years. Penalties for non-compliance: up to $1,000/day fine if employer fails E-Verify 3+ times in any 24-month period, with potential suspension/revocation of business licenses, franchises, permits, certifications, registrations, charters, or similar authorization required by law.
+**E-Verify (Fla. Stat. § 448.095, SB 1718, eff. July 1, 2023):** Mandatory for private employers with 25+ employees (statewide headcount, not Florida-only). Applies to all newly hired employees (excludes independent contractors). Employers must verify employment eligibility using federal E-Verify system within 3 business days of hire, by electronically matching I-9 Form against Social Security Administration and Department of Homeland Security records. Must retain I-9 and employment eligibility documents for 3 years. **Penalties (enforcement effective July 1, 2024):** If employer fails E-Verify 3+ times in any 24-month period, Department of FloridaCommerce imposes $1,000/day fine until non-compliance is cured, with potential suspension/revocation of all business licenses, franchises, permits, certifications, registrations, charters, or similar authorization required by law (Fla. Stat. § 448.095). Notice and 30-day cure period required before enforcement action. Verify requires robust tracking in HCM workflows to prevent accidental violations.
+
+**Drug-free workplace program (Fla. Stat. § 440.102):** Employers may implement drug testing for pre-employment, reasonable suspicion, post-accident, fitness-for-duty, post-rehabilitation, or random screening. Testing must follow state-prescribed standards and procedures. Employers implementing a compliant drug-free workplace program are eligible for a 5% workers' compensation insurance premium credit. Testing methods must comply with state standards (e.g., breathalyzers not permitted as sole method for drugs). Test results are confidential and may not be released unless compelled by administrative law judge, hearing officer, or court. Medical marijuana use is not protected under state law; testing positive does not limit employer's right to terminate or refuse hire (Fla. Stat. § 381.986).
 
 ## 9. Separation: Mini-WARN Acts, Severance, Notice, Non-Compete/Non-Solicit
 
@@ -123,9 +129,15 @@ For employees, agents, and independent contractors: 6 months or less is presumed
 
 For distributors, dealers, franchisees, licensees: 1 year or less is presumed reasonable; over 3 years is presumed unreasonable.
 
-**CHOICE Act (eff. July 1, 2025):** Strengthened enforceability of certain non-compete agreements; narrower restrictions (non-solicits, confidentiality) remain under existing framework.
+**CHOICE Act (Ch. 2025-?, eff. July 1, 2025):** Expanded enforceability for "covered employees" earning at least twice the annual mean wage of the Florida county (as determined by U.S. Department of Labor) in which the employer has its principal place of business or the employee resides (whichever applies). For covered employees:
 
-**Non-solicit (Fla. Stat. § 542.335):** Enforceable under same reasonableness standard if designed to protect legitimate business interest in substantial customer relationships. Presumed reasonable if 5 years or less.
+- **Non-compete duration:** May extend up to 4 years (vs. 2-year presumption under § 542.335). Employer must provide written notice to covered employee at least 7 days before the non-compete becomes enforceable.
+- **Garden leave:** Covered employer and covered employee may agree to garden leave (period during which employee remains employed and paid but is not actively working) lasting up to 4 years, with mutual advance notice requirements. Garden leave compensation may satisfy pay requirements.
+- **No change to non-solicits or confidentiality:** Narrower restrictions (employee non-solicits, customer non-solicits, confidentiality) remain governed by existing § 542.335 framework and case law.
+
+For non-covered employees and non-covered employers, existing § 542.335 presumptions apply (6 months reasonable, >2 years presumed unreasonable for employees).
+
+**Non-solicit (Fla. Stat. § 542.335):** Enforceable under reasonableness standard if designed to protect legitimate business interest in substantial customer relationships or employee non-solicitation. Presumed reasonable if 5 years or less.
 
 ## 10. Classification and Multi-State: Contractor Tests, Remote Workers, Reciprocity
 
@@ -168,45 +180,74 @@ For distributors, dealers, franchisees, licensees: 1 year or less is presumed re
 
 **Open questions for product design:**
 
-1. Does HCM Next model E-Verify compliance triggering for new-hire workflows? If so, flag non-compliance for employers with 25+ employees who bypass E-Verify; track eff. date (July 1, 2023).
-2. Should platform enforce "legitimate business interest" check before user saves a non-compete or non-solicit? Verify requires platform liability assumption; consider advisory flag only.
-3. For multi-state employees: Does platform support state-specific fields for leave mandates, wage rules, and notice requirements? Florida has minimal mandates, but adjacent states (GA, AL, SC) differ widely.
-4. Termination workflow: Should platform separate "final paycheck due date" (determined by notice period and federal FLSA) from "severance due date" (voluntary, contractual)? Florida conflates both; clarity needed for connectors.
-5. Non-compete enforcement: Should platform warn user of July 1, 2025, CHOICE Act changes and offer to re-review existing covenants for compliance with new rules?
+1. **E-Verify compliance modeling:** Does HCM Next model E-Verify compliance triggering for new-hire workflows? If so, flag non-compliance for employers with 25+ employees who bypass E-Verify; track enforcement date (July 1, 2024) when penalties began. Implement audit trail for E-Verify verification dates (must be within 3 business days of hire).
+
+2. **CHOICE Act transition (July 1, 2025):** For Florida employers with 25+ employees, platform must distinguish between covered employees (earning >2x county mean wage) and non-covered employees when enforcing non-compete agreements. Covered employees can have non-competes up to 4 years; non-covered employees limited to 2-year presumption under § 542.335. Platform must:
+   - Capture county determination (employer principal place or employee residence location)
+   - Calculate county mean wage threshold annually
+   - Flag when a non-compete is applied to a covered employee and provide a mandatory 7-day notice before enforceability
+   - Warn of garden-leave provisions (up to 4 years, with mutual advance notice)
+   - Support covenant re-review for existing agreements (may benefit from CHOICE Act expansion)
+
+3. **Restrictive covenant best practices:** Should platform enforce "legitimate business interest" check before user saves a non-compete or non-solicit? Verification requires platform liability assumption; consider advisory flag only. Recommend documenting legitimate interest in agreement (trade secret, customer list, specialized training).
+
+4. **Multi-state employee modeling:** Does platform support state-specific fields for leave mandates, wage rules, and notice requirements? Florida has minimal mandates, but adjacent states (GA, AL, SC) differ widely. Military leave (§ 250.482) applies only to National Guard, not other reserve components; USERRA applies federally where more favorable.
+
+5. **Final paycheck and severance:** Should platform separate "final paycheck due date" (determined by notice period and federal FLSA) from "severance due date" (voluntary, contractual)? Florida law does not require severance unless contractual; clarity needed for connectors and templates.
+
+6. **Sickle-cell and medical marijuana:** Ensure hiring workflows do not permit applicant screening for sickle-cell trait (§ 448.075–076). Clarify that medical marijuana cards do not grant employment protection (§ 381.986); drug testing and termination are permissible. Note § 440.102 drug-free workplace insurance credit.
+
+7. **Whistleblower written notice requirement:** Ensure separation workflows document that Fla. Stat. § 448.101–105 whistleblower retaliation protection requires employee to provide written notice to employer FIRST and give reasonable opportunity to remedy. Failure to do so voids protection; this creates platform documentation obligation.
 
 ## 12. Sources
 
-1. [Florida Constitution Article X, Section 24 - Minimum Wage Amendment](https://en.wikipedia.org/wiki/2020_Florida_Amendment_2) (Retrieved 2026-09-03)
+1. [Florida Constitution Article X, Section 24 - Minimum Wage Amendment](https://en.wikipedia.org/wiki/2020_Florida_Amendment_2) — retrieved 2026-09-03
 
-2. [Florida Minimum Wage Notice to Employees - 2024 Florida Department of Economic Opportunity](https://www.floridajobs.org/docs/default-source/business-growth-and-partnerships/for-employers/posters-and-required-notices/2024-minimum-wage/2024-minimum-wage-poster---english.pdf) (Retrieved 2026-09-03)
+2. [Florida Statutes § 448.110 - Minimum Wage Calculation and CPI Adjustment](https://www.flsenate.gov/Laws/Statutes/2024/448.110) — retrieved 2026-09-03
 
-3. [Florida Statutes Chapter 440 - Workers' Compensation; Disability Benefits - 2024 Florida Senate](https://www.flsenate.gov/Laws/Statutes/2024/Chapter440) (Retrieved 2026-09-03)
+3. [Florida Department of Economic Opportunity - Minimum Wage Notice to Employees](https://www.floridajobs.org/docs/default-source/business-growth-and-partnerships/for-employers/posters-and-required-notices/2024-minimum-wage/2024-minimum-wage-poster---english.pdf) — retrieved 2026-09-03
 
-4. [Florida Statutes 440.205 - Prohibition on Discharge or Discrimination for Claim Filing](https://www.flsenate.gov/Laws/Statutes/2024/440.205) (Retrieved 2026-09-03)
+4. [Florida Statutes § 440.102 - Drug-Free Workplace Program Requirements](https://www.flsenate.gov/Laws/Statutes/2025/440.102) — retrieved 2026-09-03
 
-5. [Florida Statutes 448.101-105 - Whistleblower Protection for Private Sector Employees](https://www.flsenate.gov/Laws/Statutes/2025/448.101) (Retrieved 2026-09-03)
+5. [Florida Statutes § 440.205 - Prohibition on Discharge or Discrimination for Workers' Compensation Claim Filing](https://www.flsenate.gov/Laws/Statutes/2024/440.205) — retrieved 2026-09-03
 
-6. [Florida Statutes 448.24 - Labor Pool Act: Duties and Wage Statement Requirements](https://www.flsenate.gov/Laws/Statutes/2024/448.24) (Retrieved 2026-09-03)
+6. [Florida Statutes § 448.01–105 - Whistleblower Protection for Private Sector Employees](https://www.flsenate.gov/Laws/Statutes/2025/448.101) — retrieved 2026-09-03
 
-7. [Florida Statutes 542.335 - Enforceability of Restrictive Covenants (Non-Compete and Non-Solicit)](https://codes.findlaw.com/fl/title-xxxiii-regulation-of-trade-commerce-investments-and-solicitations/fl-st-sect-542-335/) (Retrieved 2026-09-03)
+7. [Florida Statutes § 448.07 - Wage Rate Discrimination Based on Sex Prohibited](https://www.flsenate.gov/Laws/Statutes/2024/448.07) — retrieved 2026-09-03
 
-8. [Florida Civil Rights Act Fla. Stat. 760.10 - Unlawful Employment Practices](https://www.flsenate.gov/Laws/Statutes/2024/760.10) (Retrieved 2026-09-03)
+8. [Florida Statutes § 448.045 - Wrongful Combinations Against Workers](https://www.flsenate.gov/Laws/Statutes/2025/448.045) — retrieved 2026-09-03
 
-9. [Florida Information Protection Act (FIPA) Fla. Stat. 501.171 - Data Breach Notification and Employee Privacy](https://www.flsenate.gov/Laws/Statutes/2024/501.171) (Retrieved 2026-09-03)
+9. [Florida Statutes § 448.075 - Employment Discrimination on Basis of Sickle-Cell Trait Prohibited](https://www.flsenate.gov/Laws/Statutes/2024/448.075) — retrieved 2026-09-03
 
-10. [Florida's Mandatory E-Verify Law (SB 1718) - Implementation and Compliance Guide](https://www.paylocity.com/resources/tax-compliance/alerts/florida-e-verify-requirements/) (Retrieved 2026-09-03)
+10. [Florida Statutes § 448.095 - Mandatory E-Verify for Private Employers (25+ Employees); Penalties for Non-Compliance](https://codes.findlaw.com/fl/title-xxxi-labor/fl-st-sect-448-095/) — retrieved 2026-09-03
 
-11. [Worker Adjustment and Retraining Notification (WARN) Act - Florida Department of Economic Opportunity](https://floridajobs.org/workforce-resources/worker-adjustment-and-retraining-notification-%28warn%29/warn-notices-procedure-and-instructions) (Retrieved 2026-09-03)
+11. [Florida Statutes § 448.24 - Labor Pool Act: Duties and Wage Statement Requirements](https://www.flsenate.gov/Laws/Statutes/2024/448.24) — retrieved 2026-09-03
 
-12. [20 CFR Part 639 - WARN Act Regulations - U.S. Code of Federal Regulations](https://www.ecfr.gov/current/title-20/chapter-V/part-639) (Retrieved 2026-09-03)
+12. [Florida Statutes § 250.482 - National Guard Military Leave and Reemployment Rights](https://www.flsenate.gov/Laws/Statutes/2024/250.482) — retrieved 2026-09-03
 
-13. [Fair Labor Standards Act (FLSA) - U.S. Department of Labor Wage and Hour Division](https://www.dol.gov/agencies/whd/flsa) (Retrieved 2026-09-03)
+13. [Florida Statutes § 381.986 - Medical Marijuana: No Employer Accommodation or Employment Protection Required](https://www.flsenate.gov/Laws/Statutes/2024/381.986) — retrieved 2026-09-03
 
-14. [Florida CHOICE Act (Fla. Stat. 542.335 Recent Amendments) - Strengthened Non-Compete Enforcement](https://www.akerman.com/en/perspectives/florida-makes-a-bold-choice-new-law-strengthens-enforceability-of-noncompetition-agreements.html) (Retrieved 2026-09-03)
+14. [Florida Statutes § 501.171 - Florida Information Protection Act (FIPA): Data Breach Notification Requirements](https://www.flsenate.gov/Laws/Statutes/2024/501.171) — retrieved 2026-09-03
 
-15. [Florida Ban-the-Box Ordinances: Miami-Dade County and Local Jurisdictions](https://gcheck.com/blog/ban-the-box-in-florida-what-job-seekers-should-know-in-2025/) (Retrieved 2026-09-03)
+15. [Florida Statutes § 542.335 - Enforceability of Restrictive Covenants (Non-Compete and Non-Solicit)](https://codes.findlaw.com/fl/title-xxxiii-regulation-of-trade-commerce-investments-and-solicitations/fl-st-sect-542-335/) — retrieved 2026-09-03
 
-16. [Pay Transparency and Salary History Laws by State 2026 - Paycor](https://www.paycor.com/resource-center/articles/pay-transparency-laws-by-state/) (Retrieved 2026-09-03)
+16. [Florida Statutes § 760.01 et seq. - Florida Civil Rights Act (15+ Employees)](https://www.flsenate.gov/Laws/Statutes/2024/760.10) — retrieved 2026-09-03
+
+17. [Florida CHOICE Act (Ch. 2025-?, Effective July 1, 2025) - Non-Compete and Garden Leave Amendments for Covered Employees](https://www.akerman.com/en/perspectives/florida-makes-a-bold-choice-new-law-strengthens-enforceability-of-noncompetition-agreements.html) — retrieved 2026-09-03
+
+18. [Florida CHOICE Act: Coverage and Enforceability Standards - Nelson Mullins Employment Law](https://www.nelsonmullins.com/insights/blogs/the-hr-minute/non-compete/florida-revamps-laws-governing-garden-leave-and-noncompete-agreements) — retrieved 2026-09-03
+
+19. [Florida E-Verify Requirements and Penalty Enforcement (SB 1718, Enforcement Effective July 1, 2024)](https://www.bilzin.com/insights/publications/2024/01/fl-law-imposes-e-verify-requirements) — retrieved 2026-09-03
+
+20. [Worker Adjustment and Retraining Notification (WARN) Act - Federal Requirements and Florida Compliance](https://floridajobs.org/workforce-resources/worker-adjustment-and-retraining-notification-%28warn%29/warn-notices-procedure-and-instructions) — retrieved 2026-09-03
+
+21. [20 CFR Part 639 - WARN Act Regulations - U.S. Code of Federal Regulations](https://www.ecfr.gov/current/title-20/chapter-V/part-639) — retrieved 2026-09-03
+
+22. [Fair Labor Standards Act (FLSA) - U.S. Department of Labor Wage and Hour Division](https://www.dol.gov/agencies/whd/flsa) — retrieved 2026-09-03
+
+23. [Florida Ban-the-Box Ordinances: Miami-Dade County and Local Jurisdictions](https://gcheck.com/blog/ban-the-box-in-florida-what-job-seekers-should-know-in-2025/) — retrieved 2026-09-03
+
+24. [Pay Transparency and Salary History Laws by State - Paycor](https://www.paycor.com/resource-center/articles/pay-transparency-laws-by-state/) — retrieved 2026-09-03
 
 ---
 

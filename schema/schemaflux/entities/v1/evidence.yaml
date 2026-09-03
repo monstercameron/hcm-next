@@ -1,0 +1,301 @@
+# evidence entity sources (MSRC-003).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from kernel-governance-and-evidence.md's ledger/effects/observation/repair section with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: evidence
+family_version: 1
+source_docs:
+  - planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+entities:
+  - name: EvidenceRecord
+    version: 1
+    key: evidence_record
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      One immutable evidence artifact: subject/issuer/holder refs, evidence type, canonical digest and validity interval.
+    properties:
+      - name: digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.EvidenceRecord.digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.evidence_record/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+
+  - name: Observation
+    version: 1
+    key: observation
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      A completeness-scored external read: source/connection/source-role, canonical resource link and PASS/FAIL/UNKNOWN/PARTIAL promotion policy.
+    properties:
+      - name: observed_state
+        go_type: string
+        schema_path: hcmnext.intents.v1.Observation.observed_state
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.observation/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: ACTIVE
+
+  - name: RepairPlan
+    version: 1
+    key: repair_plan
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: PlanLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      A bounded, governed corrective action plan: affected resources/effects/subjects, ordering, authority/approval and reversibility.
+    properties:
+      - name: targets
+        go_type: "[]string"
+        schema_path: hcmnext.intents.v1.RepairPlan.targets
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.repair_plan/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: ACTIVE
+
+  - name: LedgerEvent
+    version: 1
+    key: ledger_event
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVENT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      One append to a tenant/aggregate stream: TRANSACTION_FACT|DOMAIN_FACT|EXTERNAL_OBSERVATION|CLAIM|CORRECTION with prior/event hash.
+    properties:
+      - name: fact_class
+        go_type: string
+        schema_path: hcmnext.intents.v1.LedgerEvent.fact_class
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.evidence_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+
+  - name: OutboxEffect
+    version: 1
+    key: outbox_effect
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ConnectorOperationLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      A durable external-effect intent: resource key, causal predecessor/sequence, idempotency/dedupe digests and observation requirement.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.intents.v1.OutboxEffect.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.evidence_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+
+  - name: ReconciliationResult
+    version: 1
+    key: reconciliation_result
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      PASS/FAIL/UNKNOWN/PARTIAL comparison of expected vs. observed state for one intent/transaction/effect.
+    properties:
+      - name: result
+        go_type: string
+        schema_path: hcmnext.intents.v1.ReconciliationResult.result
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.evidence_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+
+  - name: Incident
+    version: 1
+    key: incident
+    aliases: []
+    owner_domain: OPERATIONS
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      Class/severity/scope, detected signals, affected intents/effects/tenants, owner and containment/recovery/resolution refs.
+    properties:
+      - name: severity
+        go_type: string
+        schema_path: hcmnext.intents.v1.Incident.severity
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.evidence_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+
+  - name: OutcomeObservation
+    version: 1
+    key: outcome_observation
+    aliases: []
+    owner_domain: OPERATIONS
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#ledger-effects-observation-and-repair
+    summary: >-
+      Later evidence about whether an intent achieved its purpose: metric/window/value/confidence/confounders/limitations.
+    properties:
+      - name: value_digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.OutcomeObservation.value_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.evidence_extension/v1
+        correction: APPENDS_CORRECTION
+        retention_class_ref: OPERATIONAL_EVIDENCE
+        status: DRAFT
+
+  - name: EvidenceManifest
+    version: 1
+    key: evidence_manifest
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      Requirement/satisfaction/artifact refs for one subject/transaction/filing/case plus a completeness decision.
+    properties:
+      - name: completeness_decision
+        go_type: string
+        schema_path: hcmnext.evidence.v1.EvidenceManifest.completeness_decision
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.evidence_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: EvidenceRequirement
+    version: 1
+    key: evidence_requirement
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      Required facts, acceptable issuers/authorities and freshness/classification/retention for one obligation's evidence.
+    properties:
+      - name: required_facts
+        go_type: "[]string"
+        schema_path: hcmnext.evidence.v1.EvidenceRequirement.required_facts
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.evidence_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: EvidenceSatisfaction
+    version: 1
+    key: evidence_satisfaction
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      Canonical digest, issuer/source/times and verifier authority proving a requirement was satisfied by an artifact.
+    properties:
+      - name: canonical_digest
+        go_type: string
+        schema_path: hcmnext.evidence.v1.EvidenceSatisfaction.canonical_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.evidence_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+relationships: []

@@ -1,12 +1,15 @@
 # Hawaii Employment Law Research
 
+**State:** Hawaii | **Researched:** 2026-09-03 | **Status:** REVIEWED
+
 ## 1. Summary for HCM Next
 
 - **Minimum wage and scheduled increases**: Hawaii minimum wage is $16.00/hour (2026), increasing to $18.00/hour on January 1, 2028 (HRS §387-2); no subminimum allowed for minors or any class of worker.
 - **Overtime requirement**: Employees must be paid 1.5x regular rate for hours worked over 40 in a workweek (HRS §387-3); no daily overtime trigger.
 - **At-will employment with statutory exceptions**: Hawaii is at-will, but employers cannot discharge or discriminate based on protected class (race, sex, sexual orientation, age, religion, color, ancestry, disability, marital status), filing workers' comp or wage claim, or performing jury duty (HRS §378-2, §378-32).
 - **Final pay timing**: At discharge, all earned wages due at time of discharge or no later than next working day; semi-monthly pay required (HRS §388-2, §388-3).
-- **Pay transparency mandate (SB 1057, effective 1/1/24)**: Employers with 50+ employees must disclose reasonably expected wage/hourly rate in all job postings (internal and external).
+- **Salary history ban (HRS § 378-2.4, effective 1/1/19)**: Employers prohibited from inquiring about or relying on applicant's prior salary history; applies to all employers.
+- **Pay transparency mandate (HRS § 378-2.3 as amended by Act 203, effective 1/1/24)**: Employers with 50+ employees must disclose reasonably expected wage/hourly rate or salary range in all job postings (internal and external).
 - **Hawaii Family Leave Law (HFLL)**: Employers with 100+ employees must provide up to 4 weeks unpaid leave per calendar year for qualifying family/medical reasons (birth, adoption, child/spouse/parent care, reciprocal beneficiary); 6+ consecutive months tenure required; unpaid but can substitute accrued paid leave (verify integration with FMLA).
 - **Temporary Disability Insurance (TDI)**: Non-work-related illness/injury/pregnancy covered; eligibility: 14 weeks employment, 20+ hours/week, $400+ earned in prior 52 weeks; provides partial wage replacement; available within 14 days of separation (HRS ch. 392).
 - **Mini-WARN (HRS §394B)**: Employers with 50+ employees must provide 60 days' notice of divestiture, closing, partial closing, or relocation; severance required; failure to provide notice = back pay/benefits for up to 60 days.
@@ -21,9 +24,10 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 
 - Discrimination based on protected class: race, sex, sexual orientation, age, religion, color, ancestry, disability, or marital status is unlawful (HRS §378-2).
 - Wrongful discharge for filing workers' compensation claim, wage claim, or filing for wage earner bankruptcy protection (HRS §378-32).
-- Discharge or discrimination for jury duty, voting, or military service (HRS §378-32, §378-33).
+- Discharge or discrimination for jury duty, voting (HRS § 11-95 provides 2 hours), or military service (HRS §378-32, §378-33).
 - Discharge or discrimination for pursuing wage enforcement through complaint or legal action.
-- Violation of public policy (e.g., whistleblowing, refusing illegal act); verify scope under Hawaii case law.
+- Whistleblower protections and violation of public policy (e.g., refusing illegal act); verify scope and specific statute (§ 378-62 whistleblower, verify).
+- Workers' compensation retaliation (discharge or discrimination for filing workers' comp claim); verify statute (§ 378-32 or separate provision).
 
 **Required written notices at hire and on change**:
 
@@ -67,28 +71,36 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 - Employers may not deduct wages except as required by law, court order (garnishment), or written authorization on approved form (tax withholding, authorized retirement/benefit plans).
 - Deductions for cash shortages, damages, uniforms, or tools of trade are prohibited.
 
-**Pay statement requirements**:
+**Pay statement requirements** (HRS §388-6):
 
-- Employer must provide itemized pay stub showing gross pay, deductions, net pay, and hours worked each payday (verify statutory requirement vs. best practice).
+- Employer must provide itemized pay stub showing gross pay, deductions, net pay, and hours worked each payday (verify exact statutory language and penalties for non-compliance).
 - Records must be maintained for at least 6 years (HRS §388-4).
+
+**Medical cannabis use**:
+
+- No Hawaii state law provides protection for employees' legal off-duty medical cannabis use (verify whether common-law tort protections or ADA accommodation applies in limited circumstances).
+- Employers may test for and refuse employment/terminate based on cannabis use (contrast with some other states' protections).
 
 ## 4. Pay Transparency and Equity
 
-**Salary range disclosure in postings and on request** (SB 1057, effective 1/1/24):
+**Salary history ban** (HRS § 378-2.4, Act 108 of 2018, effective 1/1/19):
 
-- Employers with 50+ employees in Hawaii must disclose in all job advertisements (internal and external, online and print) the "reasonably expected actual wage rate" or hourly wage/salary range.
+- Employers are prohibited from inquiring about, requesting, or relying on a prospective employee's prior salary, benefits, or other compensation history.
+- Applies to all inquiries: direct, written, or via third parties (background check agencies).
+- Exemptions: Information volunteered by applicant; verification of stated compensation if applicant previously worked for same employer.
+- Applies to all employers regardless of size (note: differs from pay transparency requirement, which applies to 50+ employers).
+
+**Salary range disclosure in postings and on request** (HRS § 378-2.3 as amended by Act 203, effective 1/1/24):
+
+- Employers with 50+ employees in Hawaii must disclose in all job advertisements (internal and external, online and print) the "reasonably expected hourly rate or salary range" (verify exact wording: "actual wage rate" vs. "expected range").
 - Applies to all job posting methods and locations.
-- Exemptions: internal promotions/transfers, positions with employers under 50 employees, public sector covered by collective bargaining (verify exact exemptions).
+- Exemptions: internal promotions/transfers, positions with employers under 50 employees (verify whether public sector covered by collective bargaining also exempt).
 - Enforcement: Hawaii Civil Rights Commission (HCRC) investigates complaints; violations may result in corrective action, penalties, or damages.
 
-**Salary history inquiry restriction**:
+**Equal pay statute** (HRS § 378-71, verify exact section number):
 
-- Verify whether Hawaii has a specific statutory ban on inquiring into prospective employee's salary history; SB 1057 does not explicitly ban history inquiries but is part of broader pay equity framework.
-
-**Equal pay statute** (HRS §378-71, verify exact section):
-
-- Hawaii law prohibits wage discrimination based on protected class (sex, race, age, etc.) for "substantially similar work" (SB 1057 expanded from "equal work").
-- Employer defense: wage differential based on seniority, merit system, quality of production, or factor other than protected class (verify exact defenses).
+- Hawaii law prohibits wage discrimination based on protected class (sex, race, age, etc.) for "substantially similar work" (amended by Act 203 in 2023 to expand from prior "equal work" standard).
+- Employer defense: wage differential based on seniority system, merit system, quality of production, or factor other than protected class (verify exact defenses and burden of proof).
 
 **Pay data reporting**:
 
@@ -179,9 +191,10 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 
 **Ban-the-box (criminal record inquiry)**:
 
-- Hawaii does not have an explicit statewide ban-the-box statute for private employers; **verify** whether HRS §378 or local ordinances impose restrictions.
-- Government/state employment: State employer may not disqualify based solely on prior conviction; arrests without conviction or erased convictions cannot be used/disseminated (verify exact state provisions).
-- Some Hawaii municipalities (e.g., Honolulu) may have local ban-the-box ordinances; employers in those jurisdictions must comply locally.
+- **State law**: Hawaii has no explicit statewide ban-the-box statute for private-sector employers; verify whether HRS § 378-2.5 or other provisions restrict criminal history inquiry timing (some sources cite 2020 amendments; verify exact section).
+- **Government/state employment**: State employer may not disqualify based solely on prior conviction; arrests without conviction or erased convictions cannot be used/disseminated (HRS § 378 provisions, verify exact section).
+- **Local ordinances**: Some Hawaii municipalities (e.g., Honolulu) may have local ban-the-box ordinances; employers in those jurisdictions must comply locally.
+- **Lookback period**: If private-sector ban-the-box exists, verify lookback period (some states use 7-year or 5-year windows); verify Hawaii standard.
 
 **Background checks**:
 
@@ -289,85 +302,82 @@ Hawaii is an employment-at-will state: either party may terminate the employment
 
 **Open questions for legal review**:
 
-- Verify whether Hawaii has explicit statutory salary history ban beyond SB 1057 pay-range transparency mandate.
-- Confirm exact scope of "technology business" and technology worker exemption from non-competes (Act 158, 2015).
-- Verify whether private-sector employees have statutory right to access own personnel files.
-- Clarify interaction of HFLL (calendar-year) with FMLA (12-month rolling); can employee take 4 weeks HFLL + 12 weeks FMLA in overlapping period?
+- Confirm exact wording of HRS § 378-2.3 pay transparency requirement: "reasonably expected actual wage rate" vs. "reasonably expected wage range" vs. "hourly rate or salary range" (sources differ).
+- Confirm whether HRS § 378-2.3 exemptions include public-sector positions covered by collective bargaining agreements.
+- Confirm exact scope of "technology business" and technology worker exemption from non-competes (HRS Act 158, 2015); does it apply to all tech sector or narrow definition?
+- Verify whether private-sector employees have statutory right to access own personnel files beyond federal FMLA/ADA rights.
+- Clarify interaction of HFLL (calendar-year 4 weeks) with FMLA (12-month rolling 12 weeks); can employee take both concurrently or do they run simultaneously?
 - Verify whether reinstatement after HFLL/FMLA/TDI leave must occur at exact same salary if employee promoted/demoted during leave.
-- Confirm whether pay change notice has any statutory waiting period or is informational only.
-- Verify whether SB452 (5-consecutive-hour meal period mandate) has been enacted and effective date; verify whether it supersedes or complements existing HRS §387-3 meal period rule.
-- Confirm whether Hawaii's consumer reporting statute imposes requirements beyond FCRA.
-- Verify exact termination/severance calculation formula under HRS §394B mini-WARN (lump-sum vs. continued payments).
+- Confirm whether pay change notice has any statutory waiting period or is informational only (current file states informational).
+- Verify status of SB452 (5-consecutive-hour meal period mandate) and effective date; determine whether it supersedes or complements existing meal/rest period requirements.
+- Confirm whether HRS ch. 487N data breach notification applies specifically to employee records or primarily consumer data.
+- Verify exact termination/severance calculation formula under HRS §394B mini-WARN (lump-sum vs. continued periodic payments based on tenure).
 - Clarify whether employee can waive final pay acceleration (e.g., request final check via mail rather than immediate hand payment).
+- Verify specific hiring/wellness/medical examination notice requirements under HRS §378 or administrative rules.
+- Confirm exact tip credit calculation for tipped employees (current file states $14.75/hour in 2026, verify).
 
 ## 12. Sources
 
-1. Hawaii Revised Statutes § 387-2 (Minimum wage) — https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0387/HRS_0387-0002.htm (retrieved 2026-09-03)
+1. [Hawaii Revised Statutes § 378-2.4 (Salary history inquiry restriction)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0378/HRS_0378-0002_0004.htm) — retrieved 2026-09-03
 
-2. Hawaii Revised Statutes § 387-3 (Overtime and maximum hours) — https://law.justia.com/codes/hawaii/title-21/chapter-387/section-387-3/ (retrieved 2026-09-03)
+2. [Hawaii Revised Statutes § 378-2.3 (Pay transparency)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0378/HRS_0378-0002_0003.htm) — retrieved 2026-09-03
 
-3. Hawaii Revised Statutes § 388-2 (Pay frequency; semi-monthly requirement) — https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0002.htm (retrieved 2026-09-03)
+3. [Hawaii Revised Statutes § 387-2 (Minimum wage)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0387/HRS_0387-0002.htm) — retrieved 2026-09-03
 
-4. Hawaii Revised Statutes § 388-3 (Final pay on termination) — https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0003.htm (retrieved 2026-09-03)
+4. [Hawaii Revised Statutes § 387-3 (Overtime and maximum hours)](https://law.justia.com/codes/hawaii/title-21/chapter-387/section-387-3/) — retrieved 2026-09-03
 
-5. Hawaii Revised Statutes § 388-4 (Payroll record retention—six years) — https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0004.htm (retrieved 2026-09-03)
+5. [Hawaii Revised Statutes § 388-2 (Pay frequency; semi-monthly requirement)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0002.htm) — retrieved 2026-09-03
 
-6. Hawaii Revised Statutes § 388-5 (Permitted and prohibited wage deductions) — https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0005.htm (retrieved 2026-09-03)
+6. [Hawaii Revised Statutes § 388-3 (Final pay on termination)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0003.htm) — retrieved 2026-09-03
 
-7. Hawaii Revised Statutes § 388-10 (Penalties for wage payment violations) — https://law.justia.com/codes/hawaii/title-21/chapter-388/section-388-10/ (retrieved 2026-09-03)
+7. [Hawaii Revised Statutes § 388-4 (Payroll record retention—six years)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0004.htm) — retrieved 2026-09-03
 
-8. Hawaii Revised Statutes § 378-2 (Unlawful discriminatory practices) — https://law.justia.com/codes/hawaii/title-21/chapter-378/section-378-2/ (retrieved 2026-09-03)
+8. [Hawaii Revised Statutes § 388-5 (Permitted and prohibited wage deductions)](https://www.capitol.hawaii.gov/hrscurrent/Vol07_Ch0346-0398/HRS0388/HRS_0388-0005.htm) — retrieved 2026-09-03
 
-9. Hawaii Revised Statutes § 378-32 (Unlawful suspension, discharge, discrimination) — https://law.justia.com/codes/hawaii/2011/division1/title21/chapter378/378-32/ (retrieved 2026-09-03)
+9. [Hawaii Revised Statutes § 388-6 (Pay statement requirements)](https://law.justia.com/codes/hawaii/title-21/chapter-388/section-388-6/) — retrieved 2026-09-03
 
-10. Hawaii Revised Statutes § 378-33 (Complaint procedure for wrongful discharge) — https://law.justia.com/codes/hawaii/2010/division1/title21/chapter378/378-33 (retrieved 2026-09-03)
+10. [Hawaii Revised Statutes § 388-10 (Penalties for wage payment violations)](https://law.justia.com/codes/hawaii/title-21/chapter-388/section-388-10/) — retrieved 2026-09-03
 
-11. Hawaii Senate Bill 1057 (Pay transparency law, effective 1/1/24) — https://www.shrm.org/topics-tools/tools/express-requests/hawaii-pay-transparency-law (retrieved 2026-09-03)
+11. [Hawaii Revised Statutes § 378-2 (Unlawful discriminatory practices)](https://law.justia.com/codes/hawaii/title-21/chapter-378/section-378-2/) — retrieved 2026-09-03
 
-12. Hawaii Pay Transparency Law Requirements — https://www.sixfifty.com/blog/hawaii-pay-transparency-law-requirements/ (retrieved 2026-09-03)
+12. [Hawaii Revised Statutes § 378-32 (Unlawful suspension, discharge, discrimination)](https://law.justia.com/codes/hawaii/2011/division1/title21/chapter378/378-32/) — retrieved 2026-09-03
 
-13. Hawaii Revised Statutes Chapter 392 (Temporary Disability Insurance) — https://labor.hawaii.gov/dcd/home/about-tdi/ (retrieved 2026-09-03)
+13. [Hawaii Revised Statutes § 378-33 (Complaint procedure for wrongful discharge)](https://law.justia.com/codes/hawaii/2010/division1/title21/chapter378/378-33) — retrieved 2026-09-03
 
-14. Hawaii Temporary Disability Insurance Eligibility Requirements — https://www.nolo.com/legal-encyclopedia/hawaii-temporary-disability-benefits-tdi.html (retrieved 2026-09-03)
+14. [Hawaii Revised Statutes Chapter 392 (Temporary Disability Insurance)](https://labor.hawaii.gov/dcd/home/about-tdi/) — retrieved 2026-09-03
 
-15. Hawaii Revised Statutes Chapter 394B (Dislocated Workers Act; mini-WARN) — https://labor.hawaii.gov/wdc/the-warn-act/ (retrieved 2026-09-03)
+15. [Hawaii Revised Statutes Chapter 394B (Dislocated Workers Act; mini-WARN)](https://labor.hawaii.gov/wdc/the-warn-act/) — retrieved 2026-09-03
 
-16. Hawaii Mini-WARN Layoff Notice Requirements — https://www.okaynext.app/warn/hawaii (retrieved 2026-09-03)
+16. [Hawaii Act 158 (Non-compete ban for technology workers, 2015)](https://www.seyfarth.com/news-insights/hawaii-bans-non-compete-and-non-solicit-agreements-with-technology-workers.html) — retrieved 2026-09-03
 
-17. Hawaii Act 158 (Non-compete ban for technology workers, 2015) — https://www.seyfarth.com/news-insights/hawaii-bans-non-compete-and-non-solicit-agreements-with-technology-workers.html (retrieved 2026-09-03)
+17. [Prudential Locations v. Gagnon (Hawaii Supreme Court, 2022; non-compete enforceability standard)](https://www.goodsill.com/blog/2022/02/hawaii-supreme-court-inconsistent-implementation-sinks-non-compete-enforcement-attempt-also-violation-of-non-solicitation-agreement-requires-active-initiation-of-contact/) — retrieved 2026-09-03
 
-18. Prudential Locations v. Gagnon (Hawaii Supreme Court, 2022; non-compete enforceability standard) — https://www.goodsill.com/blog/2022/02/hawaii-supreme-court-inconsistent-implementation-sinks-non-compete-enforcement-attempt-also-violation-of-non-solicitation-agreement-requires-active-initiation-of-contact/ (retrieved 2026-09-03)
+18. [Hawaii Revised Statutes Chapter 487N (Data breach notification and personal information security)](https://www.centraleyes.com/an-introduction-to-the-hawaii-consumer-privacy-protection-act/) — retrieved 2026-09-03
 
-19. Hawaii Non-Solicitation Enforcement Standards — https://www.scotbrower.com/blog/2023/10/do-the-hawaii-courts-uphold-non-compete-agreements/ (retrieved 2026-09-03)
+19. [Hawaii Biometric Data Protection (effective 7/1/26)](https://www.recordinglaw.com/us-laws/data-privacy-laws/hawaii-data-privacy-laws/biometric-privacy/) — retrieved 2026-09-03
 
-20. Hawaii Revised Statutes Chapter 487N (Data breach notification and personal information security) — https://www.centraleyes.com/an-introduction-to-the-hawaii-consumer-privacy-protection-act/ (retrieved 2026-09-03)
+20. [Hawaii Background Check and Consumer Reporting Requirements](https://www.backgroundchecks.com/background-checks/hawaii) — retrieved 2026-09-03
 
-21. Hawaii Biometric Data Protection (effective 7/1/26) — https://www.recordinglaw.com/us-laws/data-privacy-laws/hawaii-data-privacy-laws/biometric-privacy/ (retrieved 2026-09-03)
+21. [Hawaii Payroll Records Retention and Compliance](https://www.joinhomebase.com/blog/how-to-do-payroll-in-hawaii) — retrieved 2026-09-03
 
-22. Hawaii Background Check and Consumer Reporting Requirements — https://www.backgroundchecks.com/background-checks/hawaii (retrieved 2026-09-03)
+22. [Hawaii Department of Labor & Industrial Relations — Wage Standards Division](https://labor.hawaii.gov/wsd/) — retrieved 2026-09-03
 
-23. Hawaii Background Check FCRA Compliance — https://checkr.com/background-check/hawaii (retrieved 2026-09-03)
+23. [Hawaii Wage and Hour FAQs](https://labor.hawaii.gov/wsd/wage-and-hour-faqs/) — retrieved 2026-09-03
 
-24. Hawaii Employee Records Retention — https://www.hr360.com/Subscriptions/InnerPage.aspx?id=4058 (retrieved 2026-09-03)
+24. [Hawaii Break and Meal Period Requirements](https://labor.hawaii.gov/wsd/breaks-meal-rest/) — retrieved 2026-09-03
 
-25. Hawaii Payroll Records Retention and Compliance — https://www.joinhomebase.com/blog/how-to-do-payroll-in-hawaii (retrieved 2026-09-03)
+25. [Hawaii Labor Laws: Wages, Breaks and Overtime (2026)](https://www.workyard.com/us-labor-laws/hawaii-labor-laws) — retrieved 2026-09-03
 
-26. Hawaii Department of Labor & Industrial Relations — Wage Standards Division — https://labor.hawaii.gov/wsd/ (retrieved 2026-09-03)
+26. [Hawaii Family Leave Law (HFLL) Overview](https://www.nolo.com/legal-encyclopedia/hawaii-family-medical-leave.html) — retrieved 2026-09-03
 
-27. Hawaii Wage and Hour FAQs — https://labor.hawaii.gov/wsd/wage-and-hour-faqs/ (retrieved 2026-09-03)
+27. [Hawaii Family Leave Law — Wage Standards Division](https://labor.hawaii.gov/wsd/hawaii-family-leave/) — retrieved 2026-09-03
 
-28. Hawaii Break and Meal Period Requirements — https://labor.hawaii.gov/wsd/breaks-meal-rest/ (retrieved 2026-09-03)
+28. [Hawaii Illegal Termination Protection](https://labor.hawaii.gov/wsd/illegal-termination-from-your-job/) — retrieved 2026-09-03
 
-29. Hawaii Labor Laws: Wages, Breaks and Overtime (2026) — https://www.workyard.com/us-labor-laws/hawaii-labor-laws (retrieved 2026-09-03)
+29. [Hawaii ABC Test for Contractor Classification](https://connecteam.com/state-labor-laws/hawaii/) — retrieved 2026-09-03
 
-30. Hawaii Employment Law Overview — https://www.allvoices.co/blog/hawaii-labor-laws (retrieved 2026-09-03)
+30. [Hawaii Revised Statutes § 11-95 (Voting leave)](https://law.justia.com/codes/hawaii/title-1/chapter-11/section-11-95/) — retrieved 2026-09-03
 
-31. Hawaii Family Leave Law (HFLL) Overview — https://www.nolo.com/legal-encyclopedia/hawaii-family-medical-leave.html (retrieved 2026-09-03)
+31. [Hawaii Revised Statutes § 378-71 (Equal pay prohibition)](https://law.justia.com/codes/hawaii/title-21/chapter-378/section-378-71/) — retrieved 2026-09-03
 
-32. Hawaii Family Leave Law — Wage Standards Division — https://labor.hawaii.gov/wsd/hawaii-family-leave/ (retrieved 2026-09-03)
-
-33. Hawaii SB452 (Proposed meal break requirements, verify status) — https://legiscan.com/HI/text/SB452/id/3059487 (retrieved 2026-09-03)
-
-34. Hawaii Illegal Termination Protection — https://labor.hawaii.gov/wsd/illegal-termination-from-your-job/ (retrieved 2026-09-03)
-
-35. Hawaii ABC Test for Contractor Classification — https://connecteam.com/state-labor-laws/hawaii/ (retrieved 2026-09-03)
+32. [Hawaii Act 203 (2023, pay transparency amendments to HRS § 378-2.3)](https://capitol.hawaii.gov/measure_indiv.aspx?billtype=HB&billnumber=1857&year=2023) — retrieved 2026-09-03

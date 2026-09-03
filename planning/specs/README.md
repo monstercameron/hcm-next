@@ -34,6 +34,7 @@ Current specification index:
 - [Position and headcount domain](position-and-headcount-domain.md)
 - [Compensation domain](compensation-domain.md)
 - [Workforce budget authority](workforce-budget-authority.md)
+- [Legal rule packs and state configuration](legal-rule-packs-and-state-configuration.md)
 - [Identity resolution and entity linkage](identity-resolution-and-entity-linkage.md)
 
 ### Shared product and connectivity platforms

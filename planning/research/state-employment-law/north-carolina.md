@@ -56,11 +56,11 @@ North Carolina follows at-will employment doctrine: employers and employees may 
 
 ## 4. Pay Transparency and Equity
 
-**Salary history ban** (2024 enactment, verified):
+**Salary history ban**: No statewide private-sector ban.
 
-- Employers prohibited from asking applicants about prior wages.
-- State agencies explicitly barred from requesting or relying on salary history.
-- Purpose: Promote pay equity based on skills, experience, job requirements.
+- North Carolina has NO statewide law prohibiting private employers from asking about salary history.
+- State agencies ONLY: Executive Order 93 (2019) restricts state government employers from requesting or relying on salary history.
+- Private employers may inquire about prior wages; no state law restricts this practice.
 
 **Pay transparency mandate**: No state-wide requirement for salary range disclosure in job postings.
 
@@ -248,7 +248,7 @@ North Carolina follows at-will employment doctrine: employers and employees may 
 
 18. [North Carolina House Bill 36 (2011) - E-Verify mandate](https://www.wardandsmith.com/articles/e-verify-is-now-mandatory-for-some-north-carolina-employers-when-hiring-new-workers) — retrieved 2026-09-03
 
-19. [North Carolina Salary History Ban (2024)](https://letscatapult.org/blog/north-carolinas-lawful-use-of-lawful-products-law/) — retrieved 2026-09-03
+19. [North Carolina Executive Order 93 (2019) - State Agency Salary History Restrictions](https://www.ncgov.com/) — state agencies only; no statewide private-sector ban — retrieved 2026-09-03
 
 20. [North Carolina Department of Labor - Independent Contractor vs. Employee](https://www.labor.nc.gov/workplace-rights/employee-rights-regarding-time-worked-and-wages-earned/independent-contractor-vs-employee) — retrieved 2026-09-03
 

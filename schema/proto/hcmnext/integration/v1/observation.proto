@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package hcmnext.integration.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/integration/v1/connector.proto";
+
+// Freshness is how much an observation may be relied upon. UNKNOWN and
+// UNAVAILABLE are honest values, not failures
+// (internal/connectivity/observe Freshness).
+enum Freshness {
+  FRESHNESS_UNSPECIFIED = 0;
+  FRESHNESS_FRESH = 1;
+  FRESHNESS_STALE = 2;
+  FRESHNESS_PARTIAL = 3;
+  FRESHNESS_UNKNOWN = 4;
+  FRESHNESS_UNAVAILABLE = 5;
+}
+
+// ObservationClassification is the assertion class an observation is
+// recorded under. EXTERNAL_OBSERVATION is the only class this contract
+// permits: nothing on this surface can produce a domain fact
+// (internal/connectivity/observe Classification; internal/domains/evidence
+// AuthorityKind AUTHORITY_EXTERNAL_OBSERVATION).
+enum ObservationClassification {
+  OBSERVATION_CLASSIFICATION_UNSPECIFIED = 0;
+  OBSERVATION_CLASSIFICATION_EXTERNAL_OBSERVATION = 1;
+}
+
+// ExternalObservation is one recorded, content-addressed page of external
+// data: what was read, from which connection and connector version, under
+// which schema, when it was retrieved, how fresh it is, and the digest of the
+// normalized payload. Raw provider payloads follow their own retention policy
+// and appear here only as an artifact reference, so deleting a raw response
+// under a retention rule never destroys the evidence that the observation
+// happened (internal/connectivity/observe Observation;
+// planning/todos.md INTG-009 "Persist ExternalObservation evidence").
+message ExternalObservation {
+  string observation_id = 1;
+  string tenant_id = 2;
+  string connection_id = 3;
+  string connector_id = 4;
+  string connector_version = 5;
+  string source_ref = 6;
+  string authority_ref = 7;
+  ObjectKind object = 8;
+  string schema_version = 9;
+  string snapshot_id = 10;
+  uint64 page_sequence = 11;
+  string start_cursor = 12;
+  string next_cursor = 13;
+  int32 record_count = 14;
+  bool complete = 15;
+  google.protobuf.Timestamp retrieved_at = 16;
+  google.protobuf.Timestamp watermark = 17;
+  Freshness freshness = 18;
+  ObservationClassification classification = 19;
+  // content_digest is "sha256:<hex>" over the normalized payload; the payload
+  // itself is not exposed on this read surface.
+  string content_digest = 20;
+  optional string raw_artifact_ref = 21;
+}

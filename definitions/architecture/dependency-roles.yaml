@@ -78,13 +78,13 @@ family_rules:
     security_owner: platform-foundation
     upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
     exposure: >-
-      Indirect telemetry SDK modules pulled in by grpc-go's stats/otel
-      plumbing. Not imported by production code before OBS-002; add an exact
-      row when internal/ imports any of them directly.
+      OpenTelemetry API, SDK and OTLP/stdout exporters. Imported only by
+      internal/platform/telemetry/otel (OBS-002); every other package reaches
+      telemetry through that adapter.
     replacement_strategy: >-
       OBS-002 decides the OTel SDK adoption explicitly; until then these are
       transitive-only.
-    allowed_import_roots: []
+    allowed_import_roots: [internal/platform/telemetry/otel]
 
 # Exact classification for every module in go.mod's require block.
 modules:
@@ -133,7 +133,18 @@ modules:
     semantic_owner: kernel
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/kernel]
+    allowed_import_roots:
+      [
+        internal/kernel,
+        internal/intent,
+        internal/ledger,
+        internal/data,
+        internal/connectivity,
+        internal/transaction,
+        internal/humanwork,
+        cmd,
+        test,
+      ]
     direct_import_expected: true
     upgrade_sla: Minor within 90 days.
     exposure: Pure in-process identifier generation; no network or data exposure.
@@ -169,7 +180,16 @@ modules:
     semantic_owner: data-and-ledger
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/data, internal/ledger, migrations]
+    allowed_import_roots:
+      [
+        internal/data,
+        internal/ledger,
+        migrations,
+        internal/intent/app/pgstore,
+        internal/connectivity/observe/adapters/postgres,
+        internal/platform/bootstrap,
+        cmd,
+      ]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
     exposure: >-
@@ -220,7 +240,7 @@ modules:
     semantic_owner: data-and-ledger
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [migrations, cmd]
+    allowed_import_roots: [migrations, cmd, internal/data/pgtest, internal/data/schema]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
     exposure: >-
@@ -377,6 +397,190 @@ modules:
       Selected by TOOL-008 (2026-09-03). grpc-gateway/v2 is the successor once
       the ENDPOINT-001 route manifest exists; GoGRPCBridge remains the
       WebSocket/WASM candidate for TOOL-009. Neither is pinned until imported.
+
+  - path: github.com/monstercameron/GoWebComponents/v5
+    version: v5.0.1
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools/uxqual]
+    direct_import_expected: false
+    upgrade_sla: Minor within 90 days; security patch within 14 days.
+    exposure: >-
+      Preferred UI renderer per the Go technology constitution, admitted only
+      for the UX-QUAL-001 qualification fixture until that decision is
+      recorded; no production package imports it before then.
+    replacement_strategy: Go html/template server-side rendering with progressive enhancement (UX-QUAL-001 fallback).
+
+  - path: github.com/monstercameron/schemaflux
+    version: v1.2.0
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [tools/gen]
+    direct_import_expected: false
+    upgrade_sla: Best-effort; pinned for the TOOL-004 qualification fixture.
+    exposure: >-
+      Offline, deterministic definition generation only (TOOL-004); its model
+      and web-search surfaces are never invoked and no production package may
+      import it.
+    replacement_strategy: protoc with Go plugins (TOOL-004 fallback).
+
+  - path: github.com/fxamacker/cbor/v2
+    version: v2.9.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/GoWebComponents/v5's own pin.
+    exposure: >-
+      Transitive dependency of GoWebComponents (CBOR codec used by GoWebComponents ui); never imported
+      directly; reachable only from the UX-QUAL-001 fixture renderer.
+    replacement_strategy: Removed automatically if GoWebComponents is dropped (UX-QUAL-001 fallback).
+
+  - path: github.com/x448/float16
+    version: v0.8.4
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/GoWebComponents/v5's own pin.
+    exposure: >-
+      Transitive dependency of GoWebComponents (float16 helper pulled in by fxamacker/cbor); never imported
+      directly; reachable only from the UX-QUAL-001 fixture renderer.
+    replacement_strategy: Removed automatically if GoWebComponents is dropped (UX-QUAL-001 fallback).
+
+  - path: github.com/yuin/goldmark
+    version: v1.7.13
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/GoWebComponents/v5's own pin.
+    exposure: >-
+      Transitive dependency of GoWebComponents (Markdown renderer used by GoWebComponents html); never imported
+      directly; reachable only from the UX-QUAL-001 fixture renderer.
+    replacement_strategy: Removed automatically if GoWebComponents is dropped (UX-QUAL-001 fallback).
+
+  - path: go.opentelemetry.io/otel/sdk/metric
+    version: v1.45.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel metric SDK imported by internal/platform/telemetry/otel (OBS-002). Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: github.com/cenkalti/backoff/v5
+    version: v5.0.3
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks the go.opentelemetry.io pins; security patch within 14 days.
+    exposure: >-
+      Transitive dependency of the OpenTelemetry exporters (retry backoff used by the OTLP exporters); never
+      imported directly.
+    replacement_strategy: Follows the OBS-002 OTel adoption; removed if the exporters are dropped.
+
+  - path: github.com/cespare/xxhash/v2
+    version: v2.3.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks the go.opentelemetry.io pins; security patch within 14 days.
+    exposure: >-
+      Transitive dependency of the OpenTelemetry exporters (hashing used by the OTel SDK); never
+      imported directly.
+    replacement_strategy: Follows the OBS-002 OTel adoption; removed if the exporters are dropped.
+
+  - path: github.com/go-logr/logr
+    version: v1.4.4
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks the go.opentelemetry.io pins; security patch within 14 days.
+    exposure: >-
+      Transitive dependency of the OpenTelemetry exporters (logging facade the OTel SDK reports errors through); never
+      imported directly.
+    replacement_strategy: Follows the OBS-002 OTel adoption; removed if the exporters are dropped.
+
+  - path: github.com/go-logr/stdr
+    version: v1.2.2
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks the go.opentelemetry.io pins; security patch within 14 days.
+    exposure: >-
+      Transitive dependency of the OpenTelemetry exporters (stdlib adapter for logr used by the OTel SDK); never
+      imported directly.
+    replacement_strategy: Follows the OBS-002 OTel adoption; removed if the exporters are dropped.
+
+  - path: github.com/grpc-ecosystem/grpc-gateway/v2
+    version: v2.30.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks the go.opentelemetry.io pins; security patch within 14 days.
+    exposure: >-
+      Transitive dependency of the OpenTelemetry exporters (pulled transitively by the OTLP exporters; grpc-gateway itself was not selected by TOOL-008); never
+      imported directly.
+    replacement_strategy: Follows the OBS-002 OTel adoption; removed if the exporters are dropped.
+
+  - path: github.com/joho/godotenv
+    version: v1.5.1
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/schemaflux's own pin.
+    exposure: >-
+      Transitive dependency of schemaflux; never imported directly. HCM Next
+      reads configuration through internal/platform/bootstrap, not .env files.
+    replacement_strategy: Removed automatically when schemaflux is dropped.
+
+  - path: github.com/sashabaranov/go-openai
+    version: v1.20.4
+    role: DEV_TEST_ONLY
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/schemaflux's own pin.
+    exposure: >-
+      Transitive dependency of schemaflux; never imported directly and never
+      reachable from a built binary (schemaflux is tools-only).
+    replacement_strategy: Removed automatically when schemaflux is dropped.
 
   - path: google.golang.org/grpc
     version: v1.83.2

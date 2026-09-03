@@ -1,0 +1,2 @@
+{"osv":{"id":"GO-2026-0003"}}
+{"finding":{"osv":"GO-2026-0003","fixed_version":"v2.0.1","trace":[{"module":"example.com/no-config-evidence","version":"v2.0.0","package":"example.com/no-config-evidence/pkg","function":"Run"}]}}

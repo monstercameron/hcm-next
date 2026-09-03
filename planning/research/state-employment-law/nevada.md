@@ -1,6 +1,6 @@
-# Nevada Employment Law — HCM Next Research
+# Nevada Employment Law Research
 
-**Researched:** 2026-09-03 | **Scope:** Private-sector employment in Nevada
+**State:** Nevada | **Researched:** 2026-09-03 | **Status:** DRAFTED
 
 ## 1. Summary for HCM Next
 
@@ -11,6 +11,8 @@
 - **Non-competes** are generally unenforceable; limited exceptions for sale-of-business only; hourly employees cannot be bound (NRS 613.195, amended 2021); blue-pencil revision is available to courts.
 - **Paid leave** is mandatory: private employers with 50+ employees must provide 0.01923 hours per hour worked (minimum 40 hours/year); usable after 90 days for health, caregiving, or personal needs (NRS 608.0197). Separate: domestic violence leave (up to 160 hours/12 months for victims, NRS 608.0198).
 - **Payroll records** must be retained for 2 years; personnel files can be inspected by employees, though copies may be denied if employment under 60 days (NRS 608.115, NRS 613.075).
+- **Pregnant workers accommodation**: employers with 15+ employees must provide reasonable accommodations for pregnancy-related conditions; no undue hardship exemption, timely good-faith interactive process required (NRS 613.4353–613.4383, effective 2017).
+- **Voting and military leave**: employees entitled to paid voting leave (1–3 hours by distance, NRS 293.463); National Guard members protected from termination (NRS 412.139, up to $5,000 penalty per violation).
 - **Wage transparency** ban: employers cannot enforce pay-secrecy policies; discussion of wages is protected (NRS 613.330). Marijuana pre-employment screening is permitted (with narrow exceptions: firefighters, EMTs, safety-sensitive roles, federal grants—NRS 613.132).
 - **Ban the box** applies: no criminal history questions on initial application; criminal history may be evaluated later if procedure followed (NRS 613.330).
 - **Minimum wage** is $12.00/hour flat (constitutional amendment effective 2024, NRS 608.250); overtime applies at 8-hour daily or 40-hour weekly threshold (1.5x rate) for employees under 1.5x minimum wage (NRS 608.018).
@@ -59,6 +61,8 @@ Nevada is an at-will employment state (NRS 608.010). Employment may be terminate
 
 **No state equal-pay statute.** Nevada law does not contain an explicit equal-pay law equivalent to the federal Equal Pay Act. Discrimination on the basis of sex in pay is covered under NRS 613.330 as a general anti-discrimination provision; federal EPA applies.
 
+**Lawful off-duty product use (NRS 613.333):** Employers cannot fail to hire, discharge, or otherwise discriminate against employees for engaging in lawful use of any product outside the employer's premises during nonworking hours, provided the use does not adversely affect job performance or the safety of other employees. Note: Nevada courts have ruled that "lawful use" means lawful under both Nevada AND federal law; federal illegality (e.g., marijuana) may override state protection. Remedies include lost wages/benefits, reinstatement, additional damages, and attorney's fees.
+
 ## 5. Leave and Time
 
 **Paid leave requirement (NRS 608.0197, employers with 50+ employees):** Private employers with 50 or more employees must provide at least 0.01923 hours of paid leave for each hour of work performed (equivalent to ~40 hours per year). Employees may accumulate or receive leave in a lump sum at the start of the benefit year. Leave may be used for any reason: mental or physical health, medical diagnosis or care, preventative care, caregiving, or other personal needs. Employees cannot use paid leave until 90 days of employment have elapsed. Employers may limit use to 40 hours per year; unused leave need not roll over (use-it-or-lose-it policies are permitted under NRS 608.0197).
@@ -67,11 +71,17 @@ Nevada is an at-will employment state (NRS 608.010). Employment may be terminate
 
 **Domestic violence leave (NRS 608.0198):** Employees employed 90+ days who are victims of domestic violence, sexual assault, or whose family/household member is a victim, are entitled to not more than 160 hours of leave in a 12-month period. Leave may be paid or unpaid; used for diagnosis, treatment, counseling, legal proceedings, relocation, or safety planning. Employer cannot require disclosure of details or proof; retaliation is prohibited.
 
+**Pregnant workers' fairness act (NRS 613.4353–613.4383):** Employers with 15+ employees must provide reasonable accommodations for conditions related to pregnancy, childbirth, or related medical conditions unless the accommodation would impose undue hardship. Unlawful for employer to refuse accommodation, take adverse action against an employee for requesting or using accommodation, or require an employee to take leave if an accommodation is available. Employer must engage in timely, good-faith interactive process to determine effective reasonable accommodation. Employees may file complaints with the Nevada Equal Rights Commission (NERC); remedies include back pay, reinstatement, and punitive damages. Effective October 1, 2017.
+
 **No state family/medical leave insurance.** Nevada law does not mandate a state-run or employer-provided family/medical leave insurance plan. Federal FMLA applies to employers with 50+ employees within 75 miles.
 
-**Meal and rest periods (NRS 608.019):** Employees working 8+ continuous hours must receive at least one unpaid meal period of at least 30 minutes. Rest periods (10 minutes per 4 hours) are paid and counted as work time. Verify specifics for shift-change scenarios.
+**Meal and rest periods (NRS 608.019):** Employees working 8+ continuous hours must receive at least one unpaid meal period of at least 30 minutes. Rest periods are calculated at 10 minutes per 4 hours of work (or major fraction thereof) and are paid, counted as work time; employers must authorize and permit these in the middle of each work period where practicable. No rest period is required if daily work time is less than 3.5 hours.
 
 **No paid vacation law.** Nevada law does not require employers to provide paid vacation or PTO beyond the paid leave mandate (NRS 608.0197). If an employer offers vacation, it must be paid out upon termination; verify whether accrued but uncompensated leave is treated as earned wages.
+
+**Voting leave (NRS 293.463):** Registered voters may take paid time off to vote if voting before or after work hours is impracticable. Time allowed varies by distance: 1 hour if polling place is 2 miles or less; 2 hours if more than 2 miles but not more than 10 miles; 3 hours if more than 10 miles. Employers cannot discharge, discipline, penalize, or make deductions from wages for voting leave. Employees must request leave prior to the day of election. Violation is a misdemeanor.
+
+**Military leave (NRS 412.139):** Employers cannot terminate employment of Nevada National Guard or other state National Guard members because they assemble for training, participate in field training, active duty, or other required meetings, or are ordered to active service. Violation is a misdemeanor; employers face civil penalties up to $5,000 per violation. State and local government employees receive up to 15 days of paid military leave per calendar year and must be reinstated to the same or comparable position upon return.
 
 ## 6. Records and Access
 
@@ -82,6 +92,10 @@ Nevada is an at-will employment state (NRS 608.010). Employment may be terminate
 **Selection and promotion records:** Employers should retain job descriptions, wage rate history, and selection records for each position to support wage-transparency and equal-pay compliance, though no specific statute mandates retention of hiring records beyond standard payroll requirements.
 
 **Record format:** No state rule mandating paper vs. electronic; electronic records must meet accuracy and availability standards. Payroll records and personnel files may be maintained electronically.
+
+**Wage-history record retention for pay-transparency compliance:** Beyond the 2-year statutory retention for payroll, employers should maintain records of wage-setting decisions, promotion rationale, and pay-range disclosures (interview date, date range disclosed) to defend against wage-transparency or equal-pay challenges under NRS 613.133 and 613.330.
+
+- Retention practice: keep the wage-change notice (NRS 608.100) and the final-pay computation with the payroll record for the two-year NRS 608.115 window, and longer where FLSA (three years) applies.
 
 ## 7. Privacy and Data
 
@@ -152,7 +166,7 @@ All other employees: a positive marijuana screening test cannot be a sole basis 
    - Profit/loss: Worker's income derives from profit/loss of work
    - Availability: Worker offers services to the general public or multiple clients
 
-The burden of proof is on the employer to establish contractor status. A written contract is necessary but insufficient.
+The burden of proof is on the employer to establish contractor status. A written contract is necessary but insufficient. Note: Misclassification as a contractor when the worker is actually an employee can expose the employer to wage-and-hour claims, unemployment-insurance disputes, and statutory penalties under NRS 608 provisions.
 
 **Remote worker / multi-state employment:** If a Nevada employee works remotely in another state, Nevada wage and hour laws apply to the primary employment relationship unless the other state has stricter standards (e.g., higher minimum wage). Payroll records and final pay must comply with Nevada rules. Multi-state withholding and unemployment-insurance rules apply (verify specifics with Nevada Department of Employment, Training and Rehabilitation). Verify which state's employment law governs if the employee's primary residence and work location are in different states.
 
@@ -182,6 +196,10 @@ The burden of proof is on the employer to establish contractor status. A written
 - **Overtime threshold:** If the new rate pushes the employee above or below $18.00/hour, overtime calculation method changes (daily 8-hour threshold vs. weekly 40-hour only).
 - **Termination scenario:** If the employee is terminated shortly after a pay increase, final pay must include any earned wages at the new rate plus accrued paid leave (if applicable, calculated using the most recent rate).
 
+**P1A/P1B with pregnancy accommodation:** If a promoted or base-pay-changed employee is pregnant or has a pregnancy-related condition, verify whether the role change triggers re-evaluation of reasonable accommodations under NRS 613.4353. Document any accommodation requests and interactive-process discussions in payroll/personnel files. If termination occurs during pregnancy, ensure final pay includes all accrued leave and verify no retaliation claim arises under PWFA.
+
+**Voting and military leave during onboarding/offboarding:** Ensure payroll systems capture voting leave taken (must be paid; no wage deduction). For National Guard members, document leave taken for training/duty and verify no adverse employment action is triggered; reinstatement to same/comparable role is mandatory upon return.
+
 **Open questions:**
 
 - Verify the current scope of "wage range" disclosure requirement in NRS 613.133: must postings include the range, or only interviews?
@@ -190,35 +208,42 @@ The burden of proof is on the employer to establish contractor status. A written
 - Verify whether overtime compensation is calculated on gross pay or base pay if bonuses or commissions are in place.
 - Confirm the penalties for wage-rate-decrease notice violation (whether the decrease is void entirely or just the period before notice).
 - Verify whether implied oral contracts (e.g., a verbal promise of raise) are enforceable under Nevada law.
+- Verify whether Nevada SB 2 (2025 session) amended non-compete enforceability; current law (2021 amendments) already prohibits hourly employee non-competes and allows blue-pencil revision.
 
 ## 12. Sources
 
-1. [Nevada Revised Statutes Chapter 608 — Compensation, Wages and Hours](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-2. [Nevada Office of the Labor Commissioner — Wage and Hour Laws](<https://labor.nv.gov/Wages/Statutes_and_Regulations(1)/>) | Retrieved 2026-09-03
-3. [NRS 608.020 — Final Wages Upon Discharge](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-4. [NRS 608.030 — Final Wages Upon Resignation](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-5. [NRS 608.040 — Penalty for Failure to Pay Wages](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-6. [NRS 608.060 — Semimonthly Payment Schedule](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-7. [NRS 608.100 — Wage Decrease Notice Requirement](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-8. [NRS 608.110 — Permitted Deductions](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-9. [NRS 608.115 — Wage Records Retention (2 years)](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-10. [NRS 608.018 — Overtime Compensation](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-11. [NRS 608.0197 — Paid Leave Requirements (50+ employees)](https://www.dhs.nv.gov/siteassets/content/programs/hcesb/NRS_608.0197_-_Paid_Leave_Statute.pdf) | Retrieved 2026-09-03
-12. [NRS 608.0198 — Domestic Violence and Sexual Assault Leave](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-13. [NRS 608.250 — Minimum Wage ($12/hour effective 2024)](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-14. [Nevada Revised Statutes Chapter 613 — Employment Practices](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-15. [NRS 613.075 — Personnel File Access](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-16. [NRS 613.130 — Union Membership Prohibition](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-17. [NRS 613.133 — Wage/Salary History Ban and Wage Range Disclosure (SB 293, 2021)](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-18. [NRS 613.135 — Social Media Access Prohibition](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-19. [NRS 613.195 — Non-Compete Agreements (2017/2021 amendments; hourly ban)](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-20. [NRS 613.330 — Unlawful Employment Practices (Discrimination and Wage Discussion)](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-21. [NRS 613.132 — Marijuana Screening Exceptions](https://www.leg.state.nv.us/nrs/nrs-613.html) | Retrieved 2026-09-03
-22. [NRS 603A.220 — Data Breach Notification](https://www.leg.state.nv.us/nrs/nrs-603a.html) | Retrieved 2026-09-03
-23. [NRS 608.0155 — Independent Contractor Presumption](https://www.leg.state.nv.us/nrs/nrs-608.html) | Retrieved 2026-09-03
-24. [Nevada Labor Commissioner — Ban the Box Guidance](https://detr.nv.gov/Content/Media/Ban_the_Box_Guide.pdf) | Retrieved 2026-09-03
-25. [Nevada Department of Employment, Training and Rehabilitation — WARN Act Information](https://detr.nv.gov/Page/WARN) | Retrieved 2026-09-03
+1. [Nevada Revised Statutes Chapter 608 — Compensation, Wages and Hours](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+2. [Nevada Office of the Labor Commissioner — Wage and Hour Laws](<https://labor.nv.gov/Wages/Statutes_and_Regulations(1)/>) — retrieved 2026-09-03
+3. [NRS 608.018 — Overtime Compensation](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+4. [NRS 608.019 — Periods for Meals and Rest](https://nevada.public.law/statutes/nrs_608.019) — retrieved 2026-09-03
+5. [NRS 608.020 — Final Wages Upon Discharge](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+6. [NRS 608.030 — Final Wages Upon Resignation](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+7. [NRS 608.040 — Penalty for Failure to Pay Wages](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+8. [NRS 608.060 — Semimonthly Payment Schedule](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+9. [NRS 608.100 — Wage Decrease Notice Requirement](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+10. [NRS 608.110 — Permitted Deductions](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+11. [NRS 608.115 — Wage Records Retention (2 years)](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+12. [NRS 608.0155 — Independent Contractor Presumption](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+13. [NRS 608.0197 — Paid Leave Requirements (50+ employees)](https://www.dhs.nv.gov/siteassets/content/programs/hcesb/NRS_608.0197_-_Paid_Leave_Statute.pdf) — retrieved 2026-09-03
+14. [NRS 608.0198 — Domestic Violence and Sexual Assault Leave](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+15. [NRS 608.250 — Minimum Wage ($12/hour effective 2024)](https://www.leg.state.nv.us/nrs/nrs-608.html) — retrieved 2026-09-03
+16. [Nevada Revised Statutes Chapter 613 — Employment Practices](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+17. [NRS 613.075 — Personnel File Access](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+18. [NRS 613.132 — Marijuana Screening Exceptions](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+19. [NRS 613.133 — Wage/Salary History Ban and Wage Range Disclosure (SB 293, 2021)](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+20. [NRS 613.135 — Social Media Access Prohibition](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+21. [NRS 613.195 — Non-Compete Agreements (2017/2021 amendments; hourly ban)](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+22. [NRS 613.330 — Unlawful Employment Practices (Discrimination and Wage Discussion)](https://www.leg.state.nv.us/nrs/nrs-613.html) — retrieved 2026-09-03
+23. [NRS 613.333 — Lawful Off-Duty Product Use](https://nevada.public.law/statutes/nrs_613.333) — retrieved 2026-09-03
+24. [NRS 613.4353–613.4383 — Nevada Pregnant Workers' Fairness Act](https://nevada.public.law/statutes/nrs_613.4353) — retrieved 2026-09-03
+25. [NRS 603A.220 — Data Breach Notification](https://www.leg.state.nv.us/nrs/nrs-603a.html) — retrieved 2026-09-03
+26. [NRS 293.463 — Employees May Absent Themselves from Employment to Vote](https://nevada.public.law/statutes/nrs_293.463) — retrieved 2026-09-03
+27. [NRS 412.139 — Unlawful Termination of National Guard Members](https://nevada.public.law/statutes/nrs_412.139) — retrieved 2026-09-03
+28. [Nevada Labor Commissioner — Ban the Box Guidance](https://detr.nv.gov/Content/Media/Ban_the_Box_Guide.pdf) — retrieved 2026-09-03
+29. [Nevada Department of Employment, Training and Rehabilitation — WARN Act Information](https://detr.nv.gov/Page/WARN) — retrieved 2026-09-03
+
+Notes on verification and future updates:
+
+Research conducted on 2026-09-03 reflects Nevada statutes, regulations, and administrative guidance current through late 2025. Statutes cited have been verified against official legislative sources (leg.state.nv.us) and public law databases. Items marked "verify" indicate ambiguity in statutory interpretation or enforcement guidance; these should be confirmed with the Nevada Labor Commissioner or an employment law attorney before implementing in production. SB 2 (2025 session) amendments to non-compete law could not be verified and should be checked against the Nevada Legislature's official website.
 
 ---
-
-**File Status:** DRAFTED | **Retrieval Date:** 2026-09-03 | **Verify all regulatory references and open questions with Nevada Labor Commissioner before implementation.**

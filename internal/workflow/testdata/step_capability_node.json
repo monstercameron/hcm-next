@@ -1,0 +1,168 @@
+{
+  "id": "snapshot_worker",
+  "type": "CAPABILITY",
+  "depth": 0,
+  "safe_point": false,
+  "input_schema": {
+    "schema_id": "hcmnext.people.explain_worker_state.request/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+  },
+  "output_schema": {
+    "schema_id": "hcmnext.people.explain_worker_state.response/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+  },
+  "inputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "effective_date",
+      "type": {
+        "kind": "LOCAL_DATE"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "current_job_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "JobID"
+      }
+    },
+    {
+      "path": "current_level",
+      "type": {
+        "kind": "STRING"
+      }
+    },
+    {
+      "path": "manager_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "employment_active",
+      "type": {
+        "kind": "BOOL"
+      }
+    }
+  ],
+  "mappings": [
+    {
+      "target": "effective_date",
+      "target_type": {
+        "kind": "LOCAL_DATE"
+      },
+      "source_kind": "WORKFLOW_INPUT",
+      "source_path": "effective_date",
+      "source_type": {
+        "kind": "LOCAL_DATE"
+      },
+      "pinned_input": true
+    },
+    {
+      "target": "worker_id",
+      "target_type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      },
+      "source_kind": "WORKFLOW_INPUT",
+      "source_path": "worker_id",
+      "source_type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      },
+      "pinned_input": true
+    }
+  ],
+  "required_context": [
+    {
+      "kind": "LegalContext",
+      "field_paths": [
+        "jurisdiction",
+        "applicable_rule_versions"
+      ],
+      "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+      "maximum_classification": "CONFIDENTIAL_HR",
+      "max_age_seconds": 3600,
+      "required_watermarks": [
+        "legal.policy.version"
+      ],
+      "pinned": true,
+      "missing_behavior": "UNKNOWN"
+    }
+  ],
+  "routes": [
+    "AMBIGUOUS",
+    "REJECTED",
+    "SUCCEEDED",
+    "UNKNOWN"
+  ],
+  "capability": {
+    "id": "hcmnext.people.explain_worker_state",
+    "version": 1,
+    "digest": "c3e755f3ed1692b50ca1e0710109bb40498f1e3e5e491d8c4b0e1ad2d7ce656b",
+    "status": "ACTIVE",
+    "owner_domain": "people",
+    "request_schema": {
+      "schema_id": "hcmnext.people.explain_worker_state.request/v1",
+      "version": 1,
+      "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+    },
+    "response_schema": {
+      "schema_id": "hcmnext.people.explain_worker_state.response/v1",
+      "version": 1,
+      "protobuf_full_name": "hcmnext.capabilities.v1.CapabilityDefinition"
+    },
+    "effect_class": "READ_ONLY",
+    "authz_scope_ref": "scope:people.read",
+    "idempotency_policy_ref": "idempotency.read-safe.v1",
+    "agent_eligible": false,
+    "operation_mode": "SIMULATE",
+    "authority_scopes": [
+      "scope:people.read"
+    ]
+  },
+  "effect_class": "READ_ONLY",
+  "allowed_modes": [
+    "SIMULATE",
+    "EXECUTE",
+    "REPLAY",
+    "REPAIR",
+    "SHADOW"
+  ],
+  "governance": {
+    "purpose": "SIMULATE_MANAGEMENT_PROMOTION",
+    "classification": "CONFIDENTIAL_HR",
+    "required_decisions": [
+      "AUTHZ",
+      "LEGAL",
+      "PURPOSE",
+      "RISK"
+    ],
+    "revalidation_boundary": "PRE_EXECUTION",
+    "data_access_manifest_ref": "dam.promotion.simulation/v1"
+  },
+  "evidence_refs": [
+    "capability_execution_id",
+    "governance_decision_id",
+    "request_digest",
+    "output_digest"
+  ]
+}

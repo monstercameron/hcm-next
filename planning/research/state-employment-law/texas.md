@@ -180,7 +180,7 @@ Texas recognizes at-will employment: employers and employees may terminate witho
 
 **Independent contractor classification**: Texas courts apply common law "right-to-control" test; no single statutory factor is determinative. Eight-factor test: (1) control/direction by hiring entity; (2) integral to business; (3) permanency of relationship; (4) contractor's investment in facilities; (5) opportunities for profit/loss; (6) initiative and judgment in market competition; (7) degree of independent operation; (8) totality of circumstances.
 
-**Misclassification remedies**: Back wages, reclassification, penalties enforced by NCDOL (verify Texas Department of Labor equivalent), Revenue Department, Attorney General.
+**Misclassification remedies**: Back wages, reclassification, penalties enforced by the Texas Workforce Commission (Labor Code ch. 214 misclassification penalties for staffing/government contractors), the Comptroller, and the Attorney General.
 
 **Remote workers**: No state-specific statute; standard employment law applies regardless of work location. If work is performed in Texas (remote or on-site), Texas law applies to that work.
 

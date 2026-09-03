@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package hcmnext.humanwork.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1;humanworkv1";
+
+import "google/protobuf/timestamp.proto";
+import "hcmnext/common/v1/common.proto";
+import "hcmnext/intents/v1/business_intent.proto";
+
+// WorkItemStatus is the lifecycle of one unit of human work
+// (planning/specs/human-work-forms-and-rules.md "WorkItem").
+//
+// P1A disposition: OUT in its entirety. WorkItem create/claim/complete is a
+// P1B acceptance item
+// (planning/specs/human-work-forms-and-rules.md "Phase Classification" —
+// "Approval WorkItem: create, claim, complete: OUT" for P1A).
+enum WorkItemStatus {
+  WORK_ITEM_STATUS_UNSPECIFIED = 0;
+  WORK_ITEM_STATUS_CREATED = 1;
+  WORK_ITEM_STATUS_ROUTED = 2;
+  WORK_ITEM_STATUS_AVAILABLE = 3;
+  WORK_ITEM_STATUS_ASSIGNED = 4;
+  WORK_ITEM_STATUS_CLAIMED = 5;
+  WORK_ITEM_STATUS_IN_PROGRESS = 6;
+  WORK_ITEM_STATUS_WAITING_INPUT = 7;
+  WORK_ITEM_STATUS_ESCALATED = 8;
+  WORK_ITEM_STATUS_EXPIRED = 9;
+  WORK_ITEM_STATUS_COMPLETED = 10;
+  WORK_ITEM_STATUS_RETURNED = 11;
+  WORK_ITEM_STATUS_CANCELLED = 12;
+}
+
+// WorkItem generalizes approvals, missing-data requests, evidence collection,
+// review, acknowledgement, discrepancy resolution, identity matching and
+// repair work (planning/specs/human-work-forms-and-rules.md "WorkItem").
+message WorkItem {
+  string work_item_id = 1;
+  string tenant_id = 2;
+  hcmnext.common.v1.ScopeContext organization_scope = 3;
+  string work_type = 4;
+  repeated hcmnext.common.v1.EntityRef subject_refs = 5;
+  optional string resolved_queue_id = 6;
+  repeated string resolved_candidates = 7;
+  optional string assigned_principal_id = 8;
+  WorkItemStatus status = 9;
+  string priority = 10;
+  string risk_class = 11;
+  repeated string input_artifact_refs = 12;
+  string required_output_schema_ref = 13;
+  optional string form_definition_ref = 14;
+  optional google.protobuf.Timestamp due_at = 15;
+  optional string sla_policy_ref = 16;
+  optional string escalation_policy_ref = 17;
+  optional string delegation_policy_ref = 18;
+  optional string workflow_instance_id = 19;
+  optional string node_execution_id = 20;
+  optional string case_id = 21;
+  string correlation_id = 22;
+  uint64 item_version = 23;
+  google.protobuf.Timestamp created_at = 24;
+  optional google.protobuf.Timestamp claimed_at = 25;
+  optional google.protobuf.Timestamp completed_at = 26;
+}
+
+// ApprovalDecisionResult is an ApprovalDecision bound to an immutable
+// proposal: a WorkItem completion whose output records a governed approve/
+// reject/request-more-information/abstain decision plus its typed reason
+// field (planning/specs/human-work-forms-and-rules.md "Phase 1 Packaging" —
+// "approvals ApprovalDecision bound to proposal", "reason a typed reason
+// field on approval").
+message ApprovalDecisionResult {
+  string work_item_id = 1;
+  string proposal_revision_id = 2;
+  hcmnext.intents.v1.ApprovalDecisionKind decision = 3;
+  string reason_ref = 4;
+  hcmnext.intents.v1.PrincipalReference deciding_principal = 5;
+  google.protobuf.Timestamp decided_at = 6;
+}
+
+// ThresholdHitPolicy is the resolution rule applied when more than one row of
+// a ThresholdTable matches (planning/specs/human-work-forms-and-rules.md
+// "Decision Tables").
+enum ThresholdHitPolicy {
+  THRESHOLD_HIT_POLICY_UNSPECIFIED = 0;
+  THRESHOLD_HIT_POLICY_FIRST = 1;
+  THRESHOLD_HIT_POLICY_UNIQUE = 2;
+  THRESHOLD_HIT_POLICY_COLLECT = 3;
+}
+
+// ThresholdCondition is one input-name/comparison-expression pair a
+// ThresholdRow tests. The expression is a bounded, pre-published literal
+// (e.g. "raise_percent>10"), never an evaluated general-purpose expression:
+// P1A ships the decision table only, with no expression language
+// (planning/specs/human-work-forms-and-rules.md "Phase 1 Packaging").
+message ThresholdCondition {
+  string input_name = 1;
+  string comparison = 2;
+}
+
+// ThresholdRow is one row of a published decision table: a conjunction of
+// conditions, or none for the "otherwise" row, mapped to one outcome token.
+message ThresholdRow {
+  repeated ThresholdCondition conditions = 1;
+  string outcome = 2;
+}
+
+// ThresholdTable is the one decision table P1A resolves at compile time from
+// tenant configuration
+// (planning/specs/human-work-forms-and-rules.md "Phase 1 Packaging" —
+// "thresholds one decision table from tenant config P1A (no expression
+// language)").
+message ThresholdTable {
+  string table_id = 1;
+  uint32 version = 2;
+  string tenant_id = 3;
+  repeated string input_names = 4;
+  repeated ThresholdRow rows = 5;
+  ThresholdHitPolicy hit_policy = 6;
+}

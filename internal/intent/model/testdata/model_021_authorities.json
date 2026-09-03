@@ -1,0 +1,218 @@
+[
+  {
+    "Ref": "authority.approval_binding/v1",
+    "Kind": "INTERNAL",
+    "Scope": "approval_binding",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.assignment/v1",
+    "Kind": "INTERNAL",
+    "Scope": "assignment",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.budget_reservation/v1",
+    "Kind": "INTERNAL",
+    "Scope": "budget_reservation",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.compensation_component/v1",
+    "Kind": "INTERNAL",
+    "Scope": "compensation_component",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.compensation_grade/v1",
+    "Kind": "INTERNAL",
+    "Scope": "compensation_grade",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.compensation_package/v1",
+    "Kind": "INTERNAL",
+    "Scope": "compensation_package",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.connector_operation/v1",
+    "Kind": "EXTERNAL_SYSTEM",
+    "Scope": "connector_operation",
+    "Merge": "MANUAL_RECONCILIATION",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 3600
+  },
+  {
+    "Ref": "authority.employment/v1",
+    "Kind": "INTERNAL",
+    "Scope": "employment",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.evidence_record/v1",
+    "Kind": "INTERNAL",
+    "Scope": "evidence_record",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.execution_binding/v1",
+    "Kind": "INTERNAL",
+    "Scope": "execution_binding",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.intent_instance/v1",
+    "Kind": "INTERNAL",
+    "Scope": "intent_instance",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.job/v1",
+    "Kind": "INTERNAL",
+    "Scope": "job",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.legal_entity/v1",
+    "Kind": "INTERNAL",
+    "Scope": "legal_entity",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.observation/v1",
+    "Kind": "EXTERNAL_SYSTEM",
+    "Scope": "observation",
+    "Merge": "MANUAL_RECONCILIATION",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 3600
+  },
+  {
+    "Ref": "authority.organization_relationship/v1",
+    "Kind": "INTERNAL",
+    "Scope": "organization_relationship",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.organization_unit/v1",
+    "Kind": "INTERNAL",
+    "Scope": "organization_unit",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.person/v1",
+    "Kind": "INTERNAL",
+    "Scope": "person",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.position/v1",
+    "Kind": "INTERNAL",
+    "Scope": "position",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.position_occupancy/v1",
+    "Kind": "INTERNAL",
+    "Scope": "position_occupancy",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.proposal_revision/v1",
+    "Kind": "INTERNAL",
+    "Scope": "proposal_revision",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.repair_plan/v1",
+    "Kind": "INTERNAL",
+    "Scope": "repair_plan",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.transaction_plan/v1",
+    "Kind": "INTERNAL",
+    "Scope": "transaction_plan",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.worker/v1",
+    "Kind": "INTERNAL",
+    "Scope": "worker",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  },
+  {
+    "Ref": "authority.worker_summary/v1",
+    "Kind": "INTERNAL",
+    "Scope": "worker_summary",
+    "Merge": "AUTHORITY_PRECEDENCE",
+    "Evidence": "evidence.authority_registration/v1",
+    "Exclusive": true,
+    "FreshnessSeconds": 0
+  }
+]

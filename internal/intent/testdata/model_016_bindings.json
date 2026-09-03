@@ -21,11 +21,18 @@
         "organization_relationship.effective_interval"
       ],
       "Effects": null,
-      "Scenarios": ["conformance.manager_change.no_cycle/v1"]
+      "Scenarios": [
+        "conformance.manager_change.no_cycle/v1"
+      ]
     },
     {
       "Ref": "hcmnext.people.explain_worker_state/v1",
-      "AggregateRoots": ["Person", "Worker", "Employment", "Assignment"],
+      "AggregateRoots": [
+        "Person",
+        "Worker",
+        "Employment",
+        "Assignment"
+      ],
       "Reads": [
         "worker.status",
         "employment.status",
@@ -34,7 +41,9 @@
       ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.explain_worker_state.lineage_complete/v1"]
+      "Scenarios": [
+        "conformance.explain_worker_state.lineage_complete/v1"
+      ]
     },
     {
       "Ref": "hcmnext.people.promote_worker/v1",
@@ -81,8 +90,12 @@
         "compensation_component.amount",
         "compensation_component.effective_interval"
       ],
-      "Effects": ["effect.compensation_component_append/v1"],
-      "Scenarios": ["conformance.base_pay.no_overlapping_intervals/v1"]
+      "Effects": [
+        "effect.compensation_component_append/v1"
+      ],
+      "Scenarios": [
+        "conformance.base_pay.no_overlapping_intervals/v1"
+      ]
     },
     {
       "Ref": "hcmnext.rewards.simulate_compensation/v1",
@@ -99,53 +112,111 @@
       ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.simulate_compensation.deterministic/v1"]
+      "Scenarios": [
+        "conformance.simulate_compensation.deterministic/v1"
+      ]
     },
     {
       "Ref": "hcmnext.rewards.evaluate_pay_band_position/v1",
-      "AggregateRoots": ["Employment", "CompensationPackage", "CompensationComponent"],
-      "Reads": ["compensation_component.amount", "compensation_package.currency"],
+      "AggregateRoots": [
+        "Employment",
+        "CompensationPackage",
+        "CompensationComponent"
+      ],
+      "Reads": [
+        "compensation_component.amount",
+        "compensation_package.currency"
+      ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.pay_band.reproducible_position/v1"]
+      "Scenarios": [
+        "conformance.pay_band.reproducible_position/v1"
+      ]
     },
     {
       "Ref": "hcmnext.rewards.reserve_compensation_budget/v1",
-      "AggregateRoots": ["BudgetReservation", "ProposalRevision"],
+      "AggregateRoots": [
+        "BudgetReservation",
+        "ProposalRevision"
+      ],
       "Reads": [
         "budget_reservation.available_balance",
         "proposal_revision.material_digest"
       ],
-      "Writes": ["budget_reservation.amount", "budget_reservation.expiry"],
-      "Effects": ["effect.budget_reservation_append/v1"],
-      "Scenarios": ["conformance.budget.no_over_reservation/v1"]
+      "Writes": [
+        "budget_reservation.amount",
+        "budget_reservation.expiry"
+      ],
+      "Effects": [
+        "effect.budget_reservation_append/v1"
+      ],
+      "Scenarios": [
+        "conformance.budget.no_over_reservation/v1"
+      ]
     },
     {
       "Ref": "hcmnext.rewards.release_compensation_budget/v1",
-      "AggregateRoots": ["BudgetReservation", "ProposalRevision"],
-      "Reads": ["budget_reservation.state", "budget_reservation.amount"],
-      "Writes": ["budget_reservation.state"],
-      "Effects": ["effect.budget_release_append/v1"],
-      "Scenarios": ["conformance.budget.release_at_most_once/v1"]
+      "AggregateRoots": [
+        "BudgetReservation",
+        "ProposalRevision"
+      ],
+      "Reads": [
+        "budget_reservation.state",
+        "budget_reservation.amount"
+      ],
+      "Writes": [
+        "budget_reservation.state"
+      ],
+      "Effects": [
+        "effect.budget_release_append/v1"
+      ],
+      "Scenarios": [
+        "conformance.budget.release_at_most_once/v1"
+      ]
     },
     {
       "Ref": "hcmnext.work.approve_proposal/v1",
-      "AggregateRoots": ["ProposalRevision", "ApprovalBinding", "IntentInstance"],
-      "Reads": ["proposal_revision.material_digest", "intent_instance.lifecycle"],
+      "AggregateRoots": [
+        "ProposalRevision",
+        "ApprovalBinding",
+        "IntentInstance"
+      ],
+      "Reads": [
+        "proposal_revision.material_digest",
+        "intent_instance.lifecycle"
+      ],
       "Writes": [
         "approval_binding.decision",
         "approval_binding.approved_proposal_digest"
       ],
-      "Effects": ["effect.approval_binding_append/v1"],
-      "Scenarios": ["conformance.approval.exact_digest_binding/v1"]
+      "Effects": [
+        "effect.approval_binding_append/v1"
+      ],
+      "Scenarios": [
+        "conformance.approval.exact_digest_binding/v1"
+      ]
     },
     {
       "Ref": "hcmnext.work.reject_proposal/v1",
-      "AggregateRoots": ["ProposalRevision", "ApprovalBinding", "IntentInstance"],
-      "Reads": ["proposal_revision.material_digest", "intent_instance.lifecycle"],
-      "Writes": ["approval_binding.decision", "approval_binding.reason_ref"],
-      "Effects": ["effect.approval_binding_append/v1"],
-      "Scenarios": ["conformance.rejection.cannot_execute/v1"]
+      "AggregateRoots": [
+        "ProposalRevision",
+        "ApprovalBinding",
+        "IntentInstance"
+      ],
+      "Reads": [
+        "proposal_revision.material_digest",
+        "intent_instance.lifecycle"
+      ],
+      "Writes": [
+        "approval_binding.decision",
+        "approval_binding.reason_ref"
+      ],
+      "Effects": [
+        "effect.approval_binding_append/v1"
+      ],
+      "Scenarios": [
+        "conformance.rejection.cannot_execute/v1"
+      ]
     },
     {
       "Ref": "hcmnext.intelligence.explain_transaction/v1",
@@ -165,11 +236,17 @@
       ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.explain_transaction.explicit_gaps/v1"]
+      "Scenarios": [
+        "conformance.explain_transaction.explicit_gaps/v1"
+      ]
     },
     {
       "Ref": "hcmnext.operations.detect_drift/v1",
-      "AggregateRoots": ["IntentInstance", "ConnectorOperation", "Observation"],
+      "AggregateRoots": [
+        "IntentInstance",
+        "ConnectorOperation",
+        "Observation"
+      ],
       "Reads": [
         "observation.observed_state",
         "connector_operation.watermark",
@@ -177,11 +254,17 @@
       ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.drift.every_mismatch_classified/v1"]
+      "Scenarios": [
+        "conformance.drift.every_mismatch_classified/v1"
+      ]
     },
     {
       "Ref": "hcmnext.operations.create_repair_plan/v1",
-      "AggregateRoots": ["RepairPlan", "Observation", "IntentInstance"],
+      "AggregateRoots": [
+        "RepairPlan",
+        "Observation",
+        "IntentInstance"
+      ],
       "Reads": [
         "observation.observed_state",
         "intent_instance.lifecycle",
@@ -189,15 +272,25 @@
       ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.repair_plan.recommendation_only/v1"]
+      "Scenarios": [
+        "conformance.repair_plan.recommendation_only/v1"
+      ]
     },
     {
       "Ref": "hcmnext.operations.simulate_repair/v1",
-      "AggregateRoots": ["RepairPlan", "Observation"],
-      "Reads": ["repair_plan.targets", "observation.observed_state"],
+      "AggregateRoots": [
+        "RepairPlan",
+        "Observation"
+      ],
+      "Reads": [
+        "repair_plan.targets",
+        "observation.observed_state"
+      ],
       "Writes": null,
       "Effects": null,
-      "Scenarios": ["conformance.repair.no_business_side_effect/v1"]
+      "Scenarios": [
+        "conformance.repair.no_business_side_effect/v1"
+      ]
     }
   ]
 }

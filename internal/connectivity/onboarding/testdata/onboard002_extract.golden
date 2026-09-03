@@ -1,0 +1,8 @@
+object: WORKER
+status: COMPLETED
+pages: 2
+records: 4
+snapshot_id: workday.worker/2026.1#bb4b9990f416
+stored_pages: 2
+checkpoint_complete: true
+checkpoint_records: 4

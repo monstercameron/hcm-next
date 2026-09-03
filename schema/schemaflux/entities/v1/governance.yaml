@@ -1,0 +1,348 @@
+# governance entity sources (MSRC-003).
+#
+# `covered: true` entities/properties/relationships here must match, field
+# for field, internal/intent/model/catalog.go's compiled
+# internal/intent/model.Catalog() registry (MSRC-002's Go anchor).
+# tools/gen/schemaflux/sources.CrossCheckModel enforces this; a mismatch is
+# reported, never silently accepted (per this repo's cross-check mandate).
+#
+# `covered: false` entities are drawn from kernel-governance-and-evidence.md's workflow/human-work/governance sections with no
+# funded Go registration yet (see planning/data/models/README.md's coverage
+# rule: "Coverage is claimed only for the fourteen drafted definitions...
+# Everything else... carries no coverage claim"). They are encoded here so a
+# future funded domain starts from a reviewed source rather than
+# re-transcribing prose, and so the loader's cross-reference resolution has
+# real, non-trivial structure to validate against. A `covered: false` entity
+# or property must not declare status ACTIVE.
+
+family: governance
+family_version: 1
+source_docs:
+  - planning/data/models/kernel-governance-and-evidence.md#workflow-definition-and-runtime
+  - planning/data/models/kernel-governance-and-evidence.md#human-work-and-approval
+  - planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+entities:
+  - name: ApprovalBinding
+    version: 1
+    key: approval_binding
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#human-work-and-approval
+    summary: >-
+      An authorized approval or rejection decision bound to one immutable material proposal digest.
+    properties:
+      - name: decision
+        go_type: string
+        schema_path: hcmnext.intents.v1.ApprovalBinding.decision
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.approval_binding/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+      - name: approved_proposal_digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.ApprovalBinding.approved_proposal_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.approval_binding/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+      - name: reason_ref
+        go_type: string
+        schema_path: hcmnext.intents.v1.ApprovalBinding.reason_ref
+        presence: OPTIONAL
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.approval_binding/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+
+  - name: ExecutionBinding
+    version: 1
+    key: execution_binding
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: ACTIVE
+    covered: true
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#workflow-definition-and-runtime
+    summary: >-
+      Binds an approved proposal revision to the exact transaction plan that executed it.
+    properties:
+      - name: transaction_plan_id
+        go_type: string
+        schema_path: hcmnext.intents.v1.ExecutionBinding.transaction_plan_id
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.execution_binding/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: ACTIVE
+
+  - name: CapabilityDefinition
+    version: 1
+    key: capability_definition
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#workflow-definition-and-runtime
+    summary: >-
+      Canonical name, owner plane/domain/service, purpose, risk and maturity of one governed semantic operation.
+    properties:
+      - name: canonical_name
+        go_type: string
+        schema_path: hcmnext.capabilities.v1.CapabilityDefinition.canonical_name
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: WorkflowDefinition
+    version: 1
+    key: workflow_definition
+    aliases: []
+    owner_domain: WORKFLOW
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#workflow-definition-and-runtime
+    summary: >-
+      A named, versioned coordination graph of node/edge definitions, input/output schema and failure/cancellation policy.
+    properties:
+      - name: name
+        go_type: string
+        schema_path: hcmnext.workflow.v1.WorkflowDefinition.name
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: ApprovalRequirement
+    version: 1
+    key: approval_requirement
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: CHILD
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#human-work-and-approval
+    summary: >-
+      Resolver AST, cardinality, quorum and SoD policy for one proposal revision's required approval.
+    properties:
+      - name: proposal_digest
+        go_type: string
+        schema_path: hcmnext.intents.v1.ApprovalRequirement.proposal_digest
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.governance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: ApprovalCertificate
+    version: 1
+    key: approval_certificate
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#human-work-and-approval
+    summary: >-
+      Evaluated quorum/veto result across every decision bound to one proposal's approval requirement set.
+    properties:
+      - name: status
+        go_type: string
+        schema_path: hcmnext.intents.v1.ApprovalCertificate.status
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.governance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: Principal
+    version: 1
+    key: principal
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      A HUMAN/AGENT/SERVICE/INTEGRATION/SUPPORT identity with tenant bindings, lifecycle and revocation epoch.
+    properties:
+      - name: kind
+        go_type: string
+        schema_path: hcmnext.common.v1.Principal.kind
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: POINT_IN_TIME
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: AuthoritySource
+    version: 1
+    key: authority_source
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: VALUE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedReferenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      System/service/principal/organization identity and source role (AUTHORITATIVE_WRITER|READER|OBSERVER|CLAIMANT|DERIVER|REVIEWER).
+    properties:
+      - name: source_role
+        go_type: string
+        schema_path: hcmnext.common.v1.AuthoritySource.source_role
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: AuthorizationDecision
+    version: 1
+    key: authorization_decision
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      ALLOW/DENY/RESTRICT/UNKNOWN_FAIL_CLOSED decision over a capability/resource/field/purpose scope, with restrictions and expiry.
+    properties:
+      - name: result
+        go_type: string
+        schema_path: hcmnext.common.v1.AuthorizationDecision.result
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.governance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: Obligation
+    version: 1
+    key: obligation
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      A required action with a responsible party, deadline, evidence and satisfaction reference, plus scope/risk/penalty.
+    properties:
+      - name: required_action
+        go_type: string
+        schema_path: hcmnext.common.v1.Obligation.required_action
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: GovernanceDecisionBundle
+    version: 1
+    key: governance_decision_bundle
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: EVIDENCE
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: ImmutableEvidenceLifecycle
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      The combined authentication/authz/legal/privacy/risk/entitlement/DLP decision set backing one intent/proposal/execution.
+    properties:
+      - name: combined_outcome
+        go_type: string
+        schema_path: hcmnext.common.v1.GovernanceDecisionBundle.combined_outcome
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: IMMUTABLE
+        authority_ref: authority.governance_extension/v1
+        correction: IMMUTABLE_NO_CORRECTION
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+  - name: DelegationGrant
+    version: 1
+    key: delegation_grant
+    aliases: []
+    owner_domain: GOVERNANCE
+    class: AGGREGATE_ROOT
+    status: DRAFT
+    covered: false
+    tenant_scoped: true
+    lifecycle_assignment: RevisionedFactLifecycle
+    command_boundary: LOCAL_ACID
+    source_ref: planning/data/models/kernel-governance-and-evidence.md#governance-legal-and-policy
+    summary: >-
+      A delegator-to-delegate grant with tenant/org/capability/resource/field/purpose scope and effective interval.
+    properties:
+      - name: scope
+        go_type: string
+        schema_path: hcmnext.common.v1.DelegationGrant.scope
+        presence: REQUIRED
+        classification: INTERNAL
+        temporal: EFFECTIVE_DATED
+        authority_ref: authority.governance_extension/v1
+        correction: SUPERSEDES
+        retention_class_ref: GOVERNANCE_EVIDENCE
+        status: DRAFT
+
+relationships: []

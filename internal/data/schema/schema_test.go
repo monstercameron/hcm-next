@@ -2,6 +2,7 @@ package schema_test
 
 import (
 	"context"
+	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
 	"go/parser"
 	"go/token"
 	"os"
@@ -23,22 +24,27 @@ func TestMain(m *testing.M) {
 
 // platformControlTables are the only base tables that are not tenant scoped.
 // They describe the schema itself, not any tenant's business truth.
-var platformControlTables = []string{"migration_journal", "schema_release"}
-
-// tenantScopedTables must every one of them carry tenant_id NOT NULL.
-var tenantScopedTables = []string{
-	"authority_assignment",
-	"definition_active_pointer",
-	"definition_version",
-	"intent_instance",
-	"ledger_event",
-	"ledger_stream",
-	"outbox",
-	"payload_schema",
-	"projection_checkpoint",
-	"proposal_revision",
-	"stream_head",
-	"tenant",
+// Table classification is read from the storage-disposition registry
+// (STORE-001), the single source of truth for which tables exist and which
+// carry a tenant column, so this suite grows with the migrations instead of
+// pinning a hand-written list.
+func registryTables(t *testing.T) (platformControl, tenantScoped []string) {
+	t.Helper()
+	reg, err := storagedisposition.Load(filepath.Join("..", "..", "..", "definitions", "storage", "storage-disposition.yaml"))
+	if err != nil {
+		t.Fatalf("load storage-disposition registry: %v", err)
+	}
+	for _, name := range reg.TableNames() {
+		entry, _ := reg.Lookup(name)
+		if entry.TenantScoped() {
+			tenantScoped = append(tenantScoped, name)
+		} else {
+			platformControl = append(platformControl, name)
+		}
+	}
+	sort.Strings(platformControl)
+	sort.Strings(tenantScoped)
+	return platformControl, tenantScoped
 }
 
 // appendOnlyTables reject UPDATE and DELETE outright.
@@ -52,6 +58,7 @@ func TestTodo_DATA_001(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := pgtest.New(t)
+	platformControlTables, tenantScopedTables := registryTables(t)
 
 	t.Run("every authoritative table is classified", func(t *testing.T) {
 		got := baseTables(t, db)
@@ -186,22 +193,9 @@ func TestTodo_DATA_001_Golden(t *testing.T) {
 	db := pgtest.New(t)
 
 	got := baseTables(t, db)
-	want := []string{
-		"authority_assignment",
-		"definition_active_pointer",
-		"definition_version",
-		"intent_instance",
-		"ledger_event",
-		"ledger_stream",
-		"migration_journal",
-		"outbox",
-		"payload_schema",
-		"projection_checkpoint",
-		"proposal_revision",
-		"schema_release",
-		"stream_head",
-		"tenant",
-	}
+	platformControlTables, tenantScopedTables := registryTables(t)
+	want := append(slices.Clone(platformControlTables), tenantScopedTables...)
+	sort.Strings(want)
 	if !slices.Equal(got, want) {
 		t.Fatalf("authoritative tables are %v, want %v", got, want)
 	}

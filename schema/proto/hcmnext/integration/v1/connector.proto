@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package hcmnext.integration.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1";
+
+import "google/protobuf/duration.proto";
+
+// ObjectKind names an external record family the Integration Platform can
+// observe. P1A observes three; the list is closed so a mapping profile, a
+// schema snapshot and an observation all agree on one vocabulary
+// (internal/connectivity ObjectKind).
+enum ObjectKind {
+  OBJECT_KIND_UNSPECIFIED = 0;
+  OBJECT_KIND_WORKER = 1;
+  OBJECT_KIND_POSITION = 2;
+  OBJECT_KIND_COMPENSATION = 3;
+}
+
+// ReadMode selects how much of a source a run intends to traverse
+// (internal/connectivity ReadMode).
+enum ReadMode {
+  READ_MODE_UNSPECIFIED = 0;
+  READ_MODE_FULL = 1;
+  READ_MODE_INCREMENTAL = 2;
+  READ_MODE_DELTA = 3;
+}
+
+// ConnectorOperation is a semantic operation class a connector may declare.
+// P1A publishes only READ; WRITE and EVENT exist so a P1B definition can
+// declare them without a schema change
+// (internal/connectivity Operation; planning/specs/integration-platform.md
+// "The five verbs are deliberately distinct" — SUBSCRIBE and RECONCILE are
+// modeled as connection-level contracts, not connector operation classes).
+enum ConnectorOperation {
+  CONNECTOR_OPERATION_UNSPECIFIED = 0;
+  CONNECTOR_OPERATION_READ = 1;
+  CONNECTOR_OPERATION_WRITE = 2;
+  CONNECTOR_OPERATION_EVENT = 3;
+}
+
+// AuthMode names how a connection authenticates. The definition declares
+// which modes it supports; the connection picks one
+// (internal/connectivity AuthMode).
+enum AuthMode {
+  AUTH_MODE_UNSPECIFIED = 0;
+  AUTH_MODE_OAUTH2_CLIENT_CREDENTIALS = 1;
+  AUTH_MODE_API_KEY = 2;
+  AUTH_MODE_MTLS = 3;
+  AUTH_MODE_SIGNED_ASSERTION = 4;
+}
+
+// Maturity is the support level a connector definition version claims
+// (internal/connectivity Maturity).
+enum Maturity {
+  MATURITY_UNSPECIFIED = 0;
+  MATURITY_EXPERIMENTAL = 1;
+  MATURITY_PREVIEW = 2;
+  MATURITY_CERTIFIED = 3;
+}
+
+// Capability is one object/operation pair a connector version supports. It is
+// the unit a connection may narrow but never broaden
+// (internal/connectivity Capability).
+message Capability {
+  ObjectKind object = 1;
+  ConnectorOperation operation = 2;
+}
+
+// SchemaRef binds one object to the external schema contract a definition
+// version reads it under (internal/connectivity SchemaRef).
+message SchemaRef {
+  ObjectKind object = 1;
+  string schema_id = 2;
+  string schema_version = 3;
+  string descriptor = 4;
+}
+
+// Bounds is the negotiated read envelope. A connector publishes it, a
+// connection may only narrow it, and a request that exceeds it fails rather
+// than being silently clamped (internal/connectivity Bounds).
+message Bounds {
+  int32 max_page_size = 1;
+  int32 max_pages_per_run = 2;
+  int32 max_records_per_run = 3;
+  int32 max_record_bytes = 4;
+  google.protobuf.Duration min_request_interval = 5;
+}
+
+// PaginationContract states how the connector paginates
+// (internal/connectivity PaginationContract).
+message PaginationContract {
+  string style = 1;
+  string sort_key_field = 2;
+  string tie_break_field = 3;
+  bool stable_under_snapshot = 4;
+  google.protobuf.Duration token_ttl = 5;
+}
+
+// RateContract states the provider's own limits. It is separate from Bounds:
+// Bounds is what the platform will ask for, RateContract is what the
+// provider will serve (internal/connectivity RateContract).
+message RateContract {
+  int32 requests_per_minute = 1;
+  int32 concurrent_reads = 2;
+  int32 burst_requests = 3;
+}
+
+// IdempotencyContract states how a repeated request is recognized by the
+// provider (internal/connectivity IdempotencyContract).
+message IdempotencyContract {
+  string key_field = 1;
+  google.protobuf.Duration retention_window = 2;
+  bool reads_are_idempotent = 3;
+}
+
+// ObservationContract states what an observation from this connector can
+// honestly claim (internal/connectivity ObservationContract).
+message ObservationContract {
+  string watermark_field = 1;
+  google.protobuf.Duration freshness_budget = 2;
+  bool supports_completeness = 3;
+}
+
+// ReconciliationContract states what can be compared back against the source
+// after the fact (internal/connectivity ReconciliationContract).
+message ReconciliationContract {
+  repeated string key_fields = 1;
+  bool supports_point_read = 2;
+  repeated string comparable_fields = 3;
+}
+
+// HealthContract states how the connector is probed without mutation
+// (internal/connectivity HealthContract).
+message HealthContract {
+  ObjectKind probe_object = 1;
+  google.protobuf.Duration interval = 2;
+  int32 degraded_after_failures = 3;
+}
+
+// ConnectorDefinition is the immutable, versioned, signed statement of what
+// one named connector version can do. Every contract on it is required at
+// publication: a definition missing its pagination or observation semantics
+// reads as "we do not know how this connector behaves", which must not be
+// publishable as a supported surface (internal/connectivity
+// ConnectorDefinition; planning/specs/integration-platform.md
+// "ConnectorDefinition").
+message ConnectorDefinition {
+  string connector_id = 1;
+  string vendor = 2;
+  string product = 3;
+  string connector_version = 4;
+  Maturity maturity = 5;
+  repeated ObjectKind objects = 6;
+  repeated Capability capabilities = 7;
+  repeated AuthMode auth_modes = 8;
+  repeated ReadMode read_modes = 9;
+  // write_modes and event_modes are declared as opaque tokens because no P1A
+  // definition populates them; they exist so a P1B definition need not
+  // change this message.
+  repeated string write_modes = 10;
+  repeated string event_modes = 11;
+  repeated SchemaRef schema_refs = 12;
+  Bounds bounds = 13;
+  PaginationContract pagination = 14;
+  RateContract rate = 15;
+  IdempotencyContract idempotency = 16;
+  ObservationContract observation = 17;
+  ReconciliationContract reconciliation = 18;
+  HealthContract health = 19;
+  string signature = 20;
+}

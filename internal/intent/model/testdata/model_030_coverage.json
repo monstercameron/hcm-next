@@ -1,0 +1,20 @@
+{
+  "Summary": "24/24 VERIFIED",
+  "ByDomain": {
+    "GOVERNANCE": 7,
+    "OPERATIONS": 3,
+    "PEOPLE": 5,
+    "REWARDS": 4,
+    "WORK": 5
+  },
+  "ByStatus": {
+    "ACTIVE": 24
+  },
+  "ByClass": {
+    "AGGREGATE_ROOT": 18,
+    "CHILD": 1,
+    "EVIDENCE": 4,
+    "READ_MODEL": 1
+  },
+  "ConformancePairs": 12
+}
