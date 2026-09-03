@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -82,7 +82,7 @@ func (PeopleStore) PutPerson(ctx context.Context, ex Executor, p Person) (uuid.U
 		[]any{p.LifecycleState, p.LegalName, nullableText(p.PreferredName)})
 }
 
-func scanPerson(row pgx.Row) (Person, error) {
+func scanPerson(row dbport.Row) (Person, error) {
 	var p Person
 	var preferredName *string
 	err := row.Scan(&p.RowID, &p.Tenant, &p.EntityID, &p.CanonicalID, &p.LifecycleState, &p.LegalName, &preferredName,
@@ -154,7 +154,7 @@ func (PeopleStore) PutIdentityClaim(ctx context.Context, ex Executor, c Identity
 		[]any{nullableUUID(c.PersonRef), c.ClaimType, c.Namespace, c.NormalizedValueHash, c.Issuer, c.Assurance})
 }
 
-func scanIdentityClaim(row pgx.Row) (IdentityClaim, error) {
+func scanIdentityClaim(row dbport.Row) (IdentityClaim, error) {
 	var c IdentityClaim
 	var personRef *uuid.UUID
 	err := row.Scan(&c.RowID, &c.Tenant, &c.EntityID, &c.CanonicalID, &personRef, &c.ClaimType, &c.Namespace,
@@ -210,7 +210,7 @@ func (PeopleStore) PutWorker(ctx context.Context, ex Executor, w Worker) (uuid.U
 		[]any{w.PersonRef, nullableText(w.WorkerNumber), w.WorkerType, w.LifecycleStatus})
 }
 
-func scanWorker(row pgx.Row) (Worker, error) {
+func scanWorker(row dbport.Row) (Worker, error) {
 	var w Worker
 	var workerNumber *string
 	err := row.Scan(&w.RowID, &w.Tenant, &w.EntityID, &w.CanonicalID, &w.PersonRef, &workerNumber, &w.WorkerType,
@@ -280,7 +280,7 @@ func (PeopleStore) PutEmployment(ctx context.Context, ex Executor, e Employment)
 		[]any{e.WorkerRef, e.LegalEntityRef, e.EmploymentType, e.EmploymentStatus, e.HireDate})
 }
 
-func scanEmployment(row pgx.Row) (Employment, error) {
+func scanEmployment(row dbport.Row) (Employment, error) {
 	var e Employment
 	err := row.Scan(&e.RowID, &e.Tenant, &e.EntityID, &e.CanonicalID, &e.WorkerRef, &e.LegalEntityRef, &e.EmploymentType,
 		&e.EmploymentStatus, &e.HireDate, &e.EffectiveFrom, &e.EffectiveTo, &e.RecordedAt, &e.SupersededAt,
@@ -354,7 +354,7 @@ func (PeopleStore) PutAssignment(ctx context.Context, ex Executor, a Assignment)
 			nullableUUID(a.PositionRef), nullableText(a.Location), nullableText(a.PayZone), decimalParam(a.FTE), nullableText(a.ManagerRelationshipRef)})
 }
 
-func scanAssignment(row pgx.Row) (Assignment, error) {
+func scanAssignment(row dbport.Row) (Assignment, error) {
 	var a Assignment
 	var grade, location, payZone, managerRef *string
 	var orgRef, posRef *uuid.UUID
@@ -427,7 +427,7 @@ func optionalUUIDString(id *uuid.UUID) string {
 var ErrNotFound = errors.New("aggregates: no row for the given tenant/entity/time bounds")
 
 func wrapNotFound(err error, table string, entityID uuid.UUID) error {
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return fmt.Errorf("%w: %s %s", ErrNotFound, table, entityID)
 	}
 	return fmt.Errorf("aggregates: read %s %s: %w", table, entityID, err)

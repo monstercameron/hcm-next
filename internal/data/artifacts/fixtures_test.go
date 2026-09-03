@@ -11,7 +11,9 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/artifacts"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	"github.com/monstercameron/hcm-next/internal/intent/model"
 )
@@ -69,7 +71,7 @@ func insertTenant(t *testing.T, db *pgtest.DB, key string) uuid.UUID {
 // least-privilege hcmnext_app role, exactly the way
 // internal/data/tenancy_test's fixtures do: the pgtest URL authenticates as a
 // superuser, which may always SET ROLE to any role at all.
-func appRoleConn(t *testing.T, db *pgtest.DB) *pgx.Conn {
+func appRoleConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	t.Helper()
 	conn := db.NewConn(t)
 	if _, err := conn.Exec(context.Background(), "SET ROLE "+tenancy.AppRole); err != nil {
@@ -94,11 +96,11 @@ func (f fixture) putRequest(content []byte) artifacts.PutRequest {
 
 // inTx runs fn in a transaction on the fixture's own connection, committing
 // on success and rolling back on failure, and returns fn's error.
-func (f fixture) inTx(fn func(pgx.Tx) error) error {
+func (f fixture) inTx(fn func(dbport.Tx) error) error {
 	return inTxErr(f.db.Conn, fn)
 }
 
-func inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
+func inTxErr(conn *pgxadapter.Conn, fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -117,7 +119,7 @@ func inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
 func (f fixture) put(req artifacts.PutRequest) (artifacts.Record, bool, error) {
 	var rec artifacts.Record
 	var created bool
-	err := f.inTx(func(tx pgx.Tx) error {
+	err := f.inTx(func(tx dbport.Tx) error {
 		var putErr error
 		rec, created, putErr = artifacts.Put(context.Background(), tx, f.schema, req)
 		return putErr
@@ -137,7 +139,7 @@ func (f fixture) mustPut(t *testing.T, req artifacts.PutRequest) artifacts.Recor
 
 // addReference runs one AddReference in its own transaction.
 func (f fixture) addReference(contentID string, owner artifacts.OwnerRef) error {
-	return f.inTx(func(tx pgx.Tx) error {
+	return f.inTx(func(tx dbport.Tx) error {
 		return artifacts.AddReference(context.Background(), tx, f.schema, f.tenant, contentID, owner)
 	})
 }
@@ -152,7 +154,7 @@ func (f fixture) mustAddReference(t *testing.T, contentID string, owner artifact
 
 // removeReference runs one RemoveReference in its own transaction.
 func (f fixture) removeReference(contentID string, owner artifacts.OwnerRef) error {
-	return f.inTx(func(tx pgx.Tx) error {
+	return f.inTx(func(tx dbport.Tx) error {
 		return artifacts.RemoveReference(context.Background(), tx, f.schema, f.tenant, contentID, owner)
 	})
 }
@@ -204,7 +206,7 @@ func allowAll(requestedBy string) artifacts.RetrievalAuthorization {
 // artifactsReferenceCount runs ReferenceCount in its own transaction.
 func artifactsReferenceCount(f fixture, contentID string) (int64, error) {
 	var count int64
-	err := f.inTx(func(tx pgx.Tx) error {
+	err := f.inTx(func(tx dbport.Tx) error {
 		var countErr error
 		count, countErr = artifacts.ReferenceCount(context.Background(), tx, f.schema, f.tenant, contentID)
 		return countErr

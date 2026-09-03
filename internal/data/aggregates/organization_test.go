@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/aggregates"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 )
 
@@ -32,7 +32,7 @@ func TestTodo_DB_009(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewLegalEntity: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := org.PutLegalEntity(ctx, tx, legalEntity)
 		return err
 	})
@@ -44,7 +44,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, unit)
 			return err
 		})
@@ -54,7 +54,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit (renamed): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, renamed)
 			return err
 		})
@@ -79,7 +79,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit (parent): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, parent)
 			return err
 		})
@@ -89,7 +89,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit (child): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, child)
 			return err
 		})
@@ -100,7 +100,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit (loop): %v", err)
 		}
-		putErr := inTxErr(t, db, func(tx pgx.Tx) error {
+		putErr := inTxErr(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, loop)
 			return err
 		})
@@ -127,7 +127,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrganizationUnit: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutOrganizationUnit(ctx, tx, unit)
 			return err
 		})
@@ -138,7 +138,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewJob: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutJob(ctx, tx, job)
 			return err
 		})
@@ -149,7 +149,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewJobPosition: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutJobPosition(ctx, tx, position)
 			return err
 		})
@@ -160,7 +160,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewPositionOccupancy (full): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutPositionOccupancy(ctx, tx, full)
 			return err
 		})
@@ -171,7 +171,7 @@ func TestTodo_DB_009(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewPositionOccupancy (over-commit): %v", err)
 		}
-		putErr := inTxErr(t, db, func(tx pgx.Tx) error {
+		putErr := inTxErr(t, db, func(tx dbport.Tx) error {
 			_, err := org.PutPositionOccupancy(ctx, tx, overCommit)
 			return err
 		})
@@ -197,7 +197,7 @@ func TestTodo_DB_009_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewLegalEntity A: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := org.PutLegalEntity(ctx, tx, a)
 		return err
 	})
@@ -208,7 +208,7 @@ func TestTodo_DB_009_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewLegalEntity B: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := org.PutLegalEntity(ctx, tx, b)
 		return err
 	})

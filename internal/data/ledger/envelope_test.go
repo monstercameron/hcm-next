@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
@@ -123,7 +123,7 @@ func TestTodo_DATA_003_Security(t *testing.T) {
 	// A caller-controlled digester is the seam, and it is explicit.
 	appender := ledger.New(ledger.WithDigester(constantDigester{}))
 	var receipt ledger.AppendReceipt
-	err := f.inTxErr(f.db.Conn, func(tx pgx.Tx) error {
+	err := f.inTxErr(f.db.Conn, func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = appender.Append(context.Background(), tx, f.request(0))
 		return appendErr
@@ -137,7 +137,7 @@ func TestTodo_DATA_003_Security(t *testing.T) {
 
 	// A digester that fails stops the append; nothing is written.
 	failing := ledger.New(ledger.WithDigester(failingDigester{}))
-	err = f.inTxErr(f.db.Conn, func(tx pgx.Tx) error {
+	err = f.inTxErr(f.db.Conn, func(tx dbport.Tx) error {
 		_, appendErr := failing.Append(context.Background(), tx, f.request(1))
 		return appendErr
 	})
@@ -161,7 +161,7 @@ func TestTodo_DATA_003_Golden(t *testing.T) {
 	req.IdempotencyKey = "golden-key"
 
 	var receipt ledger.AppendReceipt
-	if err := f.inTxErr(f.db.Conn, func(tx pgx.Tx) error {
+	if err := f.inTxErr(f.db.Conn, func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = appender.Append(context.Background(), tx, req)
 		return appendErr

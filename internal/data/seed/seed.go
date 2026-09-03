@@ -1,37 +1,62 @@
-// Package seed loads the Promotion fixture corpus (DB-019) and inserts it
-// into the physical definition registry (migrations/00003_definition_registry.sql)
+// Package seed loads the Promotion fixture corpus (DB-019) into a tenant
 // idempotently, with a content digest that pins the exact plan.
 //
-// # Why the definition registry, not new tables
+// # Two substrates, split by what each fixture category actually is
 //
-// DB-019 depends on domain physical tables (person, employment, position,
-// compensation) this phase has not built yet; the only physical substrate
-// available to seed into without adding a table -- which would break
-// internal/data/schema's frozen TestTodo_DATA_001_Golden table inventory, a
-// file outside this package's lane -- is the definition_version/
-// definition_active_pointer registry migration 00003 already declares for
-// exactly this purpose (platform-plane-model.md lists "reference data and
-// mappings" under the Control Plane's definition resolution). Every
-// registration below is therefore a definition_version row: an ENTITY for a
-// person or a position, a RELATIONSHIP for an employment, a CONFIG for a
-// compensation band or the band catalog as a whole, and one SCHEMA,
-// CAPABILITY and INTENT row for the corpus's own registration. The kind and a
-// namespaced definition_key (e.g. "person:jane-doe" vs "position:jane-doe")
-// keep the eight categories DB-019 names distinguishable within
-// definition_version's nine-value kind enum.
+// The corpus's own registration (one SCHEMA row naming the fixture
+// calendar), the capability/intent it exercises, and the pay-band catalog's
+// own reference-data descriptor (CONFIG "rewards.paybands.catalog", the raw
+// bands.json blob) are metadata *about* the corpus, not domain facts a
+// caller would ever want to revise or supersede -- migration 00003's
+// definition_version/definition_active_pointer registry (platform-plane-
+// model.md's "reference data and mappings" under the Control Plane) is
+// exactly the substrate for that, and stays that way.
+//
+// Every person/worker/employment/assignment/legal_entity/organization_unit/
+// job/job_position/position_occupancy/compensation_* fixture, by contrast,
+// now has a physical bitemporal home: migrations 00011-00013 (DB-008/009/
+// 010), the tables internal/data/aggregates owns. Before those migrations
+// existed this package published the same facts as namespaced
+// definition_version rows instead (an ENTITY for a person or a position, a
+// RELATIONSHIP for an employment, a CONFIG per pay band); DB-019's follow-up
+// asked this package to re-point at the real tables now that they exist, so
+// Seed calls aggregates.LoadFixtures -- the frozen package's own fixture
+// loader, reusing the exact same embedded corpus rather than a hand-built
+// second copy -- inside the caller's transaction instead.
+//
+// # Why this is still idempotent
+//
+// aggregates.LoadFixtures assigns every entity a fresh, random uuid on each
+// call (aggregates is frozen: this package may only import it, not add a
+// natural-key idempotency path to it), so calling it twice for the same
+// tenant would leave two disjoint sets of otherwise-identical person/
+// worker/... rows rather than a no-op. Seed instead gates the one
+// LoadFixtures call behind an ordinary definition_version row: a SCHEMA
+// registration (key aggregateCorpusKey) whose body is a digest of the
+// embedded workers.json/bands.json bytes. That row goes through the exact
+// same INSERT ... ON CONFLICT DO NOTHING plus digest-verify-on-conflict path
+// as every other registration below, so it inherits the same reproducibility
+// and concurrency-safety proofs (golden_test.go, race_test.go) without new
+// machinery: LoadFixtures runs exactly when that marker is the row Seed
+// itself just inserted, and never runs again for a tenant that already
+// carries it (or reports content drift, exactly like any other registration
+// here, if the corpus changed underneath an existing marker).
 //
 // # Why this is reproducible
 //
 // Plan reads only the embedded JSON: no wall clock, no random order, no
 // database round trip. Two calls to Plan in the same build always return the
-// same registrations in the same order, so ArtifactDigest never drifts, and
-// Seed's ON CONFLICT DO NOTHING (keyed on definition_version's own primary
-// key) makes inserting the plan a second time a no-op.
+// same registrations in the same order, so ArtifactDigest never drifts for
+// the definition_version half of the plan. (aggregates.LoadFixtures' own
+// random entity ids are the one part of Seed's total effect Plan's digest
+// does not -- and structurally cannot -- pin; the aggregateCorpusKey digest
+// instead pins the corpus content that produced them.)
 //
 // This package does not import internal/domains/fixtures: its testdata is an
 // independent copy of that package's workers.json and bands.json, kept
-// verbatim so the fixture identities (worker keys, band ids) line up, but
-// loaded and interpreted on its own.
+// verbatim -- byte-identical to internal/data/aggregates' own copy -- so the
+// fixture identities (worker keys, band ids) line up across both packages
+// without either importing the other.
 package seed
 
 import (
@@ -44,8 +69,9 @@ import (
 	"sort"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/aggregates"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 )
 
@@ -58,82 +84,60 @@ var bandsJSON []byte
 // Definition kinds this package uses, all already declared by migration
 // 00003's definition_kind check constraint.
 const (
-	kindSchema       = "SCHEMA"
-	kindCapability   = "CAPABILITY"
-	kindIntent       = "INTENT"
-	kindConfig       = "CONFIG"
-	kindEntity       = "ENTITY"
-	kindRelationship = "RELATIONSHIP"
+	kindSchema     = "SCHEMA"
+	kindCapability = "CAPABILITY"
+	kindIntent     = "INTENT"
+	kindConfig     = "CONFIG"
 )
 
-// seedPublishedAt is the fixed business timestamp recorded against the four
-// corpus-level registrations (schema, capability, intent, band catalog). It
-// is a fixture constant, never time.Now(): the seed's reproducibility depends
-// on every registration's content, including this field, being independent
-// of when Seed happens to run.
+// aggregateCorpusKey is the definition_version marker Seed uses to tell
+// whether this tenant's person/worker/employment/... aggregate rows already
+// reflect the current embedded corpus. See the package doc's "Why this is
+// still idempotent" section for why a marker row, rather than a natural-key
+// check inside aggregates itself, is what makes the single
+// aggregates.LoadFixtures call safe to gate.
+const aggregateCorpusKey = "hcmnext.fixtures.aggregates.corpus"
+
+// seedPublishedAt is the fixed business timestamp recorded against the
+// corpus-level registrations (schema, capability, intent, aggregate-corpus
+// marker). It is a fixture constant, never time.Now(): the seed's
+// reproducibility depends on every registration's content, including this
+// field, being independent of when Seed happens to run.
 const seedPublishedAt = "2026-01-01T00:00:00Z"
 
 // PublishedBy is the recorded publisher of every registration this package
 // writes.
 const PublishedBy = "hcmnext.seed"
 
-// workerFile is the on-disk shape of the copied worker corpus. Only the
-// fields the four fixture categories (person/employment/position/reference)
-// need are kept; internal/domains/fixtures/testdata/workers.json carries a
-// few additional fields (revision/authority bookkeeping) this package does
-// not seed.
+// workerFile is the on-disk shape of the copied worker corpus that Plan
+// itself still reads directly: the fixture calendar the SCHEMA registration
+// names, and a worker count for the CAPABILITY registration's body. Every
+// other field (legal name, job code, assignment, ...) now lands in the
+// aggregate tables via aggregates.LoadFixtures, which parses this same
+// corpus independently through its own richer types.
 type workerFile struct {
 	Calendar struct {
 		Ref     string `json:"ref"`
 		Version string `json:"version"`
 	} `json:"calendar"`
-	Workers []workerRecord `json:"workers"`
+	Workers []struct {
+		Key string `json:"key"`
+	} `json:"workers"`
 }
 
-type workerRecord struct {
-	Key              string `json:"key"`
-	ID               string `json:"id"`
-	WorkerNumber     string `json:"worker_number"`
-	LifecycleStatus  string `json:"lifecycle_status"`
-	LegalName        string `json:"legal_name"`
-	PreferredName    string `json:"preferred_name"`
-	EmploymentID     string `json:"employment_id"`
-	LegalEntity      string `json:"legal_entity"`
-	WorkerType       string `json:"worker_type"`
-	HireDate         string `json:"hire_date"`
-	EmploymentStatus string `json:"employment_status"`
-	AssignmentID     string `json:"assignment_id"`
-	JobCode          string `json:"job_code"`
-	Grade            string `json:"grade"`
-	OrgUnit          string `json:"org_unit"`
-	PositionID       string `json:"position_id"`
-	Location         string `json:"location"`
-	PayZone          string `json:"pay_zone"`
-	RecordedAt       string `json:"recorded_at"`
-}
-
-// bandFile is the on-disk shape of the copied pay-band catalog.
+// bandFile is the on-disk shape of the copied pay-band catalog that Plan
+// itself still reads directly, for the catalog-level CONFIG registration's
+// published_at. The individual bands (also parsed here by
+// aggregates.LoadFixtures) now land in the compensation_band table instead
+// of a per-band definition_version row.
 type bandFile struct {
-	CatalogVersion string       `json:"catalog_version"`
-	SourceSystem   string       `json:"source_system"`
-	RecordedAt     string       `json:"recorded_at"`
-	Bands          []bandRecord `json:"bands"`
+	CatalogVersion string `json:"catalog_version"`
+	SourceSystem   string `json:"source_system"`
+	RecordedAt     string `json:"recorded_at"`
 }
 
-type bandRecord struct {
-	ID       string `json:"id"`
-	Version  string `json:"version"`
-	JobCode  string `json:"job_code"`
-	Grade    string `json:"grade"`
-	PayZone  string `json:"pay_zone"`
-	Currency string `json:"currency"`
-	Minimum  string `json:"minimum"`
-	Midpoint string `json:"midpoint"`
-	Maximum  string `json:"maximum"`
-}
-
-// Registration is one canonical-registry or Promotion-fixture row to seed, as
-// a definition_version insert.
+// Registration is one canonical-registry row to seed, as a definition_version
+// insert.
 type Registration struct {
 	Kind        string
 	Key         string
@@ -142,45 +146,14 @@ type Registration struct {
 	PublishedAt string
 }
 
-// personFields, employmentFields and positionFields project the sub-record
-// of a worker each of the three worker-derived categories seeds; keeping them
-// disjoint (rather than seeding the whole workerRecord three times) is what
-// makes "person", "employment" and "position" independently recognisable
-// registrations rather than three copies of the same blob.
-type personFields struct {
-	ID              string `json:"id"`
-	WorkerNumber    string `json:"worker_number"`
-	LegalName       string `json:"legal_name"`
-	PreferredName   string `json:"preferred_name"`
-	LifecycleStatus string `json:"lifecycle_status"`
-}
-
-type employmentFields struct {
-	EmploymentID     string `json:"employment_id"`
-	LegalEntity      string `json:"legal_entity"`
-	WorkerType       string `json:"worker_type"`
-	HireDate         string `json:"hire_date"`
-	EmploymentStatus string `json:"employment_status"`
-	AssignmentID     string `json:"assignment_id"`
-}
-
-type positionFields struct {
-	PositionID string `json:"position_id"`
-	JobCode    string `json:"job_code"`
-	Grade      string `json:"grade"`
-	OrgUnit    string `json:"org_unit"`
-	Location   string `json:"location"`
-	PayZone    string `json:"pay_zone"`
-}
-
-// Plan returns the full, deterministic set of registrations the Promotion
-// fixture needs, derived only from the embedded corpus: one SCHEMA, one
-// CAPABILITY and one INTENT registration for the corpus itself, one CONFIG
-// registration for the pay-band catalog as a whole, and per-worker
-// ENTITY/RELATIONSHIP/ENTITY registrations (person/employment/position) plus
-// one CONFIG registration per pay band (compensation). The result is sorted
-// by (Kind, Key) so ArtifactDigest is stable regardless of map/JSON array
-// iteration order.
+// Plan returns the full, deterministic set of definition_version
+// registrations the Promotion fixture needs, derived only from the embedded
+// corpus: one SCHEMA and one CAPABILITY and one INTENT registration for the
+// corpus itself, one CONFIG registration for the pay-band catalog as a
+// whole, and one further SCHEMA registration (aggregateCorpusKey) marking
+// the corpus content Seed loads through aggregates.LoadFixtures. The result
+// is sorted by (Kind, Key) so ArtifactDigest is stable regardless of map/JSON
+// array iteration order.
 func Plan() ([]Registration, error) {
 	var workers workerFile
 	if err := json.Unmarshal(workersJSON, &workers); err != nil {
@@ -233,54 +206,17 @@ func Plan() ([]Registration, error) {
 		SourceRef: "internal/data/seed/testdata/bands.json", PublishedAt: bands.RecordedAt,
 	})
 
-	for _, w := range workers.Workers {
-		personBody, err := marshal(personFields{
-			ID: w.ID, WorkerNumber: w.WorkerNumber, LegalName: w.LegalName,
-			PreferredName: w.PreferredName, LifecycleStatus: w.LifecycleStatus,
-		})
-		if err != nil {
-			return nil, err
-		}
-		regs = append(regs, Registration{
-			Kind: kindEntity, Key: "person:" + w.Key, Body: personBody,
-			SourceRef: "internal/data/seed/testdata/workers.json#" + w.Key, PublishedAt: w.RecordedAt,
-		})
-
-		employmentBody, err := marshal(employmentFields{
-			EmploymentID: w.EmploymentID, LegalEntity: w.LegalEntity, WorkerType: w.WorkerType,
-			HireDate: w.HireDate, EmploymentStatus: w.EmploymentStatus, AssignmentID: w.AssignmentID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		regs = append(regs, Registration{
-			Kind: kindRelationship, Key: "employment:" + w.Key, Body: employmentBody,
-			SourceRef: "internal/data/seed/testdata/workers.json#" + w.Key, PublishedAt: w.RecordedAt,
-		})
-
-		positionBody, err := marshal(positionFields{
-			PositionID: w.PositionID, JobCode: w.JobCode, Grade: w.Grade,
-			OrgUnit: w.OrgUnit, Location: w.Location, PayZone: w.PayZone,
-		})
-		if err != nil {
-			return nil, err
-		}
-		regs = append(regs, Registration{
-			Kind: kindEntity, Key: "position:" + w.Key, Body: positionBody,
-			SourceRef: "internal/data/seed/testdata/workers.json#" + w.Key, PublishedAt: w.RecordedAt,
-		})
+	aggregateCorpusBody, err := marshal(map[string]string{
+		"workers_digest": digestOf(workersJSON),
+		"bands_digest":   digestOf(bandsJSON),
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	for _, b := range bands.Bands {
-		bandBody, err := marshal(b)
-		if err != nil {
-			return nil, err
-		}
-		regs = append(regs, Registration{
-			Kind: kindConfig, Key: "band:" + b.ID, Body: bandBody,
-			SourceRef: "internal/data/seed/testdata/bands.json#" + b.ID, PublishedAt: bands.RecordedAt,
-		})
-	}
+	regs = append(regs, Registration{
+		Kind: kindSchema, Key: aggregateCorpusKey, Body: aggregateCorpusBody,
+		SourceRef: "internal/data/seed/testdata/workers.json+bands.json", PublishedAt: seedPublishedAt,
+	})
 
 	sort.Slice(regs, func(i, j int) bool {
 		if regs[i].Kind != regs[j].Kind {
@@ -322,25 +258,37 @@ func ArtifactDigest(regs []Registration) string {
 // Summary reports what one Seed call did.
 type Summary struct {
 	TenantID uuid.UUID
-	// Inserted is how many registrations were newly written.
+	// Inserted is how many definition_version registrations were newly
+	// written.
 	Inserted int
 	// Skipped is how many registrations already existed with matching
 	// content (the idempotent no-op case).
 	Skipped int
 	// Digest is ArtifactDigest of the plan Seed inserted from.
 	Digest string
+	// Aggregates holds the identifiers aggregates.LoadFixtures assigned when
+	// this Seed call was the one that actually populated the person/worker/
+	// employment/.../compensation_* aggregate tables for tenantID -- i.e.
+	// when the aggregateCorpusKey marker was newly inserted, not already
+	// present. It is nil on every call that found the corpus already seeded.
+	Aggregates *aggregates.LoadedFixtures
 }
 
 // Seed scopes tx to tenantID (via internal/data/tenancy.WithTenant, so
 // migration 00008's row level security governs these writes the same as any
-// other tenant-scoped write) and inserts the canonical registry and Promotion
-// fixture registrations for tenantID, each as a definition_version at
-// version 1. Running Seed again for the same tenant is a no-op: a
-// registration whose (tenant, kind, key, version) already exists is left
-// alone by ON CONFLICT DO NOTHING, and Seed then verifies the stored content
-// digest still matches the plan's, refusing to report success over silently
-// drifted seed content.
-func Seed(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (Summary, error) {
+// other tenant-scoped write), inserts the canonical registry registrations
+// for tenantID (each as a definition_version at version 1), and -- exactly
+// once per tenant -- loads the person/worker/employment/assignment/
+// legal_entity/organization_unit/job/job_position/position_occupancy/
+// compensation_* fixtures into their aggregate tables via
+// aggregates.LoadFixtures. Running Seed again for the same tenant is a
+// no-op: a definition_version registration whose (tenant, kind, key,
+// version) already exists is left alone by ON CONFLICT DO NOTHING (and Seed
+// then verifies the stored content digest still matches the plan's,
+// refusing to report success over silently drifted seed content), and the
+// aggregateCorpusKey marker being already present is what tells Seed not to
+// call LoadFixtures again.
+func Seed(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID) (Summary, error) {
 	if err := tenancy.WithTenant(ctx, tx, tenantID); err != nil {
 		return Summary{}, err
 	}
@@ -352,7 +300,7 @@ func Seed(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (Summary, error) {
 	summary := Summary{TenantID: tenantID, Digest: ArtifactDigest(regs)}
 	for _, r := range regs {
 		digest := digestOf(r.Body)
-		tag, err := tx.Exec(ctx, `
+		affected, err := tx.Exec(ctx, `
 			INSERT INTO definition_version (
 				tenant_id, definition_kind, definition_key, version, definition_digest,
 				source_ref, body, published_by, published_at)
@@ -362,8 +310,18 @@ func Seed(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (Summary, error) {
 		if err != nil {
 			return Summary{}, fmt.Errorf("seed: insert %s %q: %w", r.Kind, r.Key, err)
 		}
-		if tag.RowsAffected() == 1 {
+		if affected == 1 {
 			summary.Inserted++
+			if r.Kind == kindSchema && r.Key == aggregateCorpusKey {
+				// This tenant has never carried the aggregate-corpus marker
+				// before: this transaction is the one that gets to populate
+				// the physical aggregate tables, exactly once.
+				loaded, err := aggregates.LoadFixtures(ctx, tx, tenantID)
+				if err != nil {
+					return Summary{}, fmt.Errorf("seed: load aggregate fixtures: %w", err)
+				}
+				summary.Aggregates = loaded
+			}
 			continue
 		}
 

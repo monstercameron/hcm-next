@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // OwnerKind is the class of record that may hold a reference to an artifact
@@ -79,7 +81,7 @@ func (o OwnerRef) Validate() error {
 // retention class, creator principal and evidence populated, so there is no
 // way to reach a reference on an artifact that lacks them (MODEL-029 RED
 // "reference without retention/authority metadata").
-func AddReference(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef) error {
+func AddReference(ctx context.Context, tx dbport.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef) error {
 	return appendReferenceEvent(ctx, tx, schema, tenant, contentID, owner, referenceAdd)
 }
 
@@ -87,7 +89,7 @@ func AddReference(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUI
 // artifact identified by contentID. It rejects removing a reference the
 // owner does not currently hold ([ErrReferenceNotFound]): REMOVE is not a
 // free-standing fact, it only makes sense relative to a prior ADD.
-func RemoveReference(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef) error {
+func RemoveReference(ctx context.Context, tx dbport.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef) error {
 	active, err := ownerHoldsReference(ctx, tx, schema, tenant, contentID, owner)
 	if err != nil {
 		return err
@@ -98,7 +100,7 @@ func RemoveReference(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.
 	return appendReferenceEvent(ctx, tx, schema, tenant, contentID, owner, referenceRemove)
 }
 
-func appendReferenceEvent(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef, action referenceAction) error {
+func appendReferenceEvent(ctx context.Context, tx dbport.Tx, schema string, tenant uuid.UUID, contentID string, owner OwnerRef, action referenceAction) error {
 	if tenant == uuid.Nil {
 		return ErrRequestInvalid{Field: "Tenant", Reason: "is required"}
 	}
@@ -134,7 +136,7 @@ func ownerHoldsReference(ctx context.Context, q Querier, schema string, tenant u
 		ORDER BY recorded_at DESC, event_id DESC
 		LIMIT 1`, table),
 		tenant, contentID, string(owner.Kind), owner.ID).Scan(&action)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {

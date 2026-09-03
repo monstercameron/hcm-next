@@ -7,9 +7,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-
 	"github.com/monstercameron/hcm-next/internal/data/artifacts"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent/model"
 )
 
@@ -287,7 +286,7 @@ func bytesRepeat(b byte, n int) []byte {
 // artifactsRead runs the read-only, no-bytes lookup in its own transaction.
 func artifactsRead(f fixture, contentID string) (artifacts.Record, error) {
 	var rec artifacts.Record
-	err := f.inTx(func(tx pgx.Tx) error {
+	err := f.inTx(func(tx dbport.Tx) error {
 		var readErr error
 		rec, readErr = artifacts.Read(context.Background(), tx, f.schema, f.tenant, contentID)
 		return readErr

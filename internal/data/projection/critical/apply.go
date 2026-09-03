@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 )
 
@@ -106,7 +106,7 @@ func (e ErrProposalRevisionConflict) Error() string {
 // when that advance is genuinely new (not a replay, not a gap), decodes the
 // event through mapper and upserts the read model it names. See the package
 // doc for the full DATA-006 contract.
-func Apply(ctx context.Context, tx pgx.Tx, mapper Mapper, req ApplyRequest) (ApplyResult, error) {
+func Apply(ctx context.Context, tx dbport.Tx, mapper Mapper, req ApplyRequest) (ApplyResult, error) {
 	if err := projection.EnsureProjection(ctx, tx, req.Tenant, ProjectionName, req.StreamKey); err != nil {
 		return ApplyResult{}, fmt.Errorf("critical: ensure checkpoint: %w", err)
 	}
@@ -152,8 +152,8 @@ func Apply(ctx context.Context, tx pgx.Tx, mapper Mapper, req ApplyRequest) (App
 // only when row.InstanceVersion strictly exceeds what is stored - the
 // table-level half of the DATA-006 "stale version overwrites newer row" RED
 // guard described in the package doc.
-func upsertIntentInstance(ctx context.Context, tx pgx.Tx, row IntentInstanceRow) error {
-	tag, err := tx.Exec(ctx, `
+func upsertIntentInstance(ctx context.Context, tx dbport.Tx, row IntentInstanceRow) error {
+	affected, err := tx.Exec(ctx, `
 		INSERT INTO intent_instance (
 			tenant_id, intent_id, definition_ref, definition_version,
 			request_digest, request_digest_algorithm, idempotency_key,
@@ -182,7 +182,7 @@ func upsertIntentInstance(ctx context.Context, tx pgx.Tx, row IntentInstanceRow)
 	if err != nil {
 		return fmt.Errorf("critical: project intent_instance %s: %w", row.IntentID, err)
 	}
-	if tag.RowsAffected() != 1 {
+	if affected != 1 {
 		return ErrStaleInstanceVersion{IntentID: row.IntentID, InstanceVersion: row.InstanceVersion}
 	}
 	return nil
@@ -192,12 +192,12 @@ func upsertIntentInstance(ctx context.Context, tx pgx.Tx, row IntentInstanceRow)
 // second attempt at the same (tenant, intent, revision) is a no-op only when
 // it carries the identical proposal digest; any difference is
 // [ErrProposalRevisionConflict] rather than a silently ignored write.
-func insertProposalRevision(ctx context.Context, tx pgx.Tx, row ProposalRevisionRow) error {
+func insertProposalRevision(ctx context.Context, tx dbport.Tx, row ProposalRevisionRow) error {
 	var artifactRef *string
 	if row.ArtifactRef != "" {
 		artifactRef = &row.ArtifactRef
 	}
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		INSERT INTO proposal_revision (
 			tenant_id, intent_id, revision, proposal_digest, material_digest,
 			digest_algorithm, schema_ref, payload, artifact_ref, produced_by, produced_at)
@@ -208,7 +208,7 @@ func insertProposalRevision(ctx context.Context, tx pgx.Tx, row ProposalRevision
 	if err != nil {
 		return fmt.Errorf("critical: project proposal_revision %s/%d: %w", row.IntentID, row.Revision, err)
 	}
-	if tag.RowsAffected() == 1 {
+	if affected == 1 {
 		return nil
 	}
 

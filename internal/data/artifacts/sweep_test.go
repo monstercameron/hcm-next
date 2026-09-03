@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-
 	"github.com/monstercameron/hcm-next/internal/data/artifacts"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent/model"
 )
 
@@ -31,7 +30,7 @@ func sweepCandidateIDs(t *testing.T, f fixture, asOf time.Time) []string {
 	t.Helper()
 	classes := sweepRetentionClasses()
 	var ids []string
-	err := f.inTx(func(tx pgx.Tx) error {
+	err := f.inTx(func(tx dbport.Tx) error {
 		candidates, err := artifacts.SweepCandidates(context.Background(), tx, f.schema, f.tenant, sweepJurisdiction, classes, asOf)
 		if err != nil {
 			return err

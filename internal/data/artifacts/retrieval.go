@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent/model"
 )
 
@@ -102,7 +103,7 @@ func (a RetrievalAuthorization) allowsClassification(c model.ClassificationLabel
 // rolling back on it silently destroys the DATA-016 evidence this call was
 // asked to produce. Roll back only on a different error -- one that reached
 // Retrieve before any refusal was recorded, or a genuine storage failure.
-func Retrieve(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, contentID string, auth RetrievalAuthorization, now time.Time) ([]byte, Record, error) {
+func Retrieve(ctx context.Context, tx dbport.Tx, schema string, tenant uuid.UUID, contentID string, auth RetrievalAuthorization, now time.Time) ([]byte, Record, error) {
 	deny := func(reason string) ([]byte, Record, error) {
 		if refErr := recordRefusal(ctx, tx, schema, tenant, contentID, auth, reason, now); refErr != nil {
 			return nil, Record{}, refErr
@@ -166,7 +167,7 @@ func Retrieve(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, c
 	return content, rec, nil
 }
 
-func recordRefusal(ctx context.Context, tx pgx.Tx, schema string, tenant uuid.UUID, contentID string, auth RetrievalAuthorization, reason string, at time.Time) error {
+func recordRefusal(ctx context.Context, tx dbport.Tx, schema string, tenant uuid.UUID, contentID string, auth RetrievalAuthorization, reason string, at time.Time) error {
 	table := pgx.Identifier{schema, "artifact_retrieval_refusal"}.Sanitize()
 	_, err := tx.Exec(ctx, fmt.Sprintf(`
 		INSERT INTO %s (tenant_id, refusal_id, content_id, purpose, requested_by, reason, evidence_id, refused_at)

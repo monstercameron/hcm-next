@@ -2,7 +2,6 @@ package seed_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
@@ -75,6 +74,31 @@ func TestTodo_DB_019_Security(t *testing.T) {
 	})
 
 	t.Run("the fixture corpus carries no production-shaped identifiers", func(t *testing.T) {
+		conn := db.NewConn(t)
+		if _, err := conn.Exec(ctx, "SET ROLE "+tenancy.AppRole); err != nil {
+			t.Fatalf("assume %s: %v", tenancy.AppRole, err)
+		}
+		tx, err := conn.Begin(ctx)
+		if err != nil {
+			t.Fatalf("begin: %v", err)
+		}
+		defer func() { _ = tx.Rollback(ctx) }()
+		if err := tenancy.WithTenant(ctx, tx, tenantA); err != nil {
+			t.Fatalf("scope to tenant A: %v", err)
+		}
+
+		var legalEntityCount int
+		if err := tx.QueryRow(ctx, `
+			SELECT count(*)
+			FROM legal_entity
+			WHERE tenant_id = $1 AND registered_name = $2`, tenantA, "HarborCare US Inc.").
+			Scan(&legalEntityCount); err != nil {
+			t.Fatalf("find seeded HarborCare legal entity: %v", err)
+		}
+		if legalEntityCount != 1 {
+			t.Fatalf("tenant A saw %d seeded HarborCare legal entities, want exactly one", legalEntityCount)
+		}
+
 		plan, err := seed.Plan()
 		if err != nil {
 			t.Fatalf("plan: %v", err)
@@ -83,24 +107,6 @@ func TestTodo_DB_019_Security(t *testing.T) {
 			if string(r.Body) == "" {
 				t.Errorf("%s %q has an empty body", r.Kind, r.Key)
 			}
-		}
-		// The corpus tenant this data plane's own fixtures use throughout
-		// (internal/domains/fixtures.Tenant) is a clearly synthetic demo
-		// slug, not a real customer identifier; Seed itself never reads or
-		// writes it (the caller supplies tenantID), so this only confirms the
-		// copied JSON files were not swapped for something else.
-		const demoTenantMarker = "harborcare"
-		found := false
-		for _, r := range plan {
-			if r.Kind == "RELATIONSHIP" {
-				found = true
-				if !strings.Contains(strings.ToLower(string(r.Body)), demoTenantMarker) {
-					t.Errorf("employment registration %q does not reference the synthetic demo legal entity", r.Key)
-				}
-			}
-		}
-		if !found {
-			t.Fatal("no RELATIONSHIP registration found to check")
 		}
 	})
 }

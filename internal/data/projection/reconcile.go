@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
@@ -26,7 +26,7 @@ func StreamHead(ctx context.Context, q datalogger.Querier, tenant uuid.UUID, str
 	var head int64
 	err := q.QueryRow(ctx, `SELECT head_sequence FROM stream_head WHERE tenant_id = $1 AND stream_key = $2`,
 		tenant, streamKey).Scan(&head)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return 0, fmt.Errorf("projection: stream %s is not registered", streamKey)
 	}
 	if err != nil {
@@ -35,10 +35,9 @@ func StreamHead(ctx context.Context, q datalogger.Querier, tenant uuid.UUID, str
 	return head, nil
 }
 
-// Beginner opens transactions. *pgxpool.Pool and *pgx.Conn both implement it.
-type Beginner interface {
-	Begin(ctx context.Context) (pgx.Tx, error)
-}
+// Beginner opens transactions. A pooled handle and a single connection both
+// implement it.
+type Beginner = dbport.Beginner
 
 // Reconciler catches a projection checkpoint up to its stream's current head
 // by replaying and applying whatever events it has not yet applied

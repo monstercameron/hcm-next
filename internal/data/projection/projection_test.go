@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
@@ -50,7 +50,7 @@ func newFixture(t *testing.T) (*pgtest.DB, uuid.UUID) {
 	return db, tenant
 }
 
-func inTx(t *testing.T, db *pgtest.DB, fn func(pgx.Tx) error) {
+func inTx(t *testing.T, db *pgtest.DB, fn func(dbport.Tx) error) {
 	t.Helper()
 	ctx := context.Background()
 	tx, err := db.Conn.Begin(ctx)
@@ -77,7 +77,7 @@ func TestApplyAdvancesIdempotentlyAndRejectsGaps(t *testing.T) {
 	digest2 := strings.Repeat("2", 64)
 
 	var result projection.ApplyResult
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		var err error
 		result, err = projection.Apply(context.Background(), tx, projection.ApplyRequest{
 			Tenant: tenant, ProjectionName: projectionName, StreamKey: streamKey, Sequence: 1, Digest: digest1,
@@ -90,7 +90,7 @@ func TestApplyAdvancesIdempotentlyAndRejectsGaps(t *testing.T) {
 
 	// Re-applying the same sequence is idempotent: no error, Applied=false,
 	// and the watermark does not move.
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		var err error
 		result, err = projection.Apply(context.Background(), tx, projection.ApplyRequest{
 			Tenant: tenant, ProjectionName: projectionName, StreamKey: streamKey, Sequence: 1, Digest: digest1,
@@ -124,7 +124,7 @@ func TestApplyAdvancesIdempotentlyAndRejectsGaps(t *testing.T) {
 
 	// The correct next sequence (2) still advances cleanly after the refused
 	// gap attempt rolled back.
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		var err error
 		result, err = projection.Apply(context.Background(), tx, projection.ApplyRequest{
 			Tenant: tenant, ProjectionName: projectionName, StreamKey: streamKey, Sequence: 2, Digest: digest2,
@@ -175,7 +175,7 @@ func TestReconcilerCatchesUpFromLedger(t *testing.T) {
 	// outbox.Commit entirely - the projection checkpoint never moves off
 	// zero on its own.
 	for i := 0; i < 3; i++ {
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := ledger.Append(ctx, tx, ledger.AppendRequest{
 				Tenant:         tenant,
 				StreamKey:      streamKey,

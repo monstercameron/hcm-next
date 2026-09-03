@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 )
 
@@ -43,7 +44,7 @@ func insertAuthorityAssignment(t *testing.T, db *pgtest.DB, tenantID uuid.UUID, 
 // connection would: by asking to become it, which any role a superuser holds
 // membership in (or, as here, any role at all, since the session started as
 // superuser) may always do.
-func appRoleConn(t *testing.T, db *pgtest.DB) *pgx.Conn {
+func appRoleConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	t.Helper()
 	conn := db.NewConn(t)
 	if _, err := conn.Exec(context.Background(), "SET ROLE "+tenancy.AppRole); err != nil {
@@ -53,7 +54,7 @@ func appRoleConn(t *testing.T, db *pgtest.DB) *pgx.Conn {
 }
 
 // scopedTx begins a transaction on conn and scopes it to tenantID.
-func scopedTx(t *testing.T, ctx context.Context, conn *pgx.Conn, tenantID uuid.UUID) pgx.Tx {
+func scopedTx(t *testing.T, ctx context.Context, conn *pgxadapter.Conn, tenantID uuid.UUID) dbport.Tx {
 	t.Helper()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -112,10 +113,10 @@ func insertLedgerEventFixture(t *testing.T, db *pgtest.DB, tenantID uuid.UUID, i
 		[]byte("body"), len("body"), idempotencyKey)
 }
 
-// countAuthorityAssignments counts the rows visible to q (a *pgx.Conn or a
-// pgx.Tx) in authority_assignment.
+// countAuthorityAssignments counts the rows visible to q (a *pgxadapter.Conn or a
+// dbport.Tx) in authority_assignment.
 func countAuthorityAssignments(t *testing.T, ctx context.Context, q interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	QueryRow(ctx context.Context, sql string, args ...any) dbport.Row
 }) int {
 	t.Helper()
 	var n int

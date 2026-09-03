@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 	"github.com/monstercameron/hcm-next/internal/data/projection/critical"
 )
@@ -147,14 +148,14 @@ func TestTodo_DATA_006(t *testing.T) {
 		// simulating an event this projection has not yet seen.
 		v2 := newIntentInstanceEvent(t, intentID, idemKey, 2, submittedLifecycle(), occurredAt)
 		var seq2 ledger.AppendReceipt
-		f.inTx(t, f.db.Conn, func(tx pgx.Tx) error {
+		f.inTx(t, f.db.Conn, func(tx dbport.Tx) error {
 			var err error
 			seq2, err = ledger.Append(context.Background(), tx, followOnRequest(streamKey, critical.SchemaRefIntentInstance, f.tenant, receipt1.Sequence, v2, uuid.NewString()))
 			return err
 		})
 		v3 := newIntentInstanceEvent(t, intentID, idemKey, 3, submittedLifecycle(), occurredAt)
 		var seq3 ledger.AppendReceipt
-		f.inTx(t, f.db.Conn, func(tx pgx.Tx) error {
+		f.inTx(t, f.db.Conn, func(tx dbport.Tx) error {
 			var err error
 			seq3, err = ledger.Append(context.Background(), tx, followOnRequest(streamKey, critical.SchemaRefIntentInstance, f.tenant, seq2.Sequence, v3, uuid.NewString()))
 			return err
@@ -344,7 +345,7 @@ func TestTodo_DATA_006_Race(t *testing.T) {
 	// what happens when several transactions race to be the one that
 	// advances it, not whether it exists yet.
 	const racers = 6
-	conns := make([]*pgx.Conn, racers)
+	conns := make([]*pgxadapter.Conn, racers)
 	for i := range conns {
 		conns[i] = f.db.NewConn(t)
 	}
@@ -362,7 +363,7 @@ func TestTodo_DATA_006_Race(t *testing.T) {
 			defer wg.Done()
 			<-start
 			var out outcome
-			out.err = f.inTxErr(conns[i], func(tx pgx.Tx) error {
+			out.err = f.inTxErr(conns[i], func(tx dbport.Tx) error {
 				var applyErr error
 				out.result, applyErr = critical.Apply(context.Background(), tx, mapper, critical.ApplyRequest{
 					Tenant: f.tenant, StreamKey: streamKey, Sequence: receipt.Sequence, Digest: receipt.Digest,

@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/provenance"
 )
 
@@ -57,20 +58,20 @@ func newFixture(t *testing.T) fixture {
 		tenant, provenance.OutboxSchemaRef)
 
 	f := fixture{db: db, tenant: tenant, reader: ledger.NewReader(), streamKey: streamKey, intentRef: intentRef}
-	f.inTx(t, db.Conn, func(tx pgx.Tx) error {
+	f.inTx(t, db.Conn, func(tx dbport.Tx) error {
 		return ledger.EnsureStream(context.Background(), tx, tenant, streamKey, "TRANSACTION", intentRef)
 	})
 	return f
 }
 
-func (f fixture) inTx(t *testing.T, conn *pgx.Conn, fn func(pgx.Tx) error) {
+func (f fixture) inTx(t *testing.T, conn *pgxadapter.Conn, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(conn, fn); err != nil {
 		t.Fatalf("transaction: %v", err)
 	}
 }
 
-func (f fixture) inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
+func (f fixture) inTxErr(conn *pgxadapter.Conn, fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -87,7 +88,7 @@ func (f fixture) inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
 func (f fixture) appendEvent(t *testing.T, expectedHead int64) ledger.AppendReceipt {
 	t.Helper()
 	var receipt ledger.AppendReceipt
-	f.inTx(t, f.db.Conn, func(tx pgx.Tx) error {
+	f.inTx(t, f.db.Conn, func(tx dbport.Tx) error {
 		var err error
 		receipt, err = ledger.Append(context.Background(), tx, ledger.AppendRequest{
 			Tenant:         f.tenant,
@@ -130,7 +131,7 @@ func (f fixture) publishRequest(receipt ledger.AppendReceipt) provenance.Publish
 func (f fixture) publish(t *testing.T, req provenance.PublishRequest) provenance.Record {
 	t.Helper()
 	var rec provenance.Record
-	f.inTx(t, f.db.Conn, func(tx pgx.Tx) error {
+	f.inTx(t, f.db.Conn, func(tx dbport.Tx) error {
 		var err error
 		rec, err = provenance.Publish(context.Background(), tx, req)
 		return err
@@ -138,10 +139,10 @@ func (f fixture) publish(t *testing.T, req provenance.PublishRequest) provenance
 	return rec
 }
 
-func (f fixture) publishErr(t *testing.T, conn *pgx.Conn, req provenance.PublishRequest) (provenance.Record, error) {
+func (f fixture) publishErr(t *testing.T, conn *pgxadapter.Conn, req provenance.PublishRequest) (provenance.Record, error) {
 	t.Helper()
 	var rec provenance.Record
-	err := f.inTxErr(conn, func(tx pgx.Tx) error {
+	err := f.inTxErr(conn, func(tx dbport.Tx) error {
 		var pubErr error
 		rec, pubErr = provenance.Publish(context.Background(), tx, req)
 		return pubErr

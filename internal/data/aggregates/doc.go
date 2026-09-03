@@ -21,8 +21,8 @@
 // out (sets SupersededAt on) whichever live row for the same entity would
 // otherwise overlap the new row's business-time range, then inserts the new
 // row. Those two statements must commit or roll back together, so every
-// caller passes a *pgx.Tx it began itself (see store.go's Executor doc) --
-// never a bare *pgx.Conn -- whenever the entity being written might already
+// caller passes a transaction it began itself (see store.go's Executor doc)
+// -- never a bare connection -- whenever the entity being written might already
 // have a live row. The migrations' aggregate_forbid_inplace_update
 // trigger makes that the only mutation any of these tables ever accept -- a
 // direct UPDATE of a business column, from anywhere other than that one
@@ -36,8 +36,8 @@
 // # Import boundary
 //
 // This package imports internal/kernel/values (canonical identity, decimal
-// money) and internal/ledger's port types only, plus pgx and the standard
-// library. It does not import internal/data/ledger, internal/data/bitemporal,
+// money), internal/ledger's port types and internal/data/dbport's transaction
+// port only, plus pgx's own identifier quoting and the standard library. It does not import internal/data/ledger, internal/data/bitemporal,
 // internal/data/tenancy, internal/data/schema, internal/intent/model or any
 // internal/domains/* package directly; every table it owns is new, and every
 // row it writes carries its own tenant_id column rather than depending on

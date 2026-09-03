@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/provenance"
 )
 
@@ -207,7 +207,7 @@ func TestTodo_DATA_014_Race(t *testing.T) {
 	req := f.publishRequest(receipt)
 
 	const racers = 6
-	conns := make([]*pgx.Conn, racers)
+	conns := make([]*pgxadapter.Conn, racers)
 	for i := range conns {
 		conns[i] = f.db.NewConn(t)
 	}

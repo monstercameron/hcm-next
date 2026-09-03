@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/aggregates"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 )
 
@@ -33,7 +33,7 @@ func TestTodo_DB_008(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewPerson: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := store.PutPerson(ctx, tx, p)
 			return err
 		})
@@ -57,7 +57,7 @@ func TestTodo_DB_008(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewPerson (corrected): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := store.PutPerson(ctx, tx, corrected)
 			return err
 		})
@@ -101,7 +101,7 @@ func TestTodo_DB_008(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewIdentityClaim: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := store.PutIdentityClaim(ctx, tx, claim)
 			return err
 		})
@@ -155,7 +155,7 @@ func TestTodo_DB_008_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewPerson A: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := store.PutPerson(ctx, tx, pA)
 		return err
 	})
@@ -166,7 +166,7 @@ func TestTodo_DB_008_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewPerson B: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := store.PutPerson(ctx, tx, pB)
 		return err
 	})
@@ -208,7 +208,7 @@ func TestTodo_DB_008_Mutation(t *testing.T) {
 	tenant := insertTenant(t, db)
 
 	var loaded *aggregates.LoadedFixtures
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		var err error
 		loaded, err = aggregates.LoadFixtures(ctx, tx, tenant)
 		return err

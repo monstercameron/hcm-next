@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -73,7 +73,7 @@ func (OrganizationStore) PutLegalEntity(ctx context.Context, ex Executor, e Lega
 		[]string{"registered_name", "lifecycle_state"}, []any{e.RegisteredName, e.LifecycleState})
 }
 
-func scanLegalEntity(row pgx.Row) (LegalEntity, error) {
+func scanLegalEntity(row dbport.Row) (LegalEntity, error) {
 	var e LegalEntity
 	err := row.Scan(&e.RowID, &e.Tenant, &e.EntityID, &e.CanonicalID, &e.RegisteredName, &e.LifecycleState,
 		&e.EffectiveFrom, &e.EffectiveTo, &e.RecordedAt, &e.SupersededAt, &e.DigestAlgorithm, &e.Digest)
@@ -130,7 +130,7 @@ func (OrganizationStore) PutOrganizationUnit(ctx context.Context, ex Executor, o
 		[]any{o.OrgType, o.Code, o.Name, nullableUUID(o.LegalEntityRef), nullableUUID(o.ParentOrganizationRef), o.LifecycleState})
 }
 
-func scanOrganizationUnit(row pgx.Row) (OrganizationUnit, error) {
+func scanOrganizationUnit(row dbport.Row) (OrganizationUnit, error) {
 	var o OrganizationUnit
 	var legalEntityRef, parentRef *uuid.UUID
 	err := row.Scan(&o.RowID, &o.Tenant, &o.EntityID, &o.CanonicalID, &o.OrgType, &o.Code, &o.Name, &legalEntityRef,
@@ -184,7 +184,7 @@ func (OrganizationStore) PutJob(ctx context.Context, ex Executor, j Job) (uuid.U
 		[]any{j.Code, j.Title, nullableText(j.JobFamily), nullableText(j.Grade), j.ExemptStatus})
 }
 
-func scanJob(row pgx.Row) (Job, error) {
+func scanJob(row dbport.Row) (Job, error) {
 	var j Job
 	var jobFamily, grade *string
 	err := row.Scan(&j.RowID, &j.Tenant, &j.EntityID, &j.CanonicalID, &j.Code, &j.Title, &jobFamily, &grade,
@@ -257,7 +257,7 @@ func (OrganizationStore) PutJobPosition(ctx context.Context, ex Executor, p JobP
 			decimalParam(p.CapacityFTE), p.LifecycleState})
 }
 
-func scanJobPosition(row pgx.Row) (JobPosition, error) {
+func scanJobPosition(row dbport.Row) (JobPosition, error) {
 	var p JobPosition
 	var legalEntityRef *uuid.UUID
 	var location *string
@@ -326,7 +326,7 @@ func (OrganizationStore) PutPositionOccupancy(ctx context.Context, ex Executor, 
 		[]any{o.PositionRef, nullableUUID(o.AssignmentRef), nullableUUID(o.WorkerRef), decimalParam(o.AllocationFTE), o.PrimaryFlag})
 }
 
-func scanPositionOccupancy(row pgx.Row) (PositionOccupancy, error) {
+func scanPositionOccupancy(row dbport.Row) (PositionOccupancy, error) {
 	var o PositionOccupancy
 	var assignmentRef, workerRef *uuid.UUID
 	err := row.Scan(&o.RowID, &o.Tenant, &o.EntityID, &o.CanonicalID, &o.PositionRef, &assignmentRef, &workerRef,

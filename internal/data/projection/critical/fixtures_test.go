@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/projection/critical"
 )
 
@@ -67,19 +68,19 @@ func (f fixture) streamKey(intentID uuid.UUID) string { return "intent:" + inten
 
 func (f fixture) ensureStream(t *testing.T, intentID uuid.UUID) {
 	t.Helper()
-	f.inTx(t, f.db.Conn, func(tx pgx.Tx) error {
+	f.inTx(t, f.db.Conn, func(tx dbport.Tx) error {
 		return ledger.EnsureStream(context.Background(), tx, f.tenant, f.streamKey(intentID), "TRANSACTION", intentID.String())
 	})
 }
 
-func (f fixture) inTx(t *testing.T, conn *pgx.Conn, fn func(pgx.Tx) error) {
+func (f fixture) inTx(t *testing.T, conn *pgxadapter.Conn, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(conn, fn); err != nil {
 		t.Fatalf("transaction: %v", err)
 	}
 }
 
-func (f fixture) inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
+func (f fixture) inTxErr(conn *pgxadapter.Conn, fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -100,13 +101,13 @@ func (f fixture) appendAndApply(t *testing.T, mapper critical.Mapper, req ledger
 	return f.appendAndApplyOn(t, f.db.Conn, mapper, req)
 }
 
-func (f fixture) appendAndApplyOn(t *testing.T, conn *pgx.Conn, mapper critical.Mapper, req ledger.AppendRequest) (ledger.AppendReceipt, critical.ApplyResult) {
+func (f fixture) appendAndApplyOn(t *testing.T, conn *pgxadapter.Conn, mapper critical.Mapper, req ledger.AppendRequest) (ledger.AppendReceipt, critical.ApplyResult) {
 	t.Helper()
 	var (
 		receipt ledger.AppendReceipt
 		result  critical.ApplyResult
 	)
-	err := f.inTxErr(conn, func(tx pgx.Tx) error {
+	err := f.inTxErr(conn, func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = ledger.Append(context.Background(), tx, req)
 		if appendErr != nil {
@@ -136,7 +137,7 @@ func (f fixture) appendAndApplyOn(t *testing.T, conn *pgx.Conn, mapper critical.
 func (f fixture) applyOnly(t *testing.T, mapper critical.Mapper, req critical.ApplyRequest) (critical.ApplyResult, error) {
 	t.Helper()
 	var result critical.ApplyResult
-	err := f.inTxErr(f.db.Conn, func(tx pgx.Tx) error {
+	err := f.inTxErr(f.db.Conn, func(tx dbport.Tx) error {
 		var applyErr error
 		result, applyErr = critical.Apply(context.Background(), tx, mapper, req)
 		return applyErr

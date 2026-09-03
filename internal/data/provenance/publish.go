@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/monstercameron/hcm-next/gen/wire"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 )
 
@@ -47,7 +46,7 @@ const EffectIdentityPrefix = "provenance.published:"
 // publishing provenance for a fresh append composes Publish with its own
 // ledger.Append or internal/data/outbox.Commit call in the same
 // transaction. See the package doc for the full DATA-014 contract.
-func Publish(ctx context.Context, tx pgx.Tx, req PublishRequest) (Record, error) {
+func Publish(ctx context.Context, tx dbport.Tx, req PublishRequest) (Record, error) {
 	if req.Tenant == uuid.Nil {
 		return Record{}, ErrRequestInvalid{Field: "Tenant", Reason: "is required"}
 	}
@@ -117,7 +116,7 @@ func Publish(ctx context.Context, tx pgx.Tx, req PublishRequest) (Record, error)
 		connectorRef = &req.ConnectorRef
 	}
 
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		INSERT INTO provenance_record (
 			tenant_id, record_id, source_kind, source_ref, intent_ref,
 			stream_key, sequence, event_id, observation_ref, connector_ref,
@@ -132,7 +131,7 @@ func Publish(ctx context.Context, tx pgx.Tx, req PublishRequest) (Record, error)
 	}
 
 	var record Record
-	if tag.RowsAffected() == 1 {
+	if affected == 1 {
 		record = Record{
 			Tenant: req.Tenant, RecordID: id, IntentRef: req.IntentRef,
 			SourceKind: req.SourceKind, SourceRef: req.SourceRef,
@@ -169,11 +168,9 @@ func Publish(ctx context.Context, tx pgx.Tx, req PublishRequest) (Record, error)
 	return record, nil
 }
 
-// marshalOutboxPayload projects record into a google.protobuf.Struct and
-// marshals it - real, typed protobuf wire bytes under [OutboxSchemaRef],
-// matching migrations/00005's payload_schema_wire_format_allowed CHECK
-// ('PROTOBUF' only), without this package needing a purpose-built generated
-// message.
+// marshalOutboxPayload projects record through gen/wire's temporary Struct
+// adapter. The data package owns the record facts; the generated-wire tree
+// owns protobuf construction and serialization.
 func marshalOutboxPayload(r Record) ([]byte, error) {
 	digests := make([]any, len(r.Digests))
 	for i, d := range r.Digests {
@@ -208,11 +205,7 @@ func marshalOutboxPayload(r Record) ([]byte, error) {
 		fields["connector_ref"] = r.ConnectorRef
 	}
 
-	s, err := structpb.NewStruct(fields)
-	if err != nil {
-		return nil, fmt.Errorf("provenance: build outbox payload: %w", err)
-	}
-	b, err := proto.Marshal(s)
+	b, err := wire.MarshalStruct(fields)
 	if err != nil {
 		return nil, fmt.Errorf("provenance: marshal outbox payload: %w", err)
 	}
@@ -220,7 +213,7 @@ func marshalOutboxPayload(r Record) ([]byte, error) {
 }
 
 func readRecord(ctx context.Context, q interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	QueryRow(ctx context.Context, sql string, args ...any) dbport.Row
 }, tenant uuid.UUID, id uuid.UUID) (Record, error) {
 	return scanRecord(q.QueryRow(ctx, selectRecordSQL+" WHERE tenant_id = $1 AND record_id = $2", tenant, id))
 }
@@ -231,7 +224,7 @@ const selectRecordSQL = `
 		source_authority, principal_ref, evidence_ids, digests, published_at, recorded_at
 	FROM provenance_record`
 
-func scanRecord(row pgx.Row) (Record, error) {
+func scanRecord(row dbport.Row) (Record, error) {
 	var (
 		r              Record
 		sourceKind     string
@@ -247,7 +240,7 @@ func scanRecord(row pgx.Row) (Record, error) {
 		&streamKey, &sequence, &eventID, &observationRef, &connectorRef,
 		&r.SourceAuthority, &r.PrincipalRef, &r.EvidenceIDs, &digestsJSON, &r.PublishedAt, &r.RecordedAt,
 	); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, dbport.ErrNoRows) {
 			return Record{}, fmt.Errorf("provenance: record not found")
 		}
 		return Record{}, fmt.Errorf("provenance: read record: %w", err)

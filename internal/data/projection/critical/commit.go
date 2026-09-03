@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
-
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 )
 
@@ -29,7 +28,7 @@ type CommitResult struct {
 //
 // mapper decodes req.Append.SchemaRef/Payload the same way [Apply] does;
 // pass [ProtoMapper]{} for the schemas this package knows.
-func Commit(ctx context.Context, tx pgx.Tx, appender outbox.Appender, mapper Mapper, req outbox.CommitRequest) (CommitResult, error) {
+func Commit(ctx context.Context, tx dbport.Tx, appender outbox.Appender, mapper Mapper, req outbox.CommitRequest) (CommitResult, error) {
 	receipt, err := outbox.Commit(ctx, tx, appender, req)
 	if err != nil {
 		return CommitResult{}, fmt.Errorf("critical: commit: %w", err)

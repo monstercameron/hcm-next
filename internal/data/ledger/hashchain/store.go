@@ -6,19 +6,16 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
-// Querier is the minimal pgx surface a hash-chain read needs. It matches
-// internal/data/ledger.Querier's shape exactly so the same *pgx.Conn,
-// pgx.Tx, or *pgxpool.Pool a caller already holds satisfies both.
-type Querier interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-}
+// Querier is the minimal database capability a hash-chain read needs. It is
+// internal/data/ledger.Querier itself, so whatever handle a caller already
+// reads the ledger through satisfies this too.
+type Querier = datalogger.Querier
 
 // Appender extends a stream's hash chain by one link per appended event.
 type Appender struct {
@@ -43,7 +40,7 @@ func NewAppender(digester *Digester) *Appender {
 // A second Append for a (stream, sequence) already linked fails with
 // [ErrLinkAlreadyRecorded]: chain links are append-only, exactly like the
 // events they extend.
-func (a *Appender) Append(ctx context.Context, tx pgx.Tx, receipt datalogger.AppendReceipt) (ChainedLink, error) {
+func (a *Appender) Append(ctx context.Context, tx dbport.Tx, receipt datalogger.AppendReceipt) (ChainedLink, error) {
 	if receipt.Digest == "" {
 		return ChainedLink{}, fmt.Errorf("hashchain: append receipt for stream %s carries no digest", receipt.StreamKey)
 	}
@@ -54,7 +51,7 @@ func (a *Appender) Append(ctx context.Context, tx pgx.Tx, receipt datalogger.App
 			SELECT chain_hash FROM ledger_hash_chain_link
 			WHERE tenant_id = $1 AND stream_key = $2 AND sequence = $3`,
 			receipt.Tenant, receipt.StreamKey, receipt.Sequence-1).Scan(&prevHash)
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, dbport.ErrNoRows) {
 			return ChainedLink{}, ErrMissingPredecessor{StreamKey: receipt.StreamKey, Sequence: receipt.Sequence}
 		}
 		if err != nil {
@@ -164,7 +161,7 @@ func CurrentHead(ctx context.Context, q Querier, tenant uuid.UUID, streamKey str
 		ORDER BY sequence DESC
 		LIMIT 1`, tenant, streamKey)
 	if scanErr := row.Scan(&sequence, &chainHash, &algorithm); scanErr != nil {
-		if errors.Is(scanErr, pgx.ErrNoRows) {
+		if errors.Is(scanErr, dbport.ErrNoRows) {
 			return Head{}, false, nil
 		}
 		return Head{}, false, fmt.Errorf("hashchain: read head for stream %s: %w", streamKey, scanErr)

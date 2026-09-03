@@ -2,6 +2,7 @@ package seed_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -29,6 +30,20 @@ func countDefinitionVersions(t *testing.T, db *pgtest.DB, tenantID uuid.UUID) in
 	if err := db.Conn.QueryRow(context.Background(),
 		`SELECT count(*) FROM definition_version WHERE tenant_id = $1`, tenantID).Scan(&n); err != nil {
 		t.Fatalf("count definition_version: %v", err)
+	}
+	return n
+}
+
+// countRows counts table's rows for tenantID, visible to db's admin
+// connection. table is always one of this package's own hard-coded
+// constants, never request input, so building the query with fmt.Sprintf
+// carries no injection risk.
+func countRows(t *testing.T, db *pgtest.DB, table string, tenantID uuid.UUID) int {
+	t.Helper()
+	var n int
+	if err := db.Conn.QueryRow(context.Background(),
+		fmt.Sprintf(`SELECT count(*) FROM %s WHERE tenant_id = $1`, table), tenantID).Scan(&n); err != nil {
+		t.Fatalf("count %s: %v", table, err)
 	}
 	return n
 }

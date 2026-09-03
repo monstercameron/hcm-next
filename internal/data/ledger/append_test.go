@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
@@ -219,7 +219,7 @@ func TestTodo_LEDGER_002_Integration(t *testing.T) {
 	intentID := uuid.New()
 	var receipt ledger.AppendReceipt
 
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO intent_instance (
 				tenant_id, intent_id, definition_ref, definition_version, request_digest,

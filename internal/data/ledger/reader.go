@@ -7,16 +7,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
-// Querier is the minimal pgx surface a read against the ledger needs. A
-// *pgx.Conn, a pgx.Tx and a *pgxpool.Pool all satisfy it, so callers can read
-// through whichever connection shape they hold.
-type Querier interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-}
+// Querier is the minimal database capability a read against the ledger needs.
+// A pooled handle, a single connection and an open transaction all satisfy it
+// through [dbport], so callers read through whichever shape they already hold.
+type Querier = dbport.Querier
 
 // EventRecord is one durable ledger event as read back for replay,
 // verification, and outbox/projection composition. Unlike AppendRequest it
@@ -129,7 +127,7 @@ func (r *Reader) ReadEvent(ctx context.Context, q Querier, tenant uuid.UUID, str
 		FROM ledger_event
 		WHERE tenant_id = $1 AND stream_key = $2 AND sequence = $3`, tenant, streamKey, sequence)
 	rec, err := scanEvent(row)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return EventRecord{}, ErrEventNotFound{Tenant: tenant, StreamKey: streamKey, Sequence: sequence}
 	}
 	if err != nil {

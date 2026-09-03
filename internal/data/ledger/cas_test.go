@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 )
 
 // TestTodo_DATA_002 proves the stream-head compare-and-swap: concurrent
@@ -23,7 +23,7 @@ func TestTodo_DATA_002(t *testing.T) {
 
 	// Each appender gets its own connection, so these are genuinely separate
 	// sessions racing for the same head.
-	conns := make([]*pgx.Conn, appenders)
+	conns := make([]*pgxadapter.Conn, appenders)
 	for i := range conns {
 		conns[i] = f.db.NewConn(t)
 	}
@@ -43,7 +43,7 @@ func TestTodo_DATA_002(t *testing.T) {
 			req := f.request(0)
 			<-start
 			var receipt ledger.AppendReceipt
-			err := f.inTxErr(conns[i], func(tx pgx.Tx) error {
+			err := f.inTxErr(conns[i], func(tx dbport.Tx) error {
 				var appendErr error
 				receipt, appendErr = ledger.Append(context.Background(), tx, req)
 				return appendErr
@@ -98,7 +98,7 @@ func TestTodo_DATA_002_Race(t *testing.T) {
 	const rounds = 5
 	const appenders = 4
 
-	conns := make([]*pgx.Conn, appenders)
+	conns := make([]*pgxadapter.Conn, appenders)
 	for i := range conns {
 		conns[i] = f.db.NewConn(t)
 	}
@@ -117,7 +117,7 @@ func TestTodo_DATA_002_Race(t *testing.T) {
 				defer wg.Done()
 				req := f.request(expected)
 				<-start
-				err := f.inTxErr(conns[i], func(tx pgx.Tx) error {
+				err := f.inTxErr(conns[i], func(tx dbport.Tx) error {
 					_, appendErr := ledger.Append(context.Background(), tx, req)
 					return appendErr
 				})

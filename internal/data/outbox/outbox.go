@@ -16,7 +16,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // Status values for one outbox row.
@@ -62,7 +63,7 @@ type Record struct {
 // Enqueue inserts one PENDING message inside the caller's transaction. A
 // duplicate EffectIdentity returns the row already recorded rather than a
 // second logical message.
-func Enqueue(ctx context.Context, tx pgx.Tx, req EnqueueRequest) (Record, error) {
+func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, error) {
 	if req.Tenant == uuid.Nil {
 		return Record{}, fmt.Errorf("outbox: enqueue requires a tenant")
 	}
@@ -80,7 +81,7 @@ func Enqueue(ctx context.Context, tx pgx.Tx, req EnqueueRequest) (Record, error)
 		id = uuid.New()
 	}
 
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		INSERT INTO outbox (tenant_id, outbox_id, effect_identity, ordering_key, schema_ref, payload)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (tenant_id, effect_identity) DO NOTHING`,
@@ -88,7 +89,7 @@ func Enqueue(ctx context.Context, tx pgx.Tx, req EnqueueRequest) (Record, error)
 	if err != nil {
 		return Record{}, fmt.Errorf("outbox: enqueue %s: %w", req.EffectIdentity, err)
 	}
-	if tag.RowsAffected() == 1 {
+	if affected == 1 {
 		return Read(ctx, tx, req.Tenant, id)
 	}
 
@@ -109,16 +110,16 @@ func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 	return rec, nil
 }
 
-// Querier is the minimal pgx surface Read needs.
+// Querier is the minimal database capability Read needs.
 type Querier interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	QueryRow(ctx context.Context, sql string, args ...any) dbport.Row
 }
 
 // Read returns one outbox row by its own ID.
 func Read(ctx context.Context, q Querier, tenant uuid.UUID, outboxID uuid.UUID) (Record, error) {
 	row := q.QueryRow(ctx, `SELECT `+selectRecordColumns+` FROM outbox WHERE tenant_id = $1 AND outbox_id = $2`, tenant, outboxID)
 	rec, err := scanRecord(row)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return Record{}, fmt.Errorf("outbox: %s not found for tenant %s", outboxID, tenant)
 	}
 	if err != nil {

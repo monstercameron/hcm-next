@@ -7,28 +7,26 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
-// Executor is the minimal pgx capability every Put/read helper in this
-// package needs. *pgx.Tx and *pgx.Conn both satisfy it, but a Put call that
-// closes a live predecessor (see put, below) issues two statements -- the
-// UPDATE that sets the predecessor's superseded_at, then the INSERT of the
-// new row -- and this package never opens a transaction of its own to bind
-// them together. Pass a *pgx.Tx (begun by the caller, committed or rolled
+// Executor is the minimal database capability every Put/read helper in this
+// package needs. A [dbport.Tx] and a [dbport.Conn] both satisfy it, but a Put
+// call that closes a live predecessor (see put, below) issues two statements
+// -- the UPDATE that sets the predecessor's superseded_at, then the INSERT of
+// the new row -- and this package never opens a transaction of its own to bind
+// them together. Pass a [dbport.Tx] (begun by the caller, committed or rolled
 // back by the caller) to every Put whenever the entity being written might
-// already have a live row: on a bare *pgx.Conn those two statements
+// already have a live row: on a bare connection those two statements
 // autocommit independently, so an INSERT failure (a refused cycle, an
 // over-committed FTE/budget, a currency mismatch) would leave the
 // predecessor superseded with no successor. A read-only Current*/KnownAsOf*
 // call is a single statement and needs no transaction.
 type Executor interface {
-	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	dbport.Execer
+	dbport.Querier
 }
 
 // Envelope is the bitemporal fields every table in this package shares. See

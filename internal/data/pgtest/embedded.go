@@ -207,15 +207,50 @@ func freePort() (uint32, error) {
 	return port, nil
 }
 
+// lockOptions controls how long withDirectoryLockOpts waits for a contended
+// lock, how often it polls, and how old an abandoned lock file must be before
+// it is reclaimed. withDirectoryLock always runs with defaultLockOptions;
+// tests pass their own short-lived lockOptions value instead of mutating
+// package state, so they never race the real cache lock that a concurrently
+// running test may be legitimately holding for the shared embedded server.
+type lockOptions struct {
+	poll     time.Duration
+	wait     time.Duration
+	staleAge time.Duration
+}
+
+var defaultLockOptions = lockOptions{
+	poll:     250 * time.Millisecond,
+	wait:     10 * time.Minute,
+	staleAge: 15 * time.Minute,
+}
+
+// isRetryableLockErr reports whether err from creating the lock file means
+// "someone else holds it right now" rather than a permanent failure such as
+// an invalid path or a full disk. Besides the usual already-exists error,
+// Windows can surface ERROR_ACCESS_DENIED ("Access is denied") from
+// OpenFile(O_CREATE|O_EXCL) instead of ERROR_FILE_EXISTS during the brief
+// window where another process is itself mid-create or mid-delete of the
+// same path; os.IsExist alone does not recognise that as contention and
+// would abort the whole embedded-server startup instead of retrying.
+func isRetryableLockErr(err error) bool {
+	return os.IsExist(err) || os.IsPermission(err)
+}
+
 // withDirectoryLock serializes the one-time archive download across concurrently
 // running `go test` processes. Once the archive is cached every process extracts
 // and starts its own server independently.
 func withDirectoryLock(dir string, fn func() error) error {
+	return withDirectoryLockOpts(dir, defaultLockOptions, fn)
+}
+
+func withDirectoryLockOpts(dir string, opts lockOptions, fn func() error) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create cache directory %s: %w", dir, err)
 	}
 	lockPath := filepath.Join(dir, "prepare.lock")
-	deadline := time.Now().Add(10 * time.Minute)
+	deadline := time.Now().Add(opts.wait)
+	attempts := 0
 	for {
 		file, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 		if err == nil {
@@ -223,18 +258,20 @@ func withDirectoryLock(dir string, fn func() error) error {
 			defer func() { _ = os.Remove(lockPath) }()
 			return fn()
 		}
-		if !os.IsExist(err) {
+		attempts++
+		if !isRetryableLockErr(err) {
 			return fmt.Errorf("acquire lock %s: %w", lockPath, err)
 		}
 		// Reclaim a lock left behind by a killed process.
-		if info, statErr := os.Stat(lockPath); statErr == nil && time.Since(info.ModTime()) > 15*time.Minute {
+		if info, statErr := os.Stat(lockPath); statErr == nil && time.Since(info.ModTime()) > opts.staleAge {
 			_ = os.Remove(lockPath)
 			continue
 		}
 		if time.Now().After(deadline) {
-			return fmt.Errorf("timed out waiting for lock %s", lockPath)
+			return fmt.Errorf("timed out waiting for lock %s after %d attempt(s) over %s (last error: %v)",
+				lockPath, attempts, opts.wait, err)
 		}
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(opts.poll)
 	}
 }
 

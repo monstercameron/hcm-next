@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/yaml.v3"
+	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
 )
 
 // DefaultRegistryPath is where STORE-001's published physical
@@ -61,42 +61,18 @@ func (r DispositionRegistry) Table(name string) (StoreDisposition, bool) {
 	return StoreDisposition{}, false
 }
 
-// dispositionFile and tableFile mirror storage-disposition.yaml's own shape
-// (definitions/storage/storage-disposition.yaml). Only the fields this
-// package reads are declared; yaml.Unmarshal ignores the rest of the
-// document (disposition, retention_classes, encryption_classes, module,
-// source, and each table's migration/isolation_package/notes).
-type dispositionFile struct {
-	Version int         `yaml:"version"`
-	Tables  []tableFile `yaml:"tables"`
-}
-
-type tableFile struct {
-	Table               string   `yaml:"table"`
-	OwnerPackage        string   `yaml:"owner_package"`
-	Plane               string   `yaml:"plane"`
-	DataRole            string   `yaml:"data_role"`
-	TenantScopingColumn *string  `yaml:"tenant_scoping_column"`
-	AppendOnly          bool     `yaml:"append_only"`
-	RetentionClass      string   `yaml:"retention_class"`
-	EncryptionClass     string   `yaml:"encryption_class"`
-	RebuildSource       *string  `yaml:"rebuild_source"`
-	Partitions          []string `yaml:"partitions"`
-}
-
-// LoadDispositionRegistry reads and parses the STORE-001 registry at path.
+// LoadDispositionRegistry reads the STORE-001 registry through its sole YAML
+// parser, storagedisposition. Health projects that typed registry onto the
+// narrower facts a Probe needs rather than becoming a second parser or an
+// authority for the physical-storage contract.
 func LoadDispositionRegistry(path string) (DispositionRegistry, error) {
-	data, err := os.ReadFile(path)
+	source, err := storagedisposition.Load(path)
 	if err != nil {
-		return DispositionRegistry{}, fmt.Errorf("health: read disposition registry %s: %w", path, err)
-	}
-	var f dispositionFile
-	if err := yaml.Unmarshal(data, &f); err != nil {
-		return DispositionRegistry{}, fmt.Errorf("health: parse disposition registry %s: %w", path, err)
+		return DispositionRegistry{}, fmt.Errorf("health: load disposition registry %s: %w", path, err)
 	}
 
-	out := DispositionRegistry{Version: f.Version, Tables: make([]StoreDisposition, 0, len(f.Tables))}
-	for _, t := range f.Tables {
+	out := DispositionRegistry{Version: source.Version, Tables: make([]StoreDisposition, 0, len(source.Tables))}
+	for _, t := range source.Tables {
 		sd := StoreDisposition{
 			Table:           t.Table,
 			OwnerPackage:    t.OwnerPackage,

@@ -10,9 +10,9 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
-// Querier is the minimal pgx surface a bitemporal query needs. It is the same
-// shape as ledger.Querier, so a *pgx.Conn, a pgx.Tx or a *pgxpool.Pool that
-// already satisfies ledger.Querier satisfies this one without adapting.
+// Querier is the minimal database capability a bitemporal query needs. It is
+// ledger.Querier itself, so whatever handle a caller already reads the ledger
+// through satisfies this one without adapting.
 type Querier = ledger.Querier
 
 // Option configures a Query call.

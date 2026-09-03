@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 )
@@ -125,7 +125,7 @@ func readIntentInstance(ctx context.Context, q ledger.Querier, tenant uuid.UUID,
 		&row.DefinitionRef, &row.DefinitionVersion, &row.RequestDigest, &row.RequestDigestAlgorithm,
 		&row.IdempotencyKey, &row.RequestState, &row.ExecutionState, &row.BusinessState, &row.ConsistencyState,
 		&row.ObligationState, &row.InstanceVersion, &row.CreatedAt, &row.RecordedAt, &row.LastTransitionAt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return IntentInstanceRow{}, false, nil
 	}
 	if err != nil {
@@ -146,7 +146,7 @@ func readProposalRevision(ctx context.Context, q ledger.Querier, tenant uuid.UUI
 		tenant, intentID, revision).Scan(
 		&row.ProposalDigest, &row.MaterialDigest, &row.DigestAlgorithm, &row.SchemaRef,
 		&row.Payload, &artifactRef, &row.ProducedBy, &row.ProducedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return ProposalRevisionRow{}, false, nil
 	}
 	if err != nil {

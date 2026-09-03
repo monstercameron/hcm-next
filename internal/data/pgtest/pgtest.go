@@ -36,9 +36,10 @@
 // # Connection handles
 //
 // A test gets a database/sql handle (which Goose drives, and which pools) and
-// pgx connections for statements that need pgx types or an explicit transaction.
-// pgxpool is deliberately not used: its puddle dependency is absent from the
-// module requirements, and this package may not edit them.
+// connections through internal/data/dbport - the same port production code
+// takes - for statements that need an explicit transaction. pgxpool is
+// deliberately not used: its puddle dependency is absent from the module
+// requirements, and this package may not edit them.
 package pgtest
 
 import (
@@ -59,6 +60,8 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/migrations"
 )
 
@@ -82,7 +85,7 @@ var (
 	serverStop func() error
 
 	adminMu   sync.Mutex
-	adminConn *pgx.Conn
+	adminConn *pgxadapter.Conn
 )
 
 // RunMain runs the package's tests and shuts down the PostgreSQL server
@@ -135,7 +138,7 @@ func startServer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, url)
+	conn, err := pgxadapter.Connect(ctx, url, nil)
 	if err != nil {
 		return fmt.Errorf("connect to %s: %w", redact(url), err)
 	}
@@ -172,7 +175,7 @@ func stopServer() {
 
 // withAdmin runs one administrative statement. The administrative connection is
 // a single pgx connection, so access to it is serialized.
-func withAdmin(ctx context.Context, fn func(*pgx.Conn) error) error {
+func withAdmin(ctx context.Context, fn func(dbport.Conn) error) error {
 	adminMu.Lock()
 	defer adminMu.Unlock()
 	if adminConn == nil {
@@ -268,10 +271,11 @@ type DB struct {
 	// SQL is the database/sql handle Goose drives. Every connection it opens has
 	// search_path pinned to this test's schema.
 	SQL *sql.DB
-	// Conn is a pgx connection on the same schema, for statements that want pgx
-	// types or an explicit transaction. It is not safe for concurrent use; call
-	// NewConn for an independent connection.
-	Conn *pgx.Conn
+	// Conn is a connection on the same schema, exposed through
+	// internal/data/dbport, for statements that want an explicit transaction. It
+	// is not safe for concurrent use; call NewConn for an independent
+	// connection.
+	Conn *pgxadapter.Conn
 	// Schema is the PostgreSQL schema owned by this test.
 	Schema string
 	// URL is the server connection URL. It carries no schema; the schema is set
@@ -307,7 +311,7 @@ func NewEmpty(t *testing.T) *DB {
 
 	schema := schemaName()
 	ctx := context.Background()
-	err := withAdmin(ctx, func(conn *pgx.Conn) error {
+	err := withAdmin(ctx, func(conn dbport.Conn) error {
 		_, execErr := conn.Exec(ctx, fmt.Sprintf("CREATE SCHEMA %s", quoteIdentifier(schema)))
 		return execErr
 	})
@@ -322,7 +326,7 @@ func NewEmpty(t *testing.T) *DB {
 		}
 		dropCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()
-		dropErr := withAdmin(dropCtx, func(conn *pgx.Conn) error {
+		dropErr := withAdmin(dropCtx, func(conn dbport.Conn) error {
 			_, execErr := conn.Exec(dropCtx, fmt.Sprintf("DROP SCHEMA %s CASCADE", quoteIdentifier(schema)))
 			return execErr
 		})
@@ -357,24 +361,18 @@ func NewEmpty(t *testing.T) *DB {
 	return db
 }
 
-// NewConn opens an independent pgx connection on this test's schema. Concurrency
+// NewConn opens an independent connection on this test's schema. Concurrency
 // tests use it to hold genuinely separate sessions and transactions.
-func (d *DB) NewConn(t *testing.T) *pgx.Conn {
+func (d *DB) NewConn(t *testing.T) *pgxadapter.Conn {
 	t.Helper()
 
 	serverMu.Lock()
 	url := serverURL
 	serverMu.Unlock()
 
-	cfg, err := pgx.ParseConfig(url)
-	if err != nil {
-		t.Fatalf("parse %s: %v", redact(url), err)
-	}
-	cfg.RuntimeParams["search_path"] = d.Schema
-
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	conn, err := pgx.ConnectConfig(ctx, cfg)
+	conn, err := pgxadapter.Connect(ctx, url, map[string]string{"search_path": d.Schema})
 	if err != nil {
 		t.Fatalf("connect to schema %s: %v", d.Schema, err)
 	}
@@ -422,8 +420,8 @@ func (d *DB) ExecErr(sqlText string, args ...any) error {
 	return err
 }
 
-// QueryRow forwards to the pgx connection bound to this schema.
-func (d *DB) QueryRow(ctx context.Context, sqlText string, args ...any) pgx.Row {
+// QueryRow forwards to the connection bound to this schema.
+func (d *DB) QueryRow(ctx context.Context, sqlText string, args ...any) dbport.Row {
 	return d.Conn.QueryRow(ctx, sqlText, args...)
 }
 

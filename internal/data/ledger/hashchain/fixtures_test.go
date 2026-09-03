@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
@@ -65,7 +65,7 @@ func newFixture(t *testing.T) fixture {
 			'hcmnext.intents.v1.BusinessIntent', 'PROTOBUF', 'LEDGER_EVENT')`,
 		f.tenant, schemaRef)
 
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		return datalogger.EnsureStream(context.Background(), tx, f.tenant, streamKey, "WORKER", "worker:1")
 	})
 
@@ -89,14 +89,14 @@ func (f fixture) request(expectedHead int64) datalogger.AppendRequest {
 	}
 }
 
-func (f fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
+func (f fixture) inTx(t *testing.T, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(fn); err != nil {
 		t.Fatalf("transaction: %v", err)
 	}
 }
 
-func (f fixture) inTxErr(fn func(pgx.Tx) error) error {
+func (f fixture) inTxErr(fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := f.db.Conn.Begin(ctx)
 	if err != nil {
@@ -116,7 +116,7 @@ func (f fixture) inTxErr(fn func(pgx.Tx) error) error {
 func (f fixture) appendLinked(t *testing.T, req datalogger.AppendRequest) hashchain.ChainedLink {
 	t.Helper()
 	var link hashchain.ChainedLink
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		receipt, err := datalogger.Append(context.Background(), tx, req)
 		if err != nil {
 			return err
@@ -136,7 +136,7 @@ func (f fixture) appendLinked(t *testing.T, req datalogger.AppendRequest) hashch
 func (f fixture) appendUnlinked(t *testing.T, req datalogger.AppendRequest) datalogger.AppendReceipt {
 	t.Helper()
 	var receipt datalogger.AppendReceipt
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = datalogger.Append(context.Background(), tx, req)
 		return appendErr

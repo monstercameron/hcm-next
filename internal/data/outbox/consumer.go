@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // DefaultLease is how long a claimed message stays IN_FLIGHT before another
@@ -20,10 +20,9 @@ const DefaultLease = 30 * time.Second
 // DefaultBatchSize bounds how many messages one Poll claims at a time.
 const DefaultBatchSize = 32
 
-// Beginner opens transactions. *pgxpool.Pool and *pgx.Conn both implement it.
-type Beginner interface {
-	Begin(ctx context.Context) (pgx.Tx, error)
-}
+// Beginner opens transactions. A pooled handle and a single connection both
+// implement it.
+type Beginner = dbport.Beginner
 
 // Handler processes one dispatched message. It must be idempotent by message
 // ID: at-least-once delivery means the same OutboxID can reach Handler more
@@ -123,15 +122,15 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 
 	claimed := make([]Record, 0, len(ids))
 	for _, id := range ids {
-		tag, err := tx.Exec(ctx, `
+		affected, err := tx.Exec(ctx, `
 			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4
 			WHERE tenant_id = $1 AND outbox_id = $2`,
 			tenant, id, StatusInFlight, now)
 		if err != nil {
 			return nil, fmt.Errorf("outbox: poll: claim %s: %w", id, err)
 		}
-		if tag.RowsAffected() != 1 {
-			return nil, fmt.Errorf("outbox: poll: claim %s: %d rows updated", id, tag.RowsAffected())
+		if affected != 1 {
+			return nil, fmt.Errorf("outbox: poll: claim %s: %d rows updated", id, affected)
 		}
 		rec, err := Read(ctx, tx, tenant, id)
 		if err != nil {
@@ -178,20 +177,20 @@ func (c *Consumer) Fail(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUI
 // execOn opens a short-lived transaction to run one statement. Ack/Fail are
 // single-row, single-statement updates; a dedicated transaction keeps
 // Consumer's exported surface free of a bare-connection Exec assumption.
-func execOn(ctx context.Context, db Beginner, sql string, args ...any) (pgconn.CommandTag, error) {
+func execOn(ctx context.Context, db Beginner, sql string, args ...any) (int64, error) {
 	tx, err := db.Begin(ctx)
 	if err != nil {
-		return pgconn.CommandTag{}, err
+		return 0, err
 	}
-	tag, err := tx.Exec(ctx, sql, args...)
+	affected, err := tx.Exec(ctx, sql, args...)
 	if err != nil {
 		_ = tx.Rollback(ctx)
-		return pgconn.CommandTag{}, err
+		return 0, err
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return pgconn.CommandTag{}, err
+		return 0, err
 	}
-	return tag, nil
+	return affected, nil
 }
 
 // Run polls and dispatches in a loop until ctx is cancelled, sleeping

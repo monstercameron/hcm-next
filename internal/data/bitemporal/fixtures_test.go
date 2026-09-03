@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 )
@@ -62,7 +62,7 @@ func newFixture(t *testing.T) *fixture {
 		VALUES ($1, $2, 'INTERNAL', 'workforce', timestamptz '2020-01-01T00:00:00Z')`,
 		f.tenant, authority)
 
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		for _, stream := range f.streams {
 			if err := ledger.EnsureStream(context.Background(), tx, f.tenant, stream, "WORKER", stream); err != nil {
 				return err
@@ -74,7 +74,7 @@ func newFixture(t *testing.T) *fixture {
 	return f
 }
 
-func (f *fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
+func (f *fixture) inTx(t *testing.T, fn func(dbport.Tx) error) {
 	t.Helper()
 	ctx := context.Background()
 	tx, err := f.db.Conn.Begin(ctx)
@@ -130,7 +130,7 @@ func (f *fixture) append(t *testing.T, spec factSpec) ledger.AppendReceipt {
 		Corrects:       spec.Corrects,
 	}
 	var receipt ledger.AppendReceipt
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		var err error
 		receipt, err = appender.Append(context.Background(), tx, req)
 		return err
@@ -193,24 +193,22 @@ func (f *fixture) rawSlots(t *testing.T, req bitemporal.Request, dec bitemporal.
 	if err != nil {
 		t.Fatalf("build SQL: %v", err)
 	}
-	rows, err := f.db.Conn.Query(context.Background(), sqlText, args...)
+	// The built statement's select list is fixed (sql.go selectColumns), so
+	// wrapping it and projecting the two columns this assertion reads keeps the
+	// rows PostgreSQL returned exactly as they were while scanning only what is
+	// being asserted on.
+	rows, err := f.db.Conn.Query(context.Background(),
+		`SELECT raw.stream_key, raw.schema_ref FROM (`+sqlText+`) AS raw`, args...)
 	if err != nil {
 		t.Fatalf("run built SQL: %v", err)
 	}
 	defer rows.Close()
 
-	// The select list is fixed (sql.go selectColumns): stream_key is column 2,
-	// schema_ref is column 8 (1-indexed).
 	out := map[[2]string]bool{}
 	for rows.Next() {
-		vals, err := rows.Values()
-		if err != nil {
+		var stream, schema string
+		if err := rows.Scan(&stream, &schema); err != nil {
 			t.Fatalf("read row values: %v", err)
-		}
-		stream, ok1 := vals[1].(string)
-		schema, ok2 := vals[7].(string)
-		if !ok1 || !ok2 {
-			t.Fatalf("unexpected column types: %T %T", vals[1], vals[7])
 		}
 		out[[2]string{stream, schema}] = true
 	}

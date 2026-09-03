@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -76,7 +76,7 @@ func (CompensationStore) PutCompensationPackage(ctx context.Context, ex Executor
 		[]any{p.WorkerRef, nullableUUID(p.EmploymentRef), nullableUUID(p.AssignmentRef), p.Currency})
 }
 
-func scanCompensationPackage(row pgx.Row) (CompensationPackage, error) {
+func scanCompensationPackage(row dbport.Row) (CompensationPackage, error) {
 	var p CompensationPackage
 	var employmentRef, assignmentRef *uuid.UUID
 	err := row.Scan(&p.RowID, &p.Tenant, &p.EntityID, &p.CanonicalID, &p.WorkerRef, &employmentRef, &assignmentRef,
@@ -145,7 +145,7 @@ func (CompensationStore) PutCompensationComponent(ctx context.Context, ex Execut
 		[]any{c.PackageRef, c.ComponentType, decimalParam(c.Amount), c.Currency, c.Frequency})
 }
 
-func scanCompensationComponent(row pgx.Row) (CompensationComponent, error) {
+func scanCompensationComponent(row dbport.Row) (CompensationComponent, error) {
 	var c CompensationComponent
 	err := row.Scan(&c.RowID, &c.Tenant, &c.EntityID, &c.CanonicalID, &c.PackageRef, &c.ComponentType, &c.Amount,
 		&c.Currency, &c.Frequency, &c.EffectiveFrom, &c.EffectiveTo, &c.RecordedAt, &c.SupersededAt,
@@ -228,7 +228,7 @@ func (CompensationStore) PutCompensationBand(ctx context.Context, ex Executor, b
 		[]any{b.JobCode, b.Grade, b.PayZone, b.Currency, decimalParam(b.Minimum), decimalParam(b.Midpoint), decimalParam(b.Maximum)})
 }
 
-func scanCompensationBand(row pgx.Row) (CompensationBand, error) {
+func scanCompensationBand(row dbport.Row) (CompensationBand, error) {
 	var b CompensationBand
 	err := row.Scan(&b.RowID, &b.Tenant, &b.EntityID, &b.CanonicalID, &b.JobCode, &b.Grade, &b.PayZone, &b.Currency,
 		&b.Minimum, &b.Midpoint, &b.Maximum, &b.EffectiveFrom, &b.EffectiveTo, &b.RecordedAt, &b.SupersededAt,
@@ -296,7 +296,7 @@ func (CompensationStore) PutWorkforceBudget(ctx context.Context, ex Executor, b 
 			decimalParam(b.AvailableQuantity), nullableText(b.BaselineVersion)})
 }
 
-func scanWorkforceBudget(row pgx.Row) (WorkforceBudget, error) {
+func scanWorkforceBudget(row dbport.Row) (WorkforceBudget, error) {
 	var b WorkforceBudget
 	var currency, baselineVersion *string
 	err := row.Scan(&b.RowID, &b.Tenant, &b.EntityID, &b.CanonicalID, &b.BudgetType, &b.OwnerSystem, &b.Scope, &b.Period,
@@ -368,7 +368,7 @@ func (CompensationStore) PutBudgetReservation(ctx context.Context, ex Executor, 
 		[]any{r.BudgetRef, nullableUUID(r.ProposalRef), decimalParam(r.Amount), nullableText(r.Currency), r.Status, r.Expiry})
 }
 
-func scanBudgetReservation(row pgx.Row) (BudgetReservation, error) {
+func scanBudgetReservation(row dbport.Row) (BudgetReservation, error) {
 	var r BudgetReservation
 	var proposalRef *uuid.UUID
 	var currency *string

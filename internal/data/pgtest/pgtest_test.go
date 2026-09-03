@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 	"github.com/monstercameron/hcm-next/migrations"
 )
@@ -173,8 +173,10 @@ func TestTodo_DB_001_Golden(t *testing.T) {
 		if i < len(want) && f.Name != want[i] {
 			t.Fatalf("migration %d is %q, want %q", i, f.Name, want[i])
 		}
-		if int64(i+1) != f.Version {
-			t.Fatalf("migration %q has version %d, want %d", f.Name, f.Version, i+1)
+		// Versions must strictly increase; a gap (00009 was never used) is
+		// allowed because Goose orders by version, not by position.
+		if i > 0 && f.Version <= files[i-1].Version {
+			t.Fatalf("migration %q has version %d, not greater than %d", f.Name, f.Version, files[i-1].Version)
 		}
 		if len(f.Checksum) != 64 {
 			t.Fatalf("migration %q checksum %q is not a sha256 hex digest", f.Name, f.Checksum)
@@ -223,7 +225,7 @@ func tableExists(t *testing.T, db *pgtest.DB, name string) bool {
 			SELECT 1 FROM information_schema.tables
 			WHERE table_schema = $1 AND table_name = $2
 		)`, db.Schema, name).Scan(&exists)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, dbport.ErrNoRows) {
 		t.Fatalf("check table %s: %v", name, err)
 	}
 	return exists

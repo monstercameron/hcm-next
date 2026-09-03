@@ -15,9 +15,11 @@ func TestMain(m *testing.M) {
 }
 
 // TestTodo_DB_019 proves the two halves of DB-019 together: seeding a tenant
-// once writes the full plan, and seeding the same tenant again -- a separate
-// transaction, modelling a redeployment or a rerun of a seed command -- is a
-// no-op that neither duplicates rows nor changes the reported digest.
+// once writes the full plan -- both the definition_version registrations and,
+// exactly once, the person/worker/.../compensation_band aggregate rows -- and
+// seeding the same tenant again -- a separate transaction, modelling a
+// redeployment or a rerun of a seed command -- is a no-op that neither
+// duplicates rows (in either substrate) nor changes the reported digest.
 func TestTodo_DB_019(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -40,9 +42,23 @@ func TestTodo_DB_019(t *testing.T) {
 	if first.Digest != wantDigest {
 		t.Fatalf("first seed digest %s, want %s", first.Digest, wantDigest)
 	}
+	if first.Aggregates == nil {
+		t.Fatal("first seed did not report the aggregate fixtures it loaded")
+	}
+	if len(first.Aggregates.WorkerID) == 0 {
+		t.Fatal("first seed's aggregate fixtures loaded no workers")
+	}
 
 	if got := countDefinitionVersions(t, db, tenantID); got != len(plan) {
 		t.Fatalf("definition_version holds %d rows after one seed, want %d", got, len(plan))
+	}
+	workersAfterFirst := countRows(t, db, "worker", tenantID)
+	bandsAfterFirst := countRows(t, db, "compensation_band", tenantID)
+	if workersAfterFirst == 0 {
+		t.Fatal("worker holds no rows after one seed")
+	}
+	if bandsAfterFirst == 0 {
+		t.Fatal("compensation_band holds no rows after one seed")
 	}
 
 	second := runSeed(t, ctx, db, tenantID)
@@ -55,10 +71,21 @@ func TestTodo_DB_019(t *testing.T) {
 	if second.Digest != wantDigest {
 		t.Fatalf("second seed digest %s, want %s (the digest must not drift between runs)", second.Digest, wantDigest)
 	}
+	if second.Aggregates != nil {
+		t.Fatal("second seed reported aggregate fixtures again; the aggregateCorpusKey marker should have skipped it")
+	}
 
 	if got := countDefinitionVersions(t, db, tenantID); got != len(plan) {
 		t.Fatalf("definition_version holds %d rows after two seeds, want %d (a rerun must not duplicate rows)",
 			got, len(plan))
+	}
+	if got := countRows(t, db, "worker", tenantID); got != workersAfterFirst {
+		t.Fatalf("worker holds %d rows after two seeds, want %d (a rerun must not duplicate aggregate rows)",
+			got, workersAfterFirst)
+	}
+	if got := countRows(t, db, "compensation_band", tenantID); got != bandsAfterFirst {
+		t.Fatalf("compensation_band holds %d rows after two seeds, want %d (a rerun must not duplicate aggregate rows)",
+			got, bandsAfterFirst)
 	}
 }
 

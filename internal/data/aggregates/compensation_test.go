@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/data/aggregates"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
@@ -45,7 +45,7 @@ func TestTodo_DB_010(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewCompensationPackage: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := comp.PutCompensationPackage(ctx, tx, pkg)
 		return err
 	})
@@ -57,7 +57,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewCompensationComponent: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutCompensationComponent(ctx, tx, base)
 			return err
 		})
@@ -83,7 +83,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewCompensationComponent (raise): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutCompensationComponent(ctx, tx, raised)
 			return err
 		})
@@ -116,7 +116,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewCompensationComponent (mismatched): %v", err)
 		}
-		putErr := inTxErr(t, db, func(tx pgx.Tx) error {
+		putErr := inTxErr(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutCompensationComponent(ctx, tx, mismatched)
 			return err
 		})
@@ -158,7 +158,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewWorkforceBudget: %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutWorkforceBudget(ctx, tx, budget)
 			return err
 		})
@@ -168,7 +168,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewBudgetReservation (held): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutBudgetReservation(ctx, tx, held)
 			return err
 		})
@@ -178,7 +178,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewBudgetReservation (over): %v", err)
 		}
-		putErr := inTxErr(t, db, func(tx pgx.Tx) error {
+		putErr := inTxErr(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutBudgetReservation(ctx, tx, over)
 			return err
 		})
@@ -192,7 +192,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewBudgetReservation (wrong currency): %v", err)
 		}
-		putErr = inTxErr(t, db, func(tx pgx.Tx) error {
+		putErr = inTxErr(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutBudgetReservation(ctx, tx, wrongCurrency)
 			return err
 		})
@@ -207,7 +207,7 @@ func TestTodo_DB_010(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewBudgetReservation (requested): %v", err)
 		}
-		inTx(t, db, func(tx pgx.Tx) error {
+		inTx(t, db, func(tx dbport.Tx) error {
 			_, err := comp.PutBudgetReservation(ctx, tx, requested)
 			return err
 		})
@@ -230,7 +230,7 @@ func TestTodo_DB_010_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewWorkforceBudget A: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := comp.PutWorkforceBudget(ctx, tx, a)
 		return err
 	})
@@ -241,7 +241,7 @@ func TestTodo_DB_010_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewWorkforceBudget B: %v", err)
 	}
-	inTx(t, db, func(tx pgx.Tx) error {
+	inTx(t, db, func(tx dbport.Tx) error {
 		_, err := comp.PutWorkforceBudget(ctx, tx, b)
 		return err
 	})

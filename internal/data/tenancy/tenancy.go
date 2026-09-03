@@ -30,7 +30,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // SessionSetting is the PostgreSQL custom run-time parameter every
@@ -48,11 +49,10 @@ const SessionSetting = "app.tenant_id"
 const AppRole = "hcmnext_app"
 
 // Execer is the minimal capability WithTenant needs: one parameterised
-// statement inside the caller's own transaction. *pgx.Tx and *pgx.Conn both
-// satisfy it, and so does anything else that shares pgx's Exec signature.
-type Execer interface {
-	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
-}
+// statement inside the caller's own transaction. A [dbport.Tx] and a
+// [dbport.Conn] both satisfy it, and so does anything else that runs a
+// parameterised statement through the port.
+type Execer = dbport.Execer
 
 // WithTenant scopes tx to tenantID for every tenant-scoped table's row level
 // security policy, for the lifetime of tx only. Call it once, as the first

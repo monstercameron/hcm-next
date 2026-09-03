@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 )
@@ -16,7 +16,7 @@ import (
 // package's only ledger dependency is the adapter type it already needs for
 // AppendRequest/AppendReceipt.
 type Appender interface {
-	Append(ctx context.Context, tx pgx.Tx, req datalogger.AppendRequest) (datalogger.AppendReceipt, error)
+	Append(ctx context.Context, tx dbport.Tx, req datalogger.AppendRequest) (datalogger.AppendReceipt, error)
 }
 
 // ProjectionSpec names the projection a Commit call advances.
@@ -64,7 +64,7 @@ type CommitReceipt struct {
 // and the projection checkpoint (projection.EnsureProjection); Commit only
 // advances existing registrations, matching Append's own "stream must
 // already be registered" contract.
-func Commit(ctx context.Context, tx pgx.Tx, appender Appender, req CommitRequest) (CommitReceipt, error) {
+func Commit(ctx context.Context, tx dbport.Tx, appender Appender, req CommitRequest) (CommitReceipt, error) {
 	receipt, err := appender.Append(ctx, tx, req.Append)
 	if err != nil {
 		return CommitReceipt{}, fmt.Errorf("outbox: commit: append: %w", err)

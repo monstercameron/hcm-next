@@ -6,14 +6,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 )
 
-// Querier is the minimal pgx surface a lineage read needs. It matches
-// internal/data/ledger.Querier's shape exactly, so a *pgx.Conn, a pgx.Tx or
-// a *pgxpool.Pool a caller already holds satisfies it without adaptation.
+// Querier is the minimal database capability a lineage read needs. It is
+// internal/data/ledger.Querier itself, so whatever handle a caller already
+// reads the ledger through satisfies it without adaptation.
 type Querier = datalogger.Querier
 
 // get reads one event's identity and correction target. ok is false when no
@@ -33,7 +33,7 @@ func get(ctx context.Context, q Querier, tenant uuid.UUID, ref EventRef) (Node, 
 		WHERE tenant_id = $1 AND stream_key = $2 AND sequence = $3`,
 		tenant, ref.StreamKey, ref.Sequence)
 	if err := row.Scan(&node.EventID, &assertionClass, &node.RecordedAt, &correctsStream, &correctsSeq); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, dbport.ErrNoRows) {
 			return Node{}, false, nil
 		}
 		return Node{}, false, fmt.Errorf("lineage: read %s@%d: %w", ref.StreamKey, ref.Sequence, err)

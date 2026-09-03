@@ -16,7 +16,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // Checkpoint is one projection's watermark on one stream.
@@ -89,7 +90,7 @@ func (e ErrSequenceGap) Error() string {
 
 // EnsureProjection registers a projection checkpoint at sequence zero if one
 // does not already exist. It is idempotent, like ledger.EnsureStream.
-func EnsureProjection(ctx context.Context, tx pgx.Tx, tenant uuid.UUID, projectionName, streamKey string) error {
+func EnsureProjection(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, projectionName, streamKey string) error {
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO projection_checkpoint (tenant_id, projection_name, stream_key, last_applied_sequence, status)
 		VALUES ($1, $2, $3, 0, $4)
@@ -112,7 +113,7 @@ func EnsureProjection(ctx context.Context, tx pgx.Tx, tenant uuid.UUID, projecti
 //     reordered redelivery never changes the result twice.
 //   - Sequence > current+1: a missing event would be skipped; returns
 //     ErrSequenceGap and leaves the watermark untouched.
-func Apply(ctx context.Context, tx pgx.Tx, req ApplyRequest) (ApplyResult, error) {
+func Apply(ctx context.Context, tx dbport.Tx, req ApplyRequest) (ApplyResult, error) {
 	if req.Sequence < 1 {
 		return ApplyResult{}, fmt.Errorf("projection: apply requires a positive sequence, got %d", req.Sequence)
 	}
@@ -127,7 +128,7 @@ func Apply(ctx context.Context, tx pgx.Tx, req ApplyRequest) (ApplyResult, error
 		FROM projection_checkpoint
 		WHERE tenant_id = $1 AND projection_name = $2 AND stream_key = $3
 		FOR UPDATE`, req.Tenant, req.ProjectionName, req.StreamKey).Scan(&current, &currentDigest, &status)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return ApplyResult{}, ErrCheckpointNotFound{ProjectionName: req.ProjectionName, StreamKey: req.StreamKey}
 	}
 	if err != nil {
@@ -145,7 +146,7 @@ func Apply(ctx context.Context, tx pgx.Tx, req ApplyRequest) (ApplyResult, error
 		return ApplyResult{}, ErrSequenceGap{ProjectionName: req.ProjectionName, StreamKey: req.StreamKey, Current: current, Requested: req.Sequence}
 	}
 
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		UPDATE projection_checkpoint
 		SET last_applied_sequence = $4, last_applied_digest = $5, status = $6, updated_at = now()
 		WHERE tenant_id = $1 AND projection_name = $2 AND stream_key = $3`,
@@ -153,8 +154,8 @@ func Apply(ctx context.Context, tx pgx.Tx, req ApplyRequest) (ApplyResult, error
 	if err != nil {
 		return ApplyResult{}, fmt.Errorf("advance projection checkpoint %s/%s: %w", req.ProjectionName, req.StreamKey, err)
 	}
-	if tag.RowsAffected() != 1 {
-		return ApplyResult{}, fmt.Errorf("advance projection checkpoint %s/%s: %d rows updated", req.ProjectionName, req.StreamKey, tag.RowsAffected())
+	if affected != 1 {
+		return ApplyResult{}, fmt.Errorf("advance projection checkpoint %s/%s: %d rows updated", req.ProjectionName, req.StreamKey, affected)
 	}
 
 	return ApplyResult{
@@ -172,7 +173,7 @@ func Apply(ctx context.Context, tx pgx.Tx, req ApplyRequest) (ApplyResult, error
 
 // Read returns the current checkpoint for one projection on one stream.
 func Read(ctx context.Context, q interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	QueryRow(ctx context.Context, sql string, args ...any) dbport.Row
 }, tenant uuid.UUID, projectionName, streamKey string) (Checkpoint, error) {
 	var (
 		cp     Checkpoint
@@ -184,7 +185,7 @@ func Read(ctx context.Context, q interface {
 		FROM projection_checkpoint
 		WHERE tenant_id = $1 AND projection_name = $2 AND stream_key = $3`,
 		tenant, projectionName, streamKey).Scan(&cp.LastAppliedSequence, &digest, &cp.Status)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return Checkpoint{}, ErrCheckpointNotFound{ProjectionName: projectionName, StreamKey: streamKey}
 	}
 	if err != nil {

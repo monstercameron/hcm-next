@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 )
 
 func TestMain(m *testing.M) {
@@ -62,7 +63,7 @@ func newFixture(t *testing.T) fixture {
 			timestamptz '2026-01-01T00:00:00Z')`,
 		f.tenant, authorityRef)
 
-	f.inTx(t, func(tx pgx.Tx) error {
+	f.inTx(t, func(tx dbport.Tx) error {
 		return ledger.EnsureStream(context.Background(), tx, f.tenant, streamKey, "WORKER", "worker:1")
 	})
 
@@ -87,7 +88,7 @@ func (f fixture) request(expectedHead int64) ledger.AppendRequest {
 }
 
 // inTx runs fn in a transaction on the fixture's own connection and commits.
-func (f fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
+func (f fixture) inTx(t *testing.T, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(f.db.Conn, fn); err != nil {
 		t.Fatalf("transaction: %v", err)
@@ -98,7 +99,7 @@ func (f fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
 // success and rolling back on failure, and returns fn's verdict. It reports
 // every failure as a value so that concurrent appenders can call it from their
 // own goroutines.
-func (f fixture) inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
+func (f fixture) inTxErr(conn *pgxadapter.Conn, fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -117,7 +118,7 @@ func (f fixture) inTxErr(conn *pgx.Conn, fn func(pgx.Tx) error) error {
 func (f fixture) append(t *testing.T, req ledger.AppendRequest) (ledger.AppendReceipt, error) {
 	t.Helper()
 	var receipt ledger.AppendReceipt
-	err := f.inTxErr(f.db.Conn, func(tx pgx.Tx) error {
+	err := f.inTxErr(f.db.Conn, func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = ledger.Append(context.Background(), tx, req)
 		return appendErr

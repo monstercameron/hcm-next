@@ -61,6 +61,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent/model"
 )
 
@@ -82,13 +83,10 @@ var contentIDPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 // whether an artifact with that id has ever been written.
 func ValidContentID(id string) bool { return contentIDPattern.MatchString(id) }
 
-// Querier is the minimal pgx surface a read-only call needs: a single-row
-// lookup or a multi-row query, over the caller's own transaction or
-// connection. *pgx.Tx and *pgx.Conn both satisfy it.
-type Querier interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-}
+// Querier is the minimal database capability a read-only call needs: a
+// single-row lookup or a multi-row query, over the caller's own transaction or
+// connection. A [dbport.Tx] and a [dbport.Conn] both satisfy it.
+type Querier = dbport.Querier
 
 // Record is one artifact row: everything about a content id except its bytes.
 type Record struct {
@@ -139,7 +137,7 @@ type PutStreamRequest struct {
 // Put writes req.Content as a new artifact, or returns the row already on
 // file for the same content id. It is [PutStream] with the content already in
 // memory and [DefaultMaxContentBytes] as the cap.
-func Put(ctx context.Context, tx pgx.Tx, schema string, req PutRequest) (Record, bool, error) {
+func Put(ctx context.Context, tx dbport.Tx, schema string, req PutRequest) (Record, bool, error) {
 	return PutStream(ctx, tx, schema, PutStreamRequest{
 		Tenant:              req.Tenant,
 		Reader:              bytes.NewReader(req.Content),
@@ -163,7 +161,7 @@ func Put(ctx context.Context, tx pgx.Tx, schema string, req PutRequest) (Record,
 //
 // PutStream runs inside the caller's transaction tx and performs no external
 // call of any kind.
-func PutStream(ctx context.Context, tx pgx.Tx, schema string, req PutStreamRequest, maxBytes int64) (Record, bool, error) {
+func PutStream(ctx context.Context, tx dbport.Tx, schema string, req PutStreamRequest, maxBytes int64) (Record, bool, error) {
 	if err := validatePutStreamRequest(req, maxBytes); err != nil {
 		return Record{}, false, err
 	}
@@ -195,7 +193,7 @@ func PutStream(ctx context.Context, tx pgx.Tx, schema string, req PutStreamReque
 	}
 
 	table := pgx.Identifier{schema, "artifact"}.Sanitize()
-	tag, err := tx.Exec(ctx, fmt.Sprintf(`
+	affected, err := tx.Exec(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			tenant_id, content_id, digest_algorithm, media_type, byte_size,
 			classification, retention_class, creator_principal_ref, evidence_id, content
@@ -211,7 +209,7 @@ func PutStream(ctx context.Context, tx pgx.Tx, schema string, req PutStreamReque
 	if err != nil {
 		return Record{}, false, err
 	}
-	if tag.RowsAffected() == 1 {
+	if affected == 1 {
 		return existing, true, nil
 	}
 	if field := identityMismatch(existing, rec); field != "" {
@@ -276,8 +274,8 @@ func validatePutStreamRequest(req PutStreamRequest, maxBytes int64) error {
 const recordColumns = `tenant_id, content_id, digest_algorithm, media_type, byte_size,
 	classification, retention_class, creator_principal_ref, evidence_id, created_at, recorded_at`
 
-// scanner is the minimal capability both pgx.Row (QueryRow) and pgx.Rows
-// (Query, one row at a time via Next) share, the same technique
+// scanner is the minimal capability both [dbport.Row] (QueryRow) and
+// [dbport.Rows] (Query, one row at a time via Next) share, the same technique
 // internal/data/outbox.scanRecord uses.
 type scanner interface {
 	Scan(dest ...any) error
@@ -303,7 +301,7 @@ func readRecord(ctx context.Context, q Querier, schema string, tenant uuid.UUID,
 	row := q.QueryRow(ctx, fmt.Sprintf(`SELECT %s FROM %s WHERE tenant_id = $1 AND content_id = $2`, recordColumns, table),
 		tenant, contentID)
 	rec, err := scanRecord(row)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return Record{}, ErrNotFound{ContentID: contentID}
 	}
 	if err != nil {

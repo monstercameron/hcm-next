@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/ledger/lineage"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
@@ -64,7 +64,7 @@ func newFixture(t *testing.T) fixture {
 		f.tenant, authorityRef)
 
 	for _, key := range []string{streamKey, otherStream} {
-		f.inTx(t, func(tx pgx.Tx) error {
+		f.inTx(t, func(tx dbport.Tx) error {
 			return datalogger.EnsureStream(context.Background(), tx, f.tenant, key, "WORKER", key)
 		})
 	}
@@ -100,14 +100,14 @@ func (f fixture) correction(stream string, expectedHead int64, corrects lineage.
 	return req
 }
 
-func (f fixture) inTx(t *testing.T, fn func(pgx.Tx) error) {
+func (f fixture) inTx(t *testing.T, fn func(dbport.Tx) error) {
 	t.Helper()
 	if err := f.inTxErr(fn); err != nil {
 		t.Fatalf("transaction: %v", err)
 	}
 }
 
-func (f fixture) inTxErr(fn func(pgx.Tx) error) error {
+func (f fixture) inTxErr(fn func(dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := f.db.Conn.Begin(ctx)
 	if err != nil {
@@ -130,7 +130,7 @@ func (f fixture) inTxErr(fn func(pgx.Tx) error) error {
 func (f fixture) append(t *testing.T, req datalogger.AppendRequest) (datalogger.AppendReceipt, error) {
 	t.Helper()
 	var receipt datalogger.AppendReceipt
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = datalogger.Append(context.Background(), tx, req)
 		return appendErr
@@ -152,7 +152,7 @@ func (f fixture) mustAppend(t *testing.T, req datalogger.AppendRequest) datalogg
 func (f fixture) appendLineage(t *testing.T, req datalogger.AppendRequest) (datalogger.AppendReceipt, error) {
 	t.Helper()
 	var receipt datalogger.AppendReceipt
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = lineage.Append(context.Background(), tx, f.tenant, req)
 		return appendErr
@@ -190,7 +190,7 @@ func (f fixture) otherTenant(t *testing.T) uuid.UUID {
 			'hcmnext.intents.v1.BusinessIntent', 'PROTOBUF', 'LEDGER_EVENT')`,
 		other, schemaRef)
 	for _, key := range []string{streamKey, otherStream} {
-		f.inTx(t, func(tx pgx.Tx) error {
+		f.inTx(t, func(tx dbport.Tx) error {
 			return datalogger.EnsureStream(context.Background(), tx, other, key, "WORKER", key)
 		})
 	}
@@ -204,7 +204,7 @@ func (f fixture) mustAppendTenant(t *testing.T, tenant uuid.UUID, req datalogger
 	t.Helper()
 	req.Tenant = tenant
 	var receipt datalogger.AppendReceipt
-	err := f.inTxErr(func(tx pgx.Tx) error {
+	err := f.inTxErr(func(tx dbport.Tx) error {
 		var appendErr error
 		receipt, appendErr = datalogger.Append(context.Background(), tx, req)
 		return appendErr

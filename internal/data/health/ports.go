@@ -5,20 +5,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 )
 
-// Querier is the minimal pgx surface a Probe reads through, matching
-// internal/data/ledger.Querier's and internal/data/outbox.Querier's own
-// shape. *pgx.Conn, a pgx.Tx and *pgxpool.Pool all satisfy it.
-type Querier interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-}
+// Querier is the minimal database capability a Probe reads through, matching
+// internal/data/ledger.Querier's and internal/data/outbox.Querier's own shape.
+// A pooled handle, a single connection and an open transaction all satisfy it.
+type Querier = dbport.Querier
 
-// PoolStats is a saturation snapshot of one connection pool, shaped after
-// pgxpool.Pool.Stat()'s own fields so PgxPoolStats can adapt it directly.
+// PoolStats is a saturation snapshot of one connection pool, shaped after the
+// pool's own accounting so PgxPoolStats can adapt it directly.
 type PoolStats struct {
 	AcquiredConns int32
 	IdleConns     int32
@@ -33,20 +31,20 @@ type PoolStatsPort interface {
 	Stats() PoolStats
 }
 
-// PgxPoolStats adapts *pgxpool.Pool to PoolStatsPort, matching this
-// repository's existing convention (internal/platform/bootstrap.DBPool) of
-// a narrow, package-owned port over pgxpool rather than exposing pgxpool's
+// PgxPoolStats adapts a pgx-backed pool to PoolStatsPort, matching this
+// repository's existing convention (internal/platform/bootstrap.DBPool) of a
+// narrow, package-owned port over the pool rather than exposing the driver's
 // own type on this package's public surface.
-type PgxPoolStats struct{ Pool *pgxpool.Pool }
+type PgxPoolStats struct{ Pool *pgxadapter.Pool }
 
 // Stats implements PoolStatsPort.
 func (p PgxPoolStats) Stats() PoolStats {
-	s := p.Pool.Stat()
+	s := p.Pool.Stats()
 	return PoolStats{
-		AcquiredConns: s.AcquiredConns(),
-		IdleConns:     s.IdleConns(),
-		MaxConns:      s.MaxConns(),
-		TotalConns:    s.TotalConns(),
+		AcquiredConns: s.AcquiredConns,
+		IdleConns:     s.IdleConns,
+		MaxConns:      s.MaxConns,
+		TotalConns:    s.TotalConns,
 	}
 }
 

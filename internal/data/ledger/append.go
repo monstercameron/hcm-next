@@ -22,8 +22,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // MaxInlinePayloadBytes matches the CHECK constraint on ledger_event. Anything
@@ -161,13 +162,13 @@ func New(opts ...Option) *Appender {
 }
 
 // Append appends one assertion using the default appender.
-func Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (AppendReceipt, error) {
+func Append(ctx context.Context, tx dbport.Tx, req AppendRequest) (AppendReceipt, error) {
 	return New().Append(ctx, tx, req)
 }
 
 // EnsureStream registers a stream and its head if they do not exist yet. Stream
 // identity is semantic and tenant scoped; the physical partition is replaceable.
-func EnsureStream(ctx context.Context, tx pgx.Tx, tenant uuid.UUID, streamKey, streamKind, subjectRef string) error {
+func EnsureStream(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, streamKey, streamKind, subjectRef string) error {
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO ledger_stream (tenant_id, stream_key, stream_kind, subject_ref)
 		VALUES ($1, $2, $3, $4)
@@ -188,7 +189,7 @@ func EnsureStream(ctx context.Context, tx pgx.Tx, tenant uuid.UUID, streamKey, s
 // Append validates the request, locks the stream head, checks the expected head,
 // allocates the next sequence, computes the canonical digest, writes the event
 // and advances the head - all inside the caller's transaction.
-func (a *Appender) Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (AppendReceipt, error) {
+func (a *Appender) Append(ctx context.Context, tx dbport.Tx, req AppendRequest) (AppendReceipt, error) {
 	if err := validate(req); err != nil {
 		return AppendReceipt{}, err
 	}
@@ -213,7 +214,7 @@ func (a *Appender) Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (Ap
 		SELECT head_sequence FROM stream_head
 		WHERE tenant_id = $1 AND stream_key = $2
 		FOR UPDATE`, req.Tenant, req.StreamKey).Scan(&head)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return AppendReceipt{}, ErrStreamNotFound{Tenant: req.Tenant, StreamKey: req.StreamKey}
 	}
 	if err != nil {
@@ -285,7 +286,7 @@ func (a *Appender) Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (Ap
 		return AppendReceipt{}, fmt.Errorf("append to stream %s at sequence %d: %w", req.StreamKey, sequence, err)
 	}
 
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		UPDATE stream_head
 		SET head_sequence = $3, head_digest = $4, head_digest_algorithm = $5, updated_at = $6
 		WHERE tenant_id = $1 AND stream_key = $2`,
@@ -293,8 +294,8 @@ func (a *Appender) Append(ctx context.Context, tx pgx.Tx, req AppendRequest) (Ap
 	if err != nil {
 		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %w", req.StreamKey, err)
 	}
-	if tag.RowsAffected() != 1 {
-		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %d rows updated", req.StreamKey, tag.RowsAffected())
+	if affected != 1 {
+		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %d rows updated", req.StreamKey, affected)
 	}
 
 	return AppendReceipt{
@@ -320,7 +321,7 @@ func digestInput(req AppendRequest) []byte {
 	return []byte(req.ArtifactRef)
 }
 
-func (a *Appender) replay(ctx context.Context, tx pgx.Tx, req AppendRequest, digest, algorithm string, length int) (AppendReceipt, bool, error) {
+func (a *Appender) replay(ctx context.Context, tx dbport.Tx, req AppendRequest, digest, algorithm string, length int) (AppendReceipt, bool, error) {
 	var (
 		eventID    uuid.UUID
 		sequence   int64
@@ -331,7 +332,7 @@ func (a *Appender) replay(ctx context.Context, tx pgx.Tx, req AppendRequest, dig
 		SELECT event_id, sequence, digest, recorded_at FROM ledger_event
 		WHERE tenant_id = $1 AND stream_key = $2 AND idempotency_key = $3`,
 		req.Tenant, req.StreamKey, req.IdempotencyKey).Scan(&eventID, &sequence, &recorded, &recordedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, dbport.ErrNoRows) {
 		return AppendReceipt{}, false, nil
 	}
 	if err != nil {
@@ -362,7 +363,7 @@ func (a *Appender) replay(ctx context.Context, tx pgx.Tx, req AppendRequest, dig
 // checkAuthority proves the cited authority governs the effective instant. The
 // interval is half-open, so an assignment that ends exactly at effective_at does
 // not cover it.
-func (a *Appender) checkAuthority(ctx context.Context, tx pgx.Tx, req AppendRequest) error {
+func (a *Appender) checkAuthority(ctx context.Context, tx dbport.Tx, req AppendRequest) error {
 	var covered bool
 	err := tx.QueryRow(ctx, `
 		SELECT EXISTS (

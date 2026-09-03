@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 )
 
 func TestMain(m *testing.M) {
@@ -36,7 +37,7 @@ func insertTenant(t *testing.T, db *pgtest.DB) uuid.UUID {
 // superuser db.Conn otherwise uses). set_config's third argument is false
 // (session-scoped, not is_local) because the test issues several separate
 // statements on this connection rather than one explicit transaction.
-func asAppRole(t *testing.T, db *pgtest.DB, tenant uuid.UUID) *pgx.Conn {
+func asAppRole(t *testing.T, db *pgtest.DB, tenant uuid.UUID) *pgxadapter.Conn {
 	t.Helper()
 	conn := db.NewConn(t)
 	ctx := context.Background()
@@ -80,7 +81,7 @@ func registerStandinEntity(t *testing.T, db *pgtest.DB, tenant, entityID uuid.UU
 // existing row needs its transaction's atomicity (see store.go's Executor
 // doc), so tests route those calls through inTx rather than db.Conn
 // directly.
-func inTx(t *testing.T, db *pgtest.DB, fn func(tx pgx.Tx) error) {
+func inTx(t *testing.T, db *pgtest.DB, fn func(tx dbport.Tx) error) {
 	t.Helper()
 	ctx := context.Background()
 	tx, err := db.Conn.Begin(ctx)
@@ -100,7 +101,7 @@ func inTx(t *testing.T, db *pgtest.DB, fn func(tx pgx.Tx) error) {
 // rather than fail on: fn's error is returned, and the transaction is rolled
 // back on any error (including one from Commit, which is then folded into
 // the returned error rather than failing the test outright).
-func inTxErr(t *testing.T, db *pgtest.DB, fn func(tx pgx.Tx) error) error {
+func inTxErr(t *testing.T, db *pgtest.DB, fn func(tx dbport.Tx) error) error {
 	t.Helper()
 	ctx := context.Background()
 	tx, err := db.Conn.Begin(ctx)
