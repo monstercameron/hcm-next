@@ -1,0 +1,11 @@
+{
+  "locale": "ar-SA",
+  "fallbacks": ["en-US"],
+  "revision": "ar-sa-r1",
+  "source_key": "leave.approval.notice",
+  "meaning_id": "leave.approval.notice.v1",
+  "text": "\u2068تمت الموافقة على الإجازة\u2069",
+  "direction": "rtl",
+  "accessibility_digest": "a11y-ar-sa-r1",
+  "acknowledgement_digest": "ack-ar-sa-r1"
+}

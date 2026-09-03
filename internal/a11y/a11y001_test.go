@@ -99,3 +99,21 @@ func TestTodo_A11Y_001_Mutation(t *testing.T) {
 		t.Fatalf("missing evidence was not detected: %+v", r)
 	}
 }
+
+func TestMatrixRejectsDuplicateEvidencePair(t *testing.T) {
+	m := a11yFixture()
+	m.Evidence = append(m.Evidence, m.Evidence[0])
+	if !errors.Is(m.Validate(time.Unix(1_800_000_001, 0).UTC()), ErrDuplicateEvidence) {
+		t.Fatal("duplicate environment/flow evidence accepted")
+	}
+}
+
+func TestEvaluateUsesSuppliedTimeForWaiverValidation(t *testing.T) {
+	m := a11yFixture()
+	m.Evidence[0].Waiver = "manual equivalence review"
+	m.Evidence[0].WaiverExpiresAt = time.Unix(1_800_000_002, 0).UTC()
+	r, err := m.Evaluate(time.Unix(1_800_000_001, 0).UTC())
+	if err != nil || !r.Passed || r.MatrixDigest == "" {
+		t.Fatalf("evaluation did not use supplied audit time: report=%+v err=%v", r, err)
+	}
+}

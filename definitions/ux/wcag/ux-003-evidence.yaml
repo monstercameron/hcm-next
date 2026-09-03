@@ -1,0 +1,21 @@
+todo: UX-003
+standard: WCAG 2.2 AA
+artifact: tools/uxqual/wcag
+scenarios:
+  - id: zoom-200
+    kind: manual
+    status: PASS
+    method: Chromium at 200% text/display zoom; complete request and action with keyboard and verify no clipped control.
+  - id: reflow-400
+    kind: manual
+    status: PASS
+    method: Chromium responsive emulation at 320 CSS px and 400% zoom; verify single-column reading order and no horizontal page scroll.
+  - id: reduced-motion
+    kind: manual
+    status: PASS
+    method: "prefers-reduced-motion: reduce; verify no essential information or focus change depends on motion."
+  - id: accessible-auth
+    kind: manual
+    status: PASS
+    method: keyboard plus screen reader; verify authorized actions are named/reachable and privileged masked action is absent.
+waivers: []

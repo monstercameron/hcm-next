@@ -17,6 +17,7 @@ import (
 var (
 	ErrInvalidMatrix        = errors.New("a11y: invalid support matrix")
 	ErrDuplicateCombination = errors.New("a11y: duplicate environment combination")
+	ErrDuplicateEvidence    = errors.New("a11y: duplicate environment/flow evidence")
 	ErrMissingEvidence      = errors.New("a11y: missing equivalence evidence")
 )
 
@@ -111,10 +112,16 @@ func (m Matrix) Validate(now time.Time) error {
 	if strings.TrimSpace(m.ContinuityRoute) == "" {
 		return fmt.Errorf("%w: continuity route is required", ErrInvalidMatrix)
 	}
+	evidenceSeen := map[string]bool{}
 	for _, e := range m.Evidence {
 		if !seen[e.EnvironmentKey] || !flowSet[e.Flow] || e.TaskDigest == "" || e.ResultDigest == "" || e.RecordedAt.IsZero() {
 			return ErrMissingEvidence
 		}
+		pair := e.EnvironmentKey + "\x00" + string(e.Flow)
+		if evidenceSeen[pair] {
+			return ErrDuplicateEvidence
+		}
+		evidenceSeen[pair] = true
 		if e.Waiver != "" && e.WaiverExpiresAt.IsZero() {
 			return fmt.Errorf("%w: waiver expiry is required", ErrInvalidMatrix)
 		}
@@ -126,7 +133,11 @@ func (m Matrix) Validate(now time.Time) error {
 }
 
 func (m Matrix) Digest() (string, error) {
-	if err := m.Validate(time.Now().UTC()); err != nil {
+	return m.digestAt(time.Now().UTC())
+}
+
+func (m Matrix) digestAt(now time.Time) (string, error) {
+	if err := m.Validate(now); err != nil {
 		return "", err
 	}
 	b, err := json.Marshal(m)
@@ -142,7 +153,10 @@ func (m Matrix) Evaluate(now time.Time) (Report, error) {
 	if err := m.Validate(now); err != nil {
 		return Report{}, err
 	}
-	d, _ := m.Digest()
+	d, err := m.digestAt(now)
+	if err != nil {
+		return Report{}, err
+	}
 	have := map[string]Evidence{}
 	for _, e := range m.Evidence {
 		have[e.EnvironmentKey+"\x00"+string(e.Flow)] = e

@@ -3,12 +3,13 @@ package workspace
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html"
 	"strings"
 
 	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/ssr"
+	"github.com/monstercameron/hcm-next/tools/uxqual/render/gwc"
 	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
 )
 
@@ -43,9 +44,9 @@ const (
 )
 
 // formID is the id the request form is given so that the action buttons -
-// which the frozen SSR template renders in their own sibling forms - can name
-// it as their form owner. It is the HTML5 form-owner attribute, not script:
-// the page still submits with JavaScript disabled.
+// which every renderer emits in their own sibling forms - can name it as
+// their form owner. It is the HTML5 form-owner attribute, not script: the
+// page still submits with JavaScript disabled.
 const formID = "promotion-request"
 
 // Form field names the submitted request carries beyond the contract's own
@@ -64,20 +65,31 @@ const (
 
 // Render produces the served HTML document for one page.
 //
-// The document is produced by the frozen SSR renderer (tools/uxqual/render/ssr)
-// and then bound to this workspace's routes by [bindForms]. Binding is a
-// post-processing step rather than a renderer change on purpose: the renderer
-// is a finished, qualified artifact this package must not edit, and it
-// deliberately knows nothing about URLs - its forms post to "#". What is
-// added here is exactly the routing and the CSRF token, never content.
+// The document is produced by the GWC renderer's native SSR path
+// (tools/uxqual/render/gwc.Document) - the same component tree its wasm
+// build mounts live in the browser - and then bound to this workspace's
+// routes by [bindForms]. When the progressive-enhancement bundle is served,
+// [contractIsland] is embedded too, so the live renderer has to mount exactly
+// the contract the page already shows and nothing else.
+//
+// Binding is a post-processing step rather than a renderer change on purpose:
+// the renderer is a finished, qualified artifact this package must not edit,
+// and it deliberately knows nothing about URLs - its forms post to "#". What
+// is added here is exactly the routing and the session inputs, never content.
+// The frozen template renderer (tools/uxqual/render/ssr) remains the
+// qualified named fallback: the decision record
+// (definitions/ux/workspace-renderer-decision.yaml) scores both renderers in
+// the same fixture, and swapping this file's renderer import is the only
+// edit that re-enables it.
 func Render(c contract.WorkspaceContract, csrf, worker string, enhanced bool) (string, error) {
-	doc, err := ssr.Render(c)
+	doc, err := gwc.Document(c)
 	if err != nil {
 		return "", fmt.Errorf("workspace: render the workspace document: %w", err)
 	}
 	doc = bindForms(doc, csrf, worker)
 	if enhanced {
-		doc = strings.Replace(doc, "</body>", loaderScript()+"\n</body>", 1)
+		doc = strings.Replace(doc, "</body>",
+			contractIsland(c, csrf, worker, "")+loaderScript()+"\n</body>", 1)
 	}
 	return doc, nil
 }
@@ -86,26 +98,27 @@ func Render(c contract.WorkspaceContract, csrf, worker string, enhanced bool) (s
 // applied after the already-masked contract is built, so this function can
 // never unmask a field or change a governed simulation answer.
 func RenderPage(page Page, csrf, worker string, enhanced bool) (string, error) {
-	doc, err := ssr.Render(page.Contract)
+	doc, err := gwc.Document(page.Contract)
 	if err != nil {
 		return "", fmt.Errorf("workspace: render the workspace document: %w", err)
 	}
 	doc = bindFormsForLocale(doc, csrf, worker, page.Locale.Resolved)
 	doc = localizeDocument(doc, page.Locale, page.Query, page.TranslationDiagnostics)
 	if enhanced {
-		doc = strings.Replace(doc, "</body>", loaderScript()+"\n</body>", 1)
+		doc = strings.Replace(doc, "</body>",
+			contractIsland(page.Contract, csrf, worker, page.Locale.Resolved)+loaderScript()+"\n</body>", 1)
 	}
 	return doc, nil
 }
 
-// bindForms retargets the frozen renderer's forms at this workspace's routes
+// bindForms retargets the GWC renderer's forms at this workspace's routes
 // and injects the hidden inputs a submission needs.
 //
-// The frozen template puts the request fields in one form and each action's
-// button in its own sibling form, which is correct for a renderer that knows
-// nothing about where it is served but would submit an empty request here. The
-// binding gives the request form an id and makes every action control name it
-// as its form owner, so pressing an action submits the fields the person
+// The renderer puts the request fields in one form and each action's button
+// in its own sibling form, which is correct for a renderer that knows nothing
+// about where it is served but would submit an empty request here. The
+// binding gives the request form an id and makes every action control name
+// it as its form owner, so pressing an action submits the fields the person
 // filled in. That is a plain HTML5 mechanism; nothing here needs script.
 func bindForms(doc, csrf, worker string) string {
 	return bindFormsForLocale(doc, csrf, worker, "")
@@ -118,28 +131,27 @@ func bindFormsForLocale(doc, csrf, worker, locale string) string {
 	}
 
 	replacements := []struct{ from, to string }{
-		// The action forms first: their opening tag is a superset of the
-		// request form's, so replacing the shorter literal first would
-		// rewrite half of the longer one.
+		// The action forms first: GWC emits the request form and the action
+		// forms with the same opening tag, so they are only told apart by
+		// their first child - every action form begins with its hidden
+		// transition input. Rewriting that input rewrites the tag it sits in
+		// in the same step, so by the time the plain form literal is walked
+		// only the request form still matches it.
 		{
-			`<form method="post" action="#" style="display:inline">`,
-			`<form method="post" action="` + PathSimulate + `" style="display:inline">`,
+			`<form action="#" method="post"><input name="transition" type="hidden" value="`,
+			`<form action="` + PathSimulate + `" method="post"><input form="` + formID + `" name="transition" type="hidden" value="`,
 		},
 		{
-			`<form method="post" action="#">`,
-			`<form id="` + formID + `" method="post" action="` + PathSimulate + `">` + hidden,
+			`<form action="#" method="post">`,
+			`<form action="` + PathSimulate + `" id="` + formID + `" method="post">` + hidden,
 		},
 		{
-			`<input type="hidden" name="transition" value="`,
-			`<input form="` + formID + `" type="hidden" name="transition" value="`,
+			`<input aria-required="true" id="reason-`,
+			`<input form="` + formID + `" aria-required="true" id="reason-`,
 		},
 		{
-			`<input type="text" id="reason-`,
-			`<input form="` + formID + `" type="text" id="reason-`,
-		},
-		{
-			`<button type="submit" data-variant="`,
-			`<button form="` + formID + `" type="submit" data-variant="`,
+			`<button data-variant="`,
+			`<button form="` + formID + `" data-variant="`,
 		},
 	}
 	for _, r := range replacements {
@@ -199,6 +211,48 @@ func localizeDocument(doc string, locale LocaleContext, query Query, diagnostics
 func hiddenInput(name, value string) string {
 	return `<input type="hidden" name="` + html.EscapeString(name) +
 		`" value="` + html.EscapeString(value) + `">`
+}
+
+// liveBinding is the routing half of the data island the enhanced document
+// carries: everything the live renderer needs to re-bind the tree it mounts
+// to this workspace's routes. It mirrors - and is pinned to - the values
+// [bindFormsForLocale] writes into the bound document, so the live tree and
+// the server-rendered tree always submit identically.
+type liveBinding struct {
+	Action string            `json:"action"`
+	FormID string            `json:"form_id"`
+	Hidden map[string]string `json:"hidden"`
+}
+
+// contractIsland is the data island the enhanced document carries: the very
+// contract the rendered tree shows, and the binding the live renderer
+// (tools/uxqual/render/gwc.MountLive) applies to the tree it mounts over it.
+// The document remains complete without the island; the island only tells the
+// browser how to re-bind what it already has in front of it.
+//
+// The island is a script element on purpose, and it is CSP-clean: json.Marshal
+// HTML-escapes every character a string value could use to terminate the tag,
+// so its body can neither close the script early nor inject markup.
+func contractIsland(c contract.WorkspaceContract, csrf, worker, locale string) string {
+	hidden := map[string]string{
+		ParamCSRF:   csrf,
+		ParamWorker: worker,
+	}
+	if locale != "" {
+		hidden[ParamLocale] = locale
+	}
+	island := struct {
+		Contract contract.WorkspaceContract `json:"contract"`
+		Binding  liveBinding                `json:"binding"`
+	}{
+		Contract: c,
+		Binding:  liveBinding{Action: PathSimulate, FormID: formID, Hidden: hidden},
+	}
+	body, err := json.Marshal(island)
+	if err != nil { // a contract of strings and times cannot fail to marshal;
+		return "" //  treat a failure as "no enhancement" rather than a broken page
+	}
+	return `<script type="application/json" id="gwc-contract">` + string(body) + `</script>` + "\n"
 }
 
 // loaderScript is the one inline script the content-security-policy admits: a
