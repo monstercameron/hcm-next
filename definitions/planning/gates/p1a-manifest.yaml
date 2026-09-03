@@ -1,0 +1,256 @@
+# P1A delivery manifest (NEXT-002).
+#
+# Schema: tools/planning/gateevidence.P1AManifest. Compiled by
+# tools/planning/gateevidence.Compile (NEXT-003) against
+# definitions/planning/gates/p1a-evidence-results.json, rendering
+# definitions/planning/gates/p1a-evidence-report.{md,json}.
+#
+# This is the selection-bound P1A release manifest: exactly the eight
+# executable intent contracts, the ten bootstrap capabilities, the four
+# commands, the fourteen embedded migrations (plus one recorded numbering
+# gap), the four toolchain qualification decisions and the six todos' proof
+# tests that next-steps.md's "P1A - paid observation, preflight and
+# simulation" section names. Its sibling, deferred P1B manifest is
+# definitions/planning/gates/p1b-template.yaml.
+#
+# CanonicalDigest hashes every field below except `signature`; do not hand-
+# edit any field above `signature` without re-signing (see
+# manifest_test.go's TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete
+# and TestTamperedP1AManifestFailsSignatureVerification for what breaks).
+schema_version: 1
+release: P1A
+todo_id: NEXT-002
+signed_date: "2026-09-03"
+freshness_window_days: 30
+workflow: promotion.preflight-simulate-observe/v1
+
+# The eight P1A executable intent contracts, in next-steps.md's exact order.
+# ExecutionState never leaves NOT_PLANNED in P1A (next-steps.md P1A).
+intents:
+  - order: 1
+    id: hcmnext.people.explain_worker_state/v1
+    disposition: INCLUDED
+  - order: 2
+    id: hcmnext.people.promote_worker/v1
+    modes: [DRAFT, PREFLIGHT, SIMULATE]
+    disposition: INCLUDED
+  - order: 3
+    id: hcmnext.rewards.simulate_compensation/v1
+    disposition: INCLUDED
+  - order: 4
+    id: hcmnext.rewards.evaluate_pay_band_position/v1
+    disposition: INCLUDED
+  - order: 5
+    id: hcmnext.intelligence.explain_transaction/v1
+    disposition: INCLUDED
+  - order: 6
+    id: hcmnext.operations.detect_drift/v1
+    disposition: INCLUDED
+  - order: 7
+    id: hcmnext.operations.create_repair_plan/v1
+    modes: [RECOMMENDATION_ONLY]
+    disposition: INCLUDED
+  - order: 8
+    id: hcmnext.operations.simulate_repair/v1
+    disposition: INCLUDED
+
+# The hard zero-effect ceiling P1A may never cross (next-steps.md P1A,
+# verbatim). NEXT-005's evidence (test/bootstrap) proves this ceiling holds
+# for the Promotion path under retry and crash.
+effect_ceiling:
+  - "zero worker, employment, assignment, organization, position, compensation or budget mutations"
+  - "zero reservations, WorkItems and timers"
+  - "zero committed external effects, provider writes and MessageIntents"
+
+# The ten bootstrap capability-registry entries (internal/capability/bootstrap.go
+# bootstrapDefinitions), copied field-for-field from
+# tools/gen/schemaflux/testdata/capability_manifest.yaml, which TOOL-004's own
+# test cross-checks against that live table on every run. Every one is
+# READ_ONLY; P1A grants no other effect class (enforced by
+# P1AManifest.Validate).
+capabilities:
+  - id: hcmnext.people.explain_worker_state
+    version: 1
+    owner_domain: people
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.people.explain_worker_state/v1"
+  - id: hcmnext.people.promote_worker
+    version: 1
+    owner_domain: people
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.people.promote_worker/v1"
+  - id: hcmnext.rewards.simulate_compensation
+    version: 1
+    owner_domain: rewards
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.rewards.simulate_compensation/v1"
+  - id: hcmnext.rewards.evaluate_pay_band_position
+    version: 1
+    owner_domain: rewards
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.rewards.evaluate_pay_band_position/v1"
+  - id: hcmnext.intelligence.explain_transaction
+    version: 1
+    owner_domain: intelligence
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.intelligence.explain_transaction/v1"
+  - id: hcmnext.operations.detect_drift
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.operations.detect_drift/v1"
+  - id: hcmnext.operations.create_repair_plan
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.operations.create_repair_plan/v1"
+  - id: hcmnext.operations.simulate_repair
+    version: 1
+    owner_domain: operations
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.operations.simulate_repair/v1"
+  - id: hcmnext.registry.resolve_capability
+    version: 1
+    owner_domain: registry
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.registry.resolve_capability/v1"
+  - id: hcmnext.registry.explain_capability
+    version: 1
+    owner_domain: registry
+    effect_class: READ_ONLY
+    test_ref: "conformance:hcmnext.registry.explain_capability/v1"
+
+# The four P1A composition-root binaries (NEXT-004).
+commands:
+  - name: hcmnext
+    package: cmd/hcmnext
+    purpose: "Composition root: prints build identity, or `serve` runs the P1A cell (gRPC + connect-go HTTP edge) over internal/intent/app.NewCell."
+  - name: worker
+    package: cmd/worker
+    purpose: "Composition root running the transactional outbox consumer (internal/data/outbox) sweep loop."
+  - name: projector
+    package: cmd/projector
+    purpose: "Composition root running the projection reconciler (internal/data/projection) loop."
+  - name: migrate
+    package: cmd/migrate
+    purpose: "Composition root applying the embedded Goose migration tree (migrations/) with DB-006 journaling."
+
+# The fourteen embedded Goose migrations (migrations/*.sql), named and
+# checksummed exactly as migrations.Files() computes them - cross-checked
+# live by manifest_test.go's TestP1AManifestMigrationChecksumsMatchEmbeddedMigrationsFS
+# so a checksum here can never silently drift from the real file bytes.
+#
+# NEXT-002 finding: version 00009 does not exist under migrations/ and no
+# todo, commit message or migrations/migrations.go comment records why it
+# was skipped. This gap is not fabricated by this manifest - see the
+# `gaps` entry below - and is reported to the todo owner rather than
+# silently renumbered.
+migrations:
+  dialect: postgres
+  files:
+    - version: 1
+      name: 00001_platform_control.sql
+      checksum: "sha256:ca24305466e56b4dce280baac7c3b46efdf233023282f3349ba4768692267ba6"
+    - version: 2
+      name: 00002_tenant_primitives.sql
+      checksum: "sha256:16e80683106df22e233cb1a3299bd8ab4728f12cf608f3babfa60784a09b8fb9"
+    - version: 3
+      name: 00003_definition_registry.sql
+      checksum: "sha256:857cead55df693bbef8977b6330aa76ae335a522c61e8524d077decb7a853fe2"
+    - version: 4
+      name: 00004_intent_and_proposal.sql
+      checksum: "sha256:1f927fc2d1361f7ad168ab3f7093c00844db9cd52120133fb2dc69acbeb57f97"
+    - version: 5
+      name: 00005_ledger.sql
+      checksum: "sha256:e89b9f57f67d257d6066dfec847813305c4d8fdfd55d489cf187f8085806e2fc"
+    - version: 6
+      name: 00006_projection_and_outbox.sql
+      checksum: "sha256:086673e57d458bd860e23320d3a2ebf051e67ac7dea38b44229feab674d80007"
+    - version: 7
+      name: 00007_connectivity.sql
+      checksum: "sha256:1ddf9a01a9cc9d83e2470c42424dc82d10b17c29fea418af06a814685e7f91b2"
+    - version: 8
+      name: 00008_tenant_isolation.sql
+      checksum: "sha256:e701d31afe1186e1e2f11bedeeff1c0513ca2731f0a97144895caee5596eecc0"
+    - version: 10
+      name: 00010_artifacts.sql
+      checksum: "sha256:4fd9fc9efb38906863c75a040f55182a9f84e4826390b92a1a88e3f1e02055ad"
+    - version: 11
+      name: 00011_people_aggregates.sql
+      checksum: "sha256:b5297fb92c26a637f776a25acab8453c001ff8735dd9ecedce9faff63742d4f3"
+    - version: 12
+      name: 00012_organization_aggregates.sql
+      checksum: "sha256:3e1003d0c80fabda838ae709a8cc744eb170e242958cbde2580373ba8fa17b05"
+    - version: 13
+      name: 00013_compensation_aggregates.sql
+      checksum: "sha256:a244c4a34c4983d956624d0d01f6ed3dae0eb8d8878a6b185bf18c6f2b422ed9"
+    - version: 14
+      name: 00014_ledger_hash_chain.sql
+      checksum: "sha256:f8dab651139f3f7a4ba8ac7dabec319bd3d8954da7bc1b8db0073bd5f8e7cc0c"
+    - version: 15
+      name: 00015_provenance.sql
+      checksum: "sha256:f2c0a632a1b0e0fcad54de2a1bbf6627e9b35805224de4de7d3009152d55b852"
+  gaps:
+    - version: 9
+      reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
+
+# The four toolchain qualification decisions this P1A manifest depends on.
+qualification_decisions:
+  - todo_id: TOOL-004
+    decision: PROTOC_FALLBACK
+    record: definitions/generation/schemaflux-qualification.yaml
+  - todo_id: TOOL-008
+    decision: CONNECT_GO
+    record: internal/transport/edge/doc.go
+  - todo_id: UX-QUAL-001
+    decision: GWC
+    record: definitions/ux/workspace-renderer-decision.yaml
+  - todo_id: WF-RUN-000
+    decision: BUILD
+    record: definitions/runtime/durable-runtime-decision.yaml
+
+# Exactly one Test function, in exactly one package, per todo this manifest
+# depends on. tools/planning/gateevidence.Compile resolves each entry
+# against definitions/planning/gates/p1a-evidence-results.json (or live
+# `go test`, with -live).
+evidence:
+  - todo_id: NEXT-004
+    test: TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles
+    package: ./test/bootstrap
+  - todo_id: NEXT-005
+    test: TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect
+    package: ./test/bootstrap
+  - todo_id: TOOL-004
+    test: TestSchemaFluxOfflineFixture
+    package: ./tools/gen/schemaflux
+  - todo_id: TOOL-008
+    test: TestGRPCBridgeUnaryParity
+    package: ./internal/transport/edge
+  - todo_id: UX-QUAL-001
+    test: TestWorkspaceQualificationFixture
+    package: ./tools/uxqual/qual
+  - todo_id: WF-RUN-000
+    test: TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced
+    package: ./tools/policy/runtimedecision
+
+# No real external-write-adapter package exists anywhere in this repository
+# yet (P1A is read-only by construction; NEXT-005's evidence proves it down
+# to zero effect rows under retry/crash). These prefixes name the P1B write-
+# adapter package tree next-steps.md's P1B section describes
+# (promote_worker/EXECUTE, change_base_pay, reserve/release_compensation_budget,
+# approve/reject_proposal) that must not exist yet and therefore must never
+# be importable by a P1A evidence package. Because they name no package that
+# exists today, a real evidence entry above can only ever be flagged
+# EFFECTFUL if it starts importing one of these once it is built - this is
+# proven against a synthetic fixture, not a real import, in
+# compiler_test.go's TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence.
+forbidden_import_prefixes:
+  - github.com/monstercameron/hcm-next/internal/connectivity/writeadapters
+  - github.com/monstercameron/hcm-next/internal/transport/clients/providerwrite
+  - github.com/monstercameron/hcm-next/internal/domains/promotion/execute
+
+signature:
+  algorithm: ed25519
+  public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
+  key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
+  value: "96ada78cd5fb49e0d32399ea741c019563e86a00e408c8892aa7e101e2a1b35914168237dd897fa30b332fe1ffd44fed6c0ae68dd8f98413b1418345c99e3c0d"

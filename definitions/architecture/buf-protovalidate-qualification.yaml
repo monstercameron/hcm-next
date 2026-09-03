@@ -1,0 +1,94 @@
+# LIB-019 qualification record.
+#
+# Buf is retained as a pinned, offline developer-only schema linter. The
+# combined Buf/Protovalidate runtime proposal is rejected because
+# Protovalidate is not admitted, pinned, or present in the schema annotations.
+# The descriptor-based fallback preserves only local request-shape mechanics.
+version: 1
+todo: LIB-019
+verdict: REJECT
+decision: >-
+  REJECT the combined runtime dependency: Protovalidate is absent from go.mod,
+  go.sum, and the checked-in schemas, so claiming interceptor qualification
+  would be false. ADOPT the already-configured Buf 1.72.0 executable only as a
+  developer tool for offline STANDARD lint and FILE compatibility checks. The
+  owned descriptor fallback returns the same safe field violations at gRPC and
+  grpcbridge seams, rejects CEL and authority-bearing scopes at publication,
+  and requires an explicit local allow-list for google.protobuf.Any.
+components:
+  buf:
+    source: https://github.com/bufbuild/buf
+    license: Apache-2.0
+    verdict: ADOPT
+    version_pin: 1.72.0
+    pin_record: gen/TOOLS.lock
+    config: buf.yaml
+    role: developer_tool
+    offline_commands:
+      - buf lint schema/proto
+      - buf breaking schema/proto --against <reviewed-local-descriptor-or-git-ref>
+  protovalidate:
+    source: https://github.com/bufbuild/protovalidate-go
+    license: Apache-2.0
+    verdict: REJECT
+    role: runtime_candidate
+    reason: >-
+      No module version, generated validation annotations, offline descriptor
+      fixture, or runtime interceptor is admitted in this checkout. A future
+      adoption must pass this owned suite, dependency admission, invalid-CEL
+      publication, dynamic-type, and cross-transport parity checks.
+boundaries:
+  allowed_scopes:
+    - structural
+    - local
+  forbidden_scopes:
+    - business
+    - authorization
+    - legal
+    - eligibility
+    - mutation
+  dynamic_type_policy: explicit_allowlist
+  business_owner: SchemaFlux_and_HCM_owned_capabilities
+  generated_types_cross_boundary: false
+scope:
+  covers:
+    - pinned offline Protobuf schema lint
+    - local required, UTF-8, byte-length, pattern, and Any registration checks
+    - owned stable field violations
+    - identical validation before gRPC and grpcbridge dispatch
+  excludes:
+    - authorization, legal, eligibility, policy, or business decisions
+    - state mutation or external effects
+    - remote Buf modules or plugins
+    - CEL publication or evaluation
+alternative:
+  name: admitted protobuf descriptors plus Go standard library
+  implementation: tools/quality/bufprotovalidatekit
+  packages:
+    - google.golang.org/protobuf/reflect/protoreflect
+    - regexp
+    - unicode/utf8
+  contract: >-
+    Compile a closed local rule set against an already-generated message
+    descriptor, reject semantic authority and CEL before publication, validate
+    without mutation, and project static owned violations without field values.
+replacement_path: >-
+  A future Protovalidate adapter may replace only the rule evaluation mechanics.
+  Generated protobuf request types, owned violation codes, scope gate, Any
+  allow-list, transport parity, and SchemaFlux/HCM semantic ownership remain.
+evidence:
+  - test: TestBufProtovalidateQualificationCannotBecomeBusinessAuthority
+    package: tools/quality/bufprotovalidatekit
+  - test: TestTodo_LIB_019_Property
+    package: tools/quality/bufprotovalidatekit
+  - test: TestTodo_LIB_019_Golden
+    package: tools/quality/bufprotovalidatekit
+  - test: FuzzTodo_LIB_019
+    package: tools/quality/bufprotovalidatekit
+  - test: TestTodo_LIB_019_Security
+    package: tools/quality/bufprotovalidatekit
+  - test: TestTodo_LIB_019_Conformance
+    package: tools/quality/bufprotovalidatekit
+runtime_dependency_graph_unchanged: true
+command: "go test -count=1 ./tools/quality/bufprotovalidatekit"
+recorded: "2026-09-03"

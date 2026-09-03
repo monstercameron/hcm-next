@@ -1,0 +1,44 @@
+# P1B deferred authority-amendment template (NEXT-002's "separately signed
+# P1B template names only the six candidate write/approval contracts").
+#
+# Schema: tools/planning/gateevidence.P1BTemplate. This document names the
+# six P1B candidate contracts and nothing else - it carries no signature
+# over an executable authority, and P1BTemplate.CanActivate() is
+# structurally false until both gate_a_decision is "PROCEED" and
+# authority_digest is non-empty, neither of which this package ever sets.
+# See next-steps.md "P1B - one bounded authority amendment": "P1B exists
+# only after a signed Gate A PROCEED."
+#
+# Disjointness from definitions/planning/gates/p1a-manifest.yaml is checked
+# by TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete:
+# `promote_worker` appears in both documents, but P1A only ever grants its
+# DRAFT/PREFLIGHT/SIMULATE modes while this document's promote_worker entry
+# is EXECUTE-only - the (id, mode) tuples never overlap. The other five
+# contracts here do not appear in the P1A manifest at all.
+schema_version: 1
+release: P1B
+todo_id: NEXT-002
+requires_gate_a_decision: true
+gate_a_decision: ""
+authority_digest: ""
+
+contracts:
+  - order: 1
+    id: promote_worker
+    mode: EXECUTE
+    activation_status: BLOCKED_PENDING_GATE_A
+  - order: 2
+    id: change_base_pay
+    activation_status: BLOCKED_PENDING_GATE_A
+  - order: 3
+    id: reserve_compensation_budget
+    activation_status: BLOCKED_PENDING_GATE_A
+  - order: 4
+    id: release_compensation_budget
+    activation_status: BLOCKED_PENDING_GATE_A
+  - order: 5
+    id: approve_proposal
+    activation_status: BLOCKED_PENDING_GATE_A
+  - order: 6
+    id: reject_proposal
+    activation_status: BLOCKED_PENDING_GATE_A

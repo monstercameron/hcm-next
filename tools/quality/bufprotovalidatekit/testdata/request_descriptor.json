@@ -1,0 +1,25 @@
+{
+  "name": "qualification/v1/request.proto",
+  "package": "qualification.v1",
+  "dependency": ["google/protobuf/any.proto"],
+  "messageType": [
+    {
+      "name": "Attachment",
+      "field": [
+        {"name": "content", "number": 1, "label": "LABEL_OPTIONAL", "type": "TYPE_BYTES"}
+      ]
+    },
+    {
+      "name": "Request",
+      "field": [
+        {"name": "worker_id", "number": 1, "label": "LABEL_OPTIONAL", "type": "TYPE_STRING"},
+        {"name": "note", "number": 2, "label": "LABEL_OPTIONAL", "type": "TYPE_STRING"},
+        {"name": "attachment", "number": 3, "label": "LABEL_OPTIONAL", "type": "TYPE_MESSAGE", "typeName": ".google.protobuf.Any"}
+      ]
+    }
+  ],
+  "options": {
+    "goPackage": "github.com/monstercamer/hcm-next/tools/quality/bufprotovalidatekit/testfixture;testfixture"
+  },
+  "syntax": "proto3"
+}

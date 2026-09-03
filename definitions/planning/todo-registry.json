@@ -28795,7 +28795,8 @@
     "refactor": "idempotency record lifecycle is policy-owned and durable",
     "refs": "[Foundation idempotency](specs/platform-foundation-gap-closure.md), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TX_006` (same key and digest returns the stored result, event, effect and evidence identity without re-running the effect; same key with a different digest returns `IDEMPOTENCY_CONFLICT` and mutates nothing), `TestTodo_TX_006_Golden`, `TestTodo_TX_006_Race` (eight real concurrent connections on one scope and digest: the effect runs exactly once and every successful attempt sees the single winner's identity), `TestTodo_TX_006_Fault` (retention shorter than the caller-declared retry window is refused at `Reserve` with `IDEMPOTENCY_RETENTION_TOO_SHORT` before any row exists), `TestTodo_TX_006_Security` (cross-tenant lookup invisible, unscoped transaction sees nothing, forged cross-tenant reserve refused by RLS), `TestTodo_TX_006_Mutation` in `internal/transaction/idempotency` (`Guard(ctx, tx, store, scope, digest, policy, now, fn)` reserves, runs the effect and completes inside the caller's transaction; `Reserve` is `INSERT ... ON CONFLICT DO NOTHING RETURNING` on the composite primary key; migration `00019_idempotency_record.sql` registered in `definitions/storage/storage-disposition.yaml`; expiry is a caller-owned `RetentionPolicy` applied by an explicit `Expire`, no clock inside); `go test -count=1 ./internal/transaction/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "TX-007",

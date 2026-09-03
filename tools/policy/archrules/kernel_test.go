@@ -165,8 +165,6 @@ type PayrollAmount struct{}
 	root := repopath.RootDir()
 	kernelDirs := []string{
 		filepath.Join(root, "internal", "kernel", "values"),
-		filepath.Join(root, "internal", "kernel", "canonical"),
-		filepath.Join(root, "internal", "kernel", "digest"),
 	}
 	for _, dir := range kernelDirs {
 		names, err := archrules.ExportedTopLevelNames(dir)

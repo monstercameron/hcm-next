@@ -1,0 +1,50 @@
+{
+  "manifest_todo_id": "NEXT-002",
+  "manifest_digest": "625e88ce8a808071b7d309e235e73832a4edcd6caf145e4bbcf596d806470719",
+  "as_of": "2026-09-03",
+  "decision": "GATE_CLEAR",
+  "findings": [
+    {
+      "todo_id": "NEXT-004",
+      "test": "TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles",
+      "package": "./test/bootstrap",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./test/..."
+    },
+    {
+      "todo_id": "NEXT-005",
+      "test": "TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect",
+      "package": "./test/bootstrap",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./test/..."
+    },
+    {
+      "todo_id": "TOOL-004",
+      "test": "TestSchemaFluxOfflineFixture",
+      "package": "./tools/gen/schemaflux",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./tools/gen/schemaflux/..."
+    },
+    {
+      "todo_id": "TOOL-008",
+      "test": "TestGRPCBridgeUnaryParity",
+      "package": "./internal/transport/edge",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./internal/transport/edge/..."
+    },
+    {
+      "todo_id": "UX-QUAL-001",
+      "test": "TestWorkspaceQualificationFixture",
+      "package": "./tools/uxqual/qual",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./tools/uxqual/qual/..."
+    },
+    {
+      "todo_id": "WF-RUN-000",
+      "test": "TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced",
+      "package": "./tools/policy/runtimedecision",
+      "verdict": "OK",
+      "detail": "2026-09-03 PASS on windows/arm64 (Go 1.26.3), go test -count=1 ./tools/policy/runtimedecision/..."
+    }
+  ]
+}

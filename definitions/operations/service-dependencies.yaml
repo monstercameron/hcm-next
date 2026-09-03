@@ -1,0 +1,120 @@
+# OPS-007 logical dependency inventory. Addresses are intentionally absent;
+# endpoint resolution and health belong to the connectivity plane.
+version: 1
+module: github.com/monstercameron/hcm-next
+effective_at: "2026-09-03T00:00:00Z"
+
+dependencies:
+  - consumer: hcmnext
+    dependency: postgres-store
+    owner: data-and-ledger
+    criticality: REQUIRED
+    tenant_scope: tenant-bound
+    cell_scope: cell-local
+    workload_identity: hcmnext
+    network_path: private-postgres
+    protocol: PostgreSQL
+    schema_range: "migrations 00001-00014"
+    timeout: 2s
+    staleness: "not applicable to authoritative request reads"
+    fallback: FAIL_CLOSED
+    slo: "database request p95 <= 200ms"
+    version: "v1"
+    evidence_ref: "runbook://hcmnext/postgres/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - consumer: worker
+    dependency: postgres-store
+    owner: data-and-ledger
+    criticality: REQUIRED
+    tenant_scope: tenant-bound
+    cell_scope: cell-local
+    workload_identity: worker
+    network_path: private-postgres
+    protocol: PostgreSQL
+    schema_range: "migrations 00001-00014"
+    timeout: 2s
+    staleness: "leased work must not exceed lease deadline"
+    fallback: QUEUE
+    slo: "claim/append p95 <= 500ms"
+    version: "v1"
+    evidence_ref: "runbook://worker/postgres/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - consumer: worker
+    dependency: connector-observation
+    owner: connectivity
+    criticality: OPTIONAL
+    tenant_scope: tenant-bound
+    cell_scope: cell-local
+    workload_identity: worker
+    network_path: private-observation-queue
+    protocol: PostgreSQL
+    schema_range: "observation/v1"
+    timeout: 5s
+    staleness: 15m
+    fallback: DEGRADE
+    slo: "observation intake p95 <= 15m"
+    version: "v1"
+    evidence_ref: "runbook://worker/connector-observation/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - consumer: projector
+    dependency: postgres-store
+    owner: data-and-ledger
+    criticality: REQUIRED
+    tenant_scope: tenant-bound
+    cell_scope: cell-local
+    workload_identity: projector
+    network_path: private-postgres
+    protocol: PostgreSQL
+    schema_range: "migrations 00001-00014"
+    timeout: 2s
+    staleness: 5m
+    fallback: USE_STALE_UNTIL
+    slo: "outbox checkpoint p95 <= 1m"
+    version: "v1"
+    evidence_ref: "runbook://projector/postgres/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - consumer: migrate
+    dependency: postgres-store
+    owner: data-and-ledger
+    criticality: REQUIRED
+    tenant_scope: global
+    cell_scope: cell-local
+    workload_identity: migrate
+    network_path: private-postgres
+    protocol: PostgreSQL
+    schema_range: "migrations 00001-00014"
+    timeout: 60s
+    staleness: "not applicable to migration authority"
+    fallback: FAIL_CLOSED
+    slo: "migration lock and transaction remain authoritative"
+    version: "v1"
+    evidence_ref: "runbook://migrate/postgres/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - consumer: connector-observation
+    dependency: external-provider
+    owner: connectivity
+    criticality: REQUIRED
+    tenant_scope: tenant-bound
+    cell_scope: cell-local
+    workload_identity: connector-observation
+    network_path: governed-egress
+    protocol: HTTPS
+    schema_range: "provider-adapter/v1"
+    timeout: 10s
+    staleness: 15m
+    fallback: QUEUE
+    slo: "provider observation p95 <= 15m"
+    version: "v1"
+    evidence_ref: "runbook://connector/provider/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"

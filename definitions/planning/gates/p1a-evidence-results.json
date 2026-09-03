@@ -1,0 +1,62 @@
+[
+  {
+    "test": "TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles",
+    "package": "./test/bootstrap",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./test/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  },
+  {
+    "test": "TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect",
+    "package": "./test/bootstrap",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./test/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  },
+  {
+    "test": "TestSchemaFluxOfflineFixture",
+    "package": "./tools/gen/schemaflux",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./tools/gen/schemaflux/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  },
+  {
+    "test": "TestGRPCBridgeUnaryParity",
+    "package": "./internal/transport/edge",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./internal/transport/edge/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  },
+  {
+    "test": "TestWorkspaceQualificationFixture",
+    "package": "./tools/uxqual/qual",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./tools/uxqual/qual/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  },
+  {
+    "test": "TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced",
+    "package": "./tools/policy/runtimedecision",
+    "result": "PASS",
+    "timestamp": "2026-09-03",
+    "command": "go test -count=1 ./tools/policy/runtimedecision/...",
+    "environment": "windows/arm64",
+    "toolchain_version": "Go 1.26.3",
+    "commit_or_branch": "branch plan-revision-2026-09-02"
+  }
+]

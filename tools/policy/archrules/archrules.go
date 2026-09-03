@@ -109,6 +109,7 @@ type Config struct {
 	TransactionConflict   TransactionConflict   `yaml:"transaction_conflict"`
 	LedgerIndependent     LedgerIndependent     `yaml:"ledger_independent"`
 	PortOwnership         PortOwnership         `yaml:"port_ownership"`
+	Ceremony              CeremonyRules         `yaml:"ceremony"`
 }
 
 // Load reads and parses the manifest at path.

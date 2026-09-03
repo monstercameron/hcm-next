@@ -1,0 +1,17 @@
+# TEST FIXTURE ONLY. This is a repo-local Ed25519 development keypair
+# generated for NEXT-002's signed P1A manifest test evidence. It is checked
+# in deliberately (an Ed25519 private key has no secret-derivation step to
+# strip) so that manifest_test.go and any future evidence-compiler test can
+# re-sign and re-verify the fixture manifest deterministically without a
+# real signing ceremony.
+#
+# THIS KEY MUST NEVER BE USED TO SIGN A PRODUCTION ARTIFACT, GATE A/B/C
+# AUTHORITY DECISION, OR ANYTHING BESIDES THE FIXTURES UNDER THIS PACKAGE.
+# It carries no operational authority: tools/planning/authoritygate (GOV-010)
+# is the actual signed Gate A/B/C decision record, and this key signs
+# nothing there. It only proves the P1A manifest's own bytes have not been
+# tampered with since NEXT-002 published them.
+schema_version: 1
+algorithm: ed25519
+public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
+private_key: b0707e18037c8c418ffcc759a8935667bfe16413f45e243bca40744b40d2bbea93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b

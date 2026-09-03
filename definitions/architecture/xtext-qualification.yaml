@@ -1,0 +1,60 @@
+# LIB-020 qualification record for golang.org/x/text.
+#
+# The dependency is admitted only as replaceable Unicode/locale mechanics.
+# HCM-owned field profiles retain semantic authority, preserve original text
+# where required, and treat confusable signals as review evidence rather than
+# identity decisions.
+version: 1
+todo: LIB-020
+module: golang.org/x/text
+version_pin: v0.41.0
+verdict: QUALIFIED
+role: infrastructure_mechanic
+allowed_import_roots:
+  - internal/engines/wire/canonical
+  - internal/kernel/values
+  - internal/intent
+data_versions:
+  unicode_normalization: "17.0.0"
+  cldr: "32"
+  collation: "6.2.0 / CLDR 23"
+operation_policy:
+  normalization: NFC
+  original_text: preserved_by_owned_field_profile
+  search_form: owned_and_explicit
+  confusable_detection: review_signal_only
+  identity_merge: forbidden
+locale_policy:
+  supported_tags:
+    - en-US
+    - de-DE
+    - und
+  ambient_locale: forbidden
+decision: >-
+  ADOPT: the pinned golang.org/x/text v0.41.0 data and operations are
+  qualified behind the current narrow production roots. Existing owners use
+  x/text only for NFC canonicalization/rejection and expose no x/text types;
+  collation, case folding, locale formatting, and confusable review remain
+  owned policies. A Unicode/CLDR data change requires impact and reindex
+  evidence before changing the pin.
+removal_path: >-
+  Keep the field profiles, canonical byte contract, locale tag allow-list,
+  confusable review signal, and regression vectors unchanged; replace norm,
+  collate, cases, or message at the adapter seam and rerun this suite. No
+  domain or identity API may import x/text directly.
+evidence:
+  - test: TestXTextQualificationPinsDataAndPreservesOwnedFieldSemantics
+    package: tools/quality/xtextkit
+  - test: TestTodo_LIB_020_Property
+    package: tools/quality/xtextkit
+  - test: TestTodo_LIB_020_Golden
+    package: tools/quality/xtextkit
+  - test: FuzzTodo_LIB_020
+    package: tools/quality/xtextkit
+  - test: TestTodo_LIB_020_Security
+    package: tools/quality/xtextkit
+  - test: TestTodo_LIB_020_Conformance
+    package: tools/quality/xtextkit
+runtime_dependency_graph_unchanged: true
+command: "go test -count=1 ./tools/quality/xtextkit"
+recorded: "2026-09-03"

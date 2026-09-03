@@ -1,0 +1,28 @@
+# Authority-gate decision records (GOV-010).
+#
+# Consumed by tools/planning/authoritygate. Each entry under `decisions` is
+# one signed, proposal-bound, immutable verdict for exactly one Phase 1
+# authority gate (execution-plan.md "Delivery Gates, Staffing Envelope, and
+# Critical Path"). Superseding a decision means appending a new entry with a
+# later `date`, never editing an existing one in place.
+#
+# Schema (tools/planning/authoritygate.Record):
+#   gate:          GATE_A | GATE_B | GATE_C
+#   decision:      PROCEED | REMEDIATE | NARROW | RESELECT_WEDGE | STOP
+#   proposal_ref:  the exact signed manifest/proposal this decision is bound to
+#   evidence_refs: one non-empty, repo-relative path list per required class:
+#                  security, privacy, correctness, reconciliation, recovery,
+#                  governance, continuity
+#   signers:       one or more {name, role} entries
+#   date:          YYYY-MM-DD the decision was signed
+#   review_by:     YYYY-MM-DD the decision must be revisited by
+#
+# No gate has actually been signed off yet: next-steps.md's Gate A
+# milestone ("M4 - Gate A decision") states "P1B exists only after a signed
+# Gate A `PROCEED`", and that compiler/signature step has not run. This list
+# is intentionally empty rather than fabricating a decision nobody has made.
+# tools/planning/authoritygate.CheckUndecidedGates will therefore correctly
+# report every gate with completed GATE_* todos as undecided; the resulting
+# gaps are recorded, with owner and expiry, in known-defects.yaml under
+# known_authority_gate_gaps until a real decision is signed.
+decisions: []

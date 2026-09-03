@@ -114,6 +114,100 @@ candidates:
       constitution names if GWC ever regresses; it is exercised by the same
       fixture on every run, not revisited only when GWC fails.
 
+browser_pass:
+  date: "2026-09-03"
+  playwright_version: "1.60.0"
+  chromium_version: "148.0.7778.96 (Chrome for Testing, playwright chromium build v1223)"
+  command: >-
+    go run ./tools/uxqual/cmd/genfixtures &&
+    npx playwright test -c tools/uxqual/browser/playwright.config.mjs
+  spec: tools/uxqual/browser/workspace.a11y.spec.mjs
+  fixtures: tools/uxqual/testdata/rendered/{ssr,gwc}.html
+  result: "10/10 passed"
+  notes: >-
+    Chromium for the pinned @playwright/test build was not present under
+    %LOCALAPPDATA%\ms-playwright (only revisions 1200/1217/1228/1234 were
+    cached; the pinned build is 1223). `npx playwright install chromium`
+    against that shared cache blocked on %LOCALAPPDATA%\ms-playwright\__dirlock,
+    held for 6+ hours by another concurrent session's install
+    (node ... @playwright/test/cli.js install chromium, PID 31880, started
+    2026-09-02 22:36) that was still present in `tasklist`/Get-Process
+    throughout, so per this lane's constraint the lock was left untouched
+    and not removed. Installed Chromium instead to an isolated
+    PLAYWRIGHT_BROWSERS_PATH (outside %LOCALAPPDATA%\ms-playwright, so no
+    contention with the other session's cache or lock) and ran both
+    `playwright install chromium` and `playwright test` with that env var
+    set. A first full run (default fullyParallel, 9 workers) reported 9
+    passed / 1 failed: `ssr renderer > every visible field has an
+    accessible name from its label` failed on
+    "Test timeout of 30000ms exceeded while setting up 'page'" -- a
+    headless-shell launch timeout, not a failed assertion (the test never
+    reached its expect() calls) -- consistent with this being a shared
+    machine already running 30+ unrelated chrome.exe/node.exe processes
+    from other sessions. Re-ran with `retries: 1` and `workers: 1` added to
+    tools/uxqual/browser/playwright.config.mjs (a spec-side resilience fix
+    for environment contention, not a weakened assertion) and all 10 tests
+    passed on the first attempt with no retry consumed, confirming the
+    single failure was launch-timing flake, not a real accessibility
+    defect.
+  criteria:
+    ssr:
+      - name: "Never renders a masked field"
+        pass: true
+        detail: >-
+          content() for ssr.html contains none of nationalId, 555-11-2222,
+          force_execute, "Force execute".
+      - name: "Screen-reader semantics -- landmarks + live region"
+        pass: true
+        detail: >-
+          Chromium's computed accessibility tree exposes banner, main, and
+          navigation roles, plus one visible role="status" live region.
+      - name: "Screen-reader semantics -- label associations"
+        pass: true
+        detail: >-
+          #proposedJobTitle, #proposedCompensation, #effectiveDate, and
+          #businessReason each resolve a non-empty label[for] text via a
+          real DOM query.
+      - name: "Keyboard-only completion"
+        pass: true
+        detail: >-
+          Real Tab-key traversal (page.keyboard.press) reaches all 4
+          fixture fields in contract order (proposedJobTitle,
+          proposedCompensation, effectiveDate, businessReason) with no
+          trap, within 40 Tab presses.
+      - name: "Reflow at 320px"
+        pass: true
+        detail: >-
+          At a real 320x800 viewport, document.scrollWidth <=
+          document.clientWidth + 1 (no horizontal overflow).
+    gwc:
+      - name: "Never renders a masked field"
+        pass: true
+        detail: >-
+          content() for gwc.html contains none of nationalId, 555-11-2222,
+          force_execute, "Force execute".
+      - name: "Screen-reader semantics -- landmarks + live region"
+        pass: true
+        detail: >-
+          Chromium's computed accessibility tree exposes banner, main, and
+          navigation roles, plus one visible role="status" live region.
+      - name: "Screen-reader semantics -- label associations"
+        pass: true
+        detail: >-
+          #proposedJobTitle, #proposedCompensation, #effectiveDate, and
+          #businessReason each resolve a non-empty label[for] text via a
+          real DOM query.
+      - name: "Keyboard-only completion"
+        pass: true
+        detail: >-
+          Real Tab-key traversal reaches all 4 fixture fields in contract
+          order with no trap, within 40 Tab presses.
+      - name: "Reflow at 320px"
+        pass: true
+        detail: >-
+          At a real 320x800 viewport, document.scrollWidth <=
+          document.clientWidth + 1 (no horizontal overflow).
+
 pending:
   - item: >-
       Manual screen-reader pass with NVDA (Windows) and VoiceOver (macOS)
@@ -138,19 +232,19 @@ pending:
       Chromium installed for the pinned @playwright/test version (this
       environment's cached Chromium build did not match; the run command is
       in tools/uxqual/browser/playwright.config.mjs's header comment).
-    status: PENDING
+    status: RESOLVED
     owner: TBD
+    resolved_date: "2026-09-03"
     reason: >-
-      `npx playwright test --config=tools/uxqual/browser/playwright.config.mjs`
-      failed with "Executable doesn't exist" for the pinned Chromium build
-      in this sandbox. `npx playwright install chromium` was run to fix
-      that, but failed on an active lockfile at
-      %LOCALAPPDATA%\ms-playwright\__dirlock, meaning another concurrent
-      session in this shared environment was installing browsers at the
-      same time; this lane does not remove another session's in-flight
-      lock. The spec is written and self-contained (loads static files via
-      file://, no webServer) -- re-run once Chromium is installed for the
-      pinned @playwright/test version.
+      Done -- see the browser_pass section above for the full method,
+      versions, and per-criterion PASS/FAIL for both renderers (10/10
+      passed, Playwright 1.60.0 / Chromium 148.0.7778.96). The
+      %LOCALAPPDATA%\ms-playwright\__dirlock from the previous attempt was
+      still held by a live concurrent session's install process 6+ hours
+      later, so it was left untouched per this lane's constraint; Chromium
+      was installed to an isolated PLAYWRIGHT_BROWSERS_PATH instead,
+      avoiding that lock entirely without touching another session's
+      state.
   - item: >-
       Re-run this fixture if go.mod/go.sum ever drop the GWC v5.0.1
       transitive dependency entries this decision's Buildable criterion

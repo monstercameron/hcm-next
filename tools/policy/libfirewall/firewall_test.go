@@ -190,7 +190,7 @@ func TestTodo_LIB_002_Golden(t *testing.T) {
 		ImportedPath: "github.com/jackc/pgx/v5",
 		Module:       "github.com/jackc/pgx/v5",
 		Role:         depmanifest.RoleInfrastructureMechanic,
-		AllowedRoots: []string{"internal/data", "internal/ledger", "migrations"},
+		AllowedRoots: []string{"cmd/hcmnext", "cmd/migrate", "internal/data", "internal/ledger", "internal/platform/bootstrap", "migrations"},
 	}
 	if v.Importer != want.Importer || v.ImportedPath != want.ImportedPath || v.Module != want.Module || v.Role != want.Role {
 		t.Errorf("violation = %+v, want %+v", *v, want)
@@ -204,6 +204,31 @@ func TestTodo_LIB_002_Golden(t *testing.T) {
 		if v.AllowedRoots[i] != want.AllowedRoots[i] {
 			t.Errorf("violation.AllowedRoots = %v, want %v", v.AllowedRoots, want.AllowedRoots)
 		}
+	}
+}
+
+// TestTodo_LIB_002_Security rejects a root-name prefix bypass. An importer
+// named internal/data-shadow is not an internal/data subpackage and therefore
+// must never inherit data's permission to use the PostgreSQL driver. This
+// keeps a package-name choice from becoming a path-based policy escalation.
+func TestTodo_LIB_002_Security(t *testing.T) {
+	m := loadRoleManifest(t)
+	for _, tc := range []struct {
+		name      string
+		importer  string
+		wantClean bool
+	}{
+		{"exact approved root", "internal/data", true},
+		{"approved subpackage", "internal/data/pgxadapter", true},
+		{"prefix lookalike is forbidden", "internal/data-shadow", false},
+		{"nested prefix lookalike is forbidden", "internal/data-shadow/store", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := libfirewall.CheckImport(m, m.Module+"/"+tc.importer, "github.com/jackc/pgx/v5")
+			if (v == nil) != tc.wantClean {
+				t.Fatalf("CheckImport(%q, pgx) violation=%v, want clean=%v", tc.importer, v != nil, tc.wantClean)
+			}
+		})
 	}
 }
 

@@ -1,0 +1,84 @@
+# OPS-010 operating-evidence currency register. This is release evidence, not
+# runtime configuration: tools/planning/operations evaluates it against an
+# explicit clock and never executes work from it.
+version: 1
+module: github.com/monstercameron/hcm-next
+effective_at: "2026-09-03T00:00:00Z"
+
+evidence:
+  - id: service-ownership-continuity
+    kind: OWNERSHIP
+    gate: OPERATING_READINESS
+    scope: P1A production execution roles
+    owner: platform-foundation
+    version: v1
+    evidence_ref: "definitions/operations/service-ownership.yaml"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: p1a-runbook-readiness
+    kind: RUNBOOK
+    gate: OPERATING_READINESS
+    scope: hcmnext, worker, projector, migrate
+    owner: platform-foundation
+    version: v1
+    evidence_ref: "runbook://hcmnext/p1a-readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: service-dependency-continuity
+    kind: DEPENDENCY
+    gate: OPERATING_READINESS
+    scope: P1A logical service dependencies
+    owner: data-and-ledger
+    version: v1
+    evidence_ref: "definitions/operations/service-dependencies.yaml"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: postgres-restore-exercise
+    kind: RESTORE
+    gate: OPERATING_READINESS
+    scope: P1A PostgreSQL migration and restore path
+    owner: data-and-ledger
+    version: v1
+    evidence_ref: "evidence://recovery/postgres-restore/p1a-v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: on-call-handoff-drill
+    kind: DRILL
+    gate: OPERATING_READINESS
+    scope: P1A on-call acknowledgement, escalation, and handoff
+    owner: platform-foundation
+    version: v1
+    evidence_ref: "evidence://operations/on-call-handoff/p1a-v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: provider-continuity-exercise
+    kind: VENDOR
+    gate: OPERATING_READINESS
+    scope: external-provider observation continuity
+    owner: connectivity
+    version: v1
+    evidence_ref: "evidence://vendor/external-provider-continuity/p1a-v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: control-evidence-freshness
+    kind: CONTROL
+    gate: OPERATING_READINESS
+    scope: P1A release and operating-control evidence
+    owner: platform-foundation
+    version: v1
+    evidence_ref: "evidence://controls/p1a-operating-currency/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    due_at: "2026-12-01T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"

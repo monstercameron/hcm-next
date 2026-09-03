@@ -1,0 +1,20 @@
+[
+  {
+    "code": "REQUIRED",
+    "field_path": "worker_id",
+    "description": "required field is absent",
+    "rule_ref": "request.worker_id.required"
+  },
+  {
+    "code": "MAX_BYTES",
+    "field_path": "note",
+    "description": "field exceeds 8 bytes",
+    "rule_ref": "request.note.max_bytes"
+  },
+  {
+    "code": "ANY_TYPE_NOT_ALLOWED",
+    "field_path": "attachment",
+    "description": "dynamic message type is not registered",
+    "rule_ref": "request.attachment.registered"
+  }
+]

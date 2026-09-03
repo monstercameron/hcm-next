@@ -1,0 +1,66 @@
+# LIB-016 qualification record.
+#
+# Rapid is evaluated as a test-only candidate. It is deliberately not admitted
+# to this repository: the standard library alternative below provides the
+# required deterministic generation, shrinking, and regression-seed contract
+# without adding a module requirement or changing any release/runtime graph.
+version: 1
+todo: LIB-016
+tool: pgregory.net/rapid
+candidate:
+  source: https://github.com/flyingmutant/rapid
+  license: MPL-2.0
+  latest_reviewed_release: v1.3.0
+  maintenance_evidence: >-
+    Upstream documents the package as stable and publishes tagged releases;
+    this record is a qualification review, not an admission or a version pin.
+  replacement_path: >-
+    Keep generators, owned state-machine operations, invariants, and persisted
+    seeds behind the test package; use testing, math/rand, and a deterministic
+    local shrinker if a property-testing backend is reconsidered.
+role: test-only
+verdict: REJECT
+decision: >-
+  REJECT: Rapid is not pinned or admitted because this repository does not
+  need a third-party test dependency to meet LIB-016. The standard-library
+  qualification fixture reproduces deterministic generation, stable shrinking
+  for balance-underflow, illegal-transition, and temporal-overlap failures,
+  and regression seeds. Reconsideration must preserve test-only scope and add
+  an explicit reviewed version and dependency admission record.
+scope:
+  covers:
+    - deterministic pseudo-random owned state-machine operation generation
+    - reproducible shrinking to a stable minimal failure sequence
+    - persisted regression seeds for all three seeded defects
+    - test-only property and fuzz execution
+  excludes:
+    - production/runtime imports of Rapid
+    - release dependency graph changes
+    - claims that generated tests replace integration, race, or fault testing
+alternative:
+  name: Go standard library
+  packages:
+    - testing
+    - math/rand
+  implementation: tools/quality/rapidkit
+  contract: >-
+    Fixed seeds generate owned operations; a deterministic delete-and-simplify
+    shrinker persists the minimal sequence and reruns it exactly.
+regression_seeds:
+  - balance_underflow
+  - illegal_workflow_transition
+  - temporal_overlap
+evidence:
+  - test: TestRapidQualificationShrinksOwnedStateMachineFailure
+    package: tools/quality/rapidkit
+  - test: TestTodo_LIB_016_Property
+    package: tools/quality/rapidkit
+  - test: TestTodo_LIB_016_Golden
+    package: tools/quality/rapidkit
+  - test: FuzzTodo_LIB_016
+    package: tools/quality/rapidkit
+  - test: TestTodo_LIB_016_Conformance
+    package: tools/quality/rapidkit
+runtime_dependency_graph_unchanged: true
+command: "go test -count=1 ./tools/quality/rapidkit"
+recorded: "2026-09-03"

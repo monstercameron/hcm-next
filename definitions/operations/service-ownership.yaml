@@ -1,0 +1,111 @@
+# OPS-007: accountable ownership for every production execution role in the
+# P1A process manifest and its operational dependencies. This is evidence,
+# not runtime configuration; every row is short-lived and must be reverified.
+version: 1
+module: github.com/monstercameron/hcm-next
+effective_at: "2026-09-03T00:00:00Z"
+
+ownership:
+  - id: hcmnext
+    kind: SERVICE
+    version: "v1"
+    primary_owner: experience-and-transport
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "99.9% monthly availability; request p95 <= 500ms"
+    escalation: "page experience-and-transport; backup platform-foundation"
+    fallback: FAIL_CLOSED
+    evidence_ref: "runbook://hcmnext/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: worker
+    kind: SERVICE
+    version: "v1"
+    primary_owner: workflow-runtime
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "99.9% monthly availability; leased work p95 <= 1m"
+    escalation: "page workflow-runtime; backup platform-foundation"
+    fallback: QUEUE
+    evidence_ref: "runbook://worker/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: projector
+    kind: SERVICE
+    version: "v1"
+    primary_owner: data-and-ledger
+    backup_owner: platform-foundation
+    tier: TIER_1
+    slo: "projection freshness p95 <= 5m; no acknowledged event loss"
+    escalation: "page data-and-ledger; backup platform-foundation"
+    fallback: USE_STALE_UNTIL
+    evidence_ref: "runbook://projector/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: migrate
+    kind: SERVICE
+    version: "v1"
+    primary_owner: data-and-ledger
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "migration completion is all-or-nothing under the release window"
+    escalation: "page data-and-ledger; backup platform-foundation"
+    fallback: FAIL_CLOSED
+    evidence_ref: "runbook://migrate/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: workflow-runtime
+    kind: WORKFLOW
+    version: "v1"
+    primary_owner: workflow-runtime
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "workflow node durable completion p95 <= 1m"
+    escalation: "page workflow-runtime; backup platform-foundation"
+    fallback: QUEUE
+    evidence_ref: "runbook://workflow-runtime/continuity/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: connector-observation
+    kind: CONNECTOR
+    version: "v1"
+    primary_owner: connectivity
+    backup_owner: platform-foundation
+    tier: TIER_1
+    slo: "connector observations processed within 15m"
+    escalation: "page connectivity; backup platform-foundation"
+    fallback: DEGRADE
+    evidence_ref: "runbook://connector-observation/continuity/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: postgres-store
+    kind: STORE
+    version: "v1"
+    primary_owner: data-and-ledger
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "99.95% monthly availability; committed data durable"
+    escalation: "page data-and-ledger; backup platform-foundation"
+    fallback: FAIL_CLOSED
+    evidence_ref: "runbook://postgres-store/recovery/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
+  - id: external-provider
+    kind: PROVIDER
+    version: "v1"
+    primary_owner: connectivity
+    backup_owner: platform-foundation
+    tier: TIER_1
+    slo: "provider acceptance is observed within 15m or remains ambiguous"
+    escalation: "page connectivity; backup platform-foundation"
+    fallback: QUEUE
+    evidence_ref: "runbook://external-provider/continuity/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"

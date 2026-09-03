@@ -1,0 +1,73 @@
+# LIB-017 qualification record.
+#
+# sqlc is deliberately rejected for the current release. The repository has
+# no pinned offline sqlc binary/configuration pair, while the authored-SQL
+# adapter fixture below proves the required typed boundary without adding a
+# generator or changing the production/runtime module graph.
+version: 1
+todo: LIB-017
+tool: github.com/sqlc-dev/sqlc/cmd/sqlc
+candidate:
+  source: https://github.com/sqlc-dev/sqlc
+  license: MIT
+  latest_reviewed_release: v1.31.1
+  maintenance_evidence: >-
+    Upstream publishes tagged releases and describes sqlc as a SQL-to-code
+    generator; this is a qualification review, not an admission or a binary
+    pin.
+  replacement_path: >-
+    Keep reviewed SQL, schema contracts, typed owner ports, and explicit
+    transaction composition authored; a future sqlc adapter may generate only
+    concrete mechanics beneath those seams and must be removable without
+    changing repository semantics.
+role: substrate
+verdict: REJECT
+decision: >-
+  REJECT: sqlc is not admitted because this repository currently lacks a
+  pinned, offline generator/configuration fixture whose bytes and strict
+  schema-drift behavior can be verified in CI. The authored-SQL alternative
+  passes typed result, temporal predicate, lock, and explicit transaction
+  boundary checks, and rejects schema/query mutations. Reconsideration requires
+  a pinned offline binary, deterministic generation evidence, and dependency
+  admission review.
+scope:
+  covers:
+    - reviewed authored PostgreSQL SQL and strict schema/query contracts
+    - concrete typed adapter results below owned repository and transaction ports
+    - explicit begin/commit/rollback composition
+    - rejection of pgx/sqlc types above the concrete adapter boundary
+  excludes:
+    - sqlc-generated production code
+    - hidden transaction, lock, or temporal semantics
+    - accepting schema drift or generator output without a pinned tool
+alternative:
+  name: authored SQL with standard-library type boundary
+  implementation: tools/quality/sqlckit
+  packages:
+    - context
+    - crypto/sha256
+    - go/parser
+    - testing
+  contract: >-
+    SQL and schema remain human-reviewed; typed concrete rows are mapped at the
+    adapter edge, while owner ports expose no pgx/sqlc types and transaction
+    composition remains explicit.
+removal_path: >-
+  If sqlc is later admitted, replace only the concrete adapter implementation
+  and retain the authored query/schema contract tests; deleting the generated
+  directory must leave owner ports, transaction tests, and domain semantics
+  unchanged.
+evidence:
+  - test: TestSQLCQualificationPreservesOwnedRepositoryAndTransactionBoundaries
+    package: tools/quality/sqlckit
+  - test: TestTodo_LIB_017_Golden
+    package: tools/quality/sqlckit
+  - test: TestTodo_LIB_017_Integration
+    package: tools/quality/sqlckit
+  - test: TestTodo_LIB_017_Mutation
+    package: tools/quality/sqlckit
+  - test: TestTodo_LIB_017_Conformance
+    package: tools/quality/sqlckit
+runtime_dependency_graph_unchanged: true
+command: "go test -count=1 ./tools/quality/sqlckit"
+recorded: "2026-09-03"

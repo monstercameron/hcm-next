@@ -1,0 +1,13 @@
+{
+  "message": "qualification.v1.Request",
+  "rules": [
+    {"rule_ref": "request.worker_id.required", "field_path": "worker_id", "kind": "required", "scope": "structural"},
+    {"rule_ref": "request.worker_id.utf8", "field_path": "worker_id", "kind": "utf8", "scope": "structural"},
+    {"rule_ref": "request.note.max_bytes", "field_path": "note", "kind": "max_bytes", "scope": "local", "limit": 8},
+    {"rule_ref": "request.note.utf8", "field_path": "note", "kind": "utf8", "scope": "structural"},
+    {"rule_ref": "request.attachment.registered", "field_path": "attachment", "kind": "any_registered", "scope": "structural"}
+  ],
+  "allowed_any_type_urls": [
+    "type.googleapis.com/qualification.v1.Attachment"
+  ]
+}

@@ -14,6 +14,9 @@ migrationfiles:
   - 00012_organization_aggregates.sql
   - 00013_compensation_aggregates.sql
   - 00014_ledger_hash_chain.sql
+  - 00015_provenance.sql
+  - 00016_workflow_runtime.sql
+  - 00017_work_item.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

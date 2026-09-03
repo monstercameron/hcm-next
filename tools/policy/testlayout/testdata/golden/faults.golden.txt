@@ -1,0 +1,3 @@
+internal/app/app.go: production Go source imports "example.com/faults/test/bootstrap"; production code must not depend on top-level test packages (production_test_dependency)
+test/fixtures/local_test.go: ordinary test file is detached from its package; top-level test/ is reserved for documented cross-system harnesses (detached_test)
+test/golden/vector.txt.fixture.json: fixture metadata must name owner, applicable packages, clock, source_versions, oracle, and a SHA-256 digest matching test/golden/vector.txt (invalid_fixture_metadata)

@@ -1,0 +1,66 @@
+# LIB-009 Testcontainers for Go qualification record.
+#
+# This is an explicit REJECT, not a deferred ADOPT: the root module does not
+# admit Testcontainers and the Docker CLI could not reach its daemon when this
+# review was recorded. Consequently no image was pulled or run and no claim is
+# made that PostgreSQL, S3, SMTP, or provider fake behavior was exercised.
+# Existing test environments remain internal/data/pgtest and
+# tools/quality/ephemeralenv. A future ADOPT must execute the requirements
+# below against a working runtime and add separately reviewed dependency
+# admission evidence.
+version: 1
+todo: LIB-009
+module: github.com/testcontainers/testcontainers-go
+role: test-only
+verdict: REJECT
+runtime_probe:
+  module_in_go_mod: absent
+  module_in_go_sum: absent
+  docker_daemon: unavailable_at_recording
+scope:
+  covers:
+    - a no-admission gate for Testcontainers as test-only environment mechanics
+    - future digest-pin, namespace, readiness, cleanup, and failure-preservation acceptance criteria
+    - release-command dependency-graph exclusion
+  excludes:
+    - Testcontainers API behavior, because its module is not admitted
+    - Docker or OCI runtime behavior, because the daemon was unavailable at recording
+    - claims that digest-pinned PostgreSQL, S3, SMTP, or provider-fake containers were executed
+adoption_requirements:
+  workloads: [postgres, s3, smtp, provider]
+  image_pin: each workload image must use an immutable sha256 digest; floating tags are forbidden
+  namespace: each run must use an opaque tc- prefixed namespace unique to that run
+  readiness: readiness must be deterministic and bounded to two minutes or less
+  cleanup: cleanup may target only the harness-owned run namespace
+  failure_preservation: failures must preserve diagnostic evidence until explicit operator cleanup
+decision: >-
+  REJECT: github.com/testcontainers/testcontainers-go is not a dependency of
+  this root module and Docker Desktop's Linux-engine daemon was unavailable
+  during the review. Downloading the candidate or adding a transient module
+  would mutate the dependency graph without proving the required environment
+  semantics. The existing embedded PostgreSQL and standard-library ephemeral
+  harnesses remain authoritative. Reconsider only with a live supported
+  runtime, an explicit module/version admission, digest-pinned images, and
+  integration evidence for every declared workload.
+removal_path: >-
+  Keep test callers behind owned environment interfaces and preserve the
+  namespace, readiness, bounded-cleanup, and failure-evidence contracts in
+  tools/quality/testcontainerskit. A CI-native backend may satisfy the same
+  contract without Testcontainers; production packages and release commands
+  must never import the candidate module.
+evidence:
+  - test: TestTestcontainersQualification
+    package: tools/quality/testcontainerskit
+  - test: TestTodo_LIB_009_Property
+    package: tools/quality/testcontainerskit
+  - test: TestTodo_LIB_009_Golden
+    package: tools/quality/testcontainerskit
+  - test: TestTodo_LIB_009_Race
+    package: tools/quality/testcontainerskit
+  - test: TestTodo_LIB_009_Integration
+    package: tools/quality/testcontainerskit
+  - test: TestTodo_LIB_009_Conformance
+    package: tools/quality/testcontainerskit
+runtime_dependency_graph_unchanged: true
+command: "go test -count=1 ./tools/quality/testcontainerskit"
+recorded: "2026-09-03"

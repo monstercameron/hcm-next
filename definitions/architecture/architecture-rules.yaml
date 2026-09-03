@@ -144,3 +144,42 @@ port_ownership:
     - internal/data/*/adapters
     - internal/connectivity/*/adapters
     - internal/transaction/adapters
+
+# ARCH-GO-027: package and interface ceremony requires observed ownership,
+# substitution or consumer evidence. The checker reports raw findings first;
+# only a complete, reviewed, expiring exception may suppress one.
+ceremony:
+  package_suffixes:
+    - "*_service"
+    - "*_repository"
+    - "*_domain"
+    - "*_model"
+    - "*_impl"
+  exceptions:
+    - kind: one-method-interface-no-consumer
+      package: github.com/monstercameron/hcm-next/tools/conformance/runner
+      owner: platform-foundation
+      rationale: >-
+        Runner is the deliberately replaceable conformance seam; its sole
+        implementation is consumed by external conformance packages rather
+        than by another file in this package.
+      evidence: tools/conformance/runner/compiled.go and conformance callers
+      expiry: "2026-12-31"
+    - kind: forwarding-only-layer
+      package: github.com/monstercameron/hcm-next/tools/uxqual/cmd/uxqualwasm
+      owner: experience-and-transport
+      rationale: >-
+        This command is a thin WebAssembly entrypoint required by the browser
+        qualification harness; the forwarding boundary is the deliberate
+        executable adapter, not a second semantic package.
+      evidence: tools/uxqual/cmd/uxqualwasm/main_wasm.go and browser harness
+      expiry: "2026-12-31"
+    - kind: one-method-interface-no-consumer
+      package: github.com/monstercameron/hcm-next/internal/ledger
+      owner: data-and-ledger
+      rationale: >-
+        Digester is the consumer-owned hash-chain port implemented by the
+        ledger kernel; its concrete implementation is exercised through data
+        adapters in a separate package.
+      evidence: internal/ledger/reader.go and internal/data/ledger callers
+      expiry: "2026-12-31"

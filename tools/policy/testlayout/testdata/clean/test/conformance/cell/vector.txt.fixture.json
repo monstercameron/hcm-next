@@ -1,0 +1,8 @@
+{
+  "owner": "platform-conformance",
+  "packages": ["example.com/clean/internal/widget"],
+  "clock": "2026-09-03T12:00:00Z",
+  "source_versions": {"widget": "v1"},
+  "oracle": "exact text vector",
+  "digest": "sha256:48604d6464a23a27c6cf4dca201c47f0419036c8f32c56d2d95162ea9a1e11c6"
+}

@@ -449,8 +449,18 @@ reevaluation_trigger:
     external option. A changed choice at that point does not require
     discarding WF-RUN-001's instance/node schema if it stays behind the
     typed projection contract NN3 requires.
+    Prototype ruling (2026-09-03, workflow-runtime owner): a caller-driven
+    advancement unit of work -- WF-RUN-023 start, WF-RUN-024 pure frontier
+    transition and a WF-RUN-025 commit fenced by the instance row's
+    optimistic version rather than by a lease -- is NOT scheduler, timer or
+    lease code and may be built before this gate closes, because it
+    introduces no background worker, no clock, no claim and no retry. The
+    gate still blocks WF-RUN-002 leases and fencing tokens, WF-RUN-003
+    recovery, WF-RUN-004 timers, WF-RUN-005 signal subscriptions,
+    WF-RUN-006 retry and WF-RUN-021 workload limits; the prototype driver
+    must be replaced or wrapped, not extended, when those land.
   gating_todo: WF-RUN-000
-  blocks: "P1B implementation of WF-RUN-002 through WF-RUN-026 scheduler/timer/lease code"
+  blocks: "P1B implementation of WF-RUN-002 through WF-RUN-026 scheduler/timer/lease code; the caller-driven WF-RUN-023/024/025 prototype path is explicitly exempt (see description)"
 
 rollback_plan: >
   The selected BUILD choice has a low-cost rollback because it introduces

@@ -1,0 +1,57 @@
+# LIB-013 semantic-framework and Phase 1 infrastructure policy.
+# Infrastructure mechanics remain replaceable; none of these dependencies may
+# become an HCM domain, workflow, rule, persistence, or public contract.
+version: 1
+module: github.com/monstercameron/hcm-next
+policy_date: "2026-09-03"
+
+runtime_roots:
+  - cmd
+  - internal
+  - gen/go
+  - migrations
+
+semantic_roots:
+  - internal/capability
+  - internal/domains
+  - internal/governance
+  - internal/intent
+  - internal/kernel
+  - internal/workflow
+
+rules:
+  - id: orm
+    category: ORM
+    disposition: PROHIBITED
+    import_prefixes:
+      - gorm.io/gorm
+      - entgo.io/ent
+  - id: workflow
+    category: WORKFLOW_ENGINE
+    disposition: PROHIBITED
+    import_prefixes:
+      - go.temporal.io/sdk
+      - github.com/camunda/camunda-platform
+  - id: rules
+    category: CUSTOMER_RULE_RUNTIME
+    disposition: PROHIBITED
+    import_prefixes:
+      - go.starlark.net
+      - github.com/yuin/gopher-lua
+  - id: broker
+    category: PHASE1_BROKER
+    disposition: PHASE1_PROHIBITED
+    import_prefixes:
+      - github.com/IBM/sarama
+      - github.com/confluentinc/confluent-kafka-go
+      - github.com/segmentio/kafka-go
+  - id: provider
+    category: PROVIDER_SDK
+    disposition: ADAPTER_ONLY
+    import_prefixes:
+      - cloud.google.com/go
+      - github.com/Azure/azure-sdk-for-go
+      - github.com/aws/aws-sdk-go-v2
+    allowed_roots:
+      - internal/connectivity/adapters
+      - tools

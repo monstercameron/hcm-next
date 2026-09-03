@@ -1,0 +1,14 @@
+capabilities -> engines
+data -> engines
+data -> kernel
+domains -> engines
+domains -> kernel
+engines -> kernel
+ledger -> data
+ledger -> engines
+transaction -> kernel
+transport -> capabilities
+workflow -> capabilities
+workflow -> domains
+workflow -> engines
+workflow -> kernel

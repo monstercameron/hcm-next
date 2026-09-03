@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
@@ -39,6 +40,40 @@ func goMigrationFiles(t *testing.T, dir string, skipFiles ...string) []string {
 	return out
 }
 
+// TestTodo_LIB_008_Golden pins the exact reviewed Goose import roots. A
+// wider root would silently turn a migration mechanic into an application
+// dependency; a narrower root would break the ephemeral database and schema
+// verification tooling that must execute the same migration history.
+func TestTodo_LIB_008_Golden(t *testing.T) {
+	_, roles := loadFirewallConfigAndRoles(t)
+	class := roles.Classify(gooseImportPath)
+	if !class.Found || !class.Exact {
+		t.Fatalf("dependency-roles.yaml has no exact row for %s", gooseImportPath)
+	}
+	want := []string{"migrations", "cmd", "internal/data/pgtest", "internal/data/schema"}
+	if strings.Join(class.Row.AllowedImportRoots, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("goose allowed_import_roots = %v, want %v", class.Row.AllowedImportRoots, want)
+	}
+}
+
+// TestTodo_LIB_008_Race exercises the immutable qualification manifest from
+// concurrent readers. Run this test with -race on a supported builder.
+func TestTodo_LIB_008_Race(t *testing.T) {
+	_, roles := loadFirewallConfigAndRoles(t)
+	const readers = 32
+	var wg sync.WaitGroup
+	wg.Add(readers)
+	for i := 0; i < readers; i++ {
+		go func() {
+			defer wg.Done()
+			if v := libfirewall.CheckImport(roles, roles.Module+"/migrations", gooseImportPath); v != nil {
+				t.Errorf("concurrent qualification returned violation: %+v", v)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
 // requiresReviewMarker asserts every file in files contains marker
 // somewhere in its content (the LIB-008 "explicit need, idempotency and
 // resumable failure contract" review evidence, until a fuller structured
@@ -58,7 +93,8 @@ func requiresReviewMarker(t *testing.T, files []string, marker string) {
 
 // TestGooseBackendQualification is the LIB-008 primary test: goose is
 // confined to dependency-roles.yaml's own allowed roots for it
-// (migrations, cmd), and any hand-authored Go migration file (as opposed to
+// (migrations, cmd, the integration-test harness, and schema tooling), and
+// any hand-authored Go migration file (as opposed to
 // the package's own embed/registration boilerplate) must carry the
 // library-firewall.yaml review marker.
 func TestGooseBackendQualification(t *testing.T) {
@@ -72,8 +108,10 @@ func TestGooseBackendQualification(t *testing.T) {
 		}{
 			{"migrations may import goose", roles.Module + "/migrations", false},
 			{"cmd/migrate may import goose", roles.Module + "/cmd/migrate", false},
+			{"pgtest may import goose to migrate ephemeral databases", roles.Module + "/internal/data/pgtest", false},
+			{"schema tooling may import goose to inspect migration history", roles.Module + "/internal/data/schema", false},
 			{"a domain package may not import goose", roles.Module + "/internal/domains/people", true},
-			{"internal/data may not import goose directly", roles.Module + "/internal/data", true},
+			{"an unrelated data package may not import goose directly", roles.Module + "/internal/data/ledger", true},
 		}
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
@@ -166,8 +204,8 @@ func TestTodo_LIB_008_Fault(t *testing.T) {
 }
 
 // TestTodo_LIB_008_Conformance confirms the goose row itself is complete
-// and its allowed roots are exactly [migrations, cmd], matching
-// process-roles.yaml's cmd/migrate ownership.
+// and its allowed roots are exactly the production runner plus the two
+// narrowly reviewed test/schema mechanics roots.
 func TestTodo_LIB_008_Conformance(t *testing.T) {
 	_, roles := loadFirewallConfigAndRoles(t)
 	class := roles.Classify(gooseImportPath)
@@ -177,7 +215,12 @@ func TestTodo_LIB_008_Conformance(t *testing.T) {
 	if missing := depmanifest.RowIsComplete(class.Row); len(missing) > 0 {
 		t.Errorf("goose manifest row is missing fields: %v", missing)
 	}
-	want := map[string]bool{"migrations": true, "cmd": true}
+	want := map[string]bool{
+		"migrations":           true,
+		"cmd":                  true,
+		"internal/data/pgtest": true,
+		"internal/data/schema": true,
+	}
 	if len(class.Row.AllowedImportRoots) != len(want) {
 		t.Fatalf("goose allowed_import_roots = %v, want exactly %v", class.Row.AllowedImportRoots, want)
 	}

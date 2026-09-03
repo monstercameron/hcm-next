@@ -589,6 +589,71 @@ tables:
     rebuild_source: null
     notes: "DATA-014: append-only provenance records (source authority, evidence ids, digests) for every ledger event and external observation; record id is deterministic over (tenant, source kind, source ref)."
 
+  - table: workflow_instance
+    migration: 00016_workflow_runtime.sql
+    owner_package: internal/workflow/runtime
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WF-RUN-001: current durable state of one workflow instance (pinned plan digest, execution frontier, five lifecycle dimensions) guarded by the optimistic instance_version every runtime write compares against; no lease, timer or retry columns until the WF-RUN-000 gate re-opens."
+
+  - table: workflow_node_execution
+    migration: 00016_workflow_runtime.sql
+    owner_package: internal/workflow/runtime
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WF-RUN-001: one row per node attempt with its status and the typed artifact and governance references the WF-RUN-019 inspector traverses; id derived from (instance, node, attempt) so a re-record collides instead of duplicating."
+
+  - table: idempotency_record
+    migration: 00019_idempotency_record.sql
+    owner_package: internal/transaction/idempotency
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "TX-006: durable semantic idempotency keyed by (tenant, capability, effect_scope, idempotency_key), the table's own primary key; RESERVED to COMPLETED in place under Guard's reserve/effect/complete pattern inside the caller's transaction; expiry is a caller-declared RetentionPolicy applied by an explicit Store.Expire DELETE, the one live table in this plane whose grant includes DELETE as a documented write."
+
+  - table: work_item
+    migration: 00017_work_item.sql
+    owner_package: internal/humanwork/workitem
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WORK-001/002/003: where responsibility for one human work item sits now (status, assignment evidence, exclusive claim fields, item_version); the claim is an optimistic compare-and-swap on the row with a caller-supplied expiry, not a lease, fence token or sweeper, per the WF-RUN-000 gate."
+
+  - table: work_item_transition
+    migration: 00017_work_item.sql
+    owner_package: internal/humanwork/workitem
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WORK-001: append-only transition evidence for every work_item write (from/to status, actor, reason, evidence ref) appended in the same transaction; UNIQUE on (work_item, item_version) makes the evidence a schema property rather than a convention."
+
   - table: ledger_hash_chain_link
     migration: 00014_ledger_hash_chain.sql
     owner_package: internal/data/ledger/hashchain

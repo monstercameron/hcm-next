@@ -23,3 +23,68 @@ known_defects: []
 # listed here, fails if a listed entry stops being a gap (stale allow-list
 # entry), and fails once an entry's expiry has passed.
 known_evidence_freshness_gaps:
+
+# Known authority-gate decision gaps (GOV-010).
+#
+# definitions/planning/authority-gate-decision.yaml ships with zero signed
+# decisions: no gate has actually been decided yet (next-steps.md's Gate A
+# milestone "M4 - Gate A decision" states "P1B exists only after a signed
+# Gate A `PROCEED`", which has not happened). As of 2026-09-03,
+# planning/todos.md already has 121 completed GATE_A-phase todos and 3
+# completed GATE_B-phase todos, so tools/planning/authoritygate.CheckUndecidedGates
+# genuinely reports both gates undecided. This is a real, known
+# work-in-progress state, not a tooling bug: completed substrate/evidence
+# todos land ahead of the formal gate compiler and sign-off. Each entry is
+# an exact (gate, kind) pair. The primary test fails on any undecided-gate
+# violation not listed here, fails if a listed entry stops being a gap, and
+# fails once an entry's expiry has passed.
+known_authority_gate_gaps:
+  - gate: GATE_A
+    kind: undecided
+    owner: governance-lead
+    expiry: "2026-12-03"
+    reason: >-
+      121 GATE_A-phase todos are complete (2026-09-03 count) but no signed
+      Gate A PROCEED/REMEDIATE/NARROW/RESELECT_WEDGE/STOP decision exists
+      yet; the Gate A decision compiler (next-steps.md M4) has not run.
+  - gate: GATE_B
+    kind: undecided
+    owner: governance-lead
+    expiry: "2026-12-03"
+    reason: >-
+      3 GATE_B-phase todos are complete (2026-09-03 count) ahead of Gate A
+      itself being decided; Gate B cannot be decided before Gate A per
+      execution-plan.md ("Incremental work begins only after Gate A
+      demonstrates repeated value").
+
+# Known platform-capability coverage gaps (GOV-011).
+#
+# tools/planning/coveragematrix maps every compiled-in internal/capability
+# BOOTSTRAP-table capability and every internal/intent/definitions catalog
+# intent to the todos that claim it. As of 2026-09-03, two capabilities are
+# genuinely MISSING: the registry's own self-describing capabilities
+# (hcmnext.registry.resolve_capability, hcmnext.registry.explain_capability,
+# bootstrap.go's "registry discovers itself through the same path a UI,
+# agent or connector uses" pair) are compiled in and covered by CAP-001's
+# generic `SETS=BI.ALL` registry-lifecycle evidence, but no todo's
+# `INTENT CONTEXT` names either one specifically, and "registry" has no
+# `BI.REGISTRY` domain token to match even at the weaker IMPLIED level.
+# Each entry is an exact item ID. The primary test fails on any coverage
+# violation not listed here, fails if a listed entry stops being a gap
+# (stale allow-list entry), and fails once an entry's expiry has passed.
+known_coverage_gaps:
+  - id: hcmnext.registry.resolve_capability
+    owner: registry-owner
+    expiry: "2026-12-03"
+    reason: >-
+      Compiled into the BOOTSTRAP table (internal/capability/bootstrap.go)
+      and exercised by CAP-001/CAP-002's generic registry tests, but no
+      todo's INTENT CONTEXT names this capability specifically or via a
+      BI.REGISTRY domain token (no such token exists in the SETS
+      vocabulary); needs its own DIRECT claim.
+  - id: hcmnext.registry.explain_capability
+    owner: registry-owner
+    expiry: "2026-12-03"
+    reason: >-
+      Same gap as hcmnext.registry.resolve_capability: compiled in and
+      generically tested, but not named by any todo's INTENT CONTEXT.
