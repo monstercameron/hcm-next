@@ -192,17 +192,30 @@ never assume HEAD is where it was left.
   are excluded from this session's staged set and left on disk for their
   author; they should not be committed.
 
-## 7. Where the prototype stands
+## 7. First executed run
 
-- Green and ticked: 246 todos, including every building block of the
-  executable path listed in §4.
-- Running: the driver lane (END-node governed write through outbox plus
-  idempotency guard, and the end-to-end promotion harness); the EXECUTE RPC
-  and authority-gate lane (execution is refused byte-for-byte as today unless
-  the cell is composed with an execution authority naming `promote_worker` and
-  the caller holds an operator role); the work-item assignment repair.
-- Next: run the promotion reference from approved proposal to COMPLETE with
-  exactly one ledger event, then commit.
+`TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite` in `test/workflow`
+is green on embedded Postgres: a compiled plan (TRANSFORM, APPROVAL, TASK, five
+terminals) is published and activated, an instance starts from a minted
+`ProposalRevision`, parks on the governed approval work item, is claimed and
+completed through the APPROVAL step, resumes, parks on the task, is submitted
+through the TASK step, resumes, and reaches COMPLETE with exactly one
+`ledger_event` on the instance stream. A byte-identical second Resume appends
+nothing; the inspector renders the full chronology with an empty frontier; the
+five completion dimensions are terminal. Two companion tests prove a mutable,
+unapproved or superseded proposal never creates an instance, and that the
+driver and its effects package contain no goroutine, sleep, ticker or wall
+clock.
+
+The terminal write itself (`effects.LedgerTerminalWriter`) did not exist in
+the recovered driver, whose own integration test wrote to a sentinel table;
+it now appends the promotion outcome through the outbox commit as one ledger
+event, one projection advance and one outbox message, behind the idempotency
+guard.
+
+Still open: the EXECUTE RPC and authority gate so the same run can be driven
+over gRPC and the connect edge, then the commit of the recovered and finished
+tree.
 
 ## 8. Numbers
 

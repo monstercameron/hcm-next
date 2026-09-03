@@ -5779,7 +5779,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Kernel workflow models](data/models/kernel-governance-and-evidence.md), [workflow runtime](specs/workflow-runtime.md).
   - **Evidence (partial, 2026-09-03):** `TestTodo_DB_012` (nine subtests over one embedded-postgres database: exact seven-table inventory from migrations 00016-00020 with no lease, timer, signal-subscription, checkpoint, child-link or queue table and the WF-RUN-000 record still DECIDED; instance CAS; node-execution dedupe; claim exclusivity; idempotency reserve, replay and conflict; continuation and advancement-receipt exactly-once; atomic advancement with a failing sink and a three-store rollback), `TestTodo_DB_012_Race` (six real connections per store), `TestTodo_DB_012_Integration` (commit, fresh connection, reload every table, continue `Advance` from durable state alone), `TestTodo_DB_012_Mutation` (illegal instance and work-item transitions, immutable completed output at the Go layer and against a raw UPDATE via the `work_item_forbid_rewrite` trigger, duplicate approval slot yields one WorkItem) in `internal/data/runtimestate` with the `SchemaInventory` helper; `go test -count=1 ./internal/data/runtimestate/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); not complete: timers, signal subscriptions, leases, checkpoints, child links and queue/SLA tables named by GREEN are proven deliberately absent behind the WF-RUN-000 gate rather than present; `advancement_receipt.go` write and replay functions are not yet called by `Advance` (runtime lane fixing); branch plan-revision-2026-09-02.
 
-- [ ] `DB-013` **[GATE_A][SOL_HIGH] Materialize governance, AuthZ, legal and evidence control data.**
+- [x] `DB-013` **[GATE_A][SOL_HIGH] Materialize governance, AuthZ, legal and evidence control data.**
   - **Depends:** `DB-004`, `DB-005`, `DB-007`, `MODEL-015`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_013`.
@@ -5788,6 +5788,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** principal/authority/session/delegation, authorization decisions, access manifests, jurisdiction/rule/evaluation/obligation/evidence and governance-bundle tables preserve exact input/output digests and validity intervals.
   - **REFACTOR:** secrets and raw evidence bytes remain outside ordinary relational rows.
   - **Refs:** [Kernel governance models](data/models/kernel-governance-and-evidence.md), [security models](data/models/security-trust.md).
+  - **Evidence (2026-09-03):** `TestTodo_DB_013`, `_Golden`, `_Integration`, `_Mutation`, `_Property`, `_Race`, `_Security` in `internal/data/governance` (16 tables from 00021); `go test -count=1 ./internal/data/governance/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `DB-014` **[GATE_B][SOL_HIGH] Materialize integration, messaging, document and artifact metadata.**
   - **Depends:** `DB-004`, `DB-005`, `DB-007`, `MODEL-029`.

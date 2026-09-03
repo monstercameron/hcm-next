@@ -8254,7 +8254,8 @@
     "refactor": "secrets and raw evidence bytes remain outside ordinary relational rows",
     "refs": "[Kernel governance models](data/models/kernel-governance-and-evidence.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DB_013`, `_Golden`, `_Integration`, `_Mutation`, `_Property`, `_Race`, `_Security` in `internal/data/governance` (16 tables from 00021: principal/authority/session/delegation, policy_snapshot/decision, access_manifest, jurisdiction/rule_pack/evaluation, obligation/binding, evidence_artifact/manifest, governance_bundle with digests/intervals, cross-tenant delegation rejected, unversioned decision rejected, expired evidence rejected); `go test -count=1 ./internal/data/governance/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DB-014",

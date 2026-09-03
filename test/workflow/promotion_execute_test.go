@@ -617,7 +617,7 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 	appender := newLedgerAppender(t)
 	terminal := &effects.LedgerTerminalWriter{
 		Appender: appender, ProjectionName: "workflow_promotion_outcome_test",
-		SourceRef: "hcmnext:test:workflow", Authority: "authority:workflow-runtime/v1",
+		SourceRef: "hcmnext:test:workflow",
 	}
 	workItems := demoWorkItems{proposal: proposal, managerReq: managerReq, managerResolution: managerRes, taskOwner: humanwork.PrincipalHRBP}
 
@@ -855,7 +855,7 @@ func TestPromotionWorkflowExecuteRefusesWithoutApprovedProposal(t *testing.T) {
 	managerReq, managerRes, _, _ := managerRequirementAndResolution(t)
 
 	drv, err := execute.New(execute.Options{
-		DB: beginner, Steps: endOnlySteps{}, Terminal: &effects.LedgerTerminalWriter{Appender: newLedgerAppender(t), ProjectionName: "workflow_promotion_outcome_test", SourceRef: "hcmnext:test:workflow", Authority: "authority:workflow-runtime/v1"},
+		DB: beginner, Steps: endOnlySteps{}, Terminal: &effects.LedgerTerminalWriter{Appender: newLedgerAppender(t), ProjectionName: "workflow_promotion_outcome_test", SourceRef: "hcmnext:test:workflow"},
 		WorkItems: demoWorkItems{managerReq: managerReq, managerResolution: managerRes, taskOwner: humanwork.PrincipalHRBP},
 		Guard:     idempotency.PostgresStore{}, Retention: idempotency.RetentionPolicy{Retention: 72 * time.Hour, RetryWindow: 6 * time.Hour},
 		Clock: func() time.Time { return at },

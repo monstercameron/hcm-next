@@ -20,6 +20,7 @@ migrationfiles:
   - 00018_workflow_continuation.sql
   - 00019_idempotency_record.sql
   - 00020_workflow_advancement_receipt.sql
+  - 00021_governance_authz_legal_evidence.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding
@@ -81,9 +82,9 @@ entities:
     key: evidence_record
     owner: GOVERNANCE
     class: EVIDENCE
-    disposition: MISMATCH
-    target: ""
-    mismatchdetail: no table "evidence_artifact" in the migrated schema; needs a migration
+    disposition: ARTIFACT
+    target: table evidence_artifact
+    mismatchdetail: ""
   - entityref: ExecutionBinding/v1
     key: execution_binding
     owner: GOVERNANCE

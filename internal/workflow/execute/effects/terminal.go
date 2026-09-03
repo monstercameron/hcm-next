@@ -70,13 +70,6 @@ type LedgerTerminalWriter struct {
 	Appender       ledgerport.Appender
 	ProjectionName string
 	SourceRef      string
-	// Authority is carried through to the append request but not required:
-	// the write is recorded as a TRANSACTION_FACT (the same class
-	// internal/intent/app/pgstore's own AppendIntent uses), which
-	// internal/data/ledger.AssertionClass.RequiresAuthority reports false
-	// for, so no authority-assignment row needs to exist for this workflow
-	// runtime source. Set it only if a caller reclassifies the write.
-	Authority string
 }
 
 var _ execute.TerminalWriter = (*LedgerTerminalWriter)(nil)
@@ -93,6 +86,9 @@ func (w *LedgerTerminalWriter) Write(ctx context.Context, tx dbport.Tx, req exec
 	}
 	if err := projection.EnsureProjection(ctx, tx, req.TenantID, w.ProjectionName, streamKey); err != nil {
 		return idempotency.ResultIdentity{}, fmt.Errorf("effects: register workflow outcome projection checkpoint: %w", err)
+	}
+	if err := ensurePayloadSchema(ctx, tx, req.TenantID, PromotionOutcomeSchema); err != nil {
+		return idempotency.ResultIdentity{}, fmt.Errorf("effects: register workflow outcome payload schema: %w", err)
 	}
 
 	payload, err := json.Marshal(promotionOutcomePayload{
@@ -112,7 +108,6 @@ func (w *LedgerTerminalWriter) Write(ctx context.Context, tx dbport.Tx, req exec
 		Append: datalogger.AppendRequest{
 			Tenant: req.TenantID, StreamKey: streamKey, ExpectedHead: 0,
 			AssertionClass: datalogger.TransactionFact,
-			Authority:      w.Authority,
 			SourceRef:      w.SourceRef,
 			SchemaRef:      PromotionOutcomeSchema,
 			Payload:        payload,
@@ -137,4 +132,22 @@ func (w *LedgerTerminalWriter) Write(ctx context.Context, tx dbport.Tx, req exec
 		ResultRef: req.TerminalCode,
 		EventRef:  fmt.Sprintf("%s@%d", streamKey, receipt.Ledger.Sequence),
 	}, nil
+}
+
+// ensurePayloadSchema idempotently registers the outcome schema this writer
+// records under, matching internal/intent/app/pgstore's own Bootstrap-time
+// registration of its envelope schema: a ledger event's schema_ref is a
+// foreign key into payload_schema (migrations/00005_ledger.sql), so a first
+// write for a tenant that has never seen this schema needs the row to exist
+// before Append can succeed. The registration is content-addressed by
+// (tenant_id, schema_ref) and only ever inserted once per tenant.
+func ensurePayloadSchema(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, schemaRef string) error {
+	_, err := tx.Exec(ctx, `
+		INSERT INTO payload_schema (
+			tenant_id, schema_ref, schema_id, schema_version,
+			message_full_name, wire_format, canonicalization_profile)
+		VALUES ($1, $2, $2, 1, $2, 'PROTOBUF', 'LEDGER_EVENT')
+		ON CONFLICT (tenant_id, schema_ref) DO NOTHING`,
+		tenant, schemaRef)
+	return err
 }

@@ -34,7 +34,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00009_promotion_seed_registries.sql
+source: migrations/00001_platform_control.sql .. migrations/00021_governance_authz_legal_evidence.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -707,3 +707,247 @@ tables:
       and its "rebuild" path is a from-scratch chain plus an explicit
       mismatch report (internal/data/ledger/hashchain.Verify), never a quiet
       replacement.
+
+  - table: principal
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: governed principal identity (USER/SERVICE/SYSTEM/DELEGATE) with
+      assurance AAL1-3, lifecycle ACTIVE/SUSPENDED/REVOKED/EXPIRED and
+      revocation_epoch for credential rotation; tenant-scoped.
+
+  - table: authority_source
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: registered authority source (HRIS/IDP/ATTESTATION/POLICY_BUNDLE)
+      with uri, version, valid_interval and content_digest; tenant-scoped.
+
+  - table: authority_binding
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: binding of a principal to an authority source over a half-open
+      validity interval with scoped claims; tenant-scoped.
+
+  - table: authentication_session
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: durable authentication session bound to a principal with issued
+      and expiry times, assurance, session_digest and optional revocation.
+
+  - table: delegation_grant
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: delegation of authority from delegator to delegate over a
+      half-open interval with scoped claims; revocable and tenant-scoped.
+
+  - table: authorization_policy_snapshot
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust/authz
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: versioned authorization policy snapshot with content_digest and
+      validity interval; immutable by grant (SELECT/INSERT only) and unique on
+      (policy_key, version).
+
+  - table: authorization_decision
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust/authz
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: cached authorization decision with input/result digests,
+      evidence_id and TTL (valid_until); derived from a policy snapshot and
+      principal, immutable by grant.
+
+  - table: data_access_manifest
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/trust/authz
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: access manifest derived from an authorization decision, scoped to
+      a resource_ref and validity interval with field-level claims.
+
+  - table: jurisdiction
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/governance/legal
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: global jurisdiction reference (country/state/region) with version
+      and validity interval; not tenant scoped by design, SELECT/INSERT only.
+
+  - table: legal_rule_pack
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/governance/legal
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: versioned legal rule pack bound to a jurisdiction with
+      content_digest, body and validity interval; unique on (pack_key, version).
+
+  - table: rule_evaluation
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/governance/legal
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: immutable evaluation of a legal rule pack with input/result
+      digests, evidence_id and TTL; grant-level immutable (SELECT/INSERT only).
+
+  - table: obligation
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/governance/legal
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: obligation derived from a rule evaluation with lifecycle status
+      OPEN/FULFILLED/WAIVED/OVERDUE/CANCELLED and optional due date.
+
+  - table: obligation_binding
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/governance/legal
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: binding of an obligation to a principal with status
+      BOUND/RELEASED/FULFILLED; tenant-scoped.
+
+  - table: evidence_artifact
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/domains/evidence
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: governed pointer to a content-addressed object in the governed
+      object store; retention PERMANENT per migration header (the row is the
+      pointer, not the bytes), grant-level immutable.
+
+  - table: evidence_manifest
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/domains/evidence
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: manifest of evidence artifact ids with root_digest; grant-level
+      immutable (SELECT/INSERT only) and tenant-scoped.
+
+  - table: governance_decision_bundle
+    migration: 00021_governance_authz_legal_evidence.sql
+    owner_package: internal/operations
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-013: bundle of authz, legal and obligation decision ids with canonical
+      digest and validity horizon, optionally bound to an evidence manifest;
+      grant-level immutable.
