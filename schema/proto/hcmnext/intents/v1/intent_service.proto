@@ -137,6 +137,29 @@ message ProposalApproval {
   string approval_ref = 4;
 }
 
+// ParkedContinuation names one durable scheduling record (a
+// frontier.IntentKind persisted by internal/workflow/runtime) that a parked
+// workflow instance is waiting to have satisfied: WORK_ITEM_REQUIRED,
+// SIGNAL_SUBSCRIPTION_REQUIRED or TIMER_REQUIRED. It never names a work item
+// (see ExecutionReceipt.work_items below): a continuation is the scheduling
+// fact, a work item is the durable human-work row a WORK_ITEM_REQUIRED
+// continuation may have raised, and WF-RUN-032 exists because those two
+// facts were previously conflated on the wire.
+message ParkedContinuation {
+  string continuation_id = 1;
+  string kind = 2;
+  string target_node_id = 3;
+}
+
+// ParkedWorkItem names one durable WorkItem (internal/humanwork/workitem) a
+// parked workflow instance raised, separately from the continuation record
+// that raised it.
+message ParkedWorkItem {
+  string work_item_id = 1;
+  string kind = 2;
+  string node_id = 3;
+}
+
 // ExecutionReceipt is the immutable, non-simulated result of one ExecuteIntent
 // call: the started or resumed workflow instance, the nodes the caller-driven
 // driver actually visited before returning, any continuation still parked on
@@ -145,9 +168,19 @@ message ProposalApproval {
 message ExecutionReceipt {
   string instance_id = 1;
   repeated string visited_nodes = 2;
-  repeated string parked_continuations = 3;
+  // parked_continuations is retained for wire compatibility but deprecated:
+  // WF-RUN-032 found it named work-item ids under a continuation name.
+  // parked_continuation_refs and work_items below are its typed replacement.
+  repeated string parked_continuations = 3 [deprecated = true];
   uint64 instance_version = 4;
   string receipt_digest = 5;
+  // parked_continuation_refs names the continuation(s) (kind, target node)
+  // the instance is waiting on. Empty when the instance completed.
+  repeated ParkedContinuation parked_continuation_refs = 6;
+  // work_items names the durable WorkItem(s) a WORK_ITEM_REQUIRED
+  // continuation raised. Empty when the instance completed or is parked on a
+  // continuation kind that raises no work item.
+  repeated ParkedWorkItem work_items = 7;
 }
 
 message ExecuteIntentRequest {

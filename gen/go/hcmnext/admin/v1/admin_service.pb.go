@@ -1261,6 +1261,1614 @@ func (x *GetWorkerStateResponse) GetEvidenceRef() *v1.EvidenceRef {
 	return nil
 }
 
+// RefValue is one internal/workflow/inspect.Ref (or, for a list, a
+// [RefListValue]) rendered on the wire: which presence state it carries,
+// the value only when state is VALUE, the policy or storage reason when it
+// is not, and the ADMIN-008 gap_kind classification that closes the "empty
+// vs unrecorded vs redacted" ambiguity a bare state/value pair cannot.
+type RefValue struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// state is one of VALUE, ABSENT, REDACTED (internal/kernel/values.PresenceState).
+	State  string `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	Value  string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// gap_kind is one of "", ABSENT, UNRECORDED, REDACTED
+	// (internal/workflow/inspect.GapKind). Empty means state is VALUE.
+	GapKind       string `protobuf:"bytes,4,opt,name=gap_kind,json=gapKind,proto3" json:"gap_kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefValue) Reset() {
+	*x = RefValue{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefValue) ProtoMessage() {}
+
+func (x *RefValue) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefValue.ProtoReflect.Descriptor instead.
+func (*RefValue) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *RefValue) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *RefValue) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *RefValue) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *RefValue) GetGapKind() string {
+	if x != nil {
+		return x.GapKind
+	}
+	return ""
+}
+
+// RefListValue is one internal/workflow/inspect.RefList rendered on the wire.
+type RefListValue struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	Values        []string               `protobuf:"bytes,2,rep,name=values,proto3" json:"values,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefListValue) Reset() {
+	*x = RefListValue{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefListValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefListValue) ProtoMessage() {}
+
+func (x *RefListValue) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefListValue.ProtoReflect.Descriptor instead.
+func (*RefListValue) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *RefListValue) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *RefListValue) GetValues() []string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+func (x *RefListValue) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// WorkflowDefinitionProfile is inspect.DefinitionView.
+type WorkflowDefinitionProfile struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed        bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason     string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	WorkflowId       string                 `protobuf:"bytes,3,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowVersion  uint32                 `protobuf:"varint,4,opt,name=workflow_version,json=workflowVersion,proto3" json:"workflow_version,omitempty"`
+	CompiledPlanHash string                 `protobuf:"bytes,5,opt,name=compiled_plan_hash,json=compiledPlanHash,proto3" json:"compiled_plan_hash,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkflowDefinitionProfile) Reset() {
+	*x = WorkflowDefinitionProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowDefinitionProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowDefinitionProfile) ProtoMessage() {}
+
+func (x *WorkflowDefinitionProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowDefinitionProfile.ProtoReflect.Descriptor instead.
+func (*WorkflowDefinitionProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *WorkflowDefinitionProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *WorkflowDefinitionProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *WorkflowDefinitionProfile) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+func (x *WorkflowDefinitionProfile) GetWorkflowVersion() uint32 {
+	if x != nil {
+		return x.WorkflowVersion
+	}
+	return 0
+}
+
+func (x *WorkflowDefinitionProfile) GetCompiledPlanHash() string {
+	if x != nil {
+		return x.CompiledPlanHash
+	}
+	return ""
+}
+
+// LifecycleProfile is inspect.Lifecycle: the instance's five lifecycle
+// dimensions, always rendered together and never collapsed into one status.
+type LifecycleProfile struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	RequestState     string                 `protobuf:"bytes,1,opt,name=request_state,json=requestState,proto3" json:"request_state,omitempty"`
+	ExecutionState   string                 `protobuf:"bytes,2,opt,name=execution_state,json=executionState,proto3" json:"execution_state,omitempty"`
+	BusinessState    string                 `protobuf:"bytes,3,opt,name=business_state,json=businessState,proto3" json:"business_state,omitempty"`
+	ConsistencyState string                 `protobuf:"bytes,4,opt,name=consistency_state,json=consistencyState,proto3" json:"consistency_state,omitempty"`
+	ObligationState  string                 `protobuf:"bytes,5,opt,name=obligation_state,json=obligationState,proto3" json:"obligation_state,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *LifecycleProfile) Reset() {
+	*x = LifecycleProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LifecycleProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LifecycleProfile) ProtoMessage() {}
+
+func (x *LifecycleProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LifecycleProfile.ProtoReflect.Descriptor instead.
+func (*LifecycleProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *LifecycleProfile) GetRequestState() string {
+	if x != nil {
+		return x.RequestState
+	}
+	return ""
+}
+
+func (x *LifecycleProfile) GetExecutionState() string {
+	if x != nil {
+		return x.ExecutionState
+	}
+	return ""
+}
+
+func (x *LifecycleProfile) GetBusinessState() string {
+	if x != nil {
+		return x.BusinessState
+	}
+	return ""
+}
+
+func (x *LifecycleProfile) GetConsistencyState() string {
+	if x != nil {
+		return x.ConsistencyState
+	}
+	return ""
+}
+
+func (x *LifecycleProfile) GetObligationState() string {
+	if x != nil {
+		return x.ObligationState
+	}
+	return ""
+}
+
+// WorkflowInstanceProfile is inspect.InstanceView.
+type WorkflowInstanceProfile struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed            bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason         string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	InstanceId           string                 `protobuf:"bytes,3,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
+	CellId               string                 `protobuf:"bytes,4,opt,name=cell_id,json=cellId,proto3" json:"cell_id,omitempty"`
+	CorrelationId        string                 `protobuf:"bytes,5,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	ExecutionMode        string                 `protobuf:"bytes,6,opt,name=execution_mode,json=executionMode,proto3" json:"execution_mode,omitempty"`
+	RuntimeStatus        string                 `protobuf:"bytes,7,opt,name=runtime_status,json=runtimeStatus,proto3" json:"runtime_status,omitempty"`
+	InstanceVersion      int64                  `protobuf:"varint,8,opt,name=instance_version,json=instanceVersion,proto3" json:"instance_version,omitempty"`
+	VariableRevisionHead int64                  `protobuf:"varint,9,opt,name=variable_revision_head,json=variableRevisionHead,proto3" json:"variable_revision_head,omitempty"`
+	Lifecycle            *LifecycleProfile      `protobuf:"bytes,10,opt,name=lifecycle,proto3" json:"lifecycle,omitempty"`
+	InputRef             *RefValue              `protobuf:"bytes,11,opt,name=input_ref,json=inputRef,proto3" json:"input_ref,omitempty"`
+	EffectiveContextRef  *RefValue              `protobuf:"bytes,12,opt,name=effective_context_ref,json=effectiveContextRef,proto3" json:"effective_context_ref,omitempty"`
+	LastCheckpointRef    *RefValue              `protobuf:"bytes,13,opt,name=last_checkpoint_ref,json=lastCheckpointRef,proto3" json:"last_checkpoint_ref,omitempty"`
+	BusinessSubjectRefs  *RefListValue          `protobuf:"bytes,14,opt,name=business_subject_refs,json=businessSubjectRefs,proto3" json:"business_subject_refs,omitempty"`
+	CreatedAt            *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	StartedAt            *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt          *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *WorkflowInstanceProfile) Reset() {
+	*x = WorkflowInstanceProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowInstanceProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowInstanceProfile) ProtoMessage() {}
+
+func (x *WorkflowInstanceProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowInstanceProfile.ProtoReflect.Descriptor instead.
+func (*WorkflowInstanceProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *WorkflowInstanceProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *WorkflowInstanceProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetInstanceId() string {
+	if x != nil {
+		return x.InstanceId
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetCellId() string {
+	if x != nil {
+		return x.CellId
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetExecutionMode() string {
+	if x != nil {
+		return x.ExecutionMode
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetRuntimeStatus() string {
+	if x != nil {
+		return x.RuntimeStatus
+	}
+	return ""
+}
+
+func (x *WorkflowInstanceProfile) GetInstanceVersion() int64 {
+	if x != nil {
+		return x.InstanceVersion
+	}
+	return 0
+}
+
+func (x *WorkflowInstanceProfile) GetVariableRevisionHead() int64 {
+	if x != nil {
+		return x.VariableRevisionHead
+	}
+	return 0
+}
+
+func (x *WorkflowInstanceProfile) GetLifecycle() *LifecycleProfile {
+	if x != nil {
+		return x.Lifecycle
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetInputRef() *RefValue {
+	if x != nil {
+		return x.InputRef
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetEffectiveContextRef() *RefValue {
+	if x != nil {
+		return x.EffectiveContextRef
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetLastCheckpointRef() *RefValue {
+	if x != nil {
+		return x.LastCheckpointRef
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetBusinessSubjectRefs() *RefListValue {
+	if x != nil {
+		return x.BusinessSubjectRefs
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetStartedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartedAt
+	}
+	return nil
+}
+
+func (x *WorkflowInstanceProfile) GetCompletedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CompletedAt
+	}
+	return nil
+}
+
+// FrontierEntryProfile is inspect.FrontierEntry: one node the instance is
+// currently at. attempt_recorded false means the frontier names a node no
+// execution row covers - a gap, not a blank.
+type FrontierEntryProfile struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	NodeId          string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	AttemptRecorded bool                   `protobuf:"varint,2,opt,name=attempt_recorded,json=attemptRecorded,proto3" json:"attempt_recorded,omitempty"`
+	Attempt         int32                  `protobuf:"varint,3,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	Status          string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	StepType        string                 `protobuf:"bytes,5,opt,name=step_type,json=stepType,proto3" json:"step_type,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *FrontierEntryProfile) Reset() {
+	*x = FrontierEntryProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FrontierEntryProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FrontierEntryProfile) ProtoMessage() {}
+
+func (x *FrontierEntryProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FrontierEntryProfile.ProtoReflect.Descriptor instead.
+func (*FrontierEntryProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *FrontierEntryProfile) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *FrontierEntryProfile) GetAttemptRecorded() bool {
+	if x != nil {
+		return x.AttemptRecorded
+	}
+	return false
+}
+
+func (x *FrontierEntryProfile) GetAttempt() int32 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *FrontierEntryProfile) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *FrontierEntryProfile) GetStepType() string {
+	if x != nil {
+		return x.StepType
+	}
+	return ""
+}
+
+// GovernanceProfile is inspect.GovernanceView.
+type GovernanceProfile struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed               bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason            string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	AuthorizationDecisionId *RefValue              `protobuf:"bytes,3,opt,name=authorization_decision_id,json=authorizationDecisionId,proto3" json:"authorization_decision_id,omitempty"`
+	DecisionId              *RefValue              `protobuf:"bytes,4,opt,name=decision_id,json=decisionId,proto3" json:"decision_id,omitempty"`
+	PolicyRef               *RefValue              `protobuf:"bytes,5,opt,name=policy_ref,json=policyRef,proto3" json:"policy_ref,omitempty"`
+	ProposalRef             *RefValue              `protobuf:"bytes,6,opt,name=proposal_ref,json=proposalRef,proto3" json:"proposal_ref,omitempty"`
+	BaselineRef             *RefValue              `protobuf:"bytes,7,opt,name=baseline_ref,json=baselineRef,proto3" json:"baseline_ref,omitempty"`
+	HumanTaskId             *RefValue              `protobuf:"bytes,8,opt,name=human_task_id,json=humanTaskId,proto3" json:"human_task_id,omitempty"`
+	AgentExecutionId        *RefValue              `protobuf:"bytes,9,opt,name=agent_execution_id,json=agentExecutionId,proto3" json:"agent_execution_id,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *GovernanceProfile) Reset() {
+	*x = GovernanceProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GovernanceProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GovernanceProfile) ProtoMessage() {}
+
+func (x *GovernanceProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GovernanceProfile.ProtoReflect.Descriptor instead.
+func (*GovernanceProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GovernanceProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *GovernanceProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *GovernanceProfile) GetAuthorizationDecisionId() *RefValue {
+	if x != nil {
+		return x.AuthorizationDecisionId
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetDecisionId() *RefValue {
+	if x != nil {
+		return x.DecisionId
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetPolicyRef() *RefValue {
+	if x != nil {
+		return x.PolicyRef
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetProposalRef() *RefValue {
+	if x != nil {
+		return x.ProposalRef
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetBaselineRef() *RefValue {
+	if x != nil {
+		return x.BaselineRef
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetHumanTaskId() *RefValue {
+	if x != nil {
+		return x.HumanTaskId
+	}
+	return nil
+}
+
+func (x *GovernanceProfile) GetAgentExecutionId() *RefValue {
+	if x != nil {
+		return x.AgentExecutionId
+	}
+	return nil
+}
+
+// TransactionProfile is inspect.TransactionView.
+type TransactionProfile struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed             bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason          string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	BusinessTransactionId *RefValue              `protobuf:"bytes,3,opt,name=business_transaction_id,json=businessTransactionId,proto3" json:"business_transaction_id,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *TransactionProfile) Reset() {
+	*x = TransactionProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransactionProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransactionProfile) ProtoMessage() {}
+
+func (x *TransactionProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransactionProfile.ProtoReflect.Descriptor instead.
+func (*TransactionProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *TransactionProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *TransactionProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *TransactionProfile) GetBusinessTransactionId() *RefValue {
+	if x != nil {
+		return x.BusinessTransactionId
+	}
+	return nil
+}
+
+// ConnectorProfile is inspect.ConnectorView.
+type ConnectorProfile struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed             bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason          string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	CapabilityExecutionId *RefValue              `protobuf:"bytes,3,opt,name=capability_execution_id,json=capabilityExecutionId,proto3" json:"capability_execution_id,omitempty"`
+	EffectRefs            *RefListValue          `protobuf:"bytes,4,opt,name=effect_refs,json=effectRefs,proto3" json:"effect_refs,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ConnectorProfile) Reset() {
+	*x = ConnectorProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectorProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectorProfile) ProtoMessage() {}
+
+func (x *ConnectorProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectorProfile.ProtoReflect.Descriptor instead.
+func (*ConnectorProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ConnectorProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *ConnectorProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *ConnectorProfile) GetCapabilityExecutionId() *RefValue {
+	if x != nil {
+		return x.CapabilityExecutionId
+	}
+	return nil
+}
+
+func (x *ConnectorProfile) GetEffectRefs() *RefListValue {
+	if x != nil {
+		return x.EffectRefs
+	}
+	return nil
+}
+
+// ObservationProfile is inspect.ObservationView.
+type ObservationProfile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed     bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason  string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	ErrorClass    *RefValue              `protobuf:"bytes,3,opt,name=error_class,json=errorClass,proto3" json:"error_class,omitempty"`
+	RepairRef     *RefValue              `protobuf:"bytes,4,opt,name=repair_ref,json=repairRef,proto3" json:"repair_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ObservationProfile) Reset() {
+	*x = ObservationProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObservationProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObservationProfile) ProtoMessage() {}
+
+func (x *ObservationProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObservationProfile.ProtoReflect.Descriptor instead.
+func (*ObservationProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ObservationProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *ObservationProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *ObservationProfile) GetErrorClass() *RefValue {
+	if x != nil {
+		return x.ErrorClass
+	}
+	return nil
+}
+
+func (x *ObservationProfile) GetRepairRef() *RefValue {
+	if x != nil {
+		return x.RepairRef
+	}
+	return nil
+}
+
+// TraceProfile is inspect.TraceView.
+type TraceProfile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Disclosed     bool                   `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DeniedReason  string                 `protobuf:"bytes,2,opt,name=denied_reason,json=deniedReason,proto3" json:"denied_reason,omitempty"`
+	TraceId       *RefValue              `protobuf:"bytes,3,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TraceProfile) Reset() {
+	*x = TraceProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TraceProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TraceProfile) ProtoMessage() {}
+
+func (x *TraceProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TraceProfile.ProtoReflect.Descriptor instead.
+func (*TraceProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *TraceProfile) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *TraceProfile) GetDeniedReason() string {
+	if x != nil {
+		return x.DeniedReason
+	}
+	return ""
+}
+
+func (x *TraceProfile) GetTraceId() *RefValue {
+	if x != nil {
+		return x.TraceId
+	}
+	return nil
+}
+
+// NodeProfile is inspect.NodeView: one recorded node-execution attempt and
+// the four stages that hang off it.
+type NodeProfile struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	NodeId   string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Attempt  int32                  `protobuf:"varint,2,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	StepType string                 `protobuf:"bytes,3,opt,name=step_type,json=stepType,proto3" json:"step_type,omitempty"`
+	Status   string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// current reports whether this attempt is on the instance's frontier.
+	Current           bool                   `protobuf:"varint,5,opt,name=current,proto3" json:"current,omitempty"`
+	RetryPolicyRef    *RefValue              `protobuf:"bytes,6,opt,name=retry_policy_ref,json=retryPolicyRef,proto3" json:"retry_policy_ref,omitempty"`
+	InputSnapshotRef  *RefValue              `protobuf:"bytes,7,opt,name=input_snapshot_ref,json=inputSnapshotRef,proto3" json:"input_snapshot_ref,omitempty"`
+	OutputArtifactRef *RefValue              `protobuf:"bytes,8,opt,name=output_artifact_ref,json=outputArtifactRef,proto3" json:"output_artifact_ref,omitempty"`
+	Governance        *GovernanceProfile     `protobuf:"bytes,9,opt,name=governance,proto3" json:"governance,omitempty"`
+	Transaction       *TransactionProfile    `protobuf:"bytes,10,opt,name=transaction,proto3" json:"transaction,omitempty"`
+	Connector         *ConnectorProfile      `protobuf:"bytes,11,opt,name=connector,proto3" json:"connector,omitempty"`
+	Observation       *ObservationProfile    `protobuf:"bytes,12,opt,name=observation,proto3" json:"observation,omitempty"`
+	Trace             *TraceProfile          `protobuf:"bytes,13,opt,name=trace,proto3" json:"trace,omitempty"`
+	StartedAt         *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt       *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	RecordedAt        *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=recorded_at,json=recordedAt,proto3" json:"recorded_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *NodeProfile) Reset() {
+	*x = NodeProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeProfile) ProtoMessage() {}
+
+func (x *NodeProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeProfile.ProtoReflect.Descriptor instead.
+func (*NodeProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *NodeProfile) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *NodeProfile) GetAttempt() int32 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *NodeProfile) GetStepType() string {
+	if x != nil {
+		return x.StepType
+	}
+	return ""
+}
+
+func (x *NodeProfile) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *NodeProfile) GetCurrent() bool {
+	if x != nil {
+		return x.Current
+	}
+	return false
+}
+
+func (x *NodeProfile) GetRetryPolicyRef() *RefValue {
+	if x != nil {
+		return x.RetryPolicyRef
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetInputSnapshotRef() *RefValue {
+	if x != nil {
+		return x.InputSnapshotRef
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetOutputArtifactRef() *RefValue {
+	if x != nil {
+		return x.OutputArtifactRef
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetGovernance() *GovernanceProfile {
+	if x != nil {
+		return x.Governance
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetTransaction() *TransactionProfile {
+	if x != nil {
+		return x.Transaction
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetConnector() *ConnectorProfile {
+	if x != nil {
+		return x.Connector
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetObservation() *ObservationProfile {
+	if x != nil {
+		return x.Observation
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetTrace() *TraceProfile {
+	if x != nil {
+		return x.Trace
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetStartedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartedAt
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetCompletedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CompletedAt
+	}
+	return nil
+}
+
+func (x *NodeProfile) GetRecordedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RecordedAt
+	}
+	return nil
+}
+
+// WorkItemTransitionProfile is inspect.TransitionView: one immutable
+// work_item_transition row.
+type WorkItemTransitionProfile struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	TransitionId     string                 `protobuf:"bytes,1,opt,name=transition_id,json=transitionId,proto3" json:"transition_id,omitempty"`
+	ItemVersion      int64                  `protobuf:"varint,2,opt,name=item_version,json=itemVersion,proto3" json:"item_version,omitempty"`
+	FromStatus       string                 `protobuf:"bytes,3,opt,name=from_status,json=fromStatus,proto3" json:"from_status,omitempty"`
+	ToStatus         string                 `protobuf:"bytes,4,opt,name=to_status,json=toStatus,proto3" json:"to_status,omitempty"`
+	ActorPrincipalId string                 `protobuf:"bytes,5,opt,name=actor_principal_id,json=actorPrincipalId,proto3" json:"actor_principal_id,omitempty"`
+	Reason           string                 `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
+	Detail           string                 `protobuf:"bytes,7,opt,name=detail,proto3" json:"detail,omitempty"`
+	EvidenceRef      *RefValue              `protobuf:"bytes,8,opt,name=evidence_ref,json=evidenceRef,proto3" json:"evidence_ref,omitempty"`
+	At               *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=at,proto3" json:"at,omitempty"`
+	RecordedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=recorded_at,json=recordedAt,proto3" json:"recorded_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkItemTransitionProfile) Reset() {
+	*x = WorkItemTransitionProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkItemTransitionProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkItemTransitionProfile) ProtoMessage() {}
+
+func (x *WorkItemTransitionProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkItemTransitionProfile.ProtoReflect.Descriptor instead.
+func (*WorkItemTransitionProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *WorkItemTransitionProfile) GetTransitionId() string {
+	if x != nil {
+		return x.TransitionId
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetItemVersion() int64 {
+	if x != nil {
+		return x.ItemVersion
+	}
+	return 0
+}
+
+func (x *WorkItemTransitionProfile) GetFromStatus() string {
+	if x != nil {
+		return x.FromStatus
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetToStatus() string {
+	if x != nil {
+		return x.ToStatus
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetActorPrincipalId() string {
+	if x != nil {
+		return x.ActorPrincipalId
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *WorkItemTransitionProfile) GetEvidenceRef() *RefValue {
+	if x != nil {
+		return x.EvidenceRef
+	}
+	return nil
+}
+
+func (x *WorkItemTransitionProfile) GetAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.At
+	}
+	return nil
+}
+
+func (x *WorkItemTransitionProfile) GetRecordedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RecordedAt
+	}
+	return nil
+}
+
+// WorkItemProfile is inspect.WorkItemView: one work item the instance's
+// frontier created, plus its whole transition chronology.
+// transitions_recorded false means the item loaded with zero transitions,
+// which internal/humanwork/workitem.Store.Create never allows to happen
+// honestly - a gap, named in the response's own gaps list.
+type WorkItemProfile struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	WorkItemId  string                 `protobuf:"bytes,1,opt,name=work_item_id,json=workItemId,proto3" json:"work_item_id,omitempty"`
+	ItemVersion int64                  `protobuf:"varint,2,opt,name=item_version,json=itemVersion,proto3" json:"item_version,omitempty"`
+	// kind is one of APPROVAL, TASK (internal/humanwork/workitem.Kind).
+	Kind                   string                       `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	WorkType               string                       `protobuf:"bytes,4,opt,name=work_type,json=workType,proto3" json:"work_type,omitempty"`
+	Status                 string                       `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	CorrelationId          string                       `protobuf:"bytes,6,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	NodeId                 string                       `protobuf:"bytes,7,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	ApprovalRequirementRef *RefValue                    `protobuf:"bytes,8,opt,name=approval_requirement_ref,json=approvalRequirementRef,proto3" json:"approval_requirement_ref,omitempty"`
+	ProposalRef            *RefValue                    `protobuf:"bytes,9,opt,name=proposal_ref,json=proposalRef,proto3" json:"proposal_ref,omitempty"`
+	SubjectRefs            *RefListValue                `protobuf:"bytes,10,opt,name=subject_refs,json=subjectRefs,proto3" json:"subject_refs,omitempty"`
+	OwnerKind              string                       `protobuf:"bytes,11,opt,name=owner_kind,json=ownerKind,proto3" json:"owner_kind,omitempty"`
+	OwnerRef               string                       `protobuf:"bytes,12,opt,name=owner_ref,json=ownerRef,proto3" json:"owner_ref,omitempty"`
+	PolicyRouteRef         string                       `protobuf:"bytes,13,opt,name=policy_route_ref,json=policyRouteRef,proto3" json:"policy_route_ref,omitempty"`
+	Visibility             string                       `protobuf:"bytes,14,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	DeadlineAt             *timestamppb.Timestamp       `protobuf:"bytes,15,opt,name=deadline_at,json=deadlineAt,proto3" json:"deadline_at,omitempty"`
+	ClaimedBy              string                       `protobuf:"bytes,16,opt,name=claimed_by,json=claimedBy,proto3" json:"claimed_by,omitempty"`
+	CompletedBy            string                       `protobuf:"bytes,17,opt,name=completed_by,json=completedBy,proto3" json:"completed_by,omitempty"`
+	CompletedOutputDigest  *RefValue                    `protobuf:"bytes,18,opt,name=completed_output_digest,json=completedOutputDigest,proto3" json:"completed_output_digest,omitempty"`
+	CreatedAt              *timestamppb.Timestamp       `protobuf:"bytes,19,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Transitions            []*WorkItemTransitionProfile `protobuf:"bytes,20,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	TransitionsRecorded    bool                         `protobuf:"varint,21,opt,name=transitions_recorded,json=transitionsRecorded,proto3" json:"transitions_recorded,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *WorkItemProfile) Reset() {
+	*x = WorkItemProfile{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkItemProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkItemProfile) ProtoMessage() {}
+
+func (x *WorkItemProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkItemProfile.ProtoReflect.Descriptor instead.
+func (*WorkItemProfile) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *WorkItemProfile) GetWorkItemId() string {
+	if x != nil {
+		return x.WorkItemId
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetItemVersion() int64 {
+	if x != nil {
+		return x.ItemVersion
+	}
+	return 0
+}
+
+func (x *WorkItemProfile) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetWorkType() string {
+	if x != nil {
+		return x.WorkType
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetApprovalRequirementRef() *RefValue {
+	if x != nil {
+		return x.ApprovalRequirementRef
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetProposalRef() *RefValue {
+	if x != nil {
+		return x.ProposalRef
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetSubjectRefs() *RefListValue {
+	if x != nil {
+		return x.SubjectRefs
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetOwnerKind() string {
+	if x != nil {
+		return x.OwnerKind
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetOwnerRef() string {
+	if x != nil {
+		return x.OwnerRef
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetPolicyRouteRef() string {
+	if x != nil {
+		return x.PolicyRouteRef
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetDeadlineAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DeadlineAt
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetClaimedBy() string {
+	if x != nil {
+		return x.ClaimedBy
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetCompletedBy() string {
+	if x != nil {
+		return x.CompletedBy
+	}
+	return ""
+}
+
+func (x *WorkItemProfile) GetCompletedOutputDigest() *RefValue {
+	if x != nil {
+		return x.CompletedOutputDigest
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetTransitions() []*WorkItemTransitionProfile {
+	if x != nil {
+		return x.Transitions
+	}
+	return nil
+}
+
+func (x *WorkItemProfile) GetTransitionsRecorded() bool {
+	if x != nil {
+		return x.TransitionsRecorded
+	}
+	return false
+}
+
+type GetWorkflowInstanceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scope         *v1.ScopeContext       `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+	InstanceId    string                 `protobuf:"bytes,2,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetWorkflowInstanceRequest) Reset() {
+	*x = GetWorkflowInstanceRequest{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetWorkflowInstanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetWorkflowInstanceRequest) ProtoMessage() {}
+
+func (x *GetWorkflowInstanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetWorkflowInstanceRequest.ProtoReflect.Descriptor instead.
+func (*GetWorkflowInstanceRequest) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetWorkflowInstanceRequest) GetScope() *v1.ScopeContext {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceRequest) GetInstanceId() string {
+	if x != nil {
+		return x.InstanceId
+	}
+	return ""
+}
+
+type GetWorkflowInstanceResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// disclosed reports whether the caller may learn that this instance
+	// exists at all (inspect.Authorization.InstanceDisclosable). False means
+	// every other field below is unset: a caller who may not know the
+	// instance exists must not be able to infer it from a pattern of
+	// populated-but-denied sections.
+	Disclosed             bool                       `protobuf:"varint,1,opt,name=disclosed,proto3" json:"disclosed,omitempty"`
+	DenialReason          string                     `protobuf:"bytes,2,opt,name=denial_reason,json=denialReason,proto3" json:"denial_reason,omitempty"`
+	Definition            *WorkflowDefinitionProfile `protobuf:"bytes,3,opt,name=definition,proto3" json:"definition,omitempty"`
+	Instance              *WorkflowInstanceProfile   `protobuf:"bytes,4,opt,name=instance,proto3" json:"instance,omitempty"`
+	Frontier              []*FrontierEntryProfile    `protobuf:"bytes,5,rep,name=frontier,proto3" json:"frontier,omitempty"`
+	Nodes                 []*NodeProfile             `protobuf:"bytes,6,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	WorkItemsDisclosed    bool                       `protobuf:"varint,7,opt,name=work_items_disclosed,json=workItemsDisclosed,proto3" json:"work_items_disclosed,omitempty"`
+	WorkItemsDeniedReason string                     `protobuf:"bytes,8,opt,name=work_items_denied_reason,json=workItemsDeniedReason,proto3" json:"work_items_denied_reason,omitempty"`
+	WorkItems             []*WorkItemProfile         `protobuf:"bytes,9,rep,name=work_items,json=workItems,proto3" json:"work_items,omitempty"`
+	// complete is true only when nothing was denied and nothing was missing
+	// across both the traversal and the work-item section
+	// (inspect.Completeness.Complete, conjoined).
+	Complete      bool            `protobuf:"varint,10,opt,name=complete,proto3" json:"complete,omitempty"`
+	Redactions    []string        `protobuf:"bytes,11,rep,name=redactions,proto3" json:"redactions,omitempty"`
+	Gaps          []string        `protobuf:"bytes,12,rep,name=gaps,proto3" json:"gaps,omitempty"`
+	EvidenceRef   *v1.EvidenceRef `protobuf:"bytes,13,opt,name=evidence_ref,json=evidenceRef,proto3" json:"evidence_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetWorkflowInstanceResponse) Reset() {
+	*x = GetWorkflowInstanceResponse{}
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetWorkflowInstanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetWorkflowInstanceResponse) ProtoMessage() {}
+
+func (x *GetWorkflowInstanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_admin_v1_admin_service_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetWorkflowInstanceResponse.ProtoReflect.Descriptor instead.
+func (*GetWorkflowInstanceResponse) Descriptor() ([]byte, []int) {
+	return file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetWorkflowInstanceResponse) GetDisclosed() bool {
+	if x != nil {
+		return x.Disclosed
+	}
+	return false
+}
+
+func (x *GetWorkflowInstanceResponse) GetDenialReason() string {
+	if x != nil {
+		return x.DenialReason
+	}
+	return ""
+}
+
+func (x *GetWorkflowInstanceResponse) GetDefinition() *WorkflowDefinitionProfile {
+	if x != nil {
+		return x.Definition
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetInstance() *WorkflowInstanceProfile {
+	if x != nil {
+		return x.Instance
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetFrontier() []*FrontierEntryProfile {
+	if x != nil {
+		return x.Frontier
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetNodes() []*NodeProfile {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetWorkItemsDisclosed() bool {
+	if x != nil {
+		return x.WorkItemsDisclosed
+	}
+	return false
+}
+
+func (x *GetWorkflowInstanceResponse) GetWorkItemsDeniedReason() string {
+	if x != nil {
+		return x.WorkItemsDeniedReason
+	}
+	return ""
+}
+
+func (x *GetWorkflowInstanceResponse) GetWorkItems() []*WorkItemProfile {
+	if x != nil {
+		return x.WorkItems
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetComplete() bool {
+	if x != nil {
+		return x.Complete
+	}
+	return false
+}
+
+func (x *GetWorkflowInstanceResponse) GetRedactions() []string {
+	if x != nil {
+		return x.Redactions
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetGaps() []string {
+	if x != nil {
+		return x.Gaps
+	}
+	return nil
+}
+
+func (x *GetWorkflowInstanceResponse) GetEvidenceRef() *v1.EvidenceRef {
+	if x != nil {
+		return x.EvidenceRef
+	}
+	return nil
+}
+
 var File_hcmnext_admin_v1_admin_service_proto protoreflect.FileDescriptor
 
 const file_hcmnext_admin_v1_admin_service_proto_rawDesc = "" +
@@ -1368,13 +2976,187 @@ const file_hcmnext_admin_v1_admin_service_proto_rawDesc = "" +
 	"\rinputs_digest\x18\b \x01(\tR\finputsDigest\x12#\n" +
 	"\rresult_digest\x18\t \x01(\tR\fresultDigest\x12A\n" +
 	"\fevidence_ref\x18\n" +
-	" \x01(\v2\x1e.hcmnext.common.v1.EvidenceRefR\vevidenceRef2\xae\x04\n" +
+	" \x01(\v2\x1e.hcmnext.common.v1.EvidenceRefR\vevidenceRef\"i\n" +
+	"\bRefValue\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x19\n" +
+	"\bgap_kind\x18\x04 \x01(\tR\agapKind\"T\n" +
+	"\fRefListValue\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12\x16\n" +
+	"\x06values\x18\x02 \x03(\tR\x06values\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xd8\x01\n" +
+	"\x19WorkflowDefinitionProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12\x1f\n" +
+	"\vworkflow_id\x18\x03 \x01(\tR\n" +
+	"workflowId\x12)\n" +
+	"\x10workflow_version\x18\x04 \x01(\rR\x0fworkflowVersion\x12,\n" +
+	"\x12compiled_plan_hash\x18\x05 \x01(\tR\x10compiledPlanHash\"\xdf\x01\n" +
+	"\x10LifecycleProfile\x12#\n" +
+	"\rrequest_state\x18\x01 \x01(\tR\frequestState\x12'\n" +
+	"\x0fexecution_state\x18\x02 \x01(\tR\x0eexecutionState\x12%\n" +
+	"\x0ebusiness_state\x18\x03 \x01(\tR\rbusinessState\x12+\n" +
+	"\x11consistency_state\x18\x04 \x01(\tR\x10consistencyState\x12)\n" +
+	"\x10obligation_state\x18\x05 \x01(\tR\x0fobligationState\"\x8c\a\n" +
+	"\x17WorkflowInstanceProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12\x1f\n" +
+	"\vinstance_id\x18\x03 \x01(\tR\n" +
+	"instanceId\x12\x17\n" +
+	"\acell_id\x18\x04 \x01(\tR\x06cellId\x12%\n" +
+	"\x0ecorrelation_id\x18\x05 \x01(\tR\rcorrelationId\x12%\n" +
+	"\x0eexecution_mode\x18\x06 \x01(\tR\rexecutionMode\x12%\n" +
+	"\x0eruntime_status\x18\a \x01(\tR\rruntimeStatus\x12)\n" +
+	"\x10instance_version\x18\b \x01(\x03R\x0finstanceVersion\x124\n" +
+	"\x16variable_revision_head\x18\t \x01(\x03R\x14variableRevisionHead\x12@\n" +
+	"\tlifecycle\x18\n" +
+	" \x01(\v2\".hcmnext.admin.v1.LifecycleProfileR\tlifecycle\x127\n" +
+	"\tinput_ref\x18\v \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\binputRef\x12N\n" +
+	"\x15effective_context_ref\x18\f \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x13effectiveContextRef\x12J\n" +
+	"\x13last_checkpoint_ref\x18\r \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x11lastCheckpointRef\x12R\n" +
+	"\x15business_subject_refs\x18\x0e \x01(\v2\x1e.hcmnext.admin.v1.RefListValueR\x13businessSubjectRefs\x129\n" +
+	"\n" +
+	"created_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"started_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12=\n" +
+	"\fcompleted_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\"\xa9\x01\n" +
+	"\x14FrontierEntryProfile\x12\x17\n" +
+	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12)\n" +
+	"\x10attempt_recorded\x18\x02 \x01(\bR\x0fattemptRecorded\x12\x18\n" +
+	"\aattempt\x18\x03 \x01(\x05R\aattempt\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1b\n" +
+	"\tstep_type\x18\x05 \x01(\tR\bstepType\"\xae\x04\n" +
+	"\x11GovernanceProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12V\n" +
+	"\x19authorization_decision_id\x18\x03 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x17authorizationDecisionId\x12;\n" +
+	"\vdecision_id\x18\x04 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\n" +
+	"decisionId\x129\n" +
+	"\n" +
+	"policy_ref\x18\x05 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\tpolicyRef\x12=\n" +
+	"\fproposal_ref\x18\x06 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\vproposalRef\x12=\n" +
+	"\fbaseline_ref\x18\a \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\vbaselineRef\x12>\n" +
+	"\rhuman_task_id\x18\b \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\vhumanTaskId\x12H\n" +
+	"\x12agent_execution_id\x18\t \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x10agentExecutionId\"\xab\x01\n" +
+	"\x12TransactionProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12R\n" +
+	"\x17business_transaction_id\x18\x03 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x15businessTransactionId\"\xea\x01\n" +
+	"\x10ConnectorProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12R\n" +
+	"\x17capability_execution_id\x18\x03 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x15capabilityExecutionId\x12?\n" +
+	"\veffect_refs\x18\x04 \x01(\v2\x1e.hcmnext.admin.v1.RefListValueR\n" +
+	"effectRefs\"\xcf\x01\n" +
+	"\x12ObservationProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x12;\n" +
+	"\verror_class\x18\x03 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\n" +
+	"errorClass\x129\n" +
+	"\n" +
+	"repair_ref\x18\x04 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\trepairRef\"\x88\x01\n" +
+	"\fTraceProfile\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenied_reason\x18\x02 \x01(\tR\fdeniedReason\x125\n" +
+	"\btrace_id\x18\x03 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\atraceId\"\xef\x06\n" +
+	"\vNodeProfile\x12\x17\n" +
+	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x18\n" +
+	"\aattempt\x18\x02 \x01(\x05R\aattempt\x12\x1b\n" +
+	"\tstep_type\x18\x03 \x01(\tR\bstepType\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x18\n" +
+	"\acurrent\x18\x05 \x01(\bR\acurrent\x12D\n" +
+	"\x10retry_policy_ref\x18\x06 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x0eretryPolicyRef\x12H\n" +
+	"\x12input_snapshot_ref\x18\a \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x10inputSnapshotRef\x12J\n" +
+	"\x13output_artifact_ref\x18\b \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x11outputArtifactRef\x12C\n" +
+	"\n" +
+	"governance\x18\t \x01(\v2#.hcmnext.admin.v1.GovernanceProfileR\n" +
+	"governance\x12F\n" +
+	"\vtransaction\x18\n" +
+	" \x01(\v2$.hcmnext.admin.v1.TransactionProfileR\vtransaction\x12@\n" +
+	"\tconnector\x18\v \x01(\v2\".hcmnext.admin.v1.ConnectorProfileR\tconnector\x12F\n" +
+	"\vobservation\x18\f \x01(\v2$.hcmnext.admin.v1.ObservationProfileR\vobservation\x124\n" +
+	"\x05trace\x18\r \x01(\v2\x1e.hcmnext.admin.v1.TraceProfileR\x05trace\x129\n" +
+	"\n" +
+	"started_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12=\n" +
+	"\fcompleted_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\x12;\n" +
+	"\vrecorded_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"recordedAt\"\xa7\x03\n" +
+	"\x19WorkItemTransitionProfile\x12#\n" +
+	"\rtransition_id\x18\x01 \x01(\tR\ftransitionId\x12!\n" +
+	"\fitem_version\x18\x02 \x01(\x03R\vitemVersion\x12\x1f\n" +
+	"\vfrom_status\x18\x03 \x01(\tR\n" +
+	"fromStatus\x12\x1b\n" +
+	"\tto_status\x18\x04 \x01(\tR\btoStatus\x12,\n" +
+	"\x12actor_principal_id\x18\x05 \x01(\tR\x10actorPrincipalId\x12\x16\n" +
+	"\x06reason\x18\x06 \x01(\tR\x06reason\x12\x16\n" +
+	"\x06detail\x18\a \x01(\tR\x06detail\x12=\n" +
+	"\fevidence_ref\x18\b \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\vevidenceRef\x12*\n" +
+	"\x02at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12;\n" +
+	"\vrecorded_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"recordedAt\"\xcd\a\n" +
+	"\x0fWorkItemProfile\x12 \n" +
+	"\fwork_item_id\x18\x01 \x01(\tR\n" +
+	"workItemId\x12!\n" +
+	"\fitem_version\x18\x02 \x01(\x03R\vitemVersion\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x1b\n" +
+	"\twork_type\x18\x04 \x01(\tR\bworkType\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12%\n" +
+	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId\x12\x17\n" +
+	"\anode_id\x18\a \x01(\tR\x06nodeId\x12T\n" +
+	"\x18approval_requirement_ref\x18\b \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x16approvalRequirementRef\x12=\n" +
+	"\fproposal_ref\x18\t \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\vproposalRef\x12A\n" +
+	"\fsubject_refs\x18\n" +
+	" \x01(\v2\x1e.hcmnext.admin.v1.RefListValueR\vsubjectRefs\x12\x1d\n" +
+	"\n" +
+	"owner_kind\x18\v \x01(\tR\townerKind\x12\x1b\n" +
+	"\towner_ref\x18\f \x01(\tR\bownerRef\x12(\n" +
+	"\x10policy_route_ref\x18\r \x01(\tR\x0epolicyRouteRef\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x0e \x01(\tR\n" +
+	"visibility\x12;\n" +
+	"\vdeadline_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"deadlineAt\x12\x1d\n" +
+	"\n" +
+	"claimed_by\x18\x10 \x01(\tR\tclaimedBy\x12!\n" +
+	"\fcompleted_by\x18\x11 \x01(\tR\vcompletedBy\x12R\n" +
+	"\x17completed_output_digest\x18\x12 \x01(\v2\x1a.hcmnext.admin.v1.RefValueR\x15completedOutputDigest\x129\n" +
+	"\n" +
+	"created_at\x18\x13 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12M\n" +
+	"\vtransitions\x18\x14 \x03(\v2+.hcmnext.admin.v1.WorkItemTransitionProfileR\vtransitions\x121\n" +
+	"\x14transitions_recorded\x18\x15 \x01(\bR\x13transitionsRecorded\"t\n" +
+	"\x1aGetWorkflowInstanceRequest\x125\n" +
+	"\x05scope\x18\x01 \x01(\v2\x1f.hcmnext.common.v1.ScopeContextR\x05scope\x12\x1f\n" +
+	"\vinstance_id\x18\x02 \x01(\tR\n" +
+	"instanceId\"\xad\x05\n" +
+	"\x1bGetWorkflowInstanceResponse\x12\x1c\n" +
+	"\tdisclosed\x18\x01 \x01(\bR\tdisclosed\x12#\n" +
+	"\rdenial_reason\x18\x02 \x01(\tR\fdenialReason\x12K\n" +
+	"\n" +
+	"definition\x18\x03 \x01(\v2+.hcmnext.admin.v1.WorkflowDefinitionProfileR\n" +
+	"definition\x12E\n" +
+	"\binstance\x18\x04 \x01(\v2).hcmnext.admin.v1.WorkflowInstanceProfileR\binstance\x12B\n" +
+	"\bfrontier\x18\x05 \x03(\v2&.hcmnext.admin.v1.FrontierEntryProfileR\bfrontier\x123\n" +
+	"\x05nodes\x18\x06 \x03(\v2\x1d.hcmnext.admin.v1.NodeProfileR\x05nodes\x120\n" +
+	"\x14work_items_disclosed\x18\a \x01(\bR\x12workItemsDisclosed\x127\n" +
+	"\x18work_items_denied_reason\x18\b \x01(\tR\x15workItemsDeniedReason\x12@\n" +
+	"\n" +
+	"work_items\x18\t \x03(\v2!.hcmnext.admin.v1.WorkItemProfileR\tworkItems\x12\x1a\n" +
+	"\bcomplete\x18\n" +
+	" \x01(\bR\bcomplete\x12\x1e\n" +
+	"\n" +
+	"redactions\x18\v \x03(\tR\n" +
+	"redactions\x12\x12\n" +
+	"\x04gaps\x18\f \x03(\tR\x04gaps\x12A\n" +
+	"\fevidence_ref\x18\r \x01(\v2\x1e.hcmnext.common.v1.EvidenceRefR\vevidenceRef2\xa2\x05\n" +
 	"\fAdminService\x12Z\n" +
 	"\vListIntents\x12$.hcmnext.admin.v1.ListIntentsRequest\x1a%.hcmnext.admin.v1.ListIntentsResponse\x12o\n" +
 	"\x12GetReleaseManifest\x12+.hcmnext.admin.v1.GetReleaseManifestRequest\x1a,.hcmnext.admin.v1.GetReleaseManifestResponse\x12{\n" +
 	"\x16ListCapabilityProfiles\x12/.hcmnext.admin.v1.ListCapabilityProfilesRequest\x1a0.hcmnext.admin.v1.ListCapabilityProfilesResponse\x12o\n" +
 	"\x12ExplainTransaction\x12+.hcmnext.admin.v1.ExplainTransactionRequest\x1a,.hcmnext.admin.v1.ExplainTransactionResponse\x12c\n" +
-	"\x0eGetWorkerState\x12'.hcmnext.admin.v1.GetWorkerStateRequest\x1a(.hcmnext.admin.v1.GetWorkerStateResponseBDZBgithub.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1;adminv1b\x06proto3"
+	"\x0eGetWorkerState\x12'.hcmnext.admin.v1.GetWorkerStateRequest\x1a(.hcmnext.admin.v1.GetWorkerStateResponse\x12r\n" +
+	"\x13GetWorkflowInstance\x12,.hcmnext.admin.v1.GetWorkflowInstanceRequest\x1a-.hcmnext.admin.v1.GetWorkflowInstanceResponseBDZBgithub.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_hcmnext_admin_v1_admin_service_proto_rawDescOnce sync.Once
@@ -1388,7 +3170,7 @@ func file_hcmnext_admin_v1_admin_service_proto_rawDescGZIP() []byte {
 	return file_hcmnext_admin_v1_admin_service_proto_rawDescData
 }
 
-var file_hcmnext_admin_v1_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_hcmnext_admin_v1_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_hcmnext_admin_v1_admin_service_proto_goTypes = []any{
 	(*ListIntentsRequest)(nil),             // 0: hcmnext.admin.v1.ListIntentsRequest
 	(*ListIntentsResponse)(nil),            // 1: hcmnext.admin.v1.ListIntentsResponse
@@ -1406,51 +3188,118 @@ var file_hcmnext_admin_v1_admin_service_proto_goTypes = []any{
 	(*GetWorkerStateRequest)(nil),          // 13: hcmnext.admin.v1.GetWorkerStateRequest
 	(*FieldResult)(nil),                    // 14: hcmnext.admin.v1.FieldResult
 	(*GetWorkerStateResponse)(nil),         // 15: hcmnext.admin.v1.GetWorkerStateResponse
-	(*v1.ScopeContext)(nil),                // 16: hcmnext.common.v1.ScopeContext
-	(*v1.PageRequest)(nil),                 // 17: hcmnext.common.v1.PageRequest
-	(v11.ConsistencyFreshnessHint)(0),      // 18: hcmnext.intents.v1.ConsistencyFreshnessHint
-	(*v11.IntentInstance)(nil),             // 19: hcmnext.intents.v1.IntentInstance
-	(*v1.PageResponse)(nil),                // 20: hcmnext.common.v1.PageResponse
-	(*v1.EvidenceRef)(nil),                 // 21: hcmnext.common.v1.EvidenceRef
-	(*timestamppb.Timestamp)(nil),          // 22: google.protobuf.Timestamp
+	(*RefValue)(nil),                       // 16: hcmnext.admin.v1.RefValue
+	(*RefListValue)(nil),                   // 17: hcmnext.admin.v1.RefListValue
+	(*WorkflowDefinitionProfile)(nil),      // 18: hcmnext.admin.v1.WorkflowDefinitionProfile
+	(*LifecycleProfile)(nil),               // 19: hcmnext.admin.v1.LifecycleProfile
+	(*WorkflowInstanceProfile)(nil),        // 20: hcmnext.admin.v1.WorkflowInstanceProfile
+	(*FrontierEntryProfile)(nil),           // 21: hcmnext.admin.v1.FrontierEntryProfile
+	(*GovernanceProfile)(nil),              // 22: hcmnext.admin.v1.GovernanceProfile
+	(*TransactionProfile)(nil),             // 23: hcmnext.admin.v1.TransactionProfile
+	(*ConnectorProfile)(nil),               // 24: hcmnext.admin.v1.ConnectorProfile
+	(*ObservationProfile)(nil),             // 25: hcmnext.admin.v1.ObservationProfile
+	(*TraceProfile)(nil),                   // 26: hcmnext.admin.v1.TraceProfile
+	(*NodeProfile)(nil),                    // 27: hcmnext.admin.v1.NodeProfile
+	(*WorkItemTransitionProfile)(nil),      // 28: hcmnext.admin.v1.WorkItemTransitionProfile
+	(*WorkItemProfile)(nil),                // 29: hcmnext.admin.v1.WorkItemProfile
+	(*GetWorkflowInstanceRequest)(nil),     // 30: hcmnext.admin.v1.GetWorkflowInstanceRequest
+	(*GetWorkflowInstanceResponse)(nil),    // 31: hcmnext.admin.v1.GetWorkflowInstanceResponse
+	(*v1.ScopeContext)(nil),                // 32: hcmnext.common.v1.ScopeContext
+	(*v1.PageRequest)(nil),                 // 33: hcmnext.common.v1.PageRequest
+	(v11.ConsistencyFreshnessHint)(0),      // 34: hcmnext.intents.v1.ConsistencyFreshnessHint
+	(*v11.IntentInstance)(nil),             // 35: hcmnext.intents.v1.IntentInstance
+	(*v1.PageResponse)(nil),                // 36: hcmnext.common.v1.PageResponse
+	(*v1.EvidenceRef)(nil),                 // 37: hcmnext.common.v1.EvidenceRef
+	(*timestamppb.Timestamp)(nil),          // 38: google.protobuf.Timestamp
 }
 var file_hcmnext_admin_v1_admin_service_proto_depIdxs = []int32{
-	16, // 0: hcmnext.admin.v1.ListIntentsRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	17, // 1: hcmnext.admin.v1.ListIntentsRequest.page:type_name -> hcmnext.common.v1.PageRequest
-	18, // 2: hcmnext.admin.v1.ListIntentsRequest.freshness:type_name -> hcmnext.intents.v1.ConsistencyFreshnessHint
-	19, // 3: hcmnext.admin.v1.ListIntentsResponse.intents:type_name -> hcmnext.intents.v1.IntentInstance
-	20, // 4: hcmnext.admin.v1.ListIntentsResponse.page:type_name -> hcmnext.common.v1.PageResponse
-	21, // 5: hcmnext.admin.v1.ListIntentsResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	32, // 0: hcmnext.admin.v1.ListIntentsRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	33, // 1: hcmnext.admin.v1.ListIntentsRequest.page:type_name -> hcmnext.common.v1.PageRequest
+	34, // 2: hcmnext.admin.v1.ListIntentsRequest.freshness:type_name -> hcmnext.intents.v1.ConsistencyFreshnessHint
+	35, // 3: hcmnext.admin.v1.ListIntentsResponse.intents:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 4: hcmnext.admin.v1.ListIntentsResponse.page:type_name -> hcmnext.common.v1.PageResponse
+	37, // 5: hcmnext.admin.v1.ListIntentsResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
 	3,  // 6: hcmnext.admin.v1.GetReleaseManifestResponse.endpoints:type_name -> hcmnext.admin.v1.EndpointProfile
 	7,  // 7: hcmnext.admin.v1.GetReleaseManifestResponse.capabilities:type_name -> hcmnext.admin.v1.CapabilityProfile
 	4,  // 8: hcmnext.admin.v1.GetReleaseManifestResponse.intent_definitions:type_name -> hcmnext.admin.v1.IntentDefinitionProfile
-	21, // 9: hcmnext.admin.v1.GetReleaseManifestResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	37, // 9: hcmnext.admin.v1.GetReleaseManifestResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
 	7,  // 10: hcmnext.admin.v1.ListCapabilityProfilesResponse.capabilities:type_name -> hcmnext.admin.v1.CapabilityProfile
-	21, // 11: hcmnext.admin.v1.ListCapabilityProfilesResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
-	16, // 12: hcmnext.admin.v1.ExplainTransactionRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	37, // 11: hcmnext.admin.v1.ListCapabilityProfilesResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	32, // 12: hcmnext.admin.v1.ExplainTransactionRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
 	9,  // 13: hcmnext.admin.v1.ExplainTransactionRequest.transaction:type_name -> hcmnext.admin.v1.TransactionRef
-	22, // 14: hcmnext.admin.v1.ExplainTransactionRequest.known_at:type_name -> google.protobuf.Timestamp
+	38, // 14: hcmnext.admin.v1.ExplainTransactionRequest.known_at:type_name -> google.protobuf.Timestamp
 	11, // 15: hcmnext.admin.v1.ExplainTransactionResponse.sections:type_name -> hcmnext.admin.v1.SectionResult
-	21, // 16: hcmnext.admin.v1.ExplainTransactionResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
-	16, // 17: hcmnext.admin.v1.GetWorkerStateRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	22, // 18: hcmnext.admin.v1.GetWorkerStateRequest.known_at:type_name -> google.protobuf.Timestamp
+	37, // 16: hcmnext.admin.v1.ExplainTransactionResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	32, // 17: hcmnext.admin.v1.GetWorkerStateRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	38, // 18: hcmnext.admin.v1.GetWorkerStateRequest.known_at:type_name -> google.protobuf.Timestamp
 	14, // 19: hcmnext.admin.v1.GetWorkerStateResponse.fields:type_name -> hcmnext.admin.v1.FieldResult
-	21, // 20: hcmnext.admin.v1.GetWorkerStateResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
-	0,  // 21: hcmnext.admin.v1.AdminService.ListIntents:input_type -> hcmnext.admin.v1.ListIntentsRequest
-	2,  // 22: hcmnext.admin.v1.AdminService.GetReleaseManifest:input_type -> hcmnext.admin.v1.GetReleaseManifestRequest
-	6,  // 23: hcmnext.admin.v1.AdminService.ListCapabilityProfiles:input_type -> hcmnext.admin.v1.ListCapabilityProfilesRequest
-	10, // 24: hcmnext.admin.v1.AdminService.ExplainTransaction:input_type -> hcmnext.admin.v1.ExplainTransactionRequest
-	13, // 25: hcmnext.admin.v1.AdminService.GetWorkerState:input_type -> hcmnext.admin.v1.GetWorkerStateRequest
-	1,  // 26: hcmnext.admin.v1.AdminService.ListIntents:output_type -> hcmnext.admin.v1.ListIntentsResponse
-	5,  // 27: hcmnext.admin.v1.AdminService.GetReleaseManifest:output_type -> hcmnext.admin.v1.GetReleaseManifestResponse
-	8,  // 28: hcmnext.admin.v1.AdminService.ListCapabilityProfiles:output_type -> hcmnext.admin.v1.ListCapabilityProfilesResponse
-	12, // 29: hcmnext.admin.v1.AdminService.ExplainTransaction:output_type -> hcmnext.admin.v1.ExplainTransactionResponse
-	15, // 30: hcmnext.admin.v1.AdminService.GetWorkerState:output_type -> hcmnext.admin.v1.GetWorkerStateResponse
-	26, // [26:31] is the sub-list for method output_type
-	21, // [21:26] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	37, // 20: hcmnext.admin.v1.GetWorkerStateResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	19, // 21: hcmnext.admin.v1.WorkflowInstanceProfile.lifecycle:type_name -> hcmnext.admin.v1.LifecycleProfile
+	16, // 22: hcmnext.admin.v1.WorkflowInstanceProfile.input_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 23: hcmnext.admin.v1.WorkflowInstanceProfile.effective_context_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 24: hcmnext.admin.v1.WorkflowInstanceProfile.last_checkpoint_ref:type_name -> hcmnext.admin.v1.RefValue
+	17, // 25: hcmnext.admin.v1.WorkflowInstanceProfile.business_subject_refs:type_name -> hcmnext.admin.v1.RefListValue
+	38, // 26: hcmnext.admin.v1.WorkflowInstanceProfile.created_at:type_name -> google.protobuf.Timestamp
+	38, // 27: hcmnext.admin.v1.WorkflowInstanceProfile.started_at:type_name -> google.protobuf.Timestamp
+	38, // 28: hcmnext.admin.v1.WorkflowInstanceProfile.completed_at:type_name -> google.protobuf.Timestamp
+	16, // 29: hcmnext.admin.v1.GovernanceProfile.authorization_decision_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 30: hcmnext.admin.v1.GovernanceProfile.decision_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 31: hcmnext.admin.v1.GovernanceProfile.policy_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 32: hcmnext.admin.v1.GovernanceProfile.proposal_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 33: hcmnext.admin.v1.GovernanceProfile.baseline_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 34: hcmnext.admin.v1.GovernanceProfile.human_task_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 35: hcmnext.admin.v1.GovernanceProfile.agent_execution_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 36: hcmnext.admin.v1.TransactionProfile.business_transaction_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 37: hcmnext.admin.v1.ConnectorProfile.capability_execution_id:type_name -> hcmnext.admin.v1.RefValue
+	17, // 38: hcmnext.admin.v1.ConnectorProfile.effect_refs:type_name -> hcmnext.admin.v1.RefListValue
+	16, // 39: hcmnext.admin.v1.ObservationProfile.error_class:type_name -> hcmnext.admin.v1.RefValue
+	16, // 40: hcmnext.admin.v1.ObservationProfile.repair_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 41: hcmnext.admin.v1.TraceProfile.trace_id:type_name -> hcmnext.admin.v1.RefValue
+	16, // 42: hcmnext.admin.v1.NodeProfile.retry_policy_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 43: hcmnext.admin.v1.NodeProfile.input_snapshot_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 44: hcmnext.admin.v1.NodeProfile.output_artifact_ref:type_name -> hcmnext.admin.v1.RefValue
+	22, // 45: hcmnext.admin.v1.NodeProfile.governance:type_name -> hcmnext.admin.v1.GovernanceProfile
+	23, // 46: hcmnext.admin.v1.NodeProfile.transaction:type_name -> hcmnext.admin.v1.TransactionProfile
+	24, // 47: hcmnext.admin.v1.NodeProfile.connector:type_name -> hcmnext.admin.v1.ConnectorProfile
+	25, // 48: hcmnext.admin.v1.NodeProfile.observation:type_name -> hcmnext.admin.v1.ObservationProfile
+	26, // 49: hcmnext.admin.v1.NodeProfile.trace:type_name -> hcmnext.admin.v1.TraceProfile
+	38, // 50: hcmnext.admin.v1.NodeProfile.started_at:type_name -> google.protobuf.Timestamp
+	38, // 51: hcmnext.admin.v1.NodeProfile.completed_at:type_name -> google.protobuf.Timestamp
+	38, // 52: hcmnext.admin.v1.NodeProfile.recorded_at:type_name -> google.protobuf.Timestamp
+	16, // 53: hcmnext.admin.v1.WorkItemTransitionProfile.evidence_ref:type_name -> hcmnext.admin.v1.RefValue
+	38, // 54: hcmnext.admin.v1.WorkItemTransitionProfile.at:type_name -> google.protobuf.Timestamp
+	38, // 55: hcmnext.admin.v1.WorkItemTransitionProfile.recorded_at:type_name -> google.protobuf.Timestamp
+	16, // 56: hcmnext.admin.v1.WorkItemProfile.approval_requirement_ref:type_name -> hcmnext.admin.v1.RefValue
+	16, // 57: hcmnext.admin.v1.WorkItemProfile.proposal_ref:type_name -> hcmnext.admin.v1.RefValue
+	17, // 58: hcmnext.admin.v1.WorkItemProfile.subject_refs:type_name -> hcmnext.admin.v1.RefListValue
+	38, // 59: hcmnext.admin.v1.WorkItemProfile.deadline_at:type_name -> google.protobuf.Timestamp
+	16, // 60: hcmnext.admin.v1.WorkItemProfile.completed_output_digest:type_name -> hcmnext.admin.v1.RefValue
+	38, // 61: hcmnext.admin.v1.WorkItemProfile.created_at:type_name -> google.protobuf.Timestamp
+	28, // 62: hcmnext.admin.v1.WorkItemProfile.transitions:type_name -> hcmnext.admin.v1.WorkItemTransitionProfile
+	32, // 63: hcmnext.admin.v1.GetWorkflowInstanceRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	18, // 64: hcmnext.admin.v1.GetWorkflowInstanceResponse.definition:type_name -> hcmnext.admin.v1.WorkflowDefinitionProfile
+	20, // 65: hcmnext.admin.v1.GetWorkflowInstanceResponse.instance:type_name -> hcmnext.admin.v1.WorkflowInstanceProfile
+	21, // 66: hcmnext.admin.v1.GetWorkflowInstanceResponse.frontier:type_name -> hcmnext.admin.v1.FrontierEntryProfile
+	27, // 67: hcmnext.admin.v1.GetWorkflowInstanceResponse.nodes:type_name -> hcmnext.admin.v1.NodeProfile
+	29, // 68: hcmnext.admin.v1.GetWorkflowInstanceResponse.work_items:type_name -> hcmnext.admin.v1.WorkItemProfile
+	37, // 69: hcmnext.admin.v1.GetWorkflowInstanceResponse.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	0,  // 70: hcmnext.admin.v1.AdminService.ListIntents:input_type -> hcmnext.admin.v1.ListIntentsRequest
+	2,  // 71: hcmnext.admin.v1.AdminService.GetReleaseManifest:input_type -> hcmnext.admin.v1.GetReleaseManifestRequest
+	6,  // 72: hcmnext.admin.v1.AdminService.ListCapabilityProfiles:input_type -> hcmnext.admin.v1.ListCapabilityProfilesRequest
+	10, // 73: hcmnext.admin.v1.AdminService.ExplainTransaction:input_type -> hcmnext.admin.v1.ExplainTransactionRequest
+	13, // 74: hcmnext.admin.v1.AdminService.GetWorkerState:input_type -> hcmnext.admin.v1.GetWorkerStateRequest
+	30, // 75: hcmnext.admin.v1.AdminService.GetWorkflowInstance:input_type -> hcmnext.admin.v1.GetWorkflowInstanceRequest
+	1,  // 76: hcmnext.admin.v1.AdminService.ListIntents:output_type -> hcmnext.admin.v1.ListIntentsResponse
+	5,  // 77: hcmnext.admin.v1.AdminService.GetReleaseManifest:output_type -> hcmnext.admin.v1.GetReleaseManifestResponse
+	8,  // 78: hcmnext.admin.v1.AdminService.ListCapabilityProfiles:output_type -> hcmnext.admin.v1.ListCapabilityProfilesResponse
+	12, // 79: hcmnext.admin.v1.AdminService.ExplainTransaction:output_type -> hcmnext.admin.v1.ExplainTransactionResponse
+	15, // 80: hcmnext.admin.v1.AdminService.GetWorkerState:output_type -> hcmnext.admin.v1.GetWorkerStateResponse
+	31, // 81: hcmnext.admin.v1.AdminService.GetWorkflowInstance:output_type -> hcmnext.admin.v1.GetWorkflowInstanceResponse
+	76, // [76:82] is the sub-list for method output_type
+	70, // [70:76] is the sub-list for method input_type
+	70, // [70:70] is the sub-list for extension type_name
+	70, // [70:70] is the sub-list for extension extendee
+	0,  // [0:70] is the sub-list for field type_name
 }
 
 func init() { file_hcmnext_admin_v1_admin_service_proto_init() }
@@ -1464,7 +3313,7 @@ func file_hcmnext_admin_v1_admin_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hcmnext_admin_v1_admin_service_proto_rawDesc), len(file_hcmnext_admin_v1_admin_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

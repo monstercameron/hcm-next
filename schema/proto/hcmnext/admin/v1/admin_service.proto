@@ -80,6 +80,25 @@ service AdminService {
   // see, with denied fields named and marked rather than dropped. It
   // performs no write of any kind.
   rpc GetWorkerState(GetWorkerStateRequest) returns (GetWorkerStateResponse);
+
+  // GetWorkflowInstance is ADMIN-008's governed, read-only execution
+  // inspector: it composes internal/workflow/runtime's stored instance and
+  // node-execution rows with internal/humanwork/workitem's stored work
+  // items and their transitions and renders internal/workflow/inspect's
+  // declared traversal (definition -> instance -> node -> governance ->
+  // transaction -> connector -> observation -> trace), the instance's five
+  // lifecycle dimensions, its frontier, and its work items with their
+  // transitions and evidence ids. It touches no runtime table directly -
+  // internal/transport/admin composes the two stores' read ports and hands
+  // their already-loaded rows to inspect.Build/inspect.BuildWorkItems - and
+  // performs no write of any kind. Every reference that is a protected
+  // artifact, not operational metadata, is a RefValue carrying either the
+  // value or the reason it is withheld, and gap_kind additionally
+  // distinguishes a reference nothing ever recorded (UNRECORDED) from one
+  // correctly recorded as empty (ABSENT) from one this caller may not see
+  // (REDACTED), so an empty governance or work-item reference is never
+  // silently indistinguishable from an unrecorded one.
+  rpc GetWorkflowInstance(GetWorkflowInstanceRequest) returns (GetWorkflowInstanceResponse);
 }
 
 // ListIntentsRequest mirrors hcmnext.intents.v1.ListIntentsRequest (see
@@ -262,4 +281,216 @@ message GetWorkerStateResponse {
   string inputs_digest = 8;
   string result_digest = 9;
   hcmnext.common.v1.EvidenceRef evidence_ref = 10;
+}
+
+// RefValue is one internal/workflow/inspect.Ref (or, for a list, a
+// [RefListValue]) rendered on the wire: which presence state it carries,
+// the value only when state is VALUE, the policy or storage reason when it
+// is not, and the ADMIN-008 gap_kind classification that closes the "empty
+// vs unrecorded vs redacted" ambiguity a bare state/value pair cannot.
+message RefValue {
+  // state is one of VALUE, ABSENT, REDACTED (internal/kernel/values.PresenceState).
+  string state = 1;
+  string value = 2;
+  string reason = 3;
+  // gap_kind is one of "", ABSENT, UNRECORDED, REDACTED
+  // (internal/workflow/inspect.GapKind). Empty means state is VALUE.
+  string gap_kind = 4;
+}
+
+// RefListValue is one internal/workflow/inspect.RefList rendered on the wire.
+message RefListValue {
+  string state = 1;
+  repeated string values = 2;
+  string reason = 3;
+}
+
+// WorkflowDefinitionProfile is inspect.DefinitionView.
+message WorkflowDefinitionProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  string workflow_id = 3;
+  uint32 workflow_version = 4;
+  string compiled_plan_hash = 5;
+}
+
+// LifecycleProfile is inspect.Lifecycle: the instance's five lifecycle
+// dimensions, always rendered together and never collapsed into one status.
+message LifecycleProfile {
+  string request_state = 1;
+  string execution_state = 2;
+  string business_state = 3;
+  string consistency_state = 4;
+  string obligation_state = 5;
+}
+
+// WorkflowInstanceProfile is inspect.InstanceView.
+message WorkflowInstanceProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  string instance_id = 3;
+  string cell_id = 4;
+  string correlation_id = 5;
+  string execution_mode = 6;
+  string runtime_status = 7;
+  int64 instance_version = 8;
+  int64 variable_revision_head = 9;
+  LifecycleProfile lifecycle = 10;
+  RefValue input_ref = 11;
+  RefValue effective_context_ref = 12;
+  RefValue last_checkpoint_ref = 13;
+  RefListValue business_subject_refs = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp started_at = 16;
+  google.protobuf.Timestamp completed_at = 17;
+}
+
+// FrontierEntryProfile is inspect.FrontierEntry: one node the instance is
+// currently at. attempt_recorded false means the frontier names a node no
+// execution row covers - a gap, not a blank.
+message FrontierEntryProfile {
+  string node_id = 1;
+  bool attempt_recorded = 2;
+  int32 attempt = 3;
+  string status = 4;
+  string step_type = 5;
+}
+
+// GovernanceProfile is inspect.GovernanceView.
+message GovernanceProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  RefValue authorization_decision_id = 3;
+  RefValue decision_id = 4;
+  RefValue policy_ref = 5;
+  RefValue proposal_ref = 6;
+  RefValue baseline_ref = 7;
+  RefValue human_task_id = 8;
+  RefValue agent_execution_id = 9;
+}
+
+// TransactionProfile is inspect.TransactionView.
+message TransactionProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  RefValue business_transaction_id = 3;
+}
+
+// ConnectorProfile is inspect.ConnectorView.
+message ConnectorProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  RefValue capability_execution_id = 3;
+  RefListValue effect_refs = 4;
+}
+
+// ObservationProfile is inspect.ObservationView.
+message ObservationProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  RefValue error_class = 3;
+  RefValue repair_ref = 4;
+}
+
+// TraceProfile is inspect.TraceView.
+message TraceProfile {
+  bool disclosed = 1;
+  string denied_reason = 2;
+  RefValue trace_id = 3;
+}
+
+// NodeProfile is inspect.NodeView: one recorded node-execution attempt and
+// the four stages that hang off it.
+message NodeProfile {
+  string node_id = 1;
+  int32 attempt = 2;
+  string step_type = 3;
+  string status = 4;
+  // current reports whether this attempt is on the instance's frontier.
+  bool current = 5;
+  RefValue retry_policy_ref = 6;
+  RefValue input_snapshot_ref = 7;
+  RefValue output_artifact_ref = 8;
+  GovernanceProfile governance = 9;
+  TransactionProfile transaction = 10;
+  ConnectorProfile connector = 11;
+  ObservationProfile observation = 12;
+  TraceProfile trace = 13;
+  google.protobuf.Timestamp started_at = 14;
+  google.protobuf.Timestamp completed_at = 15;
+  google.protobuf.Timestamp recorded_at = 16;
+}
+
+// WorkItemTransitionProfile is inspect.TransitionView: one immutable
+// work_item_transition row.
+message WorkItemTransitionProfile {
+  string transition_id = 1;
+  int64 item_version = 2;
+  string from_status = 3;
+  string to_status = 4;
+  string actor_principal_id = 5;
+  string reason = 6;
+  string detail = 7;
+  RefValue evidence_ref = 8;
+  google.protobuf.Timestamp at = 9;
+  google.protobuf.Timestamp recorded_at = 10;
+}
+
+// WorkItemProfile is inspect.WorkItemView: one work item the instance's
+// frontier created, plus its whole transition chronology.
+// transitions_recorded false means the item loaded with zero transitions,
+// which internal/humanwork/workitem.Store.Create never allows to happen
+// honestly - a gap, named in the response's own gaps list.
+message WorkItemProfile {
+  string work_item_id = 1;
+  int64 item_version = 2;
+  // kind is one of APPROVAL, TASK (internal/humanwork/workitem.Kind).
+  string kind = 3;
+  string work_type = 4;
+  string status = 5;
+  string correlation_id = 6;
+  string node_id = 7;
+  RefValue approval_requirement_ref = 8;
+  RefValue proposal_ref = 9;
+  RefListValue subject_refs = 10;
+  string owner_kind = 11;
+  string owner_ref = 12;
+  string policy_route_ref = 13;
+  string visibility = 14;
+  google.protobuf.Timestamp deadline_at = 15;
+  string claimed_by = 16;
+  string completed_by = 17;
+  RefValue completed_output_digest = 18;
+  google.protobuf.Timestamp created_at = 19;
+  repeated WorkItemTransitionProfile transitions = 20;
+  bool transitions_recorded = 21;
+}
+
+message GetWorkflowInstanceRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string instance_id = 2;
+}
+
+message GetWorkflowInstanceResponse {
+  // disclosed reports whether the caller may learn that this instance
+  // exists at all (inspect.Authorization.InstanceDisclosable). False means
+  // every other field below is unset: a caller who may not know the
+  // instance exists must not be able to infer it from a pattern of
+  // populated-but-denied sections.
+  bool disclosed = 1;
+  string denial_reason = 2;
+  WorkflowDefinitionProfile definition = 3;
+  WorkflowInstanceProfile instance = 4;
+  repeated FrontierEntryProfile frontier = 5;
+  repeated NodeProfile nodes = 6;
+  bool work_items_disclosed = 7;
+  string work_items_denied_reason = 8;
+  repeated WorkItemProfile work_items = 9;
+  // complete is true only when nothing was denied and nothing was missing
+  // across both the traversal and the work-item section
+  // (inspect.Completeness.Complete, conjoined).
+  bool complete = 10;
+  repeated string redactions = 11;
+  repeated string gaps = 12;
+  hcmnext.common.v1.EvidenceRef evidence_ref = 13;
 }

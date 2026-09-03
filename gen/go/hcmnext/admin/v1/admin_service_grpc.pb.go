@@ -24,6 +24,7 @@ const (
 	AdminService_ListCapabilityProfiles_FullMethodName = "/hcmnext.admin.v1.AdminService/ListCapabilityProfiles"
 	AdminService_ExplainTransaction_FullMethodName     = "/hcmnext.admin.v1.AdminService/ExplainTransaction"
 	AdminService_GetWorkerState_FullMethodName         = "/hcmnext.admin.v1.AdminService/GetWorkerState"
+	AdminService_GetWorkflowInstance_FullMethodName    = "/hcmnext.admin.v1.AdminService/GetWorkflowInstance"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -97,6 +98,24 @@ type AdminServiceClient interface {
 	// see, with denied fields named and marked rather than dropped. It
 	// performs no write of any kind.
 	GetWorkerState(ctx context.Context, in *GetWorkerStateRequest, opts ...grpc.CallOption) (*GetWorkerStateResponse, error)
+	// GetWorkflowInstance is ADMIN-008's governed, read-only execution
+	// inspector: it composes internal/workflow/runtime's stored instance and
+	// node-execution rows with internal/humanwork/workitem's stored work
+	// items and their transitions and renders internal/workflow/inspect's
+	// declared traversal (definition -> instance -> node -> governance ->
+	// transaction -> connector -> observation -> trace), the instance's five
+	// lifecycle dimensions, its frontier, and its work items with their
+	// transitions and evidence ids. It touches no runtime table directly -
+	// internal/transport/admin composes the two stores' read ports and hands
+	// their already-loaded rows to inspect.Build/inspect.BuildWorkItems - and
+	// performs no write of any kind. Every reference that is a protected
+	// artifact, not operational metadata, is a RefValue carrying either the
+	// value or the reason it is withheld, and gap_kind additionally
+	// distinguishes a reference nothing ever recorded (UNRECORDED) from one
+	// correctly recorded as empty (ABSENT) from one this caller may not see
+	// (REDACTED), so an empty governance or work-item reference is never
+	// silently indistinguishable from an unrecorded one.
+	GetWorkflowInstance(ctx context.Context, in *GetWorkflowInstanceRequest, opts ...grpc.CallOption) (*GetWorkflowInstanceResponse, error)
 }
 
 type adminServiceClient struct {
@@ -151,6 +170,16 @@ func (c *adminServiceClient) GetWorkerState(ctx context.Context, in *GetWorkerSt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetWorkerStateResponse)
 	err := c.cc.Invoke(ctx, AdminService_GetWorkerState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetWorkflowInstance(ctx context.Context, in *GetWorkflowInstanceRequest, opts ...grpc.CallOption) (*GetWorkflowInstanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkflowInstanceResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetWorkflowInstance_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -228,6 +257,24 @@ type AdminServiceServer interface {
 	// see, with denied fields named and marked rather than dropped. It
 	// performs no write of any kind.
 	GetWorkerState(context.Context, *GetWorkerStateRequest) (*GetWorkerStateResponse, error)
+	// GetWorkflowInstance is ADMIN-008's governed, read-only execution
+	// inspector: it composes internal/workflow/runtime's stored instance and
+	// node-execution rows with internal/humanwork/workitem's stored work
+	// items and their transitions and renders internal/workflow/inspect's
+	// declared traversal (definition -> instance -> node -> governance ->
+	// transaction -> connector -> observation -> trace), the instance's five
+	// lifecycle dimensions, its frontier, and its work items with their
+	// transitions and evidence ids. It touches no runtime table directly -
+	// internal/transport/admin composes the two stores' read ports and hands
+	// their already-loaded rows to inspect.Build/inspect.BuildWorkItems - and
+	// performs no write of any kind. Every reference that is a protected
+	// artifact, not operational metadata, is a RefValue carrying either the
+	// value or the reason it is withheld, and gap_kind additionally
+	// distinguishes a reference nothing ever recorded (UNRECORDED) from one
+	// correctly recorded as empty (ABSENT) from one this caller may not see
+	// (REDACTED), so an empty governance or work-item reference is never
+	// silently indistinguishable from an unrecorded one.
+	GetWorkflowInstance(context.Context, *GetWorkflowInstanceRequest) (*GetWorkflowInstanceResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -252,6 +299,9 @@ func (UnimplementedAdminServiceServer) ExplainTransaction(context.Context, *Expl
 }
 func (UnimplementedAdminServiceServer) GetWorkerState(context.Context, *GetWorkerStateRequest) (*GetWorkerStateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWorkerState not implemented")
+}
+func (UnimplementedAdminServiceServer) GetWorkflowInstance(context.Context, *GetWorkflowInstanceRequest) (*GetWorkflowInstanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkflowInstance not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -364,6 +414,24 @@ func _AdminService_GetWorkerState_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GetWorkflowInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkflowInstanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetWorkflowInstance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetWorkflowInstance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetWorkflowInstance(ctx, req.(*GetWorkflowInstanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -390,6 +458,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWorkerState",
 			Handler:    _AdminService_GetWorkerState_Handler,
+		},
+		{
+			MethodName: "GetWorkflowInstance",
+			Handler:    _AdminService_GetWorkflowInstance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
