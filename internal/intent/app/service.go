@@ -129,6 +129,14 @@ type Options struct {
 	// package already imports this one): only the composition root that
 	// built the real Store knows the exact derivation its tenant rows use.
 	TenantUUID func(values.TenantId) uuid.UUID
+	// Evidence is where [IntentService.ExecuteIntent] records its
+	// OBS-024 GATE_REFUSED/GATE_ADMITTED evidence, through the same
+	// capability evidence sink mechanism CAP-002's gateway already writes
+	// through. Nil means a fresh [MemoryEvidenceSink] private to this
+	// service; [NewCell] instead passes the cell's own gateway sink, so a
+	// caller reads capability-invocation and authority-gate evidence back
+	// from one place ([Cell.Evidence]).
+	Evidence capability.EvidenceSink
 }
 
 // IntentService is the application service behind both transports.
@@ -154,6 +162,9 @@ type IntentService struct {
 	executionVersions  workflowversion.Store
 	executionCellID    string
 	tenantUUID         func(values.TenantId) uuid.UUID
+	// evidence is OBS-024's GATE_REFUSED/GATE_ADMITTED recorder.
+	// [IntentService.ExecuteIntent] is the only reader.
+	evidence capability.EvidenceSink
 }
 
 var (
@@ -194,12 +205,16 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		executionVersions:  opts.ExecutionVersions,
 		executionCellID:    opts.ExecutionCellID,
 		tenantUUID:         opts.TenantUUID,
+		evidence:           opts.Evidence,
 	}
 	if svc.ids == nil {
 		svc.ids = intent.UUIDv7Source
 	}
 	if svc.clock == nil {
 		svc.clock = func() values.Instant { return values.NewInstant(time.Now().UTC()) }
+	}
+	if svc.evidence == nil {
+		svc.evidence = NewMemoryEvidenceSink()
 	}
 	return svc, nil
 }

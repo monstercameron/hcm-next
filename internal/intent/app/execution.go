@@ -35,7 +35,50 @@ type ExecutionResult struct {
 	VisitedNodes []string
 	// ParkedContinuations names the continuation(s) the instance is waiting
 	// on. Empty when Parked is false.
+	//
+	// Deprecated: this field's own values were work-item ids
+	// ("work_type:work_item_id"), not continuation ids -- exactly the
+	// WF-RUN-032 finding. It is kept only so an existing caller of this port
+	// keeps compiling; ParkedContinuationRefs and ParkedWorkItems below are
+	// its typed, correctly-named replacement, and every current composition
+	// root populates both.
 	ParkedContinuations []string
+	// ParkedContinuationRefs names the durable continuation(s) (WF-RUN-032):
+	// the scheduling record a frontier intent raised, never a work item.
+	// Empty when Parked is false.
+	ParkedContinuationRefs []ContinuationRef
+	// ParkedWorkItems names the durable WorkItem(s) a WORK_ITEM_REQUIRED
+	// continuation raised, separately from the continuation record itself.
+	// Empty when Parked is false or the instance is parked on a continuation
+	// kind that raises no work item.
+	ParkedWorkItems []WorkItemRef
+	// EvidenceIDs are the OBS-024 execution-evidence ids recorded while
+	// producing this result (APPROVAL_COMPLETED/TASK_SUBMITTED on a resume,
+	// TERMINAL_WRITTEN on any call that reaches COMPLETE), in recording
+	// order. It does not include the GATE_REFUSED/GATE_ADMITTED entry
+	// [IntentService.ExecuteIntent] records itself, before this port is ever
+	// called; a caller that wants the complete chain reads both.
+	EvidenceIDs []string
+}
+
+// ContinuationRef names one durable scheduling record a parked instance is
+// waiting to have satisfied. Kind is a [frontier.IntentKind]'s string form
+// (WORK_ITEM_REQUIRED, SIGNAL_SUBSCRIPTION_REQUIRED or TIMER_REQUIRED); this
+// package carries it as a plain string rather than importing
+// internal/workflow/frontier's type, for the same layering reason
+// [ExecutionResult]'s own doc comment gives.
+type ContinuationRef struct {
+	ContinuationID string
+	Kind           string
+	TargetNodeID   string
+}
+
+// WorkItemRef names one durable [workitem.WorkItem] a parked instance raised.
+// Kind is the item's own [workitem.Kind] string form (APPROVAL or TASK).
+type WorkItemRef struct {
+	WorkItemID string
+	Kind       string
+	NodeID     string
 }
 
 // ExecutionResumeRequest resumes one parked instance from completed

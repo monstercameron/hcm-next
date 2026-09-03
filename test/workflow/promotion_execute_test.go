@@ -21,6 +21,7 @@ package workflow_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go/ast"
@@ -28,6 +29,7 @@ import (
 	"go/token"
 	"io/fs"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -299,10 +301,26 @@ func newDemoProposal(t *testing.T, tenant values.TenantId, intentID string, at t
 	if err != nil {
 		t.Fatalf("NewOpenInstantInterval: %v", err)
 	}
+	// WF-RUN-030's terminal payload names the promotion's target placement
+	// straight from the proposal revision's own material content, never from
+	// the END node's output, so this fixture carries a real proposed-state
+	// assertion for the terminal write to read.
+	placementKey, err := values.NewResourceKey(tenant, "employment", "promotion-execute-demo-1")
+	if err != nil {
+		t.Fatalf("NewResourceKey: %v", err)
+	}
 	rev, err := intent.NewProposalRevision(intent.ProposalSpec{
 		IntentID: intentID, Revision: 1, Tenant: tenant, OrganizationScopeID: humanwork.ScenarioOrganizationScopeID,
 		Subjects:      []intent.SubjectReference{{Kind: "EMPLOYMENT", SubjectID: "employment:promotion-execute-demo-1", AuthorityDomain: "PEOPLE"}},
 		EffectiveTime: interval, ControlSnapshots: demoControlSnapshots(),
+		ProposedState: []intent.StateAssertion{
+			{
+				Subject:       intent.SubjectReference{Kind: "EMPLOYMENT", SubjectID: "employment:promotion-execute-demo-1", AuthorityDomain: "PEOPLE"},
+				ResourceKey:   placementKey,
+				FieldPath:     "position_id",
+				CanonicalText: "position:senior-engineer",
+			},
+		},
 		CreatedBy: intent.PrincipalReference{PrincipalID: humanwork.PrincipalRequester, Kind: intent.InitiatorHuman, IdentityAssuranceRef: "assurance:1"},
 	}, intent.Definition{
 		Ref: intent.Ref{TypeID: "hcmnext.test.promotion_execute_demo", Version: 1}, Family: intent.FamilyChangeRequest,
@@ -624,6 +642,7 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 
 	drv, err := execute.New(execute.Options{
 		DB: beginner, Steps: endOnlySteps{}, WorkItems: workItems, Terminal: terminal,
+		Items: workitem.Store{},
 		Guard: idempotency.PostgresStore{}, Retention: idempotency.RetentionPolicy{Retention: 72 * time.Hour, RetryWindow: 6 * time.Hour},
 		Clock: func() time.Time { return at },
 	})
@@ -692,7 +711,8 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 	}
 	parkedTask, err := drv.Resume(ctx, execute.ResumeRequest{
 		Start: start, InstanceID: parkedApproval.Start.InstanceID, ExpectedInstanceVersion: parkedApproval.InstanceVersion,
-		WorkItem: completedApproval, Outcome: approvalOut, RecordedAt: at.Add(time.Minute),
+		WorkItemID: completedApproval.WorkItemID, ExpectedWorkItemVersion: completedApproval.ItemVersion,
+		Outcome: approvalOut, RecordedAt: at.Add(time.Minute),
 	})
 	if err != nil {
 		t.Fatalf("Resume (approval->task): %v", err)
@@ -754,7 +774,8 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 	}
 	final, err := drv.Resume(ctx, execute.ResumeRequest{
 		Start: start, InstanceID: parkedApproval.Start.InstanceID, ExpectedInstanceVersion: parkedTask.InstanceVersion,
-		WorkItem: completedTask, Outcome: taskOut, RecordedAt: submittedAt.Add(time.Minute),
+		WorkItemID: completedTask.WorkItemID, ExpectedWorkItemVersion: completedTask.ItemVersion,
+		Outcome: taskOut, RecordedAt: submittedAt.Add(time.Minute),
 	})
 	if err != nil {
 		t.Fatalf("Resume (task->complete): %v", err)
@@ -778,7 +799,8 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 	// --- A second Resume with the identical completion appends nothing. ---
 	replay, err := drv.Resume(ctx, execute.ResumeRequest{
 		Start: start, InstanceID: parkedApproval.Start.InstanceID, ExpectedInstanceVersion: parkedTask.InstanceVersion,
-		WorkItem: completedTask, Outcome: taskOut, RecordedAt: submittedAt.Add(time.Minute),
+		WorkItemID: completedTask.WorkItemID, ExpectedWorkItemVersion: completedTask.ItemVersion,
+		Outcome: taskOut, RecordedAt: submittedAt.Add(time.Minute),
 	})
 	if err == nil {
 		if replay.Status != execute.StatusComplete {
@@ -996,3 +1018,465 @@ func scanDirForCallerDrivenViolations(t *testing.T, dir string, allowedClockRead
 }
 
 var _ = errors.New // keep errors imported if unused by future edits
+
+// ---------------------------------------------------------------------------
+// WF-RUN-030: the terminal ledger event names worker, target placement,
+// effective date, approval decision ids and task submission ids alongside
+// the proposal and plan digests, and the terminal idempotency guard survives
+// a replay that bypasses the runtime advancement receipt entirely.
+//
+// This fixture is a dedicated, self-contained run of the same demo graph
+// TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite drives (deliberate
+// duplication, not a refactor of that test, to keep the two test bodies
+// independently readable and independently safe to change).
+// ---------------------------------------------------------------------------
+
+// promotionOutcomePayloadView is this test package's own read-side mirror of
+// internal/workflow/execute/effects.promotionOutcomePayload (unexported
+// there): the golden shape a downstream consumer decodes the ledger event's
+// payload column as.
+type promotionOutcomePayloadView struct {
+	SchemaRef           string   `json:"schema_ref"`
+	WorkflowID          string   `json:"workflow_id"`
+	PlanDigest          string   `json:"plan_digest"`
+	InstanceID          string   `json:"instance_id"`
+	ProposalRevisionID  string   `json:"proposal_revision_id"`
+	ProposalDigest      string   `json:"proposal_digest"`
+	TerminalCode        string   `json:"terminal_code"`
+	CorrelationID       string   `json:"correlation_id"`
+	EndNodeID           string   `json:"end_node_id"`
+	EndOutputDigest     string   `json:"end_output_digest"`
+	WorkerRef           string   `json:"worker_ref"`
+	TargetPlacement     string   `json:"target_placement"`
+	EffectiveDate       string   `json:"effective_date"`
+	ApprovalDecisionIDs []string `json:"approval_decision_ids"`
+	TaskSubmissionIDs   []string `json:"task_submission_ids"`
+}
+
+// wfrun030Fixture is everything WF-RUN-030's tests read back after driving
+// one promotion to COMPLETE.
+type wfrun030Fixture struct {
+	db         *pgtest.DB
+	tenantID   uuid.UUID
+	instanceID uuid.UUID
+	start      runtime.StartRequest
+	terminal   *effects.LedgerTerminalWriter
+	proposal   intent.ProposalRevision
+	streamKey  string
+	recordedAt time.Time
+}
+
+// runPromotionToComplete drives promotionApprovalTaskDefinition's demo graph
+// from Execute through both governed WorkItems to COMPLETE, exactly as
+// TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite does, and returns
+// the identities and ports WF-RUN-030's own assertions need.
+func runPromotionToComplete(t *testing.T, tenantKey string, at time.Time) wfrun030Fixture {
+	t.Helper()
+	ctx := context.Background()
+	db := pgtest.New(t)
+	beginner := appConn(t, db)
+	tenantID := insertTenant(t, db, tenantKey, at)
+
+	versions, plan, activated := publishActiveDemoPlan(t, at)
+	proposal := newDemoProposal(t, values.TenantId(tenantKey), "intent:"+tenantKey, at)
+	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"}
+	managerReq, managerRes, _, _ := managerRequirementAndResolution(t)
+
+	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
+		WorkflowID: plan.WorkflowID, Pin: version.Pin{CompiledPlanDigest: activated.CompiledPlanDigest}, Plan: plan,
+	}}}
+	terminal := &effects.LedgerTerminalWriter{
+		Appender: newLedgerAppender(t), ProjectionName: "workflow_promotion_outcome_test_" + tenantKey,
+		SourceRef: "hcmnext:test:workflow",
+	}
+	workItems := demoWorkItems{proposal: proposal, managerReq: managerReq, managerResolution: managerRes, taskOwner: humanwork.PrincipalHRBP}
+
+	drv, err := execute.New(execute.Options{
+		DB: beginner, Steps: endOnlySteps{}, WorkItems: workItems, Terminal: terminal,
+		Items: workitem.Store{},
+		Guard: idempotency.PostgresStore{}, Retention: idempotency.RetentionPolicy{Retention: 72 * time.Hour, RetryWindow: 6 * time.Hour},
+		Clock: func() time.Time { return at },
+	})
+	if err != nil {
+		t.Fatalf("execute.New: %v", err)
+	}
+
+	start := runtime.StartRequest{
+		TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:" + tenantKey,
+		Resolver: resolver, Versions: versions, Proposal: binding,
+		ExpectedIntentID: proposal.IntentID, ExpectedTenant: proposal.Tenant,
+		BusinessSubjectRefs: []string{"employment:promotion-execute-demo-1"},
+		ExecutionMode:       workflow.ModeExecute, CorrelationID: "corr:" + tenantKey, CreatedAt: at,
+	}
+
+	parkedApproval, err := drv.Execute(ctx, execute.ExecuteRequest{Start: start})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if parkedApproval.Status != execute.StatusParked || len(parkedApproval.WorkItems) != 1 {
+		t.Fatalf("Execute result = %+v, want PARKED with one WorkItem", parkedApproval)
+	}
+	approvalItem := parkedApproval.WorkItems[0]
+
+	store := workitem.Store{}
+	var completedApproval workitem.WorkItem
+	inTenantTx(t, db, tenantID, func(tx dbport.Tx) error {
+		claimed, claimErr := store.Claim(ctx, tx, workitem.ClaimInput{
+			TenantID: tenantID, WorkItemID: approvalItem.WorkItemID, ExpectedVersion: approvalItem.ItemVersion,
+			ClaimantPrincipalID: humanwork.PrincipalManager, ClaimExpiresAt: at.Add(time.Hour), Now: at,
+			Meta: workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalManager, Reason: "APPROVAL_CLAIMED", At: at},
+		})
+		if claimErr != nil {
+			return claimErr
+		}
+		started, startErr := store.Start(ctx, tx, tenantID, approvalItem.WorkItemID, claimed.ItemVersion, at,
+			workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalManager, Reason: "APPROVAL_STARTED", At: at})
+		if startErr != nil {
+			return startErr
+		}
+		decision := approvalDecisionFor(workitem.WorkItem{CompletedBy: humanwork.PrincipalManager}, managerReq, proposal, at)
+		var completeErr error
+		completedApproval, completeErr = stepsapproval.Complete(ctx, tx, store, started, decision, at,
+			workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalManager, Reason: "APPROVAL_DECIDED", At: at})
+		return completeErr
+	})
+	if completedApproval.Status != workitem.StatusCompleted {
+		t.Fatalf("completed approval work item status = %s, want COMPLETED", completedApproval.Status)
+	}
+
+	approvalOut := approvalOutcome(t, completedApproval, managerReq, proposal, at, at.Add(time.Minute))
+	parkedTask, err := drv.Resume(ctx, execute.ResumeRequest{
+		Start: start, InstanceID: parkedApproval.Start.InstanceID, ExpectedInstanceVersion: parkedApproval.InstanceVersion,
+		WorkItemID: completedApproval.WorkItemID, ExpectedWorkItemVersion: completedApproval.ItemVersion,
+		Outcome: approvalOut, RecordedAt: at.Add(time.Minute),
+	})
+	if err != nil {
+		t.Fatalf("Resume (approval->task): %v", err)
+	}
+	if parkedTask.Status != execute.StatusParked || len(parkedTask.WorkItems) != 1 {
+		t.Fatalf("Resume result = %+v, want PARKED with one WorkItem", parkedTask)
+	}
+	taskItem := parkedTask.WorkItems[0]
+
+	var completedTask workitem.WorkItem
+	var submission stepstask.Submission
+	claimID := uuid.New()
+	claimExpires := at.Add(2 * time.Hour)
+	submittedAt := at.Add(90 * time.Minute)
+	inTenantTx(t, db, tenantID, func(tx dbport.Tx) error {
+		claimed, claimErr := store.Claim(ctx, tx, workitem.ClaimInput{
+			TenantID: tenantID, WorkItemID: taskItem.WorkItemID, ExpectedVersion: taskItem.ItemVersion,
+			ClaimantPrincipalID: humanwork.PrincipalHRBP, ClaimExpiresAt: claimExpires, Now: at.Add(time.Minute),
+			Meta: workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalHRBP, Reason: "TASK_CLAIMED", At: at.Add(time.Minute)},
+		})
+		if claimErr != nil {
+			return claimErr
+		}
+		started, startErr := store.Start(ctx, tx, tenantID, taskItem.WorkItemID, claimed.ItemVersion, at.Add(2*time.Minute),
+			workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalHRBP, Reason: "TASK_STARTED", At: at.Add(2 * time.Minute)})
+		if startErr != nil {
+			return startErr
+		}
+		claimed.ClaimID = &claimID
+		started.ClaimID = &claimID
+		var submitErr error
+		completedTask, submission, submitErr = stepstask.Submit(ctx, tx, store, started, stepstask.SubmitInput{
+			Node: demoTaskNode(),
+			Spec: stepstask.SubmissionSpec{
+				CompletedBy: humanwork.PrincipalHRBP, CandidateVia: humanwork.SourceDirect,
+				ClaimID: claimID, ClaimExpiresAt: values.NewInstant(claimExpires), SubmittedAt: values.NewInstant(submittedAt),
+				OutputSchema: demoTaskNode().OutputSchema, CanonicalPayloadDigest: "sha256:" + strings.Repeat("c", 64),
+				FormDefinition: demoTaskNode().FormDefinition, RenderContextDigest: "sha256:" + strings.Repeat("d", 64),
+				ValidationEvidenceRef: "evidence.validation.test/v1", AccessibilityEvidenceRef: "evidence.accessibility.test/v1",
+				AccommodationEvidenceRef: "evidence.accommodation.test/v1",
+			},
+			Validator: stepstask.ValidatorFunc(func(stepstask.ValidationRequest) error { return nil }),
+			Now:       submittedAt, Meta: workitem.TransitionMeta{ActorPrincipalID: humanwork.PrincipalHRBP, Reason: "TASK_SUBMITTED", At: submittedAt},
+		})
+		return submitErr
+	})
+	if completedTask.Status != workitem.StatusCompleted {
+		t.Fatalf("completed task work item status = %s, want COMPLETED", completedTask.Status)
+	}
+
+	taskOut := taskOutcome(t, completedTask, submission, submittedAt.Add(time.Minute))
+	finalRecordedAt := submittedAt.Add(time.Minute)
+	final, err := drv.Resume(ctx, execute.ResumeRequest{
+		Start: start, InstanceID: parkedApproval.Start.InstanceID, ExpectedInstanceVersion: parkedTask.InstanceVersion,
+		WorkItemID: completedTask.WorkItemID, ExpectedWorkItemVersion: completedTask.ItemVersion,
+		Outcome: taskOut, RecordedAt: finalRecordedAt,
+	})
+	if err != nil {
+		t.Fatalf("Resume (task->complete): %v", err)
+	}
+	if final.Status != execute.StatusComplete {
+		t.Fatalf("final Resume result = %+v, want COMPLETE", final)
+	}
+
+	return wfrun030Fixture{
+		db: db, tenantID: tenantID, instanceID: parkedApproval.Start.InstanceID, start: start,
+		terminal: terminal, proposal: proposal,
+		streamKey:  effects.StreamKeyFor(demoWorkflowID, parkedApproval.Start.InstanceID.String()),
+		recordedAt: finalRecordedAt,
+	}
+}
+
+// loadLedgerEvent reads back the one terminal ledger row a
+// [wfrun030Fixture] produced.
+func loadLedgerEvent(t *testing.T, f wfrun030Fixture) (payload []byte, sequence int64, schemaRef, idempotencyKey string) {
+	t.Helper()
+	ctx := context.Background()
+	row := f.db.Conn.QueryRow(ctx, `
+		SELECT payload, sequence, schema_ref, idempotency_key FROM ledger_event
+		WHERE tenant_id = $1 AND stream_key = $2`,
+		f.tenantID, f.streamKey)
+	if err := row.Scan(&payload, &sequence, &schemaRef, &idempotencyKey); err != nil {
+		t.Fatalf("load ledger event for %s: %v", f.streamKey, err)
+	}
+	return payload, sequence, schemaRef, idempotencyKey
+}
+
+// TestTodo_WF_RUN_030 is the PRIMARY case: the terminal ledger event's
+// payload names worker, target placement, effective date, the approval
+// decision id and task submission id alongside the proposal and plan
+// digests, and the same facts are readable through the outbox message and
+// the projection checkpoint, not only a ledger row count.
+func TestTodo_WF_RUN_030(t *testing.T) {
+	ctx := context.Background()
+	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+	f := runPromotionToComplete(t, "wfrun030-primary", at)
+
+	payloadRaw, sequence, schemaRef, _ := loadLedgerEvent(t, f)
+	if schemaRef != effects.PromotionOutcomeSchema {
+		t.Fatalf("ledger event schema_ref = %q, want %q", schemaRef, effects.PromotionOutcomeSchema)
+	}
+	var payload promotionOutcomePayloadView
+	if err := json.Unmarshal(payloadRaw, &payload); err != nil {
+		t.Fatalf("unmarshal ledger event payload: %v", err)
+	}
+
+	if payload.WorkerRef != "employment:promotion-execute-demo-1" {
+		t.Fatalf("payload worker_ref = %q, want %q", payload.WorkerRef, "employment:promotion-execute-demo-1")
+	}
+	if payload.TargetPlacement == "" || !strings.Contains(payload.TargetPlacement, "position_id") {
+		t.Fatalf("payload target_placement = %q, want it to name position_id", payload.TargetPlacement)
+	}
+	if payload.EffectiveDate == "" {
+		t.Fatal("payload names no effective_date")
+	}
+	if payload.EndNodeID != nodeApproved {
+		t.Fatalf("payload end_node_id = %q, want %q", payload.EndNodeID, nodeApproved)
+	}
+	if payload.ProposalDigest != f.proposal.MaterialDigest.Digest || payload.ProposalRevisionID != f.proposal.ProposalRevisionID {
+		t.Fatalf("payload proposal identity = %s/%s, want %s/%s",
+			payload.ProposalRevisionID, payload.ProposalDigest, f.proposal.ProposalRevisionID, f.proposal.MaterialDigest.Digest)
+	}
+	if len(payload.ApprovalDecisionIDs) != 1 {
+		t.Fatalf("payload approval_decision_ids = %v, want exactly one", payload.ApprovalDecisionIDs)
+	}
+	if len(payload.TaskSubmissionIDs) != 1 {
+		t.Fatalf("payload task_submission_ids = %v, want exactly one", payload.TaskSubmissionIDs)
+	}
+	for _, id := range payload.ApprovalDecisionIDs {
+		if _, err := uuid.Parse(id); err != nil {
+			t.Fatalf("approval decision id %q is not a work_item_decision uuid: %v", id, err)
+		}
+	}
+	for _, id := range payload.TaskSubmissionIDs {
+		if _, err := uuid.Parse(id); err != nil {
+			t.Fatalf("task submission id %q is not a work_item_decision uuid: %v", id, err)
+		}
+	}
+	if payload.ApprovalDecisionIDs[0] == payload.TaskSubmissionIDs[0] {
+		t.Fatal("the approval decision id and the task submission id must not be the same row")
+	}
+
+	// --- The outbox message carries the exact same payload and schema. ---
+	var outboxPayload []byte
+	var outboxSchema string
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT payload, schema_ref FROM outbox WHERE tenant_id = $1 AND ordering_key = $2`,
+		f.tenantID, f.streamKey).Scan(&outboxPayload, &outboxSchema); err != nil {
+		t.Fatalf("load outbox message: %v", err)
+	}
+	if outboxSchema != effects.PromotionOutcomeSchema || string(outboxPayload) != string(payloadRaw) {
+		t.Fatalf("outbox message (schema %q, %d bytes) does not match the ledger event payload", outboxSchema, len(outboxPayload))
+	}
+
+	// --- The projection checkpoint advanced to the ledger event's own sequence. ---
+	var checkpointSequence int64
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT last_applied_sequence FROM projection_checkpoint
+		WHERE tenant_id = $1 AND stream_key = $2`,
+		f.tenantID, f.streamKey).Scan(&checkpointSequence); err != nil {
+		t.Fatalf("load projection checkpoint: %v", err)
+	}
+	if checkpointSequence != sequence {
+		t.Fatalf("projection checkpoint sequence = %d, want %d (the ledger event's own sequence)", checkpointSequence, sequence)
+	}
+}
+
+// TestTodo_WF_RUN_030_Golden pins the payload's exact field set: a field
+// silently dropped or renamed changes this list, which is the point.
+func TestTodo_WF_RUN_030_Golden(t *testing.T) {
+	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+	f := runPromotionToComplete(t, "wfrun030-golden", at)
+	payloadRaw, _, _, _ := loadLedgerEvent(t, f)
+
+	var generic map[string]json.RawMessage
+	if err := json.Unmarshal(payloadRaw, &generic); err != nil {
+		t.Fatalf("unmarshal payload as a generic object: %v", err)
+	}
+	want := []string{
+		"schema_ref", "workflow_id", "plan_digest", "instance_id",
+		"proposal_revision_id", "proposal_digest", "terminal_code", "correlation_id",
+		"end_node_id", "end_output_digest", "worker_ref", "target_placement",
+		"effective_date", "approval_decision_ids", "task_submission_ids",
+	}
+	for _, field := range want {
+		if _, ok := generic[field]; !ok {
+			t.Errorf("payload is missing field %q", field)
+		}
+	}
+	got := make([]string, 0, len(generic))
+	for k := range generic {
+		got = append(got, k)
+	}
+	if len(got) != len(want) {
+		sort.Strings(got)
+		wantSorted := append([]string(nil), want...)
+		sort.Strings(wantSorted)
+		t.Fatalf("payload field set = %v, want %v", got, wantSorted)
+	}
+}
+
+// TestTodo_WF_RUN_030_Integration reads the whole join across ledger event,
+// outbox and projection checkpoint the way an operator would -- not a row
+// count on any one of them.
+func TestTodo_WF_RUN_030_Integration(t *testing.T) {
+	ctx := context.Background()
+	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+	f := runPromotionToComplete(t, "wfrun030-integration", at)
+
+	var joined int
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT count(*)
+		FROM ledger_event le
+		JOIN projection_checkpoint pc
+		  ON pc.tenant_id = le.tenant_id AND pc.stream_key = le.stream_key
+		JOIN outbox ob
+		  ON ob.tenant_id = le.tenant_id AND ob.ordering_key = le.stream_key
+		WHERE le.tenant_id = $1 AND le.stream_key = $2
+		  AND pc.last_applied_sequence = le.sequence
+		  AND ob.schema_ref = le.schema_ref
+		  AND ob.payload = le.payload`,
+		f.tenantID, f.streamKey).Scan(&joined); err != nil {
+		t.Fatalf("join ledger event, projection checkpoint and outbox: %v", err)
+	}
+	if joined != 1 {
+		t.Fatalf("joined ledger/projection/outbox rows for %s = %d, want exactly 1", f.streamKey, joined)
+	}
+}
+
+// TestTodo_WF_RUN_030_Security proves the terminal write's evidence
+// (approval decision and task submission ids) is tenant-scoped: a
+// completely separate tenant's promotion never shares a decision id with
+// this one, and cannot read this tenant's ledger row at all.
+func TestTodo_WF_RUN_030_Security(t *testing.T) {
+	ctx := context.Background()
+	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+	f := runPromotionToComplete(t, "wfrun030-security", at)
+
+	var count int
+	otherTenant := uuid.New()
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT count(*) FROM ledger_event WHERE tenant_id = $1 AND stream_key = $2`,
+		otherTenant, f.streamKey).Scan(&count); err != nil {
+		t.Fatalf("count ledger events for an unrelated tenant: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("an unrelated tenant id read %d ledger rows for this tenant's stream", count)
+	}
+
+	payloadRaw, _, _, _ := loadLedgerEvent(t, f)
+	var payload promotionOutcomePayloadView
+	if err := json.Unmarshal(payloadRaw, &payload); err != nil {
+		t.Fatalf("unmarshal payload: %v", err)
+	}
+	var decisionCount int
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT count(*) FROM work_item_decision WHERE tenant_id = $1 AND decision_id = $2`,
+		otherTenant, payload.ApprovalDecisionIDs[0]).Scan(&decisionCount); err != nil {
+		t.Fatalf("look up decision id under an unrelated tenant: %v", err)
+	}
+	if decisionCount != 0 {
+		t.Fatal("this tenant's approval decision id resolved under an unrelated tenant id")
+	}
+}
+
+// TestTodo_WF_RUN_030_Mutation kills the mutant WF-RUN-030's own RED clause
+// names: a terminal write whose idempotent replay protection lives only in
+// the runtime advancement receipt, so calling the terminal writer a second
+// time by any other path would silently duplicate the governed business
+// fact. It calls [effects.LedgerTerminalWriter.Write] a second time
+// directly, in a brand new transaction, with the exact same request -- never
+// going through drv.Resume or runtime.Advance at all, so the runtime's own
+// advancement-receipt replay guard (WF-RUN-031) is not what is under test
+// here.
+func TestTodo_WF_RUN_030_Mutation(t *testing.T) {
+	ctx := context.Background()
+	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+	f := runPromotionToComplete(t, "wfrun030-mutation", at)
+
+	_, sequenceBefore, _, idempotencyKey := loadLedgerEvent(t, f)
+
+	// Rebuild the exact TerminalWriteRequest the driver's own continuation
+	// sink issued for this instance's COMPLETE intent: same identity, same
+	// idempotency key, same recorded instant. endOnlySteps's END handler
+	// asserts nothing, so EndOutputDigest is empty here, exactly as it was
+	// on the first write.
+	req := execute.TerminalWriteRequest{
+		TenantID: f.tenantID, InstanceID: f.instanceID,
+		WorkflowID: demoWorkflowID, PlanDigest: mustCompiledDigest(t),
+		Proposal:       runtime.ProposalBinding{Revision: f.proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"},
+		TerminalCode:   demoTerminalCode,
+		CorrelationID:  f.start.CorrelationID,
+		IdempotencyKey: idempotencyKey,
+		RecordedAt:     f.recordedAt,
+		EndNodeID:      nodeApproved,
+	}
+
+	inTenantTx(t, f.db, f.tenantID, func(tx dbport.Tx) error {
+		identity, err := f.terminal.Write(ctx, tx, req)
+		if err != nil {
+			return fmt.Errorf("direct replay of the terminal write: %w", err)
+		}
+		if identity.ResultRef != demoTerminalCode {
+			t.Fatalf("replayed terminal write identity = %+v, want result ref %q", identity, demoTerminalCode)
+		}
+		return nil
+	})
+
+	var countAfter int
+	if err := f.db.Conn.QueryRow(ctx, `
+		SELECT count(*) FROM ledger_event WHERE tenant_id = $1 AND stream_key = $2`,
+		f.tenantID, f.streamKey).Scan(&countAfter); err != nil {
+		t.Fatalf("recount ledger events: %v", err)
+	}
+	if countAfter != 1 {
+		t.Fatalf("ledger events after a direct terminal-writer replay (bypassing the runtime receipt) = %d, want still exactly 1", countAfter)
+	}
+	_, sequenceAfter, _, _ := loadLedgerEvent(t, f)
+	if sequenceAfter != sequenceBefore {
+		t.Fatalf("ledger event sequence changed from %d to %d on a replay; the terminal write's own idempotency key must make it a no-op", sequenceBefore, sequenceAfter)
+	}
+}
+
+// mustCompiledDigest recompiles the demo plan to recover its own content
+// digest -- the same value publishActiveDemoPlan's caller already computed,
+// recovered here rather than threaded through wfrun030Fixture because it is
+// a pure function of the fixed demo definition.
+func mustCompiledDigest(t *testing.T) string {
+	t.Helper()
+	return compileDemoPlan(t).Digest()
+}

@@ -57,6 +57,10 @@ const (
 	// CodeStartConflict reports a start idempotency key already bound to a
 	// request whose digests do not match this one.
 	CodeStartConflict = "START_CONFLICT"
+	// CodeApprovalBindingMismatch reports an approval decision the approval
+	// store hands back for the started revision's own id, whose bound
+	// material digest is not that revision's own digest (WF-RUN-027).
+	CodeApprovalBindingMismatch = "APPROVAL_BINDING_MISMATCH"
 )
 
 // startInstanceNamespace is the fixed UUIDv5 namespace a start's instance
@@ -82,24 +86,38 @@ func derivedStartInstanceID(tenantID uuid.UUID, workflowID, startIdempotencyKey 
 // ProposalBinding is what a caller presents as proof that one
 // [intent.ProposalRevision] may be bound to a new workflow instance.
 //
-// This package never re-derives approval or supersession itself --
-// internal/intent/app owns that lifecycle and is out of scope here by
-// design -- so a caller asserts the two governance facts explicitly, each
-// with the reference that grounds it. [Start] still checks the revision's own
-// immutability (a minted material digest) and its material alignment with
-// the rest of the [StartRequest]: an assertion is not proof of the content it
+// WF-RUN-023 let this type carry the caller's own asserted Approved and
+// Superseded flags. WF-RUN-027 retires that trust: [Start] now resolves both
+// facts itself, through [StartRequest.ProposalFacts] and
+// [StartRequest.ApprovalFacts], reading only Revision from this type. [Start]
+// still checks the revision's own immutability (a minted material digest)
+// and its material alignment with the rest of the [StartRequest]: an
+// assertion -- caller- or store-sourced -- is not proof of the content it
 // claims to describe.
 type ProposalBinding struct {
 	Revision intent.ProposalRevision
-	// Approved must be true, with ApprovalRef naming the decision that
-	// granted it. A false or unreferenced approval is [CodeUnapprovedProposal].
+
+	// Approved, ApprovalRef and Superseded are read only when a
+	// [StartRequest] supplies no [StartRequest.ProposalFacts] or
+	// [StartRequest.ApprovalFacts] port at all, as a fallback for a caller
+	// that has not yet migrated to one -- internal/intent/app.ExecuteIntent
+	// is the one such caller today, and internal/intent is out of this
+	// ticket's scope to change. A caller that supplies either port is
+	// resolved from stored facts exclusively; these three fields are never
+	// consulted and may be left at their zero value.
+	//
+	// Deprecated: migrate to StartRequest.ProposalFacts and
+	// StartRequest.ApprovalFacts, then delete these three fields and
+	// [ProposalBinding.legacyValidate].
 	Approved    bool
 	ApprovalRef string
-	// Superseded reports that the caller's own proposal ledger already holds
-	// a later revision of this proposal. true is [CodeSupersededProposal].
-	Superseded bool
+	Superseded  bool
 }
 
+// validate checks only the revision's own structural immutability: a
+// [ProposalBinding] naming no revision, or a revision with no minted material
+// digest, is never bindable regardless of which approval path a
+// [StartRequest] uses.
 func (b ProposalBinding) validate() error {
 	if b.Revision.ProposalRevisionID == "" {
 		return refuse(CodeInvalidRecord, "", "", "proposal binding names no revision")
@@ -109,6 +127,13 @@ func (b ProposalBinding) validate() error {
 			"proposal revision %s carries no minted material digest; only an immutable, digested revision may be bound",
 			b.Revision.ProposalRevisionID)
 	}
+	return nil
+}
+
+// legacyValidate is the pre-WF-RUN-027 caller-asserted check, run by [Start]
+// only when a [StartRequest] supplies neither ProposalFacts nor
+// ApprovalFacts. See the deprecation note on [ProposalBinding].
+func (b ProposalBinding) legacyValidate() error {
 	if b.Superseded {
 		return refuse(CodeSupersededProposal, "", "",
 			"proposal revision %s is superseded by a later revision of the same proposal", b.Revision.ProposalRevisionID)
@@ -134,6 +159,17 @@ type StartRequest struct {
 	Versions version.Store
 
 	Proposal ProposalBinding
+
+	// ProposalFacts and ApprovalFacts resolve Proposal.Revision's supersession
+	// and approval decisions from the caller-owned proposal and approval
+	// stores (WF-RUN-027). Supplying either requires supplying both: [Start]
+	// then resolves both facts exclusively from these ports and never reads
+	// ProposalBinding's deprecated Approved/ApprovalRef/Superseded fields.
+	// Leaving both nil falls back to those caller-asserted fields, for a
+	// caller that has not yet migrated -- see the deprecation note on
+	// [ProposalBinding].
+	ProposalFacts ProposalFacts
+	ApprovalFacts ApprovalFacts
 
 	// ExpectedIntentID, ExpectedTenant and BusinessSubjectRefs are the
 	// caller's own declared context. A non-empty ExpectedIntentID or
@@ -182,8 +218,65 @@ func (r StartRequest) validate() error {
 		return refuse(CodeInvalidRecord, "", "", "created_at must be supplied; this package never reads a wall clock")
 	case len(r.BusinessSubjectRefs) == 0:
 		return refuse(CodeInvalidRecord, "", "", "start names no business subject")
+	case (r.ProposalFacts == nil) != (r.ApprovalFacts == nil):
+		return refuse(CodeInvalidRecord, "", "",
+			"start supplies one of ProposalFacts/ApprovalFacts without the other")
 	}
 	return r.Proposal.validate()
+}
+
+// resolveProposalFacts refuses [CodeSupersededProposal], [CodeUnapprovedProposal]
+// or [CodeApprovalBindingMismatch] from stored facts, and returns the sorted
+// ids of every APPROVED decision it relied on -- WF-RUN-027's replacement for
+// [ProposalBinding]'s caller-asserted Approved/ApprovalRef/Superseded flags.
+//
+// It runs [ProposalBinding.legacyValidate] instead, unchanged, when req
+// supplies neither port: see the deprecation note on [ProposalBinding].
+func resolveProposalFacts(ctx context.Context, ex Executor, req StartRequest) ([]string, error) {
+	if req.ProposalFacts == nil || req.ApprovalFacts == nil {
+		if err := req.Proposal.legacyValidate(); err != nil {
+			return nil, err
+		}
+		if req.Proposal.ApprovalRef != "" {
+			return []string{req.Proposal.ApprovalRef}, nil
+		}
+		return nil, nil
+	}
+
+	rev := req.Proposal.Revision
+	supersession, err := req.ProposalFacts.Supersession(ctx, ex, req.TenantID, rev)
+	if err != nil {
+		return nil, wrap(CodeStorageFailed, "", "", err, "resolve proposal supersession for %s", rev.ProposalRevisionID)
+	}
+	if supersession.Superseded {
+		return nil, refuse(CodeSupersededProposal, "", "",
+			"proposal revision %s is superseded by %s", rev.ProposalRevisionID, supersession.SupersededByRevisionID)
+	}
+
+	decisions, err := req.ApprovalFacts.Decisions(ctx, ex, req.TenantID, rev)
+	if err != nil {
+		return nil, wrap(CodeStorageFailed, "", "", err, "resolve approval decisions for %s", rev.ProposalRevisionID)
+	}
+	var approved []string
+	for _, d := range decisions {
+		if d.ProposalDigest != rev.MaterialDigest.Digest {
+			return nil, refuse(CodeApprovalBindingMismatch, "", "",
+				"approval decision %s is bound to proposal digest %s, not %s naming revision %s",
+				d.DecisionID, d.ProposalDigest, rev.MaterialDigest.Digest, rev.ProposalRevisionID)
+		}
+		if d.Invalidated {
+			continue
+		}
+		if d.Outcome == ApprovalOutcomeApproved {
+			approved = append(approved, d.DecisionID)
+		}
+	}
+	if len(approved) == 0 {
+		return nil, refuse(CodeUnapprovedProposal, "", "",
+			"proposal revision %s carries no recorded approval", rev.ProposalRevisionID)
+	}
+	sort.Strings(approved)
+	return approved, nil
 }
 
 // checkProposalAlignment refuses a start whose declared context disagrees
@@ -307,26 +400,36 @@ type StartReceipt struct {
 	Replay    bool
 	CreatedAt time.Time
 
+	// ApprovalDecisionIDs names, sorted, every approval decision id [Start]
+	// relied on to admit the bound proposal revision (WF-RUN-027). It is the
+	// approval store's own decision ids when [StartRequest.ApprovalFacts] is
+	// set, or a single-element slice holding [ProposalBinding.ApprovalRef]
+	// under the deprecated caller-asserted fallback; empty only when the
+	// fallback ApprovalRef itself was empty (impossible on a successful
+	// Start, since an empty ApprovalRef is [CodeUnapprovedProposal]).
+	ApprovalDecisionIDs []string
+
 	digest string
 }
 
 // Digest is the receipt's content identity.
 func (r StartReceipt) Digest() string { return r.digest }
 
-func newStartReceipt(inst Instance, cv version.CompiledVersion, replay bool) StartReceipt {
+func newStartReceipt(inst Instance, cv version.CompiledVersion, replay bool, approvalDecisionIDs []string) StartReceipt {
 	rec := StartReceipt{
-		TenantID:           inst.TenantID,
-		InstanceID:         inst.InstanceID,
-		WorkflowID:         inst.WorkflowID,
-		WorkflowVersion:    inst.WorkflowVersion,
-		CompiledPlanDigest: inst.CompiledPlanHash,
-		SemanticVersion:    cv.SemanticVersion,
-		ExecutionMode:      inst.ExecutionMode,
-		InstanceVersion:    inst.InstanceVersion,
-		Frontier:           append([]string(nil), inst.CurrentNodeIDs...),
-		CorrelationID:      inst.CorrelationID,
-		Replay:             replay,
-		CreatedAt:          inst.CreatedAt,
+		TenantID:            inst.TenantID,
+		InstanceID:          inst.InstanceID,
+		WorkflowID:          inst.WorkflowID,
+		WorkflowVersion:     inst.WorkflowVersion,
+		CompiledPlanDigest:  inst.CompiledPlanHash,
+		SemanticVersion:     cv.SemanticVersion,
+		ExecutionMode:       inst.ExecutionMode,
+		InstanceVersion:     inst.InstanceVersion,
+		Frontier:            append([]string(nil), inst.CurrentNodeIDs...),
+		CorrelationID:       inst.CorrelationID,
+		Replay:              replay,
+		CreatedAt:           inst.CreatedAt,
+		ApprovalDecisionIDs: append([]string(nil), approvalDecisionIDs...),
 	}
 	rec.digest = computeStartReceiptDigest(rec)
 	return rec
@@ -346,6 +449,10 @@ func Start(ctx context.Context, tx Executor, req StartRequest) (StartReceipt, er
 		return StartReceipt{}, err
 	}
 	if err := req.checkProposalAlignment(); err != nil {
+		return StartReceipt{}, err
+	}
+	approvalDecisionIDs, err := resolveProposalFacts(ctx, tx, req)
+	if err != nil {
 		return StartReceipt{}, err
 	}
 
@@ -402,7 +509,7 @@ func Start(ctx context.Context, tx Executor, req StartRequest) (StartReceipt, er
 		// Another (or this same) caller already holds the row this start
 		// idempotency key derives: WF-RUN-023's retry path, not a conflict at
 		// the SQL level -- see [insertInstanceIfAbsent].
-		return replayStart(ctx, tx, req, instanceID, fingerprint)
+		return replayStart(ctx, tx, req, instanceID, fingerprint, approvalDecisionIDs)
 	}
 
 	nextVersion := stored.InstanceVersion
@@ -424,12 +531,14 @@ func Start(ctx context.Context, tx Executor, req StartRequest) (StartReceipt, er
 	if err != nil {
 		return StartReceipt{}, err
 	}
-	return newStartReceipt(final, cv, false), nil
+	return newStartReceipt(final, cv, false, approvalDecisionIDs), nil
 }
 
 // replayStart handles a derived instance id that already exists: the
 // idempotent-retry half of [Start]'s contract.
-func replayStart(ctx context.Context, tx Executor, req StartRequest, instanceID uuid.UUID, fingerprint string) (StartReceipt, error) {
+func replayStart(
+	ctx context.Context, tx Executor, req StartRequest, instanceID uuid.UUID, fingerprint string, approvalDecisionIDs []string,
+) (StartReceipt, error) {
 	store := Store{}
 	existing, err := store.LoadInstance(ctx, tx, req.TenantID, instanceID)
 	if err != nil {
@@ -444,7 +553,7 @@ func replayStart(ctx context.Context, tx Executor, req StartRequest, instanceID 
 		return StartReceipt{}, wrap(CodeVersionResolutionFailed, instanceID.String(), "", err,
 			"resolve compiled version for replay")
 	}
-	return newStartReceipt(existing, cv, true), nil
+	return newStartReceipt(existing, cv, true, approvalDecisionIDs), nil
 }
 
 // insertInstanceIfAbsent inserts inst unless its (tenant_id, instance_id)

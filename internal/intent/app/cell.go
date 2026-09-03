@@ -291,6 +291,10 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		ExecutionVersions:  cfg.ExecutionVersions,
 		ExecutionCellID:    cfg.ExecutionCellID,
 		TenantUUID:         cfg.TenantUUID,
+		// OBS-024: GATE_REFUSED/GATE_ADMITTED land on the same evidence sink
+		// as every CAP-002 invocation/refusal, so Cell.Evidence reads both
+		// back from one place.
+		Evidence: sink,
 	})
 	if err != nil {
 		return nil, err

@@ -5,12 +5,27 @@ import (
 	"reflect"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+)
+
+// OBS-024's execution-evidence vocabulary entries [IntentService.ExecuteIntent]
+// itself records. This is a deliberate, documented duplication of
+// internal/workflow/execute's own EvidenceKindGateRefused/
+// EvidenceKindGateAdmitted constants: this package must not import
+// internal/workflow/execute (see execution.go's ProposalExecutor doc for
+// why), so it carries its own copy of the two kinds it is the sole recorder
+// of. A later phase that centralizes the vocabulary for the inspector
+// (execute.EvidenceKind's own REFACTOR note) replaces both copies with one
+// shared definition neither package currently depends on.
+const (
+	EvidenceKindGateRefused  = "GATE_REFUSED"
+	EvidenceKindGateAdmitted = "GATE_ADMITTED"
 )
 
 // Reason references [IntentService.ExecuteIntent] owns.
@@ -76,8 +91,20 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 	// The authority gate runs before this cell does anything else observable
 	// (before it even re-simulates), so a caller who is refused here learns
 	// nothing about whether the intent has an executable plan at all.
+	//
+	// OBS-024: the gate's own decision is recorded as evidence right here —
+	// including a refusal, which is the whole point of this todo (RED:
+	// "ExecuteIntent records evidence only for its re-simulation, never for
+	// gate refusals, approvals, submissions or the terminal write") — before
+	// this cell has looked at the presented approval or run a single node.
 	if ownedErr := s.authorizeExecution(principal, def); ownedErr != nil {
+		s.recordGateEvidence(ctx, EvidenceKindGateRefused, inst.IntentID, ownedErr.ReasonRef())
 		return nil, ownedErr
+	}
+	gateEvidenceID, evErr := s.recordGateEvidence(ctx, EvidenceKindGateAdmitted, inst.IntentID, "")
+	if evErr != nil {
+		return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			"the operation could not be completed").WithDiagnostic(evErr)
 	}
 
 	// Re-running the exact SimulateIntent path is what proves the presented
@@ -155,7 +182,31 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 	if err != nil {
 		return nil, executionError(err)
 	}
+	// The GATE_ADMITTED entry recorded above precedes every evidence id the
+	// driver itself records (APPROVAL_COMPLETED/TASK_SUBMITTED/
+	// TERMINAL_WRITTEN), so it leads result.EvidenceIDs rather than trailing it.
+	if gateEvidenceID != "" {
+		result.EvidenceIDs = append([]string{gateEvidenceID}, result.EvidenceIDs...)
+	}
 	return &intentsv1.ExecuteIntentResponse{Execution: executionReceiptProto(result)}, nil
+}
+
+// recordGateEvidence records one OBS-024 GATE_REFUSED/GATE_ADMITTED entry
+// through this service's own evidence sink — the same capability evidence
+// sink mechanism CAP-002's gateway already writes invocation/refusal
+// evidence through (a fresh [MemoryEvidenceSink] private to this service
+// when no cell-wide sink was configured; [NewCell] wires the cell's own
+// gateway sink instead, so [Cell.Evidence] reads both back from one place).
+// No workflow instance exists yet at this call: nodeID is always empty.
+func (s *IntentService) recordGateEvidence(ctx context.Context, kind, intentID, reason string) (string, error) {
+	return s.evidence.RecordInvocation(ctx, capability.InvocationEvidence{
+		CapabilityID:      "workflow.execution_authority_gate",
+		CapabilityVersion: 1,
+		SubjectRef:        intentID,
+		Decision:          kind,
+		ReasonCode:        reason,
+		OccurredAt:        s.clock().Time(),
+	})
 }
 
 // authorizeExecution is the P1B execution authority gate. It returns nil only
@@ -246,13 +297,35 @@ func executionError(err error) *envelope.Error {
 }
 
 // executionReceiptProto projects one [ExecutionResult] onto the wire receipt.
+//
+// WF-RUN-032: parked_continuation_refs and work_items are rendered as
+// separate typed lists from result.ParkedContinuationRefs and
+// result.ParkedWorkItems respectively -- a continuation is never named as a
+// work item here, and a work item never as a continuation. The deprecated
+// parked_continuations string field is still populated, from the same
+// ParkedContinuations the port has always carried, for a caller that has not
+// migrated off it yet.
 func executionReceiptProto(result ExecutionResult) *intentsv1.ExecutionReceipt {
+	continuations := make([]*intentsv1.ParkedContinuation, 0, len(result.ParkedContinuationRefs))
+	for _, c := range result.ParkedContinuationRefs {
+		continuations = append(continuations, &intentsv1.ParkedContinuation{
+			ContinuationId: c.ContinuationID, Kind: c.Kind, TargetNodeId: c.TargetNodeID,
+		})
+	}
+	workItems := make([]*intentsv1.ParkedWorkItem, 0, len(result.ParkedWorkItems))
+	for _, w := range result.ParkedWorkItems {
+		workItems = append(workItems, &intentsv1.ParkedWorkItem{
+			WorkItemId: w.WorkItemID, Kind: w.Kind, NodeId: w.NodeID,
+		})
+	}
 	return &intentsv1.ExecutionReceipt{
-		InstanceId:          result.InstanceID,
-		VisitedNodes:        append([]string(nil), result.VisitedNodes...),
-		ParkedContinuations: append([]string(nil), result.ParkedContinuations...),
-		InstanceVersion:     uint64(result.InstanceVersion),
-		ReceiptDigest:       receiptDigestFor(result),
+		InstanceId:             result.InstanceID,
+		VisitedNodes:           append([]string(nil), result.VisitedNodes...),
+		ParkedContinuations:    append([]string(nil), result.ParkedContinuations...),
+		InstanceVersion:        uint64(result.InstanceVersion),
+		ReceiptDigest:          receiptDigestFor(result),
+		ParkedContinuationRefs: continuations,
+		WorkItems:              workItems,
 	}
 }
 

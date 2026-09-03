@@ -38,6 +38,9 @@ type StepRequest struct {
 	Proposal        runtime.ProposalBinding
 	CorrelationID   string
 	RecordedAt      time.Time
+	// TraceID is the ambient trace id the driver read off the incoming span
+	// context (OBS-023). Empty when the caller carried no trace context.
+	TraceID string
 }
 
 // StepRunner executes one READY node and returns only its typed outcome and
@@ -80,6 +83,11 @@ type TerminalWriteRequest struct {
 	CorrelationID  string
 	IdempotencyKey string
 	RecordedAt     time.Time
+	// EndNodeID and EndOutputDigest are the completed END node and its typed
+	// output digest (WF-RUN-030), recorded verbatim from the outcome that
+	// reached this terminal rather than discarded before the write.
+	EndNodeID       string
+	EndOutputDigest string
 }
 
 // TerminalWriter performs the single governed terminal write inside the
@@ -87,4 +95,14 @@ type TerminalWriteRequest struct {
 // channel.
 type TerminalWriter interface {
 	Write(ctx context.Context, tx dbport.Tx, req TerminalWriteRequest) (idempotency.ResultIdentity, error)
+}
+
+// WorkItemReader loads the durable WorkItem a [Driver.Resume] advances from,
+// inside the same transaction as the advancement it feeds -- WF-RUN-028's
+// replacement for a [ResumeRequest] that carried a caller-assembled
+// [workitem.WorkItem] struct. internal/platform/execution's thin adapter over
+// internal/humanwork/workitem.Store is the production implementation; a test
+// composes its own double.
+type WorkItemReader interface {
+	Load(ctx context.Context, ex workitem.Executor, tenantID, workItemID uuid.UUID) (workitem.WorkItem, error)
 }

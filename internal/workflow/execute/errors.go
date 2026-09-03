@@ -15,6 +15,17 @@ var (
 	// ErrNoProgress reports a non-terminal run with neither READY work nor a
 	// durable WorkItem on which it can honestly park.
 	ErrNoProgress = errors.New("workflow execute: no progress")
+	// ErrWorkItemDrift reports a resumed WorkItem whose reloaded, durable
+	// status, item version, completion evidence or instance/node binding does
+	// not match what [Driver.Resume] requires (WF-RUN-028). Every check runs
+	// against the row [WorkItemReader] loads inside the advancement
+	// transaction, never against a struct the caller assembled.
+	ErrWorkItemDrift = errors.New("workflow execute: work item drift")
+	// ErrCurrencyBlocked reports that [CurrencyGuard] found a material change
+	// to the pinned proposal, its approval or its control snapshots while an
+	// instance was parked, and moved it to BLOCKED instead of advancing
+	// (WF-RUN-029).
+	ErrCurrencyBlocked = errors.New("workflow execute: currency guard blocked the instance")
 )
 
 func invalid(format string, args ...any) error {
@@ -23,4 +34,8 @@ func invalid(format string, args ...any) error {
 
 func unsupported(kind, nodeID string) error {
 	return fmt.Errorf("%w: %s for node %s has no durable prototype store", ErrUnsupportedContinuation, kind, nodeID)
+}
+
+func drift(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrWorkItemDrift, fmt.Sprintf(format, args...))
 }

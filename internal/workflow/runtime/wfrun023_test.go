@@ -91,10 +91,36 @@ func newTestProposalRevision(t *testing.T, intentID string, tenant values.Tenant
 	return rev
 }
 
-// approvedBinding wraps rev as an immutable, approved, non-superseded
-// [runtime.ProposalBinding] -- the shape every GREEN-path test starts from.
+// approvedBinding wraps rev as a [runtime.ProposalBinding] naming only its
+// revision: WF-RUN-027 retired the caller-asserted Approved/Superseded flags,
+// so the "immutable, approved, non-superseded" facts every GREEN-path test
+// starts from now come from [approvedProposalFacts] through
+// [runtime.StartRequest.ProposalFacts]/[runtime.StartRequest.ApprovalFacts],
+// not from this binding.
 func approvedBinding(rev intent.ProposalRevision) runtime.ProposalBinding {
-	return runtime.ProposalBinding{Revision: rev, Approved: true, ApprovalRef: "decision:finance-partner-1"}
+	return runtime.ProposalBinding{Revision: rev}
+}
+
+// approvedDecisionID is the one approval decision id [approvedProposalFacts]
+// reports as standing for its fixture revision.
+const approvedDecisionID = "decision:finance-partner-1"
+
+// approvedProposalFacts returns the [runtime.ProposalFacts]/
+// [runtime.ApprovalFacts] pair reporting rev as current (never superseded)
+// and approved by exactly one standing decision bound to rev's own material
+// digest -- the fact-store shape every WF-RUN-027 GREEN-path test starts
+// from.
+func approvedProposalFacts(rev intent.ProposalRevision) (runtime.ProposalFacts, runtime.ApprovalFacts) {
+	proposalFacts := runtime.MemoryProposalFacts{}
+	approvalFacts := runtime.MemoryApprovalFacts{
+		ByRevisionID: map[string][]runtime.ApprovalDecisionFact{
+			rev.ProposalRevisionID: {{
+				DecisionID: approvedDecisionID, Outcome: runtime.ApprovalOutcomeApproved,
+				ProposalDigest: rev.MaterialDigest.Digest,
+			}},
+		},
+	}
+	return proposalFacts, approvalFacts
 }
 
 // stubResolver is the [runtime.WorkflowResolver] test double: it always
@@ -147,12 +173,14 @@ func promotionResolvedContext() map[string]string {
 // reference needs: the plan, its capability registry, a published+active
 // version store, a resolver stub and one approved proposal binding.
 type promotionFixture struct {
-	Setup    *simulate.PromotionSetup
-	Plan     *workflow.CompiledWorkflow
-	Versions *version.Registry
-	Resolver runtime.WorkflowResolver
-	Proposal intent.ProposalRevision
-	Binding  runtime.ProposalBinding
+	Setup         *simulate.PromotionSetup
+	Plan          *workflow.CompiledWorkflow
+	Versions      *version.Registry
+	Resolver      runtime.WorkflowResolver
+	Proposal      intent.ProposalRevision
+	Binding       runtime.ProposalBinding
+	ProposalFacts runtime.ProposalFacts
+	ApprovalFacts runtime.ApprovalFacts
 }
 
 func newPromotionFixture(t *testing.T, tenant values.TenantId, intentID string) promotionFixture {
@@ -163,6 +191,7 @@ func newPromotionFixture(t *testing.T, tenant values.TenantId, intentID string) 
 	}
 	versions, _ := publishedActiveVersion(t, workflow.PromotionReferenceDefinition(), setup.Plan, setup.Options.Capabilities)
 	rev := newTestProposalRevision(t, intentID, tenant)
+	proposalFacts, approvalFacts := approvedProposalFacts(rev)
 	return promotionFixture{
 		Setup:    setup,
 		Plan:     setup.Plan,
@@ -172,8 +201,10 @@ func newPromotionFixture(t *testing.T, tenant values.TenantId, intentID string) 
 			Pin:        version.Pin{CompiledPlanDigest: setup.Plan.Digest()},
 			Plan:       setup.Plan,
 		}},
-		Proposal: rev,
-		Binding:  approvedBinding(rev),
+		Proposal:      rev,
+		Binding:       approvedBinding(rev),
+		ProposalFacts: proposalFacts,
+		ApprovalFacts: approvalFacts,
 	}
 }
 
@@ -188,6 +219,8 @@ func (pf promotionFixture) baseStartRequest(tenantID uuid.UUID, key string) runt
 		Resolver:            pf.Resolver,
 		Versions:            pf.Versions,
 		Proposal:            pf.Binding,
+		ProposalFacts:       pf.ProposalFacts,
+		ApprovalFacts:       pf.ApprovalFacts,
 		ExpectedIntentID:    pf.Proposal.IntentID,
 		ExpectedTenant:      pf.Proposal.Tenant,
 		BusinessSubjectRefs: []string{promotionSubjectID},
@@ -318,14 +351,24 @@ func TestTodo_WF_RUN_023(t *testing.T) {
 			{"mutable proposal (no minted digest)", func(r *runtime.StartRequest, pf *promotionFixture) {
 				rev := pf.Proposal
 				rev.MaterialDigest.Digest = ""
-				r.Proposal = runtime.ProposalBinding{Revision: rev, Approved: true, ApprovalRef: "decision:x"}
+				r.Proposal = runtime.ProposalBinding{Revision: rev}
 			}, runtime.CodeMutableProposal},
-			{"unapproved proposal", func(r *runtime.StartRequest, pf *promotionFixture) {
-				r.Proposal = runtime.ProposalBinding{Revision: pf.Proposal, Approved: false}
+			{"unapproved proposal (approval store holds no decision)", func(r *runtime.StartRequest, pf *promotionFixture) {
+				r.ApprovalFacts = runtime.MemoryApprovalFacts{}
 			}, runtime.CodeUnapprovedProposal},
-			{"superseded proposal", func(r *runtime.StartRequest, pf *promotionFixture) {
-				r.Proposal = runtime.ProposalBinding{Revision: pf.Proposal, Approved: true, ApprovalRef: "decision:x", Superseded: true}
+			{"superseded proposal (proposal store already holds a later revision)", func(r *runtime.StartRequest, pf *promotionFixture) {
+				r.ProposalFacts = runtime.MemoryProposalFacts{Facts: map[string]runtime.ProposalSupersessionFact{
+					pf.Proposal.ProposalRevisionID: {Superseded: true, SupersededByRevisionID: "revision:newer"},
+				}}
 			}, runtime.CodeSupersededProposal},
+			{"approval decision bound to a different proposal digest", func(r *runtime.StartRequest, pf *promotionFixture) {
+				r.ApprovalFacts = runtime.MemoryApprovalFacts{ByRevisionID: map[string][]runtime.ApprovalDecisionFact{
+					pf.Proposal.ProposalRevisionID: {{
+						DecisionID: "decision:mismatch", Outcome: runtime.ApprovalOutcomeApproved,
+						ProposalDigest: "sha256:not-the-bound-digest-------------------------------------",
+					}},
+				}}
+			}, runtime.CodeApprovalBindingMismatch},
 			{"inactive workflow version", func(r *runtime.StartRequest, pf *promotionFixture) {
 				quarantined, err := version.Quarantine(pf.Versions, pf.Plan.Digest(), "investigation", "qa-lead", "authority:release-management",
 					version.ActivationEvidence{ApprovedAt: fixedInstant})
@@ -515,7 +558,7 @@ func TestTodo_WF_RUN_023_Fault(t *testing.T) {
 	pf := newPromotionFixture(t, values.TenantId("wfrun023-fault-tenant"), "intent:fault")
 
 	req := pf.baseStartRequest(tenantID, "start-key-fault")
-	req.Proposal = runtime.ProposalBinding{Revision: pf.Proposal, Approved: false}
+	req.ApprovalFacts = runtime.MemoryApprovalFacts{}
 
 	err := inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
 		_, err := runtime.Start(context.Background(), tx, req)

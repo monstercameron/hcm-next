@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
 	"github.com/monstercameron/hcm-next/internal/workflow/version"
@@ -112,4 +113,74 @@ func dispatchContinuation(ctx context.Context, ex Executor, sink ContinuationSin
 		return refuse(CodeInvalidRecord, rec.InstanceID.String(), rec.TargetNodeID,
 			"continuation record carries undeclared intent kind %q", rec.Kind)
 	}
+}
+
+// ProposalFacts resolves whether a bound proposal revision is the current,
+// non-superseded revision of its proposal, from the caller-owned proposal
+// store -- never from a boolean [StartRequest] or [ProposalBinding] asserts
+// (WF-RUN-027).
+//
+// [Start] calls Supersession for exactly the revision [ProposalBinding.Revision]
+// names; a store that has never heard of that revision at all reports the
+// zero value (not superseded), the same answer a genuinely current revision
+// gets -- a caller that must distinguish "unknown" from "current" composes
+// its own port that does.
+type ProposalFacts interface {
+	Supersession(ctx context.Context, ex Executor, tenantID uuid.UUID, rev intent.ProposalRevision) (ProposalSupersessionFact, error)
+}
+
+// ProposalSupersessionFact is what [ProposalFacts] reports about one proposal
+// revision.
+type ProposalSupersessionFact struct {
+	// Superseded is true when the proposal store already holds a later
+	// revision of the same proposal.
+	Superseded bool
+	// SupersededByRevisionID names the revision that superseded it. Present
+	// only when Superseded is true.
+	SupersededByRevisionID string
+	// CurrentRevision is the proposal store's own current revision for this
+	// proposal, when Superseded is true. [Start] never reads this field --
+	// any supersession refuses a start outright -- but [CurrencyGuard]
+	// (WF-RUN-029, internal/workflow/execute) uses it with
+	// internal/intent/approval.MaterialResultEqual to tell a pure
+	// control-snapshot revalidation (immaterial: the run may continue) from
+	// a genuine material change (the run must block).
+	CurrentRevision *intent.ProposalRevision
+}
+
+// ApprovalFacts resolves the approval decisions recorded against a bound
+// proposal revision, from the caller-owned approval store -- never from a
+// boolean [StartRequest] or [ProposalBinding] asserts (WF-RUN-027).
+type ApprovalFacts interface {
+	Decisions(ctx context.Context, ex Executor, tenantID uuid.UUID, rev intent.ProposalRevision) ([]ApprovalDecisionFact, error)
+}
+
+// ApprovalOutcome names one recorded approval decision's outcome, spelled
+// exactly as internal/intent/approval.Outcome's own constants so a caller
+// backing [ApprovalFacts] with that package's decisions needs no translation
+// table.
+type ApprovalOutcome string
+
+// Declared approval outcomes an [ApprovalDecisionFact] may carry.
+const (
+	ApprovalOutcomeApproved ApprovalOutcome = "APPROVED"
+	ApprovalOutcomeRejected ApprovalOutcome = "REJECTED"
+)
+
+// ApprovalDecisionFact is one recorded approval decision [ApprovalFacts]
+// reports.
+type ApprovalDecisionFact struct {
+	DecisionID string
+	Outcome    ApprovalOutcome
+	// ProposalDigest is the exact material digest the decision is bound to.
+	// [Start] and [CurrencyGuard] both refuse [CodeApprovalBindingMismatch]
+	// (or its execute-package equivalent) the instant this differs from the
+	// started revision's own MaterialDigest.Digest -- a decision the store
+	// hands back for this revision id must actually name this revision's own
+	// digest, never merely share its id.
+	ProposalDigest string
+	// Invalidated reports that a later materiality assessment
+	// (internal/intent/approval.Assess, INTENT-006) invalidated this
+	// decision. An invalidated decision never counts toward approval.
+	Invalidated bool
 }

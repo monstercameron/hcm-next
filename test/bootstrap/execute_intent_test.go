@@ -2,6 +2,7 @@ package bootstrap_test
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"net/http/httptest"
 	"sync"
@@ -12,6 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
@@ -259,6 +262,24 @@ func TestExecuteIntentIsRefusedWithoutExecutionAuthority(t *testing.T) {
 		}
 		assertP1AWriteRefusal(t, "edge", owned)
 	})
+
+	// OBS-024: the authority gate's own refusal is recorded as evidence on
+	// this cell's capability evidence sink -- the same mechanism CAP-002's
+	// gateway already writes invocation/refusal evidence through -- for both
+	// transports, before ExecuteIntent looked at the presented approval or
+	// touched a single node.
+	gateRefusals := 0
+	for _, rec := range c.app.Evidence.Records() {
+		if rec.Decision == app.EvidenceKindGateRefused {
+			gateRefusals++
+			if rec.SubjectRef != intentID {
+				t.Errorf("GATE_REFUSED evidence names intent %q, want %q", rec.SubjectRef, intentID)
+			}
+		}
+	}
+	if gateRefusals != 2 {
+		t.Fatalf("GATE_REFUSED evidence entries = %d, want exactly 2 (grpc, edge)", gateRefusals)
+	}
 }
 
 // assertP1AWriteRefusal asserts owned is exactly the shape every other P1A
@@ -398,5 +419,262 @@ func TestExecuteIntentRunsThePromotionDriverUnderAuthority(t *testing.T) {
 		if executed.Msg.GetExecution().GetInstanceId() == "" {
 			t.Fatal("edge receipt names no workflow instance")
 		}
+
+		// OBS-024: the edge call's own authority-gate admission is recorded
+		// too, on the same cell-wide evidence sink as the grpc call's.
+		admitted := false
+		for _, rec := range c.app.Evidence.Records() {
+			if rec.Decision == app.EvidenceKindGateAdmitted && rec.SubjectRef == intentID {
+				admitted = true
+			}
+		}
+		if !admitted {
+			t.Fatal("no GATE_ADMITTED evidence recorded for the edge transport's own intent")
+		}
 	})
+
+	// OBS-024: the grpc call above admitted the gate before running the
+	// driver; that decision is recorded as evidence, and its id leads the
+	// Go-level ExecutionResult.EvidenceIDs (asserted through the driver's
+	// own test/workflow suite, since ExecuteIntentResponse's wire receipt
+	// carries no evidence_ids field yet).
+	grpcAdmitted := false
+	for _, rec := range c.app.Evidence.Records() {
+		if rec.Decision == app.EvidenceKindGateAdmitted && rec.SubjectRef == intentID {
+			grpcAdmitted = true
+		}
+	}
+	if !grpcAdmitted {
+		t.Fatal("no GATE_ADMITTED evidence recorded for the grpc transport's own intent")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// WF-RUN-032: the wire ExecutionReceipt names parked continuations and
+// parked work items as two separate typed lists, never one under the
+// other's name.
+// ---------------------------------------------------------------------------
+
+// executeAndPark drives one promote_worker intent through CreateIntent,
+// SimulateIntent and ExecuteIntent, exactly as
+// TestExecuteIntentRunsThePromotionDriverUnderAuthority does, and returns the
+// receipt from an instance that parked at its first (and, for this bounded
+// prototype graph, only) governed APPROVAL.
+func executeAndPark(t *testing.T, c *cell, idempotencyKey string) *intentsv1.ExecutionReceipt {
+	t.Helper()
+	ctx := c.grpcContext(context.Background())
+
+	created, err := c.grpcIntent.CreateIntent(ctx, promoteWorkerRequest(t, idempotencyKey))
+	if err != nil {
+		t.Fatalf("CreateIntent: %v", err)
+	}
+	intentID := created.GetIntent().GetIntentId()
+
+	simulated, err := c.grpcIntent.SimulateIntent(ctx, &intentsv1.SimulateIntentRequest{IntentId: intentID})
+	if err != nil {
+		t.Fatalf("SimulateIntent: %v", err)
+	}
+	revisionID := simulated.GetSimulation().GetProposalRevisionId()
+	if revisionID == "" {
+		t.Fatal("simulation minted no proposal revision; the fixture is not READY")
+	}
+
+	executed, err := c.grpcIntent.ExecuteIntent(ctx, &intentsv1.ExecuteIntentRequest{
+		IdempotencyKey:          idempotencyKey,
+		IntentId:                intentID,
+		ExpectedInstanceVersion: created.GetIntent().GetInstanceVersion(),
+		Approval: &intentsv1.ProposalApproval{
+			ProposalRevisionId:     revisionID,
+			MaterialProposalDigest: simulated.GetSimulation().GetMaterialProposalDigest(),
+			Approved:               true,
+			ApprovalRef:            "approval:" + idempotencyKey,
+		},
+	})
+	if err != nil {
+		t.Fatalf("ExecuteIntent: %v", err)
+	}
+	return executed.GetExecution()
+}
+
+// TestTodo_WF_RUN_032 is the PRIMARY case: the receipt's parked_continuation_refs
+// name the durable continuation (kind, target node) the instance is waiting
+// on, and work_items names the durable WorkItem it raised, as two separate
+// lists -- never a work-item id under the continuation name, and never a
+// continuation's own scheduling kind (WORK_ITEM_REQUIRED) attributed to the
+// work item.
+func TestTodo_WF_RUN_032(t *testing.T) {
+	terminal := &recordingTerminalWriter{}
+	c := newExecutionCell(t, terminal)
+	seedWorkforce(t, c)
+
+	receipt := executeAndPark(t, c, "wf-run-032-primary")
+
+	continuations := receipt.GetParkedContinuationRefs()
+	if len(continuations) != 1 {
+		t.Fatalf("parked_continuation_refs = %v, want exactly one", continuations)
+	}
+	cont := continuations[0]
+	if cont.GetContinuationId() == "" {
+		t.Fatal("parked continuation names no continuation id")
+	}
+	if cont.GetKind() != "WORK_ITEM_REQUIRED" {
+		t.Fatalf("parked continuation kind = %q, want %q (a scheduling-intent kind, never a work-item kind)", cont.GetKind(), "WORK_ITEM_REQUIRED")
+	}
+	if cont.GetTargetNodeId() != prototype.NodeApproval {
+		t.Fatalf("parked continuation target node = %q, want %q", cont.GetTargetNodeId(), prototype.NodeApproval)
+	}
+
+	items := receipt.GetWorkItems()
+	if len(items) != 1 {
+		t.Fatalf("work_items = %v, want exactly one", items)
+	}
+	item := items[0]
+	if item.GetWorkItemId() == "" {
+		t.Fatal("parked work item names no work item id")
+	}
+	if item.GetKind() != "APPROVAL" {
+		t.Fatalf("parked work item kind = %q, want %q (a WorkItem kind, never a scheduling-intent kind)", item.GetKind(), "APPROVAL")
+	}
+	if item.GetNodeId() != prototype.NodeApproval {
+		t.Fatalf("parked work item node = %q, want %q", item.GetNodeId(), prototype.NodeApproval)
+	}
+
+	// The work item id the receipt names is the exact durable row: real,
+	// findable in internal/humanwork/workitem's own store, never invented.
+	tenantID := pgstore.TenantID(testTenant)
+	instanceID := mustParseUUID(t, receipt.GetInstanceId())
+	workItemID := mustParseUUID(t, item.GetWorkItemId())
+	var stored workitem.WorkItem
+	inTenantConn(t, c, tenantID, func(ex workitem.Executor) error {
+		var loadErr error
+		stored, loadErr = workitem.Store{}.Load(context.Background(), ex, tenantID, workItemID)
+		return loadErr
+	})
+	if stored.WorkflowInstanceID != instanceID || stored.NodeID != prototype.NodeApproval {
+		t.Fatalf("stored work item = %+v, want instance %s node %s", stored, instanceID, prototype.NodeApproval)
+	}
+
+	// The deprecated string field is still populated (wire compatibility)
+	// but is never the golden shape a new caller should read.
+	if len(receipt.GetParkedContinuations()) != 1 {
+		t.Fatalf("deprecated parked_continuations = %v, want exactly one entry for compatibility", receipt.GetParkedContinuations())
+	}
+}
+
+// TestTodo_WF_RUN_032_Golden pins the wire (JSON, camelCase field names)
+// shape of the typed lists: a field silently renamed or moved to the wrong
+// message changes this golden.
+func TestTodo_WF_RUN_032_Golden(t *testing.T) {
+	terminal := &recordingTerminalWriter{}
+	c := newExecutionCell(t, terminal)
+	seedWorkforce(t, c)
+
+	receipt := executeAndPark(t, c, "wf-run-032-golden")
+
+	raw, err := protojson.Marshal(receipt)
+	if err != nil {
+		t.Fatalf("protojson.Marshal(ExecutionReceipt): %v", err)
+	}
+	var generic map[string]any
+	if err := json.Unmarshal(raw, &generic); err != nil {
+		t.Fatalf("unmarshal receipt JSON: %v", err)
+	}
+
+	rawContinuations, ok := generic["parkedContinuationRefs"].([]any)
+	if !ok || len(rawContinuations) != 1 {
+		t.Fatalf("receipt JSON parkedContinuationRefs = %v, want a one-element array", generic["parkedContinuationRefs"])
+	}
+	cont, ok := rawContinuations[0].(map[string]any)
+	if !ok {
+		t.Fatalf("parkedContinuationRefs[0] = %v, want an object", rawContinuations[0])
+	}
+	for _, field := range []string{"continuationId", "kind", "targetNodeId"} {
+		if _, ok := cont[field]; !ok {
+			t.Errorf("parkedContinuationRefs[0] is missing field %q", field)
+		}
+	}
+	if _, ok := cont["workItemId"]; ok {
+		t.Fatal("parkedContinuationRefs[0] names a workItemId; a continuation must never carry a work-item field")
+	}
+
+	rawItems, ok := generic["workItems"].([]any)
+	if !ok || len(rawItems) != 1 {
+		t.Fatalf("receipt JSON workItems = %v, want a one-element array", generic["workItems"])
+	}
+	item, ok := rawItems[0].(map[string]any)
+	if !ok {
+		t.Fatalf("workItems[0] = %v, want an object", rawItems[0])
+	}
+	for _, field := range []string{"workItemId", "kind", "nodeId"} {
+		if _, ok := item[field]; !ok {
+			t.Errorf("workItems[0] is missing field %q", field)
+		}
+	}
+	if _, ok := item["continuationId"]; ok {
+		t.Fatal("workItems[0] names a continuationId; a work item must never carry a continuation field")
+	}
+}
+
+// TestTodo_WF_RUN_032_Conformance checks the wire contract itself, not one
+// call's output: the compiled ExecutionReceipt message descriptor declares
+// parked_continuation_refs (field 6) as a repeated ParkedContinuation and
+// work_items (field 7) as a repeated ParkedWorkItem, each with its own,
+// non-overlapping field set. This is transport-independent -- the same
+// compiled descriptor backs both gRPC and any other decoder over the same
+// wire bytes -- so it is what "over both transports" actually pins.
+func TestTodo_WF_RUN_032_Conformance(t *testing.T) {
+	desc := (&intentsv1.ExecutionReceipt{}).ProtoReflect().Descriptor()
+
+	contField := desc.Fields().ByName("parked_continuation_refs")
+	if contField == nil {
+		t.Fatal("ExecutionReceipt descriptor has no parked_continuation_refs field")
+	}
+	if contField.Number() != 6 || contField.Cardinality() != protoreflect.Repeated || contField.Kind() != protoreflect.MessageKind {
+		t.Fatalf("parked_continuation_refs = number %d cardinality %s kind %s, want 6/repeated/message",
+			contField.Number(), contField.Cardinality(), contField.Kind())
+	}
+	if got := string(contField.Message().FullName()); got != "hcmnext.intents.v1.ParkedContinuation" {
+		t.Fatalf("parked_continuation_refs message type = %q, want ParkedContinuation", got)
+	}
+	wantContFields := []string{"continuation_id", "kind", "target_node_id"}
+	for _, name := range wantContFields {
+		if contField.Message().Fields().ByName(protoreflect.Name(name)) == nil {
+			t.Errorf("ParkedContinuation descriptor is missing field %q", name)
+		}
+	}
+	for _, name := range []string{"work_item_id", "node_id"} {
+		if contField.Message().Fields().ByName(protoreflect.Name(name)) != nil {
+			t.Errorf("ParkedContinuation descriptor carries %q, a WorkItem-only field", name)
+		}
+	}
+
+	itemField := desc.Fields().ByName("work_items")
+	if itemField == nil {
+		t.Fatal("ExecutionReceipt descriptor has no work_items field")
+	}
+	if itemField.Number() != 7 || itemField.Cardinality() != protoreflect.Repeated || itemField.Kind() != protoreflect.MessageKind {
+		t.Fatalf("work_items = number %d cardinality %s kind %s, want 7/repeated/message",
+			itemField.Number(), itemField.Cardinality(), itemField.Kind())
+	}
+	if got := string(itemField.Message().FullName()); got != "hcmnext.intents.v1.ParkedWorkItem" {
+		t.Fatalf("work_items message type = %q, want ParkedWorkItem", got)
+	}
+	wantItemFields := []string{"work_item_id", "kind", "node_id"}
+	for _, name := range wantItemFields {
+		if itemField.Message().Fields().ByName(protoreflect.Name(name)) == nil {
+			t.Errorf("ParkedWorkItem descriptor is missing field %q", name)
+		}
+	}
+	for _, name := range []string{"continuation_id", "target_node_id"} {
+		if itemField.Message().Fields().ByName(protoreflect.Name(name)) != nil {
+			t.Errorf("ParkedWorkItem descriptor carries %q, a continuation-only field", name)
+		}
+	}
+
+	// parked_continuations (field 3, the deprecated string list) still exists
+	// for wire compatibility, but is a scalar list, never the typed shape.
+	deprecatedField := desc.Fields().ByName("parked_continuations")
+	if deprecatedField == nil || deprecatedField.Number() != 3 || deprecatedField.Kind() != protoreflect.StringKind {
+		t.Fatalf("parked_continuations = %v, want field 3, string kind, still present for compatibility", deprecatedField)
+	}
 }

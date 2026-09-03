@@ -30,7 +30,26 @@ type continuationSink struct {
 	startKey      string
 	subjectRefs   []string
 
+	// endNodeID and endOutputDigest are the END node's outcome (WF-RUN-030),
+	// set by the driver from the exact frontier.NodeOutcome it ran before
+	// calling Advance -- the COMPLETE intent's TargetNodeID is always that
+	// same node, so this sink never has to re-derive which node they belong
+	// to from the continuation record.
+	endNodeID       string
+	endOutputDigest string
+
+	// instrumentation and evidence are OBS-023/OBS-024's ports, set by the
+	// driver from its own Options. Both are always non-nil once a Driver is
+	// built through New (which defaults them to their Noop implementation);
+	// a nil value here is still tolerated defensively (see Complete) for a
+	// continuationSink built outside that path.
+	instrumentation Instrumentation
+	evidence        ExecutionEvidence
+
 	created []workitem.WorkItem
+	// evidenceIDs collects every OBS-024 evidence id this sink recorded
+	// (TERMINAL_WRITTEN today), in recording order.
+	evidenceIDs []string
 }
 
 func (s *continuationSink) RequireWorkItem(ctx context.Context, ex runtime.Executor, rec runtime.ContinuationRecord) error {
@@ -81,23 +100,51 @@ func (s *continuationSink) Complete(ctx context.Context, ex runtime.Executor, re
 	if s.terminal == nil || s.guard == nil {
 		return invalid("COMPLETE for node %s requires TerminalWriter and idempotency Store", rec.TargetNodeID)
 	}
+	instrumentation := s.instrumentation
+	if instrumentation == nil {
+		instrumentation = NoopInstrumentation{}
+	}
+	termCtx, termSpan := instrumentation.StartTerminalSpan(ctx, SpanAttributes{
+		InstanceID: rec.InstanceID.String(), NodeID: rec.TargetNodeID, TerminalCode: rec.TerminalCode,
+	})
+
 	digest := terminalDigest(s.planDigest, s.proposal, rec)
 	scope := idempotency.Scope{
 		Tenant: rec.TenantID, Capability: s.workflowID,
 		EffectScope: "workflow-terminal:" + s.proposal.Revision.ProposalRevisionID,
 		Key:         s.startKey,
 	}
-	_, err := idempotency.Guard(ctx, s.tx, s.guard, scope, digest, s.policy, rec.RecordedAt,
+	identity, err := idempotency.Guard(termCtx, s.tx, s.guard, scope, digest, s.policy, rec.RecordedAt,
 		func(ctx context.Context, tx dbport.Tx) (idempotency.ResultIdentity, error) {
 			return s.terminal.Write(ctx, tx, TerminalWriteRequest{
 				TenantID: rec.TenantID, InstanceID: rec.InstanceID,
 				WorkflowID: s.workflowID, PlanDigest: s.planDigest,
 				Proposal: s.proposal, TerminalCode: rec.TerminalCode,
 				CorrelationID: s.correlationID, IdempotencyKey: s.startKey,
-				RecordedAt: rec.RecordedAt,
+				RecordedAt:      rec.RecordedAt,
+				EndNodeID:       s.endNodeID,
+				EndOutputDigest: s.endOutputDigest,
 			})
 		})
-	return err
+	if err != nil {
+		termSpan.End(OutcomeFailure, err)
+		return err
+	}
+	termSpan.End(OutcomeSuccess, nil)
+
+	evidence := s.evidence
+	if evidence == nil {
+		evidence = NoopExecutionEvidence{}
+	}
+	evidenceID, evErr := evidence.RecordExecutionEvidence(ctx, EvidenceKindTerminalWritten,
+		rec.InstanceID.String(), rec.TargetNodeID, identity.Identity.EventRef, digest, rec.RecordedAt)
+	if evErr != nil {
+		return fmt.Errorf("workflow execute: record TERMINAL_WRITTEN evidence: %w", evErr)
+	}
+	if evidenceID != "" {
+		s.evidenceIDs = append(s.evidenceIDs, evidenceID)
+	}
+	return nil
 }
 
 func terminalDigest(planDigest string, proposal runtime.ProposalBinding, rec runtime.ContinuationRecord) string {

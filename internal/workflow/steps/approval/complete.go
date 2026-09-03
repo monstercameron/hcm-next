@@ -55,7 +55,7 @@ func Complete(
 		return workitem.WorkItem{}, fmt.Errorf("%w: decision has no digest", ErrInvalidEvidence)
 	}
 
-	return store.Complete(ctx, tx, workitem.CompleteInput{
+	completed, err := store.Complete(ctx, tx, workitem.CompleteInput{
 		TenantID:              item.TenantID,
 		WorkItemID:            item.WorkItemID,
 		ExpectedVersion:       item.ItemVersion,
@@ -64,4 +64,16 @@ func Complete(
 		Now:                   now,
 		Meta:                  meta,
 	})
+	if err != nil {
+		return workitem.WorkItem{}, err
+	}
+	// WORK-010: the full decision content is recorded in the same transaction
+	// as its completion, digest-verified against completed.CompletedOutputDigest
+	// (which is exactly the digest above -- store.Complete recorded it
+	// verbatim). A failure here rolls back the completion too, since both run
+	// through the same tx.
+	if err := recordDecision(ctx, tx, completed, decision); err != nil {
+		return workitem.WorkItem{}, err
+	}
+	return completed, nil
 }

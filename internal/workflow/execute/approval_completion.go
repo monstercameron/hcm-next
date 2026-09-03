@@ -164,7 +164,7 @@ func (d *Driver) CompleteApproval(ctx context.Context, req ApprovalCompletionReq
 		TenantID: req.Start.TenantID, InstanceID: req.InstanceID,
 		ExpectedInstanceVersion: req.ExpectedInstanceVersion, Attempt: 1,
 		Plan: selection.Plan, Outcome: outcome, Refs: refs,
-		RecordedAt: at, Sink: sink,
+		RecordedAt: at, Sink: sink, TraceID: d.opts.Instrumentation.TraceID(ctx),
 	})
 	if err != nil {
 		return ApprovalCompletionResult{}, err
@@ -317,6 +317,11 @@ func (d *Driver) newContinuationSink(tx dbport.Tx, run runContext) *continuation
 		planDigest: run.selection.Plan.Digest(), proposal: run.start.Proposal, cellID: run.start.CellID,
 		correlationID: run.start.CorrelationID, startKey: run.start.StartIdempotencyKey,
 		subjectRefs: append([]string(nil), run.start.BusinessSubjectRefs...),
+		// OBS-023/OBS-024: same ports the ordinary advanceOnce path wires;
+		// a nil Instrumentation/Evidence here (a Driver not built through
+		// New) is tolerated by continuationSink.Complete's own defensive
+		// nil check.
+		instrumentation: d.opts.Instrumentation, evidence: d.opts.Evidence,
 	}
 }
 

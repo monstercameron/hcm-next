@@ -71,15 +71,34 @@ type oneBeginner struct{ tx *memoryTx }
 
 func (b oneBeginner) Begin(context.Context) (dbport.Tx, error) { return b.tx, nil }
 
-func resumeFixture() ResumeRequest {
+// fakeWorkItemReader is the [WorkItemReader] test double every resume_test.go
+// case uses in place of a real Postgres-backed workitem.Store: it returns
+// exactly the durable row it was configured with, so a test can distinguish
+// "the stored row is fine" from "the stored row disagrees with the request" by
+// setting item's fields directly rather than a struct the request carries
+// (WF-RUN-028: Resume never trusts a caller-assembled WorkItem).
+type fakeWorkItemReader struct{ item workitem.WorkItem }
+
+func (f fakeWorkItemReader) Load(context.Context, workitem.Executor, uuid.UUID, uuid.UUID) (workitem.WorkItem, error) {
+	return f.item, nil
+}
+
+// resumeFixture bundles a [ResumeRequest] naming only the stored WorkItem's
+// id and expected version, and the WorkItem row itself that a
+// [fakeWorkItemReader] built from it hands back to [Driver.Resume].
+type resumeFixture struct {
+	req  ResumeRequest
+	item workitem.WorkItem
+}
+
+func newResumeFixture() resumeFixture {
 	tenantID := uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 	instanceID := uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
 	workItemID := uuid.MustParse("cccccccc-cccc-cccc-cccc-cccccccccccc")
 	at := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
-	proposalDigest := "sha256:" + string(make([]byte, 64))
 	// NUL is not a valid semantic-key character for production data, but a
 	// WorkItem only requires ProposalRef to be present. Use an ordinary digest.
-	proposalDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	proposalDigest := "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	plan := &workflow.CompiledWorkflow{
 		WorkflowID: "promotion.execute", Version: 1,
 		Nodes: []workflow.CompiledNode{{ID: "approve", Type: workflow.StepApproval}},
@@ -92,7 +111,19 @@ func resumeFixture() ResumeRequest {
 		CompiledPlanDigest: plan.Digest(), Status: version.StatusActive,
 	}
 	completedAt := at
-	return ResumeRequest{
+	item := workitem.WorkItem{
+		TenantID: tenantID, WorkItemID: workItemID, ItemVersion: 6,
+		Kind: workitem.KindApproval, WorkType: "approval.finance", Status: workitem.StatusCompleted,
+		CorrelationID: "corr-1", WorkflowInstanceID: instanceID, NodeID: "approve",
+		ApprovalRequirementRef: "approval.finance", ProposalRef: proposalDigest,
+		SubjectRefs: []string{"employment:1"}, OwnerKind: workitem.OwnerPrincipal,
+		OwnerRef: "principal:approver", PolicyRouteRef: "route.finance",
+		Visibility: workitem.VisibilityAssigneeOnly, OrganizationScopeID: "org-1",
+		DeadlineAt: at.Add(time.Hour), CompletedBy: "principal:approver", CompletedAt: &completedAt,
+		CompletedOutputDigest: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		CreatedAt:             at.Add(-time.Hour), RecordedAt: at,
+	}
+	req := ResumeRequest{
 		Start: runtime.StartRequest{
 			TenantID: tenantID, CellID: "cell-1", StartIdempotencyKey: "start-1",
 			Resolver: staticResolver{selection}, Versions: staticVersions{record},
@@ -100,32 +131,23 @@ func resumeFixture() ResumeRequest {
 			BusinessSubjectRefs: []string{"employment:1"},
 		},
 		InstanceID: instanceID, ExpectedInstanceVersion: 3, RecordedAt: at,
-		WorkItem: workitem.WorkItem{
-			TenantID: tenantID, WorkItemID: workItemID, ItemVersion: 6,
-			Kind: workitem.KindApproval, WorkType: "approval.finance", Status: workitem.StatusCompleted,
-			CorrelationID: "corr-1", WorkflowInstanceID: instanceID, NodeID: "approve",
-			ApprovalRequirementRef: "approval.finance", ProposalRef: proposalDigest,
-			SubjectRefs: []string{"employment:1"}, OwnerKind: workitem.OwnerPrincipal,
-			OwnerRef: "principal:approver", PolicyRouteRef: "route.finance",
-			Visibility: workitem.VisibilityAssigneeOnly, OrganizationScopeID: "org-1",
-			DeadlineAt: at.Add(time.Hour), CompletedBy: "principal:approver", CompletedAt: &completedAt,
-			CompletedOutputDigest: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			CreatedAt:             at.Add(-time.Hour), RecordedAt: at,
-		},
+		WorkItemID: workItemID, ExpectedWorkItemVersion: item.ItemVersion,
 		Outcome: frontier.NodeOutcome{
 			Outcome:      workflow.Outcome("APPROVED"),
 			OutputDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
 		},
 	}
+	return resumeFixture{req: req, item: item}
 }
 
 func TestResumeAdvancesCompletedWorkItemTypedOutcome(t *testing.T) {
-	req := resumeFixture()
-	req.Start.Proposal.Revision.MaterialDigest.Digest = req.WorkItem.ProposalRef
+	fx := newResumeFixture()
+	req := fx.req
+	req.Start.Proposal.Revision.MaterialDigest.Digest = fx.item.ProposalRef
 	tx := &memoryTx{}
 	var got runtime.AdvanceRequest
 	driver, err := New(Options{
-		DB: oneBeginner{tx}, Steps: noStepRunner{},
+		DB: oneBeginner{tx}, Steps: noStepRunner{}, Items: fakeWorkItemReader{item: fx.item},
 		Advance: func(_ context.Context, _ runtime.Executor, in runtime.AdvanceRequest) (runtime.AdvanceReceipt, error) {
 			got = in
 			return runtime.AdvanceReceipt{
@@ -144,21 +166,27 @@ func TestResumeAdvancesCompletedWorkItemTypedOutcome(t *testing.T) {
 	if result.Status != StatusComplete || result.InstanceVersion != 7 || !tx.committed {
 		t.Fatalf("result = %+v, transaction committed=%v", result, tx.committed)
 	}
-	if got.Outcome.NodeID != req.WorkItem.NodeID || got.Refs.HumanTaskID != req.WorkItem.WorkItemID.String() {
+	if got.Outcome.NodeID != fx.item.NodeID || got.Refs.HumanTaskID != fx.item.WorkItemID.String() {
 		t.Fatalf("Advance request did not bind completed human task: %+v", got)
 	}
-	if got.Outcome.OutputDigest == req.WorkItem.CompletedOutputDigest {
+	if got.Outcome.OutputDigest == fx.item.CompletedOutputDigest {
 		t.Fatal("fixture did not exercise distinct approval decision and aggregate resolution digests")
 	}
 }
 
+// TestResumeRefusesMismatchedWorkItemBeforeAdvance proves WF-RUN-028: a
+// WorkItemReader that hands back a row bound to another instance is a
+// [ErrWorkItemDrift] refusal, never an advance -- the drift is caught against
+// the durable row [Driver.Resume] itself loaded, not against a struct the
+// caller assembled.
 func TestResumeRefusesMismatchedWorkItemBeforeAdvance(t *testing.T) {
-	req := resumeFixture()
-	req.Start.Proposal.Revision.MaterialDigest.Digest = req.WorkItem.ProposalRef
-	req.WorkItem.WorkflowInstanceID = uuid.New()
+	fx := newResumeFixture()
+	req := fx.req
+	req.Start.Proposal.Revision.MaterialDigest.Digest = fx.item.ProposalRef
+	fx.item.WorkflowInstanceID = uuid.New()
 	called := false
 	driver, err := New(Options{
-		DB: oneBeginner{&memoryTx{}}, Steps: noStepRunner{},
+		DB: oneBeginner{&memoryTx{}}, Steps: noStepRunner{}, Items: fakeWorkItemReader{item: fx.item},
 		Advance: func(context.Context, runtime.Executor, runtime.AdvanceRequest) (runtime.AdvanceReceipt, error) {
 			called = true
 			return runtime.AdvanceReceipt{}, nil
@@ -167,8 +195,8 @@ func TestResumeRefusesMismatchedWorkItemBeforeAdvance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if _, err := driver.Resume(context.Background(), req); !errors.Is(err, ErrInvalidConfiguration) {
-		t.Fatalf("Resume error = %v, want invalid configuration", err)
+	if _, err := driver.Resume(context.Background(), req); !errors.Is(err, ErrWorkItemDrift) {
+		t.Fatalf("Resume error = %v, want work item drift", err)
 	}
 	if called {
 		t.Fatal("Advance called for mismatched WorkItem")
@@ -176,11 +204,12 @@ func TestResumeRefusesMismatchedWorkItemBeforeAdvance(t *testing.T) {
 }
 
 func TestUnsupportedContinuationRollsBackItsAuditInsert(t *testing.T) {
-	req := resumeFixture()
-	req.Start.Proposal.Revision.MaterialDigest.Digest = req.WorkItem.ProposalRef
+	fx := newResumeFixture()
+	req := fx.req
+	req.Start.Proposal.Revision.MaterialDigest.Digest = fx.item.ProposalRef
 	tx := &memoryTx{}
 	driver, err := New(Options{
-		DB: oneBeginner{tx}, Steps: noStepRunner{},
+		DB: oneBeginner{tx}, Steps: noStepRunner{}, Items: fakeWorkItemReader{item: fx.item},
 		Advance: func(ctx context.Context, ex runtime.Executor, in runtime.AdvanceRequest) (runtime.AdvanceReceipt, error) {
 			return runtime.AdvanceReceipt{}, in.Sink.RequireTimer(ctx, ex, runtime.ContinuationRecord{
 				TenantID: in.TenantID, InstanceID: in.InstanceID, SourceNodeID: in.Outcome.NodeID,

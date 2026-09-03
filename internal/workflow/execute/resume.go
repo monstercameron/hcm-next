@@ -15,48 +15,94 @@ import (
 	"github.com/monstercameron/hcm-next/internal/workflow/version"
 )
 
-// ResumeRequest presents the completed human-work evidence and the typed
-// step resolution that evidence produced. Start is context only: Resume does
-// not create another instance. Its resolver and version store re-resolve the
-// exact plan, while its proposal, tenant, correlation and subject fields are
-// checked against WorkItem before the outcome may enter runtime.Advance.
+// ResumeRequest presents the immutable typed step resolution completed
+// human-work evidence produced, plus the identity of the WorkItem that
+// evidence came from. Start is context only: Resume does not create another
+// instance. Its resolver and version store re-resolve the exact plan, while
+// its proposal, tenant, correlation and subject fields are checked against
+// the WorkItem [WorkItemReader] loads before the outcome may enter
+// runtime.Advance.
+//
+// WorkItemID and ExpectedItemVersion name the durable WorkItem, never carry
+// it (WF-RUN-028): Resume loads the row itself, inside the same transaction
+// as the advancement it feeds, and refuses [ErrWorkItemDrift] the instant the
+// stored row disagrees with what this request or the pinned plan expects.
 //
 // Outcome.OutputDigest is the digest of the typed step resolution, not
-// necessarily WorkItem.CompletedOutputDigest. For an approval quorum, for
-// example, the former binds the aggregate resolution while the latter binds
-// one approver's decision.
+// necessarily the stored WorkItem's own completed-output digest. For an
+// approval quorum, for example, the former binds the aggregate resolution
+// while the latter binds one approver's decision.
 type ResumeRequest struct {
 	Start                   runtime.StartRequest
 	InstanceID              uuid.UUID
 	ExpectedInstanceVersion int64
-	WorkItem                workitem.WorkItem
+	WorkItemID              uuid.UUID
+	ExpectedWorkItemVersion int64
 	Outcome                 frontier.NodeOutcome
 	Refs                    runtime.GovernanceRefs
 	RecordedAt              time.Time
 }
 
-// Resume advances a WAITING APPROVAL or TASK from completed WorkItem
-// evidence, then drains any ordinary READY successors exactly as Execute
-// does. It never polls and it does not complete the WorkItem itself.
+// Resume advances a WAITING APPROVAL or TASK from the durable WorkItem
+// [WorkItemReader] loads for req.WorkItemID, then drains any ordinary READY
+// successors exactly as Execute does. It never polls and it does not
+// complete the WorkItem itself.
 func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) {
-	selection, outcome, refs, err := validateResume(ctx, req)
+	selection, err := validateResumeConfig(ctx, req, d.opts.Items)
 	if err != nil {
 		return Result{}, err
 	}
-	run := runContext{start: req.Start, selection: selection, instanceID: req.InstanceID}
+	run := runContext{
+		start: req.Start, selection: selection, instanceID: req.InstanceID,
+		traceID: d.opts.Instrumentation.TraceID(ctx),
+	}
 	at := req.RecordedAt.UTC()
 	if req.RecordedAt.IsZero() {
 		at = d.opts.Clock().UTC()
 	}
-	advanced, created, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, outcome, refs, at)
+
+	advanced, created, evidenceIDs, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, at,
+		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+			item, loadErr := d.opts.Items.Load(ctx, ex, req.Start.TenantID, req.WorkItemID)
+			if loadErr != nil {
+				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, loadErr
+			}
+			return checkWorkItemDrift(req, selection, item)
+		})
 	if err != nil {
 		return Result{}, err
 	}
+
+	// OBS-024: a Resume that just advanced from a completed work item is
+	// either an APPROVAL_COMPLETED or a TASK_SUBMITTED event, decided from
+	// the pinned plan's own node type for the node the advancement names —
+	// never from a caller-asserted kind.
+	if node, ok := selection.Plan.Node(advanced.NodeID); ok {
+		var kind string
+		switch node.Type {
+		case workflow.StepApproval:
+			kind = EvidenceKindApprovalCompleted
+		case workflow.StepTask:
+			kind = EvidenceKindTaskSubmitted
+		}
+		if kind != "" {
+			evidenceID, evErr := d.opts.Evidence.RecordExecutionEvidence(ctx, kind,
+				req.InstanceID.String(), advanced.NodeID, req.WorkItemID.String(), advanced.OutputDigest, at)
+			if evErr != nil {
+				return Result{}, fmt.Errorf("workflow execute: record %s evidence: %w", kind, evErr)
+			}
+			if evidenceID != "" {
+				evidenceIDs = append(evidenceIDs, evidenceID)
+			}
+		}
+	}
+
 	result := Result{
 		Advances:        []runtime.AdvanceReceipt{advanced},
 		WorkItems:       created,
 		InstanceVersion: advanced.NewInstanceVersion,
 		Frontier:        append([]string(nil), advanced.Frontier...),
+		EvidenceIDs:     evidenceIDs,
 	}
 	if advanced.Complete {
 		result.Status = StatusComplete
@@ -73,64 +119,100 @@ func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) 
 	return d.drainReady(ctx, run, result, ready)
 }
 
-func validateResume(ctx context.Context, req ResumeRequest) (runtime.WorkflowSelection, frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+// validateResumeConfig checks everything Resume can check before it ever
+// opens a transaction: wiring, request shape and the pinned plan's identity.
+// It never touches the WorkItem -- that load happens inside the advancement
+// transaction, in [checkWorkItemDrift], per WF-RUN-028.
+func validateResumeConfig(ctx context.Context, req ResumeRequest, items WorkItemReader) (runtime.WorkflowSelection, error) {
 	if req.Start.Resolver == nil {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("resume has no WorkflowResolver")
+		return runtime.WorkflowSelection{}, invalid("resume has no WorkflowResolver")
 	}
 	if req.Start.Versions == nil {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("resume has no exact version Store")
+		return runtime.WorkflowSelection{}, invalid("resume has no exact version Store")
 	}
-	if req.Start.TenantID == uuid.Nil || req.InstanceID == uuid.Nil || req.ExpectedInstanceVersion < 1 {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("resume requires tenant, instance and positive expected instance version")
+	if items == nil {
+		return runtime.WorkflowSelection{}, invalid("resume has no WorkItemReader")
+	}
+	if req.Start.TenantID == uuid.Nil || req.InstanceID == uuid.Nil || req.WorkItemID == uuid.Nil ||
+		req.ExpectedInstanceVersion < 1 || req.ExpectedWorkItemVersion < 1 {
+		return runtime.WorkflowSelection{}, invalid(
+			"resume requires tenant, instance, work item and positive expected instance/work-item versions")
 	}
 	selection, err := req.Start.Resolver.ResolveWorkflow(ctx, req.Start)
 	if err != nil {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, fmt.Errorf("workflow execute: resolve resume workflow: %w", err)
+		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve resume workflow: %w", err)
 	}
 	if selection.Plan == nil || selection.WorkflowID == "" {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("WorkflowResolver returned no workflow id or plan for resume")
+		return runtime.WorkflowSelection{}, invalid("WorkflowResolver returned no workflow id or plan for resume")
 	}
 	published, err := version.Resolve(req.Start.Versions, selection.WorkflowID, selection.Pin)
 	if err != nil {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, fmt.Errorf("workflow execute: resolve resume version: %w", err)
+		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve resume version: %w", err)
 	}
 	if published.Status != version.StatusActive || published.CompiledPlanDigest != selection.Plan.Digest() {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("resume plan is not the exact active published version")
+		return runtime.WorkflowSelection{}, invalid("resume plan is not the exact active published version")
 	}
+	return selection, nil
+}
 
-	item := req.WorkItem
+// checkWorkItemDrift compares the durable row [WorkItemReader] loaded --
+// never a struct the caller assembled -- against req and the pinned plan,
+// and refuses [ErrWorkItemDrift] on any difference: status, item version,
+// completion evidence (via item.Validate, which a COMPLETED row can only
+// pass with a completer, a completed-at instant and a well-formed output
+// digest all present) and instance/node binding. The attempt is always 1 in
+// this bounded, single-attempt driver, so there is no separate attempt field
+// to compare.
+//
+// The NodeOutcome fed to the frontier is derived from the stored row: NodeID
+// always comes from item.NodeID (never trusted from req.Outcome alone), and
+// [GovernanceRefs.HumanTaskID] is always item.WorkItemID.
+func checkWorkItemDrift(
+	req ResumeRequest, selection runtime.WorkflowSelection, item workitem.WorkItem,
+) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
 	if err := item.Validate(); err != nil {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, fmt.Errorf("workflow execute: invalid resume WorkItem: %w", err)
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift("stored work item %s fails its own invariants: %v", item.WorkItemID, err)
 	}
 	if item.Status != workitem.StatusCompleted {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("WorkItem %s is %s, not COMPLETED", item.WorkItemID, item.Status)
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s is %s, not COMPLETED", item.WorkItemID, item.Status)
+	}
+	if item.ItemVersion != req.ExpectedWorkItemVersion {
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s expected version %d, stored %d", item.WorkItemID, req.ExpectedWorkItemVersion, item.ItemVersion)
 	}
 	if item.TenantID != req.Start.TenantID || item.WorkflowInstanceID != req.InstanceID {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("completed WorkItem is bound to another tenant or instance")
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s is bound to another tenant or instance", item.WorkItemID)
 	}
 	if item.CorrelationID != req.Start.CorrelationID || item.ProposalRef != req.Start.Proposal.Revision.MaterialDigest.Digest {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("completed WorkItem is bound to another correlation or proposal")
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s is bound to another correlation or proposal", item.WorkItemID)
 	}
 	if !sameStrings(item.SubjectRefs, req.Start.BusinessSubjectRefs) {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("completed WorkItem subject binding differs from the workflow")
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s subject binding differs from the workflow", item.WorkItemID)
 	}
 	node, ok := selection.Plan.Node(item.NodeID)
 	if !ok || (node.Type != workflow.StepApproval && node.Type != workflow.StepTask) {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("completed WorkItem node %s is not an APPROVAL or TASK in the pinned plan", item.NodeID)
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, drift(
+			"work item %s names node %s, which is not an APPROVAL or TASK in the pinned plan", item.WorkItemID, item.NodeID)
 	}
+
 	outcome := req.Outcome
 	if outcome.NodeID == "" {
 		outcome.NodeID = item.NodeID
 	}
 	if outcome.NodeID != item.NodeID || outcome.Await != frontier.AwaitNone || outcome.Failed || outcome.Outcome == "" || outcome.OutputDigest == "" {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("resume requires a completed typed outcome for WorkItem node %s", item.NodeID)
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid(
+			"resume requires a completed typed outcome for work item node %s", item.NodeID)
 	}
 	refs := req.Refs
 	if refs.HumanTaskID != "" && refs.HumanTaskID != item.WorkItemID.String() {
-		return runtime.WorkflowSelection{}, frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("typed outcome names another human task")
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, invalid("typed outcome names another human task")
 	}
 	refs.HumanTaskID = item.WorkItemID.String()
-	return selection, outcome, refs, nil
+	return outcome, refs, nil
 }
 
 func sameStrings(a, b []string) bool {

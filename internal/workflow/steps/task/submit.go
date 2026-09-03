@@ -99,5 +99,12 @@ func Submit(ctx context.Context, tx workitem.Executor, store workitem.Port, item
 	if err != nil {
 		return workitem.WorkItem{}, Submission{}, err
 	}
+	// WORK-010: the full submission content is recorded in the same
+	// transaction as its completion, digest-verified against
+	// updated.CompletedOutputDigest (sub.Digest(), recorded verbatim above). A
+	// failure here rolls back the completion too, since both run through tx.
+	if err := recordSubmission(ctx, tx, updated, sub); err != nil {
+		return workitem.WorkItem{}, Submission{}, err
+	}
 	return updated, sub, nil
 }
