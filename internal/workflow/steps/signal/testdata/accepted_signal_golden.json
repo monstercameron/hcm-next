@@ -1,0 +1,22 @@
+{
+  "subscription_digest": "22e7d97fbd4d64776b010e0e190f8d670e9a8f887954ac6b8164bb589bda8ce5",
+  "signal": {
+    "tenant": "acme-corp",
+    "source": "vendor.checkr",
+    "event_type": "background_check.completed",
+    "schema_ref": "schema.background_check_result/v1",
+    "correlation_key": "candidate_id",
+    "correlation_value": "cand-42",
+    "sequence_number": 1,
+    "idempotency_key": "checkr-delivery-1001",
+    "payload_hex": "7b22726573756c74223a22434c454152227d",
+    "taint": "TAINTED",
+    "signature_hex": "26b61a500da43b785a384746028286663ed69d99ced96b5875d1113673eb70b3",
+    "received_at": "2026-06-17T12:00:00Z"
+  },
+  "status": "ACCEPTED",
+  "continuation": true,
+  "reason": "",
+  "recorded_at": "2026-06-17T12:00:00Z",
+  "digest": "2da52c552cf53d9ee72ae304223779427c8861603ea1d84390f136d18ec392fe"
+}

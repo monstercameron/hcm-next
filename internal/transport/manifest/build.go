@@ -126,6 +126,17 @@ func rules() map[string]rule {
 			compatibilityStatus: "ACTIVE", phase: "GATE_A",
 			genericLifecycle: true,
 		},
+		"/hcmnext.intents.v1.IntentService/ExecuteIntent": {
+			owner: "GOVERNANCE", behavior: IntentBehaviorConsumes,
+			disposition: DispositionRefusedP1A, dispositionReason: refusedReason,
+			httpMethod: "POST", httpPath: "/v1/intents/{intent}:execute", httpBody: "*",
+			authzAction: "hcmnext.intents.execute", classificationRef: "CONFIDENTIAL_HR",
+			idempotencyClass: IdempotencyKey, idempotencyKeySrc: "request.idempotency_key",
+			revisionPolicy: "REQUIRED_EXACT_MATCH", retryPolicy: "IDEMPOTENCY_KEY_DEDUPED",
+			paginationPolicy: "NOT_APPLICABLE", orderingPolicy: "NOT_APPLICABLE",
+			compatibilityStatus: "ACTIVE", phase: "GATE_B",
+			genericLifecycle: true,
+		},
 		"/hcmnext.intents.v1.IntentService/SubmitIntent": {
 			owner: "GOVERNANCE", behavior: IntentBehaviorConsumes,
 			disposition: DispositionRefusedP1A, dispositionReason: refusedReason,

@@ -215,3 +215,93 @@ func FuzzTodo_TRUST_011(f *testing.F) {
 		}
 	})
 }
+
+// FuzzTodo_TRUST_012 is the TRUST-012 fuzz target: for any principal, tenant
+// and candidate combination, PlanRepositoryScope never panics, a scope it
+// returns without error always passes Validate, never grants a subject
+// outside its own tenant, and the gate serves only subjects the scope
+// authorizes with only fields the scope's mask allows.
+func FuzzTodo_TRUST_012(f *testing.F) {
+	f.Add(byte(0), byte(0), byte(0), byte(0), int64(0))
+	f.Add(byte(2), byte(3), byte(1), byte(1), int64(3600))
+	f.Add(byte(4), byte(8), byte(2), byte(0), int64(-3600))
+
+	roles := []string{string(authz.RoleWorkerSelf), string(authz.RoleManager), string(authz.RoleHRPartner), string(authz.RoleCompAdmin), string(authz.RoleAuditor), "unrecognized_role"}
+	purposes := []string{authz.PurposeSelfService, authz.PurposeCompensationReview, authz.PurposePayrollProcessing, authz.PurposePerformanceReview, authz.PurposeAuditReview}
+	fields := []authz.FieldID{authz.FieldWorkerNumber, authz.FieldJobTitle, authz.FieldBaseSalary, authz.FieldBankAccountNumber}
+
+	f.Fuzz(func(t *testing.T, roleIdx, purposeIdx, candidateIdx, hasOrg byte, offsetSeconds int64) {
+		role := roles[int(roleIdx)%len(roles)]
+		purpose := purposes[int(purposeIdx)%len(purposes)]
+		effectiveAt := instantAt(baseTime.Add(time.Duration(offsetSeconds) * time.Second))
+
+		principal := newPrincipal(t, principalOpts{roles: []string{role}, purposes: purposes})
+		managed := workerSubject(tenantAcme, subjectWorkerID)
+		unmanaged := workerSubject(tenantAcme, subjectOtherID)
+
+		// Each fuzz case plans over both candidates, but only the managed
+		// worker ever has a supporting relationship fact.
+		candidates := []authz.ScopeInput{
+			{Subject: managed, Relationships: []authz.RelationshipFact{managerFact(managed)}},
+			{Subject: unmanaged},
+		}
+		req := authz.RepositoryQueryRequest{
+			Principal:   principal,
+			Purpose:     purpose,
+			EffectiveAt: effectiveAt,
+			Tenant:      tenantAcme,
+			Candidates:  candidates,
+			Fields:      fields,
+		}
+		if hasOrg%2 == 0 {
+			req.PrincipalOrg = authz.OrgUnitRef{Tenant: tenantAcme, ID: "org-a"}
+			req.ResourceOrg = authz.OrgUnitRef{Tenant: tenantAcme, ID: "org-a1"}
+			req.OrgEdges = []authz.OrgEdge{{Child: authz.OrgUnitRef{Tenant: tenantAcme, ID: "org-a1"}, Parent: authz.OrgUnitRef{Tenant: tenantAcme, ID: "org-a"}, Effective: mustOpenIntervalUnchecked(recentPast)}}
+		}
+
+		scope, err := authz.PlanRepositoryScope(req)
+		if err != nil {
+			return
+		}
+		if err := scope.Validate(); err != nil {
+			t.Fatalf("planned scope fails Validate: %v", err)
+		}
+		for _, s := range scope.AllowedSubjects() {
+			if s.Tenant != scope.Tenant() {
+				t.Fatal("scope grants a subject outside its own tenant")
+			}
+			if !scope.AuthorizesRecord(s, effectiveAt) {
+				t.Fatal("a scope must authorize its own allowed subjects at its evaluated instant")
+			}
+		}
+		if scope.Effect() == authz.EffectDenied && len(scope.AllowedSubjects()) != 0 {
+			t.Fatal("a denied scope grants subjects")
+		}
+
+		gate := authz.NewRepositoryGate(map[values.EntityRef]map[authz.FieldID]string{
+			managed:   {authz.FieldWorkerNumber: "W-0001", authz.FieldBaseSalary: "120000"},
+			unmanaged: {authz.FieldWorkerNumber: "W-0002"},
+		})
+		projections, err := gate.Query(scope, []values.EntityRef{managed, unmanaged}, effectiveAt)
+		if err != nil {
+			t.Fatalf("gate.Query: %v", err)
+		}
+		authorized := map[values.EntityRef]bool{}
+		for _, s := range scope.AllowedSubjects() {
+			authorized[s] = true
+		}
+		for _, p := range projections {
+			if !authorized[p.Subject] {
+				t.Fatalf("gate served an unauthorized subject: %s", p.Subject.String())
+			}
+			for _, fv := range p.Fields {
+				if scope.FieldRuling(fv.FieldID).Effect != fv.Effect {
+					t.Fatalf("gate served field %s under %s, mask says %s", fv.FieldID, fv.Effect, scope.FieldRuling(fv.FieldID).Effect)
+				}
+				if fv.Effect == authz.EffectRedacted && fv.Value != authz.RedactedPlaceholder {
+					t.Fatalf("redacted field %s carries a non-placeholder value", fv.FieldID)
+				}
+			}
+		}
+	})
+}

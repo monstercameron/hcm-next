@@ -1,0 +1,135 @@
+package main
+
+import (
+	"bytes"
+	"net"
+	"strings"
+	"testing"
+
+	"google.golang.org/grpc"
+
+	"github.com/monstercameron/hcm-next/internal/transport"
+	"github.com/monstercameron/hcm-next/internal/transport/admin"
+	"github.com/monstercameron/hcm-next/internal/transport/admin/hcmctl"
+	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
+	"github.com/monstercameron/hcm-next/internal/trust"
+)
+
+// startCommandFixtureServer boots a real AdminService - the same
+// registration this binary's server side (internal/transport/cell.NewGRPCServer)
+// performs, minus the rest of the cell - behind the shared trusted-request
+// interceptor chain, on a loopback listener chosen by the OS, verified by a
+// real internal/trust.HMACVerifier rather than a stub. That verifier is
+// also what mints the JIT credential below, so this test exercises the same
+// signing/verification pair -mint uses against a live server in production.
+func startCommandFixtureServer(t *testing.T, verifier trust.Verifier) (addr string, cleanup func()) {
+	t.Helper()
+	cfg := transport.Config{Verifier: verifier}
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcserver.UnaryInterceptor(cfg)))
+	admin.Register(srv, admin.Dependencies{})
+
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	go func() { _ = srv.Serve(lis) }()
+	return lis.Addr().String(), func() {
+		srv.Stop()
+		_ = lis.Close()
+	}
+}
+
+// TestHcmctlCommandRunsAgainstAnInProcessAdminServer is ADMIN-001/SVC-011's
+// command-level smoke test for the promoted cmd/hcmctl binary. It starts a
+// real AdminService in-process on a loopback listener (mirroring
+// internal/transport/admin's own integration-test pattern in
+// admin_integration_test.go), then drives hcmctl.Main with main's own real
+// dialer (hcmctl.DialInsecure) - not a test double - proving the exact
+// composition this file's main() wires (os.Args, os.Stdout, os.Stderr,
+// hcmctl.DialInsecure) reaches a live server end to end.
+//
+// Two invocations share the one server: a -mint'd operator credential
+// succeeds and prints the required evidence line (ADMIN-001's "evidence IDs
+// printed on every call"), and a -mint'd credential carrying an
+// unauthorized role is rejected by the server's own AuthZ - and in both
+// cases the minted token and the -mint-key signing secret passed on the
+// command line never appear anywhere in stdout or stderr, proving bearer
+// redaction holds at the command level, not just inside the library's own
+// unit tests.
+func TestHcmctlCommandRunsAgainstAnInProcessAdminServer(t *testing.T) {
+	const signingKey = "hcmctl-command-smoke-test-signing-key-0123456789"
+	const issuer = "hcmctl-smoke-issuer"
+	const audience = "hcmctl-smoke-audience"
+
+	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{
+		Key:      []byte(signingKey),
+		Issuer:   issuer,
+		Audience: audience,
+	})
+	if err != nil {
+		t.Fatalf("NewHMACVerifier: %v", err)
+	}
+
+	addr, cleanup := startCommandFixtureServer(t, verifier)
+	defer cleanup()
+
+	mintArgs := func(role string) []string {
+		return []string{
+			"-addr", addr,
+			"-timeout", "10s",
+			"-mint",
+			"-mint-key", signingKey,
+			"-mint-issuer", issuer,
+			"-mint-audience", audience,
+			"-mint-tenant", "acme-corp",
+			"-mint-subject", "operator-smoke",
+			"-mint-roles", role,
+			"release-manifest",
+		}
+	}
+
+	t.Run("mint_and_authorized_call_prints_evidence", func(t *testing.T) {
+		var stdout, stderr bytes.Buffer
+		code := hcmctl.Main(mintArgs(admin.OperatorRole), &stdout, &stderr, hcmctl.DialInsecure)
+		if code != 0 {
+			t.Fatalf("hcmctl.Main exit code = %d, stderr = %s", code, stderr.String())
+		}
+
+		out := stdout.String()
+		if !strings.Contains(out, "manifest_digest:") {
+			t.Fatalf("output missing manifest_digest:\n%s", out)
+		}
+		if !strings.Contains(out, "evidence:") {
+			t.Fatalf("output missing the required evidence line:\n%s", out)
+		}
+
+		assertNoLeakedCredential(t, signingKey, stdout.String()+stderr.String())
+	})
+
+	t.Run("mint_with_an_unauthorized_role_is_rejected_without_leaking_the_credential", func(t *testing.T) {
+		var stdout, stderr bytes.Buffer
+		code := hcmctl.Main(mintArgs("hcmnext.trust.role.intent_author"), &stdout, &stderr, hcmctl.DialInsecure)
+		if code == 0 {
+			t.Fatalf("expected a non-zero exit code for an unauthorized role; stdout = %s", stdout.String())
+		}
+
+		assertNoLeakedCredential(t, signingKey, stdout.String()+stderr.String())
+	})
+}
+
+// assertNoLeakedCredential fails t if combined (stdout+stderr from one
+// hcmctl.Main invocation) contains the mint signing key or an unredacted
+// "Bearer <token>" credential. hcmctl mints a fresh JWT-shaped token per
+// call, so this checks the redaction contract by shape (redact.go's
+// bearerPattern) and by the one secret this test itself supplied, rather
+// than by a specific token value it does not control.
+func assertNoLeakedCredential(t *testing.T, signingKey, combined string) {
+	t.Helper()
+	if strings.Contains(combined, signingKey) {
+		t.Fatalf("output leaked the mint signing key:\n%s", combined)
+	}
+	lower := strings.ToLower(combined)
+	if idx := strings.Index(lower, "bearer "); idx != -1 && !strings.HasPrefix(lower[idx:], "bearer [redacted]") {
+		t.Fatalf("output contains an unredacted bearer credential:\n%s", combined)
+	}
+}

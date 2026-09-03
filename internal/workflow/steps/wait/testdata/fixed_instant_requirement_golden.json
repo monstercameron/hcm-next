@@ -1,0 +1,30 @@
+{
+  "workflow_id": "wf.promotion",
+  "workflow_version": 1,
+  "node_id": "wait.effective_date",
+  "fire_at": "2026-06-17T14:00:00Z",
+  "zone": "America/New_York@2026a",
+  "calendar": "us-federal@2026.1",
+  "policy": "PIN",
+  "dataset_tzdb": "2026a",
+  "dataset_calendar": "2026.1",
+  "review_required": false,
+  "review_reason": "",
+  "evidence": {
+    "wake_kind": "AT_INSTANT",
+    "inputs": {
+      "calendar": "us-federal@2026.1",
+      "dataset_calendar": "2026.1",
+      "dataset_tzdb": "2026a",
+      "fire_at": "2026-06-17T14:00:00Z",
+      "fixed_instant": "2026-06-17T14:00:00Z",
+      "policy": "PIN",
+      "zone": "America/New_York@2026a"
+    },
+    "steps": [
+      "wake condition is a fixed instant; dataset does not affect it",
+      "fire_at resolved to 2026-06-17T14:00:00Z"
+    ]
+  },
+  "digest": "6785a73f45681f19c229072f7194b2ac03e22a0ef3de48657812a9f29a9b1f48"
+}

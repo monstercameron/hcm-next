@@ -16,6 +16,7 @@ const (
 	ProcedureGetIntent          = "/hcmnext.intents.v1.IntentService/GetIntent"
 	ProcedureListIntents        = "/hcmnext.intents.v1.IntentService/ListIntents"
 	ProcedureSimulateIntent     = "/hcmnext.intents.v1.IntentService/SimulateIntent"
+	ProcedureExecuteIntent      = "/hcmnext.intents.v1.IntentService/ExecuteIntent"
 	ProcedureSubmitIntent       = "/hcmnext.intents.v1.IntentService/SubmitIntent"
 	ProcedureCancelIntent       = "/hcmnext.intents.v1.IntentService/CancelIntent"
 	ProcedureSupersedeIntent    = "/hcmnext.intents.v1.IntentService/SupersedeIntent"
@@ -36,6 +37,7 @@ var requestFactories = map[string]func() proto.Message{
 	ProcedureGetIntent:          func() proto.Message { return &intentsv1.GetIntentRequest{} },
 	ProcedureListIntents:        func() proto.Message { return &intentsv1.ListIntentsRequest{} },
 	ProcedureSimulateIntent:     func() proto.Message { return &intentsv1.SimulateIntentRequest{} },
+	ProcedureExecuteIntent:      func() proto.Message { return &intentsv1.ExecuteIntentRequest{} },
 	ProcedureSubmitIntent:       func() proto.Message { return &intentsv1.SubmitIntentRequest{} },
 	ProcedureCancelIntent:       func() proto.Message { return &intentsv1.CancelIntentRequest{} },
 	ProcedureSupersedeIntent:    func() proto.Message { return &intentsv1.SupersedeIntentRequest{} },

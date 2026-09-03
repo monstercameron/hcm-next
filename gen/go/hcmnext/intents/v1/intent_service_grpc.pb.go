@@ -23,6 +23,7 @@ const (
 	IntentService_GetIntent_FullMethodName          = "/hcmnext.intents.v1.IntentService/GetIntent"
 	IntentService_ListIntents_FullMethodName        = "/hcmnext.intents.v1.IntentService/ListIntents"
 	IntentService_SimulateIntent_FullMethodName     = "/hcmnext.intents.v1.IntentService/SimulateIntent"
+	IntentService_ExecuteIntent_FullMethodName      = "/hcmnext.intents.v1.IntentService/ExecuteIntent"
 	IntentService_SubmitIntent_FullMethodName       = "/hcmnext.intents.v1.IntentService/SubmitIntent"
 	IntentService_CancelIntent_FullMethodName       = "/hcmnext.intents.v1.IntentService/CancelIntent"
 	IntentService_SupersedeIntent_FullMethodName    = "/hcmnext.intents.v1.IntentService/SupersedeIntent"
@@ -43,6 +44,7 @@ type IntentServiceClient interface {
 	GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error)
 	ListIntents(ctx context.Context, in *ListIntentsRequest, opts ...grpc.CallOption) (*ListIntentsResponse, error)
 	SimulateIntent(ctx context.Context, in *SimulateIntentRequest, opts ...grpc.CallOption) (*SimulateIntentResponse, error)
+	ExecuteIntent(ctx context.Context, in *ExecuteIntentRequest, opts ...grpc.CallOption) (*ExecuteIntentResponse, error)
 	SubmitIntent(ctx context.Context, in *SubmitIntentRequest, opts ...grpc.CallOption) (*SubmitIntentResponse, error)
 	CancelIntent(ctx context.Context, in *CancelIntentRequest, opts ...grpc.CallOption) (*CancelIntentResponse, error)
 	SupersedeIntent(ctx context.Context, in *SupersedeIntentRequest, opts ...grpc.CallOption) (*SupersedeIntentResponse, error)
@@ -92,6 +94,16 @@ func (c *intentServiceClient) SimulateIntent(ctx context.Context, in *SimulateIn
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SimulateIntentResponse)
 	err := c.cc.Invoke(ctx, IntentService_SimulateIntent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *intentServiceClient) ExecuteIntent(ctx context.Context, in *ExecuteIntentRequest, opts ...grpc.CallOption) (*ExecuteIntentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExecuteIntentResponse)
+	err := c.cc.Invoke(ctx, IntentService_ExecuteIntent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,6 +173,7 @@ type IntentServiceServer interface {
 	GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error)
 	ListIntents(context.Context, *ListIntentsRequest) (*ListIntentsResponse, error)
 	SimulateIntent(context.Context, *SimulateIntentRequest) (*SimulateIntentResponse, error)
+	ExecuteIntent(context.Context, *ExecuteIntentRequest) (*ExecuteIntentResponse, error)
 	SubmitIntent(context.Context, *SubmitIntentRequest) (*SubmitIntentResponse, error)
 	CancelIntent(context.Context, *CancelIntentRequest) (*CancelIntentResponse, error)
 	SupersedeIntent(context.Context, *SupersedeIntentRequest) (*SupersedeIntentResponse, error)
@@ -187,6 +200,9 @@ func (UnimplementedIntentServiceServer) ListIntents(context.Context, *ListIntent
 }
 func (UnimplementedIntentServiceServer) SimulateIntent(context.Context, *SimulateIntentRequest) (*SimulateIntentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SimulateIntent not implemented")
+}
+func (UnimplementedIntentServiceServer) ExecuteIntent(context.Context, *ExecuteIntentRequest) (*ExecuteIntentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExecuteIntent not implemented")
 }
 func (UnimplementedIntentServiceServer) SubmitIntent(context.Context, *SubmitIntentRequest) (*SubmitIntentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SubmitIntent not implemented")
@@ -292,6 +308,24 @@ func _IntentService_SimulateIntent_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IntentServiceServer).SimulateIntent(ctx, req.(*SimulateIntentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IntentService_ExecuteIntent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteIntentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IntentServiceServer).ExecuteIntent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IntentService_ExecuteIntent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IntentServiceServer).ExecuteIntent(ctx, req.(*ExecuteIntentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -408,6 +442,10 @@ var IntentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SimulateIntent",
 			Handler:    _IntentService_SimulateIntent_Handler,
+		},
+		{
+			MethodName: "ExecuteIntent",
+			Handler:    _IntentService_ExecuteIntent_Handler,
 		},
 		{
 			MethodName: "SubmitIntent",

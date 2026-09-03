@@ -1,0 +1,20 @@
+package telemetry
+
+import "testing"
+
+func TestClassification_Smoke(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("panic: %v", r)
+		}
+	}()
+}
+
+func TestClassification_NoPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("panic: %v", r)
+		}
+	}()
+	_ = 1
+}

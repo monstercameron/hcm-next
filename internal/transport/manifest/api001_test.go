@@ -162,7 +162,7 @@ func TestTodo_API_001_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderDefaultDiscoveryDocument: %v", err)
 	}
-	if len(doc.Endpoints) != 13 || len(doc.Capabilities) != 10 || len(doc.IntentDefinitions) != 14 {
+	if len(doc.Endpoints) != 14 || len(doc.Capabilities) != 10 || len(doc.IntentDefinitions) != 14 {
 		t.Fatalf("unexpected production shape: %d endpoints, %d capabilities, %d intent definitions",
 			len(doc.Endpoints), len(doc.Capabilities), len(doc.IntentDefinitions))
 	}

@@ -34,6 +34,10 @@ func (s *intentService) SimulateIntent(ctx context.Context, req *intentsv1.Simul
 	return s.handler.SimulateIntent(ctx, req)
 }
 
+func (s *intentService) ExecuteIntent(ctx context.Context, req *intentsv1.ExecuteIntentRequest) (*intentsv1.ExecuteIntentResponse, error) {
+	return s.handler.ExecuteIntent(ctx, req)
+}
+
 func (s *intentService) SubmitIntent(ctx context.Context, req *intentsv1.SubmitIntentRequest) (*intentsv1.SubmitIntentResponse, error) {
 	return s.handler.SubmitIntent(ctx, req)
 }

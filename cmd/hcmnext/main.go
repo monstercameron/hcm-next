@@ -79,10 +79,14 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
+	"github.com/google/uuid"
+
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
+	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
 	"github.com/monstercameron/hcm-next/internal/platform/logging"
@@ -91,6 +95,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/transport"
 	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
 	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
 	"github.com/monstercameron/hcm-next/migrations"
 )
 
@@ -120,6 +125,16 @@ const (
 	fieldDevBrowserLogin = "dev-browser-login"
 	fieldOTelExporter    = "otel-exporter"
 	fieldOTelEndpoint    = "otel-endpoint"
+
+	// fieldExecutionAuthority is the P1B execution authority gate family.
+	// Every field below defaults to off/empty; a cell composed with no
+	// -execution-authority behaves byte-for-byte like the P1A cell of today
+	// (internal/intent/app.ExecutionAuthority is nil, and ExecuteIntent
+	// refuses exactly as every other governed write in this release does).
+	fieldExecutionAuthority       = "execution-authority"
+	fieldExecutionAuthorityDigest = "execution-authority-digest"
+	fieldExecutionAuthorityRole   = "execution-authority-role"
+	fieldExecutionApprover        = "execution-authority-approver"
 )
 
 // otelExporterNone, otelExporterStdout and otelExporterOTLPHTTP are the
@@ -205,6 +220,10 @@ func serveSpec(args []string) bootstrap.Spec {
 			{Name: fieldDevBrowserLogin, Usage: "dev-only: serve a pasted-token sign-in form for the workspace at " + workspace.PathLogin, Default: "false", Kind: bootstrap.KindBool},
 			{Name: fieldOTelExporter, Usage: "OTel exporter: none, stdout, or otlphttp", Default: otelExporterNone},
 			{Name: fieldOTelEndpoint, Usage: "OTLP/HTTP collector endpoint; required when -" + fieldOTelExporter + "=" + otelExporterOTLPHTTP},
+			{Name: fieldExecutionAuthority, Usage: "P1B gate: compose this cell with the caller-driven promotion execution driver, so ExecuteIntent can run instead of refusing (planning/next-steps.md \"P1B exists only after a signed Gate A PROCEED\")", Default: "false", Kind: bootstrap.KindBool},
+			{Name: fieldExecutionAuthorityDigest, Usage: "the signed P1B authority amendment digest this cell asserts; carried through as evidence, never verified by this process"},
+			{Name: fieldExecutionAuthorityRole, Usage: "the principal role ExecuteIntent additionally requires under -" + fieldExecutionAuthority, Default: "promotion_operator"},
+			{Name: fieldExecutionApprover, Usage: "the principal the composed promotion approval workflow routes its one approval WorkItem to", Default: "principal:promotion-approver"},
 		},
 		Validate:         validateServeConfig,
 		DatabaseURLField: fieldDatabaseURL,
@@ -254,6 +273,21 @@ func validateServeConfig(values *bootstrap.Values) error {
 	default:
 		return fmt.Errorf("-%s must be one of %s, %s, %s; got %q",
 			fieldOTelExporter, otelExporterNone, otelExporterStdout, otelExporterOTLPHTTP, exporter)
+	}
+	executionAuthority, err := values.Bool(fieldExecutionAuthority)
+	if err != nil {
+		return err
+	}
+	if executionAuthority {
+		if values.String(fieldExecutionAuthorityDigest) == "" {
+			return fmt.Errorf("-%s is required when -%s=true", fieldExecutionAuthorityDigest, fieldExecutionAuthority)
+		}
+		if values.String(fieldExecutionAuthorityRole) == "" {
+			return fmt.Errorf("-%s is required when -%s=true", fieldExecutionAuthorityRole, fieldExecutionAuthority)
+		}
+		if values.String(fieldExecutionApprover) == "" {
+			return fmt.Errorf("-%s is required when -%s=true", fieldExecutionApprover, fieldExecutionAuthority)
+		}
 	}
 	return nil
 }
@@ -317,7 +351,8 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool)
 		}
 		logTelemetryShutdown(deps.Logger, telemetryProvider.Shutdown(context.Background()))
 	}()
-	cell, err := app.NewCell(app.CellConfig{
+
+	cellConfig := app.CellConfig{
 		Store:           store,
 		Verifier:        verifier,
 		Audience:        values.String(fieldAudience),
@@ -326,7 +361,20 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool)
 		Workspace:       &workspaceEnabled,
 		DevBrowserLogin: devBrowserLogin,
 		Telemetry:       telemetryProvider,
-	})
+	}
+	executionAuthorityEnabled, err := values.Bool(fieldExecutionAuthority)
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
+	if executionAuthorityEnabled {
+		if err := composeExecutionAuthority(&cellConfig, pool, values); err != nil {
+			return bootstrap.Runtime{}, fmt.Errorf("compose the P1B execution authority: %w", err)
+		}
+		deps.Logger.Info("hcmnext.execution_authority_enabled",
+			"role", values.String(fieldExecutionAuthorityRole), "cell_id", values.String(fieldCellID))
+	}
+
+	cell, err := app.NewCell(cellConfig)
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
@@ -436,6 +484,45 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool)
 			},
 		},
 	}, nil
+}
+
+// composeExecutionAuthority builds the P1B execution-authority wiring
+// -execution-authority=true asks for: the caller-driven promotion execution
+// driver (internal/transport/cell.NewPromotionExecution) over pool, its
+// governed terminal write (internal/workflow/execute/effects.LedgerTerminalWriter,
+// never a second implementation of that write), and the exact tenant-key-to-
+// uuid derivation the composed pgstore.Store's own tenant table uses. It
+// fills cfg's execution-shaped fields in place; every other field cfg
+// already carries is untouched.
+func composeExecutionAuthority(cfg *app.CellConfig, pool *pgxadapter.Pool, values *bootstrap.Values) error {
+	registry, err := ledgerport.NewLedgerEventDigestRegistry()
+	if err != nil {
+		return fmt.Errorf("build the ledger event digest registry: %w", err)
+	}
+	terminal := &effects.LedgerTerminalWriter{
+		Appender:       ledgerport.NewAppender(registry),
+		ProjectionName: "workflow.promotion_outcome",
+		SourceRef:      "cmd/hcmnext:execution-authority",
+		Authority:      "authority:execution-authority-flag",
+	}
+	execution, err := transportcell.NewPromotionExecution(transportcell.PromotionExecutionConfig{
+		DB:                  pool,
+		Terminal:            terminal,
+		CellID:              values.String(fieldCellID),
+		ApproverPrincipalID: values.String(fieldExecutionApprover),
+		AuthorityDigest:     values.String(fieldExecutionAuthorityDigest),
+		RequiredRole:        values.String(fieldExecutionAuthorityRole),
+	})
+	if err != nil {
+		return fmt.Errorf("build the promotion execution driver: %w", err)
+	}
+	cfg.Executor = execution.Executor
+	cfg.ExecutionAuthority = execution.Authority
+	cfg.ExecutionResolver = execution.Resolver
+	cfg.ExecutionVersions = execution.Versions
+	cfg.ExecutionCellID = values.String(fieldCellID)
+	cfg.TenantUUID = func(tenant kernelvalues.TenantId) uuid.UUID { return pgstore.TenantID(string(tenant)) }
+	return nil
 }
 
 // newServeTelemetryProvider constructs the bounded, policy-enforced provider

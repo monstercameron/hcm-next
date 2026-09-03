@@ -16,11 +16,16 @@ import (
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/definitions"
 	"github.com/monstercameron/hcm-next/internal/intent/protomap"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/transport/manifest"
 	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	workflowversion "github.com/monstercameron/hcm-next/internal/workflow/version"
+
+	"github.com/google/uuid"
 )
 
 // ObservationFreshnessBudget is how old a page's watermark may be before the
@@ -96,6 +101,34 @@ type CellConfig struct {
 	// otelmw.UnaryServerInterceptor/otelmw.NewConnectInterceptor from it,
 	// because only internal/transport may import connect/grpc (LIB-003).
 	Telemetry *hcmotel.Provider
+
+	// Executor is the caller-driven workflow driver ExecuteIntent runs an
+	// approved promotion proposal through. Nil (the default for every
+	// composition today) leaves EXECUTE unavailable regardless of
+	// ExecutionAuthority: P1A cells never execute.
+	//
+	// internal/transport/cell, not this package, is what may build a real
+	// *internal/workflow/execute.Driver and adapt it to this port: only
+	// internal/transport may own that composition (see this file's own
+	// Telemetry/DevBrowserLogin split for why).
+	Executor ProposalExecutor
+	// ExecutionAuthority is the explicit P1B gate ExecuteIntent requires
+	// before it will run Executor at all. Nil means this cell behaves
+	// byte-for-byte like the P1A cell of today.
+	ExecutionAuthority *ExecutionAuthority
+	// ExecutionResolver and ExecutionVersions are Executor's own workflow
+	// resolver and version store. Required together with Executor; either
+	// missing leaves ExecuteIntent refusing as unavailable past the
+	// authority gate.
+	ExecutionResolver runtime.WorkflowResolver
+	ExecutionVersions workflowversion.Store
+	// ExecutionCellID names the cell runtime.StartRequest.CellID records.
+	// Empty means "cell-local".
+	ExecutionCellID string
+	// TenantUUID maps a tenant key onto the uuid this cell's composed Store
+	// uses for that tenant's row (internal/intent/app/pgstore.TenantID,
+	// wrapped, in every real composition). Required together with Executor.
+	TenantUUID func(values.TenantId) uuid.UUID
 }
 
 // Cell is one composed P1A application cell: the registries, the governed
@@ -251,6 +284,13 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		Controls:     controls,
 		IDs:          cfg.IDs,
 		Clock:        clock,
+
+		ProposalExecutor:   cfg.Executor,
+		ExecutionAuthority: cfg.ExecutionAuthority,
+		ExecutionResolver:  cfg.ExecutionResolver,
+		ExecutionVersions:  cfg.ExecutionVersions,
+		ExecutionCellID:    cfg.ExecutionCellID,
+		TenantUUID:         cfg.TenantUUID,
 	})
 	if err != nil {
 		return nil, err

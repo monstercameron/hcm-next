@@ -165,7 +165,23 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 			inst.CompiledPlanHash, req.Plan.Digest())
 	}
 
-	if inst.InstanceVersion != req.ExpectedInstanceVersion {
+	// The instance may have moved on since req.ExpectedInstanceVersion was
+	// read. A single advancement can bump the version several times (the
+	// completing node's own transition path, every successor and skip it
+	// creates, then the instance-level frontier write), so "stored is exactly
+	// one ahead" is not the right test for "this is the same advancement
+	// replayed": check whether the recorded attempt already reflects this
+	// exact outcome instead of counting version deltas.
+	switch {
+	case inst.InstanceVersion == req.ExpectedInstanceVersion:
+		// Fresh advancement; fall through below.
+	case inst.InstanceVersion > req.ExpectedInstanceVersion:
+		if ne, loadErr := store.LoadNodeExecution(ctx, tx, req.TenantID, req.InstanceID, req.Outcome.NodeID, req.Attempt); loadErr == nil &&
+			outcomeMatchesRecordedAttempt(ne, req.Outcome) {
+			return reconstructAdvanceReceipt(ctx, tx, req)
+		}
+		return AdvanceReceipt{}, staleError(req.InstanceID, req.Outcome.NodeID, req.ExpectedInstanceVersion, inst.InstanceVersion)
+	default:
 		return AdvanceReceipt{}, staleError(req.InstanceID, req.Outcome.NodeID, req.ExpectedInstanceVersion, inst.InstanceVersion)
 	}
 

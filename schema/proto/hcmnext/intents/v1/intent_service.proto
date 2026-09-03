@@ -120,6 +120,48 @@ message SimulateIntentResponse {
   SimulationArtifact simulation = 1;
 }
 
+// ProposalApproval names the immutable proposal revision an ExecuteIntent
+// call presents as approved, and the evidence that approval rests on. It
+// mirrors the caller-driven workflow driver's own ProposalBinding shape
+// (revision plus approved/approval_ref) so a wire caller states the exact
+// same three facts a Go caller of that driver states: which revision, that
+// it was approved, and by what recorded decision. ExecuteIntent never
+// derives approval from approved alone — it also requires proposal_revision_id
+// and material_proposal_digest to match the revision this cell would itself
+// (re)compute for the named intent right now, so a caller cannot assert
+// approval over content the server never actually simulated.
+message ProposalApproval {
+  string proposal_revision_id = 1;
+  CanonicalDigestReference material_proposal_digest = 2;
+  bool approved = 3;
+  string approval_ref = 4;
+}
+
+// ExecutionReceipt is the immutable, non-simulated result of one ExecuteIntent
+// call: the started or resumed workflow instance, the nodes the caller-driven
+// driver actually visited before returning, any continuation still parked on
+// durable human work, the instance's own optimistic version, and a digest
+// binding all of it together for later verification.
+message ExecutionReceipt {
+  string instance_id = 1;
+  repeated string visited_nodes = 2;
+  repeated string parked_continuations = 3;
+  uint64 instance_version = 4;
+  string receipt_digest = 5;
+}
+
+message ExecuteIntentRequest {
+  hcmnext.common.v1.ScopeContext scope = 1;
+  string intent_id = 2;
+  uint64 expected_instance_version = 3;
+  ProposalApproval approval = 4;
+  string idempotency_key = 5;
+}
+
+message ExecuteIntentResponse {
+  ExecutionReceipt execution = 1;
+}
+
 message SubmitIntentRequest {
   string idempotency_key = 1;
   hcmnext.common.v1.ScopeContext scope = 2;
@@ -200,6 +242,7 @@ service IntentService {
   rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
   rpc ListIntents(ListIntentsRequest) returns (ListIntentsResponse);
   rpc SimulateIntent(SimulateIntentRequest) returns (SimulateIntentResponse);
+  rpc ExecuteIntent(ExecuteIntentRequest) returns (ExecuteIntentResponse);
   rpc SubmitIntent(SubmitIntentRequest) returns (SubmitIntentResponse);
   rpc CancelIntent(CancelIntentRequest) returns (CancelIntentResponse);
   rpc SupersedeIntent(SupersedeIntentRequest) returns (SupersedeIntentResponse);

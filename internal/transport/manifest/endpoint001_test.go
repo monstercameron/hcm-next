@@ -189,6 +189,7 @@ func TestTodo_ENDPOINT_001_Golden(t *testing.T) {
 		"hcmnext.intents.v1.IntentService/GetIntent":          {DispositionServed, "GET", "/v1/intents/{intent}", []string{"intent_id"}},
 		"hcmnext.intents.v1.IntentService/ListIntents":        {DispositionServed, "GET", "/v1/intents", []string{}},
 		"hcmnext.intents.v1.IntentService/SimulateIntent":     {DispositionServed, "POST", "/v1/intents/{intent}:simulate", []string{"intent_id"}},
+		"hcmnext.intents.v1.IntentService/ExecuteIntent":      {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:execute", []string{"idempotency_key", "intent_id", "approval.proposal_revision_id", "approval.approval_ref"}},
 		"hcmnext.intents.v1.IntentService/SubmitIntent":       {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:submit", []string{"idempotency_key", "intent_id", "proposal_revision_id"}},
 		"hcmnext.intents.v1.IntentService/CancelIntent":       {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:cancel", []string{"idempotency_key", "intent_id", "reason_ref"}},
 		"hcmnext.intents.v1.IntentService/SupersedeIntent":    {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:supersede", []string{"definition.intent_type_id", "idempotency_key", "reason_ref", "superseded_intent_id"}},
@@ -243,6 +244,7 @@ func TestTodo_ENDPOINT_001_Security(t *testing.T) {
 		"hcmnext.intents.v1.IntentService/SubmitIntent":    true,
 		"hcmnext.intents.v1.IntentService/CancelIntent":    true,
 		"hcmnext.intents.v1.IntentService/SupersedeIntent": true,
+		"hcmnext.intents.v1.IntentService/ExecuteIntent":   true,
 	}
 	for _, e := range m.Endpoints {
 		if writeShaped[e.EndpointID] {

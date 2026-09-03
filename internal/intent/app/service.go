@@ -22,6 +22,8 @@ import (
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	workflowversion "github.com/monstercameron/hcm-next/internal/workflow/version"
 )
 
 // EnvelopeSchemaRef is the registered payload schema of the bytes a created
@@ -53,8 +55,7 @@ const defaultPageSize int32 = 50
 // arrives with the first governed edit, which is a P1B contract.
 const simulationRevision uint64 = 1
 
-type ProposalExecutor interface{}
-
+// artifactNamespace derives the identifiers a simulation's artifacts carry.
 var artifactNamespace = uuid.MustParse("2c9a5f60-6c1b-4a3c-9c0e-1c9f6a3d2b41")
 
 // derivedIDs mints the proposal-revision and plan identifiers for one
@@ -98,10 +99,36 @@ type Options struct {
 	IDs intent.IDSource
 	// Clock supplies the recording time. Nil means time.Now in UTC.
 	Clock intent.Clock
-	// ProposalExecutor is the optional direct workflow driver used by the
-	// prototype-only Go execution entry points. Nil leaves simulation and all
-	// existing intent operations available, while execution fails closed.
+	// ProposalExecutor is the caller-driven workflow driver ExecuteIntent runs
+	// an approved promotion proposal through. Nil leaves simulation and every
+	// other intent operation available while EXECUTE fails closed exactly as
+	// it does today (see [ExecutionAuthority]).
 	ProposalExecutor ProposalExecutor
+	// ExecutionAuthority is the explicit P1B gate ExecuteIntent requires
+	// before it will run ProposalExecutor at all. Nil means this cell is
+	// byte-for-byte the P1A cell of today: ExecuteIntent refuses under the
+	// same envelope every other governed write already does, regardless of
+	// whether ProposalExecutor is also set.
+	ExecutionAuthority *ExecutionAuthority
+	// ExecutionResolver and ExecutionVersions are the two composition-time
+	// values a wire ExecuteIntent request cannot itself supply (a
+	// runtime.StartRequest's Resolver and Versions are Go values, not wire
+	// data): the workflow this cell resolves EXECUTE requests to, and the
+	// version store it resolves them against. Either being nil leaves
+	// ExecuteIntent refusing as executionUnavailable once past the
+	// authority gate, exactly like a nil ProposalExecutor.
+	ExecutionResolver runtime.WorkflowResolver
+	ExecutionVersions workflowversion.Store
+	// ExecutionCellID names the cell runtime.StartRequest.CellID records.
+	// Empty means "cell-local".
+	ExecutionCellID string
+	// TenantUUID maps this cell's tenant key onto the uuid its composed
+	// Store's own tenant table uses. It is required for ExecuteIntent to run
+	// (nil leaves it refusing as executionUnavailable) because
+	// internal/intent/app must not import internal/intent/app/pgstore (that
+	// package already imports this one): only the composition root that
+	// built the real Store knows the exact derivation its tenant rows use.
+	TenantUUID func(values.TenantId) uuid.UUID
 }
 
 // IntentService is the application service behind both transports.
@@ -120,6 +147,13 @@ type IntentService struct {
 	ids      intent.IDSource
 	clock    intent.Clock
 	executor ProposalExecutor
+	// executionAuthority is nil for every P1A cell composed today.
+	// [IntentService.ExecuteIntent] is the only reader.
+	executionAuthority *ExecutionAuthority
+	executionResolver  runtime.WorkflowResolver
+	executionVersions  workflowversion.Store
+	executionCellID    string
+	tenantUUID         func(values.TenantId) uuid.UUID
 }
 
 var (
@@ -154,6 +188,12 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		ids:      opts.IDs,
 		clock:    opts.Clock,
 		executor: opts.ProposalExecutor,
+
+		executionAuthority: opts.ExecutionAuthority,
+		executionResolver:  opts.ExecutionResolver,
+		executionVersions:  opts.ExecutionVersions,
+		executionCellID:    opts.ExecutionCellID,
+		tenantUUID:         opts.TenantUUID,
 	}
 	if svc.ids == nil {
 		svc.ids = intent.UUIDv7Source

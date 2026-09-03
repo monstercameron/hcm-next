@@ -17,9 +17,12 @@ const (
 	// refused for the duration of the P1A release
 	// (planning/next-steps.md: "P1A ... must persist zero worker,
 	// employment, assignment, organization, position, compensation or
-	// budget mutations"). SubmitIntent, CancelIntent and SupersedeIntent are
-	// this: they exist in the proto so the P1B write path never needs a
-	// breaking wire change, but nothing may call them yet.
+	// budget mutations"). SubmitIntent, CancelIntent, SupersedeIntent and
+	// ExecuteIntent are this: they exist in the proto so the P1B write path
+	// never needs a breaking wire change, but nothing may call them yet
+	// (ExecuteIntent is the one exception a composed cell can lift, and only
+	// under an explicit internal/intent/app.ExecutionAuthority no released
+	// composition sets).
 	DispositionRefusedP1A Disposition = "REFUSED_P1A"
 	// DispositionNotExposed means the method is declared in the descriptor
 	// but bound to no server implementation at all (no grpcserver adapter,

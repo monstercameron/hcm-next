@@ -121,6 +121,9 @@ func (f *fakeIntentHandler) GetIntent(context.Context, *intentsv1.GetIntentReque
 func (f *fakeIntentHandler) SimulateIntent(context.Context, *intentsv1.SimulateIntentRequest) (*intentsv1.SimulateIntentResponse, error) {
 	return nil, fmt.Errorf("fakeIntentHandler: SimulateIntent must never be called by AdminService")
 }
+func (f *fakeIntentHandler) ExecuteIntent(context.Context, *intentsv1.ExecuteIntentRequest) (*intentsv1.ExecuteIntentResponse, error) {
+	return nil, fmt.Errorf("fakeIntentHandler: ExecuteIntent must never be called by AdminService")
+}
 func (f *fakeIntentHandler) SubmitIntent(context.Context, *intentsv1.SubmitIntentRequest) (*intentsv1.SubmitIntentResponse, error) {
 	return nil, fmt.Errorf("fakeIntentHandler: SubmitIntent must never be called by AdminService")
 }

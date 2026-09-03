@@ -57,6 +57,7 @@ var requiredFields = map[string][]string{
 	"/hcmnext.intents.v1.IntentService/GetIntent":          {"intent_id"},
 	"/hcmnext.intents.v1.IntentService/ListIntents":        nil,
 	"/hcmnext.intents.v1.IntentService/SimulateIntent":     {"intent_id"},
+	"/hcmnext.intents.v1.IntentService/ExecuteIntent":      {"idempotency_key", "intent_id", "approval.proposal_revision_id", "approval.approval_ref"},
 	"/hcmnext.intents.v1.IntentService/SubmitIntent":       {"idempotency_key", "intent_id", "proposal_revision_id"},
 	"/hcmnext.intents.v1.IntentService/CancelIntent":       {"idempotency_key", "intent_id", "reason_ref"},
 	"/hcmnext.intents.v1.IntentService/SupersedeIntent":    {"idempotency_key", "superseded_intent_id", "definition.intent_type_id", "reason_ref"},

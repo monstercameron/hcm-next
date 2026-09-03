@@ -24,6 +24,7 @@ type IntentClient struct {
 	getIntent          *connect.Client[intentsv1.GetIntentRequest, intentsv1.GetIntentResponse]
 	listIntents        *connect.Client[intentsv1.ListIntentsRequest, intentsv1.ListIntentsResponse]
 	simulateIntent     *connect.Client[intentsv1.SimulateIntentRequest, intentsv1.SimulateIntentResponse]
+	executeIntent      *connect.Client[intentsv1.ExecuteIntentRequest, intentsv1.ExecuteIntentResponse]
 	submitIntent       *connect.Client[intentsv1.SubmitIntentRequest, intentsv1.SubmitIntentResponse]
 	cancelIntent       *connect.Client[intentsv1.CancelIntentRequest, intentsv1.CancelIntentResponse]
 	supersedeIntent    *connect.Client[intentsv1.SupersedeIntentRequest, intentsv1.SupersedeIntentResponse]
@@ -39,6 +40,7 @@ func NewIntentClient(httpClient connect.HTTPClient, baseURL string, opts ...conn
 		getIntent:          connect.NewClient[intentsv1.GetIntentRequest, intentsv1.GetIntentResponse](httpClient, baseURL+ProcedureGetIntent, opts...),
 		listIntents:        connect.NewClient[intentsv1.ListIntentsRequest, intentsv1.ListIntentsResponse](httpClient, baseURL+ProcedureListIntents, opts...),
 		simulateIntent:     connect.NewClient[intentsv1.SimulateIntentRequest, intentsv1.SimulateIntentResponse](httpClient, baseURL+ProcedureSimulateIntent, opts...),
+		executeIntent:      connect.NewClient[intentsv1.ExecuteIntentRequest, intentsv1.ExecuteIntentResponse](httpClient, baseURL+ProcedureExecuteIntent, opts...),
 		submitIntent:       connect.NewClient[intentsv1.SubmitIntentRequest, intentsv1.SubmitIntentResponse](httpClient, baseURL+ProcedureSubmitIntent, opts...),
 		cancelIntent:       connect.NewClient[intentsv1.CancelIntentRequest, intentsv1.CancelIntentResponse](httpClient, baseURL+ProcedureCancelIntent, opts...),
 		supersedeIntent:    connect.NewClient[intentsv1.SupersedeIntentRequest, intentsv1.SupersedeIntentResponse](httpClient, baseURL+ProcedureSupersedeIntent, opts...),
@@ -65,6 +67,11 @@ func (c *IntentClient) ListIntents(ctx context.Context, req *connect.Request[int
 // SimulateIntent calls IntentService.SimulateIntent through the edge.
 func (c *IntentClient) SimulateIntent(ctx context.Context, req *connect.Request[intentsv1.SimulateIntentRequest]) (*connect.Response[intentsv1.SimulateIntentResponse], error) {
 	return c.simulateIntent.CallUnary(ctx, req)
+}
+
+// ExecuteIntent calls IntentService.ExecuteIntent through the edge.
+func (c *IntentClient) ExecuteIntent(ctx context.Context, req *connect.Request[intentsv1.ExecuteIntentRequest]) (*connect.Response[intentsv1.ExecuteIntentResponse], error) {
+	return c.executeIntent.CallUnary(ctx, req)
 }
 
 // SubmitIntent calls IntentService.SubmitIntent through the edge.

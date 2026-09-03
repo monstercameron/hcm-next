@@ -1,0 +1,307 @@
+{
+  "workflow_id": "hcmnext.workflows.fixture_wait_signal_prototype",
+  "version": 1,
+  "name": "Wait and signal prototype fixture",
+  "input_schema": {
+    "schema_id": "WaitSignalInput/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.WaitSignalInput"
+  },
+  "output_schema": {
+    "schema_id": "WaitSignalResult/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.WaitSignalResult"
+  },
+  "variables_schema": {
+    "schema_id": "WaitSignalVariables/v1",
+    "version": 1,
+    "protobuf_full_name": "hcmnext.workflows.v1.WaitSignalVariables"
+  },
+  "inputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "worker_id",
+      "type": {
+        "kind": "STRING",
+        "brand": "WorkerID"
+      }
+    },
+    {
+      "path": "terminal_code",
+      "type": {
+        "kind": "STRING"
+      }
+    }
+  ],
+  "tenant_scope": "acme",
+  "organization_scope": "acme/engineering",
+  "risk_class": "LOW",
+  "declared_modes": [
+    "EXECUTE"
+  ],
+  "terminal_profile": "EXECUTE",
+  "start_node_id": "wait_for_effective_date",
+  "nodes": [
+    {
+      "id": "wait_for_effective_date",
+      "type": "WAIT",
+      "input_schema": {
+        "schema_id": "WaitForEffectiveDateInput/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.WaitForEffectiveDateInput"
+      },
+      "output_schema": {
+        "schema_id": "WaitForEffectiveDateResult/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.WaitForEffectiveDateResult"
+      },
+      "inputs": null,
+      "wait": {
+        "wake_kind": "AT_LOCAL_DATETIME",
+        "wake_local_date": "2027-03-01",
+        "wake_local_time": "09:00:00",
+        "disambiguation": "REJECT_GAP",
+        "zone_id": "America/New_York",
+        "zone_tzdb_version": "2025b",
+        "calendar_ref": "us_federal",
+        "calendar_version": "2025.1",
+        "reference_update_policy": "REVIEW_REQUIRED"
+      },
+      "declared_effect": "PURE",
+      "failure_route": "end_degraded",
+      "governance": {
+        "purpose": "",
+        "classification": "",
+        "revalidation_boundary": "",
+        "data_access_manifest_ref": ""
+      }
+    },
+    {
+      "id": "signal_ack_received",
+      "type": "SIGNAL",
+      "input_schema": {
+        "schema_id": "SignalAckInput/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.SignalAckInput"
+      },
+      "output_schema": {
+        "schema_id": "SignalAckResult/v1",
+        "version": 1,
+        "protobuf_full_name": "hcmnext.workflows.v1.SignalAckResult"
+      },
+      "inputs": null,
+      "signal": {
+        "event_type": "hcmnext.events.promotion_ack",
+        "correlation_key_expression": "worker_id",
+        "expected_schema_ref": {
+          "schema_id": "PromotionAckPayload/v1",
+          "version": 1,
+          "protobuf_full_name": "hcmnext.workflows.v1.PromotionAckPayload"
+        },
+        "accepted_sources": [
+          "hcmnext.integrations.hris"
+        ],
+        "ordering": "NONE",
+        "close_after_seconds": 86400
+      },
+      "declared_effect": "PURE",
+      "failure_route": "end_degraded",
+      "governance": {
+        "purpose": "",
+        "classification": "",
+        "revalidation_boundary": "",
+        "data_access_manifest_ref": ""
+      }
+    },
+    {
+      "id": "end_completed",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "COMPLETED"
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "COMPLETED",
+        "runtime_status": "COMPLETED",
+        "completion_mapping": {
+          "BusinessState": "COMPLETED",
+          "ConsistencyState": "CONSISTENT",
+          "ExecutionState": "COMMITTED",
+          "ObligationState": "SATISFIED",
+          "RequestState": "APPROVED"
+        },
+        "commit_receipt_ref": "receipt.fixture.wait_signal/v1"
+      },
+      "governance": {
+        "purpose": "",
+        "classification": "",
+        "revalidation_boundary": "",
+        "data_access_manifest_ref": ""
+      }
+    },
+    {
+      "id": "end_degraded",
+      "type": "END",
+      "input_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "output_schema": {
+        "schema_id": "",
+        "version": 0,
+        "protobuf_full_name": ""
+      },
+      "inputs": [
+        {
+          "path": "worker_id",
+          "type": {
+            "kind": "STRING",
+            "brand": "WorkerID"
+          }
+        },
+        {
+          "path": "terminal_code",
+          "type": {
+            "kind": "STRING"
+          }
+        }
+      ],
+      "input_mappings": [
+        {
+          "target": "worker_id",
+          "source": {
+            "kind": "WORKFLOW_INPUT",
+            "path": "worker_id",
+            "type": {
+              "kind": ""
+            }
+          }
+        },
+        {
+          "target": "terminal_code",
+          "source": {
+            "kind": "CONSTANT",
+            "type": {
+              "kind": "STRING"
+            },
+            "constant": "COMMITTED_DEGRADED"
+          }
+        }
+      ],
+      "end": {
+        "terminal_code": "COMMITTED_DEGRADED",
+        "runtime_status": "COMPLETED",
+        "completion_mapping": {
+          "BusinessState": "COMPLETED",
+          "ConsistencyState": "DEGRADED",
+          "ExecutionState": "COMMITTED",
+          "ObligationState": "SATISFIED",
+          "RequestState": "APPROVED"
+        },
+        "repair_refs": [
+          "repair.fixture.wait_signal/v1"
+        ],
+        "commit_receipt_ref": "receipt.fixture.wait_signal/v1"
+      },
+      "governance": {
+        "purpose": "",
+        "classification": "",
+        "revalidation_boundary": "",
+        "data_access_manifest_ref": ""
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "wait_for_effective_date",
+      "to": "signal_ack_received",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "wait_for_effective_date",
+      "to": "end_degraded",
+      "route_key": "LATE"
+    },
+    {
+      "from": "wait_for_effective_date",
+      "to": "end_degraded",
+      "route_key": "CANCELLED"
+    },
+    {
+      "from": "signal_ack_received",
+      "to": "end_completed",
+      "route_key": "SUCCEEDED"
+    },
+    {
+      "from": "signal_ack_received",
+      "to": "end_degraded",
+      "route_key": "TIMED_OUT"
+    },
+    {
+      "from": "signal_ack_received",
+      "to": "end_degraded",
+      "route_key": "CANCELLED"
+    }
+  ],
+  "limits": {
+    "max_fan_out": 4,
+    "max_depth": 10,
+    "max_nodes": 12
+  },
+  "failure_policy_ref": "policy.workflow.failure.execute/v1",
+  "cancellation_policy_ref": "policy.workflow.cancellation.execute/v1",
+  "migration_policy_ref": "policy.workflow.migration.pinned/v1",
+  "retention_policy_ref": "policy.workflow.retention.wait_signal/v1"
+}

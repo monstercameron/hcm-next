@@ -69,6 +69,7 @@ func NewHandler(opts Options) (http.Handler, error) {
 		mount(mux, ProcedureGetIntent, unary(h.GetIntent), handlerOptions)
 		mount(mux, ProcedureListIntents, unary(h.ListIntents), handlerOptions)
 		mount(mux, ProcedureSimulateIntent, unary(h.SimulateIntent), handlerOptions)
+		mount(mux, ProcedureExecuteIntent, unary(h.ExecuteIntent), handlerOptions)
 		mount(mux, ProcedureSubmitIntent, unary(h.SubmitIntent), handlerOptions)
 		mount(mux, ProcedureCancelIntent, unary(h.CancelIntent), handlerOptions)
 		mount(mux, ProcedureSupersedeIntent, unary(h.SupersedeIntent), handlerOptions)

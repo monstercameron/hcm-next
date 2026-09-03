@@ -88,7 +88,7 @@ func TestTodo_PROTO_010_Property(t *testing.T) {
 }
 
 // TestTodo_PROTO_010_Golden pins the exact disposition distribution: ten
-// SERVED, three REFUSED_P1A, zero NOT_EXPOSED, across the thirteen current
+// SERVED, four REFUSED_P1A, zero NOT_EXPOSED, across the fourteen current
 // methods of IntentService and RegistryService.
 func TestTodo_PROTO_010_Golden(t *testing.T) {
 	m, err := Build()
@@ -106,8 +106,8 @@ func TestTodo_PROTO_010_Golden(t *testing.T) {
 			notExposed++
 		}
 	}
-	if served != 10 || refused != 3 || notExposed != 0 || len(m.Endpoints) != 13 {
-		t.Fatalf("disposition distribution = {served:%d refused:%d not_exposed:%d total:%d}, want {10 3 0 13}",
+	if served != 10 || refused != 4 || notExposed != 0 || len(m.Endpoints) != 14 {
+		t.Fatalf("disposition distribution = {served:%d refused:%d not_exposed:%d total:%d}, want {10 4 0 14}",
 			served, refused, notExposed, len(m.Endpoints))
 	}
 }
@@ -144,8 +144,8 @@ func TestTodo_PROTO_010_Conformance(t *testing.T) {
 	for range rpcs {
 		wantCount++
 	}
-	if wantCount != 13 {
-		t.Fatalf("expected 13 total RPC methods across IntentService (9) and RegistryService (4), found %d", wantCount)
+	if wantCount != 14 {
+		t.Fatalf("expected 14 total RPC methods across IntentService (10) and RegistryService (4), found %d", wantCount)
 	}
 
 	m, err := Build()

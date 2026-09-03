@@ -334,6 +334,27 @@ func (h *IntentHandler) SimulateIntent(ctx context.Context, req *intentsv1.Simul
 	}, nil
 }
 
+// ExecuteIntent enforces the expected instance version, exactly like
+// SubmitIntent, and otherwise returns a deterministic parked receipt.
+func (h *IntentHandler) ExecuteIntent(ctx context.Context, req *intentsv1.ExecuteIntentRequest) (*intentsv1.ExecuteIntentResponse, error) {
+	h.record(ctx, "ExecuteIntent", req, nil, req.GetScope())
+	if req.GetExpectedInstanceVersion() != CurrentInstanceVersion {
+		return nil, envelope.New(envelope.CodeFailedPrecondition, "intent.stale_revision",
+			"a precondition for the operation is not met").
+			WithViolation("expected_instance_version", "the expected instance version is stale", "intent.expected_revision").
+			WithEvidence(envelope.Evidence{ID: "ev:decision:stale-revision", Kind: EvidenceKindDomain})
+	}
+	return &intentsv1.ExecuteIntentResponse{
+		Execution: &intentsv1.ExecutionReceipt{
+			InstanceId:          DeterministicIntentID(req.GetScope().GetTenantId()),
+			VisitedNodes:        []string{"approve_promotion"},
+			ParkedContinuations: []string{"approval.prototype.promotion/v1"},
+			InstanceVersion:     1,
+			ReceiptDigest:       "execution:" + req.GetIntentId() + ":PARKED",
+		},
+	}, nil
+}
+
 // SubmitIntent enforces the expected instance version and returns a typed
 // FAILED_PRECONDITION otherwise. FAILED_PRECONDITION is the case where
 // connect-go's default HTTP mapping disagrees with the canonical projection
