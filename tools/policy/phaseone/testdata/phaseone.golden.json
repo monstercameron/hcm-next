@@ -1,0 +1,15 @@
+{
+  "internal/capability": "capability:intent-and-capability",
+  "internal/connectivity": "connectivity:connectivity",
+  "internal/data": "data:data-and-ledger",
+  "internal/domains": "domains:domain-teams",
+  "internal/engines": "engines:shared-engines",
+  "internal/governance": "governance:governance-and-trust",
+  "internal/intent": "intent:intent-and-capability",
+  "internal/kernel": "kernel:platform-foundation",
+  "internal/ledger": "data:data-and-ledger",
+  "internal/operations": "operations:operations-and-assurance",
+  "internal/platform": "platform:platform-foundation",
+  "internal/transport": "transport:experience-and-transport",
+  "internal/trust": "trust:governance-and-trust"
+}

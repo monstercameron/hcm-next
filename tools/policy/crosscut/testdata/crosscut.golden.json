@@ -1,0 +1,12 @@
+[
+  {
+    "Importer": "github.com/monstercameron/hcm-next/internal/trust/authz",
+    "Imported": "github.com/monstercameron/hcm-next/internal/domains/people/store",
+    "Rule": "crosscut-must-not-import-domain"
+  },
+  {
+    "Importer": "github.com/monstercameron/hcm-next/internal/operations/reconciler",
+    "Imported": "github.com/monstercameron/hcm-next/internal/data/postgres",
+    "Rule": "crosscut-must-not-import-domain"
+  }
+]
