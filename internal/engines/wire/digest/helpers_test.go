@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 )
 
 func mustComputeAt(t *testing.T, r *digest.Registry, msg proto.Message, key digest.Key) (digest.Reference, []byte) {

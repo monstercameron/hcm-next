@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 )
 
 // GenesisHash is the prev_hash of a stream's first chain link (sequence 1).
@@ -31,7 +31,7 @@ const chainLinkSchemaRef = "hcmnext.ledger_hash_chain_link.v1"
 // ChainLinkProfileV1 is the canonicalization profile for a chain link's
 // digest input: the previous chain hash and the event's own digest, framed
 // unambiguously (see [frameLinkInput]) and carried as TypedPayload wire
-// bytes so the digest is minted through internal/kernel/digest rather than
+// bytes so the digest is minted through internal/engines/wire/digest rather than
 // an ad hoc hash.
 func ChainLinkProfileV1() canonical.Profile {
 	return canonical.Profile{
@@ -47,7 +47,7 @@ func ChainLinkProfileV1() canonical.Profile {
 
 // NewRegistry returns a digest registry publishing sha256 and
 // ChainLinkProfileV1. Each caller gets its own registry, matching
-// internal/kernel/digest's own "no shared mutable global" discipline.
+// internal/engines/wire/digest's own "no shared mutable global" discipline.
 func NewRegistry() (*digest.Registry, error) {
 	r := digest.NewRegistry()
 	if err := r.RegisterProfile(ChainLinkProfileV1(), digest.ScopeSpec{}); err != nil {
@@ -57,7 +57,7 @@ func NewRegistry() (*digest.Registry, error) {
 }
 
 // Digester computes chain-link digests through a registered
-// internal/kernel/digest profile. It holds no mutable state beyond the
+// internal/engines/wire/digest profile. It holds no mutable state beyond the
 // registry it was built with, so one Digester is safe to share across
 // streams and goroutines.
 type Digester struct {
@@ -72,7 +72,7 @@ func NewDigester(registry *digest.Registry) *Digester {
 
 // frameLinkInput concatenates prevHash and eventDigest with an explicit
 // 64-bit big-endian length prefix on each field, the same discipline
-// internal/data/ledger.SHA256Digester and internal/kernel/digest's own
+// internal/data/ledger.SHA256Digester and internal/engines/wire/digest's own
 // scopeDigest use. Length framing is what makes the two-field concatenation
 // unambiguous: without it, prevHash="ab"+eventDigest="cd" would hash
 // identically to prevHash="a"+eventDigest="bcd".

@@ -21,9 +21,10 @@ func loadFirewallConfig(t *testing.T) *libfirewall.Config {
 // TestGRPCBackendQualification is the LIB-003 primary test: Protobuf and
 // grpc-go (plus the Connect/genproto-status modules that ride alongside
 // them on the wire) are qualified as wire/RPC mechanics only, importable
-// from gen/, internal/transport, the composition roots (cmd/*) and the one
-// business-side exception this todo grants: internal/intent/protomap. Every
-// other business package importing them directly is a violation.
+// from gen/, internal/transport, tools/gen, the composition roots (cmd/*),
+// internal/intent/protomap, and the narrowly scoped schema-generic wire
+// canonicalization mechanics. Every other business package importing them
+// directly is a violation.
 func TestGRPCBackendQualification(t *testing.T) {
 	cfg := loadFirewallConfig(t)
 	mod := cfg.Module
@@ -37,10 +38,15 @@ func TestGRPCBackendQualification(t *testing.T) {
 		{"gen may import protobuf", mod + "/gen/go/hcm/v1", "google.golang.org/protobuf/proto", false},
 		{"internal/transport may import grpc", mod + "/internal/transport/grpcserver", "google.golang.org/grpc", false},
 		{"internal/intent/protomap may import protobuf", mod + "/internal/intent/protomap", "google.golang.org/protobuf/types/known/timestamppb", false},
+		{"wire canonical byte engine may reflect protobuf", mod + "/internal/engines/wire/canonical", "google.golang.org/protobuf/reflect/protoreflect", false},
+		{"wire digest registry may reflect protobuf", mod + "/internal/engines/wire/digest", "google.golang.org/protobuf/proto", false},
+		{"client generator may inspect protobuf descriptors", mod + "/tools/gen/clients", "google.golang.org/protobuf/reflect/protoregistry", false},
 		{"cmd may import grpc to wire the server", mod + "/cmd/hcmnext", "google.golang.org/grpc", false},
+		{"cmd may import connect to wire the edge", mod + "/cmd/hcmnext", "connectrpc.com/connect", false},
 		{"internal/intent (not protomap) importing protobuf is forbidden", mod + "/internal/intent", "google.golang.org/protobuf/types/known/structpb", true},
 		{"internal/intent/app importing protobuf is forbidden", mod + "/internal/intent/app", "google.golang.org/protobuf/proto", true},
-		{"internal/kernel importing protobuf is forbidden", mod + "/internal/kernel/canonical", "google.golang.org/protobuf/proto", true},
+		{"kernel values importing protobuf is forbidden", mod + "/internal/kernel/values", "google.golang.org/protobuf/proto", true},
+		{"an unrelated tool importing protobuf is forbidden", mod + "/tools/policy", "google.golang.org/protobuf/proto", true},
 		{"a domain package importing grpc is forbidden", mod + "/internal/domains/people", "google.golang.org/grpc", true},
 		{"a domain package importing connect is forbidden", mod + "/internal/domains/people", "connectrpc.com/connect", true},
 		{"an unrelated module is not this check's concern", mod + "/internal/domains/people", "github.com/google/uuid", false},
@@ -64,7 +70,7 @@ func TestGRPCBackendQualification(t *testing.T) {
 // protobuf_grpc section is a visible diff.
 func TestTodo_LIB_003_Golden(t *testing.T) {
 	cfg := loadFirewallConfig(t)
-	want := []string{"gen", "internal/transport", "internal/intent/protomap", "cmd"}
+	want := []string{"gen", "internal/transport", "internal/intent/protomap", "internal/engines/wire", "tools/gen", "tools/quality/bufprotovalidatekit", "cmd"}
 	got := cfg.ProtobufGRPC.AllowedImportRoots
 	if len(got) != len(want) {
 		t.Fatalf("protobuf_grpc.allowed_import_roots = %v, want %v", got, want)

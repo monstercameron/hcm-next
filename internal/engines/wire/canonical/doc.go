@@ -1,15 +1,15 @@
 // Package canonical implements the canonical envelope normalization contract.
 //
-// Owner: kernel. Phase: P1A (MODEL-006).
+// Owner: wire engine. Phase: P1A (MODEL-006).
 //
 // # Boundary
 //
-// Go is the only canonical encoder in the platform. Every approval binding,
+// This wire engine is the only canonical encoder in the platform. Every approval binding,
 // idempotency key, hash chain link, signed configuration bundle, and portable
 // audit evidence record derives from bytes produced here. grpcbridge, GWC, and
 // any browser or mobile client never recompute canonical bytes or digests; they
 // submit values and receive an authoritative
-// [github.com/monstercameron/hcm-next/internal/kernel/digest.Reference]
+// [github.com/monstercameron/hcm-next/internal/engines/wire/digest.Reference]
 // computed on the server. A client-supplied digest is input to be verified, not
 // an authority to be trusted.
 //

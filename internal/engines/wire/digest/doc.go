@@ -1,11 +1,11 @@
 // Package digest implements versioned canonical digest profiles and the
 // digest reference envelope that carries them.
 //
-// Owner: kernel. Phase: P1A (MODEL-007).
+// Owner: wire engine. Phase: P1A (MODEL-007).
 //
 // # Boundary
 //
-// Go is the only authority that mints or verifies a canonical digest. A
+// This wire engine is the only authority that mints or verifies a canonical digest. A
 // [Reference] is the durable envelope — profile identity and version, schema
 // identity and version, algorithm, scope binding, canonical length, and the
 // digest itself — and it round-trips losslessly to

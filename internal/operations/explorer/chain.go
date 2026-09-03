@@ -38,7 +38,7 @@ type BrokenLink struct {
 
 // NewChainDigester builds the hashchain.Digester [VerifyChain] and
 // [EventDetail] use to recompute a stream's chain. It is a pure constructor
-// (internal/kernel/digest.NewRegistry followed by hashchain.NewRegistry/
+// (internal/engines/wire/digest.NewRegistry followed by hashchain.NewRegistry/
 // NewDigester) with no I/O, exposed so a caller builds it once and reuses it
 // across many explorer calls rather than this package hiding that cost
 // inside every call.

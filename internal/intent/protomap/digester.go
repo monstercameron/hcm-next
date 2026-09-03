@@ -1,8 +1,8 @@
 package protomap
 
 import (
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 )
 
 // Digester implements the intent kernel's digest port over a digest registry.

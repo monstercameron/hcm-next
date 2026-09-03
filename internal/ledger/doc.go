@@ -2,7 +2,7 @@
 // (definitions/architecture/package-dependency-policy.yaml
 // ports_and_adapters: "ledger"): the interfaces business packages depend on
 // to append and read the authoritative transaction ledger, plus the wiring
-// that connects internal/kernel/digest to internal/data/ledger's Digester
+// that connects internal/engines/wire/digest to internal/data/ledger's Digester
 // hook.
 //
 // internal/data/ledger is the PostgreSQL adapter underneath this port: its
@@ -17,7 +17,7 @@
 // schema reference and payload bytes directly; it is a legitimate, tested
 // P1A digester with no dependency on the kernel canonicalization machinery.
 // [KernelDigester] instead routes the same inputs through
-// internal/kernel/digest under a registered, versioned canonicalization
+// internal/engines/wire/digest under a registered, versioned canonicalization
 // profile (LEDGER_EVENT), so a ledger event's digest is minted the same way
 // every other canonical digest in the platform is: by a published profile
 // version that never mutates once registered, verified by recomputation

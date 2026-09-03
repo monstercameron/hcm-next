@@ -84,7 +84,7 @@ family_rules:
     replacement_strategy: >-
       OBS-002 decides the OTel SDK adoption explicitly; until then these are
       transitive-only.
-    allowed_import_roots: [internal/platform/telemetry/otel]
+    allowed_import_roots: [internal/platform/telemetry/otel, internal/transport/otelmw]
 
 # Exact classification for every module in go.mod's require block.
 modules:
@@ -121,10 +121,14 @@ modules:
     semantic_owner: platform-foundation
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [test, tools]
+    allowed_import_roots: [test, tools, internal/data/pgtest]
     direct_import_expected: true
     upgrade_sla: Best-effort; never shipped in the release image (TOOL-015).
-    exposure: Spawns a local PostgreSQL binary/process for isolated integration-test environments only (TOOL-014).
+    exposure: >-
+      Spawns a local PostgreSQL binary/process for isolated integration-test
+      environments only (TOOL-014). internal/data/pgtest is the sole
+      repository-owned test harness allowed to start it; production packages
+      must use injected database ports instead.
     replacement_strategy: Testcontainers-go against a real postgres image is the qualified alternative once TOOL-014 selects it.
 
   - path: github.com/google/uuid
@@ -142,12 +146,21 @@ modules:
         internal/connectivity,
         internal/transaction,
         internal/humanwork,
+        internal/workflow,
+        internal/operations/explorer,
+        internal/engines/wire/digest,
         cmd,
         test,
       ]
     direct_import_expected: true
     upgrade_sla: Minor within 90 days.
-    exposure: Pure in-process identifier generation; no network or data exposure.
+    exposure: >-
+      Pure in-process identifier generation; no network or data exposure.
+      internal/operations/explorer receives UUID-valued data from owned
+      ledger/bitemporal ports and renders it without creating identifiers or
+      defining identity policy. internal/engines/wire/digest mints only the
+      opaque string ID of a reviewed digest-migration evidence record; callers
+      can inject NewID and no UUID type crosses the wire-engine API.
     replacement_strategy: A crypto/rand-backed hand-rolled UUID generator if this package's maintenance lapses; the kernel identity API is the seam.
 
   - path: github.com/jackc/pgpassfile
@@ -185,17 +198,19 @@ modules:
         internal/data,
         internal/ledger,
         migrations,
-        internal/intent/app/pgstore,
-        internal/connectivity/observe/adapters/postgres,
         internal/platform/bootstrap,
-        cmd,
+        cmd/hcmnext,
+        cmd/migrate,
       ]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
     exposure: >-
       Owns the PostgreSQL wire-protocol connection: direct network and data
       exposure, isolated behind the internal/data and internal/ledger
-      port/adapter boundary (package-dependency-policy.yaml).
+      port/adapter boundary (package-dependency-policy.yaml). Callers speak
+      internal/data/dbport instead: internal/data/pgxadapter is the only
+      package that turns a pgx handle into that port, so no pgx.Tx, pgx.Rows
+      or pgx.Conn appears in any package's exported surface (LIB-004).
     replacement_strategy: github.com/lib/pq is the declared fallback driver already in go.mod; database/sql is the abstraction seam.
 
   - path: github.com/jackc/puddle/v2
@@ -314,10 +329,14 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/transport]
-    direct_import_expected: false
+    allowed_import_roots: [internal/transport, tools/uxqual/forms, tools/uxqual/qual]
+    direct_import_expected: true
     upgrade_sla: Tracks google.golang.org/grpc's own pin; security patch within 7 days.
-    exposure: grpc-go's HTTP/2 transport framing; carries all gRPC traffic. Transitive dependency, not imported directly.
+    exposure: >-
+      grpc-go's HTTP/2 transport framing; carries all gRPC traffic.
+      The two uxqual roots use only html/atom as a deterministic, read-only
+      browser-fixture parser; they do not participate in a request path or
+      define UX authority.
     replacement_strategy: Tracks google.golang.org/grpc.
 
   - path: golang.org/x/sync
@@ -350,10 +369,15 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: []
-    direct_import_expected: false
+    allowed_import_roots:
+      [internal/engines/wire/canonical, internal/kernel/values, internal/intent]
+    direct_import_expected: true
     upgrade_sla: Best-effort.
-    exposure: In-process text encoding/normalization; transitive dependency of grpc-go and pgx, not imported directly.
+    exposure: >-
+      In-process Unicode NFC normalization. internal/engines/wire/canonical,
+      internal/kernel/values, and internal/intent's envelope validator use it
+      solely to reject or canonicalize text before it reaches a stored
+      semantic contract; no x/text type crosses an owned API.
     replacement_strategy: Tracks google.golang.org/grpc and github.com/jackc/pgx/v5.
 
   - path: golang.org/x/tools
@@ -386,13 +410,15 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/transport]
+    allowed_import_roots: [internal/transport, cmd]
     direct_import_expected: true
     upgrade_sla: Minor within 90 days; security patch within 7 days.
     exposure: >-
       Selected P1A transport edge (TOOL-008, 2026-09-03): Connect/HTTP
-      protocol adapter in front of the canonical gRPC service, used only by
-      internal/transport/edge.
+      protocol adapter in front of the canonical gRPC service. The runtime is
+      implemented in internal/transport/edge; cmd/hcmnext supplies an
+      observability interceptor while composing that edge and owns no protocol
+      or business behavior.
     replacement_strategy: >-
       Selected by TOOL-008 (2026-09-03). grpc-gateway/v2 is the successor once
       the ENDPOINT-001 route manifest exists; GoGRPCBridge remains the
@@ -476,7 +502,7 @@ modules:
     semantic_owner: platform-foundation
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/platform/telemetry/otel]
+    allowed_import_roots: [internal/platform/telemetry/otel, internal/transport/otelmw]
     direct_import_expected: true
     upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
     exposure: >-
@@ -588,7 +614,7 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/transport, gen, cmd]
+    allowed_import_roots: [internal/transport, gen, tools/gen, cmd]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
     exposure: >-
@@ -615,10 +641,24 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [gen, internal/transport]
+    allowed_import_roots:
+      [
+        gen,
+        internal/transport,
+        internal/intent/protomap,
+        internal/engines/wire,
+        tools/gen,
+        tools/quality/bufprotovalidatekit,
+      ]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
-    exposure: Wire encoding for every canonical Protobuf contract.
+    exposure: >-
+      Wire encoding for every canonical Protobuf contract. Runtime imports are
+      limited to generated wire code, transport, the intent mapping seam, the
+      code generator, the schema-generic wire canonicalization mechanics
+      (internal/engines/wire), and LIB-019's developer-only structural
+      validation qualification kit; those packages do not own business rules
+      or export wire values through domain and capability ports.
     replacement_strategy: No realistic replacement; Protobuf is the canonical wire contract per the Go technology constitution.
 
   - path: github.com/rogpeppe/go-internal
@@ -637,19 +677,22 @@ modules:
     replacement_strategy: Disappears if yaml.v3 is replaced; no action.
   - path: gopkg.in/yaml.v3
     version: v3.0.1
-    role: DEV_TEST_ONLY
+    role: INFRASTRUCTURE_MECHANIC
     semantic_owner: platform-foundation
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [tools]
+    allowed_import_roots:
+      [tools, internal/data/tenancy/storagedisposition, internal/platform/telemetry]
     direct_import_expected: true
     upgrade_sla: Best-effort.
     exposure: >-
       Parses definitions/architecture/*.yaml governance manifests inside
-      tools/policy at test/build time; not read on the production request
-      path today. If a future production package parses YAML configuration
-      at runtime, this row's allowed_import_roots and exposure must be
-      revised alongside that change.
+      tools/policy at test/build time. The only runtime mechanics roots are
+      internal/data/tenancy/storagedisposition, which owns the physical
+      storage registry parser, and internal/platform/telemetry, which owns
+      telemetry-contract loading. Neither parser grants YAML data business
+      authority: each projects it into an owned typed contract and validates
+      it before use.
     replacement_strategy: encoding/json against a JSON-rendered manifest, or a hand-rolled parser, if yaml.v3 becomes unavailable.
 
   - path: honnef.co/go/tools

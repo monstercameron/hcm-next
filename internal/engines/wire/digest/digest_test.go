@@ -18,8 +18,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 )
 
 var update = flag.Bool("update", false, "rewrite the checked-in golden digest vectors")

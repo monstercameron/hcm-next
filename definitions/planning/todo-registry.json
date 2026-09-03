@@ -361,7 +361,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestTodo_ADMIN_001`, `TestTodo_ADMIN_001_Golden`, `TestTodo_ADMIN_001_Race`, `TestTodo_ADMIN_001_Integration`, `TestTodo_ADMIN_001_Fault`, `TestTodo_ADMIN_001_Security` in `internal/transport/admin` PASS (`go test -count=1 ./internal/transport/admin/...` on windows/arm64 (Go 1.26.3)); gRPC and CLI share the generated `adminv1` contract, interceptors, redaction, idempotent reads and evidence ids; not complete: the generated `hcmctl` binary does not exist as `cmd/hcmctl` because `repository-layout.yaml` approved_commands and the `process-roles.yaml` admin row (status later) forbid it until P1B; promote `internal/transport/admin/hcmctl.Main` to `cmd/hcmctl/main.go` once those manifests are widened; branch plan-revision-2026-09-02"
   },
   {
     "id": "ADMIN-002",
@@ -1566,8 +1567,8 @@
     "refactor": "no `kernel/common`, service locator, configuration singleton or infrastructure client is permitted",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [canonical digest](specs/canonical-envelope-and-digest.md), [model conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestKernelImportsOnlyAllowedDependencies` PASS (synthetic); `TestTodo_ARCH_GO_004_Integration` FAIL: internal/kernel/canonical and internal/kernel/digest import google.golang.org/protobuf (and grpc); decision pending between a documented waiver (canonical profiles are defined over protobuf descriptors) and moving those two packages out of kernel; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestKernelImportsOnlyAllowedDependencies`, `TestTodo_ARCH_GO_004_Property`, `TestTodo_ARCH_GO_004_Golden`, `TestTodo_ARCH_GO_004_Integration`, `TestTodo_ARCH_GO_004_Security`, `TestTodo_ARCH_GO_004_Conformance`, `TestTodo_ARCH_GO_004_Mutation`, `TestTodo_ARCH_GO_004_Race` in `tools/policy/archrules`; protobuf-driven canonicalization/digest moved from `internal/kernel` to `internal/engines/wire/{canonical,digest}`, all consumers retargeted, and the remaining kernel tree (`internal/kernel/values`) imports only approved minimal mechanics without exported backend types. `go test -count=1 ./tools/policy/archrules -run '^(TestKernelImportsOnlyAllowedDependencies|TestTodo_ARCH_GO_004_)'` and `go test -count=1 ./internal/engines/wire/canonical ./internal/engines/wire/digest ./internal/kernel/...` PASS on windows/arm64 (Go 1.26.3); supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-005",
@@ -1786,8 +1787,8 @@
     "refactor": "PostgreSQL transaction features remain adapter capabilities exposed through narrow interfaces, not leaked handles",
     "refs": "[Ledger spec](specs/transaction-ledger-reconciliation-and-repair.md), [database materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestLedgerPackageRejectsConcreteStoreDependency` PASS (synthetic); `TestTodo_ARCH_GO_012_Integration` FAIL: internal/ledger imports pgx/v5 for its Tx type; fix with LIB-004; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestLedgerPackageRejectsConcreteStoreDependency` and `TestTodo_ARCH_GO_012_Integration` now PASS (`0 ledger-imports-postgres violations`): `internal/ledger` depends only on `internal/data/dbport`; supersedes the partial line above; `go test -count=1 ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-013",
@@ -1888,7 +1889,8 @@
     "refactor": "conformance/fault harnesses may import public/internal contracts but never expose test-only hooks in production APIs",
     "refs": "[Conformance audit](specs/adversarial-audit-32-reviewers-2026-08-14.md), [workflow reference suite](reference-workflows/reference-suite.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTestLayoutPolicy`, `TestTodo_ARCH_GO_016_Golden`, `TestTodo_ARCH_GO_016_Fault`, and `TestTodo_ARCH_GO_016_Conformance` in `tools/policy/testlayout`; deterministic real-tree and fixture scans reject detached ordinary tests, production imports of `/test`, undocumented cross-system harnesses, and shared assets without owner/package/clock/source-version/oracle/SHA-256 metadata. `go test -count=1 ./tools/policy/testlayout` and `go vet ./tools/policy/testlayout` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-017",
@@ -1911,7 +1913,8 @@
     "refactor": "exception requires architecture owner, import graph evidence, replacement plan and expiry",
     "refs": "[Go technology constitution](specs/go-only-technology-constitution.md), [spec ownership](specs/specification-ownership-registry.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestNoGarbageDrawerPackages`, `TestTodo_ARCH_GO_017_Golden`, `TestTodo_ARCH_GO_017_Integration`, `TestTodo_ARCH_GO_017_Conformance` in `tools/policy/garbagedrawer` (deterministic package/API scan rejects generic package names, impl suffixes and unbounded exported catch-all APIs; exceptions require owner, rationale, follow-up and expiry; real Go tree passes); `go test -count=1 ./tools/policy/garbagedrawer` and `go vet ./tools/policy/garbagedrawer` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-018",
@@ -2183,7 +2186,8 @@
     "refactor": "remove ceremony while preserving typed contracts at actual domain, adapter and execution boundaries",
     "refs": "[Go technology constitution](specs/go-only-technology-constitution.md), [risk register](specs/risk-register.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestArchitectureCeremonyRejectsInterfacePerStructAndEmptyLayers`, `TestTodo_ARCH_GO_027_Golden`, `TestTodo_ARCH_GO_027_Race`, `TestTodo_ARCH_GO_027_Conformance` in `tools/policy/archrules` (AST scan rejects interface-per-struct/no-consumer boundaries, ceremonial package-family suffixes and forwarding-only layers; current real seams require bounded owner/rationale/evidence/expiry exceptions); `go test -count=1 ./tools/policy/archrules -run '^(TestArchitectureCeremonyRejectsInterfacePerStructAndEmptyLayers|TestTodo_ARCH_GO_027_)'` and `go vet ./tools/policy/archrules/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "ARCH-GO-028",
@@ -4860,7 +4864,7 @@
     "refs": "[Reference workflows](workflows/README.md), [architecture acceptance](reference-workflows/reference-suite.md#foundational-questions-the-suite-must-close)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_CONF_001`, `_Golden`, `_Conformance`, `_Fault`, `_Recovery`, `_Mutation` in `tools/conformance` (typed model parsed from planning/reference-workflows, vocabulary read live from planning/specs/workflow-runtime.md, eleven deterministic checks, JSON+markdown report with digest, `go run ./tools/conformance`; promote-into-management 11 PASS/0 FAIL); `go test -count=1 ./tools/conformance/...` PASS on windows/arm64 (Go 1.26.3); `Runner` port awaits internal/workflow; branch plan-revision-2026-09-02. Executed section: `internal/workflow/simulate` (SIMULATE-mode interpreter; `TestSimulateModeExecutesThePromotionReferenceWithZeroEffects`, `TestSimulateModeRefusesWriteClassNodes`, `TestSimulateReceiptIsByteStable`, `TestTodo_WF_SIM_001`..`_014`) and `tools/conformance/runner.PlanRunner` (`TestConformanceReportGainsAnExecutedReceiptSection`); the promotion reference runs 6 nodes, 4 work items would await, lifecycle ends SIMULATED/NOT_PLANNED/NOT_STARTED/NOT_APPLICABLE/PENDING, all effect counters zero; `go test -count=1 ./internal/workflow/... ./tools/conformance/...` PASS"
+    "evidence": "`TestTodo_CONF_001`, `_Golden`, `_Conformance`, `_Fault`, `_Recovery`, `_Mutation` in `tools/conformance` (typed model parsed from planning/reference-workflows, vocabulary read live from planning/specs/workflow-runtime.md, eleven deterministic checks, JSON+markdown report with digest, `go run ./tools/conformance`; promote-into-management 11 PASS/0 FAIL); `go test -count=1 ./tools/conformance/...` PASS on windows/arm64 (Go 1.26.3); `Runner` port awaits internal/workflow; branch plan-revision-2026-09-02. Executed section: `internal/workflow/simulate` (SIMULATE-mode interpreter; `TestSimulateModeExecutesThePromotionReferenceWithZeroEffects`, `TestSimulateModeRefusesWriteClassNodes`, `TestSimulateReceiptIsByteStable`, `TestTodo_WF_SIM_001_GoldenPromotionReceipt`, `TestTodo_WF_SIM_002_GoldenObservationBranchReceipt`, `TestTodo_WF_SIM_003_PropertyTraceIsAWalkOfTheCompiledGraph`, `TestTodo_WF_SIM_004_PropertyEveryAdmittedNodeIsZeroEffect`, `TestTodo_WF_SIM_005_PropertyReceiptIgnoresInputInsertionOrder`, `TestTodo_WF_SIM_006_FaultObservationDriftRoutesToDegraded`, `TestTodo_WF_SIM_007_FaultUnreadableSourceIsUnknownNotPass`, `TestTodo_WF_SIM_008_FaultUnresolvedBudgetAuthorityBlocks`, `TestTodo_WF_SIM_009_FaultMissingContextTakesTheDeclaredBehavior`, `TestTodo_WF_SIM_010_FaultBlockedPreflightFailsTheTransform`, `TestTodo_WF_SIM_011_FaultMissingWorkflowInputIsRefused`, `TestTodo_WF_SIM_012_FaultUnboundCapabilityRegistryIsRefused`, `TestTodo_WF_SIM_013_FaultStepBudgetIsBounded`, `TestTodo_WF_SIM_014_FaultTamperedPlanIsRefused`) and `tools/conformance/runner.PlanRunner` (`TestConformanceReportGainsAnExecutedReceiptSection`); the promotion reference runs 6 nodes, 4 work items would await, lifecycle ends SIMULATED/NOT_PLANNED/NOT_STARTED/NOT_APPLICABLE/PENDING, all effect counters zero; `go test -count=1 ./internal/workflow/... ./tools/conformance/...` PASS"
   },
   {
     "id": "CONF-002",
@@ -8425,7 +8429,7 @@
     "refs": "[Promotion fixture](reference-workflows/promote-into-management.md), [model registry](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_DB_019`, `_Golden`, `_Race`, `_Integration`, `_Security` in `internal/data/seed` (idempotent seeder over migration 00003's registry with digest-checked conflicts and a pinned artifact digest over 21 registrations). Follow-up: re-point the seeder at the person/employment/position/compensation tables from migrations 00011–00013; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/seed/...` on windows/arm64 (Go 1.26.3)"
+    "evidence": "`TestTodo_DB_019`, `TestTodo_DB_019_Golden`, `TestTodo_DB_019_Race`, `TestTodo_DB_019_Integration`, `TestTodo_DB_019_Security`, `TestTodo_DB_019_Conformance` in `internal/data/seed`: registry registrations (schema, capability, intent, pay-band catalog) stay in `definition_version` with digest-checked conflicts, while person/worker/employment/assignment/legal-entity/org-unit/job/position/compensation fixtures load through the frozen `internal/data/aggregates` stores inside the caller's transaction, gated by an aggregate-corpus marker so exactly one transaction per tenant loads them under concurrency; `TestSeedCommandSeedsOnceAndEmitsStableReceipt` in `cmd/migrate` proves `migrate seed -tenant=\u003cslug\u003e` derives the same tenant UUID as the serving store, registers the tenant at a fixed fixture instant, emits exact deterministic JSON counts/digest, and is an idempotent no-op on rerun; `go test -count=1 ./cmd/migrate ./internal/data/seed` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DB-020",
@@ -11439,7 +11443,7 @@
     "refs": "[Platform coverage rule](execution-plan.md#capability-coverage-rule), [coverage matrix](specs/platform-capability-coverage-matrix.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestRequirementTraceabilityRejectsOrphans`, `TestTodo_GOV_003_Golden`, `_Race` in `tools/planning/traceability` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestRequirementTraceabilityRejectsOrphans`, `TestTodo_GOV_003_Golden`, `TestTodo_GOV_003_Race` in `tools/planning/traceability` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-004",
@@ -11482,7 +11486,7 @@
     "refs": "[Execution-plan scope rules](execution-plan.md#scope-rules), [cross-phase foundation track](plan.md#cross-phase-foundation-track)",
     "retired": false,
     "done": true,
-    "evidence": "`TestDepthVocabularyRejectsSilentPromotion`, `TestTodo_GOV_005_Golden`, `_Conformance` in `tools/planning/depthvocab` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestDepthVocabularyRejectsSilentPromotion`, `TestTodo_GOV_005_Golden`, `TestTodo_GOV_005_Conformance` in `tools/planning/depthvocab` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-006",
@@ -11572,7 +11576,7 @@
     "refs": "[Explicit non-goals](execution-plan.md#explicit-non-goals), [Phase 1 scope](plan.md#phase-1-changeops-overlay)",
     "retired": false,
     "done": true,
-    "evidence": "`TestPhaseOneImportsRejectDeferredSubsystems`, `TestTodo_GOV_009_Property`, `_Golden` in `tools/planning/deferredimports` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestPhaseOneImportsRejectDeferredSubsystems`, `TestTodo_GOV_009_Property`, `TestTodo_GOV_009_Golden` in `tools/planning/deferredimports` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-010",
@@ -11596,7 +11600,8 @@
     "refactor": "share decision/evidence primitives with governed business approvals",
     "refs": "[Trust and assurance](plan.md#115-trust-and-assurance), [delivery gates](execution-plan.md#delivery-gates-staffing-envelope-and-critical-path)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestAuthorityGateRejectsIncompleteEvidence`, `TestTodo_GOV_010_Golden`, `TestTodo_GOV_010_Fault`, `TestTodo_GOV_010_Security` in `tools/planning/authoritygate` (`definitions/planning/authority-gate-decision.yaml` schema and validator: enum, signatures, proposal binding, seven evidence classes, path-safe evidence checks, undecided-gate detection). Real finding recorded in `known_authority_gate_gaps`: no Gate A PROCEED has been signed while 121 GATE_A todos are complete; `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-011",
@@ -11618,7 +11623,8 @@
     "refactor": "produce human and machine views from the same registry",
     "refs": "[Capability coverage rule](execution-plan.md#capability-coverage-rule), [coverage matrix](specs/platform-capability-coverage-matrix.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPilotCoverageRejectsImpliedOrMissing`, `TestTodo_GOV_011_Golden` in `tools/planning/coveragematrix` (`definitions/planning/capability-coverage.yaml`: 10 BOOTSTRAP capabilities + 14 intent definitions mapped from INTENT CONTEXT claims and evidence; zero evidence-claim violations). Real finding recorded in `known_coverage_gaps`: `hcmnext.registry.resolve_capability` and `explain_capability` are claimed by no todo; `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-012",
@@ -11641,7 +11647,7 @@
     "refs": "[Identity contract](plan.md#94-identity-and-permission-contract), [model registry](data/models/registry-and-coverage-contracts.md#canonical-boundary-decisions)",
     "retired": false,
     "done": true,
-    "evidence": "`TestCanonicalTerms`, `TestTodo_GOV_012_Golden`, `_Conformance` in `tools/planning/terminology` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestCanonicalTerms`, `TestTodo_GOV_012_Golden`, `TestTodo_GOV_012_Conformance` in `tools/planning/terminology` (subcommand of `go run ./tools/planning/cmd/plancheck`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-013",
@@ -11664,7 +11670,8 @@
     "refactor": "enforce boundaries with Go `internal` packages and generated dependency policy",
     "refs": "[Platform plane model](plan.md#8-platform-plane-model-and-capabilities), [responsibility boundaries](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPlaneBoundaries`, `TestTodo_GOV_013_Property`, `TestTodo_GOV_013_Golden`, `TestTodo_GOV_013_Recovery` in `tools/planning/boundarytests` (reuses tools/policy/depedge and importgraph; real graph has 0 policy violations, no cycle, 14 layer/port edges pinned in `testdata/layer-graph.golden.txt`); `go test -count=1 ./tools/planning/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-014",
@@ -11709,7 +11716,8 @@
     "refactor": "expose the same state to CLI, GWC and CI",
     "refs": "[Preserve epistemic integrity](plan.md#513-preserve-epistemic-integrity)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestProgressRejectsUncheckedEvidence`, `TestTodo_GOV_015_Golden` in `tools/planning/progress` (authored, red, green, refactored, evidenced, gate-accepted and complete remain independent; unchecked, missing, malformed, failed, future and stale evidence cannot become complete; deterministic sorted/count output); refactored; `go test -count=1 ./tools/planning/progress` and `go vet ./tools/planning/progress` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-016",
@@ -11732,7 +11740,8 @@
     "refactor": "explicitly declared external gates require owner, artifact, phase and acceptance digest",
     "refs": "[Plan hierarchy](plan.md), [execution dependencies](execution-plan.md#delivery-gates-staffing-envelope-and-critical-path)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestTodo_GOV_016`, `TestTodo_GOV_016_Property`, `TestTodo_GOV_016_Golden`, `FuzzTodo_GOV_016` in `tools/planning/dependencygraph` (unknown/prose/malformed-range/duplicate/cycle and direct/transitive Gate A phase-inversion diagnostics with stable ID/file/line/code); checker and `plancheck dependencygraph` adapter implemented, but the live corpus correctly remains non-green with 6,202 `GATE_A_PHASE_INVERSION` findings; `go test -count=1 ./tools/planning/dependencygraph ./tools/planning/cmd/plancheck`, `go test -fuzz=FuzzTodo_GOV_016 -fuzztime=2s ./tools/planning/dependencygraph`, and `go vet ./tools/planning/dependencygraph ./tools/planning/cmd/plancheck` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-017",
@@ -11755,7 +11764,8 @@
     "refactor": "generate Markdown and TodoContract validation from one schema so formatting cannot diverge from execution evidence",
     "refs": "[Backlog governance](#0-backlog-governance-and-traceability), [production correctness](plan.md#519-platform-correctness-is-business-correctness)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestTodoTDDContractCompleteness`, `TestTodo_GOV_017_Golden` in `tools/planning/tddcontract` plus the `plancheck tddcontract` adapter implement stable file/line/todo/code diagnostics for missing or duplicate TDD fields, combined RED/GREEN, invalid/non-unique test names, green evidence without prior red failure, vague non-observable oracles and invalid `EVIDENCE_ONLY` governance. `go test -count=1 ./tools/planning/tddcontract ./tools/planning/cmd/plancheck` and `go vet ./tools/planning/tddcontract ./tools/planning/cmd/plancheck` PASS, but the live command remains non-green with 1,094 findings; cannot close until those red-first evidence and oracle defects are repaired; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOV-018",
@@ -15839,7 +15849,7 @@
     "test": "TestLegalMatrixCoversEveryResearchFile",
     "test_matrix": {
       "FUZZ": "FuzzLegalMatrixParse",
-      "GOLDEN": "TestTodo_LEGAL_007_Golden",
+      "GOLDEN": "TestTodo_LEGAL_008_Golden",
       "PRIMARY": "TestLegalMatrixCoversEveryResearchFile"
     },
     "red": "`TestLegalMatrixCoversEveryResearchFile` fails when a matrix row has no research file, a research file has no matrix row, a cell holds a value outside `{Y,L,P,F,?}`, a stated column total disagrees with the counted cells, or the spec is absent from `specs/README.md` and `specs/specification-ownership-registry.md`",
@@ -15847,7 +15857,8 @@
     "refactor": "the parser is a `tools/planning` subcommand of `plancheck`, sharing the todo-registry file walker; no second Markdown scanner",
     "refs": "[Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestLegalMatrixCoversEveryResearchFile`, `TestTodo_LEGAL_008_Golden`, `FuzzLegalMatrixParse` in `tools/planning/legalmatrix` (`plancheck legalmatrix`: fifty rows keyed to the fifty state files, legend tokens validated, both column-total blocks recomputed exactly, spec indexed and owned; zero violations on the live spec); `go test -count=1 ./tools/planning/legalmatrix/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-009",
@@ -15861,14 +15872,14 @@
       "MODEL-018",
       "TIME-001"
     ],
-    "test": "TestTodo_LEGAL_008",
+    "test": "TestTodo_LEGAL_009",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_008_Golden",
-      "MUTATION": "TestTodo_LEGAL_008_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_008",
-      "PROPERTY": "TestTodo_LEGAL_008_Property",
-      "RACE": "TestTodo_LEGAL_008_Race",
-      "SECURITY": "TestTodo_LEGAL_008_Security"
+      "GOLDEN": "TestTodo_LEGAL_009_Golden",
+      "MUTATION": "TestTodo_LEGAL_009_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_009",
+      "PROPERTY": "TestTodo_LEGAL_009_Property",
+      "RACE": "TestTodo_LEGAL_009_Race",
+      "SECURITY": "TestTodo_LEGAL_009_Security"
     },
     "red": "work split across subdivisions with no configured `primary_work_threshold`, or with no subdivision at or above it, resolves to a single jurisdiction; a registered locality is dropped from the overlay set; an unregistered locality disappears without a receipt note; or a locality-level jurisdiction is returned as `primary`",
     "green": "`Resolve` returns one `PRIMARY` subdivision plus deduplicated `OVERLAY` jurisdictions ordered coarse to fine, records which attribution rule `A1`–`A6` fired and the remote-work policy applied, refuses with `LEGAL_CONTEXT_UNKNOWN` and reason `MULTI_STATE_UNRESOLVED` when no subdivision clears the threshold, and keeps the resolved set inside the signed `LegalContext` digest",
@@ -15889,22 +15900,23 @@
       "MODEL-020",
       "CONFIG-002"
     ],
-    "test": "TestTodo_LEGAL_009",
+    "test": "TestTodo_LEGAL_010",
     "test_matrix": {
       "FUZZ": "FuzzPackDefinitionLoader",
-      "GOLDEN": "TestTodo_LEGAL_009_Golden",
-      "MUTATION": "TestTodo_LEGAL_009_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_009",
-      "PROPERTY": "TestTodo_LEGAL_009_Property",
-      "RACE": "TestTodo_LEGAL_009_Race",
-      "SECURITY": "TestTodo_LEGAL_009_Security"
+      "GOLDEN": "TestTodo_LEGAL_010_Golden",
+      "MUTATION": "TestTodo_LEGAL_010_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_010",
+      "PROPERTY": "TestTodo_LEGAL_010_Property",
+      "RACE": "TestTodo_LEGAL_010_Race",
+      "SECURITY": "TestTodo_LEGAL_010_Security"
     },
     "red": "rewording a citation `Note` changes the release digest; changing a typed body field leaves it unchanged; a published release is editable in place; a superseding release does not close the prior effective window; a release typed against an unknown `vocabulary_version` evaluates as \"no obligations\"; or a forged signature over a valid digest verifies",
     "green": "the digest covers exactly the fields listed in the contract's section 3.2 and nothing else; `supersedes`/`superseded_by` link the chain and the prior window's `End` equals the successor's `Start`; an unsupported `vocabulary_version` returns `VOCABULARY_VERSION_UNSUPPORTED`; and `GetExact` keeps returning the pinned release forever",
     "refactor": "the loader produces `RulePack` from a checked-in definition file; the two seed packs are regenerated through it rather than hand-built in Go",
     "refs": "[Rule-pack definition family](specs/legal-rule-packs-and-state-configuration.md#3-rule-pack-definition-family), [canonical envelope and digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_010`, `TestTodo_LEGAL_010_Property`, `TestTodo_LEGAL_010_Golden` (release digest pinned; second half in `internal/governance/legal/extract` regenerates all 50 state packs byte-identically), `TestTodo_LEGAL_010_Race`, `TestTodo_LEGAL_010_Security`, `TestTodo_LEGAL_010_Mutation` (16 mutants), `FuzzPackDefinitionLoader` in `internal/governance/legal` (`packrelease.go`: §3.2 canonical digest, ed25519 signing and verification, supersession chain, review-status floor; `packdefinition.go`: JSON pack definitions under `definitions/legal/packs/{seed,states}` loaded through one schema-validated loader, California and New York seed packs regenerated through it); `TestTodo_LEGAL_CFG_Conformance` (50 subtests: Y implies kind present, F/L/P implies absent, `?` never releasable, every source file exists) in `internal/governance/legal/extract`; no federal pack by contract §10; no state pack is releasable while any `?` cell remains; `go test -count=1 ./internal/governance/legal/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-011",
@@ -15917,21 +15929,22 @@
       "WF-STEP-008",
       "MODEL-026"
     ],
-    "test": "TestTodo_LEGAL_010",
+    "test": "TestTodo_LEGAL_011",
     "test_matrix": {
-      "FUZZ": "FuzzTodo_LEGAL_010",
-      "GOLDEN": "TestTodo_LEGAL_010_Golden",
-      "MUTATION": "TestTodo_LEGAL_010_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_010",
-      "PROPERTY": "TestTodo_LEGAL_010_Property",
-      "SECURITY": "TestTodo_LEGAL_010_Security"
+      "FUZZ": "FuzzTodo_LEGAL_011",
+      "GOLDEN": "TestTodo_LEGAL_011_Golden",
+      "MUTATION": "TestTodo_LEGAL_011_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_011",
+      "PROPERTY": "TestTodo_LEGAL_011_Property",
+      "SECURITY": "TestTodo_LEGAL_011_Security"
     },
     "red": "an obligation whose trigger is false is absent from the result instead of recorded as `CONSIDERED_NOT_APPLICABLE`; `LEAVE_INTERACTION` fires only when the worker is already on leave; a new kind carries no `Citation`; an obligation binds to a lifecycle step the contract does not assign it; or any binding is removable",
     "green": "the twenty-two kinds each validate their typed body, carry a complete `Citation` with a `ConfidenceMarker`, produce a `NonRemovable` `ObligationBinding` of the declared kind, and resolve into exactly one of `obligations_applied` or `obligations_not_applicable` for every registered release; the existing ten keep their wire tokens and ordinals",
     "refactor": "trigger predicates are pure functions of the proposal snapshot and the typed body, with no registry or clock access",
     "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds), [workflow runtime](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_011`, `TestTodo_LEGAL_011_Property`, `TestTodo_LEGAL_011_Golden`, `TestTodo_LEGAL_011_Security`, `TestTodo_LEGAL_011_Mutation` (14 seeded mutants), `FuzzTodo_LEGAL_011` in `internal/governance/legal` (`vocabulary.go` vocabulary_version 2, `ConfidenceMarker`, source types and lifecycle steps; `obligation_added.go` twelve typed bodies plus `PreemptionAssertion`; `obligation_spec.go` single kind-to-trigger/lifecycle-step binding table for all twenty-two kinds; unstated figures stay empty and are refused only at release, never invented); extractor emits 599 obligations across the 50 draft packs (340 CONFIRMED / 259 VERIFY), Y cells always emit, `?` only on evidence, L/P/F never; `go test -count=1 ./internal/governance/legal/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-012",
@@ -15944,13 +15957,13 @@
       "LEGAL-011",
       "GOVERN-001"
     ],
-    "test": "TestTodo_LEGAL_011",
+    "test": "TestTodo_LEGAL_012",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_011_Golden",
-      "MUTATION": "TestTodo_LEGAL_011_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_011",
-      "PROPERTY": "TestTodo_LEGAL_011_Property",
-      "RACE": "TestTodo_LEGAL_011_Race"
+      "GOLDEN": "TestTodo_LEGAL_012_Golden",
+      "MUTATION": "TestTodo_LEGAL_012_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_012",
+      "PROPERTY": "TestTodo_LEGAL_012_Property",
+      "RACE": "TestTodo_LEGAL_012_Race"
     },
     "red": "composing the same jurisdiction set in a different order changes the receipt bytes; a single global \"most protective wins\" rule is applied across kinds; a mandatory retention maximum shorter than another jurisdiction's minimum is silently resolved; or a non-compete voided in one jurisdiction survives composition",
     "green": "each kind applies its declared comparator, composition is commutative, associative and idempotent over the jurisdiction set, mutually impossible obligations return `CONTRADICTORY_REQUIREMENTS` with both obligations and both citations, and the composition trace names the inputs, comparator and winner per kind",
@@ -15968,12 +15981,12 @@
     "depends": [
       "LEGAL-012"
     ],
-    "test": "TestTodo_LEGAL_012",
+    "test": "TestTodo_LEGAL_013",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_012_Golden",
-      "MUTATION": "TestTodo_LEGAL_012_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_012",
-      "PROPERTY": "TestTodo_LEGAL_012_Property"
+      "GOLDEN": "TestTodo_LEGAL_013_Golden",
+      "MUTATION": "TestTodo_LEGAL_013_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_013",
+      "PROPERTY": "TestTodo_LEGAL_013_Property"
     },
     "red": "a Milwaukee paid-leave obligation attaches to a Wisconsin promotion; a preemption assertion removes a subdivision- or country-level obligation; a preemption assertion for one kind removes an obligation of another kind; or a preemption is applied without a citation",
     "green": "`PreemptionAssertion` removes only `LOCALITY` obligations of the named kind before composition, each removal is recorded in the receipt with the asserting jurisdiction and the removed obligation ids, and the five asserting states (`WI`, `LA`, `TX`, `OK`, `TN`) each pass a golden vector",
@@ -15993,14 +16006,14 @@
       "MODEL-023",
       "MODEL-029"
     ],
-    "test": "TestTodo_LEGAL_013",
+    "test": "TestTodo_LEGAL_014",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_013_Golden",
-      "MUTATION": "TestTodo_LEGAL_013_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_013",
-      "RACE": "TestTodo_LEGAL_013_Race",
-      "RECOVERY": "TestTodo_LEGAL_013_Recovery",
-      "SECURITY": "TestTodo_LEGAL_013_Security"
+      "GOLDEN": "TestTodo_LEGAL_014_Golden",
+      "MUTATION": "TestTodo_LEGAL_014_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_014",
+      "RACE": "TestTodo_LEGAL_014_Race",
+      "RECOVERY": "TestTodo_LEGAL_014_Recovery",
+      "SECURITY": "TestTodo_LEGAL_014_Security"
     },
     "red": "a receipt omits the `CONSIDERED_NOT_APPLICABLE` set, the composition trace, the attribution rule that fired or the pinned release digests; a receipt stops verifying once its releases are unregistered; or a tampered receipt verifies",
     "green": "the receipt carries every field in the contract's section 6.5, verifies offline against its embedded key after a canonical round trip, remains verifiable when the registry no longer holds the releases, and is the artifact `ObligationState` transitions are evidenced by",
@@ -16021,12 +16034,12 @@
       "TRUST-011",
       "CONFIG-002"
     ],
-    "test": "TestTodo_LEGAL_014",
+    "test": "TestTodo_LEGAL_015",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_014_Golden",
-      "MUTATION": "TestTodo_LEGAL_014_Mutation",
-      "PRIMARY": "TestTodo_LEGAL_014",
-      "SECURITY": "TestTodo_LEGAL_014_Security"
+      "GOLDEN": "TestTodo_LEGAL_015_Golden",
+      "MUTATION": "TestTodo_LEGAL_015_Mutation",
+      "PRIMARY": "TestTodo_LEGAL_015",
+      "SECURITY": "TestTodo_LEGAL_015_Security"
     },
     "red": "a pack reaches `COUNSEL_APPROVED` while any rule carries `VERIFY` or `DISPUTED`; the author signs their own release; an extractor broadens a research recommendation into a statutory requirement; or a release below the tenant's review floor evaluates",
     "green": "the six `ReviewStatus` values and three `ConfidenceMarker` values are enforced end to end, `VENDOR_BASELINE` requires the publisher signature and `COUNSEL_APPROVED` additionally requires the customer-counsel signature over the same digest, author and reviewer and key holder are distinct principals, and a release below the tenant floor returns `REVIEW_STATUS_INSUFFICIENT`",
@@ -16047,12 +16060,12 @@
       "LEGAL-014",
       "CONF-001"
     ],
-    "test": "TestTodo_LEGAL_015",
+    "test": "TestTodo_LEGAL_016",
     "test_matrix": {
-      "CONFORMANCE": "TestTodo_LEGAL_015_Conformance",
-      "GOLDEN": "TestTodo_LEGAL_015_Golden",
-      "PRIMARY": "TestTodo_LEGAL_015",
-      "PROPERTY": "TestTodo_LEGAL_015_Property"
+      "CONFORMANCE": "TestTodo_LEGAL_016_Conformance",
+      "GOLDEN": "TestTodo_LEGAL_016_Golden",
+      "PRIMARY": "TestTodo_LEGAL_016",
+      "PROPERTY": "TestTodo_LEGAL_016_Property"
     },
     "red": "a registered pack fails to load, carries a `Citation` whose `source_file` does not exist, or produces no receipt; a matrix cell marked `Y` has no obligation of that kind in the pack; a cell marked `F` has one; or a state with a `?` in a flow-consumed kind is releasable",
     "green": "every registered release evaluates the one canonical promotion-and-base-pay proposal, the receipt matches its checked-in golden file byte for byte, the matrix and the packs agree cell by cell, and the three boundary vectors (Virginia 2026-09-02/04, Ohio 2025-09-28/30, Wisconsin with and without a Milwaukee overlay) each produce the declared difference",
@@ -16072,7 +16085,7 @@
     ],
     "test": "TestFederalBaselineIsStatedOnce",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_016_Golden",
+      "GOLDEN": "TestTodo_LEGAL_017_Golden",
       "PRIMARY": "TestFederalBaselineIsStatedOnce"
     },
     "red": "`TestFederalBaselineIsStatedOnce` fails while two state research files state different federal WARN employee thresholds, different FLSA minimum wages, or different FLSA record-retention periods, or while no country-level `US` research file exists",
@@ -16080,7 +16093,8 @@
     "refactor": "the scan is a `plancheck` subcommand reusing the matrix parser, not a one-off script",
     "refs": "[Non-goals](specs/legal-rule-packs-and-state-configuration.md#10-non-goals), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`planning/research/state-employment-law/us-federal.md` establishes the FLSA, WARN, FMLA, FCRA and I-9 baseline with official citations. `TestFederalBaselineIsStatedOnce` and `TestTodo_LEGAL_017_Golden` in `tools/planning/federalbaseline` validate the canonical figures and live fifty-state contradiction scan; `go run ./tools/planning/cmd/plancheck federalbaseline .` and `go test -count=1 ./tools/planning/federalbaseline/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-018",
@@ -16094,7 +16108,7 @@
     ],
     "test": "TestBlockingResearchQuestionsAreTracked",
     "test_matrix": {
-      "GOLDEN": "TestTodo_LEGAL_017_Golden",
+      "GOLDEN": "TestTodo_LEGAL_018_Golden",
       "PRIMARY": "TestBlockingResearchQuestionsAreTracked"
     },
     "red": "a blocking question listed in the contract's section 11 has no entry in the research review log; a state whose file still contains a listed contradiction is marked releasable in the matrix; or the Illinois file remains `DRAFTED` while an Illinois release exists",
@@ -16102,7 +16116,8 @@
     "refactor": "the blocking list lives in the research `README.md` review log, and the contract's section 11 references it rather than restating it",
     "refs": "[Open questions](specs/legal-rule-packs-and-state-configuration.md#11-open-questions), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Fourteen blocking items are recorded in `planning/research/state-employment-law/README.md` under \"LEGAL-018 contradiction closure\": 12 FIXED with citations, 1 DISPUTED (New York personnel-file bill), and 2 OPEN by scope (pay-statement content audit, UI separation filings). `TestBlockingResearchQuestionsAreTracked`, `TestDisputedResearchCannotBeMarkedReleasable`, `TestFileStatusMatchesReviewQueue`, and `TestTodo_LEGAL_018_Golden` in `tools/planning/researchquestions` verify the review log, matrix gates, and state-file status metadata; `go run ./tools/planning/cmd/plancheck researchquestions .` and `go test -count=1 ./tools/planning/researchquestions/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-001",
@@ -16158,8 +16173,8 @@
     "refactor": "allow narrowly evidenced standard-library use without wrapper ceremony; exceptions are owner-, rationale-, version- and expiry-bound",
     "refs": "[Package dependency policy](#2a-modular-go-monolith-and-semantic-package-architecture), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestThirdPartySemanticFirewall` PASS (synthetic RED); `TestTodo_LIB_002_Integration` and `_Golden` FAIL on the real tree: pgx imported from composition roots and adapters outside its allowed roots (widened 2026-09-03 for cmd, internal/intent/app/pgstore, internal/connectivity/observe/adapters/postgres, internal/platform/bootstrap) and protobuf imported by internal/kernel/{canonical,digest}; kernel canonical/digest need protobuf reflection by design of the canonical-envelope spec; waiver or relocation pending; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestThirdPartySemanticFirewall`, `TestTodo_LIB_002_Property`, `TestTodo_LIB_002_Golden`, `TestTodo_LIB_002_Integration`, `TestTodo_LIB_002_Conformance`, `TestTodo_LIB_002_Mutation`, `TestTodo_LIB_002_Security`, `TestTodo_LIB_002_Race` in `tools/policy/libfirewall`; real-tree scan covers 173 packages with zero violations, prefix-bypass mutants reject, health reuses the owned storage-disposition YAML seam, and exact narrow mechanics roots govern pgtest, operations UUIDs, NFC normalization, UX HTML parsing, runtime contract YAML, `gen/wire` and `internal/engines/wire`. `go test -count=1 ./tools/policy/libfirewall` plus related health, telemetry, UX, wire-engine, intent, depmanifest and depedge suites PASS on windows/arm64 (Go 1.26.3); `-race` remains on supported Linux CI; supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-003",
@@ -16183,8 +16198,8 @@
     "refactor": "generated wire code remains isolated from authored domains and grpc-go types do not cross capability/domain ports",
     "refs": "[Public API contracts](#29-machine-readable-model-sources-and-public-api-contracts), [grpcbridge boundary](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestGRPCBackendQualification` PASS; `TestTodo_LIB_003_Integration` FAIL: protobuf/grpc imported by internal/kernel/{canonical,digest}, internal/intent and internal/intent/app outside [gen, internal/transport, internal/intent/protomap]; disposition pending (see LIB-002); `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestGRPCBackendQualification`, `TestTodo_LIB_003_Golden`, `TestTodo_LIB_003_Integration`, `TestTodo_LIB_003_Conformance` in `tools/policy/libfirewall` scan 172 packages with zero Protobuf/gRPC/Connect violations: app conversions moved behind `internal/intent/protomap`, data wire codecs into `gen/wire`, and server composition into `internal/transport/cell`; only the reviewed wire-canonicalization/codegen roots remain explicitly documented. `go test -count=1 ./tools/policy/libfirewall -run '^(TestGRPCBackendQualification|TestTodo_LIB_003_)'` and `go test -count=1 ./cmd/hcmnext ./internal/intent/protomap ./internal/data/projection/critical ./internal/data/provenance ./internal/transport/cell ./test/bootstrap ./test/workspace` PASS on windows/arm64 (Go 1.26.3); supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-004",
@@ -16212,8 +16227,8 @@
     "refactor": "share connection/configuration mechanics without inventing an ORM-shaped domain model or leaking database handles upward",
     "refs": "[Database materialization](#26-postgresql-database-and-model-materialization), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestPGXAdapterQualification` PASS; `TestTodo_LIB_004_Integration` FAIL: 25 exported signatures in internal/data/\\* adapters, internal/intent/app/pgstore and cmd/hcmnext expose pgx.Tx/Rows/Conn; internal/ledger port imports pgx (ARCH-GO-012). Fix plan: port-level transaction abstraction after the in-flight data lanes finish; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestPGXAdapterQualification` and `TestTodo_LIB_004_Integration` now PASS (`pgx: 0 import-boundary violations, 8 owning packages scanned, 0 leaked-type violations`): pgx-free `internal/data/dbport` port (Row/Rows/Execer/Querier/Conn/Tx/Beginner) with the single `internal/data/pgxadapter` adapter; every data adapter, pgstore, the observe adapter, cmd composition roots and the test harnesses converted; pgx allowed roots narrowed to internal/data, internal/ledger, migrations, internal/platform/bootstrap, cmd/hcmnext, cmd/migrate; all Postgres suites green; supersedes the partial line above; `go test -count=1 ./tools/policy/libfirewall/...` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-005",
@@ -16317,8 +16332,8 @@
     "refactor": "HCM Next owns compatibility, fencing and evidence semantics; Goose supplies ordering/execution mechanics only",
     "refs": "[Database migration framework](specs/platform-foundation-gap-closure.md), [database materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestGooseBackendQualification` PASS; `TestTodo_LIB_008_Integration` FAIL: goose imported by internal/data/pgtest (test support) outside [migrations, cmd]; disposition: widen to internal/data/pgtest at integration; `go test -count=1 ./.../...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestGooseBackendQualification`, `TestTodo_LIB_008_Golden`, `TestTodo_LIB_008_Race`, `TestTodo_LIB_008_Integration`, `TestTodo_LIB_008_Fault`, `TestTodo_LIB_008_Conformance` in `tools/policy/libfirewall` (Goose is confined to `migrations`, `cmd`, `internal/data/pgtest` and `internal/data/schema`; unrelated data/domain imports reject; hand-authored Go migrations require explicit reviewed idempotency/recovery evidence; concurrent manifest reads are deterministic); `go test -count=1 ./tools/policy/libfirewall -run '^(TestGooseBackendQualification|TestTodo_LIB_008_)'` PASS on windows/arm64 (Go 1.26.3); `-race` execution remains on the supported Linux CI builder; supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-009",
@@ -16344,7 +16359,8 @@
     "refactor": "cross-system fixtures use owned harness interfaces so a CI-native environment backend can replace Testcontainers",
     "refs": "[Environment governance](plan.md#111-environment-and-change-governance), [test placement](#2a-modular-go-monolith-and-semantic-package-architecture)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestTestcontainersQualification`, `TestTodo_LIB_009_Property`, `TestTodo_LIB_009_Golden`, `TestTodo_LIB_009_Race`, `TestTodo_LIB_009_Integration`, and `TestTodo_LIB_009_Conformance` in `tools/quality/testcontainerskit` plus `definitions/architecture/testcontainers-go-qualification.yaml` implement a side-effect-free pre-admission gate and prove zero Testcontainers dependency in the release graph. The decision remains `REJECT`: the module is absent and Docker is unavailable, so the required digest-pinned PostgreSQL/S3/SMTP/provider-fake execution evidence does not exist and this TODO remains open. `go test -count=1 ./tools/quality/testcontainerskit` and `go vet ./tools/quality/testcontainerskit` PASS on windows/arm64 (Go 1.26.3); `-race` requires supported Linux CI; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-010",
@@ -16449,7 +16465,8 @@
     "refactor": "policy prohibits semantic capture, not evidence-based use of a replaceable mechanic in a later phase",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [Phase 1 scope](execution-plan.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestProhibitedFrameworkPolicy`, `TestTodo_LIB_013_Property`, `TestTodo_LIB_013_Golden`, `TestTodo_LIB_013_Integration`, `TestTodo_LIB_013_Conformance`, and `TestTodo_LIB_013_Mutation` in `tools/policy/prohibitedframework` over `definitions/architecture/prohibited-frameworks.yaml`; exact module-family matching rejects ORM/workflow-engine/customer-rule-runtime semantic capture, mandatory Phase 1 brokers, production JavaScript/Lua/Python/Starlark, provider SDKs outside narrow replaceable adapters, and provider types exposed from semantic contracts. The real package/runtime tree has zero LIB-013 violations. Exact tests, `go test -count=1 ./tools/policy/prohibitedframework`, and `go vet ./tools/policy/prohibitedframework` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-014",
@@ -16542,7 +16559,8 @@
     "refactor": "expose owned generators and invariants so the backend can be removed without changing test meaning",
     "refs": "[edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [Rapid](https://github.com/flyingmutant/rapid), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "decision `REJECT` in `definitions/architecture/rapid-qualification.yaml`; `TestRapidQualificationShrinksOwnedStateMachineFailure`, `TestTodo_LIB_016_Property`, `TestTodo_LIB_016_Golden`, `FuzzTodo_LIB_016`, `TestTodo_LIB_016_Conformance` in `tools/quality/rapidkit` prove deterministic standard-library generation/shrinking for balance underflow, illegal workflow transition and temporal overlap, pin regression seeds, and verify `pgregory.net/rapid` is absent from `go.mod`, `go.sum` and all imports. `go test -count=1 ./tools/quality/rapidkit`, `go test -fuzz=FuzzTodo_LIB_016 -fuzztime=2s ./tools/quality/rapidkit`, and `go vet ./tools/quality/rapidkit` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-017",
@@ -16568,7 +16586,8 @@
     "refactor": "generate only repetitive adapter mechanics; correctness-bearing SQL and unit-of-work composition remain explicit and human-reviewable",
     "refs": "[edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [sqlc](https://github.com/sqlc-dev/sqlc), [PostgreSQL materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "decision `REJECT` in `definitions/architecture/sqlc-qualification.yaml` because no pinned offline sqlc binary/configuration pair exists; `TestSQLCQualificationPreservesOwnedRepositoryAndTransactionBoundaries`, `TestTodo_LIB_017_Golden`, `TestTodo_LIB_017_Integration`, `TestTodo_LIB_017_Conformance`, `TestTodo_LIB_017_Mutation` in `tools/quality/sqlckit` prove the authored-SQL/standard-library alternative is byte-stable, preserves temporal predicates, locks and explicit commit/rollback, rejects schema/query drift, returns typed rows and leaks no sqlc/pgx type through an owned port. `go test -count=1 ./tools/quality/sqlckit` and `go vet ./tools/quality/sqlckit` PASS on windows/arm64 (Go 1.26.3); production/runtime module graph unchanged; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-018",
@@ -16622,7 +16641,8 @@
     "refactor": "SchemaFlux owns definition compilation and HCM semantics; Buf/Protovalidate supply only declared Protobuf mechanics",
     "refs": "[Buf lint rules](https://buf.build/docs/lint/rules/), [Protovalidate Any rules](https://buf.build/docs/reference/protovalidate/rules/any_rules/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestBufProtovalidateQualificationCannotBecomeBusinessAuthority`, `TestTodo_LIB_019_Property`, `TestTodo_LIB_019_Golden`, `FuzzTodo_LIB_019`, `TestTodo_LIB_019_Security`, and `TestTodo_LIB_019_Conformance` in `tools/quality/bufprotovalidatekit` plus `definitions/architecture/buf-protovalidate-qualification.yaml`; Buf is pinned/adopted as developer-only while absent Protovalidate is rejected behind an owned descriptor/standard-library fallback that fails closed on business/AuthZ/legal/eligibility/mutation/CEL/unregistered-Any scope. Focused tests, `go vet`, a three-second fuzz run (177,894 executions), and live `buf lint schema/proto` PASS, but no Protovalidate module, annotations, or interceptor evidence exists, so this TODO remains open; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-020",
@@ -16648,7 +16668,8 @@
     "refactor": "centralize Unicode mechanics in kernel/I18N adapters; domains select owned field policy rather than calling `x/text` directly",
     "refs": "[Go normalization](https://go.dev/blog/normalization), [Unicode UTS #39](https://www.unicode.org/reports/tr39/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "decision `ADOPT` for `golang.org/x/text v0.41.0` in `definitions/architecture/xtext-qualification.yaml`; `TestXTextQualificationPinsDataAndPreservesOwnedFieldSemantics`, `TestTodo_LIB_020_Property`, `TestTodo_LIB_020_Golden`, `FuzzTodo_LIB_020`, `TestTodo_LIB_020_Security`, `TestTodo_LIB_020_Conformance` in `tools/quality/xtextkit` prove deterministic normalization, original/normalized/search preservation, restricted locale profiles, confusable review without auto-merge, update impact/reindex evidence, three approved import roots and zero exported x/text leakage. `go test -count=1 ./tools/quality/xtextkit`, `go test -fuzz=FuzzTodo_LIB_020 -fuzztime=3s ./tools/quality/xtextkit` (193,070 executions), and `go vet ./tools/quality/xtextkit` PASS on windows/arm64 (Go 1.26.3); production/runtime module graph unchanged; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "LOCATION-001",
@@ -17655,7 +17676,7 @@
     "refs": "[Provenance contract](specs/provenance-graph-and-lineage.md), [epistemic integrity](plan.md#513-preserve-epistemic-integrity)",
     "retired": false,
     "done": true,
-    "evidence": "`TestMaterialValueRequiresLineage`, `_Property`, `_Golden`, `_Security`, `FuzzTodo_MODEL_020` (provenance graph edges; `RequireLineage`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestMaterialValueRequiresLineage`, `TestTodo_MODEL_020_Property`, `TestTodo_MODEL_020_Golden`, `TestTodo_MODEL_020_Security`, `FuzzTodo_MODEL_020` (provenance graph edges; `RequireLineage`) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-021",
@@ -18648,7 +18669,8 @@
     "refactor": "generate release, endpoint, deployment and gate views from the same manifest identities",
     "refs": "[two releases](next-steps.md#two-releases-never-one-blended-phase-1), [execution plan](execution-plan.md)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "P1A-depth scaffold done: signed manifest `definitions/planning/gates/p1a-manifest.yaml` (eight intents, ten BOOTSTRAP capabilities, four commands, fourteen migrations with checksums, four qualification decisions, per-todo evidence; digest sha256:625e88ce…) plus `p1b-template.yaml`; `TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete`, `TestTamperedP1AManifestFailsSignatureVerification` in `tools/planning/gateevidence`; `go test -count=1 ./tools/planning/gateevidence/...` PASS on windows/arm64 (Go 1.26.3). Cannot close: its Depends (PHASE-001, SELECT-001/002, CUSTOMER-001, TOPOLOGY-001, COMMERCIAL-001) are open business selections; branch plan-revision-2026-09-02"
   },
   {
     "id": "NEXT-003",
@@ -18690,7 +18712,8 @@
     "refactor": "`WEDGE-014` consumes only this evidence receipt; phase membership is data, not numeric todo ranges",
     "refs": "[Gate A milestone](next-steps.md#m4--gate-a-decision), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "Compiler done: `TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence`, `TestP1AEvidenceReportArtifactsAreCurrent` in `tools/planning/gateevidence` (OK/MISSING/STALE/OUT_OF_MANIFEST/EFFECTFUL resolution, `-live` reruns, deterministic `p1a-evidence-report.{md,json}`; the checked-in manifest compiles GATE_CLEAR); `go test -count=1 ./tools/planning/gateevidence/...` PASS on windows/arm64 (Go 1.26.3). Cannot close: NEXT-008 and WEDGE-001..013 are open; branch plan-revision-2026-09-02"
   },
   {
     "id": "NEXT-004",
@@ -18727,7 +18750,7 @@
     "refs": "[physical spine](next-steps.md#m2--production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture)",
     "retired": false,
     "done": true,
-    "evidence": "`TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` (8 subtests) in `test/bootstrap`: migrates from zero, serves the registry on gRPC and the connect edge, one create writes ledger+projection+outbox in one transaction, failed append leaves no partial chronology, simulate identical on both transports, restart returns the same typed intent, replayed idempotency key yields one intent, worker killed mid-batch loses nothing and never double-applies, reconciler restores the projection; composition in `internal/intent/app` (`NewCell`) with the Postgres store adapter `internal/intent/app/pgstore`; `cmd/hcmnext serve`; `go test -count=1 ./test/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); supersedes the partial line above; branch plan-revision-2026-09-02"
+    "evidence": "`TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` (8 subtests) in `test/bootstrap`: migrates from zero, serves the registry on gRPC and the connect edge, one create writes ledger+projection+outbox in one transaction, failed append leaves no partial chronology, simulate identical on both transports, restart returns the same typed intent, replayed idempotency key yields one intent, worker killed mid-batch loses nothing and never double-applies, reconciler restores the projection. `TestTodo_NEXT_004_Integration` in `test/serve` additionally builds and launches the real `cmd/hcmnext` process against an isolated PostgreSQL schema, waits on its authenticated live Connect edge, and proves idempotent Create/Get/Simulate identity, stable request/proposal digests, zero-effect receipt, and listener cleanup; `go test -count=1 ./cmd/migrate ./internal/data/seed` and `go test -count=1 ./test/serve -run '^TestTodo_NEXT_004_Integration$'` PASS on windows/arm64 (Go 1.26.3); supersedes the partial line above; branch plan-revision-2026-09-02"
   },
   {
     "id": "NEXT-005",
@@ -18956,7 +18979,7 @@
     "refs": "[structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_OBS_002`, `_Race`, `_Integration`, `_Security`, `TestCollectorPipelineConfigParsesWithReceiversProcessorsExporters`, `TestCollectorPipelineConfigRedactionCoversEveryProhibitedClassKey` in `internal/platform/telemetry/otel` (redacting tracer/span decorator routing every attribute through the frozen policy evaluator, exactly the five catalog instruments registered, correlation/request/evidence/principal ids propagated from the logging context, stdout/OTLP-HTTP/test exporters, bounded shutdown report; Collector pipeline `definitions/telemetry/collector/otel-collector.yaml` with a redaction processor covering every PROHIBITED class); transport interceptors are the follow-up; `go test -count=1 ./internal/platform/telemetry/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_OBS_002`, `_Race`, `_Integration`, `_Security`, `TestCollectorPipelineConfigParsesWithReceiversProcessorsExporters`, `TestCollectorPipelineConfigRedactionCoversEveryProhibitedClassKey` in `internal/platform/telemetry/otel` (redacting tracer/span decorator routing every attribute through the frozen policy evaluator, exactly the five catalog instruments registered, correlation/request/evidence/principal ids propagated from the logging context, stdout/OTLP-HTTP/test exporters, bounded shutdown report; Collector pipeline `definitions/telemetry/collector/otel-collector.yaml` with a redaction processor covering every PROHIBITED class); `TestTodo_OBS_002_TransportInterceptorsEmitRedactedSpansOnBothTransports`, `TestTodo_OBS_002_TransportInterceptorsPropagateDeadline`, `TestTodo_OBS_002_TransportInterceptorsSetErrorSpanStatus` in `internal/transport/otelmw` (gRPC unary and Connect interceptors run after trusted admission, derive only verified invocation context, preserve deadlines and map owned outcomes); `TestTodo_OBS_002_ServeTelemetryProviderOwnsAPIResource` in `cmd/hcmnext` (bounded policy-enforced provider, gRPC/Connect cell wiring and post-listener graceful flush that cannot change the business shutdown result); `go test -count=1 ./internal/platform/telemetry/... ./internal/transport/otelmw/... ./cmd/hcmnext ./internal/intent/app` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "OBS-003",
@@ -19881,7 +19904,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Responsibilities](specs/platform-responsibility-boundaries.md), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OPS_007`, `TestTodo_OPS_007_Integration`, `TestTodo_OPS_007_Recovery` in `tools/planning/operations` over `definitions/operations/service-ownership.yaml` and `service-dependencies.yaml` (service/workflow/connector/store/provider roles require primary+backup ownership, tier, SLO, escalation, fallback, version, evidence, verification and expiry; logical dependencies require scoped identity/network/protocol/schema/timeout/staleness/fallback ownership; expired or incomplete records return structured `OPS_007_REJECTED` with zero effects); `go test -count=1 ./tools/planning/operations/...` and `go vet ./tools/planning/operations/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "OPS-008",
@@ -19951,7 +19975,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Operations models](data/models/operations-production.md), [SLOs](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_OPS_010`, `TestTodo_OPS_010_Recovery` in `tools/planning/operations` over `definitions/operations/operating-evidence.yaml`; deterministic clocked validation requires OWNERSHIP/RUNBOOK/DEPENDENCY/RESTORE/DRILL/VENDOR/CONTROL coverage, classifies `CURRENT|DUE|EXPIRED`, returns structured `OPS_010_REJECTED` field/state/version/gate diagnostics with zero effects, and admits only complete active signed compensating-control waivers. `go test -count=1 ./tools/planning/operations` and `go vet ./tools/planning/operations` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "ORG-001",
@@ -26714,7 +26739,8 @@
     "refactor": "CLI and GWC/HTTP use the same API contracts and authorization decisions",
     "refs": "[HRIS Admin DataOps](specs/hris-admin-dataops.md), [platform responsibilities](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SVC_011`, `TestTodo_SVC_011_Golden`, `TestTodo_SVC_011_Security`, `TestTodo_SVC_011_Mutation` in `internal/operations/admin` (pure capability package: `OperatorRole`, `RequireOperator` as the distinct trust policy, section and field parsing, operator authorizations; zero grpc or protobuf imports) and `TestTodo_SVC_011_Integration` in `internal/transport/admin` (`hcmnext.admin.v1.AdminService` from `schema/proto/hcmnext/admin/v1/admin_service.proto`, five read-only RPCs, no mutating method exists; `Register` hosts it on the shared `grpcserver` interceptor chain and is wired by `internal/transport/cell.NewGRPCServer`, so the operator surface shares generated contracts, interceptors, redaction and evidence ids with the ordinary service); the thin CLI lives as the library `internal/transport/admin/hcmctl` (`Main(args, stdout, stderr, Dialer)`, generated client only, JIT token minting, bearer redaction, evidence line per call) because `definitions/architecture/repository-layout.yaml` and `process-roles.yaml` still forbid a `cmd/admin` before P1B; `go test -count=1 ./internal/operations/... ./internal/transport/... ./test/bootstrap/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SVC-012",
@@ -27309,7 +27335,8 @@
     "refactor": "apply one policy to domain, event, file and connector contracts where applicable",
     "refs": "[Schema/data contracts](specs/platform-foundation-gap-closure.md), [capability lifecycle](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestContractCompatibility`, `TestTodo_TOOL_006_Golden`, `TestTodo_TOOL_006_Security`, `TestTodo_TOOL_006_Conformance` in `tools/gen/compatibility`; offline descriptor-set policy reused across domain/event/file/connector contracts rejects field-number reuse/renumbering, removed or newly required semantics, incompatible oneof/type/cardinality/presence changes, malformed descriptors, identity/version regression and material digest changes without a newer version, while emitting deterministic forward/backward classifications. `go test -count=1 ./tools/gen/compatibility`, `go vet ./tools/gen/compatibility`, and `go test -count=1 ./tools/gen/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-007",
@@ -27500,8 +27527,8 @@
     "refactor": "preserve failed environments only through an explicit diagnostic policy",
     "refs": "[Environment governance](plan.md#111-environment-and-change-governance), [tenant sandbox boundary](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false,
-    "evidence": "CI half done: job `go-core-ephemeral-pg` in .github/workflows/tests.yml runs the pgtest suite on an ephemeral embedded Postgres with `HCMNEXT_TEST_PG_CACHE` cached; the in-repo `TestEnvironmentIsolation` RED/GREEN test is still to be written; `go test -count=1 ./.../...`; result FAIL until the named gap closes; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestEnvironmentIsolation`, `TestTodo_TOOL_014_Golden`, `TestTodo_TOOL_014_Race`, `TestTodo_TOOL_014_Integration`, `TestTodo_TOOL_014_Security` across `internal/data/pgtest` and `tools/quality/ephemeralenv`; PostgreSQL uses unique per-test schemas with external-server override, session nonleakage and exact teardown, while the standard-library harness independently claims private filesystem/object, in-memory queue and fake-provider namespaces, rejects shared/path-shaped names and object-key escape, records cleanup receipts and deletes only its owned run root. `go test -count=1 ./internal/data/pgtest ./tools/quality/ephemeralenv`, `go test -count=1 ./tools/quality/...`, and `go vet ./tools/quality/ephemeralenv` PASS on windows/arm64 (Go 1.26.3); `-race` remains on supported Linux CI; supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-015",
@@ -28969,7 +28996,8 @@
     "refactor": "legal resolution remains in `LegalContext`",
     "refs": "[Locale semantics](data/models/wire-contract-primitives.md), [globalization](plan.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_UX_004`, `TestTodo_UX_004_Golden`, `TestTodo_UX_004_Integration`, `TestTodo_UX_004_Fault`, `TestTodo_UX_004_Security`, `TestTodo_UX_004_Browser` and `FuzzTodo_UX_004` in `internal/humanwork/workspace` and `test/workspace`; strict `en-US`/`de-DE` date, currency and number round trips make unsupported-locale fallback and missing translations visible, canonicalize values before intent comparison, and keep `LocaleContext` limited to requested/resolved/fallback locale data with no legal-jurisdiction authority. `go test -count=1 ./internal/humanwork/workspace ./test/workspace`, targeted browser/integration runs, a two-second fuzz run and `go vet` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02"
   },
   {
     "id": "UX-005",
@@ -29103,7 +29131,7 @@
     "refs": "[GWC qualification fixture](specs/go-only-technology-constitution.md#gwc--gowebcomponents-preferred-ui), [experience slice](execution-plan.md#experience-and-branding-slice)",
     "retired": false,
     "done": true,
-    "evidence": "`TestWorkspaceQualificationFixture`, `TestTodo_UX_QUAL_001_{Browser,Security,Conformance}` in `tools/uxqual/qual` (keyboard order, landmarks/labels/live region, WCAG 2.2 AA contrast from shared tokens, 320px reflow, masked-field never rendered, native and `GOOS=js GOARCH=wasm` builds). Decision: **GoWebComponents v5.0.1 selected**; the Go html/template SSR fallback stays green under the same fixture; record `definitions/ux/workspace-renderer-decision.yaml` (review-by 2026-10-03). Pending: manual NVDA/VoiceOver pass and the Playwright spec run (`tools/uxqual/browser`, Chromium install blocked by a lockfile); branch plan-revision-2026-09-02; `go test -count=1 ./tools/uxqual/qual/...` PASS on windows/arm64 (Go 1.26.3)"
+    "evidence": "`TestWorkspaceQualificationFixture`, `TestTodo_UX_QUAL_001_{Browser,Security,Conformance}` in `tools/uxqual/qual` (keyboard order, landmarks/labels/live region, WCAG 2.2 AA contrast from shared tokens, 320px reflow, masked-field never rendered, native and `GOOS=js GOARCH=wasm` builds). Decision: **GoWebComponents v5.0.1 selected**; the Go html/template SSR fallback stays green under the same fixture; record `definitions/ux/workspace-renderer-decision.yaml` (review-by 2026-10-03). Playwright pass done 2026-09-03 (Playwright 1.60.0, Chromium 148.0.7778.96, `npm run test:uxqual-browser` 10/10: both renderers pass all five criteria; recorded in the decision record). Pending: manual NVDA/VoiceOver pass; branch plan-revision-2026-09-02; `go test -count=1 ./tools/uxqual/qual/...` PASS on windows/arm64 (Go 1.26.3)"
   },
   {
     "id": "UXFLOW-001",
@@ -29958,7 +29986,8 @@
     "refactor": "active version is immutable; rollback republishes a known version through governance",
     "refs": "[Workflow runtime publication](specs/workflow-runtime.md), [environment governance](plan.md#111-environment-and-change-governance)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_COMP_006` (`Publish` refuses a plan whose digest does not match recompiling its definition, a definition that fails compilation, and missing caller-supplied publication time or semantic version; `Activate` refuses unauthorized, changed-after-review, failed-test, unresolved-dependency, retired and competing-active cases with typed codes; `Resolve` never falls back to latest or active), `TestTodo_WF_COMP_006_Golden` (`testdata/promotion_version.json` and `promotion_version_activated.json` pinned from the promotion reference), `TestTodo_WF_COMP_006_Mutation` (activation, quarantine and supersession never change the record digest, only `Status`; returned values are deep copies), `TestTodo_WF_COMP_006_Security` in `internal/workflow/version` (`CompiledVersion` with definition, plan and record digests and pinned compiler identity; `Store` port with an in-memory `Registry`, Postgres backing deferred to the runtime lane); `go test -count=1 ./internal/workflow/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-DISC-001",
@@ -30350,7 +30379,8 @@
     "refactor": "business evidence remains in ledger; runtime store answers current execution state",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [runtime entities](data/models/kernel-governance-and-evidence.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_001` (frontier, input ref, variables, instance version, pinned context and attempt read back on a fresh connection after commit; an overtaken writer gets `CONFLICT_STALE_INSTANCE`), `TestTodo_WF_RUN_001_Race` (six concurrent writers on six connections, exactly one commit and one node-execution row), `TestTodo_WF_RUN_001_Fault` (illegal instance and node transitions refused without consuming a version; rolled-back transaction persists nothing), `TestTodo_WF_RUN_001_Security` (cross-tenant read is `INSTANCE_NOT_FOUND` under `hcmnext_app`, unscoped transaction sees nothing, cross-tenant insert refused by RLS), `TestTodo_WF_RUN_001_Mutation` (derived node-execution id collides on re-record, hand-set id refused, Go status tables and migration CHECK sets asserted identical) in `internal/workflow/runtime`; migration `00016_workflow_runtime.sql` adds `workflow_instance` and `workflow_node_execution` (registered in `definitions/storage/storage-disposition.yaml`, no lease/timer/retry columns per the WF-RUN-000 gate); port is Create/Record/Load only, start and advance follow in WF-RUN-023/025; `go test -count=1 ./internal/workflow/... ./internal/data/pgtest/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-002",
@@ -30619,7 +30649,8 @@
     "refactor": "same compiled plan specializes by execution mode",
     "refs": "[Workflow modes](specs/workflow-runtime.md), [exploration contract](workflows/_shared/exploration-contract.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_012` (capability, decision and end nodes execute with every `evidence.EffectCounters` field zero, the zero-effect receipt validates, the escalated approval is stated as `WOULD_AWAIT` rather than dropped), `TestTodo_WF_RUN_012_Race` (eight concurrent runs produce the serial digest byte for byte; concurrent `Admit` never mutates the shared plan), `TestTodo_WF_RUN_012_Fault` (a write-class plan is refused with `SIMULATION_SIDE_EFFECT_FORBIDDEN` at `Admit` and `Run`, the mutating handler is never reached, no receipt is minted), `TestTodo_WF_RUN_012_Mutation` (flipping `ZeroEffect`, stripping SIMULATE from a node, tampering the plan or editing a minted receipt each fail) in `internal/workflow/simulate`; `CodeWriteEffectInSimulate` is now an alias of the contract code; `go test -count=1 ./internal/workflow/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-013",
@@ -30800,7 +30831,8 @@
     "refactor": "product screens consume operational projections, not reconstruct every view from runtime tables",
     "refs": "[Execution inspector](specs/workflow-runtime.md), [HRIS DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_019` and `TestTodo_WF_RUN_019_Golden` (`testdata/wfrun019_operator_view.json` pins the full definition, instance, node, governance, transaction, connector, observation and trace traversal with current node, attempt, retry-policy, proposal, baseline, policy, effect and repair refs), `TestTodo_WF_RUN_019_Race` (eight concurrent projections byte-identical, inputs unmutated), `TestTodo_WF_RUN_019_Integration` (round trip through PostgreSQL arrays and jsonb before projecting), `TestTodo_WF_RUN_019_Fault` (non-disclosable instance returns `ErrNotDisclosable` without leaking ids, denied protected fields render as `REDACTED` refs absent from the rendered bytes, a denied stage is named not dropped, a frontier node without an execution is reported in `Completeness.Gaps`) in `internal/workflow/inspect`; `go test -count=1 ./internal/workflow/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-020",
@@ -30939,7 +30971,8 @@
     "refactor": "step handlers return typed outcomes only and never enqueue their own successors",
     "refs": "[Workflow graph](specs/workflow-runtime.md), [step semantics](workflows/_engine/step-types.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_024` (exact successors and intents, full promotion walk to `SIMULATION_APPROVAL_REQUIRED` with five terminal dimensions, excluded branch skipped without intent, declared default marked `via_default`, JOIN ALL waits then activates, QUORUM on first arrival, skipped branch blocks a JOIN, simulator parity against `simulate.Run`'s trace), `TestTodo_WF_RUN_024_Property` (64 random outcome sequences: digest-identical repeats, input snapshot unchanged, every successor traces to a declared route), `TestTodo_WF_RUN_024_Golden` (`testdata/promotion_advancement.json`, six transition and state digests pinned), `TestTodo_WF_RUN_024_Race`, `TestTodo_WF_RUN_024_Fault` (fifteen typed refusals incl. no-matching-route-no-default, no failure route, impossible quorum, terminal with a remaining frontier named), `TestTodo_WF_RUN_024_Mutation` in `internal/workflow/frontier` (`Advance` is a pure value-only transition returning successors, join counters, terminal dimensions and scheduling intents READY / WORK_ITEM_REQUIRED / SIGNAL_SUBSCRIPTION_REQUIRED / TIMER_REQUIRED / COMPLETE as data; JOIN strategy declared at `Seed`, never inferred; no fan-out until a real PARALLEL exists); `go test -count=1 ./internal/workflow/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-025",

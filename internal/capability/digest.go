@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	capabilitiesv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 )
 
 // A suitable canonical profile exists for a Definition's digest:
@@ -121,7 +121,8 @@ func toProto(d Definition) *capabilitiesv1.CapabilityDefinition {
 // Digest computes the canonical content digest of a definition's core
 // manifest fields. It is deterministic - the same definition always yields
 // the same digest bytes - and two definitions differing in any core field
-// never collide (internal/kernel/digest, internal/kernel/canonical).
+// never collide (internal/engines/wire/digest,
+// internal/engines/wire/canonical).
 func Digest(d Definition) (string, error) {
 	reg, err := sharedDigestRegistry()
 	if err != nil {

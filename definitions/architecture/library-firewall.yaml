@@ -23,15 +23,15 @@ module: github.com/monstercameron/hcm-next
 # dependency-roles.yaml's google.golang.org/protobuf and .../grpc rows list
 # allowed_import_roots: [gen, internal/transport]. The LIB-003 assignment
 # additionally grants internal/intent/protomap as the one authored
-# Protobuf<->domain-type translation seam (it exists precisely to keep every
-# other business package out of direct Protobuf contact), so this list is
-# strictly wider than, and does not remove any entry from, the
-# dependency-roles.yaml row. TestGRPCBackendQualification checks against
-# this list, not the narrower dependency-roles.yaml one, because it is
-# qualifying the specific LIB-003 boundary the orchestrator defined; the
-# broader LIB-002 firewall (TestThirdPartySemanticFirewall) separately
-# checks the real tree against dependency-roles.yaml's own row and reports
-# any mismatch as a manifest-completeness finding.
+# Protobuf<->domain-type translation seam. Three other roots are specific
+# wire/codegen mechanics rather than business packages: tools/gen resolves
+# descriptors to emit clients; internal/engines/wire is the generic Protobuf
+# canonical-byte engine and schema-reflection registry. It decides no HCM
+# policy and exposes no Protobuf type through a capability/domain port. The
+# narrower roots are intentional: internal/kernel/values, other tools, and
+# all data/application packages must reach the runtime through an owned
+# adapter instead. The same roots are recorded on the protobuf dependency-role
+# row so LIB-002 and LIB-003 agree.
 protobuf_grpc:
   modules:
     - google.golang.org/protobuf
@@ -42,6 +42,9 @@ protobuf_grpc:
     - gen
     - internal/transport
     - internal/intent/protomap
+    - internal/engines/wire
+    - tools/gen
+    - tools/quality/bufprotovalidatekit
     - cmd
 
 # LIB-004: pgx/v5 confined behind the PostgreSQL adapter boundary. The

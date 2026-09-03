@@ -156,7 +156,7 @@ type Record struct {
 	Definition Definition
 	Status     Status
 	// Digest is the canonical content digest of the definition's core
-	// manifest fields (Digest computes it via internal/kernel/digest, whose
+	// manifest fields (Digest computes it via internal/engines/wire/digest, whose
 	// hcmnext.capabilities.v1.CapabilityDefinition profile is exactly that
 	// core - see digest.go).
 	Digest string

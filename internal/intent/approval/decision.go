@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/humanwork"
 	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 

@@ -3,7 +3,7 @@ package intent
 import (
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/humanwork"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/approval"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 )
 
 // TestTodo_APPROVAL_002 is the PRIMARY test for binding an ApprovalDecision to

@@ -6,13 +6,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/ledger"
 )
 
 // TestKernelDigesterComputesAndVerifies proves the item-3 wiring: appending
 // through a ledger.KernelDigester produces a digest computed by
-// internal/kernel/digest under LedgerEventProfileV1, and VerifyEvent
+// internal/engines/wire/digest under LedgerEventProfileV1, and VerifyEvent
 // recomputes that digest from a stored event's schema reference and payload
 // rather than trusting the recorded value - so a tampered payload or a
 // tampered digest is caught, and an untouched replay verifies clean.
@@ -83,7 +83,7 @@ func TestKernelDigesterComputesAndVerifies(t *testing.T) {
 // TestLedgerEventProfileIsVersionedAndImmutable proves that
 // LedgerEventProfileV1 registers exactly once: a second registration attempt
 // under the same registry fails, matching every other canonicalization
-// profile in the platform (internal/kernel/digest: "Published profile
+// profile in the platform (internal/engines/wire/digest: "Published profile
 // versions are immutable").
 func TestLedgerEventProfileIsVersionedAndImmutable(t *testing.T) {
 	registry, err := ledger.NewLedgerEventDigestRegistry()

@@ -6,8 +6,8 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/domains/evidence"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 

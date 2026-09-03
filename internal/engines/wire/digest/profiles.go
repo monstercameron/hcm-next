@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
 )
 
 // The separately versioned canonicalization profiles named by the canonical

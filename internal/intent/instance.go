@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/text/unicode/norm"
 
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 

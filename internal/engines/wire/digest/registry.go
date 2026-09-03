@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
 )
 
 // AlgorithmSHA256 is the initial eligible digest algorithm.

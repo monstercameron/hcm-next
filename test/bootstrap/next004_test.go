@@ -14,11 +14,11 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
 	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
 	"github.com/monstercameron/hcm-next/migrations"
 )

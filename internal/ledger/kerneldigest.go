@@ -2,11 +2,12 @@ package ledger
 
 import (
 	"fmt"
+	"time"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/kernel/canonical"
-	"github.com/monstercameron/hcm-next/internal/kernel/digest"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 )
 
 // LedgerEventProfileV1 is the registered canonical profile for a ledger
@@ -15,7 +16,7 @@ import (
 // standing in for them). It projects
 // hcmnext.intents.v1.TypedPayload - the canonical-envelope-and-digest.md
 // envelope for "typed bytes plus their schema" - rather than inventing a new
-// message; digest.ProfileLedgerEvent is the profile id kernel/digest already
+// message; digest.ProfileLedgerEvent is the profile id the wire digest engine already
 // reserves for this purpose.
 func LedgerEventProfileV1() canonical.Profile {
 	return canonical.Profile{
@@ -41,7 +42,7 @@ func NewLedgerEventDigestRegistry() (*digest.Registry, error) {
 }
 
 // KernelDigester computes a ledger event's digest through
-// internal/kernel/digest under a registered, versioned canonicalization
+// internal/engines/wire/digest under a registered, versioned canonicalization
 // profile - the platform's one canonical digest authority - rather than
 // internal/data/ledger's built-in ad hoc SHA256Digester. It implements the
 // [Digester] port (whose method matches internal/data/ledger.Digester
@@ -117,10 +118,23 @@ func (d *KernelDigester) VerifyEvent(rec EventRecord) error {
 
 // NewAppender returns an internal/data/ledger.Appender wired to compute
 // digests through registry via KernelDigester, connecting
-// internal/kernel/digest to internal/data/ledger's existing WithDigester
+// internal/engines/wire/digest to internal/data/ledger's existing WithDigester
 // hook (internal/data/ledger/append.go).
 func NewAppender(registry *digest.Registry) Appender {
 	return datalogger.New(datalogger.WithDigester(NewKernelDigester(registry)))
+}
+
+// NewAppenderWithClock is NewAppender with the recording clock replaced.
+//
+// A cell that pins its own clock (a fixture, a replay, a deterministic
+// composition) must pin the ledger's recorded_at with the same reading:
+// otherwise the chronology it writes sits after the instant it believes it is
+// at, and every as-known-at read filters its own events out.
+func NewAppenderWithClock(registry *digest.Registry, now func() time.Time) Appender {
+	return datalogger.New(
+		datalogger.WithDigester(NewKernelDigester(registry)),
+		datalogger.WithClock(now),
+	)
 }
 
 // NewReader returns an internal/data/ledger.Reader as the Reader port.

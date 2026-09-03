@@ -45,10 +45,10 @@
 // Whoever next owns a free migration number should fold SchemaDDL into a
 // real migration unchanged; the DDL is written to apply cleanly as-is.
 //
-// # Computing the digest through internal/kernel/digest
+// # Computing the digest through internal/engines/wire/digest
 //
 // [Digester] mints the chain digest through a registered, versioned
-// canonicalization profile in internal/kernel/digest rather than an ad hoc
+// canonicalization profile in internal/engines/wire/digest rather than an ad hoc
 // hash, following the same pattern internal/ledger.KernelDigester already
 // established for the event digest itself: the two length-framed inputs
 // (the previous chain hash and the event's own digest) are carried as the
