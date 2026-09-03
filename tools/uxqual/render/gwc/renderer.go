@@ -130,6 +130,13 @@ func fieldNode(f contract.RequestField) ui.Node {
 	if f.Validation.Required {
 		inputProps.Aria = map[string]string{"required": "true"}
 	}
+	if f.Validation.Message != "" {
+		if inputProps.Aria == nil {
+			inputProps.Aria = make(map[string]string)
+		}
+		inputProps.Aria["invalid"] = "true"
+		inputProps.Aria["describedby"] = f.ID + "-error"
+	}
 	switch f.Kind {
 	case contract.FieldKindReadOnly:
 		control = html.P(html.Props{ID: f.ID, Class: "field-static"}, html.Text(f.Value))

@@ -26,10 +26,9 @@ func TestUX003IntegrationBothRenderers(t *testing.T) {
 	}
 	for name, doc := range map[string]string{"ssr": ssrDoc, "gwc": gwcDoc} {
 		for _, result := range wcag.Score(doc) {
-			// FORM-004 selects SSR for the validation-error route. GWC is the
-			// clean interactive projection and is documented not to manufacture
-			// aria-invalid/aria-describedby nodes for this fixture.
-			if name == "gwc" && (result.Name == "Error association (aria-describedby)" || result.Name == "Accessible authorization projection") {
+			// The GWC serializer may reorder HTML attributes, so its authorization
+			// projection is checked by value below instead of by serialized order.
+			if name == "gwc" && result.Name == "Accessible authorization projection" {
 				continue
 			}
 			if !result.Pass {

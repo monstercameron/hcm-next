@@ -21,10 +21,9 @@ summary: >-
   with one field's validation error populated
   (tools/uxqual/forms.FixtureWithValidationError), the Go SSR fallback
   (tools/uxqual/render/ssr) passes both; the GWC renderer
-  (tools/uxqual/render/gwc) fails both. Both renderers are frozen for this
-  lane (owned by another lane's finished UX-001/UX-QUAL-001 work), so this
-  is a documented, verified gap rather than a fix: SSR is FORM-004's
-  accessible route today.
+  (tools/uxqual/render/gwc) now passes error association but still fails
+  required-field semantics. The remaining gap is documented and verified:
+  SSR is FORM-004's accessible route today.
 
 method: >-
   tools/uxqual/forms.TestTodo_FORM_004 renders
@@ -36,7 +35,7 @@ method: >-
 
 gwc_known_gaps:
   required_field_semantics: true
-  error_association: true
+  error_association: false
 
 candidates:
   ssr:
@@ -51,16 +50,15 @@ candidates:
   gwc:
     package: github.com/monstercameron/hcm-next/tools/uxqual/render/gwc
     required_field_semantics: fail
-    error_association: fail
+    error_association: pass
     detail: >-
       tools/uxqual/render/gwc/renderer.go's fieldNode sets
-      `aria-required="true"` via html.Props.Aria but never sets the native
-      GoWebComponents v5 html.Props.Required bool field (which would emit
-      the native `required` attribute), and never sets aria-invalid or
-      aria-describedby on a field's control even when
-      Validation.Message is non-empty -- it only renders the visible
-      `<p id="<id>-error">` sibling. This lane's constraints freeze
-      tools/uxqual/render/gwc; it cannot be edited here.
+      `aria-required="true"` via html.Props.Aria and, when
+      Validation.Message is non-empty, also sets `aria-invalid="true"` and
+      `aria-describedby="<id>-error"` against the visible
+      `<p id="<id>-error">` sibling. It still does not set the native
+      GoWebComponents v5 html.Props.Required bool field, so it does not emit
+      the native `required` attribute required by CheckRequiredFieldSemantics.
 
 equivalent_route:
   kind: CAPABILITY_CALL
