@@ -9,6 +9,7 @@
 - `56c1c93` - Added transport cell/OTel middleware, admin gRPC + `hcmctl`, humanwork workitem/workspace handler, dev token minting, and CLI/projector/worker wiring.
 - `a862456` - Landed architecture qualifications, operation definitions, capability coverage/P1A manifests, generated admin/wire contracts, migrations, and planning/quality toolchains.
 - `7e9d649` - Synced docs and harnesses (README, state research + us-federal, admin proto, serve/workspace conformance harnesses, todos, layout docs).
+- `b42414a` - Repaired vet and test lanes: added workflow_continuation/advancement_receipt migrations, fixed stale replay head check, regenerated P1A evidence/golden, and scaffolded missing package unit tests.
 
 ## 2026-05-16
 
