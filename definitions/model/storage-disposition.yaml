@@ -21,6 +21,7 @@ migrationfiles:
   - 00019_idempotency_record.sql
   - 00020_workflow_advancement_receipt.sql
   - 00021_governance_authz_legal_evidence.sql
+  - 00022_work_item_decision.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

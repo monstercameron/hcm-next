@@ -522,11 +522,15 @@ func (r *Registry) Lookup(j Jurisdiction, date values.LocalDate) (*RulePack, err
 // a locality to its subdivision; this distinction is required for locality
 // overlay receipts.
 func (r *Registry) IsRegisteredExact(j Jurisdiction, date values.LocalDate) bool {
-	if r == nil || date.Validate() != nil { return false }
+	if r == nil || date.Validate() != nil {
+		return false
+	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	for k, pack := range r.packs {
-		if k.Jurisdiction == j && pack.Window.Contains(date) { return true }
+		if k.Jurisdiction == j && pack.Window.Contains(date) {
+			return true
+		}
 	}
 	return false
 }

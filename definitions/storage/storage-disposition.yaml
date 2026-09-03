@@ -34,7 +34,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00021_governance_authz_legal_evidence.sql
+source: migrations/00001_platform_control.sql .. migrations/00022_work_item_decision.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -679,6 +679,19 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: "WORK-001: append-only transition evidence for every work_item write (from/to status, actor, reason, evidence ref) appended in the same transaction; UNIQUE on (work_item, item_version) makes the evidence a schema property rather than a convention."
+
+  - table: work_item_decision
+    migration: 00022_work_item_decision.sql
+    owner_package: internal/humanwork/workitem
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WORK-010: the full typed approval decision or task submission recorded in the same transaction as the work item's completion, digest-verified against the item's immutable completed_output_digest; one row per completed item (PK (tenant_id, work_item_id)), append-only via forbid_mutation, SELECT/INSERT only."
 
   - table: ledger_hash_chain_link
     migration: 00014_ledger_hash_chain.sql

@@ -106,6 +106,14 @@ func TestTodo_DATA_001(t *testing.T) {
 			if !slices.Contains(tenantScopedTables, fk.child) {
 				continue
 			}
+			// A reference into a platform-control table (jurisdiction, schema
+			// releases, ...) carries no tenant by construction, so it cannot cross
+			// a tenant boundary; only references into tenant-scoped tables must
+			// join on tenant_id, or a child could point at a parent row in another
+			// tenant.
+			if !slices.Contains(tenantScopedTables, fk.parent) {
+				continue
+			}
 			if !slices.Contains(fk.childColumns, "tenant_id") {
 				t.Fatalf("foreign key %s from %s to %s uses columns %v; a tenant-scoped reference must carry tenant_id",
 					fk.name, fk.child, fk.parent, fk.childColumns)

@@ -92,8 +92,11 @@ CREATE TABLE IF NOT EXISTS delegation_grant (
     grant_id                uuid         NOT NULL,
     delegator_principal_id  uuid         NOT NULL,
     delegate_principal_id   uuid         NOT NULL,
-    delegator_tenant        tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
-    delegate_tenant         tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
+    -- CHECK below pins both to tenant_id, which carries the tenant foreign key,
+    -- so separate standalone references would be redundant and would leave a
+    -- tenant-scoped foreign key without tenant_id (DATA-001).
+    delegator_tenant        tenant_ref   NOT NULL,
+    delegate_tenant         tenant_ref   NOT NULL,
     scope                   jsonb        NOT NULL DEFAULT '{}'::jsonb,
     valid_from              timestamptz  NOT NULL DEFAULT now(),
     valid_to                timestamptz,

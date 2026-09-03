@@ -42,6 +42,7 @@ type Object struct {
 	Kind        Kind
 	Name        string
 	Source      string
+	Owner       string
 	Disposition Disposition
 	StorageRef  string
 }
@@ -86,7 +87,16 @@ func Check(objects []Object) Report {
 		if rows[i].Kind != rows[j].Kind {
 			return rows[i].Kind < rows[j].Kind
 		}
-		return rows[i].Name < rows[j].Name
+		if rows[i].Name != rows[j].Name {
+			return rows[i].Name < rows[j].Name
+		}
+		if rows[i].Owner != rows[j].Owner {
+			return rows[i].Owner < rows[j].Owner
+		}
+		if rows[i].Disposition != rows[j].Disposition {
+			return rows[i].Disposition < rows[j].Disposition
+		}
+		return rows[i].StorageRef < rows[j].StorageRef
 	})
 	for _, o := range rows {
 		r.Total++
@@ -96,16 +106,28 @@ func Check(objects []Object) Report {
 			source = "<unknown>"
 		}
 		r.ByFile[source]++
+		if !validKind(o.Kind) {
+			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "unknown model object kind"})
+			continue
+		}
+		if strings.TrimSpace(o.Name) == "" {
+			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "object has no canonical name"})
+			continue
+		}
+		if strings.TrimSpace(o.Owner) == "" {
+			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "object has no owner"})
+			continue
+		}
 		if o.Disposition != Database && o.Disposition != NonDatabase {
 			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "missing database or non-database disposition"})
 			continue
 		}
-		if o.Name == "" {
-			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "object has no canonical name"})
-			continue
-		}
-		if o.Disposition == Database && strings.TrimSpace(o.StorageRef) == "" {
-			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, "database disposition has no storage reference"})
+		if strings.TrimSpace(o.StorageRef) == "" {
+			detail := "non-database disposition has no schema target"
+			if o.Disposition == Database {
+				detail = "database disposition has no storage reference"
+			}
+			r.Gaps = append(r.Gaps, Gap{o.Kind, o.Name, source, detail})
 			continue
 		}
 		r.Verified++
@@ -113,6 +135,15 @@ func Check(objects []Object) Report {
 	}
 	r.Digest = digest(rows)
 	return r
+}
+
+func validKind(k Kind) bool {
+	switch k {
+	case Entity, Property, Relationship, State, Transition:
+		return true
+	default:
+		return false
+	}
 }
 
 func digest(rows []Object) string {
@@ -140,18 +171,18 @@ func FromManifests(reg *model.Registry, storage storagemanifest.DispositionManif
 		if row.Disposition != storagemanifest.DispositionMismatch {
 			d = Database
 		}
-		out = append(out, Object{Entity, e.Ref.String(), source, d, ref})
+		out = append(out, Object{Kind: Entity, Name: e.Ref.String(), Source: source, Owner: row.Owner, Disposition: d, StorageRef: ref})
 		for _, p := range reg.Properties() {
 			if p.Entity == e.Ref {
-				out = append(out, Object{Property, string(p.Ref), source, d, ref})
+				out = append(out, Object{Kind: Property, Name: string(p.Ref), Source: source, Owner: row.Owner, Disposition: d, StorageRef: ref})
 			}
 		}
 		if e.LifecycleAssignment != "" {
-			out = append(out, Object{State, e.Ref.String() + "/lifecycle", source, NonDatabase, "lifecycle:" + e.LifecycleAssignment})
+			out = append(out, Object{Kind: State, Name: e.Ref.String() + "/lifecycle", Source: source, Owner: e.Ref.String(), Disposition: NonDatabase, StorageRef: "lifecycle:" + e.LifecycleAssignment})
 		}
 	}
 	for _, rel := range reg.Relationships() {
-		out = append(out, Object{Relationship, rel.Ref.String(), source, NonDatabase, "registry"})
+		out = append(out, Object{Kind: Relationship, Name: rel.Ref.String(), Source: source, Owner: rel.SourceEntity.String(), Disposition: NonDatabase, StorageRef: "registry"})
 	}
 	return out
 }
