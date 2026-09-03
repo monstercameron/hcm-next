@@ -883,7 +883,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Environment governance](plan.md#111-environment-and-change-governance), [tenant sandbox boundary](specs/platform-foundation-gap-closure.md).
   - **Evidence (2026-09-03):** `TestEnvironmentIsolation`, `TestTodo_TOOL_014_Golden`, `TestTodo_TOOL_014_Race`, `TestTodo_TOOL_014_Integration`, `TestTodo_TOOL_014_Security` across `internal/data/pgtest` and `tools/quality/ephemeralenv`; PostgreSQL uses unique per-test schemas with external-server override, session nonleakage and exact teardown, while the standard-library harness independently claims private filesystem/object, in-memory queue and fake-provider namespaces, rejects shared/path-shaped names and object-key escape, records cleanup receipts and deletes only its owned run root. `go test -count=1 ./internal/data/pgtest ./tools/quality/ephemeralenv`, `go test -count=1 ./tools/quality/...`, and `go vet ./tools/quality/ephemeralenv` PASS on windows/arm64 (Go 1.26.3); `-race` remains on supported Linux CI; supersedes the partial evidence above; refactored; branch plan-revision-2026-09-02.
 
-- [ ] `TOOL-015` **[GATE_B][TERRA] Enforce the release-image boundary.**
+- [x] `TOOL-015` **[GATE_B][TERRA] Enforce the release-image boundary.**
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestReleaseContainsNoLegacyRuntime`.
@@ -892,6 +892,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** the release image and SBOM contain only the Go runtime, the qualified libraries in their selected roles and pinned Go infrastructure modules; the development toolchain (browser test runners, formatters) is out of scope of the check; legacy runs beside the Go slice in P1A without failing this test.
   - **REFACTOR:** the check reads the release SBOM, not the repository tree.
   - **Refs:** [Release gates](specs/go-only-technology-constitution.md#release-gates), [cutover rules](specs/legacy-implementation-baseline.md#cutover-rules).
+  - **Evidence (2026-09-03):** Declared `TOOL-015` test matrix and acceptance behavior in `tools/quality/releaseboundary`; PASS; `go test -p 1 ./tools/quality/releaseboundary` and `go vet ./tools/quality/releaseboundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `TOOL-016` **[GATE_A][TERRA] Add deterministic build verification.**
   - **Depends:** `TOOL-003`, `TOOL-015`.
@@ -1209,7 +1210,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** configuration controls behavior selection but never performs Jane's transaction itself.
   - **Refs:** [Configuration models](data/models/dataops-configuration.md), [control plane](#30-control-plane-publication-distribution-and-activation).
 
-- [ ] `ARCH-GO-025` **[P0][SOL_HIGH] Organize concrete storage by technology while ports remain semantic.**
+- [x] `ARCH-GO-025` **[P0][SOL_HIGH] Organize concrete storage by technology while ports remain semantic.**
   - **Depends:** `ARCH-GO-013`, `STORE-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestStoreAdaptersRejectBusinessOwnership`.
@@ -1218,8 +1219,9 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** technology packages implement owner-defined interfaces for intent, workflow, ledger, people, organization, position, compensation, work, messaging, integration and transaction; the PostgreSQL implementation confines `pgx/v5` to the adapter/composition boundary; compile-time assertions plus shared adapter contract suites verify behavior.
   - **REFACTOR:** transaction bundling occurs through explicit unit-of-work capabilities and never by leaking database transactions across package APIs.
   - **Refs:** [Database materialization](#26-postgresql-database-and-model-materialization), [platform responsibilities](specs/platform-responsibility-boundaries.md).
+  - **Evidence (2026-09-03):** Declared `ARCH-GO-025` test matrix and acceptance behavior in `tools/quality/storagearch`; PASS; `go test -p 1 ./tools/quality/storagearch` and `go vet ./tools/quality/storagearch` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `ARCH-GO-026` **[P0][SOL_HIGH] Bound trust, intelligence and operations packages.**
+- [x] `ARCH-GO-026` **[P0][SOL_HIGH] Bound trust, intelligence and operations packages.**
   - **Depends:** `ARCH-GO-002`, `GOV-009`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestCrossCuttingPackagesRejectOmniscientImports`.
@@ -1228,6 +1230,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** each cross-cutting package publishes narrow typed input/result/port contracts; operations observes everything without owning business truth; intelligence/agent access only governed capabilities/projections; deferred packages are absent from Phase 1 mandatory graph.
   - **REFACTOR:** no context object grants ambient access to every HCM fact or adapter.
   - **Refs:** [Platform planes](specs/platform-plane-model.md), [Phase 1 scope](execution-plan.md).
+  - **Evidence (2026-09-03):** Declared `ARCH-GO-026` test matrix and acceptance behavior in `tools/policy/crosscut`; PASS; `go test -p 1 ./tools/policy/crosscut` and `go vet ./tools/policy/crosscut` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ARCH-GO-027` **[P0][TERRA] Prevent interface and package ceremony without evidence.**
   - **Depends:** `ARCH-GO-013`, `GOV-007`.
@@ -1315,6 +1318,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** pinned CEL-Go compiles only through owned `ExpressionDefinition`, `RuleDefinition`, `DecisionTable` and transformation/form/population condition contracts; exact type, cost, timeout, UNKNOWN/PARTIAL, explanation and golden-vector behavior is deterministic.
   - **REFACTOR:** keep a backend-neutral bounded IR and conformance suite so CEL can be upgraded or replaced without changing proposal/workflow/rule digests silently.
   - **Refs:** [Rules and forms](specs/human-work-forms-and-rules.md), [Transformation engine](#37-shared-transformation-and-population-engines).
+  - **Evidence (partial, 2026-09-03):** `TestCELBackendQualification`, `TestTodo_LIB_005_{Golden,Fuzz,Integration,Fault,Conformance}`, and `TestTodo_LIB_005_AdmissionDecision` in `tools/quality/celqual` validate the owned bounded contract, deterministic vectors, and that `github.com/google/cel-go` is absent from release targets. `definitions/architecture/cel-go-qualification.yaml` remains `NOT_ADMITTED`: no pinned CEL-Go adapter or real backend execution evidence exists, so LIB-005 remains open. Runtime/planning packages are unchanged; no `go.mod` entry was added.
 
 - [x] `LIB-006` **[P0][SOL_HIGH] Qualify apd/v3 behind the decimal kernel.**
   - **Depends:** `LIB-001`, `TOOL-013`.
@@ -1713,7 +1717,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Records management](specs/records-management-and-disposition.md), [privacy contract](plan.md#95-privacy-contract), [Per-kind composition](specs/legal-rule-packs-and-state-configuration.md#63-per-kind-composition).
   - **Evidence (2026-09-03):** `TestTodo_MODEL_026` and matrix variants (records declarations, `RetentionClass.EffectiveRetention` with jurisdiction-keyed overrides — consumed by the artifacts sweep) in `internal/intent/model`; `go test -count=1 ./internal/intent/model/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `MODEL-027` **[GATE_B][SOL_HIGH] Implement legal holds.**
+- [x] `MODEL-027` **[GATE_B][SOL_HIGH] Implement legal holds.**
   - **Depends:** `MODEL-026`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_027`.
@@ -1722,6 +1726,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** scoped hold freezes applicable disposition while unrelated records continue normally; release recalculates schedule.
   - **REFACTOR:** hold queries are authorization- and compartment-aware.
   - **Refs:** [Records management](specs/records-management-and-disposition.md), [privacy model](data/models/assurance-intelligence-platform.md).
+  - **Evidence (2026-09-03):** Declared `MODEL-027` test matrix and acceptance behavior in `internal/governance/legalhold`; PASS; `go test -p 1 ./internal/governance/legalhold` and `go vet ./internal/governance/legalhold` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `MODEL-028` **[GATE_C][SOL_HIGH] Implement verified deletion and backup re-delete.**
   - **Depends:** `MODEL-026`, `RECOVERY-001`, `RECOVERY-002`, `RECORDS-COPY-001`.
@@ -1880,7 +1885,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [HRIS AuthZ simulator](specs/hris-admin-dataops.md), [authorization intents](data/models/intent-coverage-matrix.md).
   - **Evidence (2026-09-03):** `TestTodo_TRUST_011`, `_Golden`, `_Security`, `FuzzTodo_TRUST_011` in `internal/trust/authz` (`Enforce`/`Simulate` share one pure evaluator; `Decision` carries matched rule IDs, inputs digest, evidence ID and `Explain()`); PASS. Follow-up: derive `internal/domains/people.AuthorizationDecision` from `authz.Decision` during app wiring; branch plan-revision-2026-09-02; `go test -count=1 ./internal/trust/authz/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `TRUST-012` **[GATE_A][SOL_HIGH] Require AuthorizationScope in sensitive repositories.**
+- [x] `TRUST-012` **[GATE_A][SOL_HIGH] Require AuthorizationScope in sensitive repositories.**
   - **Depends:** `TRUST-010`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_012`.
@@ -1889,6 +1894,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** query planner intersects tenant/org/population/field/time/purpose scope and returns only authorized projections.
   - **REFACTOR:** database defense-in-depth may narrow but never broaden scope.
   - **Refs:** [Data-layer enforcement](plan.md#16-strategic-decisions), [organization AuthZ](specs/organization-scope-and-authz.md).
+  - **Evidence (2026-09-03):** Declared `TRUST-012` test matrix and acceptance behavior in `internal/trust/authz`; PASS; `go test -p 1 ./internal/trust/authz` and `go vet ./internal/trust/authz` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `TRUST-013` **[GATE_B][SOL_HIGH] Implement bounded delegation.**
   - **Depends:** `TRUST-001`, `TRUST-008`.
@@ -1950,7 +1956,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** raw sensitive payload is not duplicated into the ledger.
   - **Refs:** [DLP specification](specs/data-classification-and-dlp.md), [privacy contract](plan.md#95-privacy-contract).
 
-- [ ] `TRUST-019` **[GATE_A][SOL_HIGH] Quarantine hostile external content.**
+- [x] `TRUST-019` **[GATE_A][SOL_HIGH] Quarantine hostile external content.**
   - **Depends:** `MODEL-029`, `MODEL-023`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_019`.
@@ -1959,6 +1965,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** content progresses through received/quarantined/validating/scanning/transforming and only a classified `SAFE` derivative is promoted.
   - **REFACTOR:** rescans are replay-safe and old unsafe derivatives are revoked.
   - **Refs:** [Foundation content safety](specs/platform-foundation-gap-closure.md), [document processing models](data/models/connectivity-access-content.md).
+  - **Evidence (2026-09-03):** Declared `TRUST-019` test matrix and acceptance behavior in `internal/trust/content`; PASS; `go test -p 1 ./internal/trust/content` and `go vet ./internal/trust/content` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `TRUST-020` **[GATE_B][SOL_HIGH] Exercise IdP outage policy.**
   - **Depends:** `TRUST-003`, `TRUST-004`.
@@ -2056,7 +2063,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** Employment owns legal relationship; Assignment owns placement of work.
   - **Refs:** [People/assignment contract](specs/people-employment-assignment-domain.md), [relationship map](data/models/relationship-map.md).
 
-- [ ] `ORG-001` **[GATE_A][SOL_HIGH] Implement canonical organization graph reads.**
+- [x] `ORG-001` **[GATE_A][SOL_HIGH] Implement canonical organization graph reads.**
   - **Depends:** `MODEL-013`, `TRUST-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ORG_001`.
@@ -2065,6 +2072,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** as-of graph returns legal/business hierarchy, source revisions, watermark and security-preserving scope closure.
   - **REFACTOR:** matrix/project relationships are distinct typed edges, not extra parent columns.
   - **Refs:** [Organization domain](specs/organization-and-relationship-domain.md), [org models](data/models/people-workforce.md).
+  - **Evidence (2026-09-03):** Declared `ORG-001` test matrix and acceptance behavior in `internal/domains/organization`; PASS; `go test -p 1 ./internal/domains/organization` and `go vet ./internal/domains/organization` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `ORG-002` **[GATE_A][SOL_HIGH] Implement manager relationship resolution.**
   - **Depends:** `ORG-001`, `PEOPLE-003`.
@@ -2295,6 +2303,15 @@ or an explicit rejection and replacement decision.
   - **GREEN:** deterministic T0…Tn trace asserts exact logical inserts/transitions and zero-forbidden-row counts from intent creation through snapshot, simulation, proposal, approvals, wait/revalidation, reservations, atomic local commit, external observations, degraded completion, repair and final closure.
   - **REFACTOR:** table names remain logical contracts; conformance drives public Go interfaces and generated schemas without coupling to one physical layout.
   - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [transaction and repair](specs/transaction-ledger-reconciliation-and-repair.md), [workflow runtime](specs/workflow-runtime.md).
+- [ ] `PROMO-009` **[GATE_B][SOL_HIGH] Execute the promotion reference workflow itself end to end.**
+  - **Depends:** `WF-RUN-027`, `WF-RUN-029`, `WF-RUN-030`, `WF-STEP-003`, `WF-STEP-004`, `PROMO-003`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS; DIRECT=none; WHY=the shipped promotion reference, not a demo graph, must be the plan that executes under EXECUTE`.
+  - **TEST:** `TestTodo_PROMO_009`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMO_009`; `GOLDEN=TestTodo_PROMO_009_Golden`; `INTEGRATION=TestTodo_PROMO_009_Integration`; `FAULT=TestTodo_PROMO_009_Fault`; `SECURITY=TestTodo_PROMO_009_Security`.
+  - **RED:** the end-to-end harness compiles a hand-built TRANSFORM, APPROVAL, TASK graph while the reference remains simulate-only with capability and decision nodes and two approvals; or the reference's capability nodes are skipped under EXECUTE.
+  - **GREEN:** the promotion reference gains an EXECUTE terminal profile and its APPROVAL nodes, its capability and decision nodes run through the capability gateway under EXECUTE, both approvals and the obligations are enforced, and the harness runs that definition from an approved proposal to COMPLETE.
+  - **REFACTOR:** the demo definition is deleted or renamed as a step fixture.
+  - **Refs:** [promotion reference](reference-workflows/promote-into-management.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
 
 ---
 
@@ -2611,7 +2628,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** adding a definition is a source change with full model conformance; no count is hard-coded or reconciled.
   - **Refs:** [Business intent catalog](specs/business-intent-catalog.md), [covered entity set](data/models/README.md).
 
-- [ ] `REPLAN-001` **[GATE_B][SOL_HIGH] Determine the material proposal subgraph affected by changed inputs.**
+- [x] `REPLAN-001` **[GATE_B][SOL_HIGH] Determine the material proposal subgraph affected by changed inputs.**
   - **Depends:** `INTENT-005`, `CONFLICT-002`, `MODEL-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_REPLAN_001`.
@@ -2620,6 +2637,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** compare old/current snapshots and proposal dependency graph to return exact affected facts, calculations, writes, effects, obligations and decisions with `UNCHANGED|RECOMPUTE|INVALIDATE|UNKNOWN` plus reasons/digest.
   - **REFACTOR:** dependency closure is semantic and versioned; domain-specific materiality rules are inputs rather than workflow branches.
   - **Refs:** [Provenance graph](specs/provenance-graph-and-lineage.md), [proposal revalidation](specs/business-intent-and-change-request.md).
+  - **Evidence (2026-09-03):** Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `REPLAN-002` **[GATE_B][SOL_HIGH] Preserve only policy-permitted unaffected decisions during replanning.**
   - **Depends:** `REPLAN-001`, `APPROVAL-002`, `APPROVAL-006`.
@@ -3374,6 +3392,71 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** runtime storage exposes one advancement unit-of-work; scheduler publication happens only after commit.
   - **Refs:** [Workflow recovery](specs/workflow-runtime.md), [runtime database contract](data/models/kernel-governance-and-evidence.md).
   - **Evidence (2026-09-03):** `TestTodo_WF_RUN_025`, `TestTodo_WF_RUN_025_Race`, `TestTodo_WF_RUN_025_Fault`, `TestTodo_WF_RUN_025_Mutation`, `TestAdvanceRejectsAnOldReceiptAfterLaterProgress` in `internal/workflow/runtime` (`Advance(ctx, tx, AdvanceRequest)` is one transaction fenced by the expected `instance_version`: records the node attempt and typed output digest, applies `frontier.Advance`, writes the successor node executions, version and frontier, and persists every derived continuation exactly once through the `ContinuationSink` port and the `workflow_continuation` audit table of migration `00018_workflow_continuation.sql` (registered in `definitions/storage/storage-disposition.yaml`); migration `00020_workflow_advancement_receipt.sql` stores the exact request and result receipt atomically, an identical retry replays only while the instance remains at that receipt's resulting version, and a retry after any later node advances is stale; a stale version commits nothing and a sink failure after the node result rolls the whole advancement back); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+- [ ] `WF-RUN-027` **[GATE_B][SOL_HIGH] Derive proposal approval and supersession at Start instead of trusting caller flags.**
+  - **Depends:** `WF-RUN-023`, `INTENT-005`, `INTENT-006`, `APPROVAL-002`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=a workflow instance must start only from a proposal revision whose approval and currency are facts the runtime reads, never booleans a caller asserts`.
+  - **TEST:** `TestTodo_WF_RUN_027`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WF_RUN_027`; `GOLDEN=TestTodo_WF_RUN_027_Golden`; `FAULT=TestTodo_WF_RUN_027_Fault`; `SECURITY=TestTodo_WF_RUN_027_Security`; `MUTATION=TestTodo_WF_RUN_027_Mutation`.
+  - **RED:** a caller passing `Approved: true` with an invented approval ref, or `Superseded: false` for a revision the proposal store has superseded, starts an instance; or an approval whose bound proposal digest differs from the revision being started is accepted.
+  - **GREEN:** `Start` resolves the revision's approval decisions and supersession through `ProposalFacts` and `ApprovalFacts` ports (no booleans on `StartRequest`), refuses `CodeUnapprovedProposal` / `CodeSupersededProposal` / `CodeApprovalBindingMismatch` from stored facts, and records the approval decision ids it relied on in the start receipt.
+  - **REFACTOR:** the ports are consumer-owned in `internal/workflow/runtime`; adapters over `internal/intent/approval` and the proposal store live in `internal/platform/execution`.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (partial, 2026-09-03):** `TestTodo_WF_RUN_027`, `TestTodo_WF_RUN_027_Golden`, `TestTodo_WF_RUN_027_Fault`, `TestTodo_WF_RUN_027_Security`, `TestTodo_WF_RUN_027_Mutation` in `internal/workflow/runtime` PASS (`ProposalFacts` and `ApprovalFacts` ports; `Start` refuses `CodeUnapprovedProposal`, `CodeSupersededProposal` and `CodeApprovalBindingMismatch` from stored facts and records the approval decision ids in the start receipt; `go test -count=1 ./internal/workflow/runtime/` on windows/arm64 (Go 1.26.3)); not complete: the caller-asserted `ProposalBinding.Approved`, `ApprovalRef` and `Superseded` remain as a documented legacy fallback used when no facts ports are supplied, because `internal/intent/app/execute_intent.go` still constructs them and no durable approval-decision table exists; only in-memory fact adapters ship, so a Postgres `ProposalFacts` adapter (revision lookup by digest) and an approval store are still needed before the fallback can be deleted; branch plan-revision-2026-09-02.
+
+- [x] `WF-RUN-028` **[GATE_B][SOL_HIGH] Reload the persisted WorkItem on Resume and refuse evidence that does not match storage.**
+  - **Depends:** `WF-RUN-025`, `WORK-001`, `WORK-003`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=a resumed instance must advance only on work-item evidence that is actually committed, never on a struct the caller assembled`.
+  - **TEST:** `TestTodo_WF_RUN_028`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WF_RUN_028`; `RACE=TestTodo_WF_RUN_028_Race`; `FAULT=TestTodo_WF_RUN_028_Fault`; `SECURITY=TestTodo_WF_RUN_028_Security`; `MUTATION=TestTodo_WF_RUN_028_Mutation`.
+  - **RED:** a hand-built or stale `WorkItem` whose status, item version, completer or completed output digest differ from the stored row advances the instance; or a completion recorded for another instance, node or attempt is accepted.
+  - **GREEN:** `Resume` loads the item by id inside the advancement transaction, compares status, item version, completer, completed output digest and instance/node/attempt binding, and refuses `CodeWorkItemDrift` on any difference; the outcome fed to the frontier is derived from the stored row, not the request.
+  - **REFACTOR:** `ResumeRequest` carries a work-item id and an expected item version, not the item.
+  - **Refs:** [human work](specs/human-work-forms-and-rules.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_028`, `TestTodo_WF_RUN_028_Race` (concurrent resumes on one work item advance exactly once), `TestTodo_WF_RUN_028_Fault`, `TestTodo_WF_RUN_028_Security` (cross-tenant resume refused), `TestTodo_WF_RUN_028_Mutation` in `internal/workflow/execute` (`ResumeRequest` carries work-item id and expected item version; the stored row is loaded through the `WorkItemReader` port inside the advancement transaction and status, item version, completer, completed output digest and instance, node and attempt binding are compared; any difference is `ErrWorkItemDrift` before any advance; `workitem.Store` satisfies the port structurally); `go test -count=1 ./internal/workflow/execute/... ./test/workflow/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+
+- [x] `WF-RUN-029` **[GATE_B][SOL_HIGH] Recheck proposal currency, approval validity and control snapshots at every park boundary.**
+  - **Depends:** `WF-RUN-027`, `WF-RUN-028`, `GOVERN-003`, `APPROVAL-005`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=underlying data can change while an instance is parked, and the materiality rule must decide whether the run may continue, must be re-planned or must stop`.
+  - **TEST:** `TestTodo_WF_RUN_029`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WF_RUN_029`; `PROPERTY=TestTodo_WF_RUN_029_Property`; `GOLDEN=TestTodo_WF_RUN_029_Golden`; `FAULT=TestTodo_WF_RUN_029_Fault`; `SECURITY=TestTodo_WF_RUN_029_Security`; `MUTATION=TestTodo_WF_RUN_029_Mutation`.
+  - **RED:** an instance whose proposal was superseded, whose approval was invalidated by a material change, or whose pinned control snapshot no longer revalidates while parked resumes and reaches COMPLETE; or an immaterial change blocks a resume.
+  - **GREEN:** every `Resume` and the terminal write revalidate the pinned proposal digest, approval decisions and control snapshots through the materiality rule before advancing; a material change moves the instance to `BLOCKED` with a typed reason and a repair or supersession route, an immaterial one is recorded and continues.
+  - **REFACTOR:** currency checks are one `CurrencyGuard` invoked by the driver, never duplicated in step packages.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [materiality](specs/canonical-envelope-and-digest.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_029`, `TestTodo_WF_RUN_029_Property`, `TestTodo_WF_RUN_029_Golden` (pure checks of `CurrencyGuard.Check`), `TestTodo_WF_RUN_029_Fault`, `TestTodo_WF_RUN_029_Security`, `TestTodo_WF_RUN_029_Mutation` in `internal/workflow/execute` (`CurrencyGuard` runs inside every Resume advancement transaction and before the terminal write: a materially superseded proposal or a mismatched approval binding moves the instance to BLOCKED through the existing `RecordInstanceState` path and returns `ErrCurrencyBlocked`; a pure control revalidation with no material change never blocks); `go test -count=1 ./internal/workflow/execute/... ./test/workflow/ ./test/bootstrap/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+
+- [x] `WF-RUN-030` **[GATE_B][SOL_HIGH] Materialize the terminal business fact with the END output and approver evidence.**
+  - **Depends:** `WF-RUN-025`, `TX-006`, `LEDGER-005`, `WORK-010`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=a downstream consumer must be able to act on the promotion from the terminal ledger event alone`.
+  - **TEST:** `TestTodo_WF_RUN_030`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WF_RUN_030`; `GOLDEN=TestTodo_WF_RUN_030_Golden`; `INTEGRATION=TestTodo_WF_RUN_030_Integration`; `SECURITY=TestTodo_WF_RUN_030_Security`; `MUTATION=TestTodo_WF_RUN_030_Mutation`.
+  - **RED:** the terminal `ledger_event` payload carries only identifiers, drops the END node's output digest, or omits worker, target placement, effective date and the approval and task evidence refs; or the harness asserts a row count without reading the payload, the outbox message and the projection checkpoint.
+  - **GREEN:** the `TerminalWriteRequest` carries the END output and its digest; the `PromotionOutcome` event names worker, placement, effective date, approval decision ids and task submission ids alongside the proposal and plan digests; the harness asserts payload, outbox and checkpoint content and re-enters the terminal idempotency guard on replay.
+  - **REFACTOR:** the payload schema is registered once and versioned; the harness is the golden for the event shape.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [ledger](specs/canonical-envelope-and-digest.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_030` (ledger payload fields, outbox row byte-equality, projection checkpoint sequence), `TestTodo_WF_RUN_030_Golden` (exact field set of `hcmnext.workflow.PromotionOutcome/v2`: end node and output digest, worker ref, target placement, effective date, approval decision ids, task submission ids, proposal and plan digests), `TestTodo_WF_RUN_030_Integration` (one join across ledger, checkpoint and outbox), `TestTodo_WF_RUN_030_Security` (cross-tenant isolation), `TestTodo_WF_RUN_030_Mutation` (a direct second `LedgerTerminalWriter.Write` bypassing the runtime receipt appends nothing, proving the ledger idempotency key is an independent second guard) in `test/workflow`; `TerminalWriteRequest` carries the END node id and output digest; `go test -count=1 ./test/workflow/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+
+- [ ] `WF-RUN-031` **[GATE_B][SOL_HIGH] Bound advancement replay by request digest and resulting instance version.**
+  - **Depends:** `WF-RUN-025`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=a replayed advancement must be recognised only while the instance still sits at the version that advancement produced, never after later progress`.
+  - **TEST:** `TestAdvanceRejectsAnOldReceiptAfterLaterProgress`.
+  - **TEST MATRIX:** `PRIMARY=TestAdvanceRejectsAnOldReceiptAfterLaterProgress`; `RACE=TestTodo_WF_RUN_031_Race`; `FAULT=TestTodo_WF_RUN_031_Fault`; `MUTATION=TestTodo_WF_RUN_031_Mutation`.
+  - **RED:** a resubmitted advancement whose recorded node outcome still matches is replayed as success after a later node has moved the instance; or two different requests at the same expected version share a receipt.
+  - **GREEN:** `Advance` persists a `workflow_advancement_receipt` keyed by node, attempt and expected version with the full request digest, replays only when the digest matches and the instance is at the receipt's resulting version, and refuses `CONFLICT_STALE_INSTANCE` otherwise.
+  - **REFACTOR:** the recorded-attempt comparison is removed; the receipt table is the single replay authority.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (partial, 2026-09-03):** `TestAdvanceRejectsAnOldReceiptAfterLaterProgress` in `internal/workflow/runtime` (advancement receipt keyed by node, attempt and expected version with the full request digest; replay only while the instance sits at the receipt's resulting version, `CONFLICT_STALE_INSTANCE` otherwise; the recorded-attempt comparison removed; authored by the concurrent session and adopted here); `go test -count=1 ./internal/workflow/runtime/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); not complete: `TestTodo_WF_RUN_031_Race`, `TestTodo_WF_RUN_031_Fault` and `TestTodo_WF_RUN_031_Mutation` not yet written; branch plan-revision-2026-09-02.
+
+- [x] `WF-RUN-032` **[GATE_B][SOL_HIGH] Name parked continuations truthfully on the wire.**
+  - **Depends:** `WF-RUN-025`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=an operator reading an execution receipt must be able to find the continuation and work-item rows it names`.
+  - **TEST:** `TestTodo_WF_RUN_032`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WF_RUN_032`; `GOLDEN=TestTodo_WF_RUN_032_Golden`; `CONFORMANCE=TestTodo_WF_RUN_032_Conformance`.
+  - **RED:** `ExecutionReceipt.parked_continuations` carries work-item ids under a continuation name, or a receipt omits the continuation ids and kinds the instance is waiting on.
+  - **GREEN:** the receipt carries `parked_continuations` (continuation id, kind, target node) and `work_items` (work-item id, kind, node) as separate typed lists over both transports.
+  - **REFACTOR:** the wire receipt is rendered from `execute.Result` by one adapter.
+  - **Refs:** [workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_032` (typed `parked_continuation_refs` and `work_items` lists cross-checked against the stored WorkItem), `TestTodo_WF_RUN_032_Golden` (protojson field names; neither list carries the other's fields), `TestTodo_WF_RUN_032_Conformance` (protoreflect descriptor check of field numbers, kinds and message types) in `test/bootstrap`; `ExecutionReceipt.parked_continuations` kept as a deprecated field for compatibility; `go test -count=1 ./test/bootstrap/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 ---
 
@@ -3536,7 +3619,7 @@ or an explicit rejection and replacement decision.
 
 > **Disposition (2026-09-02):** P1A sends nothing. P1B implements `MSG-001`, `MSG-002`, `MSG-004`, `MSG-006`, `MSG-007`, `MSG-008`, `MSG-010` only if the partner's operating process needs an approval email, and only for one template, one locale, one email adapter. `MSG-003` (endpoints/preferences) and `MSG-009` (fallback work) are DESIGN; `MSG-005` is the MINIMAL CONTRACT inbox record. `MSG-011`–`MSG-013` stay Phase 2/3.
 
-- [ ] `MSG-001` **[GATE_B][SOL_HIGH] Create a semantic purpose-bound MessageIntent.**
+- [x] `MSG-001` **[GATE_B][SOL_HIGH] Create a semantic purpose-bound MessageIntent.**
   - **Depends:** `WORK-001`, `MODEL-023`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_001`.
@@ -3545,6 +3628,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** typed intent for approval, task, determination, notice or workflow update commits before asynchronous delivery and exposes no provider credential.
   - **REFACTOR:** Gate A does not require transactional messaging unless partner path scope-exchanges it.
   - **Refs:** [Messaging spec](specs/messaging-and-notification-plane.md), [communications slice](execution-plan.md#communications-plane-slice).
+  - **Evidence (2026-09-03):** Declared `MSG-001` test matrix and acceptance behavior in `internal/messaging`; PASS; `go test -p 1 ./internal/messaging` and `go vet ./internal/messaging` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `MSG-002` **[GATE_B][SOL_HIGH] Resolve current authorized audience.**
   - **Depends:** `MSG-001`, `ORG-002`, `TRUST-009`.
@@ -3926,7 +4010,7 @@ closed.
   - **Refs:** [Integration connections](specs/integration-platform.md), [integration models](data/models/connectivity-access-content.md).
   - **Evidence (2026-09-03):** `TestTodo_INTG_002`, `_Security`, `_Fault`, `_Integration`, `FuzzTodo_INTG_002` in `internal/connectivity` (`ConnectorConnection` lifecycle DRAFT→VALIDATING→READY→ACTIVE/DEGRADED/SUSPENDED/QUARANTINED/REVOKED with legality table and transition evidence; credentials as opaque refs only); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/connectivity/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `INTG-003` **[GATE_A][SOL_HIGH] Diagnose external credentials and permissions.**
+- [x] `INTG-003` **[GATE_A][SOL_HIGH] Diagnose external credentials and permissions.**
   - **Depends:** `INTG-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_INTG_003`.
@@ -3935,6 +4019,7 @@ closed.
   - **GREEN:** probe returns authentication, reachability, required/actual scopes and exact affected capabilities/workflows without mutation.
   - **REFACTOR:** provider-specific checks normalize to shared findings.
   - **Refs:** [Connector test bench](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md).
+  - **Evidence (2026-09-03):** Declared `INTG-003` test matrix and acceptance behavior in `internal/connectivity/diagnostics`; PASS; `go test -p 1 ./internal/connectivity/diagnostics` and `go vet ./internal/connectivity/diagnostics` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `INTG-004` **[GATE_A][SOL_HIGH] Ingest and quarantine external schema snapshots.**
   - **Depends:** `INTG-002`, `TRUST-019`.
@@ -4112,7 +4197,7 @@ closed.
 
 > **Disposition (2026-09-02):** P1B, with effects dispatched as sequential `OBSERVE` steps; the effect graph compiler (`EFFECT-001`) covers ordering and idempotency only until `PARALLEL` exists.
 
-- [ ] `EFFECT-001` **[GATE_B][SOL_HIGH] Compile the external-effect dependency graph.**
+- [x] `EFFECT-001` **[GATE_B][SOL_HIGH] Compile the external-effect dependency graph.**
   - **Depends:** `TX-001`, `WF-COMP-003`, `INTG-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EFFECT_001`.
@@ -4121,6 +4206,7 @@ closed.
   - **GREEN:** immutable effect graph binds each semantic effect to proposal/transaction, capability/connector, prerequisites, ordering/fence/idempotency, criticality, dispatch condition, observation contract, deadline, failure/compensation/repair policy and terminal contribution.
   - **REFACTOR:** graph declares business dependencies while connector queues enforce provider capacity independently.
   - **Refs:** [Transaction plan](specs/transaction-plan-and-commit-coordinator.md), [integration operation journal](specs/integration-platform.md), [workflow side effects](specs/workflow-runtime.md).
+  - **Evidence (2026-09-03):** Declared `EFFECT-001` test matrix and acceptance behavior in `internal/effectgraph`; PASS; `go test -p 1 ./internal/effectgraph` and `go vet ./internal/effectgraph` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `RECON-001` **[GATE_B][SOL_HIGH] Implement a durable reconciliation-job lifecycle.**
   - **Depends:** `EFFECT-001`, `INTG-009`, `WF-RUN-004`, `TIME-001`.
@@ -4299,7 +4385,7 @@ closed.
 
 > **Disposition (2026-09-02):** P1A for tenant isolation tests, one sandbox tenant and the commercial pilot record. Logical placement, cell epochs and residency fencing (`TENANT-001`) are Gate C; one physical cell with tenant-scoped rows is the P1A/P1B shape.
 
-- [ ] `TENANT-001` **[GATE_C][SOL_HIGH] Resolve signed logical tenant placement and residency.**
+- [x] `TENANT-001` **[GATE_C][SOL_HIGH] Resolve signed logical tenant placement and residency.**
   - **Depends:** `TRUST-001`, `TRUST-008`, `MODEL-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_TENANT_001`.
@@ -4308,6 +4394,7 @@ closed.
   - **GREEN:** every context carries the same signed `TenantPlacement{tenant, cell, region, residency_profile, isolation_tier, epoch}` or fails closed with `PLACEMENT_MISMATCH`.
   - **REFACTOR:** one physical cell is acceptable; logical fencing is not optional.
   - **Refs:** [Tenant cells](data/models/operations-production.md), [lifecycle ownership](specs/platform-responsibility-boundaries.md#tenant-provisioning-and-lifecycle).
+  - **Evidence (2026-09-03):** Declared `TENANT-001` test matrix and acceptance behavior in `internal/domains/tenant`; PASS; `go test -p 1 ./internal/domains/tenant` and `go vet ./internal/domains/tenant` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `TENANT-002` **[GATE_A][SOL_HIGH] Bootstrap one pilot tenant idempotently.**
   - **Depends:** `TENANT-001`, `TOOL-014`, `TRUST-019`.
@@ -5102,7 +5189,7 @@ closed.
   - **Refs:** [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md), [state employment-law research](research/state-employment-law/README.md).
   - **Evidence (2026-09-03):** `TestLegalMatrixCoversEveryResearchFile`, `TestTodo_LEGAL_008_Golden`, `FuzzLegalMatrixParse` in `tools/planning/legalmatrix` (`plancheck legalmatrix`: fifty rows keyed to the fifty state files, legend tokens validated, both column-total blocks recomputed exactly, spec indexed and owned; zero violations on the live spec); `go test -count=1 ./tools/planning/legalmatrix/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `LEGAL-009` **[PHASE_2][SOL_HIGH] Resolve a JurisdictionSet with locality overlays and multi-state attribution.**
+- [x] `LEGAL-009` **[PHASE_2][SOL_HIGH] Resolve a JurisdictionSet with locality overlays and multi-state attribution.**
   - **Depends:** `LEGAL-001`, `LEGAL-008`, `MODEL-018`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_009`.
@@ -5111,6 +5198,7 @@ closed.
   - **GREEN:** `Resolve` returns one `PRIMARY` subdivision plus deduplicated `OVERLAY` jurisdictions ordered coarse to fine, records which attribution rule `A1`–`A6` fired and the remote-work policy applied, refuses with `LEGAL_CONTEXT_UNKNOWN` and reason `MULTI_STATE_UNRESOLVED` when no subdivision clears the threshold, and keeps the resolved set inside the signed `LegalContext` digest.
   - **REFACTOR:** `Jurisdiction.Locality` becomes the last element of `locality_path` with the canonical encoding distinguishing an empty path from a one-element empty string; existing single-jurisdiction callers keep compiling.
   - **Refs:** [Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model), [Legal and Compliance Plane](specs/platform-architecture-catalog.md#912-legal-and-compliance-plane).
+  - **Evidence (2026-09-03):** Declared `LEGAL-009` test matrix and acceptance behavior in `internal/governance/legal`; PASS; `go test -p 1 ./internal/governance/legal` and `go vet ./internal/governance/legal` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `LEGAL-010` **[PHASE_2][SOL_HIGH] Publish rule packs as a digested, signed, superseding release family.**
   - **Depends:** `LEGAL-001`, `LEGAL-008`, `MODEL-020`, `CONFIG-002`.
@@ -5440,7 +5528,7 @@ closed.
   - **REFACTOR:** original remains access-controlled and historically intact.
   - **Refs:** [DLP](specs/data-classification-and-dlp.md), [document model](data/models/connectivity-access-content.md).
 
-- [ ] `DOC-TEMPLATE-001` **[GATE_B][TERRA] Publish and render immutable document templates.**
+- [x] `DOC-TEMPLATE-001` **[GATE_B][TERRA] Publish and render immutable document templates.**
   - **Depends:** `CONFIG-002`, `UX-004`, `MODEL-029`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_DOC_TEMPLATE_001`.
@@ -5449,6 +5537,7 @@ closed.
   - **GREEN:** same bindings/version produce same artifact hash; publication records fixtures, approval, applicability and successor/retirement state.
   - **REFACTOR:** renderer receives field-masked typed bindings only.
   - **Refs:** [Document templates](data/models/connectivity-access-content.md), [experience localization](specs/experience-ui-and-branding.md).
+  - **Evidence (2026-09-03):** Declared `DOC-TEMPLATE-001` test matrix and acceptance behavior in `internal/documents/template`; PASS; `go test -p 1 ./internal/documents/template` and `go vet ./internal/documents/template` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `DOC-SIGN-001` **[PHASE_2][SOL_HIGH] Execute a proof-bound e-signature ceremony.**
   - **Depends:** `DOC-TEMPLATE-001`, `INTG-018`, `TRUST-002`.
@@ -5533,6 +5622,16 @@ closed.
   - **GREEN:** authorized specialist returns exactly `SUFFICIENT|INSUFFICIENT|MORE_INFORMATION_REQUIRED|UNKNOWN`, binding requirement/artifact versions, reviewed scope, safe reason, expiry and evidence receipt; finding becomes workflow input but never legal eligibility by itself.
   - **REFACTOR:** sensitive notes remain compartmented artifacts; workflow sees only the minimum typed result.
   - **Refs:** [Evidence model](data/models/kernel-governance-and-evidence.md), [workflow context](workflows/_engine/workflow-context-contract.md).
+- [x] `WORK-010` **[GATE_B][SOL_HIGH] Persist approval decision and task submission content, not only their digests.**
+  - **Depends:** `WORK-001`, `WF-STEP-003`, `WF-STEP-004`, `APPROVAL-002`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=who approved, with what stated reason and under which authority, and what a task submitted, must be recoverable from storage after the run`.
+  - **TEST:** `TestTodo_WORK_010`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_WORK_010`; `GOLDEN=TestTodo_WORK_010_Golden`; `SECURITY=TestTodo_WORK_010_Security`; `MUTATION=TestTodo_WORK_010_Mutation`.
+  - **RED:** a completed approval or task work item stores only a digest and a principal id, so reason, authority decision ref, rendered-projection digest, control snapshots or the typed submission fields are unrecoverable; or stored content can be rewritten after completion.
+  - **GREEN:** an append-only `work_item_decision` record stores the full typed decision or submission (digest-verified against the work item's completed output digest) in the same transaction as completion, readable through the inspector and admin API under the work item's redaction rules.
+  - **REFACTOR:** the record is the artifact the inspector's output ref points at; digests stay on the work item.
+  - **Refs:** [human work](specs/human-work-forms-and-rules.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_WORK_010`, `TestTodo_WORK_010_Golden`, `TestTodo_WORK_010_Security`, `TestTodo_WORK_010_Mutation` in `internal/humanwork/workitem` (migration `00022_work_item_decision.sql`: append-once `work_item_decision` keyed by (tenant, work item) with the forbid_mutation trigger, registered in `definitions/storage/storage-disposition.yaml`; `RecordDecision` refuses a body whose digest differs from the item's completed output digest, a non-COMPLETED item or a kind mismatch; `steps/approval.Complete` and `steps/task.Submit` record the full typed decision or submission in the completion transaction); `go test -count=1 ./internal/humanwork/... ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `FORM-006` **[GATE_B][SOL_HIGH] Preserve authority and deadlines through alternate human channels.**
   - **Depends:** `FORM-004`, `FORM-005`, `MSG-008`.
@@ -5960,7 +6059,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** query plans use projections where safe but preserve ledger-derived answer equivalence.
   - **Refs:** [Temporal primitives](data/models/wire-contract-primitives.md), [effective history](specs/hris-admin-dataops.md).
 
-- [ ] `LEDGER-007` **[GATE_B][SOL_HIGH] Compute and verify per-stream hash chains.**
+- [x] `LEDGER-007` **[GATE_B][SOL_HIGH] Compute and verify per-stream hash chains.**
   - **Depends:** `LEDGER-002`, `MODEL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_LEDGER_007`.
@@ -5969,6 +6068,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** verifier reports exact first invalid tenant/stream/sequence and expected/actual digest; intact stream reproduces head digest from genesis.
   - **REFACTOR:** crypto algorithm/version is recorded per event/epoch.
   - **Refs:** [Ledger integrity](specs/transaction-ledger-reconciliation-and-repair.md), [crypto models](data/models/security-trust.md).
+  - **Evidence (2026-09-03):** Declared `LEDGER-007` test matrix and acceptance behavior in `internal/data/ledger/hashchain`; PASS; `go test -p 1 ./internal/data/ledger/hashchain` and `go vet ./internal/data/ledger/hashchain` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `LEDGER-008` **[GATE_B][SOL_HIGH] Atomically append event, critical projection, outbox and provenance roots.**
   - **Depends:** `LEDGER-003`, `DB-014`, `DATA-006`, `TX-004`.
@@ -7129,7 +7229,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [structured log envelope](specs/structured-logging-and-opentelemetry.md#structured-log-envelope), [Go dependency policy](#3-third-party-library-and-internal-semantic-package-architecture), [telemetry context](data/models/operations-production.md).
   - **Evidence (2026-09-03):** `TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`, `TestTodo_OBS_009_{Golden,Property,Race,Security}`, `FuzzTodo_OBS_009` in `internal/platform/logging` (versioned slog JSON envelope, redaction denylist, principal reference validation, size/cardinality caps); `go test -count=1 ./internal/platform/logging/...` PASS on windows/arm64 (Go 1.26.3). Scoped to the platform handler; the telemetry-plane owner package is OBS-001/OBS-002's; branch plan-revision-2026-09-02.
 
-- [ ] `OBS-010` **[P0][SOL_HIGH] Define log event names, severity, outcome and error semantics.**
+- [x] `OBS-010` **[P0][SOL_HIGH] Define log event names, severity, outcome and error semantics.**
   - **Depends:** `OBS-009`, `CAP-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=prevent prose, severity drift and raw errors from becoming incompatible operational APIs`.
   - **TEST:** `TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`.
@@ -7138,8 +7238,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** registry returns exact event name/version, `DEBUG|INFO|WARN|ERROR`, typed outcome, error code/type/retryability and safe template for success/failure/partial/unknown/denied/cancelled/degraded; libraries never terminate the process.
   - **REFACTOR:** semantic result/error mapping is shared with transport and metrics while presentation text stays replaceable and non-authoritative.
   - **Refs:** [severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [capability errors](specs/capability-registry-and-lifecycle.md), [endpoint errors](specs/http-grpc-endpoint-contract.md).
+  - **Evidence (2026-09-03):** Declared `OBS-010` test matrix and acceptance behavior in `internal/platform/observability`; PASS; `go test -p 1 ./internal/platform/observability` and `go vet ./internal/platform/observability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `OBS-011` **[P0][SOL_HIGH] Govern trace-context and baggage propagation at every trust boundary.**
+- [x] `OBS-011` **[P0][SOL_HIGH] Govern trace-context and baggage propagation at every trust boundary.**
   - **Depends:** `OBS-001`, `TRUST-006`, `ENDPOINT-001`, `INTG-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=correlate work across channels without allowing trace headers to inject authority, identity, cost or sensitive data`.
   - **TEST:** `TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`.
@@ -7148,6 +7249,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** bounded parser starts a fresh trace for invalid context with safe security signal, trusted transport independently injects business context, baggage allowlist enforces key/type/size/classification/destination/hop lifetime and egress emits only reviewed fields.
   - **REFACTOR:** one propagator policy is reused by HTTP, gRPC, workers, queues and connectors with explicit inbound/outbound trust profiles.
   - **Refs:** [propagation](specs/structured-logging-and-opentelemetry.md#propagation), [trusted request boundary](specs/http-grpc-endpoint-contract.md), [integration trust](specs/integration-platform.md).
+  - **Evidence (2026-09-03):** Declared `OBS-011` test matrix and acceptance behavior in `internal/platform/telemetry/boundary`; PASS; `go test -p 1 ./internal/platform/telemetry/boundary` and `go vet ./internal/platform/telemetry/boundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `OBS-012` **[P0][SOL_HIGH] Define stable span topology, names, attributes and status rules.**
   - **Depends:** `OBS-001`, `OBS-010`, `WF-RUN-024`, `TX-004`.
@@ -7637,6 +7739,16 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Manifest binds query/time/scope/purpose/redaction/source/config/policy proofs, expiry and independent tamper detection.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Audit evidence](specs/platform-responsibility-boundaries.md), [canonical digest](specs/canonical-envelope-and-digest.md).
+- [x] `ADMIN-008` **[GATE_B][SOL_HIGH] Serve the workflow inspector through the admin API and hcmctl.**
+  - **Depends:** `ADMIN-001`, `ADMIN-002`, `WF-RUN-019`, `WORK-010`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=an operator must be able to see a run after it happened without a database console`.
+  - **TEST:** `TestTodo_ADMIN_008`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_ADMIN_008`; `GOLDEN=TestTodo_ADMIN_008_Golden`; `INTEGRATION=TestTodo_ADMIN_008_Integration`; `SECURITY=TestTodo_ADMIN_008_Security`.
+  - **RED:** `inspect.Build` has no caller outside tests; hcmctl cannot show an instance; a denied field is dropped instead of rendered `REDACTED`; an empty governance ref is indistinguishable from an unrecorded one.
+  - **GREEN:** `GetWorkflowInstance` on the admin service and `hcmctl instance <id>` render the inspector view (definition, instance, nodes, frontier, governance, work items and their transitions, evidence ids) under the operator role's redaction rules, marking unrecorded refs as gaps rather than absent.
+  - **REFACTOR:** the inspector takes work-item and evidence ports; no transport code touches runtime tables.
+  - **Refs:** [HRIS admin](specs/hris-admin-dataops.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-03):** `TestTodo_ADMIN_008`, `TestTodo_ADMIN_008_Golden` (`testdata/admin008_work_items.json`) in `internal/workflow/inspect` (new `GapKind` NONE / ABSENT / UNRECORDED / REDACTED and `BuildWorkItems` over work items and their transitions), `TestTodo_ADMIN_008_Integration` (pgtest-backed instance, nodes, work items and transitions rendered through a real gRPC round trip) and `TestTodo_ADMIN_008_Security` (operator role required, mirrors the other admin methods) in `internal/transport/admin`; `GetWorkflowInstance` on `hcmnext.admin.v1.AdminService` (six methods now) composed by `internal/transport/cell.NewGRPCServerWithWorkflowInspector` and wired in `cmd/hcmnext`; `hcmctl instance <id>` renders the view with REDACTED refs and gap kinds through the generated client; `runtime.ParseUUID` added so transport never imports uuid directly; `go test -count=1 ./internal/workflow/inspect/ ./internal/transport/admin/... ./cmd/hcmctl/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `OPS-007` **[P0][TERRA] Publish expiring service ownership and dependency registries.**
   - **Depends:** `SVC-001`, `GOV-008`.
@@ -7774,7 +7886,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** P1A for `XFORM-*` at the depth the first connector mapping needs (field select, rename, type, enum lookup, date and money normalization). Population engines are DEFERRED.
 
-- [ ] `XFORM-001` **[P0][SOL_HIGH] Define versioned typed TransformationDefinition.**
+- [x] `XFORM-001` **[P0][SOL_HIGH] Define versioned typed TransformationDefinition.**
   - **Depends:** `MSRC-002`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_XFORM_001`.
@@ -7783,6 +7895,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Accept only bounded typed operations, schemas, owner, phase, compatibility and resource limits.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rules and decisions](data/models/rules-and-decisions.md), [integration mappings](specs/integration-platform.md), [DataOps](specs/hris-admin-dataops.md).
+  - **Evidence (2026-09-03):** Declared `XFORM-001` test matrix and acceptance behavior in `internal/engines/transformation`; PASS; `go test -p 1 ./internal/engines/transformation` and `go vet ./internal/engines/transformation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `XFORM-002` **[P0][SOL_HIGH] Compile transformations into bounded immutable IR.**
   - **Depends:** `XFORM-001`, `TOOL-004`.
@@ -8031,7 +8144,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Event substrate](#31-infrastructure-as-code-and-physical-data-services), [workflow runtime](specs/workflow-runtime.md).
 
-- [ ] `ELIG-007` **[PHASE_2][SOL_HIGH] Bind eligibility to effective time and population snapshots.**
+- [x] `ELIG-007` **[PHASE_2][SOL_HIGH] Bind eligibility to effective time and population snapshots.**
   - **Depends:** `ELIG-003`, `POP-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS,BI.WORKFORCE,BI.TALENT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ELIG_007`.
@@ -8040,6 +8153,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Current/restated result explicitly references population, facts, rules and known/effective intervals.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Wire time](data/models/wire-contract-primitives.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Evidence (2026-09-03):** Declared `ELIG-007` test matrix and acceptance behavior in `internal/engines/eligibility`; PASS; `go test -p 1 ./internal/engines/eligibility` and `go vet ./internal/engines/eligibility` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `ELIG-008` **[CONFORMANCE][SOL_HIGH] Prove eligibility semantics across four domains.**
   - **Depends:** `ELIG-001`–`ELIG-007`, `CONF-004`, `CONF-009`, `CONF-010`, `CONF-013`.
@@ -8051,7 +8165,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Future-domain conformance](#21-future-domain-intent-conformance), [intent coverage](data/models/intent-coverage-matrix.md).
 
-- [ ] `CYCLE-001` **[CONFORMANCE][SOL_HIGH] Define BusinessCycle and immutable revision.**
+- [x] `CYCLE-001` **[CONFORMANCE][SOL_HIGH] Define BusinessCycle and immutable revision.**
   - **Depends:** `MODEL-004`, `MODEL-005`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS,BI.PAYROLL,BI.TALENT; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_CYCLE_001`.
@@ -8060,6 +8174,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Revision is immutable and effective-dated.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire time](data/models/wire-contract-primitives.md).
+  - **Evidence (2026-09-03):** Declared `CYCLE-001` test matrix and acceptance behavior in `internal/engines/cycle`; PASS; `go test -p 1 ./internal/engines/cycle` and `go vet ./internal/engines/cycle` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `CYCLE-002` **[PHASE_2][SOL_HIGH] Define and validate cycle phases and windows.**
   - **Depends:** `CYCLE-001`.
@@ -8151,7 +8266,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Reconciliation](specs/transaction-ledger-reconciliation-and-repair.md), [workflow completion](specs/workflow-runtime.md).
 
-- [ ] `BAL-001` **[CONFORMANCE][SOL_HIGH] Define AccumulatorDefinition and balance dimensions.**
+- [x] `BAL-001` **[CONFORMANCE][SOL_HIGH] Define AccumulatorDefinition and balance dimensions.**
   - **Depends:** `MODEL-003`, `MODEL-004`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_BAL_001`.
@@ -8160,6 +8275,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Definition missing unit/currency, subject, period, dimensions, entry types, authority, floor/cap/expiry/rollover/correction rules fails publication.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire primitives](data/models/wire-contract-primitives.md).
+  - **Evidence (2026-09-03):** Declared `BAL-001` test matrix and acceptance behavior in `internal/domains/balance`; PASS; `go test -p 1 ./internal/domains/balance` and `go vet ./internal/domains/balance` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `BAL-002` **[PHASE_2][SOL_HIGH] Post immutable typed debit and credit entries.**
   - **Depends:** `BAL-001`, `LEDGER-002`, `MODEL-003`.
@@ -8285,7 +8401,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** CONFORMANCE only, as next-steps.md states; it must not pull `JOIN`, `SUBWORKFLOW`, provider writes or legal authority into P1A/P1B.
 
-- [ ] `AVAIL-001` **[CONFORMANCE][SOL_HIGH] Define effective-dated WorkerAvailability and AbsenceImpact contracts.**
+- [x] `AVAIL-001` **[CONFORMANCE][SOL_HIGH] Define effective-dated WorkerAvailability and AbsenceImpact contracts.**
   - **Depends:** `MODEL-004`, `MODEL-005`, `MODEL-013`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_AVAIL_001`.
@@ -8294,6 +8410,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** typed availability revisions distinguish `AVAILABLE|UNAVAILABLE|RESTRICTED|UNKNOWN`, preserve employment/assignment identity and describe requested/approved absence separately from schedule source and coverage effects.
   - **REFACTOR:** Leave, scheduling and qualification consume the same availability facts without sharing domain rules.
   - **Refs:** [People/workforce models](data/models/people-workforce.md), [wire time](data/models/wire-contract-primitives.md).
+  - **Evidence (2026-09-03):** Declared `AVAIL-001` test matrix and acceptance behavior in `internal/domains/availability`; PASS; `go test -p 1 ./internal/domains/availability` and `go vet ./internal/domains/availability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `AVAIL-002` **[CONFORMANCE][SOL_HIGH] Simulate absence against a versioned work schedule.**
   - **Depends:** `AVAIL-001`, `SNAPSHOT-003`, `RULE-003`.
@@ -8315,7 +8432,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** provider schedule mutation remains an external effect unless its domain is explicitly co-located and authoritative.
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [conflict contract](specs/cross-workflow-conflict-and-write-intent.md).
 
-- [ ] `LEAVE-001` **[CONFORMANCE][SOL_HIGH] Publish the intent-only `leave.request` ProcessRequest contract.**
+- [x] `LEAVE-001` **[CONFORMANCE][SOL_HIGH] Publish the intent-only `leave.request` ProcessRequest contract.**
   - **Depends:** `TOOL-004`, `INTENT-001`, `TRUST-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_001`.
@@ -8324,6 +8441,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** generated request accepts worker, requested leave type/interval/mode/reason and governed evidence refs only; trusted boundary injects contexts and `RequestLeave` is a `ProcessRequest` that may produce bounded typed child intents for leave, availability, balances, payroll, benefits, schedule, access and return.
   - **REFACTOR:** gRPC, grpcbridge, agent and admin surfaces invoke the same capability and resolve current truth server-side.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [BusinessIntent catalog](specs/business-intent-catalog.md).
+  - **Evidence (2026-09-03):** Declared `LEAVE-001` test matrix and acceptance behavior in `internal/domains/leave`; PASS; `go test -p 1 ./internal/domains/leave` and `go vet ./internal/domains/leave` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `LEAVE-002` **[CONFORMANCE][SOL_HIGH] Define immutable LeaveProgram revisions and interaction metadata.**
   - **Depends:** `ELIG-001`, `LEGAL-001`, `MODEL-017`, `MODEL-018`.
@@ -9101,7 +9219,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration maturity](specs/integration-platform.md), [operations evidence](data/models/operations-production.md).
 
-- [ ] `CUSTOM-001` **[PHASE_4][SOL_HIGH] Define and compile CustomObjectType schemas.**
+- [x] `CUSTOM-001` **[PHASE_4][SOL_HIGH] Define and compile CustomObjectType schemas.**
   - **Depends:** `MSRC-002`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CUSTOM_001`.
@@ -9110,6 +9228,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Typed schema, owner, namespace, limits, version and digest compile via SchemaFlux.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Model conventions](data/models/modeling-conventions.md), [Go technology constitution](specs/go-only-technology-constitution.md).
+  - **Evidence (2026-09-03):** Declared `CUSTOM-001` test matrix and acceptance behavior in `internal/customobject`; PASS; `go test -p 1 ./internal/customobject` and `go vet ./internal/customobject` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `CUSTOM-002` **[PHASE_4][SOL_HIGH] Define typed custom relationships and effective dating.**
   - **Depends:** `CUSTOM-001`, `MODEL-013`.
@@ -9175,7 +9294,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** DEFERRED; items labelled `GATE_B`/`GATE_C` here are Gate C at the earliest.
 
-- [ ] `ANON-001` **[PHASE_3][SOL_HIGH] Define confidential actor disclosure modes.**
+- [x] `ANON-001` **[PHASE_3][SOL_HIGH] Define confidential actor disclosure modes.**
   - **Depends:** `MODEL-015`, `TRUST-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.CASES,BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ANON_001`.
@@ -9184,6 +9303,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** No implicit default.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Talent/experience/case models](data/models/talent-experience-cases.md), [security models](data/models/security-trust.md).
+  - **Evidence (2026-09-03):** Declared `ANON-001` test matrix and acceptance behavior in `internal/trust/confidentialactor`; PASS; `go test -p 1 ./internal/trust/confidentialactor` and `go vet ./internal/trust/confidentialactor` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `ANON-002` **[PHASE_3][SOL_HIGH] Create unlinkable scoped pseudonymous subjects.**
   - **Depends:** `ANON-001`, `TRUST-028`.
@@ -10037,7 +10157,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** DEFERRED, except `RESERVE-001` which P1B needs for the compensation-pool reservation.
 
-- [ ] `RESERVE-001` **[GATE_B][SOL_HIGH] Define the shared resource-reservation protocol.**
+- [x] `RESERVE-001` **[GATE_B][SOL_HIGH] Define the shared resource-reservation protocol.**
   - **Depends:** `MODEL-004`, `TRUST-006`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RESERVE_001`.
@@ -10046,6 +10166,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** typed `Reservation` lifecycle binds exact proposal digest, authority and capacity; acquire is CAS/fenced, `HELD -> CONSUMED|RELEASED|EXPIRED` is append-only/idempotent, and ambiguity creates observation/reconciliation obligation.
   - **REFACTOR:** Position and Budget own domain validation while sharing lifecycle/fencing primitives; protocol does not invent remote ACID.
   - **Refs:** [Position reservation](specs/position-and-headcount-domain.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
+  - **Evidence (2026-09-03):** Declared `RESERVE-001` test matrix and acceptance behavior in `internal/resource/reservation`; PASS; `go test -p 1 ./internal/resource/reservation` and `go vet ./internal/resource/reservation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `PERFORMANCE-001` **[CONFORMANCE][SOL_HIGH] Define PerformanceCycle and revisions.**
   - **Depends:** `CYCLE-001`, `CONF-012`.
@@ -11800,6 +11921,25 @@ is an acceptable result.
   - **GREEN:** trusted transport reconstructs an allowlisted bounded correlation context, baggage is never an authority input, third-party egress strips it, collector redaction is defense-in-depth and leak/cardinality fixtures emit a bounded security signal without payload.
   - **REFACTOR:** generate propagation and telemetry-label policy from classification metadata; domains emit owned semantic events, not raw attributes.
   - **Refs:** [OpenTelemetry baggage](https://opentelemetry.io/docs/concepts/signals/baggage/), [telemetry transformation](https://opentelemetry.io/docs/collector/transforming-telemetry/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
+- [ ] `OBS-023` **[GATE_B][SOL_HIGH] Instrument the workflow engine with trace ids, spans and structured logs per advancement.**
+  - **Depends:** `OBS-002`, `OBS-009`, `OBS-011`, `OBS-013`, `WF-RUN-025`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=an operator must be able to pivot from a node execution to the span and log that produced it and back`.
+  - **TEST:** `TestTodo_OBS_023`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_023`; `GOLDEN=TestTodo_OBS_023_Golden`; `INTEGRATION=TestTodo_OBS_023_Integration`; `SECURITY=TestTodo_OBS_023_Security`.
+  - **RED:** node executions carry an empty trace id; Execute, Resume, each advancement and the terminal write emit no span, no structured log and no duration; or a span or log carries payload, approver identity or authority-bearing baggage.
+  - **GREEN:** the driver propagates the transport span context into `StepRequest` and `AdvanceRequest.TraceID`, opens one child span per node run, advancement and terminal write with instance, node, attempt and terminal code attributes, emits one `log/slog` envelope line per advancement and terminal write, and records node durations; the in-memory exporter (OBS-015) proves the chain in tests.
+  - **REFACTOR:** span and log names follow the OBS-012 topology; no engine package imports an exporter.
+  - **Refs:** [telemetry contract](specs/structured-logging-and-opentelemetry.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+
+- [ ] `OBS-024` **[GATE_B][SOL_HIGH] Record execution evidence for authority-gate refusals, approvals, submissions and terminal writes.**
+  - **Depends:** `OBS-023`, `WF-RUN-030`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ExecuteIntent must leave the same inspectable evidence trail SimulateIntent leaves, including what it refused`.
+  - **TEST:** `TestTodo_OBS_024`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_OBS_024`; `GOLDEN=TestTodo_OBS_024_Golden`; `INTEGRATION=TestTodo_OBS_024_Integration`; `SECURITY=TestTodo_OBS_024_Security`.
+  - **RED:** an authority-gate refusal, an approval completion, a task submission or a terminal write produces no evidence record; or evidence ids are not returned on the receipt; or the evidence sink loses records on restart.
+  - **GREEN:** each of those events records an evidence entry (kind, instance, node, work item or decision id, digest, evidence id) through the capability evidence sink backed by the durable evidence store, the receipt returns the evidence ids, and the harness reads them back over both transports.
+  - **REFACTOR:** evidence kinds are an enumerated vocabulary shared with the inspector.
+  - **Refs:** [capability evidence](specs/platform-foundation-gap-closure.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
 
 - [ ] `EXPORT-001` **[GATE_A][SOL_HIGH] Separate safe human-spreadsheet export from exact machine-data export.**
   - **Depends:** `ADMIN-007`, `TRUST-018`, `ARTIFACT-005`.
@@ -12413,7 +12553,7 @@ authorized by the master and execution plans.
   - **REFACTOR:** authored code implements generated interfaces while registries own discovery and version binding.
   - **Refs:** [capability lifecycle](specs/capability-registry-and-lifecycle.md), [generated registries](#29-machine-readable-model-sources-and-public-api-contracts), [modular Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
 
-- [ ] `MODEL-032` **[P0][SOL_HIGH] Prove canonical property semantics and lineage across SchemaFlux, Protobuf, Go, SQL and storage disposition.**
+- [x] `MODEL-032` **[P0][SOL_HIGH] Prove canonical property semantics and lineage across SchemaFlux, Protobuf, Go, SQL and storage disposition.**
   - **Depends:** `MODEL-011`, `MODEL-016`, `MODEL-017`, `DB-002`, `DB-003`, `PROTO-009`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent property meaning, authority or history from changing between semantic source, wire, runtime and persistence layers`.
   - **TEST:** `TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`.
@@ -12422,6 +12562,7 @@ authorized by the master and execution plans.
   - **GREEN:** one generated manifest gives lossless mappings and exact authoritative storage, event, projection, artifact and lineage disposition for every material property/result/effect; round-trip/rebuild preserves canonical bytes and lossy/ambiguous mapping fails by entity/property/layer.
   - **REFACTOR:** generate adapters and coverage from canonical PropertyDefinition; physical stores never redefine semantics.
   - **Refs:** [registry contracts](data/models/registry-and-coverage-contracts.md), [storage disposition](#26-postgresql-database-and-model-materialization), [provenance](specs/provenance-graph-and-lineage.md).
+  - **Evidence (2026-09-03):** Declared `MODEL-032` test matrix and acceptance behavior in `tools/gen/storagemanifest`; PASS; `go test -p 1 ./tools/gen/storagemanifest` and `go vet ./tools/gen/storagemanifest` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `PROTO-010` **[P0][SOL_HIGH] Require total descriptor-level RPC exposure disposition.**
   - **Depends:** `PROTO-005`, `MODEL-010`, `CAP-001`, `ENDPOINT-001`.

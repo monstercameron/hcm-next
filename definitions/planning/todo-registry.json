@@ -512,6 +512,33 @@
     "done": false
   },
   {
+    "id": "ADMIN-008",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Serve the workflow inspector through the admin API and hcmctl",
+    "section": "36. Operator surfaces, ownership and measurable production limits",
+    "depends": [
+      "ADMIN-001",
+      "ADMIN-002",
+      "WF-RUN-019",
+      "WORK-010"
+    ],
+    "test": "TestTodo_ADMIN_008",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_ADMIN_008_Golden",
+      "INTEGRATION": "TestTodo_ADMIN_008_Integration",
+      "PRIMARY": "TestTodo_ADMIN_008",
+      "SECURITY": "TestTodo_ADMIN_008_Security"
+    },
+    "red": "`inspect.Build` has no caller outside tests; hcmctl cannot show an instance; a denied field is dropped instead of rendered `REDACTED`; an empty governance ref is indistinguishable from an unrecorded one",
+    "green": "`GetWorkflowInstance` on the admin service and `hcmctl instance \u003cid\u003e` render the inspector view (definition, instance, nodes, frontier, governance, work items and their transitions, evidence ids) under the operator role's redaction rules, marking unrecorded refs as gaps rather than absent",
+    "refactor": "the inspector takes work-item and evidence ports; no transport code touches runtime tables",
+    "refs": "[HRIS admin](specs/hris-admin-dataops.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_ADMIN_008`, `TestTodo_ADMIN_008_Golden` (`testdata/admin008_work_items.json`) in `internal/workflow/inspect` (new `GapKind` NONE / ABSENT / UNRECORDED / REDACTED and `BuildWorkItems` over work items and their transitions), `TestTodo_ADMIN_008_Integration` (pgtest-backed instance, nodes, work items and transitions rendered through a real gRPC round trip) and `TestTodo_ADMIN_008_Security` (operator role required, mirrors the other admin methods) in `internal/transport/admin`; `GetWorkflowInstance` on `hcmnext.admin.v1.AdminService` (six methods now) composed by `internal/transport/cell.NewGRPCServerWithWorkflowInspector` and wired in `cmd/hcmnext`; `hcmctl instance \u003cid\u003e` renders the view with REDACTED refs and gap kinds through the generated client; `runtime.ParseUUID` added so transport never imports uuid directly; `go test -count=1 ./internal/workflow/inspect/ ./internal/transport/admin/... ./cmd/hcmctl/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
     "id": "ADMISSION-001",
     "phase": "GATE_B",
     "model": "SOL_HIGH",
@@ -19546,6 +19573,57 @@
     "done": false
   },
   {
+    "id": "OBS-023",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Instrument the workflow engine with trace ids, spans and structured logs per advancement",
+    "section": "59. Adversarial infrastructure edges and third-party tool qualification",
+    "depends": [
+      "OBS-002",
+      "OBS-009",
+      "OBS-011",
+      "OBS-013",
+      "WF-RUN-025"
+    ],
+    "test": "TestTodo_OBS_023",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_OBS_023_Golden",
+      "INTEGRATION": "TestTodo_OBS_023_Integration",
+      "PRIMARY": "TestTodo_OBS_023",
+      "SECURITY": "TestTodo_OBS_023_Security"
+    },
+    "red": "node executions carry an empty trace id; Execute, Resume, each advancement and the terminal write emit no span, no structured log and no duration; or a span or log carries payload, approver identity or authority-bearing baggage",
+    "green": "the driver propagates the transport span context into `StepRequest` and `AdvanceRequest.TraceID`, opens one child span per node run, advancement and terminal write with instance, node, attempt and terminal code attributes, emits one `log/slog` envelope line per advancement and terminal write, and records node durations; the in-memory exporter (OBS-015) proves the chain in tests",
+    "refactor": "span and log names follow the OBS-012 topology; no engine package imports an exporter",
+    "refs": "[telemetry contract](specs/structured-logging-and-opentelemetry.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "OBS-024",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Record execution evidence for authority-gate refusals, approvals, submissions and terminal writes",
+    "section": "59. Adversarial infrastructure edges and third-party tool qualification",
+    "depends": [
+      "OBS-023",
+      "WF-RUN-030"
+    ],
+    "test": "TestTodo_OBS_024",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_OBS_024_Golden",
+      "INTEGRATION": "TestTodo_OBS_024_Integration",
+      "PRIMARY": "TestTodo_OBS_024",
+      "SECURITY": "TestTodo_OBS_024_Security"
+    },
+    "red": "an authority-gate refusal, an approval completion, a task submission or a terminal write produces no evidence record; or evidence ids are not returned on the receipt; or the evidence sink loses records on restart",
+    "green": "each of those events records an evidence entry (kind, instance, node, work item or decision id, digest, evidence id) through the capability evidence sink backed by the durable evidence store, the receipt returns the evidence ids, and the harness reads them back over both transports",
+    "refactor": "evidence kinds are an enumerated vocabulary shared with the inspector",
+    "refs": "[capability evidence](specs/platform-foundation-gap-closure.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": false
+  },
+  {
     "id": "ONBOARD-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -22356,6 +22434,35 @@
     "green": "deterministic T0…Tn trace asserts exact logical inserts/transitions and zero-forbidden-row counts from intent creation through snapshot, simulation, proposal, approvals, wait/revalidation, reservations, atomic local commit, external observations, degraded completion, repair and final closure",
     "refactor": "table names remain logical contracts; conformance drives public Go interfaces and generated schemas without coupling to one physical layout",
     "refs": "[Promotion reference](reference-workflows/promote-into-management.md), [transaction and repair](specs/transaction-ledger-reconciliation-and-repair.md), [workflow runtime](specs/workflow-runtime.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMO-009",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Execute the promotion reference workflow itself end to end",
+    "section": "5. Phase 1 People, organization, position, compensation and budget domains",
+    "depends": [
+      "WF-RUN-027",
+      "WF-RUN-029",
+      "WF-RUN-030",
+      "WF-STEP-003",
+      "WF-STEP-004",
+      "PROMO-003"
+    ],
+    "test": "TestTodo_PROMO_009",
+    "test_matrix": {
+      "FAULT": "TestTodo_PROMO_009_Fault",
+      "GOLDEN": "TestTodo_PROMO_009_Golden",
+      "INTEGRATION": "TestTodo_PROMO_009_Integration",
+      "PRIMARY": "TestTodo_PROMO_009",
+      "SECURITY": "TestTodo_PROMO_009_Security"
+    },
+    "red": "the end-to-end harness compiles a hand-built TRANSFORM, APPROVAL, TASK graph while the reference remains simulate-only with capability and decision nodes and two approvals; or the reference's capability nodes are skipped under EXECUTE",
+    "green": "the promotion reference gains an EXECUTE terminal profile and its APPROVAL nodes, its capability and decision nodes run through the capability gateway under EXECUTE, both approvals and the obligations are enforced, and the harness runs that definition from an approved proposal to COMPLETE",
+    "refactor": "the demo definition is deleted or renamed as a step fixture",
+    "refs": "[promotion reference](reference-workflows/promote-into-management.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
     "retired": false,
     "done": false
   },
@@ -31038,6 +31145,165 @@
     "done": false
   },
   {
+    "id": "WF-RUN-027",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Derive proposal approval and supersession at Start instead of trusting caller flags",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-023",
+      "INTENT-005",
+      "INTENT-006",
+      "APPROVAL-002"
+    ],
+    "test": "TestTodo_WF_RUN_027",
+    "test_matrix": {
+      "FAULT": "TestTodo_WF_RUN_027_Fault",
+      "GOLDEN": "TestTodo_WF_RUN_027_Golden",
+      "MUTATION": "TestTodo_WF_RUN_027_Mutation",
+      "PRIMARY": "TestTodo_WF_RUN_027",
+      "SECURITY": "TestTodo_WF_RUN_027_Security"
+    },
+    "red": "a caller passing `Approved: true` with an invented approval ref, or `Superseded: false` for a revision the proposal store has superseded, starts an instance; or an approval whose bound proposal digest differs from the revision being started is accepted",
+    "green": "`Start` resolves the revision's approval decisions and supersession through `ProposalFacts` and `ApprovalFacts` ports (no booleans on `StartRequest`), refuses `CodeUnapprovedProposal` / `CodeSupersededProposal` / `CodeApprovalBindingMismatch` from stored facts, and records the approval decision ids it relied on in the start receipt",
+    "refactor": "the ports are consumer-owned in `internal/workflow/runtime`; adapters over `internal/intent/approval` and the proposal store live in `internal/platform/execution`",
+    "refs": "[workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": false,
+    "evidence": "`TestTodo_WF_RUN_027`, `TestTodo_WF_RUN_027_Golden`, `TestTodo_WF_RUN_027_Fault`, `TestTodo_WF_RUN_027_Security`, `TestTodo_WF_RUN_027_Mutation` in `internal/workflow/runtime` PASS (`ProposalFacts` and `ApprovalFacts` ports; `Start` refuses `CodeUnapprovedProposal`, `CodeSupersededProposal` and `CodeApprovalBindingMismatch` from stored facts and records the approval decision ids in the start receipt; `go test -count=1 ./internal/workflow/runtime/` on windows/arm64 (Go 1.26.3)); not complete: the caller-asserted `ProposalBinding.Approved`, `ApprovalRef` and `Superseded` remain as a documented legacy fallback used when no facts ports are supplied, because `internal/intent/app/execute_intent.go` still constructs them and no durable approval-decision table exists; only in-memory fact adapters ship, so a Postgres `ProposalFacts` adapter (revision lookup by digest) and an approval store are still needed before the fallback can be deleted; branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WF-RUN-028",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Reload the persisted WorkItem on Resume and refuse evidence that does not match storage",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-025",
+      "WORK-001",
+      "WORK-003"
+    ],
+    "test": "TestTodo_WF_RUN_028",
+    "test_matrix": {
+      "FAULT": "TestTodo_WF_RUN_028_Fault",
+      "MUTATION": "TestTodo_WF_RUN_028_Mutation",
+      "PRIMARY": "TestTodo_WF_RUN_028",
+      "RACE": "TestTodo_WF_RUN_028_Race",
+      "SECURITY": "TestTodo_WF_RUN_028_Security"
+    },
+    "red": "a hand-built or stale `WorkItem` whose status, item version, completer or completed output digest differ from the stored row advances the instance; or a completion recorded for another instance, node or attempt is accepted",
+    "green": "`Resume` loads the item by id inside the advancement transaction, compares status, item version, completer, completed output digest and instance/node/attempt binding, and refuses `CodeWorkItemDrift` on any difference; the outcome fed to the frontier is derived from the stored row, not the request",
+    "refactor": "`ResumeRequest` carries a work-item id and an expected item version, not the item",
+    "refs": "[human work](specs/human-work-forms-and-rules.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_028`, `TestTodo_WF_RUN_028_Race` (concurrent resumes on one work item advance exactly once), `TestTodo_WF_RUN_028_Fault`, `TestTodo_WF_RUN_028_Security` (cross-tenant resume refused), `TestTodo_WF_RUN_028_Mutation` in `internal/workflow/execute` (`ResumeRequest` carries work-item id and expected item version; the stored row is loaded through the `WorkItemReader` port inside the advancement transaction and status, item version, completer, completed output digest and instance, node and attempt binding are compared; any difference is `ErrWorkItemDrift` before any advance; `workitem.Store` satisfies the port structurally); `go test -count=1 ./internal/workflow/execute/... ./test/workflow/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WF-RUN-029",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Recheck proposal currency, approval validity and control snapshots at every park boundary",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-027",
+      "WF-RUN-028",
+      "GOVERN-003",
+      "APPROVAL-005"
+    ],
+    "test": "TestTodo_WF_RUN_029",
+    "test_matrix": {
+      "FAULT": "TestTodo_WF_RUN_029_Fault",
+      "GOLDEN": "TestTodo_WF_RUN_029_Golden",
+      "MUTATION": "TestTodo_WF_RUN_029_Mutation",
+      "PRIMARY": "TestTodo_WF_RUN_029",
+      "PROPERTY": "TestTodo_WF_RUN_029_Property",
+      "SECURITY": "TestTodo_WF_RUN_029_Security"
+    },
+    "red": "an instance whose proposal was superseded, whose approval was invalidated by a material change, or whose pinned control snapshot no longer revalidates while parked resumes and reaches COMPLETE; or an immaterial change blocks a resume",
+    "green": "every `Resume` and the terminal write revalidate the pinned proposal digest, approval decisions and control snapshots through the materiality rule before advancing; a material change moves the instance to `BLOCKED` with a typed reason and a repair or supersession route, an immaterial one is recorded and continues",
+    "refactor": "currency checks are one `CurrencyGuard` invoked by the driver, never duplicated in step packages",
+    "refs": "[workflow runtime](specs/workflow-runtime.md), [materiality](specs/canonical-envelope-and-digest.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_029`, `TestTodo_WF_RUN_029_Property`, `TestTodo_WF_RUN_029_Golden` (pure checks of `CurrencyGuard.Check`), `TestTodo_WF_RUN_029_Fault`, `TestTodo_WF_RUN_029_Security`, `TestTodo_WF_RUN_029_Mutation` in `internal/workflow/execute` (`CurrencyGuard` runs inside every Resume advancement transaction and before the terminal write: a materially superseded proposal or a mismatched approval binding moves the instance to BLOCKED through the existing `RecordInstanceState` path and returns `ErrCurrencyBlocked`; a pure control revalidation with no material change never blocks); `go test -count=1 ./internal/workflow/execute/... ./test/workflow/ ./test/bootstrap/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WF-RUN-030",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Materialize the terminal business fact with the END output and approver evidence",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-025",
+      "TX-006",
+      "LEDGER-005",
+      "WORK-010"
+    ],
+    "test": "TestTodo_WF_RUN_030",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_WF_RUN_030_Golden",
+      "INTEGRATION": "TestTodo_WF_RUN_030_Integration",
+      "MUTATION": "TestTodo_WF_RUN_030_Mutation",
+      "PRIMARY": "TestTodo_WF_RUN_030",
+      "SECURITY": "TestTodo_WF_RUN_030_Security"
+    },
+    "red": "the terminal `ledger_event` payload carries only identifiers, drops the END node's output digest, or omits worker, target placement, effective date and the approval and task evidence refs; or the harness asserts a row count without reading the payload, the outbox message and the projection checkpoint",
+    "green": "the `TerminalWriteRequest` carries the END output and its digest; the `PromotionOutcome` event names worker, placement, effective date, approval decision ids and task submission ids alongside the proposal and plan digests; the harness asserts payload, outbox and checkpoint content and re-enters the terminal idempotency guard on replay",
+    "refactor": "the payload schema is registered once and versioned; the harness is the golden for the event shape",
+    "refs": "[workflow runtime](specs/workflow-runtime.md), [ledger](specs/canonical-envelope-and-digest.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_030` (ledger payload fields, outbox row byte-equality, projection checkpoint sequence), `TestTodo_WF_RUN_030_Golden` (exact field set of `hcmnext.workflow.PromotionOutcome/v2`: end node and output digest, worker ref, target placement, effective date, approval decision ids, task submission ids, proposal and plan digests), `TestTodo_WF_RUN_030_Integration` (one join across ledger, checkpoint and outbox), `TestTodo_WF_RUN_030_Security` (cross-tenant isolation), `TestTodo_WF_RUN_030_Mutation` (a direct second `LedgerTerminalWriter.Write` bypassing the runtime receipt appends nothing, proving the ledger idempotency key is an independent second guard) in `test/workflow`; `TerminalWriteRequest` carries the END node id and output digest; `go test -count=1 ./test/workflow/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WF-RUN-031",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Bound advancement replay by request digest and resulting instance version",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-025"
+    ],
+    "test": "TestAdvanceRejectsAnOldReceiptAfterLaterProgress",
+    "test_matrix": {
+      "FAULT": "TestTodo_WF_RUN_031_Fault",
+      "MUTATION": "TestTodo_WF_RUN_031_Mutation",
+      "PRIMARY": "TestAdvanceRejectsAnOldReceiptAfterLaterProgress",
+      "RACE": "TestTodo_WF_RUN_031_Race"
+    },
+    "red": "a resubmitted advancement whose recorded node outcome still matches is replayed as success after a later node has moved the instance; or two different requests at the same expected version share a receipt",
+    "green": "`Advance` persists a `workflow_advancement_receipt` keyed by node, attempt and expected version with the full request digest, replays only when the digest matches and the instance is at the receipt's resulting version, and refuses `CONFLICT_STALE_INSTANCE` otherwise",
+    "refactor": "the recorded-attempt comparison is removed; the receipt table is the single replay authority",
+    "refs": "[workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": false,
+    "evidence": "`TestAdvanceRejectsAnOldReceiptAfterLaterProgress` in `internal/workflow/runtime` (advancement receipt keyed by node, attempt and expected version with the full request digest; replay only while the instance sits at the receipt's resulting version, `CONFLICT_STALE_INSTANCE` otherwise; the recorded-attempt comparison removed; authored by the concurrent session and adopted here); `go test -count=1 ./internal/workflow/runtime/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); not complete: `TestTodo_WF_RUN_031_Race`, `TestTodo_WF_RUN_031_Fault` and `TestTodo_WF_RUN_031_Mutation` not yet written; branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WF-RUN-032",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Name parked continuations truthfully on the wire",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-025"
+    ],
+    "test": "TestTodo_WF_RUN_032",
+    "test_matrix": {
+      "CONFORMANCE": "TestTodo_WF_RUN_032_Conformance",
+      "GOLDEN": "TestTodo_WF_RUN_032_Golden",
+      "PRIMARY": "TestTodo_WF_RUN_032"
+    },
+    "red": "`ExecutionReceipt.parked_continuations` carries work-item ids under a continuation name, or a receipt omits the continuation ids and kinds the instance is waiting on",
+    "green": "the receipt carries `parked_continuations` (continuation id, kind, target node) and `work_items` (work-item id, kind, node) as separate typed lists over both transports",
+    "refactor": "the wire receipt is rendered from `execute.Result` by one adapter",
+    "refs": "[workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_032` (typed `parked_continuation_refs` and `work_items` lists cross-checked against the stored WorkItem), `TestTodo_WF_RUN_032_Golden` (protojson field names; neither list carries the other's fields), `TestTodo_WF_RUN_032_Conformance` (protoreflect descriptor check of field numbers, kinds and message types) in `test/bootstrap`; `ExecutionReceipt.parked_continuations` kept as a deprecated field for compatibility; `go test -count=1 ./test/bootstrap/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
     "id": "WF-STEP-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -31713,6 +31979,33 @@
     "refs": "[Evidence model](data/models/kernel-governance-and-evidence.md), [workflow context](workflows/_engine/workflow-context-contract.md)",
     "retired": false,
     "done": false
+  },
+  {
+    "id": "WORK-010",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Persist approval decision and task submission content, not only their digests",
+    "section": "24. Human decision safety and continuity",
+    "depends": [
+      "WORK-001",
+      "WF-STEP-003",
+      "WF-STEP-004",
+      "APPROVAL-002"
+    ],
+    "test": "TestTodo_WORK_010",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_WORK_010_Golden",
+      "MUTATION": "TestTodo_WORK_010_Mutation",
+      "PRIMARY": "TestTodo_WORK_010",
+      "SECURITY": "TestTodo_WORK_010_Security"
+    },
+    "red": "a completed approval or task work item stores only a digest and a principal id, so reason, authority decision ref, rendered-projection digest, control snapshots or the typed submission fields are unrecoverable; or stored content can be rewritten after completion",
+    "green": "an append-only `work_item_decision` record stores the full typed decision or submission (digest-verified against the work item's completed output digest) in the same transaction as completion, readable through the inspector and admin API under the work item's redaction rules",
+    "refactor": "the record is the artifact the inspector's output ref points at; digests stay on the work item",
+    "refs": "[human work](specs/human-work-forms-and-rules.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_WORK_010`, `TestTodo_WORK_010_Golden`, `TestTodo_WORK_010_Security`, `TestTodo_WORK_010_Mutation` in `internal/humanwork/workitem` (migration `00022_work_item_decision.sql`: append-once `work_item_decision` keyed by (tenant, work item) with the forbid_mutation trigger, registered in `definitions/storage/storage-disposition.yaml`; `RecordDecision` refuses a body whose digest differs from the item's completed output digest, a non-COMPLETED item or a kind mismatch; `steps/approval.Complete` and `steps/task.Submit` record the full typed decision or submission in the completion transaction); `go test -count=1 ./internal/humanwork/... ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WORKER-LIFE-001",

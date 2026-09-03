@@ -508,12 +508,12 @@ this README remains human-authored.
 
 ### Preferred house libraries
 
-| Candidate | Current status | Named fallback |
-| --- | --- | --- |
-| Go | PROJECT CORE; product language/toolchain | Go standard library |
-| GWC / GoWebComponents | QUALIFIED; selected renderer (UX-QUAL-001) | Go server-rendered HTML with progressive enhancement |
-| grpcbridge | PREFERRED; not admitted; current edge uses connect-go v1.20.0 | connect-go (v1.20.0) |
-| SchemaFlux | DISQUALIFIED; deterministic fallback selected | protoc-style deterministic Go compiler |
+| Candidate             | Current status                                                | Named fallback                                       |
+| --------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
+| Go                    | PROJECT CORE; product language/toolchain                      | Go standard library                                  |
+| GWC / GoWebComponents | QUALIFIED; selected renderer (UX-QUAL-001)                    | Go server-rendered HTML with progressive enhancement |
+| grpcbridge            | PREFERRED; not admitted; current edge uses connect-go v1.20.0 | connect-go (v1.20.0)                                 |
+| SchemaFlux            | DISQUALIFIED; deterministic fallback selected                 | protoc-style deterministic Go compiler               |
 
 ### Package and dependency shape
 
@@ -539,73 +539,73 @@ Go product core (github.com/monstercameron/hcm-next)
 └── replaceable mechanics (versions and roles below)
 ```
 
-| Module | Version | Role | Direct | Semantic owner |
-| --- | --- | --- | --- | --- |
-| `connectrpc.com/connect` | `v1.20.0` | `INFRASTRUCTURE_MECHANIC` | direct | experience-and-transport |
-| `github.com/BurntSushi/toml` | `v1.4.1-0.20240526193622-a339e1f7089c` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/cenkalti/backoff/v5` | `v5.0.3` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `github.com/cespare/xxhash/v2` | `v2.3.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `github.com/cockroachdb/apd/v3` | `v3.2.3` | `INFRASTRUCTURE_MECHANIC` | direct | kernel |
-| `github.com/fergusstrange/embedded-postgres` | `v1.34.0` | `DEV_TEST_ONLY` | direct | platform-foundation |
-| `github.com/fxamacker/cbor/v2` | `v2.9.0` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `github.com/go-logr/logr` | `v1.4.4` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `github.com/go-logr/stdr` | `v1.2.2` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `github.com/google/uuid` | `v1.6.0` | `INFRASTRUCTURE_MECHANIC` | direct | kernel |
-| `github.com/grpc-ecosystem/grpc-gateway/v2` | `v2.30.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `github.com/jackc/pgpassfile` | `v1.0.0` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/jackc/pgservicefile` | `v0.0.0-20240606120523-5a60cdf6a761` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/jackc/pgx/v5` | `v5.10.0` | `INFRASTRUCTURE_MECHANIC` | direct | data-and-ledger |
-| `github.com/jackc/puddle/v2` | `v2.2.2` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/joho/godotenv` | `v1.5.1` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `github.com/lib/pq` | `v1.10.9` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/mfridman/interpolate` | `v0.0.2` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger |
-| `github.com/monstercameron/GoWebComponents/v5` | `v5.0.1` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `github.com/monstercameron/schemaflux` | `v1.2.0` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `github.com/pressly/goose/v3` | `v3.28.0` | `INFRASTRUCTURE_MECHANIC` | direct | data-and-ledger |
-| `github.com/rogpeppe/go-internal` | `v1.16.0` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `github.com/sashabaranov/go-openai` | `v1.20.4` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `github.com/sethvargo/go-retry` | `v0.4.0` | `INFRASTRUCTURE_MECHANIC` | indirect | operations-and-assurance |
-| `github.com/x448/float16` | `v0.8.4` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `github.com/xi2/xz` | `v0.0.0-20171230120015-48954b6210f8` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `github.com/yuin/goldmark` | `v1.7.13` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `go.opentelemetry.io/auto/sdk` | `v1.2.1` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/exporters/otlp/otlptrace` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/exporters/stdout/stdouttrace` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/metric` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/sdk` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/sdk/metric` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/otel/trace` | `v1.46.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.opentelemetry.io/proto/otlp` | `v1.11.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `go.uber.org/multierr` | `v1.11.0` | `INFRASTRUCTURE_MECHANIC` | indirect | operations-and-assurance |
-| `golang.org/x/exp/typeparams` | `v0.0.0-20231108232855-2478ac86f678` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `golang.org/x/mod` | `v0.38.0` | `DEV_TEST_ONLY` | direct | platform-foundation |
-| `golang.org/x/net` | `v0.58.0` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `golang.org/x/sync` | `v0.22.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `golang.org/x/sys` | `v0.47.0` | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation |
-| `golang.org/x/text` | `v0.41.0` | `INFRASTRUCTURE_MECHANIC` | direct | experience-and-transport |
-| `golang.org/x/tools` | `v0.48.0` | `DEV_TEST_ONLY` | indirect | platform-foundation |
-| `google.golang.org/genproto/googleapis/api` | `v0.0.0-20260819154853-08b0e4226688` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `google.golang.org/genproto/googleapis/rpc` | `v0.0.0-20260831171406-18b4a7587f8a` | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `google.golang.org/grpc` | `v1.83.2` | `INFRASTRUCTURE_MECHANIC` | direct | experience-and-transport |
-| `google.golang.org/grpc/cmd/protoc-gen-go-grpc` | `v1.6.2` | `DEV_TEST_ONLY` | indirect | experience-and-transport |
-| `google.golang.org/protobuf` | `v1.36.12` | `INFRASTRUCTURE_MECHANIC` | direct | experience-and-transport |
-| `gopkg.in/yaml.v3` | `v3.0.1` | `INFRASTRUCTURE_MECHANIC` | direct | platform-foundation |
-| `honnef.co/go/tools` | `v0.8.1` | `DEV_TEST_ONLY` | indirect | platform-foundation |
+| Module                                                              | Version                                | Role                      | Direct   | Semantic owner           |
+| ------------------------------------------------------------------- | -------------------------------------- | ------------------------- | -------- | ------------------------ |
+| `connectrpc.com/connect`                                            | `v1.20.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `github.com/BurntSushi/toml`                                        | `v1.4.1-0.20240526193622-a339e1f7089c` | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/cenkalti/backoff/v5`                                    | `v5.0.3`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `github.com/cespare/xxhash/v2`                                      | `v2.3.0`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `github.com/cockroachdb/apd/v3`                                     | `v3.2.3`                               | `INFRASTRUCTURE_MECHANIC` | direct   | kernel                   |
+| `github.com/fergusstrange/embedded-postgres`                        | `v1.34.0`                              | `DEV_TEST_ONLY`           | direct   | platform-foundation      |
+| `github.com/fxamacker/cbor/v2`                                      | `v2.9.0`                               | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `github.com/go-logr/logr`                                           | `v1.4.4`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `github.com/go-logr/stdr`                                           | `v1.2.2`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `github.com/google/uuid`                                            | `v1.6.0`                               | `INFRASTRUCTURE_MECHANIC` | direct   | kernel                   |
+| `github.com/grpc-ecosystem/grpc-gateway/v2`                         | `v2.30.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `github.com/jackc/pgpassfile`                                       | `v1.0.0`                               | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/jackc/pgservicefile`                                    | `v0.0.0-20240606120523-5a60cdf6a761`   | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/jackc/pgx/v5`                                           | `v5.10.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | data-and-ledger          |
+| `github.com/jackc/puddle/v2`                                        | `v2.2.2`                               | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/joho/godotenv`                                          | `v1.5.1`                               | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/lib/pq`                                                 | `v1.10.9`                              | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/mfridman/interpolate`                                   | `v0.0.2`                               | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
+| `github.com/monstercameron/GoWebComponents/v5`                      | `v5.0.1`                               | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `github.com/monstercameron/schemaflux`                              | `v1.2.0`                               | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/pressly/goose/v3`                                       | `v3.28.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | data-and-ledger          |
+| `github.com/rogpeppe/go-internal`                                   | `v1.16.0`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/sashabaranov/go-openai`                                 | `v1.20.4`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/sethvargo/go-retry`                                     | `v0.4.0`                               | `INFRASTRUCTURE_MECHANIC` | indirect | operations-and-assurance |
+| `github.com/x448/float16`                                           | `v0.8.4`                               | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `github.com/xi2/xz`                                                 | `v0.0.0-20171230120015-48954b6210f8`   | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/yuin/goldmark`                                          | `v1.7.13`                              | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `go.opentelemetry.io/auto/sdk`                                      | `v1.2.1`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel`                                          | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/otlp/otlptrace`                 | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp`   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/stdout/stdouttrace`             | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/metric`                                   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/sdk`                                      | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/sdk/metric`                               | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/trace`                                    | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/proto/otlp`                                    | `v1.11.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.uber.org/multierr`                                              | `v1.11.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | operations-and-assurance |
+| `golang.org/x/exp/typeparams`                                       | `v0.0.0-20231108232855-2478ac86f678`   | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `golang.org/x/mod`                                                  | `v0.38.0`                              | `DEV_TEST_ONLY`           | direct   | platform-foundation      |
+| `golang.org/x/net`                                                  | `v0.58.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `golang.org/x/sync`                                                 | `v0.22.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `golang.org/x/sys`                                                  | `v0.47.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `golang.org/x/text`                                                 | `v0.41.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `golang.org/x/tools`                                                | `v0.48.0`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `google.golang.org/genproto/googleapis/api`                         | `v0.0.0-20260819154853-08b0e4226688`   | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `google.golang.org/genproto/googleapis/rpc`                         | `v0.0.0-20260831171406-18b4a7587f8a`   | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `google.golang.org/grpc`                                            | `v1.83.2`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `google.golang.org/grpc/cmd/protoc-gen-go-grpc`                     | `v1.6.2`                               | `DEV_TEST_ONLY`           | indirect | experience-and-transport |
+| `google.golang.org/protobuf`                                        | `v1.36.12`                             | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `gopkg.in/yaml.v3`                                                  | `v3.0.1`                               | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `honnef.co/go/tools`                                                | `v0.8.1`                               | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
 
 ### Prohibited semantic frameworks
 
 These families are generated from `definitions/architecture/prohibited-frameworks.yaml`; infrastructure mechanics may not become semantic authority.
 
-| Rule | Category | Disposition | Import prefixes |
-| --- | --- | --- | --- |
-| `orm` | ORM | PROHIBITED | `gorm.io/gorm`, `entgo.io/ent` |
-| `workflow` | WORKFLOW_ENGINE | PROHIBITED | `go.temporal.io/sdk`, `github.com/camunda/camunda-platform` |
-| `rules` | CUSTOMER_RULE_RUNTIME | PROHIBITED | `go.starlark.net`, `github.com/yuin/gopher-lua` |
-| `broker` | PHASE1_BROKER | PHASE1_PROHIBITED | `github.com/IBM/sarama`, `github.com/confluentinc/confluent-kafka-go`, `github.com/segmentio/kafka-go` |
-| `provider` | PROVIDER_SDK | ADAPTER_ONLY | `cloud.google.com/go`, `github.com/Azure/azure-sdk-for-go`, `github.com/aws/aws-sdk-go-v2` |
+| Rule       | Category              | Disposition       | Import prefixes                                                                                        |
+| ---------- | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `orm`      | ORM                   | PROHIBITED        | `gorm.io/gorm`, `entgo.io/ent`                                                                         |
+| `workflow` | WORKFLOW_ENGINE       | PROHIBITED        | `go.temporal.io/sdk`, `github.com/camunda/camunda-platform`                                            |
+| `rules`    | CUSTOMER_RULE_RUNTIME | PROHIBITED        | `go.starlark.net`, `github.com/yuin/gopher-lua`                                                        |
+| `broker`   | PHASE1_BROKER         | PHASE1_PROHIBITED | `github.com/IBM/sarama`, `github.com/confluentinc/confluent-kafka-go`, `github.com/segmentio/kafka-go` |
+| `provider` | PROVIDER_SDK          | ADAPTER_ONLY      | `cloud.google.com/go`, `github.com/Azure/azure-sdk-for-go`, `github.com/aws/aws-sdk-go-v2`             |
 
 <!-- END GENERATED LIBRARY STRATEGY -->
 

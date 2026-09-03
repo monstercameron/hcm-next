@@ -15,11 +15,14 @@ routing:
   in_process_contract: "tools/quality/toxiproxykit"
   live_faults: "TOOL-014 ephemeral integration environment with a digest-pinned injector"
 evidence:
-  - {test: TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule, package: tools/quality/toxiproxykit}
-  - {test: TestTodo_TOOL_022_Golden, package: tools/quality/toxiproxykit}
-  - {test: TestTodo_TOOL_022_Race, package: tools/quality/toxiproxykit}
-  - {test: TestTodo_TOOL_022_Integration, package: tools/quality/toxiproxykit}
-  - {test: TestTodo_TOOL_022_Fault, package: tools/quality/toxiproxykit}
-  - {test: TestTodo_TOOL_022_Conformance, package: tools/quality/toxiproxykit}
+  - {
+      test: TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule,
+      package: tools/quality/toxiproxykit,
+    }
+  - { test: TestTodo_TOOL_022_Golden, package: tools/quality/toxiproxykit }
+  - { test: TestTodo_TOOL_022_Race, package: tools/quality/toxiproxykit }
+  - { test: TestTodo_TOOL_022_Integration, package: tools/quality/toxiproxykit }
+  - { test: TestTodo_TOOL_022_Fault, package: tools/quality/toxiproxykit }
+  - { test: TestTodo_TOOL_022_Conformance, package: tools/quality/toxiproxykit }
 command: "go test -count=1 ./tools/quality/toxiproxykit/..."
 recorded: "2026-09-03"

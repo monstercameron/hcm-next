@@ -7,8 +7,20 @@ verdict: REJECT
 runtime_dependency_graph_unchanged: true
 decision: "REJECT: candidates are absent; no OIDC/OAuth2 adapter is admitted until the contract below is exercised."
 scope:
-  covers: ["OIDC discovery and ID-token verification", "OAuth2 authorization-code exchange", "PKCE/state/nonce handling", "JWKS refresh and rotation"]
-  excludes: ["authorization policy", "role or grant derivation", "provider claims as stable principal identity", "SAML"]
+  covers:
+    [
+      "OIDC discovery and ID-token verification",
+      "OAuth2 authorization-code exchange",
+      "PKCE/state/nonce handling",
+      "JWKS refresh and rotation",
+    ]
+  excludes:
+    [
+      "authorization policy",
+      "role or grant derivation",
+      "provider claims as stable principal identity",
+      "SAML",
+    ]
 requirements:
   issuer: "exact configured issuer URL; discovery and token issuer must match"
   audience: "exact configured client audience"
@@ -18,9 +30,9 @@ requirements:
   key_refresh: "bounded refresh on unknown kid; stale keys and refresh failures fail closed"
   normalization: "emit only an owned normalized authentication result"
 evidence:
-  - {test: TestOIDCBackendQualification, package: tools/quality/oidckit}
-  - {test: TestTodo_LIB_010_Conformance, package: tools/quality/oidckit}
-  - {test: TestTodo_LIB_010_Golden, package: tools/quality/oidckit}
-  - {test: TestTodo_LIB_010_Integration, package: tools/quality/oidckit}
-  - {test: TestTodo_LIB_010_Security, package: tools/quality/oidckit}
+  - { test: TestOIDCBackendQualification, package: tools/quality/oidckit }
+  - { test: TestTodo_LIB_010_Conformance, package: tools/quality/oidckit }
+  - { test: TestTodo_LIB_010_Golden, package: tools/quality/oidckit }
+  - { test: TestTodo_LIB_010_Integration, package: tools/quality/oidckit }
+  - { test: TestTodo_LIB_010_Security, package: tools/quality/oidckit }
 command: go test -count=1 ./tools/quality/oidckit

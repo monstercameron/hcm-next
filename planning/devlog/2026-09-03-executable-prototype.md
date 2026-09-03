@@ -224,6 +224,96 @@ documented as a cross-system suite, and the signed P1A manifest was extended
 to migrations 00019 through 00021 and re-signed with the fixture key, with the
 evidence report regenerated from the checked-in results.
 
+## 9. Review findings and the hardening plan
+
+A read-only review of the first executed run, from inputs to outputs and
+observability, found that the run is mechanically sound and governance-weak.
+Findings, most serious first, each now tracked as a todo:
+
+- Start trusts caller-asserted `Approved` and `Superseded` flags and only
+  checks that an approval ref is non-empty; nothing consults the approval or
+  proposal stores (WF-RUN-027).
+- Resume validates the work item it is handed for shape and binding but never
+  reloads the stored row, so a stale or hand-built item can advance the
+  instance (WF-RUN-028).
+- Nothing rechecks proposal currency, approval validity or the pinned control
+  snapshots while an instance is parked; a supersession, an invalidated
+  approval or a policy change during the park is invisible to the run
+  (WF-RUN-029; the pre-effect halves already exist as GOVERN-003 and
+  APPROVAL-005).
+- The terminal ledger event is an identifier envelope: no worker, placement,
+  effective date or approver evidence, and the END node's output digest is
+  discarded before the write; the harness asserts a row count and never reads
+  the payload, the outbox or the checkpoint (WF-RUN-030).
+- Two replay designs exist for `Advance`: the committed recorded-attempt
+  comparison, which the migration's own comment shows accepts a stale replay
+  after later progress, and the uncommitted advancement-receipt design keyed
+  by request digest and resulting version (WF-RUN-031, adopting the latter).
+- Approval decisions and task submissions persist only as digests and a
+  principal id; reason, authority ref and submission fields are unrecoverable
+  (WORK-010).
+- The engine emits no trace ids, spans, logs or metrics; the only spans are
+  the transport interceptors, and ExecuteIntent records evidence only for its
+  re-simulation, never for gate refusals, approvals, submissions or the
+  terminal write (OBS-023, OBS-024).
+- The inspector has no caller outside tests, so an operator cannot see a run
+  today; four of its eight stages render empty for this workflow shape and an
+  empty governance ref is indistinguishable from an unrecorded one
+  (ADMIN-008).
+- The harness executes a hand-built demo graph, not the shipped promotion
+  reference, which is still simulate-only (PROMO-009). The wire receipt names
+  work-item ids under `parked_continuations` (WF-RUN-032).
+
+Cancellability, reverts and undo were reviewed in the same pass: the instance
+state machine already declares CANCELLING, CANCELLED, PAUSE_REQUESTED, PAUSED,
+BLOCKED, QUARANTINED and SUPERSEDED, and nothing invokes them (WF-RUN-008,
+WF-RUN-010, WF-RUN-015). There is no undo anywhere by design: the ledger is
+append-only and corrections are CORRECTION events pointing at what they
+correct (LEDGER-005 exists, TX-007 does not), so reverting a completed
+promotion means a compensating transaction through COMPENSATE (WF-STEP-016)
+or RepairPlan execution (WF-RUN-016, REPAIR-002), neither built. The order
+chosen: currency rechecks and stored-fact derivation first, then governed
+cancellation at park boundaries, then compensation.
+
+### 9a. Hardening pass outcome (paused here)
+
+Four fix lanes ran against the findings above; the owner paused the effort
+after this pass. State at the pause, all uncommitted but staged in the index:
+
+- Landed and ticked: WF-RUN-028 (Resume reloads the stored work item and
+  refuses drift), WF-RUN-029 (currency guard at every park boundary and
+  before the terminal write; a material change moves the instance to
+  BLOCKED), WF-RUN-030 (terminal event carries the END output digest, worker,
+  placement, effective date and the approval and task decision ids; harness
+  asserts payload, outbox and checkpoint and re-enters the ledger idempotency
+  guard on a direct replay), WF-RUN-032 (typed continuation and work-item
+  lists on the wire receipt), WORK-010 (append-once `work_item_decision`
+  table, migration 00022, holding the full typed decision or submission),
+  ADMIN-008 (`GetWorkflowInstance` on the admin service and `hcmctl instance`
+  with gap kinds distinguishing unrecorded from redacted from absent).
+- Partial: WF-RUN-027 (stored-fact ports exist and are enforced when
+  supplied, but the caller-asserted approval flags remain as a documented
+  fallback because no durable approval store exists and the intent service
+  still constructs them); WF-RUN-031 (the concurrent session's
+  advancement-receipt replay design is adopted and its regression test
+  passes; the race, fault and mutation tests are not written).
+- Stopped by the owner mid-verification: OBS-023 and OBS-024. The
+  instrumentation and evidence ports, the OTel-backed adapter, the in-memory
+  test exporter and the evidence vocabulary are on disk and the tree builds
+  and vets clean, but their integration tests were not re-run after the last
+  fix and neither todo is ticked. Resume by running the two packages'
+  test suites, then `test/workflow` and `test/bootstrap`.
+- Not started: PROMO-009 (execute the real promotion reference), cancellation
+  (WF-RUN-010), pause (WF-RUN-008), compensation (WF-STEP-016), correction
+  (TX-007).
+
+Two facts for whoever resumes. The concurrent session keeps generating
+`*_Smoke` stub tests and new packages that fail the library firewall
+(`internal/platform/cache`, `internal/transport/eastwest`, `internal/i18n`,
+`internal/resource/reservation`, `internal/operations/reliability`); those
+failures are not this pass's. And `TestTodo_ARCH_GO_009_Integration` fails on
+that session's new engines lacking `Version` and `Explain`.
+
 ## 8. Numbers
 
 | Measure                                         | Value                                    |
