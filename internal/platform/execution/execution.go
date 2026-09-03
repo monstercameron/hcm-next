@@ -1,4 +1,26 @@
-package cell
+// Package execution composes the real caller-driven promotion execution
+// driver for IntentService.ExecuteIntent's P1B execution-authority gate.
+//
+// It is a composition-root helper, not a business layer: it wires together
+// internal/workflow/execute's durable driver, internal/workflow/prototype's
+// bounded promote_worker approval graph, internal/humanwork/workitem's real
+// store and internal/transaction/idempotency's guard, and adapts the result
+// to internal/intent/app.ProposalExecutor. That composition previously lived
+// in internal/transport/cell, which put transport -> workflow and
+// transport -> transaction edges into
+// definitions/architecture/package-dependency-policy.yaml's ranked layer
+// graph that transport (the experience/API adaptation layer) has no
+// business asserting. internal/platform is the process-bootstrap/shared-
+// plumbing root repository-layout.yaml already describes as importable by
+// every command; package-dependency-policy.yaml does not rank it as a
+// business layer at all (like cmd/* itself), which is exactly what a
+// composition-root helper needs: it is wiring, not a layer with a direction
+// invariant to enforce against it.
+//
+// Callers are command composition roots (cmd/hcmnext's
+// composeExecutionAuthority) and cross-package integration tests
+// (test/bootstrap) that need the same real wiring a command would build.
+package execution
 
 import (
 	"context"
@@ -58,9 +80,6 @@ type PromotionExecutionConfig struct {
 	Retention idempotency.RetentionPolicy
 	// Clock supplies the recording time. Nil means time.Now in UTC.
 	Clock func() time.Time
-	// CellID names the cell runtime.StartRequest.CellID records. Empty means
-	// "cell-local".
-	CellID string
 	// ApproverPrincipalID is who the one approval WorkItem this workflow
 	// raises is routed to. Empty means [defaultApproverPrincipalID].
 	ApproverPrincipalID string
@@ -98,10 +117,10 @@ type PromotionExecution struct {
 // promotion outcome as a governed ledger fact through cfg.Terminal.
 func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, error) {
 	if cfg.DB == nil {
-		return nil, fmt.Errorf("transport cell: promotion execution needs a database Beginner")
+		return nil, fmt.Errorf("platform execution: promotion execution needs a database Beginner")
 	}
 	if cfg.Terminal == nil {
-		return nil, fmt.Errorf("transport cell: promotion execution needs a TerminalWriter")
+		return nil, fmt.Errorf("platform execution: promotion execution needs a TerminalWriter")
 	}
 	guard := cfg.Guard
 	if guard == nil {
@@ -126,7 +145,7 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 
 	plan, err := prototype.CompileApproval()
 	if err != nil {
-		return nil, fmt.Errorf("transport cell: compile the promotion approval workflow: %w", err)
+		return nil, fmt.Errorf("platform execution: compile the promotion approval workflow: %w", err)
 	}
 	versions := version.NewRegistry()
 	at := clock()
@@ -135,14 +154,14 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 			SemanticVersion: "1.0.0", PublishedAt: at, PublishedBy: "cmd/hcmnext:execution-authority",
 		})
 	if err != nil {
-		return nil, fmt.Errorf("transport cell: publish the promotion approval workflow: %w", err)
+		return nil, fmt.Errorf("platform execution: publish the promotion approval workflow: %w", err)
 	}
 	if _, err := version.Activate(versions, published.CompiledPlanDigest, version.ActivationEvidence{
 		Authorized: true, ApprovedBy: "cmd/hcmnext:execution-authority",
 		Authority: "authority:execution-authority-flag", ApprovedAt: at,
 		ReviewedPlanDigest: published.CompiledPlanDigest, TestsPassed: true,
 	}); err != nil {
-		return nil, fmt.Errorf("transport cell: activate the promotion approval workflow: %w", err)
+		return nil, fmt.Errorf("platform execution: activate the promotion approval workflow: %w", err)
 	}
 
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
@@ -161,7 +180,7 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 		Clock:     clock,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("transport cell: build the promotion execution driver: %w", err)
+		return nil, fmt.Errorf("platform execution: build the promotion execution driver: %w", err)
 	}
 
 	return &PromotionExecution{
@@ -195,7 +214,7 @@ func (promotionStepRunner) Run(_ context.Context, req execute.StepRequest) (fron
 		return frontier.NodeOutcome{NodeID: req.Node.ID}, runtime.GovernanceRefs{}, nil
 	default:
 		return frontier.NodeOutcome{}, runtime.GovernanceRefs{},
-			fmt.Errorf("transport cell: promotion execution has no step for %s", req.Node.Type)
+			fmt.Errorf("platform execution: promotion execution has no step for %s", req.Node.Type)
 	}
 }
 
@@ -278,10 +297,9 @@ func (a executeDriverAdapter) Resume(ctx context.Context, req app.ExecutionResum
 
 // adaptExecutionResult projects one execute.Result onto app.ExecutionResult.
 // instanceID is passed as its already-rendered string form (rather than the
-// package.google/uuid.UUID type itself, which internal/transport/cell must
-// not import directly - LIB-002/003) because execute.Result.Start (which
-// itself carries an instance id) is only populated by Execute, never by
-// Resume.
+// google/uuid.UUID type itself, which this package must not leak past its
+// own adapter boundary) because execute.Result.Start (which itself carries
+// an instance id) is only populated by Execute, never by Resume.
 func adaptExecutionResult(result execute.Result, instanceID string) app.ExecutionResult {
 	visited := make([]string, 0, len(result.Advances))
 	for _, adv := range result.Advances {

@@ -213,7 +213,7 @@ func TestTodo_TOOL_007_Golden(t *testing.T) {
 	}
 }
 
-// TestTodo_TOOL_007_Integration runs every one of the 13 public RPCs through
+// TestTodo_TOOL_007_Integration runs every one of the 14 public RPCs through
 // both generated backends. The qualification claim is about the generated
 // client, not about one method, so a method that only works on one backend
 // has to fail something.
@@ -246,7 +246,7 @@ func TestTodo_TOOL_007_Integration(t *testing.T) {
 }
 
 // TestTodo_TOOL_007_Conformance checks that the generated clients publish
-// exactly the canonical 13-method surface under typed signatures — no
+// exactly the canonical 14-method surface under typed signatures — no
 // untyped map payload anywhere in the interface.
 func TestTodo_TOOL_007_Conformance(t *testing.T) {
 	h := newHarness(t)

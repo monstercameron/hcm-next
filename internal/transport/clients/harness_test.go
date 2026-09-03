@@ -289,6 +289,24 @@ func submitRequest() *intentsv1.SubmitIntentRequest {
 	}
 }
 
+// executeRequest returns a valid ExecuteIntent request. The transporttest
+// fixture answers it deterministically (mirroring SubmitIntent's own
+// expected-instance-version check), so this exercises the round trip
+// itself, not the real EXECUTE authority gate (internal/intent/app owns
+// that).
+func executeRequest() *intentsv1.ExecuteIntentRequest {
+	return &intentsv1.ExecuteIntentRequest{
+		IdempotencyKey:          "idem-execute-1",
+		IntentId:                transporttest.KnownIntentID,
+		ExpectedInstanceVersion: transporttest.CurrentInstanceVersion,
+		Approval: &intentsv1.ProposalApproval{
+			ProposalRevisionId: "revision-1",
+			Approved:           true,
+			ApprovalRef:        "approval-1",
+		},
+	}
+}
+
 // cancelRequest returns a CancelIntent request naming reason.
 func cancelRequest(reason string) *intentsv1.CancelIntentRequest {
 	return &intentsv1.CancelIntentRequest{
@@ -371,7 +389,7 @@ func dispositionByMethod(t testing.TB) map[string]manifest.Disposition {
 	return out
 }
 
-// methodCase is one of the 13 public RPCs, callable through either
+// methodCase is one of the 14 public RPCs, callable through either
 // generated backend with a valid canonical request.
 type methodCase struct {
 	Name        string
@@ -439,6 +457,15 @@ func (h *harness) methodCases(t testing.TB) []methodCase {
 			},
 			Connect: func(ctx context.Context, opts ...clients.CallOption) (proto.Message, error) {
 				return msgOrNil(h.connectIntent.SubmitIntent(ctx, submitRequest(), opts...))
+			},
+		},
+		{
+			Name: "ExecuteIntent", Disposition: disp("ExecuteIntent"),
+			GRPC: func(ctx context.Context, opts ...clients.CallOption) (proto.Message, error) {
+				return h.grpcIntent.ExecuteIntent(ctx, executeRequest(), opts...)
+			},
+			Connect: func(ctx context.Context, opts ...clients.CallOption) (proto.Message, error) {
+				return msgOrNil(h.connectIntent.ExecuteIntent(ctx, executeRequest(), opts...))
 			},
 		},
 		{

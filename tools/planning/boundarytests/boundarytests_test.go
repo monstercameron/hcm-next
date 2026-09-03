@@ -98,6 +98,20 @@ func TestPlaneBoundaries(t *testing.T) {
 	})
 
 	t.Run("the real layer graph matches the committed golden (regenerate with HCMNEXT_UPDATE_GOLDEN=1)", func(t *testing.T) {
+		// testdata/layer-graph.golden.txt carries one edge with no source
+		// comment support of its own (every non-empty line is compared as a
+		// real edge, so a "#"-prefixed line would itself show up as a
+		// spurious diff): "workflow -> ledger" is internal/workflow/execute/
+		// effects.LedgerTerminalWriter recording the P1B promotion driver's
+		// terminal outcome through the ledger port at its END node — the
+		// workflow layer's own legitimate governed write, not a boundary
+		// violation. It first appeared when the caller-driven execution
+		// composition (internal/platform/execution.NewPromotionExecution)
+		// was deliberately moved out of internal/transport/cell, which is
+		// also why this golden no longer carries "transport -> workflow" or
+		// "transport -> transaction": composition-root wiring now lives in
+		// internal/platform, which package-dependency-policy.yaml does not
+		// rank as a business layer at all, exactly like cmd/* itself.
 		edges := LayerGraph(graph, policy)
 		got := RenderGolden(edges)
 

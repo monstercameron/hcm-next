@@ -1,5 +1,6 @@
-// Package workflow_test is the end-to-end harness for the first EXECUTABLE
-// run of a workflow instance: an approved, immutable ProposalRevision starts
+// Package workflow_test is the cross-system end-to-end harness for the first
+// EXECUTABLE run of a workflow instance (definitions/architecture/repository-layout.yaml,
+// root "test"; it exercises a composed cell, not any one package): an approved, immutable ProposalRevision starts
 // a compiled plan through internal/workflow/execute, parks on a governed
 // APPROVAL WorkItem, resumes through internal/workflow/steps/approval,
 // parks on a governed TASK WorkItem, resumes through

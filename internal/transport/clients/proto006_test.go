@@ -26,14 +26,14 @@ import (
 //
 // RED: the generated connect-go backend differs from the generated native
 // gRPC backend in presence, typed errors, authenticated context, deadlines,
-// idempotency or response digest, for any of the 13 public methods of
-// IntentService and RegistryService — including the three REFUSED_P1A
-// methods (SubmitIntent, CancelIntent, SupersedeIntent), which must refuse
+// idempotency or response digest, for any of the 14 public methods of
+// IntentService and RegistryService — including the four REFUSED_P1A
+// methods (SubmitIntent, CancelIntent, SupersedeIntent, ExecuteIntent), which must refuse
 // a caller-selected authority identically to every SERVED method rather
 // than being treated as a special case.
 //
 // GREEN: the generated parity suite asserts identical semantic
-// request/result/error/evidence for all 13 public unary routes.
+// request/result/error/evidence for all 14 public unary routes.
 func TestTodo_PROTO_006(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
@@ -221,7 +221,7 @@ func TestTodo_PROTO_006(t *testing.T) {
 		}
 	})
 
-	t.Run("refusal of caller-selected authority, for every method including the three REFUSED_P1A methods", func(t *testing.T) {
+	t.Run("refusal of caller-selected authority, for every method including the four REFUSED_P1A methods", func(t *testing.T) {
 		var refusedP1A, served int
 		for _, tc := range cases {
 			t.Run(tc.Name, func(t *testing.T) {
@@ -252,10 +252,10 @@ func TestTodo_PROTO_006(t *testing.T) {
 				}
 			})
 		}
-		if refusedP1A != 3 {
-			t.Errorf("found %d REFUSED_P1A methods, want exactly 3 (SubmitIntent, CancelIntent, SupersedeIntent)", refusedP1A)
+		if refusedP1A != 4 {
+			t.Errorf("found %d REFUSED_P1A methods, want exactly 4 (SubmitIntent, CancelIntent, SupersedeIntent, ExecuteIntent)", refusedP1A)
 		}
-		if served != len(cases)-3 {
+		if served != len(cases)-4 {
 			t.Errorf("found %d SERVED methods, want %d", served, len(cases)-3)
 		}
 	})
@@ -393,7 +393,7 @@ func TestTodo_PROTO_006_Race(t *testing.T) {
 	}
 }
 
-// TestTodo_PROTO_006_Integration runs every one of the 13 public RPCs
+// TestTodo_PROTO_006_Integration runs every one of the 14 public RPCs
 // through both generated backends, identically to
 // TestTodo_TOOL_007_Integration: PROTO-006 and TOOL-007 certify the same
 // generated artifact from two different todo obligations, so both suites
@@ -423,22 +423,22 @@ func TestTodo_PROTO_006_Integration(t *testing.T) {
 }
 
 // TestTodo_PROTO_006_Conformance checks the manifest-to-generated-client
-// cross-join: exactly 13 methods, exactly 3 of them REFUSED_P1A, and the
+// cross-join: exactly 14 methods, exactly 4 of them REFUSED_P1A, and the
 // generated procedure set matches the manifest's grpc_procedure column
 // exactly.
 func TestTodo_PROTO_006_Conformance(t *testing.T) {
 	doc := loadEndpointManifest(t)
 
-	if len(doc.Endpoints) != 13 {
-		t.Fatalf("manifest names %d endpoints, want 13", len(doc.Endpoints))
+	if len(doc.Endpoints) != 14 {
+		t.Fatalf("manifest names %d endpoints, want 14", len(doc.Endpoints))
 	}
 
 	published := make(map[string]bool, len(clients.Procedures()))
 	for _, p := range clients.Procedures() {
 		published[p] = true
 	}
-	if len(published) != 13 {
-		t.Fatalf("generated clients publish %d procedures, want 13", len(published))
+	if len(published) != 14 {
+		t.Fatalf("generated clients publish %d procedures, want 14", len(published))
 	}
 
 	refused := map[string]bool{}
@@ -453,7 +453,7 @@ func TestTodo_PROTO_006_Conformance(t *testing.T) {
 			t.Errorf("%s has an invalid disposition %q", e.EndpointID, e.Disposition)
 		}
 	}
-	want := map[string]bool{"SubmitIntent": true, "CancelIntent": true, "SupersedeIntent": true}
+	want := map[string]bool{"SubmitIntent": true, "CancelIntent": true, "SupersedeIntent": true, "ExecuteIntent": true}
 	if len(refused) != len(want) {
 		t.Fatalf("REFUSED_P1A methods = %v, want %v", refused, want)
 	}

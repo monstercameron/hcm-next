@@ -417,6 +417,16 @@ func TestTodo_TOOL_008_Integration(t *testing.T) {
 			},
 		},
 		{
+			name: "IntentService.ExecuteIntent",
+			grpc: func() (proto.Message, error) {
+				return h.grpcIntent.ExecuteIntent(h.grpcContext(ctx), executeRequest())
+			},
+			edge: func() (proto.Message, error) {
+				res, err := h.edgeIntent.ExecuteIntent(ctx, edgeRequest(h, executeRequest()))
+				return msgOrNil(res, err)
+			},
+		},
+		{
 			name: "IntentService.SubmitIntent",
 			grpc: func() (proto.Message, error) {
 				return h.grpcIntent.SubmitIntent(h.grpcContext(ctx), submitRequest())
@@ -612,7 +622,7 @@ func TestTodo_TOOL_008_Conformance(t *testing.T) {
 			methods []string
 		}{
 			{"hcmnext.intents.v1.IntentService", []string{
-				"CreateIntent", "GetIntent", "ListIntents", "SimulateIntent", "SubmitIntent",
+				"CreateIntent", "GetIntent", "ListIntents", "SimulateIntent", "ExecuteIntent", "SubmitIntent",
 				"CancelIntent", "SupersedeIntent", "ExplainIntent", "ListIntentTimeline",
 			}},
 			{"hcmnext.registry.v1.RegistryService", []string{
@@ -675,6 +685,23 @@ func submitRequest() *intentsv1.SubmitIntentRequest {
 		IntentId:                transporttest.KnownIntentID,
 		ProposalRevisionId:      "revision-1",
 		ExpectedInstanceVersion: transporttest.CurrentInstanceVersion,
+	}
+}
+
+// executeRequest returns a valid ExecuteIntent request. The transporttest
+// fixture answers it deterministically (mirroring SubmitIntent's own
+// expected-instance-version check), so this exercises the round trip itself,
+// not the real EXECUTE authority gate (internal/intent/app owns that).
+func executeRequest() *intentsv1.ExecuteIntentRequest {
+	return &intentsv1.ExecuteIntentRequest{
+		IdempotencyKey:          "idem-execute-1",
+		IntentId:                transporttest.KnownIntentID,
+		ExpectedInstanceVersion: transporttest.CurrentInstanceVersion,
+		Approval: &intentsv1.ProposalApproval{
+			ProposalRevisionId: "revision-1",
+			Approved:           true,
+			ApprovalRef:        "approval-1",
+		},
 	}
 }
 

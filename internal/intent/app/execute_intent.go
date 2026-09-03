@@ -133,11 +133,12 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 			// [IntentService.simulatePromotion]), so there is no stored
 			// revision to load back here.
 			Revision: intent.ProposalRevision{
-				ProposalRevisionID: artifact.GetProposalRevisionId(),
-				IntentID:           inst.IntentID,
-				Tenant:             inst.Tenant,
-				Subjects:           inst.Subjects,
-				MaterialDigest:     materialDigest,
+				ProposalRevisionID:  artifact.GetProposalRevisionId(),
+				IntentID:            inst.IntentID,
+				Tenant:              inst.Tenant,
+				OrganizationScopeID: inst.OrganizationScopeID,
+				Subjects:            inst.Subjects,
+				MaterialDigest:      materialDigest,
 			},
 			Approved:    true,
 			ApprovalRef: req.GetApproval().GetApprovalRef(),

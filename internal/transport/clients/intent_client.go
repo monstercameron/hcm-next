@@ -15,6 +15,7 @@ import (
 const (
 	ProcedureCancelIntent       = "/hcmnext.intents.v1.IntentService/CancelIntent"
 	ProcedureCreateIntent       = "/hcmnext.intents.v1.IntentService/CreateIntent"
+	ProcedureExecuteIntent      = "/hcmnext.intents.v1.IntentService/ExecuteIntent"
 	ProcedureExplainIntent      = "/hcmnext.intents.v1.IntentService/ExplainIntent"
 	ProcedureGetIntent          = "/hcmnext.intents.v1.IntentService/GetIntent"
 	ProcedureListIntentTimeline = "/hcmnext.intents.v1.IntentService/ListIntentTimeline"
@@ -30,6 +31,7 @@ func ProceduresIntentService() []string {
 	return []string{
 		ProcedureCancelIntent,
 		ProcedureCreateIntent,
+		ProcedureExecuteIntent,
 		ProcedureExplainIntent,
 		ProcedureGetIntent,
 		ProcedureListIntentTimeline,
@@ -52,6 +54,10 @@ type IntentClient interface {
 	CancelIntent(ctx context.Context, req *intentsv1.CancelIntentRequest, opts ...CallOption) (*intentsv1.CancelIntentResponse, error)
 	// CreateIntent calls hcmnext.intents.v1.IntentService.CreateIntent.
 	CreateIntent(ctx context.Context, req *intentsv1.CreateIntentRequest, opts ...CallOption) (*intentsv1.CreateIntentResponse, error)
+	// ExecuteIntent calls hcmnext.intents.v1.IntentService.ExecuteIntent. The method exists
+	// on the wire for P1B forward compatibility; every P1A invocation is
+	// refused (disposition REFUSED_P1A), identically on both backends.
+	ExecuteIntent(ctx context.Context, req *intentsv1.ExecuteIntentRequest, opts ...CallOption) (*intentsv1.ExecuteIntentResponse, error)
 	// ExplainIntent calls hcmnext.intents.v1.IntentService.ExplainIntent.
 	ExplainIntent(ctx context.Context, req *intentsv1.ExplainIntentRequest, opts ...CallOption) (*intentsv1.ExplainIntentResponse, error)
 	// GetIntent calls hcmnext.intents.v1.IntentService.GetIntent.
@@ -95,6 +101,15 @@ func (c *intentGRPCClient) CancelIntent(ctx context.Context, req *intentsv1.Canc
 // CreateIntent calls hcmnext.intents.v1.IntentService.CreateIntent over native gRPC.
 func (c *intentGRPCClient) CreateIntent(ctx context.Context, req *intentsv1.CreateIntentRequest, opts ...CallOption) (*intentsv1.CreateIntentResponse, error) {
 	res, err := c.client.CreateIntent(applyGRPCOptions(ctx, opts), req)
+	if err != nil {
+		return nil, DecodeGRPCError(err)
+	}
+	return res, nil
+}
+
+// ExecuteIntent calls hcmnext.intents.v1.IntentService.ExecuteIntent over native gRPC.
+func (c *intentGRPCClient) ExecuteIntent(ctx context.Context, req *intentsv1.ExecuteIntentRequest, opts ...CallOption) (*intentsv1.ExecuteIntentResponse, error) {
+	res, err := c.client.ExecuteIntent(applyGRPCOptions(ctx, opts), req)
 	if err != nil {
 		return nil, DecodeGRPCError(err)
 	}
@@ -168,6 +183,7 @@ func (c *intentGRPCClient) SupersedeIntent(ctx context.Context, req *intentsv1.S
 type intentConnectClient struct {
 	cancelIntent       *connect.Client[intentsv1.CancelIntentRequest, intentsv1.CancelIntentResponse]
 	createIntent       *connect.Client[intentsv1.CreateIntentRequest, intentsv1.CreateIntentResponse]
+	executeIntent      *connect.Client[intentsv1.ExecuteIntentRequest, intentsv1.ExecuteIntentResponse]
 	explainIntent      *connect.Client[intentsv1.ExplainIntentRequest, intentsv1.ExplainIntentResponse]
 	getIntent          *connect.Client[intentsv1.GetIntentRequest, intentsv1.GetIntentResponse]
 	listIntentTimeline *connect.Client[intentsv1.ListIntentTimelineRequest, intentsv1.ListIntentTimelineResponse]
@@ -183,6 +199,7 @@ func NewIntentClientConnect(httpClient connect.HTTPClient, baseURL string, opts 
 	return &intentConnectClient{
 		cancelIntent:       connect.NewClient[intentsv1.CancelIntentRequest, intentsv1.CancelIntentResponse](httpClient, baseURL+ProcedureCancelIntent, opts...),
 		createIntent:       connect.NewClient[intentsv1.CreateIntentRequest, intentsv1.CreateIntentResponse](httpClient, baseURL+ProcedureCreateIntent, opts...),
+		executeIntent:      connect.NewClient[intentsv1.ExecuteIntentRequest, intentsv1.ExecuteIntentResponse](httpClient, baseURL+ProcedureExecuteIntent, opts...),
 		explainIntent:      connect.NewClient[intentsv1.ExplainIntentRequest, intentsv1.ExplainIntentResponse](httpClient, baseURL+ProcedureExplainIntent, opts...),
 		getIntent:          connect.NewClient[intentsv1.GetIntentRequest, intentsv1.GetIntentResponse](httpClient, baseURL+ProcedureGetIntent, opts...),
 		listIntentTimeline: connect.NewClient[intentsv1.ListIntentTimelineRequest, intentsv1.ListIntentTimelineResponse](httpClient, baseURL+ProcedureListIntentTimeline, opts...),
@@ -209,6 +226,17 @@ func (c *intentConnectClient) CreateIntent(ctx context.Context, req *intentsv1.C
 	connectReq := connect.NewRequest(req)
 	applyConnectOptions(connectReq, opts)
 	res, err := c.createIntent.CallUnary(ctx, connectReq)
+	if err != nil {
+		return nil, DecodeConnectError(err)
+	}
+	return res.Msg, nil
+}
+
+// ExecuteIntent calls hcmnext.intents.v1.IntentService.ExecuteIntent over connect-go.
+func (c *intentConnectClient) ExecuteIntent(ctx context.Context, req *intentsv1.ExecuteIntentRequest, opts ...CallOption) (*intentsv1.ExecuteIntentResponse, error) {
+	connectReq := connect.NewRequest(req)
+	applyConnectOptions(connectReq, opts)
+	res, err := c.executeIntent.CallUnary(ctx, connectReq)
 	if err != nil {
 		return nil, DecodeConnectError(err)
 	}

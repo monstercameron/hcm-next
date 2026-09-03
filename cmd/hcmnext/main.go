@@ -30,6 +30,20 @@
 // this cell publishes no spans or metrics at all. otlphttp requires
 // -otel-endpoint.
 //
+// -execution-authority=true composes this cell with the P1B execution
+// authority gate (internal/intent/app.ExecutionAuthority) and the real
+// caller-driven promotion approval driver (internal/platform/execution.
+// NewPromotionExecution): IntentService.ExecuteIntent then runs the
+// promote_worker workflow for an approved proposal instead of refusing it,
+// for a caller who additionally holds -execution-authority-role.
+// -execution-authority-digest names the signed P1B authority amendment this
+// process asserts (carried through as evidence, never verified here), and
+// -execution-authority-approver names who the workflow's one approval
+// WorkItem is routed to. Every one of the four is off/empty by default:
+// with no -execution-authority, this cell is byte-for-byte the P1A cell of
+// today (planning/next-steps.md "P1B exists only after a signed Gate A
+// PROCEED").
+//
 // Process lifecycle is not this command's business and is not implemented
 // here: configuration precedence, the build banner, signal handling, the
 // STARTING/READY/DRAINING/STOPPED health machine, the database pool, the
@@ -89,6 +103,7 @@ import (
 	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	platformexecution "github.com/monstercameron/hcm-next/internal/platform/execution"
 	"github.com/monstercameron/hcm-next/internal/platform/logging"
 	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
 	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
@@ -488,7 +503,7 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool)
 
 // composeExecutionAuthority builds the P1B execution-authority wiring
 // -execution-authority=true asks for: the caller-driven promotion execution
-// driver (internal/transport/cell.NewPromotionExecution) over pool, its
+// driver (internal/platform/execution.NewPromotionExecution) over pool, its
 // governed terminal write (internal/workflow/execute/effects.LedgerTerminalWriter,
 // never a second implementation of that write), and the exact tenant-key-to-
 // uuid derivation the composed pgstore.Store's own tenant table uses. It
@@ -503,12 +518,10 @@ func composeExecutionAuthority(cfg *app.CellConfig, pool *pgxadapter.Pool, value
 		Appender:       ledgerport.NewAppender(registry),
 		ProjectionName: "workflow.promotion_outcome",
 		SourceRef:      "cmd/hcmnext:execution-authority",
-		Authority:      "authority:execution-authority-flag",
 	}
-	execution, err := transportcell.NewPromotionExecution(transportcell.PromotionExecutionConfig{
+	execution, err := platformexecution.NewPromotionExecution(platformexecution.PromotionExecutionConfig{
 		DB:                  pool,
 		Terminal:            terminal,
-		CellID:              values.String(fieldCellID),
 		ApproverPrincipalID: values.String(fieldExecutionApprover),
 		AuthorityDigest:     values.String(fieldExecutionAuthorityDigest),
 		RequiredRole:        values.String(fieldExecutionAuthorityRole),

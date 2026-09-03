@@ -213,9 +213,16 @@ it now appends the promotion outcome through the outbox commit as one ledger
 event, one projection advance and one outbox message, behind the idempotency
 guard.
 
-Still open: the EXECUTE RPC and authority gate so the same run can be driven
-over gRPC and the connect edge, then the commit of the recovered and finished
-tree.
+The RPC path landed next: `ExecuteIntent` on `IntentService` over both
+transports, refused byte-for-byte as before unless the cell is composed with
+an execution authority that names `promote_worker` and the caller holds the
+operator role; under authority the harness proves the driver starts the real
+promotion plan, parks at exactly one approval work item and calls no terminal
+writer while parked. The endpoint manifest now names fourteen routes, four of
+them refused by default. Governance kept pace: the new harness directory is
+documented as a cross-system suite, and the signed P1A manifest was extended
+to migrations 00019 through 00021 and re-signed with the fixture key, with the
+evidence report regenerated from the checked-in results.
 
 ## 8. Numbers
 
