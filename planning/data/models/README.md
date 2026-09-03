@@ -1,14 +1,22 @@
 # HCM Next Business Data Models
 
 This directory is the exploratory business-entity catalog derived from the
-530-entry [Business Intent catalog](../../specs/business-intent-catalog.md), the
+[Business Intent catalog](../../specs/business-intent-catalog.md), the
 [workflow research](../../workflows/README.md), and the
 [workflow context contract](../../workflows/_engine/workflow-context-contract.md).
 
-The goal is semantic coverage: every intent must be expressible as reads,
-proposals, calculations, state transitions, evidence, effects or analyses over
-the entities and value objects defined here. This is not a physical database
-schema and does not imply one table per entity.
+The covered set is the entities required by the fourteen drafted intent
+definitions: Person, Worker, Employment, Assignment, Organization unit and
+relationship, Position and occupancy, Compensation package and component,
+Budget reservation, IntentInstance and its proposal/approval/execution records,
+ConnectorOperation and observation, and RepairPlan. Everything else in these
+files is exploratory vocabulary for domains that have no funded definition and
+carries no coverage claim. This is not a physical database schema and does not
+imply one table per entity.
+
+These documents were written against the earlier eleven-dimension lifecycle,
+seven-family kernel, and numbered intake list. Read them through the mapping
+in the [workflow exploration index](../../workflows/README.md).
 
 ## Documents
 
@@ -73,11 +81,11 @@ reconciliation/repair/outcome entities
 Naming an entity is insufficient. Its identity, properties, temporal behavior,
 source authority, classification, invariants and relationships must be explicit.
 
-The domain catalog currently has conceptual coverage across all 530 numbered
-intent partitions. Exact `530/530 VERIFIED` status requires the machine-readable
-registries and checker defined in
-[Registry and coverage contracts](registry-and-coverage-contracts.md). Until
-then, the declared status is `CONCEPTUALLY_COVERED, EXACT_BINDING_PENDING`.
+Coverage is claimed only for the fourteen drafted definitions, and only once
+their Protobuf schemas resolve against the entities named above. No coverage
+status is declared for the intake vocabulary; the registries and checker in
+[Registry and coverage contracts](registry-and-coverage-contracts.md) are
+built, if at all, when a second funded domain needs them.
 
 ## Go-only boundary
 

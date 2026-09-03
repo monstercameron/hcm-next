@@ -138,7 +138,7 @@ The local atomic core contains only state owned by the same transactional
 authority and co-located commit coordinator:
 
 ```text
-CHECKPOINT
+[safe_point]
     |
     v
 multi-stream expected sequences
@@ -182,8 +182,10 @@ ACID across payroll, IAM, messaging, learning, document, or SaaS provider APIs.
                          effect reconciliation
 ```
 
-Each effect declares ordering key, idempotency key, retry budget, deadline, side-
-effect profile, expected observation, compensation/repair policy, and criticality.
+In P1B these effects run as sequential `OBSERVE` steps; the fan-out drawn here
+is the post-P1B shape once `PARALLEL`/`JOIN` exist. Each effect declares
+ordering key, idempotency key, retry budget, deadline, side-effect profile,
+expected observation, compensation/repair policy, and criticality.
 Team communication must not release before the governed effective point and any
 required employee notification/acknowledgement ordering constraint.
 
@@ -206,12 +208,11 @@ Messaging     employee delivered; team scheduled
 The parent reports independent dimensions:
 
 ```text
-RuntimeState          COMPLETED
-BusinessState         COMPLETED
-ExternalConsistency  DEGRADED
-ReconciliationState  REPAIR_REQUIRED
-OperationalState     INCIDENT
-ObligationState      SATISFIED
+RequestState       APPROVED         (closure policy decides when CLOSED)
+ExecutionState     COMMITTED
+BusinessState      COMPLETED
+ConsistencyState   DEGRADED         (RepairPlan and incident linked)
+ObligationState    SATISFIED
 ```
 
 Jane is promoted. The system does not reverse or describe the promotion as failed
@@ -226,7 +227,7 @@ AccessDriftDetected
   -> redrive with original semantic idempotency identity
   -> observe
   -> reconcile
-  -> ExternalConsistency = CONSISTENT
+  -> ConsistencyState = CONSISTENT
 ```
 
 Business closure requires the configured closure policy. It may permit business

@@ -9,7 +9,11 @@ planning/plan.md
   product thesis + architecture constitution + long-term direction
             |
             +--> planning/execution-plan.md
-            |      Phase 1 scope, dependency order, delivery gates, limits
+            |      delivery gates and their acceptance
+            |
+            +--> planning/next-steps.md
+            |      exact P1A / P1B release contents; wins over any spec's
+            |      phase table where they disagree
             |
             +--> planning/specs/
                    focused contracts owned and evolved independently
@@ -22,6 +26,12 @@ planning/plan.md
 ```
 
 When this document describes a complete subsystem, that is not automatically a commitment to implement it in Phase 1. Section 13 and the execution plan classify each capability as **implemented now**, **contracted minimally**, or **deferred**.
+
+Two standing rules keep this document from growing in place of the product:
+the adversarial audits are frozen inputs and no further audit pass runs until
+P1A executes; and no lifecycle dimension, kernel family, workflow primitive,
+or coordination layer is added without a scope exchange recorded in the
+execution plan.
 
 ## 1. Executive Summary
 
@@ -133,6 +143,12 @@ HCM Next is initially:
 
 ### 3.6 End-State: Workforce Operating System
 
+Sections 3.6 through 3.11 are a non-binding destination sketch. They exist so
+that the kernel does not paint the product into a corner; they are not a
+backlog, and nothing in the kernel, catalog, planes, registries, or data
+models may be sized to them. Stages 3 to 5 of the product path are options
+with their own evidence gates.
+
 HCM is the umbrella category rather than one application beside recruiting, payroll, time, and talent. Major HCM suites already group core HR, talent acquisition, talent management, learning, compensation, benefits, payroll, time, absence, workforce planning, and analytics into connected portfolios. Rippling extends the boundary further by connecting HR with workforce identity, application access, devices, and selected finance operations around common workforce data.
 
 HCM Next should therefore plan for two related identities:
@@ -214,30 +230,17 @@ People  Workforce  Talent  Rewards  Experience  Access
                                          Notifications
 ```
 
-### 3.9 Complete Product Family Map
+### 3.9 Product Families
 
-The high-level portfolio includes the following product families. Their inclusion in the long-term map does not imply simultaneous development.
-
-| Product family                    | Representative capabilities                                                                             | Strategic role                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Core HR / HRIS                    | Worker records, employment, jobs, positions, organizations, locations, history, documents               | Absolute foundation             |
-| Workforce management              | Time, attendance, clocks, timesheets, scheduling, shifts, overtime, absence, PTO, leave                 | Core operating system           |
-| Payroll                           | Gross-to-net, earnings, deductions, taxes, deposits, garnishments, statements, audit, retro pay         | Core but exceptionally deep     |
-| Compensation                      | Salary and hourly pay, bands, merit cycles, bonuses, commission, equity, planning                       | Strong adjacency to ChangeOps   |
-| Benefits                          | Eligibility, enrollment, life events, plans, dependents, deductions, carrier integration                | Core suite capability           |
-| Recruiting / ATS                  | Requisitions, postings, candidates, pipelines, interviews, offers, hiring teams, screening integrations | Major lifecycle category        |
-| Onboarding / offboarding          | Preboarding, work authorization, documents, accounts, equipment, training, orientation, termination     | Cross-pillar orchestration      |
-| Workforce identity / IAM          | Accounts, roles, groups, applications, provisioning, access requests, devices, entitlement reviews      | Major differentiator            |
-| Performance and talent            | Goals, reviews, feedback, succession, 1:1s, calibration, promotions, talent profiles                    | Major talent category           |
-| Learning and skills               | Courses, learning paths, certifications, compliance training, assessments, skills, renewals             | Shared capability graph         |
-| Employee experience               | Home, announcements, targeted communication, surveys, recognition, directory, communities               | Horizontal engagement layer     |
-| HR service delivery               | Cases, employee help, knowledge, policy questions, requests, documents, service levels                  | Strong workflow adjacency       |
-| Workforce planning                | Positions, vacancies, headcount, labor budgets, reorganizations, scenarios, succession                  | High-value enterprise planning  |
-| People intelligence               | Reporting, metrics, workforce analytics, anomaly detection, forecasting, natural-language analysis      | Horizontal intelligence layer   |
-| Employee relations and compliance | Investigations, grievances, discipline, accommodations, incidents, legal holds, union matters           | Enterprise trust differentiator |
-| Contingent workforce              | Contractors, vendors, temporary workers, statements of work, credentials, tenure, conversion            | Enterprise expansion            |
-| Global mobility                   | Immigration, visas, relocations, assignments, expatriates, tax-location changes                         | Later global-enterprise scope   |
-| Workplace and safety              | Incidents, safety programs, return to work, credentials, workplace assignment                           | Industry-specific extension     |
+The six pillars decompose into the product families an incumbent suite
+markets: core HR, workforce management, payroll, compensation, benefits,
+recruiting, onboarding and offboarding, workforce identity, performance and
+talent, learning, employee experience, HR service delivery, workforce
+planning, people intelligence, employee relations, contingent workforce,
+global mobility, and workplace safety. The list is the competitor's catalog,
+recorded here so that the disposition register in §3.12 has something to
+dispose of. It is not a roadmap, and no family is planned for beyond the
+compensation adjacency that ChangeOps already touches.
 
 ### 3.10 Pillar Concepts
 
@@ -362,16 +365,26 @@ expansion contract](specs/competitive-positioning-and-authority-expansion.md).
 
 ### 4.1 Ideal Customer Profile
 
-The first customers should be organizations with:
+The first customers should be organizations where the cross-system gap
+demonstrably exists and the incumbent does not already close it:
 
 - 2,000 to 25,000 employees
-- Multiple legal entities, regions, or business units
+- **More than one HR system of record in active use**: a second HRIS inherited
+  through acquisition, or an HRIS with separate payroll and identity providers
+  that the HRIS does not natively orchestrate
 - Frequent job, manager, compensation, or organization changes
-- A major HCM platform plus several downstream systems
-- An internal HRIS or people systems team
+- An internal HRIS or people systems team that owns the integrations today
 - Material payroll, compliance, and audit exposure
 - Too many manual handoffs around employee changes
 - A willingness to improve one workflow family before broader transformation
+
+Explicit disqualifiers, until Gate A proves non-duplication for that segment:
+
+- A single-suite Workday estate whose Business Process Framework and
+  integrations already govern the promotion end to end. That customer's gap is
+  inside the suite, and the pilot would duplicate licensed functionality.
+- An estate with no independently owned downstream system, since the product
+  claim would collapse to single-system governance.
 
 Google-scale complexity remains an architectural stress test, not the initial sales target.
 
@@ -535,7 +548,7 @@ Humans increasingly express intent. Agents discover governed data and capabiliti
 
 > Agents may discover, correlate, infer, recommend, plan, compose, and predict within their authorized information space. They never obtain ungoverned authority over canonical HCM state.
 
-Agent-first does not mean model-first. Deterministic lookup, calculation, policy evaluation, authorization, ledger state, payroll, tax, and transaction execution remain deterministic capabilities coordinated by agents when useful.
+Agents are an overlay, not the product's primary interface. The governed request, approval, and repair surfaces are the product; an agent, where later enabled, is another entry point to the same capabilities. "Intent as the primary interface" is a Stage 5 hypothesis. Deterministic lookup, calculation, policy evaluation, authorization, ledger state, payroll, tax, and transaction execution remain deterministic capabilities; the agent security boundary (tool gateway, taint, typed output, kill switch) binds every plane now, while the agent product plane has no phase.
 
 ### 5.15 One Canonical History, Many Rebuildable Read Planes
 
@@ -561,17 +574,23 @@ Global regulatory behavior cannot be reduced to one country field or one generic
 
 Rules remain versioned, effective-dated, source-attributed, explainable, simulated before publication, and subject to customer-counsel control where interpretation is required.
 
-### 5.18 Go-Only, Contract-First, and Open-Source-First
+Phase 1 legal context is one versioned rule pack of customer-configured
+thresholds and notice obligations. The jurisdiction graph, deterministic
+regulatory engines, country packs, and filing gateways are a separate product
+line with their own gate; they are not kernel vocabulary, and the kernel's
+three families do not include a filing family.
 
-Go is the only authored application language for HCM Next backend services, deterministic engines, workflow execution, control-plane capabilities, integrations, agents, command-line tools, operational workers, and UI. GWC/GoWebComponents is the application UI framework. Protobuf and gRPC define service contracts, `grpcbridge` owns supported web and streaming transport adaptation, and SchemaFlux owns structured platform-definition compilation and generated artifacts where its model applies.
+### 5.18 Go Core, Contract-First, and Open-Source-First
 
-> HCM Next ships one Go platform. GWC, grpcbridge, and SchemaFlux are its core libraries; TypeScript, React, and Node are not target runtime or build dependencies.
+Go is the authored language for the HCM Next product core: backend services, deterministic engines, workflow execution, control-plane capabilities, integrations, command-line tools, and operational workers. Protobuf and gRPC define service contracts. GWC/GoWebComponents, `grpcbridge`, and SchemaFlux are the preferred choices for UI, transport edge, and definition generation, each with a named qualification fixture and a named fallback (Go server-rendered HTML, grpc-gateway or connect-go, and protoc with Go code generation).
+
+> HCM Next ships one Go platform. Its house libraries earn their place by passing a fixture, not by decree; TypeScript, React, and Node are not release-image or runtime dependencies, and Node-based developer tooling is allowed.
 
 Open-source-first does not mean dependency-first or self-host-everything. A dependency must reduce total complexity after security response, upgrades, operations, testing, licensing, portability, and exit cost are included. Managed services remain acceptable when they materially reduce regulated operational risk and preserve export, replay, and migration paths.
 
-The current TypeScript/React implementation is historical evidence only. Its fixtures, schemas, events, and acceptance behavior are extracted before a clean Go implementation replaces it. Legacy application code is not extended or deployed as a compatibility layer; required endpoint compatibility is implemented by grpcbridge and Go services.
+The current TypeScript/React implementation is historical evidence and a comparison baseline. It is not extended with new behavior. It may run beside the Go slice through P1A so that customer evidence does not wait on the rewrite; its exclusion from the release is a P1B gate.
 
-See [the Go-Only Technology Constitution](specs/go-only-technology-constitution.md).
+See [the Go Technology Constitution](specs/go-only-technology-constitution.md).
 
 ### 5.19 Platform Correctness Is Business Correctness
 
@@ -602,24 +621,26 @@ The architecture must make overload, isolation, recovery, cryptographic trust, a
 
 ### 6.1 Business Intent and Transaction Kernel
 
-The platform kernel begins with `BusinessIntent`: a governed request to answer, calculate, process, file, investigate, or change something. It prevents the eventual Workforce OS from forcing every domain operation through an employee-mutation abstraction.
+The platform kernel begins with `BusinessIntent`: a governed request to answer, calculate, or change something. It prevents the eventual Workforce OS from forcing every domain operation through an employee-mutation abstraction.
 
 ```text
 BusinessIntent
       │
-      ├── ChangeRequest          proposed domain mutation
-      ├── ProcessRequest         workflow without one central mutation
-      ├── CalculationRequest     payroll, tax, eligibility, simulation
-      ├── FilingRequest          government or regulated submission
-      ├── Case                   investigation or service matter
-      ├── BatchOperation         bounded population-level work
+      ├── ChangeRequest          may mutate or cause effects, directly or
+      │                          through explicitly bound child intents
+      ├── CalculationRequest     deterministic, pure computation
       └── AnalyticalRequest      governed question or analysis
              │
              v
       validated BusinessTransaction or governed read result
 ```
 
-All subtypes share identity, tenant and organization scope, declared purpose, actor/delegation context, effective and recorded time, capability lineage, authorization and legal decisions, correlation, status, and evidence. Only intents that mutate or cause material external effects become `BusinessTransaction`s.
+Three families, distinguished by whether the intent may cause a material
+mutation or effect. Process, filing, batch, and case semantics are attributes
+of a `ChangeRequest` definition rather than families; a fourth family is added
+only when a funded domain proves an attribute cannot express the distinction.
+
+All families share identity, tenant and organization scope, declared purpose, actor/delegation context, effective and recorded time, capability lineage, authorization and legal decisions, correlation, lifecycle dimensions, and evidence. Only intents that mutate or cause material external effects become `BusinessTransaction`s.
 
 `HCMChangeRequest` remains the central ChangeOps business object and the first implemented subtype. It is not the universal root object for time punches, applications, payroll runs, benefit enrollments, cases, learning completions, filings, or analytical queries.
 
@@ -627,8 +648,9 @@ The authoritative lifecycle, subtype, cancellation, supersession, correction,
 security, and evidence rules are in the [Business Intent and Change Request Kernel
 Contract](specs/business-intent-and-change-request.md).
 The [Business Intent Catalog and Runtime Model](specs/business-intent-catalog.md)
-governs the 530-name semantic vocabulary, domain-qualified identifiers, maturity
-gates, typed instance envelope, and bounded Phase 1 contracted partition.
+governs the fourteen drafted definitions, domain-qualified identifiers,
+maturity gates, and the typed instance envelope. The intake name list is
+non-normative vocabulary.
 
 ### 6.2 HCM Change Request
 
@@ -664,22 +686,41 @@ Draft -> Preflight -> Simulate -> Submit exact CanonicalDigest -> Approve
       -> Schedule -> Revalidate -> Execute -> Observe/Reconcile/Repair -> Close
 ```
 
-Lifecycle is multidimensional rather than one misleading linear status:
+Lifecycle is five dimensions rather than one misleading linear status, and
+never more than five:
 
 ```text
-IntentState
-ProposalRevisionState
-ApprovalState
-ExecutionState
-ExternalConsistency
-ReconciliationState
-ClosureState
+RequestState       where is the request itself?
+ExecutionState     what has the runtime done?
+BusinessState      did the business outcome happen?
+ConsistencyState   does observed external state agree with intent?
+ObligationState    are attached obligations discharged?
 ```
 
 Needs-data, reject, cancel, approval invalidation, conflict, blocked execution,
 repair, supersession, correction, and reopen are typed transitions in the
-appropriate dimension. Historical dimensions are preserved rather than collapsed
-into a final `Resolved` flag.
+appropriate dimension. Proposal revisions, approval bindings, closure records,
+incidents, and outcome tracking are linked records, not further dimensions.
+Historical dimensions are preserved rather than collapsed into a final
+`Resolved` flag.
+
+### 6.3a Lifecycle Budget
+
+The design multiplies state machines easily and each one costs evidence,
+authority, projection, and UI work. The platform carries these lifecycles and
+no others without a scope exchange:
+
+```text
+IntentInstance (five dimensions)   WorkItem              ConnectorOperation
+ProposalRevision / ApprovalBinding TransactionPlan       ConnectorConnection
+WorkflowInstance / NodeExecution   RepairPlan            AuthorityPolicy
+Domain aggregates (Employment, Assignment, Position, Compensation, Organization)
+```
+
+Everything else that has a `state` field (capability manifests, forms, rules,
+templates, classification labels, provenance edges, message intents, budget
+reservations) uses the shared three-step `DRAFT -> PUBLISHED -> RETIRED` or
+`REQUESTED -> HELD -> RELEASED` shape until a consumer needs more.
 
 ### 6.4 Initial HCM Primitives
 
@@ -700,27 +741,17 @@ The first product should model only the objects required for the initial workflo
 - Repair plan
 - Workflow migration plan
 - Ledger event
-- Integration attempt
-- Reconciliation observation
-- Scoped resource and inheritance resolution
+- Connector operation and external observation
 - Principal and authentication context
 - Organization authorization scope
 - Versioned authorization policy and decision
-- LocaleContext and concern-specific resolution
-- Money, exchange-rate usage, calendar, and business-time values
-- Localized resource and document-template variants
-- LegalContext and ProcessingContext
-- Versioned legal rule pack and obligation set
-- Retention policy, legal hold, and data-subject request
-- Processing activity, processing party, and AI use classification
-- Semantic schema and semantic observation
-- Decision, decision-input snapshot, and outcome link
-- Activity event and analytical event envelope
-- Metric, dimension, and temporal query definition
-- Agent definition, execution, delegation, autonomy policy, and budget
-- Analysis plan, hypothesis, prediction, and prediction evaluation
-- Agent memory item and operational knowledge
-- Model/task profile, routing decision, and evaluation result
+- Money, calendar, and business-time values (one currency, one locale in Phase 1)
+- One versioned rule pack of thresholds and notice obligations
+
+Locale resolution beyond one locale, legal and processing context, retention
+and data-subject machinery, semantic schemas, analytical envelopes, and every
+agent object are later-phase primitives and are not modeled until a release
+needs them.
 
 The model should use stable HCM primitives plus governed metadata extensions. Fully schema-less HCM data would undermine interoperability, policy consistency, and auditability.
 
@@ -728,12 +759,17 @@ The model should use stable HCM primitives plus governed metadata extensions. Fu
 
 ### 7.1 First Workflow Family
 
-The first product release should focus on related employee changes:
+The first product release family is related employee changes:
 
 1. Job or title change
 2. Compensation change
 3. Manager or organization change
 4. Combined promotion change
+
+Of these, P1B executes only the combined promotion (job/level) and its base-pay
+change. Manager and organization change are conformance fixtures until a
+second release; the family is named here so that the kernel is tested against
+all four, not so that all four ship.
 
 This family is narrow enough to ship while proving the platform's most important claims:
 
@@ -759,16 +795,20 @@ A simple schema-driven administration experience is sufficient initially. A full
 
 ### 7.3 First Integration Scope
 
-Integration should expand in deliberate layers:
+Integration expands in deliberate layers, and the first layer is the one the
+design partner's estate dictates:
 
-1. CSV or SFTP import and export
-2. Generic REST and webhook adapter
-3. One deep HCM connector selected with design partners
-4. Email, Slack, or Teams notifications
-5. Payroll export and reconciliation
-6. Identity synchronization after manager and organization flows are stable
+1. One read/observe connector to the partner's HCM, selected with the partner
+2. One read/observe path to the partner's independently owned downstream
+   system (payroll or identity), so the cross-system claim is testable
+3. The same connector's single governed write (P1B)
+4. Transactional email for approvals, only if the partner's process needs it
+5. Further connectors, payroll reconciliation, and identity synchronization
+   after the first workflow family is stable
 
-The product should deliver value in observe, validate, approve, simulate, export, and reconcile modes before requiring direct write authority.
+CSV import is an operator tool for seeding pilot data, not an integration layer.
+The product delivers value in observe, validate, approve, simulate, and
+reconcile modes before requiring direct write authority.
 
 ### 7.4 Explicitly Deferred Scope
 
@@ -871,7 +911,7 @@ The plane owns audience and endpoint resolution, templates/localization, secure 
 
 Human messaging and system subscriptions share delivery infrastructure but retain different identity, preference, schema, evidence, and retry semantics. Provider acceptance, delivery, read, acknowledgement, response, signature, and legal evidence are never collapsed into `sent = true`.
 
-Phase 1 implements only Promotion approval/task email, secure inbox, deterministic templates, delivery evidence, and required workflow signals. Inbound conversations, SMS/push/chat routing, bulk communication, legal-notice evidence, and customer-configurable subscriptions remain bounded contracts or deferred.
+P1A sends nothing. P1B implements one approval/task email with one template and delivery signals, only if the partner's process needs it; the secure inbox is a minimal contract. Inbound conversations, SMS/push/chat routing, bulk communication, legal-notice evidence, and customer-configurable subscriptions are deferred.
 
 See [the Messaging and Notification Plane specification](specs/messaging-and-notification-plane.md).
 
@@ -1216,11 +1256,11 @@ facts + obligations + policy + decisions + time/events
                   deterministic effects
 ```
 
-Its constrained primitive vocabulary is `CAPABILITY`, `DECISION`, `APPROVAL`, `TASK`, `WAIT`, `SIGNAL`, `PARALLEL`, `JOIN`, `SUBWORKFLOW`, `TRANSFORM`, `RULE`, `AGENT`, `DOCUMENT`, `OBSERVE`, `CHECKPOINT`, `COMPENSATE`, and `END`. Published definitions compile to immutable typed plans before execution.
+Its primitive vocabulary is ten core primitives (`CAPABILITY`, `DECISION`, `TRANSFORM`, `OBSERVE`, `END`, `APPROVAL`, `TASK`, `WAIT`, `SIGNAL`, `COMPENSATE`) and three structural ones gated behind P1B evidence (`PARALLEL`, `JOIN`, `SUBWORKFLOW`). Safe points are a node attribute the compiler places; rules, agents, and documents are capabilities. Published definitions compile to immutable typed plans before execution.
 
-The runtime provides durable instance and node state, proposal-bound approval resolution, generalized human work, timers, signals, leases and fencing, bounded retries, safe pause/cancel/quarantine semantics, multidimensional completion, simulation/replay/repair modes, and first-class inspection. Runtime state, business ledger evidence, operational projections, and telemetry remain logically separate.
+The runtime provides durable instance and node state, proposal-bound approval resolution, timers, signals, leases and fencing, bounded retries, safe pause/cancel/quarantine semantics, the five-dimension completion model, simulation and execution modes, and first-class inspection. Runtime state, business ledger evidence, operational projections, and telemetry remain logically separate.
 
-Phase 1 implements only the primitives and operational controls required by Promotion + Compensation Change, using PostgreSQL-backed state/queues and Go workers. Arbitrary loops, general customer-authored compensation, broad subworkflow behavior, live migration, and general-purpose orchestration remain deferred.
+P1A uses five primitives in simulate mode; P1B uses nine with a PostgreSQL-backed scheduler and Go workers. Before P1B, an embedded Go durable-execution library is evaluated against four non-negotiables and adopted if it passes; the runtime specification records the test. Arbitrary loops, customer-authored compensation, subworkflows, replay, shadow mode, live migration, and general-purpose orchestration are deferred.
 
 See [the workflow runtime specification](specs/workflow-runtime.md).
 
@@ -1350,14 +1390,19 @@ The first commercial offer should be a paid, narrowly scoped ChangeOps pilot:
 - Observe or export mode before direct writeback where appropriate
 - A defined expansion decision at the end
 
-Initial commercial hypotheses:
+Initial commercial hypotheses, priced to the authority each release carries:
 
-- Five paid design partners
-- A 90-120 day implementation target
-- A $50,000-$150,000 pilot range
-- A $150,000-$300,000 initial annual contract range
+- One to three paid design partners for P1A, five by the end of P1B
+- P1A (read-only observation, simulation, diff): a $15,000-$40,000 pilot over
+  60-90 days, procurable without a full security review because nothing is
+  written to the partner's systems
+- P1B (one governed write): a $50,000-$150,000 authority amendment, which is
+  where the security review and the 90-120 day implementation belong
+- A $150,000-$300,000 initial annual contract after P1B
 
-These figures are hypotheses to validate, not planning facts.
+These figures are hypotheses to validate, not planning facts. The P1A price
+exists so that the first partner conversation is not blocked on the procurement
+process a write-path dependency requires.
 
 ### 12.2 Primary Adoption Objection
 
@@ -1497,13 +1542,14 @@ Primary scope:
 - Promotion + Compensation Change is the only fully executable reference workflow.
 - The supported mutation family is limited to the job, manager, organization, and compensation fields required by design partners.
 - One primary HCM connector is observed first and gains narrowly scoped writeback only after the authority gate.
-- The complete required Phase 1 product path is Go: capability, workflow, data,
-  connector and operations code. Agent code is included only through explicit
-  scope exchange under the implementation-depth matrix.
-- One GWC workspace proves the UI path, grpcbridge serves only the transports
-  qualified for the gate, and a proven offline HCM SchemaFlux adapter must compile
-  the selected bounded catalogs before those definitions become contracted.
-- No Phase 1 production image or required build step contains Node, TypeScript, React, Vite, or npm.
+- The Phase 1 product core is Go: capability, workflow, data, connector and
+  operations code. Agent code is not included.
+- One workspace proves the UI path on GWC or the Go SSR fallback; the transport
+  edge and definition generator are whichever of grpcbridge/SchemaFlux or their
+  named fallbacks passed the M2 qualification fixtures.
+- The P1B release image contains no Node, TypeScript, React, or Vite runtime.
+  Development tooling is out of scope of that check, and legacy may run beside
+  the Go slice in P1A.
 
 #### Phase 1 Implementation-Depth Matrix
 
@@ -1981,7 +2027,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 
 ## 17. Near-Term Planning Priorities
 
-The next planning cycle is limited to ten sequenced workstreams. Each must end in a decision, executable contract, fixture, or pilot artifact—not another unbounded architecture essay.
+Planning is closed until P1A executes. The next planning cycle, when it opens, is limited to ten sequenced workstreams. Each must end in a decision, executable contract, fixture, or pilot artifact, and none may add a lifecycle dimension, kernel family, workflow primitive, or coordination layer without a scope exchange.
 
 | #   | Workstream                           | Depends on | Concrete outcome                                                                                          |
 | --- | ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------- |
@@ -2010,7 +2056,7 @@ The detailed charter inventory is maintained in [the architecture specification 
 >
 > The Regulatory Platform will resolve layered jurisdiction, contract, collective, plan, and company authority and then apply specialized deterministic tax, wage, leave, privacy, immigration, reporting, obligation, and calendar engines. Country and Regional Packs will state their coverage and exclusions precisely; specialists and customer counsel will control ambiguous production interpretations; immutable calculation and filing evidence will make every material result reproducible.
 >
-> Phase 1 will implement one narrow kernel: `BusinessIntent` with `HCMChangeRequest` as its first subtype, governed capabilities, source authority, immutable proposals, multi-stream transactional integrity, AuthZ, bounded workflow execution, one Integration Platform slice with one design-partner connector, external observation, reconciliation, and repair. Locale, legal, agent, entitlement, placement, reference-data, and provenance contracts will be implemented only to the depth required by the pilot. Broader connector catalogs, regulatory, analytical, billing, agent, and Workforce OS planes remain conformance designs or later investments. The platform will be Go-only, Protobuf/gRPC contract-first, GWC/GoWebComponents for product UI, grpcbridge at the web protocol boundary, SchemaFlux for structured-definition compilation, and open-source or open-protocol infrastructure by default. Node, TypeScript, React, Vite, and npm are excluded from the product build and runtime.
+> Phase 1 will implement one narrow kernel: `BusinessIntent` with `HCMChangeRequest` as its first subtype, governed capabilities, source authority, immutable proposals, multi-stream transactional integrity, AuthZ, bounded workflow execution, one Integration Platform slice with one design-partner connector, external observation, reconciliation, and repair. Locale, legal, agent, entitlement, placement, reference-data, and provenance contracts will be implemented only to the depth required by the pilot. Broader connector catalogs, regulatory, analytical, billing, agent, and Workforce OS planes remain conformance designs or later investments. The platform core will be Go and Protobuf/gRPC contract-first, with GWC/GoWebComponents, grpcbridge, and SchemaFlux as the preferred UI, edge, and generator once each passes its qualification fixture, and Go server-rendered HTML, grpc-gateway or connect-go, and protoc as their fallbacks. Node, TypeScript, React, and Vite are excluded from the release image and runtime; development tooling is unconstrained.
 >
 > HRIS DataOps will expose selected operational capabilities—import, compare, temporal/provenance diagnosis, authorization explanation, connector test/redrive, and configuration promotion—to customer administrators when those capabilities are already required by ChangeOps and can be supported safely. It is an adjacent operator product and leverage mechanism, not permission to broaden Phase 1 into a general data platform.
 >

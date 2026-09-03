@@ -77,33 +77,53 @@ match; schema and profile identity are bound into the envelope.
 
 ## Proposal Material Context
 
-A Promotion proposal digest includes:
+The `PROPOSAL` profile splits a proposal's context into two lists. Only the
+first is hashed into the material digest that approval binds.
+
+**Material (hashed; a change here creates a new revision and invalidates
+approval):**
 
 ```text
-intent and proposal revision
+intent and proposal revision identity
 subjects and tenant/org/legal-entity scope
 effective date/business-time context
 typed planned domain writes and external effects
 source baselines and expected stream sequences
 position/budget reservations and expiry
-source-authority fingerprint
-AuthZ, legal, policy, entitlement and risk fingerprints
-classification taxonomy/label versions, propagation watermarks and DLP decision
-approved purpose, recipient/destination and residency decision
-reference, band, FX, calendar and tzdb versions used
-material attachment/artifact hashes
+source-authority decision for each written field
 required approvals and separation constraints
 side-effect and compensation/repair declarations
+material attachment/artifact hashes
+approved purpose, recipient/destination and residency decision
 ```
 
-An approval records the full `CanonicalDigest`, not a naked hash. Any material
-change produces a new proposal revision and invalidates approval according to
-policy. Nonmaterial display rerendering may retain the digest only when the
-profile proves those fields excluded.
+**Revalidated context (recorded as evidence; a change here triggers
+revalidation, and invalidates approval only when the material list above
+changes as a result or a mandatory deny appears):**
 
-Reclassification, DLP-policy revocation, destination/purpose change or incomplete
-label propagation is material unless the profile explicitly proves otherwise. It
-invalidates approval or blocks execution until re-evaluation.
+```text
+AuthZ, legal, policy, entitlement and risk fingerprints
+capability registry and workflow definition digests
+classification taxonomy/label versions and propagation watermarks
+DLP decision digest
+reference, band, FX, calendar and tzdb versions used
+connector configuration digest
+```
+
+An approval records the full `CanonicalDigest` of the material list, not a
+naked hash. Nonmaterial display rerendering never changes the digest.
+
+The consequence is deliberate: republishing a tenant policy bundle, a
+classification taxonomy, or a reference dataset does not invalidate every
+pending approval. Each affected proposal is revalidated under the new context;
+a proposal whose planned writes, effects, approvals, or authority decisions
+would now differ gets a new revision, and one that would now be denied is
+blocked. A proposal whose material result is unchanged keeps its approval and
+records the revalidation.
+
+Reclassification or DLP revocation that changes the destination, purpose, or
+residency decision changes the material list and therefore invalidates
+approval. One that leaves those decisions intact is revalidated context.
 
 ## Shared Effective-Time Primitive
 
@@ -174,6 +194,9 @@ transition.
   unknown fields, set order, and artifact-reference tests prove explicit behavior.
 - A material proposal change invalidates approval; a declared nonmaterial display
   change does not.
+- A policy-bundle republish that does not change a proposal's material result
+  leaves its approval valid and records a revalidation; one that changes the
+  planned writes or adds a mandatory deny invalidates or blocks it.
 - Historical hashes verify after schema and algorithm upgrades.
 
 SchemaFlux may compile canonicalization plans and golden vectors from registered

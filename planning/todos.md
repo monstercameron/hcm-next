@@ -91,27 +91,27 @@ a label to paste onto infrastructure. Every todo therefore declares exactly one
 | `GOVERNANCE`     | Controls catalog, authority, policy, lifecycle or evidence for intent execution                  |
 | `SUBSTRATE`      | Supplies reusable mechanics; it must name the intent sets it supports and claim no direct intent |
 
-The `SETS` value resolves through the accepted catalog release. Stable baseline
-sets are `BI.PEOPLE=1-39`, `BI.WORKFORCE=40-67,143-176,309-316`,
-`BI.REWARDS=68-88,131-142`, `BI.PAYROLL=89-110`,
-`BI.REGULATORY=111-130`, `BI.RECRUITING=177-199`,
-`BI.LIFECYCLE=200-217`, `BI.ACCESS=218-235`, `BI.TALENT=236-260`,
-`BI.EXPERIENCE=261-274`, `BI.CASES=275-297`, `BI.MOBILITY=298-308`,
-`BI.PRIVACY=317-333`, `BI.DOCUMENTS=334-346`, `BI.WORK=347-368`,
-`BI.INTEGRATION=369-384`, `BI.DATAOPS=385-404`, `BI.SECURITY=405-418`,
-`BI.ANALYTICS=419-437`, `BI.INTELLIGENCE=438-460`,
-`BI.OPERATIONS=461-481`, `BI.COMMERCIAL=482-497`,
-`BI.TENANT=498-512`, and `BI.TRIGGERS=513-530`; `BI.ALL` is their exact union.
-Reviewed extension definitions use a versioned `BI.EXT.*` set and never borrow a
-baseline number. An exact `INTENTS` entry may name only a checked-in definition;
-partition context is required while the remaining source manifest is pending.
+The `SETS` value is a domain name, not a numeric range. The domains are
+`BI.PEOPLE`, `BI.WORKFORCE`, `BI.REWARDS`, `BI.PAYROLL`, `BI.REGULATORY`,
+`BI.RECRUITING`, `BI.LIFECYCLE`, `BI.ACCESS`, `BI.TALENT`, `BI.EXPERIENCE`,
+`BI.CASES`, `BI.MOBILITY`, `BI.PRIVACY`, `BI.DOCUMENTS`, `BI.WORK`,
+`BI.INTEGRATION`, `BI.DATAOPS`, `BI.SECURITY`, `BI.ANALYTICS`,
+`BI.INTELLIGENCE`, `BI.OPERATIONS`, `BI.COMMERCIAL`, `BI.TENANT` and
+`BI.TRIGGERS`; `BI.ALL` is their union. A domain set is a naming scope, not a
+promise that definitions exist in it: today only `BI.PEOPLE`, `BI.REWARDS`,
+`BI.WORK`, `BI.INTELLIGENCE` and `BI.OPERATIONS` contain a drafted definition.
+`BI.EXT.*` is retired with the catalog numbering. An exact `INTENTS` entry may
+name only one of the fourteen checked-in definitions; there is no pending
+source manifest and no partition context.
 
 `DIRECT=none` is mandatory for `SUBSTRATE`, `GOVERNANCE`, `DOMAIN_SUPPORT`,
 `EXPOSURE` and ordinary `CONFORMANCE` todos. A direct/composite todo names exact
 definition refs when available, its kernel family, and any emitted children.
 `GOV-025` rejects vague `ALL` usage without a bounded ownership reason, an
-invented catalog name, and any attempt to treat a database, library, workflow
-node or feature surface as a BusinessIntent merely to satisfy coverage.
+intent name that is not one of the fourteen checked-in definitions, a
+`FAMILY` outside the three kernel families, and any attempt to treat a
+database, library, workflow node or feature surface as a BusinessIntent merely
+to satisfy coverage.
 
 ### Secondary test taxonomy and required return contracts
 
@@ -137,24 +137,30 @@ adding redundant tests merely to increase counts is prohibited.
 
 Completion additionally requires:
 
-- production code and authored tooling are Go;
+- production code is Go; authored developer tooling may use any language and
+  is excluded from the release image;
 - HCM Next owns every HCM semantic contract; third-party Go modules provide
   infrastructure mechanics only and remain replaceable behind owned packages;
-- GWC/GoWebComponents, grpcbridge and SchemaFlux are the only project-designated
-  core libraries; every other non-standard module requires qualification,
-  confinement and replacement evidence;
+- GWC/GoWebComponents, grpcbridge and SchemaFlux are the preferred UI, edge
+  and generator, each usable only after its qualification fixture passes
+  (`TOOL-004`, `TOOL-008`, `UX-QUAL-001`) and each with a named fallback (Go
+  server-rendered HTML, grpc-gateway or connect-go, protoc with Go codegen);
+  every other non-standard module requires qualification, confinement and
+  replacement evidence;
 - public/service contracts are Protobuf and gRPC;
-- grpcbridge is the supported browser/HTTP adaptation boundary;
-- SchemaFlux performs the structured-definition work assigned to it;
-- product UI uses GWC/GoWebComponents;
-- no Node, npm, TypeScript, React or Vite production/build dependency is added;
+- the qualified edge is the supported browser/HTTP adaptation boundary;
+- no Node, TypeScript, React or Vite runtime is in the P1B release image;
+  legacy may run beside the Go slice through P1A;
+- no todo adds a lifecycle dimension, kernel family, workflow primitive or
+  coordination layer without a recorded scope exchange;
 - tenant, organization, field, purpose, authority, temporal and evidence rules
   remain explicit;
 - tests assert returned values, states, events, evidence or errors—not merely
   that a call did not panic.
 
-See [Go-only technology constitution](specs/go-only-technology-constitution.md),
-[canonical envelope and digest](specs/canonical-envelope-and-digest.md), and
+See [Go technology constitution](specs/go-only-technology-constitution.md),
+[canonical envelope and digest](specs/canonical-envelope-and-digest.md),
+[P1A/P1B contents](next-steps.md), and
 [Phase 1 implementation-depth matrix](plan.md#phase-1-implementation-depth-matrix).
 
 ## Model-intelligence labels
@@ -172,15 +178,73 @@ approved backlog change.
 
 ## Phase and gate labels
 
-| Label               | Meaning                                               |
-| ------------------- | ----------------------------------------------------- |
-| `P0`                | Planning/toolchain prerequisite                       |
-| `GATE_A`            | Paid design-partner observation; no employee mutation |
-| `GATE_B`            | Bounded Promotion/Compensation write authority        |
-| `GATE_C`            | General production authority for contracted scope     |
-| `PHASE_2`–`PHASE_5` | Later evidence-gated expansion                        |
-| `CONFORMANCE`       | Design/test fixture only; no production subsystem     |
-| `OUT`               | Explicitly out of the current delivery phase          |
+| Label               | Meaning                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `P0`                | Toolchain or planning prerequisite for P1A; must be small enough to finish in M2              |
+| `GATE_A`            | P1A: paid read-only observation, simulation and diff; zero workforce mutation, zero effects   |
+| `GATE_B`            | P1B: one governed write (promote + base pay) for one partner                                  |
+| `GATE_C`            | General production authority; everything moved here by the 2026-09-02 execution-plan revision |
+| `PHASE_2`–`PHASE_5` | Later evidence-gated expansion                                                                |
+| `CONFORMANCE`       | Design/test fixture only; no production subsystem                                             |
+| `DESIGN`            | Contract text only; no test, no phase; revisited when a consumer is funded                    |
+| `RETIRED`           | Withdrawn 2026-09-02; block kept for traceability; dependencies on it resolve as satisfied    |
+| `OUT`               | Explicitly out of the current delivery phase                                                  |
+
+A label is a candidate, not a release inventory. The exact contents of P1A and
+P1B are the lists in [next-steps.md](next-steps.md); a `GATE_A` todo that is
+not needed by those lists is not in P1A no matter what it says. Where this
+file and next-steps.md disagree, next-steps.md wins.
+
+## Alignment with the 2026-09-02 plan revisions
+
+The planning corpus was revised on 2026-09-02. This backlog was written before
+that revision and is read through the rules below; a todo's text is
+subordinate to them.
+
+**Vocabulary.** Todos that still use the earlier vocabulary mean the current
+one:
+
+```text
+seven kernel families            -> three: CHANGE_REQUEST, CALCULATION_REQUEST,
+                                    ANALYTICAL_REQUEST; process, filing, batch
+                                    and case are ChangeRequest attributes
+eleven lifecycle dimensions      -> five: RequestState, ExecutionState,
+                                    BusinessState, ConsistencyState,
+                                    ObligationState; no compatibility lattice
+seventeen step types             -> ten core + three structural; CHECKPOINT is
+                                    a safe_point attribute, RULE is
+                                    DECISION+rule_ref, AGENT and DOCUMENT are
+                                    CAPABILITY calls
+530 / 516 / 807 catalog counts   -> the catalog is the fourteen drafted
+                                    definitions; the intake list is
+                                    non-normative vocabulary with no work items
+CATALOGUED maturity              -> retired; a name below DRAFT_CONTRACT is not
+                                    in the catalog
+control snapshot in the digest   -> revalidated context; approval binds the
+                                    material digest only
+Go-only / GWC, grpcbridge,       -> Go core; the three libraries are preferred
+SchemaFlux as mandatory             with a qualification fixture and a named
+                                    fallback each; Node dev tooling is allowed
+secure inbox as a channel        -> a MINIMAL CONTRACT inbox record in the
+                                    workspace; P1B sends one email kind only
+```
+
+**Retired work.** The following programs have no consumer and are withdrawn
+as a whole; their todos carry `[RETIRED]` and any dependency on them resolves
+as satisfied: catalog source recovery and attestation (`MODEL-008`,
+`MODEL-009`, `NEXT-001`, `SOURCE-*`), the 530-slot and 807-name vertical-slice
+program (all of §61), the seventeen-step-type items for `RULE`, `AGENT`,
+`DOCUMENT` and `CHECKPOINT`, and the form engine (`FORM-001`–`FORM-003`).
+
+**Frozen work.** No further adversarial audit pass, no new specification, and
+no new todo section until P1A executes against partner data. A todo that
+proposes a new lifecycle dimension, kernel family, workflow primitive, or
+coordination layer is rejected by `GOV-006` without a recorded scope exchange.
+
+**Section dispositions.** Each numbered section below opens with a
+`Disposition (2026-09-02)` note stating what in it is P1A, P1B, Gate C,
+deferred, or retired. The note overrides individual labels where they
+conflict; labels are corrected on the items whose substance also changed.
 
 ## Global completion gates
 
@@ -205,9 +269,11 @@ accessibility / delegation / representation / human escalation
 
 ## 0. Backlog governance and traceability
 
+> **Disposition (2026-09-02):** P1A for `GOV-001`–`GOV-004`, `GOV-006`, `GOV-009` and `GOV-025` only, and only at the depth a compiled-in registry needs. `GOV-002` treats `[RETIRED]` as a resolved dependency. Coverage-matrix, traceability-graph and manifest-compiler items are DEFERRED until P1B; the backlog is not itself a product.
+
 - [ ] `GOV-001` **[P0][LUNA] Create the delivery-manifest schema.**
   - **Depends:** none.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestDeliveryManifestRejectsMissingRequiredFields`.
   - **TEST MATRIX:** `PRIMARY=TestDeliveryManifestRejectsMissingRequiredFields`; `GOLDEN=TestTodo_GOV_001_Golden`.
   - **RED:** `TestDeliveryManifestRejectsMissingRequiredFields` returns violations for absent owner, estimate, gate, dependencies, acceptance evidence, operations owner or displaced scope.
@@ -217,7 +283,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-002` **[P0][TERRA] Register every todo in a machine-readable backlog.**
   - **Depends:** `GOV-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodoRegistryMatchesMarkdown`.
   - **TEST MATRIX:** `PRIMARY=TestTodoRegistryMatchesMarkdown`; `GOLDEN=TestTodo_GOV_002_Golden`.
   - **RED:** `TestTodoRegistryMatchesMarkdown` reports any missing/duplicate ID, invalid phase, invalid intelligence label or unresolved dependency.
@@ -227,7 +293,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-003` **[P0][TERRA] Build requirement-to-evidence traceability.**
   - **Depends:** `GOV-001`, `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestRequirementTraceabilityRejectsOrphans`.
   - **TEST MATRIX:** `PRIMARY=TestRequirementTraceabilityRejectsOrphans`; `GOLDEN=TestTodo_GOV_003_Golden`; `RACE=TestTodo_GOV_003_Race`.
   - **RED:** `TestRequirementTraceabilityRejectsOrphans` fails for a requirement without owner, contract, code target, test and evidence target.
@@ -237,7 +303,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-004` **[P0][LUNA] Add planning-link validation.**
   - **Depends:** none.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlanningLinks`.
   - **TEST MATRIX:** `PRIMARY=TestPlanningLinks`; `GOLDEN=TestTodo_GOV_004_Golden`.
   - **RED:** `TestPlanningLinks` lists a deliberately broken local Markdown link and missing anchor.
@@ -247,7 +313,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-005` **[P0][TERRA] Enforce implementation-depth vocabulary.**
   - **Depends:** `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestDepthVocabularyRejectsSilentPromotion`.
   - **TEST MATRIX:** `PRIMARY=TestDepthVocabularyRejectsSilentPromotion`; `GOLDEN=TestTodo_GOV_005_Golden`; `CONFORMANCE=TestTodo_GOV_005_Conformance`.
   - **RED:** `TestDepthVocabularyRejectsSilentPromotion` rejects `DEFINED`, `PARTIAL`, `contract only` or architecture prose used as staffing authority.
@@ -257,7 +323,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-006` **[P0][TERRA] Implement the scope-exchange checker.**
   - **Depends:** `GOV-001`, `GOV-005`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestScopeExchangeRejectsUnfundedAddition`.
   - **TEST MATRIX:** `PRIMARY=TestScopeExchangeRejectsUnfundedAddition`; `GOLDEN=TestTodo_GOV_006_Golden`.
   - **RED:** `TestScopeExchangeRejectsUnfundedAddition` fails when a Gate A/B addition lacks owner, schedule impact, acceptance evidence and equivalent displaced scope.
@@ -267,7 +333,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-007` **[P0][LUNA] Check todo atomicity.**
   - **Depends:** `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodoAtomicity`.
   - **TEST MATRIX:** `PRIMARY=TestTodoAtomicity`; `GOLDEN=TestTodo_GOV_007_Golden`.
   - **RED:** `TestTodoAtomicity` rejects a fixture containing two independently shippable verbs or no observable expected result.
@@ -277,7 +343,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-008` **[P0][TERRA] Add test-evidence freshness rules.**
   - **Depends:** `GOV-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestEvidenceFreshnessRejectsHistoricalClaim`.
   - **TEST MATRIX:** `PRIMARY=TestEvidenceFreshnessRejectsHistoricalClaim`; `GOLDEN=TestTodo_GOV_008_Golden`.
   - **RED:** `TestEvidenceFreshnessRejectsHistoricalClaim` rejects a prior Markdown statement or evidence generated from a different commit/toolchain.
@@ -287,7 +353,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-009` **[P0][LUNA] Add a deferred-scope import guard.**
   - **Depends:** `GOV-005`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPhaseOneImportsRejectDeferredSubsystems`.
   - **TEST MATRIX:** `PRIMARY=TestPhaseOneImportsRejectDeferredSubsystems`; `PROPERTY=TestTodo_GOV_009_Property`; `GOLDEN=TestTodo_GOV_009_Golden`.
   - **RED:** `TestPhaseOneImportsRejectDeferredSubsystems` fails when Gate A/B packages import Kafka, ClickHouse, OpenSearch, vector, full billing, payroll calculation or omnichannel modules.
@@ -297,7 +363,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-010` **[P0][SOL_LOW] Create the authority-gate decision record.**
   - **Depends:** `GOV-001`, `GOV-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestAuthorityGateRejectsIncompleteEvidence`.
   - **TEST MATRIX:** `PRIMARY=TestAuthorityGateRejectsIncompleteEvidence`; `GOLDEN=TestTodo_GOV_010_Golden`; `FAULT=TestTodo_GOV_010_Fault`; `SECURITY=TestTodo_GOV_010_Security`.
   - **RED:** `TestAuthorityGateRejectsIncompleteEvidence` returns every missing security, privacy, correctness, reconciliation, recovery, governance and continuity class.
@@ -307,7 +373,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-011` **[P0][TERRA] Maintain the platform capability coverage matrix in CI.**
   - **Depends:** `GOV-003`, `GOV-005`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPilotCoverageRejectsImpliedOrMissing`.
   - **TEST MATRIX:** `PRIMARY=TestPilotCoverageRejectsImpliedOrMissing`; `GOLDEN=TestTodo_GOV_011_Golden`.
   - **RED:** `TestPilotCoverageRejectsImpliedOrMissing` fails when a Gate A/B dependency is `IMPLIED` or `MISSING`, lacks an owner, or has no closure action.
@@ -317,7 +383,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-012` **[P0][LUNA] Record terminology and alias conformance.**
   - **Depends:** `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestCanonicalTerms`.
   - **TEST MATRIX:** `PRIMARY=TestCanonicalTerms`; `GOLDEN=TestTodo_GOV_012_Golden`; `CONFORMANCE=TestTodo_GOV_012_Conformance`.
   - **RED:** `TestCanonicalTerms` catches Platform IAM confused with Workforce Access, Candidate used as exclusive Person state, or external observation labeled domain fact.
@@ -327,7 +393,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-013` **[P0][TERRA] Add architecture-boundary dependency tests.**
   - **Depends:** `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlaneBoundaries`.
   - **TEST MATRIX:** `PRIMARY=TestPlaneBoundaries`; `PROPERTY=TestTodo_GOV_013_Property`; `GOLDEN=TestTodo_GOV_013_Golden`; `RECOVERY=TestTodo_GOV_013_Recovery`.
   - **RED:** `TestPlaneBoundaries` fails when Workflow imports domain persistence, UI bypasses capabilities, or Intelligence becomes a synchronous command dependency.
@@ -337,7 +403,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-014` **[P0][TERRA] Add plan-contradiction review gates.**
   - **Depends:** `GOV-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlanningContradictions`.
   - **TEST MATRIX:** `PRIMARY=TestPlanningContradictions`; `GOLDEN=TestTodo_GOV_014_Golden`.
   - **RED:** `TestPlanningContradictions` detects a later spec that broadens Phase 1, marks conditional messaging implemented, or treats all reference workflows as product scope.
@@ -347,7 +413,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-015` **[P0][LUNA] Generate backlog progress without false completion.**
   - **Depends:** `GOV-002`, `GOV-003`, `GOV-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestProgressRejectsUncheckedEvidence`.
   - **TEST MATRIX:** `PRIMARY=TestProgressRejectsUncheckedEvidence`; `GOLDEN=TestTodo_GOV_015_Golden`.
   - **RED:** `TestProgressRejectsUncheckedEvidence` keeps a checked todo incomplete when required tests/evidence are absent or stale.
@@ -357,7 +423,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-017` **[P0][TERRA] Enforce explicit TDD structure and red-first evidence for every todo.**
   - **Depends:** `GOV-002`, `GOV-007`, `GOV-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodoTDDContractCompleteness`.
   - **TEST MATRIX:** `PRIMARY=TestTodoTDDContractCompleteness`; `GOLDEN=TestTodo_GOV_017_Golden`.
   - **RED:** fixtures with missing/duplicate `TEST|TEST MATRIX|RED|GREEN|REFACTOR`, combined `RED/GREEN`, invalid/non-unique Go test name, green evidence without prior failing run, vague success with no returned/persisted/error/evidence oracle, or unapproved `EVIDENCE_ONLY` status must fail with exact todo ID, file, line and diagnostic code.
@@ -367,7 +433,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-018` **[P0][SOL_HIGH] Generate and enforce risk-based test-class applicability for every todo.**
   - **Depends:** `GOV-002`, `GOV-017`, `MODEL-023`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodoTestMatrixApplicability`.
   - **TEST MATRIX:** `PRIMARY=TestTodoTestMatrixApplicability`; `GOLDEN=TestTodo_GOV_018_Golden`; `RACE=TestTodo_GOV_018_Race`; `INTEGRATION=TestTodo_GOV_018_Integration`; `FAULT=TestTodo_GOV_018_Fault`; `SECURITY=TestTodo_GOV_018_Security`; `CONFORMANCE=TestTodo_GOV_018_Conformance`; `BROWSER=TestTodo_GOV_018_Browser`; `BENCHMARK=BenchmarkTodo_GOV_018`; `MUTATION=TestTodo_GOV_018_Mutation`.
   - **RED:** fixtures omitting an applicable property/golden/fuzz/race/integration/fault/security/conformance/browser/recovery/benchmark/mutation class, adding a meaningless class, using duplicate test names or declaring `UNIT_ONLY` without evaluated reasons fail with exact todo ID, triggering rule and missing oracle.
@@ -377,7 +443,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-019` **[GATE_A][SOL_HIGH] Require mutation adequacy for authority- and correctness-bearing logic.**
   - **Depends:** `GOV-018`, `TOOL-013`, `CICD-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestCriticalMutationPolicyRejectsSurvivingSemanticMutants`.
   - **TEST MATRIX:** `PRIMARY=TestCriticalMutationPolicyRejectsSurvivingSemanticMutants`; `PROPERTY=TestTodo_GOV_019_Property`; `GOLDEN=TestTodo_GOV_019_Golden`; `RACE=TestTodo_GOV_019_Race`; `SECURITY=TestTodo_GOV_019_Security`; `MUTATION=TestTodo_GOV_019_Mutation`.
   - **RED:** seeded mutants that remove deny dominance, freshness checks, expected-version fences, idempotency, decimal rounding/traps, tenant filters, approval binding, zero-effect simulation or ledger/outbox atomicity survive the declared suites and block completion with exact mutant/source/test gap.
@@ -387,7 +453,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-020` **[P0][TERRA] Detect, quarantine and eliminate flaky or order-dependent tests without weakening gates.**
   - **Depends:** `GOV-008`, `GOV-018`, `TIME-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTestReliabilityPolicyRejectsFlakeAndSilentQuarantine`.
   - **TEST MATRIX:** `PRIMARY=TestTestReliabilityPolicyRejectsFlakeAndSilentQuarantine`; `GOLDEN=TestTodo_GOV_020_Golden`; `RACE=TestTodo_GOV_020_Race`; `FAULT=TestTodo_GOV_020_Fault`.
   - **RED:** randomized order, repeated execution, alternate timezone/locale, parallelism and fault seed expose nondeterminism, real sleeps, shared mutable fixture, leaked container or quarantined test without owner/expiry; any retry-to-green is reported as failure.
@@ -397,7 +463,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-021` **[P0][SOL_HIGH] Reject weak tests and coverage gaming.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-019`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestOracleStrengthRejectsExecutionOnlyAssertions`.
   - **TEST MATRIX:** `PRIMARY=TestOracleStrengthRejectsExecutionOnlyAssertions`; `PROPERTY=TestTodo_GOV_021_Property`; `GOLDEN=TestTodo_GOV_021_Golden`; `MUTATION=TestTodo_GOV_021_Mutation`.
   - **RED:** tests that assert only no panic/non-nil/status 200/mock invocation/line coverage, omit zero-prohibited-effect checks, snapshot unstable noise, accept multiple contradictory outputs or never fail against a seeded defect are classified `WEAK_ORACLE` and cannot satisfy a todo.
@@ -407,7 +473,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-022` **[P0][SOL_HIGH] Register every normative planning obligation with a stable requirement identity.**
   - **Depends:** `GOV-003`, `GOV-004`, `GOV-012`, `DOC-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlanningRequirementRegistryRejectsUntrackedNormativeObligations`.
   - **TEST MATRIX:** `PRIMARY=TestPlanningRequirementRegistryRejectsUntrackedNormativeObligations`; `PROPERTY=TestTodo_GOV_022_Property`; `GOLDEN=TestTodo_GOV_022_Golden`; `FUZZ=FuzzTodo_GOV_022`; `CONFORMANCE=TestTodo_GOV_022_Conformance`; `MUTATION=TestTodo_GOV_022_Mutation`.
   - **RED:** fixtures containing an unregistered `MUST`, invariant, rejection rule, mandatory table row, lifecycle transition, failure semantic or activation gate—or a requirement registered from stale text—must fail with document, heading, line, canonical text digest and `UNTRACKED_REQUIREMENT|STALE_REQUIREMENT|CONTRADICTORY_REQUIREMENT` while producing no completion evidence.
@@ -417,7 +483,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-023` **[P0][SOL_HIGH] Bind every architecture and product risk to executable prevention, detection and recovery evidence.**
   - **Depends:** `GOV-010`, `GOV-018`, `GOV-022`, `OPS-007`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestRiskRegisterRejectsUncontrolledOrUntestedRisk`.
   - **TEST MATRIX:** `PRIMARY=TestRiskRegisterRejectsUncontrolledOrUntestedRisk`; `PROPERTY=TestTodo_GOV_023_Property`; `GOLDEN=TestTodo_GOV_023_Golden`; `FAULT=TestTodo_GOV_023_Fault`; `SECURITY=TestTodo_GOV_023_Security`; `CONFORMANCE=TestTodo_GOV_023_Conformance`; `MUTATION=TestTodo_GOV_023_Mutation`.
   - **RED:** any numbered risk lacks an owner, trigger, prevention control, detection signal, response/recovery route, residual-risk decision, todo/test/evidence link or review expiry; seeded removal of a deny, alarm or recovery link must identify the exact risk and block the applicable authority gate.
@@ -427,7 +493,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-024` **[P0][SOL_HIGH] Reconcile specification, workflow, model and todo coverage as one corpus graph.**
   - **Depends:** `GOV-003`, `GOV-022`, `MODEL-030`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPlanningCorpusGraphRejectsOrphanContractOrFalseCoverage`.
   - **TEST MATRIX:** `PRIMARY=TestPlanningCorpusGraphRejectsOrphanContractOrFalseCoverage`; `PROPERTY=TestTodo_GOV_024_Property`; `GOLDEN=TestTodo_GOV_024_Golden`; `RACE=TestTodo_GOV_024_Race`; `CONFORMANCE=TestTodo_GOV_024_Conformance`; `MUTATION=TestTodo_GOV_024_Mutation`.
   - **RED:** removing a spec, workflow, entity/property, intent binding, failure path, todo, test or evidence edge must report the complete orphan path; a document merely named in `Refs` without requirement-level coverage remains uncovered and a historical reviewer ledger cannot satisfy current evidence.
@@ -436,18 +502,18 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Model registry contracts](data/models/registry-and-coverage-contracts.md), [workflow index](workflows/README.md), [platform coverage](specs/platform-capability-coverage-matrix.md).
 
 - [ ] `GOV-025` **[P0][SOL_HIGH] Enforce truthful BusinessIntent context on every todo.**
-  - **Depends:** `GOV-002`, `GOV-012`, `MODEL-008`, `INTENT-010`, `INTENT-025`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent false or missing semantic ownership in the delivery backlog`.
+  - **Depends:** `GOV-002`, `GOV-012`, `MODEL-010`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent false or missing semantic ownership in the delivery backlog`.
   - **TEST:** `TestTodoIntentContextRejectsMissingFalseOrUnresolvedBinding`.
-  - **TEST MATRIX:** `PRIMARY=TestTodoIntentContextRejectsMissingFalseOrUnresolvedBinding`; `PROPERTY=TestTodo_GOV_025_Property`; `GOLDEN=TestTodo_GOV_025_Golden`; `FUZZ=FuzzTodo_GOV_025`; `CONFORMANCE=TestTodo_GOV_025_Conformance`; `MUTATION=TestTodo_GOV_025_Mutation`.
-  - **RED:** fixtures with a missing/duplicate context, unknown role/set, non-existent catalog number/name, mismatched number/name, wrong kernel family, direct claim by substrate, composite with hidden children, vague `BI.ALL` rationale, reviewed extension occupying a baseline number, or material domain behavior mislabeled as infrastructure fail with exact todo ID and diagnostic.
-  - **GREEN:** every todo resolves one role and bounded accepted intent set; exact definitions resolve by immutable identity/version, non-direct work says `DIRECT=none`, composite/emitter relationships expose children, and unresolved source-manifest entries remain partition-bound rather than fabricated.
-  - **REFACTOR:** generate Markdown validation, TodoContract fields and catalog resolution from one SchemaFlux-backed registry.
-  - **Refs:** [Business Intent catalog](specs/business-intent-catalog.md), [registry and coverage contracts](data/models/registry-and-coverage-contracts.md), [BusinessIntent context](#businessintent-context-required-by-every-todo).
+  - **TEST MATRIX:** `PRIMARY=TestTodoIntentContextRejectsMissingFalseOrUnresolvedBinding`; `PROPERTY=TestTodo_GOV_025_Property`; `GOLDEN=TestTodo_GOV_025_Golden`; `FUZZ=FuzzTodo_GOV_025`; `CONFORMANCE=TestTodo_GOV_025_Conformance`.
+  - **RED:** fixtures with a missing/duplicate context, unknown role/set, an `INTENTS` value that is not one of the fourteen definitions, a `FAMILY` outside the three kernel families, a direct claim by substrate, a composite with hidden children, a vague `BI.ALL` rationale, or material domain behavior mislabeled as infrastructure fail with exact todo ID and diagnostic; a dependency on a `[RETIRED]` todo resolves as satisfied and does not fail.
+  - **GREEN:** every todo resolves one role and a bounded domain set; exact definitions resolve by immutable `(intent_type_id, version)`; non-direct work says `DIRECT=none`; composite/emitter relationships expose children.
+  - **REFACTOR:** generate Markdown validation and TodoContract fields from the compiled-in registry.
+  - **Refs:** [Business Intent catalog](specs/business-intent-catalog.md), [BusinessIntent context](#businessintent-context-required-by-every-todo).
 
 - [ ] `GOV-026` **[P0][SOL_HIGH] Prove bidirectional BusinessIntent-to-delivery coverage without false maturity.**
   - **Depends:** `GOV-024`, `GOV-025`, `MODEL-030`, `INTENT-CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prove every accepted intent has delivery ownership and every todo has a semantic consumer or substrate rationale`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prove every accepted intent has delivery ownership and every todo has a semantic consumer or substrate rationale`.
   - **TEST:** `TestIntentTodoCoverageRejectsOrphansAndFalseImplementationClaims`.
   - **TEST MATRIX:** `PRIMARY=TestIntentTodoCoverageRejectsOrphansAndFalseImplementationClaims`; `PROPERTY=TestTodo_GOV_026_Property`; `GOLDEN=TestTodo_GOV_026_Golden`; `RACE=TestTodo_GOV_026_Race`; `CONFORMANCE=TestTodo_GOV_026_Conformance`; `MUTATION=TestTodo_GOV_026_Mutation`.
   - **RED:** removing an accepted intent's contract/model/property/capability/workflow-or-direct-path/governance/test/evidence/deferment owner, removing the reverse intent consumer from substrate, or reporting partition/conceptual coverage as contracted/implemented produces the exact orphan path and blocks the applicable gate.
@@ -457,17 +523,17 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-027` **[P0][SOL_HIGH] Generate atomic TDD todo candidates from each contracted BusinessIntent gap.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-025`, `GOV-026`, `INTENT-CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make accepted BusinessIntent contracts the driver of implementation backlog generation`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make accepted BusinessIntent contracts the driver of implementation backlog generation`.
   - **TEST:** `TestIntentGapCompilerGeneratesCompleteAtomicTDDTodos`.
   - **TEST MATRIX:** `PRIMARY=TestIntentGapCompilerGeneratesCompleteAtomicTDDTodos`; `PROPERTY=TestTodo_GOV_027_Property`; `GOLDEN=TestTodo_GOV_027_Golden`; `FUZZ=FuzzTodo_GOV_027`; `CONFORMANCE=TestTodo_GOV_027_Conformance`; `MUTATION=TestTodo_GOV_027_Mutation`.
   - **RED:** a contracted fixture missing any required input/result property, entity relation, authority/source rule, temporal rule, lifecycle, invariant, conflict/proposal/revalidation/cancellation/compensation rule, governance obligation, capability/direct path, workflow composition, transaction/effect, observation/reconciliation/repair, evidence/retention, negative dimension, SLO or operations owner must emit an unresolved gap; generated work that combines independently shippable gaps, lacks RED/GREEN or duplicates an existing todo fails deterministically.
-  - **GREEN:** the compiler emits a stable dependency-ordered set of atomic todo candidates with intent context, owner/phase/intelligence, exact failing test and oracle, negative/fault/security classes, references and deduplication key; a fully covered intent emits zero new todos, while `CATALOGUED`-only entries emit contract-authoring work rather than implementation authority.
+  - **GREEN:** the compiler emits a stable dependency-ordered set of atomic todo candidates with intent context, owner/phase/intelligence, exact failing test and oracle, negative/fault/security classes, references and deduplication key; a fully covered definition emits zero new todos, and a name that is not one of the fourteen drafted definitions emits nothing at all.
   - **REFACTOR:** keep policy/schema generation generic while domain owners review HCM meaning, expected returns and phase depth before candidate acceptance.
   - **Refs:** [Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [negative dimensions](data/models/adversarial-model-audit-2026-08-14.md#negative-dimensions-required-by-every-future-binding), [todo execution contract](#how-an-agent-must-execute-a-todo).
 
 - [ ] `GOV-028` **[P0][SOL_HIGH] Reject placeholder RED/GREEN oracles in behavior-binding todos.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-021`, `GOV-027`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure intent-derived engine todos state concrete defects, typed outcomes and prohibited effects`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure intent-derived engine todos state concrete defects, typed outcomes and prohibited effects`.
   - **TEST:** `TestTodoOracleSpecificityRejectsPlaceholderContractLanguage`.
   - **TEST MATRIX:** `PRIMARY=TestTodoOracleSpecificityRejectsPlaceholderContractLanguage`; `PROPERTY=TestTodo_GOV_028_Property`; `GOLDEN=TestTodo_GOV_028_Golden`; `FUZZ=FuzzTodo_GOV_028`; `CONFORMANCE=TestTodo_GOV_028_Conformance`; `MUTATION=TestTodo_GOV_028_Mutation`.
   - **RED:** a binding todo whose RED says only `violates this contract`, `must fail`, `invalid fixture`, `returns diagnostics`, `works correctly` or an equivalent placeholder—without one named semantic defect, exact typed rejection/state and prohibited persisted/event/effect counts—is accepted by backlog validation.
@@ -477,7 +543,7 @@ accessibility / delegation / representation / human escalation
 
 - [ ] `GOV-029` **[P0][SOL_HIGH] Require an explicit production engine owner for every material HCM semantic cluster.**
   - **Depends:** `GOV-024`–`GOV-028`, `ENGINE-COVERAGE-001`, `INTENT-CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent conformance workflows or generic engines from masquerading as authoritative domain ownership`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent conformance workflows or generic engines from masquerading as authoritative domain ownership`.
   - **TEST:** `TestSemanticEngineOwnershipRejectsConformanceOnlyOrGenericOwner`.
   - **TEST MATRIX:** `PRIMARY=TestSemanticEngineOwnershipRejectsConformanceOnlyOrGenericOwner`; `PROPERTY=TestTodo_GOV_029_Property`; `GOLDEN=TestTodo_GOV_029_Golden`; `CONFORMANCE=TestTodo_GOV_029_Conformance`; `MUTATION=TestTodo_GOV_029_Mutation`.
   - **RED:** ATS, Workforce Access, HR Cases, worker lifecycle, FX, localization, location/jurisdiction, service/seniority, collective bargaining, reporting, payroll inputs/tax profile/pay methods, job architecture, identity/work authorization, ER, mobility, safety, skills/career/succession, advanced rewards, assets or contact verification resolves only to a workflow sample, connector, shared Program/Rules engine, model row or conformance fixture.
@@ -488,6 +554,8 @@ accessibility / delegation / representation / human escalation
 ---
 
 ## 1. Design partner, wedge and commercial proof
+
+> **Disposition (2026-09-02):** P1A. `WEDGE-001` must record the revised ICP (more than one HR system of record; single-suite Workday estates disqualified) and the read-only P1A price point. `WEDGE-014` is the Gate A decision; `WEDGE-015` is P1B.
 
 - [ ] `WEDGE-001` **[GATE_A][SOL_HIGH] Select a paid design-partner problem.**
   - **Depends:** `GOV-010`.
@@ -643,6 +711,8 @@ accessibility / delegation / representation / human escalation
 
 ## 2. Go-only repository, toolchain and contract generation
 
+> **Disposition (2026-09-02):** P1A for the root module, pinned Go/Protobuf/grpc-go, generation drift, fmt/vet/race/fuzz and ephemeral environments. `TOOL-004` and `TOOL-008` are the SchemaFlux and grpcbridge qualification fixtures with fallbacks. `TOOL-015`, `TOOL-017`, `TOOL-018` are P1B release-image checks. `TOOL-009` and `TOOL-020` are Gate C. The heading keeps its old name for anchor stability; the boundary is Go core, not Go only.
+
 - [ ] `TOOL-001` **[P0][TERRA] Create the authoritative Go workspace.**
   - **Depends:** `GOV-009`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -651,7 +721,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestGoWorkspacePolicy` fails with no pinned Go version, more than one production module without an approved architecture decision, a `go.work` used only to mirror deployment count, production packages outside the declared tree, or any Node/npm requirement.
   - **GREEN:** one root `go.mod` initially owns `cmd`, `api`, `internal`, `tools` and tests; clean checkout resolves the pinned toolchain and `go test ./...` starts without Node/npm. `go.work` is absent until a measured technical constraint and migration/compatibility plan justify another module.
   - **REFACTOR:** packages follow semantic ownership; commands are composition roots and never dictate module/package boundaries.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [legacy baseline](specs/legacy-implementation-baseline.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [legacy baseline](specs/legacy-implementation-baseline.md).
 
 - [ ] `TOOL-002` **[P0][LUNA] Pin Protobuf and Go generation tools.**
   - **Depends:** `TOOL-001`.
@@ -661,7 +731,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestGeneratorLockRejectsFloatingVersion` detects unpinned `protoc`, plugins or descriptor inputs.
   - **GREEN:** generation uses content-addressed versions and records tool digests.
   - **REFACTOR:** provide one Go-driven generation command.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [business intent catalog](specs/business-intent-catalog.md#go-only-implementation-boundary).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [business intent catalog](specs/business-intent-catalog.md#go-only-implementation-boundary).
 
 - [ ] `TOOL-003` **[P0][TERRA] Prove reproducible code generation.**
   - **Depends:** `TOOL-002`.
@@ -673,25 +743,25 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** eliminate environment-specific paths and nondeterministic iteration.
   - **Refs:** [Reproducibility contract](plan.md#93-reproducibility-contract), [canonical digest](specs/canonical-envelope-and-digest.md).
 
-- [ ] `TOOL-004` **[P0][SOL_LOW] Implement the offline SchemaFlux HCM compiler proof.**
+- [ ] `TOOL-004` **[P0][SOL_LOW] Run the SchemaFlux qualification fixture and select SchemaFlux or the protoc fallback.**
   - **Depends:** `TOOL-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestSchemaFluxOfflineFixture`.
-  - **TEST MATRIX:** `PRIMARY=TestSchemaFluxOfflineFixture`; `GOLDEN=TestTodo_TOOL_004_Golden`; `FUZZ=FuzzTodo_TOOL_004`; `CONFORMANCE=TestTodo_TOOL_004_Conformance`.
-  - **RED:** `TestSchemaFluxOfflineFixture` fails because selected intent/capability/schema relationships cannot yet compile offline.
-  - **GREEN:** parse -> normalize -> relate -> validate -> emit produces byte-stable Go registry, dependency index, compatibility report and fixtures with no network/model call.
-  - **REFACTOR:** SchemaFlux validates structured definitions; Protobuf remains canonical wire truth.
-  - **Refs:** [Technology constitution](specs/go-only-technology-constitution.md), [Intent catalog required fields](specs/business-intent-catalog.md#required-definition-fields).
+  - **TEST MATRIX:** `PRIMARY=TestSchemaFluxOfflineFixture`; `GOLDEN=TestTodo_TOOL_004_Golden`; `CONFORMANCE=TestTodo_TOOL_004_Conformance`.
+  - **RED:** `TestSchemaFluxOfflineFixture` fails when compiling the fourteen intent definitions and the P1A capability manifests produces different bytes across two runs or two machines, makes any network or model call, or cannot run offline.
+  - **GREEN:** either SchemaFlux passes and is pinned as the generator, or the fixture records the failure and the generator is protoc with Go code generation; the decision, evidence and chosen toolchain are recorded in the M2 manifest. The compiled-in Go registry is produced either way.
+  - **REFACTOR:** the generator produces registries and fixtures only; Protobuf remains canonical wire truth and no second business schema exists.
+  - **Refs:** [SchemaFlux qualification fixture](specs/go-only-technology-constitution.md#schemaflux-preferred-definition-generation), [registry bootstrap profile](specs/capability-registry-and-lifecycle.md#bootstrap-profile).
 
-- [ ] `TOOL-005` **[P0][TERRA] Reject unresolved SchemaFlux definitions.**
+- [ ] `TOOL-005` **[P0][TERRA] Reject unresolved definitions in the qualified generator.**
   - **Depends:** `TOOL-004`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TOOL_005`; `GOLDEN=TestTodo_TOOL_005_Golden`.
-  - **RED:** table tests inject unknown schema, capability, owner, lifecycle, rule, test or evidence reference and expect a typed compile error at the source path.
-  - **GREEN:** valid fixture compiles with zero unresolved references; warnings cannot publish Gate A/B contracts.
-  - **REFACTOR:** share diagnostics across CLI and GWC admin views.
-  - **Refs:** [Registry and coverage contracts](data/models/registry-and-coverage-contracts.md#coverage-checker-contract).
+  - **RED:** table tests inject an unknown schema, capability, owner or family reference into one of the fourteen definitions and expect a typed compile error at the source path, whichever generator was selected.
+  - **GREEN:** the valid fixture compiles with zero unresolved references; warnings cannot publish a P1A or P1B contract.
+  - **REFACTOR:** diagnostics are shared by the CLI and the workspace.
+  - **Refs:** [Draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice).
 
 - [ ] `TOOL-006` **[P0][TERRA] Implement Protobuf compatibility checks.**
   - **Depends:** `TOOL-002`.
@@ -713,17 +783,17 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** keep transport concerns out of domain messages.
   - **Refs:** [Every action is a capability](plan.md#59-every-product-action-is-a-governed-capability), [capability registry](specs/capability-registry-and-lifecycle.md).
 
-- [ ] `TOOL-008` **[P0][SOL_LOW] Prove grpcbridge unary transport parity.**
+- [ ] `TOOL-008` **[P0][SOL_LOW] Run the transport-edge qualification fixture and select grpcbridge or grpc-gateway/connect-go.**
   - **Depends:** `TOOL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGRPCBridgeUnaryParity`.
-  - **TEST MATRIX:** `PRIMARY=TestGRPCBridgeUnaryParity`; `GOLDEN=TestTodo_TOOL_008_Golden`; `INTEGRATION=TestTodo_TOOL_008_Integration`; `SECURITY=TestTodo_TOOL_008_Security`; `CONFORMANCE=TestTodo_TOOL_008_Conformance`; `BROWSER=TestTodo_TOOL_008_Browser`.
-  - **RED:** `TestGRPCBridgeUnaryParity` shows a mismatch in request presence, metadata, AuthZ, errors, deadlines or canonical response between native gRPC and HTTP/browser invocation.
-  - **GREEN:** canonical vectors return identical domain result/error/evidence IDs on both paths.
-  - **REFACTOR:** bridge adapts transport only; it owns no business rule.
-  - **Refs:** [Transport strategy](plan.md#16-strategic-decisions), [experience slice](execution-plan.md#experience-and-branding-slice).
+  - **TEST MATRIX:** `PRIMARY=TestGRPCBridgeUnaryParity`; `GOLDEN=TestTodo_TOOL_008_Golden`; `INTEGRATION=TestTodo_TOOL_008_Integration`; `SECURITY=TestTodo_TOOL_008_Security`; `CONFORMANCE=TestTodo_TOOL_008_Conformance`.
+  - **RED:** `TestGRPCBridgeUnaryParity` shows a mismatch in request presence, server-derived principal, authorization result, typed error, deadline or cancellation between native gRPC and HTTP invocation, or lets unauthenticated metadata select trusted context.
+  - **GREEN:** the canonical vector returns identical domain result/error/evidence IDs on both paths through the selected edge; if grpcbridge fails, the edge is grpc-gateway or connect-go and the decision is recorded in the M2 manifest. WebSocket and SSE are not tested here.
+  - **REFACTOR:** the edge adapts transport only; it owns no business rule.
+  - **Refs:** [grpcbridge qualification fixture](specs/go-only-technology-constitution.md#grpcbridge-preferred-transport-edge), [endpoint contract](specs/http-grpc-endpoint-contract.md).
 
-- [ ] `TOOL-009` **[PHASE_2][SOL_LOW] Prove grpcbridge streaming conformance.**
+- [ ] `TOOL-009` **[GATE_C][SOL_LOW] Prove grpcbridge streaming conformance.**
   - **Depends:** `TOOL-008`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_009`.
@@ -783,15 +853,15 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** preserve failed environments only through an explicit diagnostic policy.
   - **Refs:** [Environment governance](plan.md#111-environment-and-change-governance), [tenant sandbox boundary](specs/platform-foundation-gap-closure.md).
 
-- [ ] `TOOL-015` **[P0][TERRA] Enforce the Go-only build boundary.**
+- [ ] `TOOL-015` **[GATE_B][TERRA] Enforce the release-image boundary.**
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestReleaseContainsNoLegacyRuntime`.
-  - **TEST MATRIX:** `PRIMARY=TestReleaseContainsNoLegacyRuntime`; `PROPERTY=TestTodo_TOOL_015_Property`; `GOLDEN=TestTodo_TOOL_015_Golden`; `RACE=TestTodo_TOOL_015_Race`; `INTEGRATION=TestTodo_TOOL_015_Integration`; `BROWSER=TestTodo_TOOL_015_Browser`.
-  - **RED:** `TestReleaseContainsNoLegacyRuntime` fails on Node/npm/TypeScript/React/Vite executable, manifest, package or required build step.
-  - **GREEN:** release graph, image and SBOM contain only the Go runtime, GWC/grpcbridge/SchemaFlux in their declared core roles and pinned Go infrastructure modules in the approved dependency-role manifest; no accepted module becomes an HCM semantic contract.
-  - **REFACTOR:** permit legacy fixtures only in a non-release evidence path.
-  - **Refs:** [Go-only boundary](plan.md#518-go-only-contract-first-and-open-source-first), [legacy baseline rule](execution-plan.md#legacy-baseline-rule).
+  - **TEST MATRIX:** `PRIMARY=TestReleaseContainsNoLegacyRuntime`; `GOLDEN=TestTodo_TOOL_015_Golden`; `INTEGRATION=TestTodo_TOOL_015_Integration`.
+  - **RED:** `TestReleaseContainsNoLegacyRuntime` fails on a Node, TypeScript, React or Vite runtime, package or process in the P1B release image or on the production request path.
+  - **GREEN:** the release image and SBOM contain only the Go runtime, the qualified libraries in their selected roles and pinned Go infrastructure modules; the development toolchain (browser test runners, formatters) is out of scope of the check; legacy runs beside the Go slice in P1A without failing this test.
+  - **REFACTOR:** the check reads the release SBOM, not the repository tree.
+  - **Refs:** [Release gates](specs/go-only-technology-constitution.md#release-gates), [cutover rules](specs/legacy-implementation-baseline.md#cutover-rules).
 
 - [ ] `TOOL-016` **[GATE_A][TERRA] Add deterministic build verification.**
   - **Depends:** `TOOL-003`, `TOOL-015`.
@@ -803,7 +873,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** normalize build paths, timestamps and archive ordering.
   - **Refs:** [Supply-chain security](specs/platform-architecture-catalog.md), [Trust baseline](execution-plan.md#gate-a-acceptance--paid-observation).
 
-- [ ] `TOOL-017` **[GATE_A][TERRA] Generate and validate the SBOM.**
+- [ ] `TOOL-017` **[GATE_B][TERRA] Generate and validate the SBOM.**
   - **Depends:** `TOOL-016`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestSBOMCompleteness`.
@@ -813,7 +883,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** record generator/tool version and preserve replacement-path metadata.
   - **Refs:** [Platform correctness](plan.md#519-platform-correctness-is-business-correctness), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
 
-- [ ] `TOOL-018` **[GATE_A][SOL_LOW] Sign and verify release provenance.**
+- [ ] `TOOL-018` **[GATE_B][SOL_LOW] Sign and verify release provenance.**
   - **Depends:** `TOOL-016`, `TOOL-017`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_018`.
@@ -833,7 +903,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** exception approvals expire and are digest-bound.
   - **Refs:** [Open-source-first principle](plan.md#518-go-only-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
 
-- [ ] `TOOL-020` **[GATE_B][SOL_LOW] Prove rolling schema/binary upgrade and rollback.**
+- [ ] `TOOL-020` **[GATE_C][SOL_LOW] Prove rolling schema/binary upgrade and rollback.**
   - **Depends:** `TOOL-006`, `DATA-001`, `DATA-002`, `DATA-007`, `WF-RUN-001`, `WF-RUN-002`, `TX-004`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_020`.
@@ -847,6 +917,8 @@ accessibility / delegation / representation / human escalation
 
 ## 2A. Modular Go monolith and semantic package architecture
 
+> **Disposition (2026-09-02):** P1A, with exactly four initial commands (`hcmnext`, `worker`, `projector`, `migrate`) per next-steps.md; `scheduler` and `admin` are sequenced after P1A. Package roots for deferred planes may exist only as empty directories.
+
 - [ ] `ARCH-GO-001` **[P0][SOL_HIGH] Publish the canonical repository-layout manifest.**
   - **Depends:** `TOOL-001`, `GOV-013`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -855,7 +927,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestRepositoryLayoutRejectsUnownedOrMisplacedPackage` fails for a production package outside `cmd`, `api`, `definitions`, `internal`, `migrations`, `test` or `tools`; a package without semantic owner/layer/phase; or a command outside the approved process set.
   - **GREEN:** the manifest pins one-module-first layout; exact initial commands `hcmnext`, `worker`, `projector`, `scheduler`, `admin`, `migrate`; package roots for kernel, intent, capability, governance, workflow, engines, domains, transaction, ledger, human work, connectivity, trust, operations, stores and transports; and deferred directories that may exist only as definitions/conformance.
   - **REFACTOR:** directory presence never implies deployed service or implemented authority.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [platform planes](specs/platform-plane-model.md), [implementation-depth vocabulary](plan.md#phase-1-implementation-depth-matrix).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [platform planes](specs/platform-plane-model.md), [implementation-depth vocabulary](plan.md#phase-1-implementation-depth-matrix).
 
 - [ ] `ARCH-GO-002` **[P0][SOL_HIGH] Define the machine-readable package dependency policy.**
   - **Depends:** `ARCH-GO-001`.
@@ -875,7 +947,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestGoImportGraphPolicy` injects every forbidden edge, import cycle and undeclared package; CI reports source file, importer, imported package, violated rule and shortest cycle.
   - **GREEN:** `go list -deps -json`-derived graph is acyclic, matches the manifest and produces a stable package/dependency digest in clean checkout CI.
   - **REFACTOR:** authored Go tooling owns the check; no Node or external policy runtime becomes required.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [backlog governance](#0-backlog-governance-and-traceability).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [backlog governance](#0-backlog-governance-and-traceability).
 
 - [ ] `ARCH-GO-004` **[P0][SOL_HIGH] Keep `internal/kernel` boring and dependency-minimal.**
   - **Depends:** `ARCH-GO-003`, `MODEL-001`–`MODEL-007`.
@@ -975,7 +1047,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestPortOwnershipRejectsCentralRepositoryAndProviderInterfaces` fails on `internal/repository`, technology-shaped business ports, concrete adapter types in use-case signatures or adapter interfaces authored by implementations.
   - **GREEN:** intent/workflow/domain/work/messaging/integration packages own minimal ports; `store/postgres`, `store/object`, `store/cache` and providers implement them; compile-time assertions and contract tests prove substitution.
   - **REFACTOR:** avoid one interface per struct; introduce a port only at a real ownership/test/adapter boundary.
-  - **Refs:** [Platform responsibilities](specs/platform-responsibility-boundaries.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Platform responsibilities](specs/platform-responsibility-boundaries.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `ARCH-GO-014` **[P0][SOL_HIGH] Separate authored sources, wire generation and internal generation.**
   - **Depends:** `ARCH-GO-001`, `TOOL-003`, `MSRC-007`, `PROTO-005`.
@@ -985,7 +1057,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestGeneratedOwnershipRejectsMixedTrees` fails when authored domain code appears under generated roots, generated Protobuf code lands in domain packages, or SchemaFlux registries and wire bindings share ownership/path ambiguously.
   - **GREEN:** `api/proto` contains authored Protobuf; `api/gen/go` contains generated wire code; `definitions/*` contains authored SchemaFlux inputs; `internal/generated` contains generated semantic registries; headers/manifests identify generator/source/digest and prohibit manual edits.
   - **REFACTOR:** packages consume generated contracts through stable public import paths without generated-to-authored import cycles.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [model source generation](#29-machine-readable-model-sources-and-public-api-contracts).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [model source generation](#29-machine-readable-model-sources-and-public-api-contracts).
 
 - [ ] `ARCH-GO-015` **[P0][TERRA] Establish the immutable definitions directory contract.**
   - **Depends:** `ARCH-GO-014`, `CP-001`.
@@ -1015,7 +1087,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestNoGarbageDrawerPackages` rejects new `services`, `utils`, `helpers`, `common`, `managers`, central `models`/`repositories`, `impl` suffix packages or catch-all exported APIs without approved bounded semantic meaning.
   - **GREEN:** every package name has one semantic owner and bounded responsibility; shared code is moved to the narrowest valid kernel/engine/domain/adapter package or deliberately duplicated when coupling would be worse.
   - **REFACTOR:** exception requires architecture owner, import graph evidence, replacement plan and expiry.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [spec ownership](specs/specification-ownership-registry.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [spec ownership](specs/specification-ownership-registry.md).
 
 - [ ] `ARCH-GO-018` **[P0][SOL_HIGH] Gate the exact Phase 1 physical package subset.**
   - **Depends:** `ARCH-GO-003`, `GOV-009`, `ARCH-GO-015`.
@@ -1045,7 +1117,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestCompositionRootRejectsGlobalRegistrationAndHiddenDependencies` fails for package `init` registration, global mutable registries, service locator, concrete adapter construction inside business packages or command-specific business semantics.
   - **GREEN:** authored `internal/application` wiring constructs registries, governance, workflows, engines, domains, ports/adapters and worker roles from validated config; `cmd/*` only parses command/runtime configuration, selects role and invokes application lifecycle.
   - **REFACTOR:** test composition swaps adapters/clocks/providers explicitly without production-only branches.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [platform plane model](specs/platform-plane-model.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [platform plane model](specs/platform-plane-model.md).
 
 - [ ] `ARCH-GO-021` **[P0][SOL_HIGH] Enforce Integration package sub-boundaries and Transformation ownership.**
   - **Depends:** `ARCH-GO-008`, `ARCH-GO-013`, `XFORM-008`.
@@ -1075,7 +1147,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestTransportRejectsBusinessAndPersistenceImports` fails when `internal/transport/{grpc,grpcbridge,middleware}` imports domain repositories/concrete stores/providers, implements HCM validation, changes transport parity or constructs dependencies.
   - **GREEN:** transport decodes generated contracts, applies shared identity/governance/admission middleware, invokes intent/capability/application APIs and encodes canonical results/errors; grpcbridge contains HTTP adaptation only.
   - **REFACTOR:** field/business validation belongs to generated schemas/domain/engine contracts, not duplicated handlers.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [Experience/API plane](specs/platform-plane-model.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [Experience/API plane](specs/platform-plane-model.md).
 
 - [ ] `ARCH-GO-024` **[P0][SOL_HIGH] Separate configuration semantics from source definitions and rollout.**
   - **Depends:** `ARCH-GO-015`, `CP-001`, `ROLLOUT-001`.
@@ -1115,7 +1187,7 @@ accessibility / delegation / representation / human escalation
   - **RED:** `TestArchitectureCeremonyRejectsInterfacePerStructAndEmptyLayers` identifies one-method interfaces with one in-package implementation/no consumer need, parallel `*_service|*_repository|*_domain|*_model|*_impl` packages or forwarding-only layers.
   - **GREEN:** review manifest records the consumer-owned boundary served by each interface/package; concrete types remain acceptable until substitution, ownership or testing requires a port.
   - **REFACTOR:** remove ceremony while preserving typed contracts at actual domain, adapter and execution boundaries.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [risk register](specs/risk-register.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [risk register](specs/risk-register.md).
 
 - [ ] `ARCH-GO-028` **[P0][TERRA] Generate repository architecture documentation from the package manifest.**
   - **Depends:** `ARCH-GO-001`–`ARCH-GO-027`, `DOC-001`.
@@ -1131,6 +1203,8 @@ accessibility / delegation / representation / human escalation
 
 ## 2B. External Go dependency qualification and semantic ownership
 
+> **Disposition (2026-09-02):** P1A for `LIB-001` and the modules M2 actually imports (pgx, goose, testcontainers, grpc-go, protobuf). Every other candidate is qualified when first imported, not in advance.
+
 The governing rule is: **HCM Next owns HCM semantics; third-party libraries
 provide infrastructure mechanics.** A named candidate is not approved merely
 because it appears below. Its todo must produce a pinned, reviewed qualification
@@ -1144,7 +1218,7 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestDependencyRoleManifestRejectsUnclassifiedModule` fails for a direct or transitive production module without exact version/digest, role `PROJECT_CORE|INFRASTRUCTURE_MECHANIC|DEV_TEST_ONLY|PROHIBITED`, semantic owner, allowed import roots, license/security owner, upgrade SLA, data/process exposure and replacement path; it also fails if any module other than Go, GWC, grpcbridge or SchemaFlux is labeled `PROJECT_CORE`.
   - **GREEN:** the manifest classifies the complete module graph and explicitly records Protobuf/gRPC, pgx, CEL-Go, apd, OpenTelemetry, Goose, Testcontainers, go-oidc/x/oauth2 and optional JOSE/JWK candidates as replaceable mechanics subject to their qualification todos.
   - **REFACTOR:** generate SBOM annotations, architecture rules and dependency documentation from this one source rather than parallel allowlists.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [open-source-first principle](plan.md#518-go-only-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [open-source-first principle](plan.md#518-go-only-contract-first-and-open-source-first), [risk register](specs/risk-register.md).
 
 - [ ] `LIB-002` **[P0][SOL_HIGH] Enforce the third-party semantic firewall in the Go import graph.**
   - **Depends:** `LIB-001`, `ARCH-GO-002`, `ARCH-GO-003`.
@@ -1254,7 +1328,7 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestStandardLibraryDefaultPolicy` fails when a third-party logger/HTTP/router/crypto/assertion framework is introduced without a missing-capability benchmark and ownership decision, or when `slog` records bypass classification/redaction.
   - **GREEN:** `log/slog`, standard crypto/TLS/networking and Go test/race/fuzz tools satisfy declared needs through minimal owned configuration/adapters; any exception records measurable deficiency and passes `LIB-001` qualification.
   - **REFACTOR:** do not wrap every standard type; create boundaries only for policy, substitution, deterministic testing or semantic ownership.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [architecture ceremony](#2a-modular-go-monolith-and-semantic-package-architecture).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [architecture ceremony](#2a-modular-go-monolith-and-semantic-package-architecture).
 
 - [ ] `LIB-013` **[P0][SOL_HIGH] Enforce the prohibited semantic-framework and Phase 1 infrastructure list.**
   - **Depends:** `LIB-001`, `ARCH-GO-002`, `GOV-009`.
@@ -1264,7 +1338,7 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestProhibitedFrameworkPolicy` fails when GORM/Ent or another ORM controls authoritative transaction semantics; Temporal/Camunda becomes the persisted business workflow model; JavaScript/Lua/Python/Starlark executes customer rules; Kafka/full broker becomes mandatory for Phase 1 correctness; or provider SDK types enter domain contracts.
   - **GREEN:** authoritative SQL/locking/temporal/outbox behavior stays explicit; workflow/rules/integration semantics remain HCM Next-owned; PostgreSQL/outbox is sufficient for Phase 1; a future mechanical scheduler/broker/provider SDK requires a measured gate and adapter conformance without changing semantic contracts.
   - **REFACTOR:** policy prohibits semantic capture, not evidence-based use of a replaceable mechanic in a later phase.
-  - **Refs:** [Workflow runtime](specs/workflow-runtime.md), [Phase 1 scope](execution-plan.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Workflow runtime](specs/workflow-runtime.md), [Phase 1 scope](execution-plan.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `LIB-014` **[GATE_A][SOL_HIGH] Prove dependency upgrade, rollback and replacement safety.**
   - **Depends:** `LIB-002`–`LIB-013`, `TOOL-016`–`TOOL-019`.
@@ -1284,15 +1358,17 @@ or an explicit rejection and replacement decision.
   - **RED:** `TestReadmeLibraryStrategyMatchesManifest` fails when README omits semantic ownership, mislabels an infrastructure module as project core, lists an unapproved dependency, omits a prohibited semantic framework, implies Node/TypeScript production support or disagrees with the package/dependency manifests.
   - **GREEN:** README states that HCM Next owns intent/capability/governance/workflow/transaction/ledger/engine/domain semantics; Go plus GWC/grpcbridge/SchemaFlux are the declared core; approved third-party Go modules are replaceable mechanics; and the package/dependency diagram and candidate status are generated from current manifests.
   - **REFACTOR:** keep concise human guidance authored while generating volatile versions/status/tables to prevent documentation drift.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [repository architecture](#2a-modular-go-monolith-and-semantic-package-architecture), [documentation governance](specs/specification-ownership-registry.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [repository architecture](#2a-modular-go-monolith-and-semantic-package-architecture), [documentation governance](specs/specification-ownership-registry.md).
 
 ---
 
 ## 3. Canonical values, schemas, registries and model coverage
 
+> **Disposition (2026-09-02):** P1A for canonical identifiers, money/time value types, digest references, the fourteen-definition registry (`MODEL-010`), lifecycle validation for the five dimensions (`MODEL-014`) and negative-state policy. `MODEL-008`, `MODEL-009` are RETIRED; `MODEL-016` binds the fourteen, not a count. Entity/property registries beyond the fourteen definitions' needs are DEFERRED.
+
 - [ ] `MODEL-001` **[P0][TERRA] Implement canonical entity and reference identifiers.**
   - **Depends:** `TOOL-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_001`; `PROPERTY=TestTodo_MODEL_001_Property`; `GOLDEN=TestTodo_MODEL_001_Golden`; `FUZZ=FuzzTodo_MODEL_001`; `FAULT=TestTodo_MODEL_001_Fault`; `SECURITY=TestTodo_MODEL_001_Security`.
   - **RED:** canonical-vector tests reject empty/wrong-kind IDs, tenantless resource keys and ambiguous revision selectors.
@@ -1302,7 +1378,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-002` **[P0][TERRA] Implement explicit property presence semantics.**
   - **Depends:** `MODEL-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestPresenceNeverCollapsesUnknown`.
   - **TEST MATRIX:** `PRIMARY=TestPresenceNeverCollapsesUnknown`; `PROPERTY=TestTodo_MODEL_002_Property`; `GOLDEN=TestTodo_MODEL_002_Golden`; `FUZZ=FuzzTodo_MODEL_002`; `SECURITY=TestTodo_MODEL_002_Security`.
   - **RED:** `TestPresenceNeverCollapsesUnknown` proves `ABSENT`, `NULL`, `UNKNOWN`, `REDACTED`, `UNAVAILABLE` and `NOT_APPLICABLE` cannot decode as a zero value.
@@ -1312,7 +1388,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-003` **[P0][SOL_LOW] Implement fixed-decimal arithmetic.**
   - **Depends:** `MODEL-001`, `LIB-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_003`; `PROPERTY=TestTodo_MODEL_003_Property`; `GOLDEN=TestTodo_MODEL_003_Golden`; `FUZZ=FuzzTodo_MODEL_003`; `RACE=TestTodo_MODEL_003_Race`.
   - **RED:** vectors reject NaN, infinity, negative zero, excess scale, overflow and implicit currency conversion.
@@ -1322,7 +1398,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-004` **[P0][SOL_LOW] Implement business-time primitives.**
   - **Depends:** `MODEL-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_004`; `PROPERTY=TestTodo_MODEL_004_Property`; `GOLDEN=TestTodo_MODEL_004_Golden`; `FUZZ=FuzzTodo_MODEL_004`.
   - **RED:** vectors fail on invalid local dates, DST gaps/overlaps without resolution, inverted intervals and conflated date/instant values.
@@ -1332,7 +1408,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-005` **[P0][TERRA] Version timezone and business-calendar datasets.**
   - **Depends:** `MODEL-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTimerDatasetChangePolicy`.
   - **TEST MATRIX:** `PRIMARY=TestTimerDatasetChangePolicy`; `PROPERTY=TestTodo_MODEL_005_Property`; `GOLDEN=TestTodo_MODEL_005_Golden`; `FUZZ=FuzzTodo_MODEL_005`; `RACE=TestTodo_MODEL_005_Race`; `RECOVERY=TestTodo_MODEL_005_Recovery`.
   - **RED:** `TestTimerDatasetChangePolicy` rejects a future timer lacking timezone/calendar version and update behavior.
@@ -1342,7 +1418,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-006` **[P0][SOL_HIGH] Implement canonical envelope normalization.**
   - **Depends:** `MODEL-002`–`MODEL-005`, `TOOL-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_006`; `PROPERTY=TestTodo_MODEL_006_Property`; `GOLDEN=TestTodo_MODEL_006_Golden`; `FUZZ=FuzzTodo_MODEL_006`.
   - **RED:** canonical vectors expose field-order, unknown-field, Unicode, map-order, decimal and time nondeterminism.
@@ -1352,7 +1428,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-007` **[P0][SOL_HIGH] Implement versioned digest profiles.**
   - **Depends:** `MODEL-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_007`; `PROPERTY=TestTodo_MODEL_007_Property`; `GOLDEN=TestTodo_MODEL_007_Golden`; `FUZZ=FuzzTodo_MODEL_007`.
   - **RED:** tests reject unknown algorithms/profiles, omitted material paths, nullable digest and profile substitution.
@@ -1360,9 +1436,10 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** add dual-verification support without changing historical hashes.
   - **Refs:** [Canonical digest contract](specs/canonical-envelope-and-digest.md), [crypto agility](data/models/security-trust.md).
 
-- [ ] `MODEL-008` **[P0][TERRA] Check in the exact 530-candidate source manifest.**
+- [ ] `MODEL-008` **[RETIRED][TERRA] RETIRED 2026-09-02: Check in the exact 530-candidate source manifest.**
+  - **Disposition:** RETIRED 2026-09-02. The intake name list is non-normative vocabulary; there is no source manifest to recover, count, or attest. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `GOV-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentSourceManifest`.
   - **TEST MATRIX:** `PRIMARY=TestIntentSourceManifest`; `PROPERTY=TestTodo_MODEL_008_Property`; `GOLDEN=TestTodo_MODEL_008_Golden`; `FUZZ=FuzzTodo_MODEL_008`.
   - **RED:** `TestIntentSourceManifest` fails while count/provenance/digest cannot independently prove the supplied numbered catalog.
@@ -1370,9 +1447,10 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** retain the original intake artifact alongside normalized partitions.
   - **Refs:** [Business intent catalog status](specs/business-intent-catalog.md#catalog-identity), [model coverage status](data/models/README.md#coverage-rule).
 
-- [ ] `MODEL-009` **[P0][TERRA] Generate all intent ownership partitions.**
+- [ ] `MODEL-009` **[RETIRED][TERRA] RETIRED 2026-09-02: Generate all intent ownership partitions.**
+  - **Disposition:** RETIRED 2026-09-02. There are no catalog partitions. A domain starts its own definition file when it contracts its first definition. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `MODEL-008`, `TOOL-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_009`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_009`; `PROPERTY=TestTodo_MODEL_009_Property`; `GOLDEN=TestTodo_MODEL_009_Golden`; `FUZZ=FuzzTodo_MODEL_009`.
   - **RED:** completeness test reports every missing/duplicate/out-of-range number, unqualified ID and ownerless entry.
@@ -1380,19 +1458,19 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** catalog numbers and IDs never change when display labels change.
   - **Refs:** [Catalog coverage partitions](specs/business-intent-catalog.md#catalog-coverage-partitions), [intent coverage matrix](data/models/intent-coverage-matrix.md).
 
-- [ ] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry.**
-  - **Depends:** `MODEL-009`, `TOOL-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+- [ ] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry for the fourteen drafted definitions.**
+  - **Depends:** `TOOL-006`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_010`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_010`; `PROPERTY=TestTodo_MODEL_010_Property`; `GOLDEN=TestTodo_MODEL_010_Golden`; `FUZZ=FuzzTodo_MODEL_010`; `RACE=TestTodo_MODEL_010_Race`.
-  - **RED:** registry rejects missing required field, unknown schema/capability, invalid family/effect pairing and material version reuse.
-  - **GREEN:** every definition in the accepted catalog release resolves at `CATALOGUED`; the initial baseline records 530 definitions plus any separately reviewed additions discovered through FeatureIntentCoverage, while only the approved Phase 1 slice may advance to contracted/published maturity.
-  - **REFACTOR:** name lookup is presentation-only; runtime uses `definition_ref`.
-  - **Refs:** [Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [registry contracts](data/models/registry-and-coverage-contracts.md).
+  - **RED:** registry rejects a missing required `DRAFT_CONTRACT` field, an unknown schema/capability, a family outside `CHANGE_REQUEST|CALCULATION_REQUEST|ANALYTICAL_REQUEST`, an invalid family/effect pairing, `population_scope` on a non-`CHANGE_REQUEST`, and material version reuse.
+  - **GREEN:** exactly the fourteen checked-in definitions resolve by `(intent_type_id, version)` with their family, side-effect profile and release (`P1A`, `P1B`, conformance); nothing resolves at any maturity below `DRAFT_CONTRACT`; the registry is a compiled-in Go table under the `BOOTSTRAP` profile.
+  - **REFACTOR:** name lookup is presentation-only; runtime uses `definition_ref`; adding a definition is a source change, not a count.
+  - **Refs:** [Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice), [registry bootstrap profile](specs/capability-registry-and-lifecycle.md#bootstrap-profile).
 
 - [ ] `MODEL-011` **[P0][TERRA] Implement entity/property definition registries.**
   - **Depends:** `MODEL-001`, `TOOL-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_011`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_011`; `PROPERTY=TestTodo_MODEL_011_Property`; `GOLDEN=TestTodo_MODEL_011_Golden`; `FUZZ=FuzzTodo_MODEL_011`; `SECURITY=TestTodo_MODEL_011_Security`.
   - **RED:** publication rejects properties without concrete type, presence, authority, temporal, classification, correction and retention semantics.
@@ -1402,7 +1480,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-012` **[P0][SOL_LOW] Implement aggregate ownership registration.**
   - **Depends:** `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_012`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_012`; `PROPERTY=TestTodo_MODEL_012_Property`; `GOLDEN=TestTodo_MODEL_012_Golden`; `FUZZ=FuzzTodo_MODEL_012`; `RECOVERY=TestTodo_MODEL_012_Recovery`; `RACE=TestTodo_MODEL_012_Race`.
   - **RED:** tests reject unassigned roots, child mutation without owner authority and cross-root atomic assumptions outside a declared consistency boundary.
@@ -1412,7 +1490,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-013` **[P0][SOL_LOW] Implement relationship definitions and temporal constraints.**
   - **Depends:** `MODEL-004`, `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_013`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_013`; `PROPERTY=TestTodo_MODEL_013_Property`; `GOLDEN=TestTodo_MODEL_013_Golden`; `FUZZ=FuzzTodo_MODEL_013`; `SECURITY=TestTodo_MODEL_013_Security`.
   - **RED:** tests reject missing endpoint kinds, cycles where prohibited, overlapping exclusive edges and cross-tenant endpoints.
@@ -1422,7 +1500,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-014` **[P0][SOL_LOW] Implement lifecycle definition validation.**
   - **Depends:** `MODEL-012`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_014`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_014`; `PROPERTY=TestTodo_MODEL_014_Property`; `GOLDEN=TestTodo_MODEL_014_Golden`; `FUZZ=FuzzTodo_MODEL_014`.
   - **RED:** checker rejects undeclared transition, unreachable state, in-place historical mutation and transition bypassing governance/retention.
@@ -1432,7 +1510,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-015` **[P0][SOL_LOW] Implement negative-state policy registration.**
   - **Depends:** `MODEL-010`, `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_015`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_015`; `PROPERTY=TestTodo_MODEL_015_Property`; `GOLDEN=TestTodo_MODEL_015_Golden`; `FUZZ=FuzzTodo_MODEL_015`; `FAULT=TestTodo_MODEL_015_Fault`.
   - **RED:** definition compilation rejects an applicable `UNKNOWN/PARTIAL/DEGRADED/AMBIGUOUS/REDACTED/UNAVAILABLE/STALE` state without policy.
@@ -1440,19 +1518,19 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** common policies are referenced, not copied.
   - **Refs:** [Negative-state policy](data/models/registry-and-coverage-contracts.md#negative-state-policy-contract).
 
-- [ ] `MODEL-016` **[P0][SOL_HIGH] Bind every intent to exact model behavior.**
+- [ ] `MODEL-016` **[P0][SOL_HIGH] Bind each of the fourteen definitions to exact model behavior.**
   - **Depends:** `MODEL-010`–`MODEL-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_016`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_016`; `PROPERTY=TestTodo_MODEL_016_Property`; `GOLDEN=TestTodo_MODEL_016_Golden`; `FUZZ=FuzzTodo_MODEL_016`; `RACE=TestTodo_MODEL_016_Race`; `MUTATION=TestTodo_MODEL_016_Mutation`.
-  - **RED:** coverage checker reports intent missing subject/root, property read/write, decision, evidence, effect, lifecycle transition, negative policy or scenario.
-  - **GREEN:** verified count equals the immutable accepted-catalog count and reports `<verified>/<catalogued> VERIFIED`; the baseline begins at 530, approved additions increment both catalog/version evidence, and incomplete releases remain `CONCEPTUALLY_COVERED, EXACT_BINDING_PENDING`.
+  - **RED:** coverage checker reports a definition missing subject/root, property read/write, decision, evidence, effect, lifecycle transition on the five dimensions, negative policy or scenario.
+  - **GREEN:** all fourteen definitions bind to the entities the data-model README names as the covered set; the report is `14/14 BOUND` or lists the exact gaps; no denominator other than the checked-in definition count exists.
   - **REFACTOR:** bindings reference stable IDs and schema paths, never prose names.
-  - **Refs:** [Coverage checker](data/models/registry-and-coverage-contracts.md#coverage-checker-contract), [intent matrix](data/models/intent-coverage-matrix.md).
+  - **Refs:** [Covered entity set](data/models/README.md), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions).
 
 - [ ] `MODEL-017` **[P0][TERRA] Implement schema release lifecycle.**
   - **Depends:** `TOOL-006`, `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_017`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_017`; `PROPERTY=TestTodo_MODEL_017_Property`; `GOLDEN=TestTodo_MODEL_017_Golden`; `FUZZ=FuzzTodo_MODEL_017`; `RACE=TestTodo_MODEL_017_Race`; `FAULT=TestTodo_MODEL_017_Fault`.
   - **RED:** release rejects unresolved consumers, incompatible change, missing migration or publication without approval.
@@ -1462,7 +1540,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-018` **[GATE_A][TERRA] Implement governed reference-data releases.**
   - **Depends:** `MODEL-017`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_018`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_018`; `PROPERTY=TestTodo_MODEL_018_Property`; `GOLDEN=TestTodo_MODEL_018_Golden`; `FUZZ=FuzzTodo_MODEL_018`; `RACE=TestTodo_MODEL_018_Race`.
   - **RED:** simulation rejects unknown/retired job, position, location, currency, reason code or unversioned global dataset.
@@ -1472,7 +1550,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-019` **[GATE_A][TERRA] Implement external-code crosswalks.**
   - **Depends:** `MODEL-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_019`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_019`; `PROPERTY=TestTodo_MODEL_019_Property`; `GOLDEN=TestTodo_MODEL_019_Golden`; `FUZZ=FuzzTodo_MODEL_019`; `INTEGRATION=TestTodo_MODEL_019_Integration`; `FAULT=TestTodo_MODEL_019_Fault`.
   - **RED:** tests return `UNKNOWN`, `AMBIGUOUS` or `OUT_OF_EFFECTIVE_RANGE` instead of guessing a canonical value.
@@ -1482,7 +1560,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-020` **[GATE_A][SOL_LOW] Implement provenance graph edges.**
   - **Depends:** `MODEL-007`, `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestMaterialValueRequiresLineage`.
   - **TEST MATRIX:** `PRIMARY=TestMaterialValueRequiresLineage`; `PROPERTY=TestTodo_MODEL_020_Property`; `GOLDEN=TestTodo_MODEL_020_Golden`; `FUZZ=FuzzTodo_MODEL_020`; `SECURITY=TestTodo_MODEL_020_Security`.
   - **RED:** `TestMaterialValueRequiresLineage` rejects value/result without source, transformation, authority, recorded/effective time and digest.
@@ -1492,7 +1570,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-021` **[GATE_A][SOL_LOW] Implement source-authority assignments.**
   - **Depends:** `MODEL-011`, `MODEL-020`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_021`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_021`; `PROPERTY=TestTodo_MODEL_021_Property`; `GOLDEN=TestTodo_MODEL_021_Golden`; `FUZZ=FuzzTodo_MODEL_021`.
   - **RED:** authority resolution blocks no-owner, overlapping-exclusive owner, stale source and writer outside effective scope.
@@ -1502,7 +1580,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-022` **[GATE_A][SOL_HIGH] Implement exact identity linkage.**
   - **Depends:** `MODEL-013`, `MODEL-020`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_022`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_022`; `PROPERTY=TestTodo_MODEL_022_Property`; `GOLDEN=TestTodo_MODEL_022_Golden`; `FUZZ=FuzzTodo_MODEL_022`; `FAULT=TestTodo_MODEL_022_Fault`; `SECURITY=TestTodo_MODEL_022_Security`.
   - **RED:** lookup returns `AMBIGUOUS` for collision, refuses false auto-merge and prevents merged redirect from crossing tenant/purpose policy.
@@ -1512,7 +1590,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-023` **[GATE_A][SOL_LOW] Implement data classification propagation.**
   - **Depends:** `MODEL-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_023`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_023`; `PROPERTY=TestTodo_MODEL_023_Property`; `GOLDEN=TestTodo_MODEL_023_Golden`; `FUZZ=FuzzTodo_MODEL_023`; `RACE=TestTodo_MODEL_023_Race`; `SECURITY=TestTodo_MODEL_023_Security`.
   - **RED:** derived value, artifact, log or outbound payload missing the strongest applicable label fails creation/delivery.
@@ -1522,7 +1600,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-024` **[GATE_A][SOL_LOW] Implement data-quality evaluation envelopes.**
   - **Depends:** `MODEL-011`, `MODEL-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_024`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_024`; `PROPERTY=TestTodo_MODEL_024_Property`; `GOLDEN=TestTodo_MODEL_024_Golden`; `FUZZ=FuzzTodo_MODEL_024`.
   - **RED:** malformed, impossible, stale or incomplete pilot facts cannot be reported as `PASS`; unknown evidence remains `UNKNOWN`.
@@ -1532,7 +1610,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-025` **[GATE_B][SOL_HIGH] Implement transaction invariants.**
   - **Depends:** `MODEL-024`, `PEOPLE-004`, `ORG-003`, `POSITION-003`, `COMP-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_025`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_025`; `PROPERTY=TestTodo_MODEL_025_Property`; `GOLDEN=TestTodo_MODEL_025_Golden`; `FUZZ=FuzzTodo_MODEL_025`; `SECURITY=TestTodo_MODEL_025_Security`; `BENCHMARK=BenchmarkTodo_MODEL_025`; `MUTATION=TestTodo_MODEL_025_Mutation`.
   - **RED:** manager cycle, invalid employment/assignment overlap, position over-capacity, compensation currency mismatch and cross-tenant reference abort before commit.
@@ -1542,7 +1620,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-026` **[GATE_A][SOL_LOW] Implement records declarations and retention assignment.**
   - **Depends:** `MODEL-023`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_026`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_026`; `PROPERTY=TestTodo_MODEL_026_Property`; `GOLDEN=TestTodo_MODEL_026_Golden`; `FUZZ=FuzzTodo_MODEL_026`.
   - **RED:** material evidence/artifact without record class, retention schedule, authority and disposition owner fails persistence.
@@ -1552,7 +1630,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-027` **[GATE_B][SOL_HIGH] Implement legal holds.**
   - **Depends:** `MODEL-026`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_027`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_027`; `PROPERTY=TestTodo_MODEL_027_Property`; `GOLDEN=TestTodo_MODEL_027_Golden`; `FUZZ=FuzzTodo_MODEL_027`; `RACE=TestTodo_MODEL_027_Race`; `SECURITY=TestTodo_MODEL_027_Security`; `MUTATION=TestTodo_MODEL_027_Mutation`.
   - **RED:** disposition/destruction of held record or dependent artifact returns `HOLD_BLOCKED` and appends evidence.
@@ -1562,7 +1640,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-028` **[GATE_C][SOL_HIGH] Implement verified deletion and backup re-delete.**
   - **Depends:** `MODEL-026`, `RECOVERY-001`, `RECOVERY-002`, `RECORDS-COPY-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_028`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_028`; `PROPERTY=TestTodo_MODEL_028_Property`; `GOLDEN=TestTodo_MODEL_028_Golden`; `FUZZ=FuzzTodo_MODEL_028`; `FAULT=TestTodo_MODEL_028_Fault`; `RECOVERY=TestTodo_MODEL_028_Recovery`.
   - **RED:** deletion is incomplete while canonical, derived, external, backup or restored-copy inventory has an unhandled eligible copy.
@@ -1572,7 +1650,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-029` **[GATE_A][SOL_LOW] Implement content-addressed artifact storage.**
   - **Depends:** `MODEL-007`, `MODEL-023`, `MODEL-026`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_029`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_029`; `PROPERTY=TestTodo_MODEL_029_Property`; `GOLDEN=TestTodo_MODEL_029_Golden`; `FUZZ=FuzzTodo_MODEL_029`; `SECURITY=TestTodo_MODEL_029_Security`.
   - **RED:** storage rejects digest mismatch, tenant/classification conflict, mutable overwrite and reference without retention/authority metadata.
@@ -1582,7 +1660,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `MODEL-030` **[P0][TERRA] Generate the model coverage report.**
   - **Depends:** `MODEL-016`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_030`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MODEL_030`; `PROPERTY=TestTodo_MODEL_030_Property`; `GOLDEN=TestTodo_MODEL_030_Golden`; `FUZZ=FuzzTodo_MODEL_030`; `CONFORMANCE=TestTodo_MODEL_030_Conformance`.
   - **RED:** report refuses `VERIFIED` while any exact binding/check is absent and identifies the first unresolved catalog number/path.
@@ -1594,9 +1672,11 @@ or an explicit rejection and replacement decision.
 
 ## 4. Identity, authorization, privacy and trust
 
+> **Disposition (2026-09-02):** P1A for server-derived `PrincipalContext`, tenant isolation, field-level AuthZ and no-secrets-in-logs. Step-up and session revocation for approve/execute are P1B. Workload identity on east-west paths, DLP egress gateways, and classification propagation beyond pilot field masks are Gate C.
+
 - [ ] `TRUST-001` **[GATE_A][SOL_HIGH] Implement authenticated PrincipalContext creation.**
   - **Depends:** `TOOL-007`, `MODEL-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_001`; `FUZZ=FuzzTodo_TRUST_001`; `SECURITY=TestTodo_TRUST_001_Security`; `MUTATION=TestTodo_TRUST_001_Mutation`.
   - **RED:** tests reject caller-selected principal/tenant/actor, wrong audience/issuer, expired token and missing assurance evidence.
@@ -1606,7 +1686,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-002` **[GATE_A][SOL_HIGH] Implement enterprise federation validation.**
   - **Depends:** `TRUST-001`, `LIB-010`, `LIB-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_002`; `FUZZ=FuzzTodo_TRUST_002`; `INTEGRATION=TestTodo_TRUST_002_Integration`; `SECURITY=TestTodo_TRUST_002_Security`; `MUTATION=TestTodo_TRUST_002_Mutation`.
   - **RED:** OAuth/OIDC/SAML fixtures reject open redirect, missing PKCE/state/nonce, issuer mix-up, token substitution and stale signing metadata.
@@ -1616,7 +1696,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-003` **[GATE_A][SOL_HIGH] Implement session lifecycle and refresh replay detection.**
   - **Depends:** `TRUST-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_003`; `FUZZ=FuzzTodo_TRUST_003`; `SECURITY=TestTodo_TRUST_003_Security`; `RECOVERY=TestTodo_TRUST_003_Recovery`; `MUTATION=TestTodo_TRUST_003_Mutation`.
   - **RED:** expired/revoked session, replayed refresh credential, assurance downgrade and tenant switch are denied and audited.
@@ -1626,7 +1706,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-004` **[GATE_B][SOL_HIGH] Implement step-up authentication obligations.**
   - **Depends:** `TRUST-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_004`; `FUZZ=FuzzTodo_TRUST_004`; `SECURITY=TestTodo_TRUST_004_Security`; `MUTATION=TestTodo_TRUST_004_Mutation`.
   - **RED:** high-risk write with insufficient/currently stale assurance returns `STEP_UP_REQUIRED` and produces no proposal approval or effect.
@@ -1636,7 +1716,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-005` **[GATE_B][SOL_HIGH] Exercise session revocation during workflow execution.**
   - **Depends:** `TRUST-003`, `WF-RUN-001`, `WF-RUN-002`, `WF-RUN-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_005`; `FUZZ=FuzzTodo_TRUST_005`; `SECURITY=TestTodo_TRUST_005_Security`; `MUTATION=TestTodo_TRUST_005_Mutation`.
   - **RED:** revoked requester/approver session cannot approve or initiate a new effect even if a task page was already open.
@@ -1646,7 +1726,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-006` **[GATE_A][SOL_HIGH] Issue short-lived workload identities.**
   - **Depends:** `TOOL-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_006`; `FUZZ=FuzzTodo_TRUST_006`; `INTEGRATION=TestTodo_TRUST_006_Integration`; `SECURITY=TestTodo_TRUST_006_Security`; `MUTATION=TestTodo_TRUST_006_Mutation`.
   - **RED:** service call with node/network identity only, expired credential, wrong workload selector or wrong cell is denied.
@@ -1656,7 +1736,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-007` **[GATE_A][SOL_HIGH] Enforce service-to-service authorization.**
   - **Depends:** `TRUST-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_007`; `FUZZ=FuzzTodo_TRUST_007`; `INTEGRATION=TestTodo_TRUST_007_Integration`; `SECURITY=TestTodo_TRUST_007_Security`; `MUTATION=TestTodo_TRUST_007_Mutation`.
   - **RED:** projector invoking write, connector reading unrelated fields, or unknown workload/capability pair returns `DENY` before domain access.
@@ -1666,7 +1746,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-008` **[GATE_A][SOL_HIGH] Resolve tenant and organization scope.**
   - **Depends:** `TRUST-001`, `MODEL-013`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_008`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_008`; `FUZZ=FuzzTodo_TRUST_008`; `SECURITY=TestTodo_TRUST_008_Security`; `MUTATION=TestTodo_TRUST_008_Mutation`.
   - **RED:** cross-tenant resource, unauthorized subsidiary, invalid shared-resource direction and inherited-deny bypass return `DENY` without existence disclosure.
@@ -1676,7 +1756,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-009` **[GATE_A][SOL_HIGH] Enforce record, population and relationship authorization.**
   - **Depends:** `TRUST-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_009`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_009`; `FUZZ=FuzzTodo_TRUST_009`; `SECURITY=TestTodo_TRUST_009_Security`; `MUTATION=TestTodo_TRUST_009_Mutation`.
   - **RED:** principal outside manager/HRBP/assigned-population relationship receives `DENY` or filtered empty result, never unauthorized rows.
@@ -1686,7 +1766,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-010` **[GATE_A][SOL_HIGH] Enforce field-level and purpose authorization.**
   - **Depends:** `TRUST-009`, `MODEL-023`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_010`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_010`; `FUZZ=FuzzTodo_TRUST_010`; `SECURITY=TestTodo_TRUST_010_Security`; `MUTATION=TestTodo_TRUST_010_Mutation`.
   - **RED:** compensation/medical/bank/case field or incompatible purpose is denied before repository/serializer/UI/tool access.
@@ -1696,7 +1776,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-011` **[GATE_A][SOL_LOW] Implement explainable authorization decisions.**
   - **Depends:** `TRUST-008`–`TRUST-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_011`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_011`; `GOLDEN=TestTodo_TRUST_011_Golden`; `FUZZ=FuzzTodo_TRUST_011`; `SECURITY=TestTodo_TRUST_011_Security`.
   - **RED:** decision lacking policy versions, matched grants/denies, scope, field mask, purpose, assurance or obligations fails evidence validation.
@@ -1706,7 +1786,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-012` **[GATE_A][SOL_HIGH] Require AuthorizationScope in sensitive repositories.**
   - **Depends:** `TRUST-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_012`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_012`; `FUZZ=FuzzTodo_TRUST_012`; `SECURITY=TestTodo_TRUST_012_Security`; `MUTATION=TestTodo_TRUST_012_Mutation`.
   - **RED:** direct repository query without evaluated scope fails closed; broad wildcard cannot be caller constructed.
@@ -1716,7 +1796,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-013` **[GATE_B][SOL_HIGH] Implement bounded delegation.**
   - **Depends:** `TRUST-001`, `TRUST-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_013`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_013`; `FUZZ=FuzzTodo_TRUST_013`; `SECURITY=TestTodo_TRUST_013_Security`; `MUTATION=TestTodo_TRUST_013_Mutation`.
   - **RED:** delegation expands delegator authority, survives expiry/revocation, crosses tenant or permits prohibited re-delegation.
@@ -1726,7 +1806,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-014` **[GATE_B][SOL_HIGH] Implement separation-of-duties evaluation.**
   - **Depends:** `TRUST-013`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_014`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_014`; `FUZZ=FuzzTodo_TRUST_014`; `SECURITY=TestTodo_TRUST_014_Security`; `MUTATION=TestTodo_TRUST_014_Mutation`.
   - **RED:** requester approving own proposal, repair author executing repair, or same principal satisfying two distinct payroll-grade approvals is rejected.
@@ -1736,7 +1816,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-015` **[GATE_A][SOL_HIGH] Store secrets only by governed reference.**
   - **Depends:** `TRUST-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_015`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_015`; `GOLDEN=TestTodo_TRUST_015_Golden`; `FUZZ=FuzzTodo_TRUST_015`; `INTEGRATION=TestTodo_TRUST_015_Integration`; `SECURITY=TestTodo_TRUST_015_Security`; `MUTATION=TestTodo_TRUST_015_Mutation`.
   - **RED:** schema/log/config/test snapshot containing raw connector, signing or operator secret fails validation and redaction tests.
@@ -1746,7 +1826,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-016` **[GATE_B][SOL_HIGH] Implement destination-scoped credential leases.**
   - **Depends:** `TRUST-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_016`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_016`; `FUZZ=FuzzTodo_TRUST_016`; `RACE=TestTodo_TRUST_016_Race`; `INTEGRATION=TestTodo_TRUST_016_Integration`; `SECURITY=TestTodo_TRUST_016_Security`; `MUTATION=TestTodo_TRUST_016_Mutation`.
   - **RED:** expired, revoked, wrong-destination, wrong-capability or over-broad lease cannot dispatch an external write.
@@ -1756,7 +1836,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-017` **[GATE_A][SOL_HIGH] Implement controlled outbound destination trust.**
   - **Depends:** `TRUST-007`, `TRUST-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_017`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_017`; `FUZZ=FuzzTodo_TRUST_017`; `SECURITY=TestTodo_TRUST_017_Security`; `MUTATION=TestTodo_TRUST_017_Mutation`.
   - **RED:** SSRF, private/link-local/metadata address, DNS rebinding, unapproved redirect, invalid TLS and proxy bypass fixtures are denied.
@@ -1766,7 +1846,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-018` **[GATE_A][SOL_HIGH] Implement DLP inspection and egress receipts.**
   - **Depends:** `MODEL-023`, `TRUST-010`, `TRUST-017`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_018`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_018`; `GOLDEN=TestTodo_TRUST_018_Golden`; `FUZZ=FuzzTodo_TRUST_018`; `INTEGRATION=TestTodo_TRUST_018_Integration`; `SECURITY=TestTodo_TRUST_018_Security`; `MUTATION=TestTodo_TRUST_018_Mutation`.
   - **RED:** prohibited field/classification/region/purpose leaves through export, connector, email, webhook, support or agent path.
@@ -1776,7 +1856,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-019` **[GATE_A][SOL_HIGH] Quarantine hostile external content.**
   - **Depends:** `MODEL-029`, `MODEL-023`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_019`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_019`; `FUZZ=FuzzTodo_TRUST_019`; `SECURITY=TestTodo_TRUST_019_Security`; `MUTATION=TestTodo_TRUST_019_Mutation`.
   - **RED:** unscanned upload reaches parser, form extraction, search, RAG, messaging or workflow; archive bomb/malware/oversize fixture is processed.
@@ -1786,7 +1866,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-020` **[GATE_B][SOL_HIGH] Exercise IdP outage policy.**
   - **Depends:** `TRUST-003`, `TRUST-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_020`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_020`; `FUZZ=FuzzTodo_TRUST_020`; `FAULT=TestTodo_TRUST_020_Fault`; `SECURITY=TestTodo_TRUST_020_Security`; `MUTATION=TestTodo_TRUST_020_Mutation`.
   - **RED:** outage permits new ordinary stale-federation sessions or silently blocks/permits emergency action without policy.
@@ -1796,7 +1876,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-021` **[GATE_B][SOL_HIGH] Implement time-bounded JIT operator access.**
   - **Depends:** `TRUST-004`, `TRUST-013`, `TRUST-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_021`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_021`; `FUZZ=FuzzTodo_TRUST_021`; `SECURITY=TestTodo_TRUST_021_Security`; `MUTATION=TestTodo_TRUST_021_Mutation`.
   - **RED:** standing broad production role, missing customer consent/reason, expired grant or unrecorded action is denied.
@@ -1806,7 +1886,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-022` **[GATE_C][SOL_HIGH] Implement break-glass containment and review.**
   - **Depends:** `TRUST-021`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_022`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_022`; `FUZZ=FuzzTodo_TRUST_022`; `SECURITY=TestTodo_TRUST_022_Security`; `MUTATION=TestTodo_TRUST_022_Mutation`.
   - **RED:** break-glass without declared emergency, dual control, narrow scope, short expiry or post-use review is rejected.
@@ -1816,7 +1896,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-023` **[GATE_C][SOL_HIGH] Implement certificate and trust-bundle lifecycle.**
   - **Depends:** `TRUST-006`, `TRUST-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_023`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_023`; `FUZZ=FuzzTodo_TRUST_023`; `SECURITY=TestTodo_TRUST_023_Security`; `MUTATION=TestTodo_TRUST_023_Mutation`; `FAULT=TestTodo_TRUST_023_Fault`.
   - **RED:** expired/revoked/compromised cert or incomplete rotation remains accepted; trust-bundle rollback reintroduces revoked issuer.
@@ -1826,7 +1906,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-024` **[GATE_C][SOL_HIGH] Implement consent, notice and objection lifecycle where processing relies on it.**
   - **Depends:** `MODEL-026`, `GOVERN-001`, `GOVERN-002`, `PRIV-001`, `RECORDS-DISP-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_024`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_024`; `FUZZ=FuzzTodo_TRUST_024`; `SECURITY=TestTodo_TRUST_024_Security`; `MUTATION=TestTodo_TRUST_024_Mutation`.
   - **RED:** boolean-only consent, missing notice/version/legal context, invalid withdrawal or downstream use after restriction fails.
@@ -1836,7 +1916,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `TRUST-025` **[GATE_A][SOL_HIGH] Run cross-tenant authorization abuse tests.**
   - **Depends:** `TRUST-008`–`TRUST-012`, `TRUST-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_025`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_025`; `FUZZ=FuzzTodo_TRUST_025`; `SECURITY=TestTodo_TRUST_025_Security`; `MUTATION=TestTodo_TRUST_025_Mutation`.
   - **RED:** adversarial suite initially demonstrates attempted ID substitution, batch/export leak, cache key collision, error oracle and tenant-header spoofing are blocked.
@@ -1847,6 +1927,8 @@ or an explicit rejection and replacement decision.
 ---
 
 ## 5. Phase 1 People, organization, position, compensation and budget domains
+
+> **Disposition (2026-09-02):** P1A for authorized reads, timelines and deterministic simulation. P1B executes only `promote_worker` (job/level) and `change_base_pay`; manager/organization change (`ORG-*` writes) and position fill are CONFORMANCE. Budget binds `COMPENSATION_POOL` only.
 
 - [ ] `PEOPLE-001` **[GATE_A][SOL_LOW] Implement authorized Person and Worker reads.**
   - **Depends:** `MODEL-022`, `TRUST-012`, `MODEL-021`.
@@ -2122,6 +2204,8 @@ or an explicit rejection and replacement decision.
 
 ## 6. BusinessIntent, capabilities, governance and transaction integrity
 
+> **Disposition (2026-09-02):** P1A: `CAP-001`–`CAP-003` under the registry `BOOTSTRAP` profile, `INTENT-001`–`INTENT-006` with five dimensions and the materiality rule, `GOVERN-001`/`002`, `CONFLICT-001`/`002`, `APPROVAL-001`/`002` demonstrated, `TX-001` non-executable plans. P1B: the remaining `GOVERN`, `CONFLICT`, `APPROVAL`, `REPLAN`, `TX` items. `FEATURE-001`/`002` and `INTENT-009`–`INTENT-011`, `INTENT-024`, `INTENT-025` (feature-vocabulary intake) are DEFERRED; there is no funded consumer. `INTENT-019` is a population-scoped `CHANGE_REQUEST`, not a family.
+
 - [ ] `CAP-001` **[GATE_A][SOL_LOW] Implement immutable CapabilityDefinition versions.**
   - **Depends:** `MODEL-017`, `TOOL-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -2154,7 +2238,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-001` **[GATE_A][SOL_LOW] Implement IntentDefinition resolution.**
   - **Depends:** `MODEL-010`, `CAP-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_001`; `GOLDEN=TestTodo_INTENT_001_Golden`.
   - **RED:** free-form name, unqualified ID, wrong version, catalogued-only or retired definition cannot instantiate.
@@ -2164,7 +2248,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-002` **[GATE_A][SOL_HIGH] Create typed IntentInstance envelopes.**
   - **Depends:** `INTENT-001`, `MODEL-006`, `TRUST-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_002`; `GOLDEN=TestTodo_INTENT_002_Golden`; `FUZZ=FuzzTodo_INTENT_002`; `RACE=TestTodo_INTENT_002_Race`; `SECURITY=TestTodo_INTENT_002_Security`; `MUTATION=TestTodo_INTENT_002_Mutation`.
   - **RED:** missing tenant/org/purpose/initiator/definition/idempotency/correlation/classification/control snapshots or untyped JSON payload is rejected.
@@ -2172,19 +2256,19 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** only mutation/effect intents later create BusinessTransaction.
   - **Refs:** [Intent instance envelope](specs/business-intent-catalog.md#instance-envelope), [BusinessIntent contract](specs/business-intent-and-change-request.md).
 
-- [ ] `INTENT-003` **[GATE_A][SOL_HIGH] Implement multidimensional intent lifecycle transitions.**
+- [ ] `INTENT-003` **[GATE_A][SOL_HIGH] Implement the five-dimension intent lifecycle with the fixed legality rules.**
   - **Depends:** `INTENT-002`, `MODEL-014`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_003`; `SECURITY=TestTodo_INTENT_003_Security`; `MUTATION=TestTodo_INTENT_003_Mutation`.
-  - **RED:** illegal transition, collapsed universal status or loss of prior dimension returns typed violation with no mutation.
-  - **GREEN:** Intent/Proposal/Approval/Execution/ExternalConsistency/Reconciliation/Closure/Business/Operational/Obligation/Outcome dimensions append independently.
-  - **REFACTOR:** terminal runtime completion never overwrites degraded external truth.
-  - **Refs:** [Independent dimensions](specs/business-intent-catalog.md#independent-lifecycle-dimensions), [change lifecycle](plan.md#63-change-request-lifecycle).
+  - **RED:** an illegal tuple under the six kernel rules (for example `CANCELLED` entering `EXECUTING`, `APPROVED` without a binding for the current revision, `COMMITTED` without a receipt, `CLOSED` with `ObligationState=PENDING`), a collapsed universal status, a sixth dimension, or loss of a prior dimension returns a typed violation with no mutation.
+  - **GREEN:** `RequestState`, `ExecutionState`, `BusinessState`, `ConsistencyState` and `ObligationState` append independently; proposal revisions, approval bindings, closure records, incidents and outcome tracking are linked records, not dimensions; P1A never leaves `ExecutionState=NOT_PLANNED`.
+  - **REFACTOR:** the legality rules are one Go function shared by command, projection rebuild, replay and repair; there is no per-definition compatibility profile.
+  - **Refs:** [Five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [change lifecycle](plan.md#63-change-request-lifecycle), [lifecycle budget](plan.md#63a-lifecycle-budget).
 
 - [ ] `INTENT-004` **[GATE_A][SOL_HIGH] Implement HCMChangeRequest draft and preflight.**
   - **Depends:** `INTENT-003`, `PROMO-001`, `MODEL-024`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_004`; `GOLDEN=TestTodo_INTENT_004_Golden`; `MUTATION=TestTodo_INTENT_004_Mutation`.
   - **RED:** unknown subject/reference, forbidden field, invalid effective date, stale baseline or missing required data cannot enter simulation as valid.
@@ -2194,7 +2278,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-005` **[GATE_A][SOL_HIGH] Create immutable ProposalRevision artifacts.**
   - **Depends:** `INTENT-004`, `PROMO-004`, `MODEL-007`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_005`; `GOLDEN=TestTodo_INTENT_005_Golden`; `MUTATION=TestTodo_INTENT_005_Mutation`.
   - **RED:** in-place edit, caller-provided digest, missing control/source/reference versions or hidden material child intent is rejected.
@@ -2202,29 +2286,29 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** large input/evidence uses immutable refs.
   - **Refs:** [Approval binding principle](plan.md#53-approval-must-bind-to-an-immutable-proposal), [canonical digest](specs/canonical-envelope-and-digest.md).
 
-- [ ] `INTENT-006` **[GATE_A][SOL_HIGH] Invalidate approvals on material proposal change.**
+- [ ] `INTENT-006` **[GATE_A][SOL_HIGH] Invalidate approvals on material proposal change and only then.**
   - **Depends:** `INTENT-005`, `APPROVAL-001`, `APPROVAL-002`, `APPROVAL-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_006`; `MUTATION=TestTodo_INTENT_006_Mutation`.
-  - **RED:** changing amount/field/effective date/child set/policy material context leaves prior approval valid.
-  - **GREEN:** new revision records invalidators and affected ApprovalState becomes `INVALIDATED`; immaterial presentation-only change follows explicit policy.
-  - **REFACTOR:** invalidation is computed from canonical material paths.
-  - **Refs:** [Approval principle](plan.md#53-approval-must-bind-to-an-immutable-proposal), [workflow runtime](specs/workflow-runtime.md).
+  - **RED:** changing amount, field, effective date, child set, reservation, required approvals or a source-authority decision leaves a prior approval valid; **or** republishing a policy bundle, taxonomy or reference dataset invalidates an approval whose material result is unchanged.
+  - **GREEN:** a new material revision records invalidators and the bindings for the old digest become invalid; a control-snapshot change triggers revalidation and produces exactly one of `APPROVAL_STANDS` (recorded), `NEW_REVISION` (material result changed) or `BLOCKED` (mandatory deny); a compensation cycle with a thousand pending approvals survives a policy republish with zero spurious invalidations.
+  - **REFACTOR:** materiality is the `PROPOSAL` canonicalization profile's material list; nothing else decides.
+  - **Refs:** [Materiality rule](specs/business-intent-and-change-request.md#materiality-rule-for-control-snapshots), [proposal material context](specs/canonical-envelope-and-digest.md#proposal-material-context).
 
 - [ ] `INTENT-007` **[GATE_B][SOL_HIGH] Bind workflow outcome dimensions back to the Intent lifecycle.**
   - **Depends:** `INTENT-003`, `WF-RUN-025`, `RECON-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_007`; `RACE=TestTodo_INTENT_007_Race`; `MUTATION=TestTodo_INTENT_007_Mutation`.
-  - **RED:** workflow runtime completion overwrites Business/ExternalConsistency/Reconciliation/Obligation/Operational dimensions, duplicate terminal signal appends conflicting state, or stale workflow instance updates a superseding intent revision.
-  - **GREEN:** one idempotent correlation contract appends each independent dimension from authoritative workflow/transaction/reconciliation evidence and preserves `Business=COMPLETED` with `ExternalConsistency=DEGRADED` and `Reconciliation=REPAIR_REQUIRED` when applicable.
+  - **RED:** workflow runtime completion overwrites Business/Consistency/Obligation dimensions, duplicate terminal signal appends conflicting state, or stale workflow instance updates a superseding intent revision.
+  - **GREEN:** one idempotent correlation contract appends each independent dimension from authoritative workflow/transaction/reconciliation evidence and preserves `Business=COMPLETED` with `ConsistencyState=DEGRADED` and `Reconciliation=REPAIR_REQUIRED` when applicable.
   - **REFACTOR:** intent consumes typed outcome receipts rather than reading workflow tables directly.
   - **Refs:** [Independent lifecycle dimensions](specs/business-intent-catalog.md#independent-lifecycle-dimensions), [workflow completion](specs/workflow-runtime.md).
 
 - [ ] `INTENT-008` **[GATE_B][SOL_HIGH] Close an Intent only under its explicit completion policy.**
   - **Depends:** `INTENT-007`, `RECON-002`, `REPAIR-002`, `MODEL-014`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_008`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_008`; `INTEGRATION=TestTodo_INTENT_008_Integration`; `MUTATION=TestTodo_INTENT_008_Mutation`.
   - **RED:** runtime `COMPLETED`, provider acceptance, stale observation, unresolved mandatory obligation, open required repair or unknown terminal dimension silently closes the intent.
@@ -2232,9 +2316,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** closure never rewrites workflow, transaction, observation or repair history.
   - **Refs:** [Outcome management](plan.md#58-multidimensional-completion), [repair semantics](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `FEATURE-001` **[P0][TERRA] Check in the exact 49-group feature-to-intent intake manifest.**
+- [ ] `FEATURE-001` **[DESIGN][TERRA] Check in the exact 49-group feature-to-intent intake manifest.**
   - **Depends:** `GOV-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestFeatureIntentSourceManifest`.
   - **TEST MATRIX:** `PRIMARY=TestFeatureIntentSourceManifest`; `GOLDEN=TestTodo_FEATURE_001_Golden`; `RACE=TestTodo_FEATURE_001_Race`; `FAULT=TestTodo_FEATURE_001_Fault`.
   - **RED:** `TestFeatureIntentSourceManifest` fails when any supplied group 1–49, feature label, explanatory qualifier, example flow or architectural rule is missing, reordered ambiguously, silently deduplicated or lacks source provenance and canonical digest.
@@ -2242,9 +2326,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** retain the original intake beside normalized feature records so later alias/convergence work never rewrites source history.
   - **Refs:** [Business intent catalog](specs/business-intent-catalog.md), [coverage rule](data/models/README.md#coverage-rule).
 
-- [ ] `FEATURE-002` **[P0][SOL_HIGH] Normalize feature identities, aliases and semantic classifications without losing the intake.**
+- [ ] `FEATURE-002` **[DESIGN][SOL_HIGH] Normalize feature identities, aliases and semantic classifications without losing the intake.**
   - **Depends:** `FEATURE-001`, `GOV-012`, `MODEL-009`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestFeatureNormalizationRejectsFalseMergeOrDuplicateSemantics`.
   - **TEST MATRIX:** `PRIMARY=TestFeatureNormalizationRejectsFalseMergeOrDuplicateSemantics`; `GOLDEN=TestTodo_FEATURE_002_Golden`; `RACE=TestTodo_FEATURE_002_Race`; `SECURITY=TestTodo_FEATURE_002_Security`.
   - **RED:** `TestFeatureNormalizationRejectsFalseMergeOrDuplicateSemantics` fails when same label in different domains is merged incorrectly, UI wording becomes a new semantic identity, one feature maps to multiple unqualified actions, material operation is classified as display mechanics or normalized output cannot trace to exact intake entry.
@@ -2252,9 +2336,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** normalization does not decide implementation maturity or force an IntentDefinition mapping; those remain coverage/convergence outputs.
   - **Refs:** [Canonical terminology](data/models/registry-and-coverage-contracts.md), [intent coverage matrix](data/models/intent-coverage-matrix.md).
 
-- [ ] `INTENT-009` **[P0][SOL_HIGH] Define the universal material-feature-to-BusinessIntent rule.**
+- [ ] `INTENT-009` **[DESIGN][SOL_HIGH] Define the universal material-feature-to-BusinessIntent rule.**
   - **Depends:** `INTENT-001`, `CAP-001`, `GOV-012`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestMaterialFeatureIntentClassification`.
   - **TEST MATRIX:** `PRIMARY=TestMaterialFeatureIntentClassification`; `GOLDEN=TestTodo_INTENT_009_Golden`; `INTEGRATION=TestTodo_INTENT_009_Integration`; `FAULT=TestTodo_INTENT_009_Fault`; `SECURITY=TestTodo_INTENT_009_Security`; `MUTATION=TestTodo_INTENT_009_Mutation`.
   - **RED:** `TestMaterialFeatureIntentClassification` rejects a feature that asks, proposes, changes, calculates, processes, files, investigates, communicates, repairs, plans, schedules or answers a material HCM matter without a typed IntentDefinition; it also rejects treating static rendering, transport health or an internal retry mechanic as a new business intent without semantic purpose.
@@ -2262,9 +2346,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** BusinessIntent is the semantic instruction boundary, not a wrapper around every function call or UI click.
   - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [business intent catalog](specs/business-intent-catalog.md), [capability parity](plan.md#57-capability-parity-is-non-negotiable).
 
-- [ ] `INTENT-010` **[P0][SOL_HIGH] Create the machine-readable FeatureIntentCoverage registry.**
+- [ ] `INTENT-010` **[DESIGN][SOL_HIGH] Create the machine-readable FeatureIntentCoverage registry.**
   - **Depends:** `FEATURE-002`, `INTENT-009`, `TOOL-004`, `MODEL-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestFeatureIntentCoverageRejectsImplicitFeature`.
   - **TEST MATRIX:** `PRIMARY=TestFeatureIntentCoverageRejectsImplicitFeature`; `GOLDEN=TestTodo_INTENT_010_Golden`; `FUZZ=FuzzTodo_INTENT_010`; `FAULT=TestTodo_INTENT_010_Fault`; `SECURITY=TestTodo_INTENT_010_Security`; `MUTATION=TestTodo_INTENT_010_Mutation`.
   - **RED:** `TestFeatureIntentCoverageRejectsImplicitFeature` fails for any universal experience, self-service, manager, HR administration, domain, connectivity, DataOps, configuration, rules, population, program, agent, intelligence, search, schedule, event, bulk, repair, operations, commercial, sandbox or higher-order feature without stable feature ID, owner, phase/depth, classification, actor/channel, subject/resource, IntentDefinition/family, capability/version, input/result schema, parent/child behavior, governance profile and evidence expectation.
@@ -2272,9 +2356,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** aliases such as UI label versus canonical semantic action map to one feature/intent identity without erasing distinct business operations.
   - **Refs:** [Intent coverage matrix](data/models/intent-coverage-matrix.md), [business intent catalog](specs/business-intent-catalog.md), [platform coverage matrix](specs/platform-capability-coverage-matrix.md).
 
-- [ ] `INTENT-011` **[P0][SOL_HIGH] Complete intent-family and result contracts for every feature class.**
+- [ ] `INTENT-011` **[DESIGN][SOL_HIGH] Complete intent-family and result contracts for every feature class.**
   - **Depends:** `INTENT-010`, `MODEL-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentFamilyResultExhaustiveness`.
   - **TEST MATRIX:** `PRIMARY=TestIntentFamilyResultExhaustiveness`; `PROPERTY=TestTodo_INTENT_011_Property`; `MUTATION=TestTodo_INTENT_011_Mutation`.
   - **RED:** `TestIntentFamilyResultExhaustiveness` rejects a mapped feature whose `ChangeRequest|ProcessRequest|CalculationRequest|FilingRequest|Case|BatchOperation|AnalyticalRequest` family cannot represent its lifecycle, result, error, correction and completion dimensions, or a query/calculation that fabricates a BusinessTransaction despite producing no mutation/effect.
@@ -2284,7 +2368,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-012` **[GATE_A][SOL_HIGH] Record trusted intent origin without granting caller-selected authority.**
   - **Depends:** `INTENT-002`, `TRUST-001`, `MODEL-024`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentOriginRejectsSpoofedActorAndTrigger`.
   - **TEST MATRIX:** `PRIMARY=TestIntentOriginRejectsSpoofedActorAndTrigger`; `INTEGRATION=TestTodo_INTENT_012_Integration`; `SECURITY=TestTodo_INTENT_012_Security`; `MUTATION=TestTodo_INTENT_012_Mutation`.
   - **RED:** `TestIntentOriginRejectsSpoofedActorAndTrigger` rejects caller-selected principal/tenant/session/delegation, schedule/event/system origin without authenticated producer and source evidence, an agent pretending to be a human, or an integration event inheriting provider authority.
@@ -2294,7 +2378,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-013` **[GATE_A][SOL_HIGH] Enforce one governed invocation path for every material feature.**
   - **Depends:** `INTENT-010`, `INTENT-012`, `CAP-002`, `GOVERN-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestMaterialFeatureCannotBypassIntentGateway`.
   - **TEST MATRIX:** `PRIMARY=TestMaterialFeatureCannotBypassIntentGateway`; `GOLDEN=TestTodo_INTENT_013_Golden`; `RACE=TestTodo_INTENT_013_Race`; `INTEGRATION=TestTodo_INTENT_013_Integration`; `CONFORMANCE=TestTodo_INTENT_013_Conformance`; `BROWSER=TestTodo_INTENT_013_Browser`; `MUTATION=TestTodo_INTENT_013_Mutation`.
   - **RED:** `TestMaterialFeatureCannotBypassIntentGateway` injects direct domain repository writes, provider calls, emails/files, queue publications or workflow starts from GWC, gRPC, grpcbridge, CLI, agent, partner, scheduler, event consumer, analytics, DataOps and operator handlers and expects build/runtime denial with zero effect.
@@ -2304,7 +2388,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-014` **[GATE_A][SOL_HIGH] Model drafts, templates, saved actions, clone and fork without confusing them with execution.**
   - **Depends:** `INTENT-002`, `INTENT-005`, `FORM-001`, `CONFIG-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentDraftTemplateCloneForkBoundaries`.
   - **TEST MATRIX:** `PRIMARY=TestIntentDraftTemplateCloneForkBoundaries`; `RACE=TestTodo_INTENT_014_Race`; `FAULT=TestTodo_INTENT_014_Fault`; `SECURITY=TestTodo_INTENT_014_Security`; `MUTATION=TestTodo_INTENT_014_Mutation`.
   - **RED:** `TestIntentDraftTemplateCloneForkBoundaries` fails when a mutable draft is treated as submitted intent, template embeds principal/tenant/server-owned facts or stale revisions, clone reuses idempotency/evidence/approval, or fork mutates the source proposal.
@@ -2314,7 +2398,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-015` **[GATE_B][SOL_HIGH] Define immutable intent-to-intent relationship semantics.**
   - **Depends:** `INTENT-003`, `INTENT-005`, `MODEL-013`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentRelationshipGraphRejectsAmbiguity`.
   - **TEST MATRIX:** `PRIMARY=TestIntentRelationshipGraphRejectsAmbiguity`; `PROPERTY=TestTodo_INTENT_015_Property`; `SECURITY=TestTodo_INTENT_015_Security`; `MUTATION=TestTodo_INTENT_015_Mutation`.
   - **RED:** `TestIntentRelationshipGraphRejectsAmbiguity` rejects missing tenant/cause/purpose, cycles where prohibited, mutable parentage, duplicate ordinal, hidden material child, or conflation of `CHILD|DEPENDENCY|FOLLOW_UP|CORRECTION|COMPENSATION|REPAIR|SUPERSEDES|ALTERNATIVE|TRIGGERED_BY`.
@@ -2324,7 +2408,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-016` **[GATE_B][SOL_HIGH] Emit child and follow-up intents deterministically and safely.**
   - **Depends:** `INTENT-015`, `CAP-002`, `WF-STEP-009`, `ADMISSION-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentEmissionIsIdempotentBoundedAndGoverned`.
   - **TEST MATRIX:** `PRIMARY=TestIntentEmissionIsIdempotentBoundedAndGoverned`; `GOLDEN=TestTodo_INTENT_016_Golden`; `RACE=TestTodo_INTENT_016_Race`; `MUTATION=TestTodo_INTENT_016_Mutation`.
   - **RED:** `TestIntentEmissionIsIdempotentBoundedAndGoverned` injects duplicate event/node delivery, recursive self-emission, fan-out/depth/resource overflow, child with broader scope/purpose than parent or parent completion that ignores mandatory child result.
@@ -2334,7 +2418,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-017` **[PHASE_2][SOL_HIGH] Convert scheduled obligations and effective-time triggers into idempotent intents.**
   - **Depends:** `INTENT-012`, `INTENT-016`, `SCHED-001`, `TIME-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestScheduledIntentCreationHandlesMisfireDSTAndReplay`.
   - **TEST MATRIX:** `PRIMARY=TestScheduledIntentCreationHandlesMisfireDSTAndReplay`; `GOLDEN=TestTodo_INTENT_017_Golden`; `RACE=TestTodo_INTENT_017_Race`; `FAULT=TestTodo_INTENT_017_Fault`; `RECOVERY=TestTodo_INTENT_017_Recovery`; `MUTATION=TestTodo_INTENT_017_Mutation`.
   - **RED:** `TestScheduledIntentCreationHandlesMisfireDSTAndReplay` loses or duplicates effective-date activation, payroll/cycle/deadline/expiry/reminder/reconciliation intent under crash, DST/tzdb/calendar change, catch-up policy, leader overlap or schedule revision.
@@ -2344,7 +2428,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-018` **[PHASE_2][SOL_HIGH] Convert internal and external events into policy-bound intents.**
   - **Depends:** `INTENT-012`, `INTENT-016`, `EVENT-001`, `INTG-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion`.
   - **TEST MATRIX:** `PRIMARY=TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion`; `GOLDEN=TestTodo_INTENT_018_Golden`; `RACE=TestTodo_INTENT_018_Race`; `INTEGRATION=TestTodo_INTENT_018_Integration`; `SECURITY=TestTodo_INTENT_018_Security`; `RECOVERY=TestTodo_INTENT_018_Recovery`; `MUTATION=TestTodo_INTENT_018_Mutation`.
   - **RED:** `TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion` creates duplicate/cyclic intents from redelivery, treats event payload as authoritative current truth, processes unsupported schema/tenant/source or lets a provider select intent/capability/organization scope.
@@ -2352,19 +2436,19 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** events describe observations/occurrences; trigger policy chooses whether a business instruction should exist.
   - **Refs:** [Event distribution](specs/platform-plane-model.md), [integration platform](specs/integration-platform.md).
 
-- [ ] `INTENT-019` **[GATE_C][SOL_HIGH] Compile bulk features into one BatchOperation and bounded child intents.**
+- [ ] `INTENT-019` **[GATE_C][SOL_HIGH] Compile bulk features into one population-scoped ChangeRequest and bounded child intents.**
   - **Depends:** `INTENT-016`, `POP-005`, `ADMISSION-002`, `WF-RUN-019`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren`.
   - **TEST MATRIX:** `PRIMARY=TestBatchIntentUsesFrozenPopulationAndBoundedChildren`; `GOLDEN=TestTodo_INTENT_019_Golden`; `MUTATION=TestTodo_INTENT_019_Mutation`.
-  - **RED:** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren` loops over a live query, silently changes membership, skips/duplicates subjects on resume, performs effect without child intent/evidence, leaks denied population counts or exceeds declared blast-radius/cost/rate limits.
-  - **GREEN:** BatchOperation binds immutable PopulationSnapshot, operation template/version, exclusions, ordering, partitions, limits and completion policy; each subject/partition has deterministic child identity and result so counts exactly partition eligible/ineligible/denied/unknown/succeeded/failed/repaired.
+  - **RED:** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren` loops over a live query, silently changes membership, skips/duplicates subjects on resume, performs effect without child intent/evidence, leaks denied population counts, exceeds declared blast-radius/cost/rate limits, or introduces a batch kernel family.
+  - **GREEN:** a `CHANGE_REQUEST` definition with `population_scope` binds an immutable PopulationSnapshot, operation template/version, exclusions, ordering, partitions, limits and completion policy; each subject/partition has deterministic child identity and result so counts exactly partition eligible/ineligible/denied/unknown/succeeded/failed/repaired.
   - **REFACTOR:** batch mechanics coordinate; each child retains ordinary governance, idempotency, transaction and repair semantics.
-  - **Refs:** [Population engine](#37-shared-transformation-and-population-engines), [bulk messaging](specs/messaging-and-notification-plane.md).
+  - **Refs:** [Population engine](#37-shared-transformation-and-population-engines), [kernel family table](specs/business-intent-and-change-request.md#general-kernel-and-subtypes).
 
 - [ ] `INTENT-020` **[GATE_B][SOL_HIGH] Link analytical results to proposed action without granting analysis execution authority.**
   - **Depends:** `INTENT-011`, `AGENT-003`, `MODEL-020`, `GOVERN-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestAnalysisToIntentRequiresFreshGovernedProposal`.
   - **TEST MATRIX:** `PRIMARY=TestAnalysisToIntentRequiresFreshGovernedProposal`; `GOLDEN=TestTodo_INTENT_020_Golden`; `MUTATION=TestTodo_INTENT_020_Mutation`.
   - **RED:** `TestAnalysisToIntentRequiresFreshGovernedProposal` lets a report/model/search/hypothesis/prediction directly mutate state, hides cohort/query/model/source versions, carries restricted result fields into action or reuses stale analysis as current fact.
@@ -2374,7 +2458,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-021` **[GATE_B][SOL_HIGH] Implement governed intent lifecycle actions and inspection surfaces.**
   - **Depends:** `INTENT-003`, `INTENT-008`, `EVIDENCE-001`, `TRUST-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentLifecycleSurfaceAuthorizationAndTruth`.
   - **TEST MATRIX:** `PRIMARY=TestIntentLifecycleSurfaceAuthorizationAndTruth`; `SECURITY=TestTodo_INTENT_021_Security`; `MUTATION=TestTodo_INTENT_021_Mutation`.
   - **RED:** `TestIntentLifecycleSurfaceAuthorizationAndTruth` lets deep link/search/timeline/inspector/share/export/subscribe/cancel/supersede/correct/escalate reveal existence/fields or act without current authority, mutate history, collapse unknown/degraded dimensions or accept stale revision.
@@ -2384,7 +2468,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-022` **[GATE_B][SOL_HIGH] Route operator, support, recovery and break-glass actions through governed intents.**
   - **Depends:** `INTENT-013`, `TRUST-021`, `OPS-004`, `RECOVERY-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestOperatorMutationRequiresIntentAndJITAuthority`.
   - **TEST MATRIX:** `PRIMARY=TestOperatorMutationRequiresIntentAndJITAuthority`; `RACE=TestTodo_INTENT_022_Race`; `INTEGRATION=TestTodo_INTENT_022_Integration`; `FAULT=TestTodo_INTENT_022_Fault`; `SECURITY=TestTodo_INTENT_022_Security`; `RECOVERY=TestTodo_INTENT_022_Recovery`; `MUTATION=TestTodo_INTENT_022_Mutation`.
   - **RED:** `TestOperatorMutationRequiresIntentAndJITAuthority` permits database surgery, unjournaled workflow node manipulation, connector redrive, projection rebuild, failover, quarantine, tenant suspension, key rotation or break-glass action through a privileged side door.
@@ -2394,7 +2478,7 @@ or an explicit rejection and replacement decision.
 
 - [ ] `INTENT-023` **[GATE_A][SOL_HIGH] Preserve intent semantics across simulate, shadow, replay, test and execute modes.**
   - **Depends:** `INTENT-002`, `CAP-002`, `TX-001`, `MODEL-030`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentExecutionModesCannotEscalateEffects`.
   - **TEST MATRIX:** `PRIMARY=TestIntentExecutionModesCannotEscalateEffects`; `GOLDEN=TestTodo_INTENT_023_Golden`; `FUZZ=FuzzTodo_INTENT_023`; `INTEGRATION=TestTodo_INTENT_023_Integration`; `FAULT=TestTodo_INTENT_023_Fault`; `CONFORMANCE=TestTodo_INTENT_023_Conformance`; `RECOVERY=TestTodo_INTENT_023_Recovery`; `MUTATION=TestTodo_INTENT_023_Mutation`.
   - **RED:** `TestIntentExecutionModesCannotEscalateEffects` allows simulation/shadow/replay/conformance/fault mode to commit domain truth, send real message/file/payment/webhook or consume live approval; same input loses causal separation between historical replay and new action.
@@ -2402,9 +2486,9 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** test/sandbox tools use production contracts with safe adapters, not hidden bypass APIs.
   - **Refs:** [Simulation contract](specs/workflow-runtime.md), [sandbox and testing](specs/platform-responsibility-boundaries.md).
 
-- [ ] `INTENT-024` **[P0][SOL_HIGH] Generate end-to-end feature-intent conformance suites.**
+- [ ] `INTENT-024` **[DESIGN][SOL_HIGH] Generate end-to-end feature-intent conformance suites.**
   - **Depends:** `INTENT-010`, `INTENT-013`, `INTENT-025`, `CONF-001`, `API-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestEveryImplementedMaterialFeatureHasIntentConformance`.
   - **TEST MATRIX:** `PRIMARY=TestEveryImplementedMaterialFeatureHasIntentConformance`; `GOLDEN=TestTodo_INTENT_024_Golden`; `RACE=TestTodo_INTENT_024_Race`; `CONFORMANCE=TestTodo_INTENT_024_Conformance`; `RECOVERY=TestTodo_INTENT_024_Recovery`; `MUTATION=TestTodo_INTENT_024_Mutation`.
   - **RED:** `TestEveryImplementedMaterialFeatureHasIntentConformance` reports any implemented feature/channel lacking typed create/consume/emit/observe behavior, governance denial vector, idempotency/replay vector, zero-bypass assertion, lifecycle/result oracle, evidence expectation or phase-appropriate implementation depth.
@@ -2412,15 +2496,15 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** use family/channel templates for mechanics while retaining domain-specific fixtures for legal, financial, privacy and correction semantics.
   - **Refs:** [Reference workflow suite](reference-workflows/reference-suite.md), [coverage matrix](specs/platform-capability-coverage-matrix.md), [intent catalog](specs/business-intent-catalog.md).
 
-- [ ] `INTENT-025` **[P0][SOL_HIGH] Converge the feature vocabulary with the accepted BusinessIntent catalog.**
+- [ ] `INTENT-025` **[DESIGN][SOL_HIGH] Converge the feature vocabulary with the drafted definitions when a second domain is funded.**
   - **Depends:** `INTENT-010`, `INTENT-011`, `MODEL-010`, `MODEL-016`, `GOV-012`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestFeatureVocabularyIntentCatalogConvergence`.
-  - **TEST MATRIX:** `PRIMARY=TestFeatureVocabularyIntentCatalogConvergence`; `PROPERTY=TestTodo_INTENT_025_Property`; `GOLDEN=TestTodo_INTENT_025_Golden`; `MUTATION=TestTodo_INTENT_025_Mutation`.
-  - **RED:** `TestFeatureVocabularyIntentCatalogConvergence` fails when a named feature is unmapped, a presentation alias creates a duplicate semantic intent, distinct material behavior is forced into an incompatible definition, a composite hides child intents, or a new definition lacks subject/data/property/capability/workflow/governance/evidence coverage obligations; extension candidates such as expense/reimbursement, communities, mentorship, workplace assignment, safety credentials and application quota may not disappear into a near-name from the original 530.
-  - **GREEN:** every feature resolves exactly to an existing IntentDefinition, versioned template, explicit composite/child graph, analytical/read result, observer/consumer role, non-material mechanic or reviewed new IntentDefinition; report partitions aliases, reused definitions, new extension candidates, deferred/missing contracts and prohibited bypasses with no unexplained remainder, while no candidate gains implementation authority merely by appearing in the feature intake.
-  - **REFACTOR:** catalog count is release-derived rather than hard-coded; adding a definition requires a new immutable catalog version and full model/feature conformance.
-  - **Refs:** [Business intent catalog](specs/business-intent-catalog.md), [intent coverage matrix](data/models/intent-coverage-matrix.md), [model coverage](data/models/registry-and-coverage-contracts.md).
+  - **TEST MATRIX:** `PRIMARY=TestFeatureVocabularyIntentCatalogConvergence`; `GOLDEN=TestTodo_INTENT_025_Golden`.
+  - **RED:** a named feature is implemented without resolving to a drafted definition, a presentation alias creates a duplicate definition, or a composite hides child intents.
+  - **GREEN:** every feature in the funded domain resolves to a drafted definition, a template, an explicit composite graph, an analytical result, an observer role, a non-material mechanic or a reviewed `NEW_DEFINITION_CANDIDATE`; the report has no denominator other than the drafted definitions.
+  - **REFACTOR:** adding a definition is a source change with full model conformance; no count is hard-coded or reconciled.
+  - **Refs:** [Business intent catalog](specs/business-intent-catalog.md), [covered entity set](data/models/README.md).
 
 - [ ] `REPLAN-001` **[GATE_B][SOL_HIGH] Determine the material proposal subgraph affected by changed inputs.**
   - **Depends:** `INTENT-005`, `CONFLICT-002`, `MODEL-020`.
@@ -2656,6 +2740,8 @@ or an explicit rejection and replacement decision.
 
 ## 7. Workflow compiler and all 17 primitive step types
 
+> **Disposition (2026-09-02):** The kernel is ten core primitives plus three structural ones; the heading keeps its old name for anchor stability. P1A compiles `CAPABILITY`, `DECISION` (with `rule_ref`), `TRANSFORM`, `OBSERVE`, `END` in simulate mode. P1B adds `APPROVAL`, `TASK`, `WAIT`, `SIGNAL`, `COMPENSATE` and compiler-placed safe points. `PARALLEL`, `JOIN`, `SUBWORKFLOW` are DESIGN until P1B evidence. `RULE`, `AGENT`, `DOCUMENT`, `CHECKPOINT` are RETIRED as step types.
+
 - [ ] `WF-COMP-001` **[GATE_A][SOL_HIGH] Compile typed workflow inputs, outputs and mappings.**
   - **Depends:** `TOOL-004`, `CAP-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -2776,7 +2862,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** payload retains taint/classification.
   - **Refs:** [SIGNAL step](workflows/_engine/step-types.md#6-signal).
 
-- [ ] `WF-STEP-007` **[PHASE_2][SOL_HIGH] Implement bounded `PARALLEL` execution.**
+- [ ] `WF-STEP-007` **[DESIGN][SOL_HIGH] Implement bounded `PARALLEL` execution.**
   - **Depends:** `WF-COMP-004`, `ADMISSION-001`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_007`.
@@ -2786,7 +2872,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** Phase 1 may use only fixed compiled branches required by Promotion.
   - **Refs:** [PARALLEL step](workflows/_engine/step-types.md#7-parallel).
 
-- [ ] `WF-STEP-008` **[PHASE_2][SOL_HIGH] Implement `JOIN` strategies.**
+- [ ] `WF-STEP-008` **[DESIGN][SOL_HIGH] Implement `JOIN` strategies.**
   - **Depends:** `WF-STEP-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_008`.
@@ -2796,7 +2882,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** strategy/version is part of compiled plan.
   - **Refs:** [JOIN step](workflows/_engine/step-types.md#8-join).
 
-- [ ] `WF-STEP-009` **[PHASE_2][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
+- [ ] `WF-STEP-009` **[DESIGN][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
   - **Depends:** `WF-RUN-001`, `WF-RUN-004`, `WF-RUN-005`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_009`.
@@ -2816,7 +2902,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** reuse the constrained transformation engine.
   - **Refs:** [TRANSFORM step](workflows/_engine/step-types.md#10-transform).
 
-- [ ] `WF-STEP-011` **[GATE_A][SOL_HIGH] Implement deterministic `RULE`.**
+- [ ] `WF-STEP-011` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Implement deterministic `RULE`.**
+  - **Disposition:** RETIRED 2026-09-02. `RULE` is not a step type; `DECISION` with `rule_ref` (`WF-STEP-002`) evaluates the published threshold table. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `RULE-001`, `RULE-002`, `RULE-003`, `WF-COMP-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_011`.
@@ -2826,7 +2913,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** legal/AuthZ/regulatory engines keep their own semantics behind capabilities.
   - **Refs:** [RULE step](workflows/_engine/step-types.md#11-rule), [rules spec](specs/human-work-forms-and-rules.md).
 
-- [ ] `WF-STEP-012` **[CONFORMANCE][SOL_HIGH] Specify governed `AGENT` step behavior.**
+- [ ] `WF-STEP-012` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Specify governed `AGENT` step behavior.**
+  - **Disposition:** RETIRED 2026-09-02. `AGENT` is not a step type; an agent-eligible `CAPABILITY` is governed by its manifest and the agent security boundary (§18), which has no phase. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `AGENT-001`–`AGENT-005`, `CAP-002`, `GOVERN-002`, `TRUST-010`, `TRUST-018`, `WF-COMP-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_WF_STEP_012`.
@@ -2836,7 +2924,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** production implementation remains `OUT` until a signed scope exchange.
   - **Refs:** [AGENT step](workflows/_engine/step-types.md#12-agent), [AI governance](plan.md#96-ai-governance-contract).
 
-- [ ] `WF-STEP-013` **[CONFORMANCE][SOL_HIGH] Specify `DOCUMENT` step evidence states.**
+- [ ] `WF-STEP-013` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Specify `DOCUMENT` step evidence states.**
+  - **Disposition:** RETIRED 2026-09-02. `DOCUMENT` is not a step type; document generation and signature are `documents.*` capabilities (§23). Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `MODEL-029`, `DOC-MAL-001`, `DOC-INTAKE-001`, `DOC-TEMPLATE-001`, `DOC-SIGN-001`, `DOC-EVIDENCE-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_WF_STEP_013`.
@@ -2856,7 +2945,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** retry exhaustion creates degraded/repair state, not false completion.
   - **Refs:** [OBSERVE step](workflows/_engine/step-types.md#14-observe), [external outcomes principle](plan.md#56-external-outcomes-must-be-observed).
 
-- [ ] `WF-STEP-015` **[GATE_B][SOL_HIGH] Implement `CHECKPOINT` eligibility.**
+- [ ] `WF-STEP-015` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Implement `CHECKPOINT` eligibility.**
+  - **Disposition:** RETIRED 2026-09-02. `CHECKPOINT` is not a step type; `safe_point` is a node attribute the compiler places (`WF-COMP-004`). Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `WF-COMP-004`, `WF-RUN-001`, `WF-RUN-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_015`.
@@ -2876,19 +2966,31 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** compensation is business action, never database undo.
   - **Refs:** [COMPENSATE step](workflows/_engine/step-types.md#16-compensate), [repair spec](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `WF-STEP-017` **[GATE_A][SOL_HIGH] Implement multidimensional `END`.**
+- [ ] `WF-STEP-017` **[GATE_A][SOL_HIGH] Implement `END` over the five intent dimensions.**
   - **Depends:** `INTENT-003`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_017`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WF_STEP_017`; `MUTATION=TestTodo_WF_STEP_017_Mutation`.
-  - **RED:** unresolved mandatory obligation/branch or degraded external state is collapsed to generic success.
-  - **GREEN:** terminal artifact records runtime, business, external consistency, reconciliation, obligation, operational and closure states such as `COMPLETED_CONSISTENT` or `COMPLETED_DEGRADED`.
-  - **REFACTOR:** phase-specific workflows select allowed terminal combinations declaratively.
-  - **Refs:** [END step](workflows/_engine/step-types.md#17-end), [completion model](reference-workflows/promote-into-management.md).
+  - **RED:** unresolved mandatory obligation or degraded external state is collapsed to generic success, or `END` writes a sixth dimension.
+  - **GREEN:** terminal artifact records the instance `runtime_status` and the intent's `ExecutionState`, `BusinessState`, `ConsistencyState` and `ObligationState` (for example `COMMITTED / COMPLETED / DEGRADED / SATISFIED`), and `RequestState` moves only under the closure rules.
+  - **REFACTOR:** phase-specific workflows select allowed terminal combinations declaratively from the fixed kernel rules, not a per-definition lattice.
+  - **Refs:** [END step](workflows/_engine/step-types.md#17-end), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [completion model](reference-workflows/promote-into-management.md).
 
 ---
 
 ## 8. Durable workflow runtime, recovery and intervention
+
+> **Disposition (2026-09-02):** P1B, after `WF-RUN-000` (the build-or-adopt decision) is recorded. P1A persists instances and nodes for simulate mode only, with no timers or leases. Replay, shadow, live migration and the full intervention taxonomy are DESIGN.
+
+- [ ] `WF-RUN-000` **[GATE_B][SOL_HIGH] Record the durable-runtime build-or-adopt decision before P1B code.**
+  - **Depends:** `WF-COMP-001`, `DATA-001`, `LIB-001`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=decide once whether an embedded Go durable-execution library supplies the scheduler, timers and leases, so that §8 does not build a workflow engine by default`.
+  - **TEST:** `TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced`.
+  - **TEST MATRIX:** `PRIMARY=TestDurableRuntimeAdoptionDecisionRecordIsCompleteAndEvidenced`; `GOLDEN=TestTodo_WF_RUN_000_Golden`; `INTEGRATION=TestTodo_WF_RUN_000_Integration`; `CONFORMANCE=TestTodo_WF_RUN_000_Conformance`.
+  - **RED:** the decision record lacks at least one evaluated candidate, a pass/fail result against each of the four non-negotiables (ledger outside engine history; tenant isolation, fencing and effect idempotency; inspectable node/timer/lease projections; safe-point pause and version pinning), or a signed choice; or P1B runtime code exists before the record does.
+  - **GREEN:** one immutable record names the candidates, the fixture results per non-negotiable, the choice (`BUILD` or `ADOPT:<module>@<version>`) and the consequences for `WF-RUN-001`–`WF-RUN-025`; an adopted library passes the same conformance fixtures the built scheduler would.
+  - **REFACTOR:** migration, shadow mode, replay and the intervention taxonomy are not adoption criteria.
+  - **Refs:** [Build or adopt](specs/workflow-runtime.md#build-or-adopt), [next-steps P1B](next-steps.md#p1b--one-bounded-authority-amendment).
 
 - [ ] `WF-RUN-001` **[GATE_A][SOL_HIGH] Persist WorkflowInstance and NodeExecution state.**
   - **Depends:** `WF-COMP-001`, `DATA-001`, `DATA-002`, `DATA-003`.
@@ -2968,7 +3070,7 @@ or an explicit rejection and replacement decision.
   - **RED:** pause inside atomic/ambiguous region reports `PAUSED` or abandons active effect.
   - **GREEN:** request yields `PAUSE_REQUESTED`, then `PAUSED` only at eligible checkpoint; resume revalidates current context.
   - **REFACTOR:** instance pause is distinct from version/workload quarantine.
-  - **Refs:** [Workflow pause](specs/workflow-runtime.md), [CHECKPOINT step](workflows/_engine/step-types.md#15-checkpoint).
+  - **Refs:** [Workflow pause](specs/workflow-runtime.md), [safe points](specs/workflow-runtime.md#safe-points-and-atomic-regions).
 
 - [ ] `WF-RUN-009` **[GATE_B][SOL_HIGH] Quarantine a bad workflow version.**
   - **Depends:** `WF-COMP-006`, `WF-RUN-008`.
@@ -3144,6 +3246,8 @@ or an explicit rejection and replacement decision.
 
 ## 9. Human work, approvals, forms and deterministic business rules
 
+> **Disposition (2026-09-02):** P1B needs one approval WorkItem (`WORK-001`, `WORK-003`, `WORK-006`), a typed reason field, and one threshold decision table from tenant configuration (`RULE-002`, `RULE-003`). `WORK-002`/`004` are direct assignment only; `WORK-005` SLA/escalation is DESIGN. `FORM-001`–`FORM-003` are RETIRED (no form engine); `RULE-001` expression compilation is OUT until a second workflow family.
+
 - [ ] `WORK-001` **[GATE_B][SOL_HIGH] Implement immutable WorkItem lifecycle.**
   - **Depends:** `WF-RUN-001`, `MODEL-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3184,7 +3288,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** relationship change may notify but cannot rewrite prior assignment history.
   - **Refs:** [Human work routing](specs/human-work-forms-and-rules.md), [workflow context audit](workflows/_engine/workflow-context-adversarial-audit-2026-08-14.md).
 
-- [ ] `WORK-005` **[GATE_B][SOL_LOW] Implement SLA clocks and escalation signals.**
+- [ ] `WORK-005` **[DESIGN][SOL_LOW] Implement SLA clocks and escalation signals.**
   - **Depends:** `WORK-001`, `MODEL-005`, `WF-RUN-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_005`.
@@ -3204,7 +3308,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** duplicate identical completion replays stored result.
   - **Refs:** [Gate B approvals](execution-plan.md#gate-b-acceptance--limited-write-authority), [human work](specs/human-work-forms-and-rules.md).
 
-- [ ] `FORM-001` **[GATE_A][TERRA] Define the bounded Promotion proposal form.**
+- [ ] `FORM-001` **[RETIRED][TERRA] RETIRED 2026-09-02: Define the bounded Promotion proposal form.**
+  - **Disposition:** RETIRED 2026-09-02. The form engine is replaced by a typed reason field on the approval WorkItem; see the Phase 1 packaging in the human-work spec. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `MODEL-017`, `WEDGE-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_001`.
@@ -3214,7 +3319,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** no general form builder is required.
   - **Refs:** [Forms spec](specs/human-work-forms-and-rules.md), [Phase 1 forms depth](plan.md#phase-1-implementation-depth-matrix).
 
-- [ ] `FORM-002` **[GATE_A][SOL_LOW] Compile conditional form visibility and validation.**
+- [ ] `FORM-002` **[RETIRED][SOL_LOW] RETIRED 2026-09-02: Compile conditional form visibility and validation.**
+  - **Disposition:** RETIRED 2026-09-02. No conditional form engine in Phase 1. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `FORM-001`, `RULE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_002`.
@@ -3224,7 +3330,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** server remains authoritative.
   - **Refs:** [Forms engine](specs/human-work-forms-and-rules.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `FORM-003` **[GATE_B][SOL_HIGH] Persist immutable Promotion FormSubmission.**
+- [ ] `FORM-003` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Persist immutable Promotion FormSubmission.**
+  - **Disposition:** RETIRED 2026-09-02. The approval reason and decision are preserved on the ApprovalBinding against the exact proposal digest; no FormSubmission record. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `FORM-002`, `MODEL-006`, `WORK-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_003`.
@@ -3244,7 +3351,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** accommodations do not weaken business controls.
   - **Refs:** [Accessibility foundation](specs/platform-foundation-gap-closure.md), [forms spec](specs/human-work-forms-and-rules.md).
 
-- [ ] `RULE-001` **[GATE_A][SOL_LOW] Implement bounded deterministic expression compilation.**
+- [ ] `RULE-001` **[OUT][SOL_LOW] Implement bounded deterministic expression compilation.**
   - **Depends:** `TOOL-004`, `MODEL-002`–`MODEL-004`, `LIB-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RULE_001`.
@@ -3288,6 +3395,8 @@ or an explicit rejection and replacement decision.
 
 ## 10. Phase 1 messaging and secure inbox slice
 
+> **Disposition (2026-09-02):** P1A sends nothing. P1B implements `MSG-001`, `MSG-002`, `MSG-004`, `MSG-006`, `MSG-007`, `MSG-008`, `MSG-010` only if the partner's operating process needs an approval email, and only for one template, one locale, one email adapter. `MSG-003` (endpoints/preferences) and `MSG-009` (fallback work) are DESIGN; `MSG-005` is the MINIMAL CONTRACT inbox record. `MSG-011`–`MSG-013` stay Phase 2/3.
+
 - [ ] `MSG-001` **[GATE_B][SOL_HIGH] Create a semantic purpose-bound MessageIntent.**
   - **Depends:** `WORK-001`, `MODEL-023`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3308,7 +3417,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** do not pin an email months before policy says to resolve it.
   - **Refs:** [Audience resolution](specs/messaging-and-notification-plane.md), [approval resolution](specs/workflow-runtime.md).
 
-- [ ] `MSG-003` **[GATE_B][SOL_HIGH] Resolve eligible delivery endpoints and preferences.**
+- [ ] `MSG-003` **[DESIGN][SOL_HIGH] Resolve eligible delivery endpoints and preferences.**
   - **Depends:** `MSG-002`, `TRUST-018`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_003`.
@@ -3328,15 +3437,15 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** sensitive details remain in secure inbox; email may be attention-only.
   - **Refs:** [Template contract](specs/messaging-and-notification-plane.md), [globalization](plan.md#511-globalization-is-a-business-dimension).
 
-- [ ] `MSG-005` **[GATE_B][SOL_HIGH] Persist secure inbox messages.**
-  - **Depends:** `MSG-003`, `MSG-004`, `TRUST-012`.
+- [ ] `MSG-005` **[GATE_B][SOL_LOW] Persist the minimal inbox record.**
+  - **Depends:** `MSG-004`, `TRUST-012`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_005`.
-  - **TEST MATRIX:** `PRIMARY=TestTodo_MSG_005`; `RACE=TestTodo_MSG_005_Race`; `INTEGRATION=TestTodo_MSG_005_Integration`; `FAULT=TestTodo_MSG_005_Fault`; `SECURITY=TestTodo_MSG_005_Security`.
-  - **RED:** wrong principal/tenant reads message, revoked permission exposes body, or provider email becomes authoritative sensitive content store.
-  - **GREEN:** inbox stores recipient/classification/thread/action refs/read/ack state and enforces current AuthZ on every read/action.
-  - **REFACTOR:** immutable content body may live in governed artifact storage.
-  - **Refs:** [Secure inbox](specs/messaging-and-notification-plane.md), [messaging models](data/models/connectivity-access-content.md).
+  - **TEST MATRIX:** `PRIMARY=TestTodo_MSG_005`; `SECURITY=TestTodo_MSG_005_Security`.
+  - **RED:** a wrong principal/tenant reads the record, or revoked permission exposes the linked task.
+  - **GREEN:** an inbox record with recipient, purpose, task reference, created/seen state is readable from the Promotion workspace under current AuthZ; there is no separate channel, thread, preference or provider machinery.
+  - **REFACTOR:** the record is a MINIMAL CONTRACT; the full secure-inbox channel is DESIGN.
+  - **Refs:** [Phase 1 messaging boundary](specs/messaging-and-notification-plane.md#phase-1-boundary).
 
 - [ ] `MSG-006` **[GATE_B][SOL_HIGH] Dispatch transactional email asynchronously.**
   - **Depends:** `MSG-001`–`MSG-005`, `INTG-015`, `TRUST-016`.
@@ -3368,7 +3477,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** workflow owns waits/escalation.
   - **Refs:** [Messaging/workflow signals](specs/messaging-and-notification-plane.md).
 
-- [ ] `MSG-009` **[GATE_B][SOL_HIGH] Reconcile failed delivery and create fallback work.**
+- [ ] `MSG-009` **[DESIGN][SOL_HIGH] Reconcile failed delivery and create fallback work.**
   - **Depends:** `MSG-008`, `WORK-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_009`.
@@ -3421,6 +3530,8 @@ or an explicit rejection and replacement decision.
 ---
 
 ## 11. Authoritative data plane, ledger, projections and artifacts
+
+> **Disposition (2026-09-02):** P1A for the M2 chronology: intent/proposal plus ledger, critical projection and outbox appended atomically with stale-head CAS (`DATA-001`–`DATA-003` and the `DB-*`/`LEDGER-*` they cite). P1B for multi-stream commit, corrections and outbox dispatch. Artifact storage is P1A only if the pilot stores an uploaded document.
 
 `DATA-*` items are end-to-end data-plane acceptance contracts. They are not a
 substitute for creating the physical database. The implementation work is
@@ -3643,6 +3754,8 @@ closed.
 
 ## 12. Integration Platform and first design-partner connector
 
+> **Disposition (2026-09-02):** P1A: one read/observe connector to the partner HCM and one read path to the independently owned downstream system, with mapping, provenance and diff. P1B: that connector's single governed write, operation journal, redrive. Sync engine, webhooks, schema discovery and capacity manager are DESIGN.
+
 - [ ] `INTG-001` **[GATE_A][SOL_LOW] Register immutable ConnectorDefinition versions.**
   - **Depends:** `CAP-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3845,6 +3958,8 @@ closed.
 
 ## 12A. External-effect, reconciliation, repair and execution-evidence convergence
 
+> **Disposition (2026-09-02):** P1B, with effects dispatched as sequential `OBSERVE` steps; the effect graph compiler (`EFFECT-001`) covers ordering and idempotency only until `PARALLEL` exists.
+
 - [ ] `EFFECT-001` **[GATE_B][SOL_HIGH] Compile the external-effect dependency graph.**
   - **Depends:** `TX-001`, `WF-COMP-003`, `INTG-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3877,7 +3992,7 @@ closed.
 
 - [ ] `REPAIR-001` **[GATE_A][SOL_HIGH] Generate a canonical RepairPlan from reconciliation findings.**
   - **Depends:** `INTG-010`, `GOVERN-002`, `TX-001`, `MODEL-014`.
-  - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.OPERATIONS; INTENTS=hcmnext.operations.create_repair_plan/v1; FAMILY=PROCESS_REQUEST; WHY=implement accepted intent 463 as a non-executable governed diagnosis and plan`.
+  - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.OPERATIONS; INTENTS=hcmnext.operations.create_repair_plan/v1; FAMILY=CHANGE_REQUEST (child-bound process); WHY=implement accepted intent 463 as a non-executable governed diagnosis and plan`.
   - **TEST:** `TestTodo_REPAIR_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_REPAIR_001`; `GOLDEN=TestTodo_REPAIR_001_Golden`; `RACE=TestTodo_REPAIR_001_Race`; `FAULT=TestTodo_REPAIR_001_Fault`; `MUTATION=TestTodo_REPAIR_001_Mutation`.
   - **RED:** stale/unknown finding, unsupported causal claim, raw log suggestion, unconstrained retry, hidden sibling effect or destructive history rewrite produces executable repair.
@@ -3906,6 +4021,8 @@ closed.
   - **Refs:** [Provenance](specs/provenance-graph-and-lineage.md), [assurance and evidence models](data/models/assurance-intelligence-platform.md), [ledger and repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
 ## 13. HRIS DataOps and configuration lifecycle
+
+> **Disposition (2026-09-02):** P1A ships four operator surfaces: cross-system diff (`DATAOPS-008`), effective-date debugger (`DATAOPS-007`), AuthZ explainer and connector test bench. `DATAOPS-001`–`DATAOPS-004` are an operator CSV seed path, not a product; `DATAOPS-005` is DEFERRED and `DATAOPS-006` Gate C. `CONFIG-001`/`002` are P1B minimal; `CONFIG-003` Gate C. Productization follows the P1A product test in the DataOps spec.
 
 - [ ] `DATAOPS-001` **[GATE_A][SOL_HIGH] Stage an immutable import batch without changing business state.**
   - **Depends:** `MODEL-022`, `MODEL-023`, `DATA-016`.
@@ -3947,7 +4064,7 @@ closed.
   - **REFACTOR:** validation performs no domain writes and exposes bounded error samples plus full artifact.
   - **Refs:** [Import validation](specs/hris-admin-dataops.md), [quality layers](specs/data-quality-and-invariant-evaluation.md).
 
-- [ ] `DATAOPS-005` **[GATE_A][SOL_HIGH] Simulate an import as ordered BusinessIntents.**
+- [ ] `DATAOPS-005` **[DESIGN][SOL_HIGH] Simulate an import as ordered BusinessIntents.**
   - **Depends:** `DATAOPS-004`, `INTENT-004`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_DATAOPS_005`.
@@ -4007,7 +4124,7 @@ closed.
   - **REFACTOR:** bundle contains credential references only.
   - **Refs:** [Configuration packages](specs/platform-responsibility-boundaries.md), [config promotion](specs/hris-admin-dataops.md).
 
-- [ ] `CONFIG-003` **[GATE_B][SOL_HIGH] Promote configuration through validate, simulate, approve and activate.**
+- [ ] `CONFIG-003` **[GATE_C][SOL_HIGH] Promote configuration through validate, simulate, approve and activate.**
   - **Depends:** `CONFIG-002`, `APPROVAL-005`, `WF-STEP-011`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONFIG_003`.
@@ -4019,7 +4136,9 @@ closed.
 
 ## 14. Tenant lifecycle, placement, sandbox and commercial pilot
 
-- [ ] `TENANT-001` **[GATE_A][SOL_HIGH] Resolve signed logical tenant placement and residency.**
+> **Disposition (2026-09-02):** P1A for tenant isolation tests, one sandbox tenant and the commercial pilot record. Logical placement, cell epochs and residency fencing (`TENANT-001`) are Gate C; one physical cell with tenant-scoped rows is the P1A/P1B shape.
+
+- [ ] `TENANT-001` **[GATE_C][SOL_HIGH] Resolve signed logical tenant placement and residency.**
   - **Depends:** `TRUST-001`, `TRUST-008`, `MODEL-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_TENANT_001`.
@@ -4111,9 +4230,11 @@ closed.
 
 ## 15. Privacy, records and processing lifecycle
 
-- [ ] `PRIV-001` **[GATE_A][SOL_HIGH] Publish an executable processing-activity and data-flow inventory.**
+> **Disposition (2026-09-02):** `PRIV-001` (processing inventory) is P1B; retention, legal hold, subject rights and disposition are Gate C. P1A needs only the DPA/security approval captured in `WEDGE-010`.
+
+- [ ] `PRIV-001` **[GATE_B][SOL_HIGH] Publish an executable processing-activity and data-flow inventory.**
   - **Depends:** `MODEL-023`, `MODEL-026`, `WEDGE-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_001`; `INTEGRATION=TestTodo_PRIV_001_Integration`; `SECURITY=TestTodo_PRIV_001_Security`; `MUTATION=TestTodo_PRIV_001_Mutation`.
   - **RED:** pilot field reaches connector/export/model/telemetry path without controller, processor/subprocessor, region, purpose, lawful basis, retention and transfer assessment.
@@ -4123,7 +4244,7 @@ closed.
 
 - [ ] `PRIV-002` **[GATE_A][SOL_HIGH] Prove notice presentation and optional-processing authority.**
   - **Depends:** `PRIV-001`, `MODEL-027`, `MSG-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_002`; `SECURITY=TestTodo_PRIV_002_Security`; `BROWSER=TestTodo_PRIV_002_Browser`; `MUTATION=TestTodo_PRIV_002_Mutation`.
   - **RED:** missing/expired notice, unsupported locale/accessibility presentation or withdrawn authority permits optional AI/RAG/analytics/communication use.
@@ -4133,7 +4254,7 @@ closed.
 
 - [ ] `PRIV-003` **[GATE_B][SOL_HIGH] Bind processor, transfer and DLP decisions at dispatch.**
   - **Depends:** `PRIV-001`, `TRUST-018`, `INTG-012`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_003`; `GOLDEN=TestTodo_PRIV_003_Golden`; `SECURITY=TestTodo_PRIV_003_Security`; `MUTATION=TestTodo_PRIV_003_Mutation`.
   - **RED:** changed destination/processor/region/classification/purpose or revoked transfer assessment still sends data.
@@ -4173,7 +4294,7 @@ closed.
 
 - [ ] `PRIV-004` **[GATE_B][SOL_HIGH] Reapply deletion and restriction manifests during restore.**
   - **Depends:** `MODEL-028`, `RECORDS-COPY-001`, `RECOVERY-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_004`; `GOLDEN=TestTodo_PRIV_004_Golden`; `RACE=TestTodo_PRIV_004_Race`; `FAULT=TestTodo_PRIV_004_Fault`; `SECURITY=TestTodo_PRIV_004_Security`; `RECOVERY=TestTodo_PRIV_004_Recovery`; `MUTATION=TestTodo_PRIV_004_Mutation`.
   - **RED:** restore resurrects deleted/restricted data, loses holds or non-idempotently re-deletes.
@@ -4183,7 +4304,7 @@ closed.
 
 - [ ] `PRIV-005` **[GATE_C][SOL_HIGH] Intake and verify a data-subject request.**
   - **Depends:** `MODEL-027`, `TRUST-002`, `WORK-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_005`; `SECURITY=TestTodo_PRIV_005_Security`; `MUTATION=TestTodo_PRIV_005_Mutation`.
   - **RED:** unverified/expired proof, unauthorized representative, duplicate or cross-tenant subject creates executable request.
@@ -4193,7 +4314,7 @@ closed.
 
 - [ ] `PRIV-006` **[GATE_C][SOL_HIGH] Resolve every subject-request item and legal exception.**
   - **Depends:** `PRIV-005`, `RECORDS-COPY-001`, `RECORDS-HOLD-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_006`; `GOLDEN=TestTodo_PRIV_006_Golden`; `INTEGRATION=TestTodo_PRIV_006_Integration`; `SECURITY=TestTodo_PRIV_006_Security`; `RECOVERY=TestTodo_PRIV_006_Recovery`; `MUTATION=TestTodo_PRIV_006_Mutation`.
   - **RED:** projection/search/vector/cache/telemetry/export/backup/provider/privileged/retained copy is omitted or exception has no authority.
@@ -4203,7 +4324,7 @@ closed.
 
 - [ ] `PRIV-007` **[GATE_C][SOL_HIGH] Reconcile processor acknowledgements and certify fulfillment.**
   - **Depends:** `PRIV-006`, `INTG-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_007`; `FAULT=TestTodo_PRIV_007_Fault`; `SECURITY=TestTodo_PRIV_007_Security`; `MUTATION=TestTodo_PRIV_007_Mutation`.
   - **RED:** timeout/refusal/unknown copy/unacknowledged deletion is marked complete.
@@ -4213,7 +4334,7 @@ closed.
 
 - [ ] `PRIV-EXIT-001` **[GATE_B][SOL_HIGH] Verify tenant exit across copies, providers, credentials and backups.**
   - **Depends:** `RECORDS-COPY-001`, `TENANT-003`, `PRIV-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_EXIT_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_PRIV_EXIT_001`; `FUZZ=FuzzTodo_PRIV_EXIT_001`; `INTEGRATION=TestTodo_PRIV_EXIT_001_Integration`; `SECURITY=TestTodo_PRIV_EXIT_001_Security`; `RECOVERY=TestTodo_PRIV_EXIT_001_Recovery`; `MUTATION=TestTodo_PRIV_EXIT_001_Mutation`.
   - **RED:** exit certifies while connector credential/webhook/provider/export/backup/derived copy/support grant remains unaccounted for.
@@ -4222,6 +4343,8 @@ closed.
   - **Refs:** [Tenant exit](specs/platform-responsibility-boundaries.md#tenant-exit-and-portability), [privacy records](specs/records-management-and-disposition.md).
 
 ## 16. Operations, assurance, overload and recovery
+
+> **Disposition (2026-09-02):** P1A: one backup restored once in non-production. P1B: `OPS-001` pilot SLOs, a named on-call owner, advisory route, redrive/rollback procedure, exit runbook, and a measured restore. Admission control, overload shedding, chaos and game days are Gate C.
 
 - [ ] `OPS-001` **[P0][SOL_LOW] Define versioned SLIs, SLOs and error-budget actions for the pilot path.**
   - **Depends:** `WEDGE-005`, `WEDGE-006`.
@@ -4385,6 +4508,18 @@ closed.
 
 ## 17. Experience, API and accessibility
 
+> **Disposition (2026-09-02):** P1A: the Promotion analysis/proposal workspace on GWC if `UX-QUAL-001` passes, otherwise Go server-rendered HTML; field masking before render; keyboard and screen-reader pass on that workspace. Full-process WCAG 2.2 AA evidence and accessible documents are Gate C. Generated-page and brand-pack items are Phase 2.
+
+- [ ] `UX-QUAL-001` **[GATE_A][SOL_HIGH] Run the UI qualification fixture and select GWC or the Go SSR fallback.**
+  - **Depends:** `UX-001`, `TOOL-008`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=decide the workspace renderer on evidence before P1B, so accessibility gates are not blocked on an unqualified library`.
+  - **TEST:** `TestWorkspaceQualificationFixture`.
+  - **TEST MATRIX:** `PRIMARY=TestWorkspaceQualificationFixture`; `BROWSER=TestTodo_UX_QUAL_001_Browser`; `SECURITY=TestTodo_UX_QUAL_001_Security`; `CONFORMANCE=TestTodo_UX_QUAL_001_Conformance`.
+  - **RED:** the Promotion request, approval and timeline workspace fails keyboard-only completion, a screen-reader pass (NVDA on Windows, VoiceOver on macOS), WCAG 2.2 AA contrast and reflow, or renders a field the server masked.
+  - **GREEN:** either GWC passes and is pinned as the renderer, or the failure is recorded and the workspace ships as Go server-rendered HTML with progressive enhancement; the decision and evidence are in the P1B manifest. The browser test runner may be Node-based in the development toolchain.
+  - **REFACTOR:** the workspace contract (`UX-001`) is renderer-independent; only the renderer changes.
+  - **Refs:** [GWC qualification fixture](specs/go-only-technology-constitution.md#gwc--gowebcomponents-preferred-ui), [experience slice](execution-plan.md#experience-and-branding-slice).
+
 - [ ] `UX-001` **[GATE_A][SOL_HIGH] Define a server-resolved Promotion workspace contract.**
   - **Depends:** `PROMO-002`, `CAP-003`, `TRUST-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
@@ -4467,7 +4602,7 @@ closed.
 
 - [ ] `UXFLOW-001` **[P0][SOL_HIGH] Define the machine-readable UserFlowRecord and stage vocabulary.**
   - **Depends:** `UX-001`, `SLICE-001`, `WF-DISC-005`, `MODEL-009`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=describe every participant journey with exact semantic references, states, alternatives, accessibility and test hooks`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=describe every participant journey with exact semantic references, states, alternatives, accessibility and test hooks`.
   - **TEST:** `TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`.
   - **TEST MATRIX:** `PRIMARY=TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`; `PROPERTY=TestTodo_UXFLOW_001_Property`; `GOLDEN=TestTodo_UXFLOW_001_Golden`; `SECURITY=TestTodo_UXFLOW_001_Security`; `CONFORMANCE=TestTodo_UXFLOW_001_Conformance`; `MUTATION=TestTodo_UXFLOW_001_Mutation`.
   - **RED:** flow validates without stable flow/version/owner/job/intent references, participant and decision rights, entry/resume paths, requested-versus-resolved data, ordered stages, state matrix, failure/recovery, completion, accessibility/localization/privacy, scenarios/todos/evidence or typed `NOT_APPLICABLE` reason.
@@ -4477,7 +4612,7 @@ closed.
 
 - [ ] `UXFLOW-002` **[P0][SOL_HIGH] Resolve participants, representation, delegation and decision rights per flow stage.**
   - **Depends:** `UXFLOW-001`, `TRUST-010`, `TRUST-013`, `TRUST-014`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent persona labels, act-as modes and assisted use from silently expanding authority or disclosure`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent persona labels, act-as modes and assisted use from silently expanding authority or disclosure`.
   - **TEST:** `TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`.
   - **TEST MATRIX:** `PRIMARY=TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`; `PROPERTY=TestTodo_UXFLOW_002_Property`; `GOLDEN=TestTodo_UXFLOW_002_Golden`; `SECURITY=TestTodo_UXFLOW_002_Security`; `CONFORMANCE=TestTodo_UXFLOW_002_Conformance`; `MUTATION=TestTodo_UXFLOW_002_Mutation`.
   - **RED:** manager/persona/route grants visibility or decision right, delegate inherits full principal scope, interpreter becomes subject, support view becomes impersonation, recused participant retains evidence or flow omits on-behalf-of and representation evidence.
@@ -4487,7 +4622,7 @@ closed.
 
 - [ ] `UXFLOW-003` **[P0][SOL_HIGH] Give every accepted BusinessIntent an explicit user-flow disposition.**
   - **Depends:** `UXFLOW-001`, `SLICE-003`, `INTENT-010`, `UX-006`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=distinguish participant-facing roots and children from system-only, admin-only and no-flow intents without inventing public UI`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=distinguish participant-facing roots and children from system-only, admin-only and no-flow intents without inventing public UI`.
   - **TEST:** `TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`.
   - **TEST MATRIX:** `PRIMARY=TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`; `PROPERTY=TestTodo_UXFLOW_003_Property`; `GOLDEN=TestTodo_UXFLOW_003_Golden`; `SECURITY=TestTodo_UXFLOW_003_Security`; `CONFORMANCE=TestTodo_UXFLOW_003_Conformance`; `MUTATION=TestTodo_UXFLOW_003_Mutation`.
   - **RED:** accepted intent lacks disposition, candidate display name is treated as stable identity, system trigger gains human action, child/internal intent is independently discoverable, material background action has no visible parent status or one intent maps to conflicting flows without participant/context qualification.
@@ -4497,7 +4632,7 @@ closed.
 
 - [ ] `UXFLOW-004` **[P0][SOL_HIGH] Compile truthful participant-facing state and available actions from multidimensional intent state.**
   - **Depends:** `UXFLOW-001`, `INTENT-021`, `UX-005`, `UX-007`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every flow renders loading, waiting, stale, partial, unknown, repair and closure without flattening business truth`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=ensure every flow renders loading, waiting, stale, partial, unknown, repair and closure without flattening business truth`.
   - **TEST:** `TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`.
   - **TEST MATRIX:** `PRIMARY=TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`; `PROPERTY=TestTodo_UXFLOW_004_Property`; `GOLDEN=TestTodo_UXFLOW_004_Golden`; `FAULT=TestTodo_UXFLOW_004_Fault`; `SECURITY=TestTodo_UXFLOW_004_Security`; `CONFORMANCE=TestTodo_UXFLOW_004_Conformance`; `BROWSER=TestTodo_UXFLOW_004_Browser`; `MUTATION=TestTodo_UXFLOW_004_Mutation`.
   - **RED:** runtime completion displays full success while external consistency/obligation is open, timeout becomes generic failure, ambiguity offers blind retry, stale action remains enabled, empty/denied state leaks existence or completed/cancelled/corrected history is overwritten.
@@ -4507,7 +4642,7 @@ closed.
 
 - [ ] `UXFLOW-005` **[P0][SOL_HIGH] Define draft, autosave, validation, simulation, compare and confirmation flow mechanics.**
   - **Depends:** `UXFLOW-001`, `UXFLOW-004`, `FORM-001`, `INTENT-014`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=let participants safely move from requested input to an exact proposal without client-resolved truth or accidental effects`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=let participants safely move from requested input to an exact proposal without client-resolved truth or accidental effects`.
   - **TEST:** `TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`.
   - **TEST MATRIX:** `PRIMARY=TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`; `PROPERTY=TestTodo_UXFLOW_005_Property`; `GOLDEN=TestTodo_UXFLOW_005_Golden`; `RACE=TestTodo_UXFLOW_005_Race`; `FAULT=TestTodo_UXFLOW_005_Fault`; `SECURITY=TestTodo_UXFLOW_005_Security`; `CONFORMANCE=TestTodo_UXFLOW_005_Conformance`; `BROWSER=TestTodo_UXFLOW_005_Browser`; `MUTATION=TestTodo_UXFLOW_005_Mutation`.
   - **RED:** hidden/current-state field is trusted, autosave overwrites concurrent revision, validation loses input/focus, simulation mutates state/effect, masked compare makes material decision, confirmation binds different proposal or duplicate submit creates two intents.
@@ -4517,7 +4652,7 @@ closed.
 
 - [ ] `UXFLOW-006` **[P0][SOL_HIGH] Preserve safe interruption, deep-link, session-expiry and cross-device resume.**
   - **Depends:** `UXFLOW-004`, `UXFLOW-005`, `TRUST-003`, `UX-007`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make long-running HCM work resumable without embedding authority in URLs, stale pages or device storage`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make long-running HCM work resumable without embedding authority in URLs, stale pages or device storage`.
   - **TEST:** `TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`.
   - **TEST MATRIX:** `PRIMARY=TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`; `PROPERTY=TestTodo_UXFLOW_006_Property`; `GOLDEN=TestTodo_UXFLOW_006_Golden`; `RACE=TestTodo_UXFLOW_006_Race`; `FAULT=TestTodo_UXFLOW_006_Fault`; `SECURITY=TestTodo_UXFLOW_006_Security`; `CONFORMANCE=TestTodo_UXFLOW_006_Conformance`; `BROWSER=TestTodo_UXFLOW_006_Browser`; `MUTATION=TestTodo_UXFLOW_006_Mutation`.
   - **RED:** URL/QR/notification contains bearer authority or sensitive state, browser back repeats effect, expired session leaves data visible, resume trusts cached permission/action, two devices overwrite silently, offline draft stores prohibited fields unprotected or authority loss still opens task.
@@ -4527,7 +4662,7 @@ closed.
 
 - [ ] `UXFLOW-007` **[P0][SOL_HIGH] Design exact participant recovery for partial, unknown, ambiguous and repair-required outcomes.**
   - **Depends:** `UXFLOW-004`, `UX-005`, `INTG-014`, `REPAIR-001`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent unsafe retries and give participants truthful next actions when local business truth and external reality diverge`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prevent unsafe retries and give participants truthful next actions when local business truth and external reality diverge`.
   - **TEST:** `TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`.
   - **TEST MATRIX:** `PRIMARY=TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`; `PROPERTY=TestTodo_UXFLOW_007_Property`; `GOLDEN=TestTodo_UXFLOW_007_Golden`; `RACE=TestTodo_UXFLOW_007_Race`; `FAULT=TestTodo_UXFLOW_007_Fault`; `SECURITY=TestTodo_UXFLOW_007_Security`; `CONFORMANCE=TestTodo_UXFLOW_007_Conformance`; `BROWSER=TestTodo_UXFLOW_007_Browser`; `RECOVERY=TestTodo_UXFLOW_007_Recovery`; `MUTATION=TestTodo_UXFLOW_007_Mutation`.
   - **RED:** provider timeout enables ordinary retry after possible application, partial effect is called failure and rolled back, repair reruns original transaction, unauthorized participant sees provider payload, observation staleness is hidden or completion closes while required verification is unknown.
@@ -4537,7 +4672,7 @@ closed.
 
 - [ ] `UXFLOW-008` **[P0][SOL_HIGH] Compile accessibility, localization and assisted/manual continuity across complete flows.**
   - **Depends:** `UXFLOW-001`, `UX-003`, `UX-004`, `FORM-004`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prove a participant can complete the entire governed process—not isolated pages—across language, disability, accommodation and non-digital routes`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prove a participant can complete the entire governed process—not isolated pages—across language, disability, accommodation and non-digital routes`.
   - **TEST:** `TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`.
   - **TEST MATRIX:** `PRIMARY=TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`; `PROPERTY=TestTodo_UXFLOW_008_Property`; `GOLDEN=TestTodo_UXFLOW_008_Golden`; `INTEGRATION=TestTodo_UXFLOW_008_Integration`; `FAULT=TestTodo_UXFLOW_008_Fault`; `SECURITY=TestTodo_UXFLOW_008_Security`; `CONFORMANCE=TestTodo_UXFLOW_008_Conformance`; `BROWSER=TestTodo_UXFLOW_008_Browser`; `MUTATION=TestTodo_UXFLOW_008_Mutation`.
   - **RED:** keyboard/screen-reader/zoom/RTL route loses action/state/error, translation changes legal meaning, interpreter/representative is unattributed, inaccessible upload/signature blocks deadline, fallback channel weakens privacy/identity/validation or manual transcription changes request digest.
@@ -4547,7 +4682,7 @@ closed.
 
 - [ ] `UXFLOW-009` **[PHASE_2][SOL_HIGH] Prove cross-channel flow parity for desktop, mobile, kiosk, secure message and assisted routes.**
   - **Depends:** `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-008`, `UX-008`, `API-001`, `MSG-001`.
-  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure surface adaptation never forks BusinessIntent semantics, governance, validation, recovery or evidence`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure surface adaptation never forks BusinessIntent semantics, governance, validation, recovery or evidence`.
   - **TEST:** `TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`.
   - **TEST MATRIX:** `PRIMARY=TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`; `PROPERTY=TestTodo_UXFLOW_009_Property`; `GOLDEN=TestTodo_UXFLOW_009_Golden`; `INTEGRATION=TestTodo_UXFLOW_009_Integration`; `FAULT=TestTodo_UXFLOW_009_Fault`; `SECURITY=TestTodo_UXFLOW_009_Security`; `CONFORMANCE=TestTodo_UXFLOW_009_Conformance`; `BROWSER=TestTodo_UXFLOW_009_Browser`; `MUTATION=TestTodo_UXFLOW_009_Mutation`.
   - **RED:** equivalent input creates different normalized request/digest/result/error, one channel skips simulation/step-up/confirmation, message action remains valid after workflow change, kiosk leaks prior participant, mobile/offline duplicates effect or assisted route loses evidence.
@@ -4557,7 +4692,7 @@ closed.
 
 - [ ] `UXFLOW-010` **[P0][SOL_HIGH] Generate atomic TDD todos and reverse coverage from user-flow findings to a fixed point.**
   - **Depends:** `UXFLOW-003`, `UXFLOW-004`, `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-007`, `UXFLOW-008`, `UXFLOW-009`, `SLICE-012`, `GOV-028`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=turn every unresolved surface, state, action, accessibility, continuity and test obligation into deduplicated production work`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn every unresolved surface, state, action, accessibility, continuity and test obligation into deduplicated production work`.
   - **TEST:** `TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`.
   - **TEST MATRIX:** `PRIMARY=TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`; `PROPERTY=TestTodo_UXFLOW_010_Property`; `GOLDEN=TestTodo_UXFLOW_010_Golden`; `SECURITY=TestTodo_UXFLOW_010_Security`; `CONFORMANCE=TestTodo_UXFLOW_010_Conformance`; `MUTATION=TestTodo_UXFLOW_010_Mutation`.
   - **RED:** missing PageDefinition/widget/form/action/endpoint/message/state/recovery/accessibility/analytics/test produces no finding, shared gap creates one todo per flow, screen todo absorbs domain invariant, candidate lacks phase/intelligence/dependencies/exact oracle/references or unchanged second pass emits renamed/new duplicates.
@@ -4587,7 +4722,9 @@ closed.
 
 ## 18. Bounded agent and intelligence safety
 
-- [ ] `AGENT-001` **[GATE_A][SOL_HIGH] Route the bounded read/analyze/draft agent through a tool-security gateway.**
+> **Disposition (2026-09-02):** DESIGN. No agent capability is in P1A or P1B, so there is nothing for the gateway to gate. `AGENT-001`–`AGENT-004` are the security boundary that binds every plane once an agent capability is scheduled; `AGENT-005` is Phase 2 at the earliest.
+
+- [ ] `AGENT-001` **[DESIGN][SOL_HIGH] Route the bounded read/analyze/draft agent through a tool-security gateway.**
   - **Depends:** `TRUST-006`, `CAP-003`, `TRUST-018`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_001`.
@@ -4597,7 +4734,7 @@ closed.
   - **REFACTOR:** deterministic services execute all effects.
   - **Refs:** [Agent runtime](data/models/assurance-intelligence-platform.md), [Gate A bounded agent](execution-plan.md#gate-a--paid-design-partner-observation).
 
-- [ ] `AGENT-002` **[GATE_A][SOL_HIGH] Track semantic trust and prompt-injection taint.**
+- [ ] `AGENT-002` **[DESIGN][SOL_HIGH] Track semantic trust and prompt-injection taint.**
   - **Depends:** `AGENT-001`, `MODEL-020`, `MODEL-024`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_002`.
@@ -4607,7 +4744,7 @@ closed.
   - **REFACTOR:** detector failure defaults to lower trust, not execution authority.
   - **Refs:** [Agent security](data/models/assurance-intelligence-platform.md), [evidence model](data/models/kernel-governance-and-evidence.md).
 
-- [ ] `AGENT-003` **[GATE_A][SOL_HIGH] Validate agent output before deterministic consumption.**
+- [ ] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
   - **Depends:** `AGENT-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_003`.
@@ -4617,7 +4754,7 @@ closed.
   - **REFACTOR:** free-form narrative is never a transaction plan.
   - **Refs:** [Agent output gateway](data/models/assurance-intelligence-platform.md), [workflow compiler](specs/workflow-runtime.md).
 
-- [ ] `AGENT-004` **[GATE_A][TERRA] Establish agent evaluation and kill-switch release gates.**
+- [ ] `AGENT-004` **[DESIGN][TERRA] Establish agent evaluation and kill-switch release gates.**
   - **Depends:** `AGENT-001`, `OPS-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_004`.
@@ -4627,7 +4764,7 @@ closed.
   - **REFACTOR:** AI incident links exact versions, inputs, outputs and tool attempts.
   - **Refs:** [Agent evaluation](data/models/assurance-intelligence-platform.md), [AI incidents](specs/incident-management.md).
 
-- [ ] `AGENT-005` **[GATE_B][SOL_HIGH] Compile agent-proposed actions into governed draft BusinessIntents.**
+- [ ] `AGENT-005` **[DESIGN][SOL_HIGH] Compile agent-proposed actions into governed draft BusinessIntents.**
   - **Depends:** `AGENT-001`–`AGENT-004`, `INTENT-012`, `INTENT-014`, `INTENT-020`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestAgentActionCreatesDraftIntentWithoutAuthorityExpansion`.
@@ -4638,6 +4775,8 @@ closed.
   - **Refs:** [Agent runtime](data/models/assurance-intelligence-platform.md), [BusinessIntent](specs/business-intent-and-change-request.md).
 
 ## 19. Reference-workflow conformance harness
+
+> **Disposition (2026-09-02):** P1A for `CONF-001` at the depth the no-effect Promotion fixture needs (simulate mode, fixed clock, zero-effect receipt). Replay and fault schedules are P1B. The lifecycle conformance fixtures remain CONFORMANCE.
 
 - [ ] `CONF-001` **[P0][SOL_HIGH] Build a deterministic conformance runner for reference workflows.**
   - **Depends:** `MODEL-030`, `WF-COMP-004`, `SANDBOX-001`.
@@ -4720,6 +4859,8 @@ closed.
   - **Refs:** [Promotion workflow](workflows/rewards/promotion-into-management.md), [reference suite](reference-workflows/reference-suite.md).
 
 ## 20. Regulatory platform and content operations
+
+> **Disposition (2026-09-02):** `LEGAL-001` is P1B at reduced depth: one versioned rule pack of customer-configured thresholds and notice obligations evaluated to `LegalEvaluationStatus` and bound through `ObligationBinding`. Jurisdiction resolution, rule packs, calculation engines and filings are Phase 2 or later; the kernel has no filing family.
 
 - [ ] `LEGAL-001` **[GATE_A][SOL_HIGH] Resolve an explicit signed LegalContext.**
   - **Depends:** `MODEL-018`, `MODEL-021`, `TRUST-011`, `TIME-001`.
@@ -4823,15 +4964,17 @@ closed.
 
 ## 21. Future-domain intent conformance
 
-- [ ] `INTENT-CONF-001` **[P0][SOL_HIGH] Require a finite conformance descriptor for every BusinessIntent.**
-  - **Depends:** `MODEL-009`, `MODEL-016`, `CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
+> **Disposition (2026-09-02):** DEFERRED. `INTENT-CONF-001` covers the fourteen drafted definitions only. Conformance descriptors for undrafted domains are written when a domain is funded.
+
+- [ ] `INTENT-CONF-001` **[P0][SOL_HIGH] Require a finite conformance descriptor for each of the fourteen drafted definitions.**
+  - **Depends:** `MODEL-016`, `CONF-001`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_INTENT_CONF_001`.
-  - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_CONF_001`; `GOLDEN=TestTodo_INTENT_CONF_001_Golden`; `RACE=TestTodo_INTENT_CONF_001_Race`; `CONFORMANCE=TestTodo_INTENT_CONF_001_Conformance`; `MUTATION=TestTodo_INTENT_CONF_001_Mutation`.
-  - **RED:** any accepted catalog definition—including original numbers 1–530 and reviewed extensions—lacks unique family, entities/properties, reads/writes/effects, authority, time, lifecycle, evidence, negative-policy matrix or scenario.
-  - **GREEN:** generated manifest row count equals the immutable accepted-catalog release, has no orphan entity/property and a stable digest; baseline and extension provenance remain distinct and deferred intents are explicitly `DRAFT_CONTRACT` or `CONFORMANCE_ONLY`.
-  - **REFACTOR:** manifest is generated from canonical sources, not duplicated manually.
-  - **Refs:** [Intent catalog](specs/business-intent-catalog.md), [coverage matrix](data/models/intent-coverage-matrix.md), [registry proof](data/models/registry-and-coverage-contracts.md).
+  - **TEST MATRIX:** `PRIMARY=TestTodo_INTENT_CONF_001`; `GOLDEN=TestTodo_INTENT_CONF_001_Golden`; `CONFORMANCE=TestTodo_INTENT_CONF_001_Conformance`; `MUTATION=TestTodo_INTENT_CONF_001_Mutation`.
+  - **RED:** one of the fourteen definitions lacks family, entities/properties, reads/writes/effects, authority, time, five-dimension lifecycle, evidence, negative-policy matrix or scenario.
+  - **GREEN:** generated manifest has exactly fourteen rows with a stable digest; conformance-only definitions (`change_manager`) are marked as such; no row exists for an undrafted name.
+  - **REFACTOR:** manifest is generated from the registry, not duplicated manually.
+  - **Refs:** [Draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice), [covered entity set](data/models/README.md).
 
 - [ ] `CONF-009` **[CONFORMANCE][SOL_HIGH] Prove payroll run, calculation, release and settlement states.**
   - **Depends:** `CONF-001`, `INTENT-CONF-001`, `TIME-001`.
@@ -4915,6 +5058,8 @@ closed.
 
 ## 22. Dependency-closure additions
 
+> **Disposition (2026-09-02):** As labelled; `CONFLICT-004` is P1B.
+
 - [ ] `CONFLICT-004` **[GATE_B][SOL_HIGH] Re-evaluate the complete cross-workflow conflict set at execution.**
   - **Depends:** `CONFLICT-003`, `GOVERN-003`, `TX-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -4947,7 +5092,7 @@ closed.
 
 - [ ] `GOV-016` **[P0][LUNA] Reject unresolved, prose, cyclic and phase-inverted todo dependencies.**
   - **Depends:** `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_GOV_016`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_GOV_016`; `PROPERTY=TestTodo_GOV_016_Property`; `GOLDEN=TestTodo_GOV_016_Golden`; `FUZZ=FuzzTodo_GOV_016`.
   - **RED:** fixture includes unknown ID, free-form category, malformed range, cycle or Gate A dependency on Gate B/C implementation and validation reports exact file/line/code.
@@ -4966,6 +5111,8 @@ closed.
   - **Refs:** [Documentation governance](specs/platform-foundation-gap-closure.md), [planning hierarchy](plan.md).
 
 ## 23. Document processing and signature execution
+
+> **Disposition (2026-09-02):** P1B only `DOC-MAL-001`, and only if the pilot accepts an uploaded document. Templates, signature and evidence states are Phase 2.
 
 - [ ] `DOC-MAL-001` **[GATE_B][SOL_HIGH] Scan and quarantine uploaded artifacts before use.**
   - **Depends:** `MODEL-029`, `TRUST-019`, `DATA-016`.
@@ -5039,15 +5186,17 @@ closed.
 
 ## 24. Human decision safety and continuity
 
-- [ ] `APPROVAL-006` **[GATE_B][SOL_HIGH] Bind approval to a server-rendered decision-safety receipt.**
+> **Disposition (2026-09-02):** P1B. `APPROVAL-006` is simplified to a server-held rendered-projection digest keyed by task version (Tier 1 in the context contract); a client-held receipt token is Gate C.
+
+- [ ] `APPROVAL-006` **[GATE_B][SOL_HIGH] Bind approval to the server-held rendered-projection digest for the task version.**
   - **Depends:** `APPROVAL-005`, `UX-001`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_APPROVAL_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_APPROVAL_006`; `GOLDEN=TestTodo_APPROVAL_006_Golden`; `BROWSER=TestTodo_APPROVAL_006_Browser`; `MUTATION=TestTodo_APPROVAL_006_Mutation`.
-  - **RED:** client-supplied/expired/mismatched receipt, changed render or material unknown/redaction reaches ordinary approval.
-  - **GREEN:** receipt binds proposal/requirement/candidate digests, visible/hidden fields, diff, freshness, warnings, cost/reversibility and locale/accessibility versions; only `SAFE_TO_DECIDE` records a vote.
-  - **REFACTOR:** unsafe presentation routes specialist/evidence task with zero vote.
-  - **Refs:** [Workflow context](workflows/_engine/workflow-context-contract.md), [approval evidence](data/models/kernel-governance-and-evidence.md).
+  - **RED:** a client-supplied digest, a stale task version, a changed render, or a material unknown/redaction reaches ordinary approval.
+  - **GREEN:** the server records the digest of what it rendered (visible fields, hidden-field manifest, warnings, effects) keyed by task version; a vote references the task version and the server binds the proposal digest and rendered-projection digest it holds; only `SAFE_TO_DECIDE` records a vote; re-rendering advances the task version.
+  - **REFACTOR:** no client-held receipt token, session binding or expiry; those are Gate C if a threat model shows the server record is insufficient.
+  - **Refs:** [Simplified receipt rule](workflows/_engine/workflow-context-contract.md#7-human-identity-approvals-and-work), [approval evidence](data/models/kernel-governance-and-evidence.md).
 
 - [ ] `APPROVAL-007` **[GATE_B][SOL_HIGH] Materialize ApprovalRequirements as governed WorkItems.**
   - **Depends:** `APPROVAL-001`, `WORK-001`, `WORK-002`, `WF-RUN-025`, `MSG-001`.
@@ -5111,6 +5260,8 @@ closed.
 
 ## 25. Search, metrics and outcome intelligence
 
+> **Disposition (2026-09-02):** Phase 2. Nothing here blocks P1A or P1B.
+
 - [ ] `SEARCH-001` **[PHASE_2][SOL_HIGH] Enforce authorization before exact, fuzzy or vector ranking.**
   - **Depends:** `TRUST-009`, `TRUST-010`, `TRUST-012`, `PRIV-003`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
@@ -5153,7 +5304,7 @@ closed.
 
 - [ ] `DISCLOSURE-001` **[PHASE_2][SOL_HIGH] Enforce analytics disclosure control and repeated-query budgets.**
   - **Depends:** `PRIV-002`, `TRUST-010`, `OPS-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_DISCLOSURE_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_DISCLOSURE_001`; `PROPERTY=TestTodo_DISCLOSURE_001_Property`; `GOLDEN=TestTodo_DISCLOSURE_001_Golden`; `SECURITY=TestTodo_DISCLOSURE_001_Security`.
   - **RED:** small-cell/complementary/repeated-differencing/sensitive-dimension/cross-tenant query returns identifying output.
@@ -5193,6 +5344,8 @@ closed.
 
 ## 26. PostgreSQL database and model materialization
 
+> **Disposition (2026-09-02):** P1A for the M2 migration root: tenant, intent, proposal, ledger event, stream head, projection and outbox tables with checksums, one Goose tree, pgx. Storage dispositions for entities outside the fourteen definitions are DEFERRED.
+
 The files in [`planning/data/models`](data/models/README.md) are the semantic
 source, not a suggestion to create one table per named object. SchemaFlux must
 compile each registered entity into one explicit `StorageDisposition`:
@@ -5217,7 +5370,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** clean database cannot migrate from zero, rollback the latest reversible migration, or run isolated per-test transactions without Node/TypeScript tooling.
   - **GREEN:** Go command uses the qualified Testcontainers harness to create digest-pinned PostgreSQL, Goose to apply SQL-first migrations and pgx for the database path; it reports schema version/digest and `go test` proves clean-up and parallel-test isolation.
   - **REFACTOR:** migration runner, application and tests share one owned database configuration path while Goose/pgx/Testcontainers types remain inside their approved adapters.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [physical data architecture](specs/platform-architecture-catalog.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [physical data architecture](specs/platform-architecture-catalog.md).
 
 - [ ] `DB-002` **[P0][SOL_HIGH] Generate the model-to-storage disposition manifest.**
   - **Depends:** `MODEL-011`, `MODEL-012`, `TOOL-004`, `DATA-001`.
@@ -5441,6 +5594,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 27. Authoritative ledger implementation
 
+> **Disposition (2026-09-02):** P1A for stream, head, event and payload-schema tables and the single-stream append with CAS. P1B for multi-stream commit, hash chains and corrections. Integrity epochs and external anchors are Gate C.
+
 - [ ] `LEDGER-001` **[GATE_A][SOL_HIGH] Create ledger stream, head, event and payload-schema tables.**
   - **Depends:** `DB-005`, `DB-006`, `DB-007`, `MODEL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -5593,6 +5748,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 28. Modular-monolith process roles and Go command binaries
 
+> **Disposition (2026-09-02):** P1A with four commands (`hcmnext`, `worker`, `projector`, `migrate`); `scheduler` and `admin` are added when P1B needs timers and operator actions.
+
 - [ ] `SVC-001` **[P0][SOL_HIGH] Publish the process-role and semantic-ownership manifest.**
   - **Depends:** `ARCH-GO-001`, `ARCH-GO-018`, `GOV-001`, `DB-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -5611,7 +5768,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** fixture commands disagree on config validation, application wiring, structured shutdown, health, build identity, clock, logging or dependency readiness, or business packages import bootstrap.
   - **GREEN:** one narrow operations/bootstrap package supplies typed process config, workload identity hook, health/readiness, telemetry hook, bounded drain and build/config fingerprints; commands call the application composition root and invalid config fails before any listener/worker starts.
   - **REFACTOR:** bootstrap owns process lifecycle only, never domain registration or business decisions.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md).
 
 - [ ] `SVC-003` **[GATE_A][SOL_HIGH] Build the primary `cmd/hcmnext` application binary.**
   - **Depends:** `SVC-002`, `TOOL-008`, `TRUST-001`, `API-001`.
@@ -5725,29 +5882,31 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 29. Machine-readable model sources and public API contracts
 
-- [ ] `MSRC-001` **[P0][SOL_HIGH] Define the canonical SchemaFlux source manifest.**
-  - **Depends:** `TOOL-004`, `MODEL-008`, `DB-COVERAGE-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+> **Disposition (2026-09-02):** P1A for one source manifest covering the fourteen definitions and the P1A capability manifests, compiled by the qualified generator. Coverage checkers, planning-entity completeness and dependency indexes are DEFERRED; `MSRC-001` no longer depends on a catalog source manifest.
+
+- [ ] `MSRC-001` **[P0][SOL_HIGH] Define the definition source manifest for the fourteen definitions and P1A manifests.**
+  - **Depends:** `TOOL-004`, `DB-COVERAGE-001`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_001`; `GOLDEN=TestTodo_MSRC_001_Golden`.
-  - **RED:** a planning entity, property, relationship, lifecycle, intent or aggregate lacks a source file, stable ID, owner, phase and storage disposition.
-  - **GREEN:** one manifest enumerates all SchemaFlux inputs and normative Markdown anchors; the coverage checker reports exact counts/digests and zero implicit concepts.
-  - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Model catalog](data/models/README.md), [coverage contracts](data/models/registry-and-coverage-contracts.md).
+  - **RED:** one of the fourteen definitions, a P1A capability manifest or an entity in the covered set lacks a source file, stable ID, owner and storage disposition.
+  - **GREEN:** one manifest enumerates exactly those inputs for the qualified generator and reports exact counts/digests; planning entities outside the covered set are not enumerated.
+  - **REFACTOR:** keep the manifest behind its semantic owner; do not grow it to cover exploratory models.
+  - **Refs:** [Covered entity set](data/models/README.md), [draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice).
 
 - [ ] `MSRC-002` **[P0][SOL_HIGH] Define the HCM SchemaFlux metamodel and shared primitives.**
   - **Depends:** `MSRC-001`, `MODEL-001`–`MODEL-007`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_002`; `PROPERTY=TestTodo_MSRC_002_Property`; `GOLDEN=TestTodo_MSRC_002_Golden`; `FAULT=TestTodo_MSRC_002_Fault`; `SECURITY=TestTodo_MSRC_002_Security`; `MUTATION=TestTodo_MSRC_002_Mutation`.
   - **RED:** unknown keys, untyped IDs, float money, ambiguous presence/time or undocumented extension compile.
   - **GREEN:** metamodel validates IDs, presence, fixed decimals, intervals, localized text, classifications, versions, digests and governed extension points with negative fixtures.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `MSRC-003` **[P0][SOL_HIGH] Encode kernel, governance and evidence models in SchemaFlux.**
   - **Depends:** `MSRC-002`, `MODEL-010`–`MODEL-016`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_003`; `PROPERTY=TestTodo_MSRC_003_Property`; `GOLDEN=TestTodo_MSRC_003_Golden`; `MUTATION=TestTodo_MSRC_003_Mutation`.
   - **RED:** BusinessIntent families, proposal/decision/transaction/observation/outcome, capability, policy or ledger assertion cannot round-trip from source.
@@ -5757,7 +5916,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `MSRC-004` **[P0][SOL_HIGH] Encode Phase 1 People, position, compensation and budget sources.**
   - **Depends:** `MSRC-002`, `DB-008`–`DB-011`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_004`; `GOLDEN=TestTodo_MSRC_004_Golden`; `RACE=TestTodo_MSRC_004_Race`.
   - **RED:** a Phase 1 modeled property/relationship/state lacks generated schema or differs from the database disposition.
@@ -5767,7 +5926,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `MSRC-005` **[P0][SOL_HIGH] Encode connectivity, assurance, operations and DataOps sources.**
   - **Depends:** `MSRC-002`, `DB-014`, `DB-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_005`; `GOLDEN=TestTodo_MSRC_005_Golden`; `INTEGRATION=TestTodo_MSRC_005_Integration`; `FAULT=TestTodo_MSRC_005_Fault`; `SECURITY=TestTodo_MSRC_005_Security`; `MUTATION=TestTodo_MSRC_005_Mutation`.
   - **RED:** connector, message, artifact, privacy, incident, recovery, configuration or import object exists only in prose.
@@ -5787,17 +5946,17 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `MSRC-007` **[P0][SOL_HIGH] Generate Go model types, validators and registries from SchemaFlux.**
   - **Depends:** `MSRC-003`–`MSRC-006`, `TOOL-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_007`; `GOLDEN=TestTodo_MSRC_007_Golden`; `RACE=TestTodo_MSRC_007_Race`.
   - **RED:** generated type permits an invalid lifecycle/constraint, uses `map[string]any` for modeled fields or changes across identical builds.
   - **GREEN:** deterministic generation produces typed Go values, validation, registries, relation metadata and canonical digest helpers; golden/race/fuzz tests pass.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [registry contracts](data/models/registry-and-coverage-contracts.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [registry contracts](data/models/registry-and-coverage-contracts.md).
 
 - [ ] `MSRC-008` **[P0][SOL_HIGH] Generate SQL disposition and migration inputs from model sources.**
   - **Depends:** `MSRC-007`, `DB-002`, `DB-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_008`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_008`; `GOLDEN=TestTodo_MSRC_008_Golden`; `MUTATION=TestTodo_MSRC_008_Mutation`.
   - **RED:** generated column/constraint/index conflicts with registered storage disposition or silently drops an effective/known-time rule.
@@ -5805,19 +5964,19 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Database materialization](#26-postgresql-database-and-model-materialization), [coverage contracts](data/models/registry-and-coverage-contracts.md).
 
-- [ ] `MSRC-009` **[P0][SOL_HIGH] Bind every accepted-catalog intent to generated model behavior.**
+- [ ] `MSRC-009` **[P0][SOL_HIGH] Bind each drafted definition to generated model behavior.**
   - **Depends:** `MSRC-003`–`MSRC-006`, `MODEL-016`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_009`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_009`; `GOLDEN=TestTodo_MSRC_009_Golden`; `RACE=TestTodo_MSRC_009_Race`.
   - **RED:** an intent lacks request family, subjects, reads/writes, artifacts, lifecycle transitions, capability/workflow owner or phase.
-  - **GREEN:** generated coverage report count equals the immutable accepted-catalog release, explicitly partitions the original 530 baseline from reviewed extensions and has zero dangling model/capability/workflow references.
+  - **GREEN:** the generated coverage report has exactly fourteen rows with zero dangling model/capability/workflow references; no catalog release, baseline or extension partition exists.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Intent catalog](specs/business-intent-catalog.md), [intent coverage](data/models/intent-coverage-matrix.md).
 
 - [ ] `MSRC-010` **[P0][TERRA] Fail CI on source/generated/document drift.**
   - **Depends:** `MSRC-007`–`MSRC-009`, `TOOL-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MSRC_010`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_MSRC_010`; `GOLDEN=TestTodo_MSRC_010_Golden`.
   - **RED:** modify a model source, generated file, normative anchor or count independently; CI reports exact ownership path and refuses success.
@@ -5873,7 +6032,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** clean generation differs, descriptors omit source info or generated clients fail compile/use against an in-memory server.
   - **GREEN:** pinned generation creates stable Go APIs and descriptor digest; compile, unknown-field and round-trip tests pass.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Toolchain todos](#2-go-only-repository-toolchain-and-contract-generation), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Toolchain todos](#2-go-only-repository-toolchain-and-contract-generation), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `PROTO-006` **[GATE_A][SOL_HIGH] Prove grpcbridge unary parity for every public method.**
   - **Depends:** `PROTO-005`, `TOOL-008`.
@@ -5883,7 +6042,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** HTTP differs from gRPC in presence, errors, auth context, deadlines, idempotency, field masks or response digest.
   - **GREEN:** generated parity suite asserts identical semantic request/result/error/evidence for all public unary routes.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Experience/API plane](specs/platform-plane-model.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Experience/API plane](specs/platform-plane-model.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `PROTO-007` **[PHASE_2][SOL_HIGH] Prove streaming and long-operation transport contracts.**
   - **Depends:** `PROTO-005`, `TOOL-009`.
@@ -5906,6 +6065,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Schema lifecycle](data/models/dataops-configuration.md), [API lifecycle](specs/platform-responsibility-boundaries.md).
 
 ## 30. Control-plane publication, distribution and activation
+
+> **Disposition (2026-09-02):** P1B for `CP-001` at minimal depth (immutable, versioned configuration objects). Publication, signed bundle distribution, activation epochs and offline continuation are Gate C; P1A and P1B run the registry `BOOTSTRAP` profile.
 
 - [ ] `CP-001` **[P0][SOL_HIGH] Implement the immutable configuration-object registry.**
   - **Depends:** `DB-007`, `MODEL-017`, `CONFIG-001`.
@@ -6009,6 +6170,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 31. Infrastructure as code and physical data services
 
+> **Disposition (2026-09-02):** P1A for one runnable dev/sandbox cell with PostgreSQL and object storage. HA, PITR, disaster recovery and multi-region are Gate C.
+
 - [ ] `IAC-001` **[P0][SOL_HIGH] Define provider-neutral infrastructure resource contracts.**
   - **Depends:** `SVC-001`, `RECOVERY-001`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -6057,7 +6220,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** unsigned/mutable image, missing request/limit/probe, privileged container or non-graceful drain deploys.
   - **GREEN:** every manifest pins signature-verified digest, non-root identity, resources, disruption/drain, liveness/readiness and least-privilege service account.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md).
 
 - [ ] `IAC-006` **[GATE_A][SOL_HIGH] Provision PostgreSQL with HA, PITR and migration fencing.**
   - **Depends:** `IAC-003`, `DB-001`, `DB-006`, `DB-022`.
@@ -6251,9 +6414,11 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 32. Production identity, key custody and edge enforcement
 
+> **Disposition (2026-09-02):** P1A for the federation issuer registry and edge authentication. Key custody, certificate lifecycle, workload identity and mTLS east-west are Gate C.
+
 - [ ] `AUTHN-001` **[GATE_A][SOL_HIGH] Implement a tenant federation issuer registry.**
   - **Depends:** `TRUST-001`, `TRUST-002`, `CP-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_001`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_001`; `FUZZ=FuzzTodo_AUTHN_001`; `RACE=TestTodo_AUTHN_001_Race`; `INTEGRATION=TestTodo_AUTHN_001_Integration`; `SECURITY=TestTodo_AUTHN_001_Security`; `MUTATION=TestTodo_AUTHN_001_Mutation`.
   - **RED:** Reject unknown issuer, algorithm, audience, stale metadata, wrong tenant and key rollover races.
@@ -6263,7 +6428,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-002` **[GATE_A][SOL_HIGH] Implement OIDC authorization-code with PKCE.**
   - **Depends:** `AUTHN-001`, `TRUST-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_002`; `FUZZ=FuzzTodo_AUTHN_002`; `INTEGRATION=TestTodo_AUTHN_002_Integration`; `SECURITY=TestTodo_AUTHN_002_Security`; `RECOVERY=TestTodo_AUTHN_002_Recovery`; `MUTATION=TestTodo_AUTHN_002_Mutation`.
   - **RED:** Reject state/nonce/PKCE replay, redirect confusion and token substitution.
@@ -6273,7 +6438,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-003` **[GATE_A][SOL_HIGH] Implement governed federation subject linking.**
   - **Depends:** `AUTHN-001`, `MODEL-022`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_003`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_003`; `FUZZ=FuzzTodo_AUTHN_003`; `INTEGRATION=TestTodo_AUTHN_003_Integration`; `SECURITY=TestTodo_AUTHN_003_Security`; `MUTATION=TestTodo_AUTHN_003_Mutation`.
   - **RED:** Never auto-link on email/display name or cross tenant.
@@ -6283,7 +6448,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-004` **[GATE_A][SOL_HIGH] Implement session families, rotation and revocation.**
   - **Depends:** `AUTHN-002`, `TRUST-003`, `TIME-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_004`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_004`; `FUZZ=FuzzTodo_AUTHN_004`; `INTEGRATION=TestTodo_AUTHN_004_Integration`; `SECURITY=TestTodo_AUTHN_004_Security`; `RECOVERY=TestTodo_AUTHN_004_Recovery`; `MUTATION=TestTodo_AUTHN_004_Mutation`.
   - **RED:** Refresh replay, expired assurance, revoked session and clock skew fail closed.
@@ -6293,7 +6458,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-005` **[GATE_B][SOL_HIGH] Enforce step-up and sender-constrained sensitive operations.**
   - **Depends:** `AUTHN-004`, `TRUST-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_005`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_005`; `FUZZ=FuzzTodo_AUTHN_005`; `INTEGRATION=TestTodo_AUTHN_005_Integration`; `SECURITY=TestTodo_AUTHN_005_Security`; `RECOVERY=TestTodo_AUTHN_005_Recovery`; `MUTATION=TestTodo_AUTHN_005_Mutation`.
   - **RED:** Stolen bearer token cannot approve/repair/export.
@@ -6303,7 +6468,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-006` **[GATE_A][SOL_HIGH] Issue and verify workload identities over mTLS.**
   - **Depends:** `TRUST-006`, `TRUST-023`, `IAC-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_006`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_006`; `FUZZ=FuzzTodo_AUTHN_006`; `INTEGRATION=TestTodo_AUTHN_006_Integration`; `SECURITY=TestTodo_AUTHN_006_Security`; `MUTATION=TestTodo_AUTHN_006_Mutation`.
   - **RED:** Wrong SAN/cell/service/tenant, expired/revoked cert or shared identity fails.
@@ -6313,7 +6478,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-007` **[GATE_B][SOL_HIGH] Prove IdP outage and post-outage reconciliation.**
   - **Depends:** `AUTHN-004`, `TRUST-020`, `OPS-004`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_007`; `FUZZ=FuzzTodo_AUTHN_007`; `INTEGRATION=TestTodo_AUTHN_007_Integration`; `FAULT=TestTodo_AUTHN_007_Fault`; `SECURITY=TestTodo_AUTHN_007_Security`; `MUTATION=TestTodo_AUTHN_007_Mutation`.
   - **RED:** Outage never silently elevates or extends stale high-risk authority.
@@ -6323,7 +6488,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `AUTHN-008` **[PHASE_2][SOL_HIGH] Decide and gate SAML/SCIM support from customer evidence.**
   - **Depends:** `AUTHN-001`, `WEDGE-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_008`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_AUTHN_008`; `FUZZ=FuzzTodo_AUTHN_008`; `INTEGRATION=TestTodo_AUTHN_008_Integration`; `SECURITY=TestTodo_AUTHN_008_Security`; `CONFORMANCE=TestTodo_AUTHN_008_Conformance`; `MUTATION=TestTodo_AUTHN_008_Mutation`.
   - **RED:** No SAML/SCIM implementation enters Phase 1 without design-partner requirement, threat/operability tests and named owner.
@@ -6333,7 +6498,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-026` **[P0][SOL_HIGH] Define provider-neutral key, secret and certificate custody interfaces.**
   - **Depends:** `TRUST-015`, `TRUST-023`, `CRYPTO-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_026`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_026`; `FUZZ=FuzzTodo_TRUST_026`; `RACE=TestTodo_TRUST_026_Race`; `INTEGRATION=TestTodo_TRUST_026_Integration`; `SECURITY=TestTodo_TRUST_026_Security`; `CONFORMANCE=TestTodo_TRUST_026_Conformance`; `MUTATION=TestTodo_TRUST_026_Mutation`.
   - **RED:** Application cannot request raw long-lived material.
@@ -6343,7 +6508,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-027` **[GATE_A][SOL_HIGH] Implement secret-zero workload bootstrap.**
   - **Depends:** `TRUST-026`, `AUTHN-006`, `IAC-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_027`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_027`; `FUZZ=FuzzTodo_TRUST_027`; `RACE=TestTodo_TRUST_027_Race`; `SECURITY=TestTodo_TRUST_027_Security`; `MUTATION=TestTodo_TRUST_027_Mutation`.
   - **RED:** No static bootstrap credential exists in image/config/state.
@@ -6353,7 +6518,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-028` **[GATE_A][SOL_HIGH] Implement envelope-encryption hierarchy and tenant key separation.**
   - **Depends:** `TRUST-026`, `MODEL-023`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_028`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_028`; `FUZZ=FuzzTodo_TRUST_028`; `SECURITY=TestTodo_TRUST_028_Security`; `MUTATION=TestTodo_TRUST_028_Mutation`.
   - **RED:** Wrong tenant/AAD/version, nonce reuse, revoked key and tampering fail.
@@ -6363,7 +6528,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-029` **[GATE_B][SOL_HIGH] Implement machine credential leases and revocation epochs.**
   - **Depends:** `TRUST-026`, `TRUST-016`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_029`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_029`; `FUZZ=FuzzTodo_TRUST_029`; `RACE=TestTodo_TRUST_029_Race`; `SECURITY=TestTodo_TRUST_029_Security`; `MUTATION=TestTodo_TRUST_029_Mutation`.
   - **RED:** Wrong workload/tenant/destination/operation, reuse after expiry/revoke or old epoch fails.
@@ -6373,7 +6538,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-030` **[GATE_B][SOL_HIGH] Implement CA hierarchy, trust bundles and certificate rotation.**
   - **Depends:** `TRUST-026`, `TRUST-023`, `TIME-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_030`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_030`; `FUZZ=FuzzTodo_TRUST_030`; `SECURITY=TestTodo_TRUST_030_Security`; `MUTATION=TestTodo_TRUST_030_Mutation`.
   - **RED:** Expired/wrong-SAN/unknown/revoked/downgrade handshakes fail.
@@ -6383,7 +6548,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-031` **[GATE_C][SOL_HIGH] Implement KMS/HSM/BYOK key-handle lifecycle.**
   - **Depends:** `TRUST-028`, `TENANT-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_031`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_031`; `FUZZ=FuzzTodo_TRUST_031`; `INTEGRATION=TestTodo_TRUST_031_Integration`; `SECURITY=TestTodo_TRUST_031_Security`; `MUTATION=TestTodo_TRUST_031_Mutation`.
   - **RED:** Provider/tenant key confusion, revoked BYOK use and unsupported residency fail.
@@ -6393,7 +6558,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `TRUST-032` **[GATE_B][SOL_HIGH] Prove key/secret service outage and sealed recovery.**
   - **Depends:** `TRUST-027`–`TRUST-031`, `RECOVERY-003`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_032`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_TRUST_032`; `FUZZ=FuzzTodo_TRUST_032`; `FAULT=TestTodo_TRUST_032_Fault`; `SECURITY=TestTodo_TRUST_032_Security`; `RECOVERY=TestTodo_TRUST_032_Recovery`; `MUTATION=TestTodo_TRUST_032_Mutation`.
   - **RED:** Cache does not silently outlive policy or expose plaintext.
@@ -6483,6 +6648,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 33. CI/CD, release admission and observability
 
+> **Disposition (2026-09-02):** P1A for clean-checkout Go verification and generation drift. SBOM, signed admission and provenance are P1B. Telemetry privacy gateways and cardinality budgets are Gate C.
+
 - [ ] `CICD-001` **[P0][TERRA] Make clean-checkout Go verification authoritative.**
   - **Depends:** `TOOL-001`, `TOOL-010`–`TOOL-015`, `ARCH-GO-003`, `ARCH-GO-018`, `LIB-002`, `LIB-013`, `GOV-017`, `GOV-018`, `GOV-020`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -6491,7 +6658,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** CI fails if any package/generated output/import-boundary check or one of `cmd/hcmnext`, `cmd/worker`, `cmd/projector`, `cmd/scheduler`, `cmd/admin`, `cmd/migrate` is omitted, if a deferred package enters the Phase 1 graph, or if legacy Node/npm remains authoritative.
   - **GREEN:** Pinned pipeline runs generation drift, architecture graph, fmt/vet/static, unit/integration/race/fuzz and builds all six commands from one root module.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [toolchain](#2-go-only-repository-toolchain-and-contract-generation).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [toolchain](#2-go-only-repository-toolchain-and-contract-generation).
 
 - [ ] `CICD-002` **[GATE_A][SOL_HIGH] Rehearse migration manifests in CI.**
   - **Depends:** `DB-006`, `DB-021`, `CICD-001`.
@@ -6511,7 +6678,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** Mutable tag, overwrite, missing platform binary/SBOM/provenance/signature/schema/migration manifest fails.
   - **GREEN:** Digest-keyed registry read-back verifies complete linkage.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Supply chain](data/models/operations-production.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Supply chain](data/models/operations-production.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `CICD-004` **[GATE_B][SOL_HIGH] Enforce fail-closed deployment admission.**
   - **Depends:** `CICD-002`, `CICD-003`, `CONF-001`.
@@ -6561,7 +6728,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** API/gRPC/worker/queue/connector path lacks correlated OTLP signal, imports OTel into a domain contract, uses unbounded batching/retry, loses declared records on graceful drain without a drop count, or exporter/privacy failure changes the returned business result or commit.
   - **GREEN:** owned adapters emit the exact approved metrics/traces/logs through bounded queues, propagate reviewed context, flush within the shutdown deadline and expose drops/degraded export independently while identical instrumented and no-op executions return the same business state/effects.
   - **REFACTOR:** centralize provider/resource/exporter wiring in `operations/telemetry`; instrumentation libraries remain replaceable mechanics.
-  - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `OBS-003` **[GATE_A][TERRA] Deploy portable OSS telemetry backends.**
   - **Depends:** `OBS-002`, `IAC-009`.
@@ -6625,7 +6792,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-009` **[P0][SOL_HIGH] Define and implement the versioned structured-log envelope with `log/slog`.**
   - **Depends:** `OBS-001`, `LIB-012`, `SVC-002`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make every intent and execution path diagnosable through one privacy-safe machine-queryable log contract`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=make every intent and execution path diagnosable through one privacy-safe machine-queryable log contract`.
   - **TEST:** `TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`.
   - **TEST MATRIX:** `PRIMARY=TestStructuredLogEnvelopeReturnsExactVersionedAllowlistedRecord`; `PROPERTY=TestTodo_OBS_009_Property`; `GOLDEN=TestTodo_OBS_009_Golden`; `FUZZ=FuzzTodo_OBS_009`; `RACE=TestTodo_OBS_009_Race`; `SECURITY=TestTodo_OBS_009_Security`; `MUTATION=TestTodo_OBS_009_Mutation`.
   - **RED:** record accepts dynamic message text as event identity, missing event/schema/resource/policy/outcome/correlation fields, duplicate keys, invalid type, uncontrolled tenant/worker value, secret/payload, non-canonical time or backend-specific field.
@@ -6635,7 +6802,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-010` **[P0][SOL_HIGH] Define log event names, severity, outcome and error semantics.**
   - **Depends:** `OBS-009`, `CAP-003`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent prose, severity drift and raw errors from becoming incompatible operational APIs`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=prevent prose, severity drift and raw errors from becoming incompatible operational APIs`.
   - **TEST:** `TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`.
   - **TEST MATRIX:** `PRIMARY=TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`; `PROPERTY=TestTodo_OBS_010_Property`; `GOLDEN=TestTodo_OBS_010_Golden`; `SECURITY=TestTodo_OBS_010_Security`; `CONFORMANCE=TestTodo_OBS_010_Conformance`; `MUTATION=TestTodo_OBS_010_Mutation`.
   - **RED:** retry logs as final failure, denial logs as system error, partial/unknown collapses to success, arbitrary error string/stack becomes alert key, library emits fatal exit or one event name changes meaning without versioning.
@@ -6645,7 +6812,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-011` **[P0][SOL_HIGH] Govern trace-context and baggage propagation at every trust boundary.**
   - **Depends:** `OBS-001`, `TRUST-006`, `ENDPOINT-001`, `INTG-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=correlate work across channels without allowing trace headers to inject authority, identity, cost or sensitive data`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=correlate work across channels without allowing trace headers to inject authority, identity, cost or sensitive data`.
   - **TEST:** `TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`.
   - **TEST MATRIX:** `PRIMARY=TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`; `PROPERTY=TestTodo_OBS_011_Property`; `GOLDEN=TestTodo_OBS_011_Golden`; `FUZZ=FuzzTodo_OBS_011`; `SECURITY=TestTodo_OBS_011_Security`; `CONFORMANCE=TestTodo_OBS_011_Conformance`; `MUTATION=TestTodo_OBS_011_Mutation`.
   - **RED:** malformed/oversized trace headers crash or poison context; caller sets tenant/actor/purpose/AuthZ/correlation/evidence via trace/baggage; unreviewed baggage crosses provider boundary; unsampled parent suppresses required risk trace or sampled parent forces unbounded retention.
@@ -6655,7 +6822,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-012` **[P0][SOL_HIGH] Define stable span topology, names, attributes and status rules.**
   - **Depends:** `OBS-001`, `OBS-010`, `WF-RUN-024`, `TX-004`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make intent-to-repair execution traceable without high-cardinality span names or false parentage`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=make intent-to-repair execution traceable without high-cardinality span names or false parentage`.
   - **TEST:** `TestCanonicalSpanTopologyMatchesCapabilityWorkflowTransactionAndRepairSemantics`.
   - **TEST MATRIX:** `PRIMARY=TestCanonicalSpanTopologyMatchesCapabilityWorkflowTransactionAndRepairSemantics`; `PROPERTY=TestTodo_OBS_012_Property`; `GOLDEN=TestTodo_OBS_012_Golden`; `RACE=TestTodo_OBS_012_Race`; `CONFORMANCE=TestTodo_OBS_012_Conformance`; `MUTATION=TestTodo_OBS_012_Mutation`.
   - **RED:** worker/tenant/URL/error appears in span name, long wait keeps one span open, provider acceptance marks business transaction complete, child status contaminates unrelated parent or topology cannot distinguish logical operation from retry attempt.
@@ -6665,7 +6832,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-013` **[P0][SOL_HIGH] Persist causal telemetry metadata and create span links across durable asynchronous work.**
   - **Depends:** `OBS-011`, `OBS-012`, `DATA-007`, `JOB-001`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=preserve diagnosis across workflow waits, timers, signals, outbox delivery, redelivery, fan-out and repair without treating telemetry as durable truth`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=preserve diagnosis across workflow waits, timers, signals, outbox delivery, redelivery, fan-out and repair without treating telemetry as durable truth`.
   - **TEST:** `TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan`.
   - **TEST MATRIX:** `PRIMARY=TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan`; `PROPERTY=TestTodo_OBS_013_Property`; `GOLDEN=TestTodo_OBS_013_Golden`; `RACE=TestTodo_OBS_013_Race`; `FAULT=TestTodo_OBS_013_Fault`; `RECOVERY=TestTodo_OBS_013_Recovery`; `MUTATION=TestTodo_OBS_013_Mutation`.
   - **RED:** timer/wait holds span open, crash loses business causation, queue redelivery creates unrelated logical operation, fan-out invents one parent chain, duplicate attempt duplicates business effect or stored trace ID becomes authorization/evidence.
@@ -6675,7 +6842,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-014` **[P0][TERRA] Instrument HTTP, gRPC, database, worker and provider boundaries without payload capture.**
   - **Depends:** `OBS-002`, `OBS-011`, `OBS-012`, `DB-001`, `ENDPOINT-003`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=obtain complete operational timing and failure evidence at every physical boundary while preserving semantic and privacy isolation`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=obtain complete operational timing and failure evidence at every physical boundary while preserving semantic and privacy isolation`.
   - **TEST:** `TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior`.
   - **TEST MATRIX:** `PRIMARY=TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior`; `GOLDEN=TestTodo_OBS_014_Golden`; `RACE=TestTodo_OBS_014_Race`; `INTEGRATION=TestTodo_OBS_014_Integration`; `FAULT=TestTodo_OBS_014_Fault`; `SECURITY=TestTodo_OBS_014_Security`; `BENCHMARK=BenchmarkTodo_OBS_014`; `MUTATION=TestTodo_OBS_014_Mutation`.
   - **RED:** request/response/body/header/query/SQL bind/provider payload is captured, route uses raw URL, DB instrumentation changes transaction/locking, duplicate middleware emits duplicate spans or no-op versus enabled instrumentation changes return/state/effects/order.
@@ -6685,7 +6852,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-015` **[P0][TERRA] Build deterministic in-memory log, trace and metric test exporters.**
   - **Depends:** `OBS-009`, `OBS-012`, `GOV-018`, `TOOL-014`.
-  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=let every todo assert exact telemetry and prohibited absence without a network backend or flaky clocks and IDs`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=let every todo assert exact telemetry and prohibited absence without a network backend or flaky clocks and IDs`.
   - **TEST:** `TestTelemetryHarnessReturnsDeterministicLogsSpansMetricsAndDrops`.
   - **TEST MATRIX:** `PRIMARY=TestTelemetryHarnessReturnsDeterministicLogsSpansMetricsAndDrops`; `PROPERTY=TestTodo_OBS_015_Property`; `GOLDEN=TestTodo_OBS_015_Golden`; `RACE=TestTodo_OBS_015_Race`; `FAULT=TestTodo_OBS_015_Fault`; `SECURITY=TestTodo_OBS_015_Security`; `MUTATION=TestTodo_OBS_015_Mutation`.
   - **RED:** tests require Collector/backend, wall clock/random IDs/map order cause flaky golden, concurrent export races, reset leaks prior tenant data or harness cannot assert missing/prohibited fields, links, exemplars, sampling and drops.
@@ -6695,7 +6862,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-016` **[P0][TERRA] Correlate structured logs, traces, metrics and business identifiers without conflating authority.**
   - **Depends:** `OBS-009`, `OBS-012`, `OBS-013`, `OBS-015`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=join diagnosis across multiple traces and signals while keeping stable business causation independent from sampled telemetry identifiers`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=join diagnosis across multiple traces and signals while keeping stable business causation independent from sampled telemetry identifiers`.
   - **TEST:** `TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority`.
   - **TEST MATRIX:** `PRIMARY=TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority`; `PROPERTY=TestTodo_OBS_016_Property`; `GOLDEN=TestTodo_OBS_016_Golden`; `SECURITY=TestTodo_OBS_016_Security`; `CONFORMANCE=TestTodo_OBS_016_Conformance`; `MUTATION=TestTodo_OBS_016_Mutation`.
   - **RED:** log lacks active trace/span flags, sampled-out trace breaks BusinessIntent correlation, metric uses correlation ID as label, trace ID becomes idempotency/authorization/evidence key or one tenant can query another through shared correlation.
@@ -6705,7 +6872,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-017` **[P0][SOL_HIGH] Handle errors, stacks and panics without sensitive leakage or lost failure state.**
   - **Depends:** `OBS-004`, `OBS-010`, `OBS-015`, `SVC-002`.
-  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=retain actionable failure diagnosis without trusting arbitrary library/provider error text or allowing panic handling to corrupt business semantics`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=retain actionable failure diagnosis without trusting arbitrary library/provider error text or allowing panic handling to corrupt business semantics`.
   - **TEST:** `TestErrorAndPanicTelemetryClassifiesRedactsAndPreservesOwnedFailureBehavior`.
   - **TEST MATRIX:** `PRIMARY=TestErrorAndPanicTelemetryClassifiesRedactsAndPreservesOwnedFailureBehavior`; `PROPERTY=TestTodo_OBS_017_Property`; `GOLDEN=TestTodo_OBS_017_Golden`; `FUZZ=FuzzTodo_OBS_017`; `FAULT=TestTodo_OBS_017_Fault`; `SECURITY=TestTodo_OBS_017_Security`; `RECOVERY=TestTodo_OBS_017_Recovery`; `MUTATION=TestTodo_OBS_017_Mutation`.
   - **RED:** cyclic/wrapped/provider error loops or leaks payload/secret/SQL values, raw stack is ordinary log field, panic returns success, double recovery commits twice, logging failure panics recursively or fatal helper exits before owned drain.
@@ -6725,7 +6892,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-019` **[GATE_A][SOL_HIGH] Bound telemetry queues, retry, duplication, backpressure and shutdown loss.**
   - **Depends:** `OBS-002`, `OBS-003`, `OBS-006`, `ADMISSION-002`.
-  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure telemetry outage cannot exhaust production resources or silently erase the evidence-quality signal`.
+  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure telemetry outage cannot exhaust production resources or silently erase the evidence-quality signal`.
   - **TEST:** `TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState`.
   - **TEST MATRIX:** `PRIMARY=TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState`; `PROPERTY=TestTodo_OBS_019_Property`; `RACE=TestTodo_OBS_019_Race`; `INTEGRATION=TestTodo_OBS_019_Integration`; `FAULT=TestTodo_OBS_019_Fault`; `RECOVERY=TestTodo_OBS_019_Recovery`; `BENCHMARK=BenchmarkTodo_OBS_019`; `MUTATION=TestTodo_OBS_019_Mutation`.
   - **RED:** stalled exporter grows memory/goroutines/retries unbounded, telemetry blocks commit, failover duplicates alerts without dedupe identity, shutdown closes exporter before producers, deadline claims complete despite drops or pipeline failure monitors itself only through the failed path.
@@ -6735,7 +6902,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `OBS-020` **[P0][TERRA] Enforce telemetry schema, semantic-convention and cardinality compatibility in CI.**
   - **Depends:** `OBS-001`, `OBS-009`, `OBS-010`, `OBS-012`, `GOV-008`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=stop ad hoc logs, attributes, metrics and incompatible convention upgrades before release`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=stop ad hoc logs, attributes, metrics and incompatible convention upgrades before release`.
   - **TEST:** `TestTelemetrySchemaLinterRejectsUnknownDynamicOrBreakingDefinitions`.
   - **TEST MATRIX:** `PRIMARY=TestTelemetrySchemaLinterRejectsUnknownDynamicOrBreakingDefinitions`; `PROPERTY=TestTodo_OBS_020_Property`; `GOLDEN=TestTodo_OBS_020_Golden`; `CONFORMANCE=TestTodo_OBS_020_Conformance`; `MUTATION=TestTodo_OBS_020_Mutation`.
   - **RED:** source introduces unknown event/attribute/metric label, dynamic event/span/metric name, missing unit/description/version/owner/budget, duplicate semantic key, backend-specific type leak or breaking rename/removal without compatibility plan and dashboard/alert impact.
@@ -6754,6 +6921,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [records management](specs/records-management-and-disposition.md), [privacy copy inventory](#15-privacy-records-rights-and-tenant-exit).
 
 ## 34. Batch, scheduling and connector execution substrate
+
+> **Disposition (2026-09-02):** Phase 2. P1B's single connector write uses the outbox directly.
 
 - [ ] `JOB-001` **[PHASE_2][SOL_HIGH] Persist governed job definitions, runs, partitions and checkpoints.**
   - **Depends:** `DB-004`, `DB-012`, `TRUST-006`.
@@ -6843,7 +7012,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** Reject untyped calls/vendor leakage/incompatible adapter.
   - **GREEN:** Typed read/write/observe/subscribe, pagination, errors, cancellation and capability negotiation compile against a fake connector.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Integration platform](specs/integration-platform.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Integration platform](specs/integration-platform.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `CONN-RT-002` **[GATE_A][SOL_HIGH] Implement bounded generic transport adapters.**
   - **Depends:** `CONN-RT-001`, `EDGE-005`.
@@ -6916,6 +7085,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Connector maturity](specs/integration-platform.md), [Gate B acceptance](execution-plan.md).
 
 ## 35. Artifact bytes and customer-data onboarding
+
+> **Disposition (2026-09-02):** P1A for an operator CSV seed of pilot data and object-store conformance only if a document is stored. Everything else is DEFERRED to the DataOps product test.
 
 - [ ] `ARTIFACT-001` **[GATE_A][SOL_HIGH] Implement provider-neutral object-store conformance.**
   - **Depends:** `MODEL-029`, `IAC-007`.
@@ -7059,6 +7230,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 36. Operator surfaces, ownership and measurable production limits
 
+> **Disposition (2026-09-02):** P1A for the four DataOps operator surfaces and a minimal `hcmctl`. Measurable production limits and ownership dashboards are Gate C.
+
 - [ ] `ADMIN-001` **[GATE_A][SOL_HIGH] Publish typed admin APIs and generated `hcmctl`.**
   - **Depends:** `PROTO-004`, `SVC-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
@@ -7067,7 +7240,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** No hidden/direct-DB mutation, ambiguous scope or secret output.
   - **GREEN:** GRPC/grpcbridge/CLI share generated contracts, interceptors, redaction, idempotency and evidence IDs.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [HRIS DataOps](specs/hris-admin-dataops.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [HRIS DataOps](specs/hris-admin-dataops.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `ADMIN-002` **[GATE_A][SOL_HIGH] Implement workflow execution inspector projections.**
   - **Depends:** `ADMIN-001`, `WF-RUN-019`.
@@ -7261,6 +7434,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 37. Shared transformation and population engines
 
+> **Disposition (2026-09-02):** P1A for `XFORM-*` at the depth the first connector mapping needs (field select, rename, type, enum lookup, date and money normalization). Population engines are DEFERRED.
+
 - [ ] `XFORM-001` **[P0][SOL_HIGH] Define versioned typed TransformationDefinition.**
   - **Depends:** `MSRC-002`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -7279,7 +7454,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** Unresolved field/type/function, cycle, unbounded expansion or nondeterministic operator fails compilation.
   - **GREEN:** Valid graph produces canonical IR, dependency list and digest.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Go-only constitution](specs/go-only-technology-constitution.md), [canonical digest](specs/canonical-envelope-and-digest.md).
+  - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [canonical digest](specs/canonical-envelope-and-digest.md).
 
 - [ ] `XFORM-003` **[GATE_A][SOL_HIGH] Execute transformation IR deterministically in Go.**
   - **Depends:** `XFORM-002`, `MODEL-003`–`MODEL-005`.
@@ -7289,7 +7464,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** Seeded defect: ABSENT becomes NULL or replay bytes change for XFORM-003; the primary test must return XFORM_003_REJECTED with offending field/state/version and persist zero authoritative rows, business events, outbox entries, human work and provider requests.
   - **GREEN:** Identical input/context must return byte-identical typed output/error across process/replay while money, time, locale, null, omission and delete vectors remain exact and bounded.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `XFORM-004` **[GATE_A][SOL_HIGH] Propagate presence, classification, provenance and taint.**
   - **Depends:** `XFORM-003`, `MODEL-002`, `MODEL-020`, `MODEL-023`.
@@ -7442,6 +7617,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Performance limits](#36-operator-surfaces-ownership-and-measurable-production-limits), [AuthZ](specs/organization-scope-and-authz.md).
 
 ## 38. Eligibility, business-cycle and balance engines
+
+> **Disposition (2026-09-02):** DEFERRED. No P1A or P1B consumer.
 
 - [ ] `ELIG-001` **[P0][SOL_HIGH] Define EligibilityRequest and EligibilityResult.**
   - **Depends:** `MSRC-003`, `MODEL-015`.
@@ -7755,6 +7932,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 38A. Medical Leave and Return-to-Work convergence slice
 
+> **Disposition (2026-09-02):** CONFORMANCE only, as next-steps.md states; it must not pull `JOIN`, `SUBWORKFLOW`, provider writes or legal authority into P1A/P1B.
+
 - [ ] `AVAIL-001` **[CONFORMANCE][SOL_HIGH] Define effective-dated WorkerAvailability and AbsenceImpact contracts.**
   - **Depends:** `MODEL-004`, `MODEL-005`, `MODEL-013`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
@@ -7891,7 +8070,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **TEST:** `TestTodo_LEAVE_011`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_LEAVE_011`; `PROPERTY=TestTodo_LEAVE_011_Property`; `GOLDEN=TestTodo_LEAVE_011_Golden`; `INTEGRATION=TestTodo_LEAVE_011_Integration`; `MUTATION=TestTodo_LEAVE_011_Mutation`.
   - **RED:** unavailable benefits observation rolls back local leave, provider acceptance reports pass, optional/mandatory effects collapse, or repair reruns LeaveStarted/balance entries.
-  - **GREEN:** payroll/WFM may `PASS` while benefits remains `UNKNOWN`; dimensions report Business `LEAVE_ACTIVE`, ExternalConsistency `DEGRADED`, Obligations `OPEN` and targeted reconciliation/repair proceeds without a second local leave transaction.
+  - **GREEN:** payroll/WFM may `PASS` while benefits remains `UNKNOWN`; dimensions report Business `LEAVE_ACTIVE`, ConsistencyState `DEGRADED`, ObligationState `PENDING` and targeted reconciliation/repair proceeds without a second local leave transaction.
   - **REFACTOR:** each external effect has independent freshness, deadline, criticality and repair ownership.
   - **Refs:** [Reconciliation](specs/transaction-ledger-reconciliation-and-repair.md), [integration observations](specs/integration-platform.md).
 
@@ -7941,7 +8120,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **TEST:** `TestTodo_LEAVE_016`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_LEAVE_016`; `PROPERTY=TestTodo_LEAVE_016_Property`; `RACE=TestTodo_LEAVE_016_Race`; `INTEGRATION=TestTodo_LEAVE_016_Integration`; `MUTATION=TestTodo_LEAVE_016_Mutation`.
   - **RED:** duplicate request creates two intents/LeaveRequests, request creation changes employment/availability/schedule/balance, dispatches provider effects, or loses request/evidence/subject/effective interval correlation.
-  - **GREEN:** one idempotent capability invocation persists `RequestLeave` IntentInstance as `PROCESS_REQUEST`, requested LeaveRequest revision and `LeaveRequested` chronology/provenance while all workforce/domain mutation and external-effect counts remain zero.
+  - **GREEN:** one idempotent capability invocation persists `RequestLeave` IntentInstance as `CHANGE_REQUEST` (child-bound process), requested LeaveRequest revision and `LeaveRequested` chronology/provenance while all workforce/domain mutation and external-effect counts remain zero.
   - **REFACTOR:** requested process state is not an approved entitlement or active LeaveRecord.
   - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
@@ -7956,6 +8135,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [workflow signals](specs/workflow-runtime.md), [messaging](specs/messaging-and-notification-plane.md).
 
 ## 38B. Readiness abstraction proof before engine extraction
+
+> **Disposition (2026-09-02):** DEFERRED.
 
 - [ ] `READINESS-CONF-001` **[CONFORMANCE][SOL_HIGH] Prove a shared Readiness abstraction is real across four domains.**
   - **Depends:** `LEAVE-012`, `CONF-002`, `CONF-009`, `RECOVERY-003`.
@@ -8008,6 +8189,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent catalog](specs/business-intent-catalog.md), [workflow runtime](specs/workflow-runtime.md).
 
 ## 39. Qualification, demand, matching and scenario engines
+
+> **Disposition (2026-09-02):** DEFERRED.
 
 - [ ] `QUAL-001` **[CONFORMANCE][SOL_HIGH] Define QualificationRequirement.**
   - **Depends:** `MSRC-006`, `MODEL-013`.
@@ -8271,6 +8454,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 40. Attestation and conformance-gated program engines
 
+> **Disposition (2026-09-02):** DEFERRED. `ATTEST-*` items labelled `GATE_B` depended on the retired form engine and are not P1B.
+
 - [ ] `ATTEST-001` **[GATE_B][SOL_HIGH] Define versioned AttestationStatement.**
   - **Depends:** `MODEL-017`, `FORM-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.WORK,BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -8423,6 +8608,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 41. Event subscription, partner application and custom-object engines
 
+> **Disposition (2026-09-02):** DEFERRED.
+
 - [ ] `SUB-001` **[PHASE_2][SOL_HIGH] Define EventSubscription and revision lifecycle.**
   - **Depends:** `PROTO-008`, `INTG-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -8571,7 +8758,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** Arbitrary code/reserved names/unbounded fields or unsupported primitive fails.
   - **GREEN:** Typed schema, owner, namespace, limits, version and digest compile via SchemaFlux.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Model conventions](data/models/modeling-conventions.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Model conventions](data/models/modeling-conventions.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `CUSTOM-002` **[PHASE_4][SOL_HIGH] Define typed custom relationships and effective dating.**
   - **Depends:** `CUSTOM-001`, `MODEL-013`.
@@ -8611,7 +8798,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **RED:** No generic unrestricted CRUD.
   - **GREEN:** Generated create/read/change/correct/retire capabilities declare AuthZ, purpose, side effects, schemas and evidence with grpcbridge parity.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
-  - **Refs:** [Capability lifecycle](specs/capability-registry-and-lifecycle.md), [Go-only constitution](specs/go-only-technology-constitution.md).
+  - **Refs:** [Capability lifecycle](specs/capability-registry-and-lifecycle.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
 - [ ] `CUSTOM-006` **[PHASE_4][SOL_HIGH] Search and report custom objects safely.**
   - **Depends:** `CUSTOM-003`, `CUSTOM-004`, `RETRIEVAL-001`.
@@ -8634,6 +8821,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Schema lifecycle](data/models/dataops-configuration.md), [records](specs/records-management-and-disposition.md).
 
 ## 42. Confidential actors, abuse detection and progressive rollout
+
+> **Disposition (2026-09-02):** DEFERRED; items labelled `GATE_B`/`GATE_C` here are Gate C at the earliest.
 
 - [ ] `ANON-001` **[PHASE_3][SOL_HIGH] Define confidential actor disclosure modes.**
   - **Depends:** `MODEL-015`, `TRUST-001`.
@@ -8886,6 +9075,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Experience/API plane](specs/platform-plane-model.md), [edge controls](#32-production-identity-key-custody-and-edge-enforcement).
 
 ## 43. Deep Payroll, accounting, settlement and garnishment engines
+
+> **Disposition (2026-09-02):** DEFERRED; a separate product line with its own gate.
 
 - [ ] `PAYRUN-001` **[CONFORMANCE][SOL_HIGH] Define PayrollRun and immutable revision lifecycle.**
   - **Depends:** `CYCLE-001`, `BAL-001`, `CONF-009`.
@@ -9178,6 +9369,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Reconciliation](specs/transaction-ledger-reconciliation-and-repair.md), [case models](data/models/talent-experience-cases.md).
 
 ## 44. Benefits, time, attendance, scheduling and labor-cost engines
+
+> **Disposition (2026-09-02):** DEFERRED; a separate product line with its own gate.
 
 - [ ] `BEN-001` **[CONFORMANCE][SOL_HIGH] Define Plan, PlanYear and immutable revisions.**
   - **Depends:** `PROGRAM-CONF-001`, `CYCLE-001`, `CONF-010`.
@@ -9490,6 +9683,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Integration platform](specs/integration-platform.md), [reconciliation](specs/transaction-ledger-reconciliation-and-repair.md).
 
 ## 45. Talent, learning, survey, recruiting and appointment engines
+
+> **Disposition (2026-09-02):** DEFERRED, except `RESERVE-001` which P1B needs for the compensation-pool reservation.
 
 - [ ] `RESERVE-001` **[GATE_B][SOL_HIGH] Define the shared resource-reservation protocol.**
   - **Depends:** `MODEL-004`, `TRUST-006`, `TIME-001`.
@@ -9823,6 +10018,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 46. Knowledge and composable industry-pack engines
 
+> **Disposition (2026-09-02):** DEFERRED.
+
 - [ ] `KNOW-001` **[PHASE_3][SOL_HIGH] Define versioned KnowledgeArticle.**
   - **Depends:** `DOC-TEMPLATE-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.CASES,BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -9964,6 +10161,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Intent coverage](data/models/intent-coverage-matrix.md), [platform coverage](specs/platform-capability-coverage-matrix.md), [master plan](plan.md).
 
 ## 47. Workflow-research traceability and extracted-HR vertical conformance
+
+> **Disposition (2026-09-02):** DEFERRED. The exploratory workflow corpus is read through the vocabulary mapping in its README; no registry over it is built.
 
 - [ ] `WF-DISC-001` **[P0][TERRA] Register every workflow research artifact and its truthful discovery state.**
   - **Depends:** `GOV-022`, `MODEL-009`, `INTENT-025`.
@@ -10117,19 +10316,21 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 48. Feature-to-Intent semantic instruction-set closure
 
-- [ ] `FEATURE-003` **[P0][SOL_HIGH] Disposition every feature that extends or falls outside the accepted 530-intent release.**
-  - **Depends:** `FEATURE-002`, `INTENT-025`, `GOV-006`, `INTENT-CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+> **Disposition (2026-09-02):** DEFERRED. The feature intake has no funded consumer; `FEATURE-003` is rewritten to drop the catalog-release denominator.
+
+- [ ] `FEATURE-003` **[DESIGN][SOL_HIGH] Disposition every intake feature that is not one of the fourteen drafted definitions.**
+  - **Depends:** `FEATURE-002`, `GOV-006`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestFeatureExtensionDispositionRejectsSilentAliasOrScopeExpansion`.
-  - **TEST MATRIX:** `PRIMARY=TestFeatureExtensionDispositionRejectsSilentAliasOrScopeExpansion`; `PROPERTY=TestTodo_FEATURE_003_Property`; `GOLDEN=TestTodo_FEATURE_003_Golden`; `SECURITY=TestTodo_FEATURE_003_Security`; `CONFORMANCE=TestTodo_FEATURE_003_Conformance`; `MUTATION=TestTodo_FEATURE_003_Mutation`.
-  - **RED:** expense/reimbursement, community, mentorship, workplace assignment, safety credential, application quota or any other non-exact catalog feature is silently merged into a near-name, omitted, implemented without a catalog revision, or accepted without entity/property/authority/privacy/effect/evidence analysis; exact aliases and genuinely new semantics are not distinguishable.
-  - **GREEN:** every non-exact feature receives immutable `ALIAS|TEMPLATE|COMPOSITE|CONSUMER|OBSERVER|NON_MATERIAL|NEW_INTENT_CANDIDATE|DEFERRED|REJECTED` disposition with rationale, owner, source links, affected model/capability/workflow contracts, phase/scope exchange and reviewed catalog-release action; all source entries and dispositions reconcile exactly.
-  - **REFACTOR:** candidate evaluation reuses coverage contracts but cannot auto-author models, intent definitions or product scope from lexical similarity.
-  - **Refs:** [Feature-intent convergence](#6-businessintent-capabilities-governance-and-transaction-integrity), [intent catalog maturity](specs/business-intent-catalog.md), [scope exchange](execution-plan.md#scope-exchange-rule).
+  - **TEST MATRIX:** `PRIMARY=TestFeatureExtensionDispositionRejectsSilentAliasOrScopeExpansion`; `GOLDEN=TestTodo_FEATURE_003_Golden`.
+  - **RED:** a feature is implemented without a drafted definition, silently aliased to a near-name, or accepted without entity/property/authority/privacy/effect/evidence analysis.
+  - **GREEN:** every non-drafted feature receives one of `ALIAS|TEMPLATE|COMPOSITE|CONSUMER|OBSERVER|NON_MATERIAL|NEW_DEFINITION_CANDIDATE|DEFERRED|REJECTED` with rationale and owner; a `NEW_DEFINITION_CANDIDATE` becomes work only when a funded domain writes its `DRAFT_CONTRACT`.
+  - **REFACTOR:** the disposition list is a review artifact with no release denominator; there is no catalog count to reconcile against.
+  - **Refs:** [Vocabulary list (non-normative)](specs/business-intent-catalog.md#vocabulary-list-non-normative), [scope exchange](execution-plan.md#scope-exchange-rule).
 
 - [ ] `INTENT-026` **[PHASE_2][SOL_HIGH] Define immutable IntentCompositionPlan and IntentBundle semantics.**
   - **Depends:** `INTENT-015`, `INTENT-016`, `WF-COMP-002`, `TX-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentCompositionPlanRejectsCyclesHiddenChildrenAndFalseAtomicity`.
   - **TEST MATRIX:** `PRIMARY=TestIntentCompositionPlanRejectsCyclesHiddenChildrenAndFalseAtomicity`; `PROPERTY=TestTodo_INTENT_026_Property`; `GOLDEN=TestTodo_INTENT_026_Golden`; `RACE=TestTodo_INTENT_026_Race`; `FAULT=TestTodo_INTENT_026_Fault`; `SECURITY=TestTodo_INTENT_026_Security`; `CONFORMANCE=TestTodo_INTENT_026_Conformance`; `MUTATION=TestTodo_INTENT_026_Mutation`.
   - **RED:** composer emits a cyclic/duplicate/ownerless child graph, hides a material child, broadens tenant/org/purpose/delegation, claims cross-system atomicity, leaves ordering/parallelism/completion/cancellation unspecified, or changes the bundle after approval; duplicate compilation creates different semantic identities.
@@ -10139,7 +10340,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `INTENT-027` **[GATE_B][SOL_HIGH] Compile one universal IntentPreflightPlan before proposal submission.**
   - **Depends:** `INTENT-005`, `SNAPSHOT-003`, `CONFLICT-003`, `GOVERN-002`, `WF-COMP-003`, `REPLAN-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentPreflightPlanBindsSimulationRiskCostApprovalsObligationsAndEffects`.
   - **TEST MATRIX:** `PRIMARY=TestIntentPreflightPlanBindsSimulationRiskCostApprovalsObligationsAndEffects`; `PROPERTY=TestTodo_INTENT_027_Property`; `GOLDEN=TestTodo_INTENT_027_Golden`; `RACE=TestTodo_INTENT_027_Race`; `FAULT=TestTodo_INTENT_027_Fault`; `SECURITY=TestTodo_INTENT_027_Security`; `CONFORMANCE=TestTodo_INTENT_027_Conformance`; `MUTATION=TestTodo_INTENT_027_Mutation`.
   - **RED:** intent cost, risk, conflict, approval, obligation, write/effect, authority, revalidation or repair planning is absent, calculated from mismatched snapshots/control versions, hidden in workflow branches, treated as guaranteed external outcome or mutates domain/external/human state during preflight; a redacted material input produces an unsafe affirmative plan.
@@ -10149,7 +10350,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `INTENT-028` **[PHASE_2][SOL_HIGH] Govern live intent-definition evolution through compatibility or supersession, never in-place mutation.**
   - **Depends:** `INTENT-001`, `INTENT-003`, `INTENT-015`, `WF-RUN-017`, `CONFIG-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestLiveIntentVersionEvolutionRequiresCompatibleBindingOrSuccessorIntent`.
   - **TEST MATRIX:** `PRIMARY=TestLiveIntentVersionEvolutionRequiresCompatibleBindingOrSuccessorIntent`; `PROPERTY=TestTodo_INTENT_028_Property`; `GOLDEN=TestTodo_INTENT_028_Golden`; `RACE=TestTodo_INTENT_028_Race`; `FAULT=TestTodo_INTENT_028_Fault`; `SECURITY=TestTodo_INTENT_028_Security`; `CONFORMANCE=TestTodo_INTENT_028_Conformance`; `RECOVERY=TestTodo_INTENT_028_Recovery`; `MUTATION=TestTodo_INTENT_028_Mutation`.
   - **RED:** publication changes a live instance's definition/family/input/result/governance/completion meaning, workflow migration silently changes business intent, incompatible payload/evidence is coerced, old approvals are retained after material migration, rollback rewrites history or concurrent migration/execution commits both meanings.
@@ -10159,7 +10360,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `INTENT-029` **[PHASE_2][SOL_HIGH] Link observed outcomes to intents without fabricating causation or rewriting results.**
   - **Depends:** `INTENT-007`, `INTENT-020`, `MODEL-020`, `REPRO-001`, `ANALYTICS-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentOutcomeLinkPreservesObservationProvenanceAndCausalLimits`.
   - **TEST MATRIX:** `PRIMARY=TestIntentOutcomeLinkPreservesObservationProvenanceAndCausalLimits`; `PROPERTY=TestTodo_INTENT_029_Property`; `GOLDEN=TestTodo_INTENT_029_Golden`; `SECURITY=TestTodo_INTENT_029_Security`; `CONFORMANCE=TestTodo_INTENT_029_Conformance`; `MUTATION=TestTodo_INTENT_029_Mutation`.
   - **RED:** later metric/observation overwrites IntentResult, correlation is labeled caused-by, unauthorized cohort/outcome leaks through intent inspection, missing/confounded/stale outcomes default positive, model-generated assessment becomes domain fact or correction loses the original link/version.
@@ -10198,6 +10399,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [feature registry](#6-businessintent-capabilities-governance-and-transaction-integrity), [reference conformance](#19-reference-workflow-conformance-harness).
 
 ## 49. Exact initial BusinessIntent delivery closure
+
+> **Disposition (2026-09-02):** Active as labelled: `PEOPLE-005`, `COMP-006`, `INTEL-001`, `REPAIR-003` are P1A; `APPROVAL-008` is P1B; `CONF-025` is CONFORMANCE.
 
 - [ ] `CONF-025` **[CONFORMANCE][SOL_HIGH] Prove the standalone ChangeManager intent without broadening Gate B authority.**
   - **Depends:** `CONF-001`, `ORG-001`, `ORG-002`, `CONFLICT-003`, `GOVERN-003`, `WF-COMP-005`.
@@ -10260,6 +10463,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Repair architecture](specs/transaction-ledger-reconciliation-and-repair.md), [workflow simulation](specs/workflow-runtime.md), [initial draft intents](specs/business-intent-catalog.md#initial-draft-contract-slice).
 
 ## 50. Critical HCM domain-engine ownership
+
+> **Disposition (2026-09-02):** DEFERRED.
 
 - [ ] `RECRUIT-001` **[PHASE_3][SOL_HIGH] Define authoritative requisition, posting, application and candidacy lifecycles.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `JOB-001`, `POSITION-001`, `CRM-001`.
@@ -10403,7 +10608,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `WORKER-LIFE-003` **[PHASE_3][SOL_HIGH] Track onboarding requirement satisfaction and emit bounded child intents.**
   - **Depends:** `WORKER-LIFE-002`, `INTENT-016`, `WF-RUN-025`, `WORK-005`, `MSG-011`.
-  - **INTENT CONTEXT:** `ROLE=COMPOSITE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.TALENT; ROOT_SET=BI.LIFECYCLE; FAMILY=PROCESS_REQUEST; CHILDREN=typed onboarding requirement intents from the accepted catalog; WHY=coordinate employee onboarding without hiding child authority or outcome`.
+  - **INTENT CONTEXT:** `ROLE=COMPOSITE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.TALENT; ROOT_SET=BI.LIFECYCLE; FAMILY=CHANGE_REQUEST (child-bound process); CHILDREN=typed onboarding requirement intents from the accepted catalog; WHY=coordinate employee onboarding without hiding child authority or outcome`.
   - **TEST:** `TestOnboardingPlanEmitsEachBoundedChildOnceAndCompletesOnlyWhenReady`.
   - **TEST MATRIX:** `PRIMARY=TestOnboardingPlanEmitsEachBoundedChildOnceAndCompletesOnlyWhenReady`; `PROPERTY=TestTodo_WORKER_LIFE_003_Property`; `GOLDEN=TestTodo_WORKER_LIFE_003_Golden`; `RACE=TestTodo_WORKER_LIFE_003_Race`; `FAULT=TestTodo_WORKER_LIFE_003_Fault`; `SECURITY=TestTodo_WORKER_LIFE_003_Security`; `CONFORMANCE=TestTodo_WORKER_LIFE_003_Conformance`; `MUTATION=TestTodo_WORKER_LIFE_003_Mutation`.
   - **RED:** retry duplicates payroll/access/learning/equipment child, child broadens scope, task completion substitutes for required observation, late start-date change preserves stale children, or aggregate completes with mandatory blocker/UNKNOWN.
@@ -10413,15 +10618,17 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 - [ ] `WORKER-LIFE-004` **[PHASE_3][SOL_HIGH] Generate and reconcile offboarding closure across access, assets, payroll and benefits.**
   - **Depends:** `WORKER-LIFE-001`, `ACCESS-004`, `RECON-002`, `REPAIR-002`, `CONF-012`.
-  - **INTENT CONTEXT:** `ROLE=COMPOSITE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.REWARDS,BI.PAYROLL,BI.OPERATIONS; ROOT_SET=BI.LIFECYCLE; FAMILY=PROCESS_REQUEST; CHILDREN=typed offboarding closure intents from the accepted catalog; WHY=own worker offboarding completion without pretending downstream atomicity`.
+  - **INTENT CONTEXT:** `ROLE=COMPOSITE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.REWARDS,BI.PAYROLL,BI.OPERATIONS; ROOT_SET=BI.LIFECYCLE; FAMILY=CHANGE_REQUEST (child-bound process); CHILDREN=typed offboarding closure intents from the accepted catalog; WHY=own worker offboarding completion without pretending downstream atomicity`.
   - **TEST:** `TestOffboardingPlanSeparatesEmploymentCompletionFromExternalClosureAndRepair`.
   - **TEST MATRIX:** `PRIMARY=TestOffboardingPlanSeparatesEmploymentCompletionFromExternalClosureAndRepair`; `PROPERTY=TestTodo_WORKER_LIFE_004_Property`; `GOLDEN=TestTodo_WORKER_LIFE_004_Golden`; `RACE=TestTodo_WORKER_LIFE_004_Race`; `INTEGRATION=TestTodo_WORKER_LIFE_004_Integration`; `FAULT=TestTodo_WORKER_LIFE_004_Fault`; `SECURITY=TestTodo_WORKER_LIFE_004_Security`; `CONFORMANCE=TestTodo_WORKER_LIFE_004_Conformance`; `MUTATION=TestTodo_WORKER_LIFE_004_Mutation`.
   - **RED:** revoked approval/final-pay deadline/benefit/access/device/equipment/records obligation is omitted, provider timeout triggers blind retry, missing privileged revoke is called complete, or partial external failure rolls employment history back.
-  - **GREEN:** plan records independent Business, ExternalConsistency, Reconciliation, Obligation and Operational dimensions; expected closure is observed per domain, gaps create scoped repair work and final close requires declared policy without rerunning termination.
+  - **GREEN:** plan records independent Business, Consistency and Obligation dimensions; expected closure is observed per domain, gaps create scoped repair work and final close requires declared policy without rerunning termination.
   - **REFACTOR:** domain owners define closure evidence; Worker Lifecycle composes and reports it.
   - **Refs:** [Termination/offboarding](workflows/lifecycle/termination-offboarding.md), [multidimensional completion](specs/transaction-ledger-reconciliation-and-repair.md).
 
 ## 51. HCM semantic engine ownership expansion
+
+> **Disposition (2026-09-02):** DEFERRED.
 
 - [ ] `FX-001` **[PHASE_2][SOL_HIGH] Define versioned exchange-rate sources, quotes and conversion profiles.**
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
@@ -10969,6 +11176,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ## 58. BusinessIntent-to-workflow design convergence
 
+> **Disposition (2026-09-02):** DEFERRED.
+
 - [ ] `WF-DISC-005` **[P0][SOL_HIGH] Define the machine-readable WorkflowDesignRecord contract.**
   - **Depends:** `WF-DISC-001`, `INTENT-CONF-001`, `MODEL-009`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=require every accepted BusinessIntent to have an explicit executable high-level design or an honest direct-capability disposition`.
@@ -10979,13 +11188,13 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** generate Markdown tables and indexes from the contract; do not maintain a second handwritten runtime registry.
   - **Refs:** [workflow design contract](workflows/business-intent-workflow-registry.md#complete-high-level-design-contract), [BusinessIntent required fields](specs/business-intent-catalog.md#required-definition-fields), [workflow context](workflows/_engine/workflow-context-contract.md).
 
-- [ ] `WF-DISC-006` **[P0][SOL_HIGH] Join every accepted BusinessIntent to exactly one workflow design disposition.**
-  - **Depends:** `MODEL-008`, `MODEL-009`, `WF-DISC-005`, `INTENT-025`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn the accepted BusinessIntent manifest into a finite workflow-design coverage obligation without fabricating missing source entries`.
+- [ ] `WF-DISC-006` **[DESIGN][SOL_HIGH] Join each drafted definition to exactly one workflow design disposition.**
+  - **Depends:** `MODEL-010`, `WF-DISC-005`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=give each of the fourteen drafted definitions one workflow-design or direct-capability disposition`.
   - **TEST:** `TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal`.
   - **TEST MATRIX:** `PRIMARY=TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal`; `PROPERTY=TestTodo_WF_DISC_006_Property`; `GOLDEN=TestTodo_WF_DISC_006_Golden`; `SECURITY=TestTodo_WF_DISC_006_Security`; `CONFORMANCE=TestTodo_WF_DISC_006_Conformance`; `MUTATION=TestTodo_WF_DISC_006_Mutation`.
-  - **RED:** an accepted definition has zero or multiple records, a presentation alias creates another design, an extension is silently counted in the original 530 baseline, or `UNBOUND_SOURCE` passes after the immutable manifest exists.
-  - **GREEN:** generated coverage performs a one-to-one join over the exact accepted release, reports original baseline and extensions separately, and returns `<designed>/<accepted>` with zero missing, duplicate, alias-only or unbound records.
+  - **RED:** one of the fourteen definitions has zero or multiple design records, or a presentation alias creates another design.
+  - **GREEN:** a one-to-one join over the fourteen definitions returns `14/14` with zero missing, duplicate or alias-only records; there is no other denominator.
   - **REFACTOR:** use stable semantic identity and version; display names must never be join keys.
   - **Refs:** [source-manifest convergence](workflows/business-intent-workflow-registry.md#source-manifest-convergence), [catalog identity](specs/business-intent-catalog.md#catalog-identity), [catalog ingestion](#businessintent-context-required-by-every-todo).
 
@@ -11052,6 +11261,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 ---
 
 ## 59. Adversarial infrastructure edges and third-party tool qualification
+
+> **Disposition (2026-09-02):** P1A only for the `LIB-*` items M2 imports; the rest are qualified when first needed.
 
 This section closes infrastructure-mechanics gaps found after the intent and
 workflow convergence pass. It does not add HCM semantics to any dependency.
@@ -11242,6 +11453,8 @@ is an acceptable result.
 
 ## 60. Canonical gRPC services, grpcbridge HTTP endpoints and endpoint TDD
 
+> **Disposition (2026-09-02):** P1A for `RegistryService`, `IntentService.Create/Get/Simulate/Submit`, `ExplainIntent` and health through the qualified edge. P1B for `WorkService`, `WorkflowService` and `PromotionService`. Evidence export and long-running operations are Gate C.
+
 Protobuf/gRPC is canonical and grpcbridge is the sole public HTTP projection.
 These todos add endpoint contracts, not HTTP-owned business behavior. Every
 material method resolves to the same registered capability and BusinessIntent
@@ -11329,7 +11542,7 @@ path regardless of transport.
 
 - [ ] `ENDPOINT-009` **[P0][SOL_HIGH] Gate every contracted intent/capability on an explicit endpoint disposition.**
   - **Depends:** `ENDPOINT-001`, `ENDPOINT-008`, `INTENT-010`, `WF-DISC-012`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent implemented behavior from acquiring an accidental route or remaining unreachable without a reviewed channel decision`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent implemented behavior from acquiring an accidental route or remaining unreachable without a reviewed channel decision`.
   - **TEST:** `TestContractedIntentAndCapabilityEndpointDispositionIsTotal`.
   - **TEST MATRIX:** `PRIMARY=TestContractedIntentAndCapabilityEndpointDispositionIsTotal`; `PROPERTY=TestTodo_ENDPOINT_009_Property`; `GOLDEN=TestTodo_ENDPOINT_009_Golden`; `SECURITY=TestTodo_ENDPOINT_009_Security`; `CONFORMANCE=TestTodo_ENDPOINT_009_Conformance`; `MUTATION=TestTodo_ENDPOINT_009_Mutation`.
   - **RED:** `CONTRACTED|IMPLEMENTED|VERIFIED` feature has zero/multiple unjustified public routes, endpoint lacks feature-intent coverage, database entity creates CRUD route, `NO_ENDPOINT` has no reason or internal/event-only capability is publicly reachable.
@@ -11481,14 +11694,18 @@ path regardless of transport.
 
 ## 61. Every-BusinessIntent maximal vertical-slice convergence
 
-These todos turn every accepted BusinessIntent into a complete vertical-slice
-contract while preserving the current source boundary: the 530 numbered baseline
-has 14 named draft definitions and 516 unbound slots; the repository separately
-contains 807 named vocabulary candidates. They cannot be joined by display name.
+> **Disposition (2026-09-02):** RETIRED as a whole. The 530-slot baseline, 807-name vocabulary and MAX-v1 configuration program have no consumer; the catalog is the fourteen drafted definitions.
 
-- [ ] `SLICE-001` **[P0][SOL_HIGH] Define the machine-readable VerticalSliceRecord and expansion contract.**
+These todos were written to turn a numbered 530-slot baseline and an 807-name
+vocabulary into vertical-slice contracts. That program was withdrawn on
+2026-09-02: the catalog is the fourteen drafted definitions and the intake list
+is non-normative vocabulary. Every item below is `[RETIRED]` and kept only for
+traceability.
+
+- [ ] `SLICE-001` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Define the machine-readable VerticalSliceRecord and expansion contract.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `WF-DISC-005`, `INTENT-025`, `MODEL-009`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=require every accepted intent to expose its complete request-to-outcome execution and evidence obligations`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=require every accepted intent to expose its complete request-to-outcome execution and evidence obligations`.
   - **TEST:** `TestVerticalSliceRecordRejectsMissingExecutionConfigurationOrEvidenceDimension`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceRecordRejectsMissingExecutionConfigurationOrEvidenceDimension`; `PROPERTY=TestTodo_SLICE_001_Property`; `GOLDEN=TestTodo_SLICE_001_Golden`; `SECURITY=TestTodo_SLICE_001_Security`; `CONFORMANCE=TestTodo_SLICE_001_Conformance`; `MUTATION=TestTodo_SLICE_001_Mutation`.
   - **RED:** record validates without stable intent/source, owner/family/archetype, MAX profile, initiator/endpoint, trusted boundary, snapshot/data, governance, engines/capabilities, human work, transaction/effects, observation/reconciliation/repair, lifecycle/completion, scenario/tests/todos or phase/evidence; empty value is accepted as not applicable.
@@ -11496,7 +11713,8 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** generate compact registers and expanded slice documents from one source; prose is never the runtime registry.
   - **Refs:** [vertical-slice program](workflows/vertical-slices/README.md), [workflow design record](workflows/business-intent-workflow-registry.md#complete-high-level-design-contract), [intent definitions](specs/business-intent-catalog.md#required-definition-fields).
 
-- [ ] `SLICE-002` **[P0][SOL_HIGH] Reconcile the exact 530-slot baseline register to the immutable source manifest.**
+- [ ] `SLICE-002` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Reconcile the exact 530-slot baseline register to the immutable source manifest.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-001`, `MODEL-008`, `INTENT-025`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=replace 516 source-unbound baseline slots with exact stable identities and provenance without fabricating names`.
   - **TEST:** `TestBaselineVerticalSliceRegisterIsExactGaplessAndSourceBound`.
@@ -11506,9 +11724,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** baseline register is generated from source manifest plus accepted definition registry; do not edit its rows manually.
   - **Refs:** [baseline slice register](workflows/vertical-slices/baseline-vertical-slice-register.md), [catalog truth boundary](specs/business-intent-catalog.md#required-definition-fields), [convergence plan](workflows/vertical-slices/plan.md#stage-0--recover-source-truth).
 
-- [ ] `SLICE-003` **[P0][SOL_HIGH] Reconcile all repository vocabulary candidates without promoting display names to identity.**
+- [ ] `SLICE-003` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Reconcile all repository vocabulary candidates without promoting display names to identity.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-001`, `WF-DISC-006`, `INTENT-025`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=classify every repository-enumerable material action as baseline, alias, extension, event/capability-only or rejected`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=classify every repository-enumerable material action as baseline, alias, extension, event/capability-only or rejected`.
   - **TEST:** `TestVocabularyVerticalSliceRegisterReconcilesEveryCandidateAndOverlap`.
   - **TEST MATRIX:** `PRIMARY=TestVocabularyVerticalSliceRegisterReconcilesEveryCandidateAndOverlap`; `PROPERTY=TestTodo_SLICE_003_Property`; `GOLDEN=TestTodo_SLICE_003_Golden`; `SECURITY=TestTodo_SLICE_003_Security`; `CONFORMANCE=TestTodo_SLICE_003_Conformance`; `MUTATION=TestTodo_SLICE_003_Mutation`.
   - **RED:** one of 807 current names disappears, new catalog/registry name is not detected, the five cross-source overlaps auto-merge, profile/recipe/source locator is absent or a candidate is counted in the 530 baseline without stable definition proof.
@@ -11516,9 +11735,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** source catalogs own deltas; this register is a generated reverse index rather than another handwritten vocabulary.
   - **Refs:** [vocabulary slice register](workflows/vertical-slices/vocabulary-vertical-slice-register.md), [gap register](workflows/vertical-slices/gap-register.md), [workflow registry](workflows/business-intent-workflow-registry.md).
 
-- [ ] `SLICE-004` **[P0][SOL_HIGH] Resolve catalog aliases, collisions and cross-domain slice composition explicitly.**
+- [ ] `SLICE-004` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Resolve catalog aliases, collisions and cross-domain slice composition explicitly.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-002`, `SLICE-003`, `INTENT-015`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent same-looking names from merging distinct semantics or duplicating one cross-domain intent`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent same-looking names from merging distinct semantics or duplicating one cross-domain intent`.
   - **TEST:** `TestVerticalSliceIdentityResolutionRequiresQualifiedReviewedDisposition`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceIdentityResolutionRequiresQualifiedReviewedDisposition`; `PROPERTY=TestTodo_SLICE_004_Property`; `GOLDEN=TestTodo_SLICE_004_Golden`; `SECURITY=TestTodo_SLICE_004_Security`; `CONFORMANCE=TestTodo_SLICE_004_Conformance`; `MUTATION=TestTodo_SLICE_004_Mutation`.
   - **RED:** display/name similarity merges access/commercial entitlements, PIP/case/performance semantics, legal holds, pay equity or compensation correction; alias changes kernel/input/output/effects, or composite profile loses one owner's data/governance/evidence.
@@ -11526,9 +11746,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** use catalog identity/relationship objects; do not encode collision exceptions in generators.
   - **Refs:** [catalog identity](specs/business-intent-catalog.md#catalog-identity), [known overlaps](workflows/vertical-slices/gap-register.md#cross-catalog-overlaps-requiring-one-stable-identity-decision), [composition](specs/business-intent-catalog.md#composition-rules).
 
-- [ ] `SLICE-005` **[P0][SOL_HIGH] Compile MAX-v1 applicability for every vertical slice.**
+- [ ] `SLICE-005` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Compile MAX-v1 applicability for every vertical slice.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-001`, `GOV-018`, `TIME-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=force every intent to consider all supported initiator, authority, legal, privacy, temporal, failure, lifecycle, evidence, experience and scale configurations`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=force every intent to consider all supported initiator, authority, legal, privacy, temporal, failure, lifecycle, evidence, experience and scale configurations`.
   - **TEST:** `TestMaximalConfigurationCompilerCoversEveryAxisBoundaryAndMandatoryInteraction`.
   - **TEST MATRIX:** `PRIMARY=TestMaximalConfigurationCompilerCoversEveryAxisBoundaryAndMandatoryInteraction`; `PROPERTY=TestTodo_SLICE_005_Property`; `GOLDEN=TestTodo_SLICE_005_Golden`; `FUZZ=FuzzTodo_SLICE_005`; `SECURITY=TestTodo_SLICE_005_Security`; `CONFORMANCE=TestTodo_SLICE_005_Conformance`; `MUTATION=TestTodo_SLICE_005_Mutation`.
   - **RED:** slice omits an axis/value/boundary, treats ambient default as supported, silently marks a value inapplicable, applies pairwise coverage to a mandatory high-risk triple/quadruple or lacks phase/owner for deferred configuration.
@@ -11536,9 +11757,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** domain profiles supply reviewed applicability defaults but each intent delta can narrow/extend only with explicit reason and compatibility impact.
   - **Refs:** [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md), [test taxonomy](#secondary-test-taxonomy-and-required-return-contracts), [phase depth](execution-plan.md).
 
-- [ ] `SLICE-006` **[P0][SOL_HIGH] Expand definition, MAX-v1, domain profile, archetype and intent delta into one complete graph.**
+- [ ] `SLICE-006` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Expand definition, MAX-v1, domain profile, archetype and intent delta into one complete graph.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-004`, `SLICE-005`, `WF-DISC-007`.
-  - **INTENT CONTEXT:** `ROLE=ORCHESTRATION; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=produce the full request-to-outcome vertical slice for every accepted definition without handwritten omission`.
+  - **INTENT CONTEXT:** `ROLE=ORCHESTRATION; SETS=BI.ALL; DIRECT=none; WHY=produce the full request-to-outcome vertical slice for every accepted definition without handwritten omission`.
   - **TEST:** `TestVerticalSliceExpansionProducesCompleteOrderedRequestToOutcomeGraph`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceExpansionProducesCompleteOrderedRequestToOutcomeGraph`; `PROPERTY=TestTodo_SLICE_006_Property`; `GOLDEN=TestTodo_SLICE_006_Golden`; `FAULT=TestTodo_SLICE_006_Fault`; `SECURITY=TestTodo_SLICE_006_Security`; `CONFORMANCE=TestTodo_SLICE_006_Conformance`; `MUTATION=TestTodo_SLICE_006_Mutation`.
   - **RED:** expansion loses mandatory phase/configuration, delta deletes governance/revalidation/evidence/repair, direct capability gains workflow/effects, child/case/batch truth collapses, graph has unreachable failure/closure route or repeated generation changes ordering/digest.
@@ -11546,9 +11768,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** keep exploratory slice expansion distinct from executable workflow compilation and publication.
   - **Refs:** [slice expansion](workflows/vertical-slices/README.md#slice-expansion), [archetypes](workflows/_shared/workflow-archetypes.md), [convergence plan](workflows/vertical-slices/plan.md).
 
-- [ ] `SLICE-007` **[P0][SOL_HIGH] Resolve every expanded slice to exact entity properties, engines, capabilities and source authority.**
+- [ ] `SLICE-007` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Resolve every expanded slice to exact entity properties, engines, capabilities and source authority.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-006`, `MODEL-021`, `ENGINE-COVERAGE-001`, `DB-COVERAGE-001`, `CAP-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show the exact data and reusable/domain computation required by every intent and expose ownerless semantics`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=show the exact data and reusable/domain computation required by every intent and expose ownerless semantics`.
   - **TEST:** `TestVerticalSliceDataEngineCapabilityAuthorityClosureIsExact`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceDataEngineCapabilityAuthorityClosureIsExact`; `PROPERTY=TestTodo_SLICE_007_Property`; `GOLDEN=TestTodo_SLICE_007_Golden`; `SECURITY=TestTodo_SLICE_007_Security`; `CONFORMANCE=TestTodo_SLICE_007_Conformance`; `MUTATION=TestTodo_SLICE_007_Mutation`.
   - **RED:** slice references entity without property-level read/write/effect/freshness/temporal/classification/authority, embeds reusable calculation in workflow, uses unregistered capability, assumes physical system ownership or lacks storage/non-storage disposition.
@@ -11556,9 +11779,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** deduplicate shared computation only after equivalent semantics are proven; domain invariants stay domain-owned.
   - **Refs:** [intent entity coverage](data/models/intent-coverage-matrix.md), [model registry](data/models/registry-and-coverage-contracts.md), [gap register](workflows/vertical-slices/gap-register.md).
 
-- [ ] `SLICE-008` **[P0][SOL_HIGH] Resolve maximal governance, human-decision and continuity requirements per slice.**
+- [ ] `SLICE-008` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Resolve maximal governance, human-decision and continuity requirements per slice.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-006`, `GOVERN-002`, `WORK-001`, `TRUST-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=make AuthZ/legal/privacy/risk/obligations and human decision rights explicit for every configuration`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make AuthZ/legal/privacy/risk/obligations and human decision rights explicit for every configuration`.
   - **TEST:** `TestVerticalSliceGovernanceAndHumanDecisionMatrixHasNoImplicitAuthority`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceGovernanceAndHumanDecisionMatrixHasNoImplicitAuthority`; `PROPERTY=TestTodo_SLICE_008_Property`; `GOLDEN=TestTodo_SLICE_008_Golden`; `FAULT=TestTodo_SLICE_008_Fault`; `SECURITY=TestTodo_SLICE_008_Security`; `CONFORMANCE=TestTodo_SLICE_008_Conformance`; `MUTATION=TestTodo_SLICE_008_Mutation`.
   - **RED:** initiator/channel/configuration inherits broader authority, eligibility/legal truth is delegated to manager preference, sensitive evidence crosses compartment, decision omits representation/delegation/recusal/SoD/expiry/appeal or accessibility/manual continuity loses deadline/evidence.
@@ -11566,9 +11790,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** shared governance/human-work mechanics remain generic; domain/legal decision semantics stay with their owners.
   - **Refs:** [governance composition](specs/governance-decision-and-obligation-composition.md), [human work](specs/human-work-forms-and-rules.md), [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md).
 
-- [ ] `SLICE-009` **[P0][SOL_HIGH] Resolve transaction, external-effect, observation, reconciliation and repair closure per slice.**
+- [ ] `SLICE-009` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Resolve transaction, external-effect, observation, reconciliation and repair closure per slice.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-006`, `TX-003`, `EFFECT-001`, `RECON-002`, `REPAIR-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show exactly what changes locally or externally and how every configured outcome becomes observable, reconcilable and repairable`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=show exactly what changes locally or externally and how every configured outcome becomes observable, reconcilable and repairable`.
   - **TEST:** `TestVerticalSliceEffectAndOutcomeClosureHandlesPartialAmbiguousAndIrreversibleStates`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceEffectAndOutcomeClosureHandlesPartialAmbiguousAndIrreversibleStates`; `PROPERTY=TestTodo_SLICE_009_Property`; `GOLDEN=TestTodo_SLICE_009_Golden`; `RACE=TestTodo_SLICE_009_Race`; `FAULT=TestTodo_SLICE_009_Fault`; `SECURITY=TestTodo_SLICE_009_Security`; `CONFORMANCE=TestTodo_SLICE_009_Conformance`; `RECOVERY=TestTodo_SLICE_009_Recovery`; `MUTATION=TestTodo_SLICE_009_Mutation`.
   - **RED:** planned write/effect lacks owner/order/idempotency/irreversible boundary, external acceptance becomes domain fact, partial/ambiguous outcome collapses to success/failure, no fresh observation/reconciliation deadline exists, repair reruns business transaction or cancellation claims reversal.
@@ -11576,9 +11801,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** reuse transaction/connectivity/reconciliation mechanics; intent-specific expected state and material mismatch remain semantic inputs.
   - **Refs:** [transaction and repair](specs/transaction-ledger-reconciliation-and-repair.md), [effect graph](#12a-external-effect-reconciliation-repair-and-execution-evidence-convergence), [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md).
 
-- [ ] `SLICE-010` **[P0][SOL_HIGH] Assign exact endpoint, initiator, schedule and event exposure to every slice.**
+- [ ] `SLICE-010` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Assign exact endpoint, initiator, schedule and event exposure to every slice.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-006`, `ENDPOINT-009`, `INTENT-017`, `INTENT-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every intent is reachable only through approved channels and no database entity or trigger creates an accidental public API`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure every intent is reachable only through approved channels and no database entity or trigger creates an accidental public API`.
   - **TEST:** `TestVerticalSliceExposureDispositionIsExactAndAuthoritySafe`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceExposureDispositionIsExactAndAuthoritySafe`; `PROPERTY=TestTodo_SLICE_010_Property`; `GOLDEN=TestTodo_SLICE_010_Golden`; `FUZZ=FuzzTodo_SLICE_010`; `SECURITY=TestTodo_SLICE_010_Security`; `CONFORMANCE=TestTodo_SLICE_010_Conformance`; `MUTATION=TestTodo_SLICE_010_Mutation`.
   - **RED:** slice has no/multiple unexplained endpoint dispositions, system trigger becomes human API, agent/partner gets new authority, gRPC/HTTP semantics diverge, schedule/event bypasses BusinessIntent or internal child capability is public.
@@ -11586,9 +11812,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** generate endpoint/trigger/schedule manifests and reverse coverage from the slice record.
   - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [endpoint coverage](#60-canonical-grpc-services-grpcbridge-http-endpoints-and-endpoint-tdd), [trigger model](specs/business-intent-catalog.md#initiator-and-exposure-policy).
 
-- [ ] `SLICE-011` **[P0][SOL_HIGH] Generate exact maximal-configuration scenarios and tests for every slice.**
+- [ ] `SLICE-011` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Generate exact maximal-configuration scenarios and tests for every slice.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-007`, `SLICE-008`, `SLICE-009`, `SLICE-010`, `GOV-018`, `GOV-028`, `TOOL-014`.
-  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=turn every slice/configuration boundary into exact positive, negative, temporal, concurrency, failure, security, repair and scale evidence`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=turn every slice/configuration boundary into exact positive, negative, temporal, concurrency, failure, security, repair and scale evidence`.
   - **TEST:** `TestVerticalSliceScenarioCompilerCoversApplicableMaximalConfiguration`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceScenarioCompilerCoversApplicableMaximalConfiguration`; `PROPERTY=TestTodo_SLICE_011_Property`; `GOLDEN=TestTodo_SLICE_011_Golden`; `FUZZ=FuzzTodo_SLICE_011`; `RACE=TestTodo_SLICE_011_Race`; `FAULT=TestTodo_SLICE_011_Fault`; `SECURITY=TestTodo_SLICE_011_Security`; `CONFORMANCE=TestTodo_SLICE_011_Conformance`; `RECOVERY=TestTodo_SLICE_011_Recovery`; `BENCHMARK=BenchmarkTodo_SLICE_011`; `MUTATION=TestTodo_SLICE_011_Mutation`.
   - **RED:** applicable MAX value lacks positive/boundary/forbidden case, pairwise coverage omits a pair, mandatory high-risk interaction lacks explicit fixture, oracle asserts only status/no-panic, scale claim lacks benchmark or test name/evidence cannot trace to slice/configuration.
@@ -11596,9 +11823,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** reuse mechanics templates while keeping domain semantic outcomes and legally material examples explicit.
   - **Refs:** [MAX-v1](workflows/vertical-slices/maximal-configuration-profile.md), [slice plan testing](workflows/vertical-slices/plan.md#stage-3--generate-tests-and-endpoint-dispositions), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts).
 
-- [ ] `SLICE-012` **[P0][SOL_HIGH] Compile slice findings into atomic deduplicated TDD todos and reverse coverage.**
+- [ ] `SLICE-012` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Compile slice findings into atomic deduplicated TDD todos and reverse coverage.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-011`, `GOV-027`, `GOV-028`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=feed every unresolved slice responsibility into executable production work without creating one implementation per intent when semantics are shared`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=feed every unresolved slice responsibility into executable production work without creating one implementation per intent when semantics are shared`.
   - **TEST:** `TestVerticalSliceGapCompilerEmitsAtomicOwnerKeyedTodosWithoutDuplication`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceGapCompilerEmitsAtomicOwnerKeyedTodosWithoutDuplication`; `PROPERTY=TestTodo_SLICE_012_Property`; `GOLDEN=TestTodo_SLICE_012_Golden`; `SECURITY=TestTodo_SLICE_012_Security`; `CONFORMANCE=TestTodo_SLICE_012_Conformance`; `MUTATION=TestTodo_SLICE_012_Mutation`.
   - **RED:** missing property/engine/governance/human/effect/repair/endpoint/test produces no todo, shared gap produces hundreds of implementations, domain-specific invariants collapse into generic engine, dependency/phase/intelligence/test oracle is absent or finding loses consuming slice/configuration edges.
@@ -11606,9 +11834,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** use one finding/todo schema and generate Markdown views; no manual copy of per-slice gap lists.
   - **Refs:** [gap feedback](workflows/vertical-slices/README.md#output-and-gap-feedback), [gap register](workflows/vertical-slices/gap-register.md), [todo generation](#backlog-governance-and-traceability).
 
-- [ ] `SLICE-013` **[P0][SOL_HIGH] Gate slice maturity and implementation depth by source, contract, phase and current evidence.**
+- [ ] `SLICE-013` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Gate slice maturity and implementation depth by source, contract, phase and current evidence.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-012`, `GOV-003`, `INTENT-CONF-001`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent candidate mappings and maximal designs from being misreported as contracted, implemented or production-authorized behavior`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent candidate mappings and maximal designs from being misreported as contracted, implemented or production-authorized behavior`.
   - **TEST:** `TestVerticalSliceMaturityRequiresSourceContractsPhaseAuthorityAndFreshEvidence`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceMaturityRequiresSourceContractsPhaseAuthorityAndFreshEvidence`; `PROPERTY=TestTodo_SLICE_013_Property`; `GOLDEN=TestTodo_SLICE_013_Golden`; `SECURITY=TestTodo_SLICE_013_Security`; `CONFORMANCE=TestTodo_SLICE_013_Conformance`; `MUTATION=TestTodo_SLICE_013_Mutation`.
   - **RED:** unbound/candidate row reports designed, unresolved contract reports contracted, later-phase slice creates Phase 1 work, passing happy path reports verified despite missing MAX scenarios or stale/failing/waived evidence is hidden in aggregate.
@@ -11616,9 +11845,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** delivery manifests consume generated slice maturity; dashboards never infer status from checked boxes or prose.
   - **Refs:** [record maturity](workflows/vertical-slices/README.md#record-maturity), [slice plan reporting](workflows/vertical-slices/plan.md#reporting), [phase gates](execution-plan.md).
 
-- [ ] `SLICE-014` **[P0][SOL_HIGH] Prove vertical-slice gap and todo generation reaches a deterministic fixed point.**
+- [ ] `SLICE-014` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Prove vertical-slice gap and todo generation reaches a deterministic fixed point.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-012`, `SLICE-013`, `GOV-002`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=measure convergence and stop endless backlog growth caused by unstable generation or duplicate findings`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=measure convergence and stop endless backlog growth caused by unstable generation or duplicate findings`.
   - **TEST:** `TestVerticalSliceConvergenceSecondPassEmitsNoNewTodoIdentity`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceConvergenceSecondPassEmitsNoNewTodoIdentity`; `PROPERTY=TestTodo_SLICE_014_Property`; `GOLDEN=TestTodo_SLICE_014_Golden`; `CONFORMANCE=TestTodo_SLICE_014_Conformance`; `MUTATION=TestTodo_SLICE_014_Mutation`.
   - **RED:** unchanged inputs reorder slices/scenarios/todos, second pass emits new/renamed duplicate todo, resolved finding persists, missing source is silently dropped or graph digest depends on path/time/map iteration.
@@ -11626,9 +11856,10 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
   - **REFACTOR:** canonicalize ordering/IDs from stable semantic keys and remove manual/generated dual ownership.
   - **Refs:** [fixed-point rule](workflows/vertical-slices/gap-register.md#fixed-point-rule), [reproducibility](plan.md#93-reproducibility-contract), [generated drift](#2-go-only-repository-toolchain-and-contract-generation).
 
-- [ ] `SLICE-015` **[P0][TERRA] Publish truthful baseline, vocabulary and vertical-slice coverage reports.**
+- [ ] `SLICE-015` **[RETIRED][TERRA] RETIRED 2026-09-02: Publish truthful baseline, vocabulary and vertical-slice coverage reports.**
+  - **Disposition:** RETIRED 2026-09-02. The vertical-slice program over the 530-slot baseline and 807-name vocabulary has no consumer. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `SLICE-002`, `SLICE-003`, `SLICE-013`, `SLICE-014`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=show exactly what is source-bound, mapped, contracted, implemented and verified without denominator or phase deception`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=show exactly what is source-bound, mapped, contracted, implemented and verified without denominator or phase deception`.
   - **TEST:** `TestVerticalSliceCoverageReportUsesSeparateExactDenominators`.
   - **TEST MATRIX:** `PRIMARY=TestVerticalSliceCoverageReportUsesSeparateExactDenominators`; `PROPERTY=TestTodo_SLICE_015_Property`; `GOLDEN=TestTodo_SLICE_015_Golden`; `SECURITY=TestTodo_SLICE_015_Security`; `CONFORMANCE=TestTodo_SLICE_015_Conformance`.
   - **RED:** report mixes 530 baseline and 807 vocabulary, counts aliases/overlaps twice, hides 516 unbound slots, treats deferred as implemented, averages failing MAX configuration away or cannot trace a number to slice/source/scenario/todo/evidence.
@@ -11638,6 +11869,8 @@ contains 807 named vocabulary candidates. They cannot be joined by display name.
 
 ## 62. Product-decision and implementation convergence
 
+> **Disposition (2026-09-02):** P1A. `PHASE-001` freezes the scope ceiling; `SELECT-*`, `CUSTOMER-*`, `TOPOLOGY-*` and `COMMERCIAL-*` bind the partner selections next-steps.md M1 requires.
+
 These todos close the remaining gap between a broad, internally coherent
 architecture and an executable Phase 1 product decision. They do not create new
 HCM scope. They select, bind, rehearse and measure the concrete subset already
@@ -11645,7 +11878,7 @@ authorized by the master and execution plans.
 
 - [ ] `CLOSE-001` **[P0][SOL_HIGH] Publish one machine-readable design-closure register.**
   - **Depends:** `SLICE-015`, `SUBSTRATE-COVERAGE-001`, `GOV-026`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=join product, intent, workflow, model, API, security, operations, implementation and commercial readiness without turning document volume into a completeness claim`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=join product, intent, workflow, model, API, security, operations, implementation and commercial readiness without turning document volume into a completeness claim`.
   - **TEST:** `TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate`.
   - **TEST MATRIX:** `PRIMARY=TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate`; `PROPERTY=TestTodo_CLOSE_001_Property`; `GOLDEN=TestTodo_CLOSE_001_Golden`; `SECURITY=TestTodo_CLOSE_001_Security`; `CONFORMANCE=TestTodo_CLOSE_001_Conformance`; `MUTATION=TestTodo_CLOSE_001_Mutation`.
   - **RED:** an accepted intent or Phase 1 dependency lacks exact source, owner, phase, decision state, artifact, todo, test, evidence, expiry or blocker; prose marked complete satisfies an implementation gate; `UNKNOWN`, `DEFERRED` or waived work disappears from totals.
@@ -11785,7 +12018,7 @@ authorized by the master and execution plans.
 
 - [ ] `CLOSE-002` **[P0][SOL_HIGH] Re-run design, slice and implementation gap compilers to a fixed point after concrete selections.**
   - **Depends:** `SELECT-001`, `SELECT-002`, `THREAT-001`, `TOPOLOGY-001`, `CUSTOMER-001`, `COMMERCIAL-001`, `SLICE-014`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=feed real jurisdiction, provider, topology, customer and commercial facts back into models, workflows, APIs, tests and todos until no ownerless contract remains`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=feed real jurisdiction, provider, topology, customer and commercial facts back into models, workflows, APIs, tests and todos until no ownerless contract remains`.
   - **TEST:** `TestConcreteSelectionConvergenceSecondPassProducesNoNewGapIdentity`.
   - **TEST MATRIX:** `PRIMARY=TestConcreteSelectionConvergenceSecondPassProducesNoNewGapIdentity`; `PROPERTY=TestTodo_CLOSE_002_Property`; `GOLDEN=TestTodo_CLOSE_002_Golden`; `FAULT=TestTodo_CLOSE_002_Fault`; `SECURITY=TestTodo_CLOSE_002_Security`; `CONFORMANCE=TestTodo_CLOSE_002_Conformance`; `MUTATION=TestTodo_CLOSE_002_Mutation`.
   - **RED:** selected fact changes no downstream slice/model/API/threat/test, new gap lacks atomic todo/owner/phase/oracle, unchanged second pass produces new identities, duplicate gap survives under different wording or closure report hides selected-scope unknowns.
@@ -11793,7 +12026,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** make this the single convergence gate invoked by catalog, selection, architecture and pilot changes.
   - **Refs:** [slice fixed point](workflows/vertical-slices/gap-register.md#fixed-point-rule), [design closure](#product-decision-and-implementation-convergence), [coverage governance](#backlog-governance-and-traceability).
 
-- [ ] `SOURCE-001` **[P0][SOL_HIGH] Attest the immutable BusinessIntent source artifact and lossless catalog recovery.**
+- [ ] `SOURCE-001` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Attest the immutable BusinessIntent source artifact and lossless catalog recovery.**
+  - **Disposition:** RETIRED 2026-09-02. There is no source artifact to attest; the intake list is non-normative vocabulary and the catalog is the fourteen drafted definitions. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `MODEL-008`, `MODEL-009`, `MSRC-001`, `GOV-008`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prove the accepted numbered catalog came losslessly from an authentic immutable source rather than a recomputed hand-authored manifest`.
   - **TEST:** `TestIntentSourceAttestationRejectsUntrustedAlteredOrLossyRecovery`.
@@ -11805,7 +12039,7 @@ authorized by the master and execution plans.
 
 - [ ] `BIND-001` **[P0][SOL_HIGH] Bind each published capability to exact models, wire descriptors and one typed Go handler.**
   - **Depends:** `MSRC-007`, `MSRC-009`, `MODEL-010`, `CAP-001`, `PROTO-005`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=ensure every executable semantic capability resolves to one compile-time checked implementation rather than a dangling registry or untyped adapter`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure every executable semantic capability resolves to one compile-time checked implementation rather than a dangling registry or untyped adapter`.
   - **TEST:** `TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`.
   - **TEST MATRIX:** `PRIMARY=TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`; `PROPERTY=TestTodo_BIND_001_Property`; `GOLDEN=TestTodo_BIND_001_Golden`; `INTEGRATION=TestTodo_BIND_001_Integration`; `CONFORMANCE=TestTodo_BIND_001_Conformance`; `MUTATION=TestTodo_BIND_001_Mutation`.
   - **RED:** missing/duplicate Go symbol, unregistered capability version, wrong request/result descriptor, SchemaFlux digest mismatch or `map[string]any` handler publishes or starts; no handler may run.
@@ -11815,7 +12049,7 @@ authorized by the master and execution plans.
 
 - [ ] `MODEL-032` **[P0][SOL_HIGH] Prove canonical property semantics and lineage across SchemaFlux, Protobuf, Go, SQL and storage disposition.**
   - **Depends:** `MODEL-011`, `MODEL-016`, `MODEL-017`, `DB-002`, `DB-003`, `PROTO-009`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent property meaning, authority or history from changing between semantic source, wire, runtime and persistence layers`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent property meaning, authority or history from changing between semantic source, wire, runtime and persistence layers`.
   - **TEST:** `TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`.
   - **TEST MATRIX:** `PRIMARY=TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`; `PROPERTY=TestTodo_MODEL_032_Property`; `GOLDEN=TestTodo_MODEL_032_Golden`; `FUZZ=FuzzTodo_MODEL_032`; `INTEGRATION=TestTodo_MODEL_032_Integration`; `SECURITY=TestTodo_MODEL_032_Security`; `CONFORMANCE=TestTodo_MODEL_032_Conformance`; `RECOVERY=TestTodo_MODEL_032_Recovery`; `MUTATION=TestTodo_MODEL_032_Mutation`.
   - **RED:** presence/default/enum/decimal/unit/time/classification/authority changes across layers, SQL round-trip changes digest, intent property lacks tenant-scoped ledger/projection/artifact/provenance path, projection accepts write or external observation becomes domain fact.
@@ -11825,7 +12059,7 @@ authorized by the master and execution plans.
 
 - [ ] `PROTO-010` **[P0][SOL_HIGH] Require total descriptor-level RPC exposure disposition.**
   - **Depends:** `PROTO-005`, `MODEL-010`, `CAP-001`, `ENDPOINT-001`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prevent declared RPCs or generated handlers from becoming accidental public APIs`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prevent declared RPCs or generated handlers from becoming accidental public APIs`.
   - **TEST:** `TestProtoRpcDispositionIsTotalAndNoAccidentalExposure`.
   - **TEST MATRIX:** `PRIMARY=TestProtoRpcDispositionIsTotalAndNoAccidentalExposure`; `PROPERTY=TestTodo_PROTO_010_Property`; `GOLDEN=TestTodo_PROTO_010_Golden`; `SECURITY=TestTodo_PROTO_010_Security`; `CONFORMANCE=TestTodo_PROTO_010_Conformance`; `MUTATION=TestTodo_PROTO_010_Mutation`.
   - **RED:** descriptor method lacks exactly one `PUBLIC_TYPED|PUBLIC_GENERIC|INTERNAL_ONLY|EVENT_OR_SCHEDULE|NO_ENDPOINT` disposition, owner/capability/intent refs, trusted initiator, AuthZ/purpose, retry/idempotency or HTTP/internal rationale; unregistered handler binds.
@@ -11835,7 +12069,7 @@ authorized by the master and execution plans.
 
 - [ ] `SLICE-016` **[P0][SOL_HIGH] Emit one canonical per-intent closure witness.**
   - **Depends:** `SOURCE-001`, `SLICE-013`, `SLICE-015`, `BIND-001`, `PROTO-010`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=prove each accepted definition is individually traceable from authentic source through behavior, implementation, tests and current evidence`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prove each accepted definition is individually traceable from authentic source through behavior, implementation, tests and current evidence`.
   - **TEST:** `TestPerIntentClosureWitnessCrossJoinIsTotalUniqueAndCurrent`.
   - **TEST MATRIX:** `PRIMARY=TestPerIntentClosureWitnessCrossJoinIsTotalUniqueAndCurrent`; `PROPERTY=TestTodo_SLICE_016_Property`; `GOLDEN=TestTodo_SLICE_016_Golden`; `SECURITY=TestTodo_SLICE_016_Security`; `CONFORMANCE=TestTodo_SLICE_016_Conformance`; `MUTATION=TestTodo_SLICE_016_Mutation`.
   - **RED:** any source→slice→model/engine/capability→handler→endpoint→scenario/test/todo/evidence edge is absent, duplicated, stale or aggregate-only while maturity advances.
@@ -11845,7 +12079,7 @@ authorized by the master and execution plans.
 
 - [ ] `UXFLOW-011` **[P0][SOL_HIGH] Version and migrate active user flows without semantic drift.**
   - **Depends:** `UXFLOW-001`, `UXFLOW-006`, `UXFLOW-010`, `INTENT-028`.
-  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=preserve drafts, tasks, approvals, deep links and confirmations when experience definitions evolve`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve drafts, tasks, approvals, deep links and confirmations when experience definitions evolve`.
   - **TEST:** `TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`.
   - **TEST MATRIX:** `PRIMARY=TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`; `PROPERTY=TestTodo_UXFLOW_011_Property`; `GOLDEN=TestTodo_UXFLOW_011_Golden`; `RACE=TestTodo_UXFLOW_011_Race`; `FAULT=TestTodo_UXFLOW_011_Fault`; `SECURITY=TestTodo_UXFLOW_011_Security`; `CONFORMANCE=TestTodo_UXFLOW_011_Conformance`; `BROWSER=TestTodo_UXFLOW_011_Browser`; `RECOVERY=TestTodo_UXFLOW_011_Recovery`; `MODEL_BASED=TestTodo_UXFLOW_011_ModelBased`; `MUTATION=TestTodo_UXFLOW_011_Mutation`.
   - **RED:** incompatible publication silently reinterprets active draft/task/approval/action digest, retired action remains callable, stale deep link performs changed action, rollback rewrites history or migration duplicates effect.
@@ -11935,7 +12169,7 @@ authorized by the master and execution plans.
 
 - [ ] `DATA-022` **[P0][SOL_HIGH] Prove universal per-intent storage, event, effect and correction lineage.**
   - **Depends:** `DATA-015`, `SLICE-016`, `MODEL-032`, `LEDGER-012`.
-  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=extend Promotion lineage proof to every intent family, composite child and trigger path`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=extend Promotion lineage proof to every intent family, composite child and trigger path`.
   - **TEST:** `TestEveryAcceptedIntentFamilyHasCompleteAuthorizedRebuildableLineage`.
   - **TEST MATRIX:** `PRIMARY=TestEveryAcceptedIntentFamilyHasCompleteAuthorizedRebuildableLineage`; `PROPERTY=TestTodo_DATA_022_Property`; `GOLDEN=TestTodo_DATA_022_Golden`; `INTEGRATION=TestTodo_DATA_022_Integration`; `FAULT=TestTodo_DATA_022_Fault`; `SECURITY=TestTodo_DATA_022_Security`; `CONFORMANCE=TestTodo_DATA_022_Conformance`; `RECOVERY=TestTodo_DATA_022_Recovery`; `MUTATION=TestTodo_DATA_022_Mutation`.
   - **RED:** intent/proposal/workflow/transaction/event/projection/outbox/effect/observation/reconciliation/repair/correction link is missing, cross-tenant, over-disclosing or non-rebuildable while aggregate completion reports true.
@@ -12035,12 +12269,14 @@ authorized by the master and execution plans.
 
 ## 63. Untraveled operational and delivery surfaces
 
+> **Disposition (2026-09-02):** Gate C, except items the P1A read-only path directly depends on.
+
 These are cross-cutting surfaces discovered by tracing how software, evidence,
 communications and trust reach real people and production environments. They do
 not add HCM domain scope. Each closes a boundary that could otherwise invalidate
 an already-designed BusinessIntent path.
 
-- [ ] `CLIENT-001` **[GATE_A][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
+- [ ] `CLIENT-001` **[GATE_C][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
   - **Depends:** `EDGE-004`, `UX-002`, `TOOL-016`, `TOOL-018`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure the browser cannot execute stale, injected or cross-tenant client state that changes governed intent behavior`.
   - **TEST:** `TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState`.
@@ -12122,7 +12358,7 @@ an already-designed BusinessIntent path.
 
 - [ ] `CONTRACT-ARCHIVE-001` **[GATE_A][SOL_HIGH] Preserve an offline-verifiable archive of every executable historical contract.**
   - **Depends:** `PROTO-010`, `MODEL-032`, `CONFIG-003`, `EVIDENCE-001`, `TOOL-018`.
-  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL,BI.EXT.*; DIRECT=none; WHY=keep historical intent, workflow, rule, schema, mapping, endpoint and evidence interpretation possible after retirement or tool change`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=keep historical intent, workflow, rule, schema, mapping, endpoint and evidence interpretation possible after retirement or tool change`.
   - **TEST:** `TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade`.
   - **TEST MATRIX:** `PRIMARY=TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade`; `PROPERTY=TestTodo_CONTRACT_ARCHIVE_001_Property`; `GOLDEN=TestTodo_CONTRACT_ARCHIVE_001_Golden`; `INTEGRATION=TestTodo_CONTRACT_ARCHIVE_001_Integration`; `FAULT=TestTodo_CONTRACT_ARCHIVE_001_Fault`; `SECURITY=TestTodo_CONTRACT_ARCHIVE_001_Security`; `CONFORMANCE=TestTodo_CONTRACT_ARCHIVE_001_Conformance`; `RECOVERY=TestTodo_CONTRACT_ARCHIVE_001_Recovery`; `MUTATION=TestTodo_CONTRACT_ARCHIVE_001_Mutation`.
   - **RED:** retired descriptor/schema/config/rule/workflow/mapping disappears, verification requires mutable live registry/network/tool, signing-key rotation invalidates old package or historical bytes are interpreted with current defaults.
@@ -12202,10 +12438,13 @@ an already-designed BusinessIntent path.
 
 ## 64. Dependency-ordered execution convergence
 
+> **Disposition (2026-09-02):** Active. `NEXT-001` is RETIRED; `NEXT-002`–`NEXT-009` are the P1A/P1B compilers and gate decisions.
+
 These todos turn the planning corpus into two bounded releases. They are scope and
 evidence compilers, not permission to implement deferred HCM domains.
 
-- [ ] `NEXT-001` **[P0][SOL_HIGH] Separate local BusinessIntent source recovery mechanics from external authenticity attestation.**
+- [ ] `NEXT-001` **[RETIRED][SOL_HIGH] RETIRED 2026-09-02: Separate local BusinessIntent source recovery mechanics from external authenticity attestation.**
+  - **Disposition:** RETIRED 2026-09-02. Source recovery and attestation were withdrawn with the catalog numbering; next-steps.md M0 is a partner conversation only. Dependencies on this ID resolve as satisfied; its tests are not written.
   - **Depends:** `GOV-008`, `TOOL-002`, `TOOL-003`, `TOOL-004`, `MODEL-008`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make catalog reconciliation useful without falsely authenticating or promoting missing baseline definitions`.
   - **TEST:** `TestSourceRecoveryPackagePreservesBytesRowsAndUnboundStatusWithoutIssuerEvidence`.
@@ -12296,6 +12535,8 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **Refs:** [P1B milestone](next-steps.md#m5-p1b-bounded-write-path), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority).
 
 ## 65. Additional untraveled operational and delivery surfaces
+
+> **Disposition (2026-09-02):** `IDEMP-001` is P1B.
 
 These continue the cross-cutting inventory from section 63; they remain outside
 the bounded convergence tasks unless selected by a signed release manifest.

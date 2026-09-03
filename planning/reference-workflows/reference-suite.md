@@ -352,10 +352,10 @@ benefits transitioned       complete
 building access removed     complete
 GitHub access removed       failed
 
+ExecutionState        COMMITTED
 BusinessState         COMPLETED
-ExternalConsistency   DEGRADED
-Reconciliation        REPAIR_REQUIRED
-SecurityIncident      OPEN
+ConsistencyState      DEGRADED       (RepairPlan linked)
+ObligationState       PENDING        (security incident open)
 ```
 
 The remaining failure produces a bounded RepairPlan rather than relabeling the entire termination as ambiguously failed.

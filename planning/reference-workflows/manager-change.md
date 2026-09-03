@@ -68,10 +68,7 @@ WAIT until effective date
 revalidate facts + authority + proposal + conflict watermark
   |
   v
-CHECKPOINT
-  |
-  v
-people.manager.change
+people.manager.change                       [safe_point before]
   |
   v
 ACID: relationship event + critical projection + outbox
@@ -134,10 +131,10 @@ optional customer rule:
 ```
 
 Approval binds the material proposal digest containing worker/employment,
-old/new manager, effective interval, reason, affected relationship fields,
-derived impact summary, and control snapshots. At decision time and execution
-time the platform reevaluates approver authority according to the requirement's
-validity policy.
+old/new manager, effective interval, reason, affected relationship fields, and
+derived impact summary. Control snapshots are recorded as revalidated context,
+not hashed into the digest. At decision time and execution time the platform
+reevaluates approver authority according to the requirement's validity policy.
 
 Execution fails closed or requires a new proposal when Jane or Bob is inactive,
 Bob no longer meets manager eligibility, organization scope changed materially,
@@ -163,11 +160,11 @@ ManagerChangeReconciled
 Completion requires:
 
 ```text
-RuntimeState          COMPLETED
-BusinessState         COMPLETED
-ExternalConsistency  NOT_APPLICABLE or CONSISTENT
-ReconciliationState  PASSED
-ObligationState       SATISFIED
+RequestState       CLOSED
+ExecutionState     COMMITTED
+BusinessState      COMPLETED
+ConsistencyState   NOT_APPLICABLE or CONSISTENT
+ObligationState    SATISFIED
 ```
 
 If an incumbent HRIS remains authoritative, the local ledger records the

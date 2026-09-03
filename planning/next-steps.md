@@ -12,9 +12,9 @@ replace [plan.md](plan.md) or the [Phase 1 execution plan](execution-plan.md).
   cell.
 - The only Go implementation is the isolated `src/blocks/go` module. It is useful
   test evidence, not the product runtime.
-- BusinessIntent catalog identity is not closed: 14 definitions are
-  `DRAFT_CONTRACT`, 516 baseline rows are `UNBOUND_SOURCE`, and the 807-item
-  vocabulary is a reconciliation source, not proof of the missing baseline.
+- The BusinessIntent catalog is the fourteen `DRAFT_CONTRACT` definitions.
+  The intake name list is non-normative vocabulary; catalog identity is closed
+  and no source-recovery or reconciliation work exists.
 - No paid design partner, provider edition, first jurisdiction, authority-by-field
   matrix, deployment target or customer responsibility matrix has been selected.
 - Therefore the project is design-rich but is not product-ready or authorized to
@@ -37,7 +37,9 @@ P1A is the first executable product. It has eight executable intent contracts:
 
 Its single compiled workflow is
 `promotion.preflight-simulate-observe/v1`, using thin `CAPABILITY`, `TRANSFORM`,
-`RULE`, `DECISION`, `OBSERVE` and `END` steps.
+`DECISION` (with a `rule_ref` to the tenant threshold table), `OBSERVE` and
+`END` steps. Intents carry the five lifecycle dimensions; `ExecutionState`
+never leaves `NOT_PLANNED` in P1A.
 
 P1A may persist intent, snapshot, simulation, proposal, handoff,
 observation, reconciliation, evidence and non-executable RepairPlan records. It
@@ -57,9 +59,10 @@ P1B exists only after a signed Gate A `PROCEED`. It adds six contracts:
 6. `reject_proposal`
 
 It uses `promotion.execute/v1`, adding `APPROVAL`, `TASK`, `WAIT`, `SIGNAL`,
-`CHECKPOINT` and `COMPENSATE`. Outbound effects remain sequential in this release;
-`PARALLEL`, `JOIN`, `SUBWORKFLOW`, live migration and shadow execution are not
-P1B prerequisites.
+and `COMPENSATE`, with compiler-placed safe points. Outbound effects remain
+sequential `OBSERVE` steps in this release; `PARALLEL`, `JOIN`, `SUBWORKFLOW`,
+live migration and shadow execution are not P1B prerequisites. The build-or-adopt
+decision for the durable runtime is recorded before P1B code starts.
 
 Before implementation, the partner must select exactly one authority topology:
 
@@ -74,18 +77,18 @@ Do not build both topologies speculatively.
 
 ## First ten working days
 
-| Day | Outcome                                                | Required evidence                                                                                                                |
-| --- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Freeze the P1A scope ceiling and exclusions.           | Candidate manifest with the eight intents, one workflow, exact effect ceiling and stop rules.                                    |
-| 2   | Start the partner evidence lane.                       | Named prospect/partner owner, paid-use hypothesis, incumbent failure and independent downstream-observation requirement.         |
-| 3   | Freeze one repository and command manifest.            | Root package tree and initial commands: `hcmnext`, `worker`, `projector`, `migrate`; scheduler/admin explicitly sequenced later. |
-| 4   | Bootstrap the root Go module and generation toolchain. | Pinned Go, Protobuf, grpc-go, grpcbridge and SchemaFlux versions; reproducible generation command.                               |
-| 5   | Define the first typed wire contract.                  | `IntentService.Create`, `Get` and `Simulate` descriptors, generated Go bindings and descriptor digest.                           |
-| 6   | Create the authoritative migration root.               | Tenant, intent, proposal, ledger event, stream head, projection and outbox migrations with checksums.                            |
-| 7   | Prove one ACID chronology.                             | Intent/proposal plus ledger, critical projection and outbox append atomically; stale-head CAS fails exactly.                     |
-| 8   | Expose direct gRPC and grpcbridge parity.              | Same Protobuf vector, digest, authorization result and typed error through both paths.                                           |
-| 9   | Run the no-effect Promotion fixture.                   | Snapshot status, before/after simulation, provenance, uncertainty and zero-effect receipt.                                       |
-| 10  | Review evidence and choose.                            | `CONTINUE_DISCOVERY`, `NARROW`, `RESELECT` or `STOP`; no write authority can be granted.                                         |
+| Day | Outcome                                                | Required evidence                                                                                                                                           |
+| --- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Freeze the P1A scope ceiling and exclusions.           | Candidate manifest with the eight intents, one workflow, exact effect ceiling and stop rules.                                                               |
+| 2   | Start the partner evidence lane.                       | Named prospect/partner owner, paid-use hypothesis, incumbent failure and independent downstream-observation requirement.                                    |
+| 3   | Freeze one repository and command manifest.            | Root package tree and initial commands: `hcmnext`, `worker`, `projector`, `migrate`; scheduler/admin explicitly sequenced later.                            |
+| 4   | Bootstrap the root Go module and generation toolchain. | Pinned Go, Protobuf and grpc-go; edge and generator qualification fixtures run, with grpcbridge/SchemaFlux or their named fallbacks selected on the result. |
+| 5   | Define the first typed wire contract.                  | `IntentService.Create`, `Get` and `Simulate` descriptors, generated Go bindings and descriptor digest.                                                      |
+| 6   | Create the authoritative migration root.               | Tenant, intent, proposal, ledger event, stream head, projection and outbox migrations with checksums.                                                       |
+| 7   | Prove one ACID chronology.                             | Intent/proposal plus ledger, critical projection and outbox append atomically; stale-head CAS fails exactly.                                                |
+| 8   | Expose direct gRPC and grpcbridge parity.              | Same Protobuf vector, digest, authorization result and typed error through both paths.                                                                      |
+| 9   | Run the no-effect Promotion fixture.                   | Snapshot status, before/after simulation, provenance, uncertainty and zero-effect receipt.                                                                  |
+| 10  | Review evidence and choose.                            | `CONTINUE_DISCOVERY`, `NARROW`, `RESELECT` or `STOP`; no write authority can be granted.                                                                    |
 
 If a paid partner and representative access are unavailable, days 2–10 continue
 only as a technical feasibility spike. They cannot be reported as Gate A product
@@ -93,14 +96,12 @@ evidence.
 
 ## Dependency-ordered milestones
 
-### M0 — commercial and source truth
+### M0 — commercial truth
 
-Run `WEDGE-001` through `WEDGE-013`, source attestation and slice/catalog closure
-without pretending the absent 530-row artifact has been recovered. Local work can
-build the lossless source-package parser, byte-span/digest verifier and golden
-14/516/807 reconciliation fixture. If original immutable bytes and issuer/release
-provenance arrive, recover and bind them. Otherwise keep rows `UNBOUND_SOURCE` or
-publish a separately identified, owner-attested replacement release.
+Run `WEDGE-001` through `WEDGE-013`. There is no source-attestation, parser,
+verifier, or reconciliation work: the catalog is the fourteen drafted
+definitions and the intake list is vocabulary. M0 is a partner conversation,
+not a tooling milestone.
 
 Exit: paid non-duplicative problem evidence exists, or the program stops/reselects.
 
@@ -176,9 +177,8 @@ Exit: the pilot has repeated paid completion, owned on-call and exit paths, no
 2. Replace the broad dependency ranges on `WEDGE-014` and `WEDGE-015` with a
    manifest-derived evidence closure. Current ranges pull agents, Gate C trust
    work, Phase 2 workflow migration and other excluded systems into Phase 1.
-3. Split local source-package tooling from external source attestation. Catalog
-   reporting must remain useful while authenticity is blocked, without promoting
-   unbound definitions.
+3. Remove source-package tooling and source-attestation items from the backlog;
+   they have no consumer.
 4. Split P0 jurisdiction-source/reviewer selection from later legal RulePack
    implementation; split provider selection from mature vendor-continuity drills.
 5. Split topology selection and runnable sandbox deployment from production HA,
@@ -226,10 +226,13 @@ product gate.
 ## Non-negotiable stop rules
 
 - No paid, repeated, non-duplicative cross-system problem: `STOP` or `RESELECT`.
-- Missing original BusinessIntent source: remain `UNBOUND_SOURCE`; never infer
-  baseline identity from vocabulary similarity.
 - No named provider edition/API/field authority/observation path: no adapter or
   write implementation.
+- No further adversarial audit pass, planning expansion, or new specification
+  until P1A executes against partner data. Findings close by test or explicit
+  deferral only.
+- No new lifecycle dimension, kernel family, workflow primitive, or coordination
+  layer without a recorded scope exchange.
 - Any P1A workforce mutation or external effect: fail the release.
 - Any P1B critical or stale evidence, unresolved authority ambiguity, unsafe
   replay/restore, or unowned incident/repair/exit path: `NO_GO`.

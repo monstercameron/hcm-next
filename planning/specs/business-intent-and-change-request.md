@@ -9,17 +9,46 @@ runtime state.
 
 ```text
 BusinessIntent
-  +-- ChangeRequest          proposes material domain mutation
-  +-- ProcessRequest         requests a governed process without immediate write
-  +-- CalculationRequest     deterministic calculation/result
-  +-- FilingRequest          regulated submission intent
-  +-- Case                   governed, evidence-bearing investigation/service matter
-  +-- BatchOperation         bounded population operation
-  +-- AnalyticalRequest      governed read/analysis; no business mutation
+  +-- ChangeRequest          may mutate domain state or cause external effects,
+  |                          directly or through explicitly bound child intents
+  +-- CalculationRequest     deterministic, pure computation; no mutation
+  +-- AnalyticalRequest      governed read, explanation, or inference; no mutation
 ```
+
+Three families are the whole kernel. What distinguishes them is one question:
+may this intent cause a material mutation or effect? Everything else that used
+to be a family is an attribute of a `ChangeRequest` definition:
+
+| Former family    | Now expressed as                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| `ProcessRequest` | `ChangeRequest` whose compiled plan has child intents and no single central write     |
+| `FilingRequest`  | `ChangeRequest` with `IRREVERSIBLE_EXTERNAL_MUTATION` side effect and correction rule |
+| `BatchOperation` | `ChangeRequest` with a declared `population_scope` and per-item child intents         |
+| `Case`           | Not an intent. A Case is a domain aggregate that owns linked child intents            |
+
+A family is added only when a funded domain proves that an attribute cannot
+express the distinction. `Case` and `FilingRequest` are reserved names for that
+event; they are not runtime classes today.
 
 `HCMChangeRequest` is the first `ChangeRequest` subtype, not the universal object
 for payroll runs, time punches, cases, filings, or analytics.
+
+### Layer budget
+
+One intent passes through at most these layers, in this order, and P1A uses
+only the first, second, and last:
+
+```text
+IntentInstance            what is wanted, by whom, for which subjects
+  -> capability call      one governed operation, when no workflow is needed
+  -> compiled workflow    only when approval, waiting, or ordering is required
+  -> domain command       produces validated planned appends
+  -> TransactionPlan      one atomic local commit
+  -> evidence             ledger, observation, reconciliation
+```
+
+No additional coordination layer may be inserted between these without a
+scope exchange.
 
 The semantic intent type is also not the kernel family. `PromoteWorker` is a
 versioned intent definition whose kernel family is `ChangeRequest`; it is not a
@@ -42,59 +71,109 @@ Conceptual and wire names map exactly:
 `BusinessIntentInstance` and `HCMChangeRequest` are explanatory/product aliases,
 not additional wire roots. New APIs and storage use the Protobuf names above.
 
-## Independent State Dimensions
+## Five Lifecycle Dimensions
+
+An intent carries exactly five state dimensions. Each answers one question that
+the others cannot:
 
 ```text
-IntentState:          DRAFT | SUBMITTED | ACCEPTED | REJECTED | CANCELLED | SUPERSEDED
-ProposalState:        DRAFT | PREFLIGHTED | SIMULATED | SUBMITTED | WITHDRAWN | SUPERSEDED
-ApprovalState:        NOT_REQUIRED | PENDING | PARTIAL | APPROVED | REJECTED | INVALIDATED
-ExecutionState:       NOT_PLANNED | SCHEDULED | REVALIDATING | EXECUTING | COMPLETED | BLOCKED | REPAIR_REQUIRED
-ExternalConsistency: NOT_APPLICABLE | PENDING | CONSISTENT | DEGRADED | UNKNOWN
-ReconciliationState: NOT_REQUIRED | PENDING | PASSED | FAILED | REPAIRING
-ClosureState:         OPEN | CLOSURE_ELIGIBLE | CLOSED | REOPENED
-BusinessState:        NOT_STARTED | IN_PROGRESS | COMPLETED | NOT_ACHIEVED | CORRECTED | UNKNOWN
-OperationalState:     NORMAL | DEGRADED | INCIDENT | MANUAL_CONTINUITY | RECOVERING
-ObligationState:      NOT_APPLICABLE | PENDING | SATISFIED | OVERDUE | WAIVED | DISPUTED | UNKNOWN
-OutcomeState:         NOT_DEFINED | PENDING_OBSERVATION | OBSERVED | INCONCLUSIVE | DISPUTED | EXPIRED
+RequestState       where is the request itself?
+  DRAFT | PREFLIGHTED | SIMULATED | SUBMITTED | APPROVED | REJECTED
+  | WITHDRAWN | CANCELLED | SUPERSEDED | CLOSED | REOPENED
+
+ExecutionState     what has the runtime done?
+  NOT_PLANNED | SCHEDULED | REVALIDATING | EXECUTING | COMMITTED
+  | BLOCKED | REPAIR_REQUIRED
+
+BusinessState      did the business outcome happen?
+  NOT_STARTED | IN_PROGRESS | COMPLETED | NOT_ACHIEVED | CORRECTED | UNKNOWN
+
+ConsistencyState   does observed external state agree with intent?
+  NOT_APPLICABLE | PENDING_OBSERVATION | CONSISTENT | DEGRADED
+  | REPAIRING | UNKNOWN
+
+ObligationState    are attached obligations discharged?
+  NOT_APPLICABLE | PENDING | SATISFIED | OVERDUE | WAIVED | UNKNOWN
 ```
 
-No single `status` substitutes for these dimensions. Runtime completion,
-business completion, external consistency, obligations, operations and later
-outcomes may legitimately differ.
+No single `status` substitutes for these five. Runtime commit, business
+completion, external consistency, and obligations may legitimately differ, and
+the product renders all five.
 
-Independence does not mean every tuple is legal. Each intent definition references
-a versioned `LifecycleCompatibilityProfile` containing allowed states, transition
-preconditions and cross-dimension implications. Universal constraints include:
+Things that were once separate dimensions and are now records or projections:
 
-- `CANCELLED` or `SUPERSEDED` cannot enter a new `EXECUTING` state;
-- `APPROVED` requires at least one valid requirement-level approval binding unless
-  the definition declares `NOT_REQUIRED`;
-- a material proposal revision invalidates every binding whose digest or control
-  snapshot no longer matches;
-- `CLOSED` requires the definition's obligation and reconciliation closure policy;
-- `REPLAY` requires an original execution binding; `REPAIR` requires a RepairPlan;
+| Former dimension      | Where it lives now                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| `ProposalState`       | Folded into `RequestState`; each `ProposalRevision` remains its own immutable record |
+| `ApprovalState`       | Folded into `RequestState`; each `ApprovalBinding` remains its own record            |
+| `ReconciliationState` | Merged into `ConsistencyState` (`REPAIRING` is the reconciliation-in-progress value) |
+| `ClosureState`        | `CLOSED` and `REOPENED` are `RequestState` values; `ClosureRecord` holds evidence    |
+| `OperationalState`    | A workflow-instance and incident projection, not an intent property                  |
+| `OutcomeState`        | An Intelligence outcome record referenced by `ClosureRecord.outcome_tracking_ref`    |
+
+Independence does not mean every tuple is legal, but legality is governed by a
+short fixed rule set, not a per-definition lattice:
+
+- `CANCELLED`, `SUPERSEDED`, `REJECTED`, or `WITHDRAWN` cannot enter `EXECUTING`;
+- `APPROVED` requires one valid requirement-level `ApprovalBinding` for the
+  current proposal revision unless the definition declares approval not required;
+- a new material proposal revision invalidates every `ApprovalBinding` whose
+  `approved_proposal_digest` differs from the current material digest (see the
+  materiality rule below);
+- `COMMITTED` requires a `CommitReceipt`; `REPAIR_REQUIRED` requires a linked
+  RepairPlan or incident;
+- `CLOSED` requires `ObligationState` in `{SATISFIED, WAIVED, NOT_APPLICABLE}` and
+  `ConsistencyState` not in `{PENDING_OBSERVATION, REPAIRING}` unless the
+  definition's closure policy explicitly permits closing with an open repair;
 - `UNSPECIFIED` is invalid for persisted active instances.
 
-The compatibility profile is enforced during definition publication, every
-command/CAS transition, projection rebuild, migration, replay and repair. Negative
-fixtures cover impossible tuples; projections may not repair an illegal tuple by
+These rules are enforced on every command transition and checked on projection
+rebuild, replay, and repair. A projection may not repair an illegal tuple by
 silently selecting a preferred status.
 
-Normal Promotion sequence:
+### Materiality rule for control snapshots
+
+A `ProposalRevision` records control snapshot digests (policy bundle, capability
+registry, reference data, classification taxonomy, DLP decision, and so on) as
+evidence of the context in which it was simulated. Those digests are **not**
+part of the material proposal digest and their change does **not** by itself
+invalidate approvals. Instead:
 
 ```text
-Draft intent
-  -> Preflight
-  -> Deterministic simulation
+control snapshot changed
+        |
+        v
+revalidate the proposal under the new snapshot
+        |
+        +-- material result unchanged -> approval stands; record revalidation
+        +-- material result changed   -> new revision; approvals invalidated
+        +-- mandatory deny appears    -> execution BLOCKED; approvals invalidated
+```
+
+"Material result" means the typed planned writes and effects, subjects,
+effective time, required approvals, reservations, and source-authority
+decisions for the written fields. The exact field list is the `PROPOSAL`
+canonicalization profile in the [Canonical Envelope and Digest
+Contract](canonical-envelope-and-digest.md). This keeps a tenant-wide policy
+republish from invalidating every pending approval in a compensation cycle
+while still guaranteeing that nothing executes under a stale decision.
+
+Normal Promotion sequence, with the `RequestState` / `ExecutionState` values
+in brackets:
+
+```text
+Draft intent                                   [DRAFT / NOT_PLANNED]
+  -> Preflight                                 [PREFLIGHTED]
+  -> Deterministic simulation                  [SIMULATED]
   -> Material proposal revision + CanonicalDigest
-  -> Submit exact digest
-  -> Resolve/collect approvals
-  -> Schedule
-  -> Execution-time revalidation
-       same material digest -> Execute
-       material difference  -> new revision + invalidate approvals
-  -> Observe/reconcile/repair
-  -> Close when obligations permit
+  -> Submit exact digest                       [SUBMITTED]
+  -> Resolve/collect approvals                 [APPROVED]
+  -> Schedule                                  [APPROVED / SCHEDULED]
+  -> Execution-time revalidation               [APPROVED / REVALIDATING]
+       same material digest -> Execute         [APPROVED / EXECUTING -> COMMITTED]
+       material difference  -> new revision    [SIMULATED / NOT_PLANNED]
+  -> Observe/reconcile/repair                  [ConsistencyState moves]
+  -> Close when obligations permit             [CLOSED]
 ```
 
 ## APIs and Rules
@@ -137,6 +216,7 @@ preflight/simulation results, approval bindings/invalidations, workflow and doma
 transaction references, cancellation/supersession/correction decisions,
 completion dimensions, obligations, closure decision, and retention actions.
 
-Gate A implements Draft through simulated/submitted proposal without execution.
-Gate B adds approval, schedule, revalidation, bounded execution, reconciliation,
-repair, and closure for Promotion only.
+P1A implements `RequestState` through `SIMULATED` and `SUBMITTED` without
+execution; `ExecutionState` stays `NOT_PLANNED`. P1B adds `APPROVED`,
+`SCHEDULED`, `REVALIDATING`, `EXECUTING`, `COMMITTED`, reconciliation, repair,
+and `CLOSED` for Promotion only.

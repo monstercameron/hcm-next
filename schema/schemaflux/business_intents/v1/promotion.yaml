@@ -56,7 +56,11 @@ definitions:
     required_capabilities: [people.promote.plan/v1, people.promote.execute/v1]
     governance_requirements: [governance.promotion/v1, approval.promotion/v1]
     preconditions: [people.active_employment/v1, position.target_valid/v1]
-    invariants: [people.single_primary_assignment_when_required/v1, position.capacity_not_exceeded/v1]
+    invariants:
+      [
+        people.single_primary_assignment_when_required/v1,
+        position.capacity_not_exceeded/v1,
+      ]
     idempotency_scope: tenant+employment+requested_effective_at+canonical_request
     conflict_footprint_rule: promotion_affected_fields_and_effective_interval/v1
     proposal_binding_rule: exact_material_proposal_digest/v1
@@ -87,8 +91,10 @@ definitions:
     risk_class: R4
     data_classification_floor: RESTRICTED_COMPENSATION
     subject_kinds: [EMPLOYMENT, ASSIGNMENT, COMPENSATION]
-    required_capabilities: [rewards.compensation.change.plan/v1, rewards.compensation.change.execute/v1]
-    governance_requirements: [governance.compensation_change/v1, approval.compensation_change/v1]
+    required_capabilities:
+      [rewards.compensation.change.plan/v1, rewards.compensation.change.execute/v1]
+    governance_requirements:
+      [governance.compensation_change/v1, approval.compensation_change/v1]
     preconditions: [rewards.currency_and_pay_basis_valid/v1]
     invariants: [rewards.non_overlapping_base_pay_intervals/v1]
     idempotency_scope: tenant+employment+pay_component+effective_at+canonical_request
@@ -258,7 +264,8 @@ definitions:
     data_classification_floor: CONFIDENTIAL_HR
     subject_kinds: [PROPOSAL, WORK_ITEM]
     required_capabilities: [work.proposal.approve/v1]
-    governance_requirements: [governance.approval_authority/v1, governance.separation_of_duties/v1]
+    governance_requirements:
+      [governance.approval_authority/v1, governance.separation_of_duties/v1]
     preconditions: [work.proposal_digest_current/v1]
     invariants: [approval.exact_digest_binding/v1]
     idempotency_scope: tenant+requirement+proposal_digest+principal

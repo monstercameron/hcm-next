@@ -281,27 +281,40 @@ format/lint/style checks, Playwright UX coverage, and separate code-style
 enforcement. Extract their acceptance intent into Go-native CI and browser
 checks; do not carry Node-based build tooling into the target pipeline.
 
-## Go-Only Cutover Rules
+## Cutover Rules
+
+The cutover is staged so that the rewrite is never the critical path for
+customer evidence:
+
+```text
+P1A   Go slice runs beside the legacy runtime. Legacy may serve the
+      workspace and existing routes; the Go slice owns intent, simulation,
+      observation, and evidence. Comparison evidence is collected here.
+
+P1B   Go owns the write path. Legacy is excluded from the release image.
+      No Node or TypeScript process is on the production request path.
+```
 
 1. Define the semantic capability and Protobuf schema before replacement code.
-2. Use grpcbridge to preserve browser/HTTP reach without creating a second
-   independent business contract.
-3. Use SchemaFlux as the structured compiler and compatibility/dependency gate
-   for the selected bounded catalogs.
+2. Use the qualified transport edge (grpcbridge or its named fallback) to
+   preserve browser/HTTP reach without creating a second business contract.
+3. Use the qualified generator (SchemaFlux or plain Protobuf codegen) for the
+   selected bounded catalogs.
 4. Move deterministic Go blocks into owned Go domain packages instead of
    retaining a permanent process hop solely for historical layout parity.
-5. Implement required old endpoint compatibility in grpcbridge and Go; do not
-   retain a Node or TypeScript compatibility service.
+5. Legacy code is not extended with new behavior. During P1A it may keep
+   running as-is beside the Go slice; a Node compatibility service does not
+   survive into P1B.
 6. Compare ledger events, approval outcomes, projection changes, outbox
    operations, errors, and AuthZ explanations between old and new paths.
 7. Use offline comparison, deterministic replay, or simulation before moving
-   write authority; do not require the legacy runtime in production.
+   write authority; the legacy runtime is not required in production after P1B.
 8. Prefer open-source, operationally simple dependencies; total operating cost
    and exit path matter more than license price alone.
 
 ## Acceptance Evidence
 
-A cutover-ready vertical slice is not complete until it demonstrates:
+A P1B cutover-ready slice is not complete until it demonstrates:
 
 ```text
 contract compatibility
@@ -310,15 +323,16 @@ legacy scenario parity
        +
 new safety invariants
        +
-replay/recovery behavior
+recovery behavior
        +
-GoWebComponents accessibility
+workspace accessibility (GWC or the Go SSR fallback)
        +
 operator debug evidence
        =
-Go-only release-ready slice
+Go-owned write path, legacy excluded from release
 ```
 
-At minimum, rerun the legal-name, headcount-gate, and organization-transfer
-fixtures where relevant. Historical markdown checklists are never substituted
-for current CI output.
+P1A requires only the first two and the comparison evidence. At minimum, rerun
+the legal-name, headcount-gate, and organization-transfer fixtures where
+relevant. Historical markdown checklists are never substituted for current CI
+output.

@@ -1,6 +1,23 @@
 # Human Work, Forms, and Business Rules
 
-This specification defines three reusable business-interaction kernels that sit beside the [Workflow Execution Kernel](workflow-runtime.md). They are separate services because workflow structure, human work, data collection, and business decision logic evolve independently.
+This specification defines three business-interaction models that sit beside the [Workflow Execution Kernel](workflow-runtime.md). They are three models in one Go package, not three services: workflow structure, human work, data collection, and business decision logic evolve independently, but nothing in Phase 1 needs them deployed or versioned separately.
+
+## Phase 1 Packaging
+
+```text
+internal/work/
+  items      WorkItem, claim, complete            P1B
+  approvals  ApprovalDecision bound to proposal   P1B
+  reason     a typed reason field on approval     P1B  (no form engine)
+  thresholds one decision table from tenant config P1A (no expression language)
+```
+
+P1B needs one approval WorkItem with a reason field and one threshold table
+resolved at compile time. The queue, delegation, SLA, and escalation models,
+the questionnaire engine, and the expression language are contracts only until
+a second workflow family needs them. Their lifecycle in Phase 1 is
+`DRAFT -> PUBLISHED -> RETIRED`; the full lifecycle below applies when the
+`MANAGED` registry profile exists.
 
 ```text
                     WORKFLOW KERNEL
@@ -381,25 +398,25 @@ Use Protobuf for contracts, PostgreSQL for durable state/versioning, SchemaFlux 
 
 ## Phase Classification
 
-| Capability                                 | Phase 1 depth                             |
-| ------------------------------------------ | ----------------------------------------- |
-| Approval/review WorkItem lifecycle         | **IMPLEMENT**                             |
-| Queue, assignment, claim, reassignment     | **IMPLEMENT** to pilot depth              |
-| Delegation, SLA, escalation                | **MINIMAL CONTRACT**                      |
-| Promotion approval/reason form             | **IMPLEMENT**                             |
-| General conditional/repeated questionnaire | **DESIGN / CONFORMANCE ONLY**             |
-| Typed expression/decision-table compiler   | **MINIMAL CONTRACT** for pilot thresholds |
-| Customer-authored arbitrary formulas       | **OUT OF PHASE**                          |
-| Case/service-catalog specialization        | **OUT OF PHASE**                          |
+| Capability                                   | P1A                       | P1B                                           |
+| -------------------------------------------- | ------------------------- | --------------------------------------------- |
+| Approval WorkItem: create, claim, complete   | **OUT**                   | **IMPLEMENT** (one item type)                 |
+| Typed reason field on approval               | **OUT**                   | **IMPLEMENT**                                 |
+| Threshold decision table from tenant config  | **IMPLEMENT** (read-only) | **IMPLEMENT**                                 |
+| Queue, assignment strategy, reassignment     | **OUT**                   | **MINIMAL CONTRACT** (direct assignment only) |
+| Delegation, SLA, escalation                  | **OUT**                   | **DESIGN / CONFORMANCE ONLY**                 |
+| Form engine (sections, repeat groups, rules) | **OUT**                   | **DESIGN / CONFORMANCE ONLY**                 |
+| Expression language and formula rules        | **OUT**                   | **OUT** until a second workflow family        |
+| Customer-authored arbitrary formulas         | **OUT**                   | **OUT**                                       |
+| Case/service-catalog specialization          | **OUT**                   | **OUT**                                       |
 
 ## Phase 1 Acceptance Contract
 
-- Approval/task responsibility survives worker-process failure and recipient relationship changes.
+- Approval responsibility survives worker-process failure and recipient relationship changes.
 - Two principals cannot claim an exclusive WorkItem concurrently.
-- Completion rechecks authority, proposal/item version, form schema, evidence, and separation of duties.
-- The Promotion form preserves exact questions, visibility, locale, rules, answers, and submission evidence.
+- Completion rechecks authority, proposal/item version, reason presence, evidence, and separation of duties.
+- The approval reason and decision are preserved with the exact proposal digest they were made against.
 - Hidden/unauthorized fields never reach the browser or message template.
-- Client and server validation use one compiled rule definition, with the server authoritative.
-- Rules are deterministic, bounded, side-effect free, versioned, explainable, and simulation-safe.
+- The threshold table is deterministic, bounded, versioned with the tenant configuration, and explainable.
 - A business rule cannot bypass AuthZ, Legal obligations, approval binding, or execution revalidation.
 - WorkItem, FormSubmission, RuleEvaluation, workflow node, communication intent, and ledger evidence are traversable through correlation identifiers.

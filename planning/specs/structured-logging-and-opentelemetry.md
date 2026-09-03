@@ -127,7 +127,7 @@ attempt and repair execution must not pretend to be one permanently open span.
 Retries create attempt spans linked to one logical-operation identity.
 
 Span status is set only for the span's operation. A business outcome such as
-`ExternalConsistency=DEGRADED` is an attribute/reference, not automatically a
+`ConsistencyState=DEGRADED` is an attribute/reference, not automatically a
 failed HTTP span. Provider acceptance never becomes transaction completion.
 
 ## Propagation

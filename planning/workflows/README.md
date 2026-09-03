@@ -5,8 +5,24 @@ It begins with concrete legacy workflow configurations, extracts their useful
 behavior, identifies unsafe or incomplete behavior, and then expands outward to
 adjacent HCM workflows.
 
-Nothing in this directory is implementation evidence. Each workflow has one of
-these discovery states:
+Nothing in this directory is implementation evidence. These documents were
+written against an earlier normative vocabulary and are read through this
+mapping; they are not updated individually:
+
+```text
+seven kernel families      -> three: CHANGE_REQUEST, CALCULATION_REQUEST,
+                              ANALYTICAL_REQUEST (process, filing, batch, case
+                              are ChangeRequest attributes)
+eleven lifecycle dimensions -> five: RequestState, ExecutionState,
+                              BusinessState, ConsistencyState, ObligationState
+seventeen step types        -> ten core + three structural; CHECKPOINT is a
+                              safe_point attribute, RULE is DECISION+rule_ref,
+                              AGENT and DOCUMENT are CAPABILITY calls
+530-slot catalog / 807 vocabulary -> non-normative naming reference; the
+                              catalog is the fourteen drafted definitions
+```
+
+Each workflow has one of these discovery states:
 
 ```text
 EXTRACTED       concrete legacy configuration exists

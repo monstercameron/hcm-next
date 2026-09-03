@@ -126,19 +126,20 @@ The responsibilities remain distinct:
 `BusinessIntent` means something a human, agent, service, schedule, rule, or
 external event wants HCM Next to accomplish or answer.
 
-The stable kernel has seven families:
+The stable kernel has three families, distinguished by one question: may this
+intent cause a material mutation or effect?
 
 ```text
 BusinessIntent
   |
-  +-- ChangeRequest         governed domain mutation
-  +-- ProcessRequest        durable multi-step business process
-  +-- CalculationRequest    deterministic calculation
-  +-- FilingRequest         regulated filing or submission
-  +-- Case                  service, investigation, or confidential matter
-  +-- BatchOperation        bounded population operation
+  +-- ChangeRequest         may mutate or cause effects, directly or via
+  |                         explicitly bound child intents
+  +-- CalculationRequest    deterministic, pure computation
   `-- AnalyticalRequest     governed query, explanation, or inference
 ```
+
+Process, filing, batch, and case semantics are attributes of a `ChangeRequest`
+definition, not extra families.
 
 Semantic intent names such as `ChangeManager`, `RunPayroll`, or
 `AnalyzeTurnover` do not create new runtime classes. They are immutable,
@@ -146,17 +147,20 @@ versioned `IntentDefinition`s with typed Protobuf input/output, ownership,
 governance, side effects, idempotency, conflict, evidence, reliability, and
 outcome contracts.
 
-The supplied semantic vocabulary contains 530 proposed candidates. Fourteen are
-currently recorded as draft definitions; the remaining 516 still require
-lossless ingestion into governed source partitions. Proposed or catalogued does
-not mean executable. Only definitions that advance through the governed maturity
-lifecycle may be invoked:
+The catalog is the fourteen definitions that exist in repository source. A
+larger intake list of candidate names is kept only as naming vocabulary; it has
+no maturity state and no work depends on it. Only definitions that advance
+through the maturity lifecycle may be invoked:
 
 ```text
-CATALOGUED -> DRAFT_CONTRACT -> CONTRACTED -> COMPILED -> PUBLISHED
-                                                        |
-                                           DEPRECATED -> RETIRED
+DRAFT_CONTRACT -> CONTRACTED -> COMPILED -> PUBLISHED
+                                          |
+                             DEPRECATED -> RETIRED
 ```
+
+Each intent carries five lifecycle dimensions and no universal status:
+`RequestState`, `ExecutionState`, `BusinessState`, `ConsistencyState`, and
+`ObligationState`.
 
 See the [Business Intent Catalog](planning/specs/business-intent-catalog.md) and
 the canonical [Protobuf contract](schema/proto/hcmnext/intents/v1/business_intent.proto).
@@ -244,14 +248,18 @@ Parent completion cannot erase or collapse child truth.
 
 ## Workflow coordinates; domains own meaning
 
-The workflow kernel understands a small set of durable primitives:
+The workflow kernel understands ten core primitives and three gated structural
+ones:
 
 ```text
-CAPABILITY  DECISION  RULE       APPROVAL   TASK
-WAIT        SIGNAL    PARALLEL   JOIN       SUBWORKFLOW
-TRANSFORM   AGENT     DOCUMENT   OBSERVE    CHECKPOINT
-COMPENSATE  END
+core        CAPABILITY  DECISION  TRANSFORM  OBSERVE  END
+            APPROVAL    TASK      WAIT       SIGNAL   COMPENSATE
+
+structural  PARALLEL    JOIN      SUBWORKFLOW        (after P1B evidence)
 ```
+
+Safe points are a node attribute the compiler places; rules, agents, and
+documents are capabilities, not node types.
 
 It does not own salary calculation, tax, worker storage, legal interpretation,
 email delivery, vendor API behavior, or AI authority. It invokes typed capabilities
@@ -304,12 +312,10 @@ ledger events + critical projections + intent state + outbox
 Completion is multidimensional:
 
 ```text
-RuntimeState          COMPLETED
-BusinessState         COMPLETED
-ExternalConsistency  DEGRADED
-ReconciliationState  REPAIR_REQUIRED
-OperationalState     INCIDENT
-ObligationState       SATISFIED
+ExecutionState     COMMITTED
+BusinessState      COMPLETED
+ConsistencyState   DEGRADED       (RepairPlan linked)
+ObligationState    SATISFIED
 ```
 
 If Jane is promoted but one downstream access grant fails, Jane remains promoted.
@@ -368,6 +374,10 @@ Stage 4  selected system of record
 Stage 5  Workforce Operating System
          native and external domains share one intent architecture
 ```
+
+Stages 1 and 2 are the product plan. Stages 3 to 5 are options that each
+require their own evidence gate, and nothing in the kernel, catalog, planes, or
+data models is sized to them.
 
 The initial competitive proposition is not “replace UKG” or “replace Workday.”
 It is:
@@ -452,36 +462,36 @@ without becoming universal synchronous dependencies.
 
 ## Technology constitution
 
-The target product and toolchain are Go-only:
+The product core is Go: services, workflow runtime, domains, data, connectors,
+and operations. Three house libraries are the preferred, not mandatory, choice
+for their roles, and each must pass a named qualification fixture before it is
+a release dependency:
 
 ```text
-                         Go
-                          |
-          +---------------+---------------+
-          v               v               v
-   GWC / GoWebComponents  grpcbridge      SchemaFlux
-      experience UI       transport       definitions/compiler
-          +---------------+---------------+
-                          |
-                          v
-                Go domain/runtime packages
-                          |
-                          v
-          Protobuf/gRPC + governed infrastructure
+                         Go product core
+                              |
+          +-------------------+-------------------+
+          v                   v                   v
+   GWC / GoWebComponents   grpcbridge          SchemaFlux
+   preferred UI            preferred edge      preferred generator
+   fallback: Go SSR HTML   fallback: grpc-gateway / connect-go
+                                               fallback: protoc + Go codegen
+          +-------------------+-------------------+
+                              |
+                              v
+                Protobuf/gRPC + PostgreSQL + OpenTelemetry
 ```
 
-- **GWC / GoWebComponents** owns Go-authored browser and presentation behavior.
-- **grpcbridge** adapts HTTP, gRPC-Web, WebSocket, and SSE to canonical gRPC.
-- **SchemaFlux** validates and compiles structured platform definitions.
 - **Protobuf** is canonical for service and typed payload contracts.
-- PostgreSQL, OpenTelemetry, object storage, and reviewed low-cost/open-source
+- **PostgreSQL**, OpenTelemetry, object storage, and reviewed open-source
   infrastructure support the core; they do not replace it.
+- Node-based developer tooling (browser test runners, formatters) is allowed
+  in the development toolchain. It is excluded from the release image and the
+  runtime.
+- Legacy TypeScript and React code is not extended. It may run beside the Go
+  slice during P1A for comparison; its exclusion from the release is a P1B gate.
 
-No new TypeScript, JavaScript application framework, Node service, or parallel
-REST business implementation belongs in the target architecture. Existing Node,
-TypeScript, and React files are legacy evidence and must not be extended.
-
-See the [Go-Only Technology Constitution](planning/specs/go-only-technology-constitution.md).
+See the [Go Technology Constitution](planning/specs/go-only-technology-constitution.md).
 
 ## Repository map
 
@@ -516,7 +526,11 @@ planning/plan.md
   strategy + architecture constitution
         |
         +-- planning/execution-plan.md
-        |     delivery scope and sequencing
+        |     delivery gates and acceptance
+        |
+        +-- planning/next-steps.md
+        |     exact P1A / P1B release contents; wins over any spec's
+        |     phase table where they disagree
         |
         +-- planning/specs/*.md
         |     owned subsystem contracts
@@ -527,6 +541,10 @@ planning/plan.md
 schema/proto + schema/schemaflux + migrations + executable tests
   authoritative over prose where implementation exists
 ```
+
+The adversarial audits under `planning/specs/adversarial-*` are frozen inputs.
+No further audit pass is run until P1A executes; findings close by test or by
+explicit deferral, not by more contract prose.
 
 Important starting points:
 
@@ -561,8 +579,12 @@ When changing architecture or implementation:
 3. Preserve intent, domain, execution, observation, and outcome truth separately.
 4. Add or update a reference/conformance scenario.
 5. Keep Phase 1 implementation depth explicit.
-6. Use Go, GWC, grpcbridge, SchemaFlux, and canonical Protobuf contracts.
+6. Use Go and canonical Protobuf contracts; use GWC, grpcbridge, and SchemaFlux
+   where they have passed their qualification fixtures, and their named
+   fallbacks otherwise.
 7. Do not extend the legacy TypeScript/Node runtime.
+8. Do not add a lifecycle dimension, kernel family, workflow primitive, or
+   coordination layer without a scope exchange recorded in the execution plan.
 
 ## License
 

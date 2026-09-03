@@ -1,5 +1,27 @@
 # Thirty-Two-Reviewer Adversarial Audit — 2026-08-14
 
+## Method boundary and closure policy (added 2026-09-02)
+
+This audit is a frozen input. It is not re-run, extended, or answered with
+further contract prose. The rules for using it:
+
+- **No audit pass until P1A executes.** Model-generated review of
+  model-generated planning converges on more planning. The next review is of
+  running code and its tests.
+- **A finding closes in exactly one of three ways:** a test that exercises
+  the defect, an explicit `DEFERRED` disposition naming the gate that owns
+  it, or `NOT_APPLICABLE` with a one-line reason. "Contract patch required"
+  is not a closure; it is a request that must resolve to one of the three.
+- **Findings against the legacy TypeScript runtime** (the `LEGACY CUTOVER
+BLOCKER` class) are `NOT_APPLICABLE` to the target and are recorded as
+  negative tests the Go slice must pass; they are not tracked as open defects.
+- **Findings against deferred systems** (agents, messaging beyond one email,
+  billing, regulatory, Gate C trust work) are `DEFERRED` to the gate that owns
+  the system and do not appear on the P1A/P1B list.
+- **The P1A/P1B working list** is the subset of findings that map to a Tier 1
+  rule in the workflow-context contract or to a P1A/P1B acceptance bullet in
+  the execution plan. Everything else waits.
+
 ## Scope and evidence rule
 
 Thirty-two independent GPT-5.6 Luna reviewers examined the HCM Next planning,

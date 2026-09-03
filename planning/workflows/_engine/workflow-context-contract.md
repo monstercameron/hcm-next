@@ -6,6 +6,41 @@ the exploratory [workflow context](workflow-context-layers.md) and
 [step catalog](step-types.md). It is a target contract, not implementation
 evidence.
 
+## 0. Enforcement tiers
+
+Every rule in this document carries one of three tiers. A rule without a tier
+marker is Tier 3. Only Tier 1 rules are acceptance criteria for P1A or P1B;
+a Tier 2 or 3 rule cannot block a release.
+
+```text
+Tier 1  ENFORCED in P1A/P1B      tested before the release ships
+Tier 2  GATE C                   contracted; tested before general authority
+Tier 3  RESEARCH                 recorded so a later contract has a starting
+                                 point; may be simplified or dropped
+```
+
+Tier 1 rules, in full:
+
+- §1 boundary invariant: no input is trusted for arriving.
+- §2 typed context: undeclared reads fail; masked/stale/unknown is `UNKNOWN`.
+- §3 ingress: receipt persisted before acknowledgement; same provider ID with
+  different bytes is an incident; `AMBIGUOUS` correlation never advances
+  material work.
+- §4 mapping: no floats, no server-local time; `EXTERNAL_MASTER` never
+  promotes state without an owner observation; timeout-after-send is
+  `AMBIGUOUS`.
+- §6 authorization: deny dominates; material unknown fails closed;
+  `DataAccessManifest` on every rendered field.
+- §7 identity and approvals: server-derived principal; decision binds the
+  proposal digest and the rendered-projection digest the server issued
+  (see the simplified receipt rule in §7); `SAFE_TO_DECIDE` gate.
+- §9 runtime: actual reads/writes/effects are declared subsets; pure nodes
+  read no ambient state; cancellation fence checked at claim/prepare/commit.
+- §10: the five intent dimensions and the `InterventionPreview` for cancel.
+- §12 negative families 1, 4, 7, 8, 10, 15, 16, 17.
+
+Everything else is Tier 2 or Tier 3 as marked in place.
+
 ## 1. Boundary invariant
 
 No external event, legal result, authorization result, human decision, agent
@@ -198,7 +233,13 @@ Exactly one writer exists at cutover. Stale queued authority epochs become
 `HANDOFF_REVIEW`; they are drained, cancelled, quarantined or replanned, never
 silently sent under new policy.
 
-## 5. Legal context
+## 5. Legal context (Tier 2, except where noted)
+
+Phase 1 legal context is one versioned rule pack of customer-configured
+thresholds and notice obligations, evaluated to `LegalEvaluationStatus` and
+bound through `ObligationBinding` (those two structures are Tier 1). The
+jurisdiction graph, deadline calculus, temporal legal policy, and counsel
+decision model below are Tier 2 and are not Phase 1 dependencies.
 
 Jurisdiction is resolved separately per domain:
 
@@ -392,11 +433,15 @@ denominator and task reassignment. A timer's `RECOMPUTE` recalculates only its
 referenced time/calendar value; legal reevaluation is a separate bound
 capability, even though both use the same change-reaction vocabulary.
 
-The approver view produces an `ApprovalPresentationReceipt` binding proposal,
-requirement and candidate digests; rendered summary/full diff; displayed/hidden
-field manifest; redaction decision-safety; sources/freshness/uncertainty;
-warnings/effects/cost/reversibility; and locale/translation/accessibility versions.
-Material hidden data blocks or routes to authorized specialist review.
+The approver view is rendered by the server from the proposal revision, and
+the server records the digest of what it rendered (visible fields, hidden-field
+manifest, warnings, effects) keyed by task version. That is the whole receipt
+mechanism in Phase 1 (Tier 1): a decision references the task version, and the
+server binds the proposal digest and the rendered-projection digest it holds
+for that version. A separate client-held `ApprovalPresentationReceipt` token,
+session binding, and expiry are Tier 2 and are added only if a threat model
+shows the server-side record is insufficient. Material hidden data blocks or
+routes to authorized specialist review.
 
 ```text
 DecisionSafetyStatus
@@ -410,12 +455,11 @@ Only `SAFE_TO_DECIDE` permits the ordinary approval route. Other states bind the
 affected fields/reasons and route to a separately authorized reveal, specialist
 review, additional evidence or denial without exposing protected values.
 
-Vote submission references a server-issued, unexpired presentation receipt. The
-server verifies the receipt belongs to the same principal/session (or an
-explicitly permitted resumed session), requirement revision, proposal digest,
-visible projection and current invalidator set. A client-supplied digest without
-that receipt is not decision evidence. Material re-rendering or loss of access
-invalidates the receipt and requires review again.
+Vote submission references the task version. The server verifies that the
+requirement revision, proposal digest, and rendered-projection digest it holds
+for that version are still current and that the principal still has authority.
+A client-supplied digest is never decision evidence. Material re-rendering or
+loss of access advances the task version and requires review again.
 
 Human Work uses a revisioned item, candidate/assignment snapshots and a fenced
 `ClaimLease`. Completion requires current authority, item CAS, live claim fence,
@@ -489,18 +533,19 @@ Actual reads/writes/effects must be declared subsets; expansion aborts and may
 quarantine the version. Pure nodes cannot read ambient clock, locale, environment,
 network, flags or mutable cache.
 
-Every `PARALLEL` fork binds a `ReadConsistencyVector` containing relevant domain
-and source watermarks, stream heads, legal/AuthZ/policy/reference versions and
-effective/known time. Branches use that vector or declare weaker consistency plus
-explicit reconciliation. `JOIN` verifies compatible vectors; incompatible
-material reads cause revalidation/recompute instead of combining effects.
+(Tier 2, applies once `PARALLEL` exists.) Every `PARALLEL` fork binds a
+`ReadConsistencyVector` containing relevant domain and source watermarks,
+stream heads, legal/AuthZ/policy/reference versions and effective/known time.
+Branches use that vector or declare weaker consistency plus explicit
+reconciliation. `JOIN` verifies compatible vectors; incompatible material reads
+cause revalidation/recompute instead of combining effects.
 
-Every `SUBWORKFLOW` binds `ChildAuthorityScope`: tenant/cell/org, subjects and
-population, capabilities, fields, purpose, classification, destinations,
-risk/effect classes and budgets. Effective scope is the intersection of
-parent-approved, caller and child-policy scopes. Expansion requires a separate
-governed expansion proposal/certificate. Child closure returns used-scope
-evidence for parent verification.
+(Tier 2, applies once `SUBWORKFLOW` exists.) Every `SUBWORKFLOW` binds
+`ChildAuthorityScope`: tenant/cell/org, subjects and population, capabilities,
+fields, purpose, classification, destinations, risk/effect classes and budgets.
+Effective scope is the intersection of parent-approved, caller and child-policy
+scopes. Expansion requires a separate governed expansion proposal/certificate.
+Child closure returns used-scope evidence for parent verification.
 
 Material transactions carry one multi-stream write-set manifest, expected heads,
 effective intervals, reservations and deterministic lock keys. Cross-store work
@@ -515,13 +560,18 @@ never reruns success or hides one changed subject.
 
 ## 10. Completion, intervention and explainability
 
-Completion dimensions remain independent:
+Completion dimensions are the intent kernel's five, plus the workflow
+instance's own `runtime_status`:
 
 ```text
-RuntimeState | BusinessState | LocalCommitState | ExternalConsistency |
-ReconciliationState | ObligationState | HumanInteractionState |
-OperationalState | EvidenceCompleteness
+RequestState | ExecutionState | BusinessState | ConsistencyState |
+ObligationState        (intent)
+runtime_status         (workflow instance)
 ```
+
+Local commit state is `ExecutionState`; human-interaction state lives on the
+WorkItem; operational state is an incident projection; evidence completeness is
+recorded on the `ClosureRecord`. None of those is a sixth intent dimension.
 
 Provider submission/acceptance is not observed application. Parents preserve
 child partial/unknown/mandatory obligations. Closure binds proposal/plan/execution
@@ -572,6 +622,9 @@ bounded replay. Every capability declares fail-closed, queue, read-only, verifie
 stale, disable-AI or manual degradation plus owner/recovery.
 
 ## 12. Required negative conformance families
+
+Families 1, 4, 7, 8, 10, 15, 16, and 17 are Tier 1 and gate P1A/P1B. The
+rest are Tier 2 and gate general authority.
 
 1. Forged/duplicate/conflicting/late/out-of-order/gapped ingress.
 2. Ambiguous crosswalk, lossy mapping, partial scan and false deletion.

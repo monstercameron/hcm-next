@@ -1,5 +1,15 @@
 # Adversarial Gap Analysis and Closure Contract — 2026-08-13
 
+## Method boundary (added 2026-09-02)
+
+This document is a frozen input under the same closure policy as the
+[2026-08-14 audit](adversarial-audit-32-reviewers-2026-08-14.md): findings
+close by test, explicit deferral, or not-applicable; no further audit passes
+run until P1A executes; findings on the legacy runtime or on deferred systems
+are not on the P1A/P1B list. Where this document's dispositions say "closed
+contractually below," read that as `DEFERRED` to the gate that owns the
+system unless a P1A/P1B acceptance bullet names it.
+
 ## Scope and method
 
 This review covers the post-extraction planning and schema corpus. It searches for

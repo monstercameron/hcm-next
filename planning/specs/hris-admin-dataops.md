@@ -32,6 +32,36 @@ The toolkit follows three rules:
 2. Preview, simulation, approval, execution, reconciliation, and repair use the same contracts as ordinary ChangeOps.
 3. An internal tool becomes a customer product only when its authorization, tenant isolation, evidence, usability, support ownership, and marginal operating cost are acceptable.
 
+## The P1A Slice and Its Product Test
+
+P1A ships four operator surfaces because the Promotion pilot cannot run
+without them:
+
+```text
+Cross-system diff             the intended-versus-observed view
+Effective-date debugger       "what was effective" vs "what did we know"
+Connector test bench          read-only; redrive is P1B
+AuthZ explainer               why this field is masked for this principal
+```
+
+The product hypothesis is that these four are worth paying for on their own,
+independent of any write path. The test is stated now so it cannot be
+rationalized later:
+
+```text
+DataOps is a product candidate when, during the P1A pilot:
+  - a partner administrator opens the diff or debugger without being asked
+    to, at least weekly, for four consecutive weeks, and
+  - at least one incumbent-system defect is found through the diff before the
+    partner's own process finds it, and
+  - the partner names a price they would pay for the four surfaces alone.
+
+Otherwise DataOps stays an operator toolkit and its remaining candidates are
+not scheduled.
+```
+
+Everything below the P1A slice is a candidate list, deliberately unranked.
+
 ## Capability Families
 
 ```text
@@ -82,39 +112,39 @@ HRIS DataOps
     └── promotion
 ```
 
-## System Inventory
+## Candidate Inventory (unranked)
 
-| #   | Capability                        | Reused foundation                                      | Product value |
-| --- | --------------------------------- | ------------------------------------------------------ | ------------- |
-| 1   | Data Import and Staging           | Schemas, mappings, validation, transactions, reconcile | Very high     |
-| 2   | Cross-System Data Diff            | Observations, authority, reconciliation                | Very high     |
-| 3   | Effective-Date Debugger           | Bitemporal ledger and projections                      | Very high     |
-| 4   | Bulk Change Planner               | TransactionPlan, conflict, simulation, workflow        | Very high     |
-| 5   | AuthZ Simulator and Explainer     | Explainable authorization decisions                    | Very high     |
-| 6   | Connector Test Bench              | Connector manifests, mappings, secrets, fakes          | High          |
-| 7   | Failed Integration Redrive        | Outbox, idempotency, observation, RepairPlan           | Very high     |
-| 8   | Reference-Data Crosswalk          | Master/reference data and external mappings            | Very high     |
-| 9   | Organization Graph Validator      | Organization graph, data quality, invariants           | High          |
-| 10  | Data Quality Rules                | Validation, quality, invariant execution               | Very high     |
-| 11  | Identity and Duplicate Finder     | Identity claims, matching, search, review              | High          |
-| 12  | Configuration Diff                | Versioned configuration and provenance                 | Very high     |
-| 13  | Configuration Promotion           | Bundles, sandbox, approval, rollout, rollback          | Very high     |
-| 14  | Ledger and Provenance Query       | Assertion classes, causality, provenance graph         | Very high     |
-| 15  | Schema and Contract Inspector     | Protobuf/schema registry and compatibility             | High          |
-| 16  | API and Capability Explorer       | Capability Registry and manifests                      | High          |
-| 17  | Webhook and Event Simulator       | Event schemas, subscriptions, signing, replay          | High          |
-| 18  | Mapping Transformation Engine     | Source/canonical/destination transforms                | Very high     |
-| 19  | Scheduled Extract                 | Governed query, artifacts, delivery                    | Very high     |
-| 20  | Point-in-Time Snapshot Export     | Effective/recorded time and temporal queries           | High          |
-| 21  | Impact Analysis                   | Provenance/dependency graph and manifests              | Very high     |
-| 22  | Dependency Finder                 | Registry relationships and version adoption            | High          |
-| 23  | Change Set and Deployment Package | Configuration bundle and promotion                     | High          |
-| 24  | Idempotency Inspector             | Command/event identity and suppression evidence        | Medium        |
-| 25  | Field-Level Audit Export          | Ledger, field lineage, authorization, evidence         | High          |
-| 26  | Workflow Execution Inspector      | Compiled plan, durable nodes, tasks, attempts, traces  | Very high     |
-| 27  | Communication Delivery Inspector  | Intent, audience, render, attempts, evidence, signals  | High          |
+Value is assigned by partner use, not by this table. Candidates are listed by
+the foundation they reuse so that a later decision can see what each one
+costs.
 
-These are logical tools, not 27 services. Phase 1 should implement shared Go packages and a small number of admin capability families.
+| Candidate                                 | Reused foundation                                      |
+| ----------------------------------------- | ------------------------------------------------------ |
+| Data Import and Staging                   | Schemas, mappings, validation, transactions, reconcile |
+| Cross-System Data Diff (P1A)              | Observations, authority, reconciliation                |
+| Effective-Date Debugger (P1A)             | Bitemporal ledger and projections                      |
+| Bulk Change Planner                       | TransactionPlan, conflict, simulation, workflow        |
+| AuthZ Explainer (P1A)                     | Explainable authorization decisions                    |
+| Connector Test Bench (P1A)                | Connector manifests, mappings, secrets, fakes          |
+| Failed Integration Redrive (P1B)          | Outbox, idempotency, observation, RepairPlan           |
+| Reference-Data Crosswalk                  | Master/reference data and external mappings            |
+| Organization Graph Validator              | Organization graph, data quality, invariants           |
+| Data Quality Rules                        | Validation, quality, invariant execution               |
+| Identity and Duplicate Finder             | Identity claims, matching, search, review              |
+| Configuration Diff and Promotion          | Versioned configuration, bundles, rollout, rollback    |
+| Ledger and Provenance Query               | Assertion classes, causality, provenance graph         |
+| Schema, Capability, Dependency Inspectors | Registries and manifests                               |
+| Webhook and Event Simulator               | Event schemas, subscriptions, signing, replay          |
+| Mapping Transformation Engine             | Source/canonical/destination transforms                |
+| Scheduled Extract and Snapshot Export     | Governed query, temporal queries, delivery             |
+| Impact Analysis                           | Provenance/dependency graph and manifests              |
+| Idempotency Inspector                     | Command/event identity and suppression evidence        |
+| Field-Level Audit Export                  | Ledger, field lineage, authorization, evidence         |
+| Workflow Execution Inspector              | Compiled plan, durable nodes, tasks, attempts, traces  |
+| Communication Delivery Inspector          | Intent, audience, render, attempts, evidence, signals  |
+
+These are logical tools, not services. A candidate is scheduled only after the
+P1A product test passes and a partner names it.
 
 ## First Six Operator Surfaces
 
@@ -150,7 +180,7 @@ CSV / XLSX / API / bounded SFTP
                 reconciliation
 ```
 
-An import never becomes a hidden bulk database write. Valid rows compile into ordinary `BusinessIntent` or `HCMChangeRequest` instances, grouped under a `BatchOperation`.
+An import never becomes a hidden bulk database write. Valid rows compile into ordinary `BusinessIntent` or `HCMChangeRequest` instances, grouped under one population-scoped `ChangeRequest` parent.
 
 ```text
 ImportBatch
@@ -511,18 +541,18 @@ Use low-cost/open tooling at boundaries:
 
 ## Phasing
 
-| Capability group                             | Phase 1 posture                                         | Productization gate                                      |
-| -------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------- |
-| Import/staging for pilot configuration/data  | Implement bounded CSV/API path                          | Repeated admin use and safe resumable commit             |
-| Cross-system diff and reconciliation view    | Implement for pilot fields and systems                  | Useful independently of the Promotion workflow           |
-| Effective-date and provenance debugger       | Implement read-only operator view                       | Design partners can self-diagnose without support access |
-| AuthZ simulator                              | Implement for pilot policies                            | Explanation is safe, complete, and supportable           |
-| Connector test bench and redrive             | Implement for the first connector                       | Redrive evidence and idempotency pass failure tests      |
-| Configuration diff and promotion             | Implement only for shipped versioned artifacts          | Multiple environments/customers need repeatable changes  |
-| Crosswalk and mapping                        | Minimal contract plus first connector mappings          | Second system proves reusable mapping semantics          |
-| Bulk change, scheduled extract, snapshot     | Design/conformance only unless required by a paid pilot | Workload, DLP, and resumability limits are proven        |
-| Identity finder, graph validator, quality UI | Reuse internal checks; expose selectively               | False-positive and remediation experience is acceptable  |
-| General explorers, packages, event simulator | Later implementation                                    | Registry maturity and customer demand                    |
+| Capability group                             | P1A                                        | P1B                                  | Productization gate                           |
+| -------------------------------------------- | ------------------------------------------ | ------------------------------------ | --------------------------------------------- |
+| Cross-system diff and reconciliation view    | **IMPLEMENT** for pilot fields             | same                                 | The P1A product test above                    |
+| Effective-date and provenance debugger       | **IMPLEMENT** read-only                    | same                                 | The P1A product test above                    |
+| AuthZ explainer                              | **IMPLEMENT** for pilot policies           | same                                 | The P1A product test above                    |
+| Connector test bench                         | **IMPLEMENT** read-only, first connector   | add redrive                          | Redrive evidence and idempotency tests        |
+| Import/staging                               | Operator CSV load for pilot seed data only | same                                 | Partner names it after the product test       |
+| Configuration diff and promotion             | **OUT**                                    | Only for shipped versioned artifacts | Multiple environments need repeatable changes |
+| Crosswalk and mapping                        | First connector mappings only              | same                                 | Second system proves reusable semantics       |
+| Bulk change, scheduled extract, snapshot     | **OUT**                                    | **OUT**                              | Partner names it; workload/DLP limits proven  |
+| Identity finder, graph validator, quality UI | **OUT**                                    | Internal checks only                 | Partner names it                              |
+| General explorers, packages, event simulator | **OUT**                                    | **OUT**                              | Registry `MANAGED` profile and demand         |
 
 ## Success Measures
 

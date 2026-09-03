@@ -4,7 +4,9 @@ This document converts the architecture constitution in [plan.md](plan.md) into 
 
 The dependency-ordered implementation bridge, current blockers, first ten working
 days and separate P1A/P1B release contracts are maintained in
-[next-steps.md](next-steps.md).
+[next-steps.md](next-steps.md). Where any specification's phase table disagrees
+with the P1A/P1B contents in that document, the P1A/P1B contents win; this
+plan defines the gates and their acceptance, not the release inventory.
 
 ## Phase 1 Outcome
 
@@ -70,8 +72,9 @@ and the maintained
 
 The repository already documents working legal-name, headcount-approval,
 organization-transfer, workflow-admin, schema-driven UI, and AI-generated-page
-behavior. Treat that behavior as regression input for a clean Go
-reimplementation. Do not extend or deploy the Node/TypeScript and React paths.
+behavior. Treat that behavior as regression input and a comparison baseline
+for the Go reimplementation. Do not extend the Node/TypeScript and React paths
+with new behavior; they may keep running beside the Go slice through P1A.
 
 ```text
 legacy route / fixture / UI contract
@@ -80,13 +83,13 @@ legacy route / fixture / UI contract
               |
        define Protobuf capability
               |
-       implement complete Go vertical slice
+       implement the Go vertical slice
               |
-  shadow/simulate and compare outcomes
+  P1A: run beside legacy, compare outcomes
               |
       verify Go-native conformance
               |
-      exclude legacy runtime from release
+  P1B: exclude legacy runtime from release
 ```
 
 Historical markdown statements that tests passed do not establish present
@@ -94,8 +97,9 @@ status. The cutover gate uses fresh Go-native CI, ledger, projection, AuthZ, wor
 outbox, accessibility, and recovery evidence. See the retained
 [legacy implementation baseline](specs/legacy-implementation-baseline.md).
 
-The language and core-library boundary is governed by [the Go-Only Technology
-Constitution](specs/go-only-technology-constitution.md).
+The language and core-library boundary is governed by [the Go Technology
+Constitution](specs/go-only-technology-constitution.md), including the
+qualification fixtures and fallbacks for GWC, grpcbridge, and SchemaFlux.
 
 ## Capability Coverage Rule
 
@@ -147,32 +151,36 @@ See [the Integration Platform specification](specs/integration-platform.md).
 
 ## Communications Plane Slice
 
-Phase 1 communication is intentionally narrow:
+Phase 1 communication is intentionally narrow. P1A sends nothing. P1B sends
+one kind of message, and only if the selected customer path needs it:
 
 ```text
-Approval / HumanTask
+Approval / WorkItem
         |
-   MessageIntent
+   MessageIntent (APPROVAL_REQUIRED | TASK_ASSIGNED)
         |
-audience + template + endpoint policy
+resolved approver + one template + one locale
         |
-  secure inbox + transactional email
+   one email adapter
         |
-delivery observation / acknowledgement
-        |
-   workflow signal
+delivery attempt states -> workflow signal
 ```
 
-The pilot implements no general omnichannel product. It proves semantic intent, current audience resolution, deterministic rendering, protected inbox delivery, asynchronous provider handling, and honest delivery evidence for Promotion approvals and tasks.
+The secure inbox is a minimal contract (an inbox record readable from the
+workspace). No omnichannel, preference, thread, bulk, or legal-notice work is
+in Phase 1.
 
 See [the Messaging and Notification Plane specification](specs/messaging-and-notification-plane.md).
 
 ## Experience and Branding Slice
 
-Phase 1 implements one Promotion workspace with GoWebComponents over the same
-Protobuf capabilities used by internal Go callers. grpcbridge supplies the web
-transport adaptation; SchemaFlux compiles the selected structured catalogs and
-dependency views without becoming a competing source of schema truth.
+Phase 1 implements one Promotion workspace over the same Protobuf capabilities
+used by internal Go callers, on GoWebComponents if it passes the UI
+qualification fixture before P1B and on Go server-rendered HTML otherwise.
+The qualified transport edge (grpcbridge or grpc-gateway/connect-go) supplies
+the web adaptation; the qualified generator (SchemaFlux or protoc) compiles
+the selected structured catalogs without becoming a competing source of schema
+truth.
 
 ```text
 authorized workflow state
@@ -187,7 +195,7 @@ typed PageDefinition -> registered widgets -> GoWebComponents
 The slice must retain semantic brand tokens, field filtering before render,
 keyboard and assistive-technology support, and workflow-native actions. It does
 not need pixel parity with the historical React console or a general visual
-builder. No React or TypeScript runtime is shipped.
+builder. No React or TypeScript runtime is in the P1B release image.
 See [the experience, dynamic UI, and branding contract](specs/experience-ui-and-branding.md).
 
 ## Plane Dependency Rule
@@ -228,12 +236,10 @@ Contract](specs/canonical-envelope-and-digest.md).
 The [Business Intent Kernel](specs/business-intent-and-change-request.md) owns the
 multidimensional request lifecycle; the [Conflict Registry](specs/cross-workflow-conflict-and-write-intent.md) closes races at commit; [Classification and DLP](specs/data-classification-and-dlp.md) owns labels and propagation; and [Records Management](specs/records-management-and-disposition.md) owns record declaration through disposition.
 
-The [Business Intent Catalog](specs/business-intent-catalog.md) accepts the
-530-name semantic vocabulary while preventing it from becoming 530 runtime
-classes. Phase 1 contracts only the listed Promotion/Compensation, explanation,
-drift, and repair definitions. All other entries remain non-invocable
-`CATALOGUED` backlog until an owning domain supplies complete schemas,
-governance, side-effect, failure, evidence, reliability, and outcome contracts.
+The [Business Intent Catalog](specs/business-intent-catalog.md) is the fourteen
+drafted Promotion/Compensation, explanation, drift, and repair definitions. The
+intake name list is non-normative vocabulary; no Phase 1 work item depends on
+ingesting, partitioning, or attesting it.
 
 The [Transaction Plan and Commit Coordinator](specs/transaction-plan-and-commit-coordinator.md) owns the immutable approval-bound executable plan and atomic local commit. [Secrets and Credential Leases](specs/secrets-key-custody-and-credential-leases.md) owns material access, [Quality and Invariant Evaluation](specs/data-quality-and-invariant-evaluation.md) owns assessment protocol, and [Provenance](specs/provenance-graph-and-lineage.md) owns authorization-aware lineage completeness.
 
@@ -263,21 +269,23 @@ partner problem and baseline
           -> measured outcome and proceed/stop decision
 ```
 
-Required workstreams and planning estimate:
+Required workstreams and effort estimate, in person-weeks so the schedule
+scales with whoever is available:
 
-| Owner                               | Staff assumption | Exit artifact                                                                                                    |
-| ----------------------------------- | ---------------: | ---------------------------------------------------------------------------------------------------------------- |
-| Product/design-partner lead         |                1 | Paid agreement, exact incumbent system/fields, baseline, target, price and stop criteria                         |
-| Go capability/domain team           |                2 | Protobuf read/query/simulation/proposal contracts and deterministic fixtures                                     |
-| Go integration/data team            |                2 | One read/observe connector, mappings/crosswalks, provenance, comparison and reconciliation view                  |
-| Go/GWC experience engineer          |                1 | Accessible Promotion analysis/proposal workspace                                                                 |
-| Shared security/reliability support |       1–2 shared | Tenant isolation, AuthN/AuthZ, content safety, telemetry, deployment and recovery appropriate to read-only scope |
+| Workstream                 | Person-weeks | Exit artifact                                                                            |
+| -------------------------- | -----------: | ---------------------------------------------------------------------------------------- |
+| Design-partner lead        |            4 | Paid agreement, exact incumbent system/fields, baseline, target, price and stop criteria |
+| Intent kernel + simulation |            8 | Protobuf read/query/simulation/proposal contracts, digest, and deterministic fixtures    |
+| Read connector + diff      |            8 | One read/observe connector, mappings, provenance, comparison and reconciliation view     |
+| Workspace                  |            6 | Promotion analysis/proposal workspace on GWC or the Go SSR fallback                      |
+| Read-only safety           |            4 | Tenant isolation, AuthN, field AuthZ, no secrets in logs, backups exist                  |
 
-Planning envelope: 7–8 people for approximately 8–12 weeks after partner access
-and sample data exist. This is an estimate, not a commitment; the partner contract
-must replace it with named owners and dates. Critical path is partner data access
-`->` schema/mapping `->` read connector `->` simulation `->` GWC workflow
-`->` observed paid use.
+Total: roughly 30 person-weeks after partner access and sample data exist, so
+about 8 weeks for a team of four or about 30 weeks for one builder working
+alone. The current team is one builder; the partner contract must state which
+of those two it is buying. Critical path is partner data access `->`
+schema/mapping `->` read connector `->` simulation `->` workspace `->`
+observed paid use.
 
 Gate A qualification is not satisfied by a single-system demo or approval artifact.
 The design-partner manifest must identify the licensed incumbent edition and native
@@ -311,11 +319,13 @@ Gate A evidence
     -> limited authority decision
 ```
 
-Incremental planning estimate: 5–7 Go engineers plus product/security/domain
-review for approximately 8–12 weeks, refined after Gate A. Gate owner is the
-product lead jointly with the security and domain-authority approvers. Critical
-path is proposal/approval `->` conflict and revalidation `->` durable execution
-`->` external write/idempotency `->` observation/repair.
+Incremental effort estimate: roughly 40 person-weeks (approval binding and
+WorkItem 6, conflict and revalidation 6, transaction coordinator and outbox 8,
+durable runtime slice 10, one connector write with observation and redrive 6,
+write-path safety 4), refined after Gate A. Gate owner is the product lead
+jointly with the security and domain-authority approvers. Critical path is
+proposal/approval `->` conflict and revalidation `->` durable execution `->`
+external write/idempotency `->` observation/repair.
 
 ### Gate C — General Production Authority
 
@@ -336,7 +346,7 @@ re-estimated and explicitly reapproved.
 
 - Full payroll, tax, benefits, timekeeping, recruiting, talent, or workforce-access products
 - Reimplementation of every legacy route or screen before the Promotion slice can ship
-- Any Node, npm, TypeScript, React, or Vite dependency in the Phase 1 product build, release image, or runtime
+- Any Node, TypeScript, React, or Vite dependency in the P1B release image or runtime (development tooling is not in scope; legacy may run beside the Go slice in P1A)
 - General regulatory calculation or government filing engines
 - Kafka, ClickHouse, OpenSearch, vector infrastructure, or a distributed cache as mandatory dependencies
 - General case management, e-signature platform, omnichannel/inbound conversations, or bulk communications
@@ -364,9 +374,12 @@ Gate A passes only when:
 - Promotion proposal, deterministic compensation/position simulation, exact
   approval binding demonstration, and intended-versus-observed comparison work
   without executing employee mutations.
-- Tenant/org/field/purpose authorization, safe content ingress, workload/client
-  identity, signed build/SBOM, telemetry privacy, and a tested restore match the
-  read-only risk scope.
+- Read-only safety matches read-only risk: tenant isolation is tested, every
+  request has a server-derived principal, field-level authorization masks
+  before render, no secret or worker payload appears in logs, and a database
+  backup exists and has been restored once in a non-production environment.
+  Signed builds, SBOMs, telemetry privacy gateways, and restore drills are
+  Gate B and Gate C controls, not Gate A.
 - The partner and HCM Next jointly record proceed, change-wedge, or stop evidence.
 - The handoff is consumable by the incumbent/downstream operating process and
   produces an acknowledgement or observation. Approval binding alone is not proof
@@ -376,72 +389,55 @@ Gate A passes only when:
 
 ## Gate B Acceptance — Limited Write Authority
 
-The pilot can gain narrowly scoped write authority only when:
+Gate B grants one partner write authority over one field family (job/level and
+base pay) for one workflow. The acceptance list is sized to that, and is
+grouped so that each item names the risk it retires.
 
-- Reference scenarios cover stale approval, concurrent change, future effective date, retry, partial external failure, correction, and replay.
-- UI, HTTP, and gRPC paths share validation, AuthZ, idempotency, ledger, and error
-  semantics. If an agent is included by explicit scope exchange, its path must
-  share the same semantics and tool gateway.
-- The published Promotion graph compiles before execution; invalid types, capabilities, effect/idempotency declarations, and unsafe checkpoints fail publication.
-- Approval recipients are resolved declaratively, approvals bind the exact proposal, and current authority is rechecked when the decision is submitted.
-- Promotion WorkItems, forms, and threshold rules are versioned, typed, deterministic, authorization-safe, and correlated to workflow and ledger evidence.
-- Process death during approval, effective-date wait, connector dispatch and
-  post-submit/pre-commit ambiguity resumes from durable instance/node/operation
-  state without duplicating business effects.
-- The Multi-Stream Transaction Contract commits all local authoritative streams and outbox records atomically.
-- Intended and observed external state reconcile, or the system exposes degraded completion and a governed RepairPlan.
-- Connector redrive cannot repeat the parent transaction, and configuration promotion preserves immutable diff, approval, and rollback evidence.
-- Every external effect has a semantic operation journal, per-resource causal
-  ordering key, expected external version where supported, source-authority fence
-  and cutover watermark, bounded retry/capacity behavior, external-permission
-  diagnostics, pre-send authority revalidation, and an observed reconciliation result.
-- If workflow notification is required by the selected customer path, it emits a
-  semantic MessageIntent and distinguishes provider acceptance, delivery, and
-  acknowledgement. Otherwise transactional messaging remains outside Gate B.
-- Tenant/org/record/field/capability restrictions pass abuse tests. Agent tool
-  mediation is required only if an agent is explicitly included in Gate B.
-- A signed build with SBOM is deployed through the approved path.
-- A restore reproduces ledger, referenced artifacts, critical projections, configuration, and the reference workflow within declared RPO/RTO.
-- Relevant legal-name, headcount approval, and organization-scope fixture
-  behavior is preserved or explicitly superseded by a reviewed contract change.
-- The GoWebComponents workspace passes permission, provenance, available-action,
-  keyboard, screen-reader, contrast, and responsive-layout checks.
-- Product builds, generated artifacts, release SBOMs, and deployed processes
-  prove the Go-only boundary and use GWC, grpcbridge, and SchemaFlux in their
-  assigned core roles.
-- Paid users repeatedly complete the workflow and demonstrate measurable improvement.
-- The selected high-impact decision path produces worker/subject notice,
-  visible-input explanation, correction request and independent human-review/
-  contest evidence without allowing an agent or score to execute adverse action.
+**Transaction correctness**
+
+- Reference scenarios cover stale approval, concurrent change, future effective date, retry, partial external failure, and correction.
+- The published Promotion graph compiles before execution; invalid types, capabilities, and effect/idempotency declarations fail publication.
+- Approvals bind the exact material proposal digest; approver authority is rechecked at decision and at execution; a control-snapshot change revalidates without invalidating approvals whose material result is unchanged.
+- The Multi-Stream Transaction Contract commits all local authoritative streams and outbox records atomically; process death before and after commit resumes from durable state without duplicating effects.
+- Every pilot effect has a durable idempotency record whose retention exceeds its retry window, a per-resource ordering key, pre-send authority revalidation, and an observed reconciliation result.
+- Intended and observed external state reconcile, or the system exposes `ConsistencyState=DEGRADED` and a governed RepairPlan; redrive cannot repeat the parent transaction.
+- Timezone, currency, and effective-range semantics are version-pinned for the pilot's one locale and currency.
+
+**Access and isolation**
+
+- UI, HTTP, and gRPC paths share validation, AuthZ, idempotency, ledger, and error semantics.
+- Tenant/org/record/field/capability restrictions pass abuse tests.
+- Session revocation and step-up authentication for the approve and execute actions have exercised evidence.
+- Uploaded content, if the pilot accepts any, is quarantined before use.
+
+**Operability**
+
+- A restore reproduces ledger, outbox, and critical projections, and the reference workflow passes afterward; the measured time is recorded as the pilot's RTO.
+- A named on-call owner, support hours, a customer advisory route, a redrive/rollback procedure, and an exercised pilot exit/export runbook exist.
+- A signed build with SBOM is deployed through the approved path, and the release image contains no legacy runtime.
+- The workspace passes the UI qualification fixture (keyboard, screen reader, contrast, reflow, provenance and available-action rendering) on GWC or the Go SSR fallback.
+- If workflow notification is required by the selected customer path, it is the one-email slice defined in the messaging plane; otherwise messaging is outside Gate B.
+
+**Customer evidence**
+
+- Paid users repeatedly complete the workflow and demonstrate measurable improvement against the Gate A baseline.
+- The partner can see, for every promotion, the worker notice and the visible inputs the decision used, and can request a correction.
+- Relevant legal-name, headcount approval, and organization-scope fixture behavior is preserved or explicitly superseded.
 - No pilot dependency remains `IMPLIED` or `MISSING` in the capability coverage matrix.
-- Every pilot workload reports its applied signed configuration fingerprint and can continue from a bounded verified local snapshot when the remote Control Plane is unavailable.
-- Session revocation, step-up authentication, workload identity and tenant/cell
-  placement fencing have exercised evidence.
-- A Pilot Operations Pack names primary/secondary on-call ownership, support hours,
-  severity/escalation rules, time-bounded JIT diagnostic access, incident/customer
-  advisory routes, continuity/redrive/rollback procedures, and an exercised pilot
-  exit/export/revocation runbook. Broad multi-cell and certificate-compromise drills
-  remain Gate C.
-- Uploaded/imported content cannot enter parsing, indexing, RAG, messaging, or workflow use before quarantine inspection and safe-derivative promotion.
-- Every pilot effect has a durable idempotency record whose retention exceeds its retry/redelivery window.
-- Timezone, locale, currency, calendar, shared effective-range semantics and other
-  global reference inputs are version-pinned; every future timer persists its
-  dataset-update policy and is tested under a dataset change.
-- A rolling binary/schema upgrade preserves workflow, ledger, outbox, and
-  projection compatibility and successfully rolls back before its declared
-  irreversible boundary.
-- IdP-outage behavior denies new stale-federation sessions and exercises the
-  explicitly allowed or prohibited emergency path for pilot-critical actions.
-- Every customer-configured outbound destination passes DestinationTrust and
-  negative SSRF/rebinding/redirect tests.
-- The complete authentication and Promotion process has WCAG 2.2 AA criterion,
-  browser/assistive-technology, locale/direction, responsive/error-state and
-  accessible-document evidence plus an equivalent governed human-access route.
 
 ## Gate C Acceptance — General Production Authority
 
 Gate C adds, according to contracted domain and risk:
 
+- Controls moved here from earlier drafts of Gate B: signed-configuration
+  fingerprints with offline continuation, tenant/cell placement fencing,
+  workload identity on east-west paths, rolling upgrade with rollback before
+  the irreversible boundary, IdP-outage behavior, DestinationTrust with
+  SSRF/rebinding/redirect suites for customer-configured destinations, WCAG
+  2.2 AA evidence for the complete process including accessible documents and
+  a governed non-digital route, timer behavior under reference-dataset
+  change, time-bounded JIT diagnostic access, and multi-locale/currency
+  pinning.
 - Full support/JIT, certificate compromise, isolated recovery, restore-game-day,
   customer incident communication, subject/tenant deletion and backup re-delete,
   chaos, workload/cell relocation, and broad configuration-package exercises.

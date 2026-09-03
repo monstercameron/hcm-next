@@ -7,21 +7,25 @@ option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v
 import "google/protobuf/timestamp.proto";
 
 // KernelFamily is the stable execution family. Semantic intent names do not
-// add runtime classes.
+// add runtime classes. Three families only: the distinguishing question is
+// whether the intent may cause a material mutation or effect. Process, filing,
+// batch, and case semantics are definition attributes of CHANGE_REQUEST
+// (side_effect_profile, population_scope, child-intent bindings), not families.
 enum KernelFamily {
   KERNEL_FAMILY_UNSPECIFIED = 0;
   KERNEL_FAMILY_CHANGE_REQUEST = 1;
-  KERNEL_FAMILY_PROCESS_REQUEST = 2;
   KERNEL_FAMILY_CALCULATION_REQUEST = 3;
-  KERNEL_FAMILY_FILING_REQUEST = 4;
-  KERNEL_FAMILY_CASE = 5;
-  KERNEL_FAMILY_BATCH_OPERATION = 6;
   KERNEL_FAMILY_ANALYTICAL_REQUEST = 7;
+  reserved 2, 4, 5, 6;
+  reserved "KERNEL_FAMILY_PROCESS_REQUEST", "KERNEL_FAMILY_FILING_REQUEST",
+      "KERNEL_FAMILY_CASE", "KERNEL_FAMILY_BATCH_OPERATION";
 }
 
 enum DefinitionMaturity {
   DEFINITION_MATURITY_UNSPECIFIED = 0;
-  DEFINITION_MATURITY_CATALOGUED = 1;
+  // CATALOGUED is retired: a name below DRAFT_CONTRACT is not in the catalog.
+  reserved 1;
+  reserved "DEFINITION_MATURITY_CATALOGUED";
   DEFINITION_MATURITY_CONTRACTED = 2;
   DEFINITION_MATURITY_COMPILED = 3;
   DEFINITION_MATURITY_PUBLISHED = 4;
@@ -61,74 +65,39 @@ enum SideEffectProfile {
   SIDE_EFFECT_PROFILE_IRREVERSIBLE_EXTERNAL_MUTATION = 5;
 }
 
-enum IntentState {
-  INTENT_STATE_UNSPECIFIED = 0;
-  INTENT_STATE_DRAFT = 1;
-  INTENT_STATE_SUBMITTED = 2;
-  INTENT_STATE_ACCEPTED = 3;
-  INTENT_STATE_REJECTED = 4;
-  INTENT_STATE_CANCELLED = 5;
-  INTENT_STATE_SUPERSEDED = 6;
+// The five lifecycle dimensions. Each answers one question the others cannot.
+// Proposal revisions, approval bindings, closure records, incidents, and
+// outcome tracking are records linked from the instance, not extra dimensions.
+
+// RequestState: where is the request itself?
+enum RequestState {
+  REQUEST_STATE_UNSPECIFIED = 0;
+  REQUEST_STATE_DRAFT = 1;
+  REQUEST_STATE_PREFLIGHTED = 2;
+  REQUEST_STATE_SIMULATED = 3;
+  REQUEST_STATE_SUBMITTED = 4;
+  REQUEST_STATE_APPROVED = 5;
+  REQUEST_STATE_REJECTED = 6;
+  REQUEST_STATE_WITHDRAWN = 7;
+  REQUEST_STATE_CANCELLED = 8;
+  REQUEST_STATE_SUPERSEDED = 9;
+  REQUEST_STATE_CLOSED = 10;
+  REQUEST_STATE_REOPENED = 11;
 }
 
-enum ProposalState {
-  PROPOSAL_STATE_UNSPECIFIED = 0;
-  PROPOSAL_STATE_NOT_APPLICABLE = 1;
-  PROPOSAL_STATE_DRAFT = 2;
-  PROPOSAL_STATE_PREFLIGHTED = 3;
-  PROPOSAL_STATE_SIMULATED = 4;
-  PROPOSAL_STATE_SUBMITTED = 5;
-  PROPOSAL_STATE_WITHDRAWN = 6;
-  PROPOSAL_STATE_SUPERSEDED = 7;
-}
-
-enum ApprovalState {
-  APPROVAL_STATE_UNSPECIFIED = 0;
-  APPROVAL_STATE_NOT_REQUIRED = 1;
-  APPROVAL_STATE_PENDING = 2;
-  APPROVAL_STATE_PARTIAL = 3;
-  APPROVAL_STATE_APPROVED = 4;
-  APPROVAL_STATE_REJECTED = 5;
-  APPROVAL_STATE_INVALIDATED = 6;
-}
-
+// ExecutionState: what has the runtime done?
 enum ExecutionState {
   EXECUTION_STATE_UNSPECIFIED = 0;
   EXECUTION_STATE_NOT_PLANNED = 1;
   EXECUTION_STATE_SCHEDULED = 2;
   EXECUTION_STATE_REVALIDATING = 3;
   EXECUTION_STATE_EXECUTING = 4;
-  EXECUTION_STATE_COMPLETED = 5;
+  EXECUTION_STATE_COMMITTED = 5;
   EXECUTION_STATE_BLOCKED = 6;
   EXECUTION_STATE_REPAIR_REQUIRED = 7;
 }
 
-enum ExternalConsistencyState {
-  EXTERNAL_CONSISTENCY_STATE_UNSPECIFIED = 0;
-  EXTERNAL_CONSISTENCY_STATE_NOT_APPLICABLE = 1;
-  EXTERNAL_CONSISTENCY_STATE_PENDING = 2;
-  EXTERNAL_CONSISTENCY_STATE_CONSISTENT = 3;
-  EXTERNAL_CONSISTENCY_STATE_DEGRADED = 4;
-  EXTERNAL_CONSISTENCY_STATE_UNKNOWN = 5;
-}
-
-enum ReconciliationState {
-  RECONCILIATION_STATE_UNSPECIFIED = 0;
-  RECONCILIATION_STATE_NOT_REQUIRED = 1;
-  RECONCILIATION_STATE_PENDING = 2;
-  RECONCILIATION_STATE_PASSED = 3;
-  RECONCILIATION_STATE_FAILED = 4;
-  RECONCILIATION_STATE_REPAIRING = 5;
-}
-
-enum ClosureState {
-  CLOSURE_STATE_UNSPECIFIED = 0;
-  CLOSURE_STATE_OPEN = 1;
-  CLOSURE_STATE_ELIGIBLE = 2;
-  CLOSURE_STATE_CLOSED = 3;
-  CLOSURE_STATE_REOPENED = 4;
-}
-
+// BusinessState: did the business outcome happen?
 enum BusinessState {
   BUSINESS_STATE_UNSPECIFIED = 0;
   BUSINESS_STATE_NOT_STARTED = 1;
@@ -139,15 +108,19 @@ enum BusinessState {
   BUSINESS_STATE_UNKNOWN = 6;
 }
 
-enum OperationalState {
-  OPERATIONAL_STATE_UNSPECIFIED = 0;
-  OPERATIONAL_STATE_NORMAL = 1;
-  OPERATIONAL_STATE_DEGRADED = 2;
-  OPERATIONAL_STATE_INCIDENT = 3;
-  OPERATIONAL_STATE_MANUAL_CONTINUITY = 4;
-  OPERATIONAL_STATE_RECOVERING = 5;
+// ConsistencyState: does observed external state agree with intent?
+// REPAIRING is the reconciliation-in-progress value.
+enum ConsistencyState {
+  CONSISTENCY_STATE_UNSPECIFIED = 0;
+  CONSISTENCY_STATE_NOT_APPLICABLE = 1;
+  CONSISTENCY_STATE_PENDING_OBSERVATION = 2;
+  CONSISTENCY_STATE_CONSISTENT = 3;
+  CONSISTENCY_STATE_DEGRADED = 4;
+  CONSISTENCY_STATE_REPAIRING = 5;
+  CONSISTENCY_STATE_UNKNOWN = 6;
 }
 
+// ObligationState: are attached obligations discharged?
 enum ObligationState {
   OBLIGATION_STATE_UNSPECIFIED = 0;
   OBLIGATION_STATE_NOT_APPLICABLE = 1;
@@ -155,18 +128,9 @@ enum ObligationState {
   OBLIGATION_STATE_SATISFIED = 3;
   OBLIGATION_STATE_OVERDUE = 4;
   OBLIGATION_STATE_WAIVED = 5;
-  OBLIGATION_STATE_DISPUTED = 6;
   OBLIGATION_STATE_UNKNOWN = 7;
-}
-
-enum OutcomeState {
-  OUTCOME_STATE_UNSPECIFIED = 0;
-  OUTCOME_STATE_NOT_DEFINED = 1;
-  OUTCOME_STATE_PENDING_OBSERVATION = 2;
-  OUTCOME_STATE_OBSERVED = 3;
-  OUTCOME_STATE_INCONCLUSIVE = 4;
-  OUTCOME_STATE_DISPUTED = 5;
-  OUTCOME_STATE_EXPIRED = 6;
+  reserved 6;
+  reserved "OBLIGATION_STATE_DISPUTED";
 }
 
 enum ApprovalDecisionKind {
@@ -214,7 +178,9 @@ message CanonicalDigestReference {
 }
 
 message IntentDefinition {
-  uint32 catalog_number = 1;
+  // catalog_number is retired; identity is (intent_type_id, version) only.
+  reserved 1;
+  reserved "catalog_number";
   DefinitionReference reference = 2;
   string display_name = 3;
   string description = 4;
@@ -246,6 +212,9 @@ message IntentDefinition {
   string slo_class = 30;
   string availability_policy_ref = 31;
   string phase_depth = 32;
+  // Present only on CHANGE_REQUEST definitions that operate on a resolved
+  // population (formerly the BATCH_OPERATION family).
+  optional string population_scope_ref = 33;
 }
 
 message PrincipalReference {
@@ -297,6 +266,10 @@ message ProposalRevision {
   string proposal_revision_id = 1;
   string intent_id = 2;
   uint64 revision = 3;
+  // Approval binds material_proposal_digest only. control_snapshots are
+  // evidence of the simulation context; a changed snapshot triggers
+  // revalidation and invalidates approval only when the material result
+  // changes or a mandatory deny appears. See the kernel materiality rule.
   CanonicalDigestReference material_proposal_digest = 4;
   TypedPayload proposal = 5;
   ControlSnapshotReferences control_snapshots = 6;
@@ -380,17 +353,14 @@ message ClosureRecord {
 }
 
 message LifecycleDimensions {
-  IntentState intent = 1;
-  ProposalState proposal = 2;
-  ApprovalState approval = 3;
+  RequestState request = 1;
   ExecutionState execution = 4;
-  ExternalConsistencyState external_consistency = 5;
-  ReconciliationState reconciliation = 6;
-  ClosureState closure = 7;
   BusinessState business = 8;
-  OperationalState operational = 9;
+  ConsistencyState consistency = 5;
   ObligationState obligation = 10;
-  OutcomeState outcome = 11;
+  reserved 2, 3, 6, 7, 9, 11;
+  reserved "proposal", "approval", "external_consistency", "reconciliation",
+      "closure", "operational", "outcome";
 }
 
 message IntentInstance {
@@ -429,7 +399,9 @@ message IntentInstance {
   repeated SupersessionReference supersession_references = 33;
   repeated CorrectionReference correction_references = 34;
   repeated ClosureRecord closure_records = 35;
-  string lifecycle_compatibility_profile_ref = 36;
+  // Lifecycle legality is a fixed kernel rule set, not a per-definition profile.
+  reserved 36;
+  reserved "lifecycle_compatibility_profile_ref";
 }
 
 message IntentRelationship {

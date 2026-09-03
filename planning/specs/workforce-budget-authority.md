@@ -10,8 +10,17 @@ allowing Phase 1 to bind to an incumbent finance/planning system.
 HEADCOUNT_CAPACITY     positions / heads / FTE
 COMPENSATION_POOL      merit/promotion amount by cycle/scope
 FINANCE_COST_BUDGET    money by cost center/period/account
-WORKFLOW_COST_BUDGET   platform execution/AI/API allowance
 ```
+
+All three are workforce budgets: quantities the customer's finance or planning
+function authorizes for people decisions. Platform execution, AI, and API
+allowances are a different thing, owned by the Entitlement, Metering, and
+Billing plane; they never appear as a `BudgetAuthorityRef` and a workforce
+reservation never consumes them.
+
+Phase 1 binds only `COMPENSATION_POOL` (P1B) and reads `HEADCOUNT_CAPACITY`
+through the Position domain. `FINANCE_COST_BUDGET` is a contract with no
+Phase 1 consumer.
 
 Every plan uses:
 
@@ -23,7 +32,7 @@ BudgetAuthorityRef
   scope
   period
   currency?
-  unit: HEAD | FTE | MONEY | PERCENT | CREDIT
+  unit: HEAD | FTE | MONEY | PERCENT
   baseline_version / external_watermark
   available_quantity
   reservation_id?

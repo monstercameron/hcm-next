@@ -19,10 +19,21 @@ definitions:
     risk_class: R2
     data_classification_floor: CONFIDENTIAL_HR
     subject_kinds: [PERSON, EMPLOYMENT, ASSIGNMENT, MANAGER_RELATIONSHIP, ORGANIZATION]
-    required_capabilities: [people.manager.change.plan/v1, people.manager.change.execute/v1]
+    required_capabilities:
+      [people.manager.change.plan/v1, people.manager.change.execute/v1]
     governance_requirements: [governance.manager_change/v1, approval.manager_change/v1]
-    preconditions: [people.worker_active_at_effective_time/v1, people.proposed_manager_active_and_eligible/v1, organization.scope_permits_relationship/v1]
-    invariants: [organization.no_self_management/v1, organization.no_manager_cycle/v1, people.non_overlapping_primary_manager_intervals/v1]
+    preconditions:
+      [
+        people.worker_active_at_effective_time/v1,
+        people.proposed_manager_active_and_eligible/v1,
+        organization.scope_permits_relationship/v1,
+      ]
+    invariants:
+      [
+        organization.no_self_management/v1,
+        organization.no_manager_cycle/v1,
+        people.non_overlapping_primary_manager_intervals/v1,
+      ]
     idempotency_scope: tenant+employment+effective_at+proposed_manager+canonical_request
     conflict_footprint_rule: manager_relationship_and_context_interval/v1
     proposal_binding_rule: exact_manager_change_proposal_digest/v1

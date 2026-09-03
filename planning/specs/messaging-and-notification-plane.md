@@ -1,6 +1,27 @@
 # Messaging and Notification Plane
 
-This specification defines HCM Next's human Communications Plane and its relationship to workflow signals and system-to-system event delivery. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md).
+This specification defines HCM Next's human Communications Plane and its relationship to workflow signals and system-to-system event delivery. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md) and the P1A/P1B contents in [next-steps.md](../next-steps.md).
+
+## Phase 1 Boundary
+
+P1A sends nothing. P1B sends exactly one kind of message: an approval or task
+notification by email, and only if the design partner's operating process
+needs it. The whole of Phase 1 messaging is:
+
+```text
+MessageIntent (purpose APPROVAL_REQUIRED | TASK_ASSIGNED)
+      -> audience = the resolved approver
+      -> one published template, one locale
+      -> one email adapter through the Integration Platform
+      -> DeliveryAttempt states: QUEUED | SUBMITTED | ACCEPTED_BY_PROVIDER | FAILED
+      -> workflow signal: delivery.satisfied | delivery.failed
+```
+
+The inbox, threads, replies, preferences, quiet hours, bulk plans, provider
+routing, SMS/push/chat, and legal-notice evidence described below are the
+destination contract. None is a Phase 1 dependency, and the secure inbox is
+`MINIMAL CONTRACT`: an inbox message record readable from the Promotion
+workspace, with no separate channel machinery.
 
 Notification as a Service is used here as an architectural pattern: product domains express one semantic notification intent while shared infrastructure owns multi-channel routing, templates, preferences, and delivery observability. HCM Next extends that pattern with secure inbox, inbound replies, durable conversations, legal evidence, workflow signals, and HR-specific data controls.
 
@@ -786,26 +807,31 @@ An evaluated open-source notification orchestrator may supply commodity routing 
 
 ## Phase Classification
 
-| Capability                                       | Phase 1 depth                                      |
-| ------------------------------------------------ | -------------------------------------------------- |
-| MessageIntent and audience resolution            | **IMPLEMENT** for Promotion recipients             |
-| Published templates and deterministic rendering  | **IMPLEMENT** for pilot locales/content            |
-| Approval/task email plus secure inbox            | **IMPLEMENT**                                      |
-| Delivery attempts and basic reconciliation       | **IMPLEMENT**                                      |
-| Workflow acknowledgement/failure signals         | **IMPLEMENT** where the pilot needs them           |
-| Endpoint and mandatory/optional preference rules | **MINIMAL CONTRACT**                               |
-| Conversations and inbound replies                | **DESIGN / CONFORMANCE ONLY**                      |
-| SMS, push, Slack/Teams provider routing          | **OUT OF PHASE** unless selected by design partner |
-| Bulk messaging                                   | **DESIGN / CONFORMANCE ONLY**                      |
-| Customer-configurable system subscriptions       | **MINIMAL CONTRACT** through Integration Platform  |
-| Legal-notice/e-signature evidence                | **DESIGN / CONFORMANCE ONLY**                      |
+| Capability                                                  | P1A     | P1B                                                  |
+| ----------------------------------------------------------- | ------- | ---------------------------------------------------- |
+| MessageIntent for approval/task, resolved approver audience | **OUT** | **IMPLEMENT** only if the customer path needs it     |
+| One published template, one locale                          | **OUT** | **IMPLEMENT** with the above                         |
+| One email adapter via Integration Platform                  | **OUT** | **IMPLEMENT** with the above                         |
+| Delivery attempts and delivery signals                      | **OUT** | **IMPLEMENT** with the above                         |
+| Secure inbox                                                | **OUT** | **MINIMAL CONTRACT** (inbox record in the workspace) |
+| Read/acknowledged recipient states                          | **OUT** | **MINIMAL CONTRACT**                                 |
+| Endpoints, preferences, quiet hours                         | **OUT** | **DESIGN / CONFORMANCE ONLY**                        |
+| Conversations and inbound replies                           | **OUT** | **DESIGN / CONFORMANCE ONLY**                        |
+| SMS, push, Slack/Teams provider routing                     | **OUT** | **OUT**                                              |
+| Bulk messaging                                              | **OUT** | **OUT**                                              |
+| Customer-configurable system subscriptions                  | **OUT** | **OUT**                                              |
+| Legal-notice/e-signature evidence                           | **OUT** | **OUT**                                              |
+
+This table agrees with the execution plan's Gate B rule: transactional
+messaging is in P1B only if the selected customer path requires it, and it is
+never a Gate A dependency.
 
 ## Phase 1 Acceptance Contract
 
 - Workflow code expresses a semantic `MessageIntent`, never provider-specific delivery calls.
 - `ManagerOf(worker)` and scoped-role audiences resolve with recorded current relationship and policy versions.
 - Rendering cannot disclose a field unavailable under current authorization, legal purpose, classification, or endpoint policy.
-- The secure inbox retains protected content while email contains only an approved attention message when required.
+- Email carries only an approved attention message; the protected content is read in the authenticated workspace.
 - Message intent and workflow transaction commit durably before asynchronous provider work.
 - Retries do not create duplicate logical messages or falsely satisfy delivery requirements.
 - Provider acceptance, delivery, read, acknowledgement, and business satisfaction remain distinct.

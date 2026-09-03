@@ -41,33 +41,62 @@ The runtime's governing philosophy remains:
 
 ## Kernel Vocabulary
 
-The runtime begins with a deliberately small set of block classes:
+The runtime has ten core primitives and three structural ones. P1A uses five;
+P1B uses nine; the structural three are gated behind P1B evidence.
 
-| Primitive     | Runtime meaning                                               |
-| ------------- | ------------------------------------------------------------- |
-| `CAPABILITY`  | Invoke a governed typed capability                            |
-| `DECISION`    | Choose an edge from typed deterministic input                 |
-| `APPROVAL`    | Create and resolve a proposal-bound approval requirement      |
-| `TASK`        | Request governed human input or work                          |
-| `WAIT`        | Suspend durably until a time/calendar condition               |
-| `SIGNAL`      | Suspend durably until a correlated event                      |
-| `PARALLEL`    | Schedule bounded independent branches                         |
-| `JOIN`        | Apply declared completion semantics to branches               |
-| `SUBWORKFLOW` | Start a pinned child workflow and bind its outcome            |
-| `TRANSFORM`   | Apply versioned deterministic data transformation             |
-| `RULE`        | Evaluate a typed business or policy rule                      |
-| `AGENT`       | Invoke a separately governed agent capability                 |
-| `DOCUMENT`    | Generate, deliver, sign, or collect a typed document artifact |
-| `OBSERVE`     | Read or reconcile external/derived state                      |
-| `CHECKPOINT`  | Establish an operational safe point                           |
-| `COMPENSATE`  | Invoke an explicitly declared corrective capability           |
-| `END`         | Produce a typed runtime and business-completion result        |
+| Primitive    | Runtime meaning                                                               | First release |
+| ------------ | ----------------------------------------------------------------------------- | ------------- |
+| `CAPABILITY` | Invoke a governed typed capability                                            | P1A           |
+| `DECISION`   | Choose an edge from typed deterministic input; may reference a published rule | P1A           |
+| `TRANSFORM`  | Apply versioned deterministic data transformation                             | P1A           |
+| `OBSERVE`    | Read or reconcile external/derived state                                      | P1A           |
+| `END`        | Produce a typed runtime and business-completion result                        | P1A           |
+| `APPROVAL`   | Create and resolve a proposal-bound approval requirement                      | P1B           |
+| `TASK`       | Request governed human input or work                                          | P1B           |
+| `WAIT`       | Suspend durably until a time/calendar condition                               | P1B           |
+| `SIGNAL`     | Suspend durably until a correlated event                                      | P1B           |
+| `COMPENSATE` | Invoke an explicitly declared corrective capability                           | P1B           |
 
-The exploratory [step-type catalog](../workflows/_engine/step-types.md) expands
-the common envelope, compiler rules, runtime semantics, evidence and failure
-behavior for every primitive. Its [sample coverage matrix](../workflows/_engine/step-type-coverage.md)
-tracks at least one substantive workflow example per type. Those documents guide
-schema/runtime discovery; this specification remains the normative boundary.
+| Structural    | Runtime meaning                                    | Gate               |
+| ------------- | -------------------------------------------------- | ------------------ |
+| `PARALLEL`    | Schedule bounded independent branches              | After P1B evidence |
+| `JOIN`        | Apply declared completion semantics to branches    | After P1B evidence |
+| `SUBWORKFLOW` | Start a pinned child workflow and bind its outcome | After P1B evidence |
+
+Names that earlier drafts and the exploratory step catalog treat as primitives
+are expressed as attributes or capabilities, not node types:
+
+| Retired name | Expressed as                                                                       |
+| ------------ | ---------------------------------------------------------------------------------- |
+| `CHECKPOINT` | `safe_point: true` on any node; the compiler places safe points, not the author    |
+| `RULE`       | `DECISION` with a `rule_ref` to a published decision table or expression           |
+| `AGENT`      | `CAPABILITY` whose manifest declares agent eligibility and typed-output validation |
+| `DOCUMENT`   | `CAPABILITY` in the `documents.*` namespace                                        |
+
+The exploratory [step-type catalog](../workflows/_engine/step-types.md) and its
+[coverage matrix](../workflows/_engine/step-type-coverage.md) still use the
+seventeen-name vocabulary. Read them through the table above; this
+specification is the normative boundary and the retired names are not added
+back without a scope exchange.
+
+### Build or adopt
+
+The Phase 1 runtime is a PostgreSQL-backed Go scheduler implementing only the
+primitives P1A and P1B need. Before P1B implementation starts, an embedded Go
+durable-execution library is evaluated against four non-negotiables, and
+adopted if it meets them:
+
+1. The business ledger stays outside the engine's own history store.
+2. Tenant isolation, fencing tokens, and stable effect idempotency are
+   preserved.
+3. Node execution, timers, and leases are inspectable through the same typed
+   projections this contract defines.
+4. Safe-point pause and version pinning behave as specified here.
+
+Migration, shadow mode, replay, and the intervention taxonomy are not adoption
+criteria; they are later contracts and may be satisfied by the adopted library
+or built above it. The decision, either way, is recorded with the evaluated
+candidates and reasons before P1B code is written.
 
 The primitive name never grants authority. `CAPABILITY payroll.write`, for example, is still subject to current entitlement, AuthZ, Legal, purpose, DLP, risk, idempotency, and connector controls.
 
@@ -224,14 +253,16 @@ CREATED -> RUNNING -> WAITING -> RUNNING -> COMPLETED
               +-> SUPERSEDED
 ```
 
-Runtime completion does not collapse business state:
+Runtime completion does not collapse business state. The instance's own
+`runtime_status` sits beside the intent's five dimensions:
 
 ```text
-RuntimeState          COMPLETED
-BusinessState         COMPLETED
-ExternalConsistency  DEGRADED
-ReconciliationState  REPAIR_REQUIRED
-ObligationState       SATISFIED
+runtime_status     COMPLETED          (workflow instance)
+
+ExecutionState     COMMITTED          (intent)
+BusinessState      COMPLETED
+ConsistencyState   DEGRADED
+ObligationState    SATISFIED
 ```
 
 ### Authoritative core versus downstream effects
@@ -274,7 +305,7 @@ atomic authoritative core --COMMIT--> outbox
 ```
 
 Core commit success may set `BusinessState=COMPLETED` while downstream failure
-sets `ExternalConsistency=DEGRADED` and `ReconciliationState=REPAIR_REQUIRED`.
+sets `ConsistencyState=DEGRADED` and links a RepairPlan.
 The workflow must not rewrite core history, report the business action as wholly
 failed, or hide the open effect. Closure policy separately decides whether an
 instance may close with an acknowledged repair or incident still open.
@@ -771,27 +802,28 @@ APPROVAL FinancePartnerFor(costCenter)
   v
 APPROVAL ManagerOf(worker)
   |
-CHECKPOINT -> WAIT effective date
+WAIT effective date                      [safe_point]
   |
 CAPABILITY transaction.revalidate
   |
 DECISION still valid?
   +-- no --> TASK / REAPPROVAL
-  +-- yes -> CHECKPOINT -> worker.promote.execute
+  +-- yes -> CAPABILITY worker.promote.execute   [safe_point before]
                               |
-                     +--------+--------+
-                     v        v        v
-                  payroll    IAM    learning
-                     +--------+--------+
+                      OBSERVE payroll effect     (P1B: sequential)
                               |
-                             JOIN
+                      OBSERVE IAM effect
                               |
                       OBSERVE reconciliation
                               |
                    +----------+----------+
                    v                     v
-               COMPLETE              RepairPlan
+               END COMPLETE          END RepairPlan
 ```
+
+Downstream effects are sequential `OBSERVE` steps in P1B. The fan-out form
+with `PARALLEL`/`JOIN` is the post-P1B shape and is not a compiler
+requirement for the Promotion pilot.
 
 ## Immutable History, Repairable Execution
 
@@ -1149,39 +1181,40 @@ cmd/
   hcm-timer-worker    hcm-workflow-operator
 ```
 
-Start in the modular Go platform with PostgreSQL transactions, `FOR UPDATE SKIP LOCKED`-style bounded claiming where appropriate, fencing tokens, transactional outbox records, Protobuf contracts, generated clients, and OpenTelemetry correlation. A third-party durable-workflow engine remains an implementation option only if it preserves HCM Next's authority, evidence, portability, tenant isolation, intervention, and replay contracts without making its internal history the sole business ledger.
+Start in the modular Go platform with PostgreSQL transactions, `FOR UPDATE SKIP LOCKED`-style bounded claiming where appropriate, fencing tokens, transactional outbox records, Protobuf contracts, generated clients, and OpenTelemetry correlation. The build-or-adopt evaluation in the Kernel Vocabulary section decides before P1B whether an embedded Go durable-execution library supplies the scheduler, leases, and timers; the four non-negotiables there are the whole test.
 
 GoWebComponents consumes task, inspector, simulation, and intervention capabilities through grpcbridge; it does not receive direct runtime-table access. SchemaFlux may compile the declarative workflow IR and supporting schemas where it fits, while Protobuf remains the service contract authority and database migrations remain explicit.
 
 ## Phase Classification
 
-| Capability                                             | Phase 1 depth                                          |
-| ------------------------------------------------------ | ------------------------------------------------------ |
-| Definition/version and compiled plan                   | **IMPLEMENT** for Promotion primitives                 |
-| Capability, decision, approval, task, wait, observe    | **IMPLEMENT**                                          |
-| Checkpoint, bounded parallel/join, typed end           | **IMPLEMENT** where Promotion requires them            |
-| Instance/node state, leases, timers, retries, outbox   | **IMPLEMENT**                                          |
-| Proposal-bound approval and current-authority recheck  | **IMPLEMENT**                                          |
-| Safe pause, quarantine, cancellation, RepairPlan route | **IMPLEMENT** for pilot failure cases                  |
-| Simulation and execution modes                         | **IMPLEMENT**                                          |
-| Read-only inspector and pure-node replay               | **IMPLEMENT** to pilot-operability depth               |
-| Signals, subworkflows, documents, agents               | **MINIMAL CONTRACT** unless required by the pilot      |
-| Shadow mode and live-instance migration                | **DESIGN / CONFORMANCE ONLY**                          |
-| Customer-authored compensation and arbitrary loops     | **OUT OF PHASE**                                       |
-| General-purpose orchestration product compatibility    | **OUT OF PHASE** unless an adoption decision is opened |
+| Capability                                               | P1A                        | P1B                                   |
+| -------------------------------------------------------- | -------------------------- | ------------------------------------- |
+| Definition/version and compiled plan                     | **IMPLEMENT**              | **IMPLEMENT**                         |
+| `CAPABILITY`, `DECISION`, `TRANSFORM`, `OBSERVE`, `END`  | **IMPLEMENT**              | **IMPLEMENT**                         |
+| `APPROVAL`, `TASK`, `WAIT`, `SIGNAL`, `COMPENSATE`       | **OUT**                    | **IMPLEMENT**                         |
+| Safe-point attributes and `PAUSE_REQUESTED` truthfulness | **OUT**                    | **IMPLEMENT**                         |
+| `PARALLEL`, `JOIN`, `SUBWORKFLOW`                        | **OUT**                    | **DESIGN / CONFORMANCE ONLY**         |
+| Instance/node state, leases, timers, retries, outbox     | **MINIMAL** (no timers)    | **IMPLEMENT**                         |
+| Proposal-bound approval and current-authority recheck    | Demonstrated, not enforced | **IMPLEMENT**                         |
+| Quarantine, cancellation, RepairPlan route               | **OUT**                    | **IMPLEMENT** for pilot failure cases |
+| `SIMULATE` and `EXECUTE` modes                           | `SIMULATE` only            | Both                                  |
+| Read-only inspector                                      | **IMPLEMENT**              | **IMPLEMENT**                         |
+| Pure-node `REPLAY`, `SHADOW`, live migration             | **OUT**                    | **DESIGN / CONFORMANCE ONLY**         |
+| Customer-authored compensation and arbitrary loops       | **OUT**                    | **OUT**                               |
+| Adopted durable-execution library                        | n/a                        | Decided by the build-or-adopt gate    |
 
 ## Phase 1 Acceptance Contract
 
 The Promotion workflow must prove:
 
-- Compiler rejection of type-invalid edges, unresolved capabilities, conflicting parallel write sets, and retried non-idempotent mutations
+- Compiler rejection of type-invalid edges, unresolved capabilities, and retried non-idempotent mutations (conflicting parallel write sets once `PARALLEL` exists)
 - Durable resume after process failure during approval, effective-date wait, and connector retry
 - Exact proposal binding plus current approver-authority re-evaluation after relationship change
 - Stable node/capability idempotency across lease expiry and redelivery
 - `PAUSE_REQUESTED` truthfulness inside an atomic external-effect region
 - Cancellation behavior before approval, after approval, and after an internal or ambiguous external effect
 - Bounded retry exhaustion into a typed RepairPlan or human route
-- Separate runtime, business, external-consistency, reconciliation, and obligation completion states
+- Separate instance `runtime_status` and the intent's `ExecutionState`, `BusinessState`, `ConsistencyState`, and `ObligationState`
 - Simulation suppresses all mutations and external effects
 - Replay of pure nodes cannot produce tasks, notifications, charges, or business effects
 - Inspector traversal from workflow to node, approval/AuthZ/legal decision, transaction, connector operation, reconciliation, and trace

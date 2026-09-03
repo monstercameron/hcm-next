@@ -2582,7 +2582,23 @@ The deeper product thesis is:
 
 ### 9.14 Agent Runtime Plane
 
-The Agent Runtime is a first-class platform plane, not a chatbot attached to a conventional HCM suite.
+Agents are an overlay on the capability fabric. They are never an authority
+path, and they are not a Phase 1 deliverable. This section is split into the
+boundary that every plane must respect from day one and the product that may
+be built on it later:
+
+| Scope                       | Status                     | Contents                                                                                                                                                                                                                                            |
+| --------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Agent security boundary** | Binding on every plane now | Tool gateway, taint labels, typed output validation, discovery/invoke separation, kill switch, no hidden credentials, capability-manifest agent eligibility                                                                                         |
+| **Agent product plane**     | DESIGN ONLY, no phase      | Specialized agents, AnalysisPlan, hypotheses and predictions, agent-authored workflows and tests, layered memory, operational knowledge, model router, ensembles, semantic caching, inference budgets, dynamic workspaces, autonomy ladder above A2 |
+
+The boundary exists so that when an agent is added it cannot bypass anything.
+The product plane is one possible future; nothing in the kernel, registry,
+workflow runtime, or data model is sized to it, and the P1A/P1B releases
+include no agent capability. "Intent as the primary interface" is a Stage 5
+hypothesis, not a design constraint on Stages 1 and 2.
+
+The Agent Runtime, when built, is a first-class platform plane rather than a chatbot attached to a conventional HCM suite.
 
 ```text
 Experience
@@ -2612,7 +2628,7 @@ Data Plane
 Ledger | Projections | Analytics | Semantics | Decisions | Activity
 ```
 
-The traditional interface remains available, but it is another presentation over the same capability fabric. The agent can become the primary interface for intent that crosses navigation, modules, policies, and data domains.
+The traditional interface remains the product interface. An agent, where one is later enabled, is another presentation over the same capability fabric and may become a convenient entry point for intent that crosses navigation, modules, policies, and data domains; it does not replace the governed request, approval, and repair surfaces.
 
 #### Agent Interaction Model
 
