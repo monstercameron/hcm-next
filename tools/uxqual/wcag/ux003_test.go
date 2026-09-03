@@ -45,6 +45,9 @@ func TestTodo_UX_003(t *testing.T) {
 	if err := evidence.Validate(); err != nil {
 		t.Fatal(err)
 	}
+	if err := evidence.ReleaseReady(); err == nil {
+		t.Fatal("repository evidence must not claim release readiness before browser and assistive-technology runs")
+	}
 	broken := strings.Replace(ssrDoc, `aria-describedby="proposedCompensation-error"`, `aria-describedby="missing-error"`, 1)
 	if r := forms.CheckErrorAssociation(broken, forms.ErroredFieldIDs); r.Pass {
 		t.Fatal("error association check is a rubber stamp")
@@ -90,6 +93,9 @@ func TestTodo_UX_003_Integration(t *testing.T) {
 	}
 	if err := e.Validate(); err != nil {
 		t.Fatal(err)
+	}
+	if err := e.ReleaseReady(); err == nil {
+		t.Fatal("pending manual scenarios unexpectedly passed the release gate")
 	}
 }
 

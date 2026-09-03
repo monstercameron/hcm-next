@@ -55,7 +55,7 @@ func (e Evidence) Validate() error {
 		if _, ok := want[s.ID]; !ok {
 			return fmt.Errorf("unknown scenario %q", s.ID)
 		}
-		if s.Kind == "" || s.Status != "PASS" || s.Method == "" {
+		if s.Kind == "" || (s.Status != "PASS" && s.Status != "PENDING") || s.Method == "" {
 			return fmt.Errorf("scenario %q lacks kind/status/method", s.ID)
 		}
 		want[s.ID] = true
@@ -68,6 +68,20 @@ func (e Evidence) Validate() error {
 	for _, w := range e.Waivers {
 		if w.ID == "" || w.Criterion == "" || w.Owner == "" || w.Severity == "" || w.Workaround == "" || w.Expires == "" || w.ApprovedBy == "" {
 			return fmt.Errorf("waiver %q is incomplete", w.ID)
+		}
+	}
+	return nil
+}
+
+// ReleaseReady rejects structurally valid evidence until every named manual
+// scenario has a recorded pass. PENDING is intentionally not a waiver.
+func (e Evidence) ReleaseReady() error {
+	if err := e.Validate(); err != nil {
+		return err
+	}
+	for _, s := range e.Scenarios {
+		if s.Status != "PASS" {
+			return fmt.Errorf("scenario %q has not passed", s.ID)
 		}
 	}
 	return nil

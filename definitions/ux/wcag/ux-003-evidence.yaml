@@ -4,18 +4,18 @@ artifact: tools/uxqual/wcag
 scenarios:
   - id: zoom-200
     kind: manual
-    status: PASS
-    method: Chromium at 200% text/display zoom; complete request and action with keyboard and verify no clipped control.
+    status: PENDING
+    method: Chromium at 200% text/display zoom; complete request and action with keyboard and verify no clipped control. Browser execution is not yet recorded.
   - id: reflow-400
     kind: manual
-    status: PASS
-    method: Chromium responsive emulation at 320 CSS px and 400% zoom; verify single-column reading order and no horizontal page scroll.
+    status: PENDING
+    method: Chromium responsive emulation at 320 CSS px and 400% zoom; verify single-column reading order and no horizontal page scroll. Browser execution is not yet recorded.
   - id: reduced-motion
     kind: manual
-    status: PASS
-    method: "prefers-reduced-motion: reduce; verify no essential information or focus change depends on motion."
+    status: PENDING
+    method: "prefers-reduced-motion: reduce; verify no essential information or focus change depends on motion. Browser execution is not yet recorded."
   - id: accessible-auth
     kind: manual
-    status: PASS
-    method: keyboard plus screen reader; verify authorized actions are named/reachable and privileged masked action is absent.
+    status: PENDING
+    method: keyboard plus screen reader; verify authorized actions are named/reachable and privileged masked action is absent. Assistive-technology execution is not yet recorded.
 waivers: []
