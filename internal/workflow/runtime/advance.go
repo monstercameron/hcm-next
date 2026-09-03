@@ -144,11 +144,10 @@ func (r AdvanceReceipt) Digest() string { return r.digest }
 // including a [ContinuationSink] method returning an error -- leaves the
 // whole advancement uncommitted when the caller rolls back, never half of it.
 //
-// A stale ExpectedInstanceVersion commits nothing. A deterministic retry --
-// the same ExpectedInstanceVersion and the same outcome resubmitted after the
-// instance version has already advanced by exactly one, with the recorded
-// attempt already reflecting this outcome -- returns the original receipt
-// without reapplying anything.
+// A stale ExpectedInstanceVersion commits nothing. An identical retry of the
+// complete request returns its durable receipt without reapplying anything,
+// but only while the instance remains at that receipt's resulting version.
+// Once a later advancement moves the instance again, the old request is stale.
 func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceReceipt, error) {
 	if err := req.validate(); err != nil {
 		return AdvanceReceipt{}, err
@@ -165,23 +164,18 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 			inst.CompiledPlanHash, req.Plan.Digest())
 	}
 
-	// The instance may have moved on since req.ExpectedInstanceVersion was
-	// read. A single advancement can bump the version several times (the
-	// completing node's own transition path, every successor and skip it
-	// creates, then the instance-level frontier write), so "stored is exactly
-	// one ahead" is not the right test for "this is the same advancement
-	// replayed": check whether the recorded attempt already reflects this
-	// exact outcome instead of counting version deltas.
-	switch {
-	case inst.InstanceVersion == req.ExpectedInstanceVersion:
-		// Fresh advancement; fall through below.
-	case inst.InstanceVersion > req.ExpectedInstanceVersion:
-		if ne, loadErr := store.LoadNodeExecution(ctx, tx, req.TenantID, req.InstanceID, req.Outcome.NodeID, req.Attempt); loadErr == nil &&
-			outcomeMatchesRecordedAttempt(ne, req.Outcome) {
-			return reconstructAdvanceReceipt(ctx, tx, req)
+	requestDigest := computeAdvanceRequestDigest(req)
+	stored, found, err := loadAdvancementReceipt(ctx, tx, req)
+	if err != nil {
+		return AdvanceReceipt{}, err
+	}
+	if found {
+		if stored.RequestDigest == requestDigest && inst.InstanceVersion == stored.ResultingInstanceVersion {
+			return stored.Receipt, nil
 		}
 		return AdvanceReceipt{}, staleError(req.InstanceID, req.Outcome.NodeID, req.ExpectedInstanceVersion, inst.InstanceVersion)
-	default:
+	}
+	if inst.InstanceVersion != req.ExpectedInstanceVersion {
 		return AdvanceReceipt{}, staleError(req.InstanceID, req.Outcome.NodeID, req.ExpectedInstanceVersion, inst.InstanceVersion)
 	}
 
@@ -312,70 +306,9 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 		Continuations:      conts,
 	}
 	receipt.digest = computeAdvanceReceiptDigest(receipt)
-	return receipt, nil
-}
-
-// outcomeMatchesRecordedAttempt reports whether an already-recorded node
-// execution row reflects exactly the outcome a retried Advance call
-// resubmits, which is what makes the retry a safe replay rather than a
-// genuine conflict wearing a stale version number.
-func outcomeMatchesRecordedAttempt(ne NodeExecution, outcome frontier.NodeOutcome) bool {
-	switch {
-	case outcome.Await != frontier.AwaitNone:
-		return ne.Status == NodeWaiting
-	case outcome.Failed:
-		return ne.Status == NodeFailed || ne.Status == NodeRetrying
-	default:
-		return ne.Status == NodeSucceeded && ne.OutputArtifactRef == outcome.OutputDigest
-	}
-}
-
-// reconstructAdvanceReceipt rebuilds a receipt from durable rows alone, for
-// the deterministic-retry path. It never calls req.Sink and never re-derives
-// [frontier.Advance]: the original call already did both, exactly once.
-//
-// RouteKey and TerminalCode need care: neither is stored as its own column,
-// and this package deliberately does not query a caller-supplied
-// [ContinuationSink]-backed store to recover them (see [AdvanceReceipt.
-// Continuations]). RouteKey is recovered from req.Outcome.Outcome itself --
-// exact for every outcome but a DECISION's undeclared-key-via-default-route
-// case, since a retry resubmits the identical outcome the original call
-// received. TerminalCode is recovered from the compiled plan's own Terminal
-// artifact for the node, which is static, published data: the plan the
-// caller pins states it, the same way [frontier.Advance] itself reads it in
-// [*advance.end], so no runtime row needs to repeat it.
-func reconstructAdvanceReceipt(ctx context.Context, ex Executor, req AdvanceRequest) (AdvanceReceipt, error) {
-	store := Store{}
-	ne, err := store.LoadNodeExecution(ctx, ex, req.TenantID, req.InstanceID, req.Outcome.NodeID, req.Attempt)
-	if err != nil {
+	if err := recordAdvancementReceipt(ctx, tx, req, requestDigest, receipt); err != nil {
 		return AdvanceReceipt{}, err
 	}
-	inst, err := store.LoadInstance(ctx, ex, req.TenantID, req.InstanceID)
-	if err != nil {
-		return AdvanceReceipt{}, err
-	}
-	complete := inst.RuntimeStatus.Terminal()
-	terminalCode := ""
-	if complete {
-		if node, ok := req.Plan.Node(req.Outcome.NodeID); ok && node.Terminal != nil {
-			terminalCode = node.Terminal.TerminalCode
-		}
-	}
-	receipt := AdvanceReceipt{
-		TenantID:           req.TenantID,
-		InstanceID:         req.InstanceID,
-		NodeID:             req.Outcome.NodeID,
-		Attempt:            req.Attempt,
-		CompletedState:     string(ne.Status),
-		RouteKey:           string(req.Outcome.Outcome),
-		OutputDigest:       ne.OutputArtifactRef,
-		NewInstanceVersion: inst.InstanceVersion,
-		Frontier:           append([]string(nil), inst.CurrentNodeIDs...),
-		Complete:           complete,
-		TerminalCode:       terminalCode,
-		Replay:             true,
-	}
-	receipt.digest = computeAdvanceReceiptDigest(receipt)
 	return receipt, nil
 }
 
