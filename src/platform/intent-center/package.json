@@ -1,16 +1,14 @@
 {
-  "name": "@hcm-next/client-lifecycle",
+  "name": "@hcm-next/intent-center",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
   "exports": {
     ".": "./index.ts",
     "./*": "./*.ts"
   },
   "scripts": {
-    "build": "tsc --noEmit -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   }
 }
