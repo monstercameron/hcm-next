@@ -11,6 +11,7 @@
 - `7e9d649` - Synced docs and harnesses (README, state research + us-federal, admin proto, serve/workspace conformance harnesses, todos, layout docs).
 - `b42414a` - Repaired vet and test lanes: added workflow_continuation/advancement_receipt migrations, fixed stale replay head check, regenerated P1A evidence/golden, and scaffolded missing package unit tests.
 - `3692405` - Backfilled per-file unit tests to 100% file coverage (577 files, 25k+ lines): dedicated *_test.go for every Go source lacking a direct counterpart across internal/, tools/, cmd/, and gen/.
+- `b3c277e` - Implemented DB-013: materialized 16 governance/AuthZ/legal/evidence tables (00021), updated storage disposition, added Go governance store with digest/interval validation (cross-tenant delegation and unversioned authority rejected), and landed TestTodo_DB_013 (7 subtests).
 
 ## 2026-05-16
 
