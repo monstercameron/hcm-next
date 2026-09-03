@@ -44,6 +44,19 @@ type Snapshot struct {
 	Packages  []Package
 	Edges     []Edge
 	Processes map[string][]string // semantic package root -> process names
+	// PortAdapters records the declared port roots and the observed packages
+	// beneath each root. It is explanatory output; the dependency manifest
+	// remains the authority for whether an edge is allowed.
+	PortAdapters []Boundary
+}
+
+// Boundary describes one declared port and its observed implementation
+// packages. Keeping the port name separate from paths makes the generated
+// document useful when a package is renamed without changing ownership.
+type Boundary struct {
+	Name     string
+	Root     string
+	Packages []string
 }
 
 // Load builds a snapshot from repository-layout, package-dependency-policy,
@@ -109,7 +122,26 @@ func Load(root string) (Snapshot, error) {
 	for k := range proc {
 		sort.Strings(proc[k])
 	}
-	return Snapshot{Module: g.Module, Digest: g.Digest, Packages: pkgs, Edges: edges, Processes: proc}, nil
+	boundaries := make([]Boundary, 0, len(p.PortsAndAdapters))
+	for _, pa := range p.PortsAndAdapters {
+		for _, root := range pa.Roots {
+			b := Boundary{Name: pa.Name, Root: root}
+			for _, pkg := range pkgs {
+				if pkg.ImportPath == g.Module+"/"+root || strings.HasPrefix(pkg.ImportPath, g.Module+"/"+root+"/") {
+					b.Packages = append(b.Packages, pkg.ImportPath)
+				}
+			}
+			sort.Strings(b.Packages)
+			boundaries = append(boundaries, b)
+		}
+	}
+	sort.Slice(boundaries, func(i, j int) bool {
+		if boundaries[i].Name == boundaries[j].Name {
+			return boundaries[i].Root < boundaries[j].Root
+		}
+		return boundaries[i].Name < boundaries[j].Name
+	})
+	return Snapshot{Module: g.Module, Digest: g.Digest, Packages: pkgs, Edges: edges, Processes: proc, PortAdapters: boundaries}, nil
 }
 
 // Render emits stable Markdown. It is pure and never writes to disk.
@@ -143,12 +175,27 @@ func Render(s Snapshot) []byte {
 	for _, k := range keys {
 		fmt.Fprintf(&b, "| `%s` | %s |\n", k, strings.Join(s.Processes[k], ", "))
 	}
+	b.WriteString("\n## Ports and adapters\n\n| Port | Root | Observed packages |\n|---|---|---|\n")
+	boundaries := append([]Boundary(nil), s.PortAdapters...)
+	sort.Slice(boundaries, func(i, j int) bool {
+		if boundaries[i].Name == boundaries[j].Name {
+			return boundaries[i].Root < boundaries[j].Root
+		}
+		return boundaries[i].Name < boundaries[j].Name
+	})
+	for _, boundary := range boundaries {
+		fmt.Fprintf(&b, "| `%s` | `%s` | %s |\n", boundary.Name, boundary.Root, strings.Join(boundary.Packages, ", "))
+	}
 	b.WriteString("\n## Phase 1 and deferred decomposition\n\n")
 	for _, p := range packages {
 		if p.Phase == "P1A" {
 			fmt.Fprintf(&b, "- `%s` — `%s` (%s)\n", p.ImportPath, p.Owner, p.Layer)
 		}
 	}
+	b.WriteString("\n## Sources and deferred decisions\n\n")
+	b.WriteString("- [`repository-layout.yaml`](../../definitions/architecture/repository-layout.yaml) — package ownership, layers and phase decisions\n")
+	b.WriteString("- [`package-dependency-policy.yaml`](../../definitions/architecture/package-dependency-policy.yaml) — allowed dependency and port/adapter boundaries\n")
+	b.WriteString("- [`process-roles.yaml`](../../definitions/architecture/process-roles.yaml) — semantic-owner to process placement\n")
 	b.WriteString("\nDeferred packages remain declared architecture, not implemented code; consult `repository-layout.yaml` for their descriptions and phase decisions.\n")
 	return b.Bytes()
 }
