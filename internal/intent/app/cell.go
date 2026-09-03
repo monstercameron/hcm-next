@@ -3,25 +3,22 @@ package app
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
-
-	"google.golang.org/grpc"
 
 	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/connectivity"
 	"github.com/monstercameron/hcm-next/internal/connectivity/fakeincumbent"
 	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
+	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/definitions"
 	"github.com/monstercameron/hcm-next/internal/intent/protomap"
+	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
 	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/edge"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
 	"github.com/monstercameron/hcm-next/internal/transport/manifest"
 	"github.com/monstercameron/hcm-next/internal/trust"
 )
@@ -76,10 +73,39 @@ type CellConfig struct {
 	// Now supplies the capability gateway's evidence timestamps and the
 	// trusted clock's readings. Nil means time.Now in UTC.
 	Now func() time.Time
+	// Workspace controls whether the HTTP edge serves the human-facing
+	// Promotion workspace (internal/humanwork/workspace) alongside the RPC
+	// projection. Nil means served.
+	//
+	// It is a pointer because the default is on and the zero value of a bool
+	// is off: a deployment that wants the API surface without the human one
+	// has to say so, rather than getting it by forgetting to set a field.
+	Workspace *bool
+	// DevBrowserLogin enables the workspace's dev-only pasted-token sign-in
+	// flow (internal/humanwork/workspace's PathLogin/PathLogout). Off by
+	// default. It is a plain value, read back off the composed Cell by
+	// internal/transport/cell, which is the package that actually knows
+	// about internal/humanwork/workspace.Options.DevBrowserLogin - this
+	// package must not import anything transport-shaped to state it.
+	DevBrowserLogin bool
+	// Telemetry is the OTel provider every request is instrumented through.
+	// Nil means off: a cell composed with no Telemetry publishes no spans or
+	// metrics at all, rather than falling back to some default exporter a
+	// caller did not ask for. Like DevBrowserLogin, this package only carries
+	// the value; internal/transport/cell is what chains
+	// otelmw.UnaryServerInterceptor/otelmw.NewConnectInterceptor from it,
+	// because only internal/transport may import connect/grpc (LIB-003).
+	Telemetry *hcmotel.Provider
 }
 
-// Cell is one composed, runnable P1A cell: the registries, the governed
-// gateway, the application service, and the two transports that project it.
+// Cell is one composed P1A application cell: the registries, the governed
+// gateway and the application service. It carries everything a transport
+// composition needs to publish it, but does not publish it itself -
+// internal/transport/cell attaches the gRPC server and the HTTP/Connect edge
+// (including the OTel interceptors and the human-facing workspace), because
+// only internal/transport may import grpc-go/Connect/protobuf directly
+// (LIB-003; internal/intent/app is not on that qualification's allowed-roots
+// list).
 //
 // Composition lives here rather than in cmd/hcmnext so that the bootstrap test
 // runs the same wiring the binary runs. A cell a test assembles differently
@@ -88,6 +114,12 @@ type Cell struct {
 	Service      *IntentService
 	Definitions  *intent.Registry
 	Capabilities *capability.Registry
+	// Workers and Transactions are the governed read ports the operator
+	// surface (internal/transport/admin) forwards to. They are the same
+	// values the capability handlers answer from, so an operator never
+	// reads through a second path.
+	Workers      people.WorkerFacts
+	Transactions intelligence.TransactionHistory
 	Gateway      *capability.Gateway
 	Evidence     *MemoryEvidenceSink
 	Controls     Controls
@@ -106,6 +138,21 @@ type Cell struct {
 	Clock *timeauth.Monitor
 	// Discovery is the rendered API-001 served shape.
 	Discovery *manifest.DiscoveryDocument
+	// Telemetry is the OTel provider from CellConfig, or nil. Exported so
+	// internal/transport/cell can read it without this package exposing any
+	// transport-shaped composition of its own.
+	Telemetry *hcmotel.Provider
+
+	// workspaceEnabled records whether the edge publishes the human-facing
+	// workspace. It is not exported: whether a surface is served is decided
+	// at composition, and a handler that could be switched on afterwards
+	// would be a served shape the discovery document had already denied.
+	// [Cell.WorkspaceEnabled] is the read-only accessor.
+	workspaceEnabled bool
+	// devBrowserLogin records whether the workspace's dev-only sign-in flow
+	// is enabled. Same reasoning as workspaceEnabled: fixed at composition,
+	// read through [Cell.DevBrowserLogin].
+	devBrowserLogin bool
 }
 
 // NewCell composes a cell.
@@ -218,10 +265,17 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		return nil, fmt.Errorf("app: render the discovery document: %w", err)
 	}
 
+	workspaceEnabled := cfg.Workspace == nil || *cfg.Workspace
+
 	return &Cell{
+		workspaceEnabled: workspaceEnabled,
+		devBrowserLogin:  cfg.DevBrowserLogin,
+
 		Service:      svc,
 		Definitions:  defs,
 		Capabilities: caps,
+		Workers:      workers,
+		Transactions: handlers.transactions,
 		Gateway:      gateway,
 		Evidence:     sink,
 		Controls:     controls,
@@ -231,6 +285,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		Observations: observations,
 		Clock:        monitor,
 		Discovery:    discovery,
+		Telemetry:    cfg.Telemetry,
 		Config: transport.Config{
 			Verifier:    cfg.Verifier,
 			Audience:    cfg.Audience,
@@ -344,39 +399,12 @@ var connectorPublishedAt = time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
 // population this release observes.
 const defaultConnectionTenant = fixtures.Tenant
 
-// GRPCServer builds the canonical gRPC surface over this cell. The interceptor
-// chain is not optional and not reorderable; grpcserver owns it.
-func (c *Cell) GRPCServer(opts ...grpc.ServerOption) (*grpc.Server, error) {
-	return grpcserver.NewServer(grpcserver.Options{
-		Config:        c.Config,
-		Intent:        c.Service,
-		Registry:      c.Service,
-		ServerOptions: opts,
-	})
-}
+// WorkspaceEnabled reports the immutable serving decision made while the cell
+// was composed. internal/transport/cell reads it to decide whether to mount
+// the HTML workspace beside the RPC edge.
+func (c *Cell) WorkspaceEnabled() bool { return c.workspaceEnabled }
 
-// EdgeHandler builds the HTTP edge over this cell. It is handed the same
-// transport.Config as the gRPC server, which is what makes the two derive
-// identical trusted context rather than merely similar context.
-//
-// The edge carries one route the gRPC surface does not: the API-001 discovery
-// document. RegistryService publishes no discovery method, so serving it as an
-// RPC would mean inventing a wire contract this build never declared.
-func (c *Cell) EdgeHandler() (http.Handler, error) {
-	rpc, err := edge.NewHandler(edge.Options{
-		Config:   c.Config,
-		Intent:   c.Service,
-		Registry: c.Service,
-	})
-	if err != nil {
-		return nil, err
-	}
-	discovery, err := newDiscoveryHandler(c.Config, c.Discovery)
-	if err != nil {
-		return nil, fmt.Errorf("app: render the discovery document: %w", err)
-	}
-	mux := http.NewServeMux()
-	mux.Handle(DiscoveryPath, discovery)
-	mux.Handle("/", rpc)
-	return mux, nil
-}
+// DevBrowserLogin reports the immutable dev-only workspace sign-in decision
+// made while the cell was composed. internal/transport/cell reads it when
+// building the workspace handler, the same way it reads WorkspaceEnabled.
+func (c *Cell) DevBrowserLogin() bool { return c.devBrowserLogin }

@@ -1,0 +1,543 @@
+[
+  {
+    "step": 1,
+    "digest": "fa55301246358885e8b0f0bfcc99a2b3b021481b713031ddc70c3e830dd367a1",
+    "state_digest": "fb71818c6e610bebcda3a938853c28443d199587a5c93cd63e6c4b0d42ea313c",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 1,
+      "completed_node_id": "snapshot_worker",
+      "completed_type": "CAPABILITY",
+      "completed_state": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:snapshot",
+      "successors": [
+        {
+          "node_id": "simulate_compensation",
+          "type": "CAPABILITY",
+          "state": "READY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "complete": false,
+      "intents": [
+        {
+          "kind": "READY",
+          "node_id": "simulate_compensation",
+          "type": "CAPABILITY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "frontier": [
+        "simulate_compensation"
+      ],
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 1,
+        "frontier": [
+          "simulate_compensation"
+        ],
+        "nodes": [
+          {
+            "node_id": "simulate_compensation",
+            "state": "READY",
+            "attempts": 0
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": false
+      },
+      "digest": "fa55301246358885e8b0f0bfcc99a2b3b021481b713031ddc70c3e830dd367a1"
+    }
+  },
+  {
+    "step": 2,
+    "digest": "2dd281dc88e6004fdc31fda7a3449453508d553b1636b4b76003bfb1ace0f53d",
+    "state_digest": "bf8fb873262c388ed8b9af90cf476e67f0dd6225574aa69bf6593ebf955c84dc",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 2,
+      "completed_node_id": "simulate_compensation",
+      "completed_type": "CAPABILITY",
+      "completed_state": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:comp",
+      "successors": [
+        {
+          "node_id": "evaluate_band",
+          "type": "CAPABILITY",
+          "state": "READY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "complete": false,
+      "intents": [
+        {
+          "kind": "READY",
+          "node_id": "evaluate_band",
+          "type": "CAPABILITY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "frontier": [
+        "evaluate_band"
+      ],
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 2,
+        "frontier": [
+          "evaluate_band"
+        ],
+        "nodes": [
+          {
+            "node_id": "evaluate_band",
+            "state": "READY",
+            "attempts": 0
+          },
+          {
+            "node_id": "simulate_compensation",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:comp"
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": false
+      },
+      "digest": "2dd281dc88e6004fdc31fda7a3449453508d553b1636b4b76003bfb1ace0f53d"
+    }
+  },
+  {
+    "step": 3,
+    "digest": "01fe29c6359d808b6454be57ebc11efc568227844bbb744bbd4db7fb9be1e64d",
+    "state_digest": "dc47256bd1f653e3051bd8130eeedd63bc6a50ac2afad999fbadb26228070016",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 3,
+      "completed_node_id": "evaluate_band",
+      "completed_type": "CAPABILITY",
+      "completed_state": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:band",
+      "successors": [
+        {
+          "node_id": "build_proposal",
+          "type": "TRANSFORM",
+          "state": "READY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "skipped": [
+        "end_rejected"
+      ],
+      "complete": false,
+      "intents": [
+        {
+          "kind": "READY",
+          "node_id": "build_proposal",
+          "type": "TRANSFORM",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "frontier": [
+        "build_proposal"
+      ],
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 3,
+        "frontier": [
+          "build_proposal"
+        ],
+        "nodes": [
+          {
+            "node_id": "build_proposal",
+            "state": "READY",
+            "attempts": 0
+          },
+          {
+            "node_id": "end_rejected",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "evaluate_band",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:band"
+          },
+          {
+            "node_id": "simulate_compensation",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:comp"
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": false
+      },
+      "digest": "01fe29c6359d808b6454be57ebc11efc568227844bbb744bbd4db7fb9be1e64d"
+    }
+  },
+  {
+    "step": 4,
+    "digest": "93011e0ff8378fbdc9a70ee5310186ac344a4a7a611425ce7bd01c12c1d7ece7",
+    "state_digest": "e2d369cf1817d852e1f6b357a3af3d81200d7fe299e857db390ab0b91f4b2038",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 4,
+      "completed_node_id": "build_proposal",
+      "completed_type": "TRANSFORM",
+      "completed_state": "SUCCEEDED",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:proposal",
+      "successors": [
+        {
+          "node_id": "raise_threshold",
+          "type": "DECISION",
+          "state": "READY",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "complete": false,
+      "intents": [
+        {
+          "kind": "READY",
+          "node_id": "raise_threshold",
+          "type": "DECISION",
+          "route_key": "SUCCEEDED"
+        }
+      ],
+      "frontier": [
+        "raise_threshold"
+      ],
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 4,
+        "frontier": [
+          "raise_threshold"
+        ],
+        "nodes": [
+          {
+            "node_id": "build_proposal",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:proposal"
+          },
+          {
+            "node_id": "end_rejected",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "evaluate_band",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:band"
+          },
+          {
+            "node_id": "raise_threshold",
+            "state": "READY",
+            "attempts": 0
+          },
+          {
+            "node_id": "simulate_compensation",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:comp"
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": false
+      },
+      "digest": "93011e0ff8378fbdc9a70ee5310186ac344a4a7a611425ce7bd01c12c1d7ece7"
+    }
+  },
+  {
+    "step": 5,
+    "digest": "227b986327cfab466315cc192bd9ade0a62cf31b7cc952dcfd3174bb34e34579",
+    "state_digest": "c5ebd7f8eccec2561be0c2a954f4db724735c406df3d63318bc887cbe0a86c1c",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 5,
+      "completed_node_id": "raise_threshold",
+      "completed_type": "DECISION",
+      "completed_state": "SUCCEEDED",
+      "route_key": "EXCEEDS_THRESHOLD",
+      "output_digest": "sha256:threshold",
+      "successors": [
+        {
+          "node_id": "end_requires_finance_approval",
+          "type": "END",
+          "state": "READY",
+          "route_key": "EXCEEDS_THRESHOLD"
+        }
+      ],
+      "skipped": [
+        "end_unknown",
+        "observe_projection"
+      ],
+      "complete": false,
+      "intents": [
+        {
+          "kind": "READY",
+          "node_id": "end_requires_finance_approval",
+          "type": "END",
+          "route_key": "EXCEEDS_THRESHOLD"
+        }
+      ],
+      "frontier": [
+        "end_requires_finance_approval"
+      ],
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 5,
+        "frontier": [
+          "end_requires_finance_approval"
+        ],
+        "nodes": [
+          {
+            "node_id": "build_proposal",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:proposal"
+          },
+          {
+            "node_id": "end_rejected",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "end_requires_finance_approval",
+            "state": "READY",
+            "attempts": 0
+          },
+          {
+            "node_id": "end_unknown",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "evaluate_band",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:band"
+          },
+          {
+            "node_id": "observe_projection",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "raise_threshold",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "EXCEEDS_THRESHOLD",
+            "output_digest": "sha256:threshold"
+          },
+          {
+            "node_id": "simulate_compensation",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:comp"
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": false
+      },
+      "digest": "227b986327cfab466315cc192bd9ade0a62cf31b7cc952dcfd3174bb34e34579"
+    }
+  },
+  {
+    "step": 6,
+    "digest": "851f96441b694d2bd2ebfed421042e732a2d7aa1c50e2dac4187ad4331850996",
+    "state_digest": "7a4f025a41474856536ce42819cc1f49ca6cfe14484010c71fcc4cf5861fcd8a",
+    "transition": {
+      "instance_id": "wf-instance-024",
+      "workflow_id": "hcmnext.workflows.promote_into_management",
+      "version": 1,
+      "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+      "sequence": 6,
+      "completed_node_id": "end_requires_finance_approval",
+      "completed_type": "END",
+      "completed_state": "SUCCEEDED",
+      "output_digest": "sha256:terminal",
+      "complete": true,
+      "terminal": {
+        "node_id": "end_requires_finance_approval",
+        "terminal_code": "SIMULATION_APPROVAL_REQUIRED",
+        "runtime_status": "COMPLETED",
+        "lifecycle": {
+          "request_state": "SIMULATED",
+          "execution_state": "NOT_PLANNED",
+          "business_state": "NOT_STARTED",
+          "consistency_state": "NOT_APPLICABLE",
+          "obligation_state": "PENDING"
+        },
+        "outstanding_obligation_refs": [
+          "obligation.finance_partner_approval"
+        ]
+      },
+      "intents": [
+        {
+          "kind": "COMPLETE",
+          "node_id": "end_requires_finance_approval",
+          "type": "END",
+          "terminal_code": "SIMULATION_APPROVAL_REQUIRED"
+        }
+      ],
+      "frontier": null,
+      "next": {
+        "instance_id": "wf-instance-024",
+        "workflow_id": "hcmnext.workflows.promote_into_management",
+        "version": 1,
+        "plan_digest": "e6c9e4d8c23a7e0e61a39ba1d82d664afd3b39b36c8a860e0d7444a21d599afc",
+        "sequence": 6,
+        "frontier": [],
+        "nodes": [
+          {
+            "node_id": "build_proposal",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:proposal"
+          },
+          {
+            "node_id": "end_rejected",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "end_requires_finance_approval",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "output_digest": "sha256:terminal"
+          },
+          {
+            "node_id": "end_unknown",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "evaluate_band",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:band"
+          },
+          {
+            "node_id": "observe_projection",
+            "state": "SKIPPED",
+            "attempts": 0
+          },
+          {
+            "node_id": "raise_threshold",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "EXCEEDS_THRESHOLD",
+            "output_digest": "sha256:threshold"
+          },
+          {
+            "node_id": "simulate_compensation",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:comp"
+          },
+          {
+            "node_id": "snapshot_worker",
+            "state": "SUCCEEDED",
+            "attempts": 0,
+            "route_key": "SUCCEEDED",
+            "output_digest": "sha256:snapshot"
+          }
+        ],
+        "completed": true,
+        "terminal": {
+          "node_id": "end_requires_finance_approval",
+          "terminal_code": "SIMULATION_APPROVAL_REQUIRED",
+          "runtime_status": "COMPLETED",
+          "lifecycle": {
+            "request_state": "SIMULATED",
+            "execution_state": "NOT_PLANNED",
+            "business_state": "NOT_STARTED",
+            "consistency_state": "NOT_APPLICABLE",
+            "obligation_state": "PENDING"
+          },
+          "outstanding_obligation_refs": [
+            "obligation.finance_partner_approval"
+          ]
+        }
+      },
+      "digest": "851f96441b694d2bd2ebfed421042e732a2d7aa1c50e2dac4187ad4331850996"
+    }
+  }
+]

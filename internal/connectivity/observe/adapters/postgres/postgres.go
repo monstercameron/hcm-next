@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/monstercameron/hcm-next/internal/connectivity"
 	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // Store is the PostgreSQL observation and checkpoint store.
@@ -75,7 +75,7 @@ func (s *Store) Append(ctx context.Context, obs observe.Observation) (observe.Ap
 		return observe.AppendResult{}, err
 	}
 
-	tag, err := s.db.Exec(ctx, `
+	affected, err := s.db.Exec(ctx, `
         INSERT INTO external_observation (`+observationColumns+`)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
                 $16, $17, $18, $19, $20, $21, $22, $23, $24)
@@ -88,7 +88,7 @@ func (s *Store) Append(ctx context.Context, obs observe.Observation) (observe.Ap
 	if err != nil {
 		return observe.AppendResult{}, wrap(op, err, "insert observation %s", obs.ObservationID)
 	}
-	if tag.RowsAffected() == 1 {
+	if affected == 1 {
 		return observe.AppendResult{Observation: obs}, nil
 	}
 
@@ -204,7 +204,7 @@ func (s *Store) Load(ctx context.Context, key observe.CheckpointKey) (observe.Ch
 		tenant, key.ConnectionID, string(key.Object)).
 		Scan(&cp.RunID, &cp.SnapshotID, &cp.CursorToken, &fence, &pages, &records,
 			&cp.Complete, &updatedAt)
-	if errors.Is(scanErr, pgx.ErrNoRows) {
+	if errors.Is(scanErr, dbport.ErrNoRows) {
 		return observe.Checkpoint{}, false, nil
 	}
 	if scanErr != nil {
@@ -232,7 +232,7 @@ func (s *Store) Commit(ctx context.Context, cp observe.Checkpoint) error {
 	if err != nil {
 		return err
 	}
-	tag, err := s.db.Exec(ctx, `
+	affected, err := s.db.Exec(ctx, `
         INSERT INTO observation_checkpoint (
             tenant_id, connection_id, object_kind, run_id, snapshot_id,
             cursor_token, fence, pages_committed, records_committed, complete, updated_at)
@@ -253,14 +253,14 @@ func (s *Store) Commit(ctx context.Context, cp observe.Checkpoint) error {
 	if err != nil {
 		return wrap(op, err, "commit checkpoint for %s/%s", cp.Key.ConnectionID, cp.Key.Object)
 	}
-	if tag.RowsAffected() == 0 {
+	if affected == 0 {
 		return fenced(op, "checkpoint for %s/%s refused a commit at fence %d",
 			cp.Key.ConnectionID, cp.Key.Object, cp.Fence)
 	}
 	return nil
 }
 
-func scanObservation(rows pgx.Rows) (observe.Observation, error) {
+func scanObservation(rows dbport.Rows) (observe.Observation, error) {
 	var (
 		obs           observe.Observation
 		tenant        uuid.UUID

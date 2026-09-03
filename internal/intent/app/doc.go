@@ -1,6 +1,7 @@
 // Package app is the application/composition layer of the BusinessIntent
 // kernel: it turns generated Protobuf transport requests into kernel calls and
-// back, and it composes one runnable P1A cell.
+// back, and it composes one whole P1A cell, including the published
+// gRPC/Connect listeners ([Cell.GRPCServer], [Cell.EdgeHandler]).
 //
 // Semantic owner: intent-and-capability. Phase: P1A. Todos: NEXT-004, NEXT-005.
 //

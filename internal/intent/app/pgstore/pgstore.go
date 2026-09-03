@@ -27,10 +27,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
@@ -58,12 +59,11 @@ const envelopeSequence int64 = 1
 // with no registry to keep in sync.
 var tenantNamespace = uuid.MustParse("8f1d7b52-3a0a-4d1e-9d4a-0a0f2c1b7e10")
 
-// DB is the pgx surface this adapter needs. A *pgx.Conn and a *pgxpool.Pool
-// both satisfy it.
+// DB is the database capability this adapter needs, stated in [dbport]'s
+// driver-free terms: a pooled handle or a single connection both satisfy it.
 type DB interface {
-	Begin(ctx context.Context) (pgx.Tx, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	dbport.Beginner
+	dbport.Querier
 }
 
 // Store implements app.Store over PostgreSQL.
@@ -72,6 +72,7 @@ type Store struct {
 	appender ledgerport.Appender
 	reader   ledgerport.Reader
 	cellID   string
+	now      func() time.Time
 }
 
 var _ app.Store = (*Store)(nil)
@@ -82,6 +83,14 @@ type Option func(*Store)
 // WithCellID names the cell a bootstrapped tenant is registered against.
 func WithCellID(id string) Option {
 	return func(s *Store) { s.cellID = id }
+}
+
+// WithClock pins the ledger's recording clock. A composition that pins the
+// cell clock (app.CellConfig.Now) must pass the same reading here, so the
+// recorded_at of every event it appends is not later than the as-known-at the
+// same cell stamps on the intents that read it back. Nil keeps the host clock.
+func WithClock(now func() time.Time) Option {
+	return func(s *Store) { s.now = now }
 }
 
 // New builds the adapter with the kernel-digest-backed ledger appender, so a
@@ -100,6 +109,9 @@ func New(db DB, opts ...Option) (*Store, error) {
 	}
 	for _, opt := range opts {
 		opt(s)
+	}
+	if s.now != nil {
+		s.appender = ledgerport.NewAppenderWithClock(registry, s.now)
 	}
 	return s, nil
 }
@@ -215,7 +227,7 @@ func (s *Store) AppendIntent(ctx context.Context, rec app.IntentRecord) (app.App
 	}
 
 	request, execution, business, consistency, obligation := app.LifecycleColumns(rec.Lifecycle)
-	tag, err := tx.Exec(ctx, `
+	affected, err := tx.Exec(ctx, `
 		INSERT INTO intent_instance (
 			tenant_id, intent_id, definition_ref, definition_version,
 			request_digest, request_digest_algorithm, idempotency_key,
@@ -230,7 +242,7 @@ func (s *Store) AppendIntent(ctx context.Context, rec app.IntentRecord) (app.App
 	if err != nil {
 		return app.AppendResult{}, fmt.Errorf("pgstore: project intent instance: %w", err)
 	}
-	if tag.RowsAffected() == 0 {
+	if affected == 0 {
 		// Another writer won the race on this idempotency key. Roll this
 		// transaction back whole - the ledger append, the checkpoint advance and
 		// the outbox row go with it - and answer with what is actually stored.
@@ -285,7 +297,7 @@ const intentColumns = `
 
 // scanRecord reads one projected row and then takes the authoritative envelope
 // from the ledger event the row was projected from.
-func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUID, row pgx.Row) (app.IntentRecord, error) {
+func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUID, row dbport.Row) (app.IntentRecord, error) {
 	var (
 		rec                              app.IntentRecord
 		definitionVersion                int64
@@ -298,7 +310,7 @@ func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUI
 		&req, &exec, &bus, &cons, &obligation,
 		&instanceVersion, &rec.CreatedAt, &rec.RecordedAt, &rec.LastTransitionAt)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, dbport.ErrNoRows) {
 			return app.IntentRecord{}, app.ErrIntentNotFound
 		}
 		return app.IntentRecord{}, fmt.Errorf("pgstore: read intent projection: %w", err)

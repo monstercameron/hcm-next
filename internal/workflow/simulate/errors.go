@@ -19,10 +19,17 @@ var (
 
 // Stable refusal codes.
 const (
-	// CodeWriteEffectInSimulate reports a node whose effect class can mutate
-	// something. It is the load-bearing refusal of this package: SIMULATE
-	// suppresses nothing, it refuses.
-	CodeWriteEffectInSimulate = "WRITE_EFFECT_IN_SIMULATE"
+	// CodeSimulationSideEffectForbidden is the contract code WF-RUN-012's
+	// GREEN clause names for an attempted mutation: "reads/pure rules/plans/
+	// obligations/cost execute and mutation attempt returns
+	// SIMULATION_SIDE_EFFECT_FORBIDDEN". It is the load-bearing refusal of
+	// this package: SIMULATE suppresses nothing, it refuses.
+	CodeSimulationSideEffectForbidden = "SIMULATION_SIDE_EFFECT_FORBIDDEN"
+	// CodeWriteEffectInSimulate is the same code under the name this package
+	// used before WF-RUN-012 fixed the spelling against the contract. It is
+	// kept as an alias so existing callers keep compiling; there is one code,
+	// not two.
+	CodeWriteEffectInSimulate = CodeSimulationSideEffectForbidden
 	// CodeModeNotAdmitted reports a node whose compiled allowed-mode set does
 	// not include SIMULATE.
 	CodeModeNotAdmitted = "MODE_NOT_ADMITTED"

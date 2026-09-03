@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/structpb"
-
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/hcm-next/internal/intent/protomap"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -33,17 +31,12 @@ type PayBandInputs struct {
 	Amount values.Money
 }
 
-// decodeStruct reads the google.protobuf.Struct a P1A request payload carries.
-func decodeStruct(wire []byte) (*structpb.Struct, error) {
-	var s structpb.Struct
-	if err := proto.Unmarshal(wire, &s); err != nil {
-		return nil, fmt.Errorf("app: request payload is not a google.protobuf.Struct: %w", err)
-	}
-	return &s, nil
-}
+// decodeStruct reads the temporary dynamic request through the approved
+// Protobuf-to-intent mapping seam.
+func decodeStruct(wire []byte) (*protomap.Struct, error) { return protomap.DecodeStruct(wire) }
 
 // fieldsOf returns the named sub-object, or an error naming the path.
-func fieldsOf(s *structpb.Struct, path string) (*structpb.Struct, error) {
+func fieldsOf(s *protomap.Struct, path string) (*protomap.Struct, error) {
 	v, ok := s.GetFields()[path]
 	if !ok {
 		return nil, fmt.Errorf("app: request payload has no %q object", path)
@@ -56,7 +49,7 @@ func fieldsOf(s *structpb.Struct, path string) (*structpb.Struct, error) {
 }
 
 // str returns a required string field.
-func str(s *structpb.Struct, path string) (string, error) {
+func str(s *protomap.Struct, path string) (string, error) {
 	v, ok := s.GetFields()[path]
 	if !ok {
 		return "", fmt.Errorf("app: request payload has no %q field", path)
@@ -69,7 +62,7 @@ func str(s *structpb.Struct, path string) (string, error) {
 }
 
 // optionalStr returns a string field that may be absent.
-func optionalStr(s *structpb.Struct, path string) string {
+func optionalStr(s *protomap.Struct, path string) string {
 	if v, ok := s.GetFields()[path]; ok {
 		return v.GetStringValue()
 	}
@@ -80,7 +73,7 @@ func optionalStr(s *structpb.Struct, path string) string {
 // that is not a list, or a list element that is not a string, contributes
 // nothing rather than an empty entry: a malformed population is caught by the
 // resolver that finds it empty, not by silently inventing a blank reference.
-func optionalStrings(s *structpb.Struct, path string) []string {
+func optionalStrings(s *protomap.Struct, path string) []string {
 	v, ok := s.GetFields()[path]
 	if !ok {
 		return nil
@@ -99,7 +92,7 @@ func optionalStrings(s *structpb.Struct, path string) []string {
 }
 
 // localDate reads a required YYYY-MM-DD field.
-func localDate(s *structpb.Struct, path string) (values.LocalDate, error) {
+func localDate(s *protomap.Struct, path string) (values.LocalDate, error) {
 	text, err := str(s, path)
 	if err != nil {
 		return values.LocalDate{}, err
@@ -114,18 +107,18 @@ func localDate(s *structpb.Struct, path string) (values.LocalDate, error) {
 // uintField reads a required non-negative integer field, accepting both a JSON
 // number and a decimal string so a caller need not care which the encoder
 // chose.
-func uintField(s *structpb.Struct, path string) (uint64, error) {
+func uintField(s *protomap.Struct, path string) (uint64, error) {
 	v, ok := s.GetFields()[path]
 	if !ok {
 		return 0, fmt.Errorf("app: request payload has no %q field", path)
 	}
 	switch inner := v.GetKind().(type) {
-	case *structpb.Value_NumberValue:
+	case *protomap.NumberValue:
 		if inner.NumberValue < 0 {
 			return 0, fmt.Errorf("app: request payload field %q is negative", path)
 		}
 		return uint64(inner.NumberValue), nil
-	case *structpb.Value_StringValue:
+	case *protomap.StringValue:
 		n, err := strconv.ParseUint(inner.StringValue, 10, 64)
 		if err != nil {
 			return 0, fmt.Errorf("app: request payload field %q: %w", path, err)
@@ -151,7 +144,7 @@ func payBasis(text string) (rewards.PayBasis, error) {
 }
 
 // compensationSnapshot decodes one pinned compensation side.
-func compensationSnapshot(s *structpb.Struct, path string) (rewards.CompensationSnapshot, error) {
+func compensationSnapshot(s *protomap.Struct, path string) (rewards.CompensationSnapshot, error) {
 	sub, err := fieldsOf(s, path)
 	if err != nil {
 		return rewards.CompensationSnapshot{}, err
@@ -209,7 +202,7 @@ func compensationSnapshot(s *structpb.Struct, path string) (rewards.Compensation
 }
 
 // budgetObservation decodes the optional workforce-budget observation.
-func budgetObservation(s *structpb.Struct) (*promotion.BudgetAuthorityRef, error) {
+func budgetObservation(s *protomap.Struct) (*promotion.BudgetAuthorityRef, error) {
 	v, ok := s.GetFields()["budget"]
 	if !ok || v.GetStructValue() == nil {
 		return nil, nil
@@ -242,7 +235,7 @@ func budgetObservation(s *structpb.Struct) (*promotion.BudgetAuthorityRef, error
 }
 
 // targetPlacement decodes the proposed job, grade and organizational placement.
-func targetPlacement(s *structpb.Struct) (promotion.TargetPlacement, error) {
+func targetPlacement(s *protomap.Struct) (promotion.TargetPlacement, error) {
 	sub, err := fieldsOf(s, "target")
 	if err != nil {
 		return promotion.TargetPlacement{}, err
@@ -269,7 +262,7 @@ func targetPlacement(s *structpb.Struct) (promotion.TargetPlacement, error) {
 }
 
 // bandQuery decodes a pay-band address.
-func bandQuery(s *structpb.Struct, tenant values.TenantId, asOf values.LocalDate) (rewards.BandQuery, error) {
+func bandQuery(s *protomap.Struct, tenant values.TenantId, asOf values.LocalDate) (rewards.BandQuery, error) {
 	jobCode, err := str(s, "job_code")
 	if err != nil {
 		return rewards.BandQuery{}, err
@@ -299,4 +292,4 @@ func bandQuery(s *structpb.Struct, tenant values.TenantId, asOf values.LocalDate
 // structValue is the decoded P1A request payload. It is an alias rather than a
 // wrapper so that replacing the Struct with the generated request message is a
 // type change here and nothing more.
-type structValue = structpb.Struct
+type structValue = protomap.Struct

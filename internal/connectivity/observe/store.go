@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-
 	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // AppendResult reports what an append did. Existing is true when the store
@@ -119,17 +117,17 @@ type CheckpointStore interface {
 	Commit(ctx context.Context, cp Checkpoint) error
 }
 
-// Querier is the subset of pgx this package's PostgreSQL adapter needs. Both
-// *pgx.Conn and pgx.Tx satisfy it, so a caller decides whether an append
-// joins an existing transaction without the adapter knowing.
+// Querier is the database capability this package's PostgreSQL adapter needs,
+// stated in [dbport]'s driver-free terms. Both a [dbport.Conn] and a
+// [dbport.Tx] satisfy it, so a caller decides whether an append joins an
+// existing transaction without the adapter knowing.
 //
 // The port lives here, beside the consumer that defines what evidence
 // persistence means, rather than in the adapter package: the adapter only
 // implements it (see internal/connectivity/observe/adapters/postgres).
 type Querier interface {
-	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	dbport.Execer
+	dbport.Querier
 }
 
 // MemoryStore is an in-memory [ObservationStore] and [CheckpointStore].

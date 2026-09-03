@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/proto"
 
 	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
@@ -297,13 +296,13 @@ func encodeEnvelope(inst intent.Instance) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return proto.MarshalOptions{Deterministic: true}.Marshal(msg)
+	return protomap.MarshalDeterministic(msg)
 }
 
 // decodeEnvelope reads a stored envelope back into the kernel type.
 func decodeEnvelope(wire []byte) (intent.Instance, error) {
 	var msg intentsv1.IntentInstance
-	if err := proto.Unmarshal(wire, &msg); err != nil {
+	if err := protomap.Unmarshal(wire, &msg); err != nil {
 		return intent.Instance{}, fmt.Errorf("app: stored intent envelope does not decode: %w", err)
 	}
 	return protomap.InstanceFromProto(&msg)
