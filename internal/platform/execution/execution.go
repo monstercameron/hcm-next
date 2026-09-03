@@ -25,6 +25,8 @@ package execution
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
@@ -32,6 +34,8 @@ import (
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/hcm-next/internal/platform/logging"
+	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute"
@@ -89,6 +93,15 @@ type PromotionExecutionConfig struct {
 	// RequiredRole is the principal role ExecuteIntent additionally requires
 	// under the returned ExecutionAuthority. Empty means [defaultRequiredRole].
 	RequiredRole string
+	// Telemetry is the OTel provider OBS-023's spans are opened through
+	// (the same *hcmotel.Provider a Cell's own CellConfig.Telemetry field
+	// carries). Nil means [execute.NoopInstrumentation]: no spans, no log
+	// lines.
+	Telemetry *hcmotel.Provider
+	// Logger receives the one required log/slog envelope line per
+	// advancement and per terminal write, when Telemetry is non-nil. Nil
+	// means a logging.Handler over os.Stderr.
+	Logger *slog.Logger
 }
 
 // PromotionExecution is the composed EXECUTE-mode wiring for
@@ -100,6 +113,13 @@ type PromotionExecution struct {
 	Resolver  runtime.WorkflowResolver
 	Versions  version.Store
 	Authority *app.ExecutionAuthority
+	// Evidence is OBS-024's execution-evidence sink for this driver's own
+	// three kinds (APPROVAL_COMPLETED, TASK_SUBMITTED, TERMINAL_WRITTEN):
+	// the same in-memory [app.MemoryEvidenceSink] CAP-002's gateway uses,
+	// so a test reads TERMINAL_WRITTEN etc. back exactly the way it already
+	// reads a Cell's own capability evidence
+	// (app.Cell.Evidence.Records()/.Len()).
+	Evidence *app.MemoryEvidenceSink
 }
 
 // NewPromotionExecution composes the caller-driven driver
@@ -170,6 +190,25 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 		Plan:       plan,
 	}}}
 
+	// OBS-023: no spans/logs at all unless a composition root supplies a
+	// Telemetry provider — exactly the same opt-in shape CellConfig.Telemetry
+	// already uses.
+	var instrumentation execute.Instrumentation = execute.NoopInstrumentation{}
+	if cfg.Telemetry != nil {
+		logger := cfg.Logger
+		if logger == nil {
+			logger = slog.New(logging.NewHandler(os.Stderr, logging.WithService("hcmnext-workflow-execute"), logging.WithClock(clock)))
+		}
+		instrumentation = NewOTelInstrumentation(cfg.Telemetry, logger, clock)
+	}
+
+	// OBS-024: this driver's own three evidence kinds
+	// (APPROVAL_COMPLETED/TASK_SUBMITTED/TERMINAL_WRITTEN) are recorded
+	// through the same capability evidence sink mechanism CAP-002's gateway
+	// already uses, on a sink dedicated to this execution wiring.
+	evidenceSink := app.NewMemoryEvidenceSink()
+	evidence := capabilityEvidenceAdapter{sink: evidenceSink, now: clock}
+
 	driver, err := execute.New(execute.Options{
 		DB:        cfg.DB,
 		Steps:     promotionStepRunner{},
@@ -178,6 +217,16 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 		Guard:     guard,
 		Retention: retention,
 		Clock:     clock,
+		// WF-RUN-028: Resume loads the durable WorkItem itself, through the
+		// real internal/humanwork/workitem store this composition already
+		// uses to create and route it. workitem.Store satisfies
+		// execute.WorkItemReader structurally, so no adapter type is needed
+		// here (and none may import github.com/google/uuid directly --
+		// tools/policy/libfirewall's semantic firewall reserves that import
+		// to internal/humanwork and the other roots it names).
+		Items:           workitem.Store{},
+		Instrumentation: instrumentation,
+		Evidence:        evidence,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("platform execution: build the promotion execution driver: %w", err)
@@ -192,6 +241,7 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 			AdmittedIntentTypes: map[string]bool{promotion.IntentType: true},
 			RequiredRole:        role,
 		},
+		Evidence: evidenceSink,
 	}, nil
 }
 
@@ -287,7 +337,11 @@ func (a executeDriverAdapter) Execute(ctx context.Context, start runtime.StartRe
 func (a executeDriverAdapter) Resume(ctx context.Context, req app.ExecutionResumeRequest) (app.ExecutionResult, error) {
 	result, err := a.driver.Resume(ctx, execute.ResumeRequest{
 		Start: req.Start, InstanceID: req.InstanceID, ExpectedInstanceVersion: req.ExpectedInstanceVersion,
-		WorkItem: req.WorkItem, Outcome: req.Outcome,
+		// WF-RUN-028: only the WorkItem's identity and expected version cross
+		// this boundary -- the driver reloads the row itself, through
+		// workitem.Store, rather than trust req.WorkItem's own fields.
+		WorkItemID: req.WorkItem.WorkItemID, ExpectedWorkItemVersion: req.WorkItem.ItemVersion,
+		Outcome: req.Outcome,
 	})
 	if err != nil {
 		return app.ExecutionResult{}, err
@@ -295,11 +349,28 @@ func (a executeDriverAdapter) Resume(ctx context.Context, req app.ExecutionResum
 	return adaptExecutionResult(result, req.InstanceID.String()), nil
 }
 
+// awaitingContinuationKinds are the [frontier.IntentKind] values that leave
+// an instance parked, waiting on a durable continuation to be satisfied.
+// IntentReady and IntentComplete are not: the former is ordinary work the
+// driver already drained before returning, and the latter is the terminal
+// itself, not something still to wait on.
+var awaitingContinuationKinds = map[frontier.IntentKind]bool{
+	frontier.IntentWorkItemRequired:           true,
+	frontier.IntentSignalSubscriptionRequired: true,
+	frontier.IntentTimerRequired:              true,
+}
+
 // adaptExecutionResult projects one execute.Result onto app.ExecutionResult.
 // instanceID is passed as its already-rendered string form (rather than the
 // google/uuid.UUID type itself, which this package must not leak past its
 // own adapter boundary) because execute.Result.Start (which itself carries
 // an instance id) is only populated by Execute, never by Resume.
+//
+// WF-RUN-032: ParkedContinuationRefs and ParkedWorkItems are built as two
+// separate typed lists -- the durable continuation record a frontier intent
+// raised, and the durable WorkItem it may have raised -- because the
+// deprecated ParkedContinuations string field below (kept only for wire
+// compatibility) was found naming work-item ids under a continuation name.
 func adaptExecutionResult(result execute.Result, instanceID string) app.ExecutionResult {
 	visited := make([]string, 0, len(result.Advances))
 	for _, adv := range result.Advances {
@@ -309,11 +380,32 @@ func adaptExecutionResult(result execute.Result, instanceID string) app.Executio
 	for _, item := range result.WorkItems {
 		parked = append(parked, item.WorkType+":"+item.WorkItemID.String())
 	}
+	continuations := make([]app.ContinuationRef, 0)
+	for _, adv := range result.Advances {
+		for _, rec := range adv.Continuations {
+			if !awaitingContinuationKinds[rec.Kind] {
+				continue
+			}
+			id := runtime.ContinuationID(rec.TenantID, rec.InstanceID, rec.SourceNodeID, rec.SourceAttempt, rec.TargetNodeID, rec.Kind)
+			continuations = append(continuations, app.ContinuationRef{
+				ContinuationID: id.String(), Kind: string(rec.Kind), TargetNodeID: rec.TargetNodeID,
+			})
+		}
+	}
+	workItems := make([]app.WorkItemRef, 0, len(result.WorkItems))
+	for _, item := range result.WorkItems {
+		workItems = append(workItems, app.WorkItemRef{
+			WorkItemID: item.WorkItemID.String(), Kind: string(item.Kind), NodeID: item.NodeID,
+		})
+	}
 	return app.ExecutionResult{
-		Parked:              result.Status == execute.StatusParked,
-		InstanceID:          instanceID,
-		InstanceVersion:     result.InstanceVersion,
-		VisitedNodes:        visited,
-		ParkedContinuations: parked,
+		Parked:                 result.Status == execute.StatusParked,
+		InstanceID:             instanceID,
+		InstanceVersion:        result.InstanceVersion,
+		VisitedNodes:           visited,
+		ParkedContinuations:    parked,
+		ParkedContinuationRefs: continuations,
+		ParkedWorkItems:        workItems,
+		EvidenceIDs:            append([]string(nil), result.EvidenceIDs...),
 	}
 }

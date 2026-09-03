@@ -33,6 +33,22 @@ func TestTodoOBS011EgressIsDestinationBoundAndInputImmutable(t *testing.T) {
 	}
 }
 
+func TestTodoOBS011EgressRechecksAuthorityAndSensitiveKeys(t *testing.T) {
+	p := Policy{AllowKeys: map[string]map[string]bool{"provider": {
+		"correlation_id": true,
+		"tenant_id":      true, // an over-broad configuration must fail closed
+		"employee_email": true,
+	}}}
+	in := []Baggage{
+		{Key: "correlation_id", Value: "c"},
+		{Key: "tenant_id", Value: "tenant"},
+		{Key: "employee_email", Value: "person@example.test"},
+	}
+	if got := p.Egress("provider", in); got != "correlation_id=c" {
+		t.Fatalf("forbidden baggage crossed egress: %q", got)
+	}
+}
+
 func TestTodoOBS011ConformanceTraceParentAndBounds(t *testing.T) {
 	p := testPolicy()
 	decision := p.Inbound("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01", "correlation_id=c,request_id=r")

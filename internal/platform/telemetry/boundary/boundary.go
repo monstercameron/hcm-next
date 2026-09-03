@@ -130,7 +130,11 @@ func signal(traceErr, bagErr error) string {
 func (p Policy) Filter(destination string, entries []Baggage) []Baggage {
 	out := make([]Baggage, 0, len(entries))
 	for _, e := range entries {
-		if p.allowed(destination, e.Key) && len(e.Key) <= MaxKeyLen && len(e.Value) <= MaxValueLen && utf8.ValidString(e.Key) && utf8.ValidString(e.Value) {
+		// Filter is also the egress trust boundary. Do not rely on ParseBaggage
+		// having run: callers may have assembled entries in memory, and
+		// authority-bearing or sensitive keys must never cross even when a
+		// destination allowlist is accidentally over-broad.
+		if !isForbiddenKey(e.Key) && p.allowed(destination, e.Key) && len(e.Key) <= MaxKeyLen && len(e.Value) <= MaxValueLen && utf8.ValidString(e.Key) && utf8.ValidString(e.Value) {
 			out = append(out, e)
 			if len(out) == MaxEntries {
 				break
@@ -138,6 +142,21 @@ func (p Policy) Filter(destination string, entries []Baggage) []Baggage {
 		}
 	}
 	return out
+}
+
+func isForbiddenKey(key string) bool {
+	lower := strings.ToLower(key)
+	if forbiddenKeys[lower] {
+		return true
+	}
+	// Keep the policy conservative for common aliases and classified fields;
+	// baggage is operational context, not a transport for identity or data.
+	for _, marker := range []string{"authorization", "authz", "identity", "principal", "tenant", "actor", "purpose", "evidence", "email", "name", "personal"} {
+		if strings.Contains(lower, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func (p Policy) Egress(destination string, entries []Baggage) string {
