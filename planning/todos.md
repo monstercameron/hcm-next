@@ -2941,7 +2941,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [DECISION step](workflows/_engine/step-types.md#2-decision).
   - **Evidence (2026-09-03):** `TestTodo_WF_STEP_002`, `_Golden`, `_Conformance` (DECISION) in `internal/workflow` (`Compile`, `CompiledWorkflow` with digest and `Verify`, `CheckStepConformance`, JSON loader, promotion reference golden `testdata/promotion_plan.json`); `go test -count=1 ./internal/workflow/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3).
 
-- [ ] `WF-STEP-003` **[GATE_B][SOL_HIGH] Implement `APPROVAL` step conformance.**
+- [x] `WF-STEP-003` **[GATE_B][SOL_HIGH] Implement `APPROVAL` step conformance.**
   - **Depends:** `APPROVAL-001`–`APPROVAL-003`, `WORK-001`, `WORK-002`, `WORK-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_003`.
@@ -2950,8 +2950,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** explicit routes cover `APPROVED`, `REJECTED`, `INVALIDATED`, `EXPIRED`, `CANCELLED`; duplicate identical vote returns original decision.
   - **REFACTOR:** approval task is a HumanTask specialization, not a separate queue engine.
   - **Refs:** [APPROVAL step](workflows/_engine/step-types.md#3-approval), [workflow runtime](specs/workflow-runtime.md).
+  - **Evidence (2026-09-03):** `TestTodo_WF_STEP_003` (pure `Resolve` over the APPROVAL-001 requirement: quorum and separation of duties, exactly one of APPROVED, REJECTED, INVALIDATED, EXPIRED, CANCELLED, duplicate identical vote replays the original decision, conflicting duplicate, wrong candidate, missing quorum, expired requirement and stale proposal or authority digest cannot approve; plus a store round trip `Open` to `Route`, `Claim`, `Start`, `Complete`, `Resolve` against a Postgres-backed `workitem.Store`, with a second `Complete` refused by the store's transition guard), `TestTodo_WF_STEP_003_Conformance`, `TestTodo_WF_STEP_003_Mutation` in `internal/workflow/steps/approval` (`Open` creates the ApprovalTask work item pinned to the proposal revision and control snapshot digests; ApprovalTask is a kind on the WorkItem table, not a second queue); `go test -count=1 ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `WF-STEP-004` **[GATE_B][SOL_HIGH] Implement `TASK` step conformance.**
+- [x] `WF-STEP-004` **[GATE_B][SOL_HIGH] Implement `TASK` step conformance.**
   - **Depends:** `WORK-001`, `WORK-002`, `FORM-001`, `FORM-002`, `FORM-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_004`.
@@ -2960,8 +2961,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** typed task routes assigned/claimed/submitted/verified/returned/expired/cancelled with immutable work evidence.
   - **REFACTOR:** arbitrary mutable task payload is prohibited.
   - **Refs:** [TASK step](workflows/_engine/step-types.md#4-task), [human work spec](specs/human-work-forms-and-rules.md).
+  - **Evidence (2026-09-03):** `TestTodo_WF_STEP_004` (`Open`, `Route`, `Claim`, `Start`, then SUCCEEDED, RETURNED, EXPIRED, CANCELLED and AWAITING routes with immutable work evidence), `TestTodo_WF_STEP_004_Race` (two real connections race `Claim` on one version, exactly one wins), `TestTodo_WF_STEP_004_Conformance` (wrong node, wrong candidate, invalid form, missing accessibility or accommodation acknowledgement, expired claim refused), `TestTodo_WF_STEP_004_Browser` (no browser in the environment: `RenderForm` renders the accessibility contract as HTML with label-for binding, `required` paired with `aria-required`, and an accommodation acknowledgement citing the compiled policy, asserted server-side), `TestTodo_WF_STEP_004_Mutation` (digest determinism, tampered submission detected by `Verify`, byte-identical replay), `TestTodo_WF_STEP_004_Security` (candidate-set bypass, forged claim id and duplicate completion refused) in `internal/workflow/steps/task` (`Submit` validates the typed submission against the declared schema; arbitrary mutable payloads are refused); `go test -count=1 ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `WF-STEP-005` **[GATE_B][SOL_HIGH] Implement `WAIT` step conformance.**
+- [x] `WF-STEP-005` **[GATE_B][SOL_HIGH] Implement `WAIT` step conformance.**
   - **Depends:** `MODEL-005`, `WF-RUN-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_005`.
@@ -2970,8 +2972,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** durable timer returns `FIRED`, `TIMER_REVIEW_REQUIRED`, `SUPERSEDED`, or `CANCELLED` exactly once semantically.
   - **REFACTOR:** preserve calendar/tzdb version and calculation evidence.
   - **Refs:** [WAIT step](workflows/_engine/step-types.md#5-wait), [workflow context](workflows/_engine/workflow-context-contract.md).
+  - **Evidence (2026-09-03):** `TestTodo_WF_STEP_005` (early wake refused with `ErrEarlyWake`; duplicate wake replays the prior `Resolution` byte for byte; DST gap and fold in America/New_York mint a `ReviewRequired` requirement instead of a guess; a missing `ReferenceUpdatePolicy` is refused), `TestTodo_WF_STEP_005_Race`, `TestTodo_WF_STEP_005_Conformance` (parses the package's own source with go/ast and fails on any `time.Sleep`, `time.Now`, goroutine or `time` import; every outcome maps to a declared WAIT route), `TestTodo_WF_STEP_005_Mutation`, `TestTodo_WF_STEP_005_Fault` in `internal/workflow/steps/wait` (`ComputeTimerRequirement` over a typed `CompiledWaitNode` reusing `internal/kernel/values` timer references and disambiguation; `Resolve(req, now, event)` returns exactly one of FIRED, TIMER_REVIEW_REQUIRED, SUPERSEDED, CANCELLED and maps to `frontier.NodeOutcome`; no timer wheel per the WF-RUN-000 gate, caller supplies every instant; the compiler does not yet carry WAIT spec fields, so the typed node view is populated by the caller until a compiler pass lands); `go test -count=1 ./internal/workflow/steps/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Compiler binding (2026-09-03): `WaitSpec` on `Node`, `CompiledNode.Wait`, `wait.FromCompiled`; `TestWaitAndSignalNodesCompileWithExplicitRoutes` in `internal/workflow`, `TestWaitBindingFromCompiledPlan` in `internal/workflow/steps/wait`, `TestFrontierEmitsTimerAndSignalIntentsForCompiledNodes` in `internal/workflow/frontier`; fixture `testdata/wait_signal_fixture.json`; every pre-existing golden digest unchanged.
 
-- [ ] `WF-STEP-006` **[GATE_B][SOL_HIGH] Implement `SIGNAL` step conformance.**
+- [x] `WF-STEP-006` **[GATE_B][SOL_HIGH] Implement `SIGNAL` step conformance.**
   - **Depends:** `WF-RUN-007`, `INTG-018`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_006`.
@@ -2980,6 +2983,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** accepted signal is durably correlated and schedules continuation once; duplicates remain inspectable.
   - **REFACTOR:** payload retains taint/classification.
   - **Refs:** [SIGNAL step](workflows/_engine/step-types.md#6-signal).
+  - **Evidence (2026-09-03):** `TestTodo_WF_STEP_006`, `TestTodo_WF_STEP_006_Golden` (`testdata/accepted_signal_golden.json` pins the full immutable `LogEntry` render), `TestTodo_WF_STEP_006_Security` (forged signature and duplicate idempotency key with different bytes refused as incidents; payload taint survives into the log unchanged), `TestTodo_WF_STEP_006_Conformance`, `TestTodo_WF_STEP_006_Mutation` in `internal/workflow/steps/signal` (`Accept(sub, sig, prior, verify, now)` returns ACCEPTED, DUPLICATE_SAME_BYTES or one of nine typed refusals for wrong tenant, correlation, schema, signature, source or order, duplicate-different-bytes, late and unmatched; accepted and duplicate signals stay inspectable in `SignalLog`; `Verifier` port for signatures; result maps to `frontier.NodeOutcome`); `go test -count=1 ./internal/workflow/steps/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Compiler binding (2026-09-03): `SignalSpec` on `Node`, `CompiledNode.Signal`, `signal.FromCompiled`; `TestSignalBindingFromCompiledPlan` in `internal/workflow/steps/signal`; un-annotated WAIT and SIGNAL nodes now classify as pure effects (`effects.go` default fixed).
 
 - [ ] `WF-STEP-007` **[DESIGN][SOL_HIGH] Implement bounded `PARALLEL` execution.**
   - **Depends:** `WF-COMP-004`, `ADMISSION-001`, `ADMISSION-002`.
@@ -3338,7 +3342,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** recovery does not depend on original process memory.
   - **Refs:** [Recovery matrix](plan.md#114-recovery-matrix), [Gate B restore](execution-plan.md#gate-b-acceptance--limited-write-authority).
 
-- [ ] `WF-RUN-023` **[GATE_B][SOL_HIGH] Start a workflow from an immutable ProposalRevision.**
+- [x] `WF-RUN-023` **[GATE_B][SOL_HIGH] Start a workflow from an immutable ProposalRevision.**
   - **Depends:** `INTENT-005`, `WF-COMP-006`, `WF-RUN-001`, `TX-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_023`.
@@ -3347,6 +3351,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** one atomic start binds proposal revision/digest, exact compiled workflow version/digest, execution mode, control snapshot, subjects and correlation; identical retry returns the original instance and initial READY frontier.
   - **REFACTOR:** workflow resolution is policy/configuration driven; Promotion service never embeds a runtime graph.
   - **Refs:** [Workflow runtime](specs/workflow-runtime.md), [immutable proposals](specs/business-intent-and-change-request.md).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_023`, `TestTodo_WF_RUN_023_Golden`, `TestTodo_WF_RUN_023_Race`, `TestTodo_WF_RUN_023_Fault`, `TestTodo_WF_RUN_023_Security`, `TestTodo_WF_RUN_023_Mutation` in `internal/workflow/runtime` (`Start(ctx, tx, StartRequest)` binds the immutable approved ProposalRevision by id and digest, the ACTIVE compiled version by exact pin through the `WorkflowResolver` port, execution mode, control snapshot digest, subjects and correlation, and persists the `frontier.Seed` READY frontier; mutable, unapproved or superseded proposals, inactive or pin-mismatched versions, tenant, intent or subject mismatches and unresolved required context are refused; an identical retry returns the original instance, a changed key or digest under the same key is a typed conflict; caller-driven per the WF-RUN-000 prototype ruling, no scheduler or clock inside); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `WF-RUN-024` **[GATE_B][SOL_HIGH] Derive workflow frontier advancement deterministically.**
   - **Depends:** `WF-RUN-023`, `WF-COMP-002`, `WF-STEP-017`.
@@ -3359,7 +3364,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Workflow graph](specs/workflow-runtime.md), [step semantics](workflows/_engine/step-types.md).
   - **Evidence (2026-09-03):** `TestTodo_WF_RUN_024` (exact successors and intents, full promotion walk to `SIMULATION_APPROVAL_REQUIRED` with five terminal dimensions, excluded branch skipped without intent, declared default marked `via_default`, JOIN ALL waits then activates, QUORUM on first arrival, skipped branch blocks a JOIN, simulator parity against `simulate.Run`'s trace), `TestTodo_WF_RUN_024_Property` (64 random outcome sequences: digest-identical repeats, input snapshot unchanged, every successor traces to a declared route), `TestTodo_WF_RUN_024_Golden` (`testdata/promotion_advancement.json`, six transition and state digests pinned), `TestTodo_WF_RUN_024_Race`, `TestTodo_WF_RUN_024_Fault` (fifteen typed refusals incl. no-matching-route-no-default, no failure route, impossible quorum, terminal with a remaining frontier named), `TestTodo_WF_RUN_024_Mutation` in `internal/workflow/frontier` (`Advance` is a pure value-only transition returning successors, join counters, terminal dimensions and scheduling intents READY / WORK_ITEM_REQUIRED / SIGNAL_SUBSCRIPTION_REQUIRED / TIMER_REQUIRED / COMPLETE as data; JOIN strategy declared at `Seed`, never inferred; no fan-out until a real PARALLEL exists); `go test -count=1 ./internal/workflow/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `WF-RUN-025` **[GATE_B][SOL_HIGH] Commit node completion and continuation scheduling atomically.**
+- [x] `WF-RUN-025` **[GATE_B][SOL_HIGH] Commit node completion and continuation scheduling atomically.**
   - **Depends:** `WF-RUN-002`, `WF-RUN-024`, `DB-012`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_025`.
@@ -3368,6 +3373,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** one fenced runtime transaction persists attempt result/output, node transition, instance version/frontier and every derived continuation record exactly once; restart observes either the entire advancement or none and deterministic retry returns its receipt.
   - **REFACTOR:** runtime storage exposes one advancement unit-of-work; scheduler publication happens only after commit.
   - **Refs:** [Workflow recovery](specs/workflow-runtime.md), [runtime database contract](data/models/kernel-governance-and-evidence.md).
+  - **Evidence (2026-09-03):** `TestTodo_WF_RUN_025`, `TestTodo_WF_RUN_025_Race`, `TestTodo_WF_RUN_025_Fault`, `TestTodo_WF_RUN_025_Mutation` in `internal/workflow/runtime` (`Advance(ctx, tx, AdvanceRequest)` is one transaction fenced by the expected `instance_version`: records the node attempt and typed output digest, applies `frontier.Advance`, writes the successor node executions, version and frontier, and persists every derived continuation exactly once through the `ContinuationSink` port and the `workflow_continuation` audit table of migration `00018_workflow_continuation.sql` (registered in `definitions/storage/storage-disposition.yaml`); a stale version commits nothing, a sink failure after the node result rolls the whole advancement back, and a deterministic retry of an applied advancement returns the original receipt); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 ---
 
@@ -3375,7 +3381,7 @@ or an explicit rejection and replacement decision.
 
 > **Disposition (2026-09-02):** P1B needs one approval WorkItem (`WORK-001`, `WORK-003`, `WORK-006`), a typed reason field, and one threshold decision table from tenant configuration (`RULE-002`, `RULE-003`). `WORK-002`/`004` are direct assignment only; `WORK-005` SLA/escalation is DESIGN. `FORM-001`–`FORM-003` are RETIRED (no form engine); `RULE-001` expression compilation is OUT until a second workflow family.
 
-- [ ] `WORK-001` **[GATE_B][SOL_HIGH] Implement immutable WorkItem lifecycle.**
+- [x] `WORK-001` **[GATE_B][SOL_HIGH] Implement immutable WorkItem lifecycle.**
   - **Depends:** `WF-RUN-001`, `MODEL-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_001`.
@@ -3384,8 +3390,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** create -> route -> assigned/available -> claimed -> in-progress -> completed/returned/escalated/expired/cancelled appends transition evidence.
   - **REFACTOR:** ApprovalTask specializes WorkItem without a parallel task store.
   - **Refs:** [Human work spec](specs/human-work-forms-and-rules.md), [workflow entities](data/models/kernel-governance-and-evidence.md).
+  - **Evidence (2026-09-03):** `TestTodo_WORK_001` (create, route, assigned/available, claimed, in-progress and every terminal edge append a `work_item_transition` row in the caller's transaction; illegal transitions refused before any statement; missing correlation, subject, owner, visibility or deadline and a generic status refused by `Validate`), `TestTodo_WORK_001_Race`, `TestTodo_WORK_001_Security`, `TestTodo_WORK_001_Mutation` (a completed output digest is immutable even against a raw UPDATE, enforced by a trigger) in `internal/humanwork/workitem`; migration `00017_work_item.sql` adds `work_item` and append-only `work_item_transition` (registered in `definitions/storage/storage-disposition.yaml`); `ApprovalTask` is a kind on the same table; `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `WORK-002` **[GATE_B][SOL_HIGH] Resolve Promotion work assignment.**
+- [x] `WORK-002` **[GATE_B][SOL_HIGH] Resolve Promotion work assignment.**
   - **Depends:** `WORK-001`, `APPROVAL-001`, `ORG-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_002`.
@@ -3394,8 +3401,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** assignment records resolution expression, candidate set, exclusions, chosen owner, relationship/policy versions and re-resolution trigger.
   - **REFACTOR:** assignment does not itself grant decision authority.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [approval resolver](specs/workflow-runtime.md).
+  - **Evidence (2026-09-03):** `TestTodo_WORK_002`, `FuzzTodo_WORK_002`, `TestTodo_WORK_002_Race`, `TestTodo_WORK_002_Mutation` (two different resolutions never share an assignment digest), `TestTodo_WORK_002_Security` in `internal/humanwork/workitem` (`ResolveAssignment` wraps the APPROVAL-001 resolver: resolution expression, candidate set, exclusions, chosen owner, relationship and policy versions and the re-resolution trigger are recorded; an inactive or unauthorized candidate escalates the item back to its policy route rather than stranding it; assignment never grants decision authority); `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `WORK-003` **[GATE_B][SOL_HIGH] Make WorkItem claim exclusive.**
+- [x] `WORK-003` **[GATE_B][SOL_HIGH] Make WorkItem claim exclusive.**
   - **Depends:** `WORK-002`, `WF-RUN-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_003`.
@@ -3404,6 +3412,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** exactly one claimant receives fenced lease; losers receive `ALREADY_CLAIMED`; expiry returns item safely to policy route.
   - **REFACTOR:** no process-local mutex is correctness-bearing.
   - **Refs:** [Human work concurrency](specs/human-work-forms-and-rules.md), [workflow leases](specs/workflow-runtime.md).
+  - **Evidence (2026-09-03):** `TestTodo_WORK_003`, `TestTodo_WORK_003_Race` (eight concurrent claimants on real connections: exactly one winner, losers receive `ALREADY_CLAIMED`, exactly one CLAIMED transition row) in `internal/humanwork/workitem` (`Claim` is an item_version compare-and-swap with a caller-supplied expiry; an expired claim is released on the next touch inside the caller's transaction and returned to its policy route; no lease table, fence token, sweeper or timer per the WF-RUN-000 gate; no process-local mutex is correctness-bearing); `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `WORK-004` **[GATE_B][SOL_HIGH] Reassign unavailable or unauthorized work.**
   - **Depends:** `WORK-002`, `WORK-003`.
@@ -7554,7 +7563,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** P1A for the four DataOps operator surfaces and a minimal `hcmctl`. Measurable production limits and ownership dashboards are Gate C.
 
-- [ ] `ADMIN-001` **[GATE_A][SOL_HIGH] Publish typed admin APIs and generated `hcmctl`.**
+- [x] `ADMIN-001` **[GATE_A][SOL_HIGH] Publish typed admin APIs and generated `hcmctl`.**
   - **Depends:** `PROTO-004`, `SVC-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_001`.
@@ -7563,7 +7572,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** GRPC/grpcbridge/CLI share generated contracts, interceptors, redaction, idempotency and evidence IDs.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [HRIS DataOps](specs/hris-admin-dataops.md), [Go technology constitution](specs/go-only-technology-constitution.md).
-  - **Evidence (partial, 2026-09-03):** `TestTodo_ADMIN_001`, `TestTodo_ADMIN_001_Golden`, `TestTodo_ADMIN_001_Race`, `TestTodo_ADMIN_001_Integration`, `TestTodo_ADMIN_001_Fault`, `TestTodo_ADMIN_001_Security` in `internal/transport/admin` PASS (`go test -count=1 ./internal/transport/admin/...` on windows/arm64 (Go 1.26.3)); gRPC and CLI share the generated `adminv1` contract, interceptors, redaction, idempotent reads and evidence ids; not complete: the generated `hcmctl` binary does not exist as `cmd/hcmctl` because `repository-layout.yaml` approved_commands and the `process-roles.yaml` admin row (status later) forbid it until P1B; promote `internal/transport/admin/hcmctl.Main` to `cmd/hcmctl/main.go` once those manifests are widened; branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_ADMIN_001`, `TestTodo_ADMIN_001_Golden`, `TestTodo_ADMIN_001_Race`, `TestTodo_ADMIN_001_Integration`, `TestTodo_ADMIN_001_Fault`, `TestTodo_ADMIN_001_Security` in `internal/transport/admin` (typed `hcmnext.admin.v1.AdminService`, five read-only RPCs, hosted on the shared interceptor chain by `internal/transport/cell.NewGRPCServer`; gRPC and CLI share the generated contract, interceptors, redaction, idempotent reads and evidence ids) plus `TestHcmctlCommandRunsAgainstAnInProcessAdminServer` in `cmd/hcmctl` (thin main over `hcmctl.Main` and `hcmctl.DialInsecure`; JIT operator token minting, evidence line on every call, neither the signing key nor an unredacted bearer ever reaches stdout or stderr on the authorized or unauthorized path); `hcmctl` promoted to `approved_commands.initial` in `repository-layout.yaml` and to an initial row in `process-roles.yaml` on 2026-09-03, `TestTodo_SVC_001` updated to match; `go test -count=1 ./cmd/hcmctl/... ./internal/transport/admin/... ./tools/policy/processroles/... ./tools/policy/layout/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ADMIN-002` **[GATE_A][SOL_HIGH] Implement workflow execution inspector projections.**
   - **Depends:** `ADMIN-001`, `WF-RUN-019`.

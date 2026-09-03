@@ -79,8 +79,11 @@ func TestTodo_ARCH_GO_027_Golden(t *testing.T) {
 	if strings.Join(rules.PackageSuffixes, "|") != strings.Join(want, "|") {
 		t.Fatalf("ceremony package suffixes = %v, want %v", rules.PackageSuffixes, want)
 	}
-	if len(rules.Exceptions) != 3 {
-		t.Fatalf("current ceremony manifest has %d exceptions, want exactly 3 bounded exceptions", len(rules.Exceptions))
+	// Four reviewed, expiring exceptions as of 2026-09-03: the conformance
+	// runner seam, the wasm qualification entrypoint, the ledger digester
+	// port and the cmd/hcmctl process entrypoint (ADMIN-001).
+	if len(rules.Exceptions) != 4 {
+		t.Fatalf("current ceremony manifest has %d exceptions, want exactly 4 bounded exceptions", len(rules.Exceptions))
 	}
 }
 

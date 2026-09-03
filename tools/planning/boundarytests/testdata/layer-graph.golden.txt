@@ -6,9 +6,14 @@ domains -> kernel
 engines -> kernel
 ledger -> data
 ledger -> engines
+transaction -> data
 transaction -> kernel
 transport -> capabilities
+transport -> domains
+transport -> kernel
 workflow -> capabilities
+workflow -> data
 workflow -> domains
 workflow -> engines
 workflow -> kernel
+workflow -> transaction

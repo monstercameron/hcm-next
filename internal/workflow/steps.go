@@ -69,6 +69,10 @@ func stepDiagnostics(n *Node, rec *capability.Record, c *collector) {
 		checkTransformStep(n, c)
 	case StepObserve:
 		checkObserveStep(n, rec, c)
+	case StepWait:
+		checkWaitStep(n, c)
+	case StepSignal:
+		checkSignalStep(n, c)
 	}
 	if n.Retry != nil && n.Retry.BackoffRef == "" {
 		c.add(CodeInvalidDefinition, Location{NodeID: n.ID, Field: "retry"},
@@ -342,6 +346,134 @@ func checkObserveStep(n *Node, rec *capability.Record, c *collector) {
 	if n.Retry != nil && n.Retry.MaxAttempts > 1 && o.RetryExhaustionRoute == "" {
 		c.add(CodeRetryExhaustionFalseCompletion, Location{NodeID: n.ID, Field: "retry_exhaustion_route"},
 			"bounded retry ends in an explicit degraded or repair route, never in a silent pass")
+	}
+}
+
+// checkWaitStep proves a WAIT node declares a complete, unambiguous wake
+// condition and the dataset identity a future timer must carry (WF-STEP-005):
+// the wake condition names either a fixed instant or a local date/time, a
+// local condition declares its DST disambiguation policy, and the zone,
+// calendar and reference-update policy are always present so a later replay
+// can defend the fire-at instant it produced.
+func checkWaitStep(n *Node, c *collector) {
+	w := n.Wait
+	if w == nil {
+		return
+	}
+	loc := Location{NodeID: n.ID}
+	switch w.WakeKind {
+	case WaitWakeAtInstant:
+		if w.WakeInstant == "" {
+			c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "wake_instant"},
+				"a WAIT node declares AT_INSTANT but names no fixed instant")
+		}
+		if w.WakeLocalDate != "" || w.WakeLocalTime != "" {
+			c.add(CodeInvalidDefinition, loc,
+				"a WAIT node names both a fixed instant and a local wake condition; exactly one is legal")
+		}
+	case WaitWakeAtLocalDate, WaitWakeAtLocalDateTime:
+		if w.WakeLocalDate == "" {
+			c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "wake_local_date"},
+				"a local WAIT wake condition names no local date")
+		}
+		if w.WakeKind == WaitWakeAtLocalDateTime && w.WakeLocalTime == "" {
+			c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "wake_local_time"},
+				"AT_LOCAL_DATETIME names no local time")
+		}
+		if w.WakeKind == WaitWakeAtLocalDate && w.WakeLocalTime != "" {
+			c.add(CodeInvalidDefinition, loc,
+				"AT_LOCAL_DATE names a local time; declare AT_LOCAL_DATETIME instead")
+		}
+		if w.WakeInstant != "" {
+			c.add(CodeInvalidDefinition, loc,
+				"a WAIT node names both a fixed instant and a local wake condition; exactly one is legal")
+		}
+		if w.Disambiguation == "" {
+			c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "disambiguation"},
+				"a local wake condition declares a DST disambiguation policy")
+		} else if !validDisambiguation(w.Disambiguation) {
+			c.add(CodeInvalidDefinition, Location{NodeID: n.ID, Field: "disambiguation"},
+				"disambiguation %q is not a declared policy", w.Disambiguation)
+		}
+	default:
+		c.add(CodeInvalidDefinition, Location{NodeID: n.ID, Field: "wake_kind"},
+			"wake_kind %q is not a declared WAIT wake condition", string(w.WakeKind))
+		return
+	}
+	if w.ZoneID == "" || w.ZoneTzdbVersion == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "zone"},
+			"a WAIT node declares the IANA zone and tzdb version its wake condition resolves against")
+	}
+	if w.CalendarRef == "" || w.CalendarVersion == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "calendar"},
+			"a WAIT node declares the business calendar and dataset version it is pinned against")
+	}
+	if w.ReferenceUpdatePolicy == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "reference_update_policy"},
+			"a WAIT node declares PIN, RECALCULATE or REVIEW_REQUIRED for a dataset republish")
+	} else if !validReferenceUpdatePolicy(w.ReferenceUpdatePolicy) {
+		c.add(CodeInvalidDefinition, Location{NodeID: n.ID, Field: "reference_update_policy"},
+			"reference_update_policy %q is not declared", w.ReferenceUpdatePolicy)
+	}
+}
+
+// validDisambiguation reports whether s names a declared DST disambiguation
+// policy. It is a plain string set here — not internal/kernel/values.
+// Disambiguation itself — so this package can validate a definition's shape
+// without importing the runtime value package; the binding step
+// (wait.FromCompiled) is what parses it into the typed value.
+func validDisambiguation(s string) bool {
+	switch s {
+	case "REJECT_GAP", "EARLIER", "LATER", "EXPLICIT_OFFSET":
+		return true
+	default:
+		return false
+	}
+}
+
+// validReferenceUpdatePolicy reports whether s names a declared
+// reference-update policy, mirroring
+// internal/kernel/values.ReferenceUpdatePolicy's wire vocabulary.
+func validReferenceUpdatePolicy(s string) bool {
+	switch s {
+	case "PIN", "RECALCULATE", "REVIEW_REQUIRED":
+		return true
+	default:
+		return false
+	}
+}
+
+// checkSignalStep proves a SIGNAL node declares the correlation, schema and
+// source identity a durable subscription must carry (WF-STEP-006): an event
+// type and correlation key expression, an expected schema, at least one
+// accepted source, and a declared ordering expectation.
+func checkSignalStep(n *Node, c *collector) {
+	s := n.Signal
+	if s == nil {
+		return
+	}
+	if s.EventType == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "event_type"},
+			"a SIGNAL node names no event type to correlate against")
+	}
+	if s.CorrelationKeyExpression == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "correlation_key_expression"},
+			"a SIGNAL node names no correlation key expression")
+	}
+	if !s.ExpectedSchemaRef.Valid() {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "expected_schema_ref"},
+			"expected_schema_ref does not resolve to a versioned schema")
+	}
+	if len(s.AcceptedSources) == 0 {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "accepted_sources"},
+			"a SIGNAL node accepts no source; a subscription that accepts anyone is not a subscription")
+	}
+	if s.Ordering == "" {
+		c.add(CodeUnresolvedRef, Location{NodeID: n.ID, Field: "ordering"},
+			"a SIGNAL node declares no ordering expectation")
+	} else if !s.Ordering.Valid() {
+		c.add(CodeInvalidDefinition, Location{NodeID: n.ID, Field: "ordering"},
+			"ordering %q is not a declared ordering expectation", string(s.Ordering))
 	}
 }
 

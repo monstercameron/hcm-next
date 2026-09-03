@@ -25,8 +25,7 @@ const (
 	RoleMigrate Role = "migrate"
 	// RoleScheduler is reserved for P1B durable timers (status: later).
 	RoleScheduler Role = "scheduler"
-	// RoleAdmin is reserved for P1B operator-action surfaces (status: later).
-	RoleAdmin Role = "admin"
+	RoleAdmin     Role = "hcmctl"
 )
 
 // roleVocabulary is every Role bootstrap recognizes, in manifest order.

@@ -138,7 +138,7 @@ func TestTodo_WORK_001(t *testing.T) {
 		return err
 	})
 	wantStatuses := []workitem.Status{
-		workitem.StatusCreated, workitem.StatusAssigned, workitem.StatusClaimed,
+		workitem.StatusCreated, workitem.StatusRouted, workitem.StatusAssigned, workitem.StatusClaimed,
 		workitem.StatusInProgress, workitem.StatusCompleted,
 	}
 	if len(trail) != len(wantStatuses) {
@@ -232,8 +232,9 @@ func TestTodo_WORK_001(t *testing.T) {
 			return err
 		})
 		want := []workitem.Status{
-			workitem.StatusCreated, workitem.StatusAvailable, workitem.StatusClaimed,
-			workitem.StatusInProgress, workitem.StatusReturned, workitem.StatusEscalated, workitem.StatusCancelled,
+			workitem.StatusCreated, workitem.StatusRouted, workitem.StatusAvailable, workitem.StatusClaimed,
+			workitem.StatusInProgress, workitem.StatusReturned, workitem.StatusRouted, workitem.StatusEscalated,
+			workitem.StatusCancelled,
 		}
 		if len(trail2) != len(want) {
 			t.Fatalf("%d transitions recorded, want %d: %+v", len(trail2), len(want), trail2)

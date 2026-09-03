@@ -361,8 +361,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestTodo_ADMIN_001`, `TestTodo_ADMIN_001_Golden`, `TestTodo_ADMIN_001_Race`, `TestTodo_ADMIN_001_Integration`, `TestTodo_ADMIN_001_Fault`, `TestTodo_ADMIN_001_Security` in `internal/transport/admin` PASS (`go test -count=1 ./internal/transport/admin/...` on windows/arm64 (Go 1.26.3)); gRPC and CLI share the generated `adminv1` contract, interceptors, redaction, idempotent reads and evidence ids; not complete: the generated `hcmctl` binary does not exist as `cmd/hcmctl` because `repository-layout.yaml` approved_commands and the `process-roles.yaml` admin row (status later) forbid it until P1B; promote `internal/transport/admin/hcmctl.Main` to `cmd/hcmctl/main.go` once those manifests are widened; branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestTodo_ADMIN_001`, `TestTodo_ADMIN_001_Golden`, `TestTodo_ADMIN_001_Race`, `TestTodo_ADMIN_001_Integration`, `TestTodo_ADMIN_001_Fault`, `TestTodo_ADMIN_001_Security` in `internal/transport/admin` (typed `hcmnext.admin.v1.AdminService`, five read-only RPCs, hosted on the shared interceptor chain by `internal/transport/cell.NewGRPCServer`; gRPC and CLI share the generated contract, interceptors, redaction, idempotent reads and evidence ids) plus `TestHcmctlCommandRunsAgainstAnInProcessAdminServer` in `cmd/hcmctl` (thin main over `hcmctl.Main` and `hcmctl.DialInsecure`; JIT operator token minting, evidence line on every call, neither the signing key nor an unredacted bearer ever reaches stdout or stderr on the authorized or unauthorized path); `hcmctl` promoted to `approved_commands.initial` in `repository-layout.yaml` and to an initial row in `process-roles.yaml` on 2026-09-03, `TestTodo_SVC_001` updated to match; `go test -count=1 ./cmd/hcmctl/... ./internal/transport/admin/... ./tools/policy/processroles/... ./tools/policy/layout/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ADMIN-002",
@@ -30945,7 +30945,8 @@
     "refactor": "workflow resolution is policy/configuration driven; Promotion service never embeds a runtime graph",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [immutable proposals](specs/business-intent-and-change-request.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_023`, `TestTodo_WF_RUN_023_Golden`, `TestTodo_WF_RUN_023_Race`, `TestTodo_WF_RUN_023_Fault`, `TestTodo_WF_RUN_023_Security`, `TestTodo_WF_RUN_023_Mutation` in `internal/workflow/runtime` (`Start(ctx, tx, StartRequest)` binds the immutable approved ProposalRevision by id and digest, the ACTIVE compiled version by exact pin through the `WorkflowResolver` port, execution mode, control snapshot digest, subjects and correlation, and persists the `frontier.Seed` READY frontier; mutable, unapproved or superseded proposals, inactive or pin-mismatched versions, tenant, intent or subject mismatches and unresolved required context are refused; an identical retry returns the original instance, a changed key or digest under the same key is a typed conflict; caller-driven per the WF-RUN-000 prototype ruling, no scheduler or clock inside); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-024",
@@ -30998,7 +30999,8 @@
     "refactor": "runtime storage exposes one advancement unit-of-work; scheduler publication happens only after commit",
     "refs": "[Workflow recovery](specs/workflow-runtime.md), [runtime database contract](data/models/kernel-governance-and-evidence.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_025`, `TestTodo_WF_RUN_025_Race`, `TestTodo_WF_RUN_025_Fault`, `TestTodo_WF_RUN_025_Mutation` in `internal/workflow/runtime` (`Advance(ctx, tx, AdvanceRequest)` is one transaction fenced by the expected `instance_version`: records the node attempt and typed output digest, applies `frontier.Advance`, writes the successor node executions, version and frontier, and persists every derived continuation exactly once through the `ContinuationSink` port and the `workflow_continuation` audit table of migration `00018_workflow_continuation.sql` (registered in `definitions/storage/storage-disposition.yaml`); a stale version commits nothing, a sink failure after the node result rolls the whole advancement back, and a deterministic retry of an applied advancement returns the original receipt); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-026",
@@ -31109,7 +31111,8 @@
     "refactor": "approval task is a HumanTask specialization, not a separate queue engine",
     "refs": "[APPROVAL step](workflows/_engine/step-types.md#3-approval), [workflow runtime](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_003` (pure `Resolve` over the APPROVAL-001 requirement: quorum and separation of duties, exactly one of APPROVED, REJECTED, INVALIDATED, EXPIRED, CANCELLED, duplicate identical vote replays the original decision, conflicting duplicate, wrong candidate, missing quorum, expired requirement and stale proposal or authority digest cannot approve; plus a store round trip `Open` to `Route`, `Claim`, `Start`, `Complete`, `Resolve` against a Postgres-backed `workitem.Store`, with a second `Complete` refused by the store's transition guard), `TestTodo_WF_STEP_003_Conformance`, `TestTodo_WF_STEP_003_Mutation` in `internal/workflow/steps/approval` (`Open` creates the ApprovalTask work item pinned to the proposal revision and control snapshot digests; ApprovalTask is a kind on the WorkItem table, not a second queue); `go test -count=1 ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-STEP-004",
@@ -31138,7 +31141,8 @@
     "refactor": "arbitrary mutable task payload is prohibited",
     "refs": "[TASK step](workflows/_engine/step-types.md#4-task), [human work spec](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_004` (`Open`, `Route`, `Claim`, `Start`, then SUCCEEDED, RETURNED, EXPIRED, CANCELLED and AWAITING routes with immutable work evidence), `TestTodo_WF_STEP_004_Race` (two real connections race `Claim` on one version, exactly one wins), `TestTodo_WF_STEP_004_Conformance` (wrong node, wrong candidate, invalid form, missing accessibility or accommodation acknowledgement, expired claim refused), `TestTodo_WF_STEP_004_Browser` (no browser in the environment: `RenderForm` renders the accessibility contract as HTML with label-for binding, `required` paired with `aria-required`, and an accommodation acknowledgement citing the compiled policy, asserted server-side), `TestTodo_WF_STEP_004_Mutation` (digest determinism, tampered submission detected by `Verify`, byte-identical replay), `TestTodo_WF_STEP_004_Security` (candidate-set bypass, forged claim id and duplicate completion refused) in `internal/workflow/steps/task` (`Submit` validates the typed submission against the declared schema; arbitrary mutable payloads are refused); `go test -count=1 ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-STEP-005",
@@ -31163,7 +31167,8 @@
     "refactor": "preserve calendar/tzdb version and calculation evidence",
     "refs": "[WAIT step](workflows/_engine/step-types.md#5-wait), [workflow context](workflows/_engine/workflow-context-contract.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_005` (early wake refused with `ErrEarlyWake`; duplicate wake replays the prior `Resolution` byte for byte; DST gap and fold in America/New_York mint a `ReviewRequired` requirement instead of a guess; a missing `ReferenceUpdatePolicy` is refused), `TestTodo_WF_STEP_005_Race`, `TestTodo_WF_STEP_005_Conformance` (parses the package's own source with go/ast and fails on any `time.Sleep`, `time.Now`, goroutine or `time` import; every outcome maps to a declared WAIT route), `TestTodo_WF_STEP_005_Mutation`, `TestTodo_WF_STEP_005_Fault` in `internal/workflow/steps/wait` (`ComputeTimerRequirement` over a typed `CompiledWaitNode` reusing `internal/kernel/values` timer references and disambiguation; `Resolve(req, now, event)` returns exactly one of FIRED, TIMER_REVIEW_REQUIRED, SUPERSEDED, CANCELLED and maps to `frontier.NodeOutcome`; no timer wheel per the WF-RUN-000 gate, caller supplies every instant; the compiler does not yet carry WAIT spec fields, so the typed node view is populated by the caller until a compiler pass lands); `go test -count=1 ./internal/workflow/steps/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Compiler binding (2026-09-03): `WaitSpec` on `Node`, `CompiledNode.Wait`, `wait.FromCompiled`; `TestWaitAndSignalNodesCompileWithExplicitRoutes` in `internal/workflow`, `TestWaitBindingFromCompiledPlan` in `internal/workflow/steps/wait`, `TestFrontierEmitsTimerAndSignalIntentsForCompiledNodes` in `internal/workflow/frontier`; fixture `testdata/wait_signal_fixture.json`; every pre-existing golden digest unchanged"
   },
   {
     "id": "WF-STEP-006",
@@ -31188,7 +31193,8 @@
     "refactor": "payload retains taint/classification",
     "refs": "[SIGNAL step](workflows/_engine/step-types.md#6-signal)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_STEP_006`, `TestTodo_WF_STEP_006_Golden` (`testdata/accepted_signal_golden.json` pins the full immutable `LogEntry` render), `TestTodo_WF_STEP_006_Security` (forged signature and duplicate idempotency key with different bytes refused as incidents; payload taint survives into the log unchanged), `TestTodo_WF_STEP_006_Conformance`, `TestTodo_WF_STEP_006_Mutation` in `internal/workflow/steps/signal` (`Accept(sub, sig, prior, verify, now)` returns ACCEPTED, DUPLICATE_SAME_BYTES or one of nine typed refusals for wrong tenant, correlation, schema, signature, source or order, duplicate-different-bytes, late and unmatched; accepted and duplicate signals stay inspectable in `SignalLog`; `Verifier` port for signatures; result maps to `frontier.NodeOutcome`); `go test -count=1 ./internal/workflow/steps/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Compiler binding (2026-09-03): `SignalSpec` on `Node`, `CompiledNode.Signal`, `signal.FromCompiled`; `TestSignalBindingFromCompiledPlan` in `internal/workflow/steps/signal`; un-annotated WAIT and SIGNAL nodes now classify as pure effects (`effects.go` default fixed)"
   },
   {
     "id": "WF-STEP-007",
@@ -31501,7 +31507,8 @@
     "refactor": "ApprovalTask specializes WorkItem without a parallel task store",
     "refs": "[Human work spec](specs/human-work-forms-and-rules.md), [workflow entities](data/models/kernel-governance-and-evidence.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WORK_001` (create, route, assigned/available, claimed, in-progress and every terminal edge append a `work_item_transition` row in the caller's transaction; illegal transitions refused before any statement; missing correlation, subject, owner, visibility or deadline and a generic status refused by `Validate`), `TestTodo_WORK_001_Race`, `TestTodo_WORK_001_Security`, `TestTodo_WORK_001_Mutation` (a completed output digest is immutable even against a raw UPDATE, enforced by a trigger) in `internal/humanwork/workitem`; migration `00017_work_item.sql` adds `work_item` and append-only `work_item_transition` (registered in `definitions/storage/storage-disposition.yaml`); `ApprovalTask` is a kind on the same table; `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WORK-002",
@@ -31527,7 +31534,8 @@
     "refactor": "assignment does not itself grant decision authority",
     "refs": "[Human work](specs/human-work-forms-and-rules.md), [approval resolver](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WORK_002`, `FuzzTodo_WORK_002`, `TestTodo_WORK_002_Race`, `TestTodo_WORK_002_Mutation` (two different resolutions never share an assignment digest), `TestTodo_WORK_002_Security` in `internal/humanwork/workitem` (`ResolveAssignment` wraps the APPROVAL-001 resolver: resolution expression, candidate set, exclusions, chosen owner, relationship and policy versions and the re-resolution trigger are recorded; an inactive or unauthorized candidate escalates the item back to its policy route rather than stranding it; assignment never grants decision authority); `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WORK-003",
@@ -31549,7 +31557,8 @@
     "refactor": "no process-local mutex is correctness-bearing",
     "refs": "[Human work concurrency](specs/human-work-forms-and-rules.md), [workflow leases](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WORK_003`, `TestTodo_WORK_003_Race` (eight concurrent claimants on real connections: exactly one winner, losers receive `ALREADY_CLAIMED`, exactly one CLAIMED transition row) in `internal/humanwork/workitem` (`Claim` is an item_version compare-and-swap with a caller-supplied expiry; an expired claim is released on the next touch inside the caller's transaction and returned to its policy route; no lease table, fence token, sweeper or timer per the WF-RUN-000 gate; no process-local mutex is correctness-bearing); `go test -count=1 ./internal/humanwork/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WORK-004",

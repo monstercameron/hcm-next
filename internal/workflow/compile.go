@@ -122,6 +122,37 @@ type CompiledObserve struct {
 	RetryExhaustionRoute string                  `json:"retry_exhaustion_route,omitempty"`
 }
 
+// CompiledWait is a resolved WAIT binding: the wake condition and dataset
+// identity a future timer must carry, exactly as declared on [WaitSpec].
+// internal/workflow/steps/wait.FromCompiled translates this into that
+// package's own [wait.CompiledWaitNode] view.
+type CompiledWait struct {
+	WakeKind              WaitWakeKind `json:"wake_kind"`
+	WakeInstant           string       `json:"wake_instant,omitempty"`
+	WakeLocalDate         string       `json:"wake_local_date,omitempty"`
+	WakeLocalTime         string       `json:"wake_local_time,omitempty"`
+	Disambiguation        string       `json:"disambiguation,omitempty"`
+	ZoneID                string       `json:"zone_id"`
+	ZoneTzdbVersion       string       `json:"zone_tzdb_version"`
+	CalendarRef           string       `json:"calendar_ref"`
+	CalendarVersion       string       `json:"calendar_version"`
+	ReferenceUpdatePolicy string       `json:"reference_update_policy"`
+}
+
+// CompiledSignal is a resolved SIGNAL binding: the correlation, schema and
+// source identity a durable subscription must carry, exactly as declared on
+// [SignalSpec]. internal/workflow/steps/signal.FromCompiled translates this,
+// together with per-instance context, into that package's own
+// [signal.SignalSubscription] view.
+type CompiledSignal struct {
+	EventType                string    `json:"event_type"`
+	CorrelationKeyExpression string    `json:"correlation_key_expression"`
+	ExpectedSchemaRef        SchemaRef `json:"expected_schema_ref"`
+	AcceptedSources          []string  `json:"accepted_sources,omitempty"`
+	Ordering                 string    `json:"ordering"`
+	CloseAfterSeconds        uint64    `json:"close_after_seconds,omitempty"`
+}
+
 // CompiledGovernance is a node's resolved governance surface.
 type CompiledGovernance struct {
 	Purpose               string               `json:"purpose"`
@@ -154,6 +185,8 @@ type CompiledNode struct {
 	Transform  *CompiledTransform  `json:"transform,omitempty"`
 	Observe    *CompiledObserve    `json:"observe,omitempty"`
 	Terminal   *Terminal           `json:"terminal,omitempty"`
+	Wait       *CompiledWait       `json:"wait,omitempty"`
+	Signal     *CompiledSignal     `json:"signal,omitempty"`
 
 	EffectClass  capability.EffectClass `json:"effect_class"`
 	EffectKey    string                 `json:"effect_key,omitempty"`
@@ -420,6 +453,30 @@ func normalize(
 				RetryExhaustionRoute: n.Observe.RetryExhaustionRoute,
 			}
 		}
+		if n.Wait != nil {
+			cn.Wait = &CompiledWait{
+				WakeKind:              n.Wait.WakeKind,
+				WakeInstant:           n.Wait.WakeInstant,
+				WakeLocalDate:         n.Wait.WakeLocalDate,
+				WakeLocalTime:         n.Wait.WakeLocalTime,
+				Disambiguation:        n.Wait.Disambiguation,
+				ZoneID:                n.Wait.ZoneID,
+				ZoneTzdbVersion:       n.Wait.ZoneTzdbVersion,
+				CalendarRef:           n.Wait.CalendarRef,
+				CalendarVersion:       n.Wait.CalendarVersion,
+				ReferenceUpdatePolicy: n.Wait.ReferenceUpdatePolicy,
+			}
+		}
+		if n.Signal != nil {
+			cn.Signal = &CompiledSignal{
+				EventType:                n.Signal.EventType,
+				CorrelationKeyExpression: n.Signal.CorrelationKeyExpression,
+				ExpectedSchemaRef:        n.Signal.ExpectedSchemaRef,
+				AcceptedSources:          append([]string(nil), n.Signal.AcceptedSources...),
+				Ordering:                 string(n.Signal.Ordering),
+				CloseAfterSeconds:        n.Signal.CloseAfterSeconds,
+			}
+		}
 		if t, ok := terminals[id]; ok {
 			term := *t
 			cn.Terminal = &term
@@ -513,6 +570,10 @@ func evidenceRefsFor(n *Node) []string {
 		return []string{"transform_execution_id", "input_digest", "taint_manifest_ref"}
 	case StepEnd:
 		return []string{"workflow_result_id"}
+	case StepWait:
+		return []string{"timer_requirement_digest", "timer_resolution_digest"}
+	case StepSignal:
+		return []string{"subscription_digest", "signal_log_entry_digest"}
 	default:
 		return []string{"node_execution_id"}
 	}

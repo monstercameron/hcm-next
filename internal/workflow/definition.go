@@ -238,6 +238,143 @@ type ObserveSpec struct {
 	RetryExhaustionRoute string `json:"retry_exhaustion_route,omitempty"`
 }
 
+// WaitWakeKind names which shape of wake condition a WAIT node declares. The
+// three kinds mirror internal/workflow/steps/wait.WakeKind's wire vocabulary
+// exactly, so a compiled WAIT node translates losslessly into that package's
+// own typed view.
+type WaitWakeKind string
+
+// The declared wake-condition kinds.
+const (
+	WaitWakeAtInstant       WaitWakeKind = "AT_INSTANT"
+	WaitWakeAtLocalDate     WaitWakeKind = "AT_LOCAL_DATE"
+	WaitWakeAtLocalDateTime WaitWakeKind = "AT_LOCAL_DATETIME"
+)
+
+// Valid reports whether k names a declared wake-condition kind.
+func (k WaitWakeKind) Valid() bool {
+	switch k {
+	case WaitWakeAtInstant, WaitWakeAtLocalDate, WaitWakeAtLocalDateTime:
+		return true
+	default:
+		return false
+	}
+}
+
+// WaitSpec configures a WAIT node: a durable suspension until a time or
+// calendar condition (planning/workflows/_engine/step-types.md §5). The
+// scheduler owns the timer; this package only binds and proves the wake
+// condition, its DST disambiguation policy and the dataset reference-update
+// policy that governs it — internal/workflow/steps/wait implements the
+// actual pure timer resolution against these fields.
+//
+// A WAIT node's graph-level outcome routes remain the step type's fixed
+// conformance outcomes (SUCCEEDED, LATE, CANCELLED; see [ConformanceFor]).
+// internal/workflow/steps/wait's own four-way resolution vocabulary (FIRED,
+// TIMER_REVIEW_REQUIRED, SUPERSEDED, CANCELLED) is what that package's
+// Resolution.ToNodeOutcome maps onto those routes, an Await marker or a
+// Failed attempt: FIRED and CANCELLED complete the node (on SUCCEEDED and
+// CANCELLED respectively), TIMER_REVIEW_REQUIRED takes the node's declared
+// FailureRoute, and SUPERSEDED leaves the node waiting on a fresh
+// requirement rather than taking any route.
+type WaitSpec struct {
+	// WakeKind names which shape of wake condition this node declares.
+	WakeKind WaitWakeKind `json:"wake_kind"`
+
+	// WakeInstant is the canonical RFC 3339 UTC text of a fixed wake instant.
+	// Set only when WakeKind is AT_INSTANT; mutually exclusive with
+	// WakeLocalDate.
+	WakeInstant string `json:"wake_instant,omitempty"`
+	// WakeLocalDate is the canonical YYYY-MM-DD text of the business local
+	// date this node wakes on. Set when WakeKind is AT_LOCAL_DATE or
+	// AT_LOCAL_DATETIME.
+	WakeLocalDate string `json:"wake_local_date,omitempty"`
+	// WakeLocalTime is the canonical HH:MM:SS[.fffffffff] text of the local
+	// wall-clock time. Set only when WakeKind is AT_LOCAL_DATETIME; an
+	// AT_LOCAL_DATE condition wakes at the start of the local day.
+	WakeLocalTime string `json:"wake_local_time,omitempty"`
+
+	// Disambiguation names the DST gap/fold policy: REJECT_GAP, EARLIER,
+	// LATER or EXPLICIT_OFFSET. Required whenever WakeKind is not AT_INSTANT.
+	Disambiguation string `json:"disambiguation,omitempty"`
+
+	// ZoneID and ZoneTzdbVersion name the IANA zone and tzdb release the wake
+	// condition resolves against. Always required: even a fixed instant
+	// preserves the calendar/tzdb identity in force when it was minted, so a
+	// later replay can defend it.
+	ZoneID          string `json:"zone_id"`
+	ZoneTzdbVersion string `json:"zone_tzdb_version"`
+
+	// CalendarRef and CalendarVersion name the business calendar dataset this
+	// wake condition is pinned against.
+	CalendarRef     string `json:"calendar_ref"`
+	CalendarVersion string `json:"calendar_version"`
+
+	// ReferenceUpdatePolicy declares what happens to an already-computed
+	// deadline when the timezone/calendar dataset behind it is republished:
+	// PIN, RECALCULATE or REVIEW_REQUIRED
+	// (internal/kernel/values.ReferenceUpdatePolicy).
+	ReferenceUpdatePolicy string `json:"reference_update_policy"`
+}
+
+// SignalOrdering names how a SIGNAL node expects successive signals on the
+// same correlation to be numbered. It mirrors
+// internal/workflow/steps/signal.OrderingExpectation's wire vocabulary.
+type SignalOrdering string
+
+// The declared ordering expectations.
+const (
+	SignalOrderingNone              SignalOrdering = "NONE"
+	SignalOrderingMonotonicSequence SignalOrdering = "MONOTONIC_SEQUENCE"
+)
+
+// Valid reports whether o names a declared ordering expectation.
+func (o SignalOrdering) Valid() bool {
+	switch o {
+	case SignalOrderingNone, SignalOrderingMonotonicSequence:
+		return true
+	default:
+		return false
+	}
+}
+
+// SignalSpec configures a SIGNAL node: a durable suspension until a
+// correlated external event is accepted (planning/workflows/_engine/
+// step-types.md §6). internal/workflow/steps/signal implements the actual
+// pure acceptance decision against these fields; this package only binds and
+// proves them.
+//
+// A SIGNAL node's graph-level outcome routes remain the step type's fixed
+// conformance outcomes (SUCCEEDED, TIMED_OUT, CANCELLED; see
+// [ConformanceFor]). internal/workflow/steps/signal's own Accept statuses map
+// onto exactly those routes (see signal.Result.ToNodeOutcome): ACCEPTED and
+// DUPLICATE_SAME_BYTES complete the node on SUCCEEDED, REFUSED_LATE
+// completes it on TIMED_OUT, and every other refusal — an unmatched,
+// wrong-source, wrong-schema or forged signal — takes the node's declared
+// FailureRoute for security/operational review rather than a business
+// outcome route.
+type SignalSpec struct {
+	// EventType names the domain event this node correlates against.
+	EventType string `json:"event_type"`
+	// CorrelationKeyExpression names the field path a runtime evaluates
+	// against the workflow instance to produce the correlation value an
+	// inbound signal must carry.
+	CorrelationKeyExpression string `json:"correlation_key_expression"`
+	// ExpectedSchemaRef names the versioned schema an accepted signal's
+	// payload must conform to.
+	ExpectedSchemaRef SchemaRef `json:"expected_schema_ref"`
+	// AcceptedSources is the allowlist of sources permitted to satisfy this
+	// subscription. A subscription that accepts anyone is not a subscription.
+	AcceptedSources []string `json:"accepted_sources"`
+	// Ordering declares the sequencing this node expects among signals on the
+	// same correlation.
+	Ordering SignalOrdering `json:"ordering"`
+	// CloseAfterSeconds, when non-zero, is the duration after the node is
+	// entered at which the subscription closes and a later signal is late.
+	// Zero means the subscription never closes on its own.
+	CloseAfterSeconds uint64 `json:"close_after_seconds,omitempty"`
+}
+
 // RuntimeStatus is the workflow instance's own status. It sits beside the
 // intent's five dimensions and never substitutes for them.
 type RuntimeStatus string
@@ -456,6 +593,8 @@ type Node struct {
 	Transform  *TransformSpec `json:"transform,omitempty"`
 	Observe    *ObserveSpec   `json:"observe,omitempty"`
 	End        *EndSpec       `json:"end,omitempty"`
+	Wait       *WaitSpec      `json:"wait,omitempty"`
+	Signal     *SignalSpec    `json:"signal,omitempty"`
 
 	// DeclaredEffect is the author's claim about this node's side-effect
 	// profile. Where a capability manifest disagrees, the manifest wins and

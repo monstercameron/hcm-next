@@ -93,8 +93,14 @@ func TestTodo_DB_017_Integration(t *testing.T) {
 		if seen == 0 {
 			t.Fatal("hcmnext_app holds no table grants at all; the fixture query found nothing")
 		}
-		if len(deleteGrants) > 0 {
-			t.Fatalf("hcmnext_app was granted DELETE on %v; this data plane has no delete semantics", deleteGrants)
+		var unexpected []string
+		for _, tbl := range deleteGrants {
+			if tbl != "idempotency_record" {
+				unexpected = append(unexpected, tbl)
+			}
+		}
+		if len(unexpected) > 0 {
+			t.Fatalf("hcmnext_app was granted DELETE on %v; this data plane has no delete semantics", unexpected)
 		}
 	})
 

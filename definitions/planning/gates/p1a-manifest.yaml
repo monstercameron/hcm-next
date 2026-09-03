@@ -190,6 +190,18 @@ migrations:
     - version: 15
       name: 00015_provenance.sql
       checksum: "sha256:f2c0a632a1b0e0fcad54de2a1bbf6627e9b35805224de4de7d3009152d55b852"
+    - version: 16
+      name: 00016_workflow_runtime.sql
+      checksum: "sha256:81a61c5338d0f9935b97e9347eb30a83f2c4b7e52cfb76a113dbcdebcb04652e"
+    - version: 17
+      name: 00017_work_item.sql
+      checksum: "sha256:a301c5b624734bf794b266edf78a3f651bbbb5c114e40fd1e7e0cd0b3eb9b392"
+    - version: 18
+      name: 00018_workflow_continuation.sql
+      checksum: "sha256:00c8bd149724dcaadcb9a0bdb27d387241f9465cac82e0a50c95845b7aaa3214"
+    - version: 19
+      name: 00019_idempotency_record.sql
+      checksum: "sha256:81306e2a4904a3ae7e385a6098bcdb3136d97ad2f048e5059fe85cbf9fb56bae"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -253,4 +265,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "96ada78cd5fb49e0d32399ea741c019563e86a00e408c8892aa7e101e2a1b35914168237dd897fa30b332fe1ffd44fed6c0ae68dd8f98413b1418345c99e3c0d"
+  value: "e6cf65be8aab465d044bb30ef989f2f5fc18e41a047167d39a24e492b461e7ec83af74dff8bf0987b80d0727e832011f040741ec5227fc42e18cf7810eb14f01"

@@ -164,6 +164,8 @@ func validateNodeShape(n *Node, c *collector) {
 		{"transform", n.Transform != nil, n.Type == StepTransform},
 		{"observe", n.Observe != nil, n.Type == StepObserve},
 		{"end", n.End != nil, n.Type == StepEnd},
+		{"wait", n.Wait != nil, n.Type == StepWait},
+		{"signal", n.Signal != nil, n.Type == StepSignal},
 	}
 	for _, s := range specs {
 		switch {

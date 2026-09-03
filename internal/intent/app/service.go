@@ -53,7 +53,8 @@ const defaultPageSize int32 = 50
 // arrives with the first governed edit, which is a P1B contract.
 const simulationRevision uint64 = 1
 
-// artifactNamespace derives the identifiers a simulation's artifacts carry.
+type ProposalExecutor interface{}
+
 var artifactNamespace = uuid.MustParse("2c9a5f60-6c1b-4a3c-9c0e-1c9f6a3d2b41")
 
 // derivedIDs mints the proposal-revision and plan identifiers for one
@@ -97,6 +98,10 @@ type Options struct {
 	IDs intent.IDSource
 	// Clock supplies the recording time. Nil means time.Now in UTC.
 	Clock intent.Clock
+	// ProposalExecutor is the optional direct workflow driver used by the
+	// prototype-only Go execution entry points. Nil leaves simulation and all
+	// existing intent operations available, while execution fails closed.
+	ProposalExecutor ProposalExecutor
 }
 
 // IntentService is the application service behind both transports.
@@ -114,6 +119,7 @@ type IntentService struct {
 	controls Controls
 	ids      intent.IDSource
 	clock    intent.Clock
+	executor ProposalExecutor
 }
 
 var (
@@ -147,6 +153,7 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		controls: opts.Controls,
 		ids:      opts.IDs,
 		clock:    opts.Clock,
+		executor: opts.ProposalExecutor,
 	}
 	if svc.ids == nil {
 		svc.ids = intent.UUIDv7Source

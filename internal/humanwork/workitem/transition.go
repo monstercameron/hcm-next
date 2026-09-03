@@ -13,6 +13,10 @@ import (
 const (
 	// ReasonCreated is the creation row's reason.
 	ReasonCreated = "workitem.created"
+	// ReasonRoutingStarted is stamped on the transition [Store.Route] produces
+	// when it moves an item into ROUTED, immediately before recording the
+	// resolved outcome as its own, separately reasoned transition.
+	ReasonRoutingStarted = "workitem.routing.started"
 	// ReasonClaimExpired is stamped on the transition a touch produces when it
 	// discovers an expired claim and returns the item to its policy route.
 	// Nothing sweeps for this; it only ever appears because a caller touched

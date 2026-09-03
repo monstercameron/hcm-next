@@ -17,7 +17,7 @@ func effectClassOf(n *Node, records map[string]capability.Record) capability.Eff
 		return n.DeclaredEffect
 	}
 	switch n.Type {
-	case StepDecision, StepTransform, StepEnd:
+	case StepDecision, StepTransform, StepEnd, StepWait, StepSignal:
 		return capability.EffectPure
 	case StepObserve:
 		return capability.EffectReadOnly

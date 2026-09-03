@@ -58,6 +58,19 @@ ownership:
     verified_at: "2026-09-03T00:00:00Z"
     expires_at: "2026-12-31T23:59:59Z"
 
+  - id: hcmctl
+    kind: SERVICE
+    version: "v1"
+    primary_owner: experience-and-transport
+    backup_owner: platform-foundation
+    tier: TIER_1
+    slo: "operator CLI availability best effort; no SLO breach on read path"
+    escalation: "page experience-and-transport; backup platform-foundation"
+    fallback: FAIL_CLOSED
+    evidence_ref: "runbook://hcmctl/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
   - id: workflow-runtime
     kind: WORKFLOW
     version: "v1"

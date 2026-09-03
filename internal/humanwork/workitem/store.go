@@ -145,6 +145,13 @@ func (s Store) Create(ctx context.Context, ex Executor, item WorkItem, meta Tran
 // Route applies a resolved [Assignment], moving the item to ASSIGNED,
 // AVAILABLE or ESCALATED per [RouteFromAssignment]. It is legal from CREATED
 // (initial routing) and from RETURNED or ESCALATED (re-resolution).
+//
+// The move is doc.go's two literal edges, CREATED/RETURNED/ESCALATED -> ROUTED
+// -> {ASSIGNED,AVAILABLE,ESCALATED}, and both are recorded: entering routing
+// is one transition row, and the resolved outcome is the next, each with its
+// own item_version. That is what lets a projection see "this item entered
+// resolution at 12:03 and resolved to ASSIGNED at 12:04" as two distinct,
+// separately timed facts rather than one write that elides the first.
 func (s Store) Route(
 	ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID, expectedVersion int64,
 	assignment Assignment, meta TransitionMeta,
@@ -159,10 +166,21 @@ func (s Store) Route(
 	if current.ItemVersion != expectedVersion {
 		return WorkItem{}, s.explainLost(ctx, ex, tenantID, workItemID, expectedVersion)
 	}
-	ownerKind, ownerRef, target := RouteFromAssignment(assignment, current.PolicyRouteRef)
-	if !LegalTransition(current.Status, target) {
+	if !LegalTransition(current.Status, StatusRouted) {
 		return WorkItem{}, refuse(CodeIllegalTransition, workItemID.String(),
-			"work item may not route from %s to %s", current.Status, target)
+			"work item may not enter routing from %s", current.Status)
+	}
+	routed, err := s.simpleTransition(ctx, ex, current, StatusRouted, TransitionMeta{
+		ActorPrincipalID: meta.ActorPrincipalID, Reason: ReasonRoutingStarted, At: meta.At,
+	})
+	if err != nil {
+		return WorkItem{}, err
+	}
+
+	ownerKind, ownerRef, target := RouteFromAssignment(assignment, routed.PolicyRouteRef)
+	if !LegalTransition(routed.Status, target) {
+		return WorkItem{}, refuse(CodeIllegalTransition, workItemID.String(),
+			"work item may not route from %s to %s", routed.Status, target)
 	}
 
 	assignJSON, err := marshalAssignment(assignment)
@@ -181,17 +199,17 @@ func (s Store) Route(
 		WHERE tenant_id = $6 AND work_item_id = $7 AND item_version = $8
 		RETURNING `+workItemColumns,
 		string(target), string(ownerKind), ownerRef, assignJSON, digest,
-		tenantID, workItemID, current.ItemVersion)
+		tenantID, workItemID, routed.ItemVersion)
 	updated, err := scanWorkItem(row)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
-			return WorkItem{}, s.explainLost(ctx, ex, tenantID, workItemID, current.ItemVersion)
+			return WorkItem{}, s.explainLost(ctx, ex, tenantID, workItemID, routed.ItemVersion)
 		}
 		return WorkItem{}, wrap(CodeStorageFailed, workItemID.String(), err, "route work item")
 	}
 	if err := s.insertTransition(ctx, ex, TransitionRecord{
 		TenantID: tenantID, TransitionID: uuid.New(), WorkItemID: workItemID,
-		ItemVersion: updated.ItemVersion, FromStatus: current.Status, ToStatus: target,
+		ItemVersion: updated.ItemVersion, FromStatus: routed.Status, ToStatus: target,
 		ActorPrincipalID: meta.ActorPrincipalID, Reason: meta.Reason, Detail: meta.Detail,
 		EvidenceRef: meta.EvidenceRef, At: meta.At,
 	}); err != nil {
@@ -495,7 +513,7 @@ func (s Store) simpleTransition(ctx context.Context, ex Executor, current WorkIt
 		return WorkItem{}, refuse(CodeIllegalTransition, current.WorkItemID.String(),
 			"work item may not move from %s to %s", current.Status, target)
 	}
-	clearClaim := current.Status.Claimed()
+	clearClaim := current.Status.Claimed() && !target.Claimed()
 	row := ex.QueryRow(ctx, `
 		UPDATE work_item SET
 			status = $1,
@@ -688,13 +706,14 @@ func scanWorkItem(row dbport.Row) (WorkItem, error) {
 
 func scanTransition(row dbport.Row) (TransitionRecord, error) {
 	var (
-		t          TransitionRecord
-		fromStatus *string
-		toStatus   string
+		t           TransitionRecord
+		fromStatus  *string
+		toStatus    string
+		evidenceRef *string
 	)
 	err := row.Scan(
 		&t.TenantID, &t.TransitionID, &t.WorkItemID, &t.ItemVersion,
-		&fromStatus, &toStatus, &t.ActorPrincipalID, &t.Reason, &t.Detail, &t.EvidenceRef,
+		&fromStatus, &toStatus, &t.ActorPrincipalID, &t.Reason, &t.Detail, &evidenceRef,
 		&t.At, &t.RecordedAt)
 	if err != nil {
 		return TransitionRecord{}, err
@@ -703,6 +722,7 @@ func scanTransition(row dbport.Row) (TransitionRecord, error) {
 		t.FromStatus = Status(*fromStatus)
 	}
 	t.ToStatus = Status(toStatus)
+	t.EvidenceRef = derefText(evidenceRef)
 	t.At = t.At.UTC()
 	t.RecordedAt = t.RecordedAt.UTC()
 	return t, nil

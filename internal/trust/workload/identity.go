@@ -32,7 +32,7 @@ const (
 	RoleProjector ProcessRole = "projector"
 	RoleMigrate   ProcessRole = "migrate"
 	RoleScheduler ProcessRole = "scheduler"
-	RoleAdmin     ProcessRole = "admin"
+	RoleAdmin     ProcessRole = "hcmctl"
 )
 
 var processRoleVocabulary = map[ProcessRole]bool{

@@ -8,8 +8,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 // ReResolutionTrigger names why a resolution ran. It is part of the recorded
@@ -113,17 +115,155 @@ func (a Assignment) Digest() (string, error) {
 
 // marshalAssignment encodes a as JSON for the work_item.assignment column. The
 // zero value is encoded as the literal empty object rather than run through
-// encoding/json: a zero [humanwork.Resolution] carries unset
-// [values.Instant] fields, and their MarshalText refuses to encode "unset"
-// at all -- correctly, since an unset instant is not a business fact this
-// package should ever claim to have. A CREATED item that has never been
-// routed has recorded no resolution instant, which is exactly what the empty
-// object says.
+// [Assignment.MarshalJSON]: a zero [humanwork.Resolution] carries no
+// resolution instant at all, and the empty object says exactly that -- a
+// CREATED item that has never been routed.
 func marshalAssignment(a Assignment) ([]byte, error) {
 	if a.IsZero() {
 		return []byte("{}"), nil
 	}
 	return json.Marshal(a)
+}
+
+// assignmentWire is [Assignment]'s JSON shape. It exists because
+// [humanwork.Resolution] carries [values.Instant] and other kernel value
+// fields whose encoding/json path calls MarshalText unconditionally --
+// including on a [humanwork.Candidate.DelegationExpiry] that is legitimately
+// unset for a DIRECT candidate, which is not an encoding defect but a
+// business fact this package still needs to store. Every instant here is
+// carried as its canonical RFC 3339 text (empty string when unset) instead,
+// which keeps the encoding total over every value [humanwork.Resolve] can
+// produce and keeps the field order -- and therefore [Assignment.Digest] --
+// fixed by this struct's declaration rather than by encoding/json's default
+// reflection order.
+type assignmentWire struct {
+	RequirementID       string          `json:"requirement_id"`
+	RequirementRevision uint64          `json:"requirement_revision"`
+	Outcome             string          `json:"outcome"`
+	Candidates          []candidateWire `json:"candidates"`
+	Excluded            []exclusionWire `json:"excluded"`
+	FallbackUsed        bool            `json:"fallback_used"`
+	ResolvedAt          string          `json:"resolved_at"`
+	EffectiveAt         string          `json:"effective_at"`
+	DirectoryVersion    string          `json:"directory_version"`
+	ExpressionDigest    string          `json:"expression_digest"`
+	RequirementDigest   string          `json:"requirement_digest"`
+	QuorumRequired      uint32          `json:"quorum_required"`
+
+	GovernancePolicyRef string `json:"governance_policy_ref"`
+	Trigger             string `json:"trigger"`
+	ChosenOwner         string `json:"chosen_owner"`
+}
+
+type candidateWire struct {
+	PrincipalID          string `json:"principal_id"`
+	Via                  string `json:"via"`
+	TermRef              string `json:"term_ref"`
+	DelegationID         string `json:"delegation_id,omitempty"`
+	DelegatedFrom        string `json:"delegated_from,omitempty"`
+	DelegationExpiry     string `json:"delegation_expiry,omitempty"`
+	IdentityAssuranceRef string `json:"identity_assurance_ref,omitempty"`
+}
+
+type exclusionWire struct {
+	PrincipalID string `json:"principal_id"`
+	RuleID      string `json:"rule_id"`
+	Reason      string `json:"reason"`
+}
+
+// MarshalJSON implements [json.Marshaler] through [assignmentWire].
+func (a Assignment) MarshalJSON() ([]byte, error) {
+	w := assignmentWire{
+		RequirementID:       a.Resolution.RequirementID,
+		RequirementRevision: a.Resolution.RequirementRevision,
+		Outcome:             string(a.Resolution.Outcome),
+		FallbackUsed:        a.Resolution.FallbackUsed,
+		ResolvedAt:          a.Resolution.ResolvedAt.String(),
+		EffectiveAt:         a.Resolution.EffectiveAt.String(),
+		DirectoryVersion:    a.Resolution.DirectoryVersion,
+		ExpressionDigest:    a.Resolution.ExpressionDigest,
+		RequirementDigest:   a.Resolution.RequirementDigest,
+		QuorumRequired:      a.Resolution.QuorumRequired,
+		GovernancePolicyRef: a.GovernancePolicyRef,
+		Trigger:             string(a.Trigger),
+		ChosenOwner:         a.ChosenOwner,
+	}
+	w.Candidates = make([]candidateWire, len(a.Resolution.Candidates))
+	for i, c := range a.Resolution.Candidates {
+		w.Candidates[i] = candidateWire{
+			PrincipalID:          c.PrincipalID,
+			Via:                  string(c.Via),
+			TermRef:              c.TermRef,
+			DelegationID:         c.DelegationID,
+			DelegatedFrom:        c.DelegatedFrom,
+			DelegationExpiry:     c.DelegationExpiry.String(),
+			IdentityAssuranceRef: c.IdentityAssuranceRef,
+		}
+	}
+	w.Excluded = make([]exclusionWire, len(a.Resolution.Excluded))
+	for i, e := range a.Resolution.Excluded {
+		w.Excluded[i] = exclusionWire{PrincipalID: e.PrincipalID, RuleID: e.RuleID, Reason: e.Reason}
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON implements [json.Unmarshaler] through [assignmentWire].
+func (a *Assignment) UnmarshalJSON(data []byte) error {
+	var w assignmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	*a = Assignment{
+		Resolution: humanwork.Resolution{
+			RequirementID:       w.RequirementID,
+			RequirementRevision: w.RequirementRevision,
+			Outcome:             humanwork.ResolutionOutcome(w.Outcome),
+			FallbackUsed:        w.FallbackUsed,
+			DirectoryVersion:    w.DirectoryVersion,
+			ExpressionDigest:    w.ExpressionDigest,
+			RequirementDigest:   w.RequirementDigest,
+			QuorumRequired:      w.QuorumRequired,
+		},
+		GovernancePolicyRef: w.GovernancePolicyRef,
+		Trigger:             ReResolutionTrigger(w.Trigger),
+		ChosenOwner:         w.ChosenOwner,
+	}
+	if w.ResolvedAt != "" {
+		if t, err := time.Parse(time.RFC3339Nano, w.ResolvedAt); err == nil {
+			a.Resolution.ResolvedAt = values.NewInstant(t)
+		}
+	}
+	if w.EffectiveAt != "" {
+		if t, err := time.Parse(time.RFC3339Nano, w.EffectiveAt); err == nil {
+			a.Resolution.EffectiveAt = values.NewInstant(t)
+		}
+	}
+	if len(w.Candidates) > 0 {
+		a.Resolution.Candidates = make([]humanwork.Candidate, len(w.Candidates))
+		for i, c := range w.Candidates {
+			cand := humanwork.Candidate{
+				PrincipalID:          c.PrincipalID,
+				Via:                  humanwork.CandidateSource(c.Via),
+				TermRef:              c.TermRef,
+				DelegationID:         c.DelegationID,
+				DelegatedFrom:        c.DelegatedFrom,
+				IdentityAssuranceRef: c.IdentityAssuranceRef,
+			}
+			if c.DelegationExpiry != "" {
+				if t, err := time.Parse(time.RFC3339Nano, c.DelegationExpiry); err == nil {
+					cand.DelegationExpiry = values.NewInstant(t)
+				}
+			}
+			a.Resolution.Candidates[i] = cand
+		}
+	}
+	if len(w.Excluded) > 0 {
+		a.Resolution.Excluded = make([]humanwork.Exclusion, len(w.Excluded))
+		for i, e := range w.Excluded {
+			a.Resolution.Excluded[i] = humanwork.Exclusion{PrincipalID: e.PrincipalID, RuleID: e.RuleID, Reason: e.Reason}
+		}
+	}
+	return nil
 }
 
 // ResolveAssignment runs [humanwork.Resolve] over req and records the answer

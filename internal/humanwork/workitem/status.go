@@ -118,7 +118,7 @@ const (
 // completion) that a same-status rewrite could otherwise be used to smuggle
 // past the check.
 var transitions = map[Status][]Status{
-	StatusCreated:    {StatusRouted},
+	StatusCreated:    {StatusRouted, StatusEscalated, StatusExpired, StatusCancelled},
 	StatusRouted:     {StatusAssigned, StatusAvailable, StatusEscalated, StatusExpired, StatusCancelled},
 	StatusAssigned:   {StatusClaimed, StatusEscalated, StatusExpired, StatusCancelled},
 	StatusAvailable:  {StatusClaimed, StatusEscalated, StatusExpired, StatusCancelled},

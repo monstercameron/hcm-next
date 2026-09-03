@@ -126,14 +126,6 @@ func newTaskInput(tenant, instance uuid.UUID) workitem.NewWorkItemInput {
 	}
 }
 
-// newApprovalInput builds a well-formed NewWorkItemInput for an APPROVAL work
-// item deciding requirementRef.
-func newApprovalInput(tenant, instance uuid.UUID, requirementRef string) workitem.NewWorkItemInput {
-	in := newTaskInput(tenant, instance)
-	in.Visibility = workitem.VisibilityCandidateSet
-	return in
-}
-
 func meta(reason string) workitem.TransitionMeta {
 	return workitem.TransitionMeta{
 		ActorPrincipalID: "principal:test-actor",

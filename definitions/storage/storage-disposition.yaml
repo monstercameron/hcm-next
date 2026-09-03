@@ -615,6 +615,32 @@ tables:
     rebuild_source: null
     notes: "WF-RUN-001: one row per node attempt with its status and the typed artifact and governance references the WF-RUN-019 inspector traverses; id derived from (instance, node, attempt) so a re-record collides instead of duplicating."
 
+  - table: workflow_continuation
+    migration: 00018_workflow_continuation.sql
+    owner_package: internal/workflow/runtime
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WF-RUN-025 (grant-level append-only: UPDATE and DELETE revoked, no forbid_mutation trigger, so append_only stays false in this registry's trigger-backed sense): durable continuation intents derived by frontier.Advance, one row per (tenant, instance, source_node, source_attempt, target_node, kind) with derived continuation_id; append-only by grant (SELECT/INSERT only) and atomic with the node and instance writes."
+
+  - table: workflow_advancement_receipt
+    migration: 00020_workflow_advancement_receipt.sql
+    owner_package: internal/workflow/runtime
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "WF-RUN-025 (grant-level append-only: UPDATE and DELETE revoked, no forbid_mutation trigger): durable identity of one committed advancement keyed by instance version and outcome digest so a deterministic retry replays the original receipt instead of re-applying; stale once any later node advances the instance."
+
   - table: idempotency_record
     migration: 00019_idempotency_record.sql
     owner_package: internal/transaction/idempotency

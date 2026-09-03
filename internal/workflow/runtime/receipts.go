@@ -13,11 +13,10 @@ import (
 // declaration order, and every slice a caller of this package builds is
 // sorted before it reaches here.
 const (
-	startFingerprintDigestProfile  = "hcmnext.workflow.runtime.StartFingerprint/v1"
-	controlSnapshotDigestProfile   = "hcmnext.workflow.runtime.ControlSnapshotDigest/v1"
-	startReceiptDigestProfile      = "hcmnext.workflow.runtime.StartReceipt/v1"
-	advanceReceiptDigestProfile    = "hcmnext.workflow.runtime.AdvanceReceipt/v1"
-	continuationRecordDigestProfile = "hcmnext.workflow.runtime.ContinuationRecord/v1"
+	startFingerprintDigestProfile = "hcmnext.workflow.runtime.StartFingerprint/v1"
+	controlSnapshotDigestProfile  = "hcmnext.workflow.runtime.ControlSnapshotDigest/v1"
+	startReceiptDigestProfile     = "hcmnext.workflow.runtime.StartReceipt/v1"
+	advanceReceiptDigestProfile   = "hcmnext.workflow.runtime.AdvanceReceipt/v1"
 )
 
 // canonicalDigest hashes a value under a profile.
@@ -39,6 +38,11 @@ func canonicalDigest(profile string, v any) string {
 
 // startReceiptIdentity is the subset of [StartReceipt] content its digest
 // covers -- everything except the digest field itself.
+//
+// Replay is deliberately excluded: it reports how this particular call
+// learned the content (freshly created vs. read back under an identical
+// retry), not what the content is, and a retry's whole contract is that it
+// reports the same instance and frontier -- which means the same digest.
 type startReceiptIdentity struct {
 	TenantID           string
 	InstanceID         string
@@ -50,7 +54,6 @@ type startReceiptIdentity struct {
 	InstanceVersion    int64
 	Frontier           []string
 	CorrelationID      string
-	Replay             bool
 }
 
 func computeStartReceiptDigest(r StartReceipt) string {
@@ -65,51 +68,37 @@ func computeStartReceiptDigest(r StartReceipt) string {
 		InstanceVersion:    r.InstanceVersion,
 		Frontier:           append([]string(nil), r.Frontier...),
 		CorrelationID:      r.CorrelationID,
-		Replay:             r.Replay,
 	}
 	return canonicalDigest(startReceiptDigestProfile, id)
 }
 
 // advanceReceiptIdentity is the subset of [AdvanceReceipt] content its digest
-// covers. CreatedAt-like wall-clock fields are deliberately absent: a
-// deterministic replay reconstructs this receipt from durable rows written at
-// a different instant than the original call, and the receipt's identity
-// must not move because of that.
+// covers: the substantive outcome of the advancement, reconstructible
+// identically whether a call computed it fresh or replayed it from durable
+// rows. Three kinds of field are deliberately absent:
+//
+//   - Replay reports how a call learned the content, not what the content is.
+//   - Continuations is empty on every replay by design ([AdvanceReceipt.
+//     Continuations] documents why), so including it would make a replay's
+//     digest disagree with the original call's -- exactly the case
+//     "returns the original receipt" is supposed to cover.
+//   - Any wall-clock field: a replay reconstructs from rows written at a
+//     different instant than the original call.
 type advanceReceiptIdentity struct {
-	TenantID        string
-	InstanceID      string
-	NodeID          string
-	Attempt         int
-	CompletedState  string
-	RouteKey        string
-	OutputDigest    string
-	NewVersion      int64
-	Frontier        []string
-	Complete        bool
-	TerminalCode    string
-	Continuations   []continuationIdentity
-	Replay          bool
-}
-
-type continuationIdentity struct {
-	TargetNodeID string
-	Kind         string
-	RouteKey     string
-	Ref          string
-	TerminalCode string
+	TenantID       string
+	InstanceID     string
+	NodeID         string
+	Attempt        int
+	CompletedState string
+	RouteKey       string
+	OutputDigest   string
+	NewVersion     int64
+	Frontier       []string
+	Complete       bool
+	TerminalCode   string
 }
 
 func computeAdvanceReceiptDigest(r AdvanceReceipt) string {
-	conts := make([]continuationIdentity, 0, len(r.Continuations))
-	for _, c := range r.Continuations {
-		conts = append(conts, continuationIdentity{
-			TargetNodeID: c.TargetNodeID,
-			Kind:         string(c.Kind),
-			RouteKey:     c.RouteKey,
-			Ref:          c.Ref,
-			TerminalCode: c.TerminalCode,
-		})
-	}
 	id := advanceReceiptIdentity{
 		TenantID:       r.TenantID.String(),
 		InstanceID:     r.InstanceID.String(),
@@ -122,8 +111,6 @@ func computeAdvanceReceiptDigest(r AdvanceReceipt) string {
 		Frontier:       append([]string(nil), r.Frontier...),
 		Complete:       r.Complete,
 		TerminalCode:   r.TerminalCode,
-		Continuations:  conts,
-		Replay:         r.Replay,
 	}
 	return canonicalDigest(advanceReceiptDigestProfile, id)
 }

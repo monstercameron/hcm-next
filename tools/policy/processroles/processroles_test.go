@@ -14,8 +14,11 @@ import (
 // exactly one process-roles.yaml row and vice versa, except a directory
 // explicitly waived by the repository-layout manifest (e.g. cmd/gen-todos,
 // tracked there as ARCH-GO-001 kind "unapproved_command_root" rather than
-// duplicated here); scheduler and admin are listed with status "later" and
-// must not have a directory yet.
+// duplicated here); scheduler is listed with status "later" and must not
+// have a directory yet. hcmctl (SVC-011/ADMIN-001's operator CLI) was
+// promoted from "later" to "initial" on 2026-09-03 alongside
+// repository-layout.yaml's approved_commands.initial, once cmd/hcmctl
+// itself existed.
 func TestTodo_SVC_001(t *testing.T) {
 	root := repopath.RootDir()
 
@@ -38,13 +41,13 @@ func TestTodo_SVC_001(t *testing.T) {
 	sort.Strings(initial)
 	sort.Strings(later)
 
-	wantInitial := []string{"hcmnext", "migrate", "projector", "worker"}
+	wantInitial := []string{"hcmnext", "hcmctl", "migrate", "projector", "worker"}
 	sort.Strings(wantInitial)
 	if !equalStrings(initial, wantInitial) {
 		t.Fatalf("process-roles initial commands = %v, want %v", initial, wantInitial)
 	}
 
-	wantLater := []string{"admin", "scheduler"}
+	wantLater := []string{"scheduler"}
 	sort.Strings(wantLater)
 	if !equalStrings(later, wantLater) {
 		t.Fatalf("process-roles later commands = %v, want %v", later, wantLater)
@@ -79,7 +82,7 @@ func TestTodo_SVC_001(t *testing.T) {
 		}
 	}
 
-	// "later" commands (scheduler, admin) must not have a directory yet.
+	// "later" commands (scheduler) must not have a directory yet.
 	for _, name := range later {
 		if dirSet[name] {
 			t.Errorf("process-roles lists %q as status \"later\" but cmd/%s already exists", name, name)

@@ -2,13 +2,14 @@ package runtime
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sort"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/workflow"
@@ -57,13 +58,6 @@ const (
 	// request whose digests do not match this one.
 	CodeStartConflict = "START_CONFLICT"
 )
-
-// instancePrimaryKeyConstraint is the name Postgres gives an unnamed
-// PRIMARY KEY (tenant_id, instance_id) on workflow_instance: <table>_pkey.
-// [Start] detects a colliding derived instance id by this constraint name
-// rather than by re-reading the row first, so the collision check and the
-// insert are the same round trip.
-const instancePrimaryKeyConstraint = "workflow_instance_pkey"
 
 // startInstanceNamespace is the fixed UUIDv5 namespace a start's instance
 // identity is derived under -- see [derivedStartInstanceID].
@@ -400,12 +394,15 @@ func Start(ctx context.Context, tx Executor, req StartRequest) (StartReceipt, er
 	inst.BusinessTransactionID = req.BusinessTransactionID
 
 	store := Store{}
-	stored, err := store.CreateInstance(ctx, tx, inst)
+	stored, created, err := insertInstanceIfAbsent(ctx, tx, inst)
 	if err != nil {
-		if isUniqueViolation(err, instancePrimaryKeyConstraint) {
-			return replayStart(ctx, tx, req, instanceID, fingerprint)
-		}
 		return StartReceipt{}, err
+	}
+	if !created {
+		// Another (or this same) caller already holds the row this start
+		// idempotency key derives: WF-RUN-023's retry path, not a conflict at
+		// the SQL level -- see [insertInstanceIfAbsent].
+		return replayStart(ctx, tx, req, instanceID, fingerprint)
 	}
 
 	nextVersion := stored.InstanceVersion
@@ -450,16 +447,52 @@ func replayStart(ctx context.Context, tx Executor, req StartRequest, instanceID 
 	return newStartReceipt(existing, cv, true), nil
 }
 
-// isUniqueViolation reports whether err is a Postgres unique-violation
-// against the named constraint, at any depth of wrapping -- in particular
-// underneath this package's own [wrap], which is how [Store.CreateInstance]
-// returns it.
-func isUniqueViolation(err error, constraint string) bool {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == "23505" && pgErr.ConstraintName == constraint
+// insertInstanceIfAbsent inserts inst unless its (tenant_id, instance_id)
+// already exists, in which case it changes nothing and reports created=false.
+//
+// [Store.CreateInstance] cannot be reused here: it issues a bare INSERT ...
+// RETURNING, and on Postgres a statement that violates a constraint aborts
+// the rest of the transaction, so a caller could not follow a failed insert
+// with a read of the row that was already there. This mirrors
+// internal/transaction/idempotency's own PostgresStore.Reserve instead:
+// INSERT ... ON CONFLICT (the table's own primary key) DO NOTHING RETURNING
+// turns "already exists" into an ordinary zero-row result rather than an
+// error, so the transaction stays healthy and this package never inspects a
+// driver-specific error code (tools/policy/libfirewall restricts
+// github.com/jackc/pgx/v5 to the data-plane packages; this stays port-only).
+// It reuses [instanceColumns] and [scanInstance] from store.go, in the same
+// package, rather than duplicating that column list a second time.
+func insertInstanceIfAbsent(ctx context.Context, ex Executor, inst Instance) (Instance, bool, error) {
+	if err := inst.Validate(); err != nil {
+		return Instance{}, false, err
 	}
-	return false
+	dims, err := json.Marshal(inst.CompletionDimensions)
+	if err != nil {
+		return Instance{}, false, wrap(CodeInvalidRecord, inst.InstanceID.String(), "", err,
+			"encode completion dimensions")
+	}
+	row := ex.QueryRow(ctx, `
+		INSERT INTO workflow_instance (`+instanceColumns+`)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+		ON CONFLICT (tenant_id, instance_id) DO NOTHING
+		RETURNING `+instanceColumns,
+		inst.TenantID, inst.InstanceID, inst.CellID, inst.WorkflowID, int32(inst.WorkflowVersion),
+		inst.CompiledPlanHash, textArray(inst.BusinessSubjectRefs), inst.BusinessTransactionID,
+		string(inst.ExecutionMode), string(inst.RuntimeStatus), dims, inst.InputRef,
+		inst.VariableRevisionHead, textArray(inst.CurrentNodeIDs),
+		nullableText(inst.EffectiveContextRef), nullableText(inst.LastCheckpointRef),
+		inst.InstanceVersion, inst.CorrelationID,
+		inst.CreatedAt.UTC(), utcOrNil(inst.StartedAt), utcOrNil(inst.CompletedAt))
+
+	stored, err := scanInstance(row)
+	if err != nil {
+		if errors.Is(err, dbport.ErrNoRows) {
+			return Instance{}, false, nil
+		}
+		return Instance{}, false, wrap(CodeStorageFailed, inst.InstanceID.String(), "", err,
+			"insert workflow instance")
+	}
+	return stored, true, nil
 }
 
 // equalStringSets reports whether a and b carry the same elements, ignoring
