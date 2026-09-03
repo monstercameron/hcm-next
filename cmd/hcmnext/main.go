@@ -400,7 +400,14 @@ func buildServe(ctx context.Context, deps bootstrap.Deps, pool *pgxadapter.Pool)
 	// options are passed here. It is the composition adapter, not app.Cell
 	// directly, because only internal/transport may import grpc-go/Connect
 	// (LIB-003).
-	grpcServer, err := transportcell.NewGRPCServer(cell)
+	//
+	// AdminService.GetWorkflowInstance (ADMIN-008) additionally needs a
+	// database handle and the tenant-uuid mapping app.Cell itself has no
+	// field for; both are already in scope here (pool, the same
+	// pgstore.TenantID derivation cfg.TenantUUID above uses), so this
+	// composition root is what wires them rather than app.Cell.
+	grpcServer, err := transportcell.NewGRPCServerWithWorkflowInspector(cell, pool,
+		func(tenant kernelvalues.TenantId) string { return pgstore.TenantID(string(tenant)).String() })
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}

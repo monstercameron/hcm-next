@@ -12,6 +12,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	adminpolicy "github.com/monstercameron/hcm-next/internal/operations/admin"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
@@ -80,6 +81,27 @@ type Dependencies struct {
 	// Now supplies the current time for a request that does not pin its own
 	// known_at. Nil means time.Now.
 	Now func() time.Time
+
+	// WorkflowExecutor backs GetWorkflowInstance: a pooled database handle
+	// (internal/data/pgxadapter.Pool in every real composition) this package
+	// hands to internal/workflow/runtime.Store and
+	// internal/humanwork/workitem.Store, which are both stateless
+	// projections over exactly this dbport.Execer+Querier shape - this is
+	// the "runtime store + work-item store" adapter ADMIN-008 requires, and
+	// it is the only place in this package that reads a runtime or
+	// work-item table. Nil leaves GetWorkflowInstance UNAVAILABLE, matching
+	// every other optional Dependencies port.
+	WorkflowExecutor Executor
+	// TenantUUID maps the caller's resolved tenant key onto the string form
+	// of the uuid the workflow runtime and work-item tables key rows under:
+	// the same mapping internal/intent/app.CellConfig.TenantUUID supplies to
+	// caller-driven execution (internal/intent/app/pgstore.TenantID in every
+	// real composition), rendered as a string rather than uuid.UUID because
+	// LIB-002/LIB-004's dependency-roles.yaml does not admit internal/transport
+	// as an import root for "github.com/google/uuid" -- this package parses
+	// the string back through internal/workflow/runtime.ParseUUID, which is
+	// on an admitted root. Required together with WorkflowExecutor.
+	TenantUUID func(values.TenantId) string
 }
 
 // server adapts [Dependencies] to the generated adminv1.AdminServiceServer

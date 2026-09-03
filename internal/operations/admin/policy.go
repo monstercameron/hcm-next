@@ -7,6 +7,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/hcm-next/internal/workflow/inspect"
 )
 
 // OperatorRole is the reserved role a caller's authenticated trust.Principal
@@ -134,4 +135,22 @@ func OperatorTransactionAuthorization(sections []intelligence.Section) intellige
 		TransactionDisclosable: true,
 		Sections:               rulings,
 	}
+}
+
+// OperatorWorkflowInstanceAuthorization builds the full-disclosure
+// inspect.Authorization the operator profile evaluates a GetWorkflowInstance
+// call's traversal (definition/instance/node/governance/transaction/
+// connector/observation/trace) under: every stage and every protected field
+// allowed, the same coarse, full-disclosure operator profile
+// [OperatorWorkerAuthorization] and [OperatorTransactionAuthorization] grant.
+// subject names the caller the rendered view records as having asked.
+func OperatorWorkflowInstanceAuthorization(subject string) inspect.Authorization {
+	return inspect.AllowAll(operatorPolicyVersion, operatorPurpose, subject)
+}
+
+// OperatorWorkItemAuthorization builds the full-disclosure
+// inspect.WorkItemAuthorization the operator profile evaluates a
+// GetWorkflowInstance call's work-item-and-transitions section under.
+func OperatorWorkItemAuthorization() inspect.WorkItemAuthorization {
+	return inspect.WorkItemAuthorization{Disclosed: true}
 }

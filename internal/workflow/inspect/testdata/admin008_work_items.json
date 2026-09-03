@@ -1,0 +1,102 @@
+{
+  "disclosed": true,
+  "items": [
+    {
+      "work_item_id": "66666666-6666-4666-8666-666666666666",
+      "item_version": 1,
+      "kind": "APPROVAL",
+      "work_type": "promotion.finance_approval",
+      "status": "CREATED",
+      "correlation_id": "",
+      "node_id": "finance_approval",
+      "approval_requirement_ref": {
+        "state": "VALUE",
+        "value": "approval-req:88191"
+      },
+      "approval_requirement_gap": "",
+      "proposal_ref": {
+        "state": "ABSENT"
+      },
+      "proposal_gap": "ABSENT",
+      "subject_refs": {
+        "state": "VALUE"
+      },
+      "owner_kind": "POLICY_ROUTE",
+      "policy_route_ref": "route:finance",
+      "visibility": "ORGANIZATION_SCOPE",
+      "deadline_at": "2026-09-05T12:00:00Z",
+      "completed_output_digest": {
+        "state": "ABSENT"
+      },
+      "completed_output_gap": "ABSENT",
+      "created_at": "2026-09-03T12:00:00Z",
+      "transitions": [
+        {
+          "transition_id": "66bff6eb-1eb8-5f25-947a-d34cf5c98882",
+          "item_version": 1,
+          "to_status": "CREATED",
+          "actor_principal_id": "principal:ops-7",
+          "reason": "workitem.created",
+          "evidence_ref": {
+            "state": "VALUE",
+            "value": "evidence:approval-created"
+          },
+          "evidence_gap": "",
+          "at": "2026-09-03T12:00:00Z",
+          "recorded_at": "2026-09-03T12:00:00Z"
+        }
+      ],
+      "transitions_recorded": true
+    },
+    {
+      "work_item_id": "77777777-7777-4777-8777-777777777777",
+      "item_version": 1,
+      "kind": "TASK",
+      "work_type": "promotion.payroll_sync_review",
+      "status": "CREATED",
+      "correlation_id": "",
+      "node_id": "payroll_sync",
+      "approval_requirement_ref": {
+        "state": "ABSENT"
+      },
+      "approval_requirement_gap": "ABSENT",
+      "proposal_ref": {
+        "state": "ABSENT"
+      },
+      "proposal_gap": "ABSENT",
+      "subject_refs": {
+        "state": "VALUE"
+      },
+      "owner_kind": "POLICY_ROUTE",
+      "policy_route_ref": "route:payroll",
+      "visibility": "ORGANIZATION_SCOPE",
+      "deadline_at": "2026-09-04T12:00:00Z",
+      "completed_output_digest": {
+        "state": "ABSENT"
+      },
+      "completed_output_gap": "ABSENT",
+      "created_at": "2026-09-03T12:00:00Z",
+      "transitions": [
+        {
+          "transition_id": "27fa95cc-9c26-5ea8-a89d-268a649709b5",
+          "item_version": 1,
+          "to_status": "CREATED",
+          "actor_principal_id": "principal:ops-7",
+          "reason": "workitem.created",
+          "evidence_ref": {
+            "state": "ABSENT"
+          },
+          "evidence_gap": "ABSENT",
+          "at": "2026-09-03T12:00:00Z",
+          "recorded_at": "2026-09-03T12:00:00Z"
+        }
+      ],
+      "transitions_recorded": true
+    }
+  ],
+  "completeness": {
+    "complete": true,
+    "redactions": [],
+    "gaps": []
+  }
+}

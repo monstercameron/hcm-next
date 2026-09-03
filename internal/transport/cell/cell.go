@@ -33,6 +33,7 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	transportadmin "github.com/monstercameron/hcm-next/internal/transport/admin"
 	"github.com/monstercameron/hcm-next/internal/transport/edge"
@@ -49,7 +50,37 @@ import (
 // after admission and after opts, so every call - including one added
 // through a caller's own opts - is instrumented; a cell composed with no
 // Telemetry adds nothing here at all.
+//
+// It is exactly [NewGRPCServerWithWorkflowInspector] with no workflow
+// executor: AdminService.GetWorkflowInstance (ADMIN-008) is then UNAVAILABLE,
+// matching every other optional transportadmin.Dependencies port a caller
+// does not wire.
 func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error) {
+	return NewGRPCServerWithWorkflowInspector(c, nil, nil, opts...)
+}
+
+// NewGRPCServerWithWorkflowInspector is [NewGRPCServer] plus ADMIN-008's
+// workflow-inspector wiring for AdminService.GetWorkflowInstance.
+//
+// workflowExecutor is the pooled database handle (a
+// internal/data/pgxadapter.Pool in every real composition) transportadmin
+// hands to internal/workflow/runtime.Store and internal/humanwork/workitem.Store
+// to answer one GetWorkflowInstance call; tenantUUID maps the caller's
+// resolved tenant key onto the string form of the uuid those tables key rows
+// under (transportadmin parses it back through runtime.ParseUUID: LIB-002/
+// LIB-004 does not admit internal/transport as an import root for
+// "github.com/google/uuid"), the same mapping [app.CellConfig.TenantUUID]
+// threads to caller-driven execution
+// (internal/intent/app/pgstore.TenantID in every real composition). c itself
+// carries neither: app.Cell has no workflow-runtime or work-item field to
+// expose one from (LIB-003 keeps pgx/dbport composition out of internal/intent/app),
+// so a composition root that wants GetWorkflowInstance served passes its own
+// pool and mapping here instead. Either nil leaves GetWorkflowInstance
+// UNAVAILABLE.
+func NewGRPCServerWithWorkflowInspector(
+	c *app.Cell, workflowExecutor transportadmin.Executor, tenantUUID func(values.TenantId) string,
+	opts ...grpc.ServerOption,
+) (*grpc.Server, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
@@ -72,6 +103,8 @@ func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error)
 		TransactionHistory: c.Transactions,
 		CapabilityRegistry: c.Capabilities,
 		Now:                c.Config.Now,
+		WorkflowExecutor:   workflowExecutor,
+		TenantUUID:         tenantUUID,
 	})
 	return srv, nil
 }

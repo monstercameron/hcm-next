@@ -177,6 +177,7 @@ subcommands:
   list-capabilities      list registered capability profiles
   explain-transaction    governed read-only transaction chronology
   worker-state           governed read-only worker/employment/assignment facts
+  instance <id>          governed read-only workflow execution inspector
 
 global flags: -addr -token -timeout -mint -mint-key -mint-issuer -mint-audience
               -mint-tenant -mint-subject -mint-roles -mint-purpose -mint-ttl`

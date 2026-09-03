@@ -90,6 +90,10 @@ func TestTodo_ADMIN_001(t *testing.T) {
 				_, err := client.GetWorkerState(withToken(ctx, fixtureOrdinaryToken), &adminv1.GetWorkerStateRequest{WorkerId: "jane-doe"})
 				return err
 			}},
+			{"GetWorkflowInstance", func() error {
+				_, err := client.GetWorkflowInstance(withToken(ctx, fixtureOrdinaryToken), &adminv1.GetWorkflowInstanceRequest{InstanceId: fixtureUnknownWorkerID})
+				return err
+			}},
 		}
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {

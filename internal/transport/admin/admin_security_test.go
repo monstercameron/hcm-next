@@ -40,7 +40,7 @@ func (e errFmt) Error() string { return string(e) }
 // admin method runs, on the identical shared admission path every other
 // service on the process uses; (2) a capability failure's raw, unsafe
 // diagnostic text never crosses the wire, even wrapped inside an owned
-// error; (3) AdminService exposes exactly its five declared read-only
+// error; (3) AdminService exposes exactly its six declared read-only
 // methods and nothing that could mutate workforce data.
 func TestTodo_ADMIN_001_Security(t *testing.T) {
 	conn, cleanup := startTestServer(t, admin.Dependencies{WorkerFacts: leakyWorkerFacts{}})
@@ -89,10 +89,10 @@ func TestTodo_ADMIN_001_Security(t *testing.T) {
 		}
 	})
 
-	t.Run("AdminService publishes exactly its five declared read-only methods", func(t *testing.T) {
+	t.Run("AdminService publishes exactly its six declared read-only methods", func(t *testing.T) {
 		desc := adminv1.AdminService_ServiceDesc
-		if len(desc.Methods) != 5 {
-			t.Fatalf("service publishes %d methods, want exactly 5: %v", len(desc.Methods), methodNames(desc))
+		if len(desc.Methods) != 6 {
+			t.Fatalf("service publishes %d methods, want exactly 6: %v", len(desc.Methods), methodNames(desc))
 		}
 		wantMutating := []string{"Create", "Submit", "Cancel", "Supersede", "Update", "Delete", "Execute", "Approve", "Reject"}
 		for _, m := range desc.Methods {
