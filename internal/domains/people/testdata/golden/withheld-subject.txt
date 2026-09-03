@@ -1,0 +1,13 @@
+intent: hcmnext.people.explain_worker_state/v1
+worker: eref:v1:harborcare-demo:worker:11111111-1111-4111-8111-111111111111
+disclosure: WITHHELD
+presence: SUBJECT_PRESENCE_UNSPECIFIED
+withheld_reason: outside_population_scope
+policy: authz.people/2026.1
+rule_pack: people.explain.rules/1.0.0
+narrative: subject is not disclosable to this caller under the evaluated policy
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:7d850df1c6e66cf6396188a824279df8029471eca1cf0f1392be3e2a88c52735
+result_digest: sha256:660bed754869b99023886fd3922f753215025bff0b05aca1d7db105483a024ac

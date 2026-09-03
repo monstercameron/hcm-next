@@ -1,0 +1,191 @@
+[
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "UNKNOWN",
+    "Action": "ALLOW_WITH_WARNING",
+    "Evidence": "evidence.explanation_gap/v1",
+    "Authority": "authority.analytical_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.authorization_at_each_edge_traversal/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "PARTIAL",
+    "Action": "ALLOW_WITH_WARNING",
+    "Evidence": "evidence.explanation_gap/v1",
+    "Authority": "authority.analytical_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.authorization_at_each_edge_traversal/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "DEGRADED",
+    "Action": "DEGRADE",
+    "Evidence": "evidence.degraded_source/v1",
+    "Authority": "authority.analytical_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.source_freshness/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "AMBIGUOUS",
+    "Action": "ROUTE_HUMAN",
+    "Evidence": "evidence.ambiguous_resolution/v1",
+    "Authority": "authority.identity_resolution_review/v1",
+    "Expiry": 86400,
+    "Revalidation": "revalidate.identity_resolution/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "REDACTED",
+    "Action": "ALLOW_WITH_WARNING",
+    "Evidence": "evidence.redaction_decision/v1",
+    "Authority": "authority.classification_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.classification_labels/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "UNAVAILABLE",
+    "Action": "ALLOW_WITH_WARNING",
+    "Evidence": "evidence.source_unavailable/v1",
+    "Authority": "authority.analytical_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.source_availability/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.analytical_read/v1",
+    "State": "STALE",
+    "Action": "USE_STALE",
+    "Evidence": "evidence.staleness_watermark/v1",
+    "Authority": "authority.analytical_read/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.source_freshness/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "UNKNOWN",
+    "Action": "BLOCK",
+    "Evidence": "evidence.missing_calculation_input/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "PARTIAL",
+    "Action": "BLOCK",
+    "Evidence": "evidence.missing_calculation_input/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "DEGRADED",
+    "Action": "ALLOW_WITH_WARNING",
+    "Evidence": "evidence.degraded_source/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.recalculate_when_material_input_changes/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "AMBIGUOUS",
+    "Action": "BLOCK",
+    "Evidence": "evidence.ambiguous_calculation_input/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "REDACTED",
+    "Action": "BLOCK",
+    "Evidence": "evidence.redaction_decision/v1",
+    "Authority": "authority.classification_read/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "UNAVAILABLE",
+    "Action": "ROUTE_HUMAN",
+    "Evidence": "evidence.source_unavailable/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 86400,
+    "Revalidation": "revalidate.source_availability/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.pure_calculation/v1",
+    "State": "STALE",
+    "Action": "USE_STALE",
+    "Evidence": "evidence.staleness_watermark/v1",
+    "Authority": "authority.calculation/v1",
+    "Expiry": 3600,
+    "Revalidation": "revalidate.recalculate_when_material_input_changes/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "UNKNOWN",
+    "Action": "BLOCK",
+    "Evidence": "evidence.unknown_baseline_fact/v1",
+    "Authority": "authority.change_request/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "PARTIAL",
+    "Action": "ROUTE_HUMAN",
+    "Evidence": "evidence.partial_baseline/v1",
+    "Authority": "authority.change_request_review/v1",
+    "Expiry": 86400,
+    "Revalidation": "revalidate.baseline_completeness/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "DEGRADED",
+    "Action": "ROUTE_HUMAN",
+    "Evidence": "evidence.degraded_source/v1",
+    "Authority": "authority.change_request_review/v1",
+    "Expiry": 86400,
+    "Revalidation": "revalidate.source_freshness/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "AMBIGUOUS",
+    "Action": "BLOCK",
+    "Evidence": "evidence.ambiguous_resolution/v1",
+    "Authority": "authority.identity_resolution_review/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "REDACTED",
+    "Action": "BLOCK",
+    "Evidence": "evidence.redaction_decision/v1",
+    "Authority": "authority.classification_read/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "UNAVAILABLE",
+    "Action": "CREATE_OBLIGATION",
+    "Evidence": "evidence.source_unavailable/v1",
+    "Authority": "authority.change_request_review/v1",
+    "Expiry": 86400,
+    "Revalidation": "revalidate.source_availability/v1"
+  },
+  {
+    "Policy": "hcmnext.negative_state.change_transaction/v1",
+    "State": "STALE",
+    "Action": "BLOCK",
+    "Evidence": "evidence.staleness_watermark/v1",
+    "Authority": "authority.change_request/v1",
+    "Expiry": 0,
+    "Revalidation": ""
+  }
+]

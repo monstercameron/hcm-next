@@ -1,0 +1,25 @@
+intent: hcmnext.people.promote_worker/v1
+status: NEEDS_DATA
+executable: false
+findings:
+  promotion.budget_authority_observation_only [ADVISORY] budget: budget people-ops:FY26-merit from adaptive.planning is an observation at baseline fy26-merit-r7, not a reservation
+  promotion.pay_band_not_found [NEEDS_DATA] target.grade: no pay band could be evaluated for the target placement: rewards: no pay band governs the requested scope
+change assignment.job_code: "OPS-HRBP2" -> "NOT-A-JOB" changed=true
+change assignment.grade: "P2" -> "P3" changed=true
+change assignment.org_unit: "people-ops" -> "people-ops" changed=false
+change assignment.position_id: "" -> "POS-HRBP-301" changed=true
+change assignment.pay_zone: "US-EAST" -> "US-EAST" changed=false
+compensation_state: EVALUATED
+annualized_base_delta: 5000.00 USD
+annualized_total_cash_delta: 5250.00 USD
+increase_percent: 5.3763
+band_state: UNKNOWN
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+control promotion_policy@people.promotion.policy/1.0.0
+control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:10929c3ce4e8efaad819a6706ddb5596ec4690f92026750491c70571b510a335
+result_digest: sha256:782de3e32530d8d5df0435ea42c344cc894062bf5af15257f53b251cdc555af5

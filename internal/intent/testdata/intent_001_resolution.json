@@ -1,0 +1,162 @@
+[
+  {
+    "Ref": "hcmnext.intelligence.explain_transaction/v1",
+    "Family": "ANALYTICAL_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R2",
+    "InputSchema": "hcmnext.intelligence.v1.ExplainTransactionRequest/v1",
+    "ResultSchema": "hcmnext.intelligence.v1.TransactionExplanation/v1",
+    "RequiredCapabilities": ["provenance.transaction.explain/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["EXECUTE", "REPLAY"]
+  },
+  {
+    "Ref": "hcmnext.operations.create_repair_plan/v1",
+    "Family": "ANALYTICAL_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.operations.v1.CreateRepairPlanRequest/v1",
+    "ResultSchema": "hcmnext.operations.v1.RepairPlan/v1",
+    "RequiredCapabilities": ["repair.plan.create/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE", "SYSTEM_EVENT"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY"]
+  },
+  {
+    "Ref": "hcmnext.operations.detect_drift/v1",
+    "Family": "ANALYTICAL_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R2",
+    "InputSchema": "hcmnext.operations.v1.DetectDriftRequest/v1",
+    "ResultSchema": "hcmnext.operations.v1.DriftReport/v1",
+    "RequiredCapabilities": ["reconciliation.drift.detect/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE", "SCHEDULE", "SYSTEM_EVENT"],
+    "AllowedModes": ["EXECUTE", "REPLAY", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.operations.simulate_repair/v1",
+    "Family": "CALCULATION_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.operations.v1.SimulateRepairRequest/v1",
+    "ResultSchema": "hcmnext.operations.v1.RepairSimulation/v1",
+    "RequiredCapabilities": ["repair.plan.simulate/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.people.change_manager/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "DESIGN_CONFORMANCE_ONLY",
+    "RiskClass": "R2",
+    "InputSchema": "hcmnext.people.v1.ChangeManagerRequest/v1",
+    "ResultSchema": "hcmnext.people.v1.ChangeManagerResult/v1",
+    "RequiredCapabilities": [
+      "people.manager.change.plan/v1",
+      "people.manager.change.execute/v1"
+    ],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "REPLAY", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.people.explain_worker_state/v1",
+    "Family": "ANALYTICAL_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R1",
+    "InputSchema": "hcmnext.people.v1.ExplainWorkerStateRequest/v1",
+    "ResultSchema": "hcmnext.people.v1.ExplainWorkerStateResult/v1",
+    "RequiredCapabilities": ["people.worker.history.explain/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["EXECUTE", "REPLAY"]
+  },
+  {
+    "Ref": "hcmnext.people.promote_worker/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_A_CONTRACT_GATE_B_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.people.v1.PromoteWorkerRequest/v1",
+    "ResultSchema": "hcmnext.people.v1.PromoteWorkerResult/v1",
+    "RequiredCapabilities": ["people.promote.plan/v1", "people.promote.execute/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "REPLAY", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.rewards.change_base_pay/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_A_CONTRACT_GATE_B_IMPLEMENT",
+    "RiskClass": "R4",
+    "InputSchema": "hcmnext.rewards.v1.ChangeBasePayRequest/v1",
+    "ResultSchema": "hcmnext.rewards.v1.ChangeBasePayResult/v1",
+    "RequiredCapabilities": [
+      "rewards.compensation.change.plan/v1",
+      "rewards.compensation.change.execute/v1"
+    ],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY", "REPAIR", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.rewards.evaluate_pay_band_position/v1",
+    "Family": "CALCULATION_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R2",
+    "InputSchema": "hcmnext.rewards.v1.EvaluatePayBandPositionRequest/v1",
+    "ResultSchema": "hcmnext.rewards.v1.PayBandPositionResult/v1",
+    "RequiredCapabilities": ["rewards.pay_band.position.evaluate/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY"]
+  },
+  {
+    "Ref": "hcmnext.rewards.release_compensation_budget/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_B_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.budget.v1.ReleaseCompensationBudgetRequest/v1",
+    "ResultSchema": "hcmnext.budget.v1.BudgetReservationRelease/v1",
+    "RequiredCapabilities": ["budget.compensation.release/v1"],
+    "AllowedInitiators": ["SERVICE", "HUMAN"],
+    "AllowedModes": ["EXECUTE", "REPLAY", "REPAIR"]
+  },
+  {
+    "Ref": "hcmnext.rewards.reserve_compensation_budget/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_B_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.budget.v1.ReserveCompensationBudgetRequest/v1",
+    "ResultSchema": "hcmnext.budget.v1.BudgetReservation/v1",
+    "RequiredCapabilities": ["budget.compensation.reserve/v1"],
+    "AllowedInitiators": ["SERVICE"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY", "REPAIR"]
+  },
+  {
+    "Ref": "hcmnext.rewards.simulate_compensation/v1",
+    "Family": "CALCULATION_REQUEST",
+    "PhaseDepth": "GATE_A_IMPLEMENT",
+    "RiskClass": "R2",
+    "InputSchema": "hcmnext.rewards.v1.SimulateCompensationRequest/v1",
+    "ResultSchema": "hcmnext.rewards.v1.CompensationSimulation/v1",
+    "RequiredCapabilities": ["rewards.compensation.simulate/v1"],
+    "AllowedInitiators": ["HUMAN", "AGENT", "SERVICE"],
+    "AllowedModes": ["SIMULATE", "EXECUTE", "REPLAY", "SHADOW"]
+  },
+  {
+    "Ref": "hcmnext.work.approve_proposal/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_B_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.work.v1.ApproveProposalRequest/v1",
+    "ResultSchema": "hcmnext.work.v1.ApprovalDecision/v1",
+    "RequiredCapabilities": ["work.proposal.approve/v1"],
+    "AllowedInitiators": ["HUMAN"],
+    "AllowedModes": ["EXECUTE", "REPLAY"]
+  },
+  {
+    "Ref": "hcmnext.work.reject_proposal/v1",
+    "Family": "CHANGE_REQUEST",
+    "PhaseDepth": "GATE_B_IMPLEMENT",
+    "RiskClass": "R3",
+    "InputSchema": "hcmnext.work.v1.RejectProposalRequest/v1",
+    "ResultSchema": "hcmnext.work.v1.ApprovalDecision/v1",
+    "RequiredCapabilities": ["work.proposal.reject/v1"],
+    "AllowedInitiators": ["HUMAN"],
+    "AllowedModes": ["EXECUTE", "REPLAY"]
+  }
+]

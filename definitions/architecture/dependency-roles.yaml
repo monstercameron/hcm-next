@@ -71,6 +71,20 @@ family_rules:
       the specific module; add an exact row once imported directly.
     replacement_strategy: Tracks the qualified gRPC/Protobuf toolchain decision (TOOL-002, TOOL-008).
     allowed_import_roots: []
+  - prefix: go.opentelemetry.io/
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      Indirect telemetry SDK modules pulled in by grpc-go's stats/otel
+      plumbing. Not imported by production code before OBS-002; add an exact
+      row when internal/ imports any of them directly.
+    replacement_strategy: >-
+      OBS-002 decides the OTel SDK adoption explicitly; until then these are
+      transitive-only.
+    allowed_import_roots: []
 
 # Exact classification for every module in go.mod's require block.
 modules:
@@ -345,6 +359,24 @@ modules:
     upgrade_sla: Tracks google.golang.org/grpc's own pin.
     exposure: Canonical gRPC status/error code definitions carried on the wire.
     replacement_strategy: Tracks google.golang.org/grpc.
+
+  - path: connectrpc.com/connect
+    version: v1.20.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/transport]
+    direct_import_expected: true
+    upgrade_sla: Minor within 90 days; security patch within 7 days.
+    exposure: >-
+      Selected P1A transport edge (TOOL-008, 2026-09-03): Connect/HTTP
+      protocol adapter in front of the canonical gRPC service, used only by
+      internal/transport/edge.
+    replacement_strategy: >-
+      Selected by TOOL-008 (2026-09-03). grpc-gateway/v2 is the successor once
+      the ENDPOINT-001 route manifest exists; GoGRPCBridge remains the
+      WebSocket/WASM candidate for TOOL-009. Neither is pinned until imported.
 
   - path: google.golang.org/grpc
     version: v1.83.2

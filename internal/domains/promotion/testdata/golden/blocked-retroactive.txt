@@ -1,0 +1,28 @@
+intent: hcmnext.people.promote_worker/v1
+status: BLOCKED
+executable: false
+findings:
+  compensation.effective_at_too_far_in_past [BLOCKING] effective_date: effective date 2025-10-01 is more than 180 days before the evaluation date 2026-05-15
+  promotion.budget_authority_observation_only [ADVISORY] budget: budget people-ops:FY26-merit from adaptive.planning is an observation at baseline fy26-merit-r7, not a reservation
+change assignment.job_code: "OPS-HRBP2" -> "OPS-HRBP3" changed=true
+change assignment.grade: "P2" -> "P3" changed=true
+change assignment.org_unit: "people-ops" -> "people-ops" changed=false
+change assignment.position_id: "" -> "POS-HRBP-301" changed=true
+change assignment.pay_zone: "US-EAST" -> "US-EAST" changed=false
+compensation_state: EVALUATED
+annualized_base_delta: 5000.00 USD
+annualized_total_cash_delta: 5250.00 USD
+increase_percent: 5.3763
+band_state: EVALUATED
+band: BAND-OPS-P3-USEAST@2026.1 placement=IN_BAND compa=0.8750 penetration=0.1500 quartile=1 outcome=WITHIN_BAND
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+control pay_band_catalog@harborcare.paybands/2026.1
+control pay_band_rule_pack@rewards.payband.rules/1.0.0
+control promotion_policy@people.promotion.policy/1.0.0
+control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:f110e0899692b9286637cc81cda13fa90c0cb23a648166199eb88861182ca3dd
+result_digest: sha256:9ed94aed0008506b359979fa436f759199fcd53e067b768c0be61584ae92a096

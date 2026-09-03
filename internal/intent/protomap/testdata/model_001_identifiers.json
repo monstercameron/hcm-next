@@ -1,0 +1,26 @@
+[
+  {
+    "Name": "entity_id",
+    "Canonical": "eid:v1:worker:018f3f52-4a7b-7c31-9c6a-0a1b2c3d4e5f"
+  },
+  {
+    "Name": "entity_ref",
+    "Canonical": "eref:v1:acme-eu:employment:018f3f52-4a7b-7c31-9c6a-0a1b2c3d4e5f"
+  },
+  {
+    "Name": "resource_key",
+    "Canonical": "rkey:v1:acme-eu:assignment:employment%2F9001/primary%3Aassignment/caf%C3%A9"
+  },
+  {
+    "Name": "revision_opaque",
+    "Canonical": "rev:v1:people.employment.9001:o3q2-7w"
+  },
+  {
+    "Name": "revision_sequence",
+    "Canonical": "rev:v1:people.employment.9001:s42"
+  },
+  {
+    "Name": "revision_unspecified",
+    "Canonical": "rev:v1:unspecified"
+  }
+]

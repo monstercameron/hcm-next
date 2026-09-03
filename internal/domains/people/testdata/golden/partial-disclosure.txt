@@ -1,0 +1,21 @@
+intent: hcmnext.people.explain_worker_state/v1
+worker: eref:v1:harborcare-demo:worker:11111111-1111-4111-8111-111111111111
+disclosure: PARTIAL
+presence: PRESENT
+policy: authz.people/2026.1
+rule_pack: people.explain.rules/1.0.0
+field assignment.grade access=DENIED state=REDACTED denial=compensation_compartment
+field assignment.job_code access=AUTHORIZED state=VALUE value="ENG-SWE3" authority=LOCAL_AUTHORITATIVE:hcmnext.people@people.source_authority/2026.1 source=hcmnext.people evidence=evd_worker_1001_r42 recorded=2024-01-02T09:15:00Z known=2024-01-01T00:00:00Z
+field assignment.org_unit access=AUTHORIZED state=VALUE value="eng-platform" authority=LOCAL_AUTHORITATIVE:hcmnext.people@people.source_authority/2026.1 source=hcmnext.people evidence=evd_worker_1001_r42 recorded=2024-01-02T09:15:00Z known=2024-01-01T00:00:00Z
+field assignment.pay_zone access=DENIED state=REDACTED denial=compensation_compartment
+field employment.hire_date access=AUTHORIZED state=VALUE value="2019-03-04" authority=LOCAL_AUTHORITATIVE:hcmnext.people@people.source_authority/2026.1 source=hcmnext.people evidence=evd_worker_1001_r42 recorded=2024-01-02T09:15:00Z known=2024-01-01T00:00:00Z
+field employment.status access=AUTHORIZED state=VALUE value="active" authority=LOCAL_AUTHORITATIVE:hcmnext.people@people.source_authority/2026.1 source=hcmnext.people evidence=evd_worker_1001_r42 recorded=2024-01-02T09:15:00Z known=2024-01-01T00:00:00Z
+field worker.lifecycle_status access=AUTHORIZED state=VALUE value="active" authority=LOCAL_AUTHORITATIVE:hcmnext.people@people.source_authority/2026.1 source=hcmnext.people evidence=evd_worker_1001_r42 recorded=2024-01-02T09:15:00Z known=2024-01-01T00:00:00Z
+narrative: subject presence at 2026-06-01 known as of 2026-05-15T00:00:00Z: PRESENT
+narrative: 7 field(s) requested, 5 authorized, 2 denied
+narrative: denied fields are reported by name with a redacted value and no provenance
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:f6d111063acd8919def26ffbba80a3c4ff780f8782b66e101bc486cbc9d024d3
+result_digest: sha256:3518a6843f028f9e990c030257e384d9ecb7900db911163639ea0e1d3aa574e8

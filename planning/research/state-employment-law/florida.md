@@ -196,7 +196,7 @@ For distributors, dealers, franchisees, licensees: 1 year or less is presumed re
 
 10. [Florida's Mandatory E-Verify Law (SB 1718) - Implementation and Compliance Guide](https://www.paylocity.com/resources/tax-compliance/alerts/florida-e-verify-requirements/) (Retrieved 2026-09-03)
 
-11. [Worker Adjustment and Retraining Notification (WARN) Act - Florida Department of Economic Opportunity](<https://floridajobs.org/workforce-resources/worker-adjustment-and-retraining-notification-(warn)/warn-notices-procedure-and-instructions>) (Retrieved 2026-09-03)
+11. [Worker Adjustment and Retraining Notification (WARN) Act - Florida Department of Economic Opportunity](https://floridajobs.org/workforce-resources/worker-adjustment-and-retraining-notification-%28warn%29/warn-notices-procedure-and-instructions) (Retrieved 2026-09-03)
 
 12. [20 CFR Part 639 - WARN Act Regulations - U.S. Code of Federal Regulations](https://www.ecfr.gov/current/title-20/chapter-V/part-639) (Retrieved 2026-09-03)
 

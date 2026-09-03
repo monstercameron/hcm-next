@@ -1,0 +1,627 @@
+[
+  {
+    "ID": "hcmnext.lifecycle.request/v1",
+    "Dimension": "RequestState",
+    "States": [
+      "UNSPECIFIED",
+      "DRAFT",
+      "PREFLIGHTED",
+      "SIMULATED",
+      "SUBMITTED",
+      "APPROVED",
+      "REJECTED",
+      "WITHDRAWN",
+      "CANCELLED",
+      "SUPERSEDED",
+      "CLOSED",
+      "REOPENED"
+    ],
+    "Initial": "UNSPECIFIED",
+    "Terminal": ["REJECTED", "WITHDRAWN", "CANCELLED", "SUPERSEDED"],
+    "Edges": [
+      {
+        "From": "UNSPECIFIED",
+        "To": "DRAFT",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "DRAFT",
+        "To": "PREFLIGHTED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "DRAFT",
+        "To": "WITHDRAWN",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "DRAFT",
+        "To": "CANCELLED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "PREFLIGHTED",
+        "To": "DRAFT",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "PREFLIGHTED",
+        "To": "SIMULATED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "PREFLIGHTED",
+        "To": "WITHDRAWN",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "PREFLIGHTED",
+        "To": "CANCELLED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SIMULATED",
+        "To": "SIMULATED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SIMULATED",
+        "To": "SUBMITTED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SIMULATED",
+        "To": "WITHDRAWN",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SIMULATED",
+        "To": "CANCELLED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SIMULATED",
+        "To": "SUPERSEDED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "APPROVED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "REJECTED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "SIMULATED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "WITHDRAWN",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "CANCELLED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "SUPERSEDED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SUBMITTED",
+        "To": "CLOSED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "APPROVED",
+        "To": "SIMULATED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "APPROVED",
+        "To": "CANCELLED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "APPROVED",
+        "To": "SUPERSEDED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "APPROVED",
+        "To": "CLOSED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REOPENED",
+        "To": "SIMULATED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REOPENED",
+        "To": "CLOSED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "CLOSED",
+        "To": "REOPENED",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      }
+    ]
+  },
+  {
+    "ID": "hcmnext.lifecycle.execution/v1",
+    "Dimension": "ExecutionState",
+    "States": [
+      "UNSPECIFIED",
+      "NOT_PLANNED",
+      "SCHEDULED",
+      "REVALIDATING",
+      "EXECUTING",
+      "COMMITTED",
+      "BLOCKED",
+      "REPAIR_REQUIRED"
+    ],
+    "Initial": "UNSPECIFIED",
+    "Terminal": null,
+    "Edges": [
+      {
+        "From": "UNSPECIFIED",
+        "To": "NOT_PLANNED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "NOT_PLANNED",
+        "To": "SCHEDULED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "NOT_PLANNED",
+        "To": "BLOCKED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SCHEDULED",
+        "To": "REVALIDATING",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SCHEDULED",
+        "To": "NOT_PLANNED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "SCHEDULED",
+        "To": "BLOCKED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REVALIDATING",
+        "To": "EXECUTING",
+        "Governed": true,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REVALIDATING",
+        "To": "NOT_PLANNED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REVALIDATING",
+        "To": "BLOCKED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "EXECUTING",
+        "To": "COMMITTED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "EXECUTING",
+        "To": "BLOCKED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "EXECUTING",
+        "To": "REPAIR_REQUIRED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "COMMITTED",
+        "To": "REPAIR_REQUIRED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "BLOCKED",
+        "To": "SCHEDULED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "BLOCKED",
+        "To": "NOT_PLANNED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REPAIR_REQUIRED",
+        "To": "SCHEDULED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      },
+      {
+        "From": "REPAIR_REQUIRED",
+        "To": "COMMITTED",
+        "Governed": false,
+        "Retention": "INTENT_LIFECYCLE"
+      }
+    ]
+  },
+  {
+    "ID": "hcmnext.lifecycle.business/v1",
+    "Dimension": "BusinessState",
+    "States": [
+      "UNSPECIFIED",
+      "NOT_STARTED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "NOT_ACHIEVED",
+      "CORRECTED",
+      "UNKNOWN"
+    ],
+    "Initial": "UNSPECIFIED",
+    "Terminal": null,
+    "Edges": [
+      {
+        "From": "UNSPECIFIED",
+        "To": "NOT_STARTED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "NOT_STARTED",
+        "To": "IN_PROGRESS",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "NOT_STARTED",
+        "To": "NOT_ACHIEVED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "NOT_STARTED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "IN_PROGRESS",
+        "To": "COMPLETED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "IN_PROGRESS",
+        "To": "NOT_ACHIEVED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "IN_PROGRESS",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "COMPLETED",
+        "To": "CORRECTED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "COMPLETED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "NOT_ACHIEVED",
+        "To": "IN_PROGRESS",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "CORRECTED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "IN_PROGRESS",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "COMPLETED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "NOT_ACHIEVED",
+        "Governed": false,
+        "Retention": "BUSINESS_OUTCOME"
+      }
+    ]
+  },
+  {
+    "ID": "hcmnext.lifecycle.consistency/v1",
+    "Dimension": "ConsistencyState",
+    "States": [
+      "UNSPECIFIED",
+      "NOT_APPLICABLE",
+      "PENDING_OBSERVATION",
+      "CONSISTENT",
+      "DEGRADED",
+      "REPAIRING",
+      "UNKNOWN"
+    ],
+    "Initial": "UNSPECIFIED",
+    "Terminal": null,
+    "Edges": [
+      {
+        "From": "UNSPECIFIED",
+        "To": "NOT_APPLICABLE",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "UNSPECIFIED",
+        "To": "PENDING_OBSERVATION",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "NOT_APPLICABLE",
+        "To": "PENDING_OBSERVATION",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING_OBSERVATION",
+        "To": "CONSISTENT",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING_OBSERVATION",
+        "To": "DEGRADED",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING_OBSERVATION",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "CONSISTENT",
+        "To": "DEGRADED",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "CONSISTENT",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "DEGRADED",
+        "To": "REPAIRING",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "DEGRADED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "REPAIRING",
+        "To": "CONSISTENT",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "REPAIRING",
+        "To": "DEGRADED",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "REPAIRING",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "PENDING_OBSERVATION",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "CONSISTENT",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "DEGRADED",
+        "Governed": false,
+        "Retention": "RECONCILIATION_EVIDENCE"
+      }
+    ]
+  },
+  {
+    "ID": "hcmnext.lifecycle.obligation/v1",
+    "Dimension": "ObligationState",
+    "States": [
+      "UNSPECIFIED",
+      "NOT_APPLICABLE",
+      "PENDING",
+      "SATISFIED",
+      "OVERDUE",
+      "WAIVED",
+      "UNKNOWN"
+    ],
+    "Initial": "UNSPECIFIED",
+    "Terminal": null,
+    "Edges": [
+      {
+        "From": "UNSPECIFIED",
+        "To": "NOT_APPLICABLE",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "UNSPECIFIED",
+        "To": "PENDING",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "NOT_APPLICABLE",
+        "To": "PENDING",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING",
+        "To": "SATISFIED",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING",
+        "To": "OVERDUE",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING",
+        "To": "WAIVED",
+        "Governed": true,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "PENDING",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "OVERDUE",
+        "To": "SATISFIED",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "OVERDUE",
+        "To": "WAIVED",
+        "Governed": true,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "OVERDUE",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "SATISFIED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "WAIVED",
+        "To": "UNKNOWN",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "PENDING",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "SATISFIED",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      },
+      {
+        "From": "UNKNOWN",
+        "To": "OVERDUE",
+        "Governed": false,
+        "Retention": "OBLIGATION_EVIDENCE"
+      }
+    ]
+  }
+]

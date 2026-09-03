@@ -41,7 +41,16 @@ func TestTodo_TOOL_011(t *testing.T) {
 	fixtures := filepath.Join("tools", "quality", "testdata", "fixtures")
 
 	t.Run("formatting drift is rejected by gofmt", func(t *testing.T) {
-		violations, err := gofmtViolations(filepath.Join(root, fixtures, "fmtdrift"))
+		// The drifted file is written at test time rather than checked in:
+		// the repository's commit hook runs gofmt -w over every staged .go
+		// file, so a committed unformatted fixture silently self-heals and
+		// the check stops proving anything.
+		drift := t.TempDir()
+		src := "package fmtdrift\n\nfunc Add(a int,b int) int {\nreturn a+b\n}\n"
+		if err := os.WriteFile(filepath.Join(drift, "fmtdrift.go"), []byte(src), 0o644); err != nil {
+			t.Fatalf("writing drift fixture: %v", err)
+		}
+		violations, err := gofmtViolations(drift)
 		if err != nil {
 			t.Fatalf("gofmtViolations: %v", err)
 		}

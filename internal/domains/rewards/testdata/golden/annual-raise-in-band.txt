@@ -1,0 +1,18 @@
+intent: hcmnext.rewards.simulate_compensation/v1
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+effective: 2026-06-01
+current base=93000.00 USD basis=ANNUAL_SALARY annual_base=93000.00 USD bonus_pct=0.0500 annual_bonus=4650.00 USD annual_total=97650.00 USD
+proposed base=98000.00 USD basis=ANNUAL_SALARY annual_base=98000.00 USD bonus_pct=0.0500 annual_bonus=4900.00 USD annual_total=102900.00 USD
+delta base_state=VALUE base=5000.00 USD annual_base=5000.00 USD annual_bonus=250.00 USD annual_total=5250.00 USD increase_percent=5.3763
+band state=EVALUATED id=BAND-OPS-P3-USEAST@2026.1 placement=IN_BAND compa=0.8750 penetration=0.1500 quartile=1 outcome=WITHIN_BAND
+assumption annualization.fte=1.0000 (pinned by annualization rule rewards.annualization/1.0.0)
+rule_pack: rewards.compensation.rules/1.0.0
+annualization: rewards.annualization/1.0.0
+catalog: harborcare.paybands/2026.1
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+control pay_band_catalog@harborcare.paybands/2026.1
+control pay_band_rule_pack@rewards.payband.rules/1.0.0
+effects_zero: true
+inputs_digest: sha256:47b8a78fc154209ac54e90c2c5002dc1a44ad667ea8b27bef6e5caf28d4f6704
+result_digest: sha256:9638a81fda9e859cda344d279ca29efcd5b4b0b646f3b55db017d19d2728b233

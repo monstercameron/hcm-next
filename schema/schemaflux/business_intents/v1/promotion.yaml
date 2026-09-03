@@ -390,7 +390,7 @@ definitions:
     description: Produce a bounded, governed corrective plan without executing its effects.
     owner_plane: OPERATIONS_ASSURANCE
     owner_domain: REPAIR
-    kernel_family: PROCESS_REQUEST
+    kernel_family: ANALYTICAL_REQUEST
     maturity: DRAFT_CONTRACT
     input_schema_ref: hcmnext.operations.v1.CreateRepairPlanRequest/v1
     result_schema_ref: hcmnext.operations.v1.RepairPlan/v1

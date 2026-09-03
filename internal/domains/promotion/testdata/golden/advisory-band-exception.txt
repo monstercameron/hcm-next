@@ -1,0 +1,29 @@
+intent: hcmnext.people.promote_worker/v1
+status: READY
+executable: true
+findings:
+  compensation.increase_over_ten_percent [ADVISORY] proposed.base: annualized increase of 50.5376% exceeds the 10.0000% review threshold
+  promotion.budget_authority_observation_only [ADVISORY] budget: budget people-ops:FY26-merit from adaptive.planning is an observation at baseline fy26-merit-r7, not a reservation
+  promotion.pay_above_band_maximum [ADVISORY] proposed.base: annualized base 140000.00 USD is above the band maximum (compa-ratio 1.2500)
+change assignment.job_code: "OPS-HRBP2" -> "OPS-HRBP3" changed=true
+change assignment.grade: "P2" -> "P3" changed=true
+change assignment.org_unit: "people-ops" -> "people-ops" changed=false
+change assignment.position_id: "" -> "POS-HRBP-301" changed=true
+change assignment.pay_zone: "US-EAST" -> "US-EAST" changed=false
+compensation_state: EVALUATED
+annualized_base_delta: 47000.00 USD
+annualized_total_cash_delta: 49350.00 USD
+increase_percent: 50.5376
+band_state: EVALUATED
+band: BAND-OPS-P3-USEAST@2026.1 placement=ABOVE_MAXIMUM compa=1.2500 penetration=1.2000 quartile=0 outcome=BAND_EXCEPTION_ADVISORY
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+control pay_band_catalog@harborcare.paybands/2026.1
+control pay_band_rule_pack@rewards.payband.rules/1.0.0
+control promotion_policy@people.promotion.policy/1.0.0
+control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:95e9b677371c5106d1bc7b918619733c0ce2b3d032b8584297a498fedb365e12
+result_digest: sha256:0d411317ff19b803fb55643ed3d1c12b9d7438705ec2379f55f4b60565a78177

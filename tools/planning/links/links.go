@@ -102,6 +102,11 @@ func checkFile(filePath string) ([]LinkIssue, error) {
 			if text == "" || path == "" {
 				continue
 			}
+			// CommonMark allows the destination to be wrapped in angle
+			// brackets (`[t](<https://x/(y)>)`), which is how URLs that
+			// contain parentheses are written; the brackets are not part of
+			// the destination.
+			path = strings.TrimSuffix(strings.TrimPrefix(path, "<"), ">")
 
 			if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "mailto:") {
 				continue

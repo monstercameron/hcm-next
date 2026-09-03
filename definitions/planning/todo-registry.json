@@ -3796,7 +3796,8 @@
     "refactor": "UI/agent/connector discover the same registry",
     "refs": "[Capability lifecycle](specs/capability-registry-and-lifecycle.md), [capability principle](plan.md#59-every-product-action-is-a-governed-capability)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CAP_001`, `TestTodo_CAP_001_Golden`, `TestTodo_CAP_001_Race`, `TestTodo_CAP_001_Security` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS on windows/arm64 (Go 1.26.3); compiled-in BOOTSTRAP table, immutable versions, deterministic listing; branch plan-revision-2026-09-02"
   },
   {
     "id": "CAP-002",
@@ -3823,7 +3824,8 @@
     "refactor": "every channel shares this path; no UI/agent/admin bypass",
     "refs": "[Plane model](specs/platform-plane-model.md), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CAP_002`, `TestTodo_CAP_002_Golden`, `TestTodo_CAP_002_Security`, `TestTodo_CAP_002_Mutation` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS; gateway refuses write-effect capabilities in P1A, records invocation evidence via `EvidenceSink`, typed errors; branch plan-revision-2026-09-02"
   },
   {
     "id": "CAP-003",
@@ -3848,7 +3850,8 @@
     "refactor": "provider/internal diagnostics remain nested and access-controlled",
     "refs": "[Transport strategy](plan.md#16-strategic-decisions), [canonical envelope](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CAP_003`, `TestTodo_CAP_003_Golden`, `FuzzTodo_CAP_003` in `internal/transport/envelope`; `TestTodo_CAP_003_Integration`, `TestTodo_CAP_003_Fault` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; one typed `envelope.Error` projected identically to gRPC status details and the connect-go HTTP edge, no raw internal error text leaks; branch plan-revision-2026-09-02"
   },
   {
     "id": "CAREER-001",
@@ -4812,7 +4815,8 @@
     "refactor": "the intent composes compensation calculation capabilities; workflow and UI consume the same typed result",
     "refs": "[Compensation domain](specs/compensation-domain.md), [simulation contract](specs/workflow-runtime.md), [Business Intent draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects`, `TestTodo_COMP_006_Security/_Property/_Golden`, `FuzzTodo_COMP_006` in `internal/domains/rewards` plus `internal/engines/payband` (`TestEvaluatePayBandPosition*`, `FuzzEvaluatePayBandPosition`); `go test -count=1 ./internal/domains/... ./internal/engines/...` PASS; exact apd decimals, byte-identical result for identical inputs, zero effect counters; branch plan-revision-2026-09-02"
   },
   {
     "id": "CONF-001",
@@ -9596,7 +9600,8 @@
     "refactor": "one interceptor chain owns context construction; handlers and domain services never parse ambient headers",
     "refs": "[trusted boundary](specs/http-grpc-endpoint-contract.md#trusted-request-boundary), [organization AuthZ](specs/organization-scope-and-authz.md), [edge admission](#32-production-identity-key-custody-and-edge-enforcement)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`, `TestTodo_ENDPOINT_002_{Property,Integration,Security,Conformance,Mutation}`, `FuzzTodo_ENDPOINT_002` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; both transports share one `transport.Config` and overwrite request `scope`/`initiator` server-side; branch plan-revision-2026-09-02"
   },
   {
     "id": "ENDPOINT-003",
@@ -9625,7 +9630,8 @@
     "refactor": "validation adapters emit owned violations; business, legal, temporal and cross-aggregate decisions remain capabilities/engines",
     "refs": "[error projection](specs/http-grpc-endpoint-contract.md#canonical-error-projection), [Protobuf compatibility](#29-machine-readable-model-sources-and-public-api-contracts), [capability errors](#6-businessintent-capabilities-governance-and-transaction-integrity)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEndpointValidationAndErrorProjectionParity`, `TestTodo_ENDPOINT_003_{Golden,Property,Integration,Security,Conformance}`, `FuzzTodo_ENDPOINT_003` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; strict JSON decoding (unknown fields rejected), presence validation table in `internal/transport/validate.go` pending replacement by the ENDPOINT-001 manifest; branch plan-revision-2026-09-02"
   },
   {
     "id": "ENDPOINT-004",
@@ -12713,7 +12719,8 @@
     "refactor": "rename display labels without changing identity",
     "refs": "[Business intent catalog](specs/business-intent-catalog.md), [intent kernel](plan.md#61-business-intent-and-transaction-kernel)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_001`, `_Golden` in `internal/intent` (`Registry.Resolve/ResolveText/ResolveForInstantiation`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "INTENT-002",
@@ -12740,7 +12747,8 @@
     "refactor": "only mutation/effect intents later create BusinessTransaction",
     "refs": "[Intent instance envelope](specs/business-intent-catalog.md#instance-envelope), [BusinessIntent contract](specs/business-intent-and-change-request.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_002`, `_Golden`, `_Race`, `_Security`, `_Mutation`, `FuzzTodo_INTENT_002` in `internal/intent` (typed `Instance` envelope, server-supplied `PrincipalReference`, idempotency digest via `hcmnext.idempotent_request` v1 through `protomap.Digester`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "INTENT-003",
@@ -12763,7 +12771,8 @@
     "refactor": "the legality rules are one Go function shared by command, projection rebuild, replay and repair; there is no per-definition compatibility profile",
     "refs": "[Five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [change lifecycle](plan.md#63-change-request-lifecycle), [lifecycle budget](plan.md#63a-lifecycle-budget)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_003`, `_Security`, `_Mutation` in `internal/intent` with the six fixed legality rules in `internal/intent/lifecycle/rules.go` and `Machine.Apply/Replay`; `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "INTENT-004",
@@ -12787,7 +12796,8 @@
     "refactor": "no employee mutation or external effect in preflight",
     "refs": "[ChangeRequest contract](specs/business-intent-and-change-request.md), [change lifecycle](plan.md#63-change-request-lifecycle)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_004`, `_Golden`, `_Mutation` in `internal/intent` (`Draft`, `Preflight` through the `Preflighter` port; non-empty `DeclaredEffects` fails with `ErrEffectInPreflight`); domain half in `internal/domains/promotion` (`TestPreflightPromotion*`, seven ported legacy scenarios); `go test -count=1 ./internal/intent/... ./internal/domains/...` PASS. Wiring the kernel port to the promotion package is tracked under NEXT-004/NEXT-005; branch plan-revision-2026-09-02"
   },
   {
     "id": "INTENT-005",
@@ -12811,7 +12821,8 @@
     "refactor": "large input/evidence uses immutable refs",
     "refs": "[Approval binding principle](plan.md#53-approval-must-bind-to-an-immutable-proposal), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_INTENT_005`, `_Golden`, `_Mutation` in `internal/intent` (`NewProposalRevision`, `ProposalLedger.Append`, digest via `hcmnext.proposal` v1, control snapshots revalidated not hashed, material bytes encoding in `materialbytes.go`); zero-effect receipt in `internal/domains/evidence`; `go test -count=1 ./internal/intent/...` PASS. Open: a `MaterialProposal` proto message should replace the kernel encoding (recorded in `internal/intent/materialbytes.go`); branch plan-revision-2026-09-02"
   },
   {
     "id": "INTENT-006",
@@ -16802,8 +16813,8 @@
     "refactor": "one shared value package; no domain-specific string aliases",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestTodo_MODEL_001, FuzzTodo_MODEL_001` in `internal/kernel/values` PASS; not complete: Go canonical text/bytes proven; Protobuf round-trip against hcmnext.common.v1 not yet written (wave 2)"
+    "done": true,
+    "evidence": "proto round-trip clause closed: `TestTodo_MODEL_001`, `_Property`, `_Golden`, `_Fault`, `_Security`, `_Integration`, `FuzzTodo_MODEL_001` in `internal/intent/protomap` (kernel values \u003c-\u003e `hcmnext.common.v1`/`hcmnext.intents.v1`); `go test -count=1 ./internal/intent/protomap/...` PASS; supersedes the partial line above; branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-002",
@@ -17029,7 +17040,8 @@
     "refactor": "name lookup is presentation-only; runtime uses `definition_ref`; adding a definition is a source change, not a count",
     "refs": "[Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice), [registry bootstrap profile](specs/capability-registry-and-lifecycle.md#bootstrap-profile)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_010`, `_Property`, `_Golden`, `_Race`, `FuzzTodo_MODEL_010` in `internal/intent` (compiled-in registry of the fourteen definitions in `internal/intent/definitions`); `go test -count=1 ./internal/intent/...` PASS on windows/arm64 (Go 1.26.3); `go run ./tools/quality` PASSED; branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-011",
@@ -17127,7 +17139,8 @@
     "refactor": "domain profiles may narrow but never bypass shared restrictions",
     "refs": "[Lifecycle profiles](data/models/registry-and-coverage-contracts.md#initial-lifecycle-profiles)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_014`, `_Property`, `_Golden`, `FuzzTodo_MODEL_014` in `internal/intent/lifecycle` (five dimensions, profile validation, append-only history); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-015",
@@ -17152,7 +17165,8 @@
     "refactor": "common policies are referenced, not copied",
     "refs": "[Negative-state policy](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_015`, `_Property`, `_Golden`, `_Fault`, `FuzzTodo_MODEL_015` in `internal/intent` (negative-state policy registration, three shared policies in `definitions/policies.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-016",
@@ -17182,7 +17196,8 @@
     "refactor": "bindings reference stable IDs and schema paths, never prose names",
     "refs": "[Covered entity set](data/models/README.md), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_MODEL_016`, `_Property`, `_Golden`, `_Race`, `_Mutation`, `FuzzTodo_MODEL_016` in `internal/intent` (binding coverage report `14/14 BOUND`, `internal/intent/definitions/bindings.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "MODEL-017",
@@ -18341,7 +18356,8 @@
     "refactor": "add scheduler/admin and mature migration/deployment qualification only when their first selected runtime behavior requires them",
     "refs": "[physical spine](next-steps.md#m2--production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "ledger/outbox/projection slice: `TestLedgerOutboxProjectionAppendRestartsAndReconciles`, `TestOutboxConsumerHandlerIsIdempotentByMessageID` in `internal/data/outbox`; `TestApplyAdvancesIdempotentlyAndRejectsGaps`, `TestReconcilerCatchesUpFromLedger` in `internal/data/projection`; `TestKernelDigesterComputesAndVerifies` in `internal/ledger`; `go test -count=1` PASS via embedded-postgres; `cmd/worker` and `cmd/projector` wired with graceful shutdown. Remaining: `TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` end-to-end through the served gRPC edge (after Wave 2 wiring)"
   },
   {
     "id": "NEXT-005",
@@ -20524,7 +20540,8 @@
     "refactor": "compose owned read capabilities and history projection; do not create a second worker query model inside Intent",
     "refs": "[Initial draft intents](specs/business-intent-catalog.md#initial-draft-contract-slice), [People domain](specs/people-employment-assignment-domain.md), [source authority](specs/source-authority-and-external-mastering.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestExplainWorkerStateReturnsAuthorizedBitemporalFactsAndProvenance`, `TestTodo_PEOPLE_005_Security/_Property/_Golden` in `internal/domains/people`; `go test -count=1 ./internal/domains/...` PASS on windows/arm64 (Go 1.26.3); authorization is an input decision, unruled fields refused, withheld subjects return no presence; branch plan-revision-2026-09-02"
   },
   {
     "id": "PERF-002",
@@ -26932,7 +26949,8 @@
     "refactor": "the edge adapts transport only; it owns no business rule",
     "refs": "[grpcbridge qualification fixture](specs/go-only-technology-constitution.md#grpcbridge-preferred-transport-edge), [endpoint contract](specs/http-grpc-endpoint-contract.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestGRPCBridgeUnaryParity`, `TestTodo_TOOL_008_{Golden,Integration,Security,Conformance}` in `internal/transport/edge`; `go test -count=1 ./internal/transport/edge/...` PASS. Decision: **connect-go v1.20.0 selected** as the P1A edge. grpcbridge v1.1.2 rejected for this fixture (WebSocket-only tunnel, no unary HTTP projection, 8 extra module requirements); grpc-gateway v2 deferred (needs genproto/googleapis/api and the ENDPOINT-001 route manifest). FAILED_PRECONDITION is re-projected to HTTP 412 by `statusOverrideMiddleware`. Rationale recorded in `internal/transport/edge/doc.go`; branch plan-revision-2026-09-02"
   },
   {
     "id": "TOOL-009",
@@ -27399,7 +27417,8 @@
     "refactor": "downstream services consume context, never raw identity-provider claims",
     "refs": "[Identity contract](plan.md#94-identity-and-permission-contract), [organization AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TRUST_001`, `TestTodo_TRUST_001_Security`, `TestTodo_TRUST_001_Mutation`, `FuzzTodo_TRUST_001` in `internal/trust`; `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); PrincipalContext is created only from a server-side `Verifier` (HMAC dev token), caller metadata such as x-principal/x-tenant/x-roles can never select trusted context; branch plan-revision-2026-09-02"
   },
   {
     "id": "TRUST-002",
@@ -28197,7 +28216,8 @@
     "refactor": "plan digest derives from canonical semantic content",
     "refs": "[Transaction plan contract](specs/transaction-plan-and-commit-coordinator.md), [Gate A matrix](plan.md#phase-1-implementation-depth-matrix)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_TX_001`, `_Race`, `_Mutation` in `internal/intent` (`CompilePlan` produces an immutable non-executable `TransactionPlan`; no Execute exists); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02"
   },
   {
     "id": "TX-002",

@@ -1,0 +1,20 @@
+intent: hcmnext.people.explain_worker_state/v1
+worker: eref:v1:harborcare-demo:worker:33333333-3333-4333-8333-333333333333
+disclosure: FULL
+presence: PRESENT
+policy: authz.people/2026.1
+rule_pack: people.explain.rules/1.0.0
+field assignment.grade access=AUTHORIZED state=VALUE value="P3" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field assignment.job_code access=AUTHORIZED state=VALUE value="ENG-SWE3" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field assignment.org_unit access=AUTHORIZED state=VALUE value="eng-platform" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field assignment.pay_zone access=AUTHORIZED state=VALUE value="US-WEST" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field employment.hire_date access=AUTHORIZED state=VALUE value="2017-01-09" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field employment.status access=AUTHORIZED state=VALUE value="ended" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+field worker.lifecycle_status access=AUTHORIZED state=VALUE value="terminated" authority=EXTERNAL_OBSERVATION:workday.incumbent@people.source_authority/2026.1 source=workday.incumbent evidence=evd_worker_1003_r88 recorded=2023-06-01T11:30:00Z known=2023-06-01T00:00:00Z
+narrative: subject presence at 2026-06-01 known as of 2026-05-15T00:00:00Z: PRESENT
+narrative: 7 field(s) requested, 7 authorized, 0 denied
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:93df04a265482f039512db9aa14f32e30f33646310770139ba6c2107abc5de5e
+result_digest: sha256:7e6362355946ba2a723e677c2ea2ca3d9fd31c4a2f94afc90ca180705c71e268

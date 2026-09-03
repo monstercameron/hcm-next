@@ -1,0 +1,14 @@
+{
+  "ProfileID": "hcmnext.proposal",
+  "ProfileVersion": 1,
+  "SchemaID": "hcmnext.intents.v1",
+  "SchemaVersion": 1,
+  "AlgorithmID": "sha256",
+  "CanonicalLength": 1318,
+  "Digest": "b7e0f11658c03206b6770c92dbde946ccea9be5c5d8e0d205f27baba0389ef26",
+  "ScopeBindingDigest": "c30f45f3368d3b3252e92cbee9786b528b08f90c70d6a2fee54ddefad572d690",
+  "CanonicalBytesArtifactRef": null,
+  "IntentID": "intent:1",
+  "ProposalRevisionID": "01234567-00000001-0000-7000-8000-000000000000",
+  "MaterialProfileRef": "hcmnext.proposal@v1"
+}

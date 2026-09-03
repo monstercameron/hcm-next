@@ -1,0 +1,27 @@
+intent: hcmnext.people.promote_worker/v1
+status: READY
+executable: true
+findings:
+  promotion.budget_authority_observation_only [ADVISORY] budget: budget people-ops:FY26-merit from adaptive.planning is an observation at baseline fy26-merit-r7, not a reservation
+change assignment.job_code: "OPS-HRBP2" -> "OPS-HRBP3" changed=true
+change assignment.grade: "P2" -> "P3" changed=true
+change assignment.org_unit: "people-ops" -> "people-ops" changed=false
+change assignment.position_id: "" -> "POS-HRBP-301" changed=true
+change assignment.pay_zone: "US-EAST" -> "US-EAST" changed=false
+compensation_state: EVALUATED
+annualized_base_delta: 5000.00 USD
+annualized_total_cash_delta: 5250.00 USD
+increase_percent: 5.3763
+band_state: EVALUATED
+band: BAND-OPS-P3-USEAST@2026.1 placement=IN_BAND compa=0.8750 penetration=0.1500 quartile=1 outcome=WITHIN_BAND
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+control pay_band_catalog@harborcare.paybands/2026.1
+control pay_band_rule_pack@rewards.payband.rules/1.0.0
+control promotion_policy@people.promotion.policy/1.0.0
+control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
+effects_zero: true
+receipt_mode: SIMULATE
+receipt_execution_state: NOT_PLANNED
+inputs_digest: sha256:b285b41521f4fce5afc4543262f6589db5c5fd7eba36e8a6fefc3d09ac67bb31
+result_digest: sha256:2b5ad03b1f08ec9ec85e6b4f441943706179060823ca9173cb7d6fac1a10a5e1

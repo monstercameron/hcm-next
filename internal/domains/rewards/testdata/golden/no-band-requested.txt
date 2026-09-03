@@ -1,0 +1,16 @@
+intent: hcmnext.rewards.simulate_compensation/v1
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+effective: 2026-06-01
+current base=93000.00 USD basis=ANNUAL_SALARY annual_base=93000.00 USD bonus_pct=0.0500 annual_bonus=4650.00 USD annual_total=97650.00 USD
+proposed base=98000.00 USD basis=ANNUAL_SALARY annual_base=98000.00 USD bonus_pct=0.0500 annual_bonus=4900.00 USD annual_total=102900.00 USD
+delta base_state=VALUE base=5000.00 USD annual_base=5000.00 USD annual_bonus=250.00 USD annual_total=5250.00 USD increase_percent=5.3763
+band state=NOT_REQUESTED
+assumption annualization.fte=1.0000 (pinned by annualization rule rewards.annualization/1.0.0)
+rule_pack: rewards.compensation.rules/1.0.0
+annualization: rewards.annualization/1.0.0
+catalog: 
+control annualization_rule@rewards.annualization/1.0.0
+control compensation_rule_pack@rewards.compensation.rules/1.0.0
+effects_zero: true
+inputs_digest: sha256:f0412b583bf041a63fd203e7b91a4e77dca40dfe76c08a1fc83c9853420eae08
+result_digest: sha256:9831d4eb0e1be676a57f046e742cb1e32338b1b7f5b5d7f088d8e91cf1dd5988

@@ -1,0 +1,73 @@
+{
+  "catalog_version": "harborcare.paybands/2026.1",
+  "source_system": "hcmnext.rewards.catalog",
+  "authority_policy": "rewards.source_authority/2026.1",
+  "recorded_at": "2026-01-02T00:00:00Z",
+  "bands": [
+    {
+      "id": "BAND-ENG-P3-USWEST",
+      "version": "2026.1",
+      "job_code": "ENG-SWE3",
+      "grade": "P3",
+      "pay_zone": "US-WEST",
+      "currency": "USD",
+      "minimum": "142000.00",
+      "midpoint": "171000.00",
+      "maximum": "205000.00",
+      "blocking": false,
+      "evidence_ref": "evd_band_eng_p3_uswest_2026_1"
+    },
+    {
+      "id": "BAND-ENG-M1-USWEST",
+      "version": "2026.1",
+      "job_code": "ENG-MGR1",
+      "grade": "M1",
+      "pay_zone": "US-WEST",
+      "currency": "USD",
+      "minimum": "166000.00",
+      "midpoint": "203000.00",
+      "maximum": "245000.00",
+      "blocking": true,
+      "evidence_ref": "evd_band_eng_m1_uswest_2026_1"
+    },
+    {
+      "id": "BAND-OPS-P2-USEAST",
+      "version": "2026.1",
+      "job_code": "OPS-HRBP2",
+      "grade": "P2",
+      "pay_zone": "US-EAST",
+      "currency": "USD",
+      "minimum": "78000.00",
+      "midpoint": "96000.00",
+      "maximum": "114000.00",
+      "blocking": false,
+      "evidence_ref": "evd_band_ops_p2_useast_2026_1"
+    },
+    {
+      "id": "BAND-OPS-P3-USEAST",
+      "version": "2026.1",
+      "job_code": "OPS-HRBP3",
+      "grade": "P3",
+      "pay_zone": "US-EAST",
+      "currency": "USD",
+      "minimum": "92000.00",
+      "midpoint": "112000.00",
+      "maximum": "132000.00",
+      "blocking": false,
+      "evidence_ref": "evd_band_ops_p3_useast_2026_1"
+    },
+    {
+      "id": "BAND-CLN-N4-USEAST",
+      "version": "2026.1",
+      "job_code": "CLN-NURSE4",
+      "grade": "N4",
+      "pay_zone": "US-EAST",
+      "currency": "USD",
+      "minimum": "88000.00",
+      "midpoint": "104000.00",
+      "maximum": "120000.00",
+      "blocking": true,
+      "evidence_ref": "evd_band_cln_n4_useast_2026_1"
+    }
+  ]
+}

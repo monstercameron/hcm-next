@@ -788,7 +788,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** keep transport concerns out of domain messages.
   - **Refs:** [Every action is a capability](plan.md#59-every-product-action-is-a-governed-capability), [capability registry](specs/capability-registry-and-lifecycle.md).
 
-- [ ] `TOOL-008` **[P0][SOL_LOW] Run the transport-edge qualification fixture and select grpcbridge or grpc-gateway/connect-go.**
+- [x] `TOOL-008` **[P0][SOL_LOW] Run the transport-edge qualification fixture and select grpcbridge or grpc-gateway/connect-go.**
   - **Depends:** `TOOL-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestGRPCBridgeUnaryParity`.
@@ -797,6 +797,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** the canonical vector returns identical domain result/error/evidence IDs on both paths through the selected edge; if grpcbridge fails, the edge is grpc-gateway or connect-go and the decision is recorded in the M2 manifest. WebSocket and SSE are not tested here.
   - **REFACTOR:** the edge adapts transport only; it owns no business rule.
   - **Refs:** [grpcbridge qualification fixture](specs/go-only-technology-constitution.md#grpcbridge-preferred-transport-edge), [endpoint contract](specs/http-grpc-endpoint-contract.md).
+  - **Evidence (2026-09-03):** `TestGRPCBridgeUnaryParity`, `TestTodo_TOOL_008_{Golden,Integration,Security,Conformance}` in `internal/transport/edge`; `go test -count=1 ./internal/transport/edge/...` PASS. Decision: **connect-go v1.20.0 selected** as the P1A edge. grpcbridge v1.1.2 rejected for this fixture (WebSocket-only tunnel, no unary HTTP projection, 8 extra module requirements); grpc-gateway v2 deferred (needs genproto/googleapis/api and the ENDPOINT-001 route manifest). FAILED_PRECONDITION is re-projected to HTTP 412 by `statusOverrideMiddleware`. Rationale recorded in `internal/transport/edge/doc.go`; branch plan-revision-2026-09-02.
 
 - [ ] `TOOL-009` **[GATE_C][SOL_LOW] Prove grpcbridge streaming conformance.**
   - **Depends:** `TOOL-008`.
@@ -1379,7 +1380,7 @@ or an explicit rejection and replacement decision.
 
 > **Disposition (2026-09-02):** P1A for canonical identifiers, money/time value types, digest references, the fourteen-definition registry (`MODEL-010`), lifecycle validation for the five dimensions (`MODEL-014`) and negative-state policy. `MODEL-008`, `MODEL-009` are RETIRED; `MODEL-016` binds the fourteen, not a count. Entity/property registries beyond the fourteen definitions' needs are DEFERRED.
 
-- [ ] `MODEL-001` **[P0][TERRA] Implement canonical entity and reference identifiers.**
+- [x] `MODEL-001` **[P0][TERRA] Implement canonical entity and reference identifiers.**
   - **Evidence (partial, 2026-09-03):** `TestTodo_MODEL_001, FuzzTodo_MODEL_001` in `internal/kernel/values` PASS; not complete: Go canonical text/bytes proven; Protobuf round-trip against hcmnext.common.v1 not yet written (wave 2).
   - **Depends:** `TOOL-002`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
@@ -1389,6 +1390,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** `EntityId`, `EntityRef`, `ResourceKey` and `RevisionToken` round-trip through Protobuf/Go without losing kind, tenant or revision intent.
   - **REFACTOR:** one shared value package; no domain-specific string aliases.
   - **Refs:** [Wire primitives](data/models/wire-contract-primitives.md), [modeling conventions](data/models/modeling-conventions.md).
+  - **Evidence (2026-09-03):** proto round-trip clause closed: `TestTodo_MODEL_001`, `_Property`, `_Golden`, `_Fault`, `_Security`, `_Integration`, `FuzzTodo_MODEL_001` in `internal/intent/protomap` (kernel values <-> `hcmnext.common.v1`/`hcmnext.intents.v1`); `go test -count=1 ./internal/intent/protomap/...` PASS; supersedes the partial line above; branch plan-revision-2026-09-02.
 
 - [x] `MODEL-002` **[P0][TERRA] Implement explicit property presence semantics.**
   - **Evidence (2026-09-03):** `TestPresenceNeverCollapsesUnknown` in `internal/kernel/values`; `go test -count=1 ./internal/kernel/values/...` PASS on windows/arm64 (Go 1.26.3); `go vet`, `gofmt -l`, `staticcheck` clean; branch plan-revision-2026-09-02.
@@ -1478,7 +1480,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** catalog numbers and IDs never change when display labels change.
   - **Refs:** [Catalog coverage partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [intent coverage matrix](data/models/intent-coverage-matrix.md).
 
-- [ ] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry for the fourteen drafted definitions.**
+- [x] `MODEL-010` **[P0][SOL_LOW] Implement the intent-definition registry for the fourteen drafted definitions.**
   - **Depends:** `TOOL-006`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_010`.
@@ -1487,6 +1489,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** exactly the fourteen checked-in definitions resolve by `(intent_type_id, version)` with their family, side-effect profile and release (`P1A`, `P1B`, conformance); nothing resolves at any maturity below `DRAFT_CONTRACT`; the registry is a compiled-in Go table under the `BOOTSTRAP` profile.
   - **REFACTOR:** name lookup is presentation-only; runtime uses `definition_ref`; adding a definition is a source change, not a count.
   - **Refs:** [Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice), [registry bootstrap profile](specs/capability-registry-and-lifecycle.md#bootstrap-profile).
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_010`, `_Property`, `_Golden`, `_Race`, `FuzzTodo_MODEL_010` in `internal/intent` (compiled-in registry of the fourteen definitions in `internal/intent/definitions`); `go test -count=1 ./internal/intent/...` PASS on windows/arm64 (Go 1.26.3); `go run ./tools/quality` PASSED; branch plan-revision-2026-09-02.
 
 - [ ] `MODEL-011` **[P0][TERRA] Implement entity/property definition registries.**
   - **Depends:** `MODEL-001`, `TOOL-004`.
@@ -1518,7 +1521,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** graph projections remain rebuildable from relationship facts.
   - **Refs:** [Relationship map](data/models/relationship-map.md), [organization domain](specs/organization-and-relationship-domain.md).
 
-- [ ] `MODEL-014` **[P0][SOL_LOW] Implement lifecycle definition validation.**
+- [x] `MODEL-014` **[P0][SOL_LOW] Implement lifecycle definition validation.**
   - **Depends:** `MODEL-012`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_014`.
@@ -1527,8 +1530,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** every authoritative transition appends `LifecycleTransitionRecord` and lifecycle assignment resolves canonically.
   - **REFACTOR:** domain profiles may narrow but never bypass shared restrictions.
   - **Refs:** [Lifecycle profiles](data/models/registry-and-coverage-contracts.md#initial-lifecycle-profiles).
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_014`, `_Property`, `_Golden`, `FuzzTodo_MODEL_014` in `internal/intent/lifecycle` (five dimensions, profile validation, append-only history); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
-- [ ] `MODEL-015` **[P0][SOL_LOW] Implement negative-state policy registration.**
+- [x] `MODEL-015` **[P0][SOL_LOW] Implement negative-state policy registration.**
   - **Depends:** `MODEL-010`, `MODEL-011`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_015`.
@@ -1537,8 +1541,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** policy yields exactly `BLOCK`, `ROUTE_HUMAN`, `ALLOW_WITH_WARNING`, `USE_STALE`, `CREATE_OBLIGATION`, `CREATE_REPAIR`, `DEGRADE`, or `PERMIT_CLOSURE`, plus evidence/expiry/revalidation.
   - **REFACTOR:** common policies are referenced, not copied.
   - **Refs:** [Negative-state policy](data/models/registry-and-coverage-contracts.md).
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_015`, `_Property`, `_Golden`, `_Fault`, `FuzzTodo_MODEL_015` in `internal/intent` (negative-state policy registration, three shared policies in `definitions/policies.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
-- [ ] `MODEL-016` **[P0][SOL_HIGH] Bind each of the fourteen definitions to exact model behavior.**
+- [x] `MODEL-016` **[P0][SOL_HIGH] Bind each of the fourteen definitions to exact model behavior.**
   - **Depends:** `MODEL-010`–`MODEL-015`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_MODEL_016`.
@@ -1547,6 +1552,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** all fourteen definitions bind to the entities the data-model README names as the covered set; the report is `14/14 BOUND` or lists the exact gaps; no denominator other than the checked-in definition count exists.
   - **REFACTOR:** bindings reference stable IDs and schema paths, never prose names.
   - **Refs:** [Covered entity set](data/models/README.md), [five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions).
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_016`, `_Property`, `_Golden`, `_Race`, `_Mutation`, `FuzzTodo_MODEL_016` in `internal/intent` (binding coverage report `14/14 BOUND`, `internal/intent/definitions/bindings.go`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
 - [ ] `MODEL-017` **[P0][TERRA] Implement schema release lifecycle.**
   - **Depends:** `TOOL-006`, `MODEL-011`.
@@ -1694,7 +1700,7 @@ or an explicit rejection and replacement decision.
 
 > **Disposition (2026-09-02):** P1A for server-derived `PrincipalContext`, tenant isolation, field-level AuthZ and no-secrets-in-logs. Step-up and session revocation for approve/execute are P1B. Workload identity on east-west paths, DLP egress gateways, and classification propagation beyond pilot field masks are Gate C.
 
-- [ ] `TRUST-001` **[GATE_A][SOL_HIGH] Implement authenticated PrincipalContext creation.**
+- [x] `TRUST-001` **[GATE_A][SOL_HIGH] Implement authenticated PrincipalContext creation.**
   - **Depends:** `TOOL-007`, `MODEL-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_001`.
@@ -1703,6 +1709,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** verified human/service/agent/integration identity yields immutable principal, tenant, authentication method, assurance, session and delegation references.
   - **REFACTOR:** downstream services consume context, never raw identity-provider claims.
   - **Refs:** [Identity contract](plan.md#94-identity-and-permission-contract), [organization AuthZ](specs/organization-scope-and-authz.md).
+  - **Evidence (2026-09-03):** `TestTodo_TRUST_001`, `TestTodo_TRUST_001_Security`, `TestTodo_TRUST_001_Mutation`, `FuzzTodo_TRUST_001` in `internal/trust`; `go test -count=1 ./internal/trust/...` PASS on windows/arm64 (Go 1.26.3); PrincipalContext is created only from a server-side `Verifier` (HMAC dev token), caller metadata such as x-principal/x-tenant/x-roles can never select trusted context; branch plan-revision-2026-09-02.
 
 - [ ] `TRUST-002` **[GATE_A][SOL_HIGH] Implement enterprise federation validation.**
   - **Depends:** `TRUST-001`, `LIB-010`, `LIB-011`.
@@ -2226,7 +2233,7 @@ or an explicit rejection and replacement decision.
 
 > **Disposition (2026-09-02):** P1A: `CAP-001`–`CAP-003` under the registry `BOOTSTRAP` profile, `INTENT-001`–`INTENT-006` with five dimensions and the materiality rule, `GOVERN-001`/`002`, `CONFLICT-001`/`002`, `APPROVAL-001`/`002` demonstrated, `TX-001` non-executable plans. P1B: the remaining `GOVERN`, `CONFLICT`, `APPROVAL`, `REPLAN`, `TX` items. `FEATURE-001`/`002` and `INTENT-009`–`INTENT-011`, `INTENT-024`, `INTENT-025` (feature-vocabulary intake) are DEFERRED; there is no funded consumer. `INTENT-019` is a population-scoped `CHANGE_REQUEST`, not a family.
 
-- [ ] `CAP-001` **[GATE_A][SOL_LOW] Implement immutable CapabilityDefinition versions.**
+- [x] `CAP-001` **[GATE_A][SOL_LOW] Implement immutable CapabilityDefinition versions.**
   - **Depends:** `MODEL-017`, `TOOL-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CAP_001`.
@@ -2235,8 +2242,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** read/query/simulate Phase 1 capabilities publish with stable IDs and exact versions; historical versions resolve after deprecation.
   - **REFACTOR:** UI/agent/connector discover the same registry.
   - **Refs:** [Capability lifecycle](specs/capability-registry-and-lifecycle.md), [capability principle](plan.md#59-every-product-action-is-a-governed-capability).
+  - **Evidence (2026-09-03):** `TestTodo_CAP_001`, `TestTodo_CAP_001_Golden`, `TestTodo_CAP_001_Race`, `TestTodo_CAP_001_Security` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS on windows/arm64 (Go 1.26.3); compiled-in BOOTSTRAP table, immutable versions, deterministic listing; branch plan-revision-2026-09-02.
 
-- [ ] `CAP-002` **[GATE_A][SOL_HIGH] Implement the governed capability gateway.**
+- [x] `CAP-002` **[GATE_A][SOL_HIGH] Implement the governed capability gateway.**
   - **Depends:** `CAP-001`, `TRUST-011`, `GOVERN-001`, `GOVERN-002`, `GOVERN-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CAP_002`.
@@ -2245,8 +2253,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** gateway resolves exact version, validates typed request/context, composes governance and returns typed result/evidence IDs.
   - **REFACTOR:** every channel shares this path; no UI/agent/admin bypass.
   - **Refs:** [Plane model](specs/platform-plane-model.md), [capability registry](specs/capability-registry-and-lifecycle.md).
+  - **Evidence (2026-09-03):** `TestTodo_CAP_002`, `TestTodo_CAP_002_Golden`, `TestTodo_CAP_002_Security`, `TestTodo_CAP_002_Mutation` in `internal/capability`; `go test -count=1 ./internal/capability/...` PASS; gateway refuses write-effect capabilities in P1A, records invocation evidence via `EvidenceSink`, typed errors; branch plan-revision-2026-09-02.
 
-- [ ] `CAP-003` **[GATE_A][TERRA] Normalize capability errors across transports.**
+- [x] `CAP-003` **[GATE_A][TERRA] Normalize capability errors across transports.**
   - **Depends:** `CAP-002`, `TOOL-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CAP_003`.
@@ -2255,8 +2264,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** canonical error envelope is identical in meaning and redaction across channels.
   - **REFACTOR:** provider/internal diagnostics remain nested and access-controlled.
   - **Refs:** [Transport strategy](plan.md#16-strategic-decisions), [canonical envelope](specs/canonical-envelope-and-digest.md).
+  - **Evidence (2026-09-03):** `TestTodo_CAP_003`, `TestTodo_CAP_003_Golden`, `FuzzTodo_CAP_003` in `internal/transport/envelope`; `TestTodo_CAP_003_Integration`, `TestTodo_CAP_003_Fault` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; one typed `envelope.Error` projected identically to gRPC status details and the connect-go HTTP edge, no raw internal error text leaks; branch plan-revision-2026-09-02.
 
-- [ ] `INTENT-001` **[GATE_A][SOL_LOW] Implement IntentDefinition resolution.**
+- [x] `INTENT-001` **[GATE_A][SOL_LOW] Implement IntentDefinition resolution.**
   - **Depends:** `MODEL-010`, `CAP-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_001`.
@@ -2265,8 +2275,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** exact published `definition_ref` resolves schemas, family, phase, risk and capabilities.
   - **REFACTOR:** rename display labels without changing identity.
   - **Refs:** [Business intent catalog](specs/business-intent-catalog.md), [intent kernel](plan.md#61-business-intent-and-transaction-kernel).
+  - **Evidence (2026-09-03):** `TestTodo_INTENT_001`, `_Golden` in `internal/intent` (`Registry.Resolve/ResolveText/ResolveForInstantiation`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
-- [ ] `INTENT-002` **[GATE_A][SOL_HIGH] Create typed IntentInstance envelopes.**
+- [x] `INTENT-002` **[GATE_A][SOL_HIGH] Create typed IntentInstance envelopes.**
   - **Depends:** `INTENT-001`, `MODEL-006`, `TRUST-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_002`.
@@ -2275,8 +2286,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** valid Protobuf request creates UUIDv7 instance, canonical request digest and immutable creation evidence.
   - **REFACTOR:** only mutation/effect intents later create BusinessTransaction.
   - **Refs:** [Intent instance envelope](specs/business-intent-catalog.md#instance-envelope), [BusinessIntent contract](specs/business-intent-and-change-request.md).
+  - **Evidence (2026-09-03):** `TestTodo_INTENT_002`, `_Golden`, `_Race`, `_Security`, `_Mutation`, `FuzzTodo_INTENT_002` in `internal/intent` (typed `Instance` envelope, server-supplied `PrincipalReference`, idempotency digest via `hcmnext.idempotent_request` v1 through `protomap.Digester`); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
-- [ ] `INTENT-003` **[GATE_A][SOL_HIGH] Implement the five-dimension intent lifecycle with the fixed legality rules.**
+- [x] `INTENT-003` **[GATE_A][SOL_HIGH] Implement the five-dimension intent lifecycle with the fixed legality rules.**
   - **Depends:** `INTENT-002`, `MODEL-014`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_003`.
@@ -2285,8 +2297,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** `RequestState`, `ExecutionState`, `BusinessState`, `ConsistencyState` and `ObligationState` append independently; proposal revisions, approval bindings, closure records, incidents and outcome tracking are linked records, not dimensions; P1A never leaves `ExecutionState=NOT_PLANNED`.
   - **REFACTOR:** the legality rules are one Go function shared by command, projection rebuild, replay and repair; there is no per-definition compatibility profile.
   - **Refs:** [Five dimensions](specs/business-intent-and-change-request.md#five-lifecycle-dimensions), [change lifecycle](plan.md#63-change-request-lifecycle), [lifecycle budget](plan.md#63a-lifecycle-budget).
+  - **Evidence (2026-09-03):** `TestTodo_INTENT_003`, `_Security`, `_Mutation` in `internal/intent` with the six fixed legality rules in `internal/intent/lifecycle/rules.go` and `Machine.Apply/Replay`; `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
-- [ ] `INTENT-004` **[GATE_A][SOL_HIGH] Implement HCMChangeRequest draft and preflight.**
+- [x] `INTENT-004` **[GATE_A][SOL_HIGH] Implement HCMChangeRequest draft and preflight.**
   - **Depends:** `INTENT-003`, `PROMO-001`, `MODEL-024`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_004`.
@@ -2295,8 +2308,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** preflight returns typed `READY`, `NEEDS_DATA`, `BLOCKED`, or `DENIED`, findings and exact input snapshot.
   - **REFACTOR:** no employee mutation or external effect in preflight.
   - **Refs:** [ChangeRequest contract](specs/business-intent-and-change-request.md), [change lifecycle](plan.md#63-change-request-lifecycle).
+  - **Evidence (2026-09-03):** `TestTodo_INTENT_004`, `_Golden`, `_Mutation` in `internal/intent` (`Draft`, `Preflight` through the `Preflighter` port; non-empty `DeclaredEffects` fails with `ErrEffectInPreflight`); domain half in `internal/domains/promotion` (`TestPreflightPromotion*`, seven ported legacy scenarios); `go test -count=1 ./internal/intent/... ./internal/domains/...` PASS. Wiring the kernel port to the promotion package is tracked under NEXT-004/NEXT-005; branch plan-revision-2026-09-02.
 
-- [ ] `INTENT-005` **[GATE_A][SOL_HIGH] Create immutable ProposalRevision artifacts.**
+- [x] `INTENT-005` **[GATE_A][SOL_HIGH] Create immutable ProposalRevision artifacts.**
   - **Depends:** `INTENT-004`, `PROMO-004`, `MODEL-007`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_INTENT_005`.
@@ -2305,6 +2319,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** each revision contains exact current/proposed state, child set, writes/effects/approvals/obligations/cost/revalidation and canonical digest.
   - **REFACTOR:** large input/evidence uses immutable refs.
   - **Refs:** [Approval binding principle](plan.md#53-approval-must-bind-to-an-immutable-proposal), [canonical digest](specs/canonical-envelope-and-digest.md).
+  - **Evidence (2026-09-03):** `TestTodo_INTENT_005`, `_Golden`, `_Mutation` in `internal/intent` (`NewProposalRevision`, `ProposalLedger.Append`, digest via `hcmnext.proposal` v1, control snapshots revalidated not hashed, material bytes encoding in `materialbytes.go`); zero-effect receipt in `internal/domains/evidence`; `go test -count=1 ./internal/intent/...` PASS. Open: a `MaterialProposal` proto message should replace the kernel encoding (recorded in `internal/intent/materialbytes.go`); branch plan-revision-2026-09-02.
 
 - [ ] `INTENT-006` **[GATE_A][SOL_HIGH] Invalidate approvals on material proposal change and only then.**
   - **Depends:** `INTENT-005`, `APPROVAL-001`, `APPROVAL-002`, `APPROVAL-003`.
@@ -2656,7 +2671,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** reapproval creates new decisions; never mutate prior votes.
   - **Refs:** [Transaction plan](specs/transaction-plan-and-commit-coordinator.md), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority).
 
-- [ ] `TX-001` **[GATE_A][SOL_HIGH] Compile immutable non-executable TransactionPlans.**
+- [x] `TX-001` **[GATE_A][SOL_HIGH] Compile immutable non-executable TransactionPlans.**
   - **Depends:** `INTENT-005`, `CONFLICT-002`, `GOVERN-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_TX_001`.
@@ -2665,6 +2680,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** Gate A plan exposes exact effects and returns `EXECUTION_PROHIBITED_GATE_A` on execute attempt.
   - **REFACTOR:** plan digest derives from canonical semantic content.
   - **Refs:** [Transaction plan contract](specs/transaction-plan-and-commit-coordinator.md), [Gate A matrix](plan.md#phase-1-implementation-depth-matrix).
+  - **Evidence (2026-09-03):** `TestTodo_TX_001`, `_Race`, `_Mutation` in `internal/intent` (`CompilePlan` produces an immutable non-executable `TransactionPlan`; no Execute exists); `go test -count=1 ./internal/intent/...` PASS; branch plan-revision-2026-09-02.
 
 - [ ] `TX-002` **[GATE_B][SOL_HIGH] Resolve and fence the ConsistencyBoundary.**
   - **Depends:** `TX-001`, `CONFLICT-002`.
@@ -10446,7 +10462,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse promotion relationship capabilities and workflow primitives without aliasing ChangeManager to PromoteWorker.
   - **Refs:** [Business Intent draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice), [manager-change workflow](workflows/people/manager-change.md), [organization model](data/models/people-workforce.md).
 
-- [ ] `PEOPLE-005` **[GATE_A][SOL_HIGH] Implement the governed ExplainWorkerState analytical intent.**
+- [x] `PEOPLE-005` **[GATE_A][SOL_HIGH] Implement the governed ExplainWorkerState analytical intent.**
   - **Depends:** `PEOPLE-001`–`PEOPLE-003`, `ORG-001`, `INTENT-013`, `CAP-002`, `TRUST-010`, `DATAOPS-007`.
   - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.PEOPLE; INTENTS=hcmnext.people.explain_worker_state/v1; FAMILY=ANALYTICAL_REQUEST; WHY=implement accepted intent 36 as the governed read/explanation entry point`.
   - **TEST:** `TestExplainWorkerStateReturnsAuthorizedBitemporalFactsAndProvenance`.
@@ -10455,8 +10471,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** one governed invocation returns typed authorized worker/employment/assignment/relationship facts with presence, revision, effective/known time, source authority, provenance and bounded explanation; denied and incomplete cases return typed non-disclosing states and all write/effect/outbox counts remain zero.
   - **REFACTOR:** compose owned read capabilities and history projection; do not create a second worker query model inside Intent.
   - **Refs:** [Initial draft intents](specs/business-intent-catalog.md#initial-draft-contract-slice), [People domain](specs/people-employment-assignment-domain.md), [source authority](specs/source-authority-and-external-mastering.md).
+  - **Evidence (2026-09-03):** `TestExplainWorkerStateReturnsAuthorizedBitemporalFactsAndProvenance`, `TestTodo_PEOPLE_005_Security/_Property/_Golden` in `internal/domains/people`; `go test -count=1 ./internal/domains/...` PASS on windows/arm64 (Go 1.26.3); authorization is an input decision, unruled fields refused, withheld subjects return no presence; branch plan-revision-2026-09-02.
 
-- [ ] `COMP-006` **[GATE_A][SOL_HIGH] Implement the standalone SimulateCompensation calculation intent.**
+- [x] `COMP-006` **[GATE_A][SOL_HIGH] Implement the standalone SimulateCompensation calculation intent.**
   - **Depends:** `COMP-001`–`COMP-003`, `BUDGET-001`, `SNAPSHOT-003`, `INTENT-023`, `CAP-002`, `GOVERN-002`.
   - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.REWARDS; INTENTS=hcmnext.rewards.simulate_compensation/v1; FAMILY=CALCULATION_REQUEST; WHY=implement accepted intent 81 as a pure version-pinned compensation simulation`.
   - **TEST:** `TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects`.
@@ -10465,6 +10482,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** result returns exact current/proposed components, annualization/proration, deltas, band result, assumptions/UNKNOWN values, authority/provenance and formula/control versions with canonical digest; all authoritative writes, reservations, work, messages, outbox and provider calls equal zero.
   - **REFACTOR:** the intent composes compensation calculation capabilities; workflow and UI consume the same typed result.
   - **Refs:** [Compensation domain](specs/compensation-domain.md), [simulation contract](specs/workflow-runtime.md), [Business Intent draft slice](specs/business-intent-catalog.md#initial-draft-contract-slice).
+  - **Evidence (2026-09-03):** `TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects`, `TestTodo_COMP_006_Security/_Property/_Golden`, `FuzzTodo_COMP_006` in `internal/domains/rewards` plus `internal/engines/payband` (`TestEvaluatePayBandPosition*`, `FuzzEvaluatePayBandPosition`); `go test -count=1 ./internal/domains/... ./internal/engines/...` PASS; exact apd decimals, byte-identical result for identical inputs, zero effect counters; branch plan-revision-2026-09-02.
 
 - [ ] `APPROVAL-008` **[GATE_B][SOL_HIGH] Implement governed ApproveProposal and RejectProposal intent entry points.**
   - **Depends:** `APPROVAL-001`–`APPROVAL-007`, `INTENT-013`, `WORK-005`, `TRUST-013`, `TRUST-014`.
@@ -11504,7 +11522,7 @@ path regardless of transport.
   - **REFACTOR:** generate documentation, client metadata, edge policy and test cases from the manifest; do not maintain parallel route registries.
   - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [capability registry](specs/capability-registry-and-lifecycle.md), [API discovery](#17-experience-api-and-accessibility).
 
-- [ ] `ENDPOINT-002` **[GATE_A][SOL_HIGH] Construct trusted request context identically for gRPC and HTTP.**
+- [x] `ENDPOINT-002` **[GATE_A][SOL_HIGH] Construct trusted request context identically for gRPC and HTTP.**
   - **Depends:** `ENDPOINT-001`, `TRUST-001`, `CAP-002`, `EDGE-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=ensure public callers can supply desired business input but cannot select tenant, principal, purpose, assurance, authority or placement`.
   - **TEST:** `TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`.
@@ -11513,8 +11531,9 @@ path regardless of transport.
   - **GREEN:** authenticated interceptors construct trusted context server-side, reject conflicting reserved fields, pass one immutable invocation context to CapabilityGateway and golden vectors produce the same safe decision/evidence references on both transports.
   - **REFACTOR:** one interceptor chain owns context construction; handlers and domain services never parse ambient headers.
   - **Refs:** [trusted boundary](specs/http-grpc-endpoint-contract.md#trusted-request-boundary), [organization AuthZ](specs/organization-scope-and-authz.md), [edge admission](#32-production-identity-key-custody-and-edge-enforcement).
+  - **Evidence (2026-09-03):** `TestEndpointTrustedContextRejectsCallerSelectedAuthorityAcrossTransports`, `TestTodo_ENDPOINT_002_{Property,Integration,Security,Conformance,Mutation}`, `FuzzTodo_ENDPOINT_002` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; both transports share one `transport.Config` and overwrite request `scope`/`initiator` server-side; branch plan-revision-2026-09-02.
 
-- [ ] `ENDPOINT-003` **[P0][SOL_HIGH] Enforce strict request decoding, structural validation and owned error projection.**
+- [x] `ENDPOINT-003` **[P0][SOL_HIGH] Enforce strict request decoding, structural validation and owned error projection.**
   - **Depends:** `ENDPOINT-001`, `CAP-003`, `LIB-019`, `PROTO-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=reject malformed or incompatible public input consistently without confusing transport validation with HCM business authority`.
   - **TEST:** `TestEndpointValidationAndErrorProjectionParity`.
@@ -11523,6 +11542,7 @@ path regardless of transport.
   - **GREEN:** strict bounded decoding plus structural validation returns one owned typed error projected through the declared gRPC status/HTTP status and safe details; every rejected vector persists zero intent/domain/event/outbox/work/effect rows.
   - **REFACTOR:** validation adapters emit owned violations; business, legal, temporal and cross-aggregate decisions remain capabilities/engines.
   - **Refs:** [error projection](specs/http-grpc-endpoint-contract.md#canonical-error-projection), [Protobuf compatibility](#29-machine-readable-model-sources-and-public-api-contracts), [capability errors](#6-businessintent-capabilities-governance-and-transaction-integrity).
+  - **Evidence (2026-09-03):** `TestEndpointValidationAndErrorProjectionParity`, `TestTodo_ENDPOINT_003_{Golden,Property,Integration,Security,Conformance}`, `FuzzTodo_ENDPOINT_003` in `internal/transport/edge`; `go test -count=1 ./internal/transport/...` PASS; strict JSON decoding (unknown fields rejected), presence validation table in `internal/transport/validate.go` pending replacement by the ENDPOINT-001 manifest; branch plan-revision-2026-09-02.
 
 - [ ] `ENDPOINT-004` **[GATE_B][SOL_HIGH] Unify endpoint idempotency, expected revision, ETag and conflict semantics.**
   - **Depends:** `ENDPOINT-001`, `CAP-002`, `TX-005`, `INTENT-005`.
@@ -12517,6 +12537,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **GREEN:** root Go module builds `hcmnext`, `worker`, `projector` and bootstrap `migrate`; ephemeral PostgreSQL migrates from zero, typed Create/Get/Simulate calls persist one ACID chronology, worker acknowledgement and restart/reconciliation preserve exact digests.
   - **REFACTOR:** add scheduler/admin and mature migration/deployment qualification only when their first selected runtime behavior requires them.
   - **Refs:** [physical spine](next-steps.md#m2--production-shaped-physical-spine), [Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
+  - **Evidence (partial, 2026-09-03):** ledger/outbox/projection slice: `TestLedgerOutboxProjectionAppendRestartsAndReconciles`, `TestOutboxConsumerHandlerIsIdempotentByMessageID` in `internal/data/outbox`; `TestApplyAdvancesIdempotentlyAndRejectsGaps`, `TestReconcilerCatchesUpFromLedger` in `internal/data/projection`; `TestKernelDigesterComputesAndVerifies` in `internal/ledger`; `go test -count=1` PASS via embedded-postgres; `cmd/worker` and `cmd/projector` wired with graceful shutdown. Remaining: `TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles` end-to-end through the served gRPC edge (after Wave 2 wiring).
 
 - [ ] `NEXT-005` **[GATE_A][SOL_HIGH] Prove the complete P1A Promotion path has zero workforce and external effects.**
   - **Depends:** `EP-PROMO-001`, `PROMO-001`–`PROMO-004`, `SNAPSHOT-001`–`SNAPSHOT-003`, `INTG-001`–`INTG-010`, `RECON-001`, `RECON-002`, `REPAIR-001`, `REPAIR-003`, `EVIDENCE-001`.

@@ -1,0 +1,30 @@
+{
+  "Status": "DENIED",
+  "Lifecycle": "request=DRAFT execution=NOT_PLANNED business=NOT_STARTED consistency=NOT_APPLICABLE obligation=NOT_APPLICABLE",
+  "Findings": [
+    {
+      "Code": "FORBIDDEN_FIELD",
+      "FieldPath": "reason_ref",
+      "Detail": "the caller may not supply this field",
+      "Status": "DENIED"
+    },
+    {
+      "Code": "MISSING_REQUIRED_DATA",
+      "FieldPath": "target_position_ref",
+      "Detail": "required input is absent",
+      "Status": "NEEDS_DATA"
+    },
+    {
+      "Code": "NEGATIVE_STATE_BLOCK",
+      "FieldPath": "baseline.negative_states",
+      "Detail": "PARTIAL is decided ROUTE_HUMAN by hcmnext.negative_state.change_transaction/v1",
+      "Status": "NEEDS_DATA"
+    },
+    {
+      "Code": "UNKNOWN_SUBJECT",
+      "FieldPath": "subjects",
+      "Detail": "subject POSITION/position:staff-engineer does not resolve in the baseline snapshot",
+      "Status": "BLOCKED"
+    }
+  ]
+}

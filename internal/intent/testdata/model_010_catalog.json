@@ -1,0 +1,142 @@
+[
+  {
+    "Ref": "hcmnext.intelligence.explain_transaction/v1",
+    "DisplayName": "ExplainTransaction",
+    "Family": "ANALYTICAL_REQUEST",
+    "SideEffect": "READ_ONLY",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.analytical_read/v1"
+  },
+  {
+    "Ref": "hcmnext.operations.create_repair_plan/v1",
+    "DisplayName": "CreateRepairPlan",
+    "Family": "ANALYTICAL_REQUEST",
+    "SideEffect": "READ_ONLY",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.analytical_read/v1"
+  },
+  {
+    "Ref": "hcmnext.operations.detect_drift/v1",
+    "DisplayName": "DetectDrift",
+    "Family": "ANALYTICAL_REQUEST",
+    "SideEffect": "READ_ONLY",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.analytical_read/v1"
+  },
+  {
+    "Ref": "hcmnext.operations.simulate_repair/v1",
+    "DisplayName": "SimulateRepair",
+    "Family": "CALCULATION_REQUEST",
+    "SideEffect": "PURE",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.pure_calculation/v1"
+  },
+  {
+    "Ref": "hcmnext.people.change_manager/v1",
+    "DisplayName": "ChangeManager",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "CONFORMANCE",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.people.explain_worker_state/v1",
+    "DisplayName": "ExplainWorkerState",
+    "Family": "ANALYTICAL_REQUEST",
+    "SideEffect": "READ_ONLY",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.analytical_read/v1"
+  },
+  {
+    "Ref": "hcmnext.people.promote_worker/v1",
+    "DisplayName": "PromoteWorker",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.rewards.change_base_pay/v1",
+    "DisplayName": "ChangeBasePay",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "INTERNAL_MUTATION",
+    "Release": "P1B",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.rewards.evaluate_pay_band_position/v1",
+    "DisplayName": "EvaluatePayBandPosition",
+    "Family": "CALCULATION_REQUEST",
+    "SideEffect": "PURE",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.pure_calculation/v1"
+  },
+  {
+    "Ref": "hcmnext.rewards.release_compensation_budget/v1",
+    "DisplayName": "ReleaseCompensationBudget",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "INTERNAL_MUTATION",
+    "Release": "P1B",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.rewards.reserve_compensation_budget/v1",
+    "DisplayName": "ReserveCompensationBudget",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "INTERNAL_MUTATION",
+    "Release": "P1B",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.rewards.simulate_compensation/v1",
+    "DisplayName": "SimulateCompensation",
+    "Family": "CALCULATION_REQUEST",
+    "SideEffect": "PURE",
+    "EffectClass": "ZERO_EFFECT",
+    "Release": "P1A",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.pure_calculation/v1"
+  },
+  {
+    "Ref": "hcmnext.work.approve_proposal/v1",
+    "DisplayName": "ApproveProposal",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "INTERNAL_MUTATION",
+    "Release": "P1B",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  },
+  {
+    "Ref": "hcmnext.work.reject_proposal/v1",
+    "DisplayName": "RejectProposal",
+    "Family": "CHANGE_REQUEST",
+    "SideEffect": "INTERNAL_MUTATION",
+    "EffectClass": "INTERNAL_MUTATION",
+    "Release": "P1B",
+    "Maturity": "DRAFT_CONTRACT",
+    "Policy": "hcmnext.negative_state.change_transaction/v1"
+  }
+]

@@ -9,6 +9,7 @@ tool (
 )
 
 require (
+	connectrpc.com/connect v1.20.0
 	github.com/cockroachdb/apd/v3 v3.2.3
 	github.com/fergusstrange/embedded-postgres v1.34.0
 	github.com/google/uuid v1.6.0
@@ -31,6 +32,7 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sethvargo/go-retry v0.4.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/net v0.58.0 // indirect
