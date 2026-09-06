@@ -91,6 +91,7 @@ var ImplicitAllowlist = []ImplicitEntry{
 	{Package: "internal/data/jobs", Owner: "scheduling platform", Reason: "durable job storage remains below the scheduling engine"},
 	{Package: "internal/data/outbox", Owner: "messaging platform", Reason: "transactional outbox mechanics remain below the messaging owner"},
 	{Package: "internal/engines/messagetemplate", Owner: "workflow platform", Reason: "message rendering is a semantic engine, not the messaging substrate owner"},
+	{Package: "internal/engines/search", Owner: "search platform", Reason: "authorized search digests through canonicalbytes; the engine is a consumer of canonical encoding, not its owner"},
 	{Package: "internal/experience/reportschedule", Owner: "experience platform", Reason: "report scheduling is an experience-owned consumer of scheduling"},
 	{Package: "internal/platform/telemetry/boundary", Owner: "observability platform", Reason: "telemetry boundary mechanics remain below the telemetry owner"},
 	{Package: "internal/platform/telemetry/otel", Owner: "observability platform", Reason: "OpenTelemetry adapter mechanics remain below the telemetry owner"},

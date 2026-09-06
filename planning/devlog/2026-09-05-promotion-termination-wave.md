@@ -178,3 +178,82 @@ organization-structure-maximal-2026.md` and the 30-table draft
   once the front-end session's package compiled again. Lane scratch
   directories that leaked into the checkout (`.gocache*`, `.gotmp-*`,
   `tmp/`, 142 of them) are now ignored and swept before each commit.
+
+## 7. 2026-09-06 (afternoon): authorization batch closed, security test wave
+
+- **Authorization batch closed.** The thirteen backend authorization lanes
+  launched earlier today all landed: authorized search and population
+  freezing (SEARCH-001/003, PRIV-003), analysis-to-intent authority
+  (INTENT-020), headcount and position authority separation (HEADCOUNT-001,
+  MODEL-031), step-up on pay-method changes (PAYMETHOD-002), garnishment
+  remittance authorization (GARN-005), row-security versus repository-scope
+  parity (ALIGN-013), the authorized product-query envelope and bounded
+  invalidation (ALIGN-022/023), operator-only freshness, workflow and outbox
+  health (ALIGN-048..051), cross-surface noninterference (ALIGN-058/059),
+  connector operation queue, journal and credential leases (CONN-RT-003/004,
+  migrations 00235-00237), worker roles (SVC-006/009), readiness evidence
+  (READINESS-001/002) and Start-time proposal derivation (WF-RUN-027).
+  Ticks 871 -> 895.
+- **Post-lane review.** A read-only review of the batch found nine real
+  defects: a caller-supplied step-up bool and no tenant field in
+  garnishment, a free-text validation override on the pay-method release
+  gate, an in-memory catalog that never advanced its current destination,
+  an invalidation emitter that trusted a caller-built authorization
+  decision, id-keyed connector operations with no tenant check and no code
+  writing the three new tables, aliased ALIGN-050/051 matrix tests, an
+  assertion-free search integration test, a sequential "race" test, and a
+  repository-scope parity test that skipped every repository finding. Each
+  was folded into the security wave as a required fix and all are closed.
+- **Security test wave.** Cam's next directive was to unit-test every
+  authentication, authorization and security file. A per-file inventory
+  (symbols declared per file versus symbols any package test references)
+  covered 340 files in 110 packages: 7 files had no test reference at all
+  and 120 had under half their symbols exercised. Twenty-five Luna lanes,
+  one per package cluster (authn core, OIDC, issuer registry and federation,
+  trust authz, sessions and step-up, trust core, custody and crypto agility,
+  data classification and DLP, attestation and leases, consent and workload,
+  the data stores in two lanes, access, tenant, proofing and redaction,
+  privacy, abuse, money-moving authorization, operator authorization,
+  connectivity, telemetry and time authority, table policy tools, planning
+  gates, and the supply-chain tools in two lanes) were told the bar is per
+  file, that a test must be able to fail, and that production code changes
+  only to fix a defect a new test catches. After the wave: 3 files without a
+  test reference (two are the repopath helper, one belongs to the front-end
+  session), 56 under half (mostly lint tools outside scope), and referenced
+  symbols 51% -> 67%.
+- **Defects the new tests caught.** Twenty-two production fixes, each pinned:
+  authn CheckDependent could never succeed; OIDC ID tokens and workload
+  identity credentials accepted trailing JSON; trust/authz let foreign-tenant
+  organization references and edges through; attest did not enforce attestor
+  mode authority or minimum assurance; bundle accepted a root as a leaf
+  issuer; attestation statements returned the wrong error for a missing
+  assurance id; proofing stores aliased their evidence slices; the assurance
+  register accepted a nil claim; provenance panicked on malformed keys and
+  short signatures and accepted a statement with no source ref; the sbom
+  license parser matched "license" as a prefix of "licenses"; plus the nine
+  review findings above and further branch fixes in session, custody,
+  cryptoagile, secrets, issuerregistry and governance/privacy.
+- **Corpus repairs the wave surfaced.** The generated model package
+  (`gen/go/hcmnext/model`) was deleted from the checkout twice by something
+  outside this session and restored from git both times. The layer-graph
+  golden lacked the signals store's workflow edge (landed at `14442de`); the
+  vulnimpact golden pinned an older SBOM; the storeboundaries allowlist named
+  a resolved pgstore finding while the scheduler's cross-tenant timer sweep
+  was unreviewed; the authority gate found 61 completed GATE_C todos with no
+  decision record, so known-defects now carries a GATE_C undecided gap; the
+  P1A manifest was re-signed over migration 00239; sixteen live tables had
+  no storage-disposition row (presentation preferences, signal disposition,
+  schema upgrade control, telemetry registry and copy inventory, worker id
+  policy, organization visibility, and the front-end session's role access
+  and page permission tables).
+- **Left for the front-end session.** Migration 00238 grants DELETE on
+  worker_access_role_assignment to the application role, which the tenancy
+  DB-017 integration test forbids on the data plane; that file belongs to
+  the other session and is not edited here. The wave's data-store lanes
+  added tests to `internal/data/roleaccessstore` and
+  `internal/experience/roleaccess`, both untracked packages of that session;
+  the tests pass and are left uncommitted with the packages.
+- **Environment.** Twenty concurrent lanes ran cleanly this time; leaked
+  `.codex-*` scratch directories at the repo root are now ignored and
+  swept. Coverage logs are regenerated by a Python port of the inventory
+  script (the PowerShell original is no longer in the tree).
