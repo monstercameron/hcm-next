@@ -408,3 +408,273 @@ func TestTodo_ACCESS_001_Mutation(t *testing.T) {
 	injected.Observations = []access.ExternalAccessObservation{f.observation}
 	requireFieldError(t, injected.Validate(), "observations", access.ErrObservationMutation)
 }
+
+func TestGraphRecordValidation_RejectsSharedRevisionBoundaryViolations(t *testing.T) {
+	f := validFixture(t, "a")
+	tests := []struct {
+		name   string
+		field  string
+		cause  error
+		mutate func(*access.WorkforceIdentity)
+	}{
+		{"id", "id", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.ID = "" }},
+		{"tenant", "tenant", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Tenant = "" }},
+		{"subject", "subject", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Subject = "" }},
+		{"system", "system", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.System = "" }},
+		{"worker reference", "worker_ref", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.WorkerRef = values.EntityRef{} }},
+		{"revision", "revision", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Revision = values.RevisionToken{} }},
+		{"authority", "authority_class", access.ErrAuthorityClass, func(r *access.WorkforceIdentity) { r.Authority = access.AuthorityExternalObservation }},
+		{"effective", "effective", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Effective = values.EffectiveInterval{} }},
+		{"known at", "known_at", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.KnownAt = values.KnownAt{} }},
+		{"provenance", "provenance", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Provenance = evidence.Provenance{} }},
+		{"lifecycle", "lifecycle", access.ErrIncompleteRevision, func(r *access.WorkforceIdentity) { r.Lifecycle = access.LifecycleUnspecified }},
+		{"worker tenant", "worker_ref.tenant", access.ErrTenantMismatch, func(r *access.WorkforceIdentity) { r.WorkerRef.Tenant = "tenant-b" }},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			record := f.identity
+			if tt.name == "known at" {
+				record.KnownAt, _ = values.NewKnownAt(mustInstant(t, "2026-09-03T00:00:00Z"))
+			} else if tt.name == "provenance" {
+				record.Provenance = evidence.Provenance{}
+			}
+			tt.mutate(&record)
+			requireFieldError(t, record.Validate(), tt.field, tt.cause)
+			if record.Canonical() != nil {
+				t.Fatal("invalid identity has canonical bytes")
+			}
+		})
+	}
+}
+
+func TestGraphRecordValidation_RejectsRecordSpecificMissingFields(t *testing.T) {
+	f := validFixture(t, "a")
+	accountCases := []struct {
+		field  string
+		mutate func(*access.AccountLink)
+	}{
+		{"source", func(r *access.AccountLink) { r.Source = "" }},
+		{"workforce_identity_id", func(r *access.AccountLink) { r.WorkforceIdentityID = "" }},
+		{"application", func(r *access.AccountLink) { r.Application = "" }},
+		{"account_id", func(r *access.AccountLink) { r.AccountID = "" }},
+	}
+	for _, tt := range accountCases {
+		record := f.account
+		tt.mutate(&record)
+		requireFieldError(t, record.Validate(), tt.field, access.ErrIncompleteRevision)
+	}
+	for _, tt := range []struct {
+		field  string
+		mutate func(*access.EntitlementDefinition)
+	}{
+		{"application", func(r *access.EntitlementDefinition) { r.Application = "" }},
+		{"code", func(r *access.EntitlementDefinition) { r.Code = "" }},
+		{"version", func(r *access.EntitlementDefinition) { r.Version = "" }},
+		{"owner", func(r *access.EntitlementDefinition) { r.Owner = "" }},
+		{"risk_class", func(r *access.EntitlementDefinition) { r.RiskClass = access.RiskUnspecified }},
+	} {
+		record := f.entitlement
+		tt.mutate(&record)
+		requireFieldError(t, record.Validate(), tt.field, access.ErrIncompleteRevision)
+	}
+	for _, tt := range []struct {
+		field  string
+		mutate func(*access.ExternalAccessObservation)
+	}{
+		{"application", func(r *access.ExternalAccessObservation) { r.Application = "" }},
+		{"account_id", func(r *access.ExternalAccessObservation) { r.AccountID = "" }},
+		{"provider_version", func(r *access.ExternalAccessObservation) { r.ProviderVersion = "" }},
+		{"observed_state", func(r *access.ExternalAccessObservation) { r.ObservedState = "" }},
+	} {
+		record := f.observation
+		tt.mutate(&record)
+		requireFieldError(t, record.Validate(), tt.field, access.ErrIncompleteRevision)
+	}
+}
+
+func TestGraph_AddAndValidate_AtomicityAndAllRecordForms(t *testing.T) {
+	f := validFixture(t, "a")
+	g, err := access.NewGraph(f.identity.Tenant)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var nilRecord access.Record
+	if err := g.Add(nilRecord); !errors.Is(err, access.ErrInvalidGraph) {
+		t.Fatalf("nil record = %v", err)
+	}
+	var nilIdentity *access.WorkforceIdentity
+	if err := g.Add(nilIdentity); !errors.Is(err, access.ErrInvalidGraph) {
+		t.Fatalf("typed nil identity = %v", err)
+	}
+	var nilObservation *access.ExternalAccessObservation
+	if err := g.Add(nilObservation); !errors.Is(err, access.ErrObservationMutation) {
+		t.Fatalf("typed nil observation = %v", err)
+	}
+	for _, record := range []access.Record{&f.identity, &f.account, &f.entitlement, &f.expected} {
+		if err := g.Add(record); err != nil {
+			t.Fatalf("pointer %T: %v", record, err)
+		}
+	}
+	before := g.Digest()
+	bad := f.expected
+	bad.ID = "bad"
+	bad.Subject = "other"
+	if err := g.Add(bad); !errors.Is(err, access.ErrUnownedReference) {
+		t.Fatalf("bad expected = %v", err)
+	}
+	if g.Digest() != before {
+		t.Fatal("failed add mutated graph")
+	}
+	if _, err := access.NewGraph(values.TenantId("")); !errors.Is(err, access.ErrInvalidGraph) {
+		t.Fatalf("invalid graph tenant = %v", err)
+	}
+}
+
+func TestGraph_ValidateRejectsTenantDuplicateAndLinkBoundaryViolations(t *testing.T) {
+	f := validFixture(t, "a")
+	other := validFixture(t, "b")
+	tests := []struct {
+		name string
+		make func() access.Graph
+		want error
+	}{
+		{"identity tenant", func() access.Graph {
+			r := f.identity
+			r.Tenant = "tenant-b"
+			r.WorkerRef.Tenant = "tenant-b"
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{r}}
+		}, access.ErrTenantMismatch},
+		{"duplicate identity", func() access.Graph {
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity, f.identity}}
+		}, access.ErrDuplicateRecord},
+		{"duplicate account", func() access.Graph {
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Accounts: []access.AccountLink{f.account, f.account}}
+		}, access.ErrDuplicateRecord},
+		{"duplicate entitlement", func() access.Graph {
+			return access.Graph{Tenant: f.identity.Tenant, Entitlements: []access.EntitlementDefinition{f.entitlement, f.entitlement}}
+		}, access.ErrDuplicateRecord},
+		{"duplicate expected", func() access.Graph {
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Accounts: []access.AccountLink{f.account}, Entitlements: []access.EntitlementDefinition{f.entitlement}, Expected: []access.ExpectedEntitlement{f.expected, f.expected}}
+		}, access.ErrDuplicateRecord},
+		{"observations are not authoritative", func() access.Graph {
+			return access.Graph{Tenant: f.identity.Tenant, Observations: []access.ExternalAccessObservation{f.observation}}
+		}, access.ErrObservationMutation},
+		{"account tenant", func() access.Graph {
+			r := f.account
+			r.Tenant = "tenant-b"
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Accounts: []access.AccountLink{r}}
+		}, access.ErrTenantMismatch},
+		{"edge system", func() access.Graph {
+			r := f.expected
+			r.ID = "wrong-system"
+			r.System = "other"
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Entitlements: []access.EntitlementDefinition{f.entitlement}, Expected: []access.ExpectedEntitlement{r}}
+		}, access.ErrUnownedReference},
+		{"linked account system", func() access.Graph {
+			a := f.account
+			a.ID = "wrong-system-account"
+			a.System = "other"
+			e := f.expected
+			e.ID = "wrong-linked-system"
+			e.AccountLinkID = a.ID
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Accounts: []access.AccountLink{a}, Entitlements: []access.EntitlementDefinition{f.entitlement}, Expected: []access.ExpectedEntitlement{e}}
+		}, access.ErrUnownedReference},
+		{"missing account link", func() access.Graph {
+			r := f.expected
+			r.ID = "missing-account"
+			r.AccountLinkID = "missing"
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Entitlements: []access.EntitlementDefinition{f.entitlement}, Expected: []access.ExpectedEntitlement{r}}
+		}, access.ErrUnownedReference},
+		{"account identity ownership", func() access.Graph {
+			r := f.account
+			r.ID = "wrong-owner"
+			r.WorkforceIdentityID = other.identity.ID
+			return access.Graph{Tenant: f.identity.Tenant, Identities: []access.WorkforceIdentity{f.identity}, Accounts: []access.AccountLink{r}}
+		}, access.ErrUnownedReference},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.make().Validate(); !errors.Is(err, tt.want) {
+				t.Fatalf("error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestGraph_CanonicalDigestAndAuthorizationBoundaries(t *testing.T) {
+	g := validGraph(t)
+	for _, tc := range []struct {
+		name string
+		got  string
+		want string
+	}{
+		{"native authority", access.AuthorityNative.String(), "NATIVE"},
+		{"active lifecycle", access.LifecycleActive.String(), "ACTIVE"},
+		{"high risk", access.RiskHigh.String(), "HIGH"},
+	} {
+		if tc.got != tc.want {
+			t.Errorf("%s = %q, want %q", tc.name, tc.got, tc.want)
+		}
+	}
+	if !access.AuthorityNative.Valid() || access.AuthorityUnspecified.Valid() || !access.LifecycleActive.Valid() || access.LifecycleUnspecified.Valid() || !access.RiskHigh.Valid() || access.RiskUnspecified.Valid() {
+		t.Fatal("closed graph vocabularies accepted or rejected an invalid value")
+	}
+	if len(g.Canonical()) == 0 || g.Digest() == "" || g.CanonicalDigest() != g.Digest() {
+		t.Fatal("valid graph has incomplete canonical evidence")
+	}
+	invalid := g
+	invalid.Identities = append([]access.WorkforceIdentity(nil), g.Identities...)
+	invalid.Identities[0].Lifecycle = access.LifecycleUnspecified
+	if invalid.Canonical() != nil || invalid.Digest() != "" {
+		t.Fatal("invalid graph retained canonical evidence")
+	}
+
+	base := access.ExplainRequest{Tenant: g.Tenant, Purpose: "review", PolicyVersion: "policy-1"}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*access.ExplainRequest)
+		want   error
+	}{
+		{"invalid tenant", func(r *access.ExplainRequest) { r.Tenant = "" }, access.ErrInvalidAuthorization},
+		{"wrong tenant", func(r *access.ExplainRequest) {
+			r.Tenant = "tenant-b"
+			r.Authorize = func(values.TenantId, string) bool { return true }
+		}, access.ErrUnauthorized},
+		{"missing purpose", func(r *access.ExplainRequest) {
+			r.Authorize = func(values.TenantId, string) bool { return true }
+			r.Purpose = ""
+		}, access.ErrInvalidAuthorization},
+		{"missing policy version", func(r *access.ExplainRequest) {
+			r.Authorize = func(values.TenantId, string) bool { return true }
+			r.PolicyVersion = ""
+		}, access.ErrInvalidAuthorization},
+		{"nil authorizer", func(r *access.ExplainRequest) {}, access.ErrUnauthorized},
+		{"denied authorizer", func(r *access.ExplainRequest) { r.Authorize = func(values.TenantId, string) bool { return false } }, access.ErrUnauthorized},
+		{"panicking authorizer", func(r *access.ExplainRequest) {
+			r.Authorize = func(values.TenantId, string) bool { panic("unavailable") }
+		}, access.ErrUnauthorized},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := base
+			tc.mutate(&req)
+			if err := g.Authorize(req); !errors.Is(err, tc.want) {
+				t.Fatalf("Authorize error = %v, want %v", err, tc.want)
+			}
+		})
+	}
+	called := false
+	base.Authorize = func(tenant values.TenantId, purpose string) bool {
+		called = true
+		return tenant == g.Tenant && purpose == "review"
+	}
+	if err := g.Authorize(base); err != nil || !called {
+		t.Fatalf("allowed authorizer = %v, called=%v", err, called)
+	}
+	explanation, err := g.Explain(base)
+	if err != nil || explanation.CanonicalDigest != g.Digest() || explanation.PolicyVersion != base.PolicyVersion || len(explanation.Lines) != 4 {
+		t.Fatalf("explanation = %#v, %v", explanation, err)
+	}
+	if _, err := invalid.Explain(base); !errors.Is(err, access.ErrIncompleteRevision) {
+		t.Fatalf("invalid graph explanation = %v", err)
+	}
+}

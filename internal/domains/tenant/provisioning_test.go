@@ -322,3 +322,181 @@ func TestVerifyPlaneComposesVerifyAndRecord(t *testing.T) {
 		t.Fatalf("error %v, want %v surfaced unwrapped through VerifyPlane", err, failure)
 	}
 }
+
+func TestPlaneAndVerified_ValidateRejectsBoundaryInputs(t *testing.T) {
+	at := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	base := tenant.Verified{
+		Plane:             tenant.PlaneAudit,
+		Tenant:            "pilot-partner",
+		VerifierPrincipal: "system:audit-verifier",
+		VerifiedAt:        at,
+		EvidenceRefs:      []string{"evidence:audit"},
+	}
+	if !tenant.PlaneAudit.Valid() || tenant.Plane("UNKNOWN").Valid() {
+		t.Fatal("Plane.Valid did not enforce the closed set")
+	}
+	tests := []struct {
+		name      string
+		mutate    func(*tenant.Verified)
+		requester string
+	}{
+		{"unknown plane", func(v *tenant.Verified) { v.Plane = "UNKNOWN" }, requester},
+		{"missing tenant", func(v *tenant.Verified) { v.Tenant = "" }, requester},
+		{"missing verifier", func(v *tenant.Verified) { v.VerifierPrincipal = "" }, requester},
+		{"missing requester", func(*tenant.Verified) {}, ""},
+		{"self attestation case insensitive", func(v *tenant.Verified) { v.VerifierPrincipal = "SYSTEM:REQUESTER" }, "system:requester"},
+		{"missing time", func(v *tenant.Verified) { v.VerifiedAt = time.Time{} }, requester},
+		{"missing evidence", func(v *tenant.Verified) { v.EvidenceRefs = nil }, requester},
+		{"blank evidence", func(v *tenant.Verified) { v.EvidenceRefs = []string{"  "} }, requester},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := base
+			tt.mutate(&v)
+			if err := v.Validate(tt.requester); !errors.Is(err, tenant.ErrInvalidVerified) {
+				t.Fatalf("Validate error = %v, want ErrInvalidVerified", err)
+			}
+		})
+	}
+}
+
+func TestProvisioningRun_ConstructorsAccessorsAndCopies(t *testing.T) {
+	if _, err := tenant.NewProvisioningRun(" "); !errors.Is(err, tenant.ErrInvalidVerified) {
+		t.Fatalf("blank tenant error = %v, want ErrInvalidVerified", err)
+	}
+	run, err := tenant.NewProvisioningRun("accessors")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if run.Tenant() != "accessors" || run.Status() != tenant.ProvisioningPending {
+		t.Fatalf("run identity/status = %q/%q", run.Tenant(), run.Status())
+	}
+	if plane, reason, ok := run.DegradedPlane(); ok || plane != "" || reason != "" {
+		t.Fatalf("fresh DegradedPlane = %q/%q/%v", plane, reason, ok)
+	}
+	if verified, ok := run.Verified(tenant.PlaneAudit); ok || verified.Plane != "" || verified.Tenant != "" || len(verified.EvidenceRefs) != 0 {
+		t.Fatalf("unverified plane = %#v/%v", verified, ok)
+	}
+	if got := run.VerifiedPlanes(); len(got) != 0 {
+		t.Fatalf("fresh VerifiedPlanes = %v", got)
+	}
+	if got := run.Events(); got != nil {
+		t.Fatalf("fresh Events = %#v, want nil", got)
+	}
+
+	at := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	if _, err := run.RecordVerified(requester, planeVerified(tenant.PlaneAudit, "accessors", at)); err != nil {
+		t.Fatal(err)
+	}
+	ordered := run.VerifiedPlanes()
+	if len(ordered) != 1 || ordered[0] != tenant.PlaneAudit {
+		t.Fatalf("VerifiedPlanes = %v, want AUDIT", ordered)
+	}
+	events := run.Events()
+	if len(events) != 1 {
+		t.Fatalf("Events = %d, want one event", len(events))
+	}
+	events[0].Kind = "tampered"
+	if run.Events()[0].Kind == "tampered" {
+		t.Fatal("Events returned an aliased event")
+	}
+}
+
+func TestVerifyPlane_RejectsNilRunAndVerifier(t *testing.T) {
+	if _, err := tenant.VerifyPlane(context.Background(), nil, tenant.NewFakeVerifier(tenant.PlaneAudit, "verifier", "evidence"), requester, lifecycleAt); !errors.Is(err, tenant.ErrInvalidVerified) {
+		t.Fatalf("nil run error = %v, want ErrInvalidVerified", err)
+	}
+	run, err := tenant.NewProvisioningRun("nil-verifier")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tenant.VerifyPlane(context.Background(), run, nil, requester, lifecycleAt); !errors.Is(err, tenant.ErrInvalidVerified) {
+		t.Fatalf("nil verifier error = %v, want ErrInvalidVerified", err)
+	}
+	if run.Status() != tenant.ProvisioningPending || len(run.Events()) != 0 {
+		t.Fatalf("nil input changed run: status=%s events=%d", run.Status(), len(run.Events()))
+	}
+}
+
+func TestProvisioningRun_RecordFailureBoundaryAndRepairBeforeActivation(t *testing.T) {
+	run, err := tenant.NewProvisioningRun("repair")
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name   string
+		plane  tenant.Plane
+		reason string
+		at     time.Time
+	}{
+		{"unknown plane", "UNKNOWN", "bad", at},
+		{"missing reason", tenant.PlaneAudit, " ", at},
+		{"missing time", tenant.PlaneAudit, "bad", time.Time{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := run.RecordFailure(tt.plane, tt.reason, tt.at); !errors.Is(err, tenant.ErrInvalidVerified) {
+				t.Fatalf("RecordFailure error = %v, want ErrInvalidVerified", err)
+			}
+			if run.Status() != tenant.ProvisioningPending || len(run.Events()) != 0 {
+				t.Fatalf("invalid failure changed run: status=%s events=%d", run.Status(), len(run.Events()))
+			}
+		})
+	}
+	if _, err := run.RecordFailure(tenant.PlaneAudit, "audit unavailable", at); err != nil {
+		t.Fatal(err)
+	}
+	if run.Status() != tenant.ProvisioningDegraded {
+		t.Fatalf("status after failure = %s, want DEGRADED", run.Status())
+	}
+	if plane, reason, ok := run.DegradedPlane(); !ok || plane != tenant.PlaneAudit || reason != "audit unavailable" {
+		t.Fatalf("degraded evidence = %s/%q/%v", plane, reason, ok)
+	}
+	outcome, err := run.RecordVerified(requester, planeVerified(tenant.PlaneAudit, "repair", at.Add(time.Hour)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if outcome.Decision != tenant.ProvisioningApply || run.Status() != tenant.ProvisioningPending {
+		t.Fatalf("repair outcome/status = %#v/%s, want APPLY/PENDING", outcome, run.Status())
+	}
+	if _, _, ok := run.DegradedPlane(); ok {
+		t.Fatal("repair left a degraded plane")
+	}
+}
+
+func TestFakeVerifier_RecordsCopiesAndClearsFailure(t *testing.T) {
+	refs := []string{"evidence:original"}
+	fake := tenant.NewFakeVerifier(tenant.PlaneProducts, "system:products", refs...)
+	refs[0] = "evidence:caller-mutated"
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	if _, err := fake.Verify(context.Background(), tenant.VerificationRequest{RequesterPrincipal: requester, Now: now}); !errors.Is(err, tenant.ErrInvalidVerified) {
+		t.Fatalf("blank request tenant error = %v, want ErrInvalidVerified", err)
+	}
+	failure := errors.New("temporary outage")
+	fake.FailNext(failure)
+	if _, err := fake.Verify(context.Background(), tenant.VerificationRequest{Tenant: "pilot", RequesterPrincipal: requester, Now: now}); !errors.Is(err, failure) {
+		t.Fatalf("configured failure = %v, want %v", err, failure)
+	}
+	fake.FailNext(nil)
+	verified, err := fake.Verify(context.Background(), tenant.VerificationRequest{Tenant: "pilot", RequesterPrincipal: requester, Now: now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if verified.Plane != tenant.PlaneProducts || verified.VerifierPrincipal != "system:products" || !verified.VerifiedAt.Equal(now) || len(verified.EvidenceRefs) != 1 || verified.EvidenceRefs[0] != "evidence:original" {
+		t.Fatalf("verified record = %#v", verified)
+	}
+	verified.EvidenceRefs[0] = "tampered"
+	verifiedAgain, err := fake.Verify(context.Background(), tenant.VerificationRequest{Tenant: "pilot", RequesterPrincipal: requester, Now: now})
+	if err != nil || verifiedAgain.EvidenceRefs[0] != "evidence:original" {
+		t.Fatalf("fake evidence was aliased: record=%#v err=%v", verifiedAgain, err)
+	}
+	calls := fake.Calls()
+	if len(calls) != 4 || calls[1].Tenant != "pilot" || !calls[2].Now.Equal(now) {
+		t.Fatalf("Calls = %#v, want blank, failed, and two successful requests", calls)
+	}
+	calls[0].Tenant = "tampered"
+	if fake.Calls()[0].Tenant == "tampered" {
+		t.Fatal("Calls returned an aliased request slice")
+	}
+}

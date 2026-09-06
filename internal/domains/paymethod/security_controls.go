@@ -9,6 +9,7 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/domains/contact"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/trust/dlp"
 	"github.com/monstercameron/hcm-next/internal/trust/sod"
 )
@@ -162,7 +163,10 @@ func StartBankDetailChange(req BankDetailChangeRequest, source IndependentContac
 		Status:                ChangeAwaitingConfirmation,
 		Revision:              1,
 	}
-	change.CanonicalDigest = change.digest()
+	change.CanonicalDigest, err = change.digest()
+	if err != nil {
+		return BankDetailChange{}, fieldError(ErrInvalidBankDetailChange, "canonical_digest", err)
+	}
 	message := ChangeConfirmation{
 		Operation:              change.Operation,
 		ChangeDigest:           change.CanonicalDigest,
@@ -213,7 +217,11 @@ func (c BankDetailChange) Confirm(confirmedAt time.Time, confirmationDigest stri
 	next.Revision++
 	next.SupersedesRevision = c.Revision
 	next.SupersedesDigest = c.CanonicalDigest
-	next.CanonicalDigest = next.digest()
+	nextDigest, err := next.digest()
+	if err != nil {
+		return BankDetailChange{}, fieldError(ErrInvalidBankDetailChange, "canonical_digest", err)
+	}
+	next.CanonicalDigest = nextDigest
 	return next, nil
 }
 
@@ -256,7 +264,11 @@ func (c BankDetailChange) Validate() error {
 	if c.Status == ChangeConfirmed && (c.ConfirmedAt.IsZero() || c.AvailableAt.IsZero()) {
 		return fieldError(ErrInvalidBankDetailChange, "confirmed_at", errors.New("confirmed revision requires availability time"))
 	}
-	if c.CanonicalDigest == "" || c.CanonicalDigest != c.digest() {
+	digest, err := c.digest()
+	if err != nil {
+		return fieldError(ErrInvalidBankDetailChange, "canonical_digest", err)
+	}
+	if c.CanonicalDigest == "" || c.CanonicalDigest != digest {
 		return fieldError(ErrInvalidBankDetailChange, "canonical_digest", errors.New("digest mismatch"))
 	}
 	return nil
@@ -304,7 +316,7 @@ func validateBankDetailRequest(req BankDetailChangeRequest) error {
 	return nil
 }
 
-func (c BankDetailChange) digest() string {
+func (c BankDetailChange) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.BankDetailChange", securityControlSchemaVersion).
 		String("operation", c.Operation).String("id", c.ID).String("tenant_id", c.TenantID).
 		String("destination_id", c.DestinationID).String("worker_ref", c.WorkerRef).
@@ -315,7 +327,7 @@ func (c BankDetailChange) digest() string {
 		Int("available_at", c.AvailableAt.UnixNano()).Int("cooling_off", int64(c.CoolingOff)).
 		String("status", string(c.Status)).Int("revision", int64(c.Revision)).
 		Int("supersedes_revision", int64(c.SupersedesRevision)).String("supersedes_digest", c.SupersedesDigest)
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
 // AccountStorageMode identifies the only two permitted storage forms for a
@@ -339,7 +351,11 @@ func NewProtectedAccount(mode AccountStorageMode, opaqueReference, valueDigest s
 	if err := p.Validate(); err != nil {
 		return ProtectedAccount{}, err
 	}
-	p.CanonicalDigest = p.digest()
+	digest, err := p.digest()
+	if err != nil {
+		return ProtectedAccount{}, fieldError(ErrInvalidProtection, "canonical_digest", err)
+	}
+	p.CanonicalDigest = digest
 	return p, nil
 }
 
@@ -356,16 +372,20 @@ func (p ProtectedAccount) Validate() error {
 	if regexp.MustCompile(`^\d{8,17}$`).MatchString(p.OpaqueReference) {
 		return fieldError(ErrInvalidProtection, "opaque_reference", ErrRawBankDetailProhibited)
 	}
-	if p.CanonicalDigest != "" && p.CanonicalDigest != p.digest() {
+	digest, err := p.digest()
+	if err != nil {
+		return fieldError(ErrInvalidProtection, "canonical_digest", err)
+	}
+	if p.CanonicalDigest != "" && p.CanonicalDigest != digest {
 		return fieldError(ErrInvalidProtection, "canonical_digest", errors.New("digest mismatch"))
 	}
 	return nil
 }
 
-func (p ProtectedAccount) digest() string {
+func (p ProtectedAccount) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.ProtectedAccount", securityControlSchemaVersion).
 		String("mode", string(p.Mode)).String("opaque_reference", p.OpaqueReference).String("value_digest", p.ValueDigest)
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
 type ValidationResult string
@@ -391,7 +411,11 @@ func NewAccountValidationRecord(method string, validatedAt time.Time, result Val
 	if err := r.Validate(); err != nil {
 		return AccountValidationRecord{}, err
 	}
-	r.CanonicalDigest = r.digest()
+	digest, err := r.digest()
+	if err != nil {
+		return AccountValidationRecord{}, fieldError(ErrInvalidValidation, "canonical_digest", err)
+	}
+	r.CanonicalDigest = digest
 	return r, nil
 }
 
@@ -416,33 +440,41 @@ func (r AccountValidationRecord) Validate() error {
 	if r.Revision > 1 && !validProtectedDigest(r.SupersedesDigest) {
 		return fieldError(ErrInvalidValidation, "supersedes_digest", errors.New("successor requires predecessor digest"))
 	}
-	if r.CanonicalDigest != "" && r.CanonicalDigest != r.digest() {
+	digest, err := r.digest()
+	if err != nil {
+		return fieldError(ErrInvalidValidation, "canonical_digest", err)
+	}
+	if r.CanonicalDigest != "" && r.CanonicalDigest != digest {
 		return fieldError(ErrInvalidValidation, "canonical_digest", errors.New("digest mismatch"))
 	}
 	return nil
 }
 
 type ValidationException struct {
-	ApprovedBy      string
+	ApprovedBy      *trust.Principal
 	ApprovedAt      time.Time
 	ReasonDigest    string
 	CanonicalDigest string
 }
 
 func (e ValidationException) Validate() error {
-	if strings.TrimSpace(e.ApprovedBy) == "" || e.ApprovedAt.IsZero() || !validProtectedDigest(e.ReasonDigest) {
+	if e.ApprovedBy == nil || e.ApprovedAt.IsZero() || !validProtectedDigest(e.ReasonDigest) {
 		return fieldError(ErrExceptionRequired, "exception", errors.New("approver, instant and reason digest are required"))
 	}
-	if e.CanonicalDigest != "" && e.CanonicalDigest != e.digest() {
+	digest, err := e.digest()
+	if err != nil {
+		return fieldError(ErrExceptionRequired, "exception_digest", err)
+	}
+	if e.CanonicalDigest != "" && e.CanonicalDigest != digest {
 		return fieldError(ErrExceptionRequired, "exception_digest", errors.New("digest mismatch"))
 	}
 	return nil
 }
 
-func (e ValidationException) digest() string {
+func (e ValidationException) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.ValidationException", securityControlSchemaVersion).
-		String("approved_by", e.ApprovedBy).Int("approved_at", e.ApprovedAt.UnixNano()).String("reason_digest", e.ReasonDigest)
-	return canonicalbytes.Digest(mustBytes(w))
+		String("approved_by", e.ApprovedBy.Fingerprint()).Int("approved_at", e.ApprovedAt.UnixNano()).String("reason_digest", e.ReasonDigest)
+	return w.Digest()
 }
 
 // ReleaseBinding is the payment-release aggregate. It binds a destination to
@@ -472,9 +504,20 @@ func NewReleaseBinding(destination Destination, account ProtectedAccount, valida
 		if err := exception.Validate(); err != nil {
 			return ReleaseBinding{}, err
 		}
+		if validation.Result != ValidationPending {
+			return ReleaseBinding{}, fieldError(ErrExceptionRequired, "exception", errors.New("exceptions apply only to pending validation"))
+		}
 	}
-	b := ReleaseBinding{Destination: destination, Account: account, Validation: validation, Exception: cloneException(exception)}
-	b.CanonicalDigest = b.digest()
+	clonedException, err := cloneException(exception)
+	if err != nil {
+		return ReleaseBinding{}, fieldError(ErrExceptionRequired, "exception_digest", err)
+	}
+	b := ReleaseBinding{Destination: destination, Account: account, Validation: validation, Exception: clonedException}
+	digest, err := b.digest()
+	if err != nil {
+		return ReleaseBinding{}, err
+	}
+	b.CanonicalDigest = digest
 	return b, nil
 }
 
@@ -486,6 +529,9 @@ func (b ReleaseBinding) CanRelease() error {
 		return nil
 	}
 	if b.Exception == nil {
+		return ErrValidationRequired
+	}
+	if b.Validation.Result != ValidationPending {
 		return ErrValidationRequired
 	}
 	return nil
@@ -506,7 +552,11 @@ func (b ReleaseBinding) Validate() error {
 			return err
 		}
 	}
-	if b.CanonicalDigest == "" || b.CanonicalDigest != b.digest() {
+	digest, err := b.digest()
+	if err != nil {
+		return fieldError(ErrInvalidProtection, "canonical_digest", err)
+	}
+	if b.CanonicalDigest == "" || b.CanonicalDigest != digest {
 		return fieldError(ErrInvalidProtection, "canonical_digest", errors.New("digest mismatch"))
 	}
 	return nil
@@ -538,46 +588,46 @@ func InspectEgress(inspector *dlp.Inspector, payload []byte) (dlp.Inspection, er
 	return inspection, nil
 }
 
-func (r AccountValidationRecord) digest() string {
+func (r AccountValidationRecord) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.AccountValidationRecord", securityControlSchemaVersion).
 		String("method", r.Method).Int("validated_at", r.ValidatedAt.UnixNano()).String("result", string(r.Result)).
 		String("evidence_digest", r.EvidenceDigest).Int("revision", int64(r.Revision)).String("supersedes_digest", r.SupersedesDigest)
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
-func (b ReleaseBinding) digest() string {
+func (b ReleaseBinding) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.ReleaseBinding", securityControlSchemaVersion).
 		String("destination_digest", b.Destination.CanonicalDigest).String("account_digest", b.Account.CanonicalDigest).
 		String("validation_digest", b.Validation.CanonicalDigest)
 	if b.Exception == nil {
 		w.String("exception_digest", "")
 	} else {
-		w.String("exception_digest", b.Exception.digest())
+		digest, err := b.Exception.digest()
+		if err != nil {
+			return "", err
+		}
+		w.String("exception_digest", digest)
 	}
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
-func cloneException(in *ValidationException) *ValidationException {
+func cloneException(in *ValidationException) (*ValidationException, error) {
 	if in == nil {
-		return nil
+		return nil, nil
 	}
 	copy := *in
 	if copy.CanonicalDigest == "" {
-		copy.CanonicalDigest = copy.digest()
+		digest, err := copy.digest()
+		if err != nil {
+			return nil, err
+		}
+		copy.CanonicalDigest = digest
 	}
-	return &copy
+	return &copy, nil
 }
 
 func validProtectedDigest(value string) bool {
 	return len(value) == len("sha256:")+64 && strings.HasPrefix(value, "sha256:")
-}
-
-func mustBytes(w *canonicalbytes.Writer) []byte {
-	b, err := w.Bytes()
-	if err != nil {
-		return nil
-	}
-	return b
 }
 
 func contains(values []string, want string) bool {

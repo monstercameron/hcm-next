@@ -2,6 +2,7 @@ package tenant_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -209,5 +210,55 @@ func TestTodo_TENANT_002_Golden(t *testing.T) {
 	if got != want {
 		t.Logf("golden digest is %s (update the pinned constant if this is an intentional encoding change)", got)
 		t.Fatalf("golden vector digested to %s, want %s", got, want)
+	}
+}
+
+func TestBootstrapManifest_ValidateRejectsEachRequiredField(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*tenant.BootstrapManifest)
+		field  string
+	}{
+		{"manifest id", func(m *tenant.BootstrapManifest) { m.ManifestID = " " }, "manifest_id"},
+		{"tenant", func(m *tenant.BootstrapManifest) { m.Tenant = "" }, "tenant"},
+		{"cell", func(m *tenant.BootstrapManifest) { m.Cell = "\t" }, "cell"},
+		{"region", func(m *tenant.BootstrapManifest) { m.Region = "" }, "region"},
+		{"residency", func(m *tenant.BootstrapManifest) { m.ResidencyProfile = " " }, "residency_profile"},
+		{"isolation", func(m *tenant.BootstrapManifest) { m.IsolationTier = "" }, "isolation_tier"},
+		{"owner", func(m *tenant.BootstrapManifest) { m.OwnerRef = " " }, "owner_ref"},
+		{"creator", func(m *tenant.BootstrapManifest) { m.CreatedBy = "" }, "created_by"},
+		{"revision", func(m *tenant.BootstrapManifest) { m.Revision = 0 }, "revision"},
+		{"created at", func(m *tenant.BootstrapManifest) { m.CreatedAt = time.Time{} }, "created_at"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := manifest(t, tt.mutate)
+			err := m.Validate()
+			if !errors.Is(err, tenant.ErrInvalidBootstrapManifest) {
+				t.Fatalf("Validate error = %v, want ErrInvalidBootstrapManifest", err)
+			}
+			if !strings.Contains(err.Error(), tt.field) {
+				t.Fatalf("Validate error = %q, want field %q", err, tt.field)
+			}
+			if _, err := m.Digest(); !errors.Is(err, tenant.ErrInvalidBootstrapManifest) {
+				t.Fatalf("Digest error = %v, want ErrInvalidBootstrapManifest", err)
+			}
+		})
+	}
+}
+
+func TestResolveBootstrap_UsesCaseInsensitiveCurrentDigest(t *testing.T) {
+	m := manifest(t)
+	digest, err := m.Digest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := &tenant.BootstrapRecord{ManifestID: m.ManifestID, Revision: m.Revision, Digest: strings.ToUpper(digest)}
+	outcome, err := tenant.ResolveBootstrap(current, m)
+	if err != nil {
+		t.Fatalf("ResolveBootstrap: %v", err)
+	}
+	if outcome.Decision != tenant.BootstrapNoop || outcome.Digest != digest || outcome.Reason != "" {
+		t.Fatalf("outcome = %+v, want uppercase digest to be a clean NOOP", outcome)
 	}
 }

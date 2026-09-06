@@ -136,11 +136,9 @@ type Options struct {
 	// [NewCell] supplies [DurableProposalFacts] whenever the cell was
 	// composed with the execution database those facts live in.
 	//
-	// Nil is the pre-WF-RUN-027 composition: ExecuteIntent then falls back to
-	// presenting the caller-asserted approval reference, which
-	// internal/workflow/runtime.Start still honours for a caller that has
-	// supplied it no facts ports. A composition that can read the facts must
-	// set this.
+	// Nil is an incomplete composition: ExecuteIntent cannot start because
+	// internal/workflow/runtime.Start requires both durable fact ports. A
+	// composition that can read the facts must set this.
 	ExecutionFacts ExecutionFacts
 	// Evidence is where [IntentService.ExecuteIntent] records its
 	// OBS-024 GATE_REFUSED/GATE_ADMITTED evidence, through the same
@@ -180,8 +178,8 @@ type IntentService struct {
 	executionCellID    string
 	tenantUUID         func(values.TenantId) uuid.UUID
 	// executionFacts is WF-RUN-027's durable approval/supersession reader.
-	// Nil leaves [IntentService.executionStart] on the deprecated
-	// caller-asserted approval reference.
+	// Nil makes [IntentService.executionStart] produce a request that
+	// runtime.Start refuses because no durable facts source is available.
 	executionFacts ExecutionFacts
 	// evidence is OBS-024's GATE_REFUSED/GATE_ADMITTED recorder.
 	// [IntentService.ExecuteIntent] is the only reader.

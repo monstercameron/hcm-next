@@ -314,6 +314,13 @@ func executionFactsFor(cfg CellConfig) ExecutionFacts {
 	return DurableProposalFacts{}
 }
 
+func executionFactsForConfig(cfg CellConfig) ExecutionFacts {
+	if cfg.ExecutionFacts != nil {
+		return cfg.ExecutionFacts
+	}
+	return executionFactsFor(cfg)
+}
+
 // proposalFactsOf and approvalFactsOf project an [ExecutionFacts] onto the two
 // ports runtime.StartRequest declares separately, mapping a nil pair onto two
 // nil ports rather than onto two non-nil interfaces wrapping a nil value.

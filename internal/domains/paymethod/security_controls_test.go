@@ -187,7 +187,7 @@ func TestTodo_SECARCH_014_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	exception := &ValidationException{ApprovedBy: "risk-officer", ApprovedAt: time.Unix(101, 0).UTC(), ReasonDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+	exception := &ValidationException{ApprovedBy: authorizationPrincipal(t, validation.ValidatedAt), ApprovedAt: time.Unix(101, 0).UTC(), ReasonDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
 	binding, err := NewReleaseBinding(destination, account, validation, exception)
 	if err != nil || binding.CanRelease() != nil {
 		t.Fatalf("approved exception binding=%+v err=%v release=%v", binding, err, binding.CanRelease())
@@ -203,5 +203,58 @@ func TestTodo_SECARCH_014_Mutation(t *testing.T) {
 	record.Result = ValidationFailed
 	if err := record.Validate(); err == nil || record.CanonicalDigest != before {
 		t.Fatalf("validation record was mutable without a new digest: %+v err=%v", record, err)
+	}
+}
+
+func TestPayMethodValidationExceptionRequiresAuthenticatedPendingApproval(t *testing.T) {
+	destination := validDestination(t, "exception-destination")
+	account, err := NewProtectedAccount(StorageTokenized, "token:exception", "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	pending, err := NewValidationRecord("MICRO_DEPOSIT", at, ValidationPending, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := (&ValidationException{ApprovedAt: at, ReasonDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}).Validate(); !errors.Is(err, ErrExceptionRequired) {
+		t.Fatalf("unbound exception error = %v", err)
+	}
+	exception := &ValidationException{ApprovedBy: authorizationPrincipal(t, at), ApprovedAt: at, ReasonDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+	if err := exception.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	binding, err := NewReleaseBinding(destination, account, pending, exception)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := binding.CanRelease(); err != nil || binding.Validate() != nil || binding.CanonicalDigest == "" {
+		t.Fatalf("pending exception binding=%+v release=%v validate=%v", binding, err, binding.Validate())
+	}
+	failed, err := NewValidationRecord("MICRO_DEPOSIT", at, ValidationFailed, pending.EvidenceDigest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewReleaseBinding(destination, account, failed, exception); !errors.Is(err, ErrExceptionRequired) {
+		t.Fatalf("failed-validation exception error = %v", err)
+	}
+}
+
+func TestPayMethodChangeAliasesAndReleaseBoundary(t *testing.T) {
+	request := paymethodChangeRequest(t)
+	dispatcher := &paymethodConfirmationDispatcher{}
+	started, err := NewBankDetailChange(request, paymethodContactSource{endpoint: paymethodContact(t)}, dispatcher)
+	if err != nil {
+		t.Fatal(err)
+	}
+	confirmed, err := started.ConfirmOutOfBand(started.RequestedAt.Add(time.Hour), "sha256:3333333333333333333333333333333333333333333333333333333333333333")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := confirmed.ReleaseAllowed(confirmed.AvailableAt); err != nil {
+		t.Fatalf("ReleaseAllowed error = %v", err)
+	}
+	if err := started.ReleaseAllowed(started.RequestedAt.Add(48 * time.Hour)); !errors.Is(err, ErrChangeNotAvailable) {
+		t.Fatalf("unconfirmed ReleaseAllowed error = %v", err)
 	}
 }

@@ -270,3 +270,178 @@ func TestTodo_ACCESS_002_DeterministicAcrossGoroutines(t *testing.T) {
 	}
 	_ = sort.Strings
 }
+
+func TestEntitlementDerivation_CanonicalAndExplanationBoundaries(t *testing.T) {
+	request := derivationRequest(t)
+	calculation, err := access.CalculateExpectedEntitlements(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if calculation.Digest() == "" || len(calculation.Canonical()) == 0 || calculation.Digest() != calculation.CanonicalDigest {
+		t.Fatalf("calculation canonical evidence = %#v", calculation)
+	}
+	if calculation.Explain().ExpectedCount != len(calculation.Expected) || access.ExplainExpectedEntitlements(calculation).CanonicalDigest != calculation.Digest() {
+		t.Fatalf("explanation = %#v", calculation.Explain())
+	}
+	if (access.ExpectedEntitlementCalculation{}).Canonical() != nil {
+		t.Fatal("invalid calculation has canonical bytes")
+	}
+	for _, basis := range []access.EntitlementBasisRef{{Kind: "policy", Ref: "policy@1"}, {Kind: "employment", Ref: "employment-1"}} {
+		if len(basis.Canonical()) == 0 {
+			t.Fatalf("valid basis has no canonical bytes: %#v", basis)
+		}
+	}
+	for _, basis := range []access.EntitlementBasisRef{{}, {Kind: "policy"}, {Ref: "policy@1"}} {
+		if basis.Canonical() != nil {
+			t.Fatalf("invalid basis has canonical bytes: %#v", basis)
+		}
+	}
+	alias, err := access.DeriveExpectedEntitlements(request)
+	if err != nil || alias.Digest() != calculation.Digest() {
+		t.Fatalf("derive alias = %#v, %v", alias, err)
+	}
+}
+
+func TestCalculateExpectedEntitlements_RejectsMalformedGovernedInputs(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*access.EntitlementDerivationRequest)
+		want   error
+	}{
+		{"invalid graph", func(r *access.EntitlementDerivationRequest) { r.Graph = access.Graph{} }, access.ErrInvalidGraph},
+		{"invalid as of", func(r *access.EntitlementDerivationRequest) { r.AsOf = values.Instant{} }, access.ErrInvalidDerivation},
+		{"graph observation", func(r *access.EntitlementDerivationRequest) {
+			r.Graph.Observations = []access.ExternalAccessObservation{{ID: "observation"}}
+		}, access.ErrObservationMutation},
+		{"request observation", func(r *access.EntitlementDerivationRequest) {
+			r.Observations = []access.ExternalAccessObservation{{ID: "observation"}}
+		}, access.ErrObservationInput},
+		{"missing revision", func(r *access.EntitlementDerivationRequest) { r.Revision = values.RevisionToken{} }, access.ErrInvalidDerivation},
+		{"missing known at", func(r *access.EntitlementDerivationRequest) { r.KnownAt = values.KnownAt{} }, access.ErrInvalidDerivation},
+		{"invalid provenance", func(r *access.EntitlementDerivationRequest) { r.Provenance = evidence.Provenance{} }, access.ErrInvalidDerivation},
+		{"knowledge order", func(r *access.EntitlementDerivationRequest) {
+			r.KnownAt, _ = values.NewKnownAt(derivationInstant(t, "2026-09-02T00:00:00Z"))
+		}, access.ErrInvalidDerivation},
+		{"employment missing ref", func(r *access.EntitlementDerivationRequest) { r.Employment[0].Ref = "" }, access.ErrInvalidDerivation},
+		{"employment missing identity", func(r *access.EntitlementDerivationRequest) { r.Employment[0].WorkforceIdentityID = "" }, access.ErrInvalidDerivation},
+		{"employment unknown identity", func(r *access.EntitlementDerivationRequest) { r.Employment[0].WorkforceIdentityID = "missing" }, access.ErrMissingGovernedFact},
+		{"employment invalid interval", func(r *access.EntitlementDerivationRequest) { r.Employment[0].Effective = values.EffectiveInterval{} }, access.ErrInvalidDerivation},
+		{"duplicate employment", func(r *access.EntitlementDerivationRequest) { r.Employment = append(r.Employment, r.Employment[0]) }, access.ErrInvalidDerivation},
+		{"position missing ref", func(r *access.EntitlementDerivationRequest) { r.Positions[0].Ref = "" }, access.ErrInvalidDerivation},
+		{"position missing identity", func(r *access.EntitlementDerivationRequest) { r.Positions[0].WorkforceIdentityID = "" }, access.ErrInvalidDerivation},
+		{"position missing position id", func(r *access.EntitlementDerivationRequest) { r.Positions[0].PositionID = "" }, access.ErrInvalidDerivation},
+		{"position unknown identity", func(r *access.EntitlementDerivationRequest) { r.Positions[0].WorkforceIdentityID = "missing" }, access.ErrMissingGovernedFact},
+		{"position invalid interval", func(r *access.EntitlementDerivationRequest) { r.Positions[0].Effective = values.EffectiveInterval{} }, access.ErrInvalidDerivation},
+		{"duplicate position", func(r *access.EntitlementDerivationRequest) { r.Positions = append(r.Positions, r.Positions[0]) }, access.ErrInvalidDerivation},
+		{"policy missing id", func(r *access.EntitlementDerivationRequest) { r.Policies[0].ID = "" }, access.ErrInvalidDerivationPolicy},
+		{"policy missing version", func(r *access.EntitlementDerivationRequest) { r.Policies[0].Version = "" }, access.ErrInvalidDerivationPolicy},
+		{"policy unknown entitlement", func(r *access.EntitlementDerivationRequest) { r.Policies[0].EntitlementID = "missing" }, access.ErrInvalidDerivationPolicy},
+		{"policy invalid effect", func(r *access.EntitlementDerivationRequest) { r.Policies[0].Effect = "UNKNOWN" }, access.ErrInvalidDerivationPolicy},
+		{"policy invalid interval", func(r *access.EntitlementDerivationRequest) { r.Policies[0].Effective = values.EffectiveInterval{} }, access.ErrInvalidDerivation},
+		{"duplicate policy", func(r *access.EntitlementDerivationRequest) { r.Policies = append(r.Policies, r.Policies[0]) }, access.ErrInvalidDerivationPolicy},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := derivationRequest(t)
+			tt.mutate(&req)
+			_, err := access.CalculateExpectedEntitlements(req)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestCalculateExpectedEntitlements_AllDecisionStatusesAndEffectiveSelection(t *testing.T) {
+	base := derivationRequest(t)
+	allow, err := access.CalculateExpectedEntitlements(base)
+	if err != nil || len(allow.Expected) != 1 || allow.Decisions[0].Status != access.DerivationExpected {
+		t.Fatalf("allow = %#v, %v", allow, err)
+	}
+	if allow.Decisions[0].OrgUnitRef != "org/engineering" || allow.Expected[0].AccountLinkID != "" {
+		// The fixture intentionally has no account link; org scope and the
+		// absence of a provisioned account are both meaningful outputs.
+		if allow.Decisions[0].OrgUnitRef != "org/engineering" || allow.Expected[0].AccountLinkID != "" {
+			t.Fatalf("selected basis/account = %#v / %#v", allow.Decisions[0], allow.Expected[0])
+		}
+	}
+
+	for _, tc := range []struct {
+		name     string
+		mutate   func(*access.EntitlementDerivationRequest)
+		status   access.DerivationStatus
+		expected int
+	}{
+		{"inactive identity", func(r *access.EntitlementDerivationRequest) {
+			r.Graph.Identities[0].Lifecycle = access.LifecycleRevoked
+		}, access.DerivationNotExpected, 0},
+		{"inactive entitlement", func(r *access.EntitlementDerivationRequest) {
+			r.Graph.Entitlements[0].Lifecycle = access.LifecycleRetired
+		}, access.DerivationNotExpected, 0},
+		{"conditional policy", func(r *access.EntitlementDerivationRequest) { r.Policies[0].Effect = access.AccessPolicyConditional }, access.DerivationConditional, 0},
+		{"no matching policy", func(r *access.EntitlementDerivationRequest) { r.Policies = nil }, access.DerivationNotExpected, 0},
+		{"expired policy", func(r *access.EntitlementDerivationRequest) {
+			r.Policies[0].Effective = derivationInterval(t, "2020-01-01T00:00:00Z", "2021-01-01T00:00:00Z")
+		}, access.DerivationNotExpected, 0},
+		{"missing required position", func(r *access.EntitlementDerivationRequest) { r.Positions = nil }, access.DerivationUnknown, 0},
+		{"deny dominates", func(r *access.EntitlementDerivationRequest) {
+			r.Policies = append(r.Policies, access.DeclaredAccessPolicy{ID: "deny", Version: "1", EntitlementID: "entitlement-github", Effect: access.AccessPolicyDeny, Effective: r.Policies[0].Effective})
+		}, access.DerivationNotExpected, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := base
+			req.Graph.Identities = append([]access.WorkforceIdentity(nil), base.Graph.Identities...)
+			req.Graph.Entitlements = append([]access.EntitlementDefinition(nil), base.Graph.Entitlements...)
+			req.Graph.Accounts = append([]access.AccountLink(nil), base.Graph.Accounts...)
+			req.Employment = append([]access.EmploymentPeriod(nil), base.Employment...)
+			req.Positions = append([]access.PositionAssignment(nil), base.Positions...)
+			req.Policies = append([]access.DeclaredAccessPolicy(nil), base.Policies...)
+			tc.mutate(&req)
+			got, err := access.CalculateExpectedEntitlements(req)
+			if err != nil || len(got.Decisions) != 1 || got.Decisions[0].Status != tc.status || len(got.Expected) != tc.expected {
+				t.Fatalf("result = %#v, %v", got, err)
+			}
+		})
+	}
+}
+
+func TestDiffExpectedEntitlements_GrantRevokeChangeAndValidation(t *testing.T) {
+	base, err := access.CalculateExpectedEntitlements(derivationRequest(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deltas, err := access.DiffExpectedEntitlements(nil, base); err != nil || len(deltas) != 1 || deltas[0].Kind != access.EntitlementGrant || deltas[0].After.ID == "" {
+		t.Fatalf("grant delta = %#v, %v", deltas, err)
+	}
+	empty := base
+	empty.Expected = nil
+	if deltas, err := access.DiffExpectedEntitlements(base.Expected, empty); err != nil || len(deltas) != 1 || deltas[0].Kind != access.EntitlementRevoke || deltas[0].Before.ID == "" {
+		t.Fatalf("revoke delta = %#v, %v", deltas, err)
+	}
+	if deltas, err := base.Diff(base.Expected); err != nil || len(deltas) != 0 {
+		t.Fatalf("equal delta = %#v, %v", deltas, err)
+	}
+	changed := base
+	changed.Expected = append([]access.ExpectedEntitlement(nil), base.Expected...)
+	changed.Expected[0].PolicyRef = "different-policy@2"
+	deltas, err := access.DiffExpectedEntitlements(base.Expected, changed)
+	if err != nil || len(deltas) != 2 || deltas[0].Kind != access.EntitlementRevoke || deltas[1].Kind != access.EntitlementGrant {
+		t.Fatalf("changed basis delta = %#v, %v", deltas, err)
+	}
+	if _, err := access.DiffExpectedEntitlements(nil, access.ExpectedEntitlementCalculation{}); !errors.Is(err, access.ErrInvalidEntitlementDelta) {
+		t.Fatalf("missing next digest = %v", err)
+	}
+	if _, err := access.DiffExpectedEntitlements([]access.ExpectedEntitlement{{}}, base); !errors.Is(err, access.ErrIncompleteRevision) {
+		t.Fatalf("invalid current edge = %v", err)
+	}
+	duplicate := append([]access.ExpectedEntitlement(nil), base.Expected...)
+	duplicate = append(duplicate, base.Expected[0])
+	if _, err := access.DiffExpectedEntitlements(duplicate, base); !errors.Is(err, access.ErrInvalidEntitlementDelta) {
+		t.Fatalf("duplicate current edge = %v", err)
+	}
+	duplicateNext := base
+	duplicateNext.Expected = duplicate
+	if _, err := access.DiffExpectedEntitlements(nil, duplicateNext); !errors.Is(err, access.ErrInvalidEntitlementDelta) {
+		t.Fatalf("duplicate calculated edge = %v", err)
+	}
+}

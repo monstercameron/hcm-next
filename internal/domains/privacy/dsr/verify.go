@@ -111,6 +111,13 @@ func (r DataSubjectRequest) Verify(ev IdentityEvidence) (DataSubjectRequest, err
 	if err := r.Validate(); err != nil {
 		return r, fmt.Errorf("dsr: cannot verify an invalid request: %w", err)
 	}
+	// Classify an expired proof explicitly before validating the evidence as a
+	// standalone record. IdentityEvidence.Validate must reject the same
+	// malformed interval, but Verify has a more useful refusal code for this
+	// request-time security decision.
+	if ev.ExpiresAt.IsSet() && !ev.VerifiedAt.Before(ev.ExpiresAt) {
+		return r.refused(ev.VerifiedAt, VerifyRefusedEvidenceExpired)
+	}
 	if err := ev.Validate(); err != nil {
 		return r.refused(ev.VerifiedAt, VerifyRefusedNoEvidence)
 	}

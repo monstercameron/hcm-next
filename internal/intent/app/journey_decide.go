@@ -125,9 +125,8 @@ func (e *journeyEngine) Execute(ctx context.Context, intentID string) (workspace
 // caller cannot invent one, and one recorded against a different digest is
 // refused as an approval-binding mismatch rather than accepted.
 //
-// A cell composed with no execution facts records nothing and admits the call
-// on the gate alone: it has no database to record into, and its Start is still
-// on the deprecated caller-asserted path.
+// A cell composed with no execution facts cannot start: it has no durable
+// source from which runtime.Start can derive approval and supersession facts.
 func (e *journeyEngine) admitExecution(
 	ctx context.Context, principal *trust.Principal, intentID string, artifact *intentsv1.SimulationArtifact,
 ) error {

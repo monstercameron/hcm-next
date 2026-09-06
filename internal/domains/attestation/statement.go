@@ -69,7 +69,7 @@ type IdentityAssuranceRef struct {
 // Validate reports whether the identity assurance ref is well-formed.
 func (i IdentityAssuranceRef) Validate() error {
 	if i.ID == "" {
-		return fmt.Errorf("%w", ErrStatementIDEmpty)
+		return fmt.Errorf("%w", ErrIdentityAssuranceEmpty)
 	}
 	if i.Kind == "" {
 		return fmt.Errorf("attestation: identity assurance kind is required")

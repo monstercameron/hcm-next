@@ -136,7 +136,8 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 		return nil, ownedErr
 	}
 
-	if s.executor == nil || s.executionResolver == nil || s.executionVersions == nil || s.tenantUUID == nil {
+	if s.executor == nil || s.executionResolver == nil || s.executionVersions == nil || s.tenantUUID == nil ||
+		s.executionFacts == nil {
 		return nil, executionUnavailable()
 	}
 
@@ -180,7 +181,7 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 // (see [IntentService.simulatePromotion]), so there is no stored revision to
 // load back here.
 func (s *IntentService) executionStart(
-	inst intent.Instance, artifact *intentsv1.SimulationArtifact, approvalRef string,
+	inst intent.Instance, artifact *intentsv1.SimulationArtifact, _ string,
 ) (runtime.StartRequest, *envelope.Error) {
 	materialDigest, digestErr := digest.FromProto(artifact.GetMaterialProposalDigest())
 	if digestErr != nil {
@@ -195,13 +196,10 @@ func (s *IntentService) executionStart(
 	if cellID == "" {
 		cellID = "cell-local"
 	}
-	// WF-RUN-027: the binding carries the revision and nothing else once this
-	// cell can read the facts. Approved/ApprovalRef/Superseded are the
-	// caller-asserted fallback runtime.Start honours only for a caller that
-	// supplied it no facts ports, and a cell composed with the execution
-	// database is not that caller: Start resolves both facts from
-	// intent_decision and intent_relationship itself, so an Execute presenting
-	// Approved=true with no recorded decision is refused
+	// WF-RUN-027: the binding carries the revision and nothing else. Start
+	// requires both durable-facts ports and resolves authorization and
+	// supersession from intent_decision and intent_relationship itself, so an
+	// Execute presenting Approved=true with no recorded decision is refused
 	// (runtime.CodeUnapprovedProposal -> reasonUnapprovedProposal) and a
 	// superseded revision is refused (runtime.CodeSupersededProposal) whatever
 	// the caller said.
@@ -225,10 +223,6 @@ func (s *IntentService) executionStart(
 		if effective, intervalErr := values.NewOpenInstantInterval(*inst.RequestedEffectiveAt); intervalErr == nil {
 			binding.Revision.EffectiveTime = effective
 		}
-	}
-	if s.executionFacts == nil {
-		binding.Approved = true
-		binding.ApprovalRef = approvalRef
 	}
 	return runtime.StartRequest{
 		TenantID:            s.tenantUUID(inst.Tenant),

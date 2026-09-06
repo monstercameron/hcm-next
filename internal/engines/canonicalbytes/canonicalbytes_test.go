@@ -148,3 +148,56 @@ func TestVersionAndExplainAreStable(t *testing.T) {
 		t.Fatalf("Explain() = %q, want it to name the digest algorithm %q", first, canonicalbytes.DigestAlgorithm)
 	}
 }
+
+type nilCanonicalizer struct{}
+
+func (nilCanonicalizer) Canonical() []byte { return nil }
+
+func TestWriter_AllPrimitivesAndFailureStateAreObservable(t *testing.T) {
+	w := canonicalbytes.New("schema", 7)
+	if w.Err() != nil {
+		t.Fatalf("new writer error = %v", w.Err())
+	}
+	if _, err := w.Field("", []byte("x")).String("ignored", "x").Bytes(); !errors.Is(err, canonicalbytes.ErrTagRequired) || !errors.Is(w.Err(), canonicalbytes.ErrTagRequired) {
+		t.Fatalf("empty tag error = %v, writer=%v", err, w.Err())
+	}
+	for _, value := range []bool{false, true} {
+		if _, err := canonicalbytes.New("schema", 1).Bool("flag", value).Bytes(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	forward := canonicalbytes.New("schema", 1).String("s", "text").Int("negative", -1).Int("positive", 3).Bool("flag", true).Count("items", 2)
+	if _, err := forward.Bytes(); err != nil {
+		t.Fatal(err)
+	}
+	bytes1, err := forward.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes1[0] ^= 0xff
+	bytes2, err := forward.Bytes()
+	if err != nil || bytes.Equal(bytes1, bytes2) {
+		t.Fatalf("Bytes did not return an independent copy: %v", err)
+	}
+	if got := canonicalbytes.Digest(bytes2); !strings.HasPrefix(got, canonicalbytes.DigestAlgorithm+":") {
+		t.Fatalf("raw digest = %q", got)
+	}
+	if _, err := canonicalbytes.New("schema", 1).Value("bad", nilCanonicalizer{}).Bytes(); !errors.Is(err, canonicalbytes.ErrUnencodable) {
+		t.Fatalf("nil canonical value = %v", err)
+	}
+	inner := canonicalbytes.New("inner", 1).String("x", "y")
+	outer := canonicalbytes.New("outer", 1).Nested("child", inner)
+	if _, err := outer.Bytes(); err != nil {
+		t.Fatalf("valid nested writer = %v", err)
+	}
+	values := []string{"z", "a", "m"}
+	if _, err := canonicalbytes.New("schema", 1).SortedStrings("set", values).Bytes(); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal([]byte(strings.Join(values, ",")), []byte("z,a,m")) {
+		t.Fatalf("SortedStrings mutated input: %v", values)
+	}
+	if _, err := canonicalbytes.New("schema", 1).Optional("missing", false, nilCanonicalizer{}).Bytes(); err != nil {
+		t.Fatalf("absent optional = %v", err)
+	}
+}

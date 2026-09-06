@@ -16,6 +16,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
 	"github.com/monstercameron/hcm-next/internal/experience/preferences"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent"
@@ -98,6 +99,9 @@ type CellConfig struct {
 	// about internal/humanwork/workspace.Options.DevBrowserLogin - this
 	// package must not import anything transport-shaped to state it.
 	DevBrowserLogin bool
+	// DevPersonas are immutable server-issued identities for the explicitly
+	// enabled local browser login surface.
+	DevPersonas []workspace.DevPersona
 	// Evidence is the sink every decision this cell records lands on: the
 	// capability gateway's invocation/refusal evidence (CAP-002),
 	// ExecuteIntent's GATE_ADMITTED/GATE_REFUSED entries (OBS-024) and the
@@ -121,6 +125,9 @@ type CellConfig struct {
 	// for non-workspace compositions; the product RPC reports UNAVAILABLE
 	// when omitted rather than silently falling back to browser storage.
 	Preferences preferences.Store
+	// RoleAccess owns tenant-configurable role definitions, employee role
+	// assignments, and per-role organization-directory boundaries.
+	RoleAccess roleaccess.Store
 	// WorkerIDs owns organization-scoped worker-number policy and atomic
 	// reservations. Nil keeps legacy UUID-derived numbers for non-workspace
 	// compositions.
@@ -168,6 +175,11 @@ type CellConfig struct {
 	// database at all, and the journey engine needs one to read back what the
 	// driver wrote. Nil leaves [Cell.Journey] nil.
 	ExecutionDB dbport.Beginner
+	// ExecutionFacts optionally supplies a composition-time fact source for
+	// execution. Production compositions leave this nil so NewCell derives
+	// DurableProposalFacts from ExecutionDB; an explicit source is useful for
+	// a non-durable composition test and is never populated from a request.
+	ExecutionFacts ExecutionFacts
 	// ExecutionApprover is the principal id the one approval WorkItem this
 	// cell's promotion workflow raises is routed to, and therefore the
 	// principal the journey engine records the decision as. Empty means
@@ -226,6 +238,7 @@ type Cell struct {
 	// transport-shaped composition of its own.
 	Telemetry   *hcmotel.Provider
 	Preferences preferences.Store
+	RoleAccess  roleaccess.Store
 	WorkerIDs   workerids.Store
 
 	// Journey is the live Promotion-journey engine the workspace's journey
@@ -256,6 +269,7 @@ type Cell struct {
 	// is enabled. Same reasoning as workspaceEnabled: fixed at composition,
 	// read through [Cell.DevBrowserLogin].
 	devBrowserLogin bool
+	devPersonas     []workspace.DevPersona
 }
 
 // NewCell composes a cell.
@@ -406,9 +420,8 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		// bound proposal revision's approval decisions and supersession from
 		// migration 00024's own rows rather than from the approval flags its
 		// caller presented. A cell composed without that database has nowhere
-		// to read those facts from and stays on the deprecated caller-asserted
-		// path, which internal/workflow/runtime.Start still honours.
-		ExecutionFacts: executionFactsFor(cfg),
+		// to read those facts from and cannot start an execution.
+		ExecutionFacts: executionFactsForConfig(cfg),
 		// OBS-024: GATE_REFUSED/GATE_ADMITTED land on the same evidence sink
 		// as every CAP-002 invocation/refusal, so Cell.Evidence reads both
 		// back from one place.
@@ -445,6 +458,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 
 		workspaceEnabled: workspaceEnabled,
 		devBrowserLogin:  cfg.DevBrowserLogin,
+		devPersonas:      append([]workspace.DevPersona(nil), cfg.DevPersonas...),
 
 		Service:      svc,
 		Definitions:  defs,
@@ -462,6 +476,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		Discovery:    discovery,
 		Telemetry:    cfg.Telemetry,
 		Preferences:  cfg.Preferences,
+		RoleAccess:   cfg.RoleAccess,
 		Config: transport.Config{
 			Verifier:    cfg.Verifier,
 			Audience:    cfg.Audience,
@@ -584,3 +599,9 @@ func (c *Cell) WorkspaceEnabled() bool { return c.workspaceEnabled }
 // made while the cell was composed. internal/transport/cell reads it when
 // building the workspace handler, the same way it reads WorkspaceEnabled.
 func (c *Cell) DevBrowserLogin() bool { return c.devBrowserLogin }
+
+// DevPersonas returns a copy of the local-development identities composed for
+// the workspace. Production compositions leave this empty.
+func (c *Cell) DevPersonas() []workspace.DevPersona {
+	return append([]workspace.DevPersona(nil), c.devPersonas...)
+}

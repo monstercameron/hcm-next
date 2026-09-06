@@ -2,6 +2,7 @@ package tenant_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/domains/tenant"
@@ -115,5 +116,84 @@ func TestPlacementSignatureAndDigestAreIndependent(t *testing.T) {
 	}
 	if err := tenant.Verify(p, placementKey); !errors.Is(err, tenant.ErrInvalidSignature) {
 		t.Fatalf("tampered signature error = %v, want ErrInvalidSignature", err)
+	}
+}
+
+func TestPlacement_ValidateRejectsEachRequiredField(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*tenant.Placement)
+		field  string
+	}{
+		{"tenant", func(p *tenant.Placement) { p.Tenant = "" }, "tenant"},
+		{"cell", func(p *tenant.Placement) { p.Cell = "" }, "cell"},
+		{"region", func(p *tenant.Placement) { p.Region = "" }, "region"},
+		{"residency", func(p *tenant.Placement) { p.ResidencyProfile = "" }, "residency_profile"},
+		{"isolation", func(p *tenant.Placement) { p.IsolationTier = "" }, "isolation_tier"},
+		{"epoch", func(p *tenant.Placement) { p.Epoch = 0 }, "epoch"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := validPlacement()
+			tt.mutate(&p)
+			err := p.Validate()
+			if !errors.Is(err, tenant.ErrInvalidPlacement) || !strings.Contains(err.Error(), tt.field) {
+				t.Fatalf("Validate error = %v, want ErrInvalidPlacement mentioning %q", err, tt.field)
+			}
+			if _, err := tenant.Sign(p, placementKey); !errors.Is(err, tenant.ErrInvalidPlacement) {
+				t.Fatalf("Sign error = %v, want ErrInvalidPlacement", err)
+			}
+		})
+	}
+}
+
+func TestPlacement_VerifyRejectsMissingMalformedAndWrongLengthSignatures(t *testing.T) {
+	p := validPlacement()
+	for _, signature := range []string{"", "not-hex", "00"} {
+		t.Run(signature, func(t *testing.T) {
+			candidate := p
+			candidate.Signature = signature
+			if err := tenant.Verify(candidate, placementKey); !errors.Is(err, tenant.ErrInvalidSignature) {
+				t.Fatalf("Verify(%q) = %v, want ErrInvalidSignature", signature, err)
+			}
+		})
+	}
+}
+
+func TestPlacement_MatchesRejectsEveryContextDifference(t *testing.T) {
+	a := validPlacement()
+	for _, tt := range []struct {
+		name   string
+		mutate func(*tenant.Placement)
+	}{
+		{"tenant", func(p *tenant.Placement) { p.Tenant = "tenant-b" }},
+		{"cell", func(p *tenant.Placement) { p.Cell = "cell-west" }},
+		{"region", func(p *tenant.Placement) { p.Region = "eu-west" }},
+		{"residency", func(p *tenant.Placement) { p.ResidencyProfile = "eu-only" }},
+		{"isolation", func(p *tenant.Placement) { p.IsolationTier = "shared" }},
+		{"epoch", func(p *tenant.Placement) { p.Epoch++ }},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			b := a
+			tt.mutate(&b)
+			if a.Matches(b) || b.Matches(a) {
+				t.Fatalf("Matches treated %s difference as equal: a=%+v b=%+v", tt.name, a, b)
+			}
+		})
+	}
+}
+
+func TestPlacement_CheckContextRejectsInvalidAuthoritativePlacement(t *testing.T) {
+	a, err := tenant.Sign(validPlacement(), placementKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Signature = "bad"
+	b, err := tenant.Sign(validPlacement(), placementKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := tenant.CheckContext(a, b, placementKey); !errors.Is(err, tenant.ErrInvalidSignature) {
+		t.Fatalf("CheckContext = %v, want ErrInvalidSignature", err)
 	}
 }

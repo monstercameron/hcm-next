@@ -1,6 +1,7 @@
 package achrisk
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -154,5 +155,84 @@ func TestTodo_SECARCH_016_Mutation(t *testing.T) {
 	}
 	if assessment.CanonicalDigest != before || assessment.Disposition != nil || dispositioned.CanonicalDigest == before {
 		t.Fatalf("assessment mutated: original=%+v next=%+v", assessment, dispositioned)
+	}
+}
+
+func TestACHRiskMetadataAliasesAndPolicyBoundaries(t *testing.T) {
+	if Version() != 1 || Explain() == "" || DefaultPolicy().Validate() != nil {
+		t.Fatalf("metadata or default policy invalid: version=%d explain=%q", Version(), Explain())
+	}
+	if _, err := NewPolicy(PolicyConfig{RuleVersion: "bad", AmountThresholdMinor: -1}); !errors.Is(err, ErrInvalidPolicy) {
+		t.Fatalf("invalid policy error = %v", err)
+	}
+	for _, tc := range []struct {
+		name        string
+		participant ParticipantType
+		volume      int64
+		consumer    bool
+		applicable  bool
+		phase       string
+	}{
+		{"consumer originator excluded", Originator, 7000000, true, false, ""},
+		{"phase one originator", Originator, 6000000, false, true, "PHASE_1"},
+		{"phase two rdfi", ReceivingDepository, 1, false, true, "PHASE_2"},
+		{"phase one rdfi", ReceivingDepository, 10000000, false, true, "PHASE_1"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			deadline, err := ResolveDeadline(tc.participant, tc.volume, tc.consumer)
+			if err != nil || deadline.Applicable != tc.applicable || deadline.Phase != tc.phase {
+				t.Fatalf("deadline=%+v err=%v", deadline, err)
+			}
+			alias, err := ResolveNacha2026Deadline(tc.participant, tc.volume, tc.consumer)
+			if err != nil || alias != deadline {
+				t.Fatalf("deadline alias=%+v err=%v", alias, err)
+			}
+		})
+	}
+	if _, err := ResolveDeadline(ParticipantType("unknown"), 0, false); !errors.Is(err, ErrUnknownParticipant) {
+		t.Fatalf("unknown participant error = %v", err)
+	}
+	if _, err := ResolveDeadline(Originator, -1, false); !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("negative volume error = %v", err)
+	}
+}
+
+func TestACHRiskEvaluationInputAndDispositionBoundaries(t *testing.T) {
+	base := achRiskInput(t)
+	for _, mutate := range []func(*EvaluationInput){
+		func(in *EvaluationInput) { in.TenantID = "" },
+		func(in *EvaluationInput) { in.Signals.AmountMinor = -1 },
+		func(in *EvaluationInput) { in.Signals.OperatorRisk = 101 },
+		func(in *EvaluationInput) {
+			in.Signals.PayrollChange = true
+			in.PaymentDestinationChange = nil
+			in.DestinationChangeDigest = ""
+		},
+	} {
+		input := base
+		mutate(&input)
+		if _, err := DefaultPolicy().Score(input); !errors.Is(err, ErrInvalidInput) {
+			t.Fatalf("invalid input error = %v", err)
+		}
+	}
+	assessment, err := DefaultPolicy().Score(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	alias, err := DefaultPolicy().Evaluate(base)
+	if err != nil || alias.CanonicalDigest != assessment.CanonicalDigest {
+		t.Fatalf("score alias=%+v evaluate=%+v err=%v", assessment, alias, err)
+	}
+	if _, err := assessment.RecordInvestigatorDisposition(DispositionInput{Investigator: "", Outcome: DispositionCleared, RecordedAt: assessment.EvaluatedAt, NotesDigest: "sha256:" + strings.Repeat("a", 64)}); !errors.Is(err, ErrInvalidDisposition) {
+		t.Fatalf("invalid disposition error = %v", err)
+	}
+	dispositioned, err := assessment.RecordInvestigatorDisposition(DispositionInput{Investigator: "investigator", Outcome: DispositionConfirmedFraud, RecordedAt: assessment.EvaluatedAt.Add(time.Minute), NotesDigest: "sha256:" + strings.Repeat("b", 64)})
+	if err != nil || dispositioned.Disposition == nil || dispositioned.Disposition.Outcome != DispositionConfirmedFraud {
+		t.Fatalf("dispositioned=%+v err=%v", dispositioned, err)
+	}
+	mutated := dispositioned
+	mutated.Disposition.Outcome = Disposition("UNKNOWN")
+	if err := mutated.Validate(); !errors.Is(err, ErrInvalidDisposition) {
+		t.Fatalf("unknown disposition error = %v", err)
 	}
 }

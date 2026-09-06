@@ -64,3 +64,19 @@ func TestErrors_ErrorsIs(t *testing.T) {
 		t.Fatalf("ErrSchemaMismatch Error empty")
 	}
 }
+
+func TestErrors_ErrorFormatsAndUnwrapsCause(t *testing.T) {
+	err := newError("encode", "proposal.id", ErrSchemaMismatch, "got %s", "other")
+	if !errors.Is(err, ErrSchemaMismatch) || err.Unwrap() != ErrSchemaMismatch {
+		t.Fatalf("error cause = %v", err.Unwrap())
+	}
+	if got := err.Error(); got == "" || got != `encode: canonical: schema mismatch at "proposal.id": got other` {
+		t.Fatalf("formatted error = %q", got)
+	}
+	if got := (&Error{Cause: ErrInvalidProfile}).Error(); got != ErrInvalidProfile.Error() {
+		t.Fatalf("cause-only error = %q", got)
+	}
+	if got := (&Error{Path: "field", Cause: ErrInvalidProfile}).Error(); got != `canonical: invalid profile at "field"` {
+		t.Fatalf("path-only error = %q", got)
+	}
+}

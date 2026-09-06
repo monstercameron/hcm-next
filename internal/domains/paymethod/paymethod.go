@@ -966,6 +966,8 @@ func (c *InMemoryCatalog) RecordChange(change DestinationChange) error {
 		return fmt.Errorf("%w: change is not based on the current destination", ErrInvalidDestination)
 	}
 	c.changes = append(c.changes, change)
+	destination.CanonicalDigest = change.ProposedDigest
+	c.destinations[change.DestinationID] = destination
 	return nil
 }
 

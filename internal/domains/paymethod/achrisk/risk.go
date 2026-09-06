@@ -286,7 +286,11 @@ func (p Policy) Evaluate(input EvaluationInput) (RiskAssessment, error) {
 	score, count := p.score(input.Signals)
 	decision, threshold := decide(score, p.config)
 	assessment := RiskAssessment{TenantID: input.TenantID, Participant: input.Participant, RuleVersion: p.config.RuleVersion, Score: score, Decision: decision, Threshold: threshold, SignalCount: count, DestinationChangeDigest: input.DestinationChangeDigest, Deadline: deadline, EvaluatedAt: input.EvaluatedAt.UTC(), Revision: 1}
-	assessment.CanonicalDigest = assessment.digest()
+	assessmentDigest, err := assessment.digest()
+	if err != nil {
+		return RiskAssessment{}, fmt.Errorf("%w: assessment digest: %v", ErrInvalidInput, err)
+	}
+	assessment.CanonicalDigest = assessmentDigest
 	return assessment, nil
 }
 
@@ -384,12 +388,20 @@ func (a RiskAssessment) RecordDisposition(input DispositionInput) (RiskAssessmen
 		return RiskAssessment{}, fmt.Errorf("%w: investigator, outcome, instant and notes digest are required", ErrInvalidDisposition)
 	}
 	d := InvestigatorDisposition{Investigator: input.Investigator, Outcome: input.Outcome, RecordedAt: input.RecordedAt.UTC(), NotesDigest: input.NotesDigest}
-	d.CanonicalDigest = d.digest()
+	digest, err := d.digest()
+	if err != nil {
+		return RiskAssessment{}, fmt.Errorf("%w: disposition digest: %v", ErrInvalidDisposition, err)
+	}
+	d.CanonicalDigest = digest
 	next := a
 	next.Revision++
 	next.SupersedesDigest = a.CanonicalDigest
 	next.Disposition = &d
-	next.CanonicalDigest = next.digest()
+	nextDigest, err := next.digest()
+	if err != nil {
+		return RiskAssessment{}, fmt.Errorf("%w: assessment digest: %v", ErrInvalidInput, err)
+	}
+	next.CanonicalDigest = nextDigest
 	return next, nil
 }
 
@@ -408,7 +420,11 @@ func (a RiskAssessment) Validate() error {
 	if a.Disposition != nil && !validDisposition(*a.Disposition) {
 		return ErrInvalidDisposition
 	}
-	if a.CanonicalDigest == "" || a.CanonicalDigest != a.digest() {
+	digest, err := a.digest()
+	if err != nil {
+		return fmt.Errorf("%w: assessment digest: %v", ErrInvalidInput, err)
+	}
+	if a.CanonicalDigest == "" || a.CanonicalDigest != digest {
 		return fmt.Errorf("%w: assessment digest mismatch", ErrInvalidInput)
 	}
 	return nil
@@ -424,7 +440,7 @@ func Explain() string {
 	return "achrisk: versioned amount/velocity/destination-age/operator/device/timing/payroll-change scoring with immutable disposition evidence and Nacha 2026 participant deadlines"
 }
 
-func (a RiskAssessment) digest() string {
+func (a RiskAssessment) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.achrisk.RiskAssessment", schemaVersion).
 		String("tenant_id", a.TenantID).String("participant", string(a.Participant)).String("rule_version", a.RuleVersion).
 		Int("score", int64(a.Score)).String("decision", string(a.Decision)).Int("threshold", int64(a.Threshold)).
@@ -437,27 +453,20 @@ func (a RiskAssessment) digest() string {
 	} else {
 		w.String("disposition_digest", a.Disposition.CanonicalDigest)
 	}
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
-func (d InvestigatorDisposition) digest() string {
+func (d InvestigatorDisposition) digest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.paymethod.achrisk.InvestigatorDisposition", schemaVersion).
 		String("investigator", d.Investigator).String("outcome", string(d.Outcome)).Int("recorded_at", d.RecordedAt.UnixNano()).String("notes_digest", d.NotesDigest)
-	return canonicalbytes.Digest(mustBytes(w))
+	return w.Digest()
 }
 
 func validDisposition(d InvestigatorDisposition) bool {
-	return strings.TrimSpace(d.Investigator) != "" && !d.RecordedAt.IsZero() && validDigest(d.NotesDigest) && d.CanonicalDigest == d.digest()
+	digest, err := d.digest()
+	return strings.TrimSpace(d.Investigator) != "" && !d.RecordedAt.IsZero() && validDigest(d.NotesDigest) && err == nil && d.CanonicalDigest == digest
 }
 
 func validDigest(value string) bool {
 	return len(value) == len("sha256:")+64 && strings.HasPrefix(value, "sha256:")
-}
-
-func mustBytes(w *canonicalbytes.Writer) []byte {
-	b, err := w.Bytes()
-	if err != nil {
-		return nil
-	}
-	return b
 }

@@ -401,3 +401,389 @@ func TestTodo_SECARCH_024_Mutation(t *testing.T) {
 		t.Fatalf("pack was affected by source mutation: %v", err)
 	}
 }
+
+func TestGovauth_VocabulariesEvidenceAndTimelineBoundaries(t *testing.T) {
+	if Version() != 1 {
+		t.Fatalf("Version = %d, want 1", Version())
+	}
+	for _, program := range []Program{ProgramFedRAMP, ProgramGovRAMP, ProgramTXRAMP, ProgramFISMA, ProgramCJIS, ProgramFTI, ProgramCUI, ProgramMARSE} {
+		if !program.Valid() {
+			t.Fatalf("Program.Valid rejected %q", program)
+		}
+	}
+	if Program("not-declared").Valid() {
+		t.Fatal("Program.Valid accepted an undeclared value")
+	}
+	for _, status := range []AssessorStatus{AssessorPending, AssessorInProgress, AssessorAccepted, AssessorConditionallyAccepted, AssessorExpired, AssessorNotApplicable} {
+		if !status.Valid() {
+			t.Fatalf("AssessorStatus.Valid rejected %q", status)
+		}
+	}
+	if AssessorStatus("UNKNOWN").Valid() {
+		t.Fatal("AssessorStatus.Valid accepted an undeclared value")
+	}
+
+	if got := pointer("  artifact/ref  ", "owner").Reference(); got != "artifact/ref" {
+		t.Fatalf("ArtifactRef Reference = %q", got)
+	}
+	if got := (EvidencePointer{Ref: "  legacy/ref  "}).Reference(); got != "legacy/ref" {
+		t.Fatalf("Ref Reference = %q", got)
+	}
+	if got := (EvidencePointer{}).Reference(); got != "" {
+		t.Fatalf("empty Reference = %q", got)
+	}
+	validEvidence := pointer("artifact/evidence", "owner")
+	validEvidence.Digest = strings.Repeat("a", 64)
+	if err := validEvidence.Validate(); err != nil {
+		t.Fatalf("valid evidence = %v", err)
+	}
+	for _, tt := range []struct {
+		name   string
+		mutate func(*EvidencePointer)
+	}{
+		{"both aliases", func(e *EvidencePointer) { e.Ref = "legacy" }},
+		{"missing reference", func(e *EvidencePointer) { e.ArtifactRef = "" }},
+		{"missing owner", func(e *EvidencePointer) { e.Owner = "" }},
+		{"missing date", func(e *EvidencePointer) { e.Date = time.Time{} }},
+		{"non UTC date", func(e *EvidencePointer) { e.Date = time.Date(2026, 9, 5, 0, 0, 0, 0, time.FixedZone("EDT", -4*60*60)) }},
+		{"bad digest", func(e *EvidencePointer) { e.Digest = "not-a-digest" }},
+	} {
+		t.Run("evidence/"+tt.name, func(t *testing.T) {
+			e := validEvidence
+			tt.mutate(&e)
+			if err := e.Validate(); !errors.Is(err, ErrInvalidEvidence) {
+				t.Fatalf("Validate = %v, want ErrInvalidEvidence", err)
+			}
+		})
+	}
+
+	baseTimeline := fixture("tenant", "integration", ProgramFedRAMP).FedRAMP.Timeline
+	if err := baseTimeline.Validate(); err != nil {
+		t.Fatalf("valid timeline = %v", err)
+	}
+	if err := (FedRAMPTimeline{AsOf: baseTimeline.AsOf, NewCertificationCutoff: baseTimeline.NewCertificationCutoff, TwentyXAdoptionDate: baseTimeline.TwentyXAdoptionDate}).Validate(); !errors.Is(err, ErrTimelineRefusal) {
+		t.Fatalf("missing timeline source error = %v, want ErrTimelineRefusal", err)
+	}
+	for _, tt := range []struct {
+		name   string
+		mutate func(*FedRAMPTimeline)
+	}{
+		{"as of", func(t *FedRAMPTimeline) { t.AsOf = time.Time{} }},
+		{"cutoff", func(t *FedRAMPTimeline) { t.NewCertificationCutoff = time.Time{} }},
+		{"adoption", func(t *FedRAMPTimeline) { t.TwentyXAdoptionDate = time.Time{} }},
+		{"non UTC", func(t *FedRAMPTimeline) { t.AsOf = time.Date(2026, 9, 5, 0, 0, 0, 0, time.FixedZone("EDT", -4*60*60)) }},
+		{"cutoff before adoption", func(t *FedRAMPTimeline) { t.NewCertificationCutoff = t.TwentyXAdoptionDate.Add(-time.Nanosecond) }},
+	} {
+		t.Run("timeline/"+tt.name, func(t *testing.T) {
+			timeline := baseTimeline
+			tt.mutate(&timeline)
+			if err := timeline.Validate(); !errors.Is(err, ErrTimelineRefusal) {
+				t.Fatalf("Validate = %v, want ErrTimelineRefusal", err)
+			}
+		})
+	}
+}
+
+func TestControlInheritanceAndProcurementAnswer_ValidateEveryRequiredField(t *testing.T) {
+	control := ControlInheritanceReference{ControlID: "AC-2", InheritedFrom: "platform", Evidence: pointer("artifact/ac-2", "owner")}
+	if err := control.Validate(); err != nil {
+		t.Fatalf("valid control = %v", err)
+	}
+	for _, tt := range []struct {
+		name   string
+		mutate func(*ControlInheritanceReference)
+	}{
+		{"control id", func(r *ControlInheritanceReference) { r.ControlID = "" }},
+		{"inherited from", func(r *ControlInheritanceReference) { r.InheritedFrom = "" }},
+		{"evidence", func(r *ControlInheritanceReference) { r.Evidence = EvidencePointer{} }},
+	} {
+		t.Run("control/"+tt.name, func(t *testing.T) {
+			candidate := control
+			tt.mutate(&candidate)
+			if err := candidate.Validate(); err == nil || !errors.Is(err, ErrInvalidProfile) && !errors.Is(err, ErrInvalidEvidence) {
+				t.Fatalf("Validate = %v, want a declared validation sentinel", err)
+			}
+		})
+	}
+	if !questionValid(QuestionDataLocation) || questionValid(ProcurementQuestion("unknown")) {
+		t.Fatal("questionValid did not enforce QuestionnaireItems")
+	}
+	answer := ProcurementAnswer{Question: QuestionDataLocation, Answer: "assertion", Owner: "owner", Date: fixtureDate, ArtifactRef: "artifact/data"}
+	if err := answer.Validate(); err != nil {
+		t.Fatalf("valid procurement answer = %v", err)
+	}
+	for _, tt := range []struct {
+		name   string
+		mutate func(*ProcurementAnswer)
+	}{
+		{"unknown question", func(a *ProcurementAnswer) { a.Question = "unknown" }},
+		{"missing answer", func(a *ProcurementAnswer) { a.Answer = "" }},
+		{"missing owner", func(a *ProcurementAnswer) { a.Owner = "" }},
+		{"missing date", func(a *ProcurementAnswer) { a.Date = time.Time{} }},
+		{"non UTC date", func(a *ProcurementAnswer) {
+			a.Date = time.Date(2026, 9, 5, 0, 0, 0, 0, time.FixedZone("EDT", -4*60*60))
+		}},
+		{"missing artifact", func(a *ProcurementAnswer) { a.ArtifactRef = " " }},
+	} {
+		t.Run("answer/"+tt.name, func(t *testing.T) {
+			candidate := answer
+			tt.mutate(&candidate)
+			if err := candidate.Validate(); !errors.Is(err, ErrUnansweredQuestion) {
+				t.Fatalf("Validate = %v, want ErrUnansweredQuestion", err)
+			}
+		})
+	}
+}
+
+func TestFedRAMPPathRecord_ValidateRejectsEverySecurityRelevantField(t *testing.T) {
+	base := *fixture("tenant", "integration", ProgramFedRAMP).FedRAMP
+	if err := base.Validate(); err != nil {
+		t.Fatalf("valid FedRAMP record = %v", err)
+	}
+	tests := []struct {
+		name   string
+		mutate func(*FedRAMPPathRecord)
+		want   error
+	}{
+		{"path", func(r *FedRAMPPathRecord) { r.Path = "UNKNOWN" }, ErrInvalidFedRAMP},
+		{"package version", func(r *FedRAMPPathRecord) { r.PackageVersion = "" }, ErrInvalidFedRAMP},
+		{"monitoring evidence", func(r *FedRAMPPathRecord) { r.ContinuousMonitoringEvidence = nil }, ErrInvalidFedRAMP},
+		{"monitoring evidence invalid", func(r *FedRAMPPathRecord) { r.ContinuousMonitoringEvidence[0] = EvidencePointer{} }, ErrInvalidEvidence},
+		{"responsibility", func(r *FedRAMPPathRecord) { r.ResponsibilityStatement = "" }, ErrInvalidFedRAMP},
+		{"timeline", func(r *FedRAMPPathRecord) { r.Timeline.SourceArtifactRef = "" }, ErrTimelineRefusal},
+		{"REV5 after cutoff", func(r *FedRAMPPathRecord) { r.Path = FedRAMPRev5; r.Timeline.AsOf = r.Timeline.NewCertificationCutoff }, ErrTimelineRefusal},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			record := base
+			record.ContinuousMonitoringEvidence = append([]EvidencePointer(nil), base.ContinuousMonitoringEvidence...)
+			tt.mutate(&record)
+			if err := record.Validate(); !errors.Is(err, tt.want) {
+				t.Fatalf("Validate = %v, want %v", err, tt.want)
+			}
+		})
+	}
+	if err := (FedRAMPPathRecord{Path: FedRAMPRev5, PackageVersion: "v", ContinuousMonitoringEvidence: []EvidencePointer{pointer("artifact", "owner")}, ResponsibilityStatement: "ok", Timeline: FedRAMPTimeline{AsOf: fixtureDate, NewCertificationCutoff: fixtureDate.Add(time.Hour), TwentyXAdoptionDate: fixtureDate.Add(2 * time.Hour), SourceArtifactRef: "source"}}).Validate(); !errors.Is(err, ErrTimelineRefusal) {
+		t.Fatalf("cutoff-before-adoption nested error = %v, want ErrTimelineRefusal", err)
+	}
+}
+
+func TestCMSReferenceBlock_ValidateRejectsEveryRequiredField(t *testing.T) {
+	base := *cmsBlock()
+	if err := base.Validate(); err != nil {
+		t.Fatalf("valid CMS block = %v", err)
+	}
+	fields := []struct {
+		name   string
+		mutate func(*CMSReferenceBlock)
+	}{
+		{"MARS-E volume", func(c *CMSReferenceBlock) { c.MARSEVolume = "" }},
+		{"MARS-E version", func(c *CMSReferenceBlock) { c.MARSEVersion = "" }},
+		{"CMS ARS release", func(c *CMSReferenceBlock) { c.CMSARSRelease = "" }},
+		{"DUA", func(c *CMSReferenceBlock) { c.DUARef = "" }},
+		{"ISA", func(c *CMSReferenceBlock) { c.ISARef = "" }},
+		{"SSPP", func(c *CMSReferenceBlock) { c.SSPPRef = "" }},
+		{"privacy analysis", func(c *CMSReferenceBlock) { c.PrivacyAnalysisRef = "" }},
+		{"reviewer", func(c *CMSReferenceBlock) { c.ReviewedBy = "" }},
+		{"review date", func(c *CMSReferenceBlock) { c.ReviewedAt = time.Time{} }},
+		{"non UTC review date", func(c *CMSReferenceBlock) {
+			c.ReviewedAt = time.Date(2026, 9, 5, 0, 0, 0, 0, time.FixedZone("EDT", -4*60*60))
+		}},
+		{"inheritance", func(c *CMSReferenceBlock) { c.ControlInheritance = nil }},
+		{"invalid inheritance", func(c *CMSReferenceBlock) { c.ControlInheritance[0].ControlID = "" }},
+	}
+	for _, tt := range fields {
+		t.Run(tt.name, func(t *testing.T) {
+			block := base
+			block.ControlInheritance = append([]ControlInheritanceReference(nil), base.ControlInheritance...)
+			tt.mutate(&block)
+			if err := block.Validate(); !errors.Is(err, ErrInvalidCMS) && !errors.Is(err, ErrInvalidProfile) {
+				if !errors.Is(err, ErrInvalidEvidence) {
+					t.Fatalf("Validate = %v, want a CMS/profile/evidence sentinel", err)
+				}
+			}
+		})
+	}
+}
+
+func TestGovernmentAuthorizationProfile_ValidateRejectsRequiredFieldsAndConflicts(t *testing.T) {
+	base := fixture("tenant", "integration", ProgramGovRAMP)
+	cases := []struct {
+		name   string
+		mutate func(*GovernmentAuthorizationProfile)
+		want   error
+	}{
+		{"schema version", func(p *GovernmentAuthorizationProfile) { p.SchemaVersion = 99 }, ErrInvalidProfile},
+		{"revision", func(p *GovernmentAuthorizationProfile) { p.Revision = 0 }, ErrInvalidProfile},
+		{"revision/version mismatch", func(p *GovernmentAuthorizationProfile) { p.Version = 2 }, ErrInvalidProfile},
+		{"tenant", func(p *GovernmentAuthorizationProfile) { p.TenantID, p.TenantRef = "", "" }, ErrInvalidProfile},
+		{"integration", func(p *GovernmentAuthorizationProfile) { p.IntegrationID, p.IntegrationRef = "", "" }, ErrInvalidProfile},
+		{"boundary", func(p *GovernmentAuthorizationProfile) { p.SystemBoundary = " " }, ErrInvalidProfile},
+		{"assessor status", func(p *GovernmentAuthorizationProfile) { p.AssessorStatus = "UNKNOWN" }, ErrInvalidProfile},
+		{"review date", func(p *GovernmentAuthorizationProfile) { p.ReviewDate = time.Time{} }, ErrInvalidProfile},
+		{"non UTC review date", func(p *GovernmentAuthorizationProfile) {
+			p.ReviewDate = time.Date(2026, 9, 5, 0, 0, 0, 0, time.FixedZone("EDT", -4*60*60))
+		}, ErrInvalidProfile},
+		{"no programs", func(p *GovernmentAuthorizationProfile) { p.ApplicablePrograms, p.Programs = nil, nil }, ErrInvalidProfile},
+		{"unknown program", func(p *GovernmentAuthorizationProfile) { p.ApplicablePrograms = []Program{"UNKNOWN"} }, ErrInvalidProfile},
+		{"duplicate program", func(p *GovernmentAuthorizationProfile) {
+			p.ApplicablePrograms = []Program{ProgramGovRAMP, ProgramGovRAMP}
+		}, ErrInvalidProfile},
+		{"invalid inherited control", func(p *GovernmentAuthorizationProfile) { p.InheritedControls = []ControlInheritanceReference{{}} }, ErrInvalidProfile},
+		{"invalid evidence", func(p *GovernmentAuthorizationProfile) { p.Evidence = []EvidencePointer{{}} }, ErrInvalidEvidence},
+		{"invalid fedramp", func(p *GovernmentAuthorizationProfile) { p.FedRAMP = &FedRAMPPathRecord{} }, ErrInvalidFedRAMP},
+		{"invalid CMS", func(p *GovernmentAuthorizationProfile) { p.CMS = &CMSReferenceBlock{} }, ErrInvalidCMS},
+		{"MARS-E without CMS", func(p *GovernmentAuthorizationProfile) { p.ApplicablePrograms = []Program{ProgramMARSE}; p.CMS = nil }, ErrInvalidCMS},
+		{"duplicate procurement answer", func(p *GovernmentAuthorizationProfile) {
+			p.ProcurementAnswers = append(p.ProcurementAnswers, p.ProcurementAnswers[0])
+		}, ErrUnansweredQuestion},
+		{"bad revision digest", func(p *GovernmentAuthorizationProfile) { p.RevisionDigest = "bad" }, ErrImmutableRevision},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := base
+			tt.mutate(&profile)
+			if err := profile.Validate(); !errors.Is(err, tt.want) {
+				t.Fatalf("Validate = %v, want %v", err, tt.want)
+			}
+			if _, err := NewGovernmentAuthorizationProfile(profile); !errors.Is(err, tt.want) {
+				t.Fatalf("constructor error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestGovernmentAuthorizationProfile_LegacyAliasesCloneNestedDataAndDigest(t *testing.T) {
+	fedramp := *fixture("tenant", "integration", ProgramFedRAMP).FedRAMP
+	cms := *cmsBlock()
+	legacy := GovernmentAuthorizationProfile{
+		Version:                    4,
+		TenantRef:                  "tenant",
+		IntegrationRef:             "integration",
+		Programs:                   []Program{ProgramFedRAMP},
+		SystemBoundary:             "platform boundary",
+		InheritedControlReferences: []ControlInheritanceReference{{ControlID: "AC-2", InheritedFrom: "platform", Evidence: pointer("artifact/ac-2", "owner")}},
+		EvidenceCatalog:            []EvidencePointer{pointer("artifact/profile", "owner")},
+		AssessorStatus:             AssessorAccepted,
+		ReviewDate:                 fixtureDate,
+		FedRAMPPath:                &fedramp,
+		MARSEResources:             &cms,
+		ProcurementAnswers:         answers(),
+	}
+	sealed, err := NewProfile(legacy)
+	if err != nil {
+		t.Fatalf("legacy constructor = %v", err)
+	}
+	if sealed.SchemaVersion != 1 || sealed.RevisionDigest == "" {
+		t.Fatalf("legacy profile was not sealed: %+v", sealed)
+	}
+	wantDigest := sealed.RevisionDigest
+	legacy.FedRAMPPath.ContinuousMonitoringEvidence[0].Owner = "changed"
+	legacy.MARSEResources.ControlInheritance[0].Evidence.Owner = "changed"
+	legacy.EvidenceCatalog[0].Owner = "changed"
+	if sealed.RevisionDigest != wantDigest {
+		t.Fatal("sealed profile changed after nested source mutation")
+	}
+	if got, err := sealed.Digest(); err != nil || got != wantDigest {
+		t.Fatalf("sealed legacy digest = %s, err=%v, want %s", got, err, wantDigest)
+	}
+}
+
+func TestGovernmentAuthorizationProfile_DigestAndRefreshFailureBranches(t *testing.T) {
+	profile := fixture("tenant", "integration", ProgramGovRAMP)
+	profile.FedRAMP = nil
+	timeline := fixture("tenant", "integration", ProgramFedRAMP).FedRAMP.Timeline
+	if _, err := profile.RefreshFedRAMP(timeline); !errors.Is(err, ErrTimelineRefusal) {
+		t.Fatalf("refresh without FedRAMP = %v, want ErrTimelineRefusal", err)
+	}
+	if _, err := profile.Refresh(timeline); !errors.Is(err, ErrTimelineRefusal) {
+		t.Fatalf("Refresh alias without FedRAMP = %v, want ErrTimelineRefusal", err)
+	}
+	profile.RevisionDigest = strings.Repeat("b", 64)
+	if _, err := profile.Digest(); !errors.Is(err, ErrImmutableRevision) {
+		t.Fatalf("mismatched revision digest = %v, want ErrImmutableRevision", err)
+	}
+	sealed, err := NewGovernmentAuthorizationProfile(fixture("tenant", "integration", ProgramFedRAMP))
+	if err != nil {
+		t.Fatal(err)
+	}
+	badTimeline := sealed.FedRAMP.Timeline
+	badTimeline.SourceArtifactRef = ""
+	if _, err := sealed.RefreshFedRAMP(badTimeline); !errors.Is(err, ErrTimelineRefusal) {
+		t.Fatalf("invalid refresh timeline = %v, want ErrTimelineRefusal", err)
+	}
+	upper := sealed
+	upper.RevisionDigest = strings.ToUpper(upper.RevisionDigest)
+	if got, err := upper.Digest(); err != nil || !strings.EqualFold(got, upper.RevisionDigest) {
+		t.Fatalf("uppercase revision digest = %s, err=%v", got, err)
+	}
+}
+
+func TestProcurementPack_GenerationAndDigestRejectsMalformedArtifacts(t *testing.T) {
+	profile := fixture("tenant", "integration", ProgramGovRAMP)
+	pack, err := GenerateProcurementPack(profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := pack.Digest(); err != nil || got != pack.PackDigest {
+		t.Fatalf("valid pack digest = %s, err=%v, want %s", got, err, pack.PackDigest)
+	}
+	if got := ExplainPack(pack); !strings.Contains(got, "revision 1") || !strings.Contains(got, "answers=13") {
+		t.Fatalf("ExplainPack = %q", got)
+	}
+	for _, tt := range []struct {
+		name   string
+		mutate func(*ProcurementPack)
+		want   error
+	}{
+		{"schema", func(p *ProcurementPack) { p.SchemaVersion = 99 }, ErrInvalidProfile},
+		{"answer count", func(p *ProcurementPack) { p.Answers = p.Answers[:len(p.Answers)-1] }, ErrUnansweredQuestion},
+		{"answer order", func(p *ProcurementPack) { p.Answers[0], p.Answers[1] = p.Answers[1], p.Answers[0] }, ErrUnansweredQuestion},
+		{"invalid answer", func(p *ProcurementPack) { p.Answers[0].Answer = "" }, ErrUnansweredQuestion},
+		{"digest mutation", func(p *ProcurementPack) { p.PackDigest = strings.Repeat("c", 64) }, ErrImmutableRevision},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			candidate := pack
+			candidate.Answers = append([]ProcurementAnswer(nil), pack.Answers...)
+			tt.mutate(&candidate)
+			if _, err := candidate.Digest(); !errors.Is(err, tt.want) {
+				t.Fatalf("Digest = %v, want %v", err, tt.want)
+			}
+		})
+	}
+
+	for i, question := range QuestionnaireItems {
+		t.Run("missing/"+string(question), func(t *testing.T) {
+			candidate := profile
+			candidate.ProcurementAnswers = append([]ProcurementAnswer(nil), profile.ProcurementAnswers[:i]...)
+			candidate.ProcurementAnswers = append(candidate.ProcurementAnswers, profile.ProcurementAnswers[i+1:]...)
+			if _, err := GenerateProcurementEvidencePack(candidate); !errors.Is(err, ErrUnansweredQuestion) || !strings.Contains(err.Error(), string(question)) {
+				t.Fatalf("missing %s error = %v, want named ErrUnansweredQuestion", question, err)
+			}
+		})
+	}
+}
+
+func TestGovauthCanonicalHelpersAndExplanations(t *testing.T) {
+	if got := programStrings([]Program{ProgramGovRAMP, ProgramFedRAMP}); len(got) != 2 || got[0] != "GovRAMP" || got[1] != "FedRAMP" {
+		t.Fatalf("programStrings = %v", got)
+	}
+	for _, value := range []string{"", "short", strings.Repeat("a", 63), strings.Repeat("g", 64)} {
+		if isHexDigest(value) {
+			t.Fatalf("isHexDigest accepted %q", value)
+		}
+	}
+	if !isHexDigest(strings.Repeat("a", 64)) || !isHexDigest(strings.Repeat("A", 64)) {
+		t.Fatal("isHexDigest rejected valid hexadecimal")
+	}
+	if err := fieldError(ErrInvalidProfile, "field", "reason"); !errors.Is(err, ErrInvalidProfile) || !strings.Contains(err.Error(), "field reason") {
+		t.Fatalf("fieldError = %v", err)
+	}
+	profile := fixture("tenant-secret", "integration-secret", ProgramFedRAMP)
+	if got := Explain(profile); got == "" || strings.Contains(got, "tenant-secret") || strings.Contains(got, "integration-secret") {
+		t.Fatalf("Explain exposed identifiers or was empty: %q", got)
+	}
+	if got := profile.Explain(); !strings.Contains(got, "fedramp=TWENTYX_A") || !strings.Contains(got, "programs=FedRAMP") {
+		t.Fatalf("profile explanation = %q", got)
+	}
+}

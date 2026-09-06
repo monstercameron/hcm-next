@@ -665,6 +665,7 @@ func (s *InMemorySessionStore) Put(session ProofingSession) error {
 			return ErrRevisionLineage
 		}
 	}
+	session.Evidence = cloneEvidence(session.Evidence)
 	s.sessions[session.SessionID] = append(history, session)
 	return nil
 }
@@ -679,7 +680,9 @@ func (s *InMemorySessionStore) Get(id string) (ProofingSession, bool) {
 	if len(history) == 0 {
 		return ProofingSession{}, false
 	}
-	return history[len(history)-1], true
+	latest := history[len(history)-1]
+	latest.Evidence = cloneEvidence(latest.Evidence)
+	return latest, true
 }
 
 func (s *InMemorySessionStore) History(id string) ([]ProofingSession, error) {
@@ -692,7 +695,12 @@ func (s *InMemorySessionStore) History(id string) ([]ProofingSession, error) {
 	if !ok {
 		return nil, ErrSessionNotFound
 	}
-	return append([]ProofingSession(nil), history...), nil
+	out := make([]ProofingSession, len(history))
+	for i, session := range history {
+		out[i] = session
+		out[i].Evidence = cloneEvidence(session.Evidence)
+	}
+	return out, nil
 }
 
 // AuthorizationStore is the analogous in-memory port for work-authorization
