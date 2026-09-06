@@ -32,6 +32,34 @@ func TestValidateProposalInputAcceptsACompleteForm(t *testing.T) {
 	}
 }
 
+func TestPublishedPromotionPathGuardsRoleAndExactBaseIncrease(t *testing.T) {
+	current := journeyCurrent{jobCode: "OPS-HRBP2", grade: "P2"}
+	baseline := journeyBaselineFacts{currentBase: "93000.00", currency: "USD"}
+
+	valid := journeyProposalFixture()
+	if err := validatePublishedPromotionPath(current, valid, baseline); err != nil {
+		t.Fatalf("valid published edge: %v", err)
+	}
+
+	unrelated := valid
+	unrelated.TargetJobCode, unrelated.TargetGrade = "CLN-NURSE4", "N4"
+	if err := validatePublishedPromotionPath(current, unrelated, baseline); !errors.Is(err, workspace.ErrJourneyInput) || !strings.Contains(err.Error(), "published next step") {
+		t.Fatalf("unrelated payable role error = %v", err)
+	}
+
+	belowMinimum := valid
+	belowMinimum.ProposedBase = "94000.00"
+	if err := validatePublishedPromotionPath(current, belowMinimum, baseline); !errors.Is(err, workspace.ErrJourneyInput) || !strings.Contains(err.Error(), "0.0500") {
+		t.Fatalf("below-minimum base error = %v", err)
+	}
+
+	aboveMaximum := valid
+	aboveMaximum.ProposedBase = "108000.00"
+	if err := validatePublishedPromotionPath(current, aboveMaximum, baseline); !errors.Is(err, workspace.ErrJourneyInput) || !strings.Contains(err.Error(), "0.1500") {
+		t.Fatalf("above-maximum base error = %v", err)
+	}
+}
+
 func TestValidateProposalInputNamesTheMissingField(t *testing.T) {
 	cases := map[string]func(*workspace.ProposalInput){
 		"worker_ref":         func(in *workspace.ProposalInput) { in.WorkerRef = "  " },

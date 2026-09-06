@@ -224,6 +224,10 @@ func workforceOptions() (workspace.WorkforceOptions, error) {
 	if err != nil {
 		return workspace.WorkforceOptions{}, fmt.Errorf("app: journey: read the worker corpus: %w", err)
 	}
+	paths, err := fixtures.PromotionPaths()
+	if err != nil {
+		return workspace.WorkforceOptions{}, fmt.Errorf("app: journey: read the published promotion paths: %w", err)
+	}
 
 	jobCodes, grades, payZones, currencies := newStringSet(), newStringSet(), newStringSet(), newStringSet()
 	for _, s := range scopes {
@@ -244,6 +248,30 @@ func workforceOptions() (workspace.WorkforceOptions, error) {
 		OrgUnits:  orgUnits.sorted(),
 		PayZones:  payZones.sorted(),
 		Positions: positions.sorted(),
+	}
+	for _, scope := range scopes {
+		options.Placements = append(options.Placements, workspace.WorkforcePlacementOption{
+			JobCode: scope.JobCode, Grade: scope.Grade,
+			PayZone: scope.PayZone, Currency: scope.Currency,
+		})
+	}
+	for _, scope := range paths {
+		path := scope.Path
+		option := workspace.PromotionPathOption{
+			PathRef: path.PathIDOrID(), Revision: path.Revision,
+			SourceProfileRef: path.From.ProfileID,
+			SourceJobCode:    scope.SourceJobCode, SourceGrade: scope.SourceGrade,
+			TargetProfileRef: path.To.ProfileID,
+			TargetJobCode:    scope.TargetJobCode, TargetGrade: scope.TargetGrade,
+			TargetTitle: scope.TargetTitle, Kind: string(path.Kind),
+			MinimumBaseIncrease:   path.MinimumBaseIncrease.String(),
+			MaximumBaseIncrease:   path.MaximumBaseIncrease.String(),
+			CompensationPolicyRef: path.CompensationPolicyRef.Ref + "@" + path.CompensationPolicyRef.Revision,
+		}
+		for _, rule := range path.BenefitEligibilityRuleRefs {
+			option.BenefitRuleRefs = append(option.BenefitRuleRefs, rule.Ref+"@"+rule.Revision)
+		}
+		options.PromotionPaths = append(options.PromotionPaths, option)
 	}
 	// The catalog is single-currency in this release. If it ever is not, a
 	// created worker's currency stops being derivable and becomes a choice,

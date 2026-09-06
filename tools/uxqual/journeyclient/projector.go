@@ -2,11 +2,13 @@ package journeyclient
 
 import (
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
 )
 
@@ -335,7 +337,7 @@ func ListPage(cfg Config, data ListData, notice *journey.Notice, values map[stri
 		}
 		cards = append(cards, card(j))
 	}
-	form := ProposalForm(values, data.Workers, data.SelectedRef)
+	form := ProposalForm(values, data.Workers, data.SelectedRef, data.Options)
 	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("journeys", "create") {
 		form.Disabled = true
 		form.DisabledReason = "Your assigned role can review promotion journeys but cannot create one."
@@ -367,7 +369,7 @@ func ProposalPage(cfg Config, data ListData, notice *journey.Notice, values map[
 		title = "Promote " + workerName(worker) + " · " + Brand
 	}
 	p := chrome(cfg, title, notice, values, true)
-	form := FocusedProposalForm(values, data.SelectedRef)
+	form := focusedProposalForm(values, data.SelectedRef, data.Options, worker)
 	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("journeys", "create") {
 		form.Disabled = true
 		form.DisabledReason = "Your assigned role can review promotion journeys but cannot create one."
@@ -406,6 +408,7 @@ func promotionSubject(worker *journeyv1.Worker, options *journeyv1.WorkforceOpti
 	return &journey.PromotionSubject{
 		Ref:      worker.GetWorkerRef(),
 		Name:     workerName(worker),
+		PhotoURL: worker.GetProfilePhotoUrl(),
 		Number:   worker.GetWorkerNumber(),
 		Title:    JobTitle(worker.GetJobCode()),
 		JobCode:  worker.GetJobCode(),
@@ -482,7 +485,7 @@ func DefaultEffectiveDate(now time.Time) string {
 // workers is the population the select lists -- the corpus and this
 // tenant's own created employees alike, because a promotion may be proposed
 // for either -- and selectedRef the one the People table has picked.
-func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selectedRef string) journey.ProposalForm {
+func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selectedRef string, optionSet ...*journeyv1.WorkforceOptions) journey.ProposalForm {
 	effective := values[FieldEffective]
 	if effective == "" {
 		effective = DefaultEffectiveDate(time.Now())
@@ -491,6 +494,11 @@ func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selecte
 	if worker == "" {
 		worker = selectedRef
 	}
+	var options *journeyv1.WorkforceOptions
+	if len(optionSet) > 0 {
+		options = optionSet[0]
+	}
+	jobCodes, grades := governedProposalChoices(options, findWorker(workers, worker), values[FieldJobCode])
 	return journey.ProposalForm{
 		Action: ListHref(),
 		Hidden: map[string]string{},
@@ -507,26 +515,19 @@ func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selecte
 				Options: workerOptions(workers, worker),
 			},
 			{
-				ID: FieldJobCode, Name: NameJobCode, Label: "Target job code", Kind: kindText,
-				Required: true, Placeholder: "e.g. OPS-HRBP3",
-				Help: "The job the worker moves into.",
+				ID: FieldJobCode, Name: NameJobCode, Label: "Target job code", Kind: kindSelect,
+				Required: true, Options: stringOptions("Select a governed job code", jobCodes, values[FieldJobCode]),
+				Help: "Published by this organization's compensation catalog; an arbitrary code cannot be submitted.",
 			},
 			{
 				ID: FieldGrade, Name: NameGrade, Label: "Target grade", Kind: kindSelect, Required: true,
-				Options: []journey.Option{
-					{Value: "", Label: "Select target grade", Selected: true},
-					{Value: "P1", Label: "P1"},
-					{Value: "P2", Label: "P2"},
-					{Value: "P3", Label: "P3"},
-					{Value: "P4", Label: "P4"},
-					{Value: "P5", Label: "P5"},
-				},
-				Help: "More than one grade step routes a second approval.",
+				Options: stringOptions("Select target grade", grades, values[FieldGrade]),
+				Help:    "Published grades only. The simulation verifies the job-code and grade combination and routes any required additional approval.",
 			},
 			{
 				ID: FieldPosition, Name: NamePosition, Label: "Target position", Kind: kindText,
-				Placeholder: "e.g. POS-HRBP-301",
-				Help:        "Leave blank to keep the worker in their current position.",
+				Required: true, Placeholder: "e.g. POS-HRBP-301",
+				Help: "Required. The position is the governed assignment the promoted worker will occupy.",
 			},
 			{
 				ID: FieldBase, Name: NameBase, Label: "Proposed base pay", Kind: kindNumber,
@@ -552,13 +553,143 @@ func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selecte
 // the route's worker as a hidden value. On a person-scoped transaction page,
 // changing the subject inside the form would be a dangerous context switch;
 // choosing another person belongs on the People page.
-func FocusedProposalForm(values map[string]string, selectedRef string) journey.ProposalForm {
-	form := ProposalForm(values, nil, selectedRef)
+func FocusedProposalForm(values map[string]string, selectedRef string, optionSet ...*journeyv1.WorkforceOptions) journey.ProposalForm {
+	var options *journeyv1.WorkforceOptions
+	if len(optionSet) > 0 {
+		options = optionSet[0]
+	}
+	return focusedProposalForm(values, selectedRef, options, nil)
+}
+
+func focusedProposalForm(values map[string]string, selectedRef string, options *journeyv1.WorkforceOptions, worker *journeyv1.Worker) journey.ProposalForm {
+	form := ProposalForm(values, nil, selectedRef, options)
+	jobCodes, grades := governedProposalChoices(options, worker, values[FieldJobCode])
+	form.Fields[1].Label = "Valid next role"
+	form.Fields[1].Options = promotionJobOptions(options, worker, jobCodes, values[FieldJobCode])
+	form.Fields[1].Help = "Published by this organization's job architecture. Pay bands alone do not make an unrelated role a valid promotion target."
+	form.Fields[2].Options = stringOptions("Select target grade", grades, values[FieldGrade])
+	form.Fields[2].Help = "Pinned to the selected ladder edge; the server refuses a job and grade that are not published together."
+	if path := selectedPromotionPath(options, worker, values[FieldJobCode], values[FieldGrade]); path != nil {
+		form.Fields[4].Help = promotionPathRuleHelp(path)
+	} else {
+		form.Fields[4].Help = "Select a valid next role to see its exact base-pay guardrail and benefit-eligibility rules."
+	}
 	form.Action = ProposalHref(selectedRef)
 	form.Fields[0] = journey.Field{
 		ID: FieldWorker, Name: NameWorker, Kind: kindHidden, Value: strings.TrimSpace(selectedRef),
 	}
 	return form
+}
+
+func governedProposalChoices(options *journeyv1.WorkforceOptions, worker *journeyv1.Worker, selectedJob string) ([]string, []string) {
+	if options == nil || len(options.GetPlacements()) == 0 {
+		return options.GetJobCodes(), options.GetGrades()
+	}
+	jobs, grades := map[string]struct{}{}, map[string]struct{}{}
+	payZone, currency := "", options.GetCurrency()
+	if worker != nil {
+		payZone = worker.GetPayZone()
+		if worker.GetCurrency() != "" {
+			currency = worker.GetCurrency()
+		}
+	}
+	if len(options.GetPromotionPaths()) > 0 && worker != nil {
+		for _, path := range options.GetPromotionPaths() {
+			if path.GetSourceJobCode() != worker.GetJobCode() || path.GetSourceGrade() != worker.GetGrade() {
+				continue
+			}
+			if !placementAvailable(options, path.GetTargetJobCode(), path.GetTargetGrade(), payZone, currency) {
+				continue
+			}
+			jobs[path.GetTargetJobCode()] = struct{}{}
+			if selectedJob == "" || path.GetTargetJobCode() == selectedJob {
+				grades[path.GetTargetGrade()] = struct{}{}
+			}
+		}
+		return sortedKeys(jobs), sortedKeys(grades)
+	}
+	for _, placement := range options.GetPlacements() {
+		if (payZone != "" && placement.GetPayZone() != payZone) || (currency != "" && placement.GetCurrency() != currency) {
+			continue
+		}
+		jobs[placement.GetJobCode()] = struct{}{}
+		if selectedJob == "" || placement.GetJobCode() == selectedJob {
+			grades[placement.GetGrade()] = struct{}{}
+		}
+	}
+	return sortedKeys(jobs), sortedKeys(grades)
+}
+
+func placementAvailable(options *journeyv1.WorkforceOptions, jobCode, grade, payZone, currency string) bool {
+	for _, placement := range options.GetPlacements() {
+		if placement.GetJobCode() == jobCode && placement.GetGrade() == grade &&
+			(payZone == "" || placement.GetPayZone() == payZone) &&
+			(currency == "" || placement.GetCurrency() == currency) {
+			return true
+		}
+	}
+	return false
+}
+
+func selectedPromotionPath(options *journeyv1.WorkforceOptions, worker *journeyv1.Worker, jobCode, grade string) *journeyv1.PromotionPathOption {
+	if options == nil || worker == nil {
+		return nil
+	}
+	for _, path := range options.GetPromotionPaths() {
+		if path.GetSourceJobCode() == worker.GetJobCode() && path.GetSourceGrade() == worker.GetGrade() &&
+			path.GetTargetJobCode() == jobCode && (grade == "" || path.GetTargetGrade() == grade) {
+			return path
+		}
+	}
+	return nil
+}
+
+func promotionJobOptions(options *journeyv1.WorkforceOptions, worker *journeyv1.Worker, jobCodes []string, selected string) []journey.Option {
+	out := stringOptions("Select a valid next role", jobCodes, selected)
+	for i := 1; i < len(out); i++ {
+		if path := selectedPromotionPath(options, worker, out[i].Value, ""); path != nil && path.GetTargetTitle() != "" {
+			out[i].Label = out[i].Value + " — " + path.GetTargetTitle()
+		}
+	}
+	return out
+}
+
+func promotionPathRuleHelp(path *journeyv1.PromotionPathOption) string {
+	if path == nil {
+		return ""
+	}
+	help := "This ladder edge allows a base increase from " + fractionPercentLabel(path.GetMinimumBaseIncrease()) + " to " + fractionPercentLabel(path.GetMaximumBaseIncrease()) + "."
+	if policy := strings.TrimSpace(path.GetCompensationPolicyRef()); policy != "" {
+		help += " Compensation is evaluated under " + policy + "."
+	}
+	if rules := path.GetBenefitRuleRefs(); len(rules) > 0 {
+		help += " Benefit eligibility is reevaluated under " + strings.Join(rules, ", ") + "; existing elections are not changed directly."
+	}
+	return help
+}
+
+func fractionPercentLabel(fraction string) string {
+	d, err := values.NewDecimal(fraction, 4, values.RoundingHalfEven)
+	if err != nil {
+		return strings.TrimSpace(fraction)
+	}
+	hundred := values.MustDecimal("100", 0, values.RoundingExactRequired)
+	percent, err := d.Mul(hundred, 2, values.RoundingHalfEven)
+	if err != nil {
+		return strings.TrimSpace(fraction)
+	}
+	return percent.String() + "%"
+}
+
+func sortedKeys(values map[string]struct{}) []string {
+	out := make([]string, 0, len(values))
+	for value := range values {
+		if strings.TrimSpace(value) != "" {
+			out = append(out, value)
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 // applyProposalCurrency labels the pay input with the denomination the live
@@ -1079,13 +1210,13 @@ func stepDescription(index int, state string) string {
 	active := [4]string{
 		"Review the simulation findings and correct any blocked proposal details.",
 		"Ready for the execution authority to review and admit the plan.",
-		"Waiting for the Compensation Approver to decide the routed work item.",
+		"Waiting for the currently routed approver to decide the durable work item.",
 		"Recording the governed promotion fact at the workflow terminal.",
 	}
 	upcoming := [4]string{
 		"The manager will submit and simulate an immutable proposal.",
 		"The execution authority will review the plan before the workflow starts.",
-		"A durable work item will be routed to the Compensation Approver.",
+		"A durable work item will be routed to the approver required by policy.",
 		"The terminal node will record one governed promotion fact.",
 	}
 	failed := [4]string{
@@ -1523,13 +1654,13 @@ func actions(head journey.JourneyCard, approver string, workItems []*journeyv1.W
 		return []journey.Action{
 			{
 				ID: ActionApprove, Label: "Approve", Variant: "primary",
-				Description:      "Claims and completes the approval work item as the routed approver, resumes the driver, and lets the terminal node record the promotion fact.",
+				Description:      "Claims and completes the current approval work item and resumes the workflow. Another approval or the effective-date wait may follow.",
 				Action:           href,
 				Hidden:           map[string]string{},
 				ActsAs:           approver,
-				ActsAsLabel:      approverLabel(approver),
+				ActsAsLabel:      approverLabel(head.Stage, approver),
 				Confirmation:     confirm,
-				ConfirmationNote: "Approval resumes the workflow and records the promotion as a governed ledger fact. Review the worker, effective date, and compensation before confirming.",
+				ConfirmationNote: "Approval resumes the workflow. The promotion is recorded only after every required approval and effective-date gate completes. Review the worker, date, and compensation before confirming.",
 				Fields: []journey.Field{{
 					ID: FieldApproveReason, Name: NameDecisionReason, Label: "Reason for the record",
 					Kind: kindTextarea, Placeholder: "What made this the right call?",
@@ -1542,7 +1673,7 @@ func actions(head journey.JourneyCard, approver string, workItems []*journeyv1.W
 				Action:           href,
 				Hidden:           map[string]string{},
 				ActsAs:           approver,
-				ActsAsLabel:      approverLabel(approver),
+				ActsAsLabel:      approverLabel(head.Stage, approver),
 				Confirmation:     confirm,
 				ConfirmationNote: "Rejection ends this workflow without recording a promotion fact. The manager will see the reason verbatim.",
 				Fields: []journey.Field{{
@@ -1587,9 +1718,39 @@ func hasActionableApproval(items []*journeyv1.WorkItem) bool {
 	return false
 }
 
-func approverLabel(principal string) string {
-	if strings.TrimSpace(principal) == "" {
+func approverLabel(stage, principal string) string {
+	_ = principal // The principal is displayed separately; stage names the authority being exercised.
+	switch stage {
+	case stageFinanceApproval:
+		return "Finance approver authorization"
+	case stageManagerApproval:
+		return "Manager approver authorization"
+	case stageReapproval:
+		return "Reapproval authorization"
+	default:
 		return "Compensation Approver authorization"
 	}
-	return "Compensation Approver authorization"
+}
+
+func stringOptions(prompt string, values []string, selected string) []journey.Option {
+	out := make([]journey.Option, 0, len(values)+1)
+	out = append(out, journey.Option{Value: "", Label: prompt, Selected: selected == ""})
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		out = append(out, journey.Option{Value: value, Label: value, Selected: value == selected})
+	}
+	if selected != "" {
+		found := false
+		for _, option := range out {
+			found = found || option.Value == selected
+		}
+		if !found && len(values) == 0 {
+			out = append(out, journey.Option{Value: selected, Label: selected, Selected: true})
+			out[0].Selected = false
+		}
+	}
+	return out
 }

@@ -330,6 +330,13 @@ func fixtureWorkforceOptions() workspace.WorkforceOptions {
 		PayZones:  []string{"US-EAST", "US-WEST"},
 		Positions: []string{"POS-HRBP-101", "POS-HRBP-204", "POS-SWE-118"},
 		Currency:  "USD",
+		Placements: []workspace.WorkforcePlacementOption{
+			{JobCode: "OPS-HRBP2", Grade: "P2", PayZone: "US-EAST", Currency: "USD"},
+			{JobCode: "OPS-HRBP3", Grade: "P3", PayZone: "US-EAST", Currency: "USD"},
+		},
+		PromotionPaths: []workspace.PromotionPathOption{
+			{PathRef: "path-ops-hrbp2-hrbp3", Revision: "2026.1", SourceProfileRef: "profile-ops-hrbp2", SourceJobCode: "OPS-HRBP2", SourceGrade: "P2", TargetProfileRef: "profile-ops-hrbp3", TargetJobCode: "OPS-HRBP3", TargetGrade: "P3", TargetTitle: "Senior HR Business Partner", Kind: "UPWARD", MinimumBaseIncrease: "0.0500", MaximumBaseIncrease: "0.1500", CompensationPolicyRef: "promotion-rules@2026.1", BenefitRuleRefs: []string{"professional-benefit-eligibility@2026.1"}},
+		},
 	}
 }
 

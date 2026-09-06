@@ -77,7 +77,7 @@ func TestWatchKeepsTheNoticeTheReaderIsLookingAt(t *testing.T) {
 	stream := openWatchedJourney(t, h)
 
 	h.app.Submit(ActionApprove, map[string]string{NameDecisionReason: "Approved."})
-	h.awaitPage(t, "the approval", noticeTitled("Approved"))
+	h.awaitPage(t, "the approval", noticeTitled("Promotion recorded"))
 
 	// The streamed detail is made distinguishable from the one the decision
 	// already applied, so waiting for it proves the update landed rather
@@ -90,7 +90,7 @@ func TestWatchKeepsTheNoticeTheReaderIsLookingAt(t *testing.T) {
 	p := h.awaitPage(t, "the streamed update", func(p journey.Page) bool {
 		return p.Detail != nil && p.Detail.Journey.WorkerName == "Omar Reyes (corrected)"
 	})
-	if p.Notice == nil || p.Notice.Title != "Approved" {
+	if p.Notice == nil || p.Notice.Title != "Promotion recorded" {
 		t.Errorf("notice = %+v after a live update, want the approval kept", p.Notice)
 	}
 }

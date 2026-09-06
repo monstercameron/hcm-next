@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: 50febe182ea26641235506b659959313e7d68776861549282b8df5b33b7095f0
+- Source graph: bb9c05f30d70b2ac2c96c1cfebefb2f5987d199ef261dd19f41b18280954aa3b
 - Package count: 731
-- Within-module edge count: 1635
+- Within-module edge count: 1638
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -857,4 +857,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`9f2dd753b4e541e6c4b731c6e1d9bd6fbd8f58a98041dd6194ec2e1034359b6b`
+`c281a33c47cf5fff423cb9ae74c8a9b331f1237db84c31b428c600ea1e0cb76f`

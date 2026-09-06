@@ -22,10 +22,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/domains/evidence"
+	"github.com/monstercameron/hcm-next/internal/domains/jobarch"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
 	"github.com/monstercameron/hcm-next/internal/engines/payband"
@@ -50,6 +52,9 @@ var bandsJSON []byte
 
 //go:embed testdata/legacy-compensation-scenarios.json
 var legacyScenariosJSON []byte
+
+//go:embed testdata/job-architecture.json
+var jobArchitectureJSON []byte
 
 // workerFile is the on-disk shape of the worker corpus.
 type workerFile struct {
@@ -117,6 +122,49 @@ type bandRecord struct {
 	EvidenceRef string `json:"evidence_ref"`
 }
 
+// jobArchitectureFile is the fixture company's published job catalog. Every
+// percentage is a decimal string: policy fixtures must never pass through a
+// binary float before they reach the exact Percentage value object.
+type jobArchitectureFile struct {
+	ArchitectureID string                `json:"architecture_id"`
+	Revision       string                `json:"revision"`
+	Authority      string                `json:"authority"`
+	EffectiveFrom  string                `json:"effective_from"`
+	KnownFrom      string                `json:"known_from"`
+	Families       []jobFamilyRecord     `json:"families"`
+	Profiles       []jobProfileRecord    `json:"profiles"`
+	PromotionPaths []promotionPathRecord `json:"promotion_paths"`
+}
+
+type jobFamilyRecord struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+type jobProfileRecord struct {
+	ID         string `json:"id"`
+	FamilyID   string `json:"family_id"`
+	LevelCode  string `json:"level_code"`
+	LevelTitle string `json:"level_title"`
+	Rank       int    `json:"rank"`
+	Grade      string `json:"grade"`
+	JobCode    string `json:"job_code"`
+	Title      string `json:"title"`
+}
+
+type promotionPathRecord struct {
+	ID                         string   `json:"id"`
+	FromProfileID              string   `json:"from_profile_id"`
+	ToProfileID                string   `json:"to_profile_id"`
+	Kind                       string   `json:"kind"`
+	MinimumBaseIncrease        string   `json:"minimum_base_increase"`
+	MaximumBaseIncrease        string   `json:"maximum_base_increase"`
+	CompensationPolicyRef      string   `json:"compensation_policy_ref"`
+	CompensationPolicyRevision string   `json:"compensation_policy_revision"`
+	BenefitRuleRefs            []string `json:"benefit_rule_refs"`
+}
+
 // LegacyScenario is one ported compensation-change case.
 type LegacyScenario struct {
 	Name             string   `json:"name"`
@@ -149,11 +197,12 @@ type LegacyScenarioSet struct {
 }
 
 var (
-	loadOnce  sync.Once
-	loadErr   error
-	workers   workerFile
-	bands     bandFile
-	scenarios LegacyScenarioSet
+	loadOnce   sync.Once
+	loadErr    error
+	workers    workerFile
+	bands      bandFile
+	scenarios  LegacyScenarioSet
+	jobCatalog jobArchitectureFile
 )
 
 // load parses the embedded corpus exactly once.
@@ -169,6 +218,10 @@ func load() error {
 		}
 		if err := json.Unmarshal(legacyScenariosJSON, &scenarios); err != nil {
 			loadErr = fmt.Errorf("fixtures: legacy-compensation-scenarios.json: %w", err)
+			return
+		}
+		if err := json.Unmarshal(jobArchitectureJSON, &jobCatalog); err != nil {
+			loadErr = fmt.Errorf("fixtures: job-architecture.json: %w", err)
 		}
 	})
 	return loadErr
@@ -272,6 +325,128 @@ func BandScopes() ([]BandScope, error) {
 	out := make([]BandScope, 0, len(bands.Bands))
 	for _, b := range bands.Bands {
 		out = append(out, BandScope{JobCode: b.JobCode, Grade: b.Grade, PayZone: b.PayZone, Currency: b.Currency})
+	}
+	return out, nil
+}
+
+// PromotionPathScope is the published ladder edge as an actionable surface
+// needs it. Path contains the immutable authority; the source and target
+// labels are denormalized projections from the pinned profile revisions.
+type PromotionPathScope struct {
+	Path                                    jobarch.PromotionPathRevision
+	SourceJobCode, SourceGrade, SourceTitle string
+	TargetJobCode, TargetGrade, TargetTitle string
+}
+
+// JobArchitecture returns HarborCare's small but fully validated published
+// job catalog. It intentionally includes profiles without a next step: the
+// absence of an edge is a governed answer, not permission to pick any band.
+func JobArchitecture() (jobarch.ArchitectureRevision, error) {
+	if err := load(); err != nil {
+		return jobarch.ArchitectureRevision{}, err
+	}
+	effective, err := time.Parse(time.RFC3339, jobCatalog.EffectiveFrom)
+	if err != nil {
+		return jobarch.ArchitectureRevision{}, fmt.Errorf("fixtures: job architecture effective_from: %w", err)
+	}
+	known, err := time.Parse(time.RFC3339, jobCatalog.KnownFrom)
+	if err != nil {
+		return jobarch.ArchitectureRevision{}, fmt.Errorf("fixtures: job architecture known_from: %w", err)
+	}
+	a := jobarch.ArchitectureRevision{ID: jobCatalog.ArchitectureID, Revision: jobCatalog.Revision}
+	for _, family := range jobCatalog.Families {
+		a.Families = append(a.Families, jobarch.JobFamilyRevision{
+			ID: family.ID, FamilyID: family.ID, Revision: jobCatalog.Revision,
+			Code: family.Code, Name: family.Name, Lifecycle: jobarch.LifecyclePublished,
+			EffectiveFrom: effective, KnownFrom: known,
+		})
+	}
+	for _, profile := range jobCatalog.Profiles {
+		levelID := profile.ID + "-level"
+		gradeID := profile.ID + "-grade"
+		a.Levels = append(a.Levels, jobarch.JobLevelRevision{
+			ID: levelID, LevelID: levelID, Revision: jobCatalog.Revision,
+			FamilyID: profile.FamilyID, Code: profile.LevelCode, Title: profile.LevelTitle,
+			Rank: profile.Rank, Lifecycle: jobarch.LifecyclePublished,
+			EffectiveFrom: effective, KnownFrom: known,
+		})
+		a.Grades = append(a.Grades, jobarch.JobGradeRevision{
+			ID: gradeID, GradeID: gradeID, Revision: jobCatalog.Revision,
+			LevelID: levelID, Code: profile.Grade, Name: profile.Grade,
+			Lifecycle: jobarch.LifecyclePublished, EffectiveFrom: effective, KnownFrom: known,
+		})
+		a.Profiles = append(a.Profiles, jobarch.JobProfileRevision{
+			ID: profile.ID, ProfileID: profile.ID, Revision: jobCatalog.Revision,
+			FamilyID: profile.FamilyID, LevelID: levelID, GradeID: gradeID,
+			JobCode: profile.JobCode, Title: profile.Title,
+			Lifecycle: jobarch.LifecyclePublished, EffectiveFrom: effective, KnownFrom: known,
+		})
+	}
+	validated, err := jobarch.NewArchitectureRevision(a)
+	if err != nil {
+		return jobarch.ArchitectureRevision{}, fmt.Errorf("fixtures: job architecture: %w", err)
+	}
+	return validated, nil
+}
+
+// PromotionPaths returns only edges that validate against the same immutable
+// architecture revision. This prevents fixture drift from turning a UI choice
+// into a transition the domain would refuse.
+func PromotionPaths() ([]PromotionPathScope, error) {
+	architecture, err := JobArchitecture()
+	if err != nil {
+		return nil, err
+	}
+	effective, _ := time.Parse(time.RFC3339, jobCatalog.EffectiveFrom)
+	known, _ := time.Parse(time.RFC3339, jobCatalog.KnownFrom)
+	profiles := make(map[string]jobProfileRecord, len(jobCatalog.Profiles))
+	for _, profile := range jobCatalog.Profiles {
+		profiles[profile.ID] = profile
+	}
+	out := make([]PromotionPathScope, 0, len(jobCatalog.PromotionPaths))
+	for _, record := range jobCatalog.PromotionPaths {
+		minimum, err := Percent(record.MinimumBaseIncrease)
+		if err != nil {
+			return nil, fmt.Errorf("fixtures: promotion path %s minimum base increase: %w", record.ID, err)
+		}
+		maximum, err := Percent(record.MaximumBaseIncrease)
+		if err != nil {
+			return nil, fmt.Errorf("fixtures: promotion path %s maximum base increase: %w", record.ID, err)
+		}
+		path := jobarch.PromotionPathRevision{
+			ID: record.ID, PathID: record.ID, Revision: jobCatalog.Revision,
+			From: jobarch.ProfileRevisionRef{ProfileID: record.FromProfileID, Revision: jobCatalog.Revision},
+			To:   jobarch.ProfileRevisionRef{ProfileID: record.ToProfileID, Revision: jobCatalog.Revision},
+			Kind: jobarch.PromotionPathKind(record.Kind), MinimumBaseIncrease: minimum, MaximumBaseIncrease: maximum,
+			CompensationPolicyRef: jobarch.VersionedReference{
+				Ref: record.CompensationPolicyRef, Revision: record.CompensationPolicyRevision,
+				Authority: "rewards", EffectiveFrom: effective,
+			},
+			Authority: jobCatalog.Authority, Lifecycle: jobarch.LifecyclePublished,
+			EffectiveFrom: effective, KnownFrom: known,
+		}
+		for _, encoded := range record.BenefitRuleRefs {
+			parts := strings.SplitN(encoded, "@", 2)
+			if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[1]) == "" {
+				return nil, fmt.Errorf("fixtures: promotion path %s benefit rule %q must be ref@revision", record.ID, encoded)
+			}
+			path.BenefitEligibilityRuleRefs = append(path.BenefitEligibilityRuleRefs, jobarch.VersionedReference{
+				Ref: parts[0], Revision: parts[1], Authority: "benefits", EffectiveFrom: effective,
+			})
+		}
+		if err := path.ValidateAgainst(architecture); err != nil {
+			return nil, fmt.Errorf("fixtures: promotion path %s: %w", record.ID, err)
+		}
+		from, fromOK := profiles[record.FromProfileID]
+		to, toOK := profiles[record.ToProfileID]
+		if !fromOK || !toOK {
+			return nil, fmt.Errorf("fixtures: promotion path %s references an unknown profile", record.ID)
+		}
+		out = append(out, PromotionPathScope{
+			Path:          path,
+			SourceJobCode: from.JobCode, SourceGrade: from.Grade, SourceTitle: from.Title,
+			TargetJobCode: to.JobCode, TargetGrade: to.Grade, TargetTitle: to.Title,
+		})
 	}
 	return out, nil
 }

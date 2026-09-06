@@ -135,6 +135,7 @@ type ProposalView struct {
 type PromotionSubject struct {
 	Ref      string
 	Name     string
+	PhotoURL string
 	Number   string
 	Title    string
 	JobCode  string

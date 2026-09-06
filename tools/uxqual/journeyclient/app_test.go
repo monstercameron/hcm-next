@@ -598,6 +598,24 @@ func TestProposeWithoutAWorkerAsksNothing(t *testing.T) {
 	}
 }
 
+func TestProposeWithMissingRequiredFieldsStaysInTheBrowser(t *testing.T) {
+	h := newHarness(t)
+	h.app.Start(context.Background(), ListHref())
+	h.awaitPage(t, "the list", listLoaded)
+
+	h.app.Submit(ActionPropose, map[string]string{NameWorker: "omar-reyes", NameEffective: "2026-12-01"})
+
+	p := h.awaitPage(t, "the refusal", noticeTitled("Complete the required fields"))
+	for _, field := range []string{"target job code", "target grade", "target position", "proposed base pay", "business reason"} {
+		if !strings.Contains(p.Notice.Detail, field) {
+			t.Errorf("missing-fields notice %q does not name %q", p.Notice.Detail, field)
+		}
+	}
+	if h.svc.called("ProposeJourney") != 0 {
+		t.Error("an incomplete proposal was sent to the engine")
+	}
+}
+
 func TestExecuteAdmitsThePlan(t *testing.T) {
 	h := newHarness(t)
 	h.svc.detail = testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED)
@@ -628,7 +646,7 @@ func TestApproveCompletesTheJourney(t *testing.T) {
 
 	h.app.Submit(ActionApprove, map[string]string{NameDecisionReason: "Scope and budget both check out."})
 
-	p := h.awaitPage(t, "the approval", noticeTitled("Approved"))
+	p := h.awaitPage(t, "the approval", noticeTitled("Promotion recorded"))
 	if !h.svc.decideReq.GetApprove() {
 		t.Error("the decision was not an approval")
 	}
@@ -640,6 +658,100 @@ func TestApproveCompletesTheJourney(t *testing.T) {
 	}
 	if len(p.Detail.Actions) != 0 {
 		t.Error("a completed journey still offers decisions")
+	}
+}
+
+func TestIntermediateApprovalNeverClaimsATerminalWrite(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		stage journeyv1.JourneyStage
+		title string
+	}{
+		{"manager approval", journeyv1.JourneyStage_JOURNEY_STAGE_MANAGER_APPROVAL, "Approval recorded"},
+		{"effective-date wait", journeyv1.JourneyStage_JOURNEY_STAGE_WAITING_EFFECTIVE_DATE, "Approvals complete"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := newHarness(t)
+			h.svc.detail = testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_FINANCE_APPROVAL)
+			h.svc.decided = testDetail(t, tc.stage)
+			h.app.Start(context.Background(), DetailHref(testIntentID))
+			h.awaitPage(t, "the finance approval", detailShown)
+			h.store.SetValue(FieldApproveReason, "Finance rationale")
+
+			h.app.Submit(ActionApprove, map[string]string{NameDecisionReason: "Finance rationale"})
+			p := h.awaitPage(t, "the intermediate outcome", noticeTitled(tc.title))
+			if strings.Contains(strings.ToLower(p.Notice.Detail), "terminal node recorded") {
+				t.Fatalf("intermediate notice overclaimed a ledger write: %+v", p.Notice)
+			}
+			if p.Detail.Ledger != nil {
+				t.Fatal("intermediate detail unexpectedly contains a ledger fact")
+			}
+			if got := h.store.Values()[FieldApproveReason]; got != "" {
+				t.Errorf("approval rationale leaked to the next stage as %q", got)
+			}
+		})
+	}
+}
+
+func TestChangingProposalSubjectClearsConsequentialDraftValues(t *testing.T) {
+	h := staffed(t)
+	h.app.Start(context.Background(), ProposalHref("jane-doe"))
+	h.awaitPage(t, "Jane's proposal", proposalFor("jane-doe"))
+	for field, value := range map[string]string{
+		FieldJobCode: "ENG-MGR1", FieldGrade: "P3", FieldPosition: "POS-MGR-1",
+		FieldBase: "180000.00", FieldReason: "Jane-specific rationale",
+	} {
+		h.store.SetValue(field, value)
+	}
+
+	h.app.OnHashChange(ProposalHref("omar-reyes"))
+	h.awaitPage(t, "Omar's proposal", proposalFor("omar-reyes"))
+	values := h.store.Values()
+	for _, field := range []string{FieldJobCode, FieldGrade, FieldPosition, FieldBase, FieldReason} {
+		if values[field] != "" {
+			t.Errorf("%s leaked from Jane to Omar as %q", field, values[field])
+		}
+	}
+	if values[FieldWorker] != "omar-reyes" {
+		t.Errorf("worker = %q, want Omar", values[FieldWorker])
+	}
+	if values[FieldEffective] != "2026-12-01" {
+		t.Errorf("effective-date default = %q", values[FieldEffective])
+	}
+}
+
+func TestProposalRefusesAnUnpublishedJobGradeCombination(t *testing.T) {
+	h := staffed(t)
+	h.app.Start(context.Background(), ProposalHref("omar-reyes"))
+	h.awaitPage(t, "Omar's proposal", proposalFor("omar-reyes"))
+
+	h.app.Submit(ActionPropose, map[string]string{
+		NameWorker: "omar-reyes", NameJobCode: "OPS-HRBP3", NameGrade: "P2",
+		NamePosition: "POS-HRBP-301", NameBase: "98000.00",
+		NameEffective: "2026-12-01", NameReason: "Invalid cross-product",
+	})
+	p := h.awaitPage(t, "the governed-target refusal", noticeTitled("Choose a governed target role"))
+	if !strings.Contains(p.Notice.Detail, "published next step") || !strings.Contains(p.Notice.Detail, "pay zone and currency") {
+		t.Errorf("notice = %+v", p.Notice)
+	}
+	if h.svc.called("ProposeJourney") != 0 {
+		t.Fatal("the unsupported target was sent to the engine")
+	}
+}
+
+func TestProposalRefusesAPayableButUnrelatedRole(t *testing.T) {
+	h := staffed(t)
+	h.app.Start(context.Background(), ProposalHref("omar-reyes"))
+	h.awaitPage(t, "Omar's proposal", proposalFor("omar-reyes"))
+
+	h.app.Submit(ActionPropose, map[string]string{
+		NameWorker: "omar-reyes", NameJobCode: "CLN-NURSE4", NameGrade: "N4",
+		NamePosition: "POS-NURSE-401", NameBase: "100000.00",
+		NameEffective: "2026-12-01", NameReason: "A pay band is not a ladder edge",
+	})
+	h.awaitPage(t, "the ladder refusal", noticeTitled("Choose a governed target role"))
+	if h.svc.called("ProposeJourney") != 0 {
+		t.Fatal("a payable but unrelated role was sent to the engine")
 	}
 }
 
@@ -666,7 +778,7 @@ func TestTaskMuxSerializesMutuallyExclusiveDecisions(t *testing.T) {
 		t.Fatal("the first decision was not preserved")
 	}
 	close(h.svc.gate)
-	h.awaitPage(t, "the approval", noticeTitled("Approved"))
+	h.awaitPage(t, "the approval", noticeTitled("Promotion recorded"))
 }
 
 func TestRejectNeedsAReasonAndSendsIt(t *testing.T) {
@@ -875,7 +987,7 @@ func TestSafeSelectDefaultsAreSeeded(t *testing.T) {
 	for id, want := range map[string]string{
 		FieldEffective:         "2026-12-01",
 		FieldWorkerJobCode:     "CLN-NURSE4",
-		FieldWorkerGrade:       "P2",
+		FieldWorkerGrade:       "M1",
 		FieldWorkerOrgUnit:     "eng-platform",
 		FieldWorkerPayZone:     "US-EAST",
 		FieldWorkerPosition:    "POS-HRBP-204",
@@ -1047,6 +1159,7 @@ func TestProposeFallsBackToTheSelection(t *testing.T) {
 
 	h.app.Submit(ActionPropose, map[string]string{
 		NameJobCode: "OPS-HRBP3", NameGrade: "P3", NameBase: "98000.00",
+		NamePosition:  "POS-HRBP-301",
 		NameEffective: "2026-12-01", NameReason: "promotion_into_senior_hrbp",
 	})
 

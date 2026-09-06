@@ -80,6 +80,25 @@ func TestWorkforceOptionsAreDerivedFromTheCatalogAndTheCorpus(t *testing.T) {
 			}
 		}
 	}
+	if len(options.Placements) != len(scopes) {
+		t.Fatalf("exact placements = %d, want one for each of %d catalog scopes", len(options.Placements), len(scopes))
+	}
+	for i, scope := range scopes {
+		placement := options.Placements[i]
+		if placement.JobCode != scope.JobCode || placement.Grade != scope.Grade || placement.PayZone != scope.PayZone || placement.Currency != scope.Currency {
+			t.Errorf("placements[%d] = %+v, want exact scope %+v", i, placement, scope)
+		}
+	}
+	paths, err := fixtures.PromotionPaths()
+	if err != nil {
+		t.Fatalf("fixtures.PromotionPaths: %v", err)
+	}
+	if len(options.PromotionPaths) != len(paths) {
+		t.Fatalf("promotion paths = %d, want the published %d", len(options.PromotionPaths), len(paths))
+	}
+	if got := options.PromotionPaths[0]; got.SourceJobCode != "OPS-HRBP2" || got.SourceGrade != "P2" || got.TargetJobCode != "OPS-HRBP3" || got.TargetGrade != "P3" || got.MinimumBaseIncrease != "0.0500" || got.MaximumBaseIncrease != "0.1500" {
+		t.Fatalf("first promotion path lost its governed identity or rules: %+v", got)
+	}
 
 	profiles, err := fixtures.Workers()
 	if err != nil {

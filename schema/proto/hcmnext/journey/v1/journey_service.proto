@@ -739,6 +739,45 @@ message WorkforceOptions {
   // currency is the one currency the pay-band catalog is denominated in. A
   // created worker's baseline is carried in it.
   string currency = 6;
+  // placements preserves the catalog's exact combinations. The parallel
+  // string lists above remain useful for worker-creation controls, but they
+  // cannot prove that an arbitrary job/grade/pay-zone cross-product exists.
+  repeated WorkforcePlacementOption placements = 7;
+  // promotion_paths are the published, source-specific job-architecture
+  // edges. A pay band proves a target can be paid; only one of these edges
+  // proves it is a permitted next role for a particular current profile.
+  repeated PromotionPathOption promotion_paths = 8;
+}
+
+// WorkforcePlacementOption is one exact compensation-catalog scope. It is
+// the minimum governed target identity the current journey surface can offer;
+// future job-architecture revisions may additionally pin a profile/path ref.
+message WorkforcePlacementOption {
+  string job_code = 1;
+  string grade = 2;
+  string pay_zone = 3;
+  string currency = 4;
+}
+
+// PromotionPathOption is one immutable ladder edge projected for clients.
+// Increase guardrails are exact decimal fractions (0.0500 is five percent),
+// never floating-point numbers. Benefit rules trigger eligibility
+// reevaluation; they do not directly mutate a worker's elections.
+message PromotionPathOption {
+  string path_ref = 1;
+  string revision = 2;
+  string source_profile_ref = 3;
+  string source_job_code = 4;
+  string source_grade = 5;
+  string target_profile_ref = 6;
+  string target_job_code = 7;
+  string target_grade = 8;
+  string target_title = 9;
+  string kind = 10;
+  string minimum_base_increase = 11;
+  string maximum_base_increase = 12;
+  string compensation_policy_ref = 13;
+  repeated string benefit_rule_refs = 14;
 }
 
 message ListWorkersRequest {}

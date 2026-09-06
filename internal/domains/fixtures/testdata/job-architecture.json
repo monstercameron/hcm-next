@@ -1,0 +1,43 @@
+{
+  "architecture_id": "harborcare-job-architecture",
+  "revision": "2026.1",
+  "authority": "harborcare.people-operations",
+  "effective_from": "2026-01-01T00:00:00Z",
+  "known_from": "2026-01-02T00:00:00Z",
+  "families": [
+    {"id": "family-ops", "code": "OPS", "name": "People Operations"},
+    {"id": "family-eng", "code": "ENG", "name": "Engineering"},
+    {"id": "family-cln", "code": "CLN", "name": "Clinical Care"}
+  ],
+  "profiles": [
+    {"id": "profile-ops-hrbp2", "family_id": "family-ops", "level_code": "P2", "level_title": "Professional 2", "rank": 2, "grade": "P2", "job_code": "OPS-HRBP2", "title": "HR Business Partner"},
+    {"id": "profile-ops-hrbp3", "family_id": "family-ops", "level_code": "P3", "level_title": "Professional 3", "rank": 3, "grade": "P3", "job_code": "OPS-HRBP3", "title": "Senior HR Business Partner"},
+    {"id": "profile-eng-swe3", "family_id": "family-eng", "level_code": "P3", "level_title": "Professional 3", "rank": 3, "grade": "P3", "job_code": "ENG-SWE3", "title": "Software Engineer III"},
+    {"id": "profile-eng-mgr1", "family_id": "family-eng", "level_code": "M1", "level_title": "Manager 1", "rank": 4, "grade": "M1", "job_code": "ENG-MGR1", "title": "Engineering Manager"},
+    {"id": "profile-cln-nurse4", "family_id": "family-cln", "level_code": "N4", "level_title": "Clinical 4", "rank": 4, "grade": "N4", "job_code": "CLN-NURSE4", "title": "Registered Nurse IV"}
+  ],
+  "promotion_paths": [
+    {
+      "id": "path-ops-hrbp2-hrbp3",
+      "from_profile_id": "profile-ops-hrbp2",
+      "to_profile_id": "profile-ops-hrbp3",
+      "kind": "UPWARD",
+      "minimum_base_increase": "0.0500",
+      "maximum_base_increase": "0.1500",
+      "compensation_policy_ref": "promotion-rules",
+      "compensation_policy_revision": "2026.1",
+      "benefit_rule_refs": ["professional-benefit-eligibility@2026.1"]
+    },
+    {
+      "id": "path-eng-swe3-mgr1",
+      "from_profile_id": "profile-eng-swe3",
+      "to_profile_id": "profile-eng-mgr1",
+      "kind": "UPWARD",
+      "minimum_base_increase": "0.0500",
+      "maximum_base_increase": "0.1800",
+      "compensation_policy_ref": "promotion-rules",
+      "compensation_policy_revision": "2026.1",
+      "benefit_rule_refs": ["people-manager-benefit-eligibility@2026.1"]
+    }
+  ]
+}

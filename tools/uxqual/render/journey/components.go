@@ -525,7 +525,7 @@ func promotionSubjectCard(s *PromotionSubject) ui.Node {
 	}
 	return html.Section(html.Props{Class: "jn-panel jn-subject-card", Aria: map[string]string{"labelledby": "subject-heading"}},
 		html.Div(html.Props{Class: "jn-subject-identity"},
-			uicomponents.Avatar(uicomponents.AvatarProps{Name: s.Name, Class: "jn-subject-avatar", Decorative: true}),
+			uicomponents.Avatar(uicomponents.AvatarProps{Name: s.Name, PhotoURL: s.PhotoURL, Class: "jn-subject-avatar", Decorative: true}),
 			html.Div(html.Props{},
 				html.P(html.Props{Class: "jn-eyebrow"}, html.Text("Promotion subject")),
 				html.H2(html.Props{ID: "subject-heading"}, html.Text(s.Name)),

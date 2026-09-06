@@ -305,9 +305,9 @@ func TestProposalFormShape(t *testing.T) {
 		required              bool
 	}{
 		{FieldWorker, NameWorker, kindSelect, "", true},
-		{FieldJobCode, NameJobCode, kindText, "", true},
+		{FieldJobCode, NameJobCode, kindSelect, "", true},
 		{FieldGrade, NameGrade, kindSelect, "", true},
-		{FieldPosition, NamePosition, kindText, "", false},
+		{FieldPosition, NamePosition, kindText, "", true},
 		{FieldBase, NameBase, kindNumber, "", true},
 		{FieldEffective, NameEffective, kindDate, "2026-12-01", true},
 		{FieldReason, NameReason, kindTextarea, "", true},
@@ -926,11 +926,22 @@ func testWorkers() []*journeyv1.Worker {
 func testWorkforceOptions() *journeyv1.WorkforceOptions {
 	return &journeyv1.WorkforceOptions{
 		JobCodes:  []string{"CLN-NURSE4", "ENG-MGR1", "ENG-SWE3", "OPS-HRBP2", "OPS-HRBP3"},
-		Grades:    []string{"P2", "P3", "P4"},
+		Grades:    []string{"M1", "N4", "P2", "P3"},
 		OrgUnits:  []string{"eng-platform", "people-ops"},
 		PayZones:  []string{"US-EAST", "US-WEST"},
 		Positions: []string{"POS-HRBP-204", "POS-SWE-118"},
 		Currency:  "USD",
+		Placements: []*journeyv1.WorkforcePlacementOption{
+			{JobCode: "CLN-NURSE4", Grade: "N4", PayZone: "US-EAST", Currency: "USD"},
+			{JobCode: "ENG-MGR1", Grade: "M1", PayZone: "US-WEST", Currency: "USD"},
+			{JobCode: "ENG-SWE3", Grade: "P3", PayZone: "US-WEST", Currency: "USD"},
+			{JobCode: "OPS-HRBP2", Grade: "P2", PayZone: "US-EAST", Currency: "USD"},
+			{JobCode: "OPS-HRBP3", Grade: "P3", PayZone: "US-EAST", Currency: "USD"},
+		},
+		PromotionPaths: []*journeyv1.PromotionPathOption{
+			{PathRef: "path-eng-swe3-mgr1", Revision: "2026.1", SourceProfileRef: "profile-eng-swe3", SourceJobCode: "ENG-SWE3", SourceGrade: "P3", TargetProfileRef: "profile-eng-mgr1", TargetJobCode: "ENG-MGR1", TargetGrade: "M1", TargetTitle: "Engineering Manager", Kind: "UPWARD", MinimumBaseIncrease: "0.0500", MaximumBaseIncrease: "0.1800", CompensationPolicyRef: "promotion-rules@2026.1", BenefitRuleRefs: []string{"people-manager-benefit-eligibility@2026.1"}},
+			{PathRef: "path-ops-hrbp2-hrbp3", Revision: "2026.1", SourceProfileRef: "profile-ops-hrbp2", SourceJobCode: "OPS-HRBP2", SourceGrade: "P2", TargetProfileRef: "profile-ops-hrbp3", TargetJobCode: "OPS-HRBP3", TargetGrade: "P3", TargetTitle: "Senior HR Business Partner", Kind: "UPWARD", MinimumBaseIncrease: "0.0500", MaximumBaseIncrease: "0.1500", CompensationPolicyRef: "promotion-rules@2026.1", BenefitRuleRefs: []string{"professional-benefit-eligibility@2026.1"}},
+		},
 	}
 }
 
@@ -1068,6 +1079,31 @@ func TestProposalPageKeepsOneWorkerAsImmutableContext(t *testing.T) {
 	}
 }
 
+func TestProposalPageOffersOnlyPublishedNextRolesAndExplainsTheirRules(t *testing.T) {
+	p := ProposalPage(testConfig(), testListData(t, "omar-reyes"), nil, map[string]string{
+		FieldJobCode: "OPS-HRBP3", FieldGrade: "P3",
+	})
+	form := p.Proposal.Form
+	jobs, ok := fieldByID(form.Fields, FieldJobCode)
+	if !ok {
+		t.Fatal("proposal form has no next-role field")
+	}
+	if len(jobs.Options) != 2 || jobs.Options[1].Value != "OPS-HRBP3" || jobs.Options[1].Label != "OPS-HRBP3 — Senior HR Business Partner" {
+		t.Fatalf("Omar's governed next roles = %+v", jobs.Options)
+	}
+	for _, option := range jobs.Options {
+		if option.Value == "CLN-NURSE4" || option.Value == "OPS-HRBP2" {
+			t.Fatalf("unrelated or current role leaked into the ladder choices: %+v", jobs.Options)
+		}
+	}
+	base, _ := fieldByID(form.Fields, FieldBase)
+	for _, want := range []string{"5.00%", "15.00%", "promotion-rules@2026.1", "professional-benefit-eligibility@2026.1"} {
+		if !strings.Contains(base.Help, want) {
+			t.Errorf("base-pay guidance %q does not explain %q", base.Help, want)
+		}
+	}
+}
+
 func TestPersonHrefEscapesReservedWorkerReferences(t *testing.T) {
 	if got, want := personHref("worker/a+b & c"), "/workspace/app/person?person=worker%2Fa%2Bb+%26+c"; got != want {
 		t.Fatalf("personHref = %q, want %q", got, want)
@@ -1159,7 +1195,7 @@ func TestWorkerFormShape(t *testing.T) {
 		{FieldWorkerLegalName, NameLegalName, kindText, "", true},
 		{FieldWorkerPreferredName, NamePreferredName, kindText, "", false},
 		{FieldWorkerJobCode, NameWorkerJobCode, kindSelect, "CLN-NURSE4", true},
-		{FieldWorkerGrade, NameWorkerGrade, kindSelect, "P2", true},
+		{FieldWorkerGrade, NameWorkerGrade, kindSelect, "M1", true},
 		{FieldWorkerOrgUnit, NameOrgUnit, kindSelect, "eng-platform", true},
 		{FieldWorkerPosition, NameWorkerPosition, kindText, "POS-HRBP-204", false},
 		{FieldWorkerLocation, NameLocation, kindText, "", false},

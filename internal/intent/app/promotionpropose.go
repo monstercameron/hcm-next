@@ -391,6 +391,9 @@ func (e *journeyEngine) ProposePromotion(
 	if err != nil {
 		return nil, err
 	}
+	if err := validatePublishedPromotionPath(current, in, baseline); err != nil {
+		return nil, err
+	}
 
 	def, ownedErr := e.svc.defs.Resolve(intent.Ref{TypeID: promotion.IntentType, Version: 1})
 	if ownedErr != nil {

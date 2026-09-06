@@ -386,9 +386,36 @@ type WorkforceOptions struct {
 	OrgUnits  []string
 	PayZones  []string
 	Positions []string
+	// Placements retains exact catalog combinations. Independent code and
+	// grade lists are not sufficient to decide whether their cross-product is
+	// a real governed placement.
+	Placements []WorkforcePlacementOption
+	// PromotionPaths are the immutable job-architecture edges that decide
+	// which of those payable placements is a valid next role.
+	PromotionPaths []PromotionPathOption
 	// Currency is the one currency the catalog is denominated in. A created
 	// worker's baseline is carried in it.
 	Currency string
+}
+
+type WorkforcePlacementOption struct {
+	JobCode  string
+	Grade    string
+	PayZone  string
+	Currency string
+}
+
+type PromotionPathOption struct {
+	PathRef, Revision          string
+	SourceProfileRef           string
+	SourceJobCode, SourceGrade string
+	TargetProfileRef           string
+	TargetJobCode, TargetGrade string
+	TargetTitle, Kind          string
+	MinimumBaseIncrease        string
+	MaximumBaseIncrease        string
+	CompensationPolicyRef      string
+	BenefitRuleRefs            []string
 }
 
 // JourneyEngine is the live engine the journey page reads and acts through.

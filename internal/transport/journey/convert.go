@@ -417,7 +417,7 @@ func fromWorker(w *journeyv1.Worker) workspace.WorkerSummary {
 
 // toWorkforceOptions renders the closed placement set.
 func toWorkforceOptions(o workspace.WorkforceOptions) *journeyv1.WorkforceOptions {
-	return &journeyv1.WorkforceOptions{
+	out := &journeyv1.WorkforceOptions{
 		JobCodes:  o.JobCodes,
 		Grades:    o.Grades,
 		OrgUnits:  o.OrgUnits,
@@ -425,12 +425,33 @@ func toWorkforceOptions(o workspace.WorkforceOptions) *journeyv1.WorkforceOption
 		Positions: o.Positions,
 		Currency:  o.Currency,
 	}
+	for _, placement := range o.Placements {
+		out.Placements = append(out.Placements, &journeyv1.WorkforcePlacementOption{
+			JobCode: placement.JobCode, Grade: placement.Grade,
+			PayZone: placement.PayZone, Currency: placement.Currency,
+		})
+	}
+	for _, path := range o.PromotionPaths {
+		out.PromotionPaths = append(out.PromotionPaths, &journeyv1.PromotionPathOption{
+			PathRef: path.PathRef, Revision: path.Revision,
+			SourceProfileRef: path.SourceProfileRef,
+			SourceJobCode:    path.SourceJobCode, SourceGrade: path.SourceGrade,
+			TargetProfileRef: path.TargetProfileRef,
+			TargetJobCode:    path.TargetJobCode, TargetGrade: path.TargetGrade,
+			TargetTitle: path.TargetTitle, Kind: path.Kind,
+			MinimumBaseIncrease:   path.MinimumBaseIncrease,
+			MaximumBaseIncrease:   path.MaximumBaseIncrease,
+			CompensationPolicyRef: path.CompensationPolicyRef,
+			BenefitRuleRefs:       append([]string(nil), path.BenefitRuleRefs...),
+		})
+	}
+	return out
 }
 
 // fromWorkforceOptions is [toWorkforceOptions]'s inverse. A nil message is the
 // zero options, so a response that omits the field is not a decoding failure.
 func fromWorkforceOptions(o *journeyv1.WorkforceOptions) workspace.WorkforceOptions {
-	return workspace.WorkforceOptions{
+	out := workspace.WorkforceOptions{
 		JobCodes:  o.GetJobCodes(),
 		Grades:    o.GetGrades(),
 		OrgUnits:  o.GetOrgUnits(),
@@ -438,6 +459,27 @@ func fromWorkforceOptions(o *journeyv1.WorkforceOptions) workspace.WorkforceOpti
 		Positions: o.GetPositions(),
 		Currency:  o.GetCurrency(),
 	}
+	for _, placement := range o.GetPlacements() {
+		out.Placements = append(out.Placements, workspace.WorkforcePlacementOption{
+			JobCode: placement.GetJobCode(), Grade: placement.GetGrade(),
+			PayZone: placement.GetPayZone(), Currency: placement.GetCurrency(),
+		})
+	}
+	for _, path := range o.GetPromotionPaths() {
+		out.PromotionPaths = append(out.PromotionPaths, workspace.PromotionPathOption{
+			PathRef: path.GetPathRef(), Revision: path.GetRevision(),
+			SourceProfileRef: path.GetSourceProfileRef(),
+			SourceJobCode:    path.GetSourceJobCode(), SourceGrade: path.GetSourceGrade(),
+			TargetProfileRef: path.GetTargetProfileRef(),
+			TargetJobCode:    path.GetTargetJobCode(), TargetGrade: path.GetTargetGrade(),
+			TargetTitle: path.GetTargetTitle(), Kind: path.GetKind(),
+			MinimumBaseIncrease:   path.GetMinimumBaseIncrease(),
+			MaximumBaseIncrease:   path.GetMaximumBaseIncrease(),
+			CompensationPolicyRef: path.GetCompensationPolicyRef(),
+			BenefitRuleRefs:       append([]string(nil), path.GetBenefitRuleRefs()...),
+		})
+	}
+	return out
 }
 
 // fromCreateWorkerRequest reads the create form off the wire. It trims

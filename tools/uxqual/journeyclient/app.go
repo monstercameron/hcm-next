@@ -222,6 +222,8 @@ func (a *App) OnHashChange(hash string) {
 	}
 	previous := a.route
 	a.route = route
+	resetProposal := route.Kind == RouteProposal &&
+		(previous.Kind != RouteProposal || previous.WorkerRef != route.WorkerRef)
 	if route.Kind == RouteList && previous.Kind == RouteList && a.listLoaded && route.WorkerRef != previous.WorkerRef {
 		// Only the selection changed, and the answers it selects from are
 		// already in hand. Re-reading the whole tenant to move a highlight
@@ -240,6 +242,15 @@ func (a *App) OnHashChange(hash string) {
 	// to.
 	a.stopWatchLocked()
 	a.mu.Unlock()
+
+	// A promotion draft is scoped to exactly one employee. Carrying its target
+	// placement, compensation or rationale onto another employee is not a
+	// convenience; it is an unsafe change of subject. Entering a focused
+	// proposal therefore starts a clean draft, while a redraw of the same
+	// employee's proposal preserves their in-progress typing.
+	if resetProposal {
+		a.resetProposalValues(route.WorkerRef)
+	}
 
 	if route.Kind == RouteDetail {
 		a.loadDetail(ctx, generation, route.IntentID)
@@ -305,11 +316,81 @@ func (a *App) selectValue(ref string) {
 	a.store.SetValue(FieldWorker, ref)
 }
 
+// resetProposalValues removes every subject-specific proposal answer and
+// then restores only the clock-derived default and the new immutable subject.
+func (a *App) resetProposalValues(workerRef string) {
+	a.store.Update(func(p *journey.Page) {
+		if p.Values == nil {
+			p.Values = map[string]string{}
+		}
+		for _, field := range []string{
+			FieldWorker, FieldJobCode, FieldGrade, FieldPosition,
+			FieldBase, FieldEffective, FieldReason,
+		} {
+			delete(p.Values, field)
+		}
+		p.Values[FieldEffective] = DefaultEffectiveDate(a.now())
+		if workerRef != "" {
+			p.Values[FieldWorker] = strings.TrimSpace(workerRef)
+		}
+	})
+}
+
+// clearDecisionValues prevents one routed approver's rationale from appearing
+// in the next approver's form after the workflow advances.
+func (a *App) clearDecisionValues() {
+	a.store.Update(func(p *journey.Page) {
+		delete(p.Values, FieldApproveReason)
+		delete(p.Values, FieldRejectReason)
+	})
+}
+
 // selectedWorker is the employee the route names.
 func (a *App) selectedWorker() string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.route.WorkerRef
+}
+
+func (a *App) proposalTargetIsGoverned(workerRef, jobCode, grade string) bool {
+	a.mu.Lock()
+	options := a.options
+	worker := findWorker(a.workers, workerRef)
+	a.mu.Unlock()
+	if options == nil || len(options.GetPlacements()) == 0 {
+		// Older servers do not publish exact placement tuples. They remain the
+		// authority and will validate the proposal; the new client must not
+		// make their whole surface unusable during a rolling deployment.
+		return true
+	}
+	if len(options.GetPromotionPaths()) > 0 && worker != nil {
+		published := false
+		for _, path := range options.GetPromotionPaths() {
+			if path.GetSourceJobCode() == worker.GetJobCode() && path.GetSourceGrade() == worker.GetGrade() &&
+				path.GetTargetJobCode() == jobCode && path.GetTargetGrade() == grade {
+				published = true
+				break
+			}
+		}
+		if !published {
+			return false
+		}
+	}
+	payZone, currency := "", options.GetCurrency()
+	if worker != nil {
+		payZone = worker.GetPayZone()
+		if worker.GetCurrency() != "" {
+			currency = worker.GetCurrency()
+		}
+	}
+	for _, placement := range options.GetPlacements() {
+		if placement.GetJobCode() == jobCode && placement.GetGrade() == grade &&
+			(payZone == "" || placement.GetPayZone() == payZone) &&
+			(currency == "" || placement.GetCurrency() == currency) {
+			return true
+		}
+	}
+	return false
 }
 
 // Submit is what a form calls. values is keyed by field name, as the
@@ -457,6 +538,30 @@ func (a *App) propose(ctx context.Context, generation int, values map[string]str
 		a.show(refusal("Choose a worker", "A promotion is proposed for one worker; the engine reads their placement, pay and budget authority from the record."))
 		return
 	}
+	missing := make([]string, 0, 6)
+	for _, field := range []struct {
+		label string
+		value string
+	}{
+		{label: "target job code", value: req.GetTarget().GetJobCode()},
+		{label: "target grade", value: req.GetTarget().GetGrade()},
+		{label: "target position", value: req.GetTarget().GetPositionId()},
+		{label: "proposed base pay", value: req.GetProposedBase()},
+		{label: "effective date", value: req.GetEffectiveDate()},
+		{label: "business reason", value: req.GetBusinessReason()},
+	} {
+		if field.value == "" {
+			missing = append(missing, field.label)
+		}
+	}
+	if len(missing) > 0 {
+		a.show(refusal("Complete the required fields", "Add "+strings.Join(missing, ", ")+" before simulating this proposal."))
+		return
+	}
+	if !a.proposalTargetIsGoverned(req.GetWorkerRef(), req.GetTarget().GetJobCode(), req.GetTarget().GetGrade()) {
+		a.show(refusal("Choose a governed target role", "That job and grade are not a published next step from this employee's current profile, or have no pay band in their pay zone and currency."))
+		return
+	}
 
 	a.show(busy("Creating and simulating the proposal."))
 	a.runTask(ctx, taskmux.Spec{Key: "journey:propose:" + worker, Priority: taskmux.Interactive, Duplicate: taskmux.KeepExisting}, func(ctx context.Context) {
@@ -468,6 +573,7 @@ func (a *App) propose(ctx context.Context, generation int, values map[string]str
 			a.show(NoticeFromError(err))
 			return
 		}
+		a.resetProposalValues("")
 		// The proposal answer is a summary, not a detail, so the client
 		// navigates and reads the new journey rather than half-drawing it
 		// from what it has.
@@ -688,20 +794,46 @@ func (a *App) decide(ctx context.Context, generation int, intentID string, appro
 			a.show(NoticeFromError(err))
 			return
 		}
+		a.clearDecisionValues()
 		notice := &journey.Notice{
 			Tone:   toneSuccess,
 			Title:  "Returned to the manager",
 			Detail: "The instance ended at its REJECTED terminal. No promotion fact was written.",
 		}
 		if approve {
-			notice = &journey.Notice{
-				Tone:   toneSuccess,
-				Title:  "Approved",
-				Detail: "The driver resumed and the terminal node recorded the promotion fact.",
-			}
+			notice = approvalNotice(resp.GetDetail())
 		}
 		a.applyDetail(generation, resp.GetDetail(), notice)
 	})
+}
+
+// approvalNotice says only what the engine's returned detail proves. An
+// accepted finance decision may lead to a manager decision, and completed
+// approvals may lead to an effective-date wait; neither is a ledger write.
+func approvalNotice(detail *journeyv1.JourneyDetail) *journey.Notice {
+	if detail != nil && detail.GetLedger() != nil {
+		return &journey.Notice{
+			Tone:   toneSuccess,
+			Title:  "Promotion recorded",
+			Detail: "All required approvals completed and the terminal node recorded the governed promotion fact.",
+		}
+	}
+	stage := ""
+	if detail != nil {
+		stage = stageOf(detail.GetJourney().GetStage())
+	}
+	switch stage {
+	case stageFinanceApproval:
+		return &journey.Notice{Tone: toneSuccess, Title: "Approval recorded", Detail: "The workflow advanced to finance approval. No promotion fact has been recorded yet."}
+	case stageManagerApproval:
+		return &journey.Notice{Tone: toneSuccess, Title: "Approval recorded", Detail: "The workflow advanced to manager approval. No promotion fact has been recorded yet."}
+	case stageReapproval:
+		return &journey.Notice{Tone: toneSuccess, Title: "Approval recorded", Detail: "A material change requires another routed approval. No promotion fact has been recorded yet."}
+	case stageWaitingEffective:
+		return &journey.Notice{Tone: toneSuccess, Title: "Approvals complete", Detail: "The workflow is waiting for the effective date. No promotion fact has been recorded yet."}
+	default:
+		return &journey.Notice{Tone: toneSuccess, Title: "Approval recorded", Detail: "The workflow resumed. The recorded outcome below is authoritative; no terminal write is claimed unless a ledger fact is present."}
+	}
 }
 
 // ---------------------------------------------------------------------
@@ -775,6 +907,23 @@ func (a *App) show(notice *journey.Notice) {
 // do it without re-reading the tenant: the answers are already here.
 func (a *App) wire(p journey.Page) journey.Page {
 	p = journey.Wire(a.store, p, a.Navigate, a.Submit, journey.WithSelectWorker(a.selectWorker))
+	// Re-project the dependent grade choices when a target job changes. The
+	// store remains the one controlled-input authority; this small wrapper
+	// only prevents a stale grade from surviving a new job selection.
+	p.OnFieldChange = func(fieldID, value string) {
+		if fieldID != FieldJobCode {
+			a.store.SetValue(fieldID, value)
+			return
+		}
+		a.store.Update(func(page *journey.Page) {
+			if page.Values == nil {
+				page.Values = map[string]string{}
+			}
+			page.Values[FieldJobCode] = value
+			page.Values[FieldGrade] = a.uniqueGradeForJob(value)
+		})
+		a.show(nil)
+	}
 	for i := range p.Nav {
 		if !strings.HasPrefix(p.Nav[i].Href, "#") {
 			if a.NavigateProduct == nil {
@@ -798,6 +947,36 @@ func (a *App) wire(p journey.Page) journey.Page {
 		p.Detail.BackLink.OnNavigate = func() { a.NavigateProduct(href) }
 	}
 	return p
+}
+
+func (a *App) uniqueGradeForJob(jobCode string) string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	worker := findWorker(a.workers, a.route.WorkerRef)
+	if worker != nil && len(a.options.GetPromotionPaths()) > 0 {
+		grade := ""
+		for _, path := range a.options.GetPromotionPaths() {
+			if path.GetSourceJobCode() != worker.GetJobCode() || path.GetSourceGrade() != worker.GetGrade() || path.GetTargetJobCode() != jobCode {
+				continue
+			}
+			if grade != "" && grade != path.GetTargetGrade() {
+				return ""
+			}
+			grade = path.GetTargetGrade()
+		}
+		return grade
+	}
+	grade := ""
+	for _, placement := range a.options.GetPlacements() {
+		if placement.GetJobCode() != jobCode {
+			continue
+		}
+		if grade != "" && grade != placement.GetGrade() {
+			return ""
+		}
+		grade = placement.GetGrade()
+	}
+	return grade
 }
 
 // busy is the notice shown while an RPC is in flight. It is a notice rather

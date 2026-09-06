@@ -302,6 +302,9 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	if err != nil {
 		return workspace.JourneySummary{}, err
 	}
+	if err := validatePublishedPromotionPath(current, in, baseline); err != nil {
+		return workspace.JourneySummary{}, err
+	}
 
 	def, ownedErr := e.svc.defs.Resolve(intent.Ref{TypeID: promotion.IntentType, Version: 1})
 	if ownedErr != nil {
@@ -385,6 +388,48 @@ func validateProposalInput(in workspace.ProposalInput) error {
 		return journeyInputError("effective_date", "is not an ISO-8601 date (YYYY-MM-DD)")
 	}
 	return nil
+}
+
+// validatePublishedPromotionPath is the server-side ladder gate. Client
+// filtering is guidance, never authority: every caller, including the direct
+// intent-only RPC, must prove that the current and target profiles form a
+// published edge and that the proposed base follows that edge's exact rule.
+func validatePublishedPromotionPath(current journeyCurrent, in workspace.ProposalInput, baseline journeyBaselineFacts) error {
+	paths, err := fixtures.PromotionPaths()
+	if err != nil {
+		return fmt.Errorf("app: journey: read published promotion paths: %w", err)
+	}
+	for _, scope := range paths {
+		if scope.SourceJobCode != current.jobCode || scope.SourceGrade != current.grade ||
+			scope.TargetJobCode != strings.TrimSpace(in.TargetJobCode) || scope.TargetGrade != strings.TrimSpace(in.TargetGrade) {
+			continue
+		}
+		currentPay, err := values.NewMoney(baseline.currentBase, baseline.currency, fixtures.MoneyScale, fixtures.MoneyRounding)
+		if err != nil {
+			return fmt.Errorf("app: journey: parse current base for ladder rule: %w", err)
+		}
+		proposedPay, err := values.NewMoney(strings.TrimSpace(in.ProposedBase), baseline.currency, fixtures.MoneyScale, fixtures.MoneyRounding)
+		if err != nil {
+			return journeyInputError("proposed_base", "must be an exact monetary amount in the worker's currency")
+		}
+		difference, err := proposedPay.Sub(currentPay)
+		if err != nil {
+			return fmt.Errorf("app: journey: compare proposed base to ladder rule: %w", err)
+		}
+		fraction, err := difference.Amount().Div(currentPay.Amount(), fixtures.PercentScale, fixtures.MoneyRounding)
+		if err != nil {
+			return fmt.Errorf("app: journey: calculate exact base increase: %w", err)
+		}
+		increase, err := values.NewPercentage(fraction.String(), fixtures.PercentScale, values.RoundingExactRequired)
+		if err != nil {
+			return fmt.Errorf("app: journey: represent exact base increase: %w", err)
+		}
+		if err := scope.Path.AllowsBaseIncrease(increase); err != nil {
+			return journeyInputError("proposed_base", "the published ladder edge requires a base increase between "+scope.Path.MinimumBaseIncrease.String()+" and "+scope.Path.MaximumBaseIncrease.String()+" (decimal fractions)")
+		}
+		return nil
+	}
+	return journeyInputError("target_job_code", "the target job and grade are not a published next step from the worker's current profile")
 }
 
 // journeyBaseline is the declared, corpus-sourced half of a promotion request:
