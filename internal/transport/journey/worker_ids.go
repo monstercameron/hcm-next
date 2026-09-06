@@ -6,6 +6,7 @@ import (
 	"time"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
@@ -56,6 +57,9 @@ func (s *server) SaveWorkerIDPolicy(ctx context.Context, req *journeyv1.SaveWork
 	principal, inv, ctxErr := trustedContext(ctx)
 	if ctxErr != nil {
 		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "worker-ids", roleaccess.ActionUpdate); err != nil {
+		return nil, err
 	}
 	store, dependencyErr := s.workerIDStore(principal, inv.RequestID())
 	if dependencyErr != nil {

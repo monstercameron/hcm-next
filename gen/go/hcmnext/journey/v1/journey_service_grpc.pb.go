@@ -19,21 +19,27 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JourneyService_ListJourneys_FullMethodName          = "/hcmnext.journey.v1.JourneyService/ListJourneys"
-	JourneyService_ProposeJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/ProposeJourney"
-	JourneyService_ProposePromotion_FullMethodName      = "/hcmnext.journey.v1.JourneyService/ProposePromotion"
-	JourneyService_InspectJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/InspectJourney"
-	JourneyService_ExecuteJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/ExecuteJourney"
-	JourneyService_DecideJourney_FullMethodName         = "/hcmnext.journey.v1.JourneyService/DecideJourney"
-	JourneyService_WatchJourney_FullMethodName          = "/hcmnext.journey.v1.JourneyService/WatchJourney"
-	JourneyService_ListWorkers_FullMethodName           = "/hcmnext.journey.v1.JourneyService/ListWorkers"
-	JourneyService_CreateWorker_FullMethodName          = "/hcmnext.journey.v1.JourneyService/CreateWorker"
-	JourneyService_GetProductPreferences_FullMethodName = "/hcmnext.journey.v1.JourneyService/GetProductPreferences"
-	JourneyService_SaveUserPreferences_FullMethodName   = "/hcmnext.journey.v1.JourneyService/SaveUserPreferences"
-	JourneyService_SaveTenantAppearance_FullMethodName  = "/hcmnext.journey.v1.JourneyService/SaveTenantAppearance"
-	JourneyService_RecordWorkflowUse_FullMethodName     = "/hcmnext.journey.v1.JourneyService/RecordWorkflowUse"
-	JourneyService_GetWorkerIDPolicy_FullMethodName     = "/hcmnext.journey.v1.JourneyService/GetWorkerIDPolicy"
-	JourneyService_SaveWorkerIDPolicy_FullMethodName    = "/hcmnext.journey.v1.JourneyService/SaveWorkerIDPolicy"
+	JourneyService_ListJourneys_FullMethodName                   = "/hcmnext.journey.v1.JourneyService/ListJourneys"
+	JourneyService_ProposeJourney_FullMethodName                 = "/hcmnext.journey.v1.JourneyService/ProposeJourney"
+	JourneyService_ProposePromotion_FullMethodName               = "/hcmnext.journey.v1.JourneyService/ProposePromotion"
+	JourneyService_InspectJourney_FullMethodName                 = "/hcmnext.journey.v1.JourneyService/InspectJourney"
+	JourneyService_ExecuteJourney_FullMethodName                 = "/hcmnext.journey.v1.JourneyService/ExecuteJourney"
+	JourneyService_DecideJourney_FullMethodName                  = "/hcmnext.journey.v1.JourneyService/DecideJourney"
+	JourneyService_WatchJourney_FullMethodName                   = "/hcmnext.journey.v1.JourneyService/WatchJourney"
+	JourneyService_ListWorkers_FullMethodName                    = "/hcmnext.journey.v1.JourneyService/ListWorkers"
+	JourneyService_CreateWorker_FullMethodName                   = "/hcmnext.journey.v1.JourneyService/CreateWorker"
+	JourneyService_GetProductPreferences_FullMethodName          = "/hcmnext.journey.v1.JourneyService/GetProductPreferences"
+	JourneyService_SaveUserPreferences_FullMethodName            = "/hcmnext.journey.v1.JourneyService/SaveUserPreferences"
+	JourneyService_SaveTenantAppearance_FullMethodName           = "/hcmnext.journey.v1.JourneyService/SaveTenantAppearance"
+	JourneyService_SaveOrganizationVisibility_FullMethodName     = "/hcmnext.journey.v1.JourneyService/SaveOrganizationVisibility"
+	JourneyService_GetRoleAccess_FullMethodName                  = "/hcmnext.journey.v1.JourneyService/GetRoleAccess"
+	JourneyService_SaveAccessRole_FullMethodName                 = "/hcmnext.journey.v1.JourneyService/SaveAccessRole"
+	JourneyService_SaveWorkerRoleAssignment_FullMethodName       = "/hcmnext.journey.v1.JourneyService/SaveWorkerRoleAssignment"
+	JourneyService_SaveRoleOrganizationVisibility_FullMethodName = "/hcmnext.journey.v1.JourneyService/SaveRoleOrganizationVisibility"
+	JourneyService_SaveRolePagePermission_FullMethodName         = "/hcmnext.journey.v1.JourneyService/SaveRolePagePermission"
+	JourneyService_RecordWorkflowUse_FullMethodName              = "/hcmnext.journey.v1.JourneyService/RecordWorkflowUse"
+	JourneyService_GetWorkerIDPolicy_FullMethodName              = "/hcmnext.journey.v1.JourneyService/GetWorkerIDPolicy"
+	JourneyService_SaveWorkerIDPolicy_FullMethodName             = "/hcmnext.journey.v1.JourneyService/SaveWorkerIDPolicy"
 )
 
 // JourneyServiceClient is the client API for JourneyService service.
@@ -217,6 +223,18 @@ type JourneyServiceClient interface {
 	// the server additionally requires the comp_admin role. The RPC name is kept
 	// for wire compatibility.
 	SaveTenantAppearance(ctx context.Context, in *SaveTenantAppearanceRequest, opts ...grpc.CallOption) (*SaveTenantAppearanceResponse, error)
+	// SaveOrganizationVisibility replaces the organization-wide directory
+	// visibility boundary under optimistic versioning. The organization scope
+	// is derived from the admitted credential and comp_admin is required.
+	SaveOrganizationVisibility(ctx context.Context, in *SaveOrganizationVisibilityRequest, opts ...grpc.CallOption) (*SaveOrganizationVisibilityResponse, error)
+	// GetRoleAccess returns the tenant role catalog, employee assignments, and
+	// one organization-directory policy per role. Only HCM administrators can
+	// read or mutate this administrative projection.
+	GetRoleAccess(ctx context.Context, in *GetRoleAccessRequest, opts ...grpc.CallOption) (*GetRoleAccessResponse, error)
+	SaveAccessRole(ctx context.Context, in *SaveAccessRoleRequest, opts ...grpc.CallOption) (*SaveAccessRoleResponse, error)
+	SaveWorkerRoleAssignment(ctx context.Context, in *SaveWorkerRoleAssignmentRequest, opts ...grpc.CallOption) (*SaveWorkerRoleAssignmentResponse, error)
+	SaveRoleOrganizationVisibility(ctx context.Context, in *SaveRoleOrganizationVisibilityRequest, opts ...grpc.CallOption) (*SaveRoleOrganizationVisibilityResponse, error)
+	SaveRolePagePermission(ctx context.Context, in *SaveRolePagePermissionRequest, opts ...grpc.CallOption) (*SaveRolePagePermissionResponse, error)
 	// RecordWorkflowUse increments the authenticated user's usage count for a
 	// workflow so launchers can rank real frequent actions rather than hardcode
 	// a single action. It grants no authority to run the named workflow.
@@ -360,6 +378,66 @@ func (c *journeyServiceClient) SaveTenantAppearance(ctx context.Context, in *Sav
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SaveTenantAppearanceResponse)
 	err := c.cc.Invoke(ctx, JourneyService_SaveTenantAppearance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveOrganizationVisibility(ctx context.Context, in *SaveOrganizationVisibilityRequest, opts ...grpc.CallOption) (*SaveOrganizationVisibilityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveOrganizationVisibilityResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveOrganizationVisibility_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) GetRoleAccess(ctx context.Context, in *GetRoleAccessRequest, opts ...grpc.CallOption) (*GetRoleAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoleAccessResponse)
+	err := c.cc.Invoke(ctx, JourneyService_GetRoleAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveAccessRole(ctx context.Context, in *SaveAccessRoleRequest, opts ...grpc.CallOption) (*SaveAccessRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveAccessRoleResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveAccessRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveWorkerRoleAssignment(ctx context.Context, in *SaveWorkerRoleAssignmentRequest, opts ...grpc.CallOption) (*SaveWorkerRoleAssignmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveWorkerRoleAssignmentResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveWorkerRoleAssignment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveRoleOrganizationVisibility(ctx context.Context, in *SaveRoleOrganizationVisibilityRequest, opts ...grpc.CallOption) (*SaveRoleOrganizationVisibilityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveRoleOrganizationVisibilityResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveRoleOrganizationVisibility_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveRolePagePermission(ctx context.Context, in *SaveRolePagePermissionRequest, opts ...grpc.CallOption) (*SaveRolePagePermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveRolePagePermissionResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveRolePagePermission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -577,6 +655,18 @@ type JourneyServiceServer interface {
 	// the server additionally requires the comp_admin role. The RPC name is kept
 	// for wire compatibility.
 	SaveTenantAppearance(context.Context, *SaveTenantAppearanceRequest) (*SaveTenantAppearanceResponse, error)
+	// SaveOrganizationVisibility replaces the organization-wide directory
+	// visibility boundary under optimistic versioning. The organization scope
+	// is derived from the admitted credential and comp_admin is required.
+	SaveOrganizationVisibility(context.Context, *SaveOrganizationVisibilityRequest) (*SaveOrganizationVisibilityResponse, error)
+	// GetRoleAccess returns the tenant role catalog, employee assignments, and
+	// one organization-directory policy per role. Only HCM administrators can
+	// read or mutate this administrative projection.
+	GetRoleAccess(context.Context, *GetRoleAccessRequest) (*GetRoleAccessResponse, error)
+	SaveAccessRole(context.Context, *SaveAccessRoleRequest) (*SaveAccessRoleResponse, error)
+	SaveWorkerRoleAssignment(context.Context, *SaveWorkerRoleAssignmentRequest) (*SaveWorkerRoleAssignmentResponse, error)
+	SaveRoleOrganizationVisibility(context.Context, *SaveRoleOrganizationVisibilityRequest) (*SaveRoleOrganizationVisibilityResponse, error)
+	SaveRolePagePermission(context.Context, *SaveRolePagePermissionRequest) (*SaveRolePagePermissionResponse, error)
 	// RecordWorkflowUse increments the authenticated user's usage count for a
 	// workflow so launchers can rank real frequent actions rather than hardcode
 	// a single action. It grants no authority to run the named workflow.
@@ -632,6 +722,24 @@ func (UnimplementedJourneyServiceServer) SaveUserPreferences(context.Context, *S
 }
 func (UnimplementedJourneyServiceServer) SaveTenantAppearance(context.Context, *SaveTenantAppearanceRequest) (*SaveTenantAppearanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveTenantAppearance not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveOrganizationVisibility(context.Context, *SaveOrganizationVisibilityRequest) (*SaveOrganizationVisibilityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveOrganizationVisibility not implemented")
+}
+func (UnimplementedJourneyServiceServer) GetRoleAccess(context.Context, *GetRoleAccessRequest) (*GetRoleAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRoleAccess not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveAccessRole(context.Context, *SaveAccessRoleRequest) (*SaveAccessRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveAccessRole not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveWorkerRoleAssignment(context.Context, *SaveWorkerRoleAssignmentRequest) (*SaveWorkerRoleAssignmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveWorkerRoleAssignment not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveRoleOrganizationVisibility(context.Context, *SaveRoleOrganizationVisibilityRequest) (*SaveRoleOrganizationVisibilityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveRoleOrganizationVisibility not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveRolePagePermission(context.Context, *SaveRolePagePermissionRequest) (*SaveRolePagePermissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveRolePagePermission not implemented")
 }
 func (UnimplementedJourneyServiceServer) RecordWorkflowUse(context.Context, *RecordWorkflowUseRequest) (*RecordWorkflowUseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RecordWorkflowUse not implemented")
@@ -872,6 +980,114 @@ func _JourneyService_SaveTenantAppearance_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JourneyService_SaveOrganizationVisibility_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveOrganizationVisibilityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveOrganizationVisibility(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveOrganizationVisibility_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveOrganizationVisibility(ctx, req.(*SaveOrganizationVisibilityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_GetRoleAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoleAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).GetRoleAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_GetRoleAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).GetRoleAccess(ctx, req.(*GetRoleAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveAccessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveAccessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveAccessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveAccessRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveAccessRole(ctx, req.(*SaveAccessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveWorkerRoleAssignment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveWorkerRoleAssignmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveWorkerRoleAssignment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveWorkerRoleAssignment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveWorkerRoleAssignment(ctx, req.(*SaveWorkerRoleAssignmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveRoleOrganizationVisibility_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveRoleOrganizationVisibilityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveRoleOrganizationVisibility(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveRoleOrganizationVisibility_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveRoleOrganizationVisibility(ctx, req.(*SaveRoleOrganizationVisibilityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveRolePagePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveRolePagePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveRolePagePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveRolePagePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveRolePagePermission(ctx, req.(*SaveRolePagePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JourneyService_RecordWorkflowUse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RecordWorkflowUseRequest)
 	if err := dec(in); err != nil {
@@ -976,6 +1192,30 @@ var JourneyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveTenantAppearance",
 			Handler:    _JourneyService_SaveTenantAppearance_Handler,
+		},
+		{
+			MethodName: "SaveOrganizationVisibility",
+			Handler:    _JourneyService_SaveOrganizationVisibility_Handler,
+		},
+		{
+			MethodName: "GetRoleAccess",
+			Handler:    _JourneyService_GetRoleAccess_Handler,
+		},
+		{
+			MethodName: "SaveAccessRole",
+			Handler:    _JourneyService_SaveAccessRole_Handler,
+		},
+		{
+			MethodName: "SaveWorkerRoleAssignment",
+			Handler:    _JourneyService_SaveWorkerRoleAssignment_Handler,
+		},
+		{
+			MethodName: "SaveRoleOrganizationVisibility",
+			Handler:    _JourneyService_SaveRoleOrganizationVisibility_Handler,
+		},
+		{
+			MethodName: "SaveRolePagePermission",
+			Handler:    _JourneyService_SaveRolePagePermission_Handler,
 		},
 		{
 			MethodName: "RecordWorkflowUse",

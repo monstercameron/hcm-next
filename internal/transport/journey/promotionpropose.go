@@ -4,6 +4,7 @@ import (
 	"context"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 )
 
@@ -62,6 +63,9 @@ func (s *server) ProposePromotion(
 	principal, inv, ctxErr := trustedContext(ctx)
 	if ctxErr != nil {
 		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "journeys", roleaccess.ActionCreate); err != nil {
+		return nil, err
 	}
 	eng, depErr := s.engine(principal, inv, "propose_promotion")
 	if depErr != nil {

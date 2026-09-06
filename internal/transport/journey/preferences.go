@@ -7,6 +7,7 @@ import (
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/internal/experience/preferences"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
 )
@@ -46,13 +47,16 @@ func (s *server) GetProductPreferences(ctx context.Context, _ *journeyv1.GetProd
 	if err != nil {
 		return nil, preferenceError(err, principal, inv.RequestID(), "load")
 	}
-	return &journeyv1.GetProductPreferencesResponse{User: toUserPreferences(snapshot.User), Theme: toCustomerTheme(snapshot.Theme)}, nil
+	return &journeyv1.GetProductPreferencesResponse{User: toUserPreferences(snapshot.User), Theme: toCustomerTheme(snapshot.Theme), OrganizationVisibility: toOrganizationVisibility(snapshot.OrganizationVisibility)}, nil
 }
 
 func (s *server) SaveUserPreferences(ctx context.Context, req *journeyv1.SaveUserPreferencesRequest) (*journeyv1.SaveUserPreferencesResponse, error) {
 	principal, inv, ctxErr := trustedContext(ctx)
 	if ctxErr != nil {
 		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "settings", roleaccess.ActionUpdate); err != nil {
+		return nil, err
 	}
 	store, depErr := s.preferenceStore(principal, inv.RequestID())
 	if depErr != nil {
@@ -70,6 +74,9 @@ func (s *server) SaveTenantAppearance(ctx context.Context, req *journeyv1.SaveTe
 	if ctxErr != nil {
 		return nil, ctxErr
 	}
+	if err := s.requirePageAction(ctx, principal, inv, "appearance", roleaccess.ActionUpdate); err != nil {
+		return nil, err
+	}
 	if !principal.HasRole("comp_admin") {
 		return nil, envelope.New(envelope.CodePermissionDenied, "journey.preferences.appearance.role_required", "organization appearance requires the compensation administrator role").
 			WithCorrelation(inv.RequestID()).WithEvidence(evidence(principal))
@@ -83,6 +90,36 @@ func (s *server) SaveTenantAppearance(ctx context.Context, req *journeyv1.SaveTe
 		return nil, preferenceError(err, principal, inv.RequestID(), "save_theme")
 	}
 	return &journeyv1.SaveTenantAppearanceResponse{Theme: toCustomerTheme(value)}, nil
+}
+
+func (s *server) SaveOrganizationVisibility(ctx context.Context, req *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error) {
+	principal, inv, ctxErr := trustedContext(ctx)
+	if ctxErr != nil {
+		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "organization-visibility", roleaccess.ActionUpdate); err != nil {
+		return nil, err
+	}
+	if !principal.HasRole("comp_admin") {
+		return nil, envelope.New(envelope.CodePermissionDenied, "journey.preferences.organization_visibility.role_required", "organization visibility requires the compensation administrator role").
+			WithCorrelation(inv.RequestID()).WithEvidence(evidence(principal))
+	}
+	if req == nil || req.GetPolicy() == nil {
+		return nil, preferenceError(preferences.ErrInvalid, principal, inv.RequestID(), "save_organization_visibility")
+	}
+	value := fromOrganizationVisibility(req.GetPolicy())
+	if err := preferences.ValidateOrganizationVisibility(value); err != nil {
+		return nil, preferenceError(err, principal, inv.RequestID(), "save_organization_visibility")
+	}
+	store, depErr := s.preferenceStore(principal, inv.RequestID())
+	if depErr != nil {
+		return nil, depErr
+	}
+	value, err := store.SaveOrganizationVisibility(ctx, principal.Tenant(), principal.OrganizationScopeID(), principal.Subject(), value)
+	if err != nil {
+		return nil, preferenceError(err, principal, inv.RequestID(), "save_organization_visibility")
+	}
+	return &journeyv1.SaveOrganizationVisibilityResponse{Policy: toOrganizationVisibility(value)}, nil
 }
 
 func (s *server) RecordWorkflowUse(ctx context.Context, req *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error) {
@@ -142,4 +179,16 @@ func fromCustomerTheme(value *journeyv1.CustomerTheme) preferences.TenantTheme {
 		return preferences.DefaultSnapshot().Theme
 	}
 	return preferences.TenantTheme{Version: value.GetVersion(), Theme: preferences.Theme{BrandName: value.GetBrandName(), BrandMark: value.GetBrandMark(), BrandLogoURL: value.GetBrandLogoUrl(), ColorMode: value.GetColorMode(), Palette: value.GetPalette(), Shape: value.GetShape(), Density: value.GetDensity(), Glyphs: value.GetGlyphs(), Typeface: value.GetTypeface(), Navigation: value.GetNavigation(), Motion: value.GetMotion()}}
+}
+
+func toOrganizationVisibility(value preferences.OrganizationVisibility) *journeyv1.OrganizationVisibilityPolicy {
+	value = preferences.NormalizeOrganizationVisibility(value)
+	return &journeyv1.OrganizationVisibilityPolicy{Version: value.Version, Mode: value.Mode, OrganizationUnits: append([]string(nil), value.OrganizationUnits...)}
+}
+
+func fromOrganizationVisibility(value *journeyv1.OrganizationVisibilityPolicy) preferences.OrganizationVisibility {
+	if value == nil {
+		return preferences.OrganizationVisibility{}
+	}
+	return preferences.OrganizationVisibility{Version: value.GetVersion(), Mode: value.GetMode(), OrganizationUnits: append([]string(nil), value.GetOrganizationUnits()...)}
 }

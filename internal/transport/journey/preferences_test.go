@@ -52,6 +52,15 @@ func (s *preferenceSpy) SaveTheme(_ context.Context, tenant values.TenantId, org
 	s.mu.Unlock()
 	return value, nil
 }
+func (s *preferenceSpy) SaveOrganizationVisibility(_ context.Context, tenant values.TenantId, organization, principal string, value preferences.OrganizationVisibility) (preferences.OrganizationVisibility, error) {
+	s.capture(tenant, organization, principal)
+	s.mu.Lock()
+	value.OrganizationScopeID = organization
+	value.Version++
+	s.snapshot.OrganizationVisibility = value
+	s.mu.Unlock()
+	return value, nil
+}
 func (s *preferenceSpy) RecordWorkflowUse(_ context.Context, tenant values.TenantId, principal, workflow string) (preferences.User, error) {
 	s.captureUser(tenant, principal)
 	value := preferences.NormalizeUser(s.snapshot.User)

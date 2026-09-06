@@ -10,6 +10,7 @@ import (
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/internal/experience/preferences"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/transport"
@@ -31,6 +32,7 @@ type Dependencies struct {
 	// The handler derives tenant and principal from trusted context before
 	// forwarding, so the wire contract cannot select another user's record.
 	Preferences preferences.Store
+	RoleAccess  roleaccess.Store
 	WorkerIDs   workerids.Store
 	// PollInterval is how often WatchJourney re-reads the engine looking for
 	// a change. Zero or negative means [defaultWatchPollInterval].
@@ -307,6 +309,9 @@ func (s *server) ProposeJourney(ctx context.Context, req *journeyv1.ProposeJourn
 	if ctxErr != nil {
 		return nil, ctxErr
 	}
+	if err := s.requirePageAction(ctx, principal, inv, "journeys", roleaccess.ActionCreate); err != nil {
+		return nil, err
+	}
 	eng, depErr := s.engine(principal, inv, "propose")
 	if depErr != nil {
 		return nil, depErr
@@ -353,6 +358,9 @@ func (s *server) ExecuteJourney(ctx context.Context, req *journeyv1.ExecuteJourn
 	if ctxErr != nil {
 		return nil, ctxErr
 	}
+	if err := s.requirePageAction(ctx, principal, inv, "journeys", roleaccess.ActionUpdate); err != nil {
+		return nil, err
+	}
 	eng, depErr := s.engine(principal, inv, "execute")
 	if depErr != nil {
 		return nil, depErr
@@ -372,6 +380,9 @@ func (s *server) DecideJourney(ctx context.Context, req *journeyv1.DecideJourney
 	principal, inv, ctxErr := trustedContext(ctx)
 	if ctxErr != nil {
 		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "work", roleaccess.ActionUpdate); err != nil {
+		return nil, err
 	}
 	eng, depErr := s.engine(principal, inv, "decide")
 	if depErr != nil {
@@ -403,6 +414,10 @@ func (s *server) ListWorkers(ctx context.Context, _ *journeyv1.ListWorkersReques
 	if err != nil {
 		return nil, ownedError(err, principal, inv, "list_workers")
 	}
+	workers, options, err = s.visibleWorkforce(ctx, principal, workers, options)
+	if err != nil {
+		return nil, preferenceError(err, principal, inv.RequestID(), "load_organization_visibility")
+	}
 	resp := &journeyv1.ListWorkersResponse{Options: toWorkforceOptions(options)}
 	for _, w := range workers {
 		resp.Workers = append(resp.Workers, toWorker(w))
@@ -417,6 +432,9 @@ func (s *server) CreateWorker(ctx context.Context, req *journeyv1.CreateWorkerRe
 	principal, inv, ctxErr := trustedContext(ctx)
 	if ctxErr != nil {
 		return nil, ctxErr
+	}
+	if err := s.requirePageAction(ctx, principal, inv, "people", roleaccess.ActionCreate); err != nil {
+		return nil, err
 	}
 	eng, depErr := s.engine(principal, inv, "create_worker")
 	if depErr != nil {

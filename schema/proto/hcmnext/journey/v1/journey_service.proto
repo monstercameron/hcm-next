@@ -195,6 +195,20 @@ service JourneyService {
   // for wire compatibility.
   rpc SaveTenantAppearance(SaveTenantAppearanceRequest) returns (SaveTenantAppearanceResponse);
 
+  // SaveOrganizationVisibility replaces the organization-wide directory
+  // visibility boundary under optimistic versioning. The organization scope
+  // is derived from the admitted credential and comp_admin is required.
+  rpc SaveOrganizationVisibility(SaveOrganizationVisibilityRequest) returns (SaveOrganizationVisibilityResponse);
+
+  // GetRoleAccess returns the tenant role catalog, employee assignments, and
+  // one organization-directory policy per role. Only HCM administrators can
+  // read or mutate this administrative projection.
+  rpc GetRoleAccess(GetRoleAccessRequest) returns (GetRoleAccessResponse);
+  rpc SaveAccessRole(SaveAccessRoleRequest) returns (SaveAccessRoleResponse);
+  rpc SaveWorkerRoleAssignment(SaveWorkerRoleAssignmentRequest) returns (SaveWorkerRoleAssignmentResponse);
+  rpc SaveRoleOrganizationVisibility(SaveRoleOrganizationVisibilityRequest) returns (SaveRoleOrganizationVisibilityResponse);
+  rpc SaveRolePagePermission(SaveRolePagePermissionRequest) returns (SaveRolePagePermissionResponse);
+
   // RecordWorkflowUse increments the authenticated user's usage count for a
   // workflow so launchers can rank real frequent actions rather than hardcode
   // a single action. It grants no authority to run the named workflow.
@@ -814,12 +828,63 @@ message GetProductPreferencesRequest {}
 message GetProductPreferencesResponse {
   UserPreferences user = 1;
   CustomerTheme theme = 2;
+  OrganizationVisibilityPolicy organization_visibility = 3;
 }
 
 message SaveUserPreferencesRequest { UserPreferences user = 1; }
 message SaveUserPreferencesResponse { UserPreferences user = 1; }
 message SaveTenantAppearanceRequest { CustomerTheme theme = 1; }
 message SaveTenantAppearanceResponse { CustomerTheme theme = 1; }
+message OrganizationVisibilityPolicy {
+  int64 version = 1;
+  string mode = 2;
+  repeated string organization_units = 3;
+}
+message SaveOrganizationVisibilityRequest { OrganizationVisibilityPolicy policy = 1; }
+message SaveOrganizationVisibilityResponse { OrganizationVisibilityPolicy policy = 1; }
+message AccessRole {
+  int64 version = 1;
+  string role_id = 2;
+  string name = 3;
+  string description = 4;
+  bool system = 5;
+  bool active = 6;
+}
+message WorkerRoleAssignment {
+  int64 version = 1;
+  string worker_ref = 2;
+  repeated string role_ids = 3;
+}
+message RoleOrganizationVisibilityPolicy {
+  int64 version = 1;
+  string role_id = 2;
+  string mode = 3;
+  repeated string organization_units = 4;
+}
+message RolePagePermission {
+  int64 version = 1;
+  string role_id = 2;
+  string page_id = 3;
+  bool can_view = 4;
+  bool can_create = 5;
+  bool can_update = 6;
+  bool can_delete = 7;
+}
+message GetRoleAccessRequest {}
+message GetRoleAccessResponse {
+  repeated AccessRole roles = 1;
+  repeated WorkerRoleAssignment assignments = 2;
+  repeated RoleOrganizationVisibilityPolicy visibility_policies = 3;
+  repeated RolePagePermission page_permissions = 4;
+}
+message SaveAccessRoleRequest { AccessRole role = 1; }
+message SaveAccessRoleResponse { AccessRole role = 1; }
+message SaveWorkerRoleAssignmentRequest { WorkerRoleAssignment assignment = 1; }
+message SaveWorkerRoleAssignmentResponse { WorkerRoleAssignment assignment = 1; }
+message SaveRoleOrganizationVisibilityRequest { RoleOrganizationVisibilityPolicy policy = 1; }
+message SaveRoleOrganizationVisibilityResponse { RoleOrganizationVisibilityPolicy policy = 1; }
+message SaveRolePagePermissionRequest { RolePagePermission permission = 1; }
+message SaveRolePagePermissionResponse { RolePagePermission permission = 1; }
 message RecordWorkflowUseRequest { string workflow_id = 1; }
 message RecordWorkflowUseResponse { UserPreferences user = 1; }
 

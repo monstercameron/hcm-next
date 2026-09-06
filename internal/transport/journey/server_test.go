@@ -388,7 +388,7 @@ func TestJourneyServiceSecurity(t *testing.T) {
 }
 
 // TestJourneyServicePublishesFourteenUnaryMethodsAndOneServerStream pins the
-// cardinality the proto declares: fourteen unary methods plus WatchJourney, and
+// cardinality the proto declares: twenty unary methods plus WatchJourney, and
 // WatchJourney is a server stream - the server sends many, the client sends
 // exactly one request and never sends again.
 //
@@ -398,7 +398,7 @@ func TestJourneyServiceSecurity(t *testing.T) {
 // same boundary. A WatchJourney that quietly regressed to unary, or that
 // became bidirectional, would be admitted by a different path than the one
 // its tests exercise.
-func TestJourneyServicePublishesFourteenUnaryMethodsAndOneServerStream(t *testing.T) {
+func TestJourneyServicePublishesTwentyUnaryMethodsAndOneServerStream(t *testing.T) {
 	desc := journeyv1.JourneyService_ServiceDesc
 
 	wantUnary := map[string]bool{
@@ -406,7 +406,8 @@ func TestJourneyServicePublishesFourteenUnaryMethodsAndOneServerStream(t *testin
 		"InspectJourney": true, "ExecuteJourney": true, "DecideJourney": true,
 		"ListWorkers": true, "CreateWorker": true,
 		"GetProductPreferences": true, "SaveUserPreferences": true,
-		"SaveTenantAppearance": true, "RecordWorkflowUse": true,
+		"SaveTenantAppearance": true, "SaveOrganizationVisibility": true, "RecordWorkflowUse": true,
+		"GetRoleAccess": true, "SaveAccessRole": true, "SaveWorkerRoleAssignment": true, "SaveRoleOrganizationVisibility": true, "SaveRolePagePermission": true,
 		"GetWorkerIDPolicy": true, "SaveWorkerIDPolicy": true,
 	}
 	if len(desc.Methods) != len(wantUnary) {
