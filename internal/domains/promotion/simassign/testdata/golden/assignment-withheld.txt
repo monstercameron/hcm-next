@@ -1,0 +1,63 @@
+tenant: harborcare-demo
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+target position: eref:v1:harborcare-demo:position:55555555-5555-4555-8555-555555555555
+effective on: 2026-06-01
+prior assignment ends: 2026-05-31
+snapshot digest: sha256:11e50615227b0d28ffda359a30a058b9ecebe2c79be0658d1687c9cd6ad14c71
+result digest: sha256:a5b9accc6408a6a2b9249ab206ae631d2d5a6dd27f1b1f1b70ab7adbd8f8f366
+executable: false
+
+manager chain:
+    verdict:                TAIL_NOT_ESTABLISHED
+    current relationship:   rel_mgr_1002
+    current manager:        44444444-4444-4444-8444-444444444444
+    proposed relationship:  rel_proposed_d77ab60dcbb62da9
+    proposed manager:       77777777-7777-4777-8777-777777777777
+    changed:                true
+    current depth:          1
+    proposed depth:         -1
+    depth bound:            3
+    hop 0: rel_mgr_1002/DIRECT_MANAGER -> 44444444-4444-4444-8444-444444444444 (withheld=false)
+
+position occupancy:
+    capacity:      HAS_AVAILABLE_HEAD
+    verdict:       HEAD_AVAILABLE
+    vacant after:  (none)
+    reservation:   planned=true
+    reservation heads: 1
+    reservation fte:   1.0000
+    reservation key:   sha256:2b6b3216c5208ac0493df2dbdfb1e866b7fc9a70686cd329eb2b2d0ba791e3a1
+
+effects:
+- org.manager_relationship.change
+    effect id:      org.manager_relationship.change@2026-06-01#prop_rev_promo002_0001
+    participant:    org.manager_relationship (LOCAL_EVENT_STREAM, local=true)
+    destination:    org.manager_relationship/22222222-2222-4222-8222-222222222222
+    reversibility:  REVERSIBLE
+    compensation:   org.manager_relationship.supersede (SUPERSEDING_REVISION)
+    observation:    observe.org.manager_chain_current
+    idempotency:    sha256:d04c5513206ca9f57116839fc1bc01e9477c6ca60c30936de9cb8d3b9b3c3014
+    baseline:       rev:v1:org.graph.harborcare-demo:s9
+    derived from:   promotion.current_placement,promotion.manager_chain
+    change org.manager_relationship.relationship_id: rel_mgr_1002 -> rel_proposed_d77ab60dcbb62da9 (changed=true, from promotion.manager_chain)
+    change org.manager_relationship.manager_id: 44444444-4444-4444-8444-444444444444 -> 77777777-7777-4777-8777-777777777777 (changed=true, from promotion.manager_chain)
+    change org.manager_relationship.type: DIRECT_MANAGER -> DIRECT_MANAGER (changed=false, from promotion.manager_chain)
+- position.occupancy.transition
+    effect id:      position.occupancy.transition@2026-06-01#prop_rev_promo002_0001
+    participant:    position.occupancy (LOCAL_EVENT_STREAM, local=true)
+    destination:    position.occupancy/55555555-5555-4555-8555-555555555555
+    reversibility:  COMPENSATABLE
+    compensation:   position.reservation.release (RELEASE_RESERVATION)
+    observation:    observe.position.occupancy_consumed
+    idempotency:    sha256:fca53dcca4fced316ff145acce12256875fad5e928b40aacc411adae889d9ef7
+    baseline:       rev:v1:position.POS-HRBP-301:s5
+    derived from:   promotion.target_position_capacity
+    change position.occupancy.capacity_state: HAS_AVAILABLE_HEAD -> AT_CAPACITY (changed=true, from promotion.target_position_capacity)
+    change position.occupancy.occupant: (none) -> 22222222-2222-4222-8222-222222222222 (changed=true, from promotion.target_position_capacity)
+    change position.occupancy.reservation: (none) -> prop_rev_promo002_0001 (changed=true, from promotion.target_position_capacity)
+
+refusals:
+- people.assignment.revision: INPUT_WITHHELD
+    input:        promotion.current_placement
+    availability: WITHHELD
+    detail:       policy:no_placement_disclosure

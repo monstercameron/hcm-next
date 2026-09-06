@@ -40,6 +40,10 @@ func TestTodo_BUDGET_002(t *testing.T) {
 	if err != nil || replay.ID != hold.ID {
 		t.Fatalf("idempotent replay = %#v, %v", replay, err)
 	}
+	evidence, ok := s.Evidence(hold.ID)
+	if !ok || evidence.ProposalDigest != r.ProposalDigest || evidence.AuthorityDigest != r.AuthorityDigest || len(evidence.Events) != 1 {
+		t.Fatalf("reservation evidence = %#v, found=%v", evidence, ok)
+	}
 	if _, err = s.Commit(hold.ID, hold.Fence, now.Add(time.Minute)); err != nil {
 		t.Fatal(err)
 	}

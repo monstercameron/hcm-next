@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 func validRequirement() Requirement {
@@ -72,5 +74,78 @@ func TestTodo_APPT_001_Mutation(t *testing.T) {
 	r.Location.Address = ""
 	if err := r.Validate(); err == nil {
 		t.Fatal("in-person location without address accepted")
+	}
+}
+
+func typedAppointmentRef(kind values.Kind, suffix string) values.EntityRef {
+	return values.EntityRef{Tenant: "tenant-a", Kind: kind, Id: "00000000-0000-4000-8000-000000000" + suffix}
+}
+
+func typedAppointmentWindow(t *testing.T) values.EffectiveInterval {
+	t.Helper()
+	start := values.NewInstant(time.Date(2026, 9, 10, 9, 0, 0, 0, time.UTC))
+	end := values.NewInstant(time.Date(2026, 9, 10, 10, 0, 0, 0, time.UTC))
+	window, err := values.NewInstantInterval(start, end)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return window
+}
+
+func typedAppointmentRequirement(t *testing.T) Requirement {
+	t.Helper()
+	quantity, err := values.NewQuantity("2", "EACH", 0, values.RoundingHalfEven)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return Requirement{
+		ID: "typed-appointment", Version: "v1", Revision: 1, PurposeKind: PurposeInterview,
+		ParticipantRefs: []values.EntityRef{typedAppointmentRef("candidate", "001"), typedAppointmentRef("interviewer", "002")},
+		Duration:        30 * time.Minute, WindowInterval: typedAppointmentWindow(t), LocationClass: LocationVirtual,
+		RequiredResources: []ResourceRequirement{{ResourceTypeRef: typedAppointmentRef("resource_type", "003"), Quantity: quantity}},
+		QualificationRefs: []values.EntityRef{typedAppointmentRef("qualification", "004")}, PrivacyClass: "candidate-confidential",
+		CancellationRules: CancellationRules{Kind: CancellationAllowed, NoShow: NoShowReview}, LeadTime: time.Hour,
+	}
+}
+
+func TestTodo_APPT_001_TypedContract(t *testing.T) {
+	requirement, err := NewAppointmentRequirement(typedAppointmentRequirement(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if requirement.CanonicalDigest == "" || requirement.Canonical() == nil {
+		t.Fatal("typed requirement was not canonically digested")
+	}
+	if _, err := Explain(requirement); err != nil {
+		t.Fatal(err)
+	}
+	resource, err := NewResourceType(ResourceType{ID: "video-room", Version: "v1", Name: "video room", Kind: ResourceCapability, Qualification: "video", PrivacyClass: "candidate-confidential", CapacityMode: CapacityExclusive})
+	if err != nil || resource.CanonicalDigest == "" {
+		t.Fatalf("resource = %+v, err = %v", resource, err)
+	}
+}
+
+func TestTodo_APPT_001_Feasibility(t *testing.T) {
+	requirement, err := NewAppointmentRequirement(typedAppointmentRequirement(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	availability := []ResourceAvailability{
+		{ResourceRef: typedAppointmentRef("resource", "005"), ResourceTypeRef: typedAppointmentRef("resource_type", "003"), Window: typedAppointmentWindow(t), Capacity: 1, CapacityMode: CapacityExclusive},
+		{ResourceRef: typedAppointmentRef("resource", "006"), ResourceTypeRef: typedAppointmentRef("resource_type", "003"), Window: typedAppointmentWindow(t), Capacity: 1, CapacityMode: CapacityExclusive},
+	}
+	result, err := CheckFeasibility(requirement, availability)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Feasible || len(result.Shortfalls) != 0 || result.CanonicalDigest == "" {
+		t.Fatalf("feasibility = %+v", result)
+	}
+	result, err = CheckFeasibility(requirement, availability[:1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Feasible || len(result.Shortfalls) != 1 || result.Shortfalls[0].Reason != ShortfallCapacity {
+		t.Fatalf("shortfall = %+v", result.Shortfalls)
 	}
 }

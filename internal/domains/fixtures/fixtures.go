@@ -21,6 +21,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -192,6 +193,87 @@ func WorkerRef(key string) (values.EntityRef, error) {
 		}
 	}
 	return values.EntityRef{}, fmt.Errorf("fixtures: no worker keyed %q", key)
+}
+
+// WorkerProfile is one corpus worker as a listing row: its stable key, its
+// entity id and the placement fields a surface shows before it has run a
+// governed read.
+//
+// It is deliberately not the whole record. Anything a caller has to be
+// authorized to see -- and that is every field of a real worker read -- comes
+// from people.ExplainWorkerState through the capability gateway, never from
+// here. This type exists so a surface can offer "which worker?" as a choice,
+// which is a different question from "what is true about this worker?".
+type WorkerProfile struct {
+	Key           string
+	ID            string
+	LegalName     string
+	PreferredName string
+	WorkerNumber  string
+	JobCode       string
+	Grade         string
+	OrgUnit       string
+	PositionID    string
+	Location      string
+	PayZone       string
+	HireDate      string
+}
+
+// DisplayName is the name a surface addresses this worker by: the preferred
+// name when there is one, otherwise the legal name.
+func (w WorkerProfile) DisplayName() string {
+	if w.PreferredName != "" {
+		return w.PreferredName
+	}
+	return w.LegalName
+}
+
+// Workers returns every corpus worker as a listing row, in the corpus's own
+// declared order. The order is the file's, not a sort: the corpus is a fixed
+// population, and reordering it would change what "the first worker" means in
+// every test that names one.
+func Workers() ([]WorkerProfile, error) {
+	if err := load(); err != nil {
+		return nil, err
+	}
+	out := make([]WorkerProfile, 0, len(workers.Workers))
+	for _, w := range workers.Workers {
+		out = append(out, WorkerProfile{
+			Key: w.Key, ID: w.ID,
+			LegalName: w.LegalName, PreferredName: w.PreferredName, WorkerNumber: w.WorkerNumber,
+			JobCode: w.JobCode, Grade: w.Grade, OrgUnit: w.OrgUnit, PositionID: w.PositionID,
+			Location: w.Location, PayZone: w.PayZone, HireDate: w.HireDate,
+		})
+	}
+	return out, nil
+}
+
+// BandScope is one pay band's placement scope plus the currency it is
+// denominated in.
+type BandScope struct {
+	JobCode  string
+	Grade    string
+	PayZone  string
+	Currency string
+}
+
+// BandScopes returns the scope of every band in the catalog, in catalog order.
+//
+// It exists so a surface that lets someone place a worker can offer exactly
+// the placements the simulation can evaluate. A worker placed outside every
+// band is a worker whose promotion the rewards engine can only answer
+// "no band found" for, which is a refusal at simulation time for a mistake
+// that was made at creation time -- and a mistake this table makes it possible
+// to refuse at creation time instead.
+func BandScopes() ([]BandScope, error) {
+	if err := load(); err != nil {
+		return nil, err
+	}
+	out := make([]BandScope, 0, len(bands.Bands))
+	for _, b := range bands.Bands {
+		out = append(out, BandScope{JobCode: b.JobCode, Grade: b.Grade, PayZone: b.PayZone, Currency: b.Currency})
+	}
+	return out, nil
 }
 
 // LegacyScenarios returns the ported legacy compensation corpus.
@@ -496,9 +578,7 @@ func AllowAll(policyVersion, purpose string, fields []people.FieldID) people.Aut
 // DenyFields returns the same decision with the named fields denied.
 func DenyFields(d people.AuthorizationDecision, reason string, denied ...people.FieldID) people.AuthorizationDecision {
 	rulings := make(map[people.FieldID]people.FieldRuling, len(d.Fields))
-	for f, r := range d.Fields {
-		rulings[f] = r
-	}
+	maps.Copy(rulings, d.Fields)
 	for _, f := range denied {
 		rulings[f] = people.FieldRuling{Effect: people.EffectDeny, Reason: reason}
 	}

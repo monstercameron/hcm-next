@@ -1,0 +1,33 @@
+tenant: harborcare-demo
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+effective on: 2026-06-01
+snapshot digest: sha256:1b7607366aa56349c1fa63ff28be44759f85a54f0c30663933c30d0c4c7f8d55
+result digest: sha256:743bd51c82a34100a11a6367300171cf77b12ee5a4428e73b5d94bc53442dc99
+executable: false
+required approvals: (none)
+
+base pay:
+    evaluated:  false
+
+pay band:
+    evaluated:  false
+
+proration:
+    evaluated:  false
+
+budget:
+    evaluated:  false
+    planned:    false
+    reason:     (none)
+
+effects:
+
+refusals:
+- rewards.compensation.revision: INPUT_WITHHELD
+    input:        promotion.pay_band_position_desired
+    availability: WITHHELD
+    detail:       policy:no_compensation_disclosure
+- budget.compensation_pool.reservation: INPUT_WITHHELD
+    input:        promotion.budget_availability
+    availability: WITHHELD
+    detail:       policy:no_budget_disclosure

@@ -1,0 +1,98 @@
+tenant: harborcare-demo
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+target position: eref:v1:harborcare-demo:position:55555555-5555-4555-8555-555555555555
+effective on: 2026-06-01
+known at: 2026-05-15T12:00:00Z
+overall completeness: SATISFIED
+read digest: sha256:7a11acb1d9aff9672faed95083f3f238e10cac1922ce64fe3e2d4490cb31ff91
+material digest: sha256:eaac7c7d44615f90840dd86ca52c6785bdb6653fcd8c7d4116d9d2101c69247a
+
+inputs:
+- promotion.subject_worker_facts
+    owner:          people
+    authority:      NATIVE_STATE
+    source:         hcmnext.people/primary/promotion.subject_worker_facts
+    classification: CONFIDENTIAL
+    watermark:      rev:v1:people.worker.22222222:s17
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          worker.lifecycle_status=active;employment.status=active;employment.hire_date=2019-07-15
+- promotion.current_placement
+    owner:          people
+    authority:      NATIVE_STATE
+    source:         hcmnext.people/primary/promotion.current_placement
+    classification: CONFIDENTIAL
+    watermark:      rev:v1:people.worker.22222222:s17
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          assignment.job_code=OPS-HRBP2;assignment.grade=P2;assignment.org_unit=people-ops;assignment.position_id=POS-HRBP-204;assignment.pay_zone=US-EAST
+- promotion.manager_chain
+    owner:          org
+    authority:      NATIVE_STATE
+    source:         hcmnext.org/primary/promotion.manager_chain
+    classification: CONFIDENTIAL
+    watermark:      rev:v1:org.graph.harborcare-demo:s9
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          0:rel_mgr_1002:DIRECT_MANAGER:44444444-4444-4444-8444-444444444444
+- promotion.target_position_capacity
+    owner:          position
+    authority:      NATIVE_STATE
+    source:         hcmnext.position/primary/promotion.target_position_capacity
+    classification: INTERNAL
+    watermark:      rev:v1:position.POS-HRBP-301:s5
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          HAS_AVAILABLE_HEAD
+- promotion.target_position_vacancy
+    owner:          position
+    authority:      NATIVE_STATE
+    source:         hcmnext.position/primary/promotion.target_position_vacancy
+    classification: INTERNAL
+    watermark:      rev:v1:position.POS-HRBP-301:s5
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         CONDITIONAL
+    availability:   ABSENT
+    verdict:        SATISFIED
+    reason:         no date is known on which the position sits vacant with no successor
+- promotion.pay_band_position_current
+    owner:          rewards
+    authority:      NATIVE_STATE
+    source:         hcmnext.rewards/primary/promotion.pay_band_position_current
+    classification: RESTRICTED
+    watermark:      rev:v1:rewards.package.omar-reyes:s11
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          band=BAND-OPS-P3-USEAST@2026.1;annualized=93000.00 USD;class=WITHIN;boundary=NONE;compa_ratio=0.8304;range_penetration=0.0250
+- promotion.pay_band_position_desired
+    owner:          rewards
+    authority:      NATIVE_STATE
+    source:         hcmnext.rewards/primary/promotion.pay_band_position_desired
+    classification: RESTRICTED
+    watermark:      rev:v1:rewards.band.BAND-OPS-P3-USEAST%402026.1:s1
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          band=BAND-OPS-P3-USEAST@2026.1;annualized=98000.00 USD;class=WITHIN;boundary=NONE;compa_ratio=0.8750;range_penetration=0.1500
+- promotion.budget_availability
+    owner:          budget
+    authority:      EXTERNAL_OBSERVATION
+    source:         hcmnext.budget/primary/promotion.budget_availability
+    classification: CONFIDENTIAL
+    watermark:      rev:v1:budget.pool.cost-center%3Apeople-ops.FY2026:s1
+    reference:      harborcare.promotion.reference/2026.1
+    policy:         REQUIRED
+    availability:   DISCLOSED
+    verdict:        SATISFIED
+    value:          type=COMPENSATION_POOL;scope=cost-center:people-ops;period=FY2026;unit=MONEY;available=50000.00;baseline=finance.budget.baseline/2026.09;currency=USD

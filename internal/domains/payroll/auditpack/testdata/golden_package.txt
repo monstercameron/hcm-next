@@ -1,0 +1,11 @@
+manifest_digest=5604f2b27418fb8002470d30f80584e2c721978be8b64bc0a78cd22bc585d76a
+evidence_digest=671cdbcabb3f47beb30c9d8a89db41f5e957f47fced9787e2a4b07d73ad804b7
+summary_digest=ed01ce861a3743eff254e6ad74d48b59071da19c9cec26c48986bb0827ca5f7d
+idempotency_key=2ce032a578556d5f51f497c9f4610f7de07024bf3d9f26db4fa7262e185769d3
+part=evidence/epochs/0001.json length=1119
+part=evidence/header.json length=724
+part=evidence/manifest.json length=1033
+part=evidence/streams/0001/chain.json length=1625
+part=evidence/streams/0001/events.json length=3654
+part=manifest.json length=526
+part=summary.json length=1270

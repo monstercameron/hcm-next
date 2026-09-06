@@ -16,6 +16,15 @@ import (
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
+// schemaVersion is this engine's own contract version: the canonical
+// digest shape every Digest/CanonicalDigest method in this package agrees
+// on. It is part of the ARCH-GO-009 engine package contract, not a
+// business-facing evaluation input.
+const schemaVersion = 1
+
+// Version reports this engine's own package contract version (ARCH-GO-009).
+func Version() int { return schemaVersion }
+
 var (
 	ErrType       = errors.New("cycle: type is required")
 	ErrOwner      = errors.New("cycle: owner is required")
@@ -51,6 +60,16 @@ type Period struct {
 type Phase struct {
 	ID, Name   string
 	Start, End time.Time
+	// AllowedOperations, EntryConditions, ExitConditions and Obligations are
+	// the phase's declared rule set. They are optional at the base-contract
+	// level (CYCLE-001 validates structure, not vocabulary) but are carried
+	// through CompilePhaseGraph so downstream rules -- such as CYCLE-005's
+	// population rebind gate -- can consult exactly what a phase declares
+	// rather than re-deriving it out of band.
+	AllowedOperations []string
+	EntryConditions   []string
+	ExitConditions    []string
+	Obligations       []string
 }
 
 // Policies are explicit even when a caller chooses a conservative value.
@@ -163,16 +182,35 @@ func NewRevision(c BusinessCycle, id, version string, from, to time.Time) (Revis
 		return Revision{}, ErrEffective
 	}
 	c.Periods = append([]Period(nil), c.Periods...)
-	c.Phases = append([]Phase(nil), c.Phases...)
+	c.Phases = clonePhases(c.Phases)
 	r := Revision{Definition: c, ID: id, Version: version, EffectiveFrom: from.UTC(), EffectiveTo: to.UTC()}
 	r.Digest = r.computeDigest()
 	return r, nil
 }
 
+// clonePhases returns a deep copy of phases: both the slice and each phase's
+// own declared-rule slices are copied, so a caller mutating its source phases
+// (or a caller mutating a Cycle()/Definition snapshot returned to it) can
+// never reach back into a Revision's frozen definition.
+func clonePhases(phases []Phase) []Phase {
+	if phases == nil {
+		return nil
+	}
+	out := make([]Phase, len(phases))
+	for i, p := range phases {
+		out[i] = p
+		out[i].AllowedOperations = append([]string(nil), p.AllowedOperations...)
+		out[i].EntryConditions = append([]string(nil), p.EntryConditions...)
+		out[i].ExitConditions = append([]string(nil), p.ExitConditions...)
+		out[i].Obligations = append([]string(nil), p.Obligations...)
+	}
+	return out
+}
+
 func (r Revision) Cycle() BusinessCycle {
 	c := r.Definition
 	c.Periods = append([]Period(nil), c.Periods...)
-	c.Phases = append([]Phase(nil), c.Phases...)
+	c.Phases = clonePhases(c.Phases)
 	return c
 }
 func (r Revision) ValidAt(t time.Time) bool {

@@ -1,0 +1,76 @@
+tenant: harborcare-demo
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+effective on: 2026-06-01
+snapshot digest: sha256:eaac7c7d44615f90840dd86ca52c6785bdb6653fcd8c7d4116d9d2101c69247a
+result digest: sha256:ed9b5f91ed217d8b135a4c2fe85a573ee969966122bb682986cb1767ee5e2e96
+executable: true
+required approvals: (none)
+
+base pay:
+    evaluated:  true
+    current:    93000.00 USD
+    desired:    98000.00 USD
+    delta:      5000.00 USD
+    direction:  INCREASE
+
+pay band:
+    evaluated:  true
+    band:       BAND-OPS-P3-USEAST@2026.1
+    current:    WITHIN
+    desired:    WITHIN
+    boundary:   NONE
+    approval:   (none)
+
+proration:
+    evaluated:  true
+    period:     2026-05B [2026-05-16,2026-06-16)
+    days:       31 = 16 prior + 15 new
+    days/year:  365.0000
+    prior rate: 254.794521 USD
+    new rate:   268.493151 USD
+    prior part: 4076.71 USD
+    new part:   4027.40 USD
+    period:     8104.11 USD (unprorated 7898.63 USD, delta 205.48 USD)
+
+budget:
+    evaluated:  true
+    planned:    true
+    reason:     (none)
+    scope:      cost-center:people-ops/FY2026
+    type/unit:  COMPENSATION_POOL/MONEY
+    baseline:   finance.budget.baseline/2026.09
+    available:  50000.00 USD
+    amount:     5000.00 USD
+    sufficient: true
+    remaining:  45000.00 USD
+    request key: sha256:b8c0f03080428597da4611d1c5553aa323e00d415f58e7938f2e1b7dbed1f1a2
+
+effects:
+- rewards.compensation.revision
+    effect id:      rewards.compensation.revision@2026-06-01#prop_rev_promo003_0001
+    participant:    rewards.compensation (LOCAL_EVENT_STREAM, local=true)
+    destination:    rewards.compensation/22222222-2222-4222-8222-222222222222
+    reversibility:  REVERSIBLE
+    compensation:   rewards.compensation.supersede (SUPERSEDING_REVISION)
+    observation:    observe.rewards.compensation_effective
+    idempotency:    sha256:2c92ee59f1a218ba5e51bd83609d20b6c58be715689be9cb23b495bd60661401
+    baseline:       rev:v1:rewards.package.omar-reyes:s11
+    derived from:   promotion.pay_band_position_current,promotion.pay_band_position_desired
+    change rewards.compensation.annualized_base_pay: 93000.00 USD -> 98000.00 USD (changed=true, from promotion.pay_band_position_current)
+    change rewards.compensation.pay_band: BAND-OPS-P3-USEAST@2026.1 -> BAND-OPS-P3-USEAST@2026.1 (changed=false, from promotion.pay_band_position_desired)
+    change rewards.compensation.band_position_class: WITHIN -> WITHIN (changed=false, from promotion.pay_band_position_desired)
+    change rewards.compensation.effective_from: (none) -> 2026-06-01 (changed=true, from promotion.pay_band_position_current)
+- budget.compensation_pool.reservation
+    effect id:      budget.compensation_pool.reservation@2026-06-01#prop_rev_promo003_0001
+    participant:    budget.compensation_pool (EXTERNAL_AUTHORITY, local=false)
+    destination:    budget.compensation_pool/cost-center:people-ops@FY2026
+    reversibility:  COMPENSATABLE
+    compensation:   hcmnext.rewards.release_compensation_budget/v1 (RELEASE_RESERVATION)
+    observation:    observe.budget.reservation_confirmed
+    idempotency:    sha256:b0ac040e306a6e16c24cc2ab9f23e2e65688e1b0694c1cb15fb0370861af06a3
+    baseline:       rev:v1:budget.pool.cost-center%3Apeople-ops.FY2026:s1
+    derived from:   promotion.budget_availability,promotion.pay_band_position_current,promotion.pay_band_position_desired
+    change budget.compensation_pool.available: 50000.00 USD -> 45000.00 USD (changed=true, from promotion.budget_availability)
+    change budget.compensation_pool.reservation: (none) -> prop_rev_promo003_0001 (changed=true, from promotion.budget_availability)
+
+refusals:

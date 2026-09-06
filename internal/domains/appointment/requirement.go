@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 type ParticipantRole struct {
@@ -35,19 +37,29 @@ type ExternalCalendarPolicy struct {
 // Requirement is the complete appointment contract. All fields are explicit;
 // an omitted policy is not interpreted as an implicit permissive default.
 type Requirement struct {
-	ID               string
-	Version          string
-	Purpose          string
-	Participants     []ParticipantRole
-	Duration         time.Duration
-	Window           TimeWindow
-	Location         Location
-	Resources        []ResourceType
-	Qualification    string
-	PrivacyClass     string
-	Cancellation     CancellationPolicy
-	ExternalCalendar ExternalCalendarPolicy
-	State            string
+	ID                string
+	Version           string
+	Revision          uint64
+	Purpose           string
+	PurposeKind       PurposeKind
+	Participants      []ParticipantRole
+	ParticipantRefs   []values.EntityRef
+	Duration          time.Duration
+	Window            TimeWindow
+	WindowInterval    values.EffectiveInterval
+	Location          Location
+	LocationClass     LocationClass
+	Resources         []ResourceType
+	RequiredResources []ResourceRequirement
+	Qualification     string
+	QualificationRefs []values.EntityRef
+	PrivacyClass      string
+	Cancellation      CancellationPolicy
+	CancellationRules CancellationRules
+	LeadTime          time.Duration
+	ExternalCalendar  ExternalCalendarPolicy
+	State             string
+	CanonicalDigest   string
 }
 
 // AppointmentRequirement is retained as the descriptive API name.
@@ -58,13 +70,38 @@ func (r Requirement) Validate() error {
 	if state == "" {
 		state = "DRAFT"
 	}
-	required := []struct{ field, value string }{{"id", r.ID}, {"version", r.Version}, {"purpose", r.Purpose}, {"qualification", r.Qualification}, {"privacy_class", r.PrivacyClass}, {"location.mode", r.Location.Mode}, {"location.channel", r.Location.Channel}, {"cancellation.fee_policy", r.Cancellation.FeePolicy}, {"cancellation.no_show_policy", r.Cancellation.NoShowPolicy}, {"external_calendar.mode", r.ExternalCalendar.Mode}, {"external_calendar.detail_disclosure", r.ExternalCalendar.DetailDisclosure}}
+	typed := r.Revision > 0
+	required := []struct{ field, value string }{{"id", r.ID}, {"version", r.Version}, {"privacy_class", r.PrivacyClass}}
 	for _, v := range required {
 		if strings.TrimSpace(v.value) == "" {
 			return reject(v.field, state, r.Version, "is required")
 		}
 	}
-	if len(r.Participants) == 0 {
+	if strings.TrimSpace(r.Qualification) == "" && len(r.QualificationRefs) == 0 {
+		return reject("qualification", state, r.Version, "a qualification string or reference is required")
+	}
+	if !typed && strings.TrimSpace(r.Purpose) == "" {
+		return reject("purpose", state, r.Version, "is required")
+	}
+	if typed && !r.PurposeKind.Valid() {
+		return reject("purpose_kind", state, r.Version, "is required for a typed requirement")
+	}
+	if !typed && (strings.TrimSpace(r.Location.Mode) == "" || strings.TrimSpace(r.Location.Channel) == "") {
+		return reject("location", state, r.Version, "mode and channel are required")
+	}
+	if typed && !r.LocationClass.Valid() {
+		return reject("location_class", state, r.Version, "is required for a typed requirement")
+	}
+	if !typed && (strings.TrimSpace(r.Cancellation.FeePolicy) == "" || strings.TrimSpace(r.Cancellation.NoShowPolicy) == "") {
+		return reject("cancellation", state, r.Version, "fee and no-show policies are required")
+	}
+	if typed && r.CancellationRules.Kind == "" {
+		return reject("cancellation_rules", state, r.Version, "are required for a typed requirement")
+	}
+	if !typed && (strings.TrimSpace(r.ExternalCalendar.Mode) == "" || strings.TrimSpace(r.ExternalCalendar.DetailDisclosure) == "") {
+		return reject("external_calendar", state, r.Version, "mode and disclosure are required")
+	}
+	if len(r.Participants) == 0 && len(r.ParticipantRefs) == 0 {
 		return reject("participants", state, r.Version, "at least one participant role is required")
 	}
 	seen := map[string]bool{}
@@ -84,33 +121,106 @@ func (r Requirement) Validate() error {
 	if r.Duration <= 0 {
 		return reject("duration", state, r.Version, "must be positive")
 	}
-	if r.Window.Start.IsZero() {
+	if r.WindowInterval.Validate() != nil && r.Window.Start.IsZero() {
 		return reject("window.start", state, r.Version, "is required")
 	}
-	if r.Window.End.IsZero() {
+	if r.WindowInterval.Validate() != nil && r.Window.End.IsZero() {
 		return reject("window.end", state, r.Version, "is required")
 	}
-	if !r.Window.End.After(r.Window.Start) {
+	if r.WindowInterval.Validate() != nil && !r.Window.End.After(r.Window.Start) {
 		return reject("window", state, r.Version, "end must be after start")
 	}
-	if strings.TrimSpace(r.Window.TimeZone) == "" {
+	if r.WindowInterval.Validate() != nil && strings.TrimSpace(r.Window.TimeZone) == "" {
 		return reject("window.time_zone", state, r.Version, "is required")
 	}
-	if r.Location.Mode == "IN_PERSON" && strings.TrimSpace(r.Location.Address) == "" {
+	if !typed && r.Location.Mode == "IN_PERSON" && strings.TrimSpace(r.Location.Address) == "" {
 		return reject("location.address", state, r.Version, "is required for IN_PERSON")
 	}
-	if r.Cancellation.Notice < 0 {
+	if r.Cancellation.Notice < 0 || r.LeadTime < 0 {
 		return reject("cancellation.notice", state, r.Version, "must not be negative")
 	}
-	if strings.TrimSpace(r.ExternalCalendar.Mode) != "DISABLED" && strings.TrimSpace(r.ExternalCalendar.Provider) == "" {
+	if !typed && strings.TrimSpace(r.ExternalCalendar.Mode) != "DISABLED" && strings.TrimSpace(r.ExternalCalendar.Provider) == "" {
 		return reject("external_calendar.provider", state, r.Version, "is required when calendar integration is enabled")
 	}
-	if err := ResourceTypes(r.Resources); err != nil {
-		if x, ok := err.(*Rejection); ok {
-			x.State = state
-			x.Version = r.Version
+	if len(r.Resources) == 0 && len(r.RequiredResources) == 0 {
+		return reject("resources", state, r.Version, "at least one resource type is required")
+	}
+	if len(r.Resources) > 0 {
+		if err := ResourceTypes(r.Resources); err != nil {
+			if x, ok := err.(*Rejection); ok {
+				x.State = state
+				x.Version = r.Version
+			}
+			return err
 		}
-		return err
+	}
+	if r.PurposeKind != "" && !r.PurposeKind.Valid() {
+		return reject("purpose_kind", state, r.Version, "is not declared")
+	}
+	if len(r.ParticipantRefs) > 0 {
+		seenRefs := make(map[string]struct{}, len(r.ParticipantRefs))
+		for i, ref := range r.ParticipantRefs {
+			if err := ref.Validate(); err != nil {
+				return reject(fmt.Sprintf("participant_refs[%d]", i), state, r.Version, "is invalid")
+			}
+			if _, ok := seenRefs[ref.String()]; ok {
+				return reject(fmt.Sprintf("participant_refs[%d]", i), state, r.Version, "duplicates another participant")
+			}
+			seenRefs[ref.String()] = struct{}{}
+		}
+	}
+	seenQualifications := make(map[string]struct{}, len(r.QualificationRefs))
+	for i, ref := range r.QualificationRefs {
+		if err := ref.Validate(); err != nil {
+			return reject(fmt.Sprintf("qualification_refs[%d]", i), state, r.Version, "is invalid")
+		}
+		if tenant := r.RequestTenant(); tenant != "tenant-placeholder" && ref.Tenant != tenant {
+			return reject(fmt.Sprintf("qualification_refs[%d]", i), state, r.Version, "is cross-tenant")
+		}
+		if _, ok := seenQualifications[ref.String()]; ok {
+			return reject(fmt.Sprintf("qualification_refs[%d]", i), state, r.Version, "duplicates another qualification")
+		}
+		seenQualifications[ref.String()] = struct{}{}
+	}
+	if r.LocationClass != "" && !r.LocationClass.Valid() {
+		return reject("location_class", state, r.Version, "is not declared")
+	}
+	if r.WindowInterval.Validate() == nil && r.WindowInterval.Kind() != values.IntervalKindInstant {
+		return reject("window_interval", state, r.Version, "must use INSTANT boundaries")
+	}
+	if r.WindowInterval.Validate() != nil && r.Revision > 0 {
+		return reject("window_interval", state, r.Version, "is required for a versioned typed requirement")
+	}
+	if r.LeadTime < 0 {
+		return reject("lead_time", state, r.Version, "must not be negative")
+	}
+	if r.CancellationRules.Kind != "" {
+		if err := r.CancellationRules.Validate(); err != nil {
+			return reject("cancellation_rules", state, r.Version, "is invalid")
+		}
+	}
+	if len(r.RequiredResources) > 0 {
+		seenResources := make(map[string]struct{}, len(r.RequiredResources))
+		for i, resource := range r.RequiredResources {
+			if err := resource.Validate(r.RequestTenant()); err != nil {
+				return reject(fmt.Sprintf("required_resources[%d]", i), state, r.Version, "is invalid")
+			}
+			if _, ok := seenResources[resource.key()]; ok {
+				return reject(fmt.Sprintf("required_resources[%d]", i), state, r.Version, "duplicates another resource type")
+			}
+			seenResources[resource.key()] = struct{}{}
+		}
+	}
+	if r.Revision > 0 {
+		if len(r.ParticipantRefs) == 0 {
+			return reject("participant_refs", state, r.Version, "at least one participant reference is required")
+		}
+		if len(r.RequiredResources) == 0 {
+			return reject("required_resources", state, r.Version, "at least one typed resource requirement is required")
+		}
+	}
+	if r.CanonicalDigest != "" && r.CanonicalDigest != r.computedDigest() {
+		return reject("canonical_digest", state, r.Version, "does not match the canonical requirement bytes")
 	}
 	return nil
 }
@@ -123,6 +233,10 @@ func Publish(r Requirement) (Publication, error) {
 	}
 	c := r
 	c.Participants = append([]ParticipantRole(nil), r.Participants...)
+	c.ParticipantRefs = append([]values.EntityRef(nil), r.ParticipantRefs...)
 	c.Resources = append([]ResourceType(nil), r.Resources...)
+	c.RequiredResources = append([]ResourceRequirement(nil), r.RequiredResources...)
+	c.QualificationRefs = append([]values.EntityRef(nil), r.QualificationRefs...)
+	c.CanonicalDigest = c.computedDigest()
 	return Publication{Requirement: c}, nil
 }

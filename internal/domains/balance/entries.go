@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -31,6 +32,30 @@ const (
 
 // BalanceEntry is an immutable, typed fact. Amount is always unsigned; Kind
 // supplies its accounting direction. Dimensions are copied at posting time.
+//
+// EffectiveAt, RecordedAt and AuthorizedAt are the three instants a BAL-003
+// authorized-balance calculation reads (see asof.go). They are optional here
+// -- BAL-002's own contract (Validate, Post) never requires them, so entries
+// posted before BAL-003 existed, or posted through paths that never declare
+// them, remain valid and continue to post exactly as before. A BAL-003
+// calculation instead treats an unset instant as "never" for its axis (never
+// recorded, never effective, never authorized), which is the safe default:
+// an entry can only ever be under-counted by an absent instant, never
+// over-counted.
+//
+//   - EffectiveAt is the business instant this entry affects (the as-of
+//     axis). Caller-declared, part of the entry's asserted content.
+//   - RecordedAt is the system instant this fact was appended to the ledger
+//     (the known-at axis). EntryStore.Post stamps it from the store's own
+//     clock; a caller-supplied value is only relevant when an entry is
+//     constructed directly for a test, never for a real posting, so a
+//     caller can never claim an earlier recording than actually happened.
+//   - AuthorizedAt is the instant this entry became an authorized fact. It
+//     may be before, equal to, or after RecordedAt (an already-decided
+//     authorization can be scheduled to take effect later); unset means the
+//     entry has never been authorized and is permanently excluded from an
+//     authorized balance until a superseding fact says otherwise (out of
+//     this ticket's scope; see BAL-006).
 type BalanceEntry struct {
 	AccountID           string
 	DefinitionID        string
@@ -45,6 +70,9 @@ type BalanceEntry struct {
 	EntryType           string
 	SourceTransactionID string
 	IdempotencyKey      string
+	EffectiveAt         values.Instant
+	RecordedAt          values.Instant
+	AuthorizedAt        values.Instant
 }
 
 type Entry = BalanceEntry
@@ -123,7 +151,8 @@ func contains(xs []string, value string) bool {
 	return false
 }
 
-func (e BalanceEntry) canonical() ([]byte, error) {
+// Canonical returns the deterministic byte encoding of the entry.
+func (e BalanceEntry) Canonical() []byte {
 	keys := make([]string, 0, len(e.Dimensions))
 	for k := range e.Dimensions {
 		keys = append(keys, k)
@@ -133,14 +162,20 @@ func (e BalanceEntry) canonical() ([]byte, error) {
 	for _, k := range keys {
 		w = w.String("dimension."+k, e.Dimensions[k])
 	}
-	return w.Bytes()
-}
-func (e BalanceEntry) Digest() string {
-	b, err := e.canonical()
+	raw, err := w.Bytes()
 	if err != nil {
+		return nil
+	}
+	return raw
+}
+
+// Digest returns the hex digest of the canonical entry encoding.
+func (e BalanceEntry) Digest() string {
+	raw := e.Canonical()
+	if raw == nil {
 		return ""
 	}
-	return canonicalbytes.Digest(b)
+	return canonicalbytes.Digest(raw)
 }
 
 // EntryStore is a concurrency-safe append-only stream per account.
@@ -148,10 +183,18 @@ type EntryStore struct {
 	mu      sync.RWMutex
 	entries map[string][]PostReceipt
 	byKey   map[string]PostReceipt
+	clock   func() time.Time
 }
 
 func NewEntryStore() *EntryStore {
-	return &EntryStore{entries: make(map[string][]PostReceipt), byKey: make(map[string]PostReceipt)}
+	return NewEntryStoreWithClock(func() time.Time { return time.Now().UTC() })
+}
+
+// NewEntryStoreWithClock builds a store whose posted entries stamp
+// RecordedAt from clock instead of the wall clock. Tests use it to make a
+// BAL-003 known-at calculation deterministic and reproducible.
+func NewEntryStoreWithClock(clock func() time.Time) *EntryStore {
+	return &EntryStore{entries: make(map[string][]PostReceipt), byKey: make(map[string]PostReceipt), clock: clock}
 }
 func (s *EntryStore) Post(req PostRequest, def AccumulatorDefinition) (PostReceipt, error) {
 	if s == nil {
@@ -178,7 +221,13 @@ func (s *EntryStore) Post(req PostRequest, def AccumulatorDefinition) (PostRecei
 	if req.ExpectedHead != head {
 		return PostReceipt{}, fmt.Errorf("%w: expected %d, actual %d", ErrStaleHead, req.ExpectedHead, head)
 	}
-	r := PostReceipt{Entry: req.Entry.copy(), Head: head + 1, Digest: d}
+	entry := req.Entry.copy()
+	clock := s.clock
+	if clock == nil {
+		clock = func() time.Time { return time.Now().UTC() }
+	}
+	entry.RecordedAt = values.NewInstant(clock())
+	r := PostReceipt{Entry: entry, Head: head + 1, Digest: d}
 	s.entries[req.Entry.AccountID] = append(s.entries[req.Entry.AccountID], r)
 	s.byKey[key] = r
 	return r, nil

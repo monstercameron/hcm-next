@@ -118,7 +118,16 @@ func CompilePhaseGraph(c BusinessCycle) (PhaseGraph, error) {
 	}
 	phases := make([]CompiledPhase, len(c.Phases))
 	for i, phase := range c.Phases {
-		phases[i] = CompiledPhase{ID: phase.ID, Name: phase.Name, Start: phase.Start, End: phase.End}
+		phases[i] = CompiledPhase{
+			ID:                phase.ID,
+			Name:              phase.Name,
+			Start:             phase.Start,
+			End:               phase.End,
+			AllowedOperations: append([]string(nil), phase.AllowedOperations...),
+			EntryConditions:   append([]string(nil), phase.EntryConditions...),
+			ExitConditions:    append([]string(nil), phase.ExitConditions...),
+			Obligations:       append([]string(nil), phase.Obligations...),
+		}
 	}
 	sort.Slice(phases, func(i, j int) bool { return phases[i].Start.Before(phases[j].Start) })
 	return PhaseGraph{Phases: phases, Cutoff: c.Policies.Cutoff}, nil
@@ -132,4 +141,33 @@ func (g PhaseGraph) PhaseAt(t time.Time) (CompiledPhase, bool) {
 		}
 	}
 	return CompiledPhase{}, false
+}
+
+// PhaseDecision is the explained outcome of asking a phase graph which
+// phase is active at an instant: the phase itself (when one applies) and
+// the rule that decided it, so a caller never has to reverse-engineer why a
+// given instant did or did not resolve to a phase.
+type PhaseDecision struct {
+	Phase CompiledPhase
+	Found bool
+	Rule  string
+}
+
+// Explain reports the phase active at t and the rule that decided it
+// (ARCH-GO-009's required Explain-shaped symbol). The rule names the exact
+// half-open window that matched, or states that no compiled window covers
+// the instant.
+func (g PhaseGraph) Explain(t time.Time) PhaseDecision {
+	if phase, ok := g.PhaseAt(t); ok {
+		return PhaseDecision{
+			Phase: phase,
+			Found: true,
+			Rule: fmt.Sprintf("instant %s falls in phase %q's half-open window [%s, %s)",
+				t.UTC().Format(time.RFC3339Nano), phase.ID, phase.Start.UTC().Format(time.RFC3339Nano), phase.End.UTC().Format(time.RFC3339Nano)),
+		}
+	}
+	return PhaseDecision{
+		Found: false,
+		Rule:  fmt.Sprintf("instant %s falls in no compiled phase window", t.UTC().Format(time.RFC3339Nano)),
+	}
 }

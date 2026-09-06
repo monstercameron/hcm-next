@@ -67,3 +67,43 @@ func TestTodo_CYCLE_002_Fault(t *testing.T) {
 		t.Fatalf("gap fault returned %v", err)
 	}
 }
+
+// TestCompiledPhaseGraphCarriesDeclaredOperations verifies CYCLE-002's GREEN
+// requirement that the compiled phase graph defines allowed operations (and
+// entry/exit conditions, obligations), detached from the source definition,
+// and that Explain reports the phase active at an instant with the rule
+// that decided it.
+func TestCompiledPhaseGraphCarriesDeclaredOperations(t *testing.T) {
+	c := cycleWithPhases()
+	c.Phases[0].AllowedOperations = []string{OperationRebindPopulation, "SUBMIT_ADJUSTMENT"}
+	c.Phases[0].EntryConditions = []string{"prior period closed"}
+	c.Phases[0].ExitConditions = []string{"cutoff reached"}
+	c.Phases[0].Obligations = []string{"notify payroll"}
+
+	g, err := CompilePhaseGraph(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := g.Phases[0]
+	if len(got.AllowedOperations) != 2 || got.AllowedOperations[0] != OperationRebindPopulation {
+		t.Fatalf("AllowedOperations not carried through compile: %v", got.AllowedOperations)
+	}
+	if len(got.EntryConditions) != 1 || len(got.ExitConditions) != 1 || len(got.Obligations) != 1 {
+		t.Fatalf("declared rule set not carried through compile: %+v", got)
+	}
+
+	// Mutating the compiled slice must never reach back into the source.
+	got.AllowedOperations[0] = "MUTATED"
+	if c.Phases[0].AllowedOperations[0] == "MUTATED" {
+		t.Fatal("compiled AllowedOperations aliases source phase data")
+	}
+
+	inside := g.Explain(c.Periods[0].Start)
+	if !inside.Found || inside.Phase.ID != "open" || inside.Rule == "" {
+		t.Fatalf("Explain did not resolve the active phase with a rule: %+v", inside)
+	}
+	outside := g.Explain(c.Periods[0].End)
+	if outside.Found || outside.Rule == "" {
+		t.Fatalf("Explain must report no phase (with a rule) past the last window: %+v", outside)
+	}
+}

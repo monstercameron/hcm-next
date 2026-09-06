@@ -65,6 +65,60 @@ func TestTodo_DEMAND_001_Conformance(t *testing.T) {
 	}
 }
 
+func TestTodo_DEMAND_001_CoverageAndDigest(t *testing.T) {
+	s := validSignal(t)
+	s.ConfidenceClass = ConfidenceHigh
+	coverage, err := NewCoverageRequirement("coverage-1", s.Scenario, s.Version, []DemandSignal{s})
+	if err != nil {
+		t.Fatal(err)
+	}
+	supply := []SupplyReference{{Ref: "supply-1", Location: s.Location, Skill: s.Skill, Work: s.Work, Quantity: s.Quantity}}
+	result, err := coverage.Evaluate(supply)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Covered || len(result.Shortfalls) != 0 || result.CanonicalDigest == "" {
+		t.Fatalf("covered result = %+v", result)
+	}
+	if got, err := coverage.Digest(); err != nil || got != coverage.CanonicalDigest {
+		t.Fatalf("coverage digest = %q, %v", got, err)
+	}
+
+	less, err := values.NewQuantity("1", s.Unit, 0, values.RoundingHalfEven)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err = coverage.Evaluate([]SupplyReference{{Ref: "supply-1", Location: s.Location, Skill: s.Skill, Work: s.Work, Quantity: less}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Covered || len(result.Shortfalls) != 1 || result.Shortfalls[0].Shortfall.Value().String() != "1" {
+		t.Fatalf("shortfall result = %+v", result)
+	}
+	if explanation, err := Explain(coverage); err != nil || explanation.Digest == "" {
+		t.Fatalf("Explain = %+v, %v", explanation, err)
+	}
+}
+
+func TestTodo_DEMAND_001_ConformanceDigest(t *testing.T) {
+	s := validSignal(t)
+	s.ConfidenceClass = ConfidenceMedium
+	coverage, err := NewCoverageRequirement("coverage-1", s.Scenario, s.Version, []DemandSignal{s})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bad := coverage
+	bad.CanonicalDigest = "sha256:tampered"
+	if err := bad.Validate(); err == nil {
+		t.Fatal("tampered coverage digest accepted")
+	}
+	badSignal := s
+	badSignal.ConfidenceClass = "UNDECLARED"
+	if err := badSignal.Validate(); err == nil {
+		t.Fatal("unknown confidence class accepted")
+	}
+}
+
 func validSignal(t *testing.T) DemandSignal {
 	t.Helper()
 	start, err := values.NewLocalDate(2026, time.April, 1)

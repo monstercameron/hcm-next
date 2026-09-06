@@ -1,0 +1,75 @@
+tenant: harborcare-demo
+subject: eref:v1:harborcare-demo:worker:22222222-2222-4222-8222-222222222222
+target position: eref:v1:harborcare-demo:position:55555555-5555-4555-8555-555555555555
+effective on: 2026-06-01
+prior assignment ends: 2026-05-31
+snapshot digest: sha256:eaac7c7d44615f90840dd86ca52c6785bdb6653fcd8c7d4116d9d2101c69247a
+result digest: sha256:46f8160245488847f30d0dc2b87946dee63e45928ee990712212f3affdb2cdcc
+executable: true
+
+manager chain:
+    verdict:                TAIL_NOT_ESTABLISHED
+    current relationship:   rel_mgr_1002
+    current manager:        44444444-4444-4444-8444-444444444444
+    proposed relationship:  rel_proposed_d77ab60dcbb62da9
+    proposed manager:       77777777-7777-4777-8777-777777777777
+    changed:                true
+    current depth:          1
+    proposed depth:         -1
+    depth bound:            3
+    hop 0: rel_mgr_1002/DIRECT_MANAGER -> 44444444-4444-4444-8444-444444444444 (withheld=false)
+
+position occupancy:
+    capacity:      HAS_AVAILABLE_HEAD
+    verdict:       HEAD_AVAILABLE
+    vacant after:  (none)
+    reservation:   planned=true
+    reservation heads: 1
+    reservation fte:   1.0000
+    reservation key:   sha256:bbf17fcfbeb3a989bacacd4086f7ebe6bcc2bc202db4a90ec671f7f102f5268c
+
+effects:
+- people.assignment.revision
+    effect id:      people.assignment.revision@2026-06-01#prop_rev_promo002_0001
+    participant:    people.assignment (LOCAL_EVENT_STREAM, local=true)
+    destination:    people.assignment/22222222-2222-4222-8222-222222222222
+    reversibility:  REVERSIBLE
+    compensation:   people.assignment.supersede (SUPERSEDING_REVISION)
+    observation:    observe.people.assignment_effective
+    idempotency:    sha256:33fa49a13e44d73b9b5a245e297c785ead871b010b82b0c0ceffe2d7a6388a9f
+    baseline:       rev:v1:people.worker.22222222:s17
+    derived from:   promotion.current_placement,promotion.manager_chain,promotion.subject_worker_facts
+    change assignment.job_code: OPS-HRBP2 -> OPS-HRBP3 (changed=true, from promotion.current_placement)
+    change assignment.grade: P2 -> P3 (changed=true, from promotion.current_placement)
+    change assignment.org_unit: people-ops -> people-ops (changed=false, from promotion.current_placement)
+    change assignment.position_id: POS-HRBP-204 -> 55555555-5555-4555-8555-555555555555 (changed=true, from promotion.current_placement)
+    change assignment.pay_zone: US-EAST -> US-EAST (changed=false, from promotion.current_placement)
+    change assignment.manager_relationship_ref: rel_mgr_1002 -> rel_proposed_d77ab60dcbb62da9 (changed=true, from promotion.manager_chain)
+- org.manager_relationship.change
+    effect id:      org.manager_relationship.change@2026-06-01#prop_rev_promo002_0001
+    participant:    org.manager_relationship (LOCAL_EVENT_STREAM, local=true)
+    destination:    org.manager_relationship/22222222-2222-4222-8222-222222222222
+    reversibility:  REVERSIBLE
+    compensation:   org.manager_relationship.supersede (SUPERSEDING_REVISION)
+    observation:    observe.org.manager_chain_current
+    idempotency:    sha256:bbf8df980c2373e4589a4c743f596bfcba19808eb2efb1f2e13d124246ed84ce
+    baseline:       rev:v1:org.graph.harborcare-demo:s9
+    derived from:   promotion.current_placement,promotion.manager_chain
+    change org.manager_relationship.relationship_id: rel_mgr_1002 -> rel_proposed_d77ab60dcbb62da9 (changed=true, from promotion.manager_chain)
+    change org.manager_relationship.manager_id: 44444444-4444-4444-8444-444444444444 -> 77777777-7777-4777-8777-777777777777 (changed=true, from promotion.manager_chain)
+    change org.manager_relationship.type: DIRECT_MANAGER -> DIRECT_MANAGER (changed=false, from promotion.manager_chain)
+- position.occupancy.transition
+    effect id:      position.occupancy.transition@2026-06-01#prop_rev_promo002_0001
+    participant:    position.occupancy (LOCAL_EVENT_STREAM, local=true)
+    destination:    position.occupancy/55555555-5555-4555-8555-555555555555
+    reversibility:  COMPENSATABLE
+    compensation:   position.reservation.release (RELEASE_RESERVATION)
+    observation:    observe.position.occupancy_consumed
+    idempotency:    sha256:d794b1d70318c95941b376d34c2cfed8cfbeb1e949ac6c685d363c1eba0c0396
+    baseline:       rev:v1:position.POS-HRBP-301:s5
+    derived from:   promotion.target_position_capacity
+    change position.occupancy.capacity_state: HAS_AVAILABLE_HEAD -> AT_CAPACITY (changed=true, from promotion.target_position_capacity)
+    change position.occupancy.occupant: (none) -> 22222222-2222-4222-8222-222222222222 (changed=true, from promotion.target_position_capacity)
+    change position.occupancy.reservation: (none) -> prop_rev_promo002_0001 (changed=true, from promotion.target_position_capacity)
+
+refusals:

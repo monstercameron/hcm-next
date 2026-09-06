@@ -1,0 +1,236 @@
+{
+  "schema": "hcmnext.transformation.conformance.v1",
+  "version": 1,
+  "digest": "sha256:dd1832b20fb61dae587db2366c44d21cf24dcd2afe6f49d0b4d5f3b4d9d71a10",
+  "vectors": [
+    {
+      "name": "map_literal",
+      "kind": "map",
+      "program_digest": "sha256:d13a5fdf5654f393dde17074d08b0efad9104299eb5cd013ba95500f77fc4836",
+      "input": [
+        {}
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "mapped"
+          }
+        }
+      ]
+    },
+    {
+      "name": "filter_present",
+      "kind": "filter",
+      "program_digest": "sha256:9b96577691b4ffd9ee6ef0d9161801c3a96178c7377d339b827eaa2548fff537",
+      "input": [
+        {
+          "in.name": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "Ada"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "Ada"
+          }
+        }
+      ]
+    },
+    {
+      "name": "filter_unknown",
+      "kind": "filter",
+      "program_digest": "sha256:9b96577691b4ffd9ee6ef0d9161801c3a96178c7377d339b827eaa2548fff537",
+      "input": [
+        {
+          "in.name": {
+            "type": "string",
+            "state": "UNKNOWN",
+            "reason": "source offline"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "ABSENT",
+            "reason": "filtered: not_null"
+          }
+        }
+      ]
+    },
+    {
+      "name": "project_absent",
+      "kind": "project",
+      "program_digest": "sha256:8964a7dfd914756d1a8c33df2a3b5b2c6c4641bec6ffb2111c2809cd1759334e",
+      "input": [
+        {}
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "ABSENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "join_equal",
+      "kind": "join_by_key",
+      "program_digest": "sha256:0d80f9922a239f172e4466e8ff44c8cda46eaff49b3309d19c6c953a78d07bd7",
+      "input": [
+        {
+          "in.left": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "same"
+          },
+          "in.right": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "same"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "same"
+          }
+        }
+      ]
+    },
+    {
+      "name": "join_disagree",
+      "kind": "join_by_key",
+      "program_digest": "sha256:0d80f9922a239f172e4466e8ff44c8cda46eaff49b3309d19c6c953a78d07bd7",
+      "input": [
+        {
+          "in.left": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "left"
+          },
+          "in.right": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "right"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "UNKNOWN",
+            "reason": "join_by_key \"person_id\": sources disagree"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aggregate_sum",
+      "kind": "aggregate",
+      "program_digest": "sha256:efd8b744d15c3ae1b8dc956c8771be84979017feaadacfdb15dad9a87a947e88",
+      "input": [
+        {
+          "in.left": {
+            "type": "int",
+            "state": "PRESENT",
+            "data": "7"
+          },
+          "in.right": {
+            "type": "int",
+            "state": "PRESENT",
+            "data": "5"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "int",
+            "state": "PRESENT",
+            "data": "12"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aggregate_unknown",
+      "kind": "aggregate",
+      "program_digest": "sha256:efd8b744d15c3ae1b8dc956c8771be84979017feaadacfdb15dad9a87a947e88",
+      "input": [
+        {
+          "in.left": {
+            "type": "int",
+            "state": "UNKNOWN",
+            "reason": "source offline"
+          },
+          "in.right": {
+            "type": "int",
+            "state": "PRESENT",
+            "data": "5"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "int",
+            "state": "UNKNOWN",
+            "reason": "source offline"
+          }
+        }
+      ]
+    },
+    {
+      "name": "coerce_int_to_string",
+      "kind": "coerce",
+      "program_digest": "sha256:1386240d04b8ab41016d57921fba4a24d648782206e8ede23ff4d659e2bfc154",
+      "input": [
+        {
+          "in.number": {
+            "type": "int",
+            "state": "PRESENT",
+            "data": "42"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "out.value": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "42"
+          }
+        }
+      ]
+    },
+    {
+      "name": "coerce_invalid",
+      "kind": "coerce",
+      "program_digest": "sha256:1386240d04b8ab41016d57921fba4a24d648782206e8ede23ff4d659e2bfc154",
+      "input": [
+        {
+          "in.number": {
+            "type": "string",
+            "state": "PRESENT",
+            "data": "not-an-int"
+          }
+        }
+      ],
+      "want_error": "type mismatch"
+    }
+  ]
+}

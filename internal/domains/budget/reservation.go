@@ -5,13 +5,15 @@ package budget
 // same decisions, but must not claim stronger atomicity than they provide.
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -24,6 +26,15 @@ const (
 	Released               ReservationState = "RELEASED"
 	Expired                ReservationState = "EXPIRED"
 	ReconciliationRequired ReservationState = "RECONCILIATION_REQUIRED"
+)
+
+const (
+	// PromotionIntentType and its child intent names pin this reservation to
+	// the bounded Phase 1 promote_worker slice. They are evidence labels, not
+	// permission checks; authorization remains outside this pure domain port.
+	PromotionIntentType                 = "hcmnext.people.promote_worker/v1"
+	ReserveCompensationBudgetIntentType = "hcmnext.rewards.reserve_compensation_budget/v1"
+	ReleaseCompensationBudgetIntentType = "hcmnext.rewards.release_compensation_budget/v1"
 )
 
 func (s ReservationState) Terminal() bool {
@@ -77,7 +88,7 @@ func (a CompensationBudgetAuthority) Validate() error {
 }
 
 type CompensationReservation struct {
-	ID        uuid.UUID
+	ID        string
 	Request   CompensationReservationRequest
 	State     ReservationState
 	Fence     uint64
@@ -87,10 +98,26 @@ type CompensationReservation struct {
 
 type ReservationEvent struct {
 	Sequence      uint64
-	ReservationID uuid.UUID
+	ReservationID string
 	From, To      ReservationState
 	Fence         uint64
 	At            time.Time
+}
+
+// ReservationEvidence is the replay-safe evidence returned for a reservation
+// lookup. It binds the promotion proposal, authority digest, fence and every
+// lifecycle transition without claiming that a remote provider committed
+// atomically with this in-memory reference store.
+type ReservationEvidence struct {
+	ReservationID   string
+	TenantID        string
+	BudgetID        string
+	ProposalDigest  string
+	AuthorityDigest string
+	IdempotencyKey  string
+	State           ReservationState
+	Fence           uint64
+	Events          []ReservationEvent
 }
 
 var (
@@ -111,17 +138,33 @@ var (
 type ReservationStore struct {
 	mu                  sync.Mutex
 	nextFence, sequence uint64
-	items               map[uuid.UUID]*CompensationReservation
-	byKey               map[string]uuid.UUID
-	events              map[uuid.UUID][]ReservationEvent
+	items               map[string]*CompensationReservation
+	byKey               map[string]string
+	events              map[string][]ReservationEvent
 }
 
 func NewReservationStore() *ReservationStore {
-	return &ReservationStore{items: make(map[uuid.UUID]*CompensationReservation), byKey: make(map[string]uuid.UUID), events: make(map[uuid.UUID][]ReservationEvent)}
+	return &ReservationStore{items: make(map[string]*CompensationReservation), byKey: make(map[string]string), events: make(map[string][]ReservationEvent)}
 }
 
 func reservationKey(r CompensationReservationRequest) string {
 	return r.TenantID + "\x00" + r.BudgetID + "\x00" + r.IdempotencyKey
+}
+
+// newReservationID derives a stable reservation identifier from the request's
+// natural dedup key and the fence token minted for it.
+//
+// This replaces a random UUID generator so the domain layer carries no
+// third-party ID dependency (internal/domains may not import
+// github.com/google/uuid; that boundary is enforced by the semantic
+// firewall). A hash of the reservation key is exactly as unique as the key
+// itself, which is what the idempotent-replay path above already relies on;
+// folding in the freshly minted fence keeps two reservations that ever
+// legitimately shared a natural key (which Reserve's dedup check would
+// otherwise have caught) from colliding.
+func newReservationID(r CompensationReservationRequest, fence uint64) string {
+	sum := sha256.Sum256([]byte(reservationKey(r) + "\x00" + strconv.FormatUint(fence, 10)))
+	return hex.EncodeToString(sum[:])
 }
 
 // Reserve performs the co-located atomic request-and-hold operation. Replaying
@@ -171,7 +214,7 @@ func (s *ReservationStore) Reserve(r CompensationReservationRequest, a Compensat
 	s.nextFence++
 	s.sequence++
 	now = now.UTC()
-	id := uuid.New()
+	id := newReservationID(r, s.nextFence)
 	item := &CompensationReservation{ID: id, Request: r, State: Held, Fence: s.nextFence, CreatedAt: now, UpdatedAt: now}
 	s.items[id] = item
 	s.byKey[reservationKey(r)] = id
@@ -179,7 +222,7 @@ func (s *ReservationStore) Reserve(r CompensationReservationRequest, a Compensat
 	return *item, nil
 }
 
-func (s *ReservationStore) transition(id uuid.UUID, fence uint64, to ReservationState, now time.Time) (CompensationReservation, error) {
+func (s *ReservationStore) transition(id string, fence uint64, to ReservationState, now time.Time) (CompensationReservation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	item, ok := s.items[id]
@@ -201,16 +244,16 @@ func (s *ReservationStore) transition(id uuid.UUID, fence uint64, to Reservation
 	return *item, nil
 }
 
-func (s *ReservationStore) Commit(id uuid.UUID, fence uint64, now time.Time) (CompensationReservation, error) {
+func (s *ReservationStore) Commit(id string, fence uint64, now time.Time) (CompensationReservation, error) {
 	return s.transition(id, fence, Committed, now)
 }
-func (s *ReservationStore) Release(id uuid.UUID, fence uint64, now time.Time) (CompensationReservation, error) {
+func (s *ReservationStore) Release(id string, fence uint64, now time.Time) (CompensationReservation, error) {
 	return s.transition(id, fence, Released, now)
 }
 
 // MarkAmbiguous blocks all ordinary lifecycle transitions until an external
 // observation resolves the provider outcome.
-func (s *ReservationStore) MarkAmbiguous(id uuid.UUID, fence uint64, now time.Time) error {
+func (s *ReservationStore) MarkAmbiguous(id string, fence uint64, now time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	item, ok := s.items[id]
@@ -232,7 +275,7 @@ func (s *ReservationStore) MarkAmbiguous(id uuid.UUID, fence uint64, now time.Ti
 // Reconcile records the provider's observed terminal outcome. Until this is
 // called an ambiguous hold remains blocked and therefore unavailable to new
 // reservations.
-func (s *ReservationStore) Reconcile(id uuid.UUID, fence uint64, outcome ReservationState, now time.Time) (CompensationReservation, error) {
+func (s *ReservationStore) Reconcile(id string, fence uint64, outcome ReservationState, now time.Time) (CompensationReservation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	item, ok := s.items[id]
@@ -269,7 +312,7 @@ func (s *ReservationStore) Expire(now time.Time) []CompensationReservation {
 	return out
 }
 
-func (s *ReservationStore) Get(id uuid.UUID) (CompensationReservation, bool) {
+func (s *ReservationStore) Get(id string) (CompensationReservation, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	item, ok := s.items[id]
@@ -278,10 +321,33 @@ func (s *ReservationStore) Get(id uuid.UUID) (CompensationReservation, bool) {
 	}
 	return *item, true
 }
-func (s *ReservationStore) Events(id uuid.UUID) []ReservationEvent {
+func (s *ReservationStore) Events(id string) []ReservationEvent {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return append([]ReservationEvent(nil), s.events[id]...)
+}
+
+// Evidence returns the reservation's immutable request identity together with
+// a copy of its lifecycle events. The returned slices are detached from the
+// store and safe for callers to retain as evidence.
+func (s *ReservationStore) Evidence(id string) (ReservationEvidence, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	item, ok := s.items[id]
+	if !ok {
+		return ReservationEvidence{}, false
+	}
+	return ReservationEvidence{
+		ReservationID:   item.ID,
+		TenantID:        item.Request.TenantID,
+		BudgetID:        item.Request.BudgetID,
+		ProposalDigest:  item.Request.ProposalDigest,
+		AuthorityDigest: item.Request.AuthorityDigest,
+		IdempotencyKey:  item.Request.IdempotencyKey,
+		State:           item.State,
+		Fence:           item.Fence,
+		Events:          append([]ReservationEvent(nil), s.events[id]...),
+	}, true
 }
 
 func validCurrency(s string) bool {

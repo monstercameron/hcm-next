@@ -1,0 +1,10 @@
+[
+  {
+    "source": "increase_percent > 10.0000 && country == \"US\"",
+    "ir": "root=6 nodes=0:VARIABLE:DECIMAL:increase_percent::[];1:LITERAL:DECIMAL::10.0000:[];2:BINARY:BOOL:::[0,1];3:VARIABLE:STRING:country::[];4:LITERAL:STRING::US:[];5:BINARY:BOOL:::[3,4];6:BINARY:BOOL:::[2,5]"
+  },
+  {
+    "source": "lower(country) == \"us\"",
+    "ir": "root=3 nodes=0:VARIABLE:STRING:country::[];1:CALL:STRING:::[0];2:LITERAL:STRING::us:[];3:BINARY:BOOL:::[1,2]"
+  }
+]
