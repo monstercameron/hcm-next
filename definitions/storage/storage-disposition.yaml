@@ -37,7 +37,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00069_intent_outcome_refs.sql
+source: migrations/00001_platform_control.sql .. migrations/00131_reference_dataset_adoption.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -2975,3 +2975,1537 @@ tables:
     rebuild_source: null
     notes: >-
       INTG-016: append-only lineage and approval evidence for a targeted redrive of one failed operation; forbid_mutation.
+  - table: equity_plan_revision
+    migration: 00090_equity.sql
+    owner_package: internal/data/equitystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-EQUITY-001: immutable equity plan revisions keyed by plan and revision with the plan digest; forbid_mutation.
+  - table: equity_grant
+    migration: 00090_equity.sql
+    owner_package: internal/data/equitystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-EQUITY-001: immutable grants bound to (tenant, plan, plan revision); forbid_mutation.
+  - table: equity_acceptance_event
+    migration: 00090_equity.sql
+    owner_package: internal/data/equitystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-EQUITY-001: append-only grant acceptance evidence events; forbid_mutation.
+  - table: career_preference_revision
+    migration: 00074_career.sql
+    owner_package: internal/data/careerstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CAREER-001: career_preference_revision (registered from the lane report; role and retention as reported).
+  - table: target_role_revision
+    migration: 00074_career.sql
+    owner_package: internal/data/careerstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CAREER-001: target_role_revision (registered from the lane report; role and retention as reported).
+  - table: development_objective_revision
+    migration: 00074_career.sql
+    owner_package: internal/data/careerstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CAREER-001: development_objective_revision (registered from the lane report; role and retention as reported).
+  - table: career_assessment_revision
+    migration: 00074_career.sql
+    owner_package: internal/data/careerstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CAREER-001: career_assessment_revision (registered from the lane report; role and retention as reported).
+  - table: commercial_contract_revision
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: commercial_contract_revision (registered from the lane report; role and retention as reported).
+  - table: entitlement_snapshot
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: entitlement_snapshot (registered from the lane report; role and retention as reported).
+  - table: partner_application
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: partner_application (registered from the lane report; role and retention as reported).
+  - table: partner_application_version_revision
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: partner_application_version_revision (registered from the lane report; role and retention as reported).
+  - table: partner_installation
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: partner_installation (registered from the lane report; role and retention as reported).
+  - table: partner_installation_event
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: partner_installation_event (registered from the lane report; role and retention as reported).
+  - table: partner_data_processing_review
+    migration: 00078_commercial.sql
+    owner_package: internal/data/commercialstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-COMMERCIAL-001: partner_data_processing_review (registered from the lane report; role and retention as reported).
+  - table: fx_rate_source_revision
+    migration: 00092_fx.sql
+    owner_package: internal/data/fxstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-FX-001: fx_rate_source_revision (registered from the lane report; role and retention as reported).
+  - table: fx_quote_revision
+    migration: 00092_fx.sql
+    owner_package: internal/data/fxstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-FX-001: fx_quote_revision (registered from the lane report; role and retention as reported).
+  - table: fx_conversion_profile_revision
+    migration: 00092_fx.sql
+    owner_package: internal/data/fxstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-FX-001: fx_conversion_profile_revision (registered from the lane report; role and retention as reported).
+  - table: mobility_plan
+    migration: 00102_mobility.sql
+    owner_package: internal/data/mobilitystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-MOBILITY-001: mobility_plan (registered from the lane report; role and retention as reported).
+  - table: mobility_immigration_milestone
+    migration: 00102_mobility.sql
+    owner_package: internal/data/mobilitystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-MOBILITY-001: mobility_immigration_milestone (registered from the lane report; role and retention as reported).
+  - table: payinput_definition
+    migration: 00104_payinput.sql
+    owner_package: internal/data/payinputstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYINPUT-001: payinput_definition (registered from the lane report; role and retention as reported).
+  - table: payinput_worker_assignment
+    migration: 00104_payinput.sql
+    owner_package: internal/data/payinputstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYINPUT-001: payinput_worker_assignment (registered from the lane report; role and retention as reported).
+  - table: paymethod_destination
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_destination (registered from the lane report; role and retention as reported).
+  - table: paymethod_bank_detail_change
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_bank_detail_change (registered from the lane report; role and retention as reported).
+  - table: paymethod_verification_event
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_verification_event (registered from the lane report; role and retention as reported).
+  - table: paymethod_change_confirmation
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_change_confirmation (registered from the lane report; role and retention as reported).
+  - table: paymethod_protected_account
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_protected_account (registered from the lane report; role and retention as reported).
+  - table: paymethod_account_validation
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: paymethod_account_validation (registered from the lane report; role and retention as reported).
+  - table: settlement_payment_instruction
+    migration: 00106_paymethod.sql
+    owner_package: internal/data/paymethodstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYMETHOD-001: settlement_payment_instruction (registered from the lane report; role and retention as reported).
+  - table: custom_object_definition
+    migration: 00086_custom.sql
+    owner_package: internal/data/customstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CUSTOM-001: custom_object_definition (registered from the lane report; role and retention as reported).
+  - table: custom_relationship_definition
+    migration: 00086_custom.sql
+    owner_package: internal/data/customstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CUSTOM-001: custom_relationship_definition (registered from the lane report; role and retention as reported).
+  - table: custom_record_revision
+    migration: 00086_custom.sql
+    owner_package: internal/data/customstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-CUSTOM-001: custom_record_revision (registered from the lane report; role and retention as reported).
+  - table: performance_cycle
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_cycle (registered from the lane report; role and retention as reported).
+  - table: performance_rating_case
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_rating_case (registered from the lane report; role and retention as reported).
+  - table: performance_rating_event
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_rating_event (registered from the lane report; role and retention as reported).
+  - table: performance_final_rating
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_final_rating (registered from the lane report; role and retention as reported).
+  - table: performance_calibration_session
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_calibration_session (registered from the lane report; role and retention as reported).
+  - table: performance_review
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_review (registered from the lane report; role and retention as reported).
+  - table: performance_outcome_link
+    migration: 00108_performance.sql
+    owner_package: internal/data/performancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PERFORMANCE-001: performance_outcome_link (registered from the lane report; role and retention as reported).
+  - table: demand_signal
+    migration: 00110_planning.sql
+    owner_package: internal/data/planningstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PLANNING-001: demand_signal (registered from the lane report; role and retention as reported).
+  - table: coverage_requirement
+    migration: 00110_planning.sql
+    owner_package: internal/data/planningstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PLANNING-001: coverage_requirement (registered from the lane report; role and retention as reported).
+  - table: scenario_revision
+    migration: 00110_planning.sql
+    owner_package: internal/data/planningstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PLANNING-001: scenario_revision (registered from the lane report; role and retention as reported).
+  - table: succession_critical_role
+    migration: 00120_succession.sql
+    owner_package: internal/data/successionstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SUCCESSION-001: succession_critical_role (registered from the lane report; role and retention as reported).
+  - table: succession_readiness_revision
+    migration: 00120_succession.sql
+    owner_package: internal/data/successionstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SUCCESSION-001: succession_readiness_revision (registered from the lane report; role and retention as reported).
+  - table: succession_slate
+    migration: 00120_succession.sql
+    owner_package: internal/data/successionstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SUCCESSION-001: succession_slate (registered from the lane report; role and retention as reported).
+  - table: proofing_session
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: proofing_session (registered from the lane report; role and retention as reported).
+  - table: work_authorization_evidence
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: work_authorization_evidence (registered from the lane report; role and retention as reported).
+  - table: pseudonym_identity
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: pseudonym_identity (registered from the lane report; role and retention as reported).
+  - table: pseudonym_escrow_record
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: pseudonym_escrow_record (registered from the lane report; role and retention as reported).
+  - table: pseudonym_evidence_record
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: pseudonym_evidence_record (registered from the lane report; role and retention as reported).
+  - table: pseudonym_escrow_event
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: pseudonym_escrow_event (registered from the lane report; role and retention as reported).
+  - table: data_subject_request
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: data_subject_request (registered from the lane report; role and retention as reported).
+  - table: data_subject_request_evidence
+    migration: 00096_identityprivacy.sql
+    owner_package: internal/data/identityprivacystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-IDENTITYPRIVACY-001: data_subject_request_evidence (registered from the lane report; role and retention as reported).
+  - table: attestation_response
+    migration: 00128_attestation_response.sql
+    owner_package: internal/data/attestationstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      ATTEST-004/005: append-only attestation responses recorded exactly once at trusted time, preserving refusal, unknown, correction and revocation; forbid_mutation.
+  - table: reference_dataset_release
+    migration: 00130_reference_dataset_release.sql
+    owner_package: internal/data/refdata
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      REFDATA-001: immutable global reference-dataset release metadata and members; global by design (tenant adoption references it), so tenant scoping is null; forbid_mutation.
+  - table: reference_dataset_adoption
+    migration: 00131_reference_dataset_adoption.sql
+    owner_package: internal/data/refdata
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      REFDATA-001: append-only tenant adoption, impact and rollback evidence for a reference-dataset release; forbid_mutation.
+  - table: merit_population_snapshot
+    migration: 00100_merit.sql
+    owner_package: internal/data/meritstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-MERIT-001: merit_population_snapshot (registered from the lane report; role and retention as reported).
+  - table: merit_cycle_revision
+    migration: 00100_merit.sql
+    owner_package: internal/data/meritstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-MERIT-001: merit_cycle_revision (registered from the lane report; role and retention as reported).
+  - table: merit_recommendation
+    migration: 00100_merit.sql
+    owner_package: internal/data/meritstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-MERIT-001: merit_recommendation (registered from the lane report; role and retention as reported).
+  - table: appointment_requirement
+    migration: 00114_scheduling.sql
+    owner_package: internal/data/schedulingstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SCHEDULING-001: appointment_requirement (registered from the lane report; role and retention as reported).
+  - table: resource_type
+    migration: 00114_scheduling.sql
+    owner_package: internal/data/schedulingstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SCHEDULING-001: resource_type (registered from the lane report; role and retention as reported).
+  - table: worker_availability
+    migration: 00114_scheduling.sql
+    owner_package: internal/data/schedulingstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SCHEDULING-001: worker_availability (registered from the lane report; role and retention as reported).
+  - table: time_device_registration
+    migration: 00114_scheduling.sql
+    owner_package: internal/data/schedulingstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-SCHEDULING-001: time_device_registration (registered from the lane report; role and retention as reported).
+  - table: asset_inventory
+    migration: 00071_asset_inventory.sql
+    owner_package: internal/data/assetstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00071_asset_inventory.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/assetstore.
+  - table: asset_custody_event
+    migration: 00071_asset_inventory.sql
+    owner_package: internal/data/assetstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00071_asset_inventory.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/assetstore.
+  - table: benefit_plan_revision
+    migration: 00072_benefits.sql
+    owner_package: internal/data/benefitsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00072_benefits.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/benefitsstore.
+  - table: cba_agreement_revision
+    migration: 00076_cba.sql
+    owner_package: internal/data/cbastore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00076_cba.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/cbastore.
+  - table: cba_bargaining_unit_revision
+    migration: 00076_cba.sql
+    owner_package: internal/data/cbastore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00076_cba.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/cbastore.
+  - table: cba_membership_revision
+    migration: 00076_cba.sql
+    owner_package: internal/data/cbastore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00076_cba.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/cbastore.
+  - table: cba_agreement_clause_revision
+    migration: 00076_cba.sql
+    owner_package: internal/data/cbastore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00076_cba.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/cbastore.
+  - table: contact_endpoint_revision
+    migration: 00080_contact.sql
+    owner_package: internal/data/contactstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00080_contact.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/contactstore.
+  - table: contact_verification_challenge
+    migration: 00080_contact.sql
+    owner_package: internal/data/contactstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00080_contact.sql at wave-37 close: mutable control table owned by internal/data/contactstore.
+  - table: contact_challenge_event
+    migration: 00080_contact.sql
+    owner_package: internal/data/contactstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00080_contact.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/contactstore.
+  - table: industry_pack_manifest
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/contentregistrystore.
+  - table: content_registry_entry
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/contentregistrystore.
+  - table: industry_pack_binding
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: mutable control table owned by internal/data/contentregistrystore.
+  - table: knowledge_article_revision
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: mutable aggregate table owned by internal/data/contentregistrystore.
+  - table: knowledge_localized_revision
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: mutable aggregate table owned by internal/data/contentregistrystore.
+  - table: knowledge_lifecycle_event
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/contentregistrystore.
+  - table: knowledge_activation
+    migration: 00082_contentregistry.sql
+    owner_package: internal/data/contentregistrystore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00082_contentregistry.sql at wave-37 close: mutable control table owned by internal/data/contentregistrystore.
+  - table: talent_pool_revision
+    migration: 00084_crm.sql
+    owner_package: internal/data/crmstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00084_crm.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/crmstore.
+  - table: talent_pool_membership_revision
+    migration: 00084_crm.sql
+    owner_package: internal/data/crmstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00084_crm.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/crmstore.
+  - table: er_allegation_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: er_investigation_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: er_interview_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: er_finding_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: er_discipline_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: er_grievance_revision
+    migration: 00088_employeerelations.sql
+    owner_package: internal/data/employeerelationsstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00088_employeerelations.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/employeerelationsstore.
+  - table: hr_case_revision
+    migration: 00094_hrcase.sql
+    owner_package: internal/data/hrcasestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00094_hrcase.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/hrcasestore.
+  - table: incentive_plan_revision
+    migration: 00098_incentive.sql
+    owner_package: internal/data/incentivestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00098_incentive.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/incentivestore.
+  - table: attainment_observation
+    migration: 00098_incentive.sql
+    owner_package: internal/data/incentivestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00098_incentive.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/incentivestore.
+  - table: award_calculation
+    migration: 00098_incentive.sql
+    owner_package: internal/data/incentivestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00098_incentive.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/incentivestore.
+  - table: safety_incident_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_injury_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_reportability_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_claim_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_work_restriction_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_corrective_action_revision
+    migration: 00112_safety.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: skill_ontology_revision
+    migration: 00116_skill.sql
+    owner_package: internal/data/skillstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00116_skill.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/skillstore.
+  - table: skill_definition_revision
+    migration: 00116_skill.sql
+    owner_package: internal/data/skillstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00116_skill.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/skillstore.
+  - table: worker_skill_evidence
+    migration: 00116_skill.sql
+    owner_package: internal/data/skillstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00116_skill.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/skillstore.
+  - table: event_subscription
+    migration: 00118_subscription.sql
+    owner_package: internal/data/subscriptionstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00118_subscription.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/subscriptionstore.
+  - table: subscription_authorization_event
+    migration: 00118_subscription.sql
+    owner_package: internal/data/subscriptionstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00118_subscription.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/subscriptionstore.
+  - table: survey_question_bank_revision
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/surveystore.
+  - table: survey_revision
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/surveystore.
+  - table: survey_campaign_revision
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/surveystore.
+  - table: survey_campaign_sample
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/surveystore.
+  - table: survey_launch_record
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/surveystore.
+  - table: survey_response_record
+    migration: 00122_survey.sql
+    owner_package: internal/data/surveystore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00122_survey.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/surveystore.
+  - table: worker_tax_profile_revision
+    migration: 00124_taxprofile.sql
+    owner_package: internal/data/taxprofilestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00124_taxprofile.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/taxprofilestore.
+  - table: tax_registration_revision
+    migration: 00124_taxprofile.sql
+    owner_package: internal/data/taxprofilestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00124_taxprofile.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/taxprofilestore.
+  - table: withholding_election_revision
+    migration: 00124_taxprofile.sql
+    owner_package: internal/data/taxprofilestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00124_taxprofile.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/taxprofilestore.
+  - table: tax_exemption_revision
+    migration: 00124_taxprofile.sql
+    owner_package: internal/data/taxprofilestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00124_taxprofile.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/taxprofilestore.
+  - table: stepup_proof_log
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/truststore.
+  - table: jit_grant
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: mutable control table owned by internal/data/truststore.
+  - table: jit_evidence_record
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/truststore.
+  - table: accessreview_grant
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: mutable control table owned by internal/data/truststore.
+  - table: accessreview_schedule
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: mutable control table owned by internal/data/truststore.
+  - table: accessreview_review_record
+    migration: 00126_trust.sql
+    owner_package: internal/data/truststore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from migration 00126_trust.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/truststore.

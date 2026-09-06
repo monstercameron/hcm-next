@@ -63,6 +63,39 @@ migrationfiles:
   - 00067_connector_operation_observation_requirement.sql
   - 00068_connector_operation_redrive.sql
   - 00069_intent_outcome_refs.sql
+  - 00070_worker_profile_photo_refs.sql
+  - 00071_asset_inventory.sql
+  - 00072_benefits.sql
+  - 00074_career.sql
+  - 00076_cba.sql
+  - 00078_commercial.sql
+  - 00080_contact.sql
+  - 00082_contentregistry.sql
+  - 00084_crm.sql
+  - 00086_custom.sql
+  - 00088_employeerelations.sql
+  - 00090_equity.sql
+  - 00092_fx.sql
+  - 00094_hrcase.sql
+  - 00096_identityprivacy.sql
+  - 00098_incentive.sql
+  - 00100_merit.sql
+  - 00102_mobility.sql
+  - 00104_payinput.sql
+  - 00106_paymethod.sql
+  - 00108_performance.sql
+  - 00110_planning.sql
+  - 00112_safety.sql
+  - 00114_scheduling.sql
+  - 00116_skill.sql
+  - 00118_subscription.sql
+  - 00120_succession.sql
+  - 00122_survey.sql
+  - 00124_taxprofile.sql
+  - 00126_trust.sql
+  - 00128_attestation_response.sql
+  - 00130_reference_dataset_release.sql
+  - 00131_reference_dataset_adoption.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

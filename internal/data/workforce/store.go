@@ -33,8 +33,9 @@ const columns = `tenant_id, worker_id, worker_key,
 	legal_name, preferred_name, worker_number,
 	worker_type, lifecycle_status,
 	employment_id, assignment_id,
-	job_code, grade, org_unit, position_id, location, pay_zone,
+	job_code, COALESCE(job_title, ''), grade, org_unit, position_id, location, pay_zone,
 	fte::text, manager_relationship_ref,
+	COALESCE(profile_photo_original_ref, ''), COALESCE(profile_photo_proxy_ref, ''),
 	hire_date, effective_from,
 	base_pay::text, currency, pay_basis, bonus_target::text,
 	revision_stream, revision_sequence, known_at, recorded_at,
@@ -70,24 +71,25 @@ func (s Store) Create(ctx context.Context, ex Executor, in WorkerRow) (WorkerRow
 			legal_name, preferred_name, worker_number,
 			worker_type, lifecycle_status,
 			employment_id, assignment_id,
-			job_code, grade, org_unit, position_id, location, pay_zone,
+			job_code, job_title, grade, org_unit, position_id, location, pay_zone,
 			fte, manager_relationship_ref,
+			profile_photo_original_ref, profile_photo_proxy_ref,
 			hire_date, effective_from,
 			base_pay, currency, pay_basis, bonus_target,
 			revision_stream, revision_sequence, known_at, recorded_at,
 			created_by, source)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-			$17::text::numeric, $18, $19::text::date, $20::text::date,
-			$21::text::numeric, $22, $23, $24::text::numeric,
-			$25, $26, $27, $28, $29, $30)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+			$18::text::numeric, $19, $20, $21, $22::text::date, $23::text::date,
+			$24::text::numeric, $25, $26, $27::text::numeric,
+			$28, $29, $30, $31, $32, $33)
 		ON CONFLICT DO NOTHING
 		RETURNING `+columns,
 		in.TenantID, in.WorkerID, in.WorkerKey,
 		in.LegalName, in.PreferredName, in.WorkerNumber,
 		in.WorkerType, in.LifecycleStatus,
 		in.EmploymentID, in.AssignmentID,
-		in.JobCode, in.Grade, in.OrgUnit, in.PositionID, in.Location, in.PayZone,
-		in.FTE, in.ManagerRelationshipRef,
+		in.JobCode, nullableString(in.JobTitle), in.Grade, in.OrgUnit, in.PositionID, in.Location, in.PayZone,
+		in.FTE, in.ManagerRelationshipRef, nullableString(in.ProfilePhotoOriginalRef), nullableString(in.ProfilePhotoProxyRef),
 		in.HireDate, in.EffectiveFrom,
 		in.BasePay, in.Currency, in.PayBasis, in.BonusTarget,
 		in.RevisionStream, int64(in.RevisionSequence), in.KnownAt.UTC(), in.RecordedAt.UTC(),
@@ -181,8 +183,8 @@ func scanWorker(src scanner) (WorkerRow, error) {
 		&w.LegalName, &w.PreferredName, &w.WorkerNumber,
 		&w.WorkerType, &w.LifecycleStatus,
 		&w.EmploymentID, &w.AssignmentID,
-		&w.JobCode, &w.Grade, &w.OrgUnit, &w.PositionID, &w.Location, &w.PayZone,
-		&w.FTE, &w.ManagerRelationshipRef,
+		&w.JobCode, &w.JobTitle, &w.Grade, &w.OrgUnit, &w.PositionID, &w.Location, &w.PayZone,
+		&w.FTE, &w.ManagerRelationshipRef, &w.ProfilePhotoOriginalRef, &w.ProfilePhotoProxyRef,
 		&hire, &effective,
 		&w.BasePay, &w.Currency, &w.PayBasis, &w.BonusTarget,
 		&w.RevisionStream, &sequence, &w.KnownAt, &w.RecordedAt,
@@ -196,4 +198,11 @@ func scanWorker(src scanner) (WorkerRow, error) {
 	w.KnownAt = w.KnownAt.UTC()
 	w.RecordedAt = w.RecordedAt.UTC()
 	return w, nil
+}
+
+func nullableString(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
 }

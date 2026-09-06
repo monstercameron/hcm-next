@@ -10,12 +10,13 @@ import (
 type Code string
 
 const (
-	CodeInvalid           Code = "INVALID"
-	CodeNotFound          Code = "NOT_FOUND"
-	CodeDuplicateRevision Code = "DUPLICATE_REVISION"
-	CodeDuplicateEvent    Code = "DUPLICATE_EVENT"
-	CodeVersionConflict   Code = "VERSION_CONFLICT"
-	CodeDatabase          Code = "DATABASE"
+	CodeInvalid             Code = "INVALID"
+	CodeNotFound            Code = "NOT_FOUND"
+	CodeDuplicateRevision   Code = "DUPLICATE_REVISION"
+	CodeDuplicateEvent      Code = "DUPLICATE_EVENT"
+	CodeVersionConflict     Code = "VERSION_CONFLICT"
+	CodeIdempotencyConflict Code = "IDEMPOTENCY_CONFLICT"
+	CodeDatabase            Code = "DATABASE"
 )
 
 // Error is a typed persistence failure. Cause remains available through

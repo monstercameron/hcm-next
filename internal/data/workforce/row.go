@@ -76,6 +76,7 @@ type WorkerRow struct {
 	AssignmentID string
 
 	JobCode                string
+	JobTitle               string
 	Grade                  string
 	OrgUnit                string
 	PositionID             string
@@ -83,6 +84,12 @@ type WorkerRow struct {
 	PayZone                string
 	FTE                    string
 	ManagerRelationshipRef string
+
+	// ProfilePhotoOriginalRef is the private retained upload reference;
+	// ProfilePhotoProxyRef is the same-origin, display-safe derivative. Both
+	// are optional, but a worker can never carry only one half of the pair.
+	ProfilePhotoOriginalRef string
+	ProfilePhotoProxyRef    string
 
 	// HireDate and EffectiveFrom are ISO-8601 calendar dates ([DateLayout]).
 	HireDate      string
@@ -165,6 +172,9 @@ func (w WorkerRow) Validate() error {
 	}
 	if w.RecordedAt.IsZero() {
 		return fmt.Errorf("%w: recorded_at is unset", ErrInvalidRow)
+	}
+	if (w.ProfilePhotoOriginalRef == "") != (w.ProfilePhotoProxyRef == "") {
+		return fmt.Errorf("%w: profile photo original and proxy references must be set together", ErrInvalidRow)
 	}
 	if w.KnownAt.After(w.RecordedAt) {
 		return fmt.Errorf("%w: known_at %s is after recorded_at %s",
