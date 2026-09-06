@@ -9,10 +9,12 @@ type PageRequest struct {
 	Locale           string
 	Query            string
 	PeoplePage       int
+	PeoplePageSize   int
 	PeopleTeam       string
 	PeopleLocation   string
 	PeopleSort       string
 	PeopleDirection  string
+	OrganizationView string
 	WorkflowQuery    string
 	HistoryQuery     string
 	HistoryOutcome   string
@@ -20,6 +22,8 @@ type PageRequest struct {
 	HistoryYear      string
 	HistorySort      string
 	HistoryDirection string
+	HistoryPage      int
+	HistoryPageSize  int
 	Mode             string
 	SelectedWork     string
 	SelectedPerson   string
@@ -42,10 +46,12 @@ func ApplyRequest(view View, request PageRequest) View {
 	if view.PeoplePage < 1 {
 		view.PeoplePage = 1
 	}
+	view.PeoplePageSize = normalizePageSize(request.PeoplePageSize)
 	view.PeopleTeam = strings.TrimSpace(request.PeopleTeam)
 	view.PeopleLocation = strings.TrimSpace(request.PeopleLocation)
 	view.PeopleSort = normalizePeopleSort(request.PeopleSort)
 	view.PeopleDirection = normalizePeopleDirection(request.PeopleDirection)
+	view.OrganizationView = normalizeOrganizationView(request.OrganizationView)
 	view.WorkflowQuery = strings.TrimSpace(request.WorkflowQuery)
 	view.HistoryQuery = strings.TrimSpace(request.HistoryQuery)
 	view.HistoryOutcome = strings.ToLower(strings.TrimSpace(request.HistoryOutcome))
@@ -53,6 +59,11 @@ func ApplyRequest(view View, request PageRequest) View {
 	view.HistoryYear = strings.TrimSpace(request.HistoryYear)
 	view.HistorySort = normalizeHistorySort(request.HistorySort)
 	view.HistoryDirection = normalizeHistoryDirection(request.HistoryDirection)
+	view.HistoryPage = request.HistoryPage
+	if view.HistoryPage < 1 {
+		view.HistoryPage = 1
+	}
+	view.HistoryPageSize = normalizePageSize(request.HistoryPageSize)
 	view.Mode = strings.TrimSpace(request.Mode)
 	view.JourneyID = strings.TrimSpace(request.JourneyID)
 	view.JourneyWorker = strings.TrimSpace(request.JourneyWorker)
@@ -71,7 +82,7 @@ func ApplyRequest(view View, request PageRequest) View {
 		view.Work = filterWork(view.Work, filter)
 	}
 	if view.Page == PagePeople || view.Page == PagePerson {
-		view.PeoplePage = paginatePeople(filteredPeople(view), view.PeoplePage).Page
+		view.PeoplePage = paginatePeople(filteredPeople(view), view.PeoplePage, view.PeoplePageSize).Page
 	}
 	return view
 }

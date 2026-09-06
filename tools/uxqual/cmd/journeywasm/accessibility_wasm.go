@@ -3,31 +3,25 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/json"
-	"fmt"
-	"strings"
 	"syscall/js"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 )
 
-const accessibilityStorageVersion = "v1"
-
 type browserAccessibilityController struct {
-	key   string
 	saved productui.AccessibilityPreferences
+	save  func(productui.AccessibilityPreferences, func(error))
 }
 
-func newBrowserAccessibilityController(tenant, subject string) *browserAccessibilityController {
-	scope := strings.ToLower(strings.TrimSpace(tenant + "\x00" + subject))
-	if scope == "\x00" {
-		scope = "current"
+func newBrowserAccessibilityController(save func(productui.AccessibilityPreferences, func(error))) *browserAccessibilityController {
+	return &browserAccessibilityController{saved: productui.DefaultAccessibilityPreferences(), save: save}
+}
+
+func (c *browserAccessibilityController) Load(value productui.AccessibilityPreferences) {
+	if c != nil {
+		c.saved = productui.NormalizeAccessibilityPreferences(value)
+		c.Apply(c.saved)
 	}
-	digest := sha256.Sum256([]byte(scope))
-	controller := &browserAccessibilityController{key: fmt.Sprintf("hcmnext.accessibility.%s.%x", accessibilityStorageVersion, digest[:8])}
-	controller.saved = controller.load()
-	return controller
 }
 
 func (c *browserAccessibilityController) Saved() productui.AccessibilityPreferences {
@@ -49,30 +43,26 @@ func (c *browserAccessibilityController) Save(value productui.AccessibilityPrefe
 	value = productui.NormalizeAccessibilityPreferences(value)
 	c.saved = value
 	c.Apply(value)
-	stored := false
-	if body, err := json.Marshal(value); err == nil {
-		stored = writeLocalStorage(c.key, string(body))
+	c.setStatus("saving", "preview")
+	if c.save == nil {
+		c.setStatus("service_unavailable", "warning")
+		return
 	}
-	if stored {
-		c.setStatus("saved", "success")
-	} else {
-		c.setStatus("storage_unavailable", "warning")
-	}
+	c.save(value, func(err error) {
+		if err != nil {
+			c.setStatus("save_failed", "warning")
+		} else {
+			c.setStatus("saved", "success")
+		}
+	})
 }
 
 func (c *browserAccessibilityController) Reset() {
 	if c == nil {
 		return
 	}
-	c.saved = productui.DefaultAccessibilityPreferences()
-	cleared := removeLocalStorage(c.key)
-	c.Apply(c.saved)
+	c.Save(productui.DefaultAccessibilityPreferences())
 	c.syncEditor(c.saved)
-	if cleared {
-		c.setStatus("reset", "success")
-	} else {
-		c.setStatus("reset_unavailable", "warning")
-	}
 }
 
 func (c *browserAccessibilityController) Apply(value productui.AccessibilityPreferences) {
@@ -85,19 +75,6 @@ func (c *browserAccessibilityController) Apply(value productui.AccessibilityPref
 	for _, name := range []string{"data-hcm-text-size", "data-hcm-contrast", "data-hcm-motion-preference", "data-hcm-links"} {
 		root.Call("setAttribute", name, attributes[name])
 	}
-}
-
-func (c *browserAccessibilityController) load() productui.AccessibilityPreferences {
-	defaults := productui.DefaultAccessibilityPreferences()
-	raw, ok := readLocalStorage(c.key)
-	if !ok || strings.TrimSpace(raw) == "" {
-		return defaults
-	}
-	var value productui.AccessibilityPreferences
-	if json.Unmarshal([]byte(raw), &value) != nil {
-		return defaults
-	}
-	return productui.NormalizeAccessibilityPreferences(value)
 }
 
 func (c *browserAccessibilityController) syncEditor(value productui.AccessibilityPreferences) {
@@ -124,9 +101,9 @@ func (c *browserAccessibilityController) setStatus(code, tone string) {
 func accessibilityStatusMessage(code string) string {
 	locale := js.Global().Get("document").Get("documentElement").Call("getAttribute", "lang").String()
 	messages := map[string]map[string]string{
-		"en-US": {"preview": "Previewing unsaved accessibility preferences", "saved": "Accessibility preferences saved for this browser", "storage_unavailable": "Preferences applied, but browser storage is unavailable", "reset": "Accessibility defaults restored", "reset_unavailable": "Defaults applied, but browser storage could not be cleared"},
-		"de-DE": {"preview": "Nicht gespeicherte Einstellungen werden angezeigt", "saved": "Barrierefreiheitseinstellungen wurden für diesen Browser gespeichert", "storage_unavailable": "Einstellungen angewendet, Browserspeicher ist jedoch nicht verfügbar", "reset": "Standardeinstellungen wurden wiederhergestellt", "reset_unavailable": "Standards angewendet, Browserspeicher konnte jedoch nicht gelöscht werden"},
-		"ar":    {"preview": "تتم معاينة تفضيلات إمكانية الوصول غير المحفوظة", "saved": "تم حفظ تفضيلات إمكانية الوصول لهذا المتصفح", "storage_unavailable": "تم تطبيق التفضيلات، لكن تخزين المتصفح غير متاح", "reset": "تمت استعادة إعدادات إمكانية الوصول الافتراضية", "reset_unavailable": "تم تطبيق الإعدادات الافتراضية، لكن تعذر مسح تخزين المتصفح"},
+		"en-US": {"preview": "Previewing unsaved accessibility preferences", "saving": "Saving accessibility preferences…", "saved": "Accessibility preferences saved to your account", "save_failed": "Accessibility preferences could not be saved", "service_unavailable": "Preference service is unavailable"},
+		"de-DE": {"preview": "Nicht gespeicherte Einstellungen werden angezeigt", "saving": "Barrierefreiheitseinstellungen werden gespeichert…", "saved": "Barrierefreiheitseinstellungen wurden im Konto gespeichert", "save_failed": "Barrierefreiheitseinstellungen konnten nicht gespeichert werden", "service_unavailable": "Einstellungsdienst ist nicht verfügbar"},
+		"ar":    {"preview": "تتم معاينة تفضيلات إمكانية الوصول غير المحفوظة", "saving": "جارٍ حفظ تفضيلات إمكانية الوصول…", "saved": "تم حفظ تفضيلات إمكانية الوصول في حسابك", "save_failed": "تعذر حفظ تفضيلات إمكانية الوصول", "service_unavailable": "خدمة التفضيلات غير متاحة"},
 	}
 	if localized, ok := messages[locale]; ok {
 		if message := localized[code]; message != "" {

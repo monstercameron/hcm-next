@@ -6,8 +6,6 @@ import "github.com/monstercameron/GoWebComponents/v5/ui"
 // passes presentation-only props into the reusable component tree.
 func personPage(view View) ui.Node {
 	returnHref := peopleReturnHref(view)
-	text := view.Locale.Text
-	value := func(raw string) string { return valueOrUnavailableFor(view.Locale, raw) }
 	props := PersonPageProps{I18nProps: I18nProps{Locale: view.Locale}, BackHref: returnHref, Navigate: view.Navigate}
 	person, ok := exactPerson(view)
 	if !ok {
@@ -15,7 +13,18 @@ func personPage(view View) ui.Node {
 		return ui.CreateElement(PersonPage, props)
 	}
 
-	props.Profile = &PersonProfileProps{
+	profile := personProfileProps(view, person, PagePerson)
+	props.Profile = &profile
+	return ui.CreateElement(PersonPage, props)
+}
+
+// personProfileProps is the shared adapter from one authorized worker row to
+// the narrow profile component contract. Person and self-service routes use
+// the same facts and composition; only their navigation state differs.
+func personProfileProps(view View, person Person, target PageID) PersonProfileProps {
+	text := view.Locale.Text
+	value := func(raw string) string { return valueOrUnavailableFor(view.Locale, raw) }
+	return PersonProfileProps{
 		Hero: PersonHeroProps{
 			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, Role: value(person.Role),
 			Status: text("person.visible_scope"), Source: value(person.Source),
@@ -62,29 +71,42 @@ func personPage(view View) ui.Node {
 				{Label: text("person.worker_ref"), Value: value(person.ID)},
 			},
 		},
-		Workflows: personWorkflowLauncherProps(view, person),
-		History: workflowHistoryProps(view, person.ID, text("work.past"),
+		Workflows: personWorkflowLauncherProps(view, person, target),
+		History: workflowHistoryPropsForTarget(view, person.ID, target, text("work.past"),
 			text("person.history_detail", map[string]string{"name": person.Name}), true),
 	}
-	return ui.CreateElement(PersonPage, props)
 }
 
-func personWorkflowLauncherProps(view View, person Person) WorkflowLauncherProps {
+func personWorkflowLauncherProps(view View, person Person, target PageID) WorkflowLauncherProps {
 	filtered := filteredPersonWorkflows(view)
 	workflows := make([]WorkflowCardProps, 0, len(filtered))
 	for _, workflow := range filtered {
+		href := workflow.Href
+		if workflow.LaunchHref != nil {
+			href = workflow.LaunchHref(person.ID)
+		}
 		workflows = append(workflows, WorkflowCardProps{
-			Name: workflow.Name, Category: workflow.Category, Description: workflow.Description, Href: workflow.Href, Navigate: view.Navigate,
+			Name: workflow.Name, Category: workflow.Category, Description: workflow.Description, Href: href, Navigate: view.Navigate,
 		})
 	}
+	personID := person.ID
+	if target == PageMyself {
+		// The self-service route always derives its worker from Viewer.PersonID;
+		// it does not accept an address-bar worker selector.
+		personID = ""
+	}
 	filter := WorkflowFilterProps{
-		Query: view.WorkflowQuery, Action: pageHref(PagePerson), PersonID: person.ID,
+		Query: view.WorkflowQuery, Action: pageHref(target), PersonID: personID,
 		DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, DirectoryTeam: view.PeopleTeam, DirectoryLocation: view.PeopleLocation,
 		DirectorySort: view.PeopleSort, DirectoryDirection: view.PeopleDirection, NavCollapsed: view.NavCollapsed,
 	}
 	if view.Navigate != nil {
 		filter.OnFilter = func(query string) {
-			view.Navigate(statefulHref(view, PagePerson, "person", person.ID, "q", view.Query,
+			if target == PageMyself {
+				view.Navigate(statefulHref(view, PageMyself, "workflow_q", query))
+				return
+			}
+			view.Navigate(statefulHref(view, target, "person", person.ID, "q", view.Query,
 				"team", view.PeopleTeam, "location", view.PeopleLocation, "sort", view.PeopleSort, "dir", view.PeopleDirection,
 				"page", peoplePageValue(view.PeoplePage), "workflow_q", query))
 		}

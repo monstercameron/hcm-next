@@ -3,9 +3,6 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -13,22 +10,15 @@ import (
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 )
 
-const customerThemeStorageVersion = "v1"
-
 type browserThemeController struct {
-	key       string
 	saved     productui.CustomerTheme
+	save      func(productui.CustomerTheme, func(error))
 	logoLoad  js.Func
 	logoError js.Func
 }
 
-func newBrowserThemeController(tenant string) *browserThemeController {
-	keyTenant := strings.ToLower(strings.TrimSpace(tenant))
-	if keyTenant == "" {
-		keyTenant = "current"
-	}
-	tenantDigest := sha256.Sum256([]byte(keyTenant))
-	controller := &browserThemeController{key: fmt.Sprintf("hcmnext.customer-theme.%s.%x", customerThemeStorageVersion, tenantDigest[:8])}
+func newBrowserThemeController(save func(productui.CustomerTheme, func(error))) *browserThemeController {
+	controller := &browserThemeController{saved: productui.DefaultCustomerTheme(), save: save}
 	controller.logoLoad = js.FuncOf(func(_ js.Value, args []js.Value) any {
 		setBrandLogoEventState(args, "configured")
 		return nil
@@ -37,8 +27,14 @@ func newBrowserThemeController(tenant string) *browserThemeController {
 		setBrandLogoEventState(args, "fallback")
 		return nil
 	})
-	controller.saved = controller.load()
 	return controller
+}
+
+func (c *browserThemeController) Load(theme productui.CustomerTheme) {
+	if c != nil {
+		c.saved = productui.NormalizeCustomerTheme(theme)
+		c.Apply(c.saved)
+	}
 }
 
 func (c *browserThemeController) Saved() productui.CustomerTheme {
@@ -60,30 +56,26 @@ func (c *browserThemeController) Save(theme productui.CustomerTheme) {
 	theme = productui.NormalizeCustomerTheme(theme)
 	c.saved = theme
 	c.Apply(theme)
-	stored := false
-	if body, err := json.Marshal(theme); err == nil {
-		stored = writeLocalStorage(c.key, string(body))
+	c.setStatus("Saving appearance…", "preview")
+	if c.save == nil {
+		c.setStatus("Appearance service is unavailable", "warning")
+		return
 	}
-	if stored {
-		c.setStatus("Appearance saved for this browser", "success")
-	} else {
-		c.setStatus("Appearance applied, but browser storage is unavailable", "warning")
-	}
+	c.save(theme, func(err error) {
+		if err != nil {
+			c.setStatus("Appearance could not be saved", "warning")
+		} else {
+			c.setStatus("Appearance saved for your organization", "success")
+		}
+	})
 }
 
 func (c *browserThemeController) Reset() {
 	if c == nil {
 		return
 	}
-	c.saved = productui.DefaultCustomerTheme()
-	cleared := removeLocalStorage(c.key)
-	c.Apply(c.saved)
+	c.Save(productui.DefaultCustomerTheme())
 	c.syncEditor(c.saved)
-	if cleared {
-		c.setStatus("Platform appearance restored", "success")
-	} else {
-		c.setStatus("Defaults applied, but browser storage could not be cleared", "warning")
-	}
 }
 
 func (c *browserThemeController) Apply(theme productui.CustomerTheme) {
@@ -154,19 +146,6 @@ func applyLocaleDocumentIdentity(locale productui.LocaleContext) {
 		root.Call("removeAttribute", "data-hcm-message-fallback")
 		root.Call("removeAttribute", "data-hcm-message-fallback-count")
 	}
-}
-
-func (c *browserThemeController) load() productui.CustomerTheme {
-	defaults := productui.DefaultCustomerTheme()
-	raw, ok := readLocalStorage(c.key)
-	if !ok || strings.TrimSpace(raw) == "" {
-		return defaults
-	}
-	var theme productui.CustomerTheme
-	if json.Unmarshal([]byte(raw), &theme) != nil {
-		return defaults
-	}
-	return productui.NormalizeCustomerTheme(theme)
 }
 
 func (c *browserThemeController) setStatus(message, tone string) {
@@ -248,41 +227,4 @@ func setBrandLogoEventState(args []js.Value, state string) {
 	if slot.Truthy() {
 		slot.Call("setAttribute", "data-hcm-brand-logo-state", state)
 	}
-}
-
-func readLocalStorage(key string) (raw string, ok bool) {
-	defer func() {
-		if recover() != nil {
-			raw, ok = "", false
-		}
-	}()
-	storage := js.Global().Get("localStorage")
-	if !storage.Truthy() {
-		return "", false
-	}
-	value := storage.Call("getItem", key)
-	if value.Type() != js.TypeString {
-		return "", false
-	}
-	return value.String(), true
-}
-
-func writeLocalStorage(key, value string) (ok bool) {
-	defer func() {
-		if recover() != nil {
-			ok = false
-		}
-	}()
-	js.Global().Get("localStorage").Call("setItem", key, value)
-	return true
-}
-
-func removeLocalStorage(key string) (ok bool) {
-	defer func() {
-		if recover() != nil {
-			ok = false
-		}
-	}()
-	js.Global().Get("localStorage").Call("removeItem", key)
-	return true
 }

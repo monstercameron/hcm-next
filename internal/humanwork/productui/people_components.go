@@ -65,6 +65,7 @@ type PeopleTableProps struct {
 
 // PeopleSortColumnProps is an address-backed, accessible directory sort.
 type PeopleSortColumnProps struct {
+	ID         string
 	Label      string
 	Href       string
 	Active     bool
@@ -75,6 +76,7 @@ type PeopleSortColumnProps struct {
 // PeopleRowProps exposes only fields visible in a directory row.
 type PeopleRowProps struct {
 	I18nProps
+	ID           string
 	Initials     string
 	PhotoURL     string
 	Name         string
@@ -94,11 +96,13 @@ type PeopleQuickActionProps struct {
 	Label           string
 	AccessibleLabel string
 	Href            string
+	Frequent        bool
 }
 
 // PeoplePaginationProps is a fully resolved page window.
 type PeoplePaginationProps struct {
 	I18nProps
+	AriaLabel string
 	First     int
 	Last      int
 	Total     int
@@ -106,6 +110,18 @@ type PeoplePaginationProps struct {
 	PageCount int
 	Previous  PaginationLinkProps
 	Next      PaginationLinkProps
+	PageSize  PageSizeControlProps
+}
+
+// PageSizeControlProps is shared by every pageable product collection.
+type PageSizeControlProps struct {
+	I18nProps
+	Value    int
+	Name     string
+	Options  []int
+	Action   string
+	Fields   map[string]string
+	OnChange func(int)
 }
 
 // PaginationLinkProps makes disabled state explicit instead of encoding it
@@ -225,75 +241,134 @@ func PeopleDirectory(props PeopleDirectoryProps) ui.Node {
 
 // PeopleTable renders the stable directory columns and supplied rows.
 func PeopleTable(props PeopleTableProps) ui.Node {
-	nodes := make([]ui.Node, 0, len(props.Rows))
+	if len(props.Columns) == 0 {
+		props.Columns = []PeopleSortColumnProps{
+			{ID: peopleSortName, Label: props.Text("people.column.person")},
+			{ID: peopleSortRole, Label: props.Text("people.column.role")},
+			{ID: peopleSortTeam, Label: props.Text("people.column.team")},
+			{ID: peopleSortManager, Label: props.Text("people.column.manager")},
+			{ID: peopleSortLocation, Label: props.Text("people.column.location")},
+		}
+	}
+	columns := make([]DataTableColumnProps, 0, len(props.Columns)+1)
+	for _, column := range props.Columns {
+		direction := DataTableUnsorted
+		if column.Active {
+			direction = DataTableAscending
+			if column.Descending {
+				direction = DataTableDescending
+			}
+		}
+		columns = append(columns, DataTableColumnProps{ID: column.ID, Label: column.Label, Href: column.Href, Sort: direction, Navigate: column.Navigate})
+	}
+	columns = append(columns, DataTableColumnProps{ID: "actions", Label: props.Text("people.column.actions"), Class: "people-action-heading", AlignEnd: true})
+	rows := make([]DataTableRowProps, 0, len(props.Rows))
 	for _, row := range props.Rows {
 		row.I18nProps = props.I18nProps
-		nodes = append(nodes, ui.CreateElement(PeopleRow, row))
+		rows = append(rows, peopleDataTableRow(row))
 	}
-	headings := make([]ui.Node, 0, len(props.Columns))
-	for _, column := range props.Columns {
-		headings = append(headings, ui.CreateElement(PeopleSortColumn, column))
-	}
-	headings = append(headings, html.Span(html.Props{Class: "people-action-heading"}, ui.Text(props.Text("people.column.actions"))))
-	return html.Div(html.Props{Class: "people-table"},
-		html.Div(html.Props{Class: "people-columns", Aria: map[string]string{"label": props.Text("people.sort_by")}},
-			append([]ui.Node{html.Span(html.Props{Class: "people-sort-label"}, ui.Text(props.Text("people.sort_by")))}, headings...)...),
-		html.Ul(html.Props{Class: "people-rows", Aria: map[string]string{"label": props.Text("people.table_aria")}, Raw: map[string]any{"role": "list"}}, nodes...),
-	)
+	return ui.CreateElement(DataTable, DataTableProps{Caption: props.Text("people.table_aria"), AriaLabel: props.Text("people.table_aria"), SortLabel: props.Text("people.sort_by"), Class: "people-table", Columns: columns, Rows: rows})
 }
 
 // PeopleSortColumn renders one sortable header with its current direction.
 func PeopleSortColumn(props PeopleSortColumnProps) ui.Node {
-	ariaSort, indicator := "none", ""
-	class := "people-sort"
+	direction := DataTableUnsorted
 	if props.Active {
-		class += " active"
+		direction = DataTableAscending
 		if props.Descending {
-			ariaSort, indicator = "descending", " ↓"
-		} else {
-			ariaSort, indicator = "ascending", " ↑"
+			direction = DataTableDescending
 		}
 	}
-	linkProps := html.Props{Class: class, Raw: map[string]any{"title": props.Label}}
-	if ariaSort != "none" {
-		linkProps.Aria = map[string]string{"current": "true"}
-	}
-	return html.Span(html.Props{},
-		softwareLink(props.Navigate, linkProps, props.Href, ui.Text(props.Label+indicator)),
-	)
+	return ui.CreateElement(DataTableColumn, DataTableColumnProps{ID: props.ID, Label: props.Label, Href: props.Href, Sort: direction, Navigate: props.Navigate})
 }
 
 // PeopleRow is a software-routed, progressively enhanced directory row.
 func PeopleRow(props PeopleRowProps) ui.Node {
+	columns := []DataTableColumnProps{
+		{ID: peopleSortName, Label: props.Text("people.column.person")},
+		{ID: peopleSortRole, Label: props.Text("people.column.role")},
+		{ID: peopleSortTeam, Label: props.Text("people.column.team")},
+		{ID: peopleSortManager, Label: props.Text("people.column.manager")},
+		{ID: peopleSortLocation, Label: props.Text("people.column.location")},
+		{ID: "actions", Label: props.Text("people.column.actions"), AlignEnd: true},
+	}
+	return ui.CreateElement(dataTableRow, dataTableRowRenderProps{Columns: columns, Row: peopleDataTableRow(props)})
+}
+
+func peopleDataTableRow(props PeopleRowProps) DataTableRowProps {
 	actions := make([]ui.Node, 0, len(props.QuickActions))
 	for _, action := range props.QuickActions {
-		actions = append(actions, softwareLink(props.Navigate, html.Props{
-			Class: "button secondary people-row-action",
+		label := action.Label
+		if action.Frequent {
+			label += " · " + props.Text("people.frequent")
+		}
+		actions = append(actions, html.Li(html.Props{}, softwareLink(props.Navigate, html.Props{
+			Class: "people-workflow-option",
 			Aria:  map[string]string{"label": action.AccessibleLabel},
 			Raw:   map[string]any{"title": action.AccessibleLabel},
-		}, action.Href, ui.Text(action.Label)))
+		}, action.Href, ui.Text(label))))
 	}
-	return html.Li(html.Props{Class: "people-row-item people-row"},
-		softwareLink(props.Navigate, html.Props{Class: "person-cell people-person-link"}, props.Href,
-			personAvatar(props.Name, props.Initials, props.PhotoURL, ""), html.Strong(html.Props{}, ui.Text(props.Name))),
-		html.Span(html.Props{Class: "people-cell", Data: map[string]string{"label": props.Text("people.column.role")}}, ui.Text(props.Role)),
-		html.Span(html.Props{Class: "people-cell", Data: map[string]string{"label": props.Text("people.column.team")}}, ui.Text(props.Team)),
-		html.Span(html.Props{Class: "people-cell", Data: map[string]string{"label": props.Text("people.column.manager")}}, ui.Text(props.Manager)),
-		html.Span(html.Props{Class: "people-cell", Data: map[string]string{"label": props.Text("people.column.location")}}, ui.Text(props.Location)),
-		html.Div(html.Props{Class: "people-row-actions"}, actions...),
-	)
+	workflowMenu := ui.Node(html.Span(html.Props{Class: "muted"}, ui.Text(props.Text("people.no_workflows"))))
+	if len(actions) > 0 {
+		workflowMenu = ui.CreateElement(TransientPopover, TransientPopoverProps{
+			Kind: "people-workflows", Class: "people-workflow-menu", TriggerClass: "button secondary people-row-action",
+			Label:   props.Text("people.workflows_aria", map[string]string{"name": props.Name}),
+			Trigger: []ui.Node{ui.Text(props.Text("people.workflows"))}, PanelClass: "people-workflow-options",
+			Children: []ui.Node{html.Ul(html.Props{Class: "people-workflow-options-list"}, actions...)},
+		})
+	}
+	return DataTableRowProps{ID: props.ID, Class: "people-row-item people-row", Cells: []DataTableCellProps{
+		{ColumnID: peopleSortName, RowHeader: true, Children: []ui.Node{softwareLink(props.Navigate, html.Props{Class: "person-cell people-person-link"}, props.Href,
+			personAvatar(props.Name, props.Initials, props.PhotoURL, ""), html.Strong(html.Props{}, ui.Text(props.Name)))}},
+		{ColumnID: peopleSortRole, Class: "people-cell", Text: props.Role},
+		{ColumnID: peopleSortTeam, Class: "people-cell", Text: props.Team},
+		{ColumnID: peopleSortManager, Class: "people-cell", Text: props.Manager},
+		{ColumnID: peopleSortLocation, Class: "people-cell", Text: props.Location},
+		{ColumnID: "actions", Class: "people-row-actions", Children: []ui.Node{workflowMenu}},
+	}}
 }
 
 // PeoplePagination renders the current range and resolved page actions.
 func PeoplePagination(props PeoplePaginationProps) ui.Node {
-	return html.Nav(html.Props{Class: "people-pager", Aria: map[string]string{"label": props.Text("people.pages")}},
+	props.PageSize.I18nProps = props.I18nProps
+	ariaLabel := props.AriaLabel
+	if ariaLabel == "" {
+		ariaLabel = props.Text("people.pages")
+	}
+	return html.Nav(html.Props{Class: "people-pager", Aria: map[string]string{"label": ariaLabel}},
 		html.Span(html.Props{Class: "people-range"}, ui.Text(props.Text("people.range", map[string]string{"first": fmt.Sprint(props.First), "last": fmt.Sprint(props.Last), "total": fmt.Sprint(props.Total)}))),
+		ui.CreateElement(PageSizeControl, props.PageSize),
 		html.Div(html.Props{Class: "pager-status", Raw: map[string]any{"aria-live": "polite"}},
 			html.Span(html.Props{}, ui.Text(props.Text("people.page_count", map[string]string{"page": fmt.Sprint(props.Page), "pages": fmt.Sprint(props.PageCount)}))),
 			ui.CreateElement(PaginationLink, props.Previous),
 			ui.CreateElement(PaginationLink, props.Next),
 		),
 	)
+}
+
+func PageSizeControl(props PageSizeControlProps) ui.Node {
+	options := make([]ui.Node, 0, len(props.Options))
+	class := "page-size-control"
+	selectProps := html.Props{Name: props.Name, Value: fmt.Sprint(props.Value), Raw: map[string]any{"aria-label": props.Text("table.page_size_aria")}}
+	if props.OnChange != nil {
+		class += " enhanced"
+		selectProps.OnChange = ui.UseEvent(func(event ui.InputEvent) {
+			var selected int
+			_, _ = fmt.Sscan(event.GetValue(), &selected)
+			props.OnChange(normalizePageSize(selected))
+		})
+	}
+	for _, size := range props.Options {
+		options = append(options, html.Option(html.Props{Value: fmt.Sprint(size), Selected: size == props.Value}, ui.Text(fmt.Sprint(size))))
+	}
+	children := []ui.Node{html.Label(html.Props{}, ui.Text(props.Text("table.rows_per_page")), html.Select(selectProps, options...))}
+	for name, value := range props.Fields {
+		if value != "" {
+			children = append(children, html.Tag("input", html.Props{Name: name, Value: value, Raw: map[string]any{"type": "hidden"}}))
+		}
+	}
+	children = append(children, html.Button(html.Props{Class: "button secondary page-size-apply", Type: "submit"}, ui.Text(props.Text("table.apply_page_size"))))
+	return html.Form(html.Props{Class: class, Action: props.Action, Method: "get"}, children...)
 }
 
 // PaginationLink renders disabled pages as non-interactive text.

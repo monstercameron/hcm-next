@@ -11,15 +11,16 @@ import (
 func TestFeatureComponentPropsNeverEmbedPageView(t *testing.T) {
 	viewType := reflect.TypeOf(View{})
 	props := []any{
-		ActionLinkProps{}, FactProps{}, MetricProps{}, ActivityProps{}, PanelProps{}, EmptyStateProps{},
+		ActionLinkProps{}, FactProps{}, MetricProps{}, ActivityProps{}, PanelProps{}, EmptyStateProps{}, PopoverSurfaceProps{}, TransientPopoverProps{},
 		WorkPageProps{}, WorkCollectionProps{}, WorkTabProps{}, WorkRowProps{}, WorkCollectionFooterProps{}, WorkPreviewProps{},
 		HomePageProps{}, SummaryCardProps{}, QuickActionsProps{}, RecentActivityProps{},
-		OrganizationPageProps{}, OrganizationGroupProps{}, InsightsPageProps{}, AttentionPanelProps{},
+		OrganizationPageProps{}, OrganizationGroupProps{}, BusinessMetadataProps{}, BusinessMetadataItemProps{}, InsightsPageProps{}, AttentionPanelProps{},
 		AdminPageProps{}, AdminHeroProps{}, CapabilityCardProps{}, HelpPageProps{}, InformationalPanelProps{},
-		SettingsPageProps{}, AccessContextProps{}, LocalePreferencesProps{}, LocaleOptionProps{}, StudioPageProps{}, AppearancePageProps{}, AppearanceOption{}, BrandLogoProps{},
+		SettingsPageProps{}, ViewerProfileProps{}, AccessContextProps{}, LocalePreferencesProps{}, LocaleOptionProps{}, StudioPageProps{}, AppearancePageProps{}, AppearanceOption{}, BrandLogoProps{},
 		PeoplePageProps{}, PeopleSummaryProps{}, PeopleFilterProps{}, PeopleDirectoryProps{}, PeopleTableProps{}, PeopleRowProps{},
-		PeoplePaginationProps{}, PaginationLinkProps{}, PeopleEmptyStateProps{}, PersonPageProps{},
-		PersonUnavailableProps{}, PersonProfileProps{}, PersonHeroProps{}, EmploymentDetailsProps{}, SensitiveDetailsProps{},
+		DataTableProps{}, DataTableColumnProps{}, DataTableRowProps{}, DataTableCellProps{},
+		PeoplePaginationProps{}, PageSizeControlProps{}, PaginationLinkProps{}, PeopleEmptyStateProps{}, PersonPageProps{}, MyselfPageProps{}, SelfServiceBoundaryProps{},
+		PersonUnavailableProps{}, PersonProfileProps{}, PersonProfileCompositionProps{}, PersonHeroProps{}, EmploymentDetailsProps{}, SensitiveDetailsProps{},
 		ProfileFactProps{}, WorkflowLauncherProps{}, WorkflowFilterProps{}, WorkflowCardProps{},
 		WorkflowHistoryProps{}, WorkflowHistoryFilterProps{}, HistoryFilterOption{}, HistorySortColumnProps{}, WorkflowHistoryItemProps{},
 	}

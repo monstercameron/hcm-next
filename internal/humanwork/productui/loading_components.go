@@ -20,7 +20,17 @@ type LoadingProxyProps struct {
 // atomically for Build(view) when every required answer has resolved.
 func BuildLoading(view View) ui.Node {
 	view.Loading = true
+	view.Refreshing = false
 	return appShell(view, ui.CreateElement(LoadingProxy, LoadingProxyProps{Page: view.Page}))
+}
+
+// BuildRefreshing keeps the last authorized page tree visible while a newer
+// projection is in flight. The shell marks the content busy and supplies a
+// progress cue; it never fabricates pending values or changes action authority.
+func BuildRefreshing(view View) ui.Node {
+	view.Loading = false
+	view.Refreshing = true
+	return Build(view)
 }
 
 // LoadingProxy preserves the broad geometry of each page family, avoiding
@@ -43,7 +53,7 @@ func loadingProxyBody(page PageID) ui.Node {
 			loadingToolbar(),
 			loadingPanel("loading-table-panel", loadingTable(7)),
 		)
-	case PagePerson:
+	case PagePerson, PageMyself:
 		return html.Div(html.Props{Class: "loading-profile-layout"},
 			loadingPanel("loading-profile-hero", html.Div(html.Props{Class: "loading-profile-head"},
 				loadingBlock("loading-avatar"),

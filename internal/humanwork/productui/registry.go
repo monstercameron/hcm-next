@@ -34,6 +34,7 @@ type PageDefinition struct {
 func registeredPages() []PageDefinition {
 	return []PageDefinition{
 		{ID: PageHome, Route: "/workspace/app/home", Label: "Home", Icon: "home", Title: "Home", Subtitle: "Review live requests and keep your work moving.", LabelKey: "page.home.label", TitleKey: "page.home.title", SubtitleKey: "page.home.subtitle", SearchTerms: []string{"dashboard", "overview", "landing", "start"}, PrimaryNav: true, RenderOrder: 10, render: homePage},
+		{ID: PageMyself, Route: "/workspace/app/myself", Label: "Myself", Icon: "people", Title: "Myself", Subtitle: "Your employment, organization, payroll, and workflow information.", LabelKey: "page.myself.label", TitleKey: "page.myself.title", SubtitleKey: "page.myself.subtitle", SearchTerms: []string{"me", "my profile", "self service", "employment", "payroll", "compensation", "salary", "payslip", "personal information"}, PrimaryNav: true, RenderOrder: 12, render: myselfPage},
 		{ID: PageJourneys, Route: "/workspace/app/journeys", Label: "Journeys", Icon: "journeys", Title: "Journeys", Subtitle: "Start, follow, and complete governed employee workflows.", LabelKey: "page.journeys.label", TitleKey: "page.journeys.title", SubtitleKey: "page.journeys.subtitle", SearchTerms: []string{"workflow", "promotion", "request", "approval", "lifecycle"}, PrimaryNav: true, RenderOrder: 15, render: journeysPage},
 		{ID: PageWork, Route: "/workspace/app/work", Label: "My Work", Icon: "work", Title: "My Work", Subtitle: "Live promotion journeys that need attention.", LabelKey: "page.work.label", TitleKey: "page.work.title", SubtitleKey: "page.work.subtitle", SearchTerms: []string{"tasks", "inbox", "queue", "assigned", "pending", "approvals"}, PrimaryNav: true, RenderOrder: 20, render: workPage},
 		{ID: PageHistory, Route: "/workspace/app/history", Label: "Work History", Icon: "history", Title: "Workflow History", Subtitle: "Review completed, rejected, and failed workflow records.", LabelKey: "page.history.label", TitleKey: "page.history.title", SubtitleKey: "page.history.subtitle", SearchTerms: []string{"past", "completed", "rejected", "failed", "audit", "records"}, ParentNav: PageWork, RenderOrder: 25, render: historyPage},
@@ -42,6 +43,8 @@ func registeredPages() []PageDefinition {
 		{ID: PageOrganization, Route: "/workspace/app/organization", Label: "Organization", Icon: "organization", Title: "Organization", Subtitle: "Organization membership available from the live worker projection.", LabelKey: "page.organization.label", TitleKey: "page.organization.title", SubtitleKey: "page.organization.subtitle", SearchTerms: []string{"org chart", "departments", "teams", "structure", "hierarchy", "reporting"}, PrimaryNav: true, RenderOrder: 40, render: organizationPage},
 		{ID: PageInsights, Route: "/workspace/app/insights", Label: "Insights", Icon: "insights", Title: "Insights", Subtitle: "Operational counts derived from live journey states.", LabelKey: "page.insights.label", TitleKey: "page.insights.title", SubtitleKey: "page.insights.subtitle", SearchTerms: []string{"analytics", "reports", "metrics", "trends", "workforce data"}, PrimaryNav: true, RenderOrder: 50, render: insightsPage},
 		{ID: PageAdmin, Route: "/workspace/app/admin", Label: "Admin", Icon: "admin", Title: "Admin", Subtitle: "Published service capabilities and configuration availability.", LabelKey: "page.admin.label", TitleKey: "page.admin.title", SubtitleKey: "page.admin.subtitle", SearchTerms: []string{"administration", "configuration", "system", "capabilities", "manage"}, PrimaryNav: true, RenderOrder: 60, render: adminPage},
+		{ID: PageWorkerIDs, Route: "/workspace/app/admin/worker-ids", Label: "Worker IDs", Icon: "people", Title: "Worker ID rules", Subtitle: "Configure how this organization issues unique worker numbers.", LabelKey: "page.worker_ids.label", TitleKey: "page.worker_ids.title", SubtitleKey: "page.worker_ids.subtitle", SearchTerms: []string{"worker number", "personnel number", "prefix", "sequence", "identifier", "numbering"}, ParentNav: PageAdmin, RenderOrder: 63, render: workerIDsPage},
+		{ID: PageOrganizationVisibility, Route: "/workspace/app/admin/organization-visibility", Label: "Organization visibility", Icon: "organization", Title: "Organization visibility", Subtitle: "Control which organization units ordinary users can discover.", LabelKey: "page.organization_visibility.label", TitleKey: "page.organization_visibility.title", SubtitleKey: "page.organization_visibility.subtitle", SearchTerms: []string{"org chart access", "directory visibility", "allowlist", "denylist", "own team", "organization units"}, ParentNav: PageAdmin, RenderOrder: 64, render: organizationVisibilityPage},
 		{ID: PageAppearance, Route: "/workspace/app/appearance", Label: "Brand & appearance", Icon: "palette", Title: "Brand & appearance", Subtitle: "Shape a consistent workspace identity with governed, accessible theme choices.", LabelKey: "page.appearance.label", TitleKey: "page.appearance.title", SubtitleKey: "page.appearance.subtitle", SearchTerms: []string{"branding", "theme", "colors", "logo", "dark mode", "styling", "shapes", "glyphs"}, ParentNav: PageAdmin, RenderOrder: 65, render: appearancePage},
 		{ID: PageStudio, Route: "/workspace/app/studio", Label: "Experience Studio", Icon: "studio", Title: "Experience Studio", Subtitle: "Customer page configuration requires its governed service.", LabelKey: "page.studio.label", TitleKey: "page.studio.title", SubtitleKey: "page.studio.subtitle", SearchTerms: []string{"custom pages", "layout", "builder", "designer", "experience", "configuration"}, ParentNav: PageAdmin, RenderOrder: 70, render: studioPage},
 		{ID: PageHelp, Route: "/workspace/app/help", Label: "Help", Icon: "help", Title: "Help center", Subtitle: "Guidance for the live promotion workflow.", LabelKey: "page.help.label", TitleKey: "page.help.title", SubtitleKey: "page.help.subtitle", SearchTerms: []string{"support", "guidance", "documentation", "docs", "assistance"}, RenderOrder: 80, render: helpPage},
@@ -172,6 +175,26 @@ func statefulHref(view View, page PageID, keyValues ...string) string {
 		return href + "?" + query
 	}
 	return href
+}
+
+// withExplicitEmptyQuery distinguishes a deliberate clear from an absent
+// address value. Absence asks the server-backed preference layer for its
+// stored default; an encoded empty value replaces that stored default.
+func withExplicitEmptyQuery(href string, names ...string) string {
+	return withExplicitQueryValue(href, names, "")
+}
+
+func withExplicitQueryValue(href string, names []string, value string) string {
+	parsed, err := url.Parse(href)
+	if err != nil {
+		return href
+	}
+	values := parsed.Query()
+	for _, name := range names {
+		values.Set(name, value)
+	}
+	parsed.RawQuery = values.Encode()
+	return parsed.String()
 }
 
 func setMenuAddressState(values url.Values, view View) {

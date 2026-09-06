@@ -32,8 +32,8 @@ func testView(page PageID) View {
 		{ID: "worker-elena", Initials: "ER", Name: "Elena Ruiz", Role: "VP-PRODUCT · G10", Team: "Product", Location: "San Francisco"},
 	}
 	view.PersonWorkflows = []PersonWorkflow{
-		{ID: "promotion", Name: "Promotion", Category: "Career & compensation", Description: "Propose a governed job and compensation change.", Href: "/workspace/app/journeys?mode=new&worker=worker-avery"},
-		{ID: "transfer", Name: "Internal transfer", Category: "Career mobility", Description: "Move a worker to another authorized position.", Href: "/workspace/app/journeys?worker=worker-avery"},
+		{ID: "promotion", Name: "Promotion", Category: "Career & compensation", Description: "Propose a governed job and compensation change.", Href: "/workspace/app/journeys?mode=new&worker=worker-avery", LaunchHref: func(person string) string { return "/workspace/app/journeys?mode=new&worker=" + person }},
+		{ID: "transfer", Name: "Internal transfer", Category: "Career mobility", Description: "Move a worker to another authorized position.", Href: "/workspace/app/journeys?worker=worker-avery", LaunchHref: func(person string) string { return "/workspace/app/journeys?worker=" + person }},
 	}
 	view.SelectedWork = "intent-1"
 	view.SelectedPerson = "worker-avery"

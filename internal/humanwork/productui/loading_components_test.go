@@ -10,6 +10,7 @@ import (
 func TestLoadingProxyUsesPageShapedAccessibleShells(t *testing.T) {
 	tests := map[PageID]string{
 		PageHome:         "loading-work-layout",
+		PageMyself:       "loading-profile-layout",
 		PageJourneys:     "loading-work-layout",
 		PageWork:         "loading-work-layout",
 		PagePeople:       "loading-table-layout",
@@ -56,5 +57,40 @@ func TestLoadingProxyMotionHonorsExplicitAndOperatingSystemPreferences(t *testin
 		if !strings.Contains(css, want) {
 			t.Errorf("loading motion contract missing %q", want)
 		}
+	}
+}
+
+func TestNetworkTransitionsResolveAsOneRegionWithoutNestedFlicker(t *testing.T) {
+	css := Stylesheet()
+	for _, want := range []string{
+		`@starting-style{.network-stage-ready{opacity:.94`,
+		`.network-stage-refreshing{opacity:.985;transform:translateY(1px)}`,
+		`.network-stage :where(.work-row,.people-row,.history-row,.status,.count)`,
+		`:root[data-hcm-motion-preference="limited"] .network-stage-refreshing`,
+		`@media(prefers-reduced-motion:reduce){.network-stage,.network-slot`,
+	} {
+		if !strings.Contains(css, want) {
+			t.Errorf("network transition contract missing %q", want)
+		}
+	}
+}
+
+func TestWarmRefreshKeepsAuthorizedContentMounted(t *testing.T) {
+	view := testView(PagePeople)
+	out, err := ui.RenderToString(BuildRefreshing(view))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`class="app-shell is-refreshing"`, `aria-busy="true"`,
+		`data-network-state="refreshing"`, `class="loading-progress network-progress"`,
+		"Avery Patel",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("refreshing surface missing %q", want)
+		}
+	}
+	if strings.Contains(out, "loading-table-layout") {
+		t.Fatal("warm refresh replaced authorized rows with a cold-loading proxy")
 	}
 }

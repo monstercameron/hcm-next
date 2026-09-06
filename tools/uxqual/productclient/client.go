@@ -23,8 +23,10 @@ import (
 // Service is the read-only portion of JourneyService needed by the product
 // shell. Writes stay on the dedicated journey workflow surface.
 type Service struct {
-	ListJourneys func(context.Context, *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error)
-	ListWorkers  func(context.Context, *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error)
+	ListJourneys      func(context.Context, *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error)
+	ListWorkers       func(context.Context, *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error)
+	GetPreferences    func(context.Context, *journeyv1.GetProductPreferencesRequest) (*journeyv1.GetProductPreferencesResponse, error)
+	GetWorkerIDPolicy func(context.Context, *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error)
 }
 
 // Session contains display facts from the server-admitted configuration
@@ -38,8 +40,9 @@ type Session struct {
 
 // State is presentation-only address-bar state.
 type State struct {
-	Page    productui.PageID
-	Request productui.PageRequest
+	Page     productui.PageID
+	Request  productui.PageRequest
+	Provided map[string]bool
 }
 
 // LoadingView builds the non-authoritative shell shown while Load is waiting
@@ -64,12 +67,20 @@ func ParseState(pathname, rawQuery string) (State, error) {
 	if peoplePage < 1 {
 		peoplePage = 1
 	}
-	return State{Page: definition.ID, Request: productui.PageRequest{
+	peoplePageSize, _ := strconv.Atoi(values.Get("page_size"))
+	historyPage, _ := strconv.Atoi(values.Get("history_page"))
+	historyPageSize, _ := strconv.Atoi(values.Get("history_page_size"))
+	provided := make(map[string]bool, len(values))
+	for key := range values {
+		provided[key] = true
+	}
+	return State{Page: definition.ID, Provided: provided, Request: productui.PageRequest{
 		Page: definition.ID, Locale: values.Get("locale"), Query: values.Get("q"), Mode: values.Get("mode"),
 		SelectedWork: values.Get("selected"), SelectedPerson: values.Get("person"),
-		PeoplePage: peoplePage, PeopleTeam: values.Get("team"), PeopleLocation: values.Get("location"), PeopleSort: values.Get("sort"), PeopleDirection: values.Get("dir"),
-		WorkflowQuery: values.Get("workflow_q"), HistoryQuery: values.Get("history_q"), HistoryOutcome: values.Get("outcome"),
-		HistoryPerson: values.Get("history_person"), HistoryYear: values.Get("history_year"), HistorySort: values.Get("history_sort"), HistoryDirection: values.Get("history_dir"),
+		PeoplePage: peoplePage, PeoplePageSize: peoplePageSize, PeopleTeam: values.Get("team"), PeopleLocation: values.Get("location"), PeopleSort: values.Get("sort"), PeopleDirection: values.Get("dir"),
+		OrganizationView: values.Get("org_view"),
+		WorkflowQuery:    values.Get("workflow_q"), HistoryQuery: values.Get("history_q"), HistoryOutcome: values.Get("outcome"),
+		HistoryPerson: values.Get("history_person"), HistoryYear: values.Get("history_year"), HistorySort: values.Get("history_sort"), HistoryDirection: values.Get("history_dir"), HistoryPage: historyPage, HistoryPageSize: historyPageSize,
 		WorkFilter: values.Get("filter"), NavCollapsed: values.Get("nav") == "collapsed",
 		JourneyID: values.Get("journey"), JourneyWorker: values.Get("worker"), JourneyMode: values.Get("mode"),
 		MenuQuery: values.Get("menu_q"), FavoritePages: parseFavoritePages(values.Get("favorites")),
@@ -95,7 +106,10 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	var failures []error
 	var journeysResponse *journeyv1.ListJourneysResponse
 	var workersResponse *journeyv1.ListWorkersResponse
-	var journeysErr, workersErr error
+	var preferencesResponse *journeyv1.GetProductPreferencesResponse
+	var workerIDResponse *journeyv1.GetWorkerIDPolicyResponse
+	var journeysErr, workersErr, preferencesErr error
+	var workerIDErr error
 	var reads sync.WaitGroup
 	if service.ListJourneys == nil {
 		journeysErr = errors.New("JourneyService.ListJourneys is not connected")
@@ -121,7 +135,43 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 			}
 		}()
 	}
+	if service.GetPreferences != nil {
+		reads.Add(1)
+		go func() {
+			defer reads.Done()
+			preferencesResponse, preferencesErr = service.GetPreferences(ctx, &journeyv1.GetProductPreferencesRequest{})
+			if preferencesErr != nil {
+				preferencesErr = fmt.Errorf("load product preferences: %w", preferencesErr)
+			}
+		}()
+	}
+	if state.Page == productui.PageWorkerIDs {
+		if service.GetWorkerIDPolicy == nil {
+			workerIDErr = errors.New("JourneyService.GetWorkerIDPolicy is not connected")
+		} else {
+			reads.Add(1)
+			go func() {
+				defer reads.Done()
+				workerIDResponse, workerIDErr = service.GetWorkerIDPolicy(ctx, &journeyv1.GetWorkerIDPolicyRequest{})
+				if workerIDErr != nil {
+					workerIDErr = fmt.Errorf("load worker ID policy: %w", workerIDErr)
+				}
+			}()
+		}
+	}
 	reads.Wait()
+	if preferencesErr != nil {
+		failures = append(failures, preferencesErr)
+	}
+	if preferencesResponse != nil {
+		applyPreferences(&view, &state, preferencesResponse)
+	}
+	if workerIDErr != nil {
+		failures = append(failures, workerIDErr)
+	}
+	if workerIDResponse != nil {
+		view.WorkerIDPolicy = projectWorkerIDPolicy(workerIDResponse.GetPolicy(), workerIDResponse.GetPreviews())
+	}
 
 	if journeysErr != nil {
 		failures = append(failures, journeysErr)
@@ -141,6 +191,7 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 			failures = append(failures, projectionErr)
 		}
 	}
+	view.Viewer = projectViewerProfile(session, view.People)
 	photosByWorker := make(map[string]string, len(view.People))
 	for _, person := range view.People {
 		photosByWorker[person.ID] = person.PhotoURL
@@ -161,6 +212,149 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	}
 	view.PersonWorkflows = projectPersonWorkflows(view, view.SelectedPerson)
 	return view, errors.Join(failures...)
+}
+
+func projectWorkerIDPolicy(p *journeyv1.WorkerIDPolicy, previews []string) productui.WorkerIDPolicy {
+	if p == nil {
+		return productui.WorkerIDPolicy{}
+	}
+	return productui.WorkerIDPolicy{Version: p.GetVersion(), Prefix: p.GetPrefix(), Suffix: p.GetSuffix(), Separator: p.GetSeparator(), SequenceDigits: int(p.GetSequenceDigits()), StartAt: p.GetStartAt(), NextSequence: p.GetNextSequence(), IncrementBy: p.GetIncrementBy(), ZeroPad: p.GetZeroPad(), YearFormat: p.GetYearFormat(), IncludeUnitCode: p.GetIncludeUnitCode(), CheckDigit: p.GetCheckDigit(), ExcludedRanges: p.GetExcludedRanges(), IssuedCount: p.GetIssuedCount(), Previews: append([]string(nil), previews...)}
+}
+
+const harborcareDeveloperWorkerNumber = "HC-21050"
+
+// projectViewerProfile joins the admitted account identity to an authorized
+// worker projection without turning a display fact into authorization. Real
+// deployments match the principal to a worker identity. The local HarborCare
+// profile has one explicit persona binding so the production UI can exercise
+// the same image-proxy and profile-settings path during development.
+func projectViewerProfile(session Session, people []productui.Person) productui.ViewerProfile {
+	name := displayLabel(session.Principal)
+	fallback := productui.ViewerProfile{Name: name, Initials: uicomponents.Initials(name)}
+	principal := normalizedIdentity(session.Principal)
+	for _, person := range people {
+		// Only stable worker identifiers may bind the account to a self-service
+		// profile. A display name is mutable and non-unique, so it can never be
+		// used as an identity join.
+		if principal != "" && (normalizedIdentity(person.ID) == principal || normalizedIdentity(person.WorkerID) == principal) {
+			return viewerProfileFromPerson(person)
+		}
+	}
+	if normalizedIdentity(session.Tenant) == normalizedIdentity("harborcare-demo") && principal == normalizedIdentity("local-developer") {
+		for _, person := range people {
+			if strings.EqualFold(strings.TrimSpace(person.WorkerNumber), harborcareDeveloperWorkerNumber) {
+				return viewerProfileFromPerson(person)
+			}
+		}
+	}
+	return fallback
+}
+
+func viewerProfileFromPerson(person productui.Person) productui.ViewerProfile {
+	return productui.ViewerProfile{PersonID: person.ID, Name: person.Name, Initials: person.Initials, PhotoURL: person.PhotoURL, Role: person.Role}
+}
+
+func normalizedIdentity(value string) string {
+	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func applyPreferences(view *productui.View, state *State, response *journeyv1.GetProductPreferencesResponse) {
+	if view == nil || state == nil || response == nil {
+		return
+	}
+	user := response.GetUser()
+	if user != nil {
+		view.PreferenceVersion = user.GetVersion()
+		view.WorkflowUses = user.GetWorkflowUses()
+		if access := user.GetAccessibility(); access != nil {
+			view.Accessibility = productui.NormalizeAccessibilityPreferences(productui.AccessibilityPreferences{TextSize: access.GetTextSize(), Contrast: access.GetContrast(), Motion: access.GetMotion(), Links: access.GetLinks()})
+		}
+		view.NavigationGroupOpen = make(map[productui.PageID]bool, len(user.GetNavigationGroups()))
+		for key, open := range user.GetNavigationGroups() {
+			view.NavigationGroupOpen[productui.PageID(key)] = open
+		}
+		stored := productui.StoredUserPreferences{Version: user.GetVersion(), Locale: user.GetLocale(), Accessibility: view.Accessibility, NavCollapsed: user.GetNavCollapsed(), NavigationGroups: view.NavigationGroupOpen, WorkflowUses: user.GetWorkflowUses(), Tables: map[string]productui.StoredTablePreferences{}}
+		for _, page := range user.GetFavoritePages() {
+			stored.FavoritePages = append(stored.FavoritePages, productui.PageID(page))
+		}
+		for key, table := range user.GetTables() {
+			if table != nil {
+				stored.Tables[key] = productui.StoredTablePreferences{PageSize: int(table.GetPageSize()), Filters: table.GetFilters(), Sort: table.GetSort(), Direction: table.GetDirection()}
+			}
+		}
+		view.StoredPreferences = stored
+		request := &state.Request
+		if !state.Provided["locale"] && user.GetLocale() != "" {
+			request.Locale = user.GetLocale()
+		}
+		if !state.Provided["nav"] {
+			request.NavCollapsed = user.GetNavCollapsed()
+		}
+		if !state.Provided["favorites"] {
+			request.FavoritePages = parseFavoritePages(strings.Join(user.GetFavoritePages(), ","))
+		}
+		applyTableDefaults(request, state.Provided, user.GetTables()["people"], false)
+		applyTableDefaults(request, state.Provided, user.GetTables()["history"], true)
+	}
+	if theme := response.GetTheme(); theme != nil {
+		view.AppearanceVersion = theme.GetVersion()
+		view.Appearance = productui.NormalizeCustomerTheme(productui.CustomerTheme{BrandName: theme.GetBrandName(), BrandMark: theme.GetBrandMark(), BrandLogoURL: theme.GetBrandLogoUrl(), ColorMode: theme.GetColorMode(), Palette: theme.GetPalette(), Shape: theme.GetShape(), Density: theme.GetDensity(), Glyphs: theme.GetGlyphs(), Typeface: theme.GetTypeface(), Navigation: theme.GetNavigation(), Motion: theme.GetMotion()})
+	}
+	if policy := response.GetOrganizationVisibility(); policy != nil {
+		view.OrganizationVisibility = productui.OrganizationVisibilityPolicy{Version: policy.GetVersion(), Mode: policy.GetMode(), OrganizationUnits: append([]string(nil), policy.GetOrganizationUnits()...)}
+	}
+}
+
+func applyTableDefaults(request *productui.PageRequest, provided map[string]bool, table *journeyv1.TablePreferences, history bool) {
+	if request == nil || table == nil {
+		return
+	}
+	if history {
+		if !provided["history_page_size"] {
+			request.HistoryPageSize = int(table.GetPageSize())
+		}
+		if !provided["history_q"] {
+			request.HistoryQuery = table.GetFilters()["query"]
+		}
+		if !provided["outcome"] {
+			request.HistoryOutcome = table.GetFilters()["outcome"]
+		}
+		if !provided["history_person"] {
+			request.HistoryPerson = table.GetFilters()["person"]
+		}
+		if !provided["history_year"] {
+			request.HistoryYear = table.GetFilters()["year"]
+		}
+		if !provided["history_sort"] {
+			request.HistorySort = table.GetSort()
+		}
+		// A newly selected sort column has an implicit ascending direction.
+		// Do not splice a stale saved direction onto that explicit column.
+		if !provided["history_dir"] && !provided["history_sort"] {
+			request.HistoryDirection = table.GetDirection()
+		}
+		return
+	}
+	if !provided["page_size"] {
+		request.PeoplePageSize = int(table.GetPageSize())
+	}
+	if !provided["q"] {
+		request.Query = table.GetFilters()["query"]
+	}
+	if !provided["team"] {
+		request.PeopleTeam = table.GetFilters()["team"]
+	}
+	if !provided["location"] {
+		request.PeopleLocation = table.GetFilters()["location"]
+	}
+	if !provided["sort"] {
+		request.PeopleSort = table.GetSort()
+	}
+	// sort=<column> without dir is the canonical ascending address. Loading a
+	// previously saved direction here made a first click appear descending.
+	if !provided["dir"] && !provided["sort"] {
+		request.PeopleDirection = table.GetDirection()
+	}
 }
 
 func projectJourneys(journeys []*journeyv1.Journey) ([]productui.WorkItem, error) {
@@ -339,13 +533,15 @@ func moneyFromWire(amount, currency string) (values.Money, error) {
 
 func projectPersonWorkflows(view productui.View, workerRef string) []productui.PersonWorkflow {
 	workerRef = strings.TrimSpace(workerRef)
-	if workerRef == "" {
-		return nil
+	href := ""
+	if workerRef != "" {
+		href = productui.JourneyProposalHref(view, workerRef)
 	}
 	return []productui.PersonWorkflow{{
 		ID: "promotion", Name: "Promotion", Category: "Career & compensation",
 		Description: "Propose a governed job, grade, position, and compensation change.",
-		Href:        productui.JourneyProposalHref(view, workerRef),
+		Href:        href, UseCount: view.WorkflowUses["promotion"],
+		LaunchHref: func(person string) string { return productui.JourneyProposalHref(view, person) },
 	}}
 }
 

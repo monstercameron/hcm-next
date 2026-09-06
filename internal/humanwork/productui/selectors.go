@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-const peoplePageSize = 20
+const defaultPageSize = 20
 
 const (
 	peopleSortName       = "name"
@@ -86,25 +86,57 @@ func filteredPeople(view View) []Person {
 }
 
 func sortedPeople(people []Person, field, direction string) []Person {
-	result := append([]Person(nil), people...)
 	field = normalizePeopleSort(field)
 	descending := normalizePeopleDirection(direction) == peopleSortDescending
-	sort.SliceStable(result, func(left, right int) bool {
-		leftValue := peopleSortValue(result[left], field)
-		rightValue := peopleSortValue(result[right], field)
-		comparison := strings.Compare(strings.ToLower(leftValue), strings.ToLower(rightValue))
+	type sortablePerson struct {
+		index   int
+		primary string
+		name    string
+		id      string
+	}
+	decorated := make([]sortablePerson, len(people))
+	for index, person := range people {
+		decorated[index] = sortablePerson{
+			index: index, primary: normalizedSortText(peopleSortValue(person, field)),
+			name: normalizedSortText(person.Name), id: person.ID,
+		}
+	}
+	sort.SliceStable(decorated, func(left, right int) bool {
+		comparison := compareSortText(decorated[left].primary, decorated[right].primary, descending)
 		if comparison == 0 {
-			comparison = strings.Compare(strings.ToLower(result[left].Name), strings.ToLower(result[right].Name))
+			// Secondary ordering is always ascending so equal roles, teams, and
+			// locations do not visually jump when the primary direction flips.
+			comparison = compareSortText(decorated[left].name, decorated[right].name, false)
 		}
 		if comparison == 0 {
-			comparison = strings.Compare(result[left].ID, result[right].ID)
-		}
-		if descending {
-			return comparison > 0
+			comparison = strings.Compare(decorated[left].id, decorated[right].id)
 		}
 		return comparison < 0
 	})
+	result := make([]Person, len(decorated))
+	for index := range decorated {
+		result[index] = people[decorated[index].index]
+	}
 	return result
+}
+
+func normalizedSortText(value string) string {
+	return strings.ToLower(strings.TrimSpace(value))
+}
+
+// compareSortText keeps unavailable values at the end in both directions.
+func compareSortText(left, right string, descending bool) int {
+	if left == "" && right != "" {
+		return 1
+	}
+	if left != "" && right == "" {
+		return -1
+	}
+	comparison := strings.Compare(left, right)
+	if descending {
+		return -comparison
+	}
+	return comparison
 }
 
 func peopleSortValue(person Person, field string) string {
@@ -158,9 +190,19 @@ func peopleFacetOptions(people []Person, value func(Person) string) []string {
 	return options
 }
 
-func paginatePeople(people []Person, requestedPage int) peoplePageWindow {
+func normalizePageSize(value int) int {
+	switch value {
+	case 10, 20, 50, 100:
+		return value
+	default:
+		return defaultPageSize
+	}
+}
+
+func paginatePeople(people []Person, requestedPage, requestedPageSize int) peoplePageWindow {
+	pageSize := normalizePageSize(requestedPageSize)
 	total := len(people)
-	pageCount := (total + peoplePageSize - 1) / peoplePageSize
+	pageCount := (total + pageSize - 1) / pageSize
 	if pageCount < 1 {
 		pageCount = 1
 	}
@@ -171,8 +213,8 @@ func paginatePeople(people []Person, requestedPage int) peoplePageWindow {
 	if page > pageCount {
 		page = pageCount
 	}
-	start := (page - 1) * peoplePageSize
-	end := start + peoplePageSize
+	start := (page - 1) * pageSize
+	end := start + pageSize
 	if end > total {
 		end = total
 	}

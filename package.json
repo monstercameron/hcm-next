@@ -15,7 +15,8 @@
   ],
   "scripts": {
     "dev": "npm --workspace @hcm-next/api run dev",
-    "dev:frontend": "go run ./cmd/frontenddev",
+    "dev:frontend": "go run ./cmd/frontenddev -profile=local-dev",
+    "dev:server": "go run ./cmd/hcmnext serve -profile=local-dev",
     "dev:blocks": "cd src/blocks/go && go run ./cmd/executor",
     "dev:executor": "npm run dev:blocks",
     "dev:third-party:compensation": "npm --workspace @hcm-next/third-party-compensation-market-api run dev",

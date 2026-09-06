@@ -14,6 +14,14 @@ func adminPage(view View) ui.Node {
 		},
 		Capabilities: []CapabilityCardProps{
 			{
+				Title: "Organization visibility", Description: "Choose whether ordinary users see everyone, their own unit, an approved set of units, or all units except a restricted set.", State: "Available", Tone: "positive",
+				Action: ActionLinkProps{Label: "Configure visibility →", Href: statefulHref(view, PageOrganizationVisibility), Navigate: view.Navigate},
+			},
+			{
+				Title: "Worker ID rules", Description: "Issue organization-specific worker numbers from an atomic, non-reusing sequence with governed formatting rules.", State: "Available", Tone: "positive",
+				Action: ActionLinkProps{Label: "Configure worker IDs →", Href: statefulHref(view, PageWorkerIDs), Navigate: view.Navigate},
+			},
+			{
 				Title: "Brand & appearance", Description: "Governed palettes, shapes, density, glyphs, and motion are available across the product shell.", State: "Available", Tone: "positive",
 				Action: ActionLinkProps{Label: "Configure appearance →", Href: statefulHref(view, PageAppearance), Navigate: view.Navigate},
 			},

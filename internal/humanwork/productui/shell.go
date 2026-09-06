@@ -21,6 +21,8 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 	}
 	if view.Loading {
 		class += " is-loading"
+	} else if view.Refreshing {
+		class += " is-refreshing"
 	}
 	content := page
 	if view.LoadError != "" {
@@ -30,7 +32,7 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		)
 	}
 	announcement := view.Locale.Text("shell.page_loaded", map[string]string{"title": view.Title})
-	if view.Loading {
+	if view.Loading || view.Refreshing {
 		announcement = view.Locale.Text("shell.loading_authorized")
 	}
 	return html.Div(html.Props{Class: class},
@@ -58,13 +60,34 @@ func appHeader(view View) ui.Node {
 		globalSearch(view),
 		localeMenu(view),
 		notificationSlot(view),
-		avatar(uicomponents.Initials(view.Principal), ""),
+		viewerProfileLink(view),
 	)
+}
+
+func viewerProfileLink(view View) ui.Node {
+	if view.Loading {
+		return html.Div(html.Props{
+			Class: "viewer-profile-link viewer-profile-loading network-slot network-slot-pending",
+			Raw:   map[string]any{"aria-hidden": "true"},
+		}, html.Span(html.Props{Class: "loading-block loading-viewer-profile"}))
+	}
+	profile := view.Viewer
+	if strings.TrimSpace(profile.Name) == "" {
+		profile.Name = view.Principal
+	}
+	if strings.TrimSpace(profile.Initials) == "" {
+		profile.Initials = uicomponents.Initials(profile.Name)
+	}
+	label := view.Locale.Text("shell.myself", map[string]string{"name": profile.Name})
+	return appLink(view, html.Props{
+		Class: "viewer-profile-link network-slot network-slot-ready", Title: label,
+		Aria: map[string]string{"label": label},
+	}, statefulHref(view, PageMyself), personAvatar(profile.Name, profile.Initials, profile.PhotoURL, "viewer"))
 }
 
 func notificationSlot(view View) ui.Node {
 	if view.Loading {
-		return html.Div(html.Props{Class: "notifications notification-loading", Raw: map[string]any{"aria-hidden": "true"}},
+		return html.Div(html.Props{Class: "notifications notification-loading network-slot network-slot-pending", Raw: map[string]any{"aria-hidden": "true"}},
 			html.Span(html.Props{Class: "loading-block loading-notification"}),
 		)
 	}
@@ -72,39 +95,21 @@ func notificationSlot(view View) ui.Node {
 }
 
 func globalSearch(view View) ui.Node {
-	query := view.Query
-	inputProps := html.Props{Name: "q", Value: view.Query, Raw: map[string]any{"type": "search", "placeholder": view.Locale.Text("shell.search_employees"), "aria-label": view.Locale.Text("shell.search_employees")}}
-	formProps := html.Props{Class: "global-search", Action: pageHref(PagePeople), Method: "get", Raw: map[string]any{"role": "search"}}
-	if view.Navigate != nil {
-		inputProps.OnInput = ui.UseEvent(func(event ui.InputEvent) { query = event.GetValue() })
-		formProps.OnSubmit = ui.UseEvent(func(event ui.FormEvent) {
-			event.PreventDefault()
-			view.Navigate(statefulHref(view, PagePeople, "q", strings.TrimSpace(query)))
-		})
-	}
-	children := []ui.Node{
-		html.Tag("input", inputProps),
-	}
-	if locale := view.Locale.normalized(); locale.Resolved != DefaultProductLocale {
-		children = append(children, html.Tag("input", html.Props{Name: "locale", Value: locale.Resolved, Raw: map[string]any{"type": "hidden"}}))
-	}
-	if view.NavCollapsed {
-		children = append(children, html.Tag("input", html.Props{Name: "nav", Value: "collapsed", Raw: map[string]any{"type": "hidden"}}))
-	}
-	return html.Form(formProps, children...)
+	return ui.CreateElement(GlobalSearch, globalSearchProps(view))
 }
 
 func notificationMenu(view View) ui.Node {
 	open := len(OpenWorkItems(view.Work))
 	label := view.Locale.Text("shell.work_overview") + ", " + view.Locale.Plural("shell.work_count", int64(open))
-	return html.Details(html.Props{Class: "notifications"},
-		html.Summary(html.Props{Aria: map[string]string{"label": label}}, navIcon("notifications")),
-		html.Div(html.Props{Class: "popover"},
+	return ui.CreateElement(TransientPopover, TransientPopoverProps{
+		Kind: "notification", Class: "notifications network-slot network-slot-ready", Label: label,
+		Trigger: []ui.Node{navIcon("notifications")}, PanelClass: "popover notification-popover",
+		Children: []ui.Node{
 			html.H2(html.Props{}, ui.Text(view.Locale.Text("shell.work_overview"))),
 			html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(open)))),
 			appLink(view, html.Props{}, statefulHref(view, PageWork), ui.Text(view.Locale.Text("shell.open_work"))),
-		),
-	)
+		},
+	})
 }
 
 func localeMenu(view View) ui.Node {
@@ -118,10 +123,12 @@ func localeMenu(view View) ui.Node {
 		}
 		items = append(items, softwareLink(option.Navigate, props, option.Href, ui.Text(option.Label)))
 	}
-	return html.Details(html.Props{Class: "locale-menu"},
-		html.Summary(html.Props{Aria: map[string]string{"label": locale.Text("shell.locale")}, Raw: map[string]any{"title": locale.Text("shell.locale")}}, ui.Text(strings.ToUpper(strings.Split(locale.Resolved, "-")[0]))),
-		html.Div(html.Props{Class: "popover locale-popover"}, items...),
-	)
+	label := locale.Text("shell.locale")
+	return ui.CreateElement(TransientPopover, TransientPopoverProps{
+		Kind: "locale", Class: "locale-menu", Label: label, Title: label,
+		Trigger:    []ui.Node{ui.Text(strings.ToUpper(strings.Split(locale.Resolved, "-")[0]))},
+		PanelClass: "popover locale-popover", Children: items,
+	})
 }
 
 func primarySidebar(view View) ui.Node {
@@ -185,6 +192,11 @@ func currentPageAddressState(view View, collapsed bool) url.Values {
 			values.Set("workflow_q", view.WorkflowQuery)
 		}
 		setHistoryAddressState(values, view)
+	case PageMyself:
+		if view.WorkflowQuery != "" {
+			values.Set("workflow_q", view.WorkflowQuery)
+		}
+		setHistoryAddressState(values, view)
 	case PageWork:
 		if view.WorkFilter != "" {
 			values.Set("filter", view.WorkFilter)
@@ -240,6 +252,12 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 		source = view.Locale.Text("shell.no_source")
 	}
 	children := make([]ui.Node, 0, 3)
+	if view.Refreshing {
+		children = append(children, html.Div(html.Props{
+			Class: "loading-progress network-progress",
+			Raw:   map[string]any{"aria-hidden": "true"},
+		}))
+	}
 	if showHeading {
 		children = append(children, pageHeader(view))
 	}
@@ -249,16 +267,24 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 			html.Span(html.Props{}, ui.Text(view.Locale.Text("shell.live_source", map[string]string{"source": source}))),
 		),
 	)
-	mainProps := html.Props{ID: "main-content", Class: "main-scroll"}
-	mainProps.Raw = map[string]any{}
+	mainProps := html.Props{ID: "main-content", Class: "main-scroll", Aria: map[string]string{}}
 	if showHeading {
-		mainProps.Raw["aria-labelledby"] = "page-title"
+		mainProps.Aria["labelledby"] = "page-title"
 	}
+	if view.Loading || view.Refreshing {
+		mainProps.Aria["busy"] = "true"
+	}
+	stageClass := "main network-stage network-stage-ready"
+	stage := "ready"
 	if view.Loading {
-		mainProps.Raw["aria-busy"] = "true"
+		stageClass = "main network-stage network-stage-pending"
+		stage = "pending"
+	} else if view.Refreshing {
+		stageClass = "main network-stage network-stage-refreshing"
+		stage = "refreshing"
 	}
 	return html.Main(mainProps,
-		html.Div(html.Props{Class: "main"}, children...),
+		html.Div(html.Props{Class: stageClass, Data: map[string]string{"network-state": stage}}, children...),
 	)
 }
 

@@ -9,6 +9,7 @@ import (
 	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/hcm-next/tools/uxqual/taskmux"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,9 +31,10 @@ import (
 // wasm the Go runtime and the browser's event loop share one thread, and a
 // blocking call on the goroutine that handled a click freezes the page --
 // including the WebSocket callbacks the call itself is waiting for, which
-// deadlocks rather than merely stutters. [App.Async] is the seam that runs
-// that work, defaulted to `go f()` and replaced by tests with a synchronous
-// runner.
+// deadlocks rather than merely stutters. [App.Tasks] is the production seam
+// that bounds and prioritizes finite work; [App.Async] is its small-embedding
+// fallback and the separate lane for the long-lived change stream. Async
+// defaults to `go f()` and can be replaced by tests with a synchronous runner.
 //
 // The store is safe for concurrent writers, and every field below is guarded
 // by mu. Answers are matched to the route that asked for them by a
@@ -48,6 +50,12 @@ type App struct {
 	// Async runs one unit of client work. It defaults to `go f()`; a test
 	// sets it to run f inline so an assertion follows the call.
 	Async func(func())
+
+	// Tasks bounds finite reads and writes in the browser. It is optional so
+	// the state machine remains usable by native embeddings and synchronous
+	// tests. The long-lived WatchJourney stream deliberately stays on Async:
+	// a subscription must never consume capacity needed by a click.
+	Tasks *taskmux.Scheduler
 
 	// Locate, when set, is how the client changes the browser's address:
 	// [App.Navigate] hands it the new fragment and expects the browser's
@@ -101,6 +109,24 @@ func New(cfg Config, svc Service, store *journey.Store, now func() time.Time) *A
 		Async:      func(f func()) { go f() },
 		WatchRetry: defaultWatchRetry,
 		ctx:        context.Background(),
+	}
+}
+
+// runTask schedules one finite RPC unit without keeping a browser event
+// handler on the stack. Native tests and small embeddings retain the Async
+// seam; the production WASM composition supplies a bounded Scheduler.
+func (a *App) runTask(ctx context.Context, spec taskmux.Spec, work func(context.Context)) {
+	if a.Tasks == nil {
+		a.Async(func() { work(ctx) })
+		return
+	}
+	_, err := a.Tasks.Submit(ctx, spec, func(taskCtx context.Context) error {
+		work(taskCtx)
+		return nil
+	})
+	if err != nil {
+		a.show(refusal("The browser is handling too much work",
+			"This action was not sent. Wait for another request to finish, then try again."))
 	}
 }
 
@@ -336,7 +362,7 @@ func (a *App) Submit(actionID string, values map[string]string) {
 // the reader for no reason either answer could explain.
 func (a *App) loadList(ctx context.Context, generation int) {
 	a.show(busy("Loading this tenant's workforce and journeys."))
-	a.Async(func() {
+	a.runTask(ctx, taskmux.Spec{Key: "journey:route-read", Priority: taskmux.UserVisible, Duplicate: taskmux.ReplaceExisting}, func(ctx context.Context) {
 		var (
 			wg        sync.WaitGroup
 			journeys  *journeyv1.ListJourneysResponse
@@ -390,7 +416,7 @@ func (a *App) loadList(ctx context.Context, generation int) {
 
 func (a *App) loadDetail(ctx context.Context, generation int, intentID string) {
 	a.show(busy("Reading this journey from the engine."))
-	a.Async(func() {
+	a.runTask(ctx, taskmux.Spec{Key: "journey:route-read", Priority: taskmux.UserVisible, Duplicate: taskmux.ReplaceExisting}, func(ctx context.Context) {
 		resp, err := a.svc.InspectJourney(ctx, &journeyv1.InspectJourneyRequest{IntentId: intentID})
 		if a.stale(generation) {
 			return
@@ -433,7 +459,7 @@ func (a *App) propose(ctx context.Context, generation int, values map[string]str
 	}
 
 	a.show(busy("Creating and simulating the proposal."))
-	a.Async(func() {
+	a.runTask(ctx, taskmux.Spec{Key: "journey:propose:" + worker, Priority: taskmux.Interactive, Duplicate: taskmux.KeepExisting}, func(ctx context.Context) {
 		resp, err := a.svc.ProposeJourney(ctx, req)
 		if a.stale(generation) {
 			return
@@ -480,7 +506,7 @@ func (a *App) createWorker(ctx context.Context, generation int, values map[strin
 	a.mu.Unlock()
 
 	a.show(busy("Recording the employee in this cell's workforce."))
-	a.Async(func() {
+	a.runTask(ctx, taskmux.Spec{Key: "journey:create-worker", Priority: taskmux.Interactive, Duplicate: taskmux.KeepExisting}, func(ctx context.Context) {
 		resp, err := a.svc.CreateWorker(ctx, req)
 		if a.stale(generation) {
 			return
@@ -612,7 +638,7 @@ func (a *App) execute(ctx context.Context, generation int, intentID string) {
 		return
 	}
 	a.show(busy("Asking the P1B execution authority to admit the plan."))
-	a.Async(func() {
+	a.runTask(ctx, taskmux.Spec{Key: "journey:execute:" + intentID, Priority: taskmux.Interactive, Duplicate: taskmux.KeepExisting}, func(ctx context.Context) {
 		resp, err := a.svc.ExecuteJourney(ctx, &journeyv1.ExecuteJourneyRequest{IntentId: intentID})
 		if a.stale(generation) {
 			return
@@ -647,7 +673,9 @@ func (a *App) decide(ctx context.Context, generation int, intentID string, appro
 	} else {
 		a.show(busy("Returning the proposal to the manager."))
 	}
-	a.Async(func() {
+	// Approve and reject share a key: they are mutually exclusive decisions
+	// for the same work item, not merely duplicates of the same button.
+	a.runTask(ctx, taskmux.Spec{Key: "journey:decision:" + intentID, Priority: taskmux.Interactive, Duplicate: taskmux.KeepExisting}, func(ctx context.Context) {
 		resp, err := a.svc.DecideJourney(ctx, &journeyv1.DecideJourneyRequest{
 			IntentId: intentID,
 			Approve:  approve,

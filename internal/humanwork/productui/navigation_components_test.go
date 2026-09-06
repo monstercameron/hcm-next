@@ -16,7 +16,7 @@ func TestNavigationRegistryBuildsReusableSubmenus(t *testing.T) {
 		t.Fatalf("My Work submenu = %+v", work)
 	}
 	admin, ok := projectedNavigationItem(items, PageAdmin)
-	if !ok || len(admin.Children) != 3 || admin.Children[1].Page != PageAppearance || admin.Children[2].Page != PageStudio {
+	if !ok || len(admin.Children) != 5 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageOrganizationVisibility || admin.Children[3].Page != PageAppearance || admin.Children[4].Page != PageStudio {
 		t.Fatalf("Admin submenu = %+v, present=%t", admin, ok)
 	}
 }
@@ -160,6 +160,16 @@ func TestFavoritesMoveLeavesToTheTopAndToggleWithoutLosingPageState(t *testing.T
 		if !strings.Contains(href, want) {
 			t.Fatalf("favorite toggle lost state %q in %s", want, href)
 		}
+	}
+}
+
+func TestRemovingTheLastFavoriteAndExpandingNavigationAreExplicit(t *testing.T) {
+	view := ApplyRequest(testView(PagePeople), PageRequest{FavoritePages: []PageID{PagePeople}, NavCollapsed: true})
+	if href := favoriteToggleHref(view, PagePeople); !strings.Contains(href, "favorites=") {
+		t.Fatalf("last-favorite removal was indistinguishable from a missing server preference: %s", href)
+	}
+	if href := navigationToggleProps(view).Href; !strings.Contains(href, "nav=expanded") {
+		t.Fatalf("expanded navigation was indistinguishable from a missing server preference: %s", href)
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/hcm-next/tools/uxqual/taskmux"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -556,6 +557,34 @@ func TestProposeCreatesTheJourneyAndOpensIt(t *testing.T) {
 	}
 }
 
+func TestTaskMuxSuppressesADuplicateProposalClick(t *testing.T) {
+	h := newHarness(t)
+	h.svc.proposed = testJourney(t, journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED)
+	h.svc.detail = testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED)
+	h.app.Tasks = taskmux.New(taskmux.Options{MaxRunning: 2, MaxQueued: 8})
+	h.app.Start(context.Background(), ListHref())
+	h.awaitPage(t, "the list", listLoaded)
+
+	h.svc.gate = make(chan struct{})
+	values := map[string]string{
+		NameWorker: "omar-reyes", NameJobCode: "OPS-HRBP3", NameGrade: "P3",
+		NamePosition: "POS-HRBP-301", NameBase: "98000.00",
+		NameEffective: "2026-12-01", NameReason: "promotion_into_senior_hrbp",
+	}
+	h.app.Submit(ActionPropose, values)
+	h.app.Submit(ActionPropose, values)
+
+	deadline := time.Now().Add(time.Second)
+	for h.svc.called("ProposeJourney") == 0 && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	if got := h.svc.called("ProposeJourney"); got != 1 {
+		t.Fatalf("ProposeJourney called %d times while the first click was in flight, want once", got)
+	}
+	close(h.svc.gate)
+	h.awaitPage(t, "the new journey", detailShown)
+}
+
 func TestProposeWithoutAWorkerAsksNothing(t *testing.T) {
 	h := newHarness(t)
 	h.app.Start(context.Background(), ListHref())
@@ -612,6 +641,32 @@ func TestApproveCompletesTheJourney(t *testing.T) {
 	if len(p.Detail.Actions) != 0 {
 		t.Error("a completed journey still offers decisions")
 	}
+}
+
+func TestTaskMuxSerializesMutuallyExclusiveDecisions(t *testing.T) {
+	h := newHarness(t)
+	h.svc.detail = testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_AWAITING_APPROVAL)
+	h.svc.decided = testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED)
+	h.app.Tasks = taskmux.New(taskmux.Options{MaxRunning: 2, MaxQueued: 8})
+	h.app.Start(context.Background(), DetailHref(testIntentID))
+	h.awaitPage(t, "the detail", detailShown)
+
+	h.svc.gate = make(chan struct{})
+	h.app.Submit(ActionApprove, map[string]string{NameDecisionReason: "Approved first."})
+	h.app.Submit(ActionReject, map[string]string{NameDecisionReason: "Conflicting second click."})
+
+	deadline := time.Now().Add(time.Second)
+	for h.svc.called("DecideJourney") == 0 && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	if got := h.svc.called("DecideJourney"); got != 1 {
+		t.Fatalf("DecideJourney called %d times, want one mutually exclusive decision", got)
+	}
+	if !h.svc.decideReq.GetApprove() {
+		t.Fatal("the first decision was not preserved")
+	}
+	close(h.svc.gate)
+	h.awaitPage(t, "the approval", noticeTitled("Approved"))
 }
 
 func TestRejectNeedsAReasonAndSendsIt(t *testing.T) {

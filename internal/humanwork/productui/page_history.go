@@ -23,10 +23,15 @@ func historyPage(view View) ui.Node {
 }
 
 func workflowHistoryProps(view View, personID, title, description string, withFilter bool) WorkflowHistoryProps {
+	return workflowHistoryPropsForTarget(view, personID, targetHistoryPage(personID), title, description, withFilter)
+}
+
+func workflowHistoryPropsForTarget(view View, personID string, target PageID, title, description string, withFilter bool) WorkflowHistoryProps {
 	universe := historyUniverse(view, personID)
 	items := filteredHistory(view, personID)
-	rows := make([]WorkflowHistoryItemProps, 0, len(items))
-	for _, item := range items {
+	window := paginateHistory(items, view.HistoryPage, view.HistoryPageSize)
+	rows := make([]WorkflowHistoryItemProps, 0, len(window.Items))
+	for _, item := range window.Items {
 		personHref := ""
 		if personID == "" {
 			if id := stablePersonID(view.People, item.PersonRef); id != "" {
@@ -44,25 +49,31 @@ func workflowHistoryProps(view View, personID, title, description string, withFi
 		I18nProps: I18nProps{Locale: view.Locale},
 		Title:     title, Description: description,
 		EmptyText: view.Locale.Text("history.empty_terminal"),
-		Items:     rows, TotalCount: len(universe),
+		Items:     rows, FilteredCount: len(items), TotalCount: len(universe),
+	}
+	if len(items) > 0 {
+		props.Pagination = historyPaginationProps(view, personID, target, window)
 	}
 	if !withFilter {
 		return props
 	}
 
-	target := PageHistory
 	showPerson := personID == ""
-	if personID != "" {
-		target = PagePerson
+	if isIndividualHistoryTarget(target) {
 		view.HistoryPerson = ""
 	}
 	sortKey := effectiveHistorySort(view.HistorySort)
 	direction := effectiveHistoryDirection(view.HistoryDirection)
+	filterPersonID := personID
+	if target == PageMyself {
+		filterPersonID = ""
+	}
 	filter := &WorkflowHistoryFilterProps{
 		Query: view.HistoryQuery, Outcome: view.HistoryOutcome, Person: view.HistoryPerson, Year: view.HistoryYear,
 		People: historyPeopleOptions(view, universe), Years: historyYearOptions(universe), ShowPerson: showPerson,
-		Action: pageHref(target), ClearHref: historyHref(view, target, personID, "", "", "", "", sortKey, direction),
-		PersonID: personID, DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, DirectoryTeam: view.PeopleTeam,
+		Action: pageHref(target), ClearHref: historyClearHref(view, target, personID, sortKey, direction),
+		PersonID: filterPersonID, DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, DirectoryTeam: view.PeopleTeam,
+		DirectoryPageSize: view.PeoplePageSize, HistoryPageSize: view.HistoryPageSize,
 		DirectoryLocation: view.PeopleLocation, DirectorySort: view.PeopleSort, DirectoryDirection: view.PeopleDirection, WorkflowQuery: view.WorkflowQuery,
 		Sort: sortKey, Direction: direction, NavCollapsed: view.NavCollapsed, Navigate: view.Navigate,
 	}
@@ -80,6 +91,82 @@ func workflowHistoryProps(view View, personID, title, description string, withFi
 	props.Filter = filter
 	props.Columns = historySortColumns(view, target, personID, sortKey, direction)
 	return props
+}
+
+func historyClearHref(view View, target PageID, personID, sortKey, direction string) string {
+	href := historyHref(view, target, personID, "", "", "", "", sortKey, direction)
+	return withExplicitEmptyQuery(href, "history_q", "outcome", "history_person", "history_year")
+}
+
+type historyPageWindow struct {
+	Page, PageCount, First, Last, Total int
+	Items                               []WorkItem
+}
+
+func paginateHistory(items []WorkItem, requestedPage, requestedSize int) historyPageWindow {
+	size := normalizePageSize(requestedSize)
+	total := len(items)
+	pages := (total + size - 1) / size
+	if pages < 1 {
+		pages = 1
+	}
+	page := requestedPage
+	if page < 1 {
+		page = 1
+	}
+	if page > pages {
+		page = pages
+	}
+	start, end := (page-1)*size, page*size
+	if end > total {
+		end = total
+	}
+	first := 0
+	if total > 0 {
+		first = start + 1
+	}
+	return historyPageWindow{Page: page, PageCount: pages, First: first, Last: end, Total: total, Items: items[start:end]}
+}
+
+func targetHistoryPage(personID string) PageID {
+	if personID == "" {
+		return PageHistory
+	}
+	return PagePerson
+}
+
+func isIndividualHistoryTarget(target PageID) bool {
+	return target == PagePerson || target == PageMyself
+}
+
+func historyPaginationProps(view View, personID string, target PageID, window historyPageWindow) *PeoplePaginationProps {
+	link := func(page int, disabled bool, label string) PaginationLinkProps {
+		return PaginationLinkProps{Label: label, Disabled: disabled, Navigate: view.Navigate,
+			Href: historyHrefPage(view, target, personID, page, view.HistoryPageSize)}
+	}
+	fields := map[string]string{"history_q": view.HistoryQuery, "outcome": view.HistoryOutcome, "history_person": view.HistoryPerson, "history_year": view.HistoryYear, "history_sort": view.HistorySort, "history_dir": view.HistoryDirection}
+	if target == PagePerson && personID != "" {
+		fields["person"] = personID
+	}
+	return &PeoplePaginationProps{AriaLabel: view.Locale.Text("history.pages"), First: window.First, Last: window.Last, Total: window.Total, Page: window.Page, PageCount: window.PageCount,
+		Previous: link(window.Page-1, window.Page <= 1, view.Locale.Text("common.previous")), Next: link(window.Page+1, window.Page >= window.PageCount, view.Locale.Text("common.next")),
+		PageSize: pageSizeControlProps(view, target, "history_page_size", view.HistoryPageSize, fields)}
+}
+
+func historyHrefPage(view View, target PageID, personID string, page, size int) string {
+	href := historyHref(view, target, personID, view.HistoryQuery, view.HistoryOutcome, view.HistoryPerson, view.HistoryYear, effectiveHistorySort(view.HistorySort), effectiveHistoryDirection(view.HistoryDirection))
+	separator := "?"
+	if strings.Contains(href, "?") {
+		separator = "&"
+	}
+	if page > 1 {
+		href += separator + "history_page=" + fmt.Sprint(page)
+		separator = "&"
+	}
+	if normalizePageSize(size) != defaultPageSize {
+		href += separator + "history_page_size=" + fmt.Sprint(normalizePageSize(size))
+	}
+	return href
 }
 
 func historySourceLabel(item WorkItem) string {
@@ -244,7 +331,7 @@ func historySortColumns(view View, target PageID, personID, sortKey, direction s
 		{historySortPerson, "Employee", true}, {historySortChange, "Change", true},
 		{historySortClosed, "Closed", true}, {historySortOutcome, "Outcome", true},
 	}
-	if target == PagePerson {
+	if isIndividualHistoryTarget(target) {
 		definitions[0].label = "Workflow"
 		definitions[0].sortable = false
 	}
@@ -265,18 +352,21 @@ func historySortColumns(view View, target PageID, personID, sortKey, direction s
 }
 
 func historyHref(view View, target PageID, personID, query, outcome, selectedPerson, year, sortKey, direction string) string {
-	if target == PagePerson {
+	if isIndividualHistoryTarget(target) {
 		selectedPerson = ""
 	}
 	values := []string{
 		"history_q", query, "outcome", outcome, "history_person", selectedPerson, "history_year", year,
 		"history_sort", sortKey, "history_dir", direction,
+		"history_page_size", pageSizeValue(view.HistoryPageSize),
 	}
 	if target == PagePerson {
 		values = append(values,
 			"person", personID, "q", view.Query, "team", view.PeopleTeam, "location", view.PeopleLocation,
-			"sort", view.PeopleSort, "dir", view.PeopleDirection, "page", peoplePageValue(view.PeoplePage), "workflow_q", view.WorkflowQuery,
+			"sort", view.PeopleSort, "dir", view.PeopleDirection, "page", peoplePageValue(view.PeoplePage), "page_size", pageSizeValue(view.PeoplePageSize), "workflow_q", view.WorkflowQuery,
 		)
+	} else if target == PageMyself {
+		values = append(values, "workflow_q", view.WorkflowQuery)
 	}
 	return statefulHref(view, target, values...)
 }

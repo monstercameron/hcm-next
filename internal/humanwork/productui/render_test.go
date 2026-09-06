@@ -7,7 +7,7 @@ import (
 )
 
 func TestRenderEveryAuthorizedProductPage(t *testing.T) {
-	for _, page := range []PageID{PageHome, PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
+	for _, page := range []PageID{PageHome, PageMyself, PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
 		t.Run(string(page), func(t *testing.T) {
 			doc, err := Render(testView(page))
 			if err != nil {
@@ -55,7 +55,7 @@ func TestShellOwnsViewportAndSeparatesNavigationFromContentScroll(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(doc, `id="main-content"`) || !strings.Contains(doc, `class="main-scroll"`) || !strings.Contains(doc, `<div class="main">`) {
+	if !strings.Contains(doc, `id="main-content"`) || !strings.Contains(doc, `class="main-scroll"`) || !strings.Contains(doc, `<div class="main network-stage network-stage-ready" data-network-state="ready">`) {
 		t.Fatal("main workspace is not wrapped as its own scroll region")
 	}
 	css := Stylesheet()
@@ -71,7 +71,7 @@ func TestShellOwnsViewportAndSeparatesNavigationFromContentScroll(t *testing.T) 
 }
 
 func TestProductionPagesNeverLinkToJavaScriptReference(t *testing.T) {
-	for _, page := range []PageID{PageHome, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
+	for _, page := range []PageID{PageHome, PageMyself, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
 		doc, err := Render(testView(page))
 		if err != nil {
 			t.Fatal(err)
@@ -198,7 +198,7 @@ func TestWorkFilterIsActiveAndSurvivesSelectionAndToggle(t *testing.T) {
 		`class="tab active" href="/workspace/app/work?filter=review&amp;nav=collapsed"`,
 		`href="/workspace/app/work?filter=review&amp;nav=collapsed&amp;selected=intent-1"`,
 		`aria-label="Expand navigation"`,
-		`href="/workspace/app/work?filter=review&amp;selected=intent-1"`,
+		`href="/workspace/app/work?filter=review&amp;nav=expanded&amp;selected=intent-1"`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("filtered work navigation missing %q", want)
@@ -256,7 +256,7 @@ func TestWorkflowHistoryShowsOnlyTerminalRecordsAndPreservesFilters(t *testing.T
 		`href="/workspace/app/journeys?journey=intent-2"`, "Open record",
 		`name="history_q"`, `name="history_person"`, `name="outcome"`, `name="history_year"`, `name="nav"`,
 		"Employee", "Change", "Closed ↓", "Outcome", `aria-sort="descending"`,
-		`href="/workspace/app/history?history_q=Avery&amp;outcome=completed"`,
+		`href="/workspace/app/history?history_q=Avery&amp;nav=expanded&amp;outcome=completed"`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("workflow history missing %q", want)
@@ -348,7 +348,7 @@ func TestPeopleSearchHasTruthfulEmptyStateAndRowsNavigateToProfiles(t *testing.T
 	}
 }
 
-func TestPeopleRowsOfferEmployeeScopedPromotionQuickActions(t *testing.T) {
+func TestPeopleRowsOfferEmployeeScopedWorkflowMenus(t *testing.T) {
 	view := testView(PagePeople)
 	doc, err := Render(view)
 	if err != nil {
@@ -357,12 +357,16 @@ func TestPeopleRowsOfferEmployeeScopedPromotionQuickActions(t *testing.T) {
 	for _, want := range []string{
 		`href="/workspace/app/journeys?mode=new&amp;worker=worker-jordan"`,
 		`href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`,
-		`aria-label="Start a promotion for Avery Patel"`,
+		`aria-label="Choose a workflow for Avery Patel"`,
+		`aria-label="Start Promotion for Avery Patel"`,
 		`class="button secondary people-row-action"`,
-		">Actions</span>",
+		`class="popover-surface people-workflow-options"`,
+		`data-hcm-transient-popover="people-workflows"`,
+		`class="people-workflow-options-list"`,
+		">Actions</th>",
 	} {
 		if !strings.Contains(doc, want) {
-			t.Fatalf("people promotion shortcut missing %q", want)
+			t.Fatalf("people workflow menu missing %q", want)
 		}
 	}
 	if strings.Contains(doc, `class="people-row" href=`) {
@@ -406,7 +410,7 @@ func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(doc, `href="/workspace/app/person?person=worker-avery&amp;workflow_q=promotion"`) {
+	if !strings.Contains(doc, `href="/workspace/app/person?nav=expanded&amp;person=worker-avery&amp;workflow_q=promotion"`) {
 		t.Fatal("expanding on a person page discarded person or workflow state")
 	}
 }
@@ -469,7 +473,7 @@ func TestPeopleDirectoryCombinesFacetsSortAndPagination(t *testing.T) {
 		"2 of 4 people", ">Zara</strong>", ">Bianca</strong>", `name="team"`, `value="Platform"`,
 		`name="location"`, `value="Boston"`, `>Person ↓</a>`,
 		`href="/workspace/app/people?location=Boston&amp;q=engineer&amp;sort=role&amp;team=Platform"`,
-		`href="/workspace/app/people?dir=desc"`,
+		`href="/workspace/app/people?dir=desc&amp;location=&amp;q=&amp;team="`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("faceted sorted directory missing %q", want)

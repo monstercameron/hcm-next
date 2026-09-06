@@ -8,7 +8,7 @@ import (
 )
 
 // AppearancePageProps keeps the customer editor independent from storage and
-// routing. The browser adapter supplies preview/save/reset behavior today; a
+// routing. The browser adapter supplies preview behavior and saves through the
 // BrandPack service can supply the same callbacks without changing the page.
 type AppearancePageProps struct {
 	I18nProps

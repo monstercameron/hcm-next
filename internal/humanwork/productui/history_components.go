@@ -11,13 +11,15 @@ import (
 // tenant-wide or person-scoped history section.
 type WorkflowHistoryProps struct {
 	I18nProps
-	Title       string
-	Description string
-	EmptyText   string
-	Items       []WorkflowHistoryItemProps
-	TotalCount  int
-	Filter      *WorkflowHistoryFilterProps
-	Columns     []HistorySortColumnProps
+	Title         string
+	Description   string
+	EmptyText     string
+	Items         []WorkflowHistoryItemProps
+	FilteredCount int
+	TotalCount    int
+	Filter        *WorkflowHistoryFilterProps
+	Columns       []HistorySortColumnProps
+	Pagination    *PeoplePaginationProps
 }
 
 // WorkflowHistoryFilterProps carries only the address state owned by the
@@ -37,6 +39,8 @@ type WorkflowHistoryFilterProps struct {
 	PersonID           string
 	DirectoryQuery     string
 	DirectoryPage      int
+	DirectoryPageSize  int
+	HistoryPageSize    int
 	DirectoryTeam      string
 	DirectoryLocation  string
 	DirectorySort      string
@@ -98,7 +102,7 @@ func WorkflowHistory(props WorkflowHistoryProps) ui.Node {
 				html.H2(html.Props{ID: "workflow-history-title"}, ui.Text(props.Title)),
 				html.P(html.Props{Class: "muted"}, ui.Text(props.Description)),
 			),
-			html.Span(html.Props{Class: "count", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(historyCountLabel(props.Locale, len(props.Items), props.TotalCount))),
+			html.Span(html.Props{Class: "count", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(historyCountLabel(props.Locale, props.FilteredCount, props.TotalCount))),
 		),
 	}
 	if props.Filter != nil {
@@ -119,6 +123,11 @@ func WorkflowHistory(props WorkflowHistoryProps) ui.Node {
 			html.Div(html.Props{Class: "history-list", Raw: map[string]any{"role": "rowgroup"}}, rows...),
 		)
 		children = append(children, table)
+		if props.Pagination != nil {
+			pager := *props.Pagination
+			pager.I18nProps = props.I18nProps
+			children = append(children, ui.CreateElement(PeoplePagination, pager))
+		}
 	} else {
 		empty := props.EmptyText
 		if empty == "" {
@@ -231,6 +240,12 @@ func WorkflowHistoryFilter(props WorkflowHistoryFilterProps) ui.Node {
 	}
 	if props.DirectoryPage > 1 {
 		children = append(children, html.Tag("input", html.Props{Name: "page", Value: fmt.Sprint(props.DirectoryPage), Raw: map[string]any{"type": "hidden"}}))
+	}
+	if normalizePageSize(props.DirectoryPageSize) != defaultPageSize {
+		children = append(children, html.Tag("input", html.Props{Name: "page_size", Value: fmt.Sprint(normalizePageSize(props.DirectoryPageSize)), Raw: map[string]any{"type": "hidden"}}))
+	}
+	if normalizePageSize(props.HistoryPageSize) != defaultPageSize {
+		children = append(children, html.Tag("input", html.Props{Name: "history_page_size", Value: fmt.Sprint(normalizePageSize(props.HistoryPageSize)), Raw: map[string]any{"type": "hidden"}}))
 	}
 	if props.NavCollapsed {
 		children = append(children, html.Tag("input", html.Props{Name: "nav", Value: "collapsed", Raw: map[string]any{"type": "hidden"}}))

@@ -1,6 +1,8 @@
 package productui
 
 import (
+	"strings"
+
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
@@ -17,10 +19,20 @@ type InformationalPanelProps struct {
 }
 
 type SettingsPageProps struct {
+	Profile       ViewerProfileProps
 	Access        AccessContextProps
 	Locale        *LocalePreferencesProps
 	Accessibility *AccessibilityPreferencesProps
 	Preferences   EmptyStateProps
+}
+
+type ViewerProfileProps struct {
+	SectionLabel string
+	Description  string
+	Name         string
+	Initials     string
+	PhotoURL     string
+	Role         string
 }
 
 type AccessContextProps struct {
@@ -56,9 +68,23 @@ func SettingsPage(props SettingsPageProps) ui.Node {
 	if props.Locale != nil {
 		overview = append(overview, ui.CreateElement(LocalePreferencesPanel, *props.Locale))
 	}
-	return html.Div(html.Props{Class: "settings-page-stack"},
-		html.Div(html.Props{Class: "settings-overview-grid"}, overview...),
-		preferencePanel,
+	children := make([]ui.Node, 0, 3)
+	if strings.TrimSpace(props.Profile.Name) != "" {
+		children = append(children, ui.CreateElement(ViewerProfileCard, props.Profile))
+	}
+	children = append(children, html.Div(html.Props{Class: "settings-overview-grid"}, overview...), preferencePanel)
+	return html.Div(html.Props{Class: "settings-page-stack"}, children...)
+}
+
+func ViewerProfileCard(props ViewerProfileProps) ui.Node {
+	return html.Section(html.Props{ID: "user-profile", Class: "surface viewer-profile-card", Aria: map[string]string{"labelledby": "user-profile-name"}},
+		personAvatar(props.Name, props.Initials, props.PhotoURL, "profile viewer-profile-photo"),
+		html.Div(html.Props{Class: "viewer-profile-copy"},
+			html.Span(html.Props{Class: "eyebrow"}, ui.Text(props.SectionLabel)),
+			html.H2(html.Props{ID: "user-profile-name"}, ui.Text(props.Name)),
+			html.P(html.Props{}, ui.Text(props.Role)),
+			html.P(html.Props{Class: "muted"}, ui.Text(props.Description)),
+		),
 	)
 }
 

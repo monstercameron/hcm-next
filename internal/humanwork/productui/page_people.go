@@ -2,6 +2,7 @@ package productui
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -13,7 +14,7 @@ import (
 func peoplePage(view View) ui.Node {
 	filtered := filteredPeople(view)
 	ordered := sortedPeople(filtered, view.PeopleSort, view.PeopleDirection)
-	window := paginatePeople(ordered, view.PeoplePage)
+	window := paginatePeople(ordered, view.PeoplePage, view.PeoplePageSize)
 	filterActive := view.Query != "" || view.PeopleTeam != "" || view.PeopleLocation != ""
 	props := PeoplePageProps{
 		I18nProps: I18nProps{Locale: view.Locale},
@@ -26,11 +27,11 @@ func peoplePage(view View) ui.Node {
 			Teams:     peopleFilterOptions(peopleFacetOptions(view.People, func(person Person) string { return person.Team })),
 			Locations: peopleFilterOptions(peopleFacetOptions(view.People, func(person Person) string { return person.Location })),
 			Sort:      view.PeopleSort, Direction: view.PeopleDirection,
-			Action: pageHref(PagePeople), ClearHref: peopleDirectoryHref(view, 1, "", "", "", view.PeopleSort, view.PeopleDirection),
+			Action: pageHref(PagePeople), ClearHref: peopleClearHref(view),
 			NavCollapsed: view.NavCollapsed, Navigate: view.Navigate,
 		},
 		Empty: PeopleEmptyStateProps{
-			ClearHref: peopleDirectoryHref(view, 1, "", "", "", view.PeopleSort, view.PeopleDirection), Navigate: view.Navigate,
+			ClearHref: peopleClearHref(view), Navigate: view.Navigate,
 		},
 	}
 	if view.Navigate != nil {
@@ -46,6 +47,11 @@ func peoplePage(view View) ui.Node {
 		}
 	}
 	return ui.CreateElement(PeoplePage, props)
+}
+
+func peopleClearHref(view View) string {
+	href := peopleDirectoryHref(view, 1, "", "", "", view.PeopleSort, view.PeopleDirection)
+	return withExplicitEmptyQuery(href, "q", "team", "location")
 }
 
 func peopleCountLabel(locale LocaleContext, filtered bool, filteredCount, totalCount int) string {
@@ -83,7 +89,7 @@ func peopleSortColumns(view View) []PeopleSortColumnProps {
 			nextDirection = peopleSortDescending
 		}
 		result = append(result, PeopleSortColumnProps{
-			Label: column.label, Active: active == column.field, Descending: active == column.field && direction == peopleSortDescending,
+			ID: column.field, Label: column.label, Active: active == column.field, Descending: active == column.field && direction == peopleSortDescending,
 			Href: peopleDirectoryHref(view, 1, view.Query, view.PeopleTeam, view.PeopleLocation, column.field, nextDirection), Navigate: view.Navigate,
 		})
 	}
@@ -93,13 +99,21 @@ func peopleSortColumns(view View) []PeopleSortColumnProps {
 func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 	rows := make([]PeopleRowProps, 0, len(window.People))
 	for _, person := range window.People {
-		actions := []PeopleQuickActionProps{{
-			Label:           view.Locale.Text("people.promote"),
-			AccessibleLabel: view.Locale.Text("people.promote_aria", map[string]string{"name": person.Name}),
-			Href:            JourneyProposalHref(view, person.ID),
-		}}
+		actions := make([]PeopleQuickActionProps, 0, len(view.PersonWorkflows))
+		for _, workflow := range rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses) {
+			href := workflow.Href
+			if workflow.LaunchHref != nil {
+				href = workflow.LaunchHref(person.ID)
+			}
+			if href == "" {
+				continue
+			}
+			actions = append(actions, PeopleQuickActionProps{Label: workflow.Name,
+				AccessibleLabel: view.Locale.Text("people.workflow_aria", map[string]string{"workflow": workflow.Name, "name": person.Name}),
+				Href:            href, Frequent: workflow.UseCount > 0})
+		}
 		rows = append(rows, PeopleRowProps{
-			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, Role: person.Role, Team: person.Team,
+			ID: person.ID, Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, Role: person.Role, Team: person.Team,
 			Manager: person.Manager, Location: person.Location, Navigate: view.Navigate,
 			Href: peoplePersonHref(view, person.ID, window.Page), QuickActions: actions,
 		})
@@ -109,9 +123,13 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 
 func peoplePaginationProps(view View, window peoplePageWindow) PeoplePaginationProps {
 	return PeoplePaginationProps{
-		First: window.First, Last: window.Last, Total: window.Total, Page: window.Page, PageCount: window.PageCount,
+		AriaLabel: view.Locale.Text("people.pages"),
+		First:     window.First, Last: window.Last, Total: window.Total, Page: window.Page, PageCount: window.PageCount,
 		Previous: paginationLinkProps(view, view.Locale.Text("common.previous"), window.Page-1, window.Page <= 1),
 		Next:     paginationLinkProps(view, view.Locale.Text("common.next"), window.Page+1, window.Page >= window.PageCount),
+		PageSize: pageSizeControlProps(view, PagePeople, "page_size", view.PeoplePageSize, map[string]string{
+			"q": view.Query, "team": view.PeopleTeam, "location": view.PeopleLocation, "sort": view.PeopleSort, "dir": view.PeopleDirection,
+		}),
 	}
 }
 
@@ -133,7 +151,7 @@ func peopleDirectoryHref(view View, page int, query, team, location, sortField, 
 	}
 	return statefulHref(view, PagePeople,
 		"q", strings.TrimSpace(query), "team", strings.TrimSpace(team), "location", strings.TrimSpace(location),
-		"sort", sortField, "dir", direction, "page", peoplePageValue(page))
+		"sort", sortField, "dir", direction, "page", peoplePageValue(page), "page_size", pageSizeValue(view.PeoplePageSize))
 }
 
 func peoplePersonHref(view View, personID string, page int) string {
@@ -147,7 +165,7 @@ func peoplePersonHref(view View, personID string, page int) string {
 	}
 	return statefulHref(view, PagePerson,
 		"person", personID, "q", view.Query, "team", view.PeopleTeam, "location", view.PeopleLocation,
-		"sort", sortField, "dir", direction, "page", peoplePageValue(page))
+		"sort", sortField, "dir", direction, "page", peoplePageValue(page), "page_size", pageSizeValue(view.PeoplePageSize))
 }
 
 func peoplePageValue(page int) string {
@@ -155,4 +173,50 @@ func peoplePageValue(page int) string {
 		return ""
 	}
 	return strconv.Itoa(page)
+}
+
+func pageSizeValue(size int) string {
+	if normalizePageSize(size) == defaultPageSize {
+		return ""
+	}
+	return strconv.Itoa(normalizePageSize(size))
+}
+
+func pageSizeControlProps(view View, page PageID, param string, value int, fields map[string]string) PageSizeControlProps {
+	if locale := view.Locale.normalized(); locale.Resolved != DefaultProductLocale {
+		fields["locale"] = locale.Resolved
+	}
+	if view.NavCollapsed {
+		fields["nav"] = "collapsed"
+	}
+	return PageSizeControlProps{
+		Value: normalizePageSize(value), Name: param, Options: []int{10, 20, 50, 100}, Action: pageHref(page), Fields: fields,
+		OnChange: func(size int) {
+			if view.Navigate == nil {
+				return
+			}
+			fields[param] = strconv.Itoa(size)
+			pairs := make([]string, 0, len(fields)*2)
+			for key, item := range fields {
+				pairs = append(pairs, key, item)
+			}
+			view.Navigate(statefulHref(view, page, pairs...))
+		},
+	}
+}
+
+func rankedPersonWorkflows(workflows []PersonWorkflow, usage map[string]int64) []PersonWorkflow {
+	result := append([]PersonWorkflow(nil), workflows...)
+	for index := range result {
+		if usage[result[index].ID] > result[index].UseCount {
+			result[index].UseCount = usage[result[index].ID]
+		}
+	}
+	sort.SliceStable(result, func(left, right int) bool {
+		if result[left].UseCount == result[right].UseCount {
+			return strings.ToLower(result[left].Name) < strings.ToLower(result[right].Name)
+		}
+		return result[left].UseCount > result[right].UseCount
+	})
+	return result
 }

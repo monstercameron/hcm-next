@@ -33,6 +33,13 @@ type PersonProfileProps struct {
 	History      WorkflowHistoryProps
 }
 
+// PersonProfileCompositionProps keeps the shared profile layout independent
+// from the Person and Myself route adapters.
+type PersonProfileCompositionProps struct {
+	I18nProps
+	Profile PersonProfileProps
+}
+
 // PersonHeroProps contains only the identity facts shown by the hero.
 type PersonHeroProps struct {
 	I18nProps
@@ -50,6 +57,7 @@ type EmploymentDetailsProps struct {
 	Title       string
 	Description string
 	Class       string
+	Notice      string
 	Facts       []ProfileFactProps
 }
 
@@ -119,27 +127,36 @@ func PersonPage(props PersonPageProps) ui.Node {
 		children = append(children, ui.CreateElement(PersonUnavailable, missing))
 		return html.Div(html.Props{Class: "person-page"}, children...)
 	}
-	props.Profile.Hero.I18nProps = props.I18nProps
-	props.Profile.Details.I18nProps = props.I18nProps
-	props.Profile.Organization.I18nProps = props.I18nProps
-	props.Profile.Compensation.I18nProps = props.I18nProps
-	props.Profile.Personal.I18nProps = props.I18nProps
-	props.Profile.Workflows.I18nProps = props.I18nProps
-	props.Profile.History.I18nProps = props.I18nProps
-	children = append(children,
-		ui.CreateElement(PersonProfileHeader, props.Profile.Hero),
+	children = append(children, ui.CreateElement(PersonProfileComposition, PersonProfileCompositionProps{
+		I18nProps: props.I18nProps, Profile: *props.Profile,
+	}))
+	return html.Div(html.Props{Class: "person-page"}, children...)
+}
+
+// PersonProfileComposition renders the reusable profile body shared by the
+// directory profile and authenticated self-service surface.
+func PersonProfileComposition(props PersonProfileCompositionProps) ui.Node {
+	profile := props.Profile
+	profile.Hero.I18nProps = props.I18nProps
+	profile.Details.I18nProps = props.I18nProps
+	profile.Organization.I18nProps = props.I18nProps
+	profile.Compensation.I18nProps = props.I18nProps
+	profile.Personal.I18nProps = props.I18nProps
+	profile.Workflows.I18nProps = props.I18nProps
+	profile.History.I18nProps = props.I18nProps
+	return html.Div(html.Props{Class: "person-profile-composition"},
+		ui.CreateElement(PersonProfileHeader, profile.Hero),
 		html.Div(html.Props{Class: "person-layout"},
 			html.Div(html.Props{Class: "person-detail-stack"},
-				ui.CreateElement(EmploymentDetails, props.Profile.Details),
-				ui.CreateElement(EmploymentDetails, props.Profile.Organization),
-				ui.CreateElement(EmploymentDetails, props.Profile.Compensation),
-				ui.CreateElement(SensitiveDetails, props.Profile.Personal),
+				ui.CreateElement(EmploymentDetails, profile.Details),
+				ui.CreateElement(EmploymentDetails, profile.Organization),
+				ui.CreateElement(EmploymentDetails, profile.Compensation),
+				ui.CreateElement(SensitiveDetails, profile.Personal),
 			),
-			ui.CreateElement(WorkflowLauncher, props.Profile.Workflows),
+			ui.CreateElement(WorkflowLauncher, profile.Workflows),
 		),
-		ui.CreateElement(WorkflowHistory, props.Profile.History),
+		ui.CreateElement(WorkflowHistory, profile.History),
 	)
-	return html.Div(html.Props{Class: "person-page"}, children...)
 }
 
 // PersonUnavailable renders no worker data and offers one safe recovery path.
@@ -187,13 +204,17 @@ func EmploymentDetails(props EmploymentDetailsProps) ui.Node {
 	if props.Class != "" {
 		class += " " + props.Class
 	}
-	return html.Section(html.Props{Class: class},
+	children := []ui.Node{
 		html.Div(html.Props{Class: "section-head"}, html.Div(html.Props{},
 			html.H2(html.Props{}, ui.Text(title)),
 			html.P(html.Props{Class: "muted"}, ui.Text(description)),
 		)),
 		html.Tag("dl", html.Props{Class: "person-fact-grid"}, facts...),
-	)
+	}
+	if props.Notice != "" {
+		children = append(children, html.P(html.Props{Class: "profile-data-boundary", Raw: map[string]any{"role": "note"}}, ui.Text(props.Notice)))
+	}
+	return html.Section(html.Props{Class: class}, children...)
 }
 
 // SensitiveDetails keeps personal identifiers outside the default reading
@@ -283,7 +304,9 @@ func WorkflowFilter(props WorkflowFilterProps) ui.Node {
 			html.Tag("input", inputProps),
 			html.Button(html.Props{Class: "button secondary", Type: "submit"}, ui.Text(props.Text("workflow.filter"))),
 		),
-		html.Tag("input", html.Props{Name: "person", Value: props.PersonID, Raw: map[string]any{"type": "hidden"}}),
+	}
+	if props.PersonID != "" {
+		children = append(children, html.Tag("input", html.Props{Name: "person", Value: props.PersonID, Raw: map[string]any{"type": "hidden"}}))
 	}
 	if locale := props.Locale.normalized(); locale.Resolved != DefaultProductLocale {
 		children = append(children, html.Tag("input", html.Props{Name: "locale", Value: locale.Resolved, Raw: map[string]any{"type": "hidden"}}))

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// Service is the page's whole view of the cell: the eight operations
+// Service is the workflow page's view of the cell: the eight workflow operations
 // hcmnext.journey.v1.JourneyService publishes, with the call options and the
 // credential already dealt with.
 //
@@ -39,6 +39,19 @@ type Service interface {
 	// runs behind the same P1B execution authority the execution and
 	// decision writes do.
 	CreateWorker(ctx context.Context, in *journeyv1.CreateWorkerRequest) (*journeyv1.CreateWorkerResponse, error)
+}
+
+// PreferenceService is the product-workspace extension implemented by the
+// production gRPC client. Keeping it separate leaves the workflow App's test
+// seam narrowly focused on journey execution.
+type PreferenceService interface {
+	GetProductPreferences(context.Context, *journeyv1.GetProductPreferencesRequest) (*journeyv1.GetProductPreferencesResponse, error)
+	SaveUserPreferences(context.Context, *journeyv1.SaveUserPreferencesRequest) (*journeyv1.SaveUserPreferencesResponse, error)
+	SaveTenantAppearance(context.Context, *journeyv1.SaveTenantAppearanceRequest) (*journeyv1.SaveTenantAppearanceResponse, error)
+	SaveOrganizationVisibility(context.Context, *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error)
+	RecordWorkflowUse(context.Context, *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error)
+	GetWorkerIDPolicy(context.Context, *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error)
+	SaveWorkerIDPolicy(context.Context, *journeyv1.SaveWorkerIDPolicyRequest) (*journeyv1.SaveWorkerIDPolicyResponse, error)
 }
 
 // WatchStream is the receiving half of one WatchJourney call: the generated
@@ -125,4 +138,32 @@ func (s *grpcService) WatchJourney(ctx context.Context, in *journeyv1.WatchJourn
 		return nil, err
 	}
 	return stream, nil
+}
+
+func (s *grpcService) GetProductPreferences(ctx context.Context, in *journeyv1.GetProductPreferencesRequest) (*journeyv1.GetProductPreferencesResponse, error) {
+	return s.client.GetProductPreferences(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveUserPreferences(ctx context.Context, in *journeyv1.SaveUserPreferencesRequest) (*journeyv1.SaveUserPreferencesResponse, error) {
+	return s.client.SaveUserPreferences(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveTenantAppearance(ctx context.Context, in *journeyv1.SaveTenantAppearanceRequest) (*journeyv1.SaveTenantAppearanceResponse, error) {
+	return s.client.SaveTenantAppearance(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveOrganizationVisibility(ctx context.Context, in *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error) {
+	return s.client.SaveOrganizationVisibility(s.authorize(ctx), in)
+}
+
+func (s *grpcService) RecordWorkflowUse(ctx context.Context, in *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error) {
+	return s.client.RecordWorkflowUse(s.authorize(ctx), in)
+}
+
+func (s *grpcService) GetWorkerIDPolicy(ctx context.Context, in *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error) {
+	return s.client.GetWorkerIDPolicy(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveWorkerIDPolicy(ctx context.Context, in *journeyv1.SaveWorkerIDPolicyRequest) (*journeyv1.SaveWorkerIDPolicyResponse, error) {
+	return s.client.SaveWorkerIDPolicy(s.authorize(ctx), in)
 }

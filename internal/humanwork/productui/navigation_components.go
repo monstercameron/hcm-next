@@ -133,7 +133,8 @@ func navigationToggleProps(view View) NavigationToggleProps {
 		Label: view.Locale.Text("nav.collapse"), Icon: "collapse", Href: currentPageHref(view, true), Navigate: view.Navigate,
 	}
 	if view.NavCollapsed {
-		toggle.Label, toggle.Icon, toggle.Href = view.Locale.Text("nav.expand"), "expand", currentPageHref(view, false)
+		toggle.Label, toggle.Icon = view.Locale.Text("nav.expand"), "expand"
+		toggle.Href = withExplicitQueryValue(currentPageHref(view, false), []string{"nav"}, "expanded")
 	}
 	return toggle
 }
@@ -282,7 +283,11 @@ func favoriteToggleHref(view View, page PageID) string {
 	if !found {
 		next.FavoritePages = append([]PageID{page}, next.FavoritePages...)
 	}
-	return currentPageHref(next, next.NavCollapsed)
+	href := currentPageHref(next, next.NavCollapsed)
+	if len(next.FavoritePages) == 0 {
+		return withExplicitEmptyQuery(href, "favorites")
+	}
+	return href
 }
 
 // NavigationSidebar renders independently scrolling, searchable navigation.

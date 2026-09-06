@@ -14,6 +14,7 @@ import (
 	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
 	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/hcm-next/tools/uxqual/taskmux"
 	"google.golang.org/grpc/status"
 )
 
@@ -24,10 +25,17 @@ const productJourneyStoreKey = "product-journey-store"
 
 var lastFocusedProductRoute string
 var productNavigationGroups *browserNavigationGroupController
+var productTransientPopovers *browserTransientPopoverController
+var lastResolvedProductView *productui.View
 
 func isProductPath(path string) bool { return strings.HasPrefix(path, productPathPrefix) }
 
 func startProduct(ctx context.Context, cfg journeyclient.Config, service journeyclient.Service) error {
+	// Finite RPC work shares a bounded lane. WatchJourney subscriptions stay
+	// outside it, so an open detail page cannot reduce navigation/click
+	// capacity. Four slots allow the independent projection reads and a user
+	// action to overlap without permitting an unbounded goroutine burst.
+	frontendTasks := taskmux.New(taskmux.Options{MaxRunning: 4, MaxQueued: 64, PriorityBurst: 8})
 	liveService := productclient.Service{
 		ListJourneys: func(ctx context.Context, request *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
 			return service.ListJourneys(ctx, request)
@@ -36,19 +44,27 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 			return service.ListWorkers(ctx, request)
 		},
 	}
+	if preferenceService, ok := service.(journeyclient.PreferenceService); ok {
+		liveService.GetPreferences = preferenceService.GetProductPreferences
+		liveService.GetWorkerIDPolicy = preferenceService.GetWorkerIDPolicy
+	}
 	session := productclient.Session{Tenant: cfg.Tenant, Principal: cfg.Subject, Scope: cfg.Purpose}
-	appearance := newBrowserThemeController(cfg.Tenant)
+	preferences := newServerPreferenceController(ctx, service)
+	appearance := newBrowserThemeController(preferences.SaveTheme)
 	appearance.Apply(appearance.Saved())
-	accessibility := newBrowserAccessibilityController(cfg.Tenant, cfg.Subject)
+	accessibility := newBrowserAccessibilityController(preferences.SaveAccessibility)
 	accessibility.Apply(accessibility.Saved())
-	productNavigationGroups = newBrowserNavigationGroupController(cfg.Tenant)
+	productNavigationGroups = newBrowserNavigationGroupController(preferences.SaveNavigationGroups)
 	productNavigationGroups.Bind()
+	productTransientPopovers = newBrowserTransientPopoverController()
+	productTransientPopovers.Bind()
 	productRouter := router.NewHistoryRouter(router.RouterOptions{DefaultRoute: productui.Path(productui.PageHome)})
 	// Menu filtering is local component state. Debounce only its shareable URL
 	// state so typing never reruns page loaders or refetches workforce data.
 	navigationDebounce := newNavigationDebouncerWithScheduler(browserReplaceURL, browserDebounceScheduler)
 	journeyStore := journey.NewStore(journey.Page{})
 	journeyApp := journeyclient.New(cfg, service, journeyStore, time.Now)
+	journeyApp.Tasks = frontendTasks
 	journeyApp.Locate = func(fragment string) {
 		productRouter.Navigate(productclient.ProductJourneyHref(fragment, currentQuery()))
 	}
@@ -64,18 +80,86 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				// customer selection before the next component tree is mounted.
 				appearance.Apply(appearance.Saved())
 				accessibility.Apply(accessibility.Saved())
-				state, parseErr := productclient.ParseState(routeContext.Path, routeContext.Query.Encode())
+				// The history router's RouteContext can lag the address bar query
+				// during same-page navigation. The browser URL is the canonical
+				// presentation state: using the stale context here made a sort click
+				// reload the previously persisted column and direction.
+				state, parseErr := productclient.ParseState(routeContext.Path, currentQuery())
 				if parseErr != nil {
 					return nil, parseErr
 				}
-				view, loadErr := productclient.Load(loadCtx, liveService, session, state)
+				var view productui.View
+				var loadErr error
+				handle, scheduleErr := frontendTasks.Submit(loadCtx, taskmux.Spec{
+					Key: "product:route-projection", Priority: taskmux.UserVisible, Duplicate: taskmux.ReplaceExisting,
+				}, func(taskCtx context.Context) error {
+					view, loadErr = productclient.Load(taskCtx, liveService, session, state)
+					return nil
+				})
+				if scheduleErr != nil {
+					return nil, scheduleErr
+				}
+				select {
+				case <-handle.Done():
+					result := handle.Result()
+					if result.Err != nil {
+						return nil, result.Err
+					}
+				case <-loadCtx.Done():
+					handle.Cancel()
+					return nil, loadCtx.Err()
+				}
 				view.Navigate = productRouter.Navigate
 				view.NavigateDebounced = navigationDebounce.Schedule
 				view.CancelDebouncedNavigation = navigationDebounce.Cancel
+				preferences.Adopt(view)
+				appearance.Load(view.Appearance)
+				accessibility.Load(view.Accessibility)
+				groups := make(map[string]bool, len(view.NavigationGroupOpen))
+				for page, open := range view.NavigationGroupOpen {
+					groups[string(page)] = open
+				}
+				productNavigationGroups.Load(groups)
+				preferences.PersistView(view)
+				if state.Page == productui.PageJourneys && state.Request.JourneyMode == "new" && state.Request.JourneyWorker != "" {
+					preferences.RecordWorkflowUse("promotion", state.Request.JourneyWorker)
+				} else {
+					preferences.ResetWorkflowUseMarker()
+				}
 				view.Appearance = appearance.Saved()
 				view.PreviewTheme = appearance.Preview
 				view.SaveTheme = appearance.Save
 				view.ResetTheme = appearance.Reset
+				view.SaveWorkerIDPolicy = func(policy productui.WorkerIDPolicy) {
+					preferences.SaveWorkerIDPolicy(policy, func(err error) {
+						statusNode := js.Global().Get("document").Call("getElementById", "worker-id-status")
+						if statusNode.Truthy() {
+							if err != nil {
+								statusNode.Set("textContent", "Could not save rules: "+status.Code(err).String())
+								return
+							}
+							statusNode.Set("textContent", "Worker ID rules saved for this organization.")
+						}
+						if err == nil {
+							productRouter.Navigate(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
+				view.SaveOrganizationVisibility = func(policy productui.OrganizationVisibilityPolicy) {
+					preferences.SaveOrganizationVisibility(policy, func(err error) {
+						statusNode := js.Global().Get("document").Call("getElementById", "organization-visibility-status")
+						if statusNode.Truthy() {
+							if err != nil {
+								statusNode.Set("textContent", "Could not save visibility: "+status.Code(err).String())
+								return
+							}
+							statusNode.Set("textContent", "Organization visibility saved.")
+						}
+						if err == nil {
+							productRouter.Navigate(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
 				view.Accessibility = accessibility.Saved()
 				view.PreviewAccessibility = accessibility.Preview
 				view.SaveAccessibility = accessibility.Save
@@ -97,6 +181,14 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					state = productclient.State{Page: definition.ID, Request: productui.PageRequest{Page: definition.ID}}
 				}
 				view := productclient.LoadingView(session, state)
+				warmRefresh := lastResolvedProductView != nil && lastResolvedProductView.Page == state.Page && state.Page != productui.PageJourneys
+				if warmRefresh {
+					// Same-page network effects retain the last authorized projection.
+					// This avoids a skeleton flash for fast filters, sorts and paging;
+					// the resolved response still replaces the tree atomically.
+					view = *lastResolvedProductView
+					view.Refreshing = true
+				}
 				view.Navigate = productRouter.Navigate
 				view.NavigateDebounced = navigationDebounce.Schedule
 				view.CancelDebouncedNavigation = navigationDebounce.Cancel
@@ -110,6 +202,9 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				}
 				applyThemeDocumentIdentity(view.Title, view.Appearance)
 				applyLocaleDocumentIdentity(view.Locale)
+				if warmRefresh {
+					return productui.BuildRefreshing(view)
+				}
 				return productui.BuildLoading(view)
 			},
 		})
@@ -174,6 +269,10 @@ func productRouteComponent(_ router.Attrs) *router.Element {
 	applyThemeDocumentIdentity(view.Title, view.Appearance)
 	applyLocaleDocumentIdentity(view.Locale)
 	focusProductRouteAfterNavigation()
+	resolved := view
+	resolved.Loading = false
+	resolved.Refreshing = false
+	lastResolvedProductView = &resolved
 	var result *router.Element
 	if view.Page == productui.PageJourneys {
 		if store, storeOK := data[productJourneyStoreKey].(*journey.Store); storeOK {

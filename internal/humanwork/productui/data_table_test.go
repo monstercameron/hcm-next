@@ -1,0 +1,119 @@
+package productui
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+)
+
+func TestDataTableRendersConfigurableRectangularMatrix(t *testing.T) {
+	markup, err := ui.RenderToString(ui.CreateElement(DataTable, DataTableProps{
+		Caption: "Compensation matrix", AriaLabel: "Compensation matrix results", SortLabel: "Sort matrix",
+		Columns: []DataTableColumnProps{
+			{ID: "worker", Label: "Worker", Href: "/workspace/app/matrix?sort=worker", Sort: DataTableAscending, Width: "14rem"},
+			{ID: "salary", Label: "Salary", AlignEnd: true},
+			{ID: "band", Label: "Band"},
+		},
+		Rows: []DataTableRowProps{
+			{ID: "worker-1", Cells: []DataTableCellProps{{ColumnID: "salary", Text: "$100.00"}, {ColumnID: "worker", Text: "Avery", RowHeader: true}, {ColumnID: "band", Text: "P3"}}},
+			{ID: "worker-2", Cells: []DataTableCellProps{{ColumnID: "worker", Text: "Bianca", RowHeader: true}, {ColumnID: "salary", Text: "$120.00"}}},
+		},
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`role="region"`, `aria-label="Compensation matrix results"`, `<table`, `<caption`, `<thead`, `<tbody`,
+		`scope="col"`, `scope="row"`, `aria-sort="ascending"`, `data-row-id="worker-1"`,
+		`data-column="salary"`, `data-label="Salary"`, `style="min-width:14rem"`, `tabIndex="0"`,
+	} {
+		if !strings.Contains(markup, want) {
+			t.Fatalf("configurable data table missing %q\n%s", want, markup)
+		}
+	}
+	if first, second := strings.Index(markup, "Avery"), strings.Index(markup, "$100.00"); first < 0 || second < first {
+		t.Fatal("cell input order overrode configured column order")
+	}
+	if got := strings.Count(markup, `data-column="band"`); got != 2 {
+		t.Fatalf("short row was not padded to a rectangular matrix: band cells=%d", got)
+	}
+}
+
+func TestDataTableNormalizesUnsafeColumnDefinitions(t *testing.T) {
+	columns := normalizedDataTableColumns([]DataTableColumnProps{
+		{ID: " name ", Label: "Name"}, {ID: "", Label: "Missing"}, {ID: "name", Label: "Duplicate"}, {ID: "role", Label: "Role"},
+	})
+	if len(columns) != 2 || columns[0].ID != "name" || columns[0].Sort != DataTableUnsorted || columns[1].ID != "role" {
+		t.Fatalf("normalized columns = %+v", columns)
+	}
+}
+
+func TestDataTableScalesAcrossMatrixShapes(t *testing.T) {
+	for _, shape := range []struct{ rows, columns int }{{1, 1}, {0, 12}, {25, 2}, {100, 20}} {
+		t.Run(fmt.Sprintf("%dx%d", shape.rows, shape.columns), func(t *testing.T) {
+			columns := make([]DataTableColumnProps, shape.columns)
+			for column := range columns {
+				columns[column] = DataTableColumnProps{ID: fmt.Sprintf("c%d", column), Label: fmt.Sprintf("Column %d", column)}
+			}
+			rows := make([]DataTableRowProps, shape.rows)
+			for row := range rows {
+				cells := make([]DataTableCellProps, shape.columns)
+				for column := range cells {
+					cells[column] = DataTableCellProps{ColumnID: columns[column].ID, Text: fmt.Sprintf("r%dc%d", row, column)}
+				}
+				rows[row] = DataTableRowProps{ID: fmt.Sprintf("r%d", row), Cells: cells}
+			}
+			markup, err := ui.RenderToString(ui.CreateElement(DataTable, DataTableProps{Caption: "Matrix", Columns: columns, Rows: rows}))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.Count(markup, `class="data-table-column`); got != shape.columns {
+				t.Fatalf("headers=%d want=%d", got, shape.columns)
+			}
+			if got := strings.Count(markup, `class="data-table-row"`); got != shape.rows {
+				t.Fatalf("rows=%d want=%d", got, shape.rows)
+			}
+		})
+	}
+}
+
+func TestDataTableStylesKeepHeadersStickyAndMobileCellsVisible(t *testing.T) {
+	for _, fragment := range []string{
+		`.data-table thead{position:sticky`,
+		`overflow:auto`,
+		`content:attr(data-label)`,
+		`.data-table .data-table-cell{display:flex`,
+	} {
+		if !strings.Contains(dataTableStyles, fragment) {
+			t.Fatalf("data table styles missing %q", fragment)
+		}
+	}
+}
+
+func BenchmarkDataTableRender(b *testing.B) {
+	for _, shape := range []struct{ rows, columns int }{{50, 6}, {1000, 12}} {
+		b.Run(fmt.Sprintf("%dx%d", shape.rows, shape.columns), func(b *testing.B) {
+			columns := make([]DataTableColumnProps, shape.columns)
+			for column := range columns {
+				columns[column] = DataTableColumnProps{ID: fmt.Sprintf("c%d", column), Label: fmt.Sprintf("Column %d", column)}
+			}
+			rows := make([]DataTableRowProps, shape.rows)
+			for row := range rows {
+				cells := make([]DataTableCellProps, shape.columns)
+				for column := range cells {
+					cells[column] = DataTableCellProps{ColumnID: columns[column].ID, Text: "value"}
+				}
+				rows[row] = DataTableRowProps{ID: fmt.Sprint(row), Cells: cells}
+			}
+			props := DataTableProps{Caption: "Benchmark matrix", Columns: columns, Rows: rows}
+			b.ReportAllocs()
+			for b.Loop() {
+				if _, err := ui.RenderToString(ui.CreateElement(DataTable, props)); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}

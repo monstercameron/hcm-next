@@ -1,0 +1,148 @@
+package productui
+
+import (
+	"fmt"
+	"math/rand"
+	"slices"
+	"testing"
+)
+
+func TestSortedPeopleEveryColumnAndDirection(t *testing.T) {
+	people := []Person{
+		{ID: "4", Name: "zoe", Role: "Engineer", Team: "Platform", Manager: "Marta", Location: "Denver"},
+		{ID: "2", Name: "Avery", Role: "Designer", Team: "Product", Manager: "Nora", Location: "Boston"},
+		{ID: "3", Name: "bianca", Role: "Engineer", Team: "Platform", Manager: "Marta", Location: "Atlanta"},
+		{ID: "1", Name: "Álvaro", Role: "", Team: "", Manager: "", Location: ""},
+	}
+	for _, tc := range []struct {
+		field, direction string
+		want             []string
+	}{
+		{peopleSortName, peopleSortAscending, []string{"Avery", "bianca", "zoe", "Álvaro"}},
+		{peopleSortName, peopleSortDescending, []string{"Álvaro", "zoe", "bianca", "Avery"}},
+		{peopleSortRole, peopleSortAscending, []string{"Avery", "bianca", "zoe", "Álvaro"}},
+		{peopleSortRole, peopleSortDescending, []string{"bianca", "zoe", "Avery", "Álvaro"}},
+		{peopleSortTeam, peopleSortAscending, []string{"bianca", "zoe", "Avery", "Álvaro"}},
+		{peopleSortManager, peopleSortDescending, []string{"Avery", "bianca", "zoe", "Álvaro"}},
+		{peopleSortLocation, peopleSortAscending, []string{"bianca", "Avery", "zoe", "Álvaro"}},
+	} {
+		t.Run(tc.field+"_"+tc.direction, func(t *testing.T) {
+			original := append([]Person(nil), people...)
+			got := sortedPeople(people, tc.field, tc.direction)
+			names := make([]string, len(got))
+			for index := range got {
+				names[index] = got[index].Name
+			}
+			if !slices.Equal(names, tc.want) {
+				t.Fatalf("names=%v want=%v", names, tc.want)
+			}
+			if !slices.Equal(people, original) {
+				t.Fatal("sorting mutated the service projection")
+			}
+		})
+	}
+}
+
+func TestSortedPeopleIsDeterministicForEqualAndMissingValues(t *testing.T) {
+	people := []Person{
+		{ID: "b", Name: "Same", Role: "Engineer"},
+		{ID: "a", Name: "same", Role: "engineer"},
+		{ID: "d", Name: "Zulu"},
+		{ID: "c", Name: "Alpha"},
+	}
+	for _, direction := range []string{peopleSortAscending, peopleSortDescending} {
+		got := sortedPeople(people, peopleSortRole, direction)
+		ids := make([]string, len(got))
+		for index := range got {
+			ids[index] = got[index].ID
+		}
+		if want := []string{"a", "b", "c", "d"}; !slices.Equal(ids, want) {
+			t.Fatalf("%s ids=%v want=%v", direction, ids, want)
+		}
+	}
+}
+
+func TestSortedPeopleRandomizedOrderingInvariant(t *testing.T) {
+	random := rand.New(rand.NewSource(42))
+	fields := []string{peopleSortName, peopleSortRole, peopleSortTeam, peopleSortManager, peopleSortLocation}
+	for iteration := 0; iteration < 200; iteration++ {
+		people := make([]Person, 1+random.Intn(500))
+		for index := range people {
+			people[index] = Person{
+				ID: fmt.Sprintf("id-%06d", index), Name: fmt.Sprintf("Name %03d", random.Intn(90)),
+				Role: fmt.Sprintf("Role %02d", random.Intn(20)), Team: fmt.Sprintf("Team %02d", random.Intn(12)),
+				Manager: fmt.Sprintf("Manager %02d", random.Intn(30)), Location: fmt.Sprintf("Location %02d", random.Intn(8)),
+			}
+		}
+		field := fields[random.Intn(len(fields))]
+		descending := random.Intn(2) == 1
+		direction := peopleSortAscending
+		if descending {
+			direction = peopleSortDescending
+		}
+		got := sortedPeople(people, field, direction)
+		if len(got) != len(people) {
+			t.Fatalf("iteration %d lost rows", iteration)
+		}
+		seen := make(map[string]bool, len(got))
+		for index, person := range got {
+			if seen[person.ID] {
+				t.Fatalf("iteration %d duplicated %s", iteration, person.ID)
+			}
+			seen[person.ID] = true
+			if index == 0 {
+				continue
+			}
+			left, right := got[index-1], person
+			comparison := compareSortText(normalizedSortText(peopleSortValue(left, field)), normalizedSortText(peopleSortValue(right, field)), descending)
+			if comparison > 0 {
+				t.Fatalf("iteration %d not monotonic at %d: %q before %q", iteration, index, peopleSortValue(left, field), peopleSortValue(right, field))
+			}
+			if comparison == 0 && compareSortText(normalizedSortText(left.Name), normalizedSortText(right.Name), false) > 0 {
+				t.Fatalf("iteration %d unstable secondary order at %d", iteration, index)
+			}
+		}
+	}
+}
+
+func TestSortThenPaginateProducesStableNonOverlappingWindows(t *testing.T) {
+	people := make([]Person, 125)
+	for index := range people {
+		people[index] = Person{ID: fmt.Sprintf("id-%03d", index), Name: fmt.Sprintf("Person %03d", 124-index), Team: fmt.Sprintf("Team %d", index%4)}
+	}
+	ordered := sortedPeople(people, peopleSortName, peopleSortAscending)
+	first := paginatePeople(ordered, 1, 50)
+	second := paginatePeople(ordered, 2, 50)
+	third := paginatePeople(ordered, 3, 50)
+	if len(first.People) != 50 || len(second.People) != 50 || len(third.People) != 25 {
+		t.Fatalf("unexpected page sizes: %d %d %d", len(first.People), len(second.People), len(third.People))
+	}
+	seen := map[string]bool{}
+	for _, window := range []peoplePageWindow{first, second, third} {
+		for _, person := range window.People {
+			if seen[person.ID] {
+				t.Fatalf("row %s appears on multiple pages", person.ID)
+			}
+			seen[person.ID] = true
+		}
+	}
+}
+
+func BenchmarkSortedPeople(b *testing.B) {
+	for _, size := range []int{100, 10_000, 100_000} {
+		b.Run(fmt.Sprint(size), func(b *testing.B) {
+			people := make([]Person, size)
+			for index := range people {
+				people[index] = Person{
+					ID: fmt.Sprintf("id-%09d", index), Name: fmt.Sprintf("Person %09d", size-index),
+					Role: fmt.Sprintf("Role %03d", index%200), Team: fmt.Sprintf("Team %03d", index%75),
+					Manager: fmt.Sprintf("Manager %04d", index%1000), Location: fmt.Sprintf("Location %03d", index%120),
+				}
+			}
+			b.ReportAllocs()
+			for b.Loop() {
+				_ = sortedPeople(people, peopleSortManager, peopleSortDescending)
+			}
+		})
+	}
+}
