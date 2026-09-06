@@ -124,7 +124,7 @@ func TestLocalDevProfileAppliesFastSafeDefaultsAndKeepsExplicitOverrides(t *test
 	if !cfg.Migrate {
 		t.Fatal("explicit -migrate=true did not override the profile default")
 	}
-	if !cfg.DevBrowserLogin || !cfg.ExecutionAuthority || cfg.WorkflowPlan != WorkflowPlanExecute {
+	if !cfg.DevBrowserLogin || !cfg.ExecutionAuthority || !cfg.Scheduler || cfg.WorkflowPlan != WorkflowPlanExecute {
 		t.Fatalf("local profile runtime defaults = %+v", cfg)
 	}
 	if err := cfg.Validate(); err != nil {

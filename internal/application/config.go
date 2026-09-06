@@ -231,7 +231,13 @@ func ServeConfigFieldsForArgs(args []string) []bootstrap.Field {
 		FieldDevBrowserLogin:          "true",
 		FieldExecutionAuthority:       "true",
 		FieldExecutionAuthorityDigest: "sha256:local-dev-profile-authority",
-		FieldWorkflowPlan:             WorkflowPlanExecute,
+		// The executable plan contains a durable effective-date WAIT. Leaving
+		// its dispatcher disabled produces a half-enabled development profile:
+		// approvals succeed and a due-today timer is written, but nothing is
+		// present to settle and resume it. Keep the real timer path in local
+		// development and start its bounded in-process scheduler with the plan.
+		FieldScheduler:    "true",
+		FieldWorkflowPlan: WorkflowPlanExecute,
 	}
 	for i := range fields {
 		if value, ok := defaults[fields[i].Name]; ok {

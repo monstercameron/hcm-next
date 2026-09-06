@@ -912,8 +912,11 @@ func TestPromotionWorkflowExecuteRefusesWithoutApprovedProposal(t *testing.T) {
 
 	t.Run("unapproved proposal never starts", func(t *testing.T) {
 		proposal := newDemoProposal(t, values.TenantId("promo-exec-refuse"), "intent:refuse-unapproved", at)
-		_, err := drv.Execute(ctx, execute.ExecuteRequest{Start: baseRequest("refuse-unapproved", proposal,
-			runtime.ProposalBinding{Revision: proposal, Approved: false})})
+		start := baseRequest("refuse-unapproved", proposal, runtime.ProposalBinding{Revision: proposal})
+		// Authorization comes from the approval fact port, never from the
+		// deprecated caller-asserted ProposalBinding flags.
+		start.ApprovalFacts = runtime.MemoryApprovalFacts{}
+		_, err := drv.Execute(ctx, execute.ExecuteRequest{Start: start})
 		if code := runtime.CodeOf(err); code != runtime.CodeUnapprovedProposal {
 			t.Fatalf("Execute error = %v (code %q), want %q", err, code, runtime.CodeUnapprovedProposal)
 		}
@@ -921,8 +924,11 @@ func TestPromotionWorkflowExecuteRefusesWithoutApprovedProposal(t *testing.T) {
 
 	t.Run("superseded proposal never starts", func(t *testing.T) {
 		proposal := newDemoProposal(t, values.TenantId("promo-exec-refuse"), "intent:refuse-superseded", at)
-		_, err := drv.Execute(ctx, execute.ExecuteRequest{Start: baseRequest("refuse-superseded", proposal,
-			runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:x", Superseded: true})})
+		start := baseRequest("refuse-superseded", proposal, runtime.ProposalBinding{Revision: proposal})
+		start.ProposalFacts = runtime.MemoryProposalFacts{Facts: map[string]runtime.ProposalSupersessionFact{
+			proposal.ProposalRevisionID: {Superseded: true, SupersededByRevisionID: "revision:replacement"},
+		}}
+		_, err := drv.Execute(ctx, execute.ExecuteRequest{Start: start})
 		if code := runtime.CodeOf(err); code != runtime.CodeSupersededProposal {
 			t.Fatalf("Execute error = %v (code %q), want %q", err, code, runtime.CodeSupersededProposal)
 		}
