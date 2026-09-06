@@ -97,6 +97,27 @@ func TestStorePersistsPrincipalSettingsAndOrganizationAppearanceWithCAS(t *testi
 		t.Fatalf("south organization changed north appearance: theme=%+v err=%v", northAgain.Theme, err)
 	}
 
+	visibility := northAgain.OrganizationVisibility
+	visibility.Mode = preferences.OrganizationVisibilityAllowlist
+	visibility.OrganizationUnits = []string{"People", "Finance"}
+	visibility, err = store.SaveOrganizationVisibility(ctx, values.TenantId("prefs-test"), organizationNorth, "alice", visibility)
+	if err != nil || visibility.Version != 1 {
+		t.Fatalf("save organization visibility: version=%d err=%v", visibility.Version, err)
+	}
+	staleVisibility := visibility
+	staleVisibility.Version = 0
+	if _, err = store.SaveOrganizationVisibility(ctx, values.TenantId("prefs-test"), organizationNorth, "alice", staleVisibility); !errors.Is(err, preferences.ErrVersionConflict) {
+		t.Fatalf("stale organization visibility err=%v", err)
+	}
+	bobAgain, err := store.Load(ctx, values.TenantId("prefs-test"), organizationNorth, "bob")
+	if err != nil || bobAgain.OrganizationVisibility.Mode != preferences.OrganizationVisibilityAllowlist || len(bobAgain.OrganizationVisibility.OrganizationUnits) != 2 {
+		t.Fatalf("organization visibility was not shared in scope: %+v err=%v", bobAgain.OrganizationVisibility, err)
+	}
+	southAgain, err := store.Load(ctx, values.TenantId("prefs-test"), organizationSouth, "carol")
+	if err != nil || southAgain.OrganizationVisibility.Mode != preferences.OrganizationVisibilityAll || southAgain.OrganizationVisibility.Version != 0 {
+		t.Fatalf("organization visibility crossed scopes: %+v err=%v", southAgain.OrganizationVisibility, err)
+	}
+
 	bob.User.Locale = "ar"
 	if _, err = store.SaveUser(ctx, values.TenantId("prefs-test"), "bob", bob.User); err != nil {
 		t.Fatal(err)
@@ -127,5 +148,8 @@ func TestStoreRejectsMissingAuthenticatedCoordinates(t *testing.T) {
 	}
 	if _, err := store.SaveTheme(context.Background(), tenant, "", "alice", preferences.DefaultSnapshot().Theme); !errors.Is(err, preferences.ErrInvalid) {
 		t.Fatalf("save appearance without organization scope err=%v", err)
+	}
+	if _, err := store.SaveOrganizationVisibility(context.Background(), tenant, "", "alice", preferences.OrganizationVisibility{}); !errors.Is(err, preferences.ErrInvalid) {
+		t.Fatalf("save visibility without organization scope err=%v", err)
 	}
 }

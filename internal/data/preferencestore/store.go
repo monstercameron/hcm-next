@@ -33,8 +33,10 @@ func (s *Store) Load(ctx context.Context, tenant values.TenantId, organizationSc
 		return result, preferences.ErrInvalid
 	}
 	result.Theme.OrganizationScopeID = organizationScopeID
+	result.OrganizationVisibility.OrganizationScopeID = organizationScopeID
+	visibilityLoaded := false
 	err := s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
-		var userJSON, themeJSON []byte
+		var userJSON, themeJSON, visibilityJSON []byte
 		if err := tx.QueryRow(ctx, `SELECT version, preferences FROM user_presentation_preference WHERE tenant_id=$1 AND principal_id=$2`, tenantID, principal).Scan(&result.User.Version, &userJSON); err != nil && !errors.Is(err, dbport.ErrNoRows) {
 			return fmt.Errorf("preferencestore: load user: %w", err)
 		} else if err == nil && json.Unmarshal(userJSON, &result.User) != nil {
@@ -45,9 +47,22 @@ func (s *Store) Load(ctx context.Context, tenant values.TenantId, organizationSc
 		} else if err == nil && json.Unmarshal(themeJSON, &result.Theme.Theme) != nil {
 			return fmt.Errorf("%w: corrupt tenant theme", preferences.ErrInvalid)
 		}
+		if err := tx.QueryRow(ctx, `SELECT version, policy FROM organization_visibility_preference WHERE tenant_id=$1 AND organization_scope_id=$2`, tenantID, organizationScopeID).Scan(&result.OrganizationVisibility.Version, &visibilityJSON); err != nil && !errors.Is(err, dbport.ErrNoRows) {
+			return fmt.Errorf("preferencestore: load organization visibility: %w", err)
+		} else if err == nil {
+			visibilityLoaded = true
+			if json.Unmarshal(visibilityJSON, &result.OrganizationVisibility) != nil || preferences.ValidateOrganizationVisibility(result.OrganizationVisibility) != nil {
+				return fmt.Errorf("%w: corrupt organization visibility", preferences.ErrInvalid)
+			}
+		}
 		return nil
 	})
+	if visibilityLoaded && err != nil {
+		return result, err
+	}
 	result.User = preferences.NormalizeUser(result.User)
+	result.OrganizationVisibility = preferences.NormalizeOrganizationVisibility(result.OrganizationVisibility)
+	result.OrganizationVisibility.OrganizationScopeID = organizationScopeID
 	return result, err
 }
 
@@ -111,6 +126,46 @@ func (s *Store) SaveTheme(ctx context.Context, tenant values.TenantId, organizat
 		affected, err := tx.Exec(ctx, `UPDATE tenant_appearance_preference SET version=version+1, theme=$4, updated_by=$5, updated_at=clock_timestamp() WHERE tenant_id=$1 AND organization_scope_id=$2 AND version=$3`, tenantID, organizationScopeID, value.Version, body, actor)
 		if err != nil {
 			return fmt.Errorf("preferencestore: update theme: %w", err)
+		}
+		if affected != 1 {
+			return preferences.ErrVersionConflict
+		}
+		value.Version++
+		return nil
+	})
+	return value, err
+}
+
+func (s *Store) SaveOrganizationVisibility(ctx context.Context, tenant values.TenantId, organizationScopeID, actor string, value preferences.OrganizationVisibility) (preferences.OrganizationVisibility, error) {
+	organizationScopeID = strings.TrimSpace(organizationScopeID)
+	actor = strings.TrimSpace(actor)
+	if organizationScopeID == "" || actor == "" {
+		return preferences.OrganizationVisibility{}, preferences.ErrInvalid
+	}
+	if err := preferences.ValidateOrganizationVisibility(value); err != nil {
+		return preferences.OrganizationVisibility{}, err
+	}
+	value = preferences.NormalizeOrganizationVisibility(value)
+	value.OrganizationScopeID = organizationScopeID
+	err := s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
+		body, err := json.Marshal(value)
+		if err != nil {
+			return fmt.Errorf("preferencestore: encode organization visibility: %w", err)
+		}
+		if value.Version == 0 {
+			affected, err := tx.Exec(ctx, `INSERT INTO organization_visibility_preference (tenant_id,organization_scope_id,version,policy,updated_by) VALUES ($1,$2,1,$3,$4) ON CONFLICT DO NOTHING`, tenantID, organizationScopeID, body, actor)
+			if err != nil {
+				return err
+			}
+			if affected != 1 {
+				return preferences.ErrVersionConflict
+			}
+			value.Version = 1
+			return nil
+		}
+		affected, err := tx.Exec(ctx, `UPDATE organization_visibility_preference SET version=version+1, policy=$4, updated_by=$5, updated_at=clock_timestamp() WHERE tenant_id=$1 AND organization_scope_id=$2 AND version=$3`, tenantID, organizationScopeID, value.Version, body, actor)
+		if err != nil {
+			return fmt.Errorf("preferencestore: update organization visibility: %w", err)
 		}
 		if affected != 1 {
 			return preferences.ErrVersionConflict

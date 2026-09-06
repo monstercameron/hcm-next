@@ -20,6 +20,11 @@ var (
 const (
 	TablePeople  = "people"
 	TableHistory = "history"
+
+	OrganizationVisibilityAll       = "ALL"
+	OrganizationVisibilityOwnUnit   = "OWN_UNIT"
+	OrganizationVisibilityAllowlist = "ALLOWLIST"
+	OrganizationVisibilityDenylist  = "DENYLIST"
 )
 
 // TablePreferences is the user's last-used collection configuration. Query
@@ -79,9 +84,21 @@ type TenantTheme struct {
 	Theme
 }
 
+// OrganizationVisibility is the organization-wide directory boundary chosen
+// by an administrator. It controls which organization units an ordinary user
+// may receive from ListWorkers; administrators retain the full population so
+// they can safely review and change the policy.
+type OrganizationVisibility struct {
+	Version             int64    `json:"-"`
+	OrganizationScopeID string   `json:"-"`
+	Mode                string   `json:"mode"`
+	OrganizationUnits   []string `json:"organization_units,omitempty"`
+}
+
 type Snapshot struct {
-	User  User
-	Theme TenantTheme
+	User                   User
+	Theme                  TenantTheme
+	OrganizationVisibility OrganizationVisibility
 }
 
 // Store is the persistence port. Tenant, organization scope, and principal are
@@ -92,7 +109,43 @@ type Store interface {
 	Load(context.Context, values.TenantId, string, string) (Snapshot, error)
 	SaveUser(context.Context, values.TenantId, string, User) (User, error)
 	SaveTheme(context.Context, values.TenantId, string, string, TenantTheme) (TenantTheme, error)
+	SaveOrganizationVisibility(context.Context, values.TenantId, string, string, OrganizationVisibility) (OrganizationVisibility, error)
 	RecordWorkflowUse(context.Context, values.TenantId, string, string) (User, error)
+}
+
+func NormalizeOrganizationVisibility(value OrganizationVisibility) OrganizationVisibility {
+	switch strings.ToUpper(strings.TrimSpace(value.Mode)) {
+	case OrganizationVisibilityOwnUnit, OrganizationVisibilityAllowlist, OrganizationVisibilityDenylist:
+		value.Mode = strings.ToUpper(strings.TrimSpace(value.Mode))
+	default:
+		value.Mode = OrganizationVisibilityAll
+	}
+	seen := make(map[string]bool, len(value.OrganizationUnits))
+	units := make([]string, 0, len(value.OrganizationUnits))
+	for _, unit := range value.OrganizationUnits {
+		unit = strings.TrimSpace(unit)
+		key := strings.ToLower(unit)
+		if unit == "" || seen[key] {
+			continue
+		}
+		seen[key] = true
+		units = append(units, unit)
+	}
+	value.OrganizationUnits = units
+	return value
+}
+
+// ValidateOrganizationVisibility distinguishes an absent default from a
+// malformed stored or submitted policy. Callers must validate before
+// normalizing untrusted input so an unknown mode cannot silently widen the
+// directory boundary to ALL.
+func ValidateOrganizationVisibility(value OrganizationVisibility) error {
+	switch strings.ToUpper(strings.TrimSpace(value.Mode)) {
+	case OrganizationVisibilityAll, OrganizationVisibilityOwnUnit, OrganizationVisibilityAllowlist, OrganizationVisibilityDenylist:
+		return nil
+	default:
+		return ErrInvalid
+	}
 }
 
 func NormalizePageSize(value int) int {
@@ -136,5 +189,5 @@ func DefaultSnapshot() Snapshot {
 		BrandName: "HCM Next", BrandMark: "H", ColorMode: "system", Palette: "evergreen",
 		Shape: "balanced", Density: "comfortable", Glyphs: "rounded-line", Typeface: "humanist",
 		Navigation: "light", Motion: "calm",
-	}}}
+	}}, OrganizationVisibility: OrganizationVisibility{Mode: OrganizationVisibilityAll}}
 }

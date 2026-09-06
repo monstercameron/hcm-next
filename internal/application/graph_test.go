@@ -140,6 +140,7 @@ observation-store|adapter|*observe.MemoryStore|
 pay-band-catalog|port|<nil>|
 presentation-preferences|adapter|*preferencestore.Store|database-pool
 proposal-executor|workflow|<nil>|execution-authority
+role-access|adapter|*roleaccessstore.Store|database-pool
 schema-migrator|adapter|<nil>|
 shutdown:shutdown-telemetry|shutdown|func(context.Context) error|telemetry-provider
 shutdown:stop-grpc-surface|shutdown|func(context.Context) error|grpc-surface

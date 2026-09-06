@@ -25,8 +25,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/data/demoworkforce"
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/preferencestore"
+	"github.com/monstercameron/hcm-next/internal/data/roleaccessstore"
 	"github.com/monstercameron/hcm-next/internal/data/workeridstore"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
@@ -70,6 +72,7 @@ const (
 	ComponentIntentService         = "intent-service"
 	ComponentJourneyEngine         = "journey-engine"
 	ComponentPresentationPrefs     = "presentation-preferences"
+	ComponentRoleAccess            = "role-access"
 	ComponentGRPCSurface           = "grpc-surface"
 	ComponentHTTPEdge              = "http-edge"
 	ComponentWorkloadGRPC          = "workload:grpc-surface"
@@ -138,6 +141,17 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		}
 		logger.Info("hcmnext.tenant_registered", "tenant", cfg.Tenant, "cell_id", cfg.CellID)
 	}
+	if cfg.DevBrowserLogin {
+		workforceSummary, organizationSummary, seedErr := bootstrapLocalDevWorkforce(ctx, in.Pool, cfg.Tenant)
+		if seedErr != nil {
+			return nil, seedErr
+		}
+		if workforceSummary.Planned > 0 {
+			logger.Info("hcmnext.local_dev_workforce_ready",
+				"tenant", cfg.Tenant, "workers", workforceSummary.Planned, "workers_inserted", workforceSummary.Inserted,
+				"organization_units", organizationSummary.UnitsPlanned, "organization_units_inserted", organizationSummary.UnitsInserted)
+		}
+	}
 
 	verifier, err := composeVerifier(cfg, options)
 	if err != nil {
@@ -174,6 +188,12 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 
 	workspaceEnabled := cfg.Workspace
 	workerIDs := workeridstore.New(in.Pool, tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
+	roleAccess := roleaccessstore.New(in.Pool, tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
+	if cfg.Tenant != "" && in.Pool != nil {
+		if err := roleAccess.Bootstrap(ctx, kernelvalues.TenantId(cfg.Tenant), "system:bootstrap"); err != nil {
+			return nil, fmt.Errorf("bootstrap role access: %w", err)
+		}
+	}
 	cellConfig := app.CellConfig{
 		Store:           store,
 		Verifier:        verifier,
@@ -182,6 +202,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		Logger:          transport.LoggerFunc(RequestLogger(logger)),
 		Workspace:       &workspaceEnabled,
 		DevBrowserLogin: cfg.DevBrowserLogin,
+		DevPersonas:     composeDevPersonas(verifier, cfg, options.Now),
 		Evidence:        evidence,
 		Telemetry:       telemetryProvider,
 		Inputs:          options.Inputs,
@@ -191,9 +212,11 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		Clock:           options.Clock,
 		IDs:             options.IDs,
 		Preferences:     preferencestore.New(in.Pool, tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID)),
+		RoleAccess:      roleAccess,
 		WorkerIDs:       workerIDs,
 	}
 	graph.add(ComponentPresentationPrefs, KindAdapter, cellConfig.Preferences, ComponentDatabasePool)
+	graph.add(ComponentRoleAccess, KindAdapter, cellConfig.RoleAccess, ComponentDatabasePool)
 	graph.add(ComponentPayBandCatalog, KindPort, cellConfig.Bands)
 
 	if cfg.ExecutionAuthority {
@@ -302,7 +325,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	if cfg.DevBrowserLogin {
 		loginURL := "http://" + httpListener.Addr().String() + workspace.PathLogin
 		logger.Info("hcmnext.dev_browser_login_enabled", "url", loginURL)
-		fmt.Fprintf(os.Stdout, "hcmnext: open %s and paste a bearer credential (see: hcmnext token) to sign in\n", loginURL)
+		fmt.Fprintf(os.Stdout, "hcmnext: open %s and choose a local persona (or use a bearer credential) to sign in\n", loginURL)
 	}
 
 	workloads := []bootstrap.Workload{
@@ -424,6 +447,63 @@ func composeVerifier(cfg ServeConfig, options Options) (trust.Verifier, error) {
 		return nil, fmt.Errorf("build the credential verifier: %w", err)
 	}
 	return verifier, nil
+}
+
+type developmentTokenIssuer interface {
+	Issue(trust.Claims) (string, error)
+}
+
+// composeDevPersonas creates local identities only when the operator enabled
+// the dev browser login and the configured verifier can issue development
+// tokens. A federation verifier therefore never acquires an implicit issuer.
+func composeDevPersonas(verifier trust.Verifier, cfg ServeConfig, now func() time.Time) []workspace.DevPersona {
+	if !cfg.DevBrowserLogin || cfg.Tenant != demoworkforce.CompanyKey {
+		return nil
+	}
+	issuer, ok := verifier.(developmentTokenIssuer)
+	if !ok {
+		return nil
+	}
+	if now == nil {
+		now = time.Now
+	}
+	timestamp := now().UTC()
+	type personaSpec struct {
+		id, workerNumber, access, description, purpose string
+		roles                                          []string
+	}
+	specs := []personaSpec{
+		{id: "admin", workerNumber: "HC-21050", access: "HCM administrator", description: "All product areas, people data, workflows, and organization configuration.", purpose: "compensation_review", roles: []string{"hcm_admin", "comp_admin", "intent_author", "promotion_operator"}},
+		{id: "hiring-manager", workerNumber: "HC-21052", access: "Hiring manager", description: "People, organization, insights, and governed workflow workspaces.", purpose: "compensation_review", roles: []string{"hiring_manager", "manager", "intent_author"}},
+		{id: "payroll-manager", workerNumber: "HC-21054", access: "Payroll manager", description: "Payroll-oriented people access, reporting, and assigned workflow workspaces.", purpose: "payroll_processing", roles: []string{"payroll_manager"}},
+		{id: "individual-contributor", workerNumber: "HC-21022", access: "Individual contributor", description: "Personal employment information, own organization context, help, and settings.", purpose: "self_service_view", roles: []string{"worker_self"}},
+	}
+	workers, err := demoworkforce.Plan(pgstore.TenantID(cfg.Tenant))
+	if err != nil {
+		return nil
+	}
+	workersByNumber := make(map[string]demoworkforce.Employee, len(workers))
+	for _, worker := range workers {
+		workersByNumber[worker.Row.WorkerNumber] = worker
+	}
+	personas := make([]workspace.DevPersona, 0, len(specs))
+	for _, spec := range specs {
+		worker, found := workersByNumber[spec.workerNumber]
+		if !found || worker.Row.WorkerKey == "" || worker.Row.LegalName == "" || worker.Row.LifecycleStatus != "active" {
+			continue
+		}
+		token, err := issuer.Issue(trust.Claims{
+			Issuer: cfg.Issuer, Audience: cfg.Audience, Subject: worker.Row.WorkerKey, SubjectKind: "human", Tenant: cfg.Tenant,
+			OrganizationScopeID: "org:" + cfg.Tenant + ":people-ops", Roles: spec.roles, Purposes: []string{spec.purpose},
+			AuthenticationMethod: "bearer_token", Assurance: "substantial", SessionRef: "session-local-persona-" + spec.id,
+			IssuedAtUnix: timestamp.Add(-time.Minute).Unix(), ExpiresAtUnix: timestamp.Add(8 * time.Hour).Unix(),
+		})
+		if err != nil {
+			continue
+		}
+		personas = append(personas, workspace.DevPersona{ID: spec.id, Name: worker.Row.LegalName, Access: spec.access, Description: spec.description, Token: token})
+	}
+	return personas
 }
 
 // ServeSpec declares the serve role for internal/platform/bootstrap: its
