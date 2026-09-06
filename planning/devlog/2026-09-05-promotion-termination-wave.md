@@ -269,3 +269,68 @@ organization-structure-maximal-2026.md` and the 30-table draft
   (`cc9ecac`). The DELETE grant in 00238 and the journey-cell bootstrap
   test noted above are committed as they stood and remain that session's
   to resolve. The checkout is clean.
+
+## 8. 2026-09-06 (evening): production UI regressions, job ladders and live Promotion proof
+
+- **Responsive, authority-aware product UI (`2cf44c6`).** The product shell
+  and its page compositions now omit actions the resolved page/action grant
+  does not allow, while an active role with no configured organization policy
+  fails closed to its own unit. The People directory owns sort, filter,
+  pagination and page-size changes as component state: a refresh keeps the
+  shell and scroll position mounted, scopes `aria-busy` and progress motion to
+  the directory, and does not jump focus to the page heading. Responsive table
+  actions, loading proxies, localized exact-money rendering and action-link
+  refusal states were hardened across Home, Work, People, Person, Insights and
+  Studio. The WASM router preserves focus for component-only query changes,
+  resets the compact navigation rail correctly and focuses actionable journey
+  refusals. `TestFrontendE2EPersonaLoginAndEveryProductRoute` exercises all
+  registered product routes through the real HTTP handler for the four local
+  personas; component, authorization, sort/performance, loading and navigation
+  regressions sit with their owners. `npm run test:frontend` passes.
+- **Immutable job architecture and governed ladder edges (`83afa89`).** A
+  `PromotionPathRevision` now pins source and target job-profile revisions and
+  validates UPWARD, LATERAL and CROSS_FAMILY graph semantics against a published
+  architecture revision. Base-pay bounds use exact `values.Percentage` decimal
+  fractions; the edge references a versioned compensation policy and benefit
+  eligibility rules and cannot mutate benefit elections. The HarborCare
+  fixture publishes People Operations, Engineering and Clinical families,
+  ranked profiles, exact pay bands and the HRBP2 -> HRBP3 and SWE3 -> MGR1
+  paths. `WorkforceOptions` exposes exact placement tuples and source-specific
+  path options over the Journey gRPC contract. The client offers only the
+  current profile's published next roles, fills the dependent grade, explains
+  salary and benefit rules, and refuses an unsupported target before RPC; both
+  proposal entry points repeat the exact server-side path/pay guard. Regression
+  tests cover invalid graph shapes, missing policy versions, exact lower/upper
+  pay bounds, unrelated but payable roles, cross-worker draft leakage and
+  intermediate approvals that must not claim a terminal ledger write.
+- **Due effective-date completion in local development (`b27f374`).** A live
+  run found that `local-dev` enabled the execute plan and durable timer adapter
+  but left its in-process scheduler disabled. The result was a truthful but
+  indefinitely parked `WAITING_EFFECTIVE_DATE` instance even when the date was
+  already due. The profile now enables the bounded scheduler with the executable
+  plan; the standard profile remains opt-in. The same live instance was then
+  fired and resumed from its durable timer, completed revalidation and effect
+  observations, reached `end_complete` and wrote one governed outcome. The
+  stale workflow refusal fixture was also moved from deprecated caller flags to
+  durable approval/supersession fact ports.
+- **Live evidence.** Intent
+  `01a078ec-f38b-7458-bfa9-e0f800a5f72b`, instance
+  `804e2abb-0595-5530-83b8-93e241f80905`, OPS-HRBP2/P2 -> OPS-HRBP3/P3,
+  USD 93,000.00 -> USD 98,000.00 (+5.4%), effective 2026-09-06. The Codex
+  browser showed both durable approvals, `wait_effective_date` SUCCEEDED,
+  instance version 62/COMPLETED and exactly one
+  `hcmnext.workflow.PromotionOutcome/v2` ledger row.
+- **Verification.** `npm run check:code-style`, `npm run check:go`,
+  `npm run test:frontend`, `go test ./internal/domains/jobarch
+  ./internal/domains/fixtures`, `go test ./internal/intent/app
+  ./internal/transport/journey ./internal/humanwork/workspace`, `go test
+  ./tools/uxqual/journeyclient ./internal/humanwork/productui`, `go test
+  ./test/workflow -count=1` and `npm run check:driftgate` pass. A broad
+  `go test ./internal/application` remains red only in the composition-root
+  policy test for concurrently edited `cmd/worker/roles.go` and
+  `internal/domains/mobility/persistence.go`; the focused local-profile config
+  tests pass, and neither unrelated file was changed in this group.
+- **Backlog accounting.** `JOBARCH-004` and `PROMO-009` are complete with
+  evidence. Persistent promotion-path rows and assignment profile pins remain
+  `PERSIST-JOBARCH-002`; the authorized administration surface remains
+  `UX-JOBARCH-001`; benefit eligibility execution remains `BEN-003`.

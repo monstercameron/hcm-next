@@ -2676,7 +2676,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** deterministic T0…Tn trace asserts exact logical inserts/transitions and zero-forbidden-row counts from intent creation through snapshot, simulation, proposal, approvals, wait/revalidation, reservations, atomic local commit, external observations, degraded completion, repair and final closure.
   - **REFACTOR:** table names remain logical contracts; conformance drives public Go interfaces and generated schemas without coupling to one physical layout.
   - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [transaction and repair](specs/transaction-ledger-reconciliation-and-repair.md), [workflow runtime](specs/workflow-runtime.md).
-- [ ] `PROMO-009` **[GATE_B][SOL_HIGH] Execute the promotion reference workflow itself end to end.**
+- [x] `PROMO-009` **[GATE_B][SOL_HIGH] Execute the promotion reference workflow itself end to end.**
   - **Depends:** `WF-RUN-027`, `WF-RUN-029`, `WF-RUN-030`, `WF-STEP-003`, `WF-STEP-004`, `PROMO-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS; DIRECT=none; WHY=the shipped promotion reference, not a demo graph, must be the plan that executes under EXECUTE`.
   - **TEST:** `TestTodo_PROMO_009`.
@@ -2685,6 +2685,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** the promotion reference gains an EXECUTE terminal profile and its APPROVAL nodes, its capability and decision nodes run through the capability gateway under EXECUTE, both approvals and the obligations are enforced, and the harness runs that definition from an approved proposal to COMPLETE.
   - **REFACTOR:** the demo definition is deleted or renamed as a step fixture.
   - **Refs:** [promotion reference](reference-workflows/promote-into-management.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
+  - **Evidence (2026-09-06):** `test/workflow/promo009_test.go` supplies the complete PRIMARY, GOLDEN, INTEGRATION, FAULT and SECURITY matrix over the shipped `promotionexec.Definition`, including both durable approvals, the effective-date timer, revalidation, capability execution, terminal idempotency and exactly one governed ledger fact. The `local-dev` profile now enables the bounded timer/ready-work scheduler with its executable plan, preventing a due-today promotion from remaining indefinitely parked. A live Codex-browser run completed OPS-HRBP2/P2 → OPS-HRBP3/P3 from proposal through finance and manager approval, settled `wait_effective_date`, reached `end_complete`, and displayed the single `hcmnext.workflow.PromotionOutcome/v2` ledger record. `go test ./test/workflow -count=1` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
 
 - [x] `PROMO-010` **[GATE_A][SOL_HIGH] Pin a Promotion execution behind the commercial entitlement snapshot.**
   - **Depends:** `COMM-001`.
@@ -13667,6 +13668,29 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** publication binds configuration approval and compatibility report; frozen impact set emits scoped review/migration intents while existing assignments retain historical job revision until governed change.
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
+
+- [x] `JOBARCH-004` **[PHASE_3][SOL_HIGH] Define immutable career-ladder promotion paths and exact reward guardrails.**
+  - **Evidence (2026-09-06):** `PromotionPathRevision`, `ProfileRevisionRef`, `ValidateAgainst`, `AllowsBaseIncrease` and promotion-path tests in `internal/domains/jobarch` define versioned source/target profile revisions, upward/lateral/cross-family graph rules, effective/known time, exact `values.Percentage` base-increase bounds, compensation-policy and benefit-eligibility rule references, and a deterministic digest with no float arithmetic or direct benefit-election mutation. `internal/domains/fixtures/testdata/job-architecture.json` publishes the prototype's People Operations, Engineering and Clinical families, ranked profiles and two governed ladder edges. `WorkforceOptions.promotion_paths` exposes only exact next-role tuples and their pay/benefit rule references; the promotion client filters its role selector to those edges and the server independently refuses an unrelated role or an increase outside the exact bound. A live Codex-browser run exercised OPS-HRBP2/P2 → OPS-HRBP3/P3 at +5.4%, then completed its durable approvals, effective-date WAIT and single governed ledger write. `go test ./internal/domains/jobarch ./internal/domains/fixtures ./internal/intent/app ./internal/transport/journey ./tools/uxqual/journeyclient` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
+  - **Depends:** `JOBARCH-001`, `JOBARCH-002`, `COMP-003`, `GOVERN-002`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=make promotion targets governed architecture edges instead of arbitrary job-code and grade text`.
+  - **TEST:** `TestPromotionPathValidatesAgainstRankedArchitecture`.
+  - **RED:** a promotion path targets an unknown or mutable profile revision, calls a lower/equal rank an upward move, crosses families without an explicit exception, uses floating-point salary rules, or directly changes benefit elections.
+  - **GREEN:** one immutable path pins source and target profiles, validates its ladder shape, carries exact minimum/maximum base-increase guardrails, references versioned compensation and benefit-eligibility rules, and produces a deterministic digest.
+  - **REFACTOR:** promotion approval thresholds remain owned by the versioned promotion rule pack; benefits reevaluate eligibility through `BEN-003` and never become job-architecture-owned election state.
+
+- [ ] `PERSIST-JOBARCH-002` **[PHASE_3][SOL_HIGH] Persist promotion paths and pin assignment job-profile revisions.**
+  - **Depends:** `JOBARCH-004`, `PERSIST-JOBARCH-001`, `STORE-001`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.REWARDS; DIRECT=none; WHY=make a path and both assignment profiles durable evidence for proposal, simulation and terminal commit`.
+  - **TEST:** `TestPromotionPathStorePinsProfileRevisionsAndRefusesOverlappingPublishedEdges`.
+  - **RED:** assignment stores only free-text job code/grade, a path is edited in place, overlapping published edges are ambiguous, or a proposal can change which profile revision it means between simulation and commit.
+  - **GREEN:** tenant-scoped append-only path rows carry effective/known coordinates and RLS; assignment and proposal snapshots pin source/target job-profile revisions while denormalized job code/grade are checked projections.
+
+- [ ] `UX-JOBARCH-001` **[PHASE_4][TERRA_HIGH] Add an authorized Job Architecture admin workspace.**
+  - **Depends:** `PERSIST-JOBARCH-002`, `AUTHZ-004`, `I18N-002`, `A11Y-003`.
+  - **INTENT CONTEXT:** `ROLE=EXPERIENCE; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=let authorized customers manage job codes, families, levels, grades, ladders and rule references without bypassing publication governance`.
+  - **TEST:** `TestJobArchitectureWorkspaceShowsLadderRulesAndPublishesOnlyThroughWorkflow`.
+  - **RED:** admin UI edits published architecture in place, offers unsupported job/grade combinations, exposes salary or benefit rules without authority, or saves browser-only configuration.
+  - **GREEN:** responsive reusable components show the family/level/profile graph, exact pay-band and increase rules, benefit impacts and publish status; all writes use server-side governed workflows and role/page/action authorization.
 
 ## 58. BusinessIntent-to-workflow design convergence
 
