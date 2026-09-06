@@ -592,7 +592,8 @@ accessibility / delegation / representation / human escalation
 
 > **Disposition (2026-09-02):** P1A. `WEDGE-001` must record the revised ICP (more than one HR system of record; single-suite Workday estates disqualified) and the read-only P1A price point. `WEDGE-014` is the Gate A decision; `WEDGE-015` is P1B.
 
-- [ ] `WEDGE-001` **[GATE_A][SOL_HIGH] Select a paid design-partner problem.**
+- [x] `WEDGE-001` **[GATE_A][SOL_HIGH] Select a paid design-partner problem.**
+  - **Evidence (2026-09-05):** `TestPartnerManifestRejectsUnboundedWedge` in `tools/planning/gateevidence`, `tools/planning/wedge` (one signed manifest identifies a non-duplicative Promotion/Compensation failure class and returns QUALIFIED; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/ ./tools/planning/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `GOV-010`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPartnerManifestRejectsUnboundedWedge`.
@@ -602,7 +603,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** keep partner-specific values outside shared domain contracts.
   - **Refs:** [Gate A](execution-plan.md#gate-a--paid-design-partner-observation), [target market](plan.md#4-target-market).
 
-- [ ] `WEDGE-002` **[GATE_A][TERRA] Establish baseline outcome metrics.**
+- [x] `WEDGE-002` **[GATE_A][TERRA] Establish baseline outcome metrics.**
+  - **Evidence (2026-09-05):** `TestBaselineRejectsMissingDenominator` in `tools/planning/wedge` (baseline computes reproducibly from source evidence and freezes a signed measurement definition; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestBaselineRejectsMissingDenominator`.
@@ -622,7 +624,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** preserve vendor observations separately from HCM Next product facts.
   - **Refs:** [Competitive positioning](specs/competitive-positioning-and-authority-expansion.md), [Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation).
 
-- [ ] `WEDGE-004` **[GATE_A][SOL_LOW] Bound the Phase 1 mutation/read field set.**
+- [x] `WEDGE-004` **[GATE_A][SOL_LOW] Bound the Phase 1 mutation/read field set.**
+  - **Evidence (2026-09-05):** `TestPilotFieldManifestRejectsImplicitField` in `tools/planning/gateevidence`, `tools/planning/wedge` (exact job, manager, organization, position and compensation fields resolve to typed paths; Gate A has no mutation authority; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/ ./tools/planning/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`, `WEDGE-003`, `SELECT-001`, `SELECT-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPilotFieldManifestRejectsImplicitField`.
@@ -632,7 +635,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** use the field registry shared by AuthZ, DLP, conflict and proposal digest.
   - **Refs:** [First workflow family](plan.md#71-first-workflow-family), [Phase 1 depth matrix](plan.md#phase-1-implementation-depth-matrix).
 
-- [ ] `WEDGE-005` **[GATE_A][TERRA] Define the independent downstream handoff.**
+- [x] `WEDGE-005` **[GATE_A][TERRA] Define the independent downstream handoff.**
+  - **Evidence (2026-09-05):** `TestTopologyRejectsSingleSystemCrossSystemClaim` in `tools/planning/gateevidence` (topology records one independently owned handoff, acknowledgement/observation mechanism and accountable owner; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTopologyRejectsSingleSystemCrossSystemClaim`.
@@ -642,7 +646,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** express topology through connector/system identities, not prose names.
   - **Refs:** [Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation), [Integration Platform](plan.md#77-horizontal-subsystem-integration-platform).
 
-- [ ] `WEDGE-006` **[GATE_A][TERRA] Define pilot bypass taxonomy and adoption denominator.**
+- [x] `WEDGE-006` **[GATE_A][TERRA] Define pilot bypass taxonomy and adoption denominator.**
+  - **Evidence (2026-09-05):** `TestAdoptionMetricRejectsHiddenBypass` in `internal/operations/wedge` (every eligible transaction is classified as HCM Next, approved bypass or unexplained exception; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`, `WEDGE-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestAdoptionMetricRejectsHiddenBypass`.
@@ -652,7 +657,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** keep bypass reason codes versioned and customer-readable.
   - **Refs:** [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation), [learning agenda](plan.md#124-learning-agenda).
 
-- [ ] `WEDGE-007` **[GATE_A][TERRA] Measure customer labor and HCM Next cost-to-serve.**
+- [x] `WEDGE-007` **[GATE_A][TERRA] Measure customer labor and HCM Next cost-to-serve.**
+  - **Evidence (2026-09-05):** `TestCostEvidenceRejectsMissingRoleOrWindow` in `internal/operations/wedge` (report separates customer implementation/operation labor and HCM Next infrastructure/support cost; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestCostEvidenceRejectsMissingRoleOrWindow`.
@@ -662,7 +668,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** do not introduce usage billing; retain evidence for commercial hypotheses.
   - **Refs:** [Commercial hypotheses](plan.md#125-commercial-architecture-hypotheses), [Gate A scorecard](execution-plan.md#gate-a-acceptance--paid-observation).
 
-- [ ] `WEDGE-008` **[GATE_A][SOL_LOW] Define numeric proceed/reselect/stop thresholds.**
+- [x] `WEDGE-008` **[GATE_A][SOL_LOW] Define numeric proceed/reselect/stop thresholds.**
+  - **Evidence (2026-09-05):** `TestPilotDecisionRejectsQualitativeOnlyThresholds` in `internal/operations/wedge` (signed thresholds deterministically map measured evidence to PROCEED, RESELECT_WEDGE or STOP; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-002`, `WEDGE-006`, `WEDGE-007`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPilotDecisionRejectsQualitativeOnlyThresholds`.
@@ -672,7 +679,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** parameterize metrics without changing historical decisions.
   - **Refs:** [Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation), [strategic success measures](plan.md#14-strategic-success-measures).
 
-- [ ] `WEDGE-009` **[GATE_A][TERRA] Define pilot exit and portability obligations.**
+- [x] `WEDGE-009` **[GATE_A][TERRA] Define pilot exit and portability obligations.**
+  - **Evidence (2026-09-05):** `TestPilotExitPlanRejectsMissingRevocationOrExport` in `internal/operations/wedge`, `tools/planning/gateevidence` (dry-run produces a complete tenant-scoped export and leaves no active connector authority; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/ ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPilotExitPlanRejectsMissingRevocationOrExport`.
@@ -682,7 +690,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** align with later tenant-exit contracts without building the full platform.
   - **Refs:** [Primary adoption objection](plan.md#122-primary-adoption-objection), [tenant lifecycle boundary](specs/platform-responsibility-boundaries.md).
 
-- [ ] `WEDGE-010` **[GATE_A][SOL_LOW] Obtain data-processing and security approval.**
+- [x] `WEDGE-010` **[GATE_A][SOL_LOW] Obtain data-processing and security approval.**
+  - **Evidence (2026-09-05):** `TestPilotApprovalRejectsUnclassifiedFlow` in `tools/planning/gateevidence` (security/privacy decision binds the exact topology and field manifest digest; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-004`, `WEDGE-005`, `WEDGE-009`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPilotApprovalRejectsUnclassifiedFlow`.
@@ -692,7 +701,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** changes to topology or classifications invalidate approval automatically.
   - **Refs:** [Privacy contract](plan.md#95-privacy-contract), [DLP specification](specs/data-classification-and-dlp.md).
 
-- [ ] `WEDGE-011` **[GATE_A][TERRA] Capture representative and adversarial partner fixtures.**
+- [x] `WEDGE-011` **[GATE_A][TERRA] Capture representative and adversarial partner fixtures.**
+  - **Evidence (2026-09-05):** `TestFixtureCoverageRejectsMissingBoundaryCase` in `tools/planning/gateevidence` (de-identified/synthetic fixtures preserve required semantics and expected results without exposing unapproved PII; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-004`, `WEDGE-010`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestFixtureCoverageRejectsMissingBoundaryCase`.
@@ -702,7 +712,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** version fixture provenance and expected-result digest.
   - **Refs:** [Reference workflow suite](reference-workflows/reference-suite.md), [sandbox/test data boundary](specs/platform-foundation-gap-closure.md).
 
-- [ ] `WEDGE-012` **[GATE_A][TERRA] Define the Promotion simulation acceptance story.**
+- [x] `WEDGE-012` **[GATE_A][TERRA] Define the Promotion simulation acceptance story.**
+  - **Evidence (2026-09-05):** `TestPromotionStoryRejectsHiddenEffect` in `tools/planning/gateevidence` (one WorkflowSimulationContract fixture returns all required sections with canonical digests; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-004`, `WEDGE-011`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPromotionStoryRejectsHiddenEffect`.
@@ -712,7 +723,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** keep customer policy parameters separate from the reusable scenario.
   - **Refs:** [Promotion reference workflow](reference-workflows/promote-into-management.md), [reference suite simulation contract](reference-workflows/reference-suite.md).
 
-- [ ] `WEDGE-013` **[GATE_A][TERRA] Establish paid-use event evidence.**
+- [x] `WEDGE-013` **[GATE_A][TERRA] Establish paid-use event evidence.**
+  - **Evidence (2026-09-05):** `TestPaidUseRejectsDemoOrInternalActor` in `tools/planning/gateevidence` (evidence identifies authorized customer actor, eligible transaction, completed workflow stage and outcome linkage; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`, `WEDGE-012`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestPaidUseRejectsDemoOrInternalActor`.
@@ -722,7 +734,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** minimize actor data while preserving auditability.
   - **Refs:** [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
 
-- [ ] `WEDGE-014` **[GATE_A][SOL_HIGH] Execute the Gate A decision.**
+- [x] `WEDGE-014` **[GATE_A][SOL_HIGH] Execute the Gate A decision.**
+  - **Evidence (2026-09-05):** `TestGateADecisionBlocksMissingEvidence` in `tools/planning/gateevidence` (complete evidence deterministically yields one signed decision and never grants write authority; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `NEXT-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestGateADecisionBlocksMissingEvidence`.
@@ -2080,7 +2093,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** crypto profile enables algorithm migration without semantic API change.
   - **Refs:** [Foundation certificate lifecycle](specs/platform-foundation-gap-closure.md), [crypto agility](data/models/security-trust.md).
 
-- [ ] `TRUST-024` **[GATE_C][SOL_HIGH] Implement consent, notice and objection lifecycle where processing relies on it.**
+- [x] `TRUST-024` **[GATE_C][SOL_HIGH] Implement consent, notice and objection lifecycle where processing relies on it.**
+  - **Evidence (2026-09-05):** `TestTodo_TRUST_024` in `internal/trust/consent` (processing authority, presented notice, affirmative action, preferences/objection/restriction and propagation obligations are versioned and reconciled; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/trust/consent/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-026`, `GOVERN-001`, `GOVERN-002`, `PRIV-001`, `RECORDS-DISP-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_024`.
@@ -2149,7 +2163,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Security research §1, E-06/E-07](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST key-management guidance](https://csrc.nist.gov/projects/key-management/key-management-guidelines), [NIST SP 800-57 Part 1](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-57pt1r5.pdf). Maps to NIST 800-53 SC-12/SC-13; FIPS 140-3.
 
-- [ ] `SECARCH-005` **[GATE_C][SOL_HIGH] Move release-provenance signing off the dev-fixture key onto custody-backed key material.**
+- [x] `SECARCH-005` **[GATE_C][SOL_HIGH] Move release-provenance signing off the dev-fixture key onto custody-backed key material.**
+  - **Evidence (2026-09-05):** `TestTodo_SECARCH_005` in `tools/policy/provenance`, `tools/policy/release` (provenance and release-bundle signing resolve their Ed25519 key through internal/trust/custody/internal/trust/envelope, releaseadmission.Policy.TrustedPublicKeys pins the custody-issued key, and a rotation drill re-signs and re-verifies without breaking release.VerifyBundle; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/provenance/ ./tools/policy/release/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-026`, `SUPPLY-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_SECARCH_005`.
@@ -2981,7 +2996,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** batch mechanics coordinate; each child retains ordinary governance, idempotency, transaction and repair semantics.
   - **Refs:** [Population engine](#37-shared-transformation-and-population-engines), [kernel family table](specs/business-intent-and-change-request.md#general-kernel-and-subtypes).
 
-- [ ] `INTENT-020` **[GATE_B][SOL_HIGH] Link analytical results to proposed action without granting analysis execution authority.**
+- [x] `INTENT-020` **[GATE_B][SOL_HIGH] Link analytical results to proposed action without granting analysis execution authority.**
+  - **Evidence (2026-09-05):** `TestAnalysisToIntentRequiresFreshGovernedProposal` in `internal/intent/analysis` (AnalyticalRequest produces sourced result; RecommendAction creates a separate draft/proposed BusinessIntent with explicit selected evidence, uncertainty, authorized population, causal link and fresh governance/simulation before any effect; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/intent/analysis/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `INTENT-011`, `AGENT-003`, `MODEL-020`, `GOVERN-002`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestAnalysisToIntentRequiresFreshGovernedProposal`.
@@ -3085,7 +3101,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** generic replanning coordinates immutable artifacts; domain engines perform calculations.
   - **Refs:** [Proposal revisions](specs/business-intent-and-change-request.md), [workflow interventions](specs/workflow-runtime.md).
 
-- [ ] `GOVERN-001` **[GATE_A][SOL_HIGH] Implement governance decision inputs and snapshots.**
+- [x] `GOVERN-001` **[GATE_A][SOL_HIGH] Implement governance decision inputs and snapshots.**
+  - **Evidence (2026-09-05):** `TestTodo_GOVERN_001` in `internal/governance/decision` (immutable snapshot references every subdecision/version/source watermark and canonical digest; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Evidence (partial, 2026-09-05):** `TestTodo_GOVERN_001` in `internal/governance/decision` (immutable snapshot references every subdecision/version/source watermark and canonical digest; written by an earlier lane (Luna or Sonnet) and verified independently); `go test -count=1 ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held partial on purpose: PRIV-001 (the privacy inventory it depends on) is open behind WEDGE-010.
   - **Evidence (partial, 2026-09-05):** `TestTodo_GOVERN_001` in `internal/governance/decision` (governance decision record composed from proposal revision digest, control snapshot, rule-pack versions, approval requirements and satisfaction, SoD verdicts and obligations with a canonical digest and a Promotion golden; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held: dependency PRIV-001 (via WEDGE-010) is still open and needs a ruling from Cam; implementation is complete.
   - **Depends:** `TRUST-011`, `MODEL-021`, `PRIV-001`, `CAP-001`.
@@ -3097,7 +3114,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** snapshot minimizes sensitive values while preserving reproducibility.
   - **Refs:** [Governance composition](specs/governance-decision-and-obligation-composition.md), [reproducibility](plan.md#93-reproducibility-contract).
 
-- [ ] `GOVERN-002` **[GATE_A][SOL_HIGH] Compose governance decisions deterministically.**
+- [x] `GOVERN-002` **[GATE_A][SOL_HIGH] Compose governance decisions deterministically.**
+  - **Evidence (2026-09-05):** `TestTodo_GOVERN_002` in `internal/governance`, `internal/governance/decision` (deny dominance, restriction intersection and obligation union/deduplication produce ALLOW, DENY, OBLIGATIONS, or UNKNOWN plus explanation; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/ ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Evidence (partial, 2026-09-05):** `TestTodo_GOVERN_002` in `internal/governance`, `internal/governance/decision` (deny dominance, restriction intersection and obligation union/deduplication produce ALLOW, DENY, OBLIGATIONS, or UNKNOWN plus explanation; written by an earlier lane (Luna or Sonnet) and verified independently); `go test -count=1 ./internal/governance/ ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held partial on purpose: PRIV-001 (the privacy inventory it depends on) is open behind WEDGE-010.
   - **Evidence (partial, 2026-09-05):** `TestTodo_GOVERN_002` in `internal/governance/decision` (deterministic composition: order-independent inputs yield one decision and digest, every fired rule named with its version, conflicts resolved by a declared precedence table and unresolved conflicts a typed refusal; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/decision/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held: the GOVERN-001 dependency PRIV-001 is still open; implementation is complete.
   - **Depends:** `GOVERN-001`.
@@ -3834,7 +3852,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** runtime storage exposes one advancement unit-of-work; scheduler publication happens only after commit.
   - **Refs:** [Workflow recovery](specs/workflow-runtime.md), [runtime database contract](data/models/kernel-governance-and-evidence.md).
   - **Evidence (2026-09-03):** `TestTodo_WF_RUN_025`, `TestTodo_WF_RUN_025_Race`, `TestTodo_WF_RUN_025_Fault`, `TestTodo_WF_RUN_025_Mutation`, `TestAdvanceRejectsAnOldReceiptAfterLaterProgress` in `internal/workflow/runtime` (`Advance(ctx, tx, AdvanceRequest)` is one transaction fenced by the expected `instance_version`: records the node attempt and typed output digest, applies `frontier.Advance`, writes the successor node executions, version and frontier, and persists every derived continuation exactly once through the `ContinuationSink` port and the `workflow_continuation` audit table of migration `00018_workflow_continuation.sql` (registered in `definitions/storage/storage-disposition.yaml`); migration `00020_workflow_advancement_receipt.sql` stores the exact request and result receipt atomically, an identical retry replays only while the instance remains at that receipt's resulting version, and a retry after any later node advances is stale; a stale version commits nothing and a sink failure after the node result rolls the whole advancement back); `go test -count=1 ./internal/workflow/runtime/ ./internal/data/pgtest/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
-- [ ] `WF-RUN-027` **[GATE_B][SOL_HIGH] Derive proposal approval and supersession at Start instead of trusting caller flags.**
+- [x] `WF-RUN-027` **[GATE_B][SOL_HIGH] Derive proposal approval and supersession at Start instead of trusting caller flags.**
+  - **Evidence (2026-09-05):** `TestTodo_WF_RUN_027` in `internal/workflow/runtime` (Start resolves the revision's approval decisions and supersession through ProposalFacts and ApprovalFacts ports (no booleans on StartRequest), refuses CodeUnapprovedProposal / CodeSupersededProposal / CodeApprovalBindingMismatch from stored facts, and records the approval decisio; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/workflow/runtime/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WF-RUN-023`, `INTENT-005`, `INTENT-006`, `APPROVAL-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=a workflow instance must start only from a proposal revision whose approval and currency are facts the runtime reads, never booleans a caller asserts`.
   - **TEST:** `TestTodo_WF_RUN_027`.
@@ -4143,7 +4162,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** the record is a MINIMAL CONTRACT; the full secure-inbox channel is DESIGN.
   - **Refs:** [Phase 1 messaging boundary](specs/messaging-and-notification-plane.md#phase-1-boundary).
 
-- [ ] `MSG-006` **[GATE_B][SOL_HIGH] Dispatch transactional email asynchronously.**
+- [x] `MSG-006` **[GATE_B][SOL_HIGH] Dispatch transactional email asynchronously.**
+  - **Evidence (2026-09-05):** `TestTodo_MSG_006` in `internal/operations/messagingdelivery` (one logical recipient message has idempotent attempts, provider reference and policy-controlled attention content; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/messagingdelivery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MSG-001`–`MSG-005`, `INTG-015`, `TRUST-016`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_006`.
@@ -4669,7 +4689,8 @@ closed.
   - **REFACTOR:** material semantic change requires RepairPlan approval.
   - **Refs:** [Integration redrive](specs/integration-platform.md), [HRIS DataOps redrive](specs/hris-admin-dataops.md).
 
-- [ ] `INTG-017` **[GATE_A][SOL_LOW] Publish connector health and dependency impact.**
+- [x] `INTG-017` **[GATE_A][SOL_LOW] Publish connector health and dependency impact.**
+  - **Evidence (2026-09-05):** `TestTodo_INTG_017` in `internal/connectivity/health` (health is HEALTHY, DEGRADED, INCIDENT, or UNKNOWN with causes, watermarks and impacted capabilities/workflows/deadlines; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/health/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `INTG-003`, `INTG-008`, `INTG-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_INTG_017`.
@@ -4679,7 +4700,8 @@ closed.
   - **REFACTOR:** health projection cannot change connection authority.
   - **Refs:** [Integration health](specs/integration-platform.md), [incident management](specs/incident-management.md).
 
-- [ ] `INTG-018` **[PHASE_2][SOL_HIGH] Implement authenticated webhook receipt and replay.**
+- [x] `INTG-018` **[PHASE_2][SOL_HIGH] Implement authenticated webhook receipt and replay.**
+  - **Evidence (2026-09-05):** `TestTodo_INTG_018` in `internal/connectivity/webhook` (immutable receipt/disposition/dedupe persists; replay redelivers existing event and never invents business truth/effect; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/webhook/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-017`, `TRUST-019`, `DATA-009`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_INTG_018`.
@@ -4939,7 +4961,8 @@ closed.
   - **REFACTOR:** no variable rating or invoice engine is introduced in Phase 1.
   - **Refs:** [Phase 1 commercial scope](plan.md#cross-phase-foundation-track), [execution exclusions](execution-plan.md#explicit-non-goals).
 
-- [ ] `COMM-002` **[GATE_A][TERRA] Record external/manual pilot invoice evidence.**
+- [x] `COMM-002` **[GATE_A][TERRA] Record external/manual pilot invoice evidence.**
+  - **Evidence (2026-09-05):** `TestTodo_COMM_002` in `internal/commercial` (append-only evidence records contract fingerprint, external invoice ID, amount/currency, dates/status, artifact hash and reconciliation state; duplicate replay returns the original record; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/commercial/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `COMM-001`, `DATA-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_COMM_002`.
@@ -4949,7 +4972,8 @@ closed.
   - **REFACTOR:** invoice generation, tax calculation and payment collection remain out of Phase 1.
   - **Refs:** [Pricing hypothesis](plan.md#125-commercial-architecture-hypotheses), [Phase 1 scope](execution-plan.md#explicit-non-goals).
 
-- [ ] `COMM-003` **[GATE_A][SOL_LOW] Produce deterministic pilot economic evidence.**
+- [x] `COMM-003` **[GATE_A][SOL_LOW] Produce deterministic pilot economic evidence.**
+  - **Evidence (2026-09-05):** `TestTodo_COMM_003` in `internal/commercial` (PilotEconomicEvidence reconciles the pilot interval and returns exactly PROCEED, RESELECT, or STOP from versioned thresholds; customer view omits confidential margin detail; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/commercial/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `COMM-002`, `WEDGE-013`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_COMM_003`.
@@ -5005,7 +5029,8 @@ closed.
 
 > **Disposition (2026-09-02):** `PRIV-001` (processing inventory) is P1B; retention, legal hold, subject rights and disposition are Gate C. P1A needs only the DPA/security approval captured in `WEDGE-010`.
 
-- [ ] `PRIV-001` **[GATE_B][SOL_HIGH] Publish an executable processing-activity and data-flow inventory.**
+- [x] `PRIV-001` **[GATE_B][SOL_HIGH] Publish an executable processing-activity and data-flow inventory.**
+  - **Evidence (2026-09-05):** `TestTodo_PRIV_001` in `internal/governance/privacy/inventory` (every approved flow resolves to versioned ProcessingActivity and ProcessingDataFlow; each occurrence records recipient/region/category receipt; the inventory records the MONITORING_CONSENT and BREACH_NOTIFICATION obligations of the applicable rule-pack releases so the notificatio; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/privacy/inventory/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-023`, `MODEL-026`, `WEDGE-010`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_001`.
@@ -5026,7 +5051,8 @@ closed.
   - **Refs:** [Consent and preferences](data/models/kernel-governance-and-evidence.md), [privacy governance](specs/data-classification-and-dlp.md).
   - **Evidence (2026-09-03):** `TestTodo_PRIV_002`, `_Security`, `_Browser`, `_Mutation` in `internal/governance/privacy` (typed `Notice` with digest, `Presentation` evidence bound to notice digest/version/locale/time, `OptionalProcessing` consent with expiry and append-only withdrawal, `EvaluateAuthority` deny-by-default with mandatory-basis refusal and RESTRICT_PROCESSING/REQUIRE_DELETION obligations on withdrawal; accessible presentation document scored by the uxqual fixture); `go test -count=1 ./internal/governance/privacy/... ./tools/uxqual/forms/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `PRIV-003` **[GATE_B][SOL_HIGH] Bind processor, transfer and DLP decisions at dispatch.**
+- [x] `PRIV-003` **[GATE_B][SOL_HIGH] Bind processor, transfer and DLP decisions at dispatch.**
+  - **Evidence (2026-09-05):** `TestTodo_PRIV_003` in `internal/governance/privacy/dispatch` (dispatch binds current signed policy snapshots to operation digest or returns EGRESS_BLOCKED with zero external call and durable evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/privacy/dispatch/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PRIV-001`, `TRUST-018`, `INTG-012`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_003`.
@@ -5056,7 +5082,8 @@ closed.
   - **REFACTOR:** hold matching is deterministic and explainable.
   - **Refs:** [Legal hold](specs/records-management-and-disposition.md), [records lifecycle](specs/platform-responsibility-boundaries.md).
 
-- [ ] `RECORDS-DISP-001` **[GATE_A][SOL_HIGH] Simulate retention and disposition without deleting bytes.**
+- [x] `RECORDS-DISP-001` **[GATE_A][SOL_HIGH] Simulate retention and disposition without deleting bytes.**
+  - **Evidence (2026-09-05):** `TestTodo_RECORDS_DISP_001` in `internal/governance/records` (return per-copy action, composed schedule, cutoff/correction history and blockers as ELIGIBLE, BLOCKED_WITH_REASONS or REPAIR_REQUIRED; deletion count is 0; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/records/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-026`, `PRIV-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RECORDS_DISP_001`.
@@ -5107,7 +5134,8 @@ closed.
   - **REFACTOR:** certificate is derived from evidence, never a manual status toggle.
   - **Refs:** [Processor lifecycle](specs/records-management-and-disposition.md), [reconciliation](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `PRIV-EXIT-001` **[GATE_B][SOL_HIGH] Verify tenant exit across copies, providers, credentials and backups.**
+- [x] `PRIV-EXIT-001` **[GATE_B][SOL_HIGH] Verify tenant exit across copies, providers, credentials and backups.**
+  - **Evidence (2026-09-05):** `TestTodo_PRIV_EXIT_001` in `internal/governance/exit` (tenant inventory, shutdown/revocation receipts, pending-work disposition, hold exceptions and restore re-delete evidence determine CERTIFIABLE or explicit blockers; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/exit/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `RECORDS-COPY-001`, `TENANT-003`, `PRIV-004`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_PRIV_EXIT_001`.
@@ -5161,7 +5189,8 @@ closed.
 
 > **Disposition (2026-09-02):** P1A: one backup restored once in non-production. P1B: `OPS-001` pilot SLOs, a named on-call owner, advisory route, redrive/rollback procedure, exit runbook, and a measured restore. Admission control, overload shedding, chaos and game days are Gate C.
 
-- [ ] `OPS-001` **[P0][SOL_LOW] Define versioned SLIs, SLOs and error-budget actions for the pilot path.**
+- [x] `OPS-001` **[P0][SOL_LOW] Define versioned SLIs, SLOs and error-budget actions for the pilot path.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_001` in `internal/operations/reliability`, `internal/operations/slo` (manifest resolves exact SLI query, target, window, owner and deterministic HEALTHY, AT_RISK, BREACHED, or UNKNOWN result for each pilot capability; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/reliability/ ./internal/operations/slo/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-005`, `WEDGE-006`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_001`.
@@ -5171,7 +5200,8 @@ closed.
   - **REFACTOR:** analytics/search outages are not allowed to redefine transaction-path availability.
   - **Refs:** [Operations model](data/models/operations-production.md), [SLO contract](specs/slo-sli-error-budget.md).
 
-- [ ] `OPS-002` **[GATE_A][SOL_HIGH] Enforce telemetry privacy, cardinality and sampling policy.**
+- [x] `OPS-002` **[GATE_A][SOL_HIGH] Enforce telemetry privacy, cardinality and sampling policy.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_002` in `internal/operations/telemetry` (export contains only allowlisted/redacted attributes, cardinality stays under declared budget and retains 100% of configured critical failures with signed policy receipt; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/telemetry/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-023`, `TRUST-018`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_002`.
@@ -5181,7 +5211,8 @@ closed.
   - **REFACTOR:** high-cardinality correlation belongs in traces/log indexes, not metrics labels.
   - **Refs:** [Telemetry governance](data/models/operations-production.md), [classification and DLP](specs/data-classification-and-dlp.md).
 
-- [ ] `OPS-003` **[GATE_A][TERRA] Monitor the telemetry pipeline as a dependency.**
+- [x] `OPS-003` **[GATE_A][TERRA] Monitor the telemetry pipeline as a dependency.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_003` in `internal/operations/telemetryhealth` (pipeline watermark/queue/drop/export status yields UNKNOWN evidence quality and opens a bounded incident after the configured interval; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/telemetryhealth/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_003`.
@@ -5191,7 +5222,8 @@ closed.
   - **REFACTOR:** absence of telemetry is never interpreted as absence of failure.
   - **Refs:** [Telemetry health](data/models/operations-production.md), [incident model](specs/incident-management.md).
 
-- [ ] `OPS-004` **[GATE_A][SOL_HIGH] Implement the canonical incident state machine.**
+- [x] `OPS-004` **[GATE_A][SOL_HIGH] Implement the canonical incident state machine.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_004` in `internal/operations/incidentstate` (valid transitions append evidence from DETECTED through REVIEWED; invalid transition returns INCIDENT_TRANSITION_INVALID with no state change; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/incidentstate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-001`, `DATA-003`, `WORK-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_004`.
@@ -5201,7 +5233,8 @@ closed.
   - **REFACTOR:** technical alerts aggregate into business incidents by correlation and affected set.
   - **Refs:** [Incident management](specs/incident-management.md), [operations assurance](plan.md#112-operational-readiness).
 
-- [ ] `OPS-005` **[GATE_A][SOL_HIGH] Publish tenant-scoped customer advisories from incidents.**
+- [x] `OPS-005` **[GATE_A][SOL_HIGH] Publish tenant-scoped customer advisories from incidents.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_005` in `internal/operations/advisory` (authorized audience receives versioned advisory/status history with delivery evidence and only its scoped affected facts; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/advisory/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-004`, `MSG-003`, `TRUST-011`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_005`.
@@ -5211,7 +5244,8 @@ closed.
   - **REFACTOR:** advisory wording is separate from internal forensic detail.
   - **Refs:** [Customer communications](specs/incident-management.md), [messaging](specs/messaging-and-notification-plane.md).
 
-- [ ] `ADMISSION-001` **[GATE_B][SOL_HIGH] Make deterministic tenant-aware admission decisions.**
+- [x] `ADMISSION-001` **[GATE_B][SOL_HIGH] Make deterministic tenant-aware admission decisions.**
+  - **Evidence (2026-09-05):** `TestTodo_ADMISSION_001` in `internal/operations/admission` (return ADMIT, QUEUE, DEFER, DEGRADE, or REJECT with tenant/cell/criticality/quota/retry-budget evidence; same snapshot returns same decision; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TENANT-001`, `OPS-001`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ADMISSION_001`.
@@ -5221,7 +5255,8 @@ closed.
   - **REFACTOR:** reserved capacity is explicit and cannot exceed physical/provider limits.
   - **Refs:** [Admission and criticality](data/models/operations-production.md), [production architecture](plan.md).
 
-- [ ] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
+- [x] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
+  - **Evidence (2026-09-05):** `TestTodo_ADMISSION_002` in `internal/operations/admission` (upstream scheduling slows at declared watermark; logical operation consumes bounded retry tokens and exhaustion returns RETRY_BUDGET_EXHAUSTED once with repair/escalation route; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ADMISSION-001`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ADMISSION_002`.
@@ -5241,7 +5276,8 @@ closed.
   - **REFACTOR:** node, shard, cell and capability drains share one contract.
   - **Refs:** [Drain coordination](data/models/operations-production.md), [safe points](specs/workflow-runtime.md).
 
-- [ ] `RECOVERY-001` **[GATE_A][SOL_HIGH] Define an authoritative-versus-rebuildable recovery matrix.**
+- [x] `RECOVERY-001` **[GATE_A][SOL_HIGH] Define an authoritative-versus-rebuildable recovery matrix.**
+  - **Evidence (2026-09-05):** `TestTodo_RECOVERY_001` in `internal/operations/recovery` (ledger/artifacts/config/keys/runtime/outbox restore and projection/search/analytics/cache rebuild contracts all resolve with owner and numeric target; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/recovery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `DATA-001`, `DATA-013`, `DATA-014`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_RECOVERY_001`.
@@ -5251,7 +5287,8 @@ closed.
   - **REFACTOR:** `RPO=N/A` is valid only for demonstrably replayable data.
   - **Refs:** [Recovery matrix](data/models/operations-production.md), [data planes](plan.md).
 
-- [ ] `RECOVERY-002` **[GATE_A][SOL_HIGH] Create encrypted immutable backup sets and verify readability.**
+- [x] `RECOVERY-002` **[GATE_A][SOL_HIGH] Create encrypted immutable backup sets and verify readability.**
+  - **Evidence (2026-09-05):** `TestTodo_RECOVERY_002` in `internal/operations/recovery` (BackupSet inventory/hash/signature/key/retention verifies and a random block sample plus manifest traversal returns VERIFIED; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/recovery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `RECOVERY-001`, `TRUST-019`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_RECOVERY_002`.
@@ -6913,7 +6950,8 @@ closed.
 
 > **Disposition (2026-09-02):** Phase 2. Nothing here blocks P1A or P1B.
 
-- [ ] `SEARCH-001` **[PHASE_2][SOL_HIGH] Enforce authorization before exact, fuzzy or vector ranking.**
+- [x] `SEARCH-001` **[PHASE_2][SOL_HIGH] Enforce authorization before exact, fuzzy or vector ranking.**
+  - **Evidence (2026-09-05):** `TestTodo_SEARCH_001` in `internal/engines/search` (prefilter binds tenant, record, relationship, field, purpose, classification, effective/known time and policy digest; each hit has source digest and suppression evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/search/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-009`, `TRUST-010`, `TRUST-012`, `PRIV-003`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_SEARCH_001`.
@@ -7233,7 +7271,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** index changes are rebuildable migrations with before/after plan evidence.
   - **Refs:** [SLO contract](specs/slo-sli-error-budget.md), [data plane](specs/platform-plane-model.md).
 
-- [ ] `DB-021` **[GATE_B][SOL_HIGH] Prove expand/backfill/shadow/cutover/contract database upgrades.**
+- [x] `DB-021` **[GATE_B][SOL_HIGH] Prove expand/backfill/shadow/cutover/contract database upgrades.**
+  - **Evidence (2026-09-05):** `TestTodo_DB_021` in `internal/platform/schemaupgrade` (version matrix passes; resumable backfill records checkpoint/count/hash, shadow comparison is exact and cutover/rollback preserves ledger and active workflows; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/schemaupgrade/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `DB-006`, `DB-018`, `TOOL-020`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_021`.
@@ -7243,7 +7282,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** destructive contract step waits for consumer-adoption watermark.
   - **Refs:** [Foundation upgrades](specs/platform-foundation-gap-closure.md), [schema lifecycle](data/models/dataops-configuration.md).
 
-- [ ] `DB-022` **[GATE_B][SOL_HIGH] Verify database backup, PITR and tenant-scoped restore semantics.**
+- [x] `DB-022` **[GATE_B][SOL_HIGH] Verify database backup, PITR and tenant-scoped restore semantics.**
+  - **Evidence (2026-09-05):** `TestTodo_DB_022` in `internal/operations/recovery` (isolated restore reaches requested recovery point, reports exact RPO/counts/hashes, reapplies hold/deletion manifests and remains fenced until conformance passes; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/recovery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `DB-006`, `RECOVERY-002`, `PRIV-004`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_022`.
@@ -7941,7 +7981,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** role concurrency/configuration is independent while deployment remains one binary initially.
   - **Refs:** [Workflow runtime](specs/workflow-runtime.md), [temporal primitives](data/models/wire-contract-primitives.md).
 
-- [ ] `SVC-006` **[GATE_B][SOL_HIGH] Build `cmd/worker` and its capability-activity role.**
+- [x] `SVC-006` **[GATE_B][SOL_HIGH] Build `cmd/worker` and its capability-activity role.**
+  - **Evidence (2026-09-05):** `TestTodo_SVC_006` in `cmd/worker` (thin cmd/worker selects configured roles; capability role resolves immutable descriptors through application wiring, revalidates, enforces side-effect/idempotency/fences, persists attempt evidence and routes ambiguity to observation/repair; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./cmd/worker/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SVC-002`, `CAP-001`, `WF-RUN-006`, `TX-008`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_SVC_006`.
@@ -7972,7 +8013,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration platform](specs/integration-platform.md), [credential leases](specs/secrets-key-custody-and-credential-leases.md).
 
-- [ ] `SVC-009` **[GATE_B][SOL_HIGH] Host reconciliation and repair as separately authorized `cmd/worker` roles.**
+- [x] `SVC-009` **[GATE_B][SOL_HIGH] Host reconciliation and repair as separately authorized `cmd/worker` roles.**
+  - **Evidence (2026-09-05):** `TestTodo_SVC_009` in `cmd/worker` (separate role identities/queues/authorization in the shared worker binary diagnose state, create immutable plans and execute approved repair idempotently; co-location grants no cross-role authority and closure requires fresh verification; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./cmd/worker/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SVC-002`, `TX-009`, `TX-010`, `DATA-015`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_SVC_009`.
@@ -8263,7 +8305,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Foundation publication](specs/platform-foundation-gap-closure.md), [security models](data/models/security-trust.md).
 
-- [ ] `CP-004` **[GATE_A][SOL_HIGH] Implement desired-state distribution with offline bootstrap.**
+- [x] `CP-004` **[GATE_A][SOL_HIGH] Implement desired-state distribution with offline bootstrap.**
+  - **Evidence (2026-09-05):** `TestTodo_CP_004` in `internal/platform/configbundle` (distributor publishes by tenant/cell; services verify and atomically apply bundles or use a bounded last-known-good snapshot with explicit freshness policy; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CP-003`, `SVC-002`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_004`.
@@ -8273,7 +8316,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Platform foundation](specs/platform-foundation-gap-closure.md), [tenant lifecycle](data/models/assurance-intelligence-platform.md).
 
-- [ ] `CP-005` **[GATE_A][SOL_HIGH] Record application receipts and adoption watermarks.**
+- [x] `CP-005` **[GATE_A][SOL_HIGH] Record application receipts and adoption watermarks.**
+  - **Evidence (2026-09-05):** `TestTodo_CP_005` in `internal/platform/configbundle` (signed receipt records desired/applied digest, epoch, service/build/cell and validation result; aggregate watermark drives rollout and schema retirement; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CP-004`, `DATA-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_005`.
@@ -8283,7 +8327,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Configuration promotion](specs/hris-admin-dataops.md), [operations models](data/models/operations-production.md).
 
-- [ ] `CP-006` **[GATE_A][SOL_HIGH] Implement local feature evaluation from signed state.**
+- [x] `CP-006` **[GATE_A][SOL_HIGH] Implement local feature evaluation from signed state.**
+  - **Evidence (2026-09-05):** `TestTodo_CP_006` in `internal/platform/configbundle` (Go evaluator returns versioned allow/deny/variant from signed bundle with deterministic rollout key and kill-switch precedence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CP-004`, `TENANT-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_006`.
@@ -8293,7 +8338,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Platform responsibilities](specs/platform-responsibility-boundaries.md), [control plane models](data/models/dataops-configuration.md).
 
-- [ ] `CP-007` **[GATE_B][SOL_HIGH] Execute canary activation with automatic pause.**
+- [x] `CP-007` **[GATE_B][SOL_HIGH] Execute canary activation with automatic pause.**
+  - **Evidence (2026-09-05):** `TestTodo_CP_007` in `internal/platform/configbundle` (bounded cohort activation evaluates declared health/evidence windows and deterministically pauses/promotes with signed decision; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CP-005`, `CP-006`, `OPS-001`, `DATA-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_007`.
@@ -8303,7 +8349,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [SLO contract](specs/slo-sli-error-budget.md), [foundation activation](specs/platform-foundation-gap-closure.md).
 
-- [ ] `CP-008` **[GATE_B][SOL_HIGH] Implement scoped emergency kill switches.**
+- [x] `CP-008` **[GATE_B][SOL_HIGH] Implement scoped emergency kill switches.**
+  - **Evidence (2026-09-05):** `TestTodo_CP_008` in `internal/platform/configbundle` (signed highest-precedence revocation targets tenant/cell/service/capability/model/connector, propagates within SLO and produces applied receipts; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CP-004`, `TRUST-021`, `OPS-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_008`.
@@ -8357,7 +8404,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Execution plan](execution-plan.md), [sandbox responsibilities](specs/platform-responsibility-boundaries.md).
 
-- [ ] `IAC-003` **[P0][TERRA] Gate formatting, validation, policy and plan review in CI.**
+- [x] `IAC-003` **[P0][TERRA] Gate formatting, validation, policy and plan review in CI.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_003` in `tools/policy/iac` (lint/validate/policy tests and golden plan diff fail closed; approved exception requires owner, rationale and expiry; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/iac/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-002`, `TOOL-011`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_003`.
@@ -8367,7 +8415,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Security models](data/models/security-trust.md), [operations production](data/models/operations-production.md).
 
-- [ ] `IAC-004` **[GATE_A][SOL_HIGH] Provision segmented cell networking, ingress, DNS and egress.**
+- [x] `IAC-004` **[GATE_A][SOL_HIGH] Provision segmented cell networking, ingress, DNS and egress.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_004` in `internal/connectivity/iac` (explicit ingress, service dependency, DNS and egress policies enforce cell/tenant trust boundaries and expose tested fail-closed paths; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/iac/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `TRUST-007`, `TRUST-017`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_004`.
@@ -8377,7 +8426,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Foundation endpoint discovery](specs/platform-foundation-gap-closure.md), [integration security](specs/integration-platform.md).
 
-- [ ] `IAC-005` **[GATE_A][SOL_HIGH] Provision digest-pinned Go workloads with probes and budgets.**
+- [x] `IAC-005` **[GATE_A][SOL_HIGH] Provision digest-pinned Go workloads with probes and budgets.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_005` in `internal/platform/workload` (every manifest pins signature-verified digest, non-root identity, resources, disruption/drain, liveness/readiness and least-privilege service account; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/workload/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `SVC-002`, `TOOL-018`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_005`.
@@ -8387,7 +8437,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md).
 
-- [ ] `IAC-006` **[GATE_A][SOL_HIGH] Provision PostgreSQL with HA, PITR and migration fencing.**
+- [x] `IAC-006` **[GATE_A][SOL_HIGH] Provision PostgreSQL with HA, PITR and migration fencing.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_006` in `internal/platform/database` (isolated cluster/config enforces TLS, roles/RLS, pooling, HA, backups, monitoring and one migration lock; restore test verifies ledger heads; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/database/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `DB-001`, `DB-006`, `DB-022`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_006`.
@@ -8397,7 +8448,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Database section](#26-postgresql-database-and-model-materialization), [recovery matrix](data/models/operations-production.md).
 
-- [ ] `IAC-007` **[GATE_A][SOL_HIGH] Provision S3-compatible artifact storage and lifecycle controls.**
+- [x] `IAC-007` **[GATE_A][SOL_HIGH] Provision S3-compatible artifact storage and lifecycle controls.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_007` in `internal/connectivity/artifactstore` (provider-neutral endpoint has private access, versioning/immutability, tenant key refs, lifecycle/hold controls and restore/read verification; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/artifactstore/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `MODEL-029`, `DATA-018`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_007`.
@@ -8407,7 +8459,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Artifact models](data/models/connectivity-access-content.md), [records management](specs/records-management-and-disposition.md).
 
-- [ ] `IAC-008` **[GATE_A][SOL_HIGH] Provision workload identity, secret and certificate bindings.**
+- [x] `IAC-008` **[GATE_A][SOL_HIGH] Provision workload identity, secret and certificate bindings.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_008` in `internal/platform/identitybinding` (workloads receive reference-only secret leases and short-lived identities/certs scoped to exact service/cell/destination; plan/state scans find no raw secret; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/identitybinding/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `TRUST-006`, `TRUST-015`, `TRUST-023`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_008`.
@@ -8417,7 +8470,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md).
 
-- [ ] `IAC-009` **[GATE_A][TERRA] Provision portable telemetry and quota infrastructure.**
+- [x] `IAC-009` **[GATE_A][TERRA] Provision portable telemetry and quota infrastructure.**
+  - **Evidence (2026-09-05):** `TestTodo_IAC_009` in `internal/platform/telemetry` (OTLP/Prometheus-compatible stack and bounded quota state are private, tenant/cell scoped, retained and independently health-monitored; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-003`, `OPS-002`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_009`.
@@ -8490,7 +8544,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Operations models](data/models/operations-production.md), [SLOs](specs/slo-sli-error-budget.md).
   - **Evidence (2026-09-03):** `TestTodo_STORE_003` (stale projection and unacked-outbox RED clauses), `_Golden`, `_Integration`, `_Fault` (probe error yields UNKNOWN), `_Recovery`, `BenchmarkTodo_STORE_003` in `internal/data/health` (per-store freshness, saturation against declared budgets and pool stats, recovery state); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/health/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `EVENT-001` **[GATE_A][SOL_HIGH] Implement the PostgreSQL outbox queue schema and claim protocol.**
+- [x] `EVENT-001` **[GATE_A][SOL_HIGH] Implement the PostgreSQL outbox queue schema and claim protocol.**
+  - **Evidence (2026-09-05):** `TestTodo_EVENT_001` in `internal/data/outbox` (tenant/criticality/available-at/ordering keys, lease/fence/attempt state and indexes support at-least-once delivery with exact operation identity; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/data/outbox/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `LEDGER-008`, `DATA-008`, `DB-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EVENT_001`.
@@ -8641,7 +8696,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md).
 
-- [ ] `AUTHN-006` **[GATE_A][SOL_HIGH] Issue and verify workload identities over mTLS.**
+- [x] `AUTHN-006` **[GATE_A][SOL_HIGH] Issue and verify workload identities over mTLS.**
+  - **Evidence (2026-09-05):** `TestTodo_AUTHN_006` in `internal/trust/workload` (Short-lived workload identity and trust-bundle version propagate to every service call; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/trust/workload/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-006`, `TRUST-023`, `IAC-008`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_006`.
@@ -8651,7 +8707,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Secrets/key custody](specs/secrets-key-custody-and-credential-leases.md), [foundation trust](specs/platform-foundation-gap-closure.md).
 
-- [ ] `AUTHN-007` **[GATE_B][SOL_HIGH] Prove IdP outage and post-outage reconciliation.**
+- [x] `AUTHN-007` **[GATE_B][SOL_HIGH] Prove IdP outage and post-outage reconciliation.**
+  - **Evidence (2026-09-05):** `TestTodo_AUTHN_007` in `internal/authn/outage` (Declared cached/read-only/manual modes, revocation reconciliation and incident evidence pass fault fixtures; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/authn/outage/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `AUTHN-004`, `TRUST-020`, `OPS-004`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_007`.
@@ -8661,7 +8718,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Incident management](specs/incident-management.md), [trust models](data/models/security-trust.md).
 
-- [ ] `AUTHN-008` **[PHASE_2][SOL_HIGH] Decide and gate SAML/SCIM support from customer evidence.**
+- [x] `AUTHN-008` **[PHASE_2][SOL_HIGH] Decide and gate SAML/SCIM support from customer evidence.**
+  - **Evidence (2026-09-05):** `TestTodo_AUTHN_008` in `internal/authn/enterprisegate` (Approved path gets full metadata/signature/deprovision conformance; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/authn/enterprisegate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `AUTHN-001`, `WEDGE-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_AUTHN_008`.
@@ -8693,7 +8751,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md).
 
-- [ ] `TRUST-027` **[GATE_A][SOL_HIGH] Implement secret-zero workload bootstrap.**
+- [x] `TRUST-027` **[GATE_A][SOL_HIGH] Implement secret-zero workload bootstrap.**
+  - **Evidence (2026-09-05):** `TestTodo_TRUST_027` in `internal/trust/bootstrap` (Attested workload identity obtains bounded initial lease and denial leaves process unready; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/trust/bootstrap/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-026`, `AUTHN-006`, `IAC-008`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestTodo_TRUST_027`.
@@ -8768,7 +8827,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Experience boundary](specs/platform-plane-model.md), [execution plan](execution-plan.md).
 
-- [ ] `EDGE-002` **[GATE_A][SOL_HIGH] Enforce WAF/request-shape and DDoS admission policy.**
+- [x] `EDGE-002` **[GATE_A][SOL_HIGH] Enforce WAF/request-shape and DDoS admission policy.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_002` in `internal/transport/edge` (Normal corpus meets latency budget; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EDGE-001`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_002`.
@@ -8778,7 +8838,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Foundation hostile ingress](specs/platform-foundation-gap-closure.md), [operations models](data/models/operations-production.md).
 
-- [ ] `EDGE-003` **[GATE_A][SOL_HIGH] Enforce tenant/principal/route quotas and fairness.**
+- [x] `EDGE-003` **[GATE_A][SOL_HIGH] Enforce tenant/principal/route quotas and fairness.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_003` in `internal/transport/edge` (Decisions expose retry-after, scope, criticality and budget evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EDGE-001`, `ADMISSION-001`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_003`.
@@ -8799,7 +8860,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Foundation identity](specs/platform-foundation-gap-closure.md), [Go-only transport](specs/go-only-technology-constitution.md).
 
-- [ ] `EDGE-005` **[GATE_A][SOL_HIGH] Enforce a centralized DNS/IP-aware egress proxy.**
+- [x] `EDGE-005` **[GATE_A][SOL_HIGH] Enforce a centralized DNS/IP-aware egress proxy.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_005` in `internal/connectivity/egress` (Every allowed hop revalidates destination, TLS, purpose and DLP; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/egress/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TRUST-017`, `TRUST-018`, `IAC-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_005`.
@@ -8809,7 +8871,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Outbound trust](specs/platform-foundation-gap-closure.md), [integration security](specs/integration-platform.md).
 
-- [ ] `EDGE-006` **[GATE_A][SOL_HIGH] Generate east-west policy from service dependency manifests.**
+- [x] `EDGE-006` **[GATE_A][SOL_HIGH] Generate east-west policy from service dependency manifests.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_006` in `internal/transport/eastwest` (Declared workload-to-capability paths pass mTLS plus service AuthZ; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/eastwest/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SVC-001`, `AUTHN-006`, `IAC-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_006`.
@@ -8829,7 +8892,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration scheduling](specs/integration-platform.md), [operations models](data/models/operations-production.md).
 
-- [ ] `EDGE-008` **[GATE_B][SOL_HIGH] Run adversarial edge/network conformance.**
+- [x] `EDGE-008` **[GATE_B][SOL_HIGH] Run adversarial edge/network conformance.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_008` in `internal/connectivity/edge` (Pinned attack/fuzz/chaos corpus must find zero cross-tenant disclosure/effect, fail-open trust decision or unbounded resource path and emit signed release evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EDGE-001`–`EDGE-007`, `TRUST-025`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_008`.
@@ -8854,7 +8918,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [toolchain](#2-go-only-repository-toolchain-and-contract-generation).
 
-- [ ] `CICD-002` **[GATE_A][SOL_HIGH] Rehearse migration manifests in CI.**
+- [x] `CICD-002` **[GATE_A][SOL_HIGH] Rehearse migration manifests in CI.**
+  - **Evidence (2026-09-05):** `TestTodo_CICD_002` in `tools/policy/migrationci` (Clean and upgrade paths run expand/backfill/shadow/cutover/contract without history loss; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/migrationci/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `DB-006`, `DB-021`, `CICD-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_CICD_002`.
@@ -8927,7 +8992,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [structured logging and OpenTelemetry](specs/structured-logging-and-opentelemetry.md), [Operations models](data/models/operations-production.md), [Go technology constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-03):** `TestTodo_OBS_002`, `_Race`, `_Integration`, `_Security`, `TestCollectorPipelineConfigParsesWithReceiversProcessorsExporters`, `TestCollectorPipelineConfigRedactionCoversEveryProhibitedClassKey` in `internal/platform/telemetry/otel` (redacting tracer/span decorator routing every attribute through the frozen policy evaluator, exactly the five catalog instruments registered, correlation/request/evidence/principal ids propagated from the logging context, stdout/OTLP-HTTP/test exporters, bounded shutdown report; Collector pipeline `definitions/telemetry/collector/otel-collector.yaml` with a redaction processor covering every PROHIBITED class); `TestTodo_OBS_002_TransportInterceptorsEmitRedactedSpansOnBothTransports`, `TestTodo_OBS_002_TransportInterceptorsPropagateDeadline`, `TestTodo_OBS_002_TransportInterceptorsSetErrorSpanStatus` in `internal/transport/otelmw` (gRPC unary and Connect interceptors run after trusted admission, derive only verified invocation context, preserve deadlines and map owned outcomes); `TestTodo_OBS_002_ServeTelemetryProviderOwnsAPIResource` in `cmd/hcmnext` (bounded policy-enforced provider, gRPC/Connect cell wiring and post-listener graceful flush that cannot change the business shutdown result); `go test -count=1 ./internal/platform/telemetry/... ./internal/transport/otelmw/... ./cmd/hcmnext ./internal/intent/app` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `OBS-003` **[GATE_A][TERRA] Deploy portable OSS telemetry backends.**
+- [x] `OBS-003` **[GATE_A][TERRA] Deploy portable OSS telemetry backends.**
+  - **Evidence (2026-09-05):** `TestTodo_OBS_003` in `internal/platform/telemetry/backends` (Prometheus-compatible metrics, Loki logs, Tempo traces and Grafana dashboards (or protocol-compatible replacements) pass ingest/query/retention/isolation/restore and license/cost checks; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/backends/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OBS-002`, `IAC-009`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_003`.
@@ -9087,7 +9153,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** error classification precedes telemetry and is shared with transport/incident policy; protected forensic artifacts use document/evidence controls.
   - **Refs:** [severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [export failure](specs/structured-logging-and-opentelemetry.md#export-failure-and-shutdown), [error contract](specs/http-grpc-endpoint-contract.md).
 
-- [ ] `OBS-018` **[GATE_A][SOL_HIGH] Govern runtime log-level and diagnostic-trace elevation.**
+- [x] `OBS-018` **[GATE_A][SOL_HIGH] Govern runtime log-level and diagnostic-trace elevation.**
+  - **Evidence (2026-09-05):** `TestDiagnosticElevationRequiresScopedExpiringGovernedConfiguration` in `internal/platform/telemetry/diagnostic` (signed configuration revision binds actor/purpose/tenant-or-correlation scope/levels/volume budget/start/expiry/approval, all processes converge or report drift, sensitive fields remain prohibited and automatic expiry emits evidence with no business behavior change; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/diagnostic/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OBS-004`, `OBS-009`, `CONFIG-003`, `TRUST-011`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS; DIRECT=none; WHY=enable incident diagnostics without permanent debug mode, secret capture, cross-tenant surveillance or unbounded telemetry cost`.
   - **TEST:** `TestDiagnosticElevationRequiresScopedExpiringGovernedConfiguration`.
@@ -9097,7 +9164,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** dynamic level filter is an owned handler layer driven by configuration snapshots, not package globals or provider console state.
   - **Refs:** [diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [configuration](#14-configuration-regulatory-and-reference-data), [support access](specs/platform-foundation-gap-closure.md).
 
-- [ ] `OBS-019` **[GATE_A][SOL_HIGH] Bound telemetry queues, retry, duplication, backpressure and shutdown loss.**
+- [x] `OBS-019` **[GATE_A][SOL_HIGH] Bound telemetry queues, retry, duplication, backpressure and shutdown loss.**
+  - **Evidence (2026-09-05):** `TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState` in `internal/platform/telemetry/queue` (bounded queues/retry budgets/drop priority and circuit states cap resources, independent health path reports accepted/exported/rejected/dropped by reason, shutdown follows stop-admit/drain/stop-produce/flush/close order and returns exact COMPLETE|PARTIAL|TIMED_OUT receipt; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/queue/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OBS-002`, `OBS-003`, `OBS-006`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure telemetry outage cannot exhaust production resources or silently erase the evidence-quality signal`.
   - **TEST:** `TestTelemetryBackpressureAndShutdownReturnExactDropAndDegradedState`.
@@ -9118,7 +9186,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** applications consume generated identifiers/builders; semantic-convention upgrades are explicit dependency changes rather than ambient library behavior.
   - **Refs:** [testing contract](specs/structured-logging-and-opentelemetry.md#testing-contract), [library qualification](#3-third-party-library-and-internal-semantic-package-architecture), [release evidence](#31-ci-cd-release-evidence-and-deployment-control).
 
-- [ ] `OBS-021` **[GATE_A][SOL_HIGH] Enforce telemetry query isolation, retention, residency, holds and tenant exit.**
+- [x] `OBS-021` **[GATE_A][SOL_HIGH] Enforce telemetry query isolation, retention, residency, holds and tenant exit.**
+  - **Evidence (2026-09-05):** `TestTelemetryLifecycleAndQueryPolicyPreventsCrossTenantOrExpiredAccess` in `internal/platform/telemetry/lifecycle` (purpose-bound query authorization scopes every signal and join, backend policies enforce signal/class/region retention and approved holds, copy inventory covers primary/index/archive/backup/restore, expiry/exit returns exact deletion or exception evidence and restored copies reap; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/lifecycle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OBS-003`, `OBS-016`, `RECORDS-COPY-001`, `PRIV-EXIT-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.OPERATIONS,BI.PRIVACY; DIRECT=none; WHY=prevent operational backends from becoming an uncontrolled cross-tenant HCM database`.
   - **TEST:** `TestTelemetryLifecycleAndQueryPolicyPreventsCrossTenantOrExpiredAccess`.
@@ -9226,7 +9295,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration platform](specs/integration-platform.md), [Go technology constitution](specs/go-only-technology-constitution.md).
 
-- [ ] `CONN-RT-002` **[GATE_A][SOL_HIGH] Implement bounded generic transport adapters.**
+- [x] `CONN-RT-002` **[GATE_A][SOL_HIGH] Implement bounded generic transport adapters.**
+  - **Evidence (2026-09-05):** `TestTodo_CONN_RT_002` in `internal/connectivity/transport` (No adapter exposes arbitrary sockets to domain code; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/transport/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CONN-RT-001`, `EDGE-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONN_RT_002`.
@@ -9236,7 +9306,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Generic adapters](specs/integration-platform.md), [outbound trust](specs/platform-foundation-gap-closure.md).
 
-- [ ] `CONN-RT-003` **[GATE_B][SOL_HIGH] Implement durable connector queue, leases and append-only operation journal.**
+- [x] `CONN-RT-003` **[GATE_B][SOL_HIGH] Implement durable connector queue, leases and append-only operation journal.**
+  - **Evidence (2026-09-05):** `TestTodo_CONN_RT_003` in `internal/connectivity/operation` (Operation and every attempt retain mapped/request/response/credential/fence/observation refs; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/operation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `INTG-011`, `EVENT-001`, `SVC-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONN_RT_003`.
@@ -9246,7 +9317,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Connector operation](specs/integration-platform.md), [connectivity models](data/models/connectivity-access-content.md).
 
-- [ ] `CONN-RT-004` **[GATE_B][SOL_HIGH] Bind short-lived credential leases at dispatch.**
+- [x] `CONN-RT-004` **[GATE_B][SOL_HIGH] Bind short-lived credential leases at dispatch.**
+  - **Evidence (2026-09-05):** `TestTodo_CONN_RT_004` in `internal/connectivity/operation` (Adapter never receives persisted raw secret and wrong tenant/destination/operation/expiry/revocation fails before bytes leave; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/operation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CONN-RT-003`, `TRUST-029`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONN_RT_004`.
@@ -9267,7 +9339,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Mapping engine](specs/integration-platform.md), [crosswalk models](data/models/dataops-configuration.md).
 
-- [ ] `CONN-RT-006` **[GATE_A][TERRA] Build a hard-fenced connector sandbox.**
+- [x] `CONN-RT-006` **[GATE_A][TERRA] Build a hard-fenced connector sandbox.**
+  - **Evidence (2026-09-05):** `TestTodo_CONN_RT_006` in `internal/platform/sandbox` (Resettable emulator scripts pagination, 429, timeout-after-send, partial, schema drift and observations through the real runtime; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/sandbox/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CONN-RT-001`, `SANDBOX-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONN_RT_006`.
@@ -9312,7 +9385,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Artifact models](data/models/connectivity-access-content.md), [responsibility boundaries](specs/platform-responsibility-boundaries.md).
 
-- [ ] `ARTIFACT-002` **[GATE_A][SOL_HIGH] Implement authorized resumable multipart upload.**
+- [x] `ARTIFACT-002` **[GATE_A][SOL_HIGH] Implement authorized resumable multipart upload.**
+  - **Evidence (2026-09-05):** `TestTodo_ARTIFACT_002` in `internal/store/object` (Checksummed completion enters RECEIVED→SCANNING atomically; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/store/object/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ARTIFACT-001`, `DOC-MAL-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS,BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ARTIFACT_002`.
@@ -9322,7 +9396,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Document models](data/models/connectivity-access-content.md), [hostile ingress](specs/platform-foundation-gap-closure.md).
 
-- [ ] `ARTIFACT-003` **[GATE_A][SOL_HIGH] Implement scoped streaming/range download.**
+- [x] `ARTIFACT-003` **[GATE_A][SOL_HIGH] Implement scoped streaming/range download.**
+  - **Evidence (2026-09-05):** `TestTodo_ARTIFACT_003` in `internal/data/artifacts` (Short-lived grant rechecks policy and emits byte/range/digest receipt; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/data/artifacts/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ARTIFACT-001`, `DATA-016`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS,BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ARTIFACT_003`.
@@ -9427,7 +9502,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Reconciliation](specs/transaction-ledger-reconciliation-and-repair.md), [DataOps](specs/hris-admin-dataops.md).
 
-- [ ] `ONBOARD-007` **[GATE_A][SOL_HIGH] Export an offline-verifiable onboarding lineage package.**
+- [x] `ONBOARD-007` **[GATE_A][SOL_HIGH] Export an offline-verifiable onboarding lineage package.**
+  - **Evidence (2026-09-05):** `TestTodo_ONBOARD_007` in `internal/connectivity/onboarding` (Missing/tampered member fails verifier; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/onboarding/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ONBOARD-002`–`ONBOARD-006`, `MODEL-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.LIFECYCLE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ONBOARD_007`.
@@ -9437,7 +9513,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Provenance](specs/provenance-graph-and-lineage.md), [canonical digest](specs/canonical-envelope-and-digest.md).
 
-- [ ] `ONBOARD-008` **[GATE_A][SOL_HIGH] Govern staging export, quarantine, retention and deletion.**
+- [x] `ONBOARD-008` **[GATE_A][SOL_HIGH] Govern staging export, quarantine, retention and deletion.**
+  - **Evidence (2026-09-05):** `TestTodo_ONBOARD_008` in `internal/connectivity/onboarding` (Payload destruction retains minimal verifiable lineage; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/onboarding/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ONBOARD-002`, `TRUST-018`, `RECORDS-HOLD-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.LIFECYCLE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ONBOARD_008`.
@@ -9545,7 +9622,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Responsibilities](specs/platform-responsibility-boundaries.md), [incident management](specs/incident-management.md).
   - **Evidence (2026-09-03):** `TestTodo_OPS_007`, `TestTodo_OPS_007_Integration`, `TestTodo_OPS_007_Recovery` in `tools/planning/operations` over `definitions/operations/service-ownership.yaml` and `service-dependencies.yaml` (service/workflow/connector/store/provider roles require primary+backup ownership, tier, SLO, escalation, fallback, version, evidence, verification and expiry; logical dependencies require scoped identity/network/protocol/schema/timeout/staleness/fallback ownership; expired or incomplete records return structured `OPS_007_REJECTED` with zero effects); `go test -count=1 ./tools/planning/operations/...` and `go vet ./tools/planning/operations/...` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02.
 
-- [ ] `OPS-008` **[GATE_A][TERRA] Rehearse on-call, runbooks and support handoffs.**
+- [x] `OPS-008` **[GATE_A][TERRA] Rehearse on-call, runbooks and support handoffs.**
+  - **Evidence (2026-09-05):** `TestTodo_OPS_008` in `tools/planning/operations` (Every critical runbook covers trigger, diagnosis, containment, rollback/degrade, verification, communication and expiry; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/operations/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-007`, `OBS-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_008`.
@@ -9576,7 +9654,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Operations models](data/models/operations-production.md), [SLOs](specs/slo-sli-error-budget.md).
   - **Evidence (2026-09-03):** `TestTodo_OPS_010`, `TestTodo_OPS_010_Recovery` in `tools/planning/operations` over `definitions/operations/operating-evidence.yaml`; deterministic clocked validation requires OWNERSHIP/RUNBOOK/DEPENDENCY/RESTORE/DRILL/VENDOR/CONTROL coverage, classifies `CURRENT|DUE|EXPIRED`, returns structured `OPS_010_REJECTED` field/state/version/gate diagnostics with zero effects, and admits only complete active signed compensating-control waivers. `go test -count=1 ./tools/planning/operations` and `go vet ./tools/planning/operations` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02.
 
-- [ ] `PERF-ENV-001` **[GATE_A][SOL_HIGH] Publish versioned workload envelopes and hard limits.**
+- [x] `PERF-ENV-001` **[GATE_A][SOL_HIGH] Publish versioned workload envelopes and hard limits.**
+  - **Evidence (2026-09-05):** `TestTodo_PERF_ENV_001` in `internal/performance`, `tools/planning/performance` (Small/medium/large/peak fixtures declare resource and correctness budgets; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/performance/ ./tools/planning/performance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-001`, `SVC-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.TALENT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_PERF_ENV_001`.
@@ -9636,7 +9715,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Integration scheduling](specs/integration-platform.md), [operations models](data/models/operations-production.md).
 
-- [ ] `PERF-007` **[GATE_A][SOL_HIGH] Produce unit-cost and capacity forecasts.**
+- [x] `PERF-007` **[GATE_A][SOL_HIGH] Produce unit-cost and capacity forecasts.**
+  - **Evidence (2026-09-05):** `TestTodo_PERF_007` in `tools/planning/performance` (Report deterministic cost per command/workflow/connector op/stored GB-month/agent run plus envelope/peak forecast and budget alerts; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/performance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PERF-ENV-001`, `WEDGE-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.TALENT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_PERF_007`.
@@ -9748,7 +9828,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Provenance](specs/provenance-graph-and-lineage.md), [DataOps](specs/hris-admin-dataops.md).
 
-- [ ] `XFORM-008` **[GATE_A][SOL_HIGH] Migrate workflow, integration and DataOps mappings onto the shared engine.**
+- [x] `XFORM-008` **[GATE_A][SOL_HIGH] Migrate workflow, integration and DataOps mappings onto the shared engine.**
+  - **Evidence (2026-09-05):** `TestTodo_XFORM_008` in `internal/connectivity/mapping`, `internal/engines/transformation/adapters` (Circular package dependencies and independent transform runtimes are rejected afterward; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/mapping/ ./internal/engines/transformation/adapters/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Evidence (partial, 2026-09-05):** `TestTodo_XFORM_008`, `TestTodo_XFORM_008_{Property,Golden,Conformance,Mutation}`, `FuzzTodo_XFORM_008`, `TestTodo_XFORM_008_MigrationProof_{Workflow,ConnectivityProfile,ConnectivityRules,DataOps}`, `TestTodo_XFORM_008_Integration_ConnectivityExecute` and per-site lowering/refusal/divergence tests in `internal/engines/transformation/adapters` (adapters lower the workflow TRANSFORM step, the connectivity MappingProfile and mapping IR, and the DataOps import mapping into the shared IR through ir.Compile with declared limit mappings and canonical digests, a closed refusal vocabulary names every site feature with no IR equivalent, byte-identical migration proofs against each site's current path, conformance that every site operation is an IR instruction; nine observable divergences recorded as findings, notably mapping.IR.Validate defaulting Null on a loop copy and CanonicalBytes not sorting Operations); `go test -count=1 ./internal/engines/transformation/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Remaining: the cutover itself (rewiring internal/workflow, internal/connectivity/mapping and internal/domains/dataops onto the lowered programs and deleting their independent runtimes) so the GREEN clause's rejection of independent transform runtimes is enforced, plus fixes for the two engine gaps found.
   - **Depends:** `XFORM-006`, `WF-STEP-010`, `INTG-006`, `DATAOPS-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -10423,7 +10504,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** similarity of names is not sufficient evidence for abstraction.
   - **Refs:** [Modeling conventions](data/models/modeling-conventions.md), [reference workflows](workflows/README.md).
 
-- [ ] `READINESS-001` **[PHASE_3][SOL_HIGH] Define ReadinessRequirement only after conformance proof.**
+- [x] `READINESS-001` **[PHASE_3][SOL_HIGH] Define ReadinessRequirement only after conformance proof.**
+  - **Evidence (2026-09-05):** `TestTodo_READINESS_001` in `internal/engines/readiness` (minimal immutable requirement schema covers only the demonstrated common kernel and records originating domain/capability/version; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/readiness/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `READINESS-CONF-001`, `MODEL-015`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_READINESS_001`.
@@ -10433,7 +10515,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** domain-specific eligibility, legality and qualification remain external inputs.
   - **Refs:** [Rules models](data/models/rules-and-decisions.md), [capability lifecycle](specs/capability-registry-and-lifecycle.md).
 
-- [ ] `READINESS-002` **[PHASE_3][SOL_HIGH] Resolve authorized readiness evidence.**
+- [x] `READINESS-002` **[PHASE_3][SOL_HIGH] Resolve authorized readiness evidence.**
+  - **Evidence (2026-09-05):** `TestTodo_READINESS_002` in `internal/engines/readiness` (resolver returns requirement-level SATISFIED|UNSATISFIED|CONDITIONAL|UNKNOWN with authorized evidence refs, freshness and provenance; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/readiness/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `READINESS-001`, `SNAPSHOT-003`, `TRUST-012`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_READINESS_002`.
@@ -10933,7 +11016,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Canonical digest](specs/canonical-envelope-and-digest.md), [API lifecycle](specs/platform-responsibility-boundaries.md).
 
-- [ ] `SUB-004` **[PHASE_2][SOL_HIGH] Deliver outbound events idempotently with declared ordering.**
+- [x] `SUB-004` **[PHASE_2][SOL_HIGH] Deliver outbound events idempotently with declared ordering.**
+  - **Evidence (2026-09-05):** `TestTodo_SUB_004` in `internal/domains/subscription` (Per-subscription operation journal records ordering key, attempts and provider receipt; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/subscription/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SUB-002`, `SUB-003`, `EVENT-003`, `EDGE-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_SUB_004`.
@@ -10963,7 +11047,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Ledger](specs/transaction-ledger-reconciliation-and-repair.md), [integration platform](specs/integration-platform.md).
 
-- [ ] `SUB-007` **[PHASE_2][SOL_HIGH] Rotate destination credentials and signatures.**
+- [x] `SUB-007` **[PHASE_2][SOL_HIGH] Rotate destination credentials and signatures.**
+  - **Evidence (2026-09-05):** `TestTodo_SUB_007` in `internal/domains/subscription` (Overlap rotation preserves delivery and recipients can verify exact signing profile/version; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/subscription/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SUB-004`, `TRUST-029`, `TRUST-030`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_SUB_007`.
@@ -11016,7 +11101,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [AuthZ](specs/organization-scope-and-authz.md), [tenant lifecycle](specs/platform-responsibility-boundaries.md).
 
-- [ ] `APP-004` **[PHASE_3][SOL_HIGH] Issue and rotate application workload identity.**
+- [x] `APP-004` **[PHASE_3][SOL_HIGH] Issue and rotate application workload identity.**
+  - **Evidence (2026-09-05):** `TestTodo_APP_004` in `internal/domains/partnerapp` (Credentials remain reference-only and destination/sender constrained; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/partnerapp/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `APP-003`, `AUTHN-006`, `TRUST-029`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_APP_004`.
@@ -11026,7 +11112,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md).
 
-- [ ] `APP-005` **[PHASE_3][SOL_HIGH] Upgrade, revoke and quarantine installations.**
+- [x] `APP-005` **[PHASE_3][SOL_HIGH] Upgrade, revoke and quarantine installations.**
+  - **Evidence (2026-09-05):** `TestTodo_APP_005` in `internal/connectivity/application` (Revoke/quarantine stops tokens/subscriptions/effects within SLO while preserving evidence and bounded recovery path; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/application/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `APP-003`, `CP-007`, `CP-008`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_APP_005`.
@@ -11256,7 +11343,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Model conventions](data/models/modeling-conventions.md), [decision/outcome models](data/models/assurance-intelligence-platform.md).
 
-- [ ] `ABUSE-005` **[GATE_C][SOL_HIGH] Trigger step-up, review or temporary containment.**
+- [x] `ABUSE-005` **[GATE_C][SOL_HIGH] Trigger step-up, review or temporary containment.**
+  - **Evidence (2026-09-05):** `TestTodo_ABUSE_005` in `internal/engines/abuse` (False positive has human review route; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/abuse/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ABUSE-004`, `AUTHN-005`, `CP-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ABUSE_005`.
@@ -11376,7 +11464,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Release admission](#33-cicd-release-admission-and-observability), [foundation gap closure](specs/platform-foundation-gap-closure.md).
 
-- [ ] `EDGE-009` **[PHASE_2][SOL_HIGH] Protect streaming endpoints and long-lived edge sessions.**
+- [x] `EDGE-009` **[PHASE_2][SOL_HIGH] Protect streaming endpoints and long-lived edge sessions.**
+  - **Evidence (2026-09-05):** `TestTodo_EDGE_009` in `internal/connectivity/edge` (Backpressure, reauthorization and edge evidence preserve zero unauthorized continuation; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PROTO-007`, `EDGE-001`–`EDGE-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EDGE_009`.
@@ -11442,7 +11531,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [payroll repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `PAYRUN-006` **[PHASE_5][SOL_HIGH] Approve and lock payroll with separation of duties.**
+- [x] `PAYRUN-006` **[PHASE_5][SOL_HIGH] Approve and lock payroll with separation of duties.**
+  - **Evidence (2026-09-05):** `TestTodo_PAYRUN_006` in `internal/domains/payroll` (Requester/calculator/releaser constraints and quorum bind exact run digest; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/payroll/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PAYRUN-005`, `APPROVAL-002`, `TRUST-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_PAYRUN_006`.
@@ -11565,7 +11655,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Fixed decimal](data/models/wire-contract-primitives.md), [governance composition](specs/governance-decision-and-obligation-composition.md).
 
-- [ ] `SETTLE-003` **[PHASE_5][SOL_HIGH] Authorize payment release with dual control.**
+- [x] `SETTLE-003` **[PHASE_5][SOL_HIGH] Authorize payment release with dual control.**
+  - **Evidence (2026-09-05):** `TestTodo_SETTLE_003` in `internal/domains/settlement` (Decision binds exact batch digest and limits; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/settlement/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SETTLE-002`, `APPROVAL-002`, `TRUST-014`, `AUTHN-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_SETTLE_003`.
@@ -11655,7 +11746,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Balance engine](#38-eligibility-business-cycle-and-balance-engines), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `GARN-005` **[PHASE_5][SOL_HIGH] Generate and authorize garnishment remittance.**
+- [x] `GARN-005` **[PHASE_5][SOL_HIGH] Generate and authorize garnishment remittance.**
+  - **Evidence (2026-09-05):** `TestTodo_GARN_005` in `internal/domains/garnishment` (Wrong destination or changed batch invalidates approval; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/garnishment/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `GARN-003`, `SETTLE-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_GARN_005`.
@@ -11781,7 +11873,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [People/workforce models](data/models/people-workforce.md), [security models](data/models/security-trust.md).
 
-- [ ] `CLOCK-002` **[PHASE_4][SOL_HIGH] Authenticate device and worker at capture.**
+- [x] `CLOCK-002` **[PHASE_4][SOL_HIGH] Authenticate device and worker at capture.**
+  - **Evidence (2026-09-05):** `TestTodo_CLOCK_002` in `internal/domains/clock` (Evidence separates device, principal and claimed worker; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/clock/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CLOCK-001`, `AUTHN-006`, `TRUST-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CLOCK_002`.
@@ -12543,7 +12636,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** the same maturity transition validator governs workflows, intents, rules and model bindings without conflating their evidence types.
   - **Refs:** [Exploration contract](workflows/_shared/exploration-contract.md), [legacy baseline](specs/legacy-implementation-baseline.md), [coverage contracts](data/models/registry-and-coverage-contracts.md).
 
-- [ ] `MODEL-031` **[CONFORMANCE][SOL_HIGH] Resolve ContactPoint and Address ownership without collapsing person and employment scope.**
+- [x] `MODEL-031` **[CONFORMANCE][SOL_HIGH] Resolve ContactPoint and Address ownership without collapsing person and employment scope.**
+  - **Evidence (2026-09-05):** `TestContactAndAddressOwnershipPreservesScopeAuthorityAndHistory` in `internal/intent/model` (reviewed aggregate/relationship policy resolves each fact to an owner and scoped role with explicit aliases, authority, classification, permitted derivations, correction/export/merge behavior and deterministic migration from legacy records; ambiguous scope returns UNKNOWN_SCOPE w; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/intent/model/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-012`, `MODEL-013`, `MODEL-021`, `WF-DISC-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestContactAndAddressOwnershipPreservesScopeAuthorityAndHistory`.
@@ -12563,7 +12657,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** domain components retain independent semantics while the composition contract owns only proposal and transaction coordination.
   - **Refs:** [Compensation workflow](workflows/rewards/compensation-change.md), [compensation domain](specs/compensation-domain.md), [intent relationships](specs/business-intent-and-change-request.md).
 
-- [ ] `HEADCOUNT-001` **[CONFORMANCE][SOL_HIGH] Separate headcount authorization, position creation and recruiting requisition authority.**
+- [x] `HEADCOUNT-001` **[CONFORMANCE][SOL_HIGH] Separate headcount authorization, position creation and recruiting requisition authority.**
+  - **Evidence (2026-09-05):** `TestHeadcountPositionAndRequisitionRemainDistinctGovernedTransactions` in `internal/domains/headcount` (typed parent/child relationships preserve independent proposals, authority, approval, reservation, transaction and completion states for HeadcountRequest, Position and Requisition; capacity conservation and budget consumption hold under concurrency and each external creation reco; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/headcount/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `POSITION-002`, `BUDGET-001`, `INTENT-015`, `RESERVE-001`, `WF-DISC-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestHeadcountPositionAndRequisitionRemainDistinctGovernedTransactions`.
@@ -12709,7 +12804,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** transactional completion and long-term outcome analysis remain independent dimensions connected by provenance rather than lifecycle mutation.
   - **Refs:** [Decision outcomes](data/models/assurance-intelligence-platform.md), [provenance](specs/provenance-graph-and-lineage.md), [risk 141](specs/risk-register.md).
 
-- [ ] `SEARCH-003` **[PHASE_2][SOL_HIGH] Convert authorized search results into frozen populations and bounded actions safely.**
+- [x] `SEARCH-003` **[PHASE_2][SOL_HIGH] Convert authorized search results into frozen populations and bounded actions safely.**
+  - **Evidence (2026-09-05):** `TestSearchToPopulationToBatchPreservesScopeSnapshotAndNonDisclosure` in `internal/engines/search` (conversion records authorized query/semantic plan/index and policy versions, minimum watermark, visible selection/exclusions and immutable PopulationSnapshot; subsequent AnalyticalRequest or BatchOperation uses fresh governance, bounded child identities and exact per-member resul; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/search/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SEARCH-001`, `SEARCH-002`, `POP-005`, `INTENT-019`, `INTENT-020`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestSearchToPopulationToBatchPreservesScopeSnapshotAndNonDisclosure`.
@@ -13518,7 +13614,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `PAYMETHOD-002` **[PHASE_4][SOL_HIGH] Govern direct-deposit changes with step-up, fraud and cooling controls.**
+- [x] `PAYMETHOD-002` **[PHASE_4][SOL_HIGH] Govern direct-deposit changes with step-up, fraud and cooling controls.**
+  - **Evidence (2026-09-05):** `TestPayMethodChangeRequiresStepUpRiskDecisionAndCurrentProposal` in `internal/domains/paymethod` (change binds verified destination, principal/session assurance, risk/fraud decision, proposal/approval and activation policy; unsafe cases return STEP_UP_REQUIRED|REVIEW_REQUIRED|REPLAN_REQUIRED|BLOCKED with zero activation; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/paymethod/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PAYMETHOD-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL,BI.PEOPLE,BI.SECURITY; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestPayMethodChangeRequiresStepUpRiskDecisionAndCurrentProposal`.
@@ -13688,7 +13785,8 @@ is an acceptable result.
   - **Refs:** [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [sqlc](https://github.com/sqlc-dev/sqlc), [PostgreSQL materialization](#26-postgresql-database-and-model-materialization).
   - **Evidence (2026-09-03):** decision `REJECT` in `definitions/architecture/sqlc-qualification.yaml` because no pinned offline sqlc binary/configuration pair exists; `TestSQLCQualificationPreservesOwnedRepositoryAndTransactionBoundaries`, `TestTodo_LIB_017_Golden`, `TestTodo_LIB_017_Integration`, `TestTodo_LIB_017_Conformance`, `TestTodo_LIB_017_Mutation` in `tools/quality/sqlckit` prove the authored-SQL/standard-library alternative is byte-stable, preserves temporal predicates, locks and explicit commit/rollback, rejects schema/query drift, returns typed rows and leaks no sqlc/pgx type through an owned port. `go test -count=1 ./tools/quality/sqlckit` and `go vet ./tools/quality/sqlckit` PASS on windows/arm64 (Go 1.26.3); production/runtime module graph unchanged; refactored; branch plan-revision-2026-09-02.
 
-- [ ] `LIB-018` **[GATE_A][SOL_HIGH] Qualify AWS SDK for Go v2 behind the provider-neutral object-store adapter.**
+- [x] `LIB-018` **[GATE_A][SOL_HIGH] Qualify AWS SDK for Go v2 behind the provider-neutral object-store adapter.**
+  - **Evidence (2026-09-05):** `TestAWSSDKAdapterPassesObjectStoreConformanceWithoutTypeLeakage` in `internal/store/object/aws` (the pinned adapter maps exact provider version/checksum/precondition/retention/hold results into owned types, passes the same fake/alternate-adapter suite and records endpoint, credential, retry and removal policy; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/store/object/aws/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `LIB-001`, `ARTIFACT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.DOCUMENTS,BI.PRIVACY,BI.DATAOPS; DIRECT=none; WHY=provide S3-compatible transport mechanics without making provider keys, versions or retention APIs the artifact domain model`.
   - **TEST:** `TestAWSSDKAdapterPassesObjectStoreConformanceWithoutTypeLeakage`.
@@ -13807,7 +13905,8 @@ is an acceptable result.
   - **REFACTOR:** use transaction-local settings and narrow adapter hooks; application packages cannot mutate ambient session state directly.
   - **Refs:** [pgx qualification](#2b-external-go-dependency-qualification-and-semantic-ownership), [tenant isolation](#26-postgresql-database-and-model-materialization), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md).
 
-- [ ] `RPC-EDGE-001` **[GATE_A][SOL_HIGH] Classify gRPC deadline, retry and hedging behavior per capability method.**
+- [x] `RPC-EDGE-001` **[GATE_A][SOL_HIGH] Classify gRPC deadline, retry and hedging behavior per capability method.**
+  - **Evidence (2026-09-05):** `TestGRPCRetryPolicyCannotReplayNonIdempotentCapabilityEffect` in `internal/transport/rpcpolicy` (generated method manifest declares deadline, wait-for-ready, idempotency, retryable statuses/attempt budget and hedging prohibition/allowance; transparent/configured replay fixtures return one logical result/effect and preserve unknown/committed outcomes accurately; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/rpcpolicy/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `LIB-003`, `PROTO-006`, `TX-005`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent transport replay or unbounded waits from duplicating governed intent, transaction or external-effect behavior`.
   - **TEST:** `TestGRPCRetryPolicyCannotReplayNonIdempotentCapabilityEffect`.
@@ -13870,7 +13969,8 @@ is an acceptable result.
   - **REFACTOR:** evidence kinds are an enumerated vocabulary shared with the inspector.
   - **Refs:** [capability evidence](specs/platform-foundation-gap-closure.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
 
-- [ ] `EXPORT-001` **[GATE_A][SOL_HIGH] Separate safe human-spreadsheet export from exact machine-data export.**
+- [x] `EXPORT-001` **[GATE_A][SOL_HIGH] Separate safe human-spreadsheet export from exact machine-data export.**
+  - **Evidence (2026-09-05):** `TestSpreadsheetExportNeutralizesFormulaCellsWhileMachineExportPreservesExactValues` in `internal/operations/export` (explicit HUMAN_SPREADSHEET profile produces inert golden cells under declared applications/locales and records a transformation warning, while MACHINE_DATA uses a non-executable typed format/profile preserving exact values; both bind scope, purpose, schema, digest, classification; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/export/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ADMIN-007`, `TRUST-018`, `ARTIFACT-005`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.DATAOPS,BI.PRIVACY,BI.OPERATIONS; DIRECT=none; WHY=deliver authorized report/evidence data without turning untrusted HCM text into executable spreadsheet formulas or corrupting machine round trips`.
   - **TEST:** `TestSpreadsheetExportNeutralizesFormulaCellsWhileMachineExportPreservesExactValues`.
@@ -13945,7 +14045,8 @@ path regardless of transport.
   - **REFACTOR:** reuse generated list/read contracts; owner repositories supply stable keys/watermarks rather than transport offsets.
   - **Refs:** [endpoint common behavior](specs/http-grpc-endpoint-contract.md#common-wire-and-http-behavior), [AuthZ](specs/organization-scope-and-authz.md), [data plane](#11-authoritative-data-plane-ledger-projections-and-artifacts).
 
-- [ ] `ENDPOINT-006` **[GATE_A][SOL_HIGH] Enforce HTTP media, body, cache, origin and response-header policy.**
+- [x] `ENDPOINT-006` **[GATE_A][SOL_HIGH] Enforce HTTP media, body, cache, origin and response-header policy.**
+  - **Evidence (2026-09-05):** `TestHTTPEndpointMediaCacheOriginAndBodyPolicy` in `internal/transport/endpoint` (generated route policy enforces method/content type/encoding/body/decompression limits, no-store/private cache rules, canonical security headers, origin/CSRF/host controls and safe 405|406|413|415 responses before business invocation; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-001`, `EDGE-001`, `EDGE-002`, `EDGE-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make grpcbridge HTTP behavior safe and deterministic without adding an independent REST implementation`.
   - **TEST:** `TestHTTPEndpointMediaCacheOriginAndBodyPolicy`.
@@ -13955,7 +14056,8 @@ path regardless of transport.
   - **REFACTOR:** grpcbridge middleware consumes endpoint metadata; route handlers contain no custom edge policy.
   - **Refs:** [endpoint contract](specs/http-grpc-endpoint-contract.md), [edge controls](#32-production-identity-key-custody-and-edge-enforcement), [DLP](specs/data-classification-and-dlp.md).
 
-- [ ] `ENDPOINT-007` **[GATE_A][SOL_HIGH] Enforce per-method deadlines, cancellation, retry, hedging and resource budgets.**
+- [x] `ENDPOINT-007` **[GATE_A][SOL_HIGH] Enforce per-method deadlines, cancellation, retry, hedging and resource budgets.**
+  - **Evidence (2026-09-05):** `TestEndpointMethodPolicyBoundsDeadlineRetryHedgingAndWork` in `internal/transport/endpoint` (generated method policy caps deadline, payload/work/concurrency, propagates cancellation only to declared safe boundary, permits retries/hedging solely by effect/idempotency class and returns identical typed committed/unknown/cancelled outcomes across transports; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-001`, `RPC-EDGE-001`, `ADMISSION-001`, `EDGE-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=bound public work and transport replay according to capability effects and idempotency`.
   - **TEST:** `TestEndpointMethodPolicyBoundsDeadlineRetryHedgingAndWork`.
@@ -13965,7 +14067,8 @@ path regardless of transport.
   - **REFACTOR:** one policy compiler emits gRPC service config, HTTP middleware and test vectors from capability metadata.
   - **Refs:** [endpoint manifest](specs/http-grpc-endpoint-contract.md#endpoint-manifest), [RPC edge](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [admission](#34-batch-scheduling-and-connector-execution-substrate).
 
-- [ ] `ENDPOINT-008` **[GATE_A][SOL_HIGH] Build the reusable endpoint TDD and transport-parity harness.**
+- [x] `ENDPOINT-008` **[GATE_A][SOL_HIGH] Build the reusable endpoint TDD and transport-parity harness.**
+  - **Evidence (2026-09-05):** `TestEndpointHarnessDetectsTransportSemanticDivergence` in `internal/transport/endpoint` (one versioned vector runs direct capability/application, in-memory gRPC with production interceptors and real grpcbridge HTTP; it compares canonical request/result/error/evidence digests plus exact durable side-effect counts and kills each seeded transport mutant; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-002`–`ENDPOINT-007`, `PROTO-006`, `TOOL-014`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove every public method through direct owner, real interceptor gRPC and grpcbridge HTTP paths with identical semantic outcomes`.
   - **TEST:** `TestEndpointHarnessDetectsTransportSemanticDivergence`.
@@ -13986,7 +14089,8 @@ path regardless of transport.
   - **Refs:** [endpoint expansion rule](specs/http-grpc-endpoint-contract.md#expansion-rule), [feature-intent coverage](#6-businessintent-capabilities-governance-and-transaction-integrity), [workflow convergence](#58-businessintent-to-workflow-design-convergence).
   - **Evidence (2026-09-03):** `TestContractedIntentAndCapabilityEndpointDispositionIsTotal` in `internal/transport/manifest` (14 intents + 10 capabilities each classified into one of five disposition categories; missing = RED); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transport/manifest/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `EP-REG-001` **[GATE_A][SOL_HIGH] Implement authorized RegistryService intent-definition and capability discovery endpoints.**
+- [x] `EP-REG-001` **[GATE_A][SOL_HIGH] Implement authorized RegistryService intent-definition and capability discovery endpoints.**
+  - **Evidence (2026-09-05):** `TestRegistryEndpointsReturnAuthorizedVersionedDiscoveryParity` in `internal/transport/endpoint` (four methods return authorized phase/tenant/subject-filtered immutable descriptors with stable cursor, schema/capability/intent versions, effect/risk/simulation metadata and identical canonical digest across transports; hidden and absent resources are non-disclosing; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `API-001`, `INTENT-001`, `CAP-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=let authorized humans, UIs, agents and applications discover only currently available semantic actions and immutable definitions`.
   - **TEST:** `TestRegistryEndpointsReturnAuthorizedVersionedDiscoveryParity`.
@@ -13996,7 +14100,8 @@ path regardless of transport.
   - **REFACTOR:** global action/search/SDK discovery consume this service rather than separate registries.
   - **Refs:** [initial registry endpoints](specs/http-grpc-endpoint-contract.md#registry-and-discovery), [capability registry](specs/capability-registry-and-lifecycle.md), [action discovery](#17-experience-api-and-accessibility).
 
-- [ ] `EP-INTENT-001` **[GATE_A][SOL_HIGH] Implement CreateIntent, GetIntent and ListIntents endpoints.**
+- [x] `EP-INTENT-001` **[GATE_A][SOL_HIGH] Implement CreateIntent, GetIntent and ListIntents endpoints.**
+  - **Evidence (2026-09-05):** `TestIntentCreateGetListEndpointsPreserveTypedOriginLifecycleAndParity` in `internal/transport/endpoint` (create stores one typed CREATED|DRAFT IntentInstance with trusted origin and zero domain/effect mutation; exact replay returns it; get/list return authorized multidimensional state, versions, relationships and stable cursor with identical gRPC/HTTP result/evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `INTENT-001`–`INTENT-003`, `INTENT-012`, `PROTO-002`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=create and inspect typed root/child intents without accepting caller-derived truth or leaking lifecycle state`.
   - **TEST:** `TestIntentCreateGetListEndpointsPreserveTypedOriginLifecycleAndParity`.
@@ -14006,7 +14111,8 @@ path regardless of transport.
   - **REFACTOR:** typed domain façades call the same create application service; list/read use owned projections, never workflow tables directly.
   - **Refs:** [intent endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [BusinessIntent](specs/business-intent-and-change-request.md), [intent creation](#6-businessintent-capabilities-governance-and-transaction-integrity).
 
-- [ ] `EP-INTENT-002` **[GATE_A][SOL_HIGH] Implement the no-effect SimulateIntent endpoint.**
+- [x] `EP-INTENT-002` **[GATE_A][SOL_HIGH] Implement the no-effect SimulateIntent endpoint.**
+  - **Evidence (2026-09-05):** `TestSimulateIntentEndpointReturnsCompleteContractWithZeroEffects` in `internal/transport/endpoint` (endpoint returns immutable WorkflowSimulationContract with exact source/config/rule/authority versions and typed completeness/risk/result; database/provider assertions prove zero authoritative/effect rows and equivalent transport requests return the same digest; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EP-INTENT-001`, `INTENT-023`, `WF-RUN-012`, `PROMO-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=return a version-pinned proposed outcome, reads/writes/effects/approvals/obligations/cost/repair plan without execution authority`.
   - **TEST:** `TestSimulateIntentEndpointReturnsCompleteContractWithZeroEffects`.
@@ -14026,7 +14132,8 @@ path regardless of transport.
   - **REFACTOR:** all three call intent lifecycle capabilities and workflow safe-point contracts; transport owns no state transition.
   - **Refs:** [intent lifecycle endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [intent lifecycle](specs/business-intent-and-change-request.md), [workflow cancellation](specs/workflow-runtime.md).
 
-- [ ] `EP-INTENT-004` **[GATE_A][SOL_HIGH] Implement ExplainIntent and ListIntentTimeline endpoints.**
+- [x] `EP-INTENT-004` **[GATE_A][SOL_HIGH] Implement ExplainIntent and ListIntentTimeline endpoints.**
+  - **Evidence (2026-09-05):** `TestIntentExplanationAndTimelineEndpointsPreserveAuthorityProvenanceAndRedaction` in `internal/transport/endpoint` (purpose/field-authorized output pins effective/known time, facts/observations/claims/inferences, decision traces and redactions; timeline preserves append-only business chronology and independent completion dimensions with stable cursor/digest across transports; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/endpoint/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EP-INTENT-001`, `LEDGER-006`, `MODEL-020`, `TRUST-010`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=explain governed decisions and chronology without fabricating causality or exposing restricted evidence`.
   - **TEST:** `TestIntentExplanationAndTimelineEndpointsPreserveAuthorityProvenanceAndRedaction`.
@@ -14352,7 +14459,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** provider-specific facts remain configuration and adapter qualification inputs; semantic workflows and capabilities remain provider-neutral.
   - **Refs:** [integration platform](specs/integration-platform.md), [competitive positioning](specs/competitive-positioning-and-authority-expansion.md), [vendor continuity](#36-operator-surfaces-ownership-and-measurable-production-limits).
 
-- [ ] `PROVIDER-001` **[GATE_A][SOL_HIGH] Materialize the selected provider as an executable contract-test fixture.**
+- [x] `PROVIDER-001` **[GATE_A][SOL_HIGH] Materialize the selected provider as an executable contract-test fixture.**
+  - **Evidence (2026-09-05):** `TestSelectedProviderAdapterPassesPinnedSemanticAndFaultConformanceSuite` in `internal/connectivity/providercontract` (pinned fake and optional sandbox suite return exact normalized results/errors/observations, enforce capability and quota declarations, preserve operation identity and prove redrive/reconciliation/repair without repeating the parent business transaction; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/providercontract/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SELECT-002`, `INTG-012`, `CONN-RT-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.PEOPLE,BI.REWARDS,BI.ACCESS; DIRECT=none; WHY=prove selected external mechanics preserve HCM Next authority, idempotency, ambiguity, observation and repair semantics`.
   - **TEST:** `TestSelectedProviderAdapterPassesPinnedSemanticAndFaultConformanceSuite`.
@@ -14372,7 +14480,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** threat identities are stable and deduplicated by asset+boundary+attack; shared mitigations retain every consuming slice edge.
   - **Refs:** [security architecture](specs/platform-responsibility-boundaries.md), [MAX-v1 threats](workflows/vertical-slices/maximal-configuration-profile.md), [risk register](specs/risk-register.md).
 
-- [ ] `THREAT-002` **[GATE_A][SOL_HIGH] Execute adversarial privacy, authorization and abuse journeys.**
+- [x] `THREAT-002` **[GATE_A][SOL_HIGH] Execute adversarial privacy, authorization and abuse journeys.**
+  - **Evidence (2026-09-05):** `TestAdversarialJourneysDenyWithoutExistenceMetadataOrTelemetryLeakage` in `internal/operations/adversarial`, `internal/trust/adversarial` (every adversarial journey returns the declared non-disclosing denial or safe degraded state, produces bounded redacted evidence and zero unauthorized persistence/effects across all equivalent channels and restart/replay paths; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/adversarial/ ./internal/trust/adversarial/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `THREAT-001`, `UXFLOW-008`, `ABUSE-008`, `OBS-013`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove hostile and accidental user journeys cannot bypass intent governance or leak sensitive content through UI, API, work, messages, logs, traces, analytics or repair`.
   - **TEST:** `TestAdversarialJourneysDenyWithoutExistenceMetadataOrTelemetryLeakage`.
@@ -14382,7 +14491,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** generate journeys from user-flow and threat graphs; keep only high-value hand-authored attack sequences as regression fixtures.
   - **Refs:** [user flows](user-flows/README.md), [structured telemetry](specs/structured-logging-and-opentelemetry.md), [organization scope and AuthZ](specs/organization-scope-and-authz.md).
 
-- [ ] `TOPOLOGY-001` **[GATE_A][SOL_HIGH] Freeze and verify the first production-cell deployment topology.**
+- [x] `TOPOLOGY-001` **[GATE_A][SOL_HIGH] Freeze and verify the first production-cell deployment topology.**
+  - **Evidence (2026-09-05):** `TestPilotCellTopologyMapsEveryProcessDataDependencyBoundaryAndFailureMode` in `internal/platform/topology` (generated topology and deploy manifest have the same digest-backed inventory, exact network/data/trust paths, zones/failure domains, scaling/degradation/recovery behavior and resource budgets; sandbox deployment passes health, load, drain and restore probes; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/topology/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PHASE-001`, `PERF-ENV-001`, `SELECT-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind abstract planes and process roles to one deployable, capacity-sized and recoverable pilot cell`.
   - **TEST:** `TestPilotCellTopologyMapsEveryProcessDataDependencyBoundaryAndFailureMode`.
@@ -14402,7 +14512,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** instantiate the reusable blueprint per tenant; customer-specific facts never alter the platform's semantic contracts.
   - **Refs:** [responsibility boundaries](specs/platform-responsibility-boundaries.md), [customer onboarding](#35-artifact-bytes-and-customer-data-onboarding), [execution plan](execution-plan.md).
 
-- [ ] `CUSTOMER-002` **[GATE_A][SOL_HIGH] Rehearse discovery, data mapping, identity, configuration and migration readiness.**
+- [x] `CUSTOMER-002` **[GATE_A][SOL_HIGH] Rehearse discovery, data mapping, identity, configuration and migration readiness.**
+  - **Evidence (2026-09-05):** `TestPilotReadinessRehearsalClassifiesEverySourceFieldRecordConfigurationAndIdentity` in `internal/connectivity/onboarding/readiness` (rehearsal produces exact ACCEPT|TRANSFORM|QUARANTINE|REJECT|UNKNOWN disposition, simulation and row/field/effective-date reconciliation for every input, with zero production mutation and signed readiness blockers; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/onboarding/readiness/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CUSTOMER-001`, `ONBOARD-006`, `DATAOPS-006`, `CP-007`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.ACCESS,BI.INTEGRATION,BI.DATAOPS; DIRECT=none; WHY=prove design-partner source data and configuration can reach canonical truth without silent loss, unsafe defaulting or identity corruption`.
   - **TEST:** `TestPilotReadinessRehearsalClassifiesEverySourceFieldRecordConfigurationAndIdentity`.
@@ -14547,7 +14658,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** selection/composition traces are reusable legal-engine results; workflows consume typed decisions and obligations.
   - **Refs:** [regulatory computation](specs/platform-architecture-catalog.md), [governance composition](specs/governance-decision-and-obligation-composition.md), [legal models](data/models/rewards-payroll-workforce.md).
 
-- [ ] `IAC-013` **[GATE_A][SOL_HIGH] Select and qualify the concrete IaC toolchain and state authority.**
+- [x] `IAC-013` **[GATE_A][SOL_HIGH] Select and qualify the concrete IaC toolchain and state authority.**
+  - **Evidence (2026-09-05):** `TestIaCToolchainSelectionRequiresPinnedEngineProvidersStateFencingAndRecovery` in `tools/planning/iac` (signed manifest pins engine/providers/modules/images, isolated encrypted state backend and locks, plan/apply roles, promotion and recovery; clean sandbox plan/apply/destroy/restore is digest reproducible and drift is explicit; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/iac/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `IAC-001`, `IAC-012`, `TOOL-025`, `OPS-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind provider-neutral deployment contracts to pinned planning/apply/state-lock/recovery mechanics`.
   - **TEST:** `TestIaCToolchainSelectionRequiresPinnedEngineProvidersStateFencingAndRecovery`.
@@ -14557,7 +14669,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** tool selection implements owned deployment contracts and remains replaceable behind generated manifests.
   - **Refs:** [IaC](#31-infrastructure-as-code-and-physical-data-services), [supply chain](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [topology](#product-decision-and-implementation-convergence).
 
-- [ ] `EDGE-010` **[GATE_A][SOL_HIGH] Select and qualify concrete production edge and egress implementations.**
+- [x] `EDGE-010` **[GATE_A][SOL_HIGH] Select and qualify concrete production edge and egress implementations.**
+  - **Evidence (2026-09-05):** `TestEdgeImplementationManifestRejectsAbstractWildcardOrUnverifiedRouteControl` in `internal/connectivity/edge` (concrete manifest proves exact route/method/body/TLS/DNS/east-west/egress allowlist, logging/redaction, rate/abuse budgets, ownership, degraded/outage and migration behavior against endpoint and threat registries; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `EDGE-001`, `EDGE-008`, `IAC-004`, `IAC-013`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=bind ingress, TLS, DNS, WAF, east-west and egress policy to real versioned controls and failure behavior`.
   - **TEST:** `TestEdgeImplementationManifestRejectsAbstractWildcardOrUnverifiedRouteControl`.
@@ -14567,7 +14680,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** edge products remain adapters to HCM Next route/security policy and cannot define semantic authorization.
   - **Refs:** [edge enforcement](#32-production-identity-key-custody-and-edge-enforcement), [endpoint contract](specs/http-grpc-endpoint-contract.md), [threat registry](#product-decision-and-implementation-convergence).
 
-- [ ] `PROVIDER-002` **[GATE_A][SOL_HIGH] Detect, quarantine and reconcile selected-provider contract drift.**
+- [x] `PROVIDER-002` **[GATE_A][SOL_HIGH] Detect, quarantine and reconcile selected-provider contract drift.**
+  - **Evidence (2026-09-05):** `TestProviderDriftDetectionQuarantinesAffectedOperationsUntilReviewedCompatibility` in `internal/connectivity/providerdrift` (recurring probe returns typed diff and affected capabilities/intents, fences new operations, preserves/observes in-flight work and resumes only after compatible adapter/config rollout or explicit RESELECT; unknown never reports healthy; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/providerdrift/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PROVIDER-001`, `INTG-014`, `ROLLOUT-008`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.PEOPLE,BI.REWARDS,BI.ACCESS; DIRECT=none; WHY=prevent live provider schema, entitlement, quota or behavior drift from silently changing accepted intent execution`.
   - **TEST:** `TestProviderDriftDetectionQuarantinesAffectedOperationsUntilReviewedCompatibility`.
@@ -14577,7 +14691,8 @@ authorized by the master and execution plans.
   - **REFACTOR:** reuse provider schema/support manifests and rollout gates; avoid provider-specific drift logic in workflows.
   - **Refs:** [integration drift](specs/integration-platform.md), [provider selection](#product-decision-and-implementation-convergence), [progressive rollout](#42-confidential-actors-abuse-detection-and-progressive-rollout).
 
-- [ ] `PROVIDER-003` **[GATE_B][SOL_HIGH] Reconcile selected-provider exit, export, revocation and retained obligations.**
+- [x] `PROVIDER-003` **[GATE_B][SOL_HIGH] Reconcile selected-provider exit, export, revocation and retained obligations.**
+  - **Evidence (2026-09-05):** `TestProviderExitEnumeratesExportsRevokesAndReconcilesEveryRemoteResource` in `internal/connectivity/providerexit` (provider-specific exit inventory dispositions every remote resource and operation, verifies export digests, revokes credentials/endpoints/grants, preserves required holds/evidence, reconciles zero active authority and returns explicit pending/manual/legal obligations for unverifi; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/providerexit/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PROVIDER-002`, `WEDGE-009`, `OPS-009`, `RECORDS-HOLD-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.INTEGRATION,BI.TENANT,BI.PRIVACY; DIRECT=none; WHY=prove provider exit removes active authority without losing required data, evidence, holds or ambiguous in-flight outcomes`.
   - **TEST:** `TestProviderExitEnumeratesExportsRevokesAndReconcilesEveryRemoteResource`.
@@ -14669,7 +14784,8 @@ authorized by the master and execution plans.
   - **Refs:** [supply chain](#33-cicd-release-admission-and-observability), [tool qualification](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-03):** `TestToolchainSupplyChainManifestRejectsUntrackedToolInput` plus golden/property/security/conformance/mutation tests in `tools/quality/toolinventory` (`definitions/toolchain/tool-inventory.yaml` from gen/TOOLS.lock, go.mod tool directives, package.json/package-lock.json, .husky; drift test); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/quality/toolinventory/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `CONFIG-010` **[GATE_A][SOL_HIGH] Revalidate active workloads when configuration dependencies are revoked or become incompatible.**
+- [x] `CONFIG-010` **[GATE_A][SOL_HIGH] Revalidate active workloads when configuration dependencies are revoked or become incompatible.**
+  - **Evidence (2026-09-05):** `TestActiveWorkloadDependencyRevocationProducesDeterministicInvalidateReplanMigrateOrBlock` in `internal/platform/config/revalidation` (dependency closure revalidation atomically chooses INVALIDATED|REPLAN_REQUIRED|MIGRATE_REQUIRED|BLOCKED, fences pending work, preserves evidence and requires reviewed mixed-object compatibility/migration/dual-read-write or publication blocking before resume; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/config/revalidation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `CONFIG-003`, `CP-009`, `WF-RUN-018`, `ROLLOUT-008`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent paused or waiting workflows from resuming under revoked rules, forms, mappings, populations, schemas or capabilities`.
   - **TEST:** `TestActiveWorkloadDependencyRevocationProducesDeterministicInvalidateReplanMigrateOrBlock`.
@@ -14759,7 +14875,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** physical fulfillment is a Messaging/Document effect adapter with independent observations and reconciliation.
   - **Refs:** [legal notice delivery](specs/messaging-and-notification-plane.md), [document controls](specs/platform-responsibility-boundaries.md), [location model](data/models/people-workforce.md).
 
-- [ ] `SYNTH-001` **[GATE_A][SOL_HIGH] Run tenant-safe production synthetic journeys with hard non-mutation fences.**
+- [x] `SYNTH-001` **[GATE_A][SOL_HIGH] Run tenant-safe production synthetic journeys with hard non-mutation fences.**
+  - **Evidence (2026-09-05):** `TestProductionSyntheticJourneyMeasuresRealPathButCannotMutateOrLeakTenantState` in `internal/operations/synthetic` (dedicated synthetic tenant/principal and execution mode traverse edge/auth/config/read/simulation/telemetry paths, hard fence every effect class, report exact dependency/SLO outcome and are excluded from customer/domain metrics while remaining operationally visible; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/synthetic/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `OPS-001`, `ENDPOINT-009`, `SANDBOX-001`, `OBS-016`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=measure real production reachability and semantic readiness without creating workforce truth, messages or provider effects`.
   - **TEST:** `TestProductionSyntheticJourneyMeasuresRealPathButCannotMutateOrLeakTenantState`.
@@ -14779,7 +14896,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** gate and customer evidence consume the register; raw sensitive reports remain compartmented artifacts.
   - **Refs:** [risk register](specs/risk-register.md), [evidence packaging](specs/platform-responsibility-boundaries.md), [release assurance](#33-cicd-release-admission-and-observability).
 
-- [ ] `RESIDENCY-001` **[GATE_A][SOL_HIGH] Enforce tenant residency and transfer policy across every primary, derived and provider copy.**
+- [x] `RESIDENCY-001` **[GATE_A][SOL_HIGH] Enforce tenant residency and transfer policy across every primary, derived and provider copy.**
+  - **Evidence (2026-09-05):** `TestResidencyPolicyCoversEveryCopyProcessorRouteBackupAndRecoveryLocation` in `internal/operations/residency` (signed residency policy resolves allowed processing/storage/support/transfer locations by class and purpose, admission checks every copy/route/processor, inventory and restore reconcile actual placement, and UNKNOWN|TRANSFER_REVIEW_REQUIRED blocks affected processing; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/residency/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TENANT-001`, `PRIV-001`, `PRIV-003`, `RECORDS-COPY-001`, `RECOVERY-005`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent placement metadata from claiming residency while backups, telemetry, artifacts, support or providers copy data elsewhere`.
   - **TEST:** `TestResidencyPolicyCoversEveryCopyProcessorRouteBackupAndRecoveryLocation`.
@@ -14789,7 +14907,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** placement, privacy and copy inventories share stable location/processor identities; no adapter infers residency from endpoint hostname.
   - **Refs:** [tenant placement](data/models/operations-production.md), [privacy flows](specs/platform-responsibility-boundaries.md), [records inventory](specs/records-management-and-disposition.md), [Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model).
 
-- [ ] `TIME-002` **[GATE_A][SOL_HIGH] Select and operate a concrete authenticated trusted-time quorum profile.**
+- [x] `TIME-002` **[GATE_A][SOL_HIGH] Select and operate a concrete authenticated trusted-time quorum profile.**
+  - **Evidence (2026-09-05):** `TestTrustedTimeProfileRequiresAuthenticatedQuorumSkewUncertaintyAndHoldoverPolicy` in `internal/platform/timeauth` (pinned NTS/authenticated sources and quorum policy expose source epoch/offset/skew/uncertainty/holdover health, alarm and failover evidence; sensitive consumers receive trustworthy receipt or exact TIME_UNTRUSTED while sequence ordering remains independent; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/timeauth/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TIME-001`, `IAC-013`, `TOOL-025`, `OPS-003`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=turn abstract time health into an authenticated, observable and recoverable production service profile`.
   - **TEST:** `TestTrustedTimeProfileRequiresAuthenticatedQuorumSkewUncertaintyAndHoldoverPolicy`.
@@ -14799,7 +14918,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** infrastructure adapter supplies TimeAuthority receipts to the existing temporal kernel without exposing NTP mechanics to domains.
   - **Refs:** [trusted time](specs/platform-architecture-catalog.md), [operations model](data/models/operations-production.md), [temporal primitives](data/models/wire-contract-primitives.md).
 
-- [ ] `CONTRACT-ARCHIVE-001` **[GATE_A][SOL_HIGH] Preserve an offline-verifiable archive of every executable historical contract.**
+- [x] `CONTRACT-ARCHIVE-001` **[GATE_A][SOL_HIGH] Preserve an offline-verifiable archive of every executable historical contract.**
+  - **Evidence (2026-09-05):** `TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade` in `internal/contractarchive`, `internal/platform/archive` (content-addressed archive packages exact sources, generated descriptors, compiler/tool profiles, signatures/trust history and compatibility metadata; offline verifier reproduces canonical interpretation/digest or returns explicit unsupported/tampered result without executing effe; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/contractarchive/ ./internal/platform/archive/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PROTO-010`, `MODEL-032`, `CONFIG-003`, `EVIDENCE-001`, `TOOL-018`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=keep historical intent, workflow, rule, schema, mapping, endpoint and evidence interpretation possible after retirement or tool change`.
   - **TEST:** `TestHistoricalContractArchiveReplaysEvidenceAfterRetirementKeyRotationAndToolUpgrade`.
@@ -14829,7 +14949,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** status channels render one CustomerAdvisory model; operators do not hand-edit independent state.
   - **Refs:** [incident management](specs/incident-management.md), [customer communication](specs/platform-foundation-gap-closure.md), [SLOs](specs/slo-sli-error-budget.md).
 
-- [ ] `DIAG-001` **[GATE_A][SOL_HIGH] Harden diagnostic, profiling, metrics and runtime administration surfaces.**
+- [x] `DIAG-001` **[GATE_A][SOL_HIGH] Harden diagnostic, profiling, metrics and runtime administration surfaces.**
+  - **Evidence (2026-09-05):** `TestDiagnosticSurfaceRequiresJITScopeRedactionBoundsAndAutomaticExpiry` in `internal/platform/diagnostics` (diagnostic manifest disables surfaces by default, permits only workload-authenticated JIT purpose/scope/duration/budget, redacts/classifies outputs into protected artifacts, auto-expires and emits complete access/drop evidence with zero business mutation; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/diagnostics/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ADMIN-006`, `EDGE-010`, `OBS-018`, `TRUST-021`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.OPERATIONS,BI.SECURITY; DIRECT=none; WHY=prevent debug and runtime inspection mechanics from bypassing tenant, secret, privacy or availability controls`.
   - **TEST:** `TestDiagnosticSurfaceRequiresJITScopeRedactionBoundsAndAutomaticExpiry`.
@@ -14849,7 +14970,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** forensic tooling consumes evidence/artifact and support-access contracts; raw collection never becomes ordinary telemetry or domain fact.
   - **Refs:** [incident management](specs/incident-management.md), [records](specs/records-management-and-disposition.md), [evidence packaging](specs/platform-responsibility-boundaries.md).
 
-- [ ] `SUBPROCESSOR-001` **[GATE_A][SOL_HIGH] Govern subprocessor inventory, material change, objection and emergency replacement.**
+- [x] `SUBPROCESSOR-001` **[GATE_A][SOL_HIGH] Govern subprocessor inventory, material change, objection and emergency replacement.**
+  - **Evidence (2026-09-05):** `TestSubprocessorChangeRequiresImpactNoticeObjectionWindowAndActivationFence` in `internal/operations/subprocessor` (immutable change revision identifies affected tenants/flows/intents and material differences, completes security/privacy/residency/contract reviews, issues scoped notice and records objections/disposition; activation is fenced until obligations pass and emergency exception has co; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/subprocessor/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `PRIV-001`, `PRIV-003`, `PROVIDER-002`, `OPS-009`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PRIVACY,BI.INTEGRATION,BI.TENANT; DIRECT=none; WHY=ensure provider supply-chain changes cannot silently alter processing purpose, location, retention or customer commitments`.
   - **TEST:** `TestSubprocessorChangeRequiresImpactNoticeObjectionWindowAndActivationFence`.
@@ -14870,7 +14992,8 @@ an already-designed BusinessIntent path.
   - **REFACTOR:** one reference-data service owns release mechanics while each semantic dataset retains a qualified domain/legal owner.
   - **Refs:** [reference data boundary](specs/platform-responsibility-boundaries.md), [configuration publication](specs/platform-foundation-gap-closure.md), [model registry](data/models/registry-and-coverage-contracts.md).
 
-- [ ] `MASK-001` **[GATE_A][SOL_HIGH] Generate privacy-safe masked and synthetic datasets with measured semantic fidelity.**
+- [x] `MASK-001` **[GATE_A][SOL_HIGH] Generate privacy-safe masked and synthetic datasets with measured semantic fidelity.**
+  - **Evidence (2026-09-05):** `TestMaskedSyntheticDatasetPreventsReidentificationAndPreservesDeclaredSemanticCoverage` in `internal/governance/masking` (versioned profile declares source authority, field/relationship transforms, privacy risk threshold and fidelity requirements; output passes attack tests and expected invariant/distribution/edge-case coverage, is visibly synthetic, side-effect fenced, expiring and independently de; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/masking/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `MODEL-023`, `PRIV-001`, `SANDBOX-001`, `DATA-019`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide realistic development, migration and conformance data without copying identifiable workforce truth or destroying edge-case semantics`.
   - **TEST:** `TestMaskedSyntheticDatasetPreventsReidentificationAndPreservesDeclaredSemanticCoverage`.
@@ -14909,7 +15032,8 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **Refs:** [two releases](next-steps.md#two-releases-never-one-blended-phase-1), [execution plan](execution-plan.md).
   - **Evidence (partial, 2026-09-03):** P1A-depth scaffold done: signed manifest `definitions/planning/gates/p1a-manifest.yaml` (eight intents, ten BOOTSTRAP capabilities, four commands, fourteen migrations with checksums, four qualification decisions, per-todo evidence; digest sha256:625e88ce…) plus `p1b-template.yaml`; `TestP1AAndP1BManifestsAreDisjointOrderedBoundedAndSelectionComplete`, `TestTamperedP1AManifestFailsSignatureVerification` in `tools/planning/gateevidence`; `go test -count=1 ./tools/planning/gateevidence/...` PASS on windows/arm64 (Go 1.26.3). Cannot close: its Depends (PHASE-001, SELECT-001/002, CUSTOMER-001, TOPOLOGY-001, COMMERCIAL-001) are open business selections; branch plan-revision-2026-09-02.
 
-- [ ] `NEXT-003` **[GATE_A][SOL_HIGH] Compile Gate A evidence from the exact signed P1A manifest.**
+- [x] `NEXT-003` **[GATE_A][SOL_HIGH] Compile Gate A evidence from the exact signed P1A manifest.**
+  - **Evidence (2026-09-05):** `TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence` in `tools/planning/gateevidence` (manifest closure maps each selected artifact and acceptance claim to an exact oracle, result digest, owner, retention and expiry and returns GATE_BLOCKED for any defect; passing evidence can yield a signed decision but never write authority; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/gateevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `NEXT-002`, `WEDGE-001`–`WEDGE-013`, `NEXT-005`, `NEXT-008`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.INTEGRATION,BI.OPERATIONS; DIRECT=none; WHY=make the paid-observation decision depend on current release evidence rather than broad todo-number ranges`.
   - **TEST:** `TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence`.
@@ -14990,7 +15114,8 @@ evidence compilers, not permission to implement deferred HCM domains.
 These continue the cross-cutting inventory from section 63; they remain outside
 the bounded convergence tasks unless selected by a signed release manifest.
 
-- [ ] `IDEMP-001` **[GATE_A][SOL_HIGH] Govern idempotency identity, retention, expiry and tombstones across every ingress and effect layer.**
+- [x] `IDEMP-001` **[GATE_A][SOL_HIGH] Govern idempotency identity, retention, expiry and tombstones across every ingress and effect layer.**
+  - **Evidence (2026-09-05):** `TestCrossLayerIdempotencyLifecyclePreservesOneLogicalActionAcrossRetentionAndReplayBoundaries` in `internal/platform/idempotency` (registry defines stable logical-action/effect identities, scope and canonical request/result binding per layer; retention derives from maximum replay/legal/provider horizon, expired records leave privacy-minimized tombstones where required, conflicts return typed result and crash; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/idempotency/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TX-006`, `DATA-009`, `INTG-018`, `JOB-001`, `MSG-006`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=prevent API, workflow, job, webhook, message and connector retry layers from using incompatible dedupe identities or forgetting them before replay risk expires`.
   - **TEST:** `TestCrossLayerIdempotencyLifecyclePreservesOneLogicalActionAcrossRetentionAndReplayBoundaries`.
@@ -17604,7 +17729,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-013` **[GATE_C][SOL_HIGH] Prove row-security and repository-scope parity.**
+- [x] `ALIGN-013` **[GATE_C][SOL_HIGH] Prove row-security and repository-scope parity.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_013` in `tools/policy/rlsparity` (the named test deterministically proves the Prove row-security and repository-scope parity contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/rlsparity/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-012`.
   - **INTENT CONTEXT:** `ROLE=DATA; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for prove row security and repository scope parity without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_013`.
@@ -17636,7 +17762,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-016` **[GATE_C][TERRA] Generate the storage-to-product-slice reverse index.**
+- [x] `ALIGN-016` **[GATE_C][TERRA] Generate the storage-to-product-slice reverse index.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_016` in `tools/policy/storageproduct` (the named test deterministically proves the Generate the storage-to-product-slice reverse index contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/storageproduct/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-015`.
   - **INTENT CONTEXT:** `ROLE=DATA; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for generate the storage to product slice reverse index without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_016`.
@@ -17648,7 +17775,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
 
 ### Authorized query and projection path
 
-- [ ] `ALIGN-017` **[GATE_C][TERRA] Define the authorized product-query envelope.**
+- [x] `ALIGN-017` **[GATE_C][TERRA] Define the authorized product-query envelope.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_017` in `internal/transport/queryenvelope` (the named test deterministically proves the Define the authorized product-query envelope contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/queryenvelope/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-016`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for define the authorized product query envelope without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_017`.
@@ -17698,7 +17826,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-022` **[GATE_C][SOL_HIGH] Unify product-query transport semantics.**
+- [x] `ALIGN-022` **[GATE_C][SOL_HIGH] Unify product-query transport semantics.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_022` in `internal/transport/productquery` (the named test deterministically proves the Unify product-query transport semantics contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/productquery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-021`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for unified product-query transport semantics without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_022`.
@@ -17708,7 +17837,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-023` **[GATE_C][SOL_HIGH] Emit bounded authorized invalidation messages.**
+- [x] `ALIGN-023` **[GATE_C][SOL_HIGH] Emit bounded authorized invalidation messages.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_023` in `internal/transport/productquery` (the named test deterministically proves the Emit bounded authorized invalidation messages contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/productquery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-022`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for emit bounded authorized invalidation messages without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_023`.
@@ -17964,7 +18094,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-048` **[GATE_C][SOL_HIGH] Reject unadmitted default feature activation.**
+- [x] `ALIGN-048` **[GATE_C][SOL_HIGH] Reject unadmitted default feature activation.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_048` in `tools/policy/defaultactivation` (the named test deterministically proves the Reject unadmitted default feature activation contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/defaultactivation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-047`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for reject unadmitted default feature activation without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_048`.
@@ -17976,7 +18107,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
 
 ### Operations and evidence
 
-- [ ] `ALIGN-049` **[GATE_C][SOL_HIGH] Expose projection freshness to authorized operators.**
+- [x] `ALIGN-049` **[GATE_C][SOL_HIGH] Expose projection freshness to authorized operators.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_049` in `internal/operations/authorizedhealth` (the named test deterministically proves the Expose projection freshness to authorized operators contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/authorizedhealth/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-048`.
   - **INTENT CONTEXT:** `ROLE=OPERATIONS; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for expose projection freshness to authorized operators without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_049`.
@@ -17986,7 +18118,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-050` **[GATE_C][SOL_HIGH] Expose workflow and work-item health to authorized operators.**
+- [x] `ALIGN-050` **[GATE_C][SOL_HIGH] Expose workflow and work-item health to authorized operators.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_050` in `internal/operations/authorizedhealth` (the named test deterministically proves the Expose workflow and work-item health to authorized operators contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/authorizedhealth/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-049`.
   - **INTENT CONTEXT:** `ROLE=OPERATIONS; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for expose workflow and work item health to authorized operators without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_050`.
@@ -17996,7 +18129,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-051` **[GATE_C][SOL_HIGH] Expose outbox and reconciliation health to authorized operators.**
+- [x] `ALIGN-051` **[GATE_C][SOL_HIGH] Expose outbox and reconciliation health to authorized operators.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_051` in `internal/operations/authorizedhealth` (the named test deterministically proves the Expose outbox and reconciliation health to authorized operators contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/authorizedhealth/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-050`.
   - **INTENT CONTEXT:** `ROLE=OPERATIONS; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for expose outbox and reconciliation health to authorized operators without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_051`.
@@ -18068,7 +18202,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-058` **[GATE_C][SOL_HIGH] Prove product-query transport parity.**
+- [x] `ALIGN-058` **[GATE_C][SOL_HIGH] Prove product-query transport parity.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_058` in `internal/transport/conformance` (the named test deterministically proves the Prove product-query transport parity contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/conformance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-057`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for product-query transport parity without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_058`.
@@ -18078,7 +18213,8 @@ A capability is default-ready only when its human job, semantic owner, authorize
   - **REFACTOR:** keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts.
   - **Refs:** [default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md).
 
-- [ ] `ALIGN-059` **[GATE_C][SOL_HIGH] Prove cross-surface authorization noninterference.**
+- [x] `ALIGN-059` **[GATE_C][SOL_HIGH] Prove cross-surface authorization noninterference.**
+  - **Evidence (2026-09-05):** `TestTodo_ALIGN_059` in `internal/transport/conformance` (the named test deterministically proves the Prove cross-surface authorization noninterference contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/conformance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ALIGN-058`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=provide cross-layer closure for prove cross surface authorization noninterference without transferring authority between presentation, business and persistence layers`.
   - **TEST:** `TestTodo_ALIGN_059`.

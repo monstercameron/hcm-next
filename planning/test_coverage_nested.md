@@ -1,8 +1,8 @@
-﻿=== nested (hcm-next-executor, src/blocks/go) ===
+﻿=== nested (hcm-next-executor) ===
 files(non-test)=30 generated=0 hand-written=30 hand-written-in-untested-pkgs=0
 untested pkgs(0):
 
-# Test-coverage file inventory - nested (hcm-next-executor, src/blocks/go) module
+# Test-coverage file inventory - nested (hcm-next-executor) module
 
 generated=0 hand-written=30
 
@@ -40,5 +40,3 @@ generated=0 hand-written=30
 | internal/executor                | registry.go         | yes           |
 | internal/executor                | server.go           | yes           |
 | sdk                              | contract.go         | yes           |
-
-## Generated files (excluded: machine output)

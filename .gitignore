@@ -109,3 +109,5 @@ internal/humanwork/workspace/assets/wasm_exec.js
 # embedded PostgreSQL runtime and archive caches
 .pg-cache-*
 .pgcache-*
+.codex-*/
+.codex-*
