@@ -1,0 +1,45 @@
+{
+  "previous": {
+    "TypeID": "hcmnext.people.promote_worker",
+    "Version": 1
+  },
+  "current": {
+    "TypeID": "hcmnext.people.promote_worker",
+    "Version": 2
+  },
+  "verdict": "INCOMPATIBLE",
+  "changes": [
+    {
+      "code": "optional_input_added",
+      "field": "notes",
+      "detail": "input \"notes\" was added as optional"
+    }
+  ],
+  "violations": [
+    {
+      "code": "approval_requirement_removed",
+      "field": "approval_required",
+      "detail": "the approval requirement was removed"
+    },
+    {
+      "code": "required_input_added",
+      "field": "compensation_committee_approval_ref",
+      "detail": "input \"compensation_committee_approval_ref\" was added as required; a caller bound to hcmnext.people.promote_worker/v1 cannot satisfy it"
+    },
+    {
+      "code": "effect_class_raised",
+      "field": "effect_class",
+      "detail": "effect class was raised from INTERNAL_MUTATION to EXTERNAL_MUTATION"
+    },
+    {
+      "code": "required_input_removed",
+      "field": "reason_ref",
+      "detail": "required input \"reason_ref\" was removed"
+    },
+    {
+      "code": "input_type_changed",
+      "field": "target_position_ref",
+      "detail": "input \"target_position_ref\" changed kind from REFERENCE to SCALAR"
+    }
+  ]
+}

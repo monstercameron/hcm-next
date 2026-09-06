@@ -66,11 +66,19 @@ var ErrAmbiguous = errors.New("stepup: consumption commit outcome is ambiguous")
 
 // Operation is the sensitive operation a proof authorizes exactly one
 // execution of.
+//
+// Purpose, Capability and Risk are the governance coordinates a step-up
+// obligation is selected against (see [EvaluateObligation]). They are part of
+// the proof binding, so a proof issued for a low-risk read of one capability
+// cannot be presented for a high-risk write of another.
 type Operation struct {
 	Action     string
 	ProposalID string
 	Scopes     []string
 	Tenant     values.TenantId
+	Purpose    string
+	Capability string
+	Risk       Risk
 }
 
 // Requirement is the step-up policy a verification is checked against.
@@ -95,6 +103,9 @@ type Proof struct {
 	Action     string
 	ProposalID string
 	Scopes     []string
+	Purpose    string
+	Capability string
+	Risk       Risk
 	IssuedAt   time.Time
 	ExpiresAt  time.Time
 	Signature  []byte
@@ -102,17 +113,20 @@ type Proof struct {
 
 // ProofWire is the encoded form a proof travels in.
 type ProofWire struct {
-	ID        string   `json:"id"`
-	Tenant    string   `json:"tenant"`
-	Subject   string   `json:"subject"`
-	Session   string   `json:"session"`
-	Assurance string   `json:"assurance"`
-	Action    string   `json:"action"`
-	Proposal  string   `json:"proposal"`
-	Scopes    []string `json:"scopes"`
-	IssuedAt  int64    `json:"iat"`
-	ExpiresAt int64    `json:"exp"`
-	Signature string   `json:"sig"`
+	ID         string   `json:"id"`
+	Tenant     string   `json:"tenant"`
+	Subject    string   `json:"subject"`
+	Session    string   `json:"session"`
+	Assurance  string   `json:"assurance"`
+	Action     string   `json:"action"`
+	Proposal   string   `json:"proposal"`
+	Scopes     []string `json:"scopes"`
+	Purpose    string   `json:"purpose,omitempty"`
+	Capability string   `json:"capability,omitempty"`
+	Risk       string   `json:"risk,omitempty"`
+	IssuedAt   int64    `json:"iat"`
+	ExpiresAt  int64    `json:"exp"`
+	Signature  string   `json:"sig"`
 }
 
 // canonical returns the framed, length-prefixed serialization of every signed
@@ -136,6 +150,9 @@ func (p Proof) canonical() string {
 	write("assurance", p.Assurance.String())
 	write("action", p.Action)
 	write("proposal", p.ProposalID)
+	write("purpose", p.Purpose)
+	write("capability", p.Capability)
+	write("risk", p.Risk.String())
 	for _, s := range scopes {
 		b.WriteString("scope=")
 		b.WriteString(fmt.Sprintf("%d:", len(s)))
@@ -158,17 +175,20 @@ func (p Proof) Digest() string {
 // Encode serializes the proof to its wire form.
 func (p Proof) Encode() ([]byte, error) {
 	data, err := json.Marshal(ProofWire{
-		ID:        p.ID,
-		Tenant:    p.Tenant.String(),
-		Subject:   p.Subject,
-		Session:   p.SessionRef,
-		Assurance: p.Assurance.String(),
-		Action:    p.Action,
-		Proposal:  p.ProposalID,
-		Scopes:    p.Scopes,
-		IssuedAt:  p.IssuedAt.UTC().UnixNano(),
-		ExpiresAt: p.ExpiresAt.UTC().UnixNano(),
-		Signature: hex.EncodeToString(p.Signature),
+		ID:         p.ID,
+		Tenant:     p.Tenant.String(),
+		Subject:    p.Subject,
+		Session:    p.SessionRef,
+		Assurance:  p.Assurance.String(),
+		Action:     p.Action,
+		Proposal:   p.ProposalID,
+		Scopes:     p.Scopes,
+		Purpose:    p.Purpose,
+		Capability: p.Capability,
+		Risk:       riskWire(p.Risk),
+		IssuedAt:   p.IssuedAt.UTC().UnixNano(),
+		ExpiresAt:  p.ExpiresAt.UTC().UnixNano(),
+		Signature:  hex.EncodeToString(p.Signature),
 	})
 	return data, err
 }
@@ -198,6 +218,10 @@ func DecodeProof(data []byte) (Proof, error) {
 	if issued.IsZero() || expires.IsZero() || !expires.After(issued) {
 		return Proof{}, fmt.Errorf("%w: inverted or zero validity window", ErrProofDecoded)
 	}
+	risk, err := parseRisk(w.Risk)
+	if err != nil {
+		return Proof{}, fmt.Errorf("%w: risk %q", ErrProofDecoded, w.Risk)
+	}
 	scopes := append([]string(nil), w.Scopes...)
 	sort.Strings(scopes)
 	return Proof{
@@ -209,6 +233,9 @@ func DecodeProof(data []byte) (Proof, error) {
 		Action:     w.Action,
 		ProposalID: w.Proposal,
 		Scopes:     scopes,
+		Purpose:    w.Purpose,
+		Capability: w.Capability,
+		Risk:       risk,
 		IssuedAt:   issued,
 		ExpiresAt:  expires,
 		Signature:  sig,
@@ -271,6 +298,9 @@ func (iss *Issuer) Issue(p *trust.Principal, op Operation, req Requirement) (Pro
 		Action:     op.Action,
 		ProposalID: op.ProposalID,
 		Scopes:     sortedCopy(op.Scopes),
+		Purpose:    op.Purpose,
+		Capability: op.Capability,
+		Risk:       op.Risk,
 		IssuedAt:   now,
 		ExpiresAt:  now.Add(defaultLifetime),
 	}
@@ -430,6 +460,9 @@ func (g *Gate) Present(ctx context.Context, proof Proof, op Operation, p *trust.
 		{proof.Tenant.String(), op.Tenant.String()},
 		{proof.Action, op.Action},
 		{proof.ProposalID, op.ProposalID},
+		{proof.Purpose, op.Purpose},
+		{proof.Capability, op.Capability},
+		{proof.Risk.String(), op.Risk.String()},
 		{proof.Subject, p.Subject()},
 		{proof.SessionRef, p.SessionRef()},
 	}

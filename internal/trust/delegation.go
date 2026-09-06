@@ -28,9 +28,14 @@ type AuthorityScope struct {
 // DelegationGrant is a bounded, attributable grant from Delegator to Delegate.
 // The grant itself can only narrow the delegator's authority.
 type DelegationGrant struct {
-	GrantID             string
-	RootID              string
-	ParentGrantID       string
+	GrantID       string
+	RootID        string
+	ParentGrantID string
+	// Kind records why the grant exists. The zero value normalizes to
+	// [GrantKindDirect]; acting roles and vacation coverage set it through
+	// [AuthorityAssignment.Grant]. It is attribution only and never widens
+	// authority.
+	Kind                GrantKind
 	Delegator           string
 	Delegate            string
 	Tenant              values.TenantId
@@ -66,6 +71,7 @@ type DelegationRequest struct {
 type EffectiveAuthority struct {
 	GrantID             string
 	RootID              string
+	Kind                GrantKind
 	Chain               []string
 	Delegator           string
 	Delegate            string
@@ -124,6 +130,15 @@ func ValidateDelegation(g DelegationGrant) error {
 	}
 	if g.ParentGrantID != "" && g.MaxDepth == 0 {
 		return fmt.Errorf("%w: redelegation depth", ErrInvalidDelegation)
+	}
+	if !g.Kind.valid() {
+		return fmt.Errorf("%w: grant kind %q", ErrInvalidDelegation, g.Kind)
+	}
+	if g.Kind.normalize() == GrantKindCoverage && (g.AllowRedelegation || g.MaxDepth != 0 || g.ParentGrantID != "") {
+		// Coverage lends an absent principal's own authority for a window.
+		// A stand-in appointing a further stand-in would break attribution
+		// back to the person who is actually accountable.
+		return ErrRedelegationNotPermitted
 	}
 	return nil
 }
@@ -195,7 +210,7 @@ func EvaluateDelegation(req DelegationRequest) (EffectiveAuthority, error) {
 	if req.Parent != nil {
 		chain = append(slices.Clone(req.Parent.Chain), g.GrantID)
 	}
-	e := EffectiveAuthority{GrantID: g.GrantID, RootID: g.RootID, Chain: chain, Delegator: g.Delegator, Delegate: g.Delegate, Tenant: g.Tenant, OrganizationScopeID: g.OrganizationScopeID, Capabilities: capabilities, Resources: resources, Fields: fields, Purposes: purposes, Assurance: minAssurance(req.Delegator.Assurance, req.Delegate.Assurance), NotBefore: nb, ExpiresAt: exp, AllowRedelegation: g.AllowRedelegation, MaxDepth: g.MaxDepth}
+	e := EffectiveAuthority{GrantID: g.GrantID, RootID: g.RootID, Kind: g.Kind.normalize(), Chain: chain, Delegator: g.Delegator, Delegate: g.Delegate, Tenant: g.Tenant, OrganizationScopeID: g.OrganizationScopeID, Capabilities: capabilities, Resources: resources, Fields: fields, Purposes: purposes, Assurance: minAssurance(req.Delegator.Assurance, req.Delegate.Assurance), NotBefore: nb, ExpiresAt: exp, AllowRedelegation: g.AllowRedelegation, MaxDepth: g.MaxDepth}
 	e.DecisionID = delegationDecisionID(e)
 	return e, nil
 }
@@ -245,7 +260,7 @@ func minAssurance(a, b Assurance) Assurance {
 }
 func delegationDecisionID(e EffectiveAuthority) string {
 	h := sha256.New()
-	fmt.Fprintf(h, "%s|%s|%s|%s|%v|%v", e.GrantID, e.RootID, e.Tenant, e.Delegate, e.NotBefore.UnixNano(), e.ExpiresAt.UnixNano())
+	fmt.Fprintf(h, "%s|%s|%s|%s|%s|%v|%v", e.GrantID, e.RootID, e.Kind, e.Tenant, e.Delegate, e.NotBefore.UnixNano(), e.ExpiresAt.UnixNano())
 	for _, s := range [][]string{e.Chain, e.Capabilities, e.Resources, e.Fields, e.Purposes} {
 		fmt.Fprintf(h, "|%v", s)
 	}

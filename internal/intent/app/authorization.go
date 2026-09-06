@@ -3,7 +3,7 @@ package app
 import (
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/monstercameron/hcm-next/internal/domains/dataops"
 	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
@@ -161,7 +161,7 @@ func mergeFields(sets ...[]authz.FieldID) []authz.FieldID {
 			out = append(out, f)
 		}
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	slices.Sort(out)
 	return out
 }
 

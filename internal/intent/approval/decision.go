@@ -46,6 +46,8 @@ type Projection struct {
 	RequirementID string
 	TaskVersion   uint64
 	Digest        string
+	// Safety is server-owned render state. Only SAFE_TO_DECIDE permits a vote.
+	Safety humanwork.ProjectionSafety
 }
 
 // ApproverReference identifies who decided and by what route.
@@ -309,6 +311,10 @@ func NewBinder(
 		if p.Digest == "" || p.TaskVersion == 0 {
 			return nil, newError("NewBinder", "projections", CodeInvalidBinder, ErrInvalidBinder,
 				"projection for %q has no digest or task version", p.RequirementID)
+		}
+		if p.Safety != humanwork.SafetySafeToDecide {
+			return nil, newError("NewBinder", "projections.safety", CodeUnsafeProjection, ErrUnsafeProjection,
+				"projection for %q is %s", p.RequirementID, p.Safety)
 		}
 		b.projections[p.RequirementID] = p
 	}

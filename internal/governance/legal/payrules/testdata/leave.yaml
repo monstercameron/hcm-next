@@ -1,0 +1,62 @@
+schema_version: 1
+version: 1
+effective_from: "2025-01-01"
+known_at: "2026-09-03T00:00:00Z"
+programs:
+  - id: az-earned-paid-sick-time
+    state_code: AZ
+    program: earned_sick_time
+    accrual_hours_per_hours_worked:
+      numerator: 1
+      denominator: 30
+    annual_cap_hours: 40
+    employer_size_tiers:
+      - minimum_employees: 0
+        paid_cap_hours: 24
+      - minimum_employees: 15
+        paid_cap_hours: 40
+    carryover_cap_hours: 40
+    front_load_permitted: true
+    waiting_period_days: 90
+    no_forfeiture_on_role_change: true
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/arizona.md
+      section: "A.R.S. § 23-371 et seq."
+  - id: mn-earned-sick-and-safe-time
+    state_code: MN
+    program: earned_sick_and_safe_time
+    accrual_hours_per_hours_worked:
+      numerator: 1
+      denominator: 30
+    annual_cap_hours: 48
+    employer_size_tiers:
+      - minimum_employees: 0
+        paid_cap_hours: 48
+    carryover_cap_hours: 80
+    front_load_permitted: true
+    no_forfeiture_on_role_change: true
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/minnesota.md
+      section: "Minn. Stat. § 181.9445–181.9448"
+  - id: mi-earned-sick-time-small-employer
+    state_code: MI
+    program: earned_sick_time
+    accrual_hours_per_hours_worked:
+      numerator: 1
+      denominator: 30
+    annual_cap_hours: 72
+    employer_size_tiers:
+      - minimum_employees: 0
+        paid_cap_hours: 40
+        unpaid_cap_hours: 32
+      - minimum_employees: 11
+        paid_cap_hours: 72
+    carryover_cap_hours: 40
+    front_load_permitted: true
+    no_forfeiture_on_role_change: true
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/michigan.md
+      section: "Michigan Compiled Law § 408.963"

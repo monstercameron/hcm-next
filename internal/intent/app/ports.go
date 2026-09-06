@@ -46,6 +46,11 @@ type IntentRecord struct {
 	RecordedAt       time.Time
 	LastTransitionAt time.Time
 
+	// CommitReceiptRef and RepairRef are the terminal references BindOutcome
+	// projected beside the lifecycle tuple; empty until a terminal is bound.
+	CommitReceiptRef string
+	RepairRef        string
+
 	// Envelope is the marshalled hcmnext.intents.v1.IntentInstance.
 	Envelope []byte
 	// EnvelopeSchemaRef is the registered payload-schema reference the ledger

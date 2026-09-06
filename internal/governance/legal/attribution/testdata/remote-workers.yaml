@@ -1,0 +1,185 @@
+schema_version: 1
+version: 2026.1
+known_at: 2026-09-03T00:00:00Z
+registry:
+  - state: AL
+    citation: Alabama research § 10 Classification and Multi-State
+    review: REVIEWED
+  - state: AK
+    citation: AS § 23.10.065 (work-location wage floor)
+    review: REVIEWED
+  - state: AZ
+    citation: A.R.S. § 23-363 (work-location wage floor)
+    review: REVIEWED
+  - state: AR
+    citation: Ark. Code § 11-4-211 (work-location wage floor)
+    review: REVIEWED
+  - state: CA
+    citation: Lab. Code § 1182.12 (work-location wage floor)
+    review: REVIEWED
+  - state: CO
+    citation: "COMPS Order #40 (work-location wage and hour rules)"
+    review: REVIEWED
+  - state: CT
+    citation: Conn. Gen. Stat. § 31-58 (work-location wage and hour rules)
+    review: REVIEWED
+  - state: DE
+    citation: 19 Del. C. § 902 (work-location wage floor)
+    review: REVIEWED
+  - state: FL
+    citation: Fla. Const. Art. X § 24 (work-location wage floor)
+    review: REVIEWED
+  - state: GA
+    citation: O.C.G.A. § 34-7-2 (payment for work performed in Georgia)
+    review: REVIEWED
+  - state: HI
+    citation: Haw. Rev. Stat. § 387-2 (work-location wage floor)
+    review: REVIEWED
+  - state: ID
+    citation: Idaho Code § 44-1502 (work-location wage floor)
+    review: REVIEWED
+  - state: IL
+    citation: 820 ILCS 105/4 (work-location wage floor)
+    review: REVIEWED
+  - state: IN
+    citation: Ind. Code § 22-2-2-4 (work-location wage floor)
+    review: REVIEWED
+  - state: IA
+    citation: Iowa Code § 91D.1 (work-location wage floor)
+    review: REVIEWED
+  - state: KS
+    citation: K.S.A. § 44-1203 (work-location wage floor)
+    review: REVIEWED
+  - state: KY
+    citation: KRS § 337.275 (work-location wage floor)
+    review: REVIEWED
+  - state: LA
+    citation: La. Rev. Stat. § 23:642 (work-location wage floor)
+    review: REVIEWED
+  - state: ME
+    citation: 26 M.R.S. § 664 (work-location wage floor)
+    review: REVIEWED
+  - state: MD
+    citation: Md. Code, Lab. & Empl. § 3-413 (work-location wage floor)
+    review: REVIEWED
+  - state: MA
+    citation: M.G.L. c. 151 § 1 (work-location wage floor)
+    review: REVIEWED
+  - state: MI
+    citation: MCL 408.934a (work-location wage floor)
+    review: REVIEWED
+  - state: MN
+    citation: Minn. Stat. § 177.24 (work-location wage floor)
+    review: REVIEWED
+  - state: MS
+    citation: Miss. Code § 71-1-51 (work-location wage floor)
+    review: REVIEWED
+  - state: MO
+    citation: RSMo § 290.502 (work-location wage floor)
+    review: REVIEWED
+  - state: MT
+    citation: MCA § 39-3-404 (work-location wage floor)
+    review: REVIEWED
+  - state: NE
+    citation: Neb. Rev. Stat. § 48-1203 (work-location wage floor)
+    review: REVIEWED
+  - state: NV
+    citation: NRS § 608.250 (work-location wage floor)
+    review: REVIEWED
+  - state: NH
+    citation: RSA 279:21 (work-location wage floor)
+    review: REVIEWED
+  - state: NJ
+    citation: N.J.S.A. § 34:11-56a4 (work-location wage floor)
+    review: REVIEWED
+  - state: NM
+    citation: NMSA 1978 § 50-4-22 (work-location wage floor)
+    review: REVIEWED
+  - state: NY
+    citation: Labor Law § 652 (work-location wage floor)
+    review: REVIEWED
+  - state: NC
+    citation: N.C. Gen. Stat. § 95-25.3 (work-location wage floor)
+    review: REVIEWED
+  - state: ND
+    citation: N.D.C.C. § 34-06-22 (work-location wage floor)
+    review: REVIEWED
+  - state: OH
+    citation: Ohio Const. Art. II § 34a (work-location wage floor)
+    review: REVIEWED
+  - state: OK
+    citation: 40 O.S. § 197.2 (work-location wage floor)
+    review: REVIEWED
+  - state: OR
+    citation: ORS § 653.025 (work-location wage floor)
+    review: REVIEWED
+  - state: PA
+    citation: 43 P.S. § 333.104 (work-location wage floor)
+    review: REVIEWED
+  - state: RI
+    citation: R.I. Gen. Laws § 28-12-3 (work-location wage floor)
+    review: REVIEWED
+  - state: SC
+    citation: S.C. Code § 41-10-30 (work-location payment rules)
+    review: REVIEWED
+  - state: SD
+    citation: SDCL § 60-11-3.2 (work-location wage floor)
+    review: REVIEWED
+  - state: TN
+    citation: Tenn. Code § 50-2-103 (work-location wage floor)
+    review: REVIEWED
+  - state: TX
+    citation: Tex. Lab. Code § 62.051 (work-location wage floor)
+    review: REVIEWED
+  - state: UT
+    citation: Utah Code § 34-40-201 (work-location wage floor)
+    review: REVIEWED
+  - state: VT
+    citation: 21 V.S.A. § 384 (work-location wage floor)
+    review: REVIEWED
+  - state: VA
+    citation: Va. Code § 40.1-28.10 (work-location wage floor)
+    review: REVIEWED
+  - state: WA
+    citation: RCW 49.46.020 (work-location wage floor)
+    review: REVIEWED
+  - state: WV
+    citation: W. Va. Code § 21-5C-2 (work-location wage floor)
+    review: REVIEWED
+  - state: WI
+    citation: Wis. Stat. § 104.035 (work-location wage floor)
+    review: REVIEWED
+  - state: WY
+    citation: Wyo. Stat. § 27-4-202 (work-location wage floor)
+    review: REVIEWED
+fixtures:
+  - id: remote-one-state
+    remote: true
+    residence: US-GA
+    employment: US-GA
+    work_locations: CO:1.0000
+    expected_rule: A3
+    expected_state: CO
+  - id: remote-threshold-winner
+    remote: true
+    residence: US-GA
+    employment: US-GA
+    work_locations: CO:0.7500,AL:0.2500
+    threshold: "0.5000"
+    expected_rule: A4
+    expected_state: CO
+  - id: remote-no-threshold
+    remote: true
+    residence: US-GA
+    employment: US-GA
+    work_locations: CO:0.5000,AL:0.5000
+    expected_rule: A5
+    expected_state: ""
+  - id: remote-no-winner
+    remote: true
+    residence: US-GA
+    employment: US-GA
+    work_locations: CO:0.5000,AL:0.5000
+    threshold: "0.6000"
+    expected_rule: A5
+    expected_state: ""

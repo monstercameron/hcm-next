@@ -1,0 +1,204 @@
+schema_version: 1
+id: us-state-wage-indexation
+version: 2026.1
+known_at: 2026-09-03T00:00:00Z
+registry:
+  - state: AL
+    citation: research/alabama.md § 3 (state minimum-wage finding)
+    review: REVIEWED
+  - state: AK
+    citation: AS § 23.10.065
+    review: REVIEWED
+  - state: AZ
+    citation: A.R.S. § 23-363
+    review: REVIEWED
+  - state: AR
+    citation: Ark. Code § 11-4-211
+    review: REVIEWED
+  - state: CA
+    citation: Lab. Code § 1182.12
+    review: REVIEWED
+  - state: CO
+    citation: "COMPS Order #40 (minimum-wage finding)"
+    review: REVIEWED
+  - state: CT
+    citation: PA 19-4; Conn. Gen. Stat. § 31-58
+    review: REVIEWED
+  - state: DE
+    citation: 19 Del. C. § 902
+    review: REVIEWED
+  - state: FL
+    citation: Fla. Const. Art. X § 24
+    review: REVIEWED
+  - state: GA
+    citation: O.C.G.A. § 34-4-3
+    review: REVIEWED
+  - state: HI
+    citation: Haw. Rev. Stat. § 387-2
+    review: REVIEWED
+  - state: ID
+    citation: Idaho Code § 44-1502
+    review: REVIEWED
+  - state: IL
+    citation: 820 ILCS 105/4
+    review: REVIEWED
+  - state: IN
+    citation: Ind. Code § 22-2-2-4
+    review: REVIEWED
+  - state: IA
+    citation: Iowa Code § 91D.1
+    review: REVIEWED
+  - state: KS
+    citation: K.S.A. § 44-1203
+    review: REVIEWED
+  - state: KY
+    citation: KRS § 337.275
+    review: REVIEWED
+  - state: LA
+    citation: La. Rev. Stat. § 23:642
+    review: REVIEWED
+  - state: ME
+    citation: 26 M.R.S. § 664
+    review: REVIEWED
+  - state: MD
+    citation: Md. Code, Lab. & Empl. § 3-413
+    review: REVIEWED
+  - state: MA
+    citation: M.G.L. c. 151 § 1
+    review: REVIEWED
+  - state: MI
+    citation: MCL 408.934a
+    review: REVIEWED
+  - state: MN
+    citation: Minn. Stat. § 177.24
+    review: REVIEWED
+  - state: MS
+    citation: Miss. Code § 71-1-51
+    review: REVIEWED
+  - state: MO
+    citation: RSMo § 290.502
+    review: REVIEWED
+  - state: MT
+    citation: MCA § 39-3-404
+    review: REVIEWED
+  - state: NE
+    citation: Neb. Rev. Stat. § 48-1203
+    review: REVIEWED
+  - state: NV
+    citation: NRS § 608.250
+    review: REVIEWED
+  - state: NH
+    citation: RSA 279:21
+    review: REVIEWED
+  - state: NJ
+    citation: N.J.S.A. § 34:11-56a4
+    review: REVIEWED
+  - state: NM
+    citation: NMSA 1978 § 50-4-22
+    review: REVIEWED
+  - state: NY
+    citation: Labor Law § 652
+    review: REVIEWED
+  - state: NC
+    citation: N.C. Gen. Stat. § 95-25.3
+    review: REVIEWED
+  - state: ND
+    citation: N.D.C.C. § 34-06-22
+    review: REVIEWED
+  - state: OH
+    citation: Ohio Const. Art. II § 34a
+    review: REVIEWED
+  - state: OK
+    citation: 40 O.S. § 197.2
+    review: REVIEWED
+  - state: OR
+    citation: ORS § 653.025
+    review: REVIEWED
+  - state: PA
+    citation: 43 P.S. § 333.104
+    review: REVIEWED
+  - state: RI
+    citation: R.I. Gen. Laws § 28-12-3
+    review: REVIEWED
+  - state: SC
+    citation: S.C. Code § 41-10-30
+    review: REVIEWED
+  - state: SD
+    citation: SDCL § 60-11-3.2
+    review: REVIEWED
+  - state: TN
+    citation: Tenn. Code § 50-2-103
+    review: REVIEWED
+  - state: TX
+    citation: Tex. Lab. Code § 62.051
+    review: REVIEWED
+  - state: UT
+    citation: Utah Code § 34-40-201
+    review: REVIEWED
+  - state: VT
+    citation: 21 V.S.A. § 384
+    review: REVIEWED
+  - state: VA
+    citation: Va. Code § 40.1-28.10
+    review: REVIEWED
+  - state: WA
+    citation: RCW 49.46.020
+    review: REVIEWED
+  - state: WV
+    citation: W. Va. Code § 21-5C-2
+    review: REVIEWED
+  - state: WI
+    citation: Wis. Stat. § 104.035
+    review: REVIEWED
+  - state: WY
+    citation: Wyo. Stat. § 27-4-202
+    review: REVIEWED
+parameters:
+  - id: us-ak-wage-floor
+    jurisdiction: US-AK
+    effective_date: 2026-07-01
+    known_at: 2026-09-03T00:00:00Z
+    amount: "14.00"
+    currency: USD
+    index_source: CPI_U
+    index_formula: proportional_change
+    base_index: "100.0000"
+    next_adjustment_date: 2027-07-01
+    citation: AS § 23.10.065
+  - id: us-ct-wage-floor
+    jurisdiction: US-CT
+    effective_date: 2026-01-01
+    known_at: 2026-09-03T00:00:00Z
+    amount: "16.94"
+    currency: USD
+    index_source: ECI
+    index_formula: proportional_change
+    base_index: "100.0000"
+    next_adjustment_date: 2027-01-01
+    citation: PA 19-4; Conn. Gen. Stat. § 31-58
+  - id: us-mo-wage-floor
+    jurisdiction: US-MO
+    effective_date: 2026-01-01
+    known_at: 2026-09-03T00:00:00Z
+    amount: "15.00"
+    currency: USD
+    index_source: NONE
+    index_formula: none
+    citation: RSMo § 290.502; HB 567 (effective August 28, 2025)
+index_points:
+  - parameter_id: us-ak-wage-floor
+    date: 2027-07-01
+    source: FIXED_SCHEDULE
+    amount: "15.00"
+  - parameter_id: us-ak-wage-floor
+    date: 2028-01-01
+    source: CPI_U
+    value: "103.0000"
+  - parameter_id: us-ak-wage-floor
+    date: 2029-01-01
+    source: CPI_U
+    value: "106.0000"
+  - parameter_id: us-ct-wage-floor
+    date: 2027-01-01
+    source: ECI
+    value: "103.0000"

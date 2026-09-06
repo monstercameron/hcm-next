@@ -212,9 +212,23 @@ type Instance struct {
 	ExecutionMode   Mode
 	InstanceVersion uint64
 
+	// CommitReceiptRef names the receipt the executed commit produced. It is
+	// projection state bound by BindOutcome, required whenever Execution is
+	// COMMITTED (lifecycle rule committed-requires-receipt).
+	CommitReceiptRef string
+	// RepairRef links the RepairPlan or incident a REPAIR_REQUIRED terminal
+	// raised, required whenever Execution is REPAIR_REQUIRED.
+	RepairRef string
+
 	OriginEventRef                *string
 	SourceAuthoritySnapshotDigest string
 	RiskContextDigest             string
+
+	// Origin is the immutable trusted origin record. It is the answer to
+	// "where did this come from", never to "what may it do": see [Origin].
+	// A zero Origin means this envelope predates origin recording, which
+	// [Instance.Validate] tolerates and a composed cell does not produce.
+	Origin Origin
 
 	ProposalRevisions []ProposalRevision
 }
@@ -249,6 +263,12 @@ type InstanceSpec struct {
 	OriginEventRef                *string
 	SourceAuthoritySnapshotDigest string
 	RiskContextDigest             string
+
+	// Origin is the trusted origin the boundary derived with [NewOrigin]. It
+	// is a taken value: nothing in it is caller-selectable, and a spec that
+	// carries one whose actor or tenant disagrees with the spec's own is
+	// refused rather than reconciled.
+	Origin Origin
 }
 
 // Digester mints canonical digests for kernel objects. It is a port: the
@@ -354,6 +374,7 @@ func NewInstance(spec InstanceSpec, def Definition, d Digester, ids IDSource, cl
 		OriginEventRef:                cloneStringPtr(spec.OriginEventRef),
 		SourceAuthoritySnapshotDigest: spec.SourceAuthoritySnapshotDigest,
 		RiskContextDigest:             spec.RiskContextDigest,
+		Origin:                        spec.Origin,
 	}
 
 	ref, err := d.RequestDigest(inst)
@@ -405,6 +426,8 @@ func (i Instance) LifecycleContext(def Definition) lifecycle.Context {
 	ctx := lifecycle.Context{
 		ApprovalRequired:               def.ApprovalRequired,
 		ClosurePolicyPermitsOpenRepair: def.ClosurePolicyPermitsOpenRepair,
+		CommitReceiptRef:               i.CommitReceiptRef,
+		RepairRef:                      i.RepairRef,
 		Persisted:                      true,
 	}
 	if rev, ok := i.CurrentRevision(); ok {
@@ -454,6 +477,7 @@ func (i Instance) Validate(def Definition) error {
 		ExecutionMode:                 i.ExecutionMode,
 		SourceAuthoritySnapshotDigest: i.SourceAuthoritySnapshotDigest,
 		RiskContextDigest:             i.RiskContextDigest,
+		Origin:                        i.Origin,
 	}
 	return validateSpec(spec, def)
 }
@@ -532,6 +556,14 @@ func validateSpec(spec InstanceSpec, def Definition) error {
 	if spec.RequestedEffectiveAt != nil {
 		if err := spec.RequestedEffectiveAt.Validate(); err != nil {
 			return newError("Validate", "requested_effective_at", ErrInvalidInstance, "%v", err)
+		}
+	}
+	if spec.Origin.IsSet() {
+		if err := spec.Origin.Validate(); err != nil {
+			return err
+		}
+		if err := spec.Origin.AgreesWith(spec.Tenant, spec.Initiator); err != nil {
+			return err
 		}
 	}
 	return nil

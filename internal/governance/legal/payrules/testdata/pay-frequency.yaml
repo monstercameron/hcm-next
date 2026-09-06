@@ -1,0 +1,49 @@
+schema_version: 1
+version: 1
+effective_from: "2025-01-01"
+known_at: "2026-09-03T00:00:00Z"
+constraints:
+  - id: ak-pay-change-notice
+    state_code: AK
+    min_frequency: SEMIMONTHLY
+    notice_lead_time:
+      lead_unit: PRIOR_PAYDAY
+      lead_count: 0
+      applies_to: BOTH
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/alaska.md
+      section: "AS § 23.05.160"
+  - id: mn-pay-change-notice
+    state_code: MN
+    min_frequency: MONTHLY
+    notice_lead_time:
+      lead_unit: CALENDAR_DAYS
+      lead_count: 0
+      applies_to: BOTH
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/minnesota.md
+      section: "Minn. Stat. § 181.032"
+  - id: sc-pay-change-notice
+    state_code: SC
+    min_frequency: MONTHLY
+    notice_lead_time:
+      lead_unit: CALENDAR_DAYS
+      lead_count: 7
+      applies_to: BOTH
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/south-carolina.md
+      section: "§ 41-10-30"
+  - id: wv-pay-change-notice
+    state_code: WV
+    min_frequency: SEMIMONTHLY
+    notice_lead_time:
+      lead_unit: PAY_PERIODS
+      lead_count: 1
+      applies_to: BOTH
+    status: REVIEWED
+    citation:
+      source_file: planning/research/state-employment-law/west-virginia.md
+      section: "W. Va. Code § 21-5-9(4)"

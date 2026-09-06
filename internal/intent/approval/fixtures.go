@@ -121,6 +121,7 @@ func newPromotionFixture(in rules.PromotionApprovalInput) (*Fixture, error) {
 			RequirementID: req.RequirementID,
 			TaskVersion:   1,
 			Digest:        RenderedProjectionDigest(req.RequirementID, 1),
+			Safety:        humanwork.SafetySafeToDecide,
 		})
 	}
 	spec, err := promotionSpec(sc)

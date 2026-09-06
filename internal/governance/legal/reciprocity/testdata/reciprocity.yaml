@@ -1,0 +1,289 @@
+schema_version: 1
+version: 1
+effective_start: "2026-01-01"
+effective_end: ""
+known_at: "2026-09-05T12:00:00Z"
+states:
+  - code: AL
+    name: Alabama
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/alabama.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: AK
+    name: Alaska
+    status: NO_RECIPROCITY_CONFIRMED
+    review: REVIEWED
+    citation: {source_file: planning/research/state-employment-law/alaska.md, section: "§ 10. Classification and Multi-State", authority: "Alaska has no reciprocity agreements with other states for unemployment insurance or payroll-tax purposes."}
+  - code: AZ
+    name: Arizona
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/arizona.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: AR
+    name: Arkansas
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/arkansas.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: CA
+    name: California
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/california.md, section: "§  10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: CO
+    name: Colorado
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/colorado.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: CT
+    name: Connecticut
+    status: NO_RECIPROCITY_CONFIRMED
+    review: REVIEWED
+    citation: {source_file: planning/research/state-employment-law/connecticut.md, section: "§ 10. Classification and Multi-State", authority: "No reciprocity doctrine in Connecticut statute."}
+  - code: DE
+    name: Delaware
+    status: NO_RECIPROCITY_CONFIRMED
+    review: REVIEWED
+    citation: {source_file: planning/research/state-employment-law/delaware.md, section: "§ 10. Classification and Multi-State: Contractor Tests, Remote Workers, Reciprocity", authority: "Delaware has no reciprocity with any state."}
+  - code: FL
+    name: Florida
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/florida.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: GA
+    name: Georgia
+    status: NO_RECIPROCITY_CONFIRMED
+    review: REVIEWED
+    citation: {source_file: planning/research/state-employment-law/georgia.md, section: "§ 10. Classification and Multi-State Rules", authority: "No reciprocal income-tax agreement exists between Georgia and other states; employers must withhold separately for each state."}
+  - code: HI
+    name: Hawaii
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/hawaii.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: ID
+    name: Idaho
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/idaho.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: IL
+    name: Illinois
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/illinois.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: IN
+    name: Indiana
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/indiana.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: IA
+    name: Iowa
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/iowa.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: KS
+    name: Kansas
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/kansas.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: KY
+    name: Kentucky
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/kentucky.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: LA
+    name: Louisiana
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/louisiana.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: ME
+    name: Maine
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/maine.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MD
+    name: Maryland
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/maryland.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MA
+    name: Massachusetts
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/massachusetts.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MI
+    name: Michigan
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/michigan.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MN
+    name: Minnesota
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/minnesota.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MS
+    name: Mississippi
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/mississippi.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MO
+    name: Missouri
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/missouri.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: MT
+    name: Montana
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/montana.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NE
+    name: Nebraska
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/nebraska.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NV
+    name: Nevada
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/nevada.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NH
+    name: New Hampshire
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/new-hampshire.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NJ
+    name: New Jersey
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/new-jersey.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NM
+    name: New Mexico
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/new-mexico.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NY
+    name: New York
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/new-york.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: NC
+    name: North Carolina
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/north-carolina.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: ND
+    name: North Dakota
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/north-dakota.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: OH
+    name: Ohio
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/ohio.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: OK
+    name: Oklahoma
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/oklahoma.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: OR
+    name: Oregon
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/oregon.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: PA
+    name: Pennsylvania
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/pennsylvania.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: RI
+    name: Rhode Island
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/rhode-island.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: SC
+    name: South Carolina
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/south-carolina.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: SD
+    name: South Dakota
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/south-dakota.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: TN
+    name: Tennessee
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/tennessee.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: TX
+    name: Texas
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/texas.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: UT
+    name: Utah
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/utah.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: VT
+    name: Vermont
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/vermont.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: VA
+    name: Virginia
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/virginia.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: WA
+    name: Washington
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/washington.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: WV
+    name: West Virginia
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/west-virginia.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: WI
+    name: Wisconsin
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/wisconsin.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: WY
+    name: Wyoming
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/wyoming.md, section: "§ 10. Classification and Multi-State", authority: RESEARCH_MISSING}
+  - code: DC
+    name: District of Columbia
+    status: UNRESEARCHED
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: RESEARCH_MISSING}
+agreements:
+  - residence: DC
+    work: MD
+    scopes: [INCOME_TAX]
+    conditions: ["worker is a Maryland resident", "wages are earned for services performed in the District", "employee submits the work-state nonresident withholding certificate"]
+    forms: ["District of Columbia D-4A", "Maryland MW507"]
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "LEGAL-TOOL-012 reciprocity agreement research", authority: "Income-tax reciprocity agreement; primary agreement guidance still requires research."}
+  - residence: IL
+    work: WI
+    scopes: [INCOME_TAX]
+    conditions: ["worker is an Illinois resident", "wages are earned for services performed in Wisconsin", "employee submits the work-state nonresident withholding certificate"]
+    forms: ["Wisconsin WT-4", "Illinois IL-W-5-NR"]
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "LEGAL-TOOL-012 reciprocity agreement research", authority: "Income-tax reciprocity agreement; primary agreement guidance still requires research."}
+  - residence: NJ
+    work: PA
+    scopes: [INCOME_TAX]
+    conditions: ["worker is a New Jersey resident", "wages are earned for services performed in Pennsylvania", "employee submits the work-state nonresident withholding certificate"]
+    forms: ["Pennsylvania REV-419", "New Jersey NJ-165"]
+    review: UNREVIEWED
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "LEGAL-TOOL-012 reciprocity agreement research", authority: "Income-tax reciprocity agreement; primary agreement guidance still requires research."}
+active_pairs:
+  - {residence: AK, work: AK}
+  - {residence: CT, work: CT}
+  - {residence: DE, work: GA}
+  - {residence: GA, work: DE}
+  - {residence: DC, work: MD}

@@ -85,6 +85,77 @@ var (
 	// ErrInitiatorNotAllowed reports an initiator kind the definition does not
 	// allow. Agent initiation never increases authority.
 	ErrInitiatorNotAllowed = errors.New("intent: initiator kind is not allowed")
+
+	// ErrCallerSelectedAuthority reports a request that tried to select its own
+	// trusted origin: a principal, tenant, session, delegation chain, identity
+	// assurance, producer or provider authority the caller does not get to
+	// choose, or an origin kind that disagrees with the verified credential.
+	ErrCallerSelectedAuthority = errors.New("intent: caller-selected trusted origin")
+
+	// ErrUntrustedOrigin reports an origin the trusted boundary itself could
+	// not substantiate: a schedule, event, repair or operator source with no
+	// authenticated producer and no source evidence, an origin kind that
+	// contradicts the verified initiator kind, or an integration event that
+	// tried to inherit its provider's authority.
+	ErrUntrustedOrigin = errors.New("intent: origin is not substantiated")
+
+	// ErrInvalidTemplate reports an intent template that embeds a principal, a
+	// tenant, a server-owned fact, an approval, an idempotency key or a stale
+	// definition version. A template supplies permitted defaults and nothing
+	// else.
+	ErrInvalidTemplate = errors.New("intent: invalid intent template")
+
+	// ErrInvalidDraft reports a draft that carries submitted-intent state
+	// (identity, lifecycle, approval or evidence) or names inputs its
+	// definition does not declare.
+	ErrInvalidDraft = errors.New("intent: invalid intent draft")
+
+	// ErrDraftAlreadySubmitted reports an edit to, or a second submission of, a
+	// draft that already minted an IntentInstance. Submission is the moment a
+	// mutable draft stops being mutable.
+	ErrDraftAlreadySubmitted = errors.New("intent: draft is already submitted")
+
+	// ErrInvalidSavedAction reports a saved or favourite action that stored
+	// copied authority, a rendered sensitive payload or an unversioned
+	// definition reference instead of a reference plus authorized parameters.
+	ErrInvalidSavedAction = errors.New("intent: invalid saved action")
+
+	// ErrLineageReuse reports a clone or fork that reused the source's causal
+	// identity: its idempotency key, correlation id, approval bindings,
+	// evidence, or proposal revisions.
+	ErrLineageReuse = errors.New("intent: clone or fork reused source identity")
+
+	// ErrInvalidRelationship reports an intent-to-intent relationship missing a
+	// tenant, cause, purpose, ordering or completion policy, or one whose
+	// endpoints do not pin exact intent and proposal versions.
+	ErrInvalidRelationship = errors.New("intent: invalid intent relationship")
+
+	// ErrRelationshipCycle reports a cycle in a relationship kind that
+	// prohibits one.
+	ErrRelationshipCycle = errors.New("intent: prohibited relationship cycle")
+
+	// ErrImmutableRelationship reports an attempt to re-parent, re-kind or
+	// re-order a recorded relationship. Parentage is immutable; a relationship
+	// revision may only refine propagation and completion policy.
+	ErrImmutableRelationship = errors.New("intent: intent relationships are immutable")
+
+	// ErrAmbiguousRelationship reports two different relationship kinds
+	// recorded for one ordered pair, or a duplicate ordinal under one parent
+	// and kind. The nine kinds are never conflated.
+	ErrAmbiguousRelationship = errors.New("intent: ambiguous intent relationship")
+
+	// ErrInvalidModeContract reports an execution mode and environment pair
+	// that has no contract, or a definition that does not allow the mode.
+	ErrInvalidModeContract = errors.New("intent: invalid execution mode contract")
+
+	// ErrEffectEscalation reports an attempt to commit domain truth, cause an
+	// external effect or consume a live approval under a mode contract that
+	// guarantees none of them.
+	ErrEffectEscalation = errors.New("intent: execution mode may not escalate effects")
+
+	// ErrCausalSeparation reports a replay that does not name the historical
+	// intent it replays, or a new action that pretends to be one.
+	ErrCausalSeparation = errors.New("intent: replay and new action are not causally separated")
 )
 
 // Error is the typed error this package returns. Op names the operation,

@@ -293,7 +293,8 @@ const intentColumns = `
 	intent_id, definition_ref, definition_version,
 	request_digest, request_digest_algorithm, idempotency_key,
 	request_state, execution_state, business_state, consistency_state, obligation_state,
-	instance_version, created_at, recorded_at, last_transition_at`
+	instance_version, created_at, recorded_at, last_transition_at,
+	commit_receipt_ref, repair_ref`
 
 // scanRecord reads one projected row and then takes the authoritative envelope
 // from the ledger event the row was projected from.
@@ -303,12 +304,14 @@ func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUI
 		definitionVersion                int64
 		instanceVersion                  int64
 		req, exec, bus, cons, obligation string
+		commitReceiptRef, repairRef      *string
 	)
 	err := row.Scan(
 		&rec.IntentID, &rec.Definition.TypeID, &definitionVersion,
 		&rec.RequestDigest.Digest, &rec.RequestDigest.AlgorithmID, &rec.IdempotencyKey,
 		&req, &exec, &bus, &cons, &obligation,
-		&instanceVersion, &rec.CreatedAt, &rec.RecordedAt, &rec.LastTransitionAt)
+		&instanceVersion, &rec.CreatedAt, &rec.RecordedAt, &rec.LastTransitionAt,
+		&commitReceiptRef, &repairRef)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return app.IntentRecord{}, app.ErrIntentNotFound
@@ -317,6 +320,12 @@ func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUI
 	}
 
 	rec.Tenant = tenant
+	if commitReceiptRef != nil {
+		rec.CommitReceiptRef = *commitReceiptRef
+	}
+	if repairRef != nil {
+		rec.RepairRef = *repairRef
+	}
 	rec.Definition.Version = uint32(definitionVersion)
 	rec.InstanceVersion = uint64(instanceVersion)
 	rec.EnvelopeSchemaRef = app.EnvelopeSchemaRef

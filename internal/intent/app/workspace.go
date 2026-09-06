@@ -42,6 +42,12 @@ const WorkspaceRoutesKey = "workspace_routes"
 // second path to a domain answer for the sake of a web page.
 type workspaceReader struct {
 	svc *IntentService
+	// locate resolves the request's worker reference. It is the cell's own
+	// locator, so this surface and the domain-input resolver cannot disagree
+	// about what a reference names -- including a worker somebody created,
+	// whose key is not a well-formed entity identifier and would otherwise be
+	// refused here.
+	locate WorkerLocator
 	// now supplies the knowledge cut-off the governed read is taken at and
 	// the instant the authorization decision is evaluated at.
 	now func() time.Time
@@ -55,7 +61,7 @@ func (c *Cell) WorkspacePort() workspace.Cell {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return workspaceReader{svc: c.Service, now: now}
+	return workspaceReader{svc: c.Service, now: now, locate: c.locateWorker}
 }
 
 // WorkspaceHandler builds the workspace HTTP surface over this cell, admitted
@@ -65,6 +71,10 @@ func (c *Cell) WorkspaceHandler() (http.Handler, error) {
 		Cell:   c.WorkspacePort(),
 		Config: c.Config,
 		Now:    c.Config.Now,
+		// Nil on every cell composed without both an execution driver and its
+		// database: the journey page then reports ErrJourneyUnavailable rather
+		// than rendering a surface nothing can act on.
+		Journey: c.Journey,
 	})
 }
 
@@ -83,7 +93,10 @@ func (a workspaceReader) ReadPromotion(ctx context.Context, req workspace.Reques
 	purpose := principal.DefaultPurpose()
 	evaluatedAt := values.NewInstant(a.now())
 
-	subject, resolved := workspaceWorker(req.WorkerRef)
+	subject, resolved, locateErr := a.worker(ctx, principal.Tenant(), req.WorkerRef)
+	if locateErr != nil {
+		return workspace.Reading{}, locateErr
+	}
 	if !resolved {
 		return workspace.Reading{}, fmt.Errorf("%w: %q", workspace.ErrWorkerUnknown, req.WorkerRef)
 	}
@@ -231,17 +244,37 @@ func workspaceFields(required []people.FieldID) []people.FieldID {
 	return append(fields, people.FieldPreferredName, people.FieldLegalName)
 }
 
-// workspaceWorker resolves a workspace worker reference the same way the
-// domain-input resolver does: the corpus key, or the entity id itself.
-func workspaceWorker(ref string) (values.EntityRef, bool) {
-	if got, err := fixtures.WorkerRef(ref); err == nil {
-		return got, true
+// worker resolves this surface's worker reference through the cell's own
+// locator, in the caller's own tenant.
+func (a workspaceReader) worker(
+	ctx context.Context, tenant values.TenantId, ref string,
+) (values.EntityRef, bool, error) {
+	locate := a.locate
+	if locate == nil {
+		locate = corpusWorkerLocator
 	}
-	candidate := values.EntityRef{Tenant: fixtures.Tenant, Kind: people.KindWorker, Id: ref}
-	if candidate.Validate() != nil {
+	location, ok, err := locate(ctx, tenant, ref)
+	if err != nil {
+		return values.EntityRef{}, false, err
+	}
+	return location.Ref, ok, nil
+}
+
+// workspaceWorker resolves a worker reference against the corpus alone, with
+// no tenant of its own.
+//
+// It survives for one caller: [journeySummaryFromProto], which renders a
+// stored intent's summary without a context or a database to reach the created
+// population with. That is safe there and nowhere else, because the summary's
+// worker id is immediately overwritten from the intent's own EMPLOYMENT
+// subject, which is the authoritative identity either way. Every surface that
+// resolves a reference somebody typed uses the cell's locator instead.
+func workspaceWorker(ref string) (values.EntityRef, bool) {
+	location, ok, err := locateCorpusWorker(fixtures.Tenant, ref)
+	if err != nil || !ok {
 		return values.EntityRef{}, false
 	}
-	return candidate, true
+	return location.Ref, true
 }
 
 // workspaceAsOf pins the bitemporal coordinate the governed read is taken at:

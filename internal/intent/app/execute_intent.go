@@ -8,6 +8,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/workflow"
@@ -43,8 +44,15 @@ const (
 	// (re)compute for the named intent right now.
 	reasonStaleProposal = "p1b.stale_proposal"
 	// reasonUnapprovedProposal reports a proposal revision presented with no
-	// recorded approval.
+	// recorded approval. Since WF-RUN-027 it reports two conditions that are
+	// the same fact seen at two depths: an approval this cell's own gate
+	// refuses to accept as presented, and one the workflow runtime could not
+	// find a recorded decision for in intent_decision.
 	reasonUnapprovedProposal = "p1b.unapproved_proposal"
+	// reasonSupersededProposal reports a proposal revision the intent
+	// relationship graph records as superseded, whatever currency the caller
+	// asserted for it (WF-RUN-027).
+	reasonSupersededProposal = "p1b.superseded_proposal"
 	// reasonExecutionUnavailable reports an authorized, approved call this
 	// cell still cannot run because it was not composed with the
 	// driver-side wiring EXECUTE needs.
@@ -132,9 +140,51 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 		return nil, executionUnavailable()
 	}
 
+	start, ownedErr := s.executionStart(inst, artifact, req.GetApproval().GetApprovalRef())
+	if ownedErr != nil {
+		return nil, ownedErr
+	}
+
+	result, err := s.executor.Execute(ctx, start)
+	if err != nil {
+		return nil, executionError(err)
+	}
+	if outcomeErr := s.consumeExecutionResult(ctx, inst, def, rec, result); outcomeErr != nil {
+		return nil, envelope.New(envelope.CodeFailedPrecondition, reasonStaleRevision,
+			"the workflow outcome could not be bound to this intent").WithDiagnostic(outcomeErr)
+	}
+	// The GATE_ADMITTED entry recorded above precedes every evidence id the
+	// driver itself records (APPROVAL_COMPLETED/TASK_SUBMITTED/
+	// TERMINAL_WRITTEN), so it leads result.EvidenceIDs rather than trailing it.
+	if gateEvidenceID != "" {
+		result.EvidenceIDs = append([]string{gateEvidenceID}, result.EvidenceIDs...)
+	}
+	return &intentsv1.ExecuteIntentResponse{Execution: executionReceiptProto(result)}, nil
+}
+
+// executionStart builds the [runtime.StartRequest] one approved, re-simulated
+// promotion proposal is started with.
+//
+// It is a shared helper rather than an inline literal because a resume of the
+// same instance has to present the identical Start the instance was created
+// from (internal/workflow/execute.ResumeRequest.Start is context: it
+// re-resolves the pinned plan and re-checks the durable WorkItem's tenant,
+// correlation and proposal binding against it). A second, hand-copied literal
+// somewhere else would be a second definition of "the same start", and the
+// first divergence between them would surface as an unexplained
+// WORK_ITEM_DRIFT rather than as a compile error.
+//
+// It reconstructs only the fields runtime.Start itself inspects (identity,
+// tenant, subjects and material digest), not a persisted proposal: P1A mints
+// a ProposalRevision as an in-memory simulation artifact and never stores it
+// (see [IntentService.simulatePromotion]), so there is no stored revision to
+// load back here.
+func (s *IntentService) executionStart(
+	inst intent.Instance, artifact *intentsv1.SimulationArtifact, approvalRef string,
+) (runtime.StartRequest, *envelope.Error) {
 	materialDigest, digestErr := digest.FromProto(artifact.GetMaterialProposalDigest())
 	if digestErr != nil {
-		return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+		return runtime.StartRequest{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 			"the operation could not be completed").WithDiagnostic(digestErr)
 	}
 	subjectRefs := make([]string, 0, len(inst.Subjects))
@@ -145,50 +195,57 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 	if cellID == "" {
 		cellID = "cell-local"
 	}
-
-	start := runtime.StartRequest{
+	// WF-RUN-027: the binding carries the revision and nothing else once this
+	// cell can read the facts. Approved/ApprovalRef/Superseded are the
+	// caller-asserted fallback runtime.Start honours only for a caller that
+	// supplied it no facts ports, and a cell composed with the execution
+	// database is not that caller: Start resolves both facts from
+	// intent_decision and intent_relationship itself, so an Execute presenting
+	// Approved=true with no recorded decision is refused
+	// (runtime.CodeUnapprovedProposal -> reasonUnapprovedProposal) and a
+	// superseded revision is refused (runtime.CodeSupersededProposal) whatever
+	// the caller said.
+	binding := runtime.ProposalBinding{
+		Revision: intent.ProposalRevision{
+			ProposalRevisionID:  artifact.GetProposalRevisionId(),
+			IntentID:            inst.IntentID,
+			Revision:            simulationRevision,
+			Tenant:              inst.Tenant,
+			OrganizationScopeID: inst.OrganizationScopeID,
+			Subjects:            inst.Subjects,
+			MaterialDigest:      materialDigest,
+		},
+	}
+	// The requested effective instant is the one durable fact a WAIT node's
+	// effective-date wake is derived from (internal/platform/execution binds
+	// the promotionexec WAIT placeholder from Revision.EffectiveTime). It is
+	// carried the way proposalFor carries it for the simulation artifact, so
+	// Start, every Resume and the timer promise all read one interval.
+	if inst.RequestedEffectiveAt != nil {
+		if effective, intervalErr := values.NewOpenInstantInterval(*inst.RequestedEffectiveAt); intervalErr == nil {
+			binding.Revision.EffectiveTime = effective
+		}
+	}
+	if s.executionFacts == nil {
+		binding.Approved = true
+		binding.ApprovalRef = approvalRef
+	}
+	return runtime.StartRequest{
 		TenantID:            s.tenantUUID(inst.Tenant),
 		CellID:              cellID,
 		StartIdempotencyKey: "execute:" + inst.IntentID + ":" + artifact.GetProposalRevisionId(),
 		Resolver:            s.executionResolver,
 		Versions:            s.executionVersions,
-		Proposal: runtime.ProposalBinding{
-			// This reconstructs only the fields runtime.Start itself
-			// inspects (identity, tenant, subjects and material digest), not
-			// a persisted proposal: P1A mints a ProposalRevision as an
-			// in-memory simulation artifact and never stores it (see
-			// [IntentService.simulatePromotion]), so there is no stored
-			// revision to load back here.
-			Revision: intent.ProposalRevision{
-				ProposalRevisionID:  artifact.GetProposalRevisionId(),
-				IntentID:            inst.IntentID,
-				Tenant:              inst.Tenant,
-				OrganizationScopeID: inst.OrganizationScopeID,
-				Subjects:            inst.Subjects,
-				MaterialDigest:      materialDigest,
-			},
-			Approved:    true,
-			ApprovalRef: req.GetApproval().GetApprovalRef(),
-		},
+		Proposal:            binding,
+		ProposalFacts:       proposalFactsOf(s.executionFacts),
+		ApprovalFacts:       approvalFactsOf(s.executionFacts),
 		ExpectedIntentID:    inst.IntentID,
 		ExpectedTenant:      inst.Tenant,
 		BusinessSubjectRefs: subjectRefs,
 		ExecutionMode:       workflow.ModeExecute,
 		CorrelationID:       inst.CorrelationID,
 		CreatedAt:           s.clock().Time(),
-	}
-
-	result, err := s.executor.Execute(ctx, start)
-	if err != nil {
-		return nil, executionError(err)
-	}
-	// The GATE_ADMITTED entry recorded above precedes every evidence id the
-	// driver itself records (APPROVAL_COMPLETED/TASK_SUBMITTED/
-	// TERMINAL_WRITTEN), so it leads result.EvidenceIDs rather than trailing it.
-	if gateEvidenceID != "" {
-		result.EvidenceIDs = append([]string{gateEvidenceID}, result.EvidenceIDs...)
-	}
-	return &intentsv1.ExecuteIntentResponse{Execution: executionReceiptProto(result)}, nil
+	}, nil
 }
 
 // recordGateEvidence records one OBS-024 GATE_REFUSED/GATE_ADMITTED entry
@@ -285,7 +342,25 @@ func executionError(err error) *envelope.Error {
 			"a precondition for the operation is not met").
 			WithViolation("expected_instance_version", "the workflow instance version is stale", ruleExecutionAuthorityGate).
 			WithDiagnostic(err)
-	case runtime.CodeMutableProposal, runtime.CodeUnapprovedProposal, runtime.CodeSupersededProposal:
+	// WF-RUN-027: the runtime's two derived refusals get their own reason
+	// references rather than sharing the generic stale-proposal one. A caller
+	// that presented Approved=true and was told "stale proposal" cannot tell
+	// "no decision was ever recorded for this revision" from "this revision
+	// has been superseded", and those are different things to do about.
+	case runtime.CodeUnapprovedProposal:
+		return envelope.New(envelope.CodeFailedPrecondition, reasonUnapprovedProposal,
+			"a precondition for the operation is not met").
+			WithViolation("approval.approved",
+				"no approval decision is recorded against this proposal revision", ruleExecutionAuthorityGate).
+			WithDiagnostic(err)
+	case runtime.CodeSupersededProposal:
+		return envelope.New(envelope.CodeFailedPrecondition, reasonSupersededProposal,
+			"a precondition for the operation is not met").
+			WithViolation("approval.proposal_revision_id",
+				"this proposal revision has been superseded and may no longer be executed",
+				ruleExecutionAuthorityGate).
+			WithDiagnostic(err)
+	case runtime.CodeMutableProposal, runtime.CodeApprovalBindingMismatch:
 		return envelope.New(envelope.CodeFailedPrecondition, reasonStaleProposal,
 			"a precondition for the operation is not met").
 			WithViolation("approval", "the proposal revision is no longer executable", ruleExecutionAuthorityGate).

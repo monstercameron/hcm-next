@@ -129,6 +129,19 @@ type Options struct {
 	// package already imports this one): only the composition root that
 	// built the real Store knows the exact derivation its tenant rows use.
 	TenantUUID func(values.TenantId) uuid.UUID
+	// ExecutionFacts resolves a bound proposal revision's approval decisions
+	// and supersession from stored facts, which is what lets
+	// [IntentService.ExecuteIntent] stop asserting
+	// runtime.ProposalBinding.Approved on its caller's word (WF-RUN-027).
+	// [NewCell] supplies [DurableProposalFacts] whenever the cell was
+	// composed with the execution database those facts live in.
+	//
+	// Nil is the pre-WF-RUN-027 composition: ExecuteIntent then falls back to
+	// presenting the caller-asserted approval reference, which
+	// internal/workflow/runtime.Start still honours for a caller that has
+	// supplied it no facts ports. A composition that can read the facts must
+	// set this.
+	ExecutionFacts ExecutionFacts
 	// Evidence is where [IntentService.ExecuteIntent] records its
 	// OBS-024 GATE_REFUSED/GATE_ADMITTED evidence, through the same
 	// capability evidence sink mechanism CAP-002's gateway already writes
@@ -155,6 +168,10 @@ type IntentService struct {
 	ids      intent.IDSource
 	clock    intent.Clock
 	executor ProposalExecutor
+	// proposalDecisioner is present only when the service is composed with
+	// the durable workflow database. It is the one shared implementation used
+	// by the public decision operations and the journey page.
+	proposalDecisioner proposalDecisioner
 	// executionAuthority is nil for every P1A cell composed today.
 	// [IntentService.ExecuteIntent] is the only reader.
 	executionAuthority *ExecutionAuthority
@@ -162,6 +179,10 @@ type IntentService struct {
 	executionVersions  workflowversion.Store
 	executionCellID    string
 	tenantUUID         func(values.TenantId) uuid.UUID
+	// executionFacts is WF-RUN-027's durable approval/supersession reader.
+	// Nil leaves [IntentService.executionStart] on the deprecated
+	// caller-asserted approval reference.
+	executionFacts ExecutionFacts
 	// evidence is OBS-024's GATE_REFUSED/GATE_ADMITTED recorder.
 	// [IntentService.ExecuteIntent] is the only reader.
 	evidence capability.EvidenceSink
@@ -205,6 +226,7 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		executionVersions:  opts.ExecutionVersions,
 		executionCellID:    opts.ExecutionCellID,
 		tenantUUID:         opts.TenantUUID,
+		executionFacts:     opts.ExecutionFacts,
 		evidence:           opts.Evidence,
 	}
 	if svc.ids == nil {
@@ -340,6 +362,19 @@ func (s *IntentService) loadInstance(ctx context.Context, tenant, intentID strin
 	if decodeErr != nil {
 		return intent.Instance{}, IntentRecord{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 			"the operation could not be completed").WithDiagnostic(decodeErr)
+	}
+	// The ledger envelope is the immutable creation fact. Lifecycle and
+	// version are the projection that terminal outcome consumers advance, so a
+	// read merges the current projection back onto that envelope.
+	inst.Lifecycle = rec.Lifecycle
+	inst.CommitReceiptRef = rec.CommitReceiptRef
+	inst.RepairRef = rec.RepairRef
+	inst.InstanceVersion = rec.InstanceVersion
+	if !rec.RecordedAt.IsZero() {
+		inst.RecordedAt = values.NewInstant(rec.RecordedAt)
+	}
+	if !rec.LastTransitionAt.IsZero() {
+		inst.LastTransitionAt = values.NewInstant(rec.LastTransitionAt)
 	}
 	return inst, rec, nil
 }
@@ -501,6 +536,18 @@ func (s *IntentService) specFor(
 		trace = inv.TrustedFingerprint()
 	}
 
+	// The trusted origin is derived here and nowhere else. A request that
+	// cannot produce one is refused rather than recorded without it: an intent
+	// whose origin is unknown cannot be investigated later, and "unknown"
+	// would be indistinguishable from "not recorded yet".
+	origin, err := deriveOrigin(principal, inv)
+	if err != nil {
+		return intent.InstanceSpec{}, envelope.New(envelope.CodeInvalidArgument, reasonRequestRejected,
+			"the request is malformed or structurally invalid").
+			WithViolation("(origin)", "the trusted origin of the request could not be established", rulePhaseCeiling).
+			WithDiagnostic(err)
+	}
+
 	spec := intent.InstanceSpec{
 		Tenant:                        principal.Tenant(),
 		OrganizationScopeID:           principal.OrganizationScopeID(),
@@ -517,6 +564,7 @@ func (s *IntentService) specFor(
 		ExecutionMode:                 mode,
 		SourceAuthoritySnapshotDigest: s.controls.SourceAuthorityDigest,
 		RiskContextDigest:             s.controls.RiskContextDigest,
+		Origin:                        origin,
 	}
 	if ref := req.GetOriginEventRef(); ref != "" {
 		spec.OriginEventRef = &ref

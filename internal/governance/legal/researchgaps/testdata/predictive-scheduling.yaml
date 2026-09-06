@@ -1,0 +1,54 @@
+schema_version: 1
+version: 1
+effective_start: "2026-01-01"
+effective_end: ""
+known_at: "2026-09-05T12:00:00Z"
+entries:
+  - id: OR
+    name: Oregon statewide
+    jurisdiction: {country: US, state: OR, locality: ""}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/oregon.md
+    citation: {source_file: planning/research/state-employment-law/oregon.md, section: "§ 12. Sources", authority: "ORS 653.870 – Predictive scheduling (retail, hospitality, food service 500+)"}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date]
+  - id: IL-CHICAGO
+    name: Chicago, Illinois
+    jurisdiction: {country: US, state: IL, locality: Chicago}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/illinois.md
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: "Chicago Fair Workweek Ordinance, Municipal Code § 1-25-010 et seq. — research file does not yet record a finding."}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date, locality_scope]
+  - id: NY-NEW-YORK-CITY
+    name: New York City, New York
+    jurisdiction: {country: US, state: NY, locality: New York City}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/new-york.md
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: "New York City Fair Workweek Law, NYC Admin. Code § 20-1201 et seq. — research file does not yet record a finding."}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date, locality_scope]
+  - id: WA-SEATTLE
+    name: Seattle, Washington
+    jurisdiction: {country: US, state: WA, locality: Seattle}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/washington.md
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: "Seattle secure scheduling ordinance, Seattle Municipal Code § 14.22.010 et seq. — research file does not yet record a finding."}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date, locality_scope]
+  - id: CA-SAN-FRANCISCO
+    name: San Francisco, California
+    jurisdiction: {country: US, state: CA, locality: San Francisco}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/california.md
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: "San Francisco Predictive Scheduling and Fair Workweek ordinance, San Francisco Police Code art. 33H — research file does not yet record a finding."}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date, locality_scope]
+  - id: PA-PHILADELPHIA
+    name: Philadelphia, Pennsylvania
+    jurisdiction: {country: US, state: PA, locality: Philadelphia}
+    status: RESEARCH_MISSING
+    review: UNREVIEWED
+    research_file: planning/research/state-employment-law/pennsylvania.md
+    citation: {source_file: planning/research/state-employment-law/README.md, section: "State employment-law coverage", authority: "Philadelphia Fair Workweek ordinance, Philadelphia Code § 9-4602 et seq. — research file does not yet record a finding."}
+    required_pack_fields: [covered_employer_threshold, covered_worker_definition, advance_notice_days, predictability_pay, schedule_change_rules, enforcement_and_penalties, effective_date, locality_scope]

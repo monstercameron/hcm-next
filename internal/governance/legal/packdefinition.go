@@ -48,6 +48,14 @@ const (
 	SigningRoleReleasePublisher    SigningRole = "RELEASE_PUBLISHER"
 	SigningRoleVendorLegalReviewer SigningRole = "VENDOR_LEGAL_REVIEWER"
 	SigningRoleCustomerCounsel     SigningRole = "CUSTOMER_COUNSEL"
+	// SigningRoleRuleAuthor is LEGAL-015's addition: the principal who
+	// authored a pack definition signs its draft candidate digest before any
+	// reviewer acts. It never appears on a [PackRelease]'s own Signatures
+	// list (section 7.1 requires only the publisher and, for
+	// COUNSEL_APPROVED, the counsel signature there); it identifies the
+	// author's attestation in the authoring pipeline's own event log
+	// instead (see internal/governance/legal/pipeline).
+	SigningRoleRuleAuthor SigningRole = "RULE_AUTHOR"
 )
 
 // RoleSignature is one role's detached ed25519 signature over a release

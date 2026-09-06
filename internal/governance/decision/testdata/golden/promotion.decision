@@ -1,0 +1,19 @@
+state: ALLOW
+proposal revision digest: sha256:0000000000000000000000000000000000000000000000000000000000000001
+control snapshot digest: sha256:eaac7c7d44615f90840dd86ca52c6785bdb6653fcd8c7d4116d9d2101c69247a
+rule packs:
+- legal.harborcare-demo@2026.1 sha256:legal
+- rules.promotion-approval@1 sha256:rules
+approvals:
+- approval.finance_partner@1 SATISFIED
+sod:
+- sod.promotion@1 ALLOW
+fired rules:
+- authz.promotion@1
+- legal.promotion@2026.1
+- risk.promotion@1
+- sod.promotion@1
+restrictions: 
+obligations: 0
+digest: sha256:ae5e8811b9a4a08769b36a48942476a77022b6bd79c2670cd8ebd7d6fd2ceca7
+explanation: governance decision state=ALLOW rules=4 packs=2 approvals=1 sod=1 restrictions=0 obligations=0

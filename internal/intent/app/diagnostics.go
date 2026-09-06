@@ -173,7 +173,7 @@ func (h *domainHandlers) observedSide(ctx context.Context, in RepairInputs) (dat
 	cursor := ""
 	seen := map[string]struct{}{}
 	var last dataops.ObservationWatermark
-	for page := 0; page < maxObservationPages; page++ {
+	for range maxObservationPages {
 		if _, repeat := seen[cursor]; repeat {
 			return dataops.ObservedRecord{}, false, dataops.ObservationWatermark{},
 				fmt.Errorf("app: observation source repeated cursor %q", cursor)

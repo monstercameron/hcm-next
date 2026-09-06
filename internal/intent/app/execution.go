@@ -2,10 +2,13 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
@@ -59,6 +62,20 @@ type ExecutionResult struct {
 	// [IntentService.ExecuteIntent] records itself, before this port is ever
 	// called; a caller that wants the complete chain reads both.
 	EvidenceIDs []string
+
+	// Terminal fields are populated when the driver reaches an END. The
+	// terminal tuple is authoritative workflow output, not a status inferred
+	// from Parked or from the number of visited nodes.
+	TerminalCode       string
+	TerminalDimensions lifecycle.Dimensions
+	Reconciliation     intent.ReconciliationVerdict
+	RecordedAt         time.Time
+	// CommitReceiptRef and RepairRef are the END node's declared receipt and
+	// repair references, instance-qualified by the adapter. When an adapter
+	// leaves them empty, OutcomeReceiptFromExecution derives them from the
+	// compiled promotion plan's terminal for the visited END node.
+	CommitReceiptRef string
+	RepairRef        string
 }
 
 // ContinuationRef names one durable scheduling record a parked instance is
@@ -93,6 +110,18 @@ type ExecutionResumeRequest struct {
 	Outcome                 frontier.NodeOutcome
 }
 
+// ExecutionTimerResumeRequest resumes one parked WAIT instance from the
+// durable timer that the scheduler has fired.
+type ExecutionTimerResumeRequest struct {
+	Start                   runtime.StartRequest
+	InstanceID              uuid.UUID
+	ExpectedInstanceVersion int64
+	TimerID                 uuid.UUID
+	Outcome                 frontier.NodeOutcome
+	Refs                    runtime.GovernanceRefs
+	RecordedAt              time.Time
+}
+
 // ProposalExecutor is the narrow part of the caller-driven workflow driver
 // [IntentService.ExecuteIntent] needs: start an immutable, approved proposal
 // revision, and resume one already parked on completed human-work evidence.
@@ -103,6 +132,7 @@ type ExecutionResumeRequest struct {
 type ProposalExecutor interface {
 	Execute(ctx context.Context, start runtime.StartRequest) (ExecutionResult, error)
 	Resume(ctx context.Context, req ExecutionResumeRequest) (ExecutionResult, error)
+	ResumeTimer(ctx context.Context, req ExecutionTimerResumeRequest) (ExecutionResult, error)
 }
 
 // ExecutionAuthority is the explicit P1B gate [IntentService.ExecuteIntent]

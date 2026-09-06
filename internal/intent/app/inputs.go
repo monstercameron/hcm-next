@@ -56,8 +56,19 @@ const (
 // cmd/hcmnext wires in. Replacing it with a real projection is a change to
 // this file and to the composition root, and to nothing else.
 type FixtureInputs struct {
-	workers *fixtures.MemoryWorkerFacts
+	// workers is the governed worker read this resolver pins its baseline
+	// through. It starts as the corpus reader and is rebound by [NewCell] to
+	// the cell's own composed WorkerFacts ([BindWorkers]), so the resolver
+	// and the capability handlers read the same population through the same
+	// port -- including the durable workers a user created, which the corpus
+	// reader alone does not know about.
+	workers people.WorkerFacts
 	bands   *fixtures.MemoryBandCatalog
+	// locate resolves a request's worker reference. It starts as the
+	// corpus-only locator and is rebound by [NewCell] to the cell's own
+	// ([BindWorkerLocator]), so this resolver and every other surface that
+	// accepts a worker reference agree about what one names.
+	locate WorkerLocator
 	// externalSource is the observing system the comparison intents read
 	// their external side from. It is empty until the cell binds a connector,
 	// and a diagnostic resolved without one refuses rather than comparing
@@ -77,11 +88,44 @@ func NewFixtureInputs() (*FixtureInputs, error) {
 	if err != nil {
 		return nil, fmt.Errorf("app: load pay band corpus: %w", err)
 	}
-	return &FixtureInputs{workers: workers, bands: bands}, nil
+	return &FixtureInputs{workers: workers, bands: bands, locate: corpusWorkerLocator}, nil
 }
 
 // BindExternalSource names the observing system the comparison intents read.
 func (f *FixtureInputs) BindExternalSource(ref string) { f.externalSource = ref }
+
+// BindWorkers replaces the governed worker read this resolver pins its
+// baseline through.
+//
+// [NewCell] calls it with the cell's own composed WorkerFacts, which is the
+// corpus reader layered with the durable created population. Without it the
+// resolver would keep its own private corpus reader and a created worker
+// would be visible to the capability handlers but invisible to the very
+// simulation that has to certify a promotion for them -- two read paths, and
+// the one that matters answering "no such worker".
+//
+// A nil reader is ignored: a cell that composed no worker read at all keeps
+// the corpus this resolver loaded for itself.
+func (f *FixtureInputs) BindWorkers(workers people.WorkerFacts) {
+	if workers != nil {
+		f.workers = workers
+	}
+}
+
+// BindWorkerLocator replaces the worker-reference resolver this resolver uses.
+//
+// [NewCell] calls it with the cell's own locator, which knows the tenant's
+// created population as well as the corpus. Without it a promotion proposed
+// for a created worker would carry a reference this resolver refuses, and the
+// simulation that has to certify the promotion would never run.
+//
+// A nil locator is ignored, so a caller that never composed one keeps the
+// corpus resolution this type loaded for itself.
+func (f *FixtureInputs) BindWorkerLocator(locate WorkerLocator) {
+	if locate != nil {
+		f.locate = locate
+	}
+}
 
 // Bands exposes the pay-band catalog the domain handlers evaluate against.
 func (f *FixtureInputs) Bands() rewards.PayBandCatalog { return f.bands }
@@ -117,17 +161,24 @@ func (f *FixtureInputs) Resolve(ctx context.Context, req ResolveRequest) (Domain
 	}
 }
 
-// worker resolves a request's worker reference against the corpus, accepting
-// either the corpus key or the entity id.
-func (f *FixtureInputs) worker(tenant values.TenantId, ref string) (values.EntityRef, bool) {
-	if got, err := fixtures.WorkerRef(ref); err == nil {
-		return values.EntityRef{Tenant: tenant, Kind: got.Kind, Id: got.Id}, true
+// worker resolves a request's worker reference through the cell's own
+// locator, accepting a corpus key, a created worker's key, or an entity id.
+//
+// A lookup failure is reported as "does not resolve" rather than propagated:
+// this returns the same two-valued answer it always did, and every call site
+// turns a false into a refusal naming the reference. The locator itself logs
+// nothing and invents nothing, so the only lost information is the difference
+// between "not there" and "could not tell", which no caller here distinguishes.
+func (f *FixtureInputs) worker(ctx context.Context, tenant values.TenantId, ref string) (values.EntityRef, bool) {
+	locate := f.locate
+	if locate == nil {
+		locate = corpusWorkerLocator
 	}
-	candidate := values.EntityRef{Tenant: tenant, Kind: people.KindWorker, Id: ref}
-	if candidate.Validate() != nil {
+	location, ok, err := locate(ctx, tenant, ref)
+	if err != nil || !ok {
 		return values.EntityRef{}, false
 	}
-	return candidate, true
+	return location.Ref, true
 }
 
 // read performs the corpus read that pins the baseline: whether the worker
@@ -167,7 +218,7 @@ func (f *FixtureInputs) resolvePromotion(ctx context.Context, req ResolveRequest
 	if err != nil {
 		return DomainCall{}, err
 	}
-	subject, ok := f.worker(inst.Tenant, workerRef)
+	subject, ok := f.worker(ctx, inst.Tenant, workerRef)
 	if !ok {
 		return DomainCall{}, fmt.Errorf("app: worker_ref %q is not a resolvable worker reference", workerRef)
 	}
@@ -266,7 +317,7 @@ func (f *FixtureInputs) resolveExplain(ctx context.Context, req ResolveRequest, 
 	if err != nil {
 		return DomainCall{}, err
 	}
-	subject, ok := f.worker(inst.Tenant, workerRef)
+	subject, ok := f.worker(ctx, inst.Tenant, workerRef)
 	if !ok {
 		return DomainCall{}, fmt.Errorf("app: worker_ref %q is not a resolvable worker reference", workerRef)
 	}
@@ -311,7 +362,7 @@ func (f *FixtureInputs) resolveCompensation(ctx context.Context, req ResolveRequ
 	if err != nil {
 		return DomainCall{}, err
 	}
-	subject, ok := f.worker(inst.Tenant, workerRef)
+	subject, ok := f.worker(ctx, inst.Tenant, workerRef)
 	if !ok {
 		return DomainCall{}, fmt.Errorf("app: worker_ref %q is not a resolvable worker reference", workerRef)
 	}
@@ -374,7 +425,7 @@ func (f *FixtureInputs) resolvePayBand(ctx context.Context, req ResolveRequest, 
 	if err != nil {
 		return DomainCall{}, err
 	}
-	subject, ok := f.worker(inst.Tenant, workerRef)
+	subject, ok := f.worker(ctx, inst.Tenant, workerRef)
 	if !ok {
 		return DomainCall{}, fmt.Errorf("app: worker_ref %q is not a resolvable worker reference", workerRef)
 	}

@@ -87,6 +87,19 @@ func (s *Store) transition(id uuid.UUID, fence uint64, to Status, now time.Time)
 	if item.Fence != fence {
 		return Reservation{}, wrap(CodeFence, id, ErrFence)
 	}
+	if to == Consumed && item.Status == Held && !item.Request.ExpiresAt.After(now) {
+		// Consumption is the execution barrier: a caller must not be able to
+		// consume a hold merely because expiry processing has not run yet.
+		// Record the expiry transition first so a refused execution cannot
+		// leave the reservation looking available to a later retry.
+		item.Status, item.UpdatedAt = Expired, now.UTC()
+		s.seq++
+		s.events[id] = append(s.events[id], Event{Sequence: s.seq, ReservationID: id, From: Held, To: Expired, Fence: fence, At: now.UTC()})
+		return *item, wrap(CodeExpired, id, ErrExpired)
+	}
+	if to == Consumed && item.Status == Expired {
+		return *item, wrap(CodeExpired, id, ErrExpired)
+	}
 	if item.Status == to {
 		return *item, nil
 	} // idempotent replay

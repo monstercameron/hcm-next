@@ -9,10 +9,13 @@ import (
 	"github.com/monstercameron/hcm-next/internal/connectivity"
 	"github.com/monstercameron/hcm-next/internal/connectivity/fakeincumbent"
 	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/workforce"
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
 	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/definitions"
 	"github.com/monstercameron/hcm-next/internal/intent/protomap"
@@ -93,6 +96,17 @@ type CellConfig struct {
 	// about internal/humanwork/workspace.Options.DevBrowserLogin - this
 	// package must not import anything transport-shaped to state it.
 	DevBrowserLogin bool
+	// Evidence is the sink every decision this cell records lands on: the
+	// capability gateway's invocation/refusal evidence (CAP-002),
+	// ExecuteIntent's GATE_ADMITTED/GATE_REFUSED entries (OBS-024) and the
+	// journey's workforce decisions. Nil means a fresh sink, which is what
+	// every composition before the journey used. A composition root that
+	// also builds the execution driver passes the same sink to
+	// internal/platform/execution's PromotionExecutionConfig.Evidence, so
+	// the driver's own APPROVAL_COMPLETED/TASK_SUBMITTED/TERMINAL_WRITTEN
+	// evidence is on the one list [Cell.Evidence] exposes and the journey's
+	// Inspect reads.
+	Evidence *MemoryEvidenceSink
 	// Telemetry is the OTel provider every request is instrumented through.
 	// Nil means off: a cell composed with no Telemetry publishes no spans or
 	// metrics at all, rather than falling back to some default exporter a
@@ -129,6 +143,32 @@ type CellConfig struct {
 	// uses for that tenant's row (internal/intent/app/pgstore.TenantID,
 	// wrapped, in every real composition). Required together with Executor.
 	TenantUUID func(values.TenantId) uuid.UUID
+
+	// ExecutionDB is the database the Promotion journey engine reads the
+	// durable execution record through (the workflow instance, its node
+	// executions, its WorkItems and their transitions, and the one ledger
+	// fact the END node recorded) and claims/completes the approval WorkItem
+	// in. Every statement runs inside a tenant-scoped transaction
+	// (internal/data/tenancy.WithTenant), because every one of those tables is
+	// row-level-security protected.
+	//
+	// It is the same pool CellConfig.Executor's own driver was composed over
+	// in every real composition; it is a separate field because
+	// [ProposalExecutor] is a narrow port that deliberately exposes no
+	// database at all, and the journey engine needs one to read back what the
+	// driver wrote. Nil leaves [Cell.Journey] nil.
+	ExecutionDB dbport.Beginner
+	// ExecutionApprover is the principal id the one approval WorkItem this
+	// cell's promotion workflow raises is routed to, and therefore the
+	// principal the journey engine records the decision as. Empty means
+	// [DefaultJourneyApprover].
+	//
+	// It must be the same principal the composed Executor's own work-item
+	// factory routes to (internal/platform/execution's
+	// PromotionExecutionConfig.ApproverPrincipalID): the routed assignment is
+	// what authorizes the decision, so a disagreement here is refused by
+	// internal/workflow/steps/approval.Complete rather than silently accepted.
+	ExecutionApprover string
 }
 
 // Cell is one composed P1A application cell: the registries, the governed
@@ -175,6 +215,24 @@ type Cell struct {
 	// internal/transport/cell can read it without this package exposing any
 	// transport-shaped composition of its own.
 	Telemetry *hcmotel.Provider
+
+	// Journey is the live Promotion-journey engine the workspace's journey
+	// page reads and acts through. It is non-nil only on a cell composed with
+	// both a [ProposalExecutor] and a [CellConfig.ExecutionDB]: the journey is
+	// the execution path made visible, and a cell that cannot execute has no
+	// journey to show. A nil Journey travels to
+	// internal/humanwork/workspace.Options unchanged, and the page reports
+	// workspace.ErrJourneyUnavailable from its own nil check.
+	Journey workspace.JourneyEngine
+
+	// locateWorker is the one worker-reference resolver this cell composed.
+	// Every surface that accepts a reference somebody typed -- the
+	// domain-input resolver, the workspace's read surface, the journey engine
+	// -- is handed this value, so the same string always names the same
+	// person. It is unexported for the same reason the two flags below are:
+	// resolution is decided at composition, and a surface that could swap it
+	// afterwards would be a second answer to "who is this".
+	locateWorker WorkerLocator
 
 	// workspaceEnabled records whether the edge publishes the human-facing
 	// workspace. It is not exported: whether a surface is served is decided
@@ -225,6 +283,44 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		return nil, errors.New("app: a cell with its own DomainInputs must also supply Workers and Bands")
 	}
 
+	// A cell that can execute can also create employees, and a created
+	// employee has to be visible to every governed read this cell performs -
+	// the capability gateway's explain_worker_state handler, the workspace's
+	// read surface and the journey engine's own current-placement read alike.
+	// So the durable population is layered onto the corpus reader exactly
+	// once, here, and the composed value is what every one of those paths is
+	// handed. There is deliberately no second reader for created workers: a
+	// second read path is a second place a field can be disclosed from, and
+	// the whole point of routing everything through one WorkerFacts is that
+	// the authorization decision and the recorded evidence are the same
+	// whichever population the worker came from.
+	//
+	// The condition is the journey's own: without an execution database there
+	// is no journey_worker table to read, and without a tenant mapping there
+	// is no way to scope the read to a tenant. Either missing leaves the
+	// corpus reader untouched, so a cell composed the way P1A composed one
+	// behaves exactly as it did.
+	if cfg.ExecutionDB != nil && cfg.TenantUUID != nil {
+		workers = workforce.NewLayeredWorkerFacts(workers, cfg.ExecutionDB, cfg.TenantUUID)
+	}
+	// The domain-input resolver pins a promotion's baseline through its own
+	// worker read, and a corpus-backed one loaded a private corpus reader in
+	// its constructor. Rebinding it to the composed value is what keeps "one
+	// cell-level WorkerFacts" true rather than aspirational: without it a
+	// created worker would be visible to the capability handlers and invisible
+	// to the simulation that has to certify the promotion.
+	if fixtureBacked != nil {
+		fixtureBacked.BindWorkers(workers)
+	}
+	// The one worker-reference resolver, composed on the same condition as
+	// the layered read: without a database and a tenant mapping there is no
+	// created population to resolve against, and the corpus locator is what
+	// this cell always used.
+	locateWorker := newWorkerLocator(cfg.ExecutionDB, cfg.TenantUUID)
+	if fixtureBacked != nil {
+		fixtureBacked.BindWorkerLocator(locateWorker)
+	}
+
 	incumbent, connection, err := resolveConnectivity(cfg)
 	if err != nil {
 		return nil, err
@@ -253,7 +349,10 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 	if err != nil {
 		return nil, err
 	}
-	sink := NewMemoryEvidenceSink()
+	sink := cfg.Evidence
+	if sink == nil {
+		sink = NewMemoryEvidenceSink()
+	}
 	var gatewayOptions []capability.GatewayOption
 	if cfg.Now != nil {
 		gatewayOptions = append(gatewayOptions, capability.WithClock(cfg.Now))
@@ -291,6 +390,13 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		ExecutionVersions:  cfg.ExecutionVersions,
 		ExecutionCellID:    cfg.ExecutionCellID,
 		TenantUUID:         cfg.TenantUUID,
+		// WF-RUN-027: a cell composed with the execution database resolves a
+		// bound proposal revision's approval decisions and supersession from
+		// migration 00024's own rows rather than from the approval flags its
+		// caller presented. A cell composed without that database has nowhere
+		// to read those facts from and stays on the deprecated caller-asserted
+		// path, which internal/workflow/runtime.Start still honours.
+		ExecutionFacts: executionFactsFor(cfg),
 		// OBS-024: GATE_REFUSED/GATE_ADMITTED land on the same evidence sink
 		// as every CAP-002 invocation/refusal, so Cell.Evidence reads both
 		// back from one place.
@@ -311,7 +417,19 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 
 	workspaceEnabled := cfg.Workspace == nil || *cfg.Workspace
 
+	// The journey engine is composed only when this cell can actually run one:
+	// a driver to execute through and the database that driver wrote to. A
+	// typed-nil interface would defeat the page's own nil check, so the field
+	// is left at its zero value rather than assigned a nil *journeyEngine.
+	var journey workspace.JourneyEngine
+	if cfg.Executor != nil && cfg.ExecutionDB != nil {
+		journey = newJourneyEngine(svc, cfg.ExecutionDB, cfg.ExecutionApprover, cfg.Now, locateWorker)
+	}
+
 	return &Cell{
+		Journey:      journey,
+		locateWorker: locateWorker,
+
 		workspaceEnabled: workspaceEnabled,
 		devBrowserLogin:  cfg.DevBrowserLogin,
 

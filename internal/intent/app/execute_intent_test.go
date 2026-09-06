@@ -8,6 +8,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
 // gatePrincipal builds a minimal authenticated principal for the gate tests.
@@ -153,5 +154,34 @@ func TestExecuteIntentRefusesMissingExecutionWiring(t *testing.T) {
 	if owned.Code() != envelope.CodeFailedPrecondition || owned.ReasonRef() != reasonExecutionUnavailable {
 		t.Fatalf("executionUnavailable = (%s, %q), want (%s, %q)",
 			owned.Code(), owned.ReasonRef(), envelope.CodeFailedPrecondition, reasonExecutionUnavailable)
+	}
+}
+
+// TestExecutionErrorProjectsTheDerivedProposalRefusals proves WF-RUN-027's two
+// derived refusals reach the caller as distinct reason references, not as one
+// undifferentiated "stale proposal": a revision with no recorded decision and a
+// revision the relationship graph has superseded call for different actions.
+func TestExecutionErrorProjectsTheDerivedProposalRefusals(t *testing.T) {
+	for _, tc := range []struct {
+		code   string
+		reason string
+	}{
+		{runtime.CodeUnapprovedProposal, reasonUnapprovedProposal},
+		{runtime.CodeSupersededProposal, reasonSupersededProposal},
+		{runtime.CodeMutableProposal, reasonStaleProposal},
+		{runtime.CodeApprovalBindingMismatch, reasonStaleProposal},
+	} {
+		t.Run(tc.code, func(t *testing.T) {
+			owned := executionError(&runtime.Error{Code: tc.code, Detail: "refused"})
+			if owned == nil {
+				t.Fatal("executionError returned nil for a typed runtime refusal")
+			}
+			if owned.Code() != envelope.CodeFailedPrecondition {
+				t.Errorf("code = %s, want FAILED_PRECONDITION", owned.Code())
+			}
+			if owned.ReasonRef() != tc.reason {
+				t.Fatalf("reason = %q, want %q", owned.ReasonRef(), tc.reason)
+			}
+		})
 	}
 }

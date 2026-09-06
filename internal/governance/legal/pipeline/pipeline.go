@@ -77,12 +77,15 @@ func Review(d Draft, reviewerID string, status legal.ReviewStatus) (Reviewed, er
 	return Reviewed{Candidate: c, AuthorID: d.AuthorID, ReviewerID: reviewerID}, nil
 }
 
-// Publish signs and registers a reviewed candidate. Vendor baseline requires
-// the publisher signature; counsel-approved releases additionally require the
-// customer-counsel signature. The returned release is immutable by value and
-// is verified before registration.
-func Publish(r Reviewed, publisherID string, publisher *legal.Signer, counselID string, counsel *legal.Signer, registry *legal.Registry) (legal.PackRelease, error) {
-	if publisherID == "" || publisher == nil || registry == nil {
+// signAndVerify is the signing half of publication, shared by [Publish] and
+// [PublishSupersession]: sign the reviewed candidate as publisher, add the
+// customer-counsel signature when the release claims COUNSEL_APPROVED, and
+// verify the fully-signed result before either caller registers it. It never
+// touches a [legal.Registry]: the two callers differ only in which registry
+// call closes the loop (a fresh registration versus a supersession that also
+// closes the predecessor's window), and that difference belongs to them.
+func signAndVerify(r Reviewed, publisherID string, publisher *legal.Signer, counselID string, counsel *legal.Signer) (legal.PackRelease, error) {
+	if publisherID == "" || publisher == nil {
 		return legal.PackRelease{}, ErrNotPublishable
 	}
 	if publisherID == r.ReviewerID {
@@ -104,7 +107,48 @@ func Publish(r Reviewed, publisherID string, publisher *legal.Signer, counselID 
 	if err := release.Verify(); err != nil {
 		return legal.PackRelease{}, err
 	}
+	return release, nil
+}
+
+// Publish signs and registers a reviewed candidate. Vendor baseline requires
+// the publisher signature; counsel-approved releases additionally require the
+// customer-counsel signature. The returned release is immutable by value and
+// is verified before registration.
+func Publish(r Reviewed, publisherID string, publisher *legal.Signer, counselID string, counsel *legal.Signer, registry *legal.Registry) (legal.PackRelease, error) {
+	if registry == nil {
+		return legal.PackRelease{}, ErrNotPublishable
+	}
+	release, err := signAndVerify(r, publisherID, publisher, counselID, counsel)
+	if err != nil {
+		return legal.PackRelease{}, err
+	}
 	if err := registry.Register(release); err != nil {
+		return legal.PackRelease{}, err
+	}
+	return release, nil
+}
+
+// PublishSupersession signs a reviewed candidate exactly as [Publish] does,
+// then registers it as the successor to predecessor through
+// [legal.Registry.Supersede] instead of a fresh [legal.Registry.Register]:
+// the predecessor's effective window is closed at the successor's start and
+// the two link through Supersedes/SupersededBy, per the contract's section
+// 3.3. r.Candidate's own definition must already declare a matching
+// Supersedes reference (see [legal.PackDefinition]'s "supersedes" field) so
+// that reference is part of the signed digest, not bolted on afterwards.
+func PublishSupersession(r Reviewed, predecessor legal.RulePackRelease, publisherID string, publisher *legal.Signer, counselID string, counsel *legal.Signer, registry *legal.Registry) (legal.PackRelease, error) {
+	if registry == nil {
+		return legal.PackRelease{}, ErrNotPublishable
+	}
+	release, err := signAndVerify(r, publisherID, publisher, counselID, counsel)
+	if err != nil {
+		return legal.PackRelease{}, err
+	}
+	if release.Supersedes == nil || *release.Supersedes != predecessor {
+		return legal.PackRelease{}, fmt.Errorf("%w: release does not declare predecessor %s v%d.%d as its supersedes reference",
+			ErrNotPublishable, predecessor.PackID, predecessor.Version, predecessor.MinorVersion)
+	}
+	if err := registry.Supersede(predecessor, release); err != nil {
 		return legal.PackRelease{}, err
 	}
 	return release, nil

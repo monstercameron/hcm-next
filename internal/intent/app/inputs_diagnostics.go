@@ -41,7 +41,7 @@ func (f *FixtureInputs) resolveDrift(ctx context.Context, req ResolveRequest, pa
 	if f.externalSource == "" {
 		return DomainCall{}, fmt.Errorf("app: this cell has no incumbent connection to compare against")
 	}
-	population, err := f.population(inst, payload)
+	population, err := f.population(ctx, inst, payload)
 	if err != nil {
 		return DomainCall{}, err
 	}
@@ -109,7 +109,7 @@ func (f *FixtureInputs) resolveRepair(ctx context.Context, req ResolveRequest, p
 	if err != nil {
 		return DomainCall{}, err
 	}
-	subject, ok := f.worker(inst.Tenant, workerRef)
+	subject, ok := f.worker(ctx, inst.Tenant, workerRef)
 	if !ok {
 		return DomainCall{}, fmt.Errorf("app: worker_ref %q is not a resolvable worker reference", workerRef)
 	}
@@ -235,7 +235,7 @@ func comparisonPeopleFields() []people.FieldID {
 
 // population decodes the bounded subject set a drift run examines, accepting
 // either a list of worker references or a single one.
-func (f *FixtureInputs) population(inst intent.Instance, payload *structValue) ([]values.EntityRef, error) {
+func (f *FixtureInputs) population(ctx context.Context, inst intent.Instance, payload *structValue) ([]values.EntityRef, error) {
 	refs := optionalStrings(payload, "worker_refs")
 	if len(refs) == 0 {
 		single, err := str(payload, "worker_ref")
@@ -247,7 +247,7 @@ func (f *FixtureInputs) population(inst intent.Instance, payload *structValue) (
 	out := make([]values.EntityRef, 0, len(refs))
 	seen := make(map[values.EntityRef]struct{}, len(refs))
 	for _, ref := range refs {
-		subject, ok := f.worker(inst.Tenant, ref)
+		subject, ok := f.worker(ctx, inst.Tenant, ref)
 		if !ok {
 			return nil, fmt.Errorf("app: worker reference %q does not resolve", ref)
 		}
