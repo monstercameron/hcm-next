@@ -103,6 +103,13 @@ var ImplicitAllowlist = []ImplicitEntry{
 	{Package: "internal/platform/execution/scheduler", Owner: "scheduling platform", Reason: "durable workflow timer and ready-work dispatch (SVC-004) runs below the scheduling engine as its process-role adapter"},
 	{Package: "internal/platform/telemetry/securityevidence", Owner: "observability platform", Reason: "security evidence emission (SECARCH-008) remains below the telemetry owner"},
 	{Package: "internal/workflow/migrate/artifacts", Owner: "artifact platform", Reason: "workflow version-migration artifacts are a workflow consumer of artifact mechanics"},
+	{Package: "internal/platform/telemetry/queue", Owner: "observability platform", Reason: "bounded telemetry queue, retry and backpressure mechanics (OBS-019) remain below the telemetry owner"},
+	{Package: "internal/connectivity/artifactstore", Owner: "integration platform", Reason: "connector consumer of substrate mechanics (Gate A wave 2026-09-06)"},
+	{Package: "internal/operations/telemetry", Owner: "operations platform", Reason: "operational consumer of substrate mechanics (Gate A wave 2026-09-06)"},
+	{Package: "internal/operations/telemetryhealth", Owner: "operations platform", Reason: "operational consumer of substrate mechanics (Gate A wave 2026-09-06)"},
+	{Package: "internal/platform/telemetry/backends", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
+	{Package: "internal/platform/telemetry/diagnostic", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
+	{Package: "internal/platform/telemetry/lifecycle", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
 }
 
 // Options allows focused tests and future reviewed table revisions without

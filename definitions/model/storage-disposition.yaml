@@ -96,6 +96,17 @@ migrationfiles:
   - 00128_attestation_response.sql
   - 00130_reference_dataset_release.sql
   - 00131_reference_dataset_adoption.sql
+  - 00132_presentation_preferences.sql
+  - 00156_workflow_signal_durability.sql
+  - 00168_outbox_claim_state.sql
+  - 00169_outbox_claim_indexes.sql
+  - 00170_outbox_claim_protocol.sql
+  - 00177_schema_upgrade_control.sql
+  - 00178_telemetry_backend_registry.sql
+  - 00179_telemetry_copy_inventory.sql
+  - 00180_organization_scoped_appearance.sql
+  - 00181_worker_id_policy.sql
+  - 00182_organization_visibility.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

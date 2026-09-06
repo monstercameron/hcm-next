@@ -686,7 +686,31 @@ Important starting points:
 The development frontend contains no sample-data provider or alternate UI
 server. It is a same-origin gateway to a running HCM Next cell, including the
 authenticated HTML shell, Go/WASM client, and gRPC-over-WebSocket tunnel.
-Start the cell as described below, mint a token, and run:
+For the normal local loop, start the cell and gateway in two terminals:
+
+```powershell
+npm run dev:server
+npm run dev:frontend
+```
+
+Both commands use the explicit `local-dev` profile. It defaults the cell to
+the loopback PostgreSQL URL and HarborCare tenant, skips automatic migrations,
+enables the executable promotion plan and development browser admission, and
+shortens graceful shutdown to one second. The gateway mints and injects a
+short-lived matching credential, eliminating the token-copy/login loop. The
+profile is rejected if the cell, database, gateway, or upstream is not on
+loopback. It still runs the real credential verifier, authorization policies,
+tenant isolation, PostgreSQL stores, gRPC tunnel, and production Go/WASM UI.
+Run migrations and seed explicitly when schema or fixtures change:
+
+```powershell
+go run ./cmd/migrate up
+go run ./cmd/migrate seed -tenant=harborcare-demo
+```
+
+Explicit flags and `HCMNEXT_DATABASE_URL` / `HCMNEXT_DEV_HMAC_KEY` override
+the profile defaults. To exercise the manual credential path instead, start
+the standard profile, mint a token, and run:
 
 ```powershell
 $env:HCMNEXT_DEV_BEARER = go run ./cmd/hcmnext token -tenant=harborcare-demo -subject=local-developer -roles=intent_author,comp_admin,promotion_operator -org-scope=org:harborcare-demo:people-ops

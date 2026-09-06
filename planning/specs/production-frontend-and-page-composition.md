@@ -293,12 +293,23 @@ Density, default permitted view, optional columns, sort/filter, expanded
 sections, saved searches, and pinned permitted actions. Preferences cannot alter
 authority, mandatory disclosures, workflow state, or required controls.
 
+Every durable preference is server-owned and keyed by tenant plus authenticated
+principal: locale and accessibility choices, navigation state and favorites,
+table page sizes/filters/sorts/columns, saved searches, and workflow-use ranking.
+The browser may hold an in-memory optimistic projection while a request is in
+flight, but local/session storage is not a source of configuration truth. Writes
+use optimistic versions and reload from the authoritative value after conflict.
+
 ### Level 2: organization page variants
 
 Authorized administrators may choose optional sections, reorder compatible
 regions, set safe defaults, specialize explanatory content, apply qualified
 brand packs, and select approved report widgets. Variants inherit from a product
 page and migrate through versioned compatibility rules.
+
+Tenant brand and styling choices are stored by the same server preference
+boundary, separately versioned from a person's presentation preferences, and
+may be changed only by an authorized customer administrator.
 
 ### Level 3: customer-composed pages
 
@@ -376,6 +387,30 @@ idempotency. Slow or failed WASM falls back to normal semantic form submissions
 for critical journeys. Browser caches and storage contain no unbounded sensitive
 records or reusable authority. Connection recovery uses sequence/watermark
 catch-up and authoritative refetch.
+
+### Asynchronous work coordination
+
+The Go/WASM client treats every finite network operation as scheduled work,
+not as an unbounded goroutine launched from a component. The production
+composition owns one bounded foreground multiplexer with these rules:
+
+- submission returns immediately so a browser event handler never waits for
+  gRPC, a queue slot, or another task;
+- interactive mutations run ahead of queued projections, while a bounded
+  priority burst guarantees background refreshes eventually run;
+- a navigation or search read supersedes and cancels the older read whose
+  answer can no longer be rendered;
+- repeated submissions of the same non-idempotent action share the original
+  completion and do not issue a second RPC;
+- queue and active counts are bounded and observable; overload refuses the new
+  action visibly rather than hiding it or growing memory without limit; and
+- long-lived WebSocket/gRPC subscriptions use a separate streaming lane, emit
+  invalidation only, and cannot consume capacity needed by navigation or a
+  user action.
+
+The router still owns route-generation cancellation and loading projections.
+The task multiplexer controls execution capacity; it does not cache business
+truth, infer completion, retry a mutation, or replace server idempotency.
 
 ## Content, brand, and widget trust
 

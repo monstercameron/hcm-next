@@ -1,0 +1,12 @@
+{
+  "groups": {
+    "data": [],
+    "domain": [],
+    "governance": [],
+    "operations": [],
+    "transport": [],
+    "ui": [],
+    "docs": []
+  },
+  "rest": []
+}

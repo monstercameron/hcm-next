@@ -123,3 +123,58 @@ branch `plan-revision-2026-09-02`). Entries are in the order the work happened.
 - Held on purpose: GOVERN-001/002 (PRIV-001), WF-RUN-027 partial, the
   ADMISSION-001 chain behind WEDGE-005/006, and pre-existing policy failures
   in packages this wave did not touch.
+
+## 6. 2026-09-06: company metadata tables, authorization, backfill, Gate A wave
+
+Continuation of the same log, one day later, same verification rule.
+
+- **Wave 37, company metadata and authz (38 Luna lanes).** Twenty-nine
+  persistence todos landed one migration each (00070 to 00127, second slots
+  released as recorded gaps), plus attestation responses (00128) and
+  reference-dataset release and adoption (00130, 00131). Chains landed for
+  AUTHN-004/009, ATTEST-004..008, CUSTOM-004..006, LOCATION-002/003,
+  JOBARCH-002/003, COMM-001 and CROSS-CONF-002, ACCESS-003/004 with
+  ARTIFACT-005, WF-STEP-011 with CONFIG-003 and REFDATA-001, and the
+  ALIGN-008..015 table-governance tools. Twenty-two authorization items
+  earlier lanes had built but never verified were ticked. Ticks 657 to 743.
+- **What the re-verification caught.** Two migrations (00108, 00124) wrapped
+  plpgsql and DO blocks without goose statement markers and broke every
+  PostgreSQL test in the repository until annotated. Five stores failed their
+  own suites (tenant fixture shape, a CHECK vocabulary mismatch, refusal
+  ordering, a nil slice marshalled as JSON null, an idempotent replay that
+  came back empty) and went to fix lanes. Fifty-six tables had to be
+  registered in the storage disposition straight from the migrations because
+  the lane reports used other formats. Running 38 lanes at once exhausted the
+  machine (1186 processes, 135 PostgreSQL backends, `sleep` refusing to fork)
+  and four lanes died silently; the cap is now about 20.
+- **Backfill.** A review of 618 packages and 190 unmentioned files against
+  the backlog produced twelve todos for delivered code that had none
+  (TOOL-026, PROMO-010..013, WF-RUN-033, WORK-011, DATA-024/025, ARCH-GO-029,
+  CONTACT-003, PROOF-003) and flipped four stale checkboxes (SECARCH-013/014/
+  015, RULE-001). The evidence-freshness check wanted every evidence line's
+  go test command in backticks; 431 lines were normalized and the tick writer
+  fixed. Registry 1666, ticks 759.
+- **Organization structure research.** `planning/research/
+organization-structure-maximal-2026.md` and the 30-table draft
+  `organization-structure-tables.sql` model the worst case (a provider tenant
+  serving many clients, each with businesses, shells, joint ventures and
+  franchises, co-employment, matrix reporting, cross-entity payroll groups,
+  benefits adoption and billing). Not yet sliced into todos.
+- **Gate A wave, paused mid-flight.** All 92 open Gate A todos were sliced
+  into 28 lanes; 14 had landed green when the wave was paused to commit
+  (wedge A/B, governance and privacy, integration and idempotency, commercial,
+  operations and incidents, recovery, control plane, IaC A, export and RPC
+  policy, transformation migration, endpoint harness, artifacts and
+  onboarding, CI/CD and observability). The rest were still running at the
+  pause and are committed as they stood.
+- **Environment.** Disk fell to 6 GB twice; 121 stale embedded PostgreSQL
+  servers were killed and 494 leaked cache directories plus the Go build cache
+  removed (154 GB free). `go test` on this host now exits non-zero when it
+  cannot unlink its own test binary even though every package prints `ok`;
+  the landing driver and the tick verifier judge by result lines.
+- **Commits after the pause.** The Gate A work went in as data, domain,
+  governance, operations and transport commits (`14442de`, `aca251d`,
+  `a13bb8b`, `5af163d`, `04aba0e`), with the UI and docs commits following
+  once the front-end session's package compiled again. Lane scratch
+  directories that leaked into the checkout (`.gocache*`, `.gotmp-*`,
+  `tmp/`, 142 of them) are now ignored and swept before each commit.

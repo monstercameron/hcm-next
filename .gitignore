@@ -89,18 +89,23 @@ blob-report/
 !internal/humanwork/workspace/assets/person-*-small.jpg
 
 .husky
-.gocache*
-*gocache*
-.go-build-cache-lane
 
 # Built GoWebComponents/WASM bundles are embedded at build time, never committed
 internal/humanwork/workspace/assets/*.wasm
 internal/humanwork/workspace/assets/wasm_exec.js
+
+# Build and test artifacts that lanes, go test and local tooling leave inside the checkout.
+# Go build and module caches redirected into the repository
 .go-build-*
-.gomodcache-*
-.pg-cache-*
-.pgcache-*
+.gocache*
+.gomodcache*
+*gocache*
+# go test / lane scratch directories
 .gotmp-*
 .lane-go-*
 .tmp-go-*
 .tmp-*
+/tmp/
+# embedded PostgreSQL runtime and archive caches
+.pg-cache-*
+.pgcache-*
