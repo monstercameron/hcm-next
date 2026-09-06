@@ -179,7 +179,12 @@ func (g *graph) checkRoutes(def *Definition, c *collector) {
 					"every outgoing edge declares its outcome route key; there is no implicit first edge")
 				continue
 			}
-			if got[e.RouteKey] {
+			// A step type's declared fan-out route (only PARALLEL has one)
+			// may name several targets: each is a concurrent branch, not a
+			// second claim on one continuation. Every other repeated route
+			// key is still two edges disagreeing about where one outcome
+			// goes.
+			if got[e.RouteKey] && e.RouteKey != string(conf.FanOutRoute) {
 				c.add(CodeDuplicateRoute, loc, "route %q is already routed from this node", e.RouteKey)
 				continue
 			}

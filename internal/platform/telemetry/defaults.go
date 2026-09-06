@@ -61,6 +61,42 @@ func DefaultAllowlistDefinitions() []AttributeDefinition {
 			Description:    "Named replication/consistency edge for parity checks.",
 		},
 		{
+			Key: "operation", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 256,
+			Description:    "Bounded registry-named boundary operation (OBS-014 boundary instrumentation).",
+		},
+		{
+			Key: "route", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 256,
+			Description:    "Route template of a transport boundary, never a concrete path.",
+		},
+		{
+			Key: "dependency", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 64,
+			Description:    "Named external or storage dependency behind a boundary call.",
+		},
+		{
+			Key: "status", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 32,
+			Description:    "Bounded status class of a boundary call (HTTP or gRPC status family).",
+		},
+		{
+			Key: "size_class", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 8,
+			Description:    "Bucketed payload size class, never a raw byte count.",
+		},
+		{
+			Key: "retry", Class: ClassOperationalPublic,
+			Signals:        []SignalKind{SignalLog, SignalSpan, SignalMetric},
+			MaxCardinality: 2,
+			Description:    "Whether the boundary call was a retry attempt.",
+		},
+		{
 			Key: "error_type", Class: ClassOperationalRestricted,
 			Signals:        []SignalKind{SignalLog, SignalSpan},
 			MaxCardinality: 0,

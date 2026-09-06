@@ -92,6 +92,13 @@ type Conformance struct {
 	// MayCarryEffect reports whether the step type may carry a write effect
 	// class at all. DECISION, TRANSFORM and END never may.
 	MayCarryEffect bool
+	// FanOutRoute names the one outcome route a step type may route to more
+	// than one target, each target opening a concurrent branch. Only PARALLEL
+	// declares one: routing SUCCEEDED to three nodes is what "run these three
+	// concurrently" means in this kernel, and it is the only place a repeated
+	// route key is not a [CodeDuplicateRoute]. Empty for every other step
+	// type, whose routes stay one-to-one.
+	FanOutRoute Outcome
 }
 
 var conformanceTable = map[StepType]Conformance{
@@ -123,8 +130,11 @@ var conformanceTable = map[StepType]Conformance{
 	StepWait:       {Type: StepWait, Phase: PhaseP1B, Outcomes: []Outcome{OutcomeSucceeded, "LATE", "CANCELLED"}},
 	StepSignal:     {Type: StepSignal, Phase: PhaseP1B, Outcomes: []Outcome{OutcomeSucceeded, "TIMED_OUT", "CANCELLED"}},
 	StepCompensate: {Type: StepCompensate, Phase: PhaseP1B, Outcomes: []Outcome{"COMPENSATED", OutcomePartial, OutcomeFailed, "REPAIR_REQUIRED"}, RequiresCapability: true, MayCarryEffect: true},
-	StepParallel:   {Type: StepParallel, Phase: PhaseStructural, Outcomes: []Outcome{OutcomeSucceeded, OutcomeFailed}},
-	StepJoin:       {Type: StepJoin, Phase: PhaseStructural, Outcomes: []Outcome{OutcomeSucceeded, OutcomePartial, OutcomeFailed}},
+	StepParallel: {
+		Type: StepParallel, Phase: PhaseStructural,
+		Outcomes: []Outcome{OutcomeSucceeded, OutcomeFailed}, FanOutRoute: OutcomeSucceeded,
+	},
+	StepJoin: {Type: StepJoin, Phase: PhaseStructural, Outcomes: []Outcome{OutcomeSucceeded, OutcomePartial, OutcomeFailed}},
 	StepSubworkflow: {
 		Type: StepSubworkflow, Phase: PhaseStructural,
 		Outcomes:       []Outcome{OutcomeSucceeded, OutcomeRejected, "CANCELLED", "COMPENSATED", "ALREADY_COMPLETED", "CANNOT_CANCEL"},

@@ -12,6 +12,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
+	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
@@ -31,6 +32,7 @@ type Options struct {
 	Steps     StepRunner
 	WorkItems WorkItemFactory
 	Terminal  TerminalWriter
+	Repair    RepairRequester
 	Guard     idempotency.Store
 	Retention idempotency.RetentionPolicy
 	Clock     func() time.Time
@@ -53,6 +55,27 @@ type Options struct {
 	// check at all, exactly reproducing this driver's pre-WF-RUN-029
 	// behavior.
 	Currency *CurrencyGuard
+	// Timers creates the durable timer a TIMER_REQUIRED continuation
+	// describes (WF-RUN-004). Nil leaves a TIMER_REQUIRED continuation
+	// unsupported, exactly as it was before that ticket.
+	Timers TimerFactory
+	// TimerReader loads the durable timer a [Driver.ResumeTimer] advances
+	// from. Required only once a caller actually calls ResumeTimer.
+	TimerReader TimerReader
+	// Fence and FenceVerifier make every advancement this driver performs a
+	// fenced one (WF-RUN-002): the fence is verified against the durable
+	// lease before the advancement reads anything, so a worker whose lease was
+	// taken over completes no node, writes no state and dispatches no effect.
+	// They are set together or not at all; Fence.At is stamped per call from
+	// the instant the driver is already using, so a caller never has to keep
+	// it current.
+	//
+	// Configuring a fence takes the advancement through
+	// [runtime.AdvanceFenced] and therefore bypasses Advance: the two seams
+	// are alternatives, and a test that wants an injected AdvanceFunc leaves
+	// the fence unset.
+	Fence         *runtime.Fence
+	FenceVerifier runtime.FenceVerifier
 }
 
 // Driver synchronously runs the READY frontier of one newly started workflow.
@@ -80,6 +103,9 @@ func New(opts Options) (*Driver, error) {
 	if opts.Evidence == nil {
 		opts.Evidence = NoopExecutionEvidence{}
 	}
+	if (opts.Fence == nil) != (opts.FenceVerifier == nil) {
+		return nil, invalid("a lease fence and its verifier are configured together or not at all")
+	}
 	advance := opts.Advance
 	if advance == nil {
 		advance = runtime.Advance
@@ -97,10 +123,14 @@ type ExecuteRequest struct {
 // Result is either COMPLETE or PARKED on the WorkItems returned here. Every
 // receipt is from a committed transaction.
 type Result struct {
-	Status          Status
-	Start           runtime.StartReceipt
-	Advances        []runtime.AdvanceReceipt
-	WorkItems       []workitem.WorkItem
+	Status    Status
+	Start     runtime.StartReceipt
+	Advances  []runtime.AdvanceReceipt
+	WorkItems []workitem.WorkItem
+	// Timers are the durable timers this result's advancements created. An
+	// instance parked on one is waiting for a caller to settle it, not for a
+	// person.
+	Timers          []TimerHandle
 	InstanceVersion int64
 	Frontier        []string
 	// EvidenceIDs are the OBS-024 execution-evidence ids recorded while
@@ -180,13 +210,17 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 		if !ok {
 			return Result{}, invalid("frontier names node %s absent from resolved plan", nodeID)
 		}
+		attempt, err := d.prepareReadyAttempt(ctx, run, &result, node)
+		if err != nil {
+			return Result{}, err
+		}
 		at := d.opts.Clock().UTC()
 		nodeCtx, nodeSpan := d.opts.Instrumentation.StartNodeSpan(ctx, SpanAttributes{
-			InstanceID: run.instanceID.String(), NodeID: nodeID, Attempt: 1,
+			InstanceID: run.instanceID.String(), NodeID: nodeID, Attempt: attempt,
 		})
 		outcome, refs, err := d.opts.Steps.Run(nodeCtx, StepRequest{
 			TenantID: run.start.TenantID, InstanceID: run.instanceID,
-			InstanceVersion: result.InstanceVersion, Attempt: 1,
+			InstanceVersion: result.InstanceVersion, Attempt: attempt,
 			Node: node, Plan: run.selection.Plan, Proposal: run.start.Proposal,
 			CorrelationID: run.start.CorrelationID, RecordedAt: at,
 			TraceID: run.traceID,
@@ -207,7 +241,7 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 		}
 		nodeSpan.End(nodeOutcome, nil)
 
-		advanced, created, evidenceIDs, err := d.advanceOnce(ctx, run, result.InstanceVersion, at,
+		advanced, created, evidenceIDs, timers, err := d.advanceOnce(ctx, run, result.InstanceVersion, at, attempt,
 			func(context.Context, runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
 				return outcome, refs, nil
 			})
@@ -216,6 +250,7 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 		}
 		result.Advances = append(result.Advances, advanced)
 		result.WorkItems = append(result.WorkItems, created...)
+		result.Timers = append(result.Timers, timers...)
 		result.EvidenceIDs = append(result.EvidenceIDs, evidenceIDs...)
 		result.InstanceVersion = advanced.NewInstanceVersion
 		result.Frontier = append([]string(nil), advanced.Frontier...)
@@ -229,7 +264,10 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 			switch rec.Kind {
 			case frontier.IntentReady:
 				ready = append(ready, rec.TargetNodeID)
-			case frontier.IntentWorkItemRequired:
+			case frontier.IntentWorkItemRequired, frontier.IntentTimerRequired:
+				// A durable timer parks this driver exactly as human work
+				// does: it has nothing left to run, and a caller with its own
+				// clock reading decides when the instance moves again.
 				parked = true
 			}
 		}
@@ -241,6 +279,55 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 	}
 
 	return Result{}, fmt.Errorf("%w: instance %s is not terminal and has no READY continuation or WorkItem", ErrNoProgress, run.instanceID)
+}
+
+// prepareReadyAttempt closes the retry gap between frontier's READY intent
+// and a driver's next invocation. A failed attempt is persisted as RETRYING;
+// the READY continuation is the instruction to materialize the next durable
+// attempt before the handler runs. Without that materialization the driver
+// would repeatedly execute attempt 1, so frontier retry accounting would
+// never reach the node's retry budget (PROMO-009 fault path).
+func (d *Driver) prepareReadyAttempt(
+	ctx context.Context, run runContext, result *Result, node workflow.CompiledNode,
+) (int, error) {
+	if node.Type != workflow.StepObserve || node.Retry == nil || node.Retry.MaxAttempts <= 1 {
+		return 1, nil
+	}
+	tx, err := d.opts.DB.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("workflow execute: begin retry preparation: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if err := tenancy.WithTenant(ctx, tx, run.start.TenantID); err != nil {
+		return 0, err
+	}
+	rows, err := (runtime.Store{}).LoadNodeExecutions(ctx, tx, run.start.TenantID, run.instanceID)
+	if err != nil {
+		return 0, err
+	}
+	latest := runtime.NodeExecution{}
+	for _, row := range rows {
+		if row.NodeID == node.ID && row.Attempt > latest.Attempt {
+			latest = row
+		}
+	}
+	if latest.Attempt == 0 {
+		return 0, invalid("ready node %s has no durable execution", node.ID)
+	}
+	attempt := latest.Attempt
+	if latest.Status == runtime.NodeRetrying {
+		attempt++
+		created := runtime.NewNodeExecution(run.start.TenantID, run.instanceID, node.ID, attempt, node.Type, runtime.NodeReady)
+		_, nextVersion, err := (runtime.Store{}).RecordNodeExecution(ctx, tx, created, result.InstanceVersion)
+		if err != nil {
+			return 0, fmt.Errorf("workflow execute: prepare retry attempt %d for %s: %w", attempt, node.ID, err)
+		}
+		result.InstanceVersion = nextVersion
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("workflow execute: commit retry preparation for %s: %w", node.ID, err)
+	}
+	return attempt, nil
 }
 
 // advanceInputsFunc produces the [frontier.NodeOutcome] and
@@ -257,8 +344,9 @@ func (d *Driver) advanceOnce(
 	run runContext,
 	expectedVersion int64,
 	at time.Time,
+	attempt int,
 	inputs advanceInputsFunc,
-) (runtime.AdvanceReceipt, []workitem.WorkItem, []string, error) {
+) (runtime.AdvanceReceipt, []workitem.WorkItem, []string, []TimerHandle, error) {
 	// The advancement's own node id is not known until inputs(...) runs
 	// inside the transaction below (Resume derives it from the durable
 	// WorkItem it loads there), so the OBS-023 advance span opens with only
@@ -270,18 +358,37 @@ func (d *Driver) advanceOnce(
 	tx, err := d.opts.DB.Begin(advCtx)
 	if err != nil {
 		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, fmt.Errorf("workflow execute: begin advance: %w", err)
+		return runtime.AdvanceReceipt{}, nil, nil, nil, fmt.Errorf("workflow execute: begin advance: %w", err)
 	}
 	defer func() { _ = tx.Rollback(advCtx) }()
 	if err := tenancy.WithTenant(advCtx, tx, run.start.TenantID); err != nil {
 		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, err
+		return runtime.AdvanceReceipt{}, nil, nil, nil, err
 	}
 
 	outcome, refs, err := inputs(advCtx, tx)
 	if err != nil {
 		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, err
+		return runtime.AdvanceReceipt{}, nil, nil, nil, err
+	}
+	// A node the plan routed back to (a re-approval returning to its gate)
+	// is on a later attempt than the caller can know before the outcome is
+	// loaded, so the advancement addresses the highest recorded attempt of
+	// the outcome's node rather than the caller's default. Only a plan that
+	// declares a cycle can re-enter a node, so only such a plan pays the
+	// lookup; every other plan's node is on attempt 1 by construction.
+	if len(run.selection.Plan.Limits.DeclaredCycles) > 0 {
+		executions, err := (runtime.Store{}).LoadNodeExecutions(advCtx, tx, run.start.TenantID, run.instanceID)
+		if err != nil {
+			advSpan.End(OutcomeFailure, err)
+			return runtime.AdvanceReceipt{}, nil, nil, nil, err
+		}
+		if open := highestAttempt(executions, outcome.NodeID); open > attempt {
+			attempt = open
+		}
+	}
+	if node, ok := run.selection.Plan.Node(outcome.NodeID); ok {
+		outcome = exhaustedObservationRoute(run.selection.Plan, node, outcome, attempt)
 	}
 
 	if d.opts.Currency != nil {
@@ -291,28 +398,30 @@ func (d *Driver) advanceOnce(
 		})
 		if cerr != nil {
 			advSpan.End(OutcomeFailure, cerr)
-			return runtime.AdvanceReceipt{}, nil, nil, cerr
+			return runtime.AdvanceReceipt{}, nil, nil, nil, cerr
 		}
 		if verdict.Blocked {
 			if err := blockInstance(advCtx, tx, run.start.TenantID, run.instanceID, verdict); err != nil {
 				advSpan.End(OutcomeFailure, err)
-				return runtime.AdvanceReceipt{}, nil, nil, err
+				return runtime.AdvanceReceipt{}, nil, nil, nil, err
 			}
 			if err := tx.Commit(advCtx); err != nil {
 				advSpan.End(OutcomeFailure, err)
-				return runtime.AdvanceReceipt{}, nil, nil, fmt.Errorf("workflow execute: commit currency block: %w", err)
+				return runtime.AdvanceReceipt{}, nil, nil, nil, fmt.Errorf("workflow execute: commit currency block: %w", err)
 			}
 			blockedErr := fmt.Errorf("%w: %s (%s)",
 				ErrCurrencyBlocked, verdict.Reason, strings.Join(verdict.Explanation, "; "))
 			advSpan.End(OutcomeDenied, blockedErr)
-			return runtime.AdvanceReceipt{}, nil, nil, blockedErr
+			return runtime.AdvanceReceipt{}, nil, nil, nil, blockedErr
 		}
 	}
 
 	sink := &continuationSink{
 		tx: tx, durable: runtime.ContinuationStore{},
-		factory: d.opts.WorkItems, terminal: d.opts.Terminal,
-		guard: d.opts.Guard, policy: d.opts.Retention,
+		factory: d.opts.WorkItems, timers: d.opts.Timers, terminal: d.opts.Terminal,
+		repair: d.opts.Repair,
+		plan:   run.selection.Plan,
+		guard:  d.opts.Guard, policy: d.opts.Retention,
 		workflowID: run.selection.WorkflowID, planDigest: run.selection.Plan.Digest(),
 		proposal: run.start.Proposal, cellID: run.start.CellID,
 		correlationID: run.start.CorrelationID,
@@ -325,31 +434,80 @@ func (d *Driver) advanceOnce(
 		// its own span and records its own evidence entry.
 		instrumentation: d.opts.Instrumentation, evidence: d.opts.Evidence,
 	}
-	advanced, err := d.advance(advCtx, tx, runtime.AdvanceRequest{
+	advReq := runtime.AdvanceRequest{
 		TenantID: run.start.TenantID, InstanceID: run.instanceID,
-		ExpectedInstanceVersion: expectedVersion, Attempt: 1,
+		ExpectedInstanceVersion: expectedVersion, Attempt: attempt,
 		Plan: run.selection.Plan, Outcome: outcome, Refs: refs,
 		RecordedAt: at, Sink: sink, TraceID: run.traceID,
-	})
+	}
+	var advanced runtime.AdvanceReceipt
+	if d.opts.Fence != nil {
+		// WF-RUN-002: the fence is checked against the durable lease before
+		// the advancement reads any workflow state, so a superseded holder
+		// never reaches the sink and therefore never dispatches an effect.
+		fence := *d.opts.Fence
+		fence.At = at
+		advanced, err = runtime.AdvanceFenced(advCtx, tx, runtime.FencedAdvanceRequest{
+			Fence: fence, Verifier: d.opts.FenceVerifier, Request: advReq,
+		})
+		if err != nil && runtime.CodeOf(err) == runtime.CodeFenceRefused {
+			// Both %w: the caller classifies this as ErrFenceRefused and can
+			// still read the verifier's own LEASE_LOST or FENCE_STALE off the
+			// same error.
+			err = fmt.Errorf("%w: %w", ErrFenceRefused, err)
+		}
+	} else {
+		advanced, err = d.advance(advCtx, tx, advReq)
+	}
 	if err != nil {
 		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, err
+		return runtime.AdvanceReceipt{}, nil, nil, nil, err
 	}
 	if err := tx.Commit(advCtx); err != nil {
 		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, fmt.Errorf("workflow execute: commit advance of %s: %w", outcome.NodeID, err)
+		return runtime.AdvanceReceipt{}, nil, nil, nil, fmt.Errorf("workflow execute: commit advance of %s: %w", outcome.NodeID, err)
 	}
 	advOutcome := OutcomeSuccess
 	if !advanced.Complete && len(advanced.Continuations) > 0 {
 		for _, rec := range advanced.Continuations {
-			if rec.Kind == frontier.IntentWorkItemRequired {
+			if rec.Kind == frontier.IntentWorkItemRequired || rec.Kind == frontier.IntentTimerRequired {
 				advOutcome = OutcomeParked
 				break
 			}
 		}
 	}
 	advSpan.End(advOutcome, nil)
-	return advanced, append([]workitem.WorkItem(nil), sink.created...), append([]string(nil), sink.evidenceIDs...), nil
+	return advanced,
+		append([]workitem.WorkItem(nil), sink.created...),
+		append([]string(nil), sink.evidenceIDs...),
+		append([]TimerHandle(nil), sink.timersCreated...),
+		nil
+}
+
+// exhaustedObservationRoute binds the observe-specific retry contract to the
+// frontier's ordinary outcome routing. The frontier failure branch predates
+// Observe.RetryExhaustionRoute and only knows FailureRoute; promotion OBSERVE
+// nodes intentionally declare their repair target through the observe field.
+// Once the durable attempt reaches its budget, route through the explicit edge
+// to that target so the handler cannot loop or fail with NO_FAILURE_ROUTE.
+func exhaustedObservationRoute(
+	plan *workflow.CompiledWorkflow,
+	node workflow.CompiledNode,
+	outcome frontier.NodeOutcome,
+	attempt int,
+) frontier.NodeOutcome {
+	if !outcome.Failed || node.Type != workflow.StepObserve || node.Observe == nil || node.Retry == nil ||
+		node.Observe.RetryExhaustionRoute == "" || attempt < int(node.Retry.MaxAttempts) {
+		return outcome
+	}
+	for _, edge := range plan.Edges {
+		if edge.From == node.ID && edge.To == node.Observe.RetryExhaustionRoute {
+			outcome.Failed = false
+			outcome.Outcome = workflow.Outcome(edge.RouteKey)
+			return outcome
+		}
+	}
+	return outcome
 }
 
 type fixedResolver struct{ selection runtime.WorkflowSelection }

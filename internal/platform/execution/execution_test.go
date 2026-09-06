@@ -108,6 +108,25 @@ func TestNewPromotionExecutionDefaults(t *testing.T) {
 	}
 }
 
+func TestTodo_PROMO_EXEC_SERVE_SelectsAndPublishesBothPlans(t *testing.T) {
+	clock := func() time.Time { return time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC) }
+	execution, err := NewPromotionExecution(PromotionExecutionConfig{
+		DB: stubBeginner{}, Terminal: stubTerminal{}, Clock: clock, Plan: PLAN_EXECUTE,
+	})
+	if err != nil {
+		t.Fatalf("NewPromotionExecution(execute): %v", err)
+	}
+	if execution.Plan != PLAN_EXECUTE {
+		t.Fatalf("selected plan = %q, want %q", execution.Plan, PLAN_EXECUTE)
+	}
+	if _, err := execution.Versions.List("hcmnext.workflows.promotion.approval"); err != nil {
+		t.Fatalf("list prototype versions: %v", err)
+	}
+	if _, err := execution.Versions.List("hcmnext.workflows.promotion.execute"); err != nil {
+		t.Fatalf("list execute versions: %v", err)
+	}
+}
+
 // TestPromotionStepRunner proves the two bounded node types the composed
 // promote_worker graph uses: APPROVAL parks on exactly the one approval
 // requirement the prototype plan names, END completes bare, and any other

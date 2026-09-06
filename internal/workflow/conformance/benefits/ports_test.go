@@ -1,0 +1,67 @@
+package benefits
+
+import (
+	"context"
+	"testing"
+
+	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
+)
+
+// TestDigest_IsDeterministic is a smoke check on the small content-identity
+// helper every transform in this package uses.
+func TestDigest_IsDeterministic(t *testing.T) {
+	a := digest("profile", "x", "y")
+	b := digest("profile", "x", "y")
+	if a != b {
+		t.Fatalf("digest is not deterministic: %q vs %q", a, b)
+	}
+	if c := digest("profile", "x", "z"); c == a {
+		t.Fatalf("digest did not change with a changed input")
+	}
+}
+
+// TestReads_ObserveDispatchesByNodeID is a smoke check that the two
+// reconciliation observations are answered independently by node id, not by
+// a single shared outcome.
+func TestReads_ObserveDispatchesByNodeID(t *testing.T) {
+	env := GoldenEnvironment()
+	env.CarrierOutcome = "PASS"
+	env.DeductionOutcome = "FAIL"
+	reads := Reads{Env: env}
+
+	carrier, err := reads.Observe(context.Background(), simulate.ObservationRequest{NodeID: NodeObserveCarrierReconciliation})
+	if err != nil {
+		t.Fatalf("Observe(carrier): %v", err)
+	}
+	if carrier.Outcome != "PASS" {
+		t.Fatalf("carrier outcome = %q, want PASS", carrier.Outcome)
+	}
+
+	deduction, err := reads.Observe(context.Background(), simulate.ObservationRequest{NodeID: NodeObserveDeductionReconciliation})
+	if err != nil {
+		t.Fatalf("Observe(deduction): %v", err)
+	}
+	if deduction.Outcome != "FAIL" {
+		t.Fatalf("deduction outcome = %q, want FAIL", deduction.Outcome)
+	}
+}
+
+// TestApprovals_WouldAwaitOneWorkItemPerRequirement is a smoke check that
+// every declared requirement ref raises exactly one work item.
+func TestApprovals_WouldAwaitOneWorkItemPerRequirement(t *testing.T) {
+	items, err := Approvals{}.WouldAwait(context.Background(), simulate.ApprovalRequest{
+		NodeID:          NodeEndPendingObligations,
+		RequirementRefs: []string{ApprovalBenefitsAdmin, ApprovalHRPartner},
+	})
+	if err != nil {
+		t.Fatalf("WouldAwait: %v", err)
+	}
+	if len(items) != 2 {
+		t.Fatalf("work items = %d, want 2", len(items))
+	}
+	for _, item := range items {
+		if item.State != simulate.WouldAwait {
+			t.Errorf("item %s state = %q, want %q", item.RequirementID, item.State, simulate.WouldAwait)
+		}
+	}
+}

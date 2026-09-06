@@ -67,6 +67,13 @@ type ContinuationRecord struct {
 	Ref          string
 	TerminalCode string
 
+	// TargetAttempt is the activation of TargetNodeID this continuation
+	// belongs to, as [Advance] recorded it: 1 on first entry, higher when the
+	// plan routed back to the node. It is a dispatch-time fact the sink reads
+	// (a WAIT re-entered on attempt 2 needs its own timer promise), not a
+	// stored column; a zero value means the first activation.
+	TargetAttempt int
+
 	RecordedAt time.Time
 }
 

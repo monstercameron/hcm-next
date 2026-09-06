@@ -27,8 +27,10 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
 	"github.com/monstercameron/hcm-next/internal/humanwork"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
@@ -41,8 +43,10 @@ import (
 	"github.com/monstercameron/hcm-next/internal/workflow/execute"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
+	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
 	"github.com/monstercameron/hcm-next/internal/workflow/prototype"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/hcm-next/internal/workflow/timer"
 	"github.com/monstercameron/hcm-next/internal/workflow/version"
 )
 
@@ -68,6 +72,9 @@ const defaultRequiredRole = "promotion_operator"
 // Terminal are required; every other field defaults to a bounded, named
 // value.
 type PromotionExecutionConfig struct {
+	// Plan selects the executable promotion graph. The zero value is the
+	// shipped prototype, preserving the pre-execute deployment behavior.
+	Plan PromotionPlan
 	// DB opens the transactions Start and each Advance run inside.
 	DB execute.Beginner
 	// Terminal performs the one governed business write the workflow's END
@@ -102,6 +109,24 @@ type PromotionExecutionConfig struct {
 	// advancement and per terminal write, when Telemetry is non-nil. Nil
 	// means a logging.Handler over os.Stderr.
 	Logger *slog.Logger
+	// Evidence is the sink OBS-024's three driver-recorded kinds
+	// (APPROVAL_COMPLETED, TASK_SUBMITTED, TERMINAL_WRITTEN) land on. A
+	// composition root passes the same sink it hands app.CellConfig.Evidence,
+	// so the cell's evidence chronology - the gateway's capability decisions,
+	// ExecuteIntent's gate decisions and the driver's own execution evidence
+	// - is one list read back from one place, and the journey's Inspect can
+	// show all of it. Nil means a private sink, exposed only as
+	// [PromotionExecution.Evidence].
+	Evidence *app.MemoryEvidenceSink
+	// TimerDataset is the tzdb and calendar release a WAIT node's wake
+	// requirement is resolved against (WF-RUN-004). When both versions are
+	// set the driver is composed with this package's [TimerFactory] and
+	// internal/workflow/timer's Reader, so a WAIT node parks on a durable
+	// workflow_timer promise and resumes from it; the zero value composes no
+	// timer ports, which leaves a WAIT node refused as an unsupported
+	// continuation exactly as before. It is supplied, never read from the
+	// environment: a dataset revision is a deployment decision.
+	TimerDataset values.DatasetVersions
 }
 
 // PromotionExecution is the composed EXECUTE-mode wiring for
@@ -118,9 +143,22 @@ type PromotionExecution struct {
 	// the same in-memory [app.MemoryEvidenceSink] CAP-002's gateway uses,
 	// so a test reads TERMINAL_WRITTEN etc. back exactly the way it already
 	// reads a Cell's own capability evidence
-	// (app.Cell.Evidence.Records()/.Len()).
+	// (app.Cell.Evidence.Records()/.Len()). It is the sink
+	// [PromotionExecutionConfig.Evidence] supplied, or the private one this
+	// composition created when none was.
 	Evidence *app.MemoryEvidenceSink
+	Plan     PromotionPlan
 }
+
+// PromotionPlan selects which published promotion workflow the execution
+// authority resolves. It is intentionally a small closed vocabulary: the
+// resolver and the step/work-item ports must always agree on the same graph.
+type PromotionPlan string
+
+const (
+	PLAN_PROTOTYPE PromotionPlan = "prototype"
+	PLAN_EXECUTE   PromotionPlan = "execute"
+)
 
 // NewPromotionExecution composes the caller-driven driver
 // (internal/workflow/execute.Driver) for internal/workflow/prototype's
@@ -162,14 +200,25 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 	if role == "" {
 		role = defaultRequiredRole
 	}
+	selected := cfg.Plan
+	if selected == "" {
+		selected = PLAN_PROTOTYPE
+	}
+	if selected != PLAN_PROTOTYPE && selected != PLAN_EXECUTE {
+		return nil, fmt.Errorf("platform execution: unknown promotion plan %q", selected)
+	}
 
-	plan, err := prototype.CompileApproval()
+	prototypePlan, err := prototype.CompileApproval()
 	if err != nil {
 		return nil, fmt.Errorf("platform execution: compile the promotion approval workflow: %w", err)
 	}
+	executePlan, err := promotionexec.Compile()
+	if err != nil {
+		return nil, fmt.Errorf("platform execution: compile the promotion execute workflow: %w", err)
+	}
 	versions := version.NewRegistry()
 	at := clock()
-	published, err := version.Publish(versions, prototype.ApprovalDefinition(), plan,
+	published, err := version.Publish(versions, prototype.ApprovalDefinition(), prototypePlan,
 		workflow.Options{Phase: workflow.PhaseP1B}, version.PublishMeta{
 			SemanticVersion: "1.0.0", PublishedAt: at, PublishedBy: "cmd/hcmnext:execution-authority",
 		})
@@ -183,11 +232,33 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 	}); err != nil {
 		return nil, fmt.Errorf("platform execution: activate the promotion approval workflow: %w", err)
 	}
+	publishDefinition := promotionPublishDefinition()
+	executePublished, err := version.Publish(versions, publishDefinition, executePlan,
+		promotionPublishOptions(), version.PublishMeta{
+			SemanticVersion: "1.0.0", PublishedAt: at, PublishedBy: "cmd/hcmnext:execution-authority",
+		})
+	if err != nil {
+		return nil, fmt.Errorf("platform execution: publish the promotion execute workflow: %w", err)
+	}
+	if _, err := version.Activate(versions, executePublished.CompiledPlanDigest, version.ActivationEvidence{
+		Authorized: true, ApprovedBy: "cmd/hcmnext:execution-authority", Authority: "authority:execution-authority-flag", ApprovedAt: at,
+		ReviewedPlanDigest: executePublished.CompiledPlanDigest, TestsPassed: true,
+	}); err != nil {
+		return nil, fmt.Errorf("platform execution: activate the promotion execute workflow: %w", err)
+	}
+
+	selectedPlan := prototypePlan
+	selectedWorkflowID := prototypePlan.WorkflowID
+	if selected == PLAN_EXECUTE {
+		selectedPlan = executePlan
+		selectedWorkflowID = executePlan.WorkflowID
+	}
+	effectiveDates := &sync.Map{}
 
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
-		WorkflowID: plan.WorkflowID,
-		Pin:        version.Pin{CompiledPlanDigest: plan.Digest()},
-		Plan:       plan,
+		WorkflowID: selectedWorkflowID,
+		Pin:        version.Pin{CompiledPlanDigest: selectedPlan.Digest()},
+		Plan:       selectedPlan,
 	}}}
 
 	// OBS-023: no spans/logs at all unless a composition root supplies a
@@ -205,14 +276,18 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 	// OBS-024: this driver's own three evidence kinds
 	// (APPROVAL_COMPLETED/TASK_SUBMITTED/TERMINAL_WRITTEN) are recorded
 	// through the same capability evidence sink mechanism CAP-002's gateway
-	// already uses, on a sink dedicated to this execution wiring.
-	evidenceSink := app.NewMemoryEvidenceSink()
+	// already uses - on the cell's own sink when the composition root passed
+	// one, otherwise on a sink dedicated to this execution wiring.
+	evidenceSink := cfg.Evidence
+	if evidenceSink == nil {
+		evidenceSink = app.NewMemoryEvidenceSink()
+	}
 	evidence := capabilityEvidenceAdapter{sink: evidenceSink, now: clock}
 
-	driver, err := execute.New(execute.Options{
+	options := execute.Options{
 		DB:        cfg.DB,
-		Steps:     promotionStepRunner{},
-		WorkItems: promotionWorkItems{approver: approver},
+		Steps:     promotionStepRunner{plan: selected, effectiveDates: effectiveDates},
+		WorkItems: promotionWorkItems{approver: approver, plan: selected},
 		Terminal:  cfg.Terminal,
 		Guard:     guard,
 		Retention: retention,
@@ -227,7 +302,16 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 		Items:           workitem.Store{},
 		Instrumentation: instrumentation,
 		Evidence:        evidence,
-	})
+	}
+	if cfg.TimerDataset != (values.DatasetVersions{}) {
+		factory, factoryErr := NewTimerFactory(TimerFactoryConfig{Scheduler: timer.Scheduler{}, Dataset: cfg.TimerDataset, EffectiveDates: effectiveDates})
+		if factoryErr != nil {
+			return nil, factoryErr
+		}
+		options.Timers = factory
+		options.TimerReader = timer.Reader{}
+	}
+	driver, err := execute.New(options)
 	if err != nil {
 		return nil, fmt.Errorf("platform execution: build the promotion execution driver: %w", err)
 	}
@@ -242,18 +326,119 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 			RequiredRole:        role,
 		},
 		Evidence: evidenceSink,
+		Plan:     selected,
 	}, nil
+}
+
+// promotionPublishDefinition is the publication form of the landed execute
+// definition. promotionexec.Compile applies these two compiler projections
+// internally; version.Publish recompiles from a definition, so the
+// composition root supplies the same immutable projection and capability
+// manifests at the publication boundary.
+func promotionPublishDefinition() workflow.Definition {
+	def := promotionexec.Definition()
+	def.DeclaredModes = []workflow.ExecutionMode{workflow.ModeExecute}
+	def.Nodes = append([]workflow.Node(nil), def.Nodes...)
+	types := make(map[string]workflow.StepType, len(def.Nodes))
+	for _, node := range def.Nodes {
+		types[node.ID] = node.Type
+	}
+	edges := make([]workflow.Edge, 0, len(def.Edges))
+	seen := map[string]bool{}
+	for _, edge := range def.Edges {
+		route := edge.RouteKey
+		switch types[edge.From] {
+		case workflow.StepWait:
+			if route == "FIRED" {
+				route = "SUCCEEDED"
+			}
+		case workflow.StepTask:
+			switch route {
+			case "REAPPROVED":
+				route = "SUCCEEDED"
+			case "WITHDRAWN":
+				route = "CANCELLED"
+			case "INVALIDATED":
+				continue
+			}
+		case workflow.StepObserve:
+			switch route {
+			case "CONSISTENT":
+				route = "PASS"
+			case "DEGRADED":
+				route = "PARTIAL"
+			}
+		}
+		edge.RouteKey = route
+		key := edge.From + "\x00" + edge.To + "\x00" + edge.RouteKey
+		if !seen[key] {
+			seen[key] = true
+			edges = append(edges, edge)
+		}
+	}
+	def.Edges = edges
+	return def
+}
+
+type promotionCapabilities map[capability.Key]capability.Record
+
+func (r promotionCapabilities) Lookup(key capability.Key) (capability.Record, bool) {
+	record, ok := r[key]
+	return record, ok
+}
+
+func promotionPublishOptions() workflow.Options {
+	readOnly := func(id, owner, scope string) capability.Record {
+		return capability.Record{Definition: capability.Definition{
+			ID: id, Version: 1, OwnerDomain: owner,
+			RequestSchema:  capability.SchemaRef{SchemaID: id + ".request/v1", Version: 1, ProtobufFullName: "hcmnext.capabilities.v1.CapabilityDefinition"},
+			ResponseSchema: capability.SchemaRef{SchemaID: id + ".response/v1", Version: 1, ProtobufFullName: "hcmnext.capabilities.v1.CapabilityDefinition"},
+			ErrorSchema:    capability.SchemaRef{SchemaID: id + ".error/v1", Version: 1, ProtobufFullName: "hcmnext.capabilities.v1.CapabilityDefinition"},
+			EffectClass:    capability.EffectReadOnly, IdempotencyPolicyRef: "idempotency.promotion." + owner + ".v1", AuthZScopeRef: scope,
+			LegalBasisRef: "legal.promotion.execution/v1", EntitlementRef: "entitlement.promotion.execution/v1", SLOClassRef: "slo.promotion.execution/v1", TestRef: "conformance:" + id + "/v1",
+		}, Status: capability.StatusActive, Digest: "sha256:promotionexec-" + owner}
+	}
+	mutating := readOnly("hcmnext.people.promote_worker", "people", "scope:people.write")
+	mutating.Definition.EffectClass = capability.EffectInternalMutation
+	return workflow.Options{Phase: workflow.PhaseP1B, Capabilities: promotionCapabilities{
+		{ID: "hcmnext.people.explain_worker_state", Version: 1}:        readOnly("hcmnext.people.explain_worker_state", "people", "scope:people.read"),
+		{ID: "hcmnext.rewards.simulate_compensation", Version: 1}:      readOnly("hcmnext.rewards.simulate_compensation", "rewards", "scope:rewards.read"),
+		{ID: "hcmnext.rewards.evaluate_pay_band_position", Version: 1}: readOnly("hcmnext.rewards.evaluate_pay_band_position", "rewards", "scope:rewards.read"),
+		{ID: "internal/governance/revalidate", Version: 1}:             readOnly("internal/governance/revalidate", "governance", "scope:governance.read"),
+		{ID: "hcmnext.people.promote_worker", Version: 1}:              mutating,
+		{ID: "hcmnext.payroll.observe_promotion", Version: 1}:          readOnly("hcmnext.payroll.observe_promotion", "payroll", "scope:observation.read"),
+		{ID: "hcmnext.access.observe_promotion", Version: 1}:           readOnly("hcmnext.access.observe_promotion", "access", "scope:observation.read"),
+		{ID: "hcmnext.reconciliation.observe_promotion", Version: 1}:   readOnly("hcmnext.reconciliation.observe_promotion", "reconciliation", "scope:observation.read"),
+	}}
 }
 
 // promotionStepRunner runs internal/workflow/prototype's two node types: it
 // parks on APPROVAL and returns a bare outcome on END. It invokes no
 // capability and performs no business mutation itself — the driver's own
 // continuation sink is what runs the composed TerminalWriter at END.
-type promotionStepRunner struct{}
+type promotionStepRunner struct {
+	plan           PromotionPlan
+	effectiveDates *sync.Map
+}
 
 var _ execute.StepRunner = promotionStepRunner{}
 
-func (promotionStepRunner) Run(_ context.Context, req execute.StepRequest) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+func (r promotionStepRunner) Run(_ context.Context, req execute.StepRequest) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+	if r.plan == "" {
+		r.plan = PLAN_PROTOTYPE
+	}
+	if r.plan == PLAN_PROTOTYPE {
+		return runPrototypeStep(req)
+	}
+	if r.effectiveDates != nil {
+		if date, ok := req.Proposal.Revision.EffectiveTime.StartDate(); ok {
+			r.effectiveDates.Store(req.InstanceID.String(), date)
+		}
+	}
+	return runExecuteStep(req)
+}
+
+func runPrototypeStep(req execute.StepRequest) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
 	switch req.Node.Type {
 	case workflow.StepApproval:
 		return frontier.NodeOutcome{
@@ -268,22 +453,101 @@ func (promotionStepRunner) Run(_ context.Context, req execute.StepRequest) (fron
 	}
 }
 
+func runExecuteStep(req execute.StepRequest) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+	outputDigest := req.Proposal.Revision.MaterialDigest.Digest
+	if outputDigest == "" {
+		outputDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	}
+	success := func(route string) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+		return frontier.NodeOutcome{NodeID: req.Node.ID, Outcome: workflow.Outcome(route), OutputDigest: outputDigest}, runtime.GovernanceRefs{}, nil
+	}
+	switch req.Node.Type {
+	case workflow.StepCapability:
+		return success("SUCCEEDED")
+	case workflow.StepDecision:
+		route := "VALID"
+		if req.Node.ID == promotionexec.NodeRaiseThreshold {
+			route = "ABOVE_THRESHOLD"
+		}
+		return success(route)
+	case workflow.StepObserve:
+		return success("PASS")
+	case workflow.StepApproval:
+		ref := promotionexec.ApprovalManager
+		if req.Node.ID == promotionexec.NodeApproveFinance {
+			ref = promotionexec.ApprovalFinance
+		}
+		return frontier.NodeOutcome{NodeID: req.Node.ID, Await: frontier.AwaitWorkItem, AwaitRef: ref}, runtime.GovernanceRefs{}, nil
+	case workflow.StepTask:
+		return frontier.NodeOutcome{NodeID: req.Node.ID, Await: frontier.AwaitWorkItem, AwaitRef: "task.promotion.reapproval/v1"}, runtime.GovernanceRefs{}, nil
+	case workflow.StepWait:
+		return frontier.NodeOutcome{NodeID: req.Node.ID, Await: frontier.AwaitTimer, AwaitRef: req.Node.ID}, runtime.GovernanceRefs{}, nil
+	case workflow.StepEnd:
+		return frontier.NodeOutcome{NodeID: req.Node.ID}, runtime.GovernanceRefs{}, nil
+	default:
+		return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, fmt.Errorf("platform execution: promotion execute has no step for %s", req.Node.Type)
+	}
+}
+
+// approvalDecisionWindow is how long after the WorkItem is raised the routed
+// approver has to decide. It is the WorkItem's DeadlineAt and, through
+// prototype.CompileApprovalRequirement, the compiled requirement's DecideBy
+// and Expiry, so the deadline the item shows and the deadline Resolve
+// enforces are one value.
+const approvalDecisionWindow = 48 * time.Hour
+
 // promotionWorkItems creates and routes the one approval WorkItem the bounded
 // promotion graph raises, to a single fixed approver principal.
-type promotionWorkItems struct{ approver string }
+type promotionWorkItems struct {
+	approver string
+	plan     PromotionPlan
+}
 
 var _ execute.WorkItemFactory = promotionWorkItems{}
 
+// CreateAndRoute implements execute.WorkItemFactory.
+//
+// The assignment it records carries the real compiled requirement's digests
+// (prototype.CompileApprovalRequirement over this factory's approver and the
+// item's own deadline), not placeholders: internal/workflow/steps/approval's
+// Resolve re-checks a completed item against exactly those digests before it
+// will produce the typed outcome the driver resumes from, and a caller that
+// rebuilds the requirement from the stored row (its DeadlineAt, its routed
+// approver) has to arrive at the same digest this routing recorded.
 func (f promotionWorkItems) CreateAndRoute(ctx context.Context, ex workitem.Executor, req execute.WorkItemRequest) (workitem.WorkItem, error) {
+	plan := f.plan
+	if plan == "" {
+		plan = PLAN_PROTOTYPE
+	}
+	if plan == PLAN_EXECUTE && req.Continuation.TargetNodeID == promotionexec.NodeReapproval {
+		return f.createExecuteTask(ctx, ex, req)
+	}
+	var requirement humanwork.ApprovalRequirement
+	var err error
+	deadline := req.CreatedAt.Add(approvalDecisionWindow)
+	if plan == PLAN_EXECUTE {
+		if req.Continuation.TargetNodeID == promotionexec.NodeApproveFinance {
+			requirement, err = promotionexec.CompileFinanceApprovalRequirement(f.approver, deadline)
+		} else {
+			requirement, err = promotionexec.CompileManagerApprovalRequirement(f.approver, deadline)
+		}
+	} else {
+		requirement, err = prototype.CompileApprovalRequirement(f.approver, deadline)
+	}
+	if err != nil {
+		return workitem.WorkItem{}, fmt.Errorf("platform execution: compile the approval requirement: %w", err)
+	}
 	item, err := workitem.NewApprovalTask(workitem.NewWorkItemInput{
 		TenantID: req.Continuation.TenantID, WorkItemID: req.WorkItemID,
-		WorkType: prototype.ApprovalRequirementID, CorrelationID: req.CorrelationID,
+		WorkType: requirement.RequirementID, CorrelationID: req.CorrelationID,
 		WorkflowInstanceID: req.Continuation.InstanceID, NodeID: req.Continuation.TargetNodeID,
 		ProposalRef: req.Proposal.Revision.MaterialDigest.Digest, SubjectRefs: req.SubjectRefs,
 		PolicyRouteRef: "route.promotion.execution-authority/v1", Visibility: workitem.VisibilityAssigneeOnly,
 		OrganizationScopeID: req.Proposal.Revision.OrganizationScopeID,
-		DeadlineAt:          req.CreatedAt.Add(48 * time.Hour), CreatedAt: req.CreatedAt,
-	}, prototype.ApprovalRequirementID)
+		// The stored deadline is the compiled requirement's own, already
+		// truncated to the second it will be read back at.
+		DeadlineAt: requirement.Deadline.Expiry.Time(), CreatedAt: req.CreatedAt,
+	}, requirement.RequirementID)
 	if err != nil {
 		return workitem.WorkItem{}, err
 	}
@@ -296,25 +560,53 @@ func (f promotionWorkItems) CreateAndRoute(ctx context.Context, ex workitem.Exec
 		return workitem.WorkItem{}, err
 	}
 	resolution := humanwork.Resolution{
-		RequirementID: prototype.ApprovalRequirementID, RequirementRevision: 1,
+		RequirementID: requirement.RequirementID, RequirementRevision: requirement.Revision,
 		Outcome: humanwork.OutcomeResolved,
 		Candidates: []humanwork.Candidate{
 			{PrincipalID: f.approver, Via: humanwork.SourceDirect, TermRef: "term:execution-authority-approver"},
 		},
 		ResolvedAt: values.NewInstant(req.CreatedAt), EffectiveAt: values.NewInstant(req.CreatedAt),
 		DirectoryVersion:  "directory.execution-authority/1",
-		ExpressionDigest:  "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		RequirementDigest: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-		QuorumRequired:    1,
+		ExpressionDigest:  requirement.ExpressionDigest,
+		RequirementDigest: requirement.Digest(),
+		QuorumRequired:    requirement.Quorum.MinApprovals,
 	}
 	assignment := workitem.Assignment{
-		Resolution: resolution, GovernancePolicyRef: "governance.execution-authority/1",
+		Resolution: resolution, GovernancePolicyRef: requirement.Source.GovernancePolicyRef,
 		Trigger: workitem.TriggerInitialRouting, ChosenOwner: f.approver,
 	}
 	return store.Route(ctx, ex, created.TenantID, created.WorkItemID, created.ItemVersion, assignment,
 		workitem.TransitionMeta{
 			ActorPrincipalID: "system:promotion-execution", Reason: "execution_authority.work_item.routed", At: req.CreatedAt,
 		})
+}
+
+func (f promotionWorkItems) createExecuteTask(ctx context.Context, ex workitem.Executor, req execute.WorkItemRequest) (workitem.WorkItem, error) {
+	item, err := workitem.NewWorkItem(workitem.NewWorkItemInput{
+		TenantID: req.Continuation.TenantID, WorkItemID: req.WorkItemID,
+		Kind: workitem.KindTask, WorkType: "task.promotion.reapproval/v1", CorrelationID: req.CorrelationID,
+		WorkflowInstanceID: req.Continuation.InstanceID, NodeID: req.Continuation.TargetNodeID,
+		ProposalRef: req.Proposal.Revision.MaterialDigest.Digest, SubjectRefs: req.SubjectRefs,
+		PolicyRouteRef: "route.promotion.hr_business_partner/v1", Visibility: workitem.VisibilityAssigneeOnly,
+		OrganizationScopeID: req.Proposal.Revision.OrganizationScopeID,
+		DeadlineAt:          req.CreatedAt.Add(approvalDecisionWindow), CreatedAt: req.CreatedAt,
+	})
+	if err != nil {
+		return workitem.WorkItem{}, err
+	}
+	store := workitem.Store{}
+	meta := workitem.TransitionMeta{ActorPrincipalID: "system:promotion-execution", Reason: "execution_authority.work_item.created", At: req.CreatedAt}
+	created, err := store.Create(ctx, ex, item, meta)
+	if err != nil {
+		return workitem.WorkItem{}, err
+	}
+	resolution := humanwork.Resolution{
+		RequirementID: "task.promotion.reapproval/v1", RequirementRevision: 1, Outcome: humanwork.OutcomeResolved,
+		Candidates: []humanwork.Candidate{{PrincipalID: f.approver, Via: humanwork.SourceDirect, TermRef: "term:execution-authority-approver"}},
+		ResolvedAt: values.NewInstant(req.CreatedAt), EffectiveAt: values.NewInstant(req.CreatedAt), DirectoryVersion: "directory.execution-authority/1",
+		ExpressionDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000", RequirementDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000", QuorumRequired: 1,
+	}
+	return store.Route(ctx, ex, created.TenantID, created.WorkItemID, created.ItemVersion, workitem.Assignment{Resolution: resolution, GovernancePolicyRef: "policy.promotion.reapproval/v1", Trigger: workitem.TriggerInitialRouting, ChosenOwner: f.approver}, meta)
 }
 
 // executeDriverAdapter adapts *execute.Driver to app.ProposalExecutor. It is

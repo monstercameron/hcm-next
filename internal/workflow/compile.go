@@ -266,6 +266,12 @@ type CompiledWorkflow struct {
 	Governance   GovernanceSummary `json:"governance"`
 	Terminals    []Terminal        `json:"terminals"`
 
+	// Concurrency is WF-COMP-004's branch/join/atomic-region analysis. It is
+	// nil, and absent from the canonical bytes, for a plan that declares no
+	// PARALLEL node and holds no unobserved external mutation -- see
+	// [ConcurrencySummary] for why that absence is deliberate.
+	Concurrency *ConcurrencySummary `json:"concurrency,omitempty"`
+
 	FailurePolicyRef      string `json:"failure_policy_ref"`
 	CancellationPolicyRef string `json:"cancellation_policy_ref"`
 	MigrationPolicyRef    string `json:"migration_policy_ref"`
@@ -317,6 +323,7 @@ func Compile(def Definition, opts Options) (*CompiledWorkflow, error) {
 	checkSteps(&def, g, records, c)
 	effects := analyzeEffects(&def, g, records, opts, c)
 	governance := analyzeGovernance(&def, g, records, c)
+	concurrency := analyzeConcurrency(&def, g, records, c)
 
 	terminals := map[string]*Terminal{}
 	for i := range def.Nodes {
@@ -333,7 +340,7 @@ func Compile(def Definition, opts Options) (*CompiledWorkflow, error) {
 		return nil, d
 	}
 
-	return normalize(&def, opts, g, records, effects, governance, terminals), nil
+	return normalize(&def, opts, g, records, effects, governance, concurrency, terminals), nil
 }
 
 // normalize builds the immutable plan from the proved definition.
@@ -344,6 +351,7 @@ func normalize(
 	records map[string]capability.Record,
 	effects EffectSummary,
 	governance GovernanceSummary,
+	concurrency *ConcurrencySummary,
 	terminals map[string]*Terminal,
 ) *CompiledWorkflow {
 	plan := &CompiledWorkflow{
@@ -369,10 +377,11 @@ func normalize(
 		CancellationPolicyRef: def.CancellationPolicyRef,
 		MigrationPolicyRef:    def.MigrationPolicyRef,
 		RetentionPolicyRef:    def.RetentionPolicyRef,
+		Concurrency:           concurrency,
 	}
 
 	ids := g.sortedNodeIDs()
-	safePoints := placeSafePoints(def, g, records)
+	safePoints := placeSafePoints(def, g, records, concurrency)
 	for _, id := range ids {
 		n := g.nodes[id]
 		cn := CompiledNode{
@@ -490,7 +499,16 @@ func normalize(
 		if plan.Edges[i].From != plan.Edges[j].From {
 			return plan.Edges[i].From < plan.Edges[j].From
 		}
-		return plan.Edges[i].RouteKey < plan.Edges[j].RouteKey
+		if plan.Edges[i].RouteKey != plan.Edges[j].RouteKey {
+			return plan.Edges[i].RouteKey < plan.Edges[j].RouteKey
+		}
+		// A PARALLEL's fan-out route is the one place two edges legitimately
+		// share a source and a route key (WF-COMP-004). Ordering those by
+		// target as well is what keeps the plan a function of the graph
+		// rather than of the order the author listed the branches in; for
+		// every other step type this tiebreak never fires, because a repeated
+		// route key is CodeDuplicateRoute.
+		return plan.Edges[i].To < plan.Edges[j].To
 	})
 
 	plan.Reachability = ReachabilityProof{
@@ -582,7 +600,21 @@ func evidenceRefsFor(n *Node) []string {
 // placeSafePoints decides where safe points go. The compiler places them, not
 // the author: a safe point sits before every node that can produce an
 // irreversible or external effect, and on every terminal.
-func placeSafePoints(def *Definition, g *graph, records map[string]capability.Record) map[string]bool {
+//
+// An author's [Node.SafePointRequested] is honored only where WF-COMP-004's
+// analysis proved the position is outside every atomic region -- and a
+// request inside one has already been refused as [CodeUnsafeCheckpoint], so
+// no plan reaches this function carrying an unsafe request. The request is
+// therefore an input to a compiled decision, never the decision itself.
+func placeSafePoints(
+	def *Definition, g *graph, records map[string]capability.Record, conc *ConcurrencySummary,
+) map[string]bool {
+	ineligible := map[string]bool{}
+	if conc != nil {
+		for _, id := range conc.InterventionIneligibleNodes {
+			ineligible[id] = true
+		}
+	}
 	out := map[string]bool{}
 	for i := range def.Nodes {
 		n := &def.Nodes[i]
@@ -594,6 +626,9 @@ func placeSafePoints(def *Definition, g *graph, records map[string]capability.Re
 			out[n.ID] = true
 		}
 		if n.Type == StepEnd {
+			out[n.ID] = true
+		}
+		if n.SafePointRequested && !ineligible[n.ID] {
 			out[n.ID] = true
 		}
 	}

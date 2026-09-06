@@ -97,6 +97,28 @@ type TerminalWriter interface {
 	Write(ctx context.Context, tx dbport.Tx, req TerminalWriteRequest) (idempotency.ResultIdentity, error)
 }
 
+// RepairRequest is the durable follow-up requested when a terminal reports a
+// committed business fact whose downstream consistency is degraded.
+type RepairRequest struct {
+	TenantID     uuid.UUID
+	InstanceID   uuid.UUID
+	WorkflowID   string
+	PlanDigest   string
+	Proposal     runtime.ProposalBinding
+	EffectRef    string
+	PolicyRef    string
+	IntendedRef  string
+	RepairPolicy string
+	RequestedAt  time.Time
+}
+
+// RepairRequester records the reconciliation promise in the same transaction
+// as the terminal write. A nil requester preserves the historical behavior for
+// terminals that do not require repair.
+type RepairRequester interface {
+	Request(ctx context.Context, tx dbport.Tx, req RepairRequest) error
+}
+
 // WorkItemReader loads the durable WorkItem a [Driver.Resume] advances from,
 // inside the same transaction as the advancement it feeds -- WF-RUN-028's
 // replacement for a [ResumeRequest] that carried a caller-assembled

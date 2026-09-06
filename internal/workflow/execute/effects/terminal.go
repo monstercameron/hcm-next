@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -99,6 +100,18 @@ func deriveEffectiveDate(rev intent.ProposalRevision) string {
 		return ""
 	}
 	return start.String()
+}
+
+// deriveEffectiveAt keeps the ledger's bitemporal coordinate aligned with
+// the promotion the user reviewed. RecordedAt answers when the fact entered
+// the ledger; EffectiveAt answers when the promoted assignment begins. They
+// are only the same when a proposal genuinely has no effective interval.
+func deriveEffectiveAt(rev intent.ProposalRevision, recordedAt time.Time) time.Time {
+	start, ok := rev.EffectiveTime.StartInstant()
+	if !ok {
+		return recordedAt.UTC()
+	}
+	return start.Time()
 }
 
 // decisionRefsForInstance reads every work_item_decision row WORK-010
@@ -255,7 +268,7 @@ func (w *LedgerTerminalWriter) Write(ctx context.Context, tx dbport.Tx, req exec
 			SchemaRef:      PromotionOutcomeSchema,
 			Payload:        payload,
 			OccurredAt:     req.RecordedAt,
-			EffectiveAt:    req.RecordedAt,
+			EffectiveAt:    deriveEffectiveAt(req.Proposal.Revision, req.RecordedAt),
 			CorrelationID:  CorrelationUUID(req.CorrelationID),
 			IdempotencyKey: req.IdempotencyKey,
 		},

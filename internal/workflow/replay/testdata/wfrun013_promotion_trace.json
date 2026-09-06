@@ -1,0 +1,101 @@
+{
+  "tenant_id": "11111111-1111-4111-8111-111111111111",
+  "instance_id": "22222222-2222-4222-8222-222222222222",
+  "workflow_id": "hcmnext.workflows.promote_into_management",
+  "version": 1,
+  "plan_digest": "c91fa02a8bf96da0842e43169d8d3f723ad148c7c8e0403f31c91ce477132344",
+  "historical_intent_id": "intent:promotion:jane-doe:1",
+  "entries": [
+    {
+      "sequence": 1,
+      "node_id": "snapshot_worker",
+      "attempt": 1,
+      "step_type": "CAPABILITY",
+      "source": "RECORDED_OUTPUT",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:0000000000000000000000000000000000000000000000000snapshot_worker",
+      "completed_state": "SUCCEEDED",
+      "frontier": [
+        "simulate_compensation"
+      ],
+      "transition_digest": "c3c83410b033f33ed436ed28102ab3dbbc9ce7cddd0404f405a05fb7a0f91ef6",
+      "observed_at": "2026-09-03T15:00:00Z"
+    },
+    {
+      "sequence": 2,
+      "node_id": "simulate_compensation",
+      "attempt": 1,
+      "step_type": "CAPABILITY",
+      "source": "RECORDED_OUTPUT",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:0000000000000000000000000000000000000000000simulate_compensation",
+      "completed_state": "SUCCEEDED",
+      "frontier": [
+        "evaluate_band"
+      ],
+      "transition_digest": "559ef94d0e5e16cd18c9f6916c8629bddf91aa3d6fa1dd64a32b2d3ceecf24af",
+      "observed_at": "2026-09-03T15:01:00Z"
+    },
+    {
+      "sequence": 3,
+      "node_id": "evaluate_band",
+      "attempt": 1,
+      "step_type": "CAPABILITY",
+      "source": "RECORDED_OUTPUT",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:000000000000000000000000000000000000000000000000000evaluate_band",
+      "completed_state": "SUCCEEDED",
+      "frontier": [
+        "build_proposal"
+      ],
+      "transition_digest": "c64b338897981f41b3c980fc0735af17133eb9a6f8ee4c99e6263253d83aedd3",
+      "observed_at": "2026-09-03T15:02:00Z"
+    },
+    {
+      "sequence": 4,
+      "node_id": "build_proposal",
+      "attempt": 1,
+      "step_type": "TRANSFORM",
+      "source": "RECORDED_OUTPUT",
+      "route_key": "SUCCEEDED",
+      "output_digest": "sha256:00000000000000000000000000000000000000000000000000build_proposal",
+      "completed_state": "SUCCEEDED",
+      "frontier": [
+        "raise_threshold"
+      ],
+      "transition_digest": "fdb881ab2cf29b379c8632c0a4e7bbbe56291a3eb716bdfb6bba93897dc4b092",
+      "observed_at": "2026-09-03T15:03:00Z"
+    },
+    {
+      "sequence": 5,
+      "node_id": "raise_threshold",
+      "attempt": 1,
+      "step_type": "DECISION",
+      "source": "RECORDED_OUTPUT",
+      "route_key": "EXCEEDS_THRESHOLD",
+      "output_digest": "sha256:0000000000000000000000000000000000000000000000000raise_threshold",
+      "completed_state": "SUCCEEDED",
+      "frontier": [
+        "end_requires_finance_approval"
+      ],
+      "transition_digest": "ada8371b39d746888d8003a1e854cc84cf81ca2ffbda3677d73869fdb7262cf4",
+      "observed_at": "2026-09-03T15:04:00Z"
+    },
+    {
+      "sequence": 6,
+      "node_id": "end_requires_finance_approval",
+      "attempt": 1,
+      "step_type": "END",
+      "source": "RECORDED_OUTPUT",
+      "output_digest": "sha256:00000000000000000000000000000000000end_requires_finance_approval",
+      "completed_state": "SUCCEEDED",
+      "frontier": null,
+      "transition_digest": "84163aac0175fc0f9052a64f3754c174d59cbae9adf6abc95993f79c3d7fd061",
+      "observed_at": "2026-09-03T15:05:00Z"
+    }
+  ],
+  "status": "COMPLETE",
+  "terminal_code": "SIMULATION_APPROVAL_REQUIRED",
+  "frontier": [],
+  "digest": "c2bd9785b1c4e267550aa1a48b7552f4cc89624e4abb5e52be497b89feffe0d8"
+}

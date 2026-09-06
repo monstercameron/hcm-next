@@ -73,6 +73,19 @@ const (
 	// under the zero-effect P1A requirement.
 	CodeWriteEffectRefusedP1A = "WRITE_EFFECT_REFUSED_P1A"
 
+	// CodeConflictingWriteSet reports two concurrent branches of one PARALLEL
+	// whose declared write sets intersect, by logical effect key or by data
+	// domain (WF-COMP-004 RED).
+	CodeConflictingWriteSet = "CONFLICTING_WRITE_SET"
+	// CodeUnaccountedBranchEffect reports a concurrent branch that declares a
+	// write and reaches no JOIN, so no join contract reconciles that effect
+	// with its siblings (WF-COMP-004 RED).
+	CodeUnaccountedBranchEffect = "UNACCOUNTED_BRANCH_EFFECT"
+	// CodeUnsafeCheckpoint reports an author-requested safe point strictly
+	// inside an atomic region, where an intervention would abandon an effect
+	// no OBSERVE has confirmed (WF-COMP-004 RED).
+	CodeUnsafeCheckpoint = "UNSAFE_CHECKPOINT"
+
 	// CodeMissingGovernanceEvaluation reports a node invoking a capability
 	// without the AuthZ, legal, purpose and risk evaluations (WF-COMP-005).
 	CodeMissingGovernanceEvaluation = "MISSING_GOVERNANCE_EVALUATION"

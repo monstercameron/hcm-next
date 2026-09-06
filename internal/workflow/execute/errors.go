@@ -21,6 +21,17 @@ var (
 	// against the row [WorkItemReader] loads inside the advancement
 	// transaction, never against a struct the caller assembled.
 	ErrWorkItemDrift = errors.New("workflow execute: work item drift")
+	// ErrTimerDrift reports a resumed WAIT node whose reloaded, durable timer
+	// row is not settled, is bound to another instance, or names a node that
+	// is not a WAIT in the pinned plan (WF-RUN-004). It is [ErrWorkItemDrift]'s
+	// counterpart for durable timers, and it exists for the same reason: an
+	// advancement rests on committed evidence, never on a struct the caller
+	// assembled.
+	ErrTimerDrift = errors.New("workflow execute: timer drift")
+	// ErrFenceRefused reports an advancement whose lease fence the configured
+	// verifier rejected (WF-RUN-002). The verifier's own typed refusal is
+	// wrapped, so LEASE_LOST and FENCE_STALE remain readable off it.
+	ErrFenceRefused = errors.New("workflow execute: lease fence refused")
 	// ErrCurrencyBlocked reports that [CurrencyGuard] found a material change
 	// to the pinned proposal, its approval or its control snapshots while an
 	// instance was parked, and moved it to BLOCKED instead of advancing
@@ -38,4 +49,8 @@ func unsupported(kind, nodeID string) error {
 
 func drift(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrWorkItemDrift, fmt.Sprintf(format, args...))
+}
+
+func timerDrift(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrTimerDrift, fmt.Sprintf(format, args...))
 }

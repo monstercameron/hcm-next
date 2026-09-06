@@ -6,10 +6,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
+	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
@@ -18,9 +20,17 @@ type continuationSink struct {
 
 	durable  runtime.ContinuationSink
 	factory  WorkItemFactory
+	timers   TimerFactory
 	terminal TerminalWriter
+	repair   RepairRequester
 	guard    idempotency.Store
 	policy   idempotency.RetentionPolicy
+
+	// plan is the exact compiled plan the advancement is pinned to. A
+	// TIMER_REQUIRED continuation names a node, and the wake condition lives
+	// on that node, so the sink needs the plan to hand the compiled WAIT node
+	// to its TimerFactory rather than making the adapter re-resolve it.
+	plan *workflow.CompiledWorkflow
 
 	workflowID    string
 	planDigest    string
@@ -47,6 +57,9 @@ type continuationSink struct {
 	evidence        ExecutionEvidence
 
 	created []workitem.WorkItem
+	// timersCreated collects every durable timer this advancement's
+	// TIMER_REQUIRED continuations produced, in dispatch order.
+	timersCreated []TimerHandle
 	// evidenceIDs collects every OBS-024 evidence id this sink recorded
 	// (TERMINAL_WRITTEN today), in recording order.
 	evidenceIDs []string
@@ -86,7 +99,30 @@ func (s *continuationSink) RequireTimer(ctx context.Context, ex runtime.Executor
 	if err := s.durable.RequireTimer(ctx, ex, rec); err != nil {
 		return err
 	}
-	return unsupported("TIMER_REQUIRED", rec.TargetNodeID)
+	// Without a TimerFactory this driver has no durable store for a timer and
+	// must not pretend otherwise -- the pre-WF-RUN-004 behaviour, unchanged.
+	if s.timers == nil {
+		return unsupported("TIMER_REQUIRED", rec.TargetNodeID)
+	}
+	if s.plan == nil {
+		return invalid("TIMER_REQUIRED for node %s but the sink was built without a pinned plan", rec.TargetNodeID)
+	}
+	node, ok := s.plan.Node(rec.TargetNodeID)
+	if !ok {
+		return invalid("TIMER_REQUIRED names node %s, which the pinned plan does not declare", rec.TargetNodeID)
+	}
+	handle, err := s.timers.CreateTimer(ctx, ex, TimerRequest{
+		Continuation: rec, Plan: s.plan, Node: node, CreatedAt: rec.RecordedAt, Proposal: s.proposal,
+	})
+	if err != nil {
+		return err
+	}
+	if handle.NodeID != "" && handle.NodeID != rec.TargetNodeID {
+		return invalid("TimerFactory returned a timer for node %s while scheduling %s", handle.NodeID, rec.TargetNodeID)
+	}
+	handle.NodeID = rec.TargetNodeID
+	s.timersCreated = append(s.timersCreated, handle)
+	return nil
 }
 
 func (s *continuationSink) MarkReady(ctx context.Context, ex runtime.Executor, rec runtime.ContinuationRecord) error {
@@ -131,6 +167,17 @@ func (s *continuationSink) Complete(ctx context.Context, ex runtime.Executor, re
 		return err
 	}
 	termSpan.End(OutcomeSuccess, nil)
+	if s.repair != nil && strings.Contains(rec.TerminalCode, "REPAIR") {
+		if err := s.repair.Request(ctx, s.tx, RepairRequest{
+			TenantID: rec.TenantID, InstanceID: rec.InstanceID, WorkflowID: s.workflowID,
+			PlanDigest: s.planDigest, Proposal: s.proposal,
+			EffectRef: "workflow:" + s.workflowID + ":" + rec.InstanceID.String(),
+			PolicyRef: "repair:" + s.workflowID, IntendedRef: s.proposal.Revision.MaterialDigest.Digest,
+			RepairPolicy: rec.TerminalCode, RequestedAt: rec.RecordedAt,
+		}); err != nil {
+			return fmt.Errorf("workflow execute: request repair: %w", err)
+		}
+	}
 
 	evidence := s.evidence
 	if evidence == nil {

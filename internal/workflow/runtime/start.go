@@ -12,6 +12,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
 	"github.com/monstercameron/hcm-next/internal/workflow/version"
@@ -100,11 +101,22 @@ type ProposalBinding struct {
 	// Approved, ApprovalRef and Superseded are read only when a
 	// [StartRequest] supplies no [StartRequest.ProposalFacts] or
 	// [StartRequest.ApprovalFacts] port at all, as a fallback for a caller
-	// that has not yet migrated to one -- internal/intent/app.ExecuteIntent
-	// is the one such caller today, and internal/intent is out of this
-	// ticket's scope to change. A caller that supplies either port is
+	// that has not yet migrated to one. A caller that supplies either port is
 	// resolved from stored facts exclusively; these three fields are never
-	// consulted and may be left at their zero value.
+	// consulted and may be left at their zero value
+	// (TestTodo_WF_RUN_027_FactsOutrankCallerFlags pins both directions).
+	//
+	// internal/intent/app.ExecuteIntent no longer uses this fallback: a cell
+	// composed with an execution database supplies both ports, backed by
+	// migration 00024's intent_decision and intent_relationship
+	// (internal/intent/app.DurableProposalFacts). What still depends on it is
+	// test fixtures and fakes outside that path -- internal/workflow/execute,
+	// internal/workflow/migrate, internal/workflow/replay and test/workflow
+	// each construct a ProposalBinding carrying Approved/ApprovalRef and no
+	// ports at all. Deleting these three fields therefore means migrating
+	// those four packages in the same change; that is the residual half of
+	// WF-RUN-027, and TestTodo_WF_RUN_027_LegacyFallbackSurface pins exactly
+	// what would have to move.
 	//
 	// Deprecated: migrate to StartRequest.ProposalFacts and
 	// StartRequest.ApprovalFacts, then delete these three fields and
@@ -171,6 +183,12 @@ type StartRequest struct {
 	ProposalFacts ProposalFacts
 	ApprovalFacts ApprovalFacts
 
+	// ConflictFacts and ConflictCandidate enable an optional pre-write
+	// conflict boundary. When supplied, Start classifies the candidate through
+	// the current conflict authority before resolving or writing the instance.
+	ConflictFacts     ConflictFacts
+	ConflictCandidate *conflict.Candidate
+
 	// ExpectedIntentID, ExpectedTenant and BusinessSubjectRefs are the
 	// caller's own declared context. A non-empty ExpectedIntentID or
 	// ExpectedTenant that disagrees with the bound revision's own material
@@ -221,6 +239,9 @@ func (r StartRequest) validate() error {
 	case (r.ProposalFacts == nil) != (r.ApprovalFacts == nil):
 		return refuse(CodeInvalidRecord, "", "",
 			"start supplies one of ProposalFacts/ApprovalFacts without the other")
+	case (r.ConflictFacts == nil) != (r.ConflictCandidate == nil):
+		return refuse(CodeInvalidRecord, "", "",
+			"start supplies one of ConflictFacts/ConflictCandidate without the other")
 	}
 	return r.Proposal.validate()
 }
@@ -454,6 +475,14 @@ func Start(ctx context.Context, tx Executor, req StartRequest) (StartReceipt, er
 	approvalDecisionIDs, err := resolveProposalFacts(ctx, tx, req)
 	if err != nil {
 		return StartReceipt{}, err
+	}
+	if req.ConflictFacts != nil {
+		if _, err := CheckConflict(ctx, tx, ConflictCheckRequest{
+			TenantID: req.TenantID, SubjectRefs: req.BusinessSubjectRefs,
+			Candidate: *req.ConflictCandidate,
+		}, req.ConflictFacts); err != nil {
+			return StartReceipt{}, err
+		}
 	}
 
 	sel, err := req.Resolver.ResolveWorkflow(ctx, req)

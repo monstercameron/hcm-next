@@ -1,224 +1,293 @@
 package cache
 
 import (
+	"errors"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 )
 
-func TestMain(m *testing.M) { pgtest.RunMain(m) }
+func testKey(t *testing.T, tenant, policy, content, namespace, id string) Key {
+	t.Helper()
+	key, err := NewKey(tenant, policy, content, namespace, id)
+	if err != nil {
+		t.Fatalf("NewKey: %v", err)
+	}
+	return key
+}
+
+func allowString(string) bool { return true }
 
 func TestTodo_CACHE_001(t *testing.T) {
-	tenantA := uuid.MustParse("11111111-1111-1111-1111-111111111111")
-	tenantB := uuid.MustParse("22222222-2222-2222-2222-222222222222")
+	t.Run("construction refuses incomplete identity", func(t *testing.T) {
+		fields := []struct {
+			name string
+			make func() (Key, error)
+		}{
+			{"tenant", func() (Key, error) { return NewKey("", "policy-1", "content-1", "worker", "1") }},
+			{"policy version", func() (Key, error) { return NewKey("tenant-a", "", "content-1", "worker", "1") }},
+			{"content version", func() (Key, error) { return NewKey("tenant-a", "policy-1", "", "worker", "1") }},
+			{"namespace", func() (Key, error) { return NewKey("tenant-a", "policy-1", "content-1", "", "1") }},
+			{"id", func() (Key, error) { return NewKey("tenant-a", "policy-1", "content-1", "worker", "") }},
+		}
+		for _, field := range fields {
+			t.Run(field.name, func(t *testing.T) {
+				if _, err := field.make(); err == nil {
+					t.Fatalf("incomplete %s key was accepted", field.name)
+				}
+			})
+		}
+		if _, err := NewKey("tenant:a", "policy-1", "content-1", "worker", "1"); !errors.Is(err, ErrKeyInvalid) {
+			t.Fatalf("separator-bearing tenant error = %v, want ErrKeyInvalid", err)
+		}
+		if (Key{}).String() != "" {
+			t.Fatal("zero key must not serialize")
+		}
+	})
 
-	t.Run("key omits tenant fails", func(t *testing.T) {
-		if _, err := BuildKey(uuid.Nil, "v1", "ns", "id"); err == nil {
-			t.Fatal("expected error for nil tenant")
-		}
-	})
-	t.Run("key omits version fails", func(t *testing.T) {
-		if _, err := BuildKey(tenantA, "", "ns", "id"); err == nil {
-			t.Fatal("expected error for empty version")
-		}
-	})
-	t.Run("key omits namespace or id fails", func(t *testing.T) {
-		if _, err := BuildKey(tenantA, "v1", "", "id"); err == nil {
-			t.Fatal("expected error for empty namespace")
-		}
-		if _, err := BuildKey(tenantA, "v1", "ns", ""); err == nil {
-			t.Fatal("expected error for empty id")
-		}
-		if _, _, _, _, err := ParseKey(tenantA.String() + ":v1::id"); err == nil {
-			t.Fatal("expected error for empty namespace")
-		}
-	})
-
-	t.Run("versioned keys isolate", func(t *testing.T) {
+	t.Run("versioned tenant keys isolate", func(t *testing.T) {
 		c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-		k1, _ := BuildKey(tenantA, "v1", "worker", "w1")
-		k2, _ := BuildKey(tenantA, "v2", "worker", "w1")
-		_ = c.Set(k1, "val1")
-		if _, ok := c.Get(k2, nil); ok {
-			t.Fatal("v2 key must not hit v1 entry")
+		v1 := testKey(t, "tenant-a", "policy-1", "content-1", "worker", "w1")
+		v2 := testKey(t, "tenant-a", "policy-2", "content-1", "worker", "w1")
+		otherTenant := testKey(t, "tenant-b", "policy-1", "content-1", "worker", "w1")
+		if err := c.Set(v1, "value-1"); err != nil {
+			t.Fatal(err)
 		}
-		if v, ok := c.Get(k1, nil); !ok || v != "val1" {
-			t.Fatalf("v1 miss: %v %v", v, ok)
+		if _, ok := c.Get(v2, allowString); ok {
+			t.Fatal("policy version changed but cache hit")
+		}
+		if _, ok := c.Get(otherTenant, allowString); ok {
+			t.Fatal("tenant changed but cache hit")
+		}
+		if got, ok := c.Get(v1, allowString); !ok || got != "value-1" {
+			t.Fatalf("same complete key missed: %q, %v", got, ok)
 		}
 	})
 
-	t.Run("bounded TTL and size", func(t *testing.T) {
-		c := New[string](Config{MaxEntries: 2, TTL: 10 * time.Millisecond})
-		fixed := time.Now()
+	t.Run("bounded TTL and deterministic LRU size", func(t *testing.T) {
+		c := New[string](Config{MaxEntries: 2, TTL: time.Second})
+		fixed := time.Unix(100, 0)
 		c.now = func() time.Time { return fixed }
-		k1, _ := BuildKey(tenantA, "v1", "ns", "1")
-		k2, _ := BuildKey(tenantA, "v1", "ns", "2")
-		k3, _ := BuildKey(tenantA, "v1", "ns", "3")
-		_ = c.Set(k1, "a")
-		_ = c.Set(k2, "b")
-		if c.Len() != 2 {
-			t.Fatalf("len 2 got %d", c.Len())
+		k1 := testKey(t, "tenant-a", "policy-1", "content-1", "item", "1")
+		k2 := testKey(t, "tenant-a", "policy-1", "content-1", "item", "2")
+		k3 := testKey(t, "tenant-a", "policy-1", "content-1", "item", "3")
+		_ = c.Set(k1, "one")
+		_ = c.Set(k2, "two")
+		if _, ok := c.Get(k1, allowString); !ok {
+			t.Fatal("first entry should be a hit")
 		}
-		_ = c.Set(k3, "c")
-		if c.Len() != 2 {
-			t.Fatalf("bounded size violated %d", c.Len())
+		_ = c.Set(k3, "three")
+		if _, ok := c.Get(k2, allowString); ok {
+			t.Fatal("least-recently-used entry was not evicted")
 		}
-		if _, ok := c.Get(k1, nil); ok {
-			t.Fatal("LRU eviction failed")
+		if got := c.Len(); got != 2 {
+			t.Fatalf("size = %d, want 2", got)
 		}
-		c.now = func() time.Time { return fixed.Add(20 * time.Millisecond) }
-		if _, ok := c.Get(k2, nil); ok {
-			t.Fatal("TTL expiry failed")
+		c.now = func() time.Time { return fixed.Add(2 * time.Second) }
+		if _, ok := c.Get(k1, allowString); ok {
+			t.Fatal("expired entry was returned")
 		}
-	})
-
-	t.Run("post cache authz", func(t *testing.T) {
-		c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-		k, _ := BuildKey(tenantA, "v1", "salary", "emp1")
-		_ = c.Set(k, "120000")
-		if _, ok := c.Get(k, func(v string) bool { return false }); ok {
-			t.Fatal("post-cache deny must be miss")
-		}
-		if v, ok := c.Get(k, func(v string) bool { return true }); !ok || v != "120000" {
-			t.Fatal("allow must hit")
+		if c.Len() != 0 {
+			t.Fatal("expired entries were not removed")
 		}
 	})
 
-	t.Run("safe miss reloads", func(t *testing.T) {
+	t.Run("rebuild scopes tenant and versions", func(t *testing.T) {
 		c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-		k, _ := BuildKey(tenantA, "v1", "ns", "miss")
-		calls := 0
-		v, err := c.GetOrLoad(k, func() (string, error) {
-			calls++
-			return "rebuilt", nil
-		}, nil)
-		if err != nil || v != "rebuilt" || calls != 1 {
-			t.Fatalf("rebuild failed %v %v %d", v, err, calls)
+		a := testKey(t, "tenant-a", "policy-1", "content-1", "item", "a")
+		b := testKey(t, "tenant-b", "policy-1", "content-2", "item", "b")
+		cKey := testKey(t, "tenant-c", "policy-3", "content-3", "item", "c")
+		_ = c.Set(a, "a")
+		_ = c.Set(b, "b")
+		_ = c.Set(cKey, "c")
+		c.Rebuild(RebuildScope{Tenant: "tenant-a"})
+		if _, ok := c.Get(a, allowString); ok {
+			t.Fatal("tenant rebuild did not evict tenant-a")
 		}
-		v2, err := c.GetOrLoad(k, func() (string, error) {
-			t.Fatal("should not reload on hit")
-			return "", nil
-		}, nil)
-		if err != nil || v2 != "rebuilt" {
-			t.Fatalf("cache hit failed %v %v", v2, err)
+		c.RebuildVersion("policy-1", "")
+		if _, ok := c.Get(b, allowString); ok {
+			t.Fatal("policy rebuild did not evict policy-1")
 		}
-		c.Clear()
-		_ = tenantB
-		v3, err := c.GetOrLoad(k, func() (string, error) { return "rebuilt2", nil }, nil)
-		if err != nil || v3 != "rebuilt2" {
-			t.Fatalf("after clear rebuild failed %v %v", v3, err)
+		c.RebuildVersion("", "content-3")
+		if c.Len() != 0 {
+			t.Fatal("content rebuild did not evict content-3")
 		}
 	})
 }
 
 func TestTodo_CACHE_001_Race(t *testing.T) {
-	c := New[int](Config{MaxEntries: 100, TTL: time.Minute})
-	tenant := uuid.MustParse("33333333-3333-3333-3333-333333333333")
+	c := New[int](Config{MaxEntries: 64, TTL: time.Minute})
+	key := testKey(t, "tenant-race", "policy-1", "content-1", "race", "shared")
+	_ = c.Set(key, 1)
 	var wg sync.WaitGroup
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 32; i++ {
 		wg.Add(1)
 		go func(n int) {
 			defer wg.Done()
-			k, _ := BuildKey(tenant, "v1", "race", uuid.NewString())
-			_ = c.Set(k, n)
-			_, _ = c.Get(k, nil)
-			_, _ = c.GetOrLoad(k, func() (int, error) { return n, nil }, nil)
+			for j := 0; j < 100; j++ {
+				if n%2 == 0 {
+					_, _ = c.Get(key, func(v int) bool { return v >= 0 })
+				} else {
+					c.Rebuild(RebuildScope{Tenant: "tenant-race"})
+					_ = c.Set(key, n)
+				}
+			}
 		}(i)
 	}
 	wg.Wait()
 }
 
+type memoryBackend[V any] struct {
+	mu      sync.Mutex
+	values  map[Key]V
+	failGet bool
+	cleared bool
+}
+
+func newMemoryBackend[V any]() *memoryBackend[V] {
+	return &memoryBackend[V]{values: make(map[Key]V)}
+}
+
+func (b *memoryBackend[V]) Set(key Key, value V, _ time.Duration) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.values[key] = value
+	return nil
+}
+
+func (b *memoryBackend[V]) Get(key Key) (V, bool, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	var zero V
+	if b.failGet {
+		return zero, false, errors.New("backend unavailable")
+	}
+	v, ok := b.values[key]
+	return v, ok, nil
+}
+
+func (b *memoryBackend[V]) Delete(key Key) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	delete(b.values, key)
+	return nil
+}
+
+func (b *memoryBackend[V]) Rebuild(scope RebuildScope) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	for key := range b.values {
+		if scope.matches(key) {
+			delete(b.values, key)
+		}
+	}
+	return nil
+}
+
+func (b *memoryBackend[V]) Clear() error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.values = make(map[Key]V)
+	b.cleared = true
+	return nil
+}
+
 func TestTodo_CACHE_001_Integration(t *testing.T) {
-	db := pgtest.New(t)
-	tenant := uuid.MustParse("44444444-4444-4444-4444-444444444444")
-	_, err := db.Conn.Exec(t.Context(), `create table if not exists cache_src (tenant_id uuid primary key, val text not null)`)
-	if err != nil {
-		t.Fatalf("create: %v", err)
+	backend := newMemoryBackend[string]()
+	c := NewWithBackend[string](Config{TTL: time.Minute}, backend)
+	key := testKey(t, "tenant-integration", "policy-2", "content-7", "projection", "row")
+	if err := c.Set(key, "authoritative-result"); err != nil {
+		t.Fatalf("provider Set surfaced an error: %v", err)
 	}
-	_, err = db.Conn.Exec(t.Context(), `insert into cache_src (tenant_id, val) values ($1,$2) on conflict (tenant_id) do update set val=$2`, tenant.String(), "from-db")
-	if err != nil {
-		t.Fatalf("insert: %v", err)
+	got, ok := c.Get(key, allowString)
+	if !ok || got != "authoritative-result" {
+		t.Fatalf("provider adapter hit = %q, %v", got, ok)
 	}
-	c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-	k, _ := BuildKey(tenant, "v1", "src", "row1")
-	load := func() (string, error) {
-		var v string
-		err := db.Conn.QueryRow(t.Context(), `select val from cache_src where tenant_id=$1`, tenant.String()).Scan(&v)
-		return v, err
+	c.Rebuild(RebuildScope{Tenant: key.Tenant})
+	if _, ok := c.Get(key, allowString); ok {
+		t.Fatal("provider rebuild did not remove tenant entries")
 	}
-	v, err := c.GetOrLoad(k, load, nil)
-	if err != nil || v != "from-db" {
-		t.Fatalf("load %v %v", v, err)
-	}
-	v2, err := c.GetOrLoad(k, func() (string, error) { t.Fatal("should be cached"); return "", nil }, nil)
-	if err != nil || v2 != "from-db" {
-		t.Fatalf("cached %v %v", v2, err)
+	c.Clear()
+	if !backend.cleared {
+		t.Fatal("Clear did not reach provider port")
 	}
 }
 
 func TestTodo_CACHE_001_Security(t *testing.T) {
-	tenantA := uuid.MustParse("55555555-5555-5555-5555-555555555555")
-	tenantB := uuid.MustParse("66666666-6666-6666-6666-666666666666")
 	c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-	ka, _ := BuildKey(tenantA, "v1", "secret", "emp1")
-	_ = c.Set(ka, "sensitive")
-	if _, ok := c.Get(ka, nil); !ok {
-		t.Fatal("owner must hit")
+	key := testKey(t, "tenant-secret", "policy-1", "content-1", "salary", "employee-1")
+	otherTenant := testKey(t, "tenant-other", "policy-1", "content-1", "salary", "employee-1")
+	_ = c.Set(key, "sensitive-value")
+	if _, ok := c.Get(key, nil); ok {
+		t.Fatal("missing authorization hook must not expose a cached value")
 	}
-	kb, _ := BuildKey(tenantB, "v1", "secret", "emp1")
-	if _, ok := c.Get(kb, nil); ok {
-		t.Fatal("cross-tenant must miss")
+	if c.Len() != 0 {
+		t.Fatal("missing authorization hook did not evict the value")
 	}
-	forged := tenantA.String() + ":v1:secret:emp1"
-	if _, ok := c.Get(forged, func(v string) bool { return false }); ok {
-		t.Fatal("forged with failing authz must miss")
+	_ = c.Set(key, "sensitive-value")
+	checks := 0
+	if _, ok := c.Get(key, func(value string) bool {
+		checks++
+		return value != "sensitive-value"
+	}); ok {
+		t.Fatal("authorization denial returned sensitive value")
 	}
-	if err := c.Set("bad-key", "x"); err == nil {
-		t.Fatal("bad key must be rejected")
+	if checks != 1 {
+		t.Fatalf("authorization checks = %d, want one per hit", checks)
 	}
-	if err := c.Set(tenantA.String()+":v1:ns:id:with:colon", "x"); err == nil {
-		t.Fatal("key with colon in id must be rejected")
+	if _, ok := c.Get(key, allowString); ok {
+		t.Fatal("denied entry remained available")
 	}
-	_ = tenantB
+	if _, ok := c.Get(otherTenant, allowString); ok {
+		t.Fatal("cross-tenant lookup hit")
+	}
+	if got := Explain(key); got == "" || containsValue(got, "sensitive-value") {
+		t.Fatalf("Explain leaked cached value: %q", got)
+	}
+}
+
+func containsValue(explanation, value string) bool {
+	return len(value) > 0 && len(explanation) >= len(value) && stringContains(explanation, value)
+}
+
+func stringContains(s, sub string) bool {
+	for i := 0; i+len(sub) <= len(s); i++ {
+		if s[i:i+len(sub)] == sub {
+			return true
+		}
+	}
+	return false
 }
 
 func TestTodo_CACHE_001_Recovery(t *testing.T) {
-	tenant := uuid.MustParse("77777777-7777-7777-7777-777777777777")
+	key := testKey(t, "tenant-recovery", "policy-1", "content-1", "projection", "row")
 	c := New[string](Config{MaxEntries: 10, TTL: time.Minute})
-	k, _ := BuildKey(tenant, "v1", "ns", "recover")
-	_ = c.Set(k, "old")
-	if c.Len() != 1 {
-		t.Fatalf("len 1 got %d", c.Len())
+	computed := 0
+	load := func() (string, error) {
+		computed++
+		return "source-of-truth", nil
+	}
+	first, err := c.GetOrLoad(key, load, allowString)
+	if err != nil || first != "source-of-truth" {
+		t.Fatalf("initial computation = %q, %v", first, err)
 	}
 	c.Clear()
-	if c.Len() != 0 {
-		t.Fatalf("clear failed %d", c.Len())
+	second, err := c.GetOrLoad(key, load, allowString)
+	if err != nil || second != first {
+		t.Fatalf("recovery computation = %q, %v; want %q", second, err, first)
 	}
-	if _, ok := c.Get(k, nil); ok {
-		t.Fatal("after clear must miss")
+	if computed != 2 {
+		t.Fatalf("authoritative computations = %d, want 2 after cache loss", computed)
 	}
-	v, err := c.GetOrLoad(k, func() (string, error) { return "new", nil }, nil)
-	if err != nil || v != "new" {
-		t.Fatalf("rebuild after loss %v %v", v, err)
+	failing := newMemoryBackend[string]()
+	failing.failGet = true
+	remote := NewWithBackend[string](Config{TTL: time.Minute}, failing)
+	result, err := remote.GetOrLoad(key, func() (string, error) { return "source-of-truth", nil }, allowString)
+	if err != nil || result != "source-of-truth" {
+		t.Fatalf("backend loss changed computed result: %q, %v", result, err)
 	}
-	if _, ok := c.Get(k, nil); !ok {
-		t.Fatal("rebuilt must hit")
-	}
-	_ = c.Set(k, "new2")
-	c2 := New[string](Config{MaxEntries: 1, TTL: 10 * time.Millisecond})
-	fixed := time.Now()
-	c2.now = func() time.Time { return fixed }
-	k2, _ := BuildKey(tenant, "v1", "ns", "exp")
-	_ = c2.Set(k2, "x")
-	c2.now = func() time.Time { return fixed.Add(20 * time.Millisecond) }
-	if _, ok := c2.Get(k2, nil); ok {
-		t.Fatal("expired must miss")
-	}
-	v3, err := c2.GetOrLoad(k2, func() (string, error) { return "rebuilt-exp", nil }, nil)
-	if err != nil || v3 != "rebuilt-exp" {
-		t.Fatalf("expired rebuild %v %v", v3, err)
+	c.Clear()
+	if _, err := c.GetOrLoad(key, func() (string, error) { return "", errors.New("authoritative failure") }, allowString); err == nil {
+		t.Fatal("authoritative loader failure was silently treated as a successful computation")
 	}
 }

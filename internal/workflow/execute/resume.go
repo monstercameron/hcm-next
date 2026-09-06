@@ -61,7 +61,7 @@ func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) 
 		at = d.opts.Clock().UTC()
 	}
 
-	advanced, created, evidenceIDs, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, at,
+	advanced, created, evidenceIDs, timers, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, at, 1,
 		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
 			item, loadErr := d.opts.Items.Load(ctx, ex, req.Start.TenantID, req.WorkItemID)
 			if loadErr != nil {
@@ -100,6 +100,7 @@ func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) 
 	result := Result{
 		Advances:        []runtime.AdvanceReceipt{advanced},
 		WorkItems:       created,
+		Timers:          timers,
 		InstanceVersion: advanced.NewInstanceVersion,
 		Frontier:        append([]string(nil), advanced.Frontier...),
 		EvidenceIDs:     evidenceIDs,
@@ -124,12 +125,6 @@ func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) 
 // It never touches the WorkItem -- that load happens inside the advancement
 // transaction, in [checkWorkItemDrift], per WF-RUN-028.
 func validateResumeConfig(ctx context.Context, req ResumeRequest, items WorkItemReader) (runtime.WorkflowSelection, error) {
-	if req.Start.Resolver == nil {
-		return runtime.WorkflowSelection{}, invalid("resume has no WorkflowResolver")
-	}
-	if req.Start.Versions == nil {
-		return runtime.WorkflowSelection{}, invalid("resume has no exact version Store")
-	}
 	if items == nil {
 		return runtime.WorkflowSelection{}, invalid("resume has no WorkItemReader")
 	}
@@ -138,19 +133,33 @@ func validateResumeConfig(ctx context.Context, req ResumeRequest, items WorkItem
 		return runtime.WorkflowSelection{}, invalid(
 			"resume requires tenant, instance, work item and positive expected instance/work-item versions")
 	}
-	selection, err := req.Start.Resolver.ResolveWorkflow(ctx, req.Start)
+	return resolvePinnedPlan(ctx, req.Start, "resume")
+}
+
+// resolvePinnedPlan resolves the exact ACTIVE published version a resume must
+// advance against, and refuses anything that is not it. It is shared by
+// [Driver.Resume] and [Driver.ResumeTimer] so that "which plan may a parked
+// instance advance on" is answered in one place rather than two.
+func resolvePinnedPlan(ctx context.Context, start runtime.StartRequest, what string) (runtime.WorkflowSelection, error) {
+	if start.Resolver == nil {
+		return runtime.WorkflowSelection{}, invalid("%s has no WorkflowResolver", what)
+	}
+	if start.Versions == nil {
+		return runtime.WorkflowSelection{}, invalid("%s has no exact version Store", what)
+	}
+	selection, err := start.Resolver.ResolveWorkflow(ctx, start)
 	if err != nil {
-		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve resume workflow: %w", err)
+		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve %s workflow: %w", what, err)
 	}
 	if selection.Plan == nil || selection.WorkflowID == "" {
-		return runtime.WorkflowSelection{}, invalid("WorkflowResolver returned no workflow id or plan for resume")
+		return runtime.WorkflowSelection{}, invalid("WorkflowResolver returned no workflow id or plan for %s", what)
 	}
-	published, err := version.Resolve(req.Start.Versions, selection.WorkflowID, selection.Pin)
+	published, err := version.Resolve(start.Versions, selection.WorkflowID, selection.Pin)
 	if err != nil {
-		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve resume version: %w", err)
+		return runtime.WorkflowSelection{}, fmt.Errorf("workflow execute: resolve %s version: %w", what, err)
 	}
 	if published.Status != version.StatusActive || published.CompiledPlanDigest != selection.Plan.Digest() {
-		return runtime.WorkflowSelection{}, invalid("resume plan is not the exact active published version")
+		return runtime.WorkflowSelection{}, invalid("%s plan is not the exact active published version", what)
 	}
 	return selection, nil
 }
@@ -237,7 +246,11 @@ func readyAndParked(records []runtime.ContinuationRecord) ([]string, bool) {
 		switch rec.Kind {
 		case frontier.IntentReady:
 			ready = append(ready, rec.TargetNodeID)
-		case frontier.IntentWorkItemRequired:
+		case frontier.IntentWorkItemRequired, frontier.IntentTimerRequired:
+			// A durable timer parks the instance exactly as human work does:
+			// the driver has nothing left to run, and something outside it --
+			// a caller with its own clock reading, or a person -- decides when
+			// the instance moves again.
 			parked = true
 		}
 	}

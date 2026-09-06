@@ -54,6 +54,11 @@ type AdvanceRequest struct {
 	Refs    GovernanceRefs
 	TraceID string
 
+	// Revalidation is optional for legacy/non-material nodes. When present it
+	// is evaluated before Advance reads runtime state, and a changed fact is a
+	// typed refusal that cannot reach the node write path.
+	Revalidation *PromotionRevalidation
+
 	// RecordedAt is the instant this call is happening. This package never
 	// reads a wall clock: it stamps the instance's started_at on the first
 	// advancement, the completed_at of a finished node execution, and the
@@ -152,6 +157,11 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 	if err := req.validate(); err != nil {
 		return AdvanceReceipt{}, err
 	}
+	if req.Revalidation != nil {
+		if _, err := EvaluatePromotionRevalidation(*req.Revalidation); err != nil {
+			return AdvanceReceipt{}, err
+		}
+	}
 	store := Store{}
 
 	inst, err := store.LoadInstance(ctx, tx, req.TenantID, req.InstanceID)
@@ -177,6 +187,13 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 	}
 	if inst.InstanceVersion != req.ExpectedInstanceVersion {
 		return AdvanceReceipt{}, staleError(req.InstanceID, req.Outcome.NodeID, req.ExpectedInstanceVersion, inst.InstanceVersion)
+	}
+	// WF-RUN-008's pause gate sits after the replay branch on purpose: a
+	// byte-identical retry of an advancement that already committed is a
+	// read of durable evidence, and a pause requested afterwards does not
+	// retroactively unmake it.
+	if err := checkPauseGate(ctx, tx, inst, req.Plan); err != nil {
+		return AdvanceReceipt{}, err
 	}
 
 	state, err := loadFrontierState(ctx, tx, store, inst, req.Plan)
@@ -208,13 +225,23 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 		return AdvanceReceipt{}, err
 	}
 
+	// A successor the instance has already executed (a re-approval routing
+	// back to an approval gate, a revalidation loop) is a new attempt of that
+	// node, never a second attempt 1: the (instance, node, attempt) identity is
+	// the primary key and the driver picks the highest attempt as current.
+	existing, err := store.LoadNodeExecutions(ctx, tx, req.TenantID, req.InstanceID)
+	if err != nil {
+		return AdvanceReceipt{}, err
+	}
+	activated := map[string]int{}
 	for _, succ := range tr.Successors {
 		succNode, ok := req.Plan.Node(succ.NodeID)
 		if !ok {
 			return AdvanceReceipt{}, refuse(CodeInvalidRecord, req.InstanceID.String(), succ.NodeID,
 				"successor names a node the plan does not declare")
 		}
-		ne := NewNodeExecution(req.TenantID, req.InstanceID, succ.NodeID, 1, succNode.Type, NodeStatus(succ.State))
+		activated[succ.NodeID] = nextAttemptFor(existing, succ.NodeID)
+		ne := NewNodeExecution(req.TenantID, req.InstanceID, succ.NodeID, activated[succ.NodeID], succNode.Type, NodeStatus(succ.State))
 		_, bumped, err := store.RecordNodeExecution(ctx, tx, ne, nextVersion)
 		if err != nil {
 			return AdvanceReceipt{}, err
@@ -226,7 +253,7 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 		if !ok {
 			continue
 		}
-		ne := NewNodeExecution(req.TenantID, req.InstanceID, skipped, 1, skipNode.Type, NodeSkipped)
+		ne := NewNodeExecution(req.TenantID, req.InstanceID, skipped, nextAttemptFor(existing, skipped), skipNode.Type, NodeSkipped)
 		_, bumped, err := store.RecordNodeExecution(ctx, tx, ne, nextVersion)
 		if err != nil {
 			return AdvanceReceipt{}, err
@@ -234,7 +261,13 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 		nextVersion = bumped
 	}
 
+	// A standing pause request survives the advancement it did not get to
+	// stop: writing RUNNING here would drop it, and the next boundary would
+	// have nothing to apply (WF-RUN-008).
 	newStatus := InstanceRunning
+	if inst.RuntimeStatus == InstancePauseRequested {
+		newStatus = InstancePauseRequested
+	}
 	var completedAt *time.Time
 	dims := Dimensions{}
 	terminalCode := ""
@@ -282,7 +315,8 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 			TenantID: req.TenantID, InstanceID: req.InstanceID,
 			SourceNodeID: req.Outcome.NodeID, SourceAttempt: req.Attempt,
 			TargetNodeID: in.NodeID, Kind: in.Kind, RouteKey: in.RouteKey, Ref: in.Ref, TerminalCode: in.TerminalCode,
-			RecordedAt: req.RecordedAt,
+			TargetAttempt: activated[in.NodeID],
+			RecordedAt:    req.RecordedAt,
 		}
 		if dispatchErr := dispatchContinuation(ctx, tx, req.Sink, rec); dispatchErr != nil {
 			return AdvanceReceipt{}, wrap(CodeStorageFailed, req.InstanceID.String(), in.NodeID, dispatchErr,
@@ -458,4 +492,17 @@ func loadFrontierState(ctx context.Context, ex Executor, store Store, inst Insta
 	// under real concurrency (WF-RUN-025's own Race case) it fires on a
 	// perfectly safe outcome.
 	return state, nil
+}
+
+// nextAttemptFor returns the attempt number a fresh activation of nodeID
+// must use: one more than the highest attempt already recorded for it on the
+// instance, or 1 when the node has never been activated.
+func nextAttemptFor(existing []NodeExecution, nodeID string) int {
+	highest := 0
+	for _, row := range existing {
+		if row.NodeID == nodeID && row.Attempt > highest {
+			highest = row.Attempt
+		}
+	}
+	return highest + 1
 }

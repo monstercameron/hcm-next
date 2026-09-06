@@ -47,19 +47,33 @@ const (
 // Everything else is refused. In particular COMPLETED, CANCELLED,
 // REPAIR_REQUIRED, QUARANTINED and SUPERSEDED have no outgoing edge at all:
 // history is immutable, and a repair is a new instance, not a resurrected one.
+// A third reading is made explicit by WF-RUN-008. PAUSE_REQUESTED hangs off
+// CREATED and RUNNING as well as WAITING, because this runtime records a
+// parked instance as RUNNING with a work-item continuation and never as
+// WAITING, and a pause request that could only be made in a state the
+// runtime never durably occupies would be unrequestable. And a
+// PAUSE_REQUESTED instance keeps every outgoing edge a RUNNING one has apart
+// from RUNNING itself: a pause request is an overlay on a live instance, not
+// a suspension of it, so the atomic region it is standing inside may still
+// finish, block, need repair or be cancelled while the request stands.
+// PAUSE_REQUESTED -> RUNNING is deliberately absent: it is the only edge that
+// would silently drop a standing pause request.
 var instanceTransitions = map[InstanceStatus][]InstanceStatus{
-	InstanceCreated: {InstanceRunning, InstanceCancelling, InstanceSuperseded},
+	InstanceCreated: {InstanceRunning, InstancePauseRequested, InstanceCancelling, InstanceSuperseded},
 	InstanceRunning: {
-		InstanceWaiting, InstanceCompleted, InstanceBlocked, InstanceRepairRequired,
-		InstanceQuarantined, InstanceCancelling, InstanceSuperseded,
+		InstanceWaiting, InstancePauseRequested, InstanceCompleted, InstanceBlocked,
+		InstanceRepairRequired, InstanceQuarantined, InstanceCancelling, InstanceSuperseded,
 	},
 	InstanceWaiting: {
 		InstanceRunning, InstancePauseRequested, InstanceBlocked, InstanceRepairRequired,
 		InstanceQuarantined, InstanceCancelling, InstanceSuperseded,
 	},
-	InstancePauseRequested: {InstancePaused, InstanceCancelling},
-	InstancePaused:         {InstanceRunning, InstanceCancelling, InstanceSuperseded},
-	InstanceCancelling:     {InstanceCancelled, InstanceRepairRequired},
+	InstancePauseRequested: {
+		InstancePaused, InstanceCompleted, InstanceBlocked, InstanceRepairRequired,
+		InstanceQuarantined, InstanceCancelling, InstanceSuperseded,
+	},
+	InstancePaused:     {InstanceRunning, InstanceCancelling, InstanceSuperseded},
+	InstanceCancelling: {InstanceCancelled, InstanceRepairRequired},
 	InstanceBlocked: {
 		InstanceRunning, InstanceRepairRequired, InstanceQuarantined, InstanceCancelling,
 	},

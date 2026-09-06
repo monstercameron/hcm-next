@@ -447,3 +447,23 @@ func work006Meta(actor, reason string, at time.Time) workitem.TransitionMeta {
 }
 
 func work006TimePtr(at time.Time) *time.Time { return &at }
+
+// TestHighestAttemptAddressesTheOpenActivation pins the re-approval fix: a
+// completion on a gate activated twice must advance attempt 2, and a node
+// with no recorded activation falls back to attempt 1.
+func TestHighestAttemptAddressesTheOpenActivation(t *testing.T) {
+	rows := []runtime.NodeExecution{
+		{NodeID: "approve_manager", Attempt: 1, Status: runtime.NodeSucceeded},
+		{NodeID: "approve_manager", Attempt: 2, Status: runtime.NodeReady},
+		{NodeID: "approve_finance", Attempt: 1, Status: runtime.NodeSucceeded},
+	}
+	if got := highestAttempt(rows, "approve_manager"); got != 2 {
+		t.Fatalf("approve_manager attempt = %d, want 2", got)
+	}
+	if got := highestAttempt(rows, "approve_finance"); got != 1 {
+		t.Fatalf("approve_finance attempt = %d, want 1", got)
+	}
+	if got := highestAttempt(rows, "reapproval_task"); got != 1 {
+		t.Fatalf("unrecorded node attempt = %d, want 1", got)
+	}
+}

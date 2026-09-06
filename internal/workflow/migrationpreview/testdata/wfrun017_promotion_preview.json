@@ -1,0 +1,63 @@
+{
+  "source_workflow_id": "hcmnext.workflows.promote_into_management",
+  "source_version": 1,
+  "target_workflow_id": "hcmnext.workflows.promote_into_management",
+  "target_version": 2,
+  "assessments": [
+    {
+      "instance_id": "instance-bridge",
+      "source": {
+        "instance_id": "instance-bridge",
+        "step_id": "build_proposal",
+        "stage": "RUNNING"
+      },
+      "outcome": "TRANSFORMABLE",
+      "target": {
+        "instance_id": "instance-bridge",
+        "step_id": "raise_threshold",
+        "stage": "READY"
+      },
+      "bridge": {
+        "from_step_id": "build_proposal",
+        "from_stage": "RUNNING",
+        "to_step_id": "raise_threshold",
+        "to_stage": "READY",
+        "ref": "migration.promotion.build-proposal-to-threshold/v1"
+      },
+      "blockers": [
+        {
+          "code": "DECLARED_BRIDGE",
+          "detail": "the instance continues only through the named migration bridge migration.promotion.build-proposal-to-threshold/v1"
+        }
+      ]
+    },
+    {
+      "instance_id": "instance-safe",
+      "source": {
+        "instance_id": "instance-safe",
+        "step_id": "snapshot_worker",
+        "stage": "WAITING"
+      },
+      "outcome": "SAFE",
+      "target": {
+        "instance_id": "instance-safe",
+        "step_id": "snapshot_worker",
+        "stage": "WAITING"
+      }
+    }
+  ],
+  "continue": [
+    {
+      "instance_id": "instance-safe",
+      "step_id": "snapshot_worker",
+      "stage": "WAITING"
+    }
+  ],
+  "needs_bridge": [
+    {
+      "instance_id": "instance-bridge",
+      "step_id": "build_proposal",
+      "stage": "RUNNING"
+    }
+  ]
+}

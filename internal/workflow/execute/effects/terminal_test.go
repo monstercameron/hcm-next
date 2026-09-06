@@ -1,6 +1,12 @@
 package effects
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
+)
 
 func TestTerminal_Smoke(t *testing.T) {
 	if t == nil {
@@ -14,4 +20,24 @@ func TestTerminal_NoPanic(t *testing.T) {
 			t.Fatalf("panic: %v", r)
 		}
 	}()
+}
+
+func TestDeriveEffectiveAtUsesTheProposalInterval(t *testing.T) {
+	wanted := time.Date(2026, 12, 1, 5, 0, 0, 0, time.UTC)
+	interval, err := values.NewOpenInstantInterval(values.NewInstant(wanted))
+	if err != nil {
+		t.Fatal(err)
+	}
+	revision := intent.ProposalRevision{EffectiveTime: interval}
+	recorded := time.Date(2026, 9, 5, 20, 41, 0, 0, time.UTC)
+	if got := deriveEffectiveAt(revision, recorded); !got.Equal(wanted) {
+		t.Fatalf("deriveEffectiveAt = %s, want proposal effective instant %s", got, wanted)
+	}
+}
+
+func TestDeriveEffectiveAtFallsBackToRecordedAtWithoutAnInterval(t *testing.T) {
+	recorded := time.Date(2026, 9, 5, 20, 41, 0, 123, time.FixedZone("local", -4*60*60))
+	if got := deriveEffectiveAt(intent.ProposalRevision{}, recorded); !got.Equal(recorded.UTC()) || got.Location() != time.UTC {
+		t.Fatalf("deriveEffectiveAt = %s (%s), want UTC fallback %s", got, got.Location(), recorded.UTC())
+	}
 }

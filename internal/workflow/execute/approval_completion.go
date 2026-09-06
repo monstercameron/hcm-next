@@ -160,9 +160,22 @@ func (d *Driver) CompleteApproval(ctx context.Context, req ApprovalCompletionReq
 	}
 	run := runContext{start: req.Start, selection: selection, instanceID: req.InstanceID}
 	sink := d.newContinuationSink(tx, run)
+	// The approval node may be on its second or later activation (a
+	// re-approval routed back to the same gate); the advancement must name
+	// the attempt that is actually open, never the first one. Only a plan
+	// that declares a cycle can re-enter a node, so only such a plan pays
+	// the lookup.
+	attempt := 1
+	if len(selection.Plan.Limits.DeclaredCycles) > 0 {
+		executions, err := (runtime.Store{}).LoadNodeExecutions(ctx, tx, req.Start.TenantID, req.InstanceID)
+		if err != nil {
+			return ApprovalCompletionResult{}, fmt.Errorf("workflow execute: load node executions for approval completion: %w", err)
+		}
+		attempt = highestAttempt(executions, item.NodeID)
+	}
 	advanced, err := d.advance(ctx, tx, runtime.AdvanceRequest{
 		TenantID: req.Start.TenantID, InstanceID: req.InstanceID,
-		ExpectedInstanceVersion: req.ExpectedInstanceVersion, Attempt: 1,
+		ExpectedInstanceVersion: req.ExpectedInstanceVersion, Attempt: attempt,
 		Plan: selection.Plan, Outcome: outcome, Refs: refs,
 		RecordedAt: at, Sink: sink, TraceID: d.opts.Instrumentation.TraceID(ctx),
 	})
@@ -313,7 +326,8 @@ func (d *Driver) newContinuationSink(tx dbport.Tx, run runContext) *continuation
 	return &continuationSink{
 		tx:      tx,
 		durable: runtime.ContinuationStore{}, factory: d.opts.WorkItems, terminal: d.opts.Terminal,
-		guard: d.opts.Guard, policy: d.opts.Retention, workflowID: run.selection.WorkflowID,
+		repair: d.opts.Repair,
+		guard:  d.opts.Guard, policy: d.opts.Retention, workflowID: run.selection.WorkflowID,
 		planDigest: run.selection.Plan.Digest(), proposal: run.start.Proposal, cellID: run.start.CellID,
 		correlationID: run.start.CorrelationID, startKey: run.start.StartIdempotencyKey,
 		subjectRefs: append([]string(nil), run.start.BusinessSubjectRefs...),
@@ -357,4 +371,20 @@ func sameOptionalString(a, b *string) bool {
 		return a == nil && b == nil
 	}
 	return *a == *b
+}
+
+// highestAttempt returns the highest attempt recorded for nodeID on the
+// instance, or 1 when none is recorded, so a completion addresses the open
+// activation of a node that has been routed back to more than once.
+func highestAttempt(rows []runtime.NodeExecution, nodeID string) int {
+	highest := 0
+	for _, row := range rows {
+		if row.NodeID == nodeID && row.Attempt > highest {
+			highest = row.Attempt
+		}
+	}
+	if highest == 0 {
+		return 1
+	}
+	return highest
 }
