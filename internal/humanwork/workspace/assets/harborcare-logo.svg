@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="40" viewBox="0 0 180 40" role="img" aria-labelledby="title">
+  <title id="title">Harborcare</title>
+  <style>
+    .word { fill: #16324a; }
+    .detail { fill: #526171; }
+    @media (prefers-color-scheme: dark) {
+      .word { fill: #f3f7f6; }
+      .detail { fill: #b8c5cc; }
+    }
+  </style>
+  <g transform="translate(1 1)">
+    <rect width="38" height="38" rx="11" fill="#006b57"/>
+    <path d="M9 21.5c5.4-7.8 12.8-9.8 20-7.1-2.8.4-5.7 1.7-8.3 4.1-3.5 3.1-7.4 4.1-11.7 3z" fill="#bce9dc"/>
+    <path d="M9.2 26.3c5.2 1.2 10 .1 14.3-3.4 2.1-1.7 4.2-2.7 6.4-3-2.7 6.5-8 10.1-14 10.1-2.5 0-4.8-1.3-6.7-3.7z" fill="#fff"/>
+  </g>
+  <text class="word" x="48" y="22" font-family="Segoe UI Variable, Segoe UI, sans-serif" font-size="18" font-weight="720" letter-spacing="-.4">Harborcare</text>
+  <text class="detail" x="49" y="33" font-family="Segoe UI, sans-serif" font-size="6.5" font-weight="650" letter-spacing="1.25">PEOPLE OPERATIONS</text>
+</svg>

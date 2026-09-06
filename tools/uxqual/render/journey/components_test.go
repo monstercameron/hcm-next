@@ -113,6 +113,18 @@ func TestListShowsItsEmptyStateWhenThereAreNoJourneys(t *testing.T) {
 	}
 }
 
+func TestJourneyCardsProgressivelyDiscloseTechnicalIdentifiers(t *testing.T) {
+	out := mustRender(t, SampleListPage())
+	for _, want := range []string{`class="jn-journey-technical"`, ">Technical details<", ">Worker<"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("journey card does not disclose technical context through %q", want)
+		}
+	}
+	if got := readableTenantLabel("harborcare-demo"); got != "Harborcare Demo" {
+		t.Fatalf("readableTenantLabel = %q, want Harborcare Demo", got)
+	}
+}
+
 func TestListExplainsWhenTheEngineIsNotComposed(t *testing.T) {
 	p := SampleListPage()
 	p.List.EngineAvailable = false

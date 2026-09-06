@@ -15,15 +15,15 @@ func homePage(view View) ui.Node {
 		}
 	}
 	return ui.CreateElement(HomePage, HomePageProps{
-		Work: workCollectionProps(view, workCollectionOptions{Title: "Live journeys"}),
+		Work: workCollectionProps(view, workCollectionOptions{Title: "Open promotion work"}),
 		Overview: SummaryCardProps{Title: "Promotion journeys", Facts: []FactProps{
 			{Label: "Active", Value: fmt.Sprint(active)},
 			{Label: "Terminal", Value: fmt.Sprint(terminal)},
 			{Label: "Visible workers", Value: fmt.Sprint(len(view.People))},
 		}},
 		QuickStart: QuickActionsProps{Title: "Start something", Actions: []ActionLinkProps{
-			{Label: "Start a promotion →", Href: statefulHref(view, PageJourneys), Navigate: view.Navigate},
-			{Label: "Choose a worker →", Href: statefulHref(view, PagePeople), Navigate: view.Navigate},
+			{Label: "Start a promotion", Href: statefulHref(view, PageJourneys), Class: "button primary", Navigate: view.Navigate},
+			{Label: "Choose a worker", Href: statefulHref(view, PagePeople), Class: "button secondary", Navigate: view.Navigate},
 		}},
 		Recent: RecentActivityProps{Title: "Recently completed", Items: activities, EmptyTitle: "No completed journeys", EmptyDescription: "Completed or rejected journeys will appear here after the server records them."},
 	})

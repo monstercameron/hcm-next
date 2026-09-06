@@ -21,6 +21,10 @@ type PageDefinition struct {
 	LabelKey    string
 	TitleKey    string
 	SubtitleKey string
+	// SearchTerms are stable aliases and business-language concepts for the
+	// navigation command palette. Label and localized subtitle are searched
+	// automatically; these terms cover vocabulary customers commonly use.
+	SearchTerms []string
 	PrimaryNav  bool
 	ParentNav   PageID
 	RenderOrder int
@@ -29,19 +33,19 @@ type PageDefinition struct {
 
 func registeredPages() []PageDefinition {
 	return []PageDefinition{
-		{ID: PageHome, Route: "/workspace/app/home", Label: "Home", Icon: "home", Title: "Home", Subtitle: "Review live requests and keep your work moving.", LabelKey: "page.home.label", TitleKey: "page.home.title", SubtitleKey: "page.home.subtitle", PrimaryNav: true, RenderOrder: 10, render: homePage},
-		{ID: PageJourneys, Route: "/workspace/app/journeys", Label: "Journeys", Icon: "journeys", Title: "Journeys", Subtitle: "Start, follow, and complete governed employee workflows.", LabelKey: "page.journeys.label", TitleKey: "page.journeys.title", SubtitleKey: "page.journeys.subtitle", PrimaryNav: true, RenderOrder: 15, render: journeysPage},
-		{ID: PageWork, Route: "/workspace/app/work", Label: "My Work", Icon: "work", Title: "My Work", Subtitle: "Live promotion journeys that need attention.", LabelKey: "page.work.label", TitleKey: "page.work.title", SubtitleKey: "page.work.subtitle", PrimaryNav: true, RenderOrder: 20, render: workPage},
-		{ID: PageHistory, Route: "/workspace/app/history", Label: "Work History", Icon: "history", Title: "Workflow History", Subtitle: "Review completed, rejected, and failed workflow records.", LabelKey: "page.history.label", TitleKey: "page.history.title", SubtitleKey: "page.history.subtitle", ParentNav: PageWork, RenderOrder: 25, render: historyPage},
-		{ID: PagePeople, Route: "/workspace/app/people", Label: "People", Icon: "people", Title: "People", Subtitle: "Workers visible through the governed journey service.", LabelKey: "page.people.label", TitleKey: "page.people.title", SubtitleKey: "page.people.subtitle", PrimaryNav: true, RenderOrder: 30, render: peoplePage},
-		{ID: PagePerson, Route: "/workspace/app/person", Label: "Person", Icon: "people", Title: "Person profile", Subtitle: "Worker facts and available governed workflows.", LabelKey: "page.person.label", TitleKey: "page.person.title", SubtitleKey: "page.person.subtitle", RenderOrder: 35, render: personPage},
-		{ID: PageOrganization, Route: "/workspace/app/organization", Label: "Organization", Icon: "organization", Title: "Organization", Subtitle: "Organization membership available from the live worker projection.", LabelKey: "page.organization.label", TitleKey: "page.organization.title", SubtitleKey: "page.organization.subtitle", PrimaryNav: true, RenderOrder: 40, render: organizationPage},
-		{ID: PageInsights, Route: "/workspace/app/insights", Label: "Insights", Icon: "insights", Title: "Insights", Subtitle: "Operational counts derived from live journey states.", LabelKey: "page.insights.label", TitleKey: "page.insights.title", SubtitleKey: "page.insights.subtitle", PrimaryNav: true, RenderOrder: 50, render: insightsPage},
-		{ID: PageAdmin, Route: "/workspace/app/admin", Label: "Admin", Icon: "admin", Title: "Admin", Subtitle: "Published service capabilities and configuration availability.", LabelKey: "page.admin.label", TitleKey: "page.admin.title", SubtitleKey: "page.admin.subtitle", PrimaryNav: true, RenderOrder: 60, render: adminPage},
-		{ID: PageAppearance, Route: "/workspace/app/appearance", Label: "Brand & appearance", Icon: "palette", Title: "Brand & appearance", Subtitle: "Shape a consistent workspace identity with governed, accessible theme choices.", LabelKey: "page.appearance.label", TitleKey: "page.appearance.title", SubtitleKey: "page.appearance.subtitle", ParentNav: PageAdmin, RenderOrder: 65, render: appearancePage},
-		{ID: PageStudio, Route: "/workspace/app/studio", Label: "Experience Studio", Icon: "studio", Title: "Experience Studio", Subtitle: "Customer page configuration requires its governed service.", LabelKey: "page.studio.label", TitleKey: "page.studio.title", SubtitleKey: "page.studio.subtitle", ParentNav: PageAdmin, RenderOrder: 70, render: studioPage},
-		{ID: PageHelp, Route: "/workspace/app/help", Label: "Help", Icon: "help", Title: "Help center", Subtitle: "Guidance for the live promotion workflow.", LabelKey: "page.help.label", TitleKey: "page.help.title", SubtitleKey: "page.help.subtitle", RenderOrder: 80, render: helpPage},
-		{ID: PageSettings, Route: "/workspace/app/settings", Label: "Settings", Icon: "settings", Title: "Settings", Subtitle: "Current authenticated session and available preferences.", LabelKey: "page.settings.label", TitleKey: "page.settings.title", SubtitleKey: "page.settings.subtitle", RenderOrder: 90, render: settingsPage},
+		{ID: PageHome, Route: "/workspace/app/home", Label: "Home", Icon: "home", Title: "Home", Subtitle: "Review live requests and keep your work moving.", LabelKey: "page.home.label", TitleKey: "page.home.title", SubtitleKey: "page.home.subtitle", SearchTerms: []string{"dashboard", "overview", "landing", "start"}, PrimaryNav: true, RenderOrder: 10, render: homePage},
+		{ID: PageJourneys, Route: "/workspace/app/journeys", Label: "Journeys", Icon: "journeys", Title: "Journeys", Subtitle: "Start, follow, and complete governed employee workflows.", LabelKey: "page.journeys.label", TitleKey: "page.journeys.title", SubtitleKey: "page.journeys.subtitle", SearchTerms: []string{"workflow", "promotion", "request", "approval", "lifecycle"}, PrimaryNav: true, RenderOrder: 15, render: journeysPage},
+		{ID: PageWork, Route: "/workspace/app/work", Label: "My Work", Icon: "work", Title: "My Work", Subtitle: "Live promotion journeys that need attention.", LabelKey: "page.work.label", TitleKey: "page.work.title", SubtitleKey: "page.work.subtitle", SearchTerms: []string{"tasks", "inbox", "queue", "assigned", "pending", "approvals"}, PrimaryNav: true, RenderOrder: 20, render: workPage},
+		{ID: PageHistory, Route: "/workspace/app/history", Label: "Work History", Icon: "history", Title: "Workflow History", Subtitle: "Review completed, rejected, and failed workflow records.", LabelKey: "page.history.label", TitleKey: "page.history.title", SubtitleKey: "page.history.subtitle", SearchTerms: []string{"past", "completed", "rejected", "failed", "audit", "records"}, ParentNav: PageWork, RenderOrder: 25, render: historyPage},
+		{ID: PagePeople, Route: "/workspace/app/people", Label: "People", Icon: "people", Title: "People", Subtitle: "Workers visible through the governed journey service.", LabelKey: "page.people.label", TitleKey: "page.people.title", SubtitleKey: "page.people.subtitle", SearchTerms: []string{"employees", "workers", "directory", "profiles", "staff", "team", "colleagues"}, PrimaryNav: true, RenderOrder: 30, render: peoplePage},
+		{ID: PagePerson, Route: "/workspace/app/person", Label: "Person", Icon: "people", Title: "Person profile", Subtitle: "Worker facts and available governed workflows.", LabelKey: "page.person.label", TitleKey: "page.person.title", SubtitleKey: "page.person.subtitle", SearchTerms: []string{"employee", "worker", "profile", "employment"}, RenderOrder: 35, render: personPage},
+		{ID: PageOrganization, Route: "/workspace/app/organization", Label: "Organization", Icon: "organization", Title: "Organization", Subtitle: "Organization membership available from the live worker projection.", LabelKey: "page.organization.label", TitleKey: "page.organization.title", SubtitleKey: "page.organization.subtitle", SearchTerms: []string{"org chart", "departments", "teams", "structure", "hierarchy", "reporting"}, PrimaryNav: true, RenderOrder: 40, render: organizationPage},
+		{ID: PageInsights, Route: "/workspace/app/insights", Label: "Insights", Icon: "insights", Title: "Insights", Subtitle: "Operational counts derived from live journey states.", LabelKey: "page.insights.label", TitleKey: "page.insights.title", SubtitleKey: "page.insights.subtitle", SearchTerms: []string{"analytics", "reports", "metrics", "trends", "workforce data"}, PrimaryNav: true, RenderOrder: 50, render: insightsPage},
+		{ID: PageAdmin, Route: "/workspace/app/admin", Label: "Admin", Icon: "admin", Title: "Admin", Subtitle: "Published service capabilities and configuration availability.", LabelKey: "page.admin.label", TitleKey: "page.admin.title", SubtitleKey: "page.admin.subtitle", SearchTerms: []string{"administration", "configuration", "system", "capabilities", "manage"}, PrimaryNav: true, RenderOrder: 60, render: adminPage},
+		{ID: PageAppearance, Route: "/workspace/app/appearance", Label: "Brand & appearance", Icon: "palette", Title: "Brand & appearance", Subtitle: "Shape a consistent workspace identity with governed, accessible theme choices.", LabelKey: "page.appearance.label", TitleKey: "page.appearance.title", SubtitleKey: "page.appearance.subtitle", SearchTerms: []string{"branding", "theme", "colors", "logo", "dark mode", "styling", "shapes", "glyphs"}, ParentNav: PageAdmin, RenderOrder: 65, render: appearancePage},
+		{ID: PageStudio, Route: "/workspace/app/studio", Label: "Experience Studio", Icon: "studio", Title: "Experience Studio", Subtitle: "Customer page configuration requires its governed service.", LabelKey: "page.studio.label", TitleKey: "page.studio.title", SubtitleKey: "page.studio.subtitle", SearchTerms: []string{"custom pages", "layout", "builder", "designer", "experience", "configuration"}, ParentNav: PageAdmin, RenderOrder: 70, render: studioPage},
+		{ID: PageHelp, Route: "/workspace/app/help", Label: "Help", Icon: "help", Title: "Help center", Subtitle: "Guidance for the live promotion workflow.", LabelKey: "page.help.label", TitleKey: "page.help.title", SubtitleKey: "page.help.subtitle", SearchTerms: []string{"support", "guidance", "documentation", "docs", "assistance"}, RenderOrder: 80, render: helpPage},
+		{ID: PageSettings, Route: "/workspace/app/settings", Label: "Settings", Icon: "settings", Title: "Settings", Subtitle: "Current authenticated session and available preferences.", LabelKey: "page.settings.label", TitleKey: "page.settings.title", SubtitleKey: "page.settings.subtitle", SearchTerms: []string{"preferences", "locale", "language", "accessibility", "account", "session"}, RenderOrder: 90, render: settingsPage},
 	}
 }
 
@@ -88,10 +92,7 @@ func defaultNavigation(locale LocaleContext) []NavItem {
 		if !definition.PrimaryNav {
 			continue
 		}
-		item := NavItem{Page: definition.ID, Label: locale.Text(definition.LabelKey), LabelKey: definition.LabelKey, Icon: definition.Icon}
-		if definition.ID == PageWork {
-			item.Count = 4
-		}
+		item := navigationItemFromDefinition(definition, locale)
 		items = append(items, item)
 		indexes[definition.ID] = len(items) - 1
 	}
@@ -118,11 +119,19 @@ func defaultNavigation(locale LocaleContext) []NavItem {
 			} else if parent.Page == PageAdmin {
 				labelKey = "nav.admin_overview"
 			}
-			parent.Children = append(parent.Children, NavItem{Page: parent.Page, Label: label, LabelKey: labelKey, Icon: parent.Icon})
+			overview := NavItem{Page: parent.Page, Label: label, LabelKey: labelKey, Description: parent.Description, Keywords: append([]string(nil), parent.Keywords...), Icon: parent.Icon}
+			parent.Children = append(parent.Children, overview)
 		}
-		parent.Children = append(parent.Children, NavItem{Page: definition.ID, Label: locale.Text(definition.LabelKey), LabelKey: definition.LabelKey, Icon: definition.Icon})
+		parent.Children = append(parent.Children, navigationItemFromDefinition(definition, locale))
 	}
 	return items
+}
+
+func navigationItemFromDefinition(definition PageDefinition, locale LocaleContext) NavItem {
+	return NavItem{
+		Page: definition.ID, Label: locale.Text(definition.LabelKey), LabelKey: definition.LabelKey,
+		Description: locale.Text(definition.SubtitleKey), Keywords: append([]string(nil), definition.SearchTerms...), Icon: definition.Icon,
+	}
 }
 
 func pageHref(page PageID) string {

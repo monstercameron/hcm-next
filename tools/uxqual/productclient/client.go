@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
@@ -41,6 +42,14 @@ type State struct {
 	Request productui.PageRequest
 }
 
+// LoadingView builds the non-authoritative shell shown while Load is waiting
+// for the cell. It shares the resolved view's humanized session labels and
+// address state without manufacturing any business records or counts.
+func LoadingView(session Session, state State) productui.View {
+	view := productui.NewView(state.Page, displayLabel(session.Tenant), displayLabel(session.Principal), displayLabel(session.Scope))
+	return productui.ApplyRequest(view, state.Request)
+}
+
 // ParseState resolves a production product route and its presentation query.
 func ParseState(pathname, rawQuery string) (State, error) {
 	definition, ok := productui.LookupRoute(pathname)
@@ -58,7 +67,8 @@ func ParseState(pathname, rawQuery string) (State, error) {
 	return State{Page: definition.ID, Request: productui.PageRequest{
 		Page: definition.ID, Locale: values.Get("locale"), Query: values.Get("q"), Mode: values.Get("mode"),
 		SelectedWork: values.Get("selected"), SelectedPerson: values.Get("person"),
-		PeoplePage: peoplePage, WorkflowQuery: values.Get("workflow_q"), HistoryQuery: values.Get("history_q"), HistoryOutcome: values.Get("outcome"),
+		PeoplePage: peoplePage, PeopleTeam: values.Get("team"), PeopleLocation: values.Get("location"), PeopleSort: values.Get("sort"), PeopleDirection: values.Get("dir"),
+		WorkflowQuery: values.Get("workflow_q"), HistoryQuery: values.Get("history_q"), HistoryOutcome: values.Get("outcome"),
 		HistoryPerson: values.Get("history_person"), HistoryYear: values.Get("history_year"), HistorySort: values.Get("history_sort"), HistoryDirection: values.Get("history_dir"),
 		WorkFilter: values.Get("filter"), NavCollapsed: values.Get("nav") == "collapsed",
 		JourneyID: values.Get("journey"), JourneyWorker: values.Get("worker"), JourneyMode: values.Get("mode"),
@@ -81,33 +91,68 @@ func parseFavoritePages(raw string) []productui.PageID {
 // preserves partial successful answers and joins failures so the UI can show
 // an honest degraded state instead of substituting sample records.
 func Load(ctx context.Context, service Service, session Session, state State) (productui.View, error) {
-	view := productui.NewView(state.Page, displayLabel(session.Tenant), displayLabel(session.Principal), displayLabel(session.Scope))
+	view := LoadingView(session, state)
 	var failures []error
+	var journeysResponse *journeyv1.ListJourneysResponse
+	var workersResponse *journeyv1.ListWorkersResponse
+	var journeysErr, workersErr error
+	var reads sync.WaitGroup
 	if service.ListJourneys == nil {
-		failures = append(failures, errors.New("JourneyService.ListJourneys is not connected"))
-	} else if response, err := service.ListJourneys(ctx, &journeyv1.ListJourneysRequest{}); err != nil {
-		failures = append(failures, fmt.Errorf("list journeys: %w", err))
+		journeysErr = errors.New("JourneyService.ListJourneys is not connected")
+	} else {
+		reads.Add(1)
+		go func() {
+			defer reads.Done()
+			journeysResponse, journeysErr = service.ListJourneys(ctx, &journeyv1.ListJourneysRequest{})
+			if journeysErr != nil {
+				journeysErr = fmt.Errorf("list journeys: %w", journeysErr)
+			}
+		}()
+	}
+	if service.ListWorkers == nil {
+		workersErr = errors.New("JourneyService.ListWorkers is not connected")
+	} else {
+		reads.Add(1)
+		go func() {
+			defer reads.Done()
+			workersResponse, workersErr = service.ListWorkers(ctx, &journeyv1.ListWorkersRequest{})
+			if workersErr != nil {
+				workersErr = fmt.Errorf("list workers: %w", workersErr)
+			}
+		}()
+	}
+	reads.Wait()
+
+	if journeysErr != nil {
+		failures = append(failures, journeysErr)
 	} else {
 		var projectionErr error
-		view.Work, projectionErr = projectJourneys(response.GetJourneys())
+		view.Work, projectionErr = projectJourneys(journeysResponse.GetJourneys())
 		if projectionErr != nil {
 			failures = append(failures, projectionErr)
 		}
 	}
-	if service.ListWorkers == nil {
-		failures = append(failures, errors.New("JourneyService.ListWorkers is not connected"))
-	} else if response, err := service.ListWorkers(ctx, &journeyv1.ListWorkersRequest{}); err != nil {
-		failures = append(failures, fmt.Errorf("list workers: %w", err))
+	if workersErr != nil {
+		failures = append(failures, workersErr)
 	} else {
 		var projectionErr error
-		view.People, projectionErr = projectWorkers(response.GetWorkers())
+		view.People, projectionErr = projectWorkers(workersResponse.GetWorkers())
 		if projectionErr != nil {
 			failures = append(failures, projectionErr)
+		}
+	}
+	photosByWorker := make(map[string]string, len(view.People))
+	for _, person := range view.People {
+		photosByWorker[person.ID] = person.PhotoURL
+	}
+	for index := range view.Work {
+		if photo := photosByWorker[view.Work[index].PersonRef]; photo != "" {
+			view.Work[index].PhotoURL = photo
 		}
 	}
 	for index := range view.Navigation {
 		if view.Navigation[index].Page == productui.PageWork {
-			view.Navigation[index].Count = len(view.Work)
+			view.Navigation[index].Count = len(productui.OpenWorkItems(view.Work))
 		}
 	}
 	view = productui.ApplyRequest(view, state.Request)
@@ -129,10 +174,10 @@ func projectJourneys(journeys []*journeyv1.Journey) ([]productui.WorkItem, error
 		current, target := journey.GetCurrent(), journey.GetTarget()
 		currentJob, targetJob := "", ""
 		if current != nil {
-			currentJob = strings.TrimSpace(current.GetJobCode() + " " + current.GetGrade())
+			currentJob = concisePlacementLabel(current.GetJobCode(), current.GetGrade())
 		}
 		if target != nil {
-			targetJob = strings.TrimSpace(target.GetJobCode() + " " + target.GetGrade())
+			targetJob = concisePlacementLabel(target.GetJobCode(), target.GetGrade())
 		}
 		summary := strings.TrimSpace(currentJob + " → " + targetJob)
 		currentBase, err := moneyFromWire(journey.GetCurrentBase(), journey.GetCurrency())
@@ -164,23 +209,39 @@ func timestampLabel(stamp *timestamppb.Timestamp) string {
 func projectWorkers(workers []*journeyv1.Worker) ([]productui.Person, error) {
 	people := make([]productui.Person, 0, len(workers))
 	var failures []error
+	namesByRef := make(map[string]string, len(workers)*2)
 	for _, worker := range workers {
 		if worker == nil {
 			continue
 		}
-		name := strings.TrimSpace(worker.GetPreferredName())
-		if name == "" {
-			name = strings.TrimSpace(worker.GetLegalName())
+		name := workerDisplayName(worker)
+		namesByRef[worker.GetWorkerRef()] = name
+		namesByRef[worker.GetWorkerId()] = name
+	}
+	for _, worker := range workers {
+		if worker == nil {
+			continue
 		}
-		role := strings.TrimSpace(worker.GetJobCode() + " · " + worker.GetGrade())
+		name := workerDisplayName(worker)
+		title := strings.TrimSpace(worker.GetJobTitle())
+		if title == "" {
+			// A job code is more truthful and legible than title-casing an acronym
+			// when the authoritative service has not published a job title.
+			title = strings.TrimSpace(worker.GetJobCode())
+		}
+		role := strings.TrimSpace(title + " · " + worker.GetGrade())
+		photoURL := strings.TrimSpace(worker.GetProfilePhotoUrl())
+		if photoURL == "" {
+			photoURL = employeePhotoURL(worker.GetWorkerRef(), name)
+		}
 		basePay, err := moneyFromWire(worker.GetBasePay(), worker.GetCurrency())
 		if err != nil {
 			failures = append(failures, fmt.Errorf("project worker %s base pay: %w", worker.GetWorkerRef(), err))
 		}
 		people = append(people, productui.Person{
-			ID: worker.GetWorkerRef(), WorkerID: worker.GetWorkerId(), Initials: uicomponents.Initials(name), PhotoURL: employeePhotoURL(worker.GetWorkerRef(), name), Name: name,
+			ID: worker.GetWorkerRef(), WorkerID: worker.GetWorkerId(), Initials: uicomponents.Initials(name), PhotoURL: photoURL, Name: name,
 			LegalName: worker.GetLegalName(), PreferredName: worker.GetPreferredName(), Role: role,
-			Team: worker.GetOrgUnit(), Location: worker.GetLocation(), WorkerNumber: worker.GetWorkerNumber(),
+			Team: orgUnitLabel(worker.GetOrgUnit()), Manager: managerLabel(worker.GetManagerRef(), namesByRef), Location: worker.GetLocation(), WorkerNumber: worker.GetWorkerNumber(),
 			JobCode: worker.GetJobCode(), Grade: worker.GetGrade(), PositionID: worker.GetPositionId(),
 			PayZone: worker.GetPayZone(), BasePay: basePay,
 			BonusTarget: worker.GetBonusTarget(), HireDate: worker.GetHireDate(), Source: worker.GetSource(),
@@ -188,6 +249,50 @@ func projectWorkers(workers []*journeyv1.Worker) ([]productui.Person, error) {
 		})
 	}
 	return people, errors.Join(failures...)
+}
+
+func workerDisplayName(worker *journeyv1.Worker) string {
+	if worker == nil {
+		return ""
+	}
+	name := strings.TrimSpace(worker.GetPreferredName())
+	if name == "" {
+		name = strings.TrimSpace(worker.GetLegalName())
+	}
+	return name
+}
+
+func managerLabel(ref string, namesByRef map[string]string) string {
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return ""
+	}
+	if name := namesByRef[ref]; name != "" {
+		return name
+	}
+	lowerRef := strings.ToLower(ref)
+	if strings.HasPrefix(lowerRef, "board:") {
+		return "HarborCare Board"
+	}
+	if strings.HasPrefix(lowerRef, "rel:") || strings.HasPrefix(lowerRef, "rel-") || strings.HasPrefix(lowerRef, "rel_") || strings.HasPrefix(lowerRef, "eref:") {
+		return "Not available"
+	}
+	return displayLabel(ref)
+}
+
+func concisePlacementLabel(jobCode, grade string) string {
+	jobCode = strings.TrimSpace(jobCode)
+	for prefixLength := 1; prefixLength <= len(jobCode)/2; prefixLength++ {
+		if len(jobCode)%prefixLength != 0 {
+			continue
+		}
+		prefix := jobCode[:prefixLength]
+		if strings.Repeat(prefix, len(jobCode)/prefixLength) == jobCode {
+			jobCode = prefix
+			break
+		}
+	}
+	return strings.TrimSpace(jobCode + " " + strings.TrimSpace(grade))
 }
 
 // employeePhotoURL binds the stable demo employees exposed by the seeded cell
@@ -259,18 +364,29 @@ func stagePresentation(stage journeyv1.JourneyStage) (status, tone string, termi
 	case journeyv1.JourneyStage_JOURNEY_STAGE_FAILED:
 		return "Failed", "danger", true
 	default:
-		return "Unknown stage", "warning", false
+		return "Status unavailable", "warning", false
 	}
 }
 
 func displayLabel(value string) string {
-	words := strings.Fields(strings.NewReplacer("_", " ", "-", " ").Replace(strings.TrimSpace(value)))
-	for index, word := range words {
-		runes := []rune(strings.ToLower(word))
-		if len(runes) > 0 {
-			runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
-		}
-		words[index] = string(runes)
+	return productui.DisplayLabel(value)
+}
+
+func orgUnitLabel(code string) string {
+	if label, ok := map[string]string{
+		"care-operations":      "Care Operations",
+		"data-analytics":       "Data & Analytics",
+		"eng-platform":         "Engineering Platform",
+		"engineering-platform": "Engineering Platform",
+		"growth-customer":      "Growth & Customer",
+		"legal-compliance":     "Legal & Compliance",
+		"people-ops":           "People Operations",
+		"people-operations":    "People Operations",
+		"product-technology":   "Product & Technology",
+		"quality-safety":       "Quality & Safety",
+		"security-it":          "Security & IT",
+	}[strings.ToLower(strings.TrimSpace(code))]; ok {
+		return label
 	}
-	return strings.Join(words, " ")
+	return displayLabel(code)
 }

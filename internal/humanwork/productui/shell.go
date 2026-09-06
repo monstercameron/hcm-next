@@ -19,6 +19,9 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 	if view.NavCollapsed {
 		class += " nav-collapsed"
 	}
+	if view.Loading {
+		class += " is-loading"
+	}
 	content := page
 	if view.LoadError != "" {
 		content = html.Div(html.Props{Class: "page-stack"},
@@ -26,8 +29,13 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 			page,
 		)
 	}
+	announcement := view.Locale.Text("shell.page_loaded", map[string]string{"title": view.Title})
+	if view.Loading {
+		announcement = view.Locale.Text("shell.loading_authorized")
+	}
 	return html.Div(html.Props{Class: class},
 		html.A(html.Props{Class: "skip-link", Href: "#main-content"}, ui.Text(view.Locale.Text("shell.skip_main"))),
+		html.Div(html.Props{Class: "sr-only route-announcer", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(announcement)),
 		appHeader(view),
 		html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view), pageFrame(view, content, showHeading)),
 	)
@@ -35,21 +43,47 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 
 func appHeader(view View) ui.Node {
 	appearance := NormalizeCustomerTheme(view.Appearance)
+	toggle := navigationToggleProps(view)
 	return html.Header(html.Props{Class: "topbar"},
-		appLink(view, html.Props{Class: "wordmark", Title: appearance.BrandName}, navigationHref(view, PageHome),
-			html.Span(html.Props{Class: "wordmark-mark", Aria: map[string]string{"hidden": "true"}, Data: map[string]string{"hcm-brand-mark": ""}}, ui.Text(appearance.BrandMark)),
-			html.Span(html.Props{Class: "wordmark-label", Data: map[string]string{"hcm-brand-name": ""}}, ui.Text(appearance.BrandName)),
+		html.Div(html.Props{Class: "brand-cluster"},
+			appLink(view, html.Props{Class: "wordmark", Title: appearance.BrandName, Data: map[string]string{"hcm-brand-link": ""}}, navigationHref(view, PageHome),
+				ui.CreateElement(BrandLogo, BrandLogoProps{Name: appearance.BrandName, Mark: appearance.BrandMark, LogoURL: appearance.BrandLogoURL}),
+			),
+			softwareLink(toggle.Navigate, html.Props{
+				Class: "header-nav-toggle",
+				Aria:  map[string]string{"label": toggle.Label, "expanded": fmt.Sprint(!view.NavCollapsed), "controls": "workspace-navigation"},
+				Raw:   map[string]any{"title": toggle.Label},
+			}, toggle.Href, navIcon(toggle.Icon)),
 		),
 		globalSearch(view),
 		localeMenu(view),
-		notificationMenu(view),
+		notificationSlot(view),
 		avatar(uicomponents.Initials(view.Principal), ""),
 	)
 }
 
+func notificationSlot(view View) ui.Node {
+	if view.Loading {
+		return html.Div(html.Props{Class: "notifications notification-loading", Raw: map[string]any{"aria-hidden": "true"}},
+			html.Span(html.Props{Class: "loading-block loading-notification"}),
+		)
+	}
+	return notificationMenu(view)
+}
+
 func globalSearch(view View) ui.Node {
+	query := view.Query
+	inputProps := html.Props{Name: "q", Value: view.Query, Raw: map[string]any{"type": "search", "placeholder": view.Locale.Text("shell.search_employees"), "aria-label": view.Locale.Text("shell.search_employees")}}
+	formProps := html.Props{Class: "global-search", Action: pageHref(PagePeople), Method: "get", Raw: map[string]any{"role": "search"}}
+	if view.Navigate != nil {
+		inputProps.OnInput = ui.UseEvent(func(event ui.InputEvent) { query = event.GetValue() })
+		formProps.OnSubmit = ui.UseEvent(func(event ui.FormEvent) {
+			event.PreventDefault()
+			view.Navigate(statefulHref(view, PagePeople, "q", strings.TrimSpace(query)))
+		})
+	}
 	children := []ui.Node{
-		html.Tag("input", html.Props{Name: "q", Value: view.Query, Raw: map[string]any{"type": "search", "placeholder": view.Locale.Text("shell.search_employees"), "aria-label": view.Locale.Text("shell.search_employees")}}),
+		html.Tag("input", inputProps),
 	}
 	if locale := view.Locale.normalized(); locale.Resolved != DefaultProductLocale {
 		children = append(children, html.Tag("input", html.Props{Name: "locale", Value: locale.Resolved, Raw: map[string]any{"type": "hidden"}}))
@@ -57,16 +91,17 @@ func globalSearch(view View) ui.Node {
 	if view.NavCollapsed {
 		children = append(children, html.Tag("input", html.Props{Name: "nav", Value: "collapsed", Raw: map[string]any{"type": "hidden"}}))
 	}
-	return html.Form(html.Props{Class: "global-search", Action: pageHref(PagePeople), Method: "get", Raw: map[string]any{"role": "search"}}, children...)
+	return html.Form(formProps, children...)
 }
 
 func notificationMenu(view View) ui.Node {
-	label := view.Locale.Text("shell.work_overview") + ", " + view.Locale.Plural("shell.work_count", int64(len(view.Work)))
+	open := len(OpenWorkItems(view.Work))
+	label := view.Locale.Text("shell.work_overview") + ", " + view.Locale.Plural("shell.work_count", int64(open))
 	return html.Details(html.Props{Class: "notifications"},
-		html.Summary(html.Props{Aria: map[string]string{"label": label}}, ui.Text(view.Locale.Text("shell.work_overview"))),
+		html.Summary(html.Props{Aria: map[string]string{"label": label}}, navIcon("notifications")),
 		html.Div(html.Props{Class: "popover"},
 			html.H2(html.Props{}, ui.Text(view.Locale.Text("shell.work_overview"))),
-			html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(len(view.Work))))),
+			html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(open)))),
 			appLink(view, html.Props{}, statefulHref(view, PageWork), ui.Text(view.Locale.Text("shell.open_work"))),
 		),
 	)
@@ -74,16 +109,14 @@ func notificationMenu(view View) ui.Node {
 
 func localeMenu(view View) ui.Node {
 	locale := view.Locale.normalized()
-	items := make([]ui.Node, 0, len(SupportedProductLocales()))
-	for _, candidate := range SupportedProductLocales() {
-		candidateView := view
-		candidateView.Locale = ResolveProductLocale(candidate)
-		labelKey := map[string]string{"en-US": "shell.locale_en", "de-DE": "shell.locale_de", "ar": "shell.locale_ar"}[candidate]
+	localePreferences := localePreferencesProps(view)
+	items := make([]ui.Node, 0, len(localePreferences.Options))
+	for _, option := range localePreferences.Options {
 		props := html.Props{Class: "locale-option"}
-		if candidate == locale.Resolved {
+		if option.Current {
 			props.Aria = map[string]string{"current": "true"}
 		}
-		items = append(items, appLink(view, props, currentPageHref(candidateView, view.NavCollapsed), ui.Text(candidateView.Locale.Text(labelKey))))
+		items = append(items, softwareLink(option.Navigate, props, option.Href, ui.Text(option.Label)))
 	}
 	return html.Details(html.Props{Class: "locale-menu"},
 		html.Summary(html.Props{Aria: map[string]string{"label": locale.Text("shell.locale")}, Raw: map[string]any{"title": locale.Text("shell.locale")}}, ui.Text(strings.ToUpper(strings.Split(locale.Resolved, "-")[0]))),
@@ -133,6 +166,7 @@ func currentPageAddressState(view View, collapsed bool) url.Values {
 		if view.Query != "" {
 			values.Set("q", view.Query)
 		}
+		setPeopleDirectoryAddressState(values, view)
 		if view.PeoplePage > 1 {
 			values.Set("page", fmt.Sprint(view.PeoplePage))
 		}
@@ -143,6 +177,7 @@ func currentPageAddressState(view View, collapsed bool) url.Values {
 		if view.Query != "" {
 			values.Set("q", view.Query)
 		}
+		setPeopleDirectoryAddressState(values, view)
 		if view.PeoplePage > 1 {
 			values.Set("page", fmt.Sprint(view.PeoplePage))
 		}
@@ -161,6 +196,21 @@ func currentPageAddressState(view View, collapsed bool) url.Values {
 		setHistoryAddressState(values, view)
 	}
 	return values
+}
+
+func setPeopleDirectoryAddressState(values url.Values, view View) {
+	if view.PeopleTeam != "" {
+		values.Set("team", view.PeopleTeam)
+	}
+	if view.PeopleLocation != "" {
+		values.Set("location", view.PeopleLocation)
+	}
+	if view.PeopleSort != "" && view.PeopleSort != peopleSortName {
+		values.Set("sort", view.PeopleSort)
+	}
+	if view.PeopleDirection == peopleSortDescending {
+		values.Set("dir", view.PeopleDirection)
+	}
 }
 
 func setHistoryAddressState(values url.Values, view View) {
@@ -199,7 +249,15 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 			html.Span(html.Props{}, ui.Text(view.Locale.Text("shell.live_source", map[string]string{"source": source}))),
 		),
 	)
-	return html.Main(html.Props{ID: "main-content", Class: "main-scroll"},
+	mainProps := html.Props{ID: "main-content", Class: "main-scroll"}
+	mainProps.Raw = map[string]any{}
+	if showHeading {
+		mainProps.Raw["aria-labelledby"] = "page-title"
+	}
+	if view.Loading {
+		mainProps.Raw["aria-busy"] = "true"
+	}
+	return html.Main(mainProps,
 		html.Div(html.Props{Class: "main"}, children...),
 	)
 }
@@ -210,7 +268,7 @@ func pageHeader(view View) ui.Node {
 		scope = view.Locale.Text("shell.authenticated_scope")
 	}
 	return html.Div(html.Props{Class: "page-head"},
-		html.Div(html.Props{}, html.H1(html.Props{}, ui.Text(view.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(view.Subtitle))),
+		html.Div(html.Props{}, html.H1(html.Props{ID: "page-title", Raw: map[string]any{"tabindex": "-1"}}, ui.Text(view.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(view.Subtitle))),
 		html.Div(html.Props{Class: "scope-wrap"},
 			appLink(view, html.Props{Class: "scope"}, statefulHref(view, PageSettings), ui.Text(scope+" ⌄")),
 			html.Span(html.Props{}, ui.Text(view.Locale.Text("shell.acting_self"))),

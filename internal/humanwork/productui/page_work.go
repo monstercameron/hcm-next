@@ -16,7 +16,7 @@ func workPage(view View) ui.Node {
 	return ui.CreateElement(WorkPage, WorkPageProps{
 		I18nProps:  I18nProps{Locale: view.Locale},
 		Collection: workCollectionProps(view, workCollectionOptions{Title: view.Locale.Text("work.promotion_journeys"), ListDetail: true}),
-		Preview:    workPreviewProps(view, selectedWork(view)),
+		Preview:    workPreviewProps(view, selectedOpenWork(view)),
 	})
 }
 
@@ -29,21 +29,48 @@ func workCollectionProps(view View, options workCollectionOptions) WorkCollectio
 	if options.ListDetail {
 		tabs = append(tabs, WorkTabProps{Label: view.Locale.Text("work.past"), Href: statefulHref(view, PageHistory), Navigate: view.Navigate})
 	}
-	rows := make([]WorkRowProps, 0, len(view.Work))
-	for _, item := range view.Work {
+	items := view.Work
+	if view.WorkFilter == "" {
+		items = OpenWorkItems(items)
+	}
+	selectedID := ""
+	if options.ListDetail {
+		selectedID = selectedOpenWork(view).ID
+	}
+	rows := make([]WorkRowProps, 0, len(items))
+	for _, item := range items {
 		rows = append(rows, WorkRowProps{
 			Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
 			Summary: item.Summary, Status: item.Status, Due: item.Due, Tone: item.Tone,
 			Href:     statefulHref(view, PageWork, "filter", view.WorkFilter, "selected", item.ID),
-			Selected: options.ListDetail && item.ID == view.SelectedWork, Navigate: view.Navigate,
+			Selected: options.ListDetail && item.ID == selectedID, Navigate: view.Navigate,
 		})
 	}
 	return WorkCollectionProps{
-		Title: options.Title, CountLabel: view.Locale.Plural("work.item_count", int64(len(view.Work))), Tabs: tabs, Rows: rows,
+		Title: options.Title, CountLabel: view.Locale.Plural("work.item_count", int64(len(items))), Tabs: tabs, Rows: rows,
 		Footer: WorkCollectionFooterProps{Label: view.Locale.Text("work.authorized"), Action: ActionLinkProps{
 			Label: view.Locale.Text("work.view"), Href: statefulHref(view, PageWork), Navigate: view.Navigate,
 		}},
 	}
+}
+
+func selectedOpenWork(view View) WorkItem {
+	if view.WorkFilter != "" {
+		return selectedWork(view)
+	}
+	items := OpenWorkItems(view.Work)
+	if view.SelectedWork != "" {
+		for _, item := range items {
+			if item.ID == view.SelectedWork {
+				return item
+			}
+		}
+		return WorkItem{}
+	}
+	if len(items) > 0 {
+		return items[0]
+	}
+	return WorkItem{}
 }
 
 func workTabProps(view View, filter, label string) WorkTabProps {

@@ -39,6 +39,104 @@ func TestMenuFilterKeepsOnlyMatchingHierarchy(t *testing.T) {
 	}
 }
 
+func TestMenuFilterFuzzyRanksMetadataAndHidesUnrelatedSupport(t *testing.T) {
+	view := ApplyRequest(testView(PageSettings), PageRequest{MenuQuery: "pe"})
+	favorites, items := projectNavigation(view)
+	if len(favorites) != 0 || len(items) != 1 || items[0].Page != PagePeople {
+		t.Fatalf("short prefix should resolve only People: favorites=%+v items=%+v", favorites, items)
+	}
+	props := navigationSidebarProps(view)
+	if len(props.Support) != 0 {
+		t.Fatalf("unrelated support links remained during search: %+v", props.Support)
+	}
+	if items[0].MatchDetail == "" || items[0].MatchScore == 0 {
+		t.Fatalf("matching metadata was not projected: %+v", items[0])
+	}
+}
+
+func TestMenuFilterFindsAliasesTyposAndMultipleTerms(t *testing.T) {
+	for _, test := range []struct {
+		query string
+		page  PageID
+	}{
+		{query: "employee", page: PagePeople},
+		{query: "poeple", page: PagePeople},
+		{query: "ppl", page: PagePeople},
+		{query: "dark mode", page: PageAdmin},
+		{query: "past workflow", page: PageWork},
+		{query: "org chart", page: PageOrganization},
+	} {
+		t.Run(test.query, func(t *testing.T) {
+			view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: test.query})
+			_, items := projectNavigation(view)
+			if len(items) == 0 || items[0].Page != test.page {
+				t.Fatalf("fuzzy query %q ranked %+v, want %s first", test.query, items, test.page)
+			}
+		})
+	}
+}
+
+func TestSupportMenusParticipateInFuzzySearch(t *testing.T) {
+	view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "language"})
+	props := navigationSidebarProps(view)
+	if len(props.Items) != 0 || len(props.Support) != 1 || props.Support[0].Page != PageSettings {
+		t.Fatalf("language query = items %+v support %+v, want Settings only", props.Items, props.Support)
+	}
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(doc, ">Help</span>") || !strings.Contains(doc, "available preferences") {
+		t.Fatalf("filtered support result did not render metadata: %s", doc)
+	}
+}
+
+func TestEveryRegisteredPageCarriesNavigationSearchMetadata(t *testing.T) {
+	for _, definition := range PageDefinitions() {
+		if definition.SubtitleKey == "" || len(definition.SearchTerms) == 0 {
+			t.Errorf("page %s has incomplete navigation search metadata: %+v", definition.ID, definition)
+		}
+	}
+}
+
+func TestFavoriteOnlySearchDoesNotRenderAnEmptyAllNavigationSection(t *testing.T) {
+	view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "staff", FavoritePages: []PageID{PagePeople}})
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(doc, ">Favorites</li>") || strings.Contains(doc, ">All navigation</li>") {
+		t.Fatal("favorite-only fuzzy result rendered an empty ordinary-navigation section")
+	}
+}
+
+func TestMenuFilterUsesDebouncedSoftwareNavigationAndImmediateSubmit(t *testing.T) {
+	view := testView(PageSettings)
+	var scheduled, immediate string
+	cancelled := 0
+	view.Navigate = func(href string) { immediate = href }
+	view.NavigateDebounced = func(href string) { scheduled = href }
+	view.CancelDebouncedNavigation = func() { cancelled++ }
+	filter := navigationSidebarProps(view).Filter
+	if filter.OnInput == nil || filter.OnFilter == nil {
+		t.Fatal("live menu filter has no input or submit enhancement")
+	}
+
+	filter.OnInput(" work ")
+	if scheduled != "/workspace/app/settings?menu_q=work" || immediate != "" || cancelled != 0 {
+		t.Fatalf("debounced filter scheduled=%q immediate=%q cancelled=%d", scheduled, immediate, cancelled)
+	}
+	filter.OnFilter("people")
+	if immediate != "/workspace/app/settings?menu_q=people" || cancelled != 1 {
+		t.Fatalf("submitted filter immediate=%q cancelled=%d", immediate, cancelled)
+	}
+
+	filter.OnInput("")
+	if cancelled != 2 {
+		t.Fatalf("returning to the rendered query did not cancel pending navigation: %d", cancelled)
+	}
+}
+
 func TestFavoritesMoveLeavesToTheTopAndToggleWithoutLosingPageState(t *testing.T) {
 	view := ApplyRequest(testView(PageWork), PageRequest{
 		WorkFilter: "review", MenuQuery: "", FavoritePages: []PageID{PageHistory, PagePeople, PageHistory, "unknown"},
@@ -74,7 +172,7 @@ func TestSidebarRendersAccessibleFilterFavoriteAndDisclosureControls(t *testing.
 	for _, want := range []string{
 		`id="menu-filter"`, `aria-label="Filter navigation menu"`, `>Favorites</li>`,
 		`aria-label="Remove People from favorites"`, `class="nav-group current"`, `open`,
-		`>Work queue</span>`, `>Work History</span>`,
+		`data-hcm-nav-group="work"`, `>Work queue</span>`, `>Work History</span>`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("sidebar missing %q", want)
@@ -96,6 +194,69 @@ func TestCollapsedSidebarOmitsFilterAndUsesGroupDestination(t *testing.T) {
 	}
 	if !strings.Contains(doc, `href="/workspace/app/work?menu_q=history&amp;nav=collapsed"`) {
 		t.Fatal("collapsed My Work group has no software-navigation destination")
+	}
+}
+
+func TestFilteredNavigationForcesMatchingGroupsOpenWithoutChangingPreference(t *testing.T) {
+	view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "history"})
+	view.NavigationGroupOpen = map[PageID]bool{PageWork: false}
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`data-hcm-nav-group="work"`, `data-hcm-nav-force-open="true"`, `open`} {
+		if !strings.Contains(doc, want) {
+			t.Fatalf("filtered navigation group missing %q", want)
+		}
+	}
+}
+
+func TestSavedNavigationDisclosureOverridesContextualDefault(t *testing.T) {
+	view := testView(PageHistory)
+	view.NavigationGroupOpen = map[PageID]bool{PageWork: false, PageAdmin: true}
+	_, items := projectNavigation(view)
+	work, _ := projectedNavigationItem(items, PageWork)
+	admin, _ := projectedNavigationItem(items, PageAdmin)
+	if work.Expanded {
+		t.Fatal("saved closed state did not override the active-route default")
+	}
+	if !admin.Expanded {
+		t.Fatal("saved open state did not override the inactive-route default")
+	}
+}
+
+func TestNavigationToggleIsGlyphOnlyBesideBrandAndControlsSidebar(t *testing.T) {
+	doc, err := Render(testView(PageHome))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`class="brand-cluster"`, `class="header-nav-toggle"`,
+		`aria-label="Collapse navigation"`, `aria-expanded="true"`,
+		`aria-controls="workspace-navigation"`, `id="workspace-navigation"`,
+	} {
+		if !strings.Contains(doc, want) {
+			t.Fatalf("header navigation control missing %q", want)
+		}
+	}
+	start := strings.Index(doc, `class="header-nav-toggle"`)
+	if strings.Contains(doc, `class="sidebar-toggle"`) || start < 0 {
+		t.Fatal("navigation toggle is not a glyph-only header control")
+	}
+	end := strings.Index(doc[start:], `</a>`)
+	if end < 0 {
+		t.Fatal("navigation toggle has no closing link")
+	}
+	bodyStart := strings.Index(doc[start:start+end], `>`)
+	if bodyStart < 0 {
+		t.Fatal("navigation toggle is not a glyph-only header control")
+	}
+	toggleBody := doc[start+bodyStart+1 : start+end]
+	if !strings.Contains(toggleBody, `<svg`) || strings.Contains(toggleBody, `<span`) {
+		t.Fatalf("navigation toggle body is not glyph-only: %s", toggleBody)
+	}
+	if strings.Index(doc, `class="header-nav-toggle"`) > strings.Index(doc, `id="workspace-navigation"`) {
+		t.Fatal("navigation toggle is not colocated with the brand before the sidebar")
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 type AppearancePageProps struct {
 	I18nProps
 	Theme      CustomerTheme
+	ColorModes []AppearanceOption
 	Palettes   []AppearanceOption
 	Shapes     []AppearanceOption
 	Densities  []AppearanceOption
@@ -38,11 +39,18 @@ func AppearancePage(props AppearancePageProps) ui.Node {
 		),
 		html.Form(html.Props{Class: "appearance-form", OnSubmit: preventFormSubmit(props.OnSave, &draft)},
 			html.Div(html.Props{Class: "appearance-controls"},
+				appearanceChoices(props.Text("appearance.color_mode"), props.Text("appearance.color_mode_help"), "color_mode", draft.ColorMode, props.ColorModes, "color-mode-choices", func(value string) {
+					draft.ColorMode = value
+					previewAppearance(props.OnPreview, draft)
+				}),
 				appearanceBrandSignature(props.I18nProps, draft, func(value string) {
 					draft.BrandName = value
 					previewAppearance(props.OnPreview, draft)
 				}, func(value string) {
 					draft.BrandMark = value
+					previewAppearance(props.OnPreview, draft)
+				}, func(value string) {
+					draft.BrandLogoURL = value
 					previewAppearance(props.OnPreview, draft)
 				}),
 				appearanceChoices(props.Text("appearance.palette"), props.Text("appearance.palette_help"), "palette", draft.Palette, props.Palettes, "palette-choices", func(value string) {
@@ -79,14 +87,18 @@ func AppearancePage(props AppearancePageProps) ui.Node {
 	)
 }
 
-func appearanceBrandSignature(i18n I18nProps, theme CustomerTheme, onName, onMark func(string)) ui.Node {
+func appearanceBrandSignature(i18n I18nProps, theme CustomerTheme, onName, onMark, onLogo func(string)) ui.Node {
 	name := html.Props{ID: "appearance-brand-name", Type: "text", Name: "brand_name", Value: theme.BrandName, MaxLength: 40, AutoComplete: "off"}
 	mark := html.Props{ID: "appearance-brand-mark", Type: "text", Name: "brand_mark", Value: theme.BrandMark, MaxLength: 3, AutoComplete: "off"}
+	logo := html.Props{ID: "appearance-brand-logo", Type: "text", Name: "brand_logo_url", Value: theme.BrandLogoURL, MaxLength: 240, AutoComplete: "off", Raw: map[string]any{"placeholder": i18n.Text("appearance.company_logo_placeholder"), "inputmode": "url"}}
 	if onName != nil {
 		name.OnInput = ui.UseEvent(func(event ui.InputEvent) { onName(event.GetValue()) })
 	}
 	if onMark != nil {
 		mark.OnInput = ui.UseEvent(func(event ui.InputEvent) { onMark(event.GetValue()) })
+	}
+	if onLogo != nil {
+		logo.OnInput = ui.UseEvent(func(event ui.InputEvent) { onLogo(event.GetValue()) })
 	}
 	return html.Fieldset(html.Props{Class: "surface appearance-group"},
 		html.Legend(html.Props{}, ui.Text(i18n.Text("appearance.brand_signature"))),
@@ -94,6 +106,7 @@ func appearanceBrandSignature(i18n I18nProps, theme CustomerTheme, onName, onMar
 		html.Div(html.Props{Class: "appearance-brand-fields"},
 			html.Label(html.Props{For: name.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.workspace_name"))), html.Input(name), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.workspace_name_help")))),
 			html.Label(html.Props{For: mark.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.short_mark"))), html.Input(mark), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.short_mark_help")))),
+			html.Label(html.Props{Class: "appearance-brand-logo-field", For: logo.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.company_logo"))), html.Input(logo), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.company_logo_help")))),
 		),
 	)
 }
@@ -114,7 +127,7 @@ func appearanceChoices(title, help, name, selected string, options []AppearanceO
 			}
 			content = append(content, html.Span(html.Props{Class: "appearance-swatches", Aria: map[string]string{"hidden": "true"}}, swatches...))
 		}
-		choices = append(choices, html.Label(html.Props{Class: "appearance-choice"}, content...))
+		choices = append(choices, html.Label(html.Props{Class: "appearance-choice appearance-choice-" + name + "-" + option.ID}, content...))
 	}
 	choiceClass := "appearance-choices"
 	if class != "" {
@@ -137,8 +150,7 @@ func appearancePreview(props AppearancePageProps) ui.Node {
 		html.Div(html.Props{}, html.H2(html.Props{}, ui.Text(props.Text("appearance.preview"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("appearance.preview_help")))),
 		html.Div(html.Props{Class: "appearance-preview-window", Aria: map[string]string{"hidden": "true"}},
 			html.Div(html.Props{Class: "appearance-preview-bar"},
-				html.Span(html.Props{ID: "appearance-preview-brand-mark", Class: "appearance-preview-mark", Data: map[string]string{"hcm-brand-mark": ""}}, ui.Text(theme.BrandMark)),
-				html.Strong(html.Props{ID: "appearance-preview-brand-name", Data: map[string]string{"hcm-brand-name": ""}}, ui.Text(theme.BrandName)),
+				ui.CreateElement(BrandLogo, BrandLogoProps{Name: theme.BrandName, Mark: theme.BrandMark, LogoURL: theme.BrandLogoURL, Class: "appearance-preview-logo"}),
 			),
 			html.Div(html.Props{Class: "appearance-preview-body"},
 				html.Div(html.Props{Class: "appearance-preview-nav"}, navIcon("home"), navIcon("people"), navIcon("journeys")),

@@ -62,7 +62,8 @@ func workflowHistoryProps(view View, personID, title, description string, withFi
 		Query: view.HistoryQuery, Outcome: view.HistoryOutcome, Person: view.HistoryPerson, Year: view.HistoryYear,
 		People: historyPeopleOptions(view, universe), Years: historyYearOptions(universe), ShowPerson: showPerson,
 		Action: pageHref(target), ClearHref: historyHref(view, target, personID, "", "", "", "", sortKey, direction),
-		PersonID: personID, DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, WorkflowQuery: view.WorkflowQuery,
+		PersonID: personID, DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, DirectoryTeam: view.PeopleTeam,
+		DirectoryLocation: view.PeopleLocation, DirectorySort: view.PeopleSort, DirectoryDirection: view.PeopleDirection, WorkflowQuery: view.WorkflowQuery,
 		Sort: sortKey, Direction: direction, NavCollapsed: view.NavCollapsed, Navigate: view.Navigate,
 	}
 	if showPerson {
@@ -273,7 +274,8 @@ func historyHref(view View, target PageID, personID, query, outcome, selectedPer
 	}
 	if target == PagePerson {
 		values = append(values,
-			"person", personID, "q", view.Query, "page", peoplePageValue(view.PeoplePage), "workflow_q", view.WorkflowQuery,
+			"person", personID, "q", view.Query, "team", view.PeopleTeam, "location", view.PeopleLocation,
+			"sort", view.PeopleSort, "dir", view.PeopleDirection, "page", peoplePageValue(view.PeoplePage), "workflow_q", view.WorkflowQuery,
 		)
 	}
 	return statefulHref(view, target, values...)

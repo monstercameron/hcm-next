@@ -82,13 +82,17 @@ type WorkflowLauncherProps struct {
 // return context across progressive-enhancement and live submissions.
 type WorkflowFilterProps struct {
 	I18nProps
-	Query          string
-	Action         string
-	PersonID       string
-	DirectoryQuery string
-	DirectoryPage  int
-	NavCollapsed   bool
-	OnFilter       func(string)
+	Query              string
+	Action             string
+	PersonID           string
+	DirectoryQuery     string
+	DirectoryPage      int
+	DirectoryTeam      string
+	DirectoryLocation  string
+	DirectorySort      string
+	DirectoryDirection string
+	NavCollapsed       bool
+	OnFilter           func(string)
 }
 
 // WorkflowCardProps is the public presentation contract of one launcher.
@@ -188,7 +192,7 @@ func EmploymentDetails(props EmploymentDetailsProps) ui.Node {
 			html.H2(html.Props{}, ui.Text(title)),
 			html.P(html.Props{Class: "muted"}, ui.Text(description)),
 		)),
-		html.Div(html.Props{Class: "person-fact-grid"}, facts...),
+		html.Tag("dl", html.Props{Class: "person-fact-grid"}, facts...),
 	)
 }
 
@@ -218,15 +222,15 @@ func SensitiveDetails(props SensitiveDetailsProps) ui.Node {
 			html.Strong(html.Props{}, ui.Text(props.Text("person.private_data"))),
 			html.Span(html.Props{}, ui.Text(props.Text("person.private_detail"))),
 		),
-		html.Div(html.Props{Class: "person-fact-grid sensitive-fact-grid"}, facts...),
+		html.Tag("dl", html.Props{Class: "person-fact-grid sensitive-fact-grid"}, facts...),
 	)
 }
 
 // ProfileFact renders one label/value pair.
 func ProfileFact(props ProfileFactProps) ui.Node {
 	return html.Div(html.Props{Class: "profile-fact"},
-		html.Small(html.Props{}, ui.Text(props.Label)),
-		html.Strong(html.Props{}, ui.Text(props.Value)),
+		html.Tag("dt", html.Props{}, ui.Text(props.Label)),
+		html.Tag("dd", html.Props{}, ui.Text(props.Value)),
 	)
 }
 
@@ -289,6 +293,13 @@ func WorkflowFilter(props WorkflowFilterProps) ui.Node {
 	}
 	if props.DirectoryPage > 1 {
 		children = append(children, html.Tag("input", html.Props{Name: "page", Value: peoplePageValue(props.DirectoryPage), Raw: map[string]any{"type": "hidden"}}))
+	}
+	for _, field := range []struct{ name, value string }{
+		{"team", props.DirectoryTeam}, {"location", props.DirectoryLocation}, {"sort", props.DirectorySort}, {"dir", props.DirectoryDirection},
+	} {
+		if field.value != "" {
+			children = append(children, html.Tag("input", html.Props{Name: field.name, Value: field.value, Raw: map[string]any{"type": "hidden"}}))
+		}
 	}
 	if props.NavCollapsed {
 		children = append(children, html.Tag("input", html.Props{Name: "nav", Value: "collapsed", Raw: map[string]any{"type": "hidden"}}))

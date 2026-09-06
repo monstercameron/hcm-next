@@ -34,11 +34,11 @@ func TestAvatarUsesTheShellClassAndAccessibleName(t *testing.T) {
 }
 
 func TestDecorativeAvatarIsHiddenFromAssistiveTechnology(t *testing.T) {
-	out, err := ui.RenderToString(Avatar(AvatarProps{Name: "Jane Doe", Class: "jn-subject-avatar", Decorative: true}))
+	out, err := ui.RenderToString(Avatar(AvatarProps{Name: "Jane Doe", PhotoURL: "/workspace/assets/person-jane.png", Class: "jn-subject-avatar", Decorative: true}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, `aria-hidden="true"`) || strings.Contains(out, `aria-label=`) {
+	if !strings.Contains(out, `aria-hidden="true"`) || !strings.Contains(out, `alt=""`) || strings.Contains(out, `aria-label=`) {
 		t.Fatalf("decorative avatar accessibility = %s", out)
 	}
 }

@@ -45,3 +45,26 @@ func TestLoadingPanelDoesNotMountDisabledControls(t *testing.T) {
 		t.Fatalf("loading panel mounted eventual controls: %s", out)
 	}
 }
+
+func TestNetworkPendingPageMakesStaleControlsInertBehindAProxy(t *testing.T) {
+	page := Page{
+		Notice: &Notice{Tone: toneInfo, Title: "Working…", Detail: "Reading journeys."},
+		List:   &ListView{},
+	}
+	out := renderNode(t, BuildContent(page))
+	for _, want := range []string{
+		`class="jn-embedded jn-network-pending"`, `aria-busy="true"`,
+		`class="jn-network-stale"`, `inert`, `aria-hidden="true"`,
+		`class="jn-panel jn-network-proxy"`, "jn-proxy-row",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("network pending surface missing %q", want)
+		}
+	}
+
+	page.Notice = &Notice{Tone: toneInfo, Title: "For your information", Detail: "Resolved."}
+	out = renderNode(t, BuildContent(page))
+	if strings.Contains(out, "jn-network-proxy") || strings.Contains(out, `aria-busy="true"`) {
+		t.Fatal("an ordinary informational notice was misclassified as a pending network operation")
+	}
+}

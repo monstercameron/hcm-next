@@ -79,11 +79,13 @@ func personWorkflowLauncherProps(view View, person Person) WorkflowLauncherProps
 	}
 	filter := WorkflowFilterProps{
 		Query: view.WorkflowQuery, Action: pageHref(PagePerson), PersonID: person.ID,
-		DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, NavCollapsed: view.NavCollapsed,
+		DirectoryQuery: view.Query, DirectoryPage: view.PeoplePage, DirectoryTeam: view.PeopleTeam, DirectoryLocation: view.PeopleLocation,
+		DirectorySort: view.PeopleSort, DirectoryDirection: view.PeopleDirection, NavCollapsed: view.NavCollapsed,
 	}
 	if view.Navigate != nil {
 		filter.OnFilter = func(query string) {
 			view.Navigate(statefulHref(view, PagePerson, "person", person.ID, "q", view.Query,
+				"team", view.PeopleTeam, "location", view.PeopleLocation, "sort", view.PeopleSort, "dir", view.PeopleDirection,
 				"page", peoplePageValue(view.PeoplePage), "workflow_q", query))
 		}
 	}
@@ -93,5 +95,5 @@ func personWorkflowLauncherProps(view View, person Person) WorkflowLauncherProps
 }
 
 func peopleReturnHref(view View) string {
-	return statefulHref(view, PagePeople, "q", view.Query, "page", peoplePageValue(view.PeoplePage))
+	return peopleDirectoryHref(view, view.PeoplePage, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleSort, view.PeopleDirection)
 }

@@ -23,12 +23,14 @@ const (
 )
 
 type NavItem struct {
-	Page     PageID
-	Label    string
-	LabelKey string
-	Icon     string
-	Count    int
-	Children []NavItem
+	Page        PageID
+	Label       string
+	LabelKey    string
+	Description string
+	Keywords    []string
+	Icon        string
+	Count       int
+	Children    []NavItem
 }
 
 type WorkItem struct {
@@ -105,6 +107,10 @@ type View struct {
 	SelectedPerson   string
 	Query            string
 	PeoplePage       int
+	PeopleTeam       string
+	PeopleLocation   string
+	PeopleSort       string
+	PeopleDirection  string
 	WorkflowQuery    string
 	HistoryQuery     string
 	HistoryOutcome   string
@@ -120,16 +126,29 @@ type View struct {
 	NavCollapsed     bool
 	MenuQuery        string
 	FavoritePages    []PageID
-	Locale           LocaleContext
-	Appearance       CustomerTheme
-	PreviewTheme     func(CustomerTheme)
-	SaveTheme        func(CustomerTheme)
-	ResetTheme       func()
-	Source           string
-	LoadError        string
+	// NavigationGroupOpen contains the browser's tenant-scoped disclosure
+	// preferences. Missing entries retain the page's contextual default.
+	NavigationGroupOpen  map[PageID]bool
+	Locale               LocaleContext
+	Appearance           CustomerTheme
+	Accessibility        AccessibilityPreferences
+	PreviewTheme         func(CustomerTheme)
+	SaveTheme            func(CustomerTheme)
+	ResetTheme           func()
+	PreviewAccessibility func(AccessibilityPreferences)
+	SaveAccessibility    func(AccessibilityPreferences)
+	ResetAccessibility   func()
+	Source               string
+	LoadError            string
+	// Loading is presentation state set only while the route's authorized
+	// database-backed projection is resolving. It never implies authority or
+	// substitutes empty records for an answer from the service.
+	Loading bool
 	// Navigate is installed by the WASM history router. A nil callback keeps
 	// server rendering and tests as ordinary progressive-enhancement links.
-	Navigate func(string)
+	Navigate                  func(string)
+	NavigateDebounced         func(string)
+	CancelDebouncedNavigation func()
 }
 
 // NewView creates an empty, honest presentation projection. Live adapters
@@ -142,7 +161,7 @@ func NewView(page PageID, tenant, principal, scope string) View {
 	view := View{
 		Page: page, Tenant: tenant,
 		Principal: principal, Scope: scope, Source: "JourneyService",
-		Locale: ResolveProductLocale(""),
+		Locale: ResolveProductLocale(""), Accessibility: DefaultAccessibilityPreferences(),
 	}
 	return ApplyLocale(view, view.Locale)
 }

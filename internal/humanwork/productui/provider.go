@@ -9,6 +9,10 @@ type PageRequest struct {
 	Locale           string
 	Query            string
 	PeoplePage       int
+	PeopleTeam       string
+	PeopleLocation   string
+	PeopleSort       string
+	PeopleDirection  string
 	WorkflowQuery    string
 	HistoryQuery     string
 	HistoryOutcome   string
@@ -38,6 +42,10 @@ func ApplyRequest(view View, request PageRequest) View {
 	if view.PeoplePage < 1 {
 		view.PeoplePage = 1
 	}
+	view.PeopleTeam = strings.TrimSpace(request.PeopleTeam)
+	view.PeopleLocation = strings.TrimSpace(request.PeopleLocation)
+	view.PeopleSort = normalizePeopleSort(request.PeopleSort)
+	view.PeopleDirection = normalizePeopleDirection(request.PeopleDirection)
 	view.WorkflowQuery = strings.TrimSpace(request.WorkflowQuery)
 	view.HistoryQuery = strings.TrimSpace(request.HistoryQuery)
 	view.HistoryOutcome = strings.ToLower(strings.TrimSpace(request.HistoryOutcome))

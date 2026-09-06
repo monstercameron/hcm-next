@@ -2,6 +2,7 @@ package productui
 
 import (
 	"fmt"
+	"path"
 	"strings"
 	"unicode"
 )
@@ -10,15 +11,17 @@ import (
 // layer used by the product shell. Every value is an identifier from a closed
 // preset registry; no customer-authored CSS reaches the document.
 type CustomerTheme struct {
-	BrandName  string `json:"brand_name"`
-	BrandMark  string `json:"brand_mark"`
-	Palette    string `json:"palette"`
-	Shape      string `json:"shape"`
-	Density    string `json:"density"`
-	Glyphs     string `json:"glyphs"`
-	Typeface   string `json:"typeface"`
-	Navigation string `json:"navigation"`
-	Motion     string `json:"motion"`
+	BrandName    string `json:"brand_name"`
+	BrandMark    string `json:"brand_mark"`
+	BrandLogoURL string `json:"brand_logo_url,omitempty"`
+	ColorMode    string `json:"color_mode"`
+	Palette      string `json:"palette"`
+	Shape        string `json:"shape"`
+	Density      string `json:"density"`
+	Glyphs       string `json:"glyphs"`
+	Typeface     string `json:"typeface"`
+	Navigation   string `json:"navigation"`
+	Motion       string `json:"motion"`
 }
 
 // AppearanceOption is a reusable editor choice. Swatches are semantic color
@@ -90,12 +93,18 @@ var navigationPresets = []appearancePreset{
 	{Option: AppearanceOption{ID: "brand", Label: "Brand", Description: "High-impact navigation in the primary color"}},
 }
 
+var colorModePresets = []appearancePreset{
+	{Option: AppearanceOption{ID: "system", Label: "Use system setting", Description: "Follow this device and update automatically", Swatches: []string{"#ffffff", "#101820"}}},
+	{Option: AppearanceOption{ID: "light", Label: "Light", Description: "Use the light workspace on this device", Swatches: []string{"#ffffff", "#eaf3ef"}}},
+	{Option: AppearanceOption{ID: "dark", Label: "Dark", Description: "Use the low-light workspace on this device", Swatches: []string{"#101820", "#70b7a5"}}},
+}
+
 // DefaultCustomerTheme is deliberately explicit so stored versions remain
 // understandable even when additional presets are introduced later.
 func DefaultCustomerTheme() CustomerTheme {
 	return CustomerTheme{
 		BrandName: "HCM Next", BrandMark: "H", Palette: "evergreen", Shape: "balanced",
-		Density: "comfortable", Glyphs: "rounded-line", Typeface: "humanist", Navigation: "light", Motion: "calm",
+		ColorMode: "system", Density: "comfortable", Glyphs: "rounded-line", Typeface: "humanist", Navigation: "light", Motion: "calm",
 	}
 }
 
@@ -106,6 +115,10 @@ func NormalizeCustomerTheme(theme CustomerTheme) CustomerTheme {
 	defaults := DefaultCustomerTheme()
 	theme.BrandName = normalizedBrandText(theme.BrandName, 40, defaults.BrandName, false)
 	theme.BrandMark = normalizedBrandText(theme.BrandMark, 3, defaults.BrandMark, true)
+	theme.BrandLogoURL = normalizedBrandLogoURL(theme.BrandLogoURL)
+	if !hasAppearancePreset(colorModePresets, theme.ColorMode) {
+		theme.ColorMode = defaults.ColorMode
+	}
 	if !hasAppearancePreset(palettePresets, theme.Palette) {
 		theme.Palette = defaults.Palette
 	}
@@ -131,6 +144,7 @@ func NormalizeCustomerTheme(theme CustomerTheme) CustomerTheme {
 }
 
 func PaletteOptions() []AppearanceOption    { return appearanceOptions(palettePresets) }
+func ColorModeOptions() []AppearanceOption  { return appearanceOptions(colorModePresets) }
 func ShapeOptions() []AppearanceOption      { return appearanceOptions(shapePresets) }
 func DensityOptions() []AppearanceOption    { return appearanceOptions(densityPresets) }
 func GlyphOptions() []AppearanceOption      { return appearanceOptions(glyphPresets) }
@@ -163,6 +177,7 @@ func hasAppearancePreset(presets []appearancePreset, id string) bool {
 func CustomerThemeAttributes(theme CustomerTheme) map[string]string {
 	theme = NormalizeCustomerTheme(theme)
 	return map[string]string{
+		"data-hcm-color-mode": theme.ColorMode,
 		"data-hcm-palette":    theme.Palette,
 		"data-hcm-shape":      theme.Shape,
 		"data-hcm-density":    theme.Density,
@@ -232,4 +247,27 @@ func normalizedBrandText(value string, limit int, fallback string, mark bool) st
 		return fallback
 	}
 	return result
+}
+
+// normalizedBrandLogoURL keeps customer branding inside the authenticated,
+// allowlisted workspace asset route. It deliberately rejects remote URLs,
+// traversal, escaping, and nested paths: the asset handler admits one
+// explicitly registered file name, so the theme model must not imply a wider
+// fetch surface than the server actually provides.
+func normalizedBrandLogoURL(value string) string {
+	value = strings.TrimSpace(value)
+	const prefix = "/workspace/assets/"
+	if value == "" || len(value) > 240 || !strings.HasPrefix(value, prefix) || strings.ContainsAny(value, `\\?#%`) {
+		return ""
+	}
+	name := strings.TrimPrefix(value, prefix)
+	if name == "" || strings.Contains(name, "/") || path.Base(name) != name || path.Clean(name) != name {
+		return ""
+	}
+	switch strings.ToLower(path.Ext(name)) {
+	case ".svg", ".png", ".jpg", ".jpeg", ".webp":
+		return prefix + name
+	default:
+		return ""
+	}
 }

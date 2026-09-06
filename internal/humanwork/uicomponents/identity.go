@@ -31,7 +31,9 @@ func Avatar(props AvatarProps) ui.Node {
 			Raw: map[string]any{"decoding": "async"},
 		}
 		if props.Decorative {
-			htmlProps.Alt = ""
+			// GoWebComponents omits zero-valued typed attributes, so force the
+			// required empty alternative through Raw for decorative images.
+			htmlProps.Raw["alt"] = ""
 			htmlProps.Aria = map[string]string{"hidden": "true"}
 		} else {
 			htmlProps.Alt = strings.TrimSpace(props.Name)

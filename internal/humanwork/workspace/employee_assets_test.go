@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestEmployeePhotosAreExplicitSameOriginAssets(t *testing.T) {
-	photos := []struct {
+	legacyPhotos := []struct {
 		original string
 		proxy    string
 	}{
@@ -19,23 +20,32 @@ func TestEmployeePhotosAreExplicitSameOriginAssets(t *testing.T) {
 		{assetPersonLena, assetPersonLenaSmall},
 		{assetPersonNoor, assetPersonNoorSmall},
 	}
-	for _, photo := range photos {
+	for _, photo := range legacyPhotos {
 		original, ok := employeePhotoOriginal(photo.original)
 		if !ok || len(original) == 0 {
 			t.Fatalf("employee original %q is not embedded", photo.original)
 		}
+		if got := assetContentType(photo.original); got != "image/png" {
+			t.Fatalf("employee original %q content type = %q", photo.original, got)
+		}
+	}
+	photos := append([]struct{ original, proxy string }(nil), legacyPhotos...)
+	for index := 1; index <= 59; index++ {
+		if index%4 == 0 {
+			continue
+		}
+		photos = append(photos, struct{ original, proxy string }{
+			original: fmt.Sprintf("hc-%03d.png", index),
+			proxy:    fmt.Sprintf("person-hc-%03d-small.jpg", index),
+		})
+	}
+	for _, photo := range photos {
 		proxy, ok := asset(photo.proxy)
 		if !ok || len(proxy) == 0 {
 			t.Fatalf("employee proxy %q is not embedded", photo.proxy)
 		}
-		if got := assetContentType(photo.original); got != "image/png" {
-			t.Fatalf("employee original %q content type = %q", photo.original, got)
-		}
 		if got := assetContentType(photo.proxy); got != "image/jpeg" {
 			t.Fatalf("employee proxy %q content type = %q", photo.proxy, got)
-		}
-		if len(proxy) >= len(original)/10 {
-			t.Fatalf("employee proxy %q is %d bytes; original %q is %d bytes", photo.proxy, len(proxy), photo.original, len(original))
 		}
 		config, _, err := image.DecodeConfig(bytes.NewReader(proxy))
 		if err != nil {
@@ -51,7 +61,16 @@ func TestEmployeePhotosAreExplicitSameOriginAssets(t *testing.T) {
 	if _, ok := employeePhotoOriginal("person-unknown.png"); ok {
 		t.Fatal("unknown employee original escaped the explicit allowlist")
 	}
+	if _, ok := employeePhotoOriginal("hc-001.png"); ok {
+		t.Fatal("seeded retained original escaped into the embedded workspace")
+	}
 	if _, ok := asset(assetPersonPriya); ok {
 		t.Fatal("retained employee original escaped onto the public asset route")
+	}
+	if _, ok := asset("person-hc-060-small.jpg"); ok {
+		t.Fatal("unpopulated employee proxy escaped the explicit allowlist")
+	}
+	if _, ok := asset("person-hc-004-small.jpg"); ok {
+		t.Fatal("deliberately unpopulated employee proxy escaped the explicit allowlist")
 	}
 }

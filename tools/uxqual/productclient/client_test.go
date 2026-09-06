@@ -10,6 +10,42 @@ import (
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 )
 
+func TestOpenWorkCountExcludesTerminalJourneys(t *testing.T) {
+	items := []productui.WorkItem{
+		{ID: "awaiting"},
+		{ID: "blocked"},
+		{ID: "complete", Terminal: true},
+		{ID: "rejected", Terminal: true},
+	}
+	if got := len(productui.OpenWorkItems(items)); got != 2 {
+		t.Fatalf("len(OpenWorkItems) = %d, want 2", got)
+	}
+}
+
+func TestConcisePlacementLabelRemovesDuplicatedSourceCodes(t *testing.T) {
+	if got := concisePlacementLabel("OPS-HRBP3OPS-HRBP3", "P3"); got != "OPS-HRBP3 P3" {
+		t.Fatalf("concisePlacementLabel = %q, want OPS-HRBP3 P3", got)
+	}
+	if got := concisePlacementLabel("OPS-HRBP3OPS-HRBP3OPS-HRBP3", "P3"); got != "OPS-HRBP3 P3" {
+		t.Fatalf("triple source-code repetition = %q, want OPS-HRBP3 P3", got)
+	}
+	if got := concisePlacementLabel("ENG-SWE3", "P3"); got != "ENG-SWE3 P3" {
+		t.Fatalf("ordinary placement changed to %q", got)
+	}
+}
+
+func TestManagerLabelDoesNotExposeTechnicalRelationshipReferences(t *testing.T) {
+	if got := managerLabel("rel-mgr-01a07058", nil); got != "Not available" {
+		t.Fatalf("technical relationship reference rendered as %q", got)
+	}
+	if got := managerLabel("REL_MGR_01a07058", nil); got != "Not available" {
+		t.Fatalf("case/separator variant rendered as %q", got)
+	}
+	if got := managerLabel("manager-live", nil); got != "Manager Live" {
+		t.Fatalf("readable fallback = %q, want Manager Live", got)
+	}
+}
+
 func TestLoadProjectsOnlyLiveServiceAnswers(t *testing.T) {
 	service := Service{
 		ListJourneys: func(context.Context, *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
@@ -25,6 +61,7 @@ func TestLoadProjectsOnlyLiveServiceAnswers(t *testing.T) {
 			return &journeyv1.ListWorkersResponse{Workers: []*journeyv1.Worker{{
 				WorkerRef: "worker-live", WorkerId: "worker-id-live", LegalName: "Riley Morgan Chen", PreferredName: "Riley Chen", WorkerNumber: "NW-9", JobCode: "ENG2", Grade: "G6", OrgUnit: "Engineering",
 				PositionId: "pos-9", PayZone: "US-1", BasePay: "120000", Currency: "USD", BonusTarget: "0.10", HireDate: "2020-02-03", Source: "CREATED",
+				JobTitle: "Senior Software Engineer", ManagerRef: "manager-live", ProfilePhotoUrl: "/workspace/assets/person-live-small.jpg",
 			}}}, nil
 		},
 	}
@@ -45,6 +82,9 @@ func TestLoadProjectsOnlyLiveServiceAnswers(t *testing.T) {
 	if person.WorkerID != "worker-id-live" || person.LegalName != "Riley Morgan Chen" || person.PreferredName != "Riley Chen" || person.WorkerNumber != "NW-9" || person.PositionID != "pos-9" ||
 		person.BasePay.Amount().String() != "120000" || person.BasePay.Currency() != "USD" || person.Source != "CREATED" {
 		t.Fatalf("worker detail projection lost live facts: %+v", person)
+	}
+	if person.Role != "Senior Software Engineer · G6" || person.Manager != "Manager Live" || person.PhotoURL != "/workspace/assets/person-live-small.jpg" {
+		t.Fatalf("worker display projection lost title, manager, or photo: %+v", person)
 	}
 }
 
@@ -90,12 +130,12 @@ func TestLoadNeverSubstitutesFixturesOnFailure(t *testing.T) {
 }
 
 func TestParseStateUsesProductionRoutes(t *testing.T) {
-	state, err := ParseState("/workspace/app/work", "nav=collapsed&selected=intent-1&page=3&menu_q=work&favorites=history,people,history")
+	state, err := ParseState("/workspace/app/work", "nav=collapsed&selected=intent-1&page=3&menu_q=work&favorites=history,people,history&locale=de-DE")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if state.Page != productui.PageWork || !state.Request.NavCollapsed || state.Request.SelectedWork != "intent-1" || state.Request.PeoplePage != 3 ||
-		state.Request.MenuQuery != "work" || len(state.Request.FavoritePages) != 3 || state.Request.FavoritePages[0] != productui.PageHistory {
+		state.Request.MenuQuery != "work" || state.Request.Locale != "de-DE" || len(state.Request.FavoritePages) != 3 || state.Request.FavoritePages[0] != productui.PageHistory {
 		t.Fatalf("state = %+v", state)
 	}
 	if _, err := ParseState("/app/work", ""); err == nil || !strings.Contains(err.Error(), "unknown") {
@@ -104,6 +144,11 @@ func TestParseStateUsesProductionRoutes(t *testing.T) {
 	state, err = ParseState("/workspace/app/people", "page=invalid")
 	if err != nil || state.Request.PeoplePage != 1 {
 		t.Fatalf("invalid people page was not normalized: state=%+v err=%v", state, err)
+	}
+	state, err = ParseState("/workspace/app/people", "q=engineer&team=Platform&location=Boston&sort=location&dir=desc&page=2")
+	if err != nil || state.Request.Query != "engineer" || state.Request.PeopleTeam != "Platform" || state.Request.PeopleLocation != "Boston" ||
+		state.Request.PeopleSort != "location" || state.Request.PeopleDirection != "desc" || state.Request.PeoplePage != 2 {
+		t.Fatalf("people directory state was not preserved: state=%+v err=%v", state, err)
 	}
 	state, err = ParseState("/workspace/app/history", "history_q=Avery&outcome=completed&history_person=worker-avery&history_year=2026&history_sort=person&history_dir=asc&nav=collapsed")
 	if err != nil || state.Page != productui.PageHistory || state.Request.HistoryQuery != "Avery" || state.Request.HistoryOutcome != "completed" ||
@@ -143,6 +188,21 @@ func TestSessionTokensBecomeReadableLabelsWithoutChangingRPCState(t *testing.T) 
 	}
 	if got := displayLabel("local-developer"); got != "Local Developer" {
 		t.Fatalf("principal label = %q", got)
+	}
+}
+
+func TestOrganizationLabelsReconcileLegacyAliasesAndPunctuation(t *testing.T) {
+	for code, want := range map[string]string{
+		"eng-platform":         "Engineering Platform",
+		"engineering-platform": "Engineering Platform",
+		"people-ops":           "People Operations",
+		"people-operations":    "People Operations",
+		"data-analytics":       "Data & Analytics",
+		"security-it":          "Security & IT",
+	} {
+		if got := orgUnitLabel(code); got != want {
+			t.Errorf("orgUnitLabel(%q) = %q, want %q", code, got, want)
+		}
 	}
 }
 

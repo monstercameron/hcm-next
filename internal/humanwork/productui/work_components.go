@@ -84,7 +84,7 @@ func WorkCollection(props WorkCollectionProps) ui.Node {
 		rows = append(rows, ui.CreateElement(WorkRow, item))
 	}
 	if len(rows) == 0 {
-		rows = append(rows, html.Div(html.Props{Class: "collection-empty"},
+		rows = append(rows, html.Li(html.Props{Class: "collection-empty"},
 			html.Strong(html.Props{}, ui.Text(props.Text("work.empty_title"))),
 			html.Small(html.Props{}, ui.Text(props.Text("work.empty_detail"))),
 		))
@@ -92,17 +92,20 @@ func WorkCollection(props WorkCollectionProps) ui.Node {
 	return html.Section(html.Props{Class: "surface work-list", Aria: map[string]string{"label": props.Text("work.collection_label")}},
 		html.Div(html.Props{Class: "section-head"}, html.H2(html.Props{}, ui.Text(props.Title)), html.Span(html.Props{Class: "count"}, ui.Text(props.CountLabel))),
 		html.Nav(html.Props{Class: "tabs", Aria: map[string]string{"label": props.Text("work.filter_label")}}, tabs...),
-		html.Div(html.Props{}, rows...),
+		html.Ul(html.Props{Class: "work-rows", Raw: map[string]any{"role": "list"}}, rows...),
 		html.Div(html.Props{Class: "panel-foot"}, html.Span(html.Props{}, ui.Text(props.Footer.Label)), ui.CreateElement(ActionLink, props.Footer.Action)),
 	)
 }
 
 func WorkTab(props WorkTabProps) ui.Node {
 	class := "tab"
+	action := ActionLinkProps{Label: props.Label, Href: props.Href, Class: class, Navigate: props.Navigate}
 	if props.Active {
 		class += " active"
+		return softwareLink(props.Navigate, html.Props{Class: class, Aria: map[string]string{"current": "page"}}, props.Href, ui.Text(props.Label))
 	}
-	return ui.CreateElement(ActionLink, ActionLinkProps{Label: props.Label, Href: props.Href, Class: class, Navigate: props.Navigate})
+	action.Class = class
+	return ui.CreateElement(ActionLink, action)
 }
 
 func WorkRow(props WorkRowProps) ui.Node {
@@ -110,12 +113,16 @@ func WorkRow(props WorkRowProps) ui.Node {
 	if props.Selected {
 		class += " selected"
 	}
-	return softwareLink(props.Navigate, html.Props{Class: class}, props.Href,
+	linkProps := html.Props{Class: class}
+	if props.Selected {
+		linkProps.Aria = map[string]string{"current": "true"}
+	}
+	return html.Li(html.Props{Class: "work-row-item"}, softwareLink(props.Navigate, linkProps, props.Href,
 		personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
 		html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(props.Title)), html.Small(html.Props{}, ui.Text(props.Person)), html.Small(html.Props{}, ui.Text(props.Summary))),
 		html.Span(html.Props{Class: "row-end"}, html.Span(html.Props{Class: "status " + props.Tone}, ui.Text(props.Status)), html.Small(html.Props{}, ui.Text(props.Due))),
 		html.Span(html.Props{Aria: map[string]string{"hidden": "true"}}, ui.Text("›")),
-	)
+	))
 }
 
 func WorkPreview(props WorkPreviewProps) ui.Node {

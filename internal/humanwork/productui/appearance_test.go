@@ -28,12 +28,12 @@ func TestCustomerThemePresetsCompileIntoTheGovernedStylesheet(t *testing.T) {
 }
 
 func TestCustomerThemeRejectsUnknownStoredChoices(t *testing.T) {
-	got := NormalizeCustomerTheme(CustomerTheme{BrandName: "\x00", BrandMark: "<>$", Palette: `red;display:none`, Shape: "unknown", Density: "0", Glyphs: "emoji", Typeface: "remote-font", Navigation: "css", Motion: "infinite"})
+	got := NormalizeCustomerTheme(CustomerTheme{BrandName: "\x00", BrandMark: "<>$", ColorMode: "sepia", Palette: `red;display:none`, Shape: "unknown", Density: "0", Glyphs: "emoji", Typeface: "remote-font", Navigation: "css", Motion: "infinite"})
 	if got != DefaultCustomerTheme() {
 		t.Fatalf("unsafe stored theme normalized to %+v, want platform defaults %+v", got, DefaultCustomerTheme())
 	}
 	attributes := CustomerThemeAttributes(got)
-	if len(attributes) != 7 || attributes["data-hcm-palette"] != "evergreen" || attributes["data-hcm-glyphs"] != "rounded-line" || attributes["data-hcm-navigation"] != "light" {
+	if len(attributes) != 8 || attributes["data-hcm-color-mode"] != "system" || attributes["data-hcm-palette"] != "evergreen" || attributes["data-hcm-glyphs"] != "rounded-line" || attributes["data-hcm-navigation"] != "light" {
 		t.Fatalf("browser theme attributes = %+v", attributes)
 	}
 }
@@ -45,6 +45,40 @@ func TestBrandTextRejectsUnicodeFormattingSpoofs(t *testing.T) {
 	}
 	if got.BrandName != "NorthCorp" || got.BrandMark != "NC" {
 		t.Fatalf("visible brand text was not preserved: %+v", got)
+	}
+}
+
+func TestBrandLogoAcceptsOnlyGovernedWorkspaceImages(t *testing.T) {
+	for _, test := range []struct {
+		value string
+		want  string
+	}{
+		{value: "/workspace/assets/harborcare-logo.svg", want: "/workspace/assets/harborcare-logo.svg"},
+		{value: "/workspace/assets/tenant.webp", want: "/workspace/assets/tenant.webp"},
+		{value: "https://example.com/logo.svg"},
+		{value: "//example.com/logo.svg"},
+		{value: "/workspace/assets/../secret.svg"},
+		{value: "/workspace/assets/team/logo.svg"},
+		{value: "/workspace/assets/logo.svg?token=secret"},
+		{value: "/workspace/assets/logo.html"},
+	} {
+		if got := NormalizeCustomerTheme(CustomerTheme{BrandLogoURL: test.value}).BrandLogoURL; got != test.want {
+			t.Errorf("logo %q normalized to %q, want %q", test.value, got, test.want)
+		}
+	}
+}
+
+func TestBrandLogoSlotKeepsAccessibleFallback(t *testing.T) {
+	markup, err := ui.RenderToString(ui.CreateElement(BrandLogo, BrandLogoProps{
+		Name: "Harborcare Demo", Mark: "HC", LogoURL: "/workspace/assets/harborcare-logo.svg",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`data-hcm-brand-logo-slot`, `data-hcm-brand-logo-state="configured"`, `src="/workspace/assets/harborcare-logo.svg"`, `alt=""`, `>Harborcare Demo</span>`, `>HC</span>`} {
+		if !strings.Contains(markup, want) {
+			t.Errorf("brand logo slot missing %q in %s", want, markup)
+		}
 	}
 }
 
@@ -83,9 +117,10 @@ func TestAppearancePageIsADecomposedAccessibleEditor(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, expected := range []string{
+		`>Color mode</legend>`, `name="color_mode"`, `value="system"`,
 		`<fieldset`, `>Color palette</legend>`, `name="palette"`, `value="evergreen"`, `checked`,
 		`>Surface shape</legend>`, `name="shape"`, `>Glyph set</legend>`, `name="glyphs"`,
-		`>Brand signature</legend>`, `name="brand_name"`, `name="brand_mark"`,
+		`>Brand signature</legend>`, `name="brand_name"`, `name="brand_mark"`, `name="brand_logo_url"`,
 		`>Typography character</legend>`, `name="typeface"`, `>Navigation treatment</legend>`, `name="navigation"`,
 		`>Motion</legend>`, `role="status"`, `aria-live="polite"`, `>Save appearance</button>`,
 	} {
@@ -113,7 +148,7 @@ func TestAppearancePageLivesUnderAdminNavigation(t *testing.T) {
 
 func TestEveryAppearanceOptionHasStableUniqueIdentity(t *testing.T) {
 	for name, options := range map[string][]AppearanceOption{
-		"palette": PaletteOptions(), "shape": ShapeOptions(), "density": DensityOptions(), "glyph": GlyphOptions(),
+		"color mode": ColorModeOptions(), "palette": PaletteOptions(), "shape": ShapeOptions(), "density": DensityOptions(), "glyph": GlyphOptions(),
 		"typeface": TypefaceOptions(), "navigation": NavigationOptions(), "motion": MotionOptions(),
 	} {
 		seen := map[string]bool{}
@@ -122,6 +157,18 @@ func TestEveryAppearanceOptionHasStableUniqueIdentity(t *testing.T) {
 				t.Fatalf("%s option is incomplete or duplicated: %+v", name, option)
 			}
 			seen[option.ID] = true
+		}
+	}
+}
+
+func TestColorModeChoicesAreLocalized(t *testing.T) {
+	for _, test := range []struct {
+		locale string
+		want   string
+	}{{locale: "en-US", want: "Dark"}, {locale: "de-DE", want: "Dunkel"}, {locale: "ar", want: "داكن"}} {
+		options := localizedColorModeOptions(ResolveProductLocale(test.locale))
+		if len(options) != 3 || options[2].Label != test.want || options[2].Description == "" {
+			t.Errorf("%s color-mode options = %+v", test.locale, options)
 		}
 	}
 }

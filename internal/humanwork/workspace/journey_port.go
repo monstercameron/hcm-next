@@ -303,6 +303,7 @@ type WorkerSummary struct {
 	WorkerNumber  string
 
 	JobCode    string
+	JobTitle   string
 	Grade      string
 	OrgUnit    string
 	PositionID string
@@ -319,6 +320,12 @@ type WorkerSummary struct {
 
 	// HireDate is ISO-8601 (YYYY-MM-DD).
 	HireDate string
+
+	// ManagerRef is the stable relationship reference. ProfilePhotoURL is
+	// always the display-safe proxy; the retained original is never exposed
+	// through this listing surface.
+	ManagerRef      string
+	ProfilePhotoURL string
 
 	// Source is [WorkerSourceCorpus] or [WorkerSourceCreated].
 	Source string

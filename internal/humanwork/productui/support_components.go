@@ -17,8 +17,10 @@ type InformationalPanelProps struct {
 }
 
 type SettingsPageProps struct {
-	Access      AccessContextProps
-	Preferences EmptyStateProps
+	Access        AccessContextProps
+	Locale        *LocalePreferencesProps
+	Accessibility *AccessibilityPreferencesProps
+	Preferences   EmptyStateProps
 }
 
 type AccessContextProps struct {
@@ -34,7 +36,7 @@ type StudioPageProps struct {
 }
 
 func HelpPage(props HelpPageProps) ui.Node {
-	return html.Div(html.Props{Class: "insights-grid"},
+	return html.Div(html.Props{Class: "insights-grid settings-accessibility-layout"},
 		ui.CreateElement(QuickActions, props.Guidance),
 		ui.CreateElement(InformationalPanel, props.Support),
 	)
@@ -46,9 +48,17 @@ func InformationalPanel(props InformationalPanelProps) ui.Node {
 }
 
 func SettingsPage(props SettingsPageProps) ui.Node {
-	return html.Div(html.Props{Class: "insights-grid"},
-		ui.CreateElement(AccessContext, props.Access),
-		ui.CreateElement(EmptyState, props.Preferences),
+	preferencePanel := ui.CreateElement(EmptyState, props.Preferences)
+	if props.Accessibility != nil {
+		preferencePanel = ui.CreateElement(AccessibilityPreferencesPanel, *props.Accessibility)
+	}
+	overview := []ui.Node{ui.CreateElement(AccessContext, props.Access)}
+	if props.Locale != nil {
+		overview = append(overview, ui.CreateElement(LocalePreferencesPanel, *props.Locale))
+	}
+	return html.Div(html.Props{Class: "settings-page-stack"},
+		html.Div(html.Props{Class: "settings-overview-grid"}, overview...),
+		preferencePanel,
 	)
 }
 

@@ -29,7 +29,11 @@ import (
 // landmark and the footer -- rather than panicking, so a projection bug
 // degrades to a blank page with working navigation instead of a 500.
 func Build(p Page) ui.Node {
-	main := html.Main(html.Props{ID: skipTarget, Class: "jn-main"},
+	mainProps := html.Props{ID: skipTarget, Class: "jn-main"}
+	if networkPending(p) {
+		mainProps.Raw = map[string]any{"aria-busy": "true"}
+	}
+	main := html.Main(mainProps,
 		html.Div(html.Props{Class: "jn-shell"}, pageBody(p)),
 	)
 
@@ -48,20 +52,32 @@ func Build(p Page) ui.Node {
 // notices, and detail presentation as the standalone surface. The embedded
 // content keeps its own page heading, so the host must not add a second h1.
 func BuildContent(p Page) ui.Node {
-	return html.Div(html.Props{Class: "jn-embedded"},
+	props := html.Props{Class: "jn-embedded"}
+	if networkPending(p) {
+		props.Class += " jn-network-pending"
+		props.Raw = map[string]any{"aria-busy": "true"}
+	}
+	return html.Div(props,
 		noticeRegion(p.Notice),
 		html.Div(html.Props{Class: "jn-shell"}, embeddedPageBody(p)),
 	)
 }
 
 func embeddedPageBody(p Page) ui.Node {
+	var body ui.Node
 	if p.List != nil {
-		return embeddedListView(p, *p.List)
+		body = embeddedListView(p, *p.List)
+	} else {
+		body = resolvedPageBody(p)
 	}
-	return pageBody(p)
+	return networkAwarePageBody(p, body)
 }
 
 func pageBody(p Page) ui.Node {
+	return networkAwarePageBody(p, resolvedPageBody(p))
+}
+
+func resolvedPageBody(p Page) ui.Node {
 	switch {
 	case p.Detail != nil:
 		return detailView(p, *p.Detail)

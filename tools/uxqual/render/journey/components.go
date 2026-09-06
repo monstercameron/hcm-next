@@ -497,10 +497,10 @@ func proposalView(p Page, v ProposalView) ui.Node {
 	return html.Div(html.Props{Class: "jn-stack jn-proposal-view"},
 		pageHeader(pageHeaderProps{
 			Class: "jn-proposal-head", Eyebrow: "Career & compensation", Title: "Promote " + name,
-			Lead: "Build a governed change for this employee. Their current assignment is fixed from the profile you opened; review it before entering the proposed role and pay.",
+			Lead: "Build a governed change for this employee. Their current assignment is locked from the authorized worker record; review it before entering the proposed role and pay.",
 			Actions: []ui.Node{
 				htmlIf(v.BackHref != "", func() ui.Node {
-					return html.A(html.Props{Class: "jn-context-link", Href: v.BackHref, OnClick: activate(v.BackNavigate)}, html.Text("Back to "+name+"'s profile"))
+					return html.A(html.Props{Class: "jn-context-link", Href: v.BackHref, OnClick: activate(v.BackNavigate)}, html.Text("View "+name+"'s profile"))
 				}),
 				htmlIf(v.JourneysLink.Href != "", func() ui.Node {
 					return html.A(html.Props{Class: "jn-context-link", Href: v.JourneysLink.Href, OnClick: activate(v.JourneysLink.OnNavigate)}, html.Text("View all promotion journeys"))
@@ -598,12 +598,26 @@ func embeddedListView(p Page, v ListView) ui.Node {
 }
 
 func leadSentence(p Page) string {
-	who := p.TenantLabel
+	who := readableTenantLabel(p.TenantLabel)
 	if who == "" {
 		who = "this tenant"
 	}
 	return "Every promotion proposed in " + who + ", followed from the manager's request through the " +
 		"execution authority gate to the approver's decision and the ledger fact the workflow records."
+}
+
+func readableTenantLabel(value string) string {
+	parts := strings.FieldsFunc(strings.TrimSpace(value), func(r rune) bool {
+		return r == '-' || r == '_'
+	})
+	for index, part := range parts {
+		runes := []rune(strings.ToLower(part))
+		if len(runes) > 0 {
+			runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
+		}
+		parts[index] = string(runes)
+	}
+	return strings.Join(parts, " ")
 }
 
 func journeysSection(v ListView) ui.Node {
@@ -653,9 +667,16 @@ func journeyCard(j JourneyCard) ui.Node {
 		html.P(html.Props{Class: "jn-meta"},
 			metaItem("Effective", j.EffectiveDate, false),
 			metaItem("Updated", j.Updated, false),
-			metaItem("Worker", j.WorkerRef, true),
-			metaItem("Instance", j.InstanceID, true),
 		),
+		htmlIf(j.WorkerRef != "" || j.InstanceID != "", func() ui.Node {
+			return html.Details(html.Props{Class: "jn-journey-technical"},
+				html.Summary(html.Props{}, html.Text("Technical details")),
+				html.P(html.Props{Class: "jn-meta"},
+					metaItem("Worker", j.WorkerRef, true),
+					metaItem("Instance", j.InstanceID, true),
+				),
+			)
+		}),
 		html.P(html.Props{Class: "jn-journey-foot", Aria: map[string]string{"hidden": "true"}},
 			html.Text("Open journey"), iconArrowRight("jn-journey-arrow"),
 		),

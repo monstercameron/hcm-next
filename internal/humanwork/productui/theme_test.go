@@ -181,7 +181,11 @@ func TestTodo_WEB_018(t *testing.T) {
 
 func TestTodo_WEB_018_Golden(t *testing.T) { assertThemeKindOrder(t, ThemeMotion) }
 func TestTodo_WEB_018_Browser(t *testing.T) {
-	assertCSSContains(t, "@keyframes hcm-page-enter", "@keyframes hcm-shimmer", "prefers-reduced-motion:no-preference")
+	assertCSSContains(t,
+		"@keyframes hcm-page-enter", "@keyframes hcm-shimmer", "prefers-reduced-motion:no-preference",
+		`.brand-cluster{display:grid`, `.header-nav-toggle{display:grid`, `.nav-group::details-content`,
+		`:root[data-hcm-motion-preference="limited"]`,
+	)
 }
 func TestTodo_WEB_018_Conformance(t *testing.T) {
 	css := Stylesheet()

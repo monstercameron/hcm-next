@@ -772,6 +772,28 @@ font-size:.75rem;color:var(--jn-ink-muted)}
 .jn-provenance{display:flex;flex-wrap:wrap;gap:.25rem 1rem}
 
 /* Motion ------------------------------------------------------------ */
+.jn-network-stage{position:relative;min-height:24rem}
+.jn-network-stale{opacity:.22;pointer-events:none;user-select:none}
+.jn-network-proxy{position:absolute;inset:0;z-index:2;padding:var(--jn-s3);overflow:hidden}
+.jn-proxy-toolbar,.jn-proxy-row{display:flex;align-items:center;gap:var(--jn-s2)}
+.jn-proxy-toolbar{justify-content:space-between;min-height:3rem;padding-bottom:var(--jn-s2);border-bottom:1px solid var(--jn-hairline)}
+.jn-proxy-rows{display:grid}
+.jn-proxy-row{min-height:4.75rem;border-bottom:1px solid var(--jn-hairline)}
+.jn-proxy-block{position:relative;display:block;overflow:hidden;border-radius:var(--jn-r1);background:var(--jn-surface-muted)}
+.jn-proxy-heading{width:min(18rem,54%);height:1rem}
+.jn-proxy-control{width:9rem;height:2.5rem}
+.jn-proxy-avatar{flex:none;width:2.5rem;height:2.5rem;border-radius:50%}
+.jn-proxy-copy{display:grid;flex:1;gap:.625rem;min-width:0}
+.jn-proxy-line{width:72%;height:.75rem}
+.jn-proxy-line-short{width:42%}
+.jn-proxy-chip{display:none;flex:none;width:5.5rem;height:1.625rem;border-radius:999px}
+.jn-proxy-control{width:6rem}
+@media (prefers-reduced-motion:no-preference){
+:root:not([data-hcm-motion-preference="reduce"]):not([data-hcm-motion-preference="limited"]) .jn-proxy-block::after,
+:root:not([data-hcm-motion-preference="reduce"]):not([data-hcm-motion-preference="limited"]) .jn-loading::after{
+content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 18%,rgba(255,255,255,.58) 48%,transparent 78%);animation:jn-sweep 1.25s linear infinite;pointer-events:none}
+}
+@media(min-width:40rem){.jn-proxy-chip{display:block}.jn-proxy-control{width:9rem}}
 @keyframes jn-slidein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes jn-pop{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.15)}to{transform:scale(1)}}
 @keyframes jn-grow-y{from{height:0}to{height:calc(100% - 2rem)}}

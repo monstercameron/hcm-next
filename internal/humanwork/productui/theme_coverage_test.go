@@ -7,10 +7,11 @@ import (
 
 func TestEveryRegisteredPageReceivesTheCompleteThemeContract(t *testing.T) {
 	appearance := CustomerTheme{
-		BrandName: "Northstar People", BrandMark: "NP", Palette: "plum", Shape: "rounded",
+		BrandName: "Northstar People", BrandMark: "NP", ColorMode: "dark", Palette: "plum", Shape: "rounded",
 		Density: "compact", Glyphs: "bold-line", Typeface: "classic", Navigation: "brand", Motion: "brisk",
 	}
 	wants := []string{
+		`data-hcm-color-mode="dark"`,
 		`data-hcm-palette="plum"`, `data-hcm-shape="rounded"`, `data-hcm-density="compact"`,
 		`data-hcm-glyphs="bold-line"`, `data-hcm-typeface="classic"`, `data-hcm-navigation="brand"`,
 		`data-hcm-motion="brisk"`, `data-hcm-brand-name`, `>Northstar People</span>`,

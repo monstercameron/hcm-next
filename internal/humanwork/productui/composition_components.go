@@ -78,6 +78,7 @@ func EmptyState(props EmptyStateProps) ui.Node {
 	raw := map[string]any{}
 	if props.Role != "" {
 		raw["role"] = props.Role
+		raw["aria-atomic"] = "true"
 	}
 	children := make([]ui.Node, 0, 4)
 	if props.Badge != "" {
@@ -98,15 +99,15 @@ func EmptyState(props EmptyStateProps) ui.Node {
 }
 
 func FactList(facts []FactProps) ui.Node {
-	return html.Div(html.Props{Class: "facts"}, factRows(facts)...)
+	return html.Tag("dl", html.Props{Class: "facts"}, factRows(facts)...)
 }
 
 func factRows(facts []FactProps) []ui.Node {
 	children := make([]ui.Node, 0, len(facts))
 	for _, item := range facts {
 		children = append(children, html.Div(html.Props{},
-			html.Span(html.Props{}, ui.Text(item.Label)),
-			html.Strong(html.Props{}, ui.Text(item.Value)),
+			html.Tag("dt", html.Props{}, ui.Text(item.Label)),
+			html.Tag("dd", html.Props{}, ui.Text(item.Value)),
 		))
 	}
 	return children
@@ -115,29 +116,29 @@ func factRows(facts []FactProps) []ui.Node {
 func MetricGrid(metrics []MetricProps) ui.Node {
 	children := make([]ui.Node, 0, len(metrics))
 	for _, item := range metrics {
-		children = append(children, html.Div(html.Props{Class: "metric"},
+		children = append(children, html.Li(html.Props{Class: "metric"},
 			html.Span(html.Props{Class: "muted"}, ui.Text(item.Label)),
 			html.Strong(html.Props{}, ui.Text(item.Value)),
 			html.Small(html.Props{}, ui.Text(item.Note)),
 		))
 	}
-	return html.Div(html.Props{Class: "metrics"}, children...)
+	return html.Ul(html.Props{Class: "metrics", Raw: map[string]any{"role": "list"}}, children...)
 }
 
 func ActivityList(items []ActivityProps, emptyTitle, emptyDescription string) ui.Node {
 	children := make([]ui.Node, 0, len(items))
 	for _, item := range items {
-		children = append(children, html.Div(html.Props{Class: "activity"},
-			html.Span(html.Props{Class: "check"}, ui.Text("✓")),
+		children = append(children, html.Li(html.Props{Class: "activity"},
+			html.Span(html.Props{Class: "check", Aria: map[string]string{"hidden": "true"}}, ui.Text("✓")),
 			html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(item.Title)), html.Small(html.Props{}, ui.Text(item.Detail))),
-			html.Small(html.Props{}, ui.Text(item.When)),
+			html.Tag("time", html.Props{}, ui.Text(item.When)),
 		))
 	}
 	if len(children) == 0 {
-		children = append(children, html.Div(html.Props{Class: "collection-empty"},
+		children = append(children, html.Li(html.Props{Class: "collection-empty"},
 			html.Strong(html.Props{}, ui.Text(emptyTitle)),
 			html.Small(html.Props{}, ui.Text(emptyDescription)),
 		))
 	}
-	return html.Div(html.Props{Class: "recent"}, children...)
+	return html.Ul(html.Props{Class: "recent", Raw: map[string]any{"role": "list"}}, children...)
 }

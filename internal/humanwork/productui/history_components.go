@@ -24,25 +24,29 @@ type WorkflowHistoryProps struct {
 // history search. OnFilter is supplied by the Go/WASM router when mounted.
 type WorkflowHistoryFilterProps struct {
 	I18nProps
-	Query             string
-	SearchPlaceholder string
-	Outcome           string
-	Person            string
-	Year              string
-	People            []HistoryFilterOption
-	Years             []HistoryFilterOption
-	ShowPerson        bool
-	Action            string
-	ClearHref         string
-	PersonID          string
-	DirectoryQuery    string
-	DirectoryPage     int
-	WorkflowQuery     string
-	Sort              string
-	Direction         string
-	NavCollapsed      bool
-	Navigate          func(string)
-	OnFilter          func(query, outcome, person, year string)
+	Query              string
+	SearchPlaceholder  string
+	Outcome            string
+	Person             string
+	Year               string
+	People             []HistoryFilterOption
+	Years              []HistoryFilterOption
+	ShowPerson         bool
+	Action             string
+	ClearHref          string
+	PersonID           string
+	DirectoryQuery     string
+	DirectoryPage      int
+	DirectoryTeam      string
+	DirectoryLocation  string
+	DirectorySort      string
+	DirectoryDirection string
+	WorkflowQuery      string
+	Sort               string
+	Direction          string
+	NavCollapsed       bool
+	Navigate           func(string)
+	OnFilter           func(query, outcome, person, year string)
 }
 
 // HistoryFilterOption is one stable value/label pair in a history filter.
@@ -88,23 +92,13 @@ func WorkflowHistory(props WorkflowHistoryProps) ui.Node {
 		item.I18nProps = props.I18nProps
 		rows = append(rows, ui.CreateElement(WorkflowHistoryItem, item))
 	}
-	if len(rows) == 0 {
-		empty := props.EmptyText
-		if empty == "" {
-			empty = props.Text("history.none_detail")
-		}
-		rows = append(rows, html.Div(html.Props{Class: "history-empty", Raw: map[string]any{"role": "status"}},
-			html.Strong(html.Props{}, ui.Text(props.Text("history.none"))),
-			html.P(html.Props{Class: "muted"}, ui.Text(empty)),
-		))
-	}
 	children := []ui.Node{
 		html.Div(html.Props{Class: "section-head history-heading"},
 			html.Div(html.Props{},
-				html.H2(html.Props{}, ui.Text(props.Title)),
+				html.H2(html.Props{ID: "workflow-history-title"}, ui.Text(props.Title)),
 				html.P(html.Props{Class: "muted"}, ui.Text(props.Description)),
 			),
-			html.Span(html.Props{Class: "count"}, ui.Text(historyCountLabel(props.Locale, len(props.Items), props.TotalCount))),
+			html.Span(html.Props{Class: "count", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(historyCountLabel(props.Locale, len(props.Items), props.TotalCount))),
 		),
 	}
 	if props.Filter != nil {
@@ -118,10 +112,24 @@ func WorkflowHistory(props WorkflowHistoryProps) ui.Node {
 			headings = append(headings, ui.CreateElement(HistorySortColumn, column))
 		}
 		headings = append(headings, html.Span(html.Props{Class: "history-record-heading", Raw: map[string]any{"role": "columnheader"}}, ui.Text(props.Text("history.record"))))
-		children = append(children, html.Div(html.Props{Class: "history-columns", Raw: map[string]any{"role": "row"}}, headings...))
+		table := html.Div(html.Props{Class: "history-table", Raw: map[string]any{"role": "table", "aria-labelledby": "workflow-history-title"}},
+			html.Div(html.Props{Raw: map[string]any{"role": "rowgroup"}},
+				html.Div(html.Props{Class: "history-columns", Raw: map[string]any{"role": "row"}}, headings...),
+			),
+			html.Div(html.Props{Class: "history-list", Raw: map[string]any{"role": "rowgroup"}}, rows...),
+		)
+		children = append(children, table)
+	} else {
+		empty := props.EmptyText
+		if empty == "" {
+			empty = props.Text("history.none_detail")
+		}
+		children = append(children, html.Div(html.Props{Class: "history-empty", Raw: map[string]any{"role": "status", "aria-atomic": "true"}},
+			html.Strong(html.Props{}, ui.Text(props.Text("history.none"))),
+			html.P(html.Props{Class: "muted"}, ui.Text(empty)),
+		))
 	}
-	children = append(children, html.Div(html.Props{Class: "history-list", Raw: map[string]any{"role": "rowgroup"}}, rows...))
-	return html.Section(html.Props{Class: "surface workflow-history", Aria: map[string]string{"label": props.Title}}, children...)
+	return html.Section(html.Props{Class: "surface workflow-history", Raw: map[string]any{"aria-labelledby": "workflow-history-title"}}, children...)
 }
 
 func historyCountLabel(locale LocaleContext, filtered, total int) string {
@@ -214,6 +222,7 @@ func WorkflowHistoryFilter(props WorkflowHistoryFilterProps) ui.Node {
 	}
 	for _, field := range []struct{ name, value string }{
 		{"person", props.PersonID}, {"q", props.DirectoryQuery}, {"workflow_q", props.WorkflowQuery},
+		{"team", props.DirectoryTeam}, {"location", props.DirectoryLocation}, {"sort", props.DirectorySort}, {"dir", props.DirectoryDirection},
 		{"history_sort", props.Sort}, {"history_dir", props.Direction},
 	} {
 		if field.value != "" {
@@ -240,17 +249,17 @@ func WorkflowHistoryItem(props WorkflowHistoryItemProps) ui.Node {
 		dates = append(dates, html.Small(html.Props{Class: "history-source"}, ui.Text(props.SourceLabel)))
 	}
 	return html.Article(html.Props{Class: "history-row", Raw: map[string]any{"role": "row"}},
-		html.Div(html.Props{Class: "history-identity"},
+		html.Div(html.Props{Class: "history-identity", Raw: map[string]any{"role": "cell"}},
 			personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
 			html.Div(html.Props{Class: "history-record"},
 				html.Span(html.Props{Class: "eyebrow"}, ui.Text(props.Type)),
 				historyPersonName(props),
 			),
 		),
-		html.P(html.Props{Class: "history-change muted"}, ui.Text(props.Summary)),
-		html.Div(html.Props{Class: "history-dates"}, dates...),
-		html.Span(html.Props{Class: "status " + props.Tone}, ui.Text(props.Outcome)),
-		softwareLink(props.Navigate, html.Props{Class: "button secondary"}, props.Href, ui.Text(props.Text("history.open"))),
+		html.P(html.Props{Class: "history-change muted", Raw: map[string]any{"role": "cell"}}, ui.Text(props.Summary)),
+		html.Div(html.Props{Class: "history-dates", Raw: map[string]any{"role": "cell"}}, dates...),
+		html.Span(html.Props{Class: "status " + props.Tone, Raw: map[string]any{"role": "cell"}}, ui.Text(props.Outcome)),
+		html.Div(html.Props{Class: "history-action", Raw: map[string]any{"role": "cell"}}, softwareLink(props.Navigate, html.Props{Class: "button secondary"}, props.Href, ui.Text(props.Text("history.open")))),
 	)
 }
 

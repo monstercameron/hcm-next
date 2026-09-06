@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"io/fs"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,7 @@ const (
 	// whole page and reaches the cell over the gRPC tunnel.
 	assetJourneyWasm      = "journey.wasm"
 	assetWasmExec         = "wasm_exec.js"
+	assetHarborcareLogo   = "harborcare-logo.svg"
 	assetPersonPriya      = "person-priya.png"
 	assetPersonJane       = "person-jane.png"
 	assetPersonOmar       = "person-omar.png"
@@ -42,10 +44,12 @@ var assetsFS embed.FS
 // asset returns one embedded bundle file.
 func asset(name string) ([]byte, bool) {
 	switch name {
-	case assetWasm, assetJourneyWasm, assetWasmExec,
+	case assetWasm, assetJourneyWasm, assetWasmExec, assetHarborcareLogo,
 		assetPersonPriyaSmall, assetPersonJaneSmall, assetPersonOmarSmall, assetPersonLenaSmall, assetPersonNoorSmall:
 	default:
-		return nil, false
+		if !isSeedPhotoProxy(name) {
+			return nil, false
+		}
 	}
 	return embeddedAsset(name)
 }
@@ -61,6 +65,22 @@ func employeePhotoOriginal(name string) ([]byte, bool) {
 		return nil, false
 	}
 	return embeddedAsset(name)
+}
+
+func isSeedPhotoProxy(name string) bool {
+	const prefix, suffix = "person-hc-", "-small.jpg"
+	if !strings.HasPrefix(name, prefix) || !strings.HasSuffix(name, suffix) {
+		return false
+	}
+	return isSeedPhotoIndex(strings.TrimSuffix(strings.TrimPrefix(name, prefix), suffix))
+}
+
+func isSeedPhotoIndex(raw string) bool {
+	if len(raw) != 3 {
+		return false
+	}
+	index, err := strconv.Atoi(raw)
+	return err == nil && index >= 1 && index <= 59 && index%4 != 0
 }
 
 func embeddedAsset(name string) ([]byte, bool) {
@@ -86,6 +106,9 @@ func assetContentType(name string) string {
 	}
 	if strings.HasSuffix(name, ".jpg") {
 		return "image/jpeg"
+	}
+	if strings.HasSuffix(name, ".svg") {
+		return "image/svg+xml"
 	}
 	return "text/javascript; charset=utf-8"
 }

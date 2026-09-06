@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/monstercameron/GoWebComponents/v5/ui"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
@@ -22,7 +24,8 @@ const (
 // the reusable productui tree and calls the canonical JourneyService through
 // the cell's gRPC-over-WebSocket tunnel; no JSON shadow API is introduced.
 func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
-	if _, ok := productui.LookupRoute(r.URL.Path); !ok {
+	definition, ok := productui.LookupRoute(r.URL.Path)
+	if !ok {
 		h.serveNotFound(w, r)
 		return
 	}
@@ -41,7 +44,8 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 		config.Roles = principal.Roles()
 		config.Purpose = principal.DefaultPurpose()
 	}
-	doc, err := productShellDocument(config, JourneyBundleBuilt())
+	locale := productui.ResolveProductLocale(r.URL.Query().Get("locale"))
+	doc, err := productShellDocumentForRoute(config, JourneyBundleBuilt(), locale, definition.ID)
 	if err != nil {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
@@ -56,23 +60,56 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func productShellDocument(config JourneyConfig, bundleBuilt bool) (string, error) {
+	return productShellDocumentForLocale(config, bundleBuilt, productui.ResolveProductLocale(""))
+}
+
+func productShellDocumentForLocale(config JourneyConfig, bundleBuilt bool, locale productui.LocaleContext) (string, error) {
+	return productShellDocumentForRoute(config, bundleBuilt, locale, productui.PageHome)
+}
+
+func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale productui.LocaleContext, page productui.PageID) (string, error) {
 	island, err := json.Marshal(config)
 	if err != nil {
 		return "", err
 	}
 	var b strings.Builder
-	b.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">")
+	b.WriteString(`<!doctype html><html lang="` + html.EscapeString(locale.Resolved) + `" dir="` + html.EscapeString(string(locale.Direction)) + `" data-hcm-locale="` + html.EscapeString(locale.Resolved) + `" data-hcm-catalog="` + html.EscapeString(locale.CatalogVersion) + `"`)
+	if locale.Fallback != productui.LocaleFallbackNone {
+		b.WriteString(` data-hcm-locale-fallback="` + html.EscapeString(string(locale.Fallback)) + `"`)
+	}
+	if missing := len(productui.MissingProductTranslations(locale.Resolved)); missing > 0 {
+		b.WriteString(` data-hcm-message-fallback="en-US" data-hcm-message-fallback-count="` + strconv.Itoa(missing) + `"`)
+	}
+	appearance := productui.CustomerThemeAttributes(productui.DefaultCustomerTheme())
+	for _, name := range []string{"data-hcm-color-mode", "data-hcm-palette", "data-hcm-shape", "data-hcm-density", "data-hcm-glyphs", "data-hcm-typeface", "data-hcm-navigation", "data-hcm-motion"} {
+		b.WriteString(` ` + name + `="` + html.EscapeString(appearance[name]) + `"`)
+	}
+	accessibility := productui.AccessibilityPreferenceAttributes(productui.DefaultAccessibilityPreferences())
+	for _, name := range []string{"data-hcm-text-size", "data-hcm-contrast", "data-hcm-motion-preference", "data-hcm-links"} {
+		b.WriteString(` ` + name + `="` + html.EscapeString(accessibility[name]) + `"`)
+	}
+	b.WriteString(`><head><meta charset="utf-8"><meta name="color-scheme" content="light dark">`)
 	b.WriteString(`<meta name="viewport" content="width=device-width, initial-scale=1">`)
 	b.WriteString("<title>HCM Next</title><style>")
 	b.WriteString(productStylesheet())
 	b.WriteString("</style></head><body>")
-	b.WriteString(`<div id="` + JourneyRootElementID + `"><main class="main"><section class="surface empty-state" role="status"><h1>Connecting to HCM Next</h1><p class="muted">Loading authorized data from the live cell…</p>`)
-	if !bundleBuilt {
+	b.WriteString(`<div id="` + JourneyRootElementID + `">`)
+	if bundleBuilt {
+		view := productui.NewView(page, productui.DisplayLabel(config.Tenant), productui.DisplayLabel(config.Subject), productui.DisplayLabel(config.Purpose))
+		view = productui.ApplyLocale(view, locale)
+		loading, renderErr := ui.RenderToString(productui.BuildLoading(view))
+		if renderErr != nil {
+			return "", renderErr
+		}
+		b.WriteString(loading)
+	} else {
+		b.WriteString(`<main class="main"><section class="surface empty-state" role="status"><h1>` + html.EscapeString(locale.Text("shell.connecting")) + `</h1><p class="muted">` + html.EscapeString(locale.Text("shell.loading_authorized")) + `</p>`)
 		b.WriteString(`<p>This build carries no browser client. Build it with <code>`)
 		b.WriteString(html.EscapeString(journeyBuildCommand))
 		b.WriteString(`</code>.</p>`)
+		b.WriteString(`</section></main>`)
 	}
-	b.WriteString(`</section></main></div>`)
+	b.WriteString(`</div>`)
 	b.WriteString(`<script type="application/json" id="` + JourneyConfigElementID + `">`)
 	b.Write(island)
 	b.WriteString("</script>")

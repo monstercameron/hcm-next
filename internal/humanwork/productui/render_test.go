@@ -206,6 +206,41 @@ func TestWorkFilterIsActiveAndSurvivesSelectionAndToggle(t *testing.T) {
 	}
 }
 
+func TestMyWorkKeepsTerminalJourneysInHistory(t *testing.T) {
+	view := testView(PageWork)
+	view.SelectedWork = "intent-2"
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"Open work", "Jordan Lee", "Past workflows", "Nothing selected"} {
+		if !strings.Contains(doc, want) {
+			t.Fatalf("open-work projection missing %q", want)
+		}
+	}
+	if strings.Contains(doc, "Avery Patel") {
+		t.Fatal("terminal journey leaked into the open My Work collection")
+	}
+	if !strings.Contains(doc, `aria-label="Work overview, 1 promotion journey is visible in this scope."`) {
+		t.Fatal("work overview announced the total history instead of the open-work count")
+	}
+}
+
+func TestMyWorkSelectsTheFirstOpenJourneyWhenTheURLHasNoSelection(t *testing.T) {
+	view := testView(PageWork)
+	view.SelectedWork = ""
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(doc, "Nothing selected") {
+		t.Fatal("default My Work route left a populated open-work list without a preview")
+	}
+	if !strings.Contains(doc, `class="work-row selected"`) || !strings.Contains(doc, "Open live journey") {
+		t.Fatal("default My Work route did not align its selected row and preview")
+	}
+}
+
 func TestWorkflowHistoryShowsOnlyTerminalRecordsAndPreservesFilters(t *testing.T) {
 	view := testView(PageHistory)
 	view.HistoryQuery = "Avery"
@@ -313,6 +348,28 @@ func TestPeopleSearchHasTruthfulEmptyStateAndRowsNavigateToProfiles(t *testing.T
 	}
 }
 
+func TestPeopleRowsOfferEmployeeScopedPromotionQuickActions(t *testing.T) {
+	view := testView(PagePeople)
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`href="/workspace/app/journeys?mode=new&amp;worker=worker-jordan"`,
+		`href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`,
+		`aria-label="Start a promotion for Avery Patel"`,
+		`class="button secondary people-row-action"`,
+		">Actions</span>",
+	} {
+		if !strings.Contains(doc, want) {
+			t.Fatalf("people promotion shortcut missing %q", want)
+		}
+	}
+	if strings.Contains(doc, `class="people-row" href=`) {
+		t.Fatal("people row must not nest the profile and workflow links")
+	}
+}
+
 func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) {
 	view := testView(PagePerson)
 	view.SelectedPerson = "worker-avery"
@@ -379,9 +436,61 @@ func TestPeopleColumnHeadersAreIndependentGridItems(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, heading := range []string{"Person", "Role", "Team", "Manager", "Location"} {
-		if !strings.Contains(doc, ">"+heading+"</span>") {
+	for _, heading := range []string{"Person ↑", "Role", "Team", "Manager", "Location"} {
+		if !strings.Contains(doc, ">"+heading+"</a>") {
 			t.Fatalf("directory column %q is not an independent grid item", heading)
+		}
+	}
+	for _, href := range []string{`href="/workspace/app/people?dir=desc"`, `href="/workspace/app/people?sort=role"`, `href="/workspace/app/people?sort=team"`} {
+		if !strings.Contains(doc, href) {
+			t.Fatalf("directory sort control missing %q", href)
+		}
+	}
+}
+
+func TestPeopleDirectoryCombinesFacetsSortAndPagination(t *testing.T) {
+	view := testView(PagePeople)
+	view.People = []Person{
+		{ID: "worker-z", Name: "Zara", Role: "Engineer", Team: "Platform", Location: "Boston"},
+		{ID: "worker-a", Name: "Avery", Role: "Designer", Team: "Product", Location: "Boston"},
+		{ID: "worker-m", Name: "Mateo", Role: "Engineer", Team: "Platform", Location: "Denver"},
+		{ID: "worker-b", Name: "Bianca", Role: "Engineer", Team: "Platform", Location: "Boston"},
+	}
+	view.Query = "engineer"
+	view.PeopleTeam = "Platform"
+	view.PeopleLocation = "Boston"
+	view.PeopleSort = peopleSortName
+	view.PeopleDirection = peopleSortDescending
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"2 of 4 people", ">Zara</strong>", ">Bianca</strong>", `name="team"`, `value="Platform"`,
+		`name="location"`, `value="Boston"`, `>Person ↓</a>`,
+		`href="/workspace/app/people?location=Boston&amp;q=engineer&amp;sort=role&amp;team=Platform"`,
+		`href="/workspace/app/people?dir=desc"`,
+	} {
+		if !strings.Contains(doc, want) {
+			t.Fatalf("faceted sorted directory missing %q", want)
+		}
+	}
+	if strings.Contains(doc, ">Avery</strong>") || strings.Contains(doc, ">Mateo</strong>") || strings.Index(doc, ">Zara</strong>") > strings.Index(doc, ">Bianca</strong>") {
+		t.Fatal("directory did not apply exact facets before descending sort")
+	}
+}
+
+func TestPeopleSortAndFacetControlsUseSharedResponsiveStyles(t *testing.T) {
+	css := Stylesheet()
+	for _, want := range []string{
+		`.people-filter-control{grid-template-columns:minmax(220px,1.8fr)`,
+		`.people-filter select{width:100%;min-width:0;min-height:44px`,
+		`.people-sort{display:flex;align-items:center;min-height:44px`,
+		`@media(max-width:760px){.people-filter-control{grid-template-columns:1fr}`,
+		`.people-directory .people-columns{display:flex;align-items:center;gap:8px;overflow-x:auto`,
+	} {
+		if !strings.Contains(css, want) {
+			t.Fatalf("people sort/filter styling missing %q", want)
 		}
 	}
 }
