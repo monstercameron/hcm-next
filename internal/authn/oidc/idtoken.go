@@ -11,6 +11,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
 	"slices"
 	"strings"
@@ -63,7 +64,7 @@ func splitCompactJWS(raw string, maxBytes int) (h joseHeader, signingInput strin
 	if err := dec.Decode(&h); err != nil {
 		return joseHeader{}, "", nil, nil, fmt.Errorf("%w: header: %v", ErrIDTokenMalformed, err)
 	}
-	if dec.More() {
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
 		return joseHeader{}, "", nil, nil, fmt.Errorf("%w: trailing content after header", ErrIDTokenMalformed)
 	}
 

@@ -694,8 +694,29 @@ func (s *Service) Authenticate(req AuthenticationRequest) (AuthenticationResult,
 
 // CheckDependent performs the same epoch fence for queued or live authority.
 func (s *Service) CheckDependent(accountID, dependentID string, at time.Time) error {
-	_, err := s.Authenticate(AuthenticationRequest{AccountID: accountID, DependentID: dependentID, At: at})
-	return err
+	if s == nil || s.store == nil {
+		return ErrStore
+	}
+	if at.IsZero() {
+		return ErrInvalidAuthentication
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	account, ok, err := s.store.GetAccount(accountID)
+	if err != nil || !ok {
+		return ErrAccountNotFound
+	}
+	if err := requireAccountActive(account); err != nil {
+		return err
+	}
+	dependent, ok, err := s.store.GetDependent(dependentID)
+	if err != nil || !ok || dependent.AccountID != account.ID {
+		return ErrDependentNotFound
+	}
+	if dependent.Status != DependentActive || dependent.RevocationEpoch != account.RevocationEpoch {
+		return refusal(CodeDependentRevoked, ErrDependentRevoked, account.ID, dependent.IdentityID, dependent.ID)
+	}
+	return nil
 }
 
 // Recover performs assurance-bounded recovery without changing lifecycle

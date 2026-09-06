@@ -11,6 +11,10 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 )
 
+func TestMain(m *testing.M) {
+	pgtest.RunMain(m)
+}
+
 // insertTenant registers a minimal tenant row keyed by tenant_key so a
 // [issuerregistry.PGStore] can resolve it, matching
 // internal/data/configregistry's own helper of the same name and purpose.

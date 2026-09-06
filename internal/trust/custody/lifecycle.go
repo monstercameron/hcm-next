@@ -207,7 +207,7 @@ func (f *InMemoryFake) ImportBYOK(ctx Context, request BYOKImportRequest) (KeyLi
 	if strings.TrimSpace(request.WrappingProofDigest) == "" {
 		return KeyLifecycle{}, ErrBYOKProofRequired
 	}
-	if request.Attestation.Handle != request.Handle || strings.TrimSpace(request.Attestation.EvidenceDigest) == "" || request.Attestation.ValidUntil.Before(f.clock().UTC()) {
+	if request.Attestation.Handle != request.Handle || strings.TrimSpace(request.Attestation.EvidenceDigest) == "" || !request.Attestation.ValidUntil.After(f.clock().UTC()) {
 		return KeyLifecycle{}, ErrBYOKAttestationInvalid
 	}
 	store := storeFor(f)

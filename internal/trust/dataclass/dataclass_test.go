@@ -19,6 +19,9 @@ func testCustody(t *testing.T) (*Transformer, custody.Context, custody.Handle) {
 		Purpose: "lower_environment_copy", Destination: "sandbox",
 	}}
 	provider := custody.NewInMemoryFake(func() time.Time { return time.Unix(100, 0).UTC() })
+	if err := provider.Register(key); err != nil {
+		t.Fatalf("Register custody key: %v", err)
+	}
 	transformer, err := New(provider, key)
 	if err != nil {
 		t.Fatalf("New: %v", err)

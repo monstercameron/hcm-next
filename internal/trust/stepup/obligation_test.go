@@ -583,3 +583,58 @@ func TestTodo_TRUST_004_PolicySelectsAssuranceAndNamesNoIdPMethod(t *testing.T) 
 		t.Fatalf("the log line does not carry the code: %s", s)
 	}
 }
+
+func TestObligationPolicy_SelectionAndWireValues(t *testing.T) {
+	for _, tc := range []struct {
+		risk stepup.Risk
+		text string
+	}{
+		{stepup.RiskUnspecified, "unspecified"},
+		{stepup.RiskRoutine, "routine"},
+		{stepup.RiskElevated, "elevated"},
+		{stepup.RiskCritical, "critical"},
+		{stepup.Risk(99), "invalid(99)"},
+	} {
+		if got := tc.risk.String(); got != tc.text {
+			t.Fatalf("Risk(%d).String() = %q, want %q", tc.risk, got, tc.text)
+		}
+	}
+	policy := stepup.DefaultObligationPolicy()
+	if policy == nil {
+		t.Fatal("DefaultObligationPolicy returned nil")
+	}
+	if _, _, ok := policy.Select(stepup.ActionApprove, stepup.PurposeHCMOperations, stepup.RiskUnspecified); ok {
+		t.Fatal("unspecified risk selected a requirement")
+	}
+	var nilPolicy *stepup.ObligationPolicy
+	if _, _, ok := nilPolicy.Select(stepup.ActionApprove, stepup.PurposeHCMOperations, stepup.RiskCritical); ok {
+		t.Fatal("nil policy selected a requirement")
+	}
+	if _, _, ok := policy.Select("unknown", stepup.PurposeHCMOperations, stepup.RiskRoutine); ok {
+		t.Fatal("routine unknown capability selected a requirement")
+	}
+	gap, rule, ok := policy.Select("unknown", stepup.PurposeHCMOperations, stepup.RiskCritical)
+	if !ok || rule != "policy.gap" || gap.MinAssurance != trust.AssuranceHigh || gap.Recency <= 0 {
+		t.Fatalf("critical policy gap = %+v, %q, %v", gap, rule, ok)
+	}
+
+	for _, tc := range []struct {
+		ob       stepup.Obligation
+		wantErr  bool
+		contains string
+	}{
+		{stepup.Obligation{Required: false, Satisfied: true}, false, ""},
+		{stepup.Obligation{Required: true, Satisfied: true}, false, ""},
+		{stepup.Obligation{Required: true, Satisfied: false, Reason: stepup.ReasonNoProof}, true, "STEP_UP_REQUIRED"},
+	} {
+		if (tc.ob.Err() != nil) != tc.wantErr {
+			t.Fatalf("Obligation.Err() = %v, want error=%v", tc.ob.Err(), tc.wantErr)
+		}
+		if tc.contains != "" && !strings.Contains(tc.ob.Err().Error(), tc.contains) {
+			t.Fatalf("Obligation.Err() = %v, missing %q", tc.ob.Err(), tc.contains)
+		}
+	}
+	if got := (stepup.Obligation{Code: stepup.CodeStepUpSatisfied, Stage: stepup.StageExecution, Capability: "cap", Purpose: "purpose", Risk: stepup.RiskElevated, Reason: stepup.ReasonSatisfied}).String(); !strings.Contains(got, "STEP_UP_SATISFIED") || !strings.Contains(got, "cap") {
+		t.Fatalf("redacted obligation String = %q", got)
+	}
+}

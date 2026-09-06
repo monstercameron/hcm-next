@@ -227,3 +227,85 @@ func TestTodo_TRUST_003(t *testing.T) {
 		}
 	})
 }
+
+func TestManager_BoundariesAndErrorState(t *testing.T) {
+	ctx := context.Background()
+	c := &clock{at: baseTime}
+	m, err := session.NewManager(session.ManagerConfig{Now: c.now, IdleTimeout: time.Minute, AbsoluteTimeout: 2 * time.Minute})
+	if err != nil {
+		t.Fatalf("NewManager: %v", err)
+	}
+	if _, err := m.Get(ctx, "missing"); !errors.Is(err, session.ErrSessionNotFound) {
+		t.Fatalf("Get missing = %v, want ErrSessionNotFound", err)
+	}
+	if _, err := m.Touch(ctx, "missing"); !errors.Is(err, session.ErrSessionNotFound) {
+		t.Fatalf("Touch missing = %v, want ErrSessionNotFound", err)
+	}
+	if _, err := m.Validate(ctx, "missing", session.Claim{}); !errors.Is(err, session.ErrSessionNotFound) {
+		t.Fatalf("Validate missing = %v, want ErrSessionNotFound", err)
+	}
+	if _, err := m.Revoke(ctx, "missing", "reason"); !errors.Is(err, session.ErrSessionNotFound) {
+		t.Fatalf("Revoke missing = %v, want ErrSessionNotFound", err)
+	}
+
+	spec := validSpec()
+	spec.IdleTimeout = time.Minute
+	spec.AbsoluteTimeout = 2 * time.Minute
+	rec, token, err := m.Create(ctx, spec)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if _, _, err := m.Refresh(ctx, "unknown"); !errors.Is(err, session.ErrRefreshUnknown) {
+		t.Fatalf("Refresh unknown = %v, want ErrRefreshUnknown", err)
+	}
+	c.advance(time.Minute)
+	got, err := m.Get(ctx, rec.ID())
+	if err != nil || got.Status() != session.StatusActive {
+		t.Fatalf("Get at exact idle boundary = %+v, err=%v, want active", got, err)
+	}
+	touched, err := m.Touch(ctx, rec.ID())
+	if err != nil || !touched.LastActivityAt().Equal(c.at) {
+		t.Fatalf("Touch at boundary = %+v, err=%v", touched, err)
+	}
+	if _, err := m.Validate(ctx, rec.ID(), session.Claim{}); err != nil {
+		t.Fatalf("Validate empty claim: %v", err)
+	}
+
+	if _, err := m.Revoke(ctx, rec.ID(), "operator"); err != nil {
+		t.Fatalf("Revoke: %v", err)
+	}
+	if _, err := m.Revoke(ctx, rec.ID(), "again"); !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("second Revoke = %v, want ErrSessionNotActive", err)
+	}
+	if _, err := m.Touch(ctx, rec.ID()); !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("Touch revoked = %v, want ErrSessionNotActive", err)
+	}
+	if _, err := m.Validate(ctx, rec.ID(), session.Claim{}); !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("Validate revoked = %v, want ErrSessionNotActive", err)
+	}
+	if _, _, err := m.Refresh(ctx, token); !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("Refresh revoked current token = %v, want ErrSessionNotActive", err)
+	}
+}
+
+func TestManager_AbsoluteExpiryWinsAtDeadlineAndEvidenceIsStable(t *testing.T) {
+	ctx := context.Background()
+	c := &clock{at: baseTime}
+	m := newManager(t, c, 10*time.Second, time.Minute)
+	rec, _ := mustCreate(t, m, validSpec())
+	c.advance(time.Minute)
+	got, err := m.Get(ctx, rec.ID())
+	if err != nil || got.Status() != session.StatusExpiredAbsolute || got.RevokedReason() != session.ReasonAbsoluteTimeout {
+		t.Fatalf("absolute boundary = %+v, err=%v", got, err)
+	}
+	first := m.Evidence(rec.ID())
+	if len(first) != 2 || first[1].Kind != session.EvidenceExpired || first[1].Reason != session.ReasonAbsoluteTimeout {
+		t.Fatalf("absolute evidence = %+v, want one expiry entry", first)
+	}
+	if _, err := m.Get(ctx, rec.ID()); err != nil {
+		t.Fatalf("second Get: %v", err)
+	}
+	if got := m.Evidence(rec.ID()); len(got) != len(first) {
+		t.Fatalf("expiry was recorded %d times, want once", len(got)-1)
+	}
+}

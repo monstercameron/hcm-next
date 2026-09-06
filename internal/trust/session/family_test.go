@@ -151,3 +151,39 @@ func TestTodo_AUTHN_004_Mutation(t *testing.T) {
 		t.Fatal("family explanation is empty")
 	}
 }
+
+func TestFamily_NilFacadeFailsClosed(t *testing.T) {
+	var family *session.Family
+	ctx := context.Background()
+	if family.Manager() != nil {
+		t.Fatal("nil Family.Manager returned a manager")
+	}
+	if _, _, err := family.Create(ctx, authn004Spec()); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("nil Family.Create = %v, want ErrInvalidCreateSpec", err)
+	}
+	if _, _, err := family.Rotate(ctx, "token"); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("nil Family.Rotate = %v, want ErrInvalidCreateSpec", err)
+	}
+	if _, err := family.Validate(ctx, "sess_missing", session.Claim{}); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("nil Family.Validate = %v, want ErrInvalidCreateSpec", err)
+	}
+	if err := family.CheckRevocation(ctx, "sess_missing", time.Time{}); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("nil Family.CheckRevocation = %v, want ErrInvalidCreateSpec", err)
+	}
+	if _, err := family.Revoke(ctx, "sess_missing", "reason"); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("nil Family.Revoke = %v, want ErrInvalidCreateSpec", err)
+	}
+}
+
+func TestFamily_ConstructorAndExplainContract(t *testing.T) {
+	if _, err := session.NewFamily(session.ManagerConfig{IdleTimeout: 2 * time.Hour, AbsoluteTimeout: time.Hour}); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("NewFamily invalid config = %v, want ErrInvalidCreateSpec", err)
+	}
+	family, err := session.NewFamily(session.ManagerConfig{IdleTimeout: time.Minute, AbsoluteTimeout: time.Hour})
+	if err != nil || family.Manager() == nil {
+		t.Fatalf("NewFamily valid config = %v, family=%v", err, family)
+	}
+	if session.Version() != 1 || session.Explain() == "" || family.Explain() != session.Explain() {
+		t.Fatalf("family contract mismatch: version=%d explain=%q family=%q", session.Version(), session.Explain(), family.Explain())
+	}
+}

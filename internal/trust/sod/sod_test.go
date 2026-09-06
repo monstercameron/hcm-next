@@ -369,3 +369,57 @@ func TestTodo_TRUST_014_Mutation(t *testing.T) {
 		}
 	})
 }
+
+func TestSOD_ValidationOrderingAndExplanation(t *testing.T) {
+	valid := fullConstraints("SOD-HARDENING")
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("Constraints.Validate(valid) = %v", err)
+	}
+	for _, tc := range []struct {
+		name string
+		c    sod.Constraints
+	}{
+		{"missing rule id", sod.Constraints{RequesterMayNotApprove: true}},
+		{"no exclusion enabled", sod.Constraints{RuleID: "SOD-NONE"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := tc.c.Validate(); !errors.Is(err, sod.ErrInvalidConstraints) {
+				t.Fatalf("Constraints.Validate() = %v, want ErrInvalidConstraints", err)
+			}
+		})
+	}
+
+	ctx := sod.DecisionContext{
+		Requester: sod.Actor{Subject: "alice"},
+		Executor:  sod.Actor{Subject: "erin"},
+		Approvers: []sod.Actor{
+			{Subject: "alice", DelegationChain: []string{"alice", "alice"}},
+			{Subject: "erin"},
+			{Subject: "bob"},
+			{Subject: "bob"},
+		},
+	}
+	result, err := sod.Evaluate(ctx, valid, 1)
+	if err != nil {
+		t.Fatalf("Evaluate: %v", err)
+	}
+	if !result.Satisfied || len(result.Eligible) != 1 || result.Eligible[0] != "bob" || len(result.Excluded) != 3 {
+		t.Fatalf("result = %+v, want one eligible bob and three exclusions", result)
+	}
+	if result.Excluded[0].Reason != sod.ReasonSelfApproval || result.Excluded[1].Reason != sod.ReasonExecutorIsApprover || result.Excluded[2].Reason != sod.ReasonDuplicatePrincipal {
+		t.Fatalf("exclusions = %+v, want fixed first-fired rule order", result.Excluded)
+	}
+	if got := result.Explain(); got != "sod decision rule=SOD-HARDENING eligible=1 excluded=3 satisfied=true" {
+		t.Fatalf("Explain() = %q, want deterministic summary", got)
+	}
+
+	// A missing executor is intentionally a no-op for executor-dependent
+	// rules, while a quorum larger than the surviving set is unsatisfiable.
+	noExecutor := sod.DecisionContext{Requester: sod.Actor{Subject: "alice"}, Approvers: []sod.Actor{{Subject: "bob"}}}
+	if result, err := sod.Evaluate(noExecutor, valid, 1); err != nil || len(result.Eligible) != 1 {
+		t.Fatalf("missing executor evaluation = %+v, %v, want bob eligible", result, err)
+	}
+	if result, err := sod.Evaluate(noExecutor, valid, 2); !errors.Is(err, sod.ErrUnsatisfiable) || result.Satisfied {
+		t.Fatalf("unmet quorum = %+v, %v, want ErrUnsatisfiable and false", result, err)
+	}
+}

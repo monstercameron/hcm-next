@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -379,7 +380,7 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (Identity, error) {
 	if err := dec.Decode(&c); err != nil {
 		return Identity{}, fmt.Errorf("%w: claims: %v", ErrMalformedCredential, err)
 	}
-	if dec.More() {
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
 		return Identity{}, fmt.Errorf("%w: trailing content after claims", ErrMalformedCredential)
 	}
 	if c.Issuer == "" || c.Subject == "" || c.KeyID == "" {

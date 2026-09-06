@@ -1,6 +1,7 @@
 package authz_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
@@ -147,4 +148,35 @@ func TestTodo_TRUST_010(t *testing.T) {
 			t.Error("Covers succeeded despite a missing ruling")
 		}
 	})
+}
+
+func TestFields_InvalidInputsAndClosedMasks(t *testing.T) {
+	if _, err := authz.ResolveFields(nil, authz.PurposeSelfService, []authz.FieldID{authz.FieldWorkerNumber}, nil); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("ResolveFields(nil) error = %v, want ErrInvalidPolicyInput", err)
+	}
+
+	principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleWorkerSelf)}, purposes: []string{authz.PurposeSelfService}})
+	decision, err := authz.ResolveFields(principal, authz.PurposeSelfService, nil, nil)
+	if err != nil {
+		t.Fatalf("ResolveFields with no fields: %v", err)
+	}
+	if decision.Purpose != authz.PurposeSelfService || decision.PolicyVersion != authz.PolicyVersion {
+		t.Fatalf("decision metadata = %+v, want purpose and policy version", decision)
+	}
+	if err := decision.Covers(nil); err != nil {
+		t.Fatalf("Covers(nil): %v", err)
+	}
+	if err := decision.Covers([]authz.FieldID{authz.FieldWorkerNumber}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("Covers on a silent decision = %v, want ErrInvalidPolicyInput", err)
+	}
+
+	// A role unknown to this policy is inert even when the principal is valid.
+	unknown := newPrincipal(t, principalOpts{roles: []string{"role-from-another-policy"}, purposes: []string{authz.PurposeSelfService}})
+	denied, err := authz.ResolveFields(unknown, authz.PurposeSelfService, []authz.FieldID{authz.FieldWorkerNumber}, nil)
+	if err != nil {
+		t.Fatalf("ResolveFields with an unknown role: %v", err)
+	}
+	if ruling := denied.Rulings[authz.FieldWorkerNumber]; ruling.Effect != authz.EffectDenied || ruling.Reason != "no_grant_for_domain" {
+		t.Fatalf("unknown-role ruling = %+v, want deny-by-default", ruling)
+	}
 }

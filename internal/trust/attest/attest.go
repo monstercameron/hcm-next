@@ -284,6 +284,19 @@ func Verify(dir *Directory, st Statement, req Requirement, principal *trust.Prin
 	if st.Tenant != record.Tenant || st.Tenant != principal.Tenant() {
 		return refuse(ReasonTenantMismatch), nil
 	}
+	authorizedMode := false
+	for _, mode := range record.Authority {
+		if mode == st.Mode {
+			authorizedMode = true
+			break
+		}
+	}
+	if !authorizedMode {
+		return refuse(ReasonModeNotPermitted), nil
+	}
+	if !st.Assurance.AtLeast(record.MinAssurance) {
+		return refuse(ReasonAssuranceLow), nil
+	}
 
 	mac := hmac.New(sha256.New, record.SigningKey[:])
 	mac.Write([]byte(st.Digest()))

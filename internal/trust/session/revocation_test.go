@@ -169,6 +169,67 @@ func TestTodo_TRUST_005_Mutation(t *testing.T) {
 	}
 }
 
+func TestRevocationError_CodeAndUnwrap(t *testing.T) {
+	err := &session.RevocationError{SessionRef: "sess-1", Status: session.StatusRevoked}
+	if err.Error() != "session: SESSION_REVOKED for sess-1" || err.Code() != session.CodeSessionRevoked {
+		t.Fatalf("revocation error = %q code=%q", err.Error(), err.Code())
+	}
+	if !errors.Is(err, session.ErrSessionRevoked) || !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("RevocationError does not unwrap both sentinels: %v", err)
+	}
+	if session.CodeOf(err) != session.CodeSessionRevoked || session.CodeOf(errors.New("other")) != "" || session.CodeOf(nil) != "" {
+		t.Fatalf("CodeOf results: typed=%q plain=%q nil=%q", session.CodeOf(err), session.CodeOf(errors.New("other")), session.CodeOf(nil))
+	}
+}
+
+func TestPersistentManager_CheckRevocationUsesCurrentStoreState(t *testing.T) {
+	ctx := context.Background()
+	store := newFakeStore()
+	mgr, err := session.NewPersistentManager(session.PersistentManagerConfig{Now: clockAt(baseTime), Store: store})
+	if err != nil {
+		t.Fatalf("NewPersistentManager: %v", err)
+	}
+	rec, _ := mustCreatePersistent(t, mgr)
+	if err := mgr.CheckRevocation(ctx, string(rec.ID()), baseTime); err != nil {
+		t.Fatalf("active persistent check = %v", err)
+	}
+	if _, err := mgr.Revoke(ctx, rec.ID(), "disabled"); err != nil {
+		t.Fatalf("Revoke: %v", err)
+	}
+	err = mgr.CheckRevocation(ctx, string(rec.ID()), baseTime)
+	if !errors.Is(err, session.ErrSessionRevoked) || session.CodeOf(err) != session.CodeSessionRevoked {
+		t.Fatalf("revoked persistent check = %v code=%q", err, session.CodeOf(err))
+	}
+	if err := mgr.CheckRevocation(ctx, "missing", baseTime); !errors.Is(err, session.ErrSessionNotFound) {
+		t.Fatalf("missing persistent check = %v, want ErrSessionNotFound", err)
+	}
+
+	expiredStore := newFakeStore()
+	expiredMgr, err := session.NewPersistentManager(session.PersistentManagerConfig{Now: clockAt(baseTime), Store: expiredStore})
+	if err != nil {
+		t.Fatalf("NewPersistentManager expired fixture: %v", err)
+	}
+	expired, _ := mustCreatePersistentWithSpec(t, expiredMgr, func(s *session.CreateSpec) { s.IdleTimeout = time.Minute; s.AbsoluteTimeout = time.Hour })
+	if err := expiredMgr.CheckRevocation(ctx, string(expired.ID()), baseTime.Add(2*time.Minute)); !errors.Is(err, session.ErrSessionNotActive) {
+		t.Fatalf("expired persistent check = %v, want ErrSessionNotActive", err)
+	}
+}
+
+func mustCreatePersistent(t *testing.T, mgr *session.PersistentManager) (session.Record, session.RefreshToken) {
+	return mustCreatePersistentWithSpec(t, mgr, func(*session.CreateSpec) {})
+}
+
+func mustCreatePersistentWithSpec(t *testing.T, mgr *session.PersistentManager, mutate func(*session.CreateSpec)) (session.Record, session.RefreshToken) {
+	t.Helper()
+	spec := validSpec()
+	mutate(&spec)
+	rec, token, err := mgr.Create(context.Background(), spec)
+	if err != nil {
+		t.Fatalf("persistent Create: %v", err)
+	}
+	return rec, token
+}
+
 func FuzzTodo_TRUST_005(f *testing.F) {
 	f.Add("session:fuzz:active")
 	f.Add("session:fuzz:revoked")

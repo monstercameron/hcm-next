@@ -1,20 +1,18 @@
 package federation
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestDoc_Smoke(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("panic: %v", r)
-		}
-	}()
+	if NewStaticKeySource() == nil {
+		t.Fatal("NewStaticKeySource returned nil")
+	}
 }
 
 func TestDoc_NoPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("panic: %v", r)
-		}
-	}()
-	_ = 1
+	if _, err := NewValidator(Config{}); !errors.Is(err, ErrValidatorAudience) {
+		t.Fatalf("empty package configuration error = %v, want ErrValidatorAudience", err)
+	}
 }

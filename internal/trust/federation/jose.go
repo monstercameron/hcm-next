@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"strings"
 	"time"
@@ -95,7 +96,7 @@ func splitJWS(raw string, maxBytes int) (h joseHeader, signingInput string, payl
 	if err := dec.Decode(&h); err != nil {
 		return joseHeader{}, "", nil, nil, fmt.Errorf("%w: header: %v", ErrMalformedAssertion, err)
 	}
-	if dec.More() {
+	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return joseHeader{}, "", nil, nil, fmt.Errorf("%w: trailing content after header", ErrMalformedAssertion)
 	}
 

@@ -322,3 +322,459 @@ func TestTodo_AUTHN_009_Mutation(t *testing.T) {
 		t.Fatal("lifecycle contract exports incomplete")
 	}
 }
+
+type lifecycleErrorStore struct {
+	inner *authn.MemoryStore
+	fail  string
+	err   error
+}
+
+func (s *lifecycleErrorStore) wants(method string) error {
+	if s.fail == method {
+		return s.err
+	}
+	return nil
+}
+
+func (s *lifecycleErrorStore) CreateAccount(a authn.Account, e authn.LifecycleEvent) error {
+	if err := s.wants("CreateAccount"); err != nil {
+		return err
+	}
+	return s.inner.CreateAccount(a, e)
+}
+func (s *lifecycleErrorStore) GetAccount(id string) (authn.Account, bool, error) {
+	if err := s.wants("GetAccount"); err != nil {
+		return authn.Account{}, false, err
+	}
+	return s.inner.GetAccount(id)
+}
+func (s *lifecycleErrorStore) GetIdentity(id string) (authn.Identity, bool, error) {
+	if err := s.wants("GetIdentity"); err != nil {
+		return authn.Identity{}, false, err
+	}
+	return s.inner.GetIdentity(id)
+}
+func (s *lifecycleErrorStore) ListIdentities(id string) ([]authn.Identity, error) {
+	if err := s.wants("ListIdentities"); err != nil {
+		return nil, err
+	}
+	return s.inner.ListIdentities(id)
+}
+func (s *lifecycleErrorStore) GetDependent(id string) (authn.Dependent, bool, error) {
+	if err := s.wants("GetDependent"); err != nil {
+		return authn.Dependent{}, false, err
+	}
+	return s.inner.GetDependent(id)
+}
+func (s *lifecycleErrorStore) ListDependents(id string) ([]authn.Dependent, error) {
+	if err := s.wants("ListDependents"); err != nil {
+		return nil, err
+	}
+	return s.inner.ListDependents(id)
+}
+func (s *lifecycleErrorStore) Commit(a authn.Account, i []authn.Identity, d []authn.Dependent, e authn.LifecycleEvent) error {
+	if err := s.wants("Commit"); err != nil {
+		return err
+	}
+	return s.inner.Commit(a, i, d, e)
+}
+func (s *lifecycleErrorStore) AppendIdentity(i authn.Identity, e authn.LifecycleEvent) error {
+	if err := s.wants("AppendIdentity"); err != nil {
+		return err
+	}
+	return s.inner.AppendIdentity(i, e)
+}
+func (s *lifecycleErrorStore) AppendDependent(d authn.Dependent) error {
+	if err := s.wants("AppendDependent"); err != nil {
+		return err
+	}
+	return s.inner.AppendDependent(d)
+}
+func (s *lifecycleErrorStore) Events(id string) ([]authn.LifecycleEvent, error) {
+	if err := s.wants("Events"); err != nil {
+		return nil, err
+	}
+	return s.inner.Events(id)
+}
+
+type sessionRevokerStub struct {
+	id     session.ID
+	reason string
+	err    error
+}
+
+func (s *sessionRevokerStub) Revoke(_ context.Context, id session.ID, reason string) (session.Record, error) {
+	s.id, s.reason = id, reason
+	return session.Record{}, s.err
+}
+
+func TestLifecycleConstructorsAndNilGuards(t *testing.T) {
+	if authn.NewMemoryStore() == nil || authn.NewMemory() == nil || authn.New(nil) == nil {
+		t.Fatal("constructors returned nil")
+	}
+	var nilService *authn.Service
+	nilService.SetRevocationSink(nil)
+	cases := []func() error{
+		func() error { _, _, err := nilService.CreateAccount(authn.AccountSpec{}); return err },
+		func() error { _, _, err := nilService.LinkIdentity(authn.IdentitySpec{}); return err },
+		func() error { _, err := nilService.RegisterDependent(authn.DependentSpec{}); return err },
+		func() error { _, _, err := nilService.Suspend(context.Background(), "a", evidence("x")); return err },
+		func() error { _, _, err := nilService.Unlink(context.Background(), "i", evidence("x")); return err },
+		func() error {
+			_, err := nilService.Authenticate(authn.AuthenticationRequest{At: lifecycleAt})
+			return err
+		},
+		func() error { _, _, err := nilService.Account("a"); return err },
+		func() error { _, _, err := nilService.Identity("i"); return err },
+		func() error { _, _, err := nilService.Dependent("d"); return err },
+		func() error { _, err := nilService.Events("a"); return err },
+	}
+	for i, call := range cases {
+		if !errors.Is(call(), authn.ErrStore) {
+			t.Errorf("nil service call %d did not return ErrStore", i)
+		}
+	}
+	if err := (authn.SessionRevocationSink{}).Revoke(context.Background(), authn.RevocationTarget{Reference: authn.Reference{Kind: authn.DependentPrincipal}}); err != nil {
+		t.Fatalf("non-session sink target = %v, want nil", err)
+	}
+	if err := (authn.SessionRevocationSink{}).Revoke(context.Background(), authn.RevocationTarget{Reference: authn.Reference{Kind: authn.DependentSession, ID: "session-1"}}); err == nil {
+		t.Fatal("nil session revoker unexpectedly succeeded")
+	}
+	stub := &sessionRevokerStub{}
+	sink := authn.SessionRevocationSink{Revoker: stub}
+	if err := sink.Revoke(context.Background(), authn.RevocationTarget{Reference: authn.Reference{Kind: authn.DependentTokenFamily, ID: "token-1"}, Reason: "disable"}); err != nil || stub.id != session.ID("token-1") || stub.reason != "disable" {
+		t.Fatalf("session sink call id=%q reason=%q err=%v", stub.id, stub.reason, err)
+	}
+}
+
+func TestLifecycleCreateLinkAndDependentValidation(t *testing.T) {
+	createCases := []struct {
+		name string
+		edit func(*authn.AccountSpec)
+	}{
+		{"account_id", func(s *authn.AccountSpec) { s.ID = " bad" }},
+		{"person_id", func(s *authn.AccountSpec) { s.PersonID = "" }},
+		{"tenant", func(s *authn.AccountSpec) { s.Tenant = "" }},
+	}
+	for _, tc := range createCases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := authn.NewMemory(func() time.Time { return lifecycleAt })
+			spec := authn.AccountSpec{ID: "a", PersonID: "p", Tenant: "tenant-a"}
+			tc.edit(&spec)
+			if _, _, err := s.CreateAccount(spec); !errors.Is(err, authn.ErrInvalidAccount) {
+				t.Fatalf("CreateAccount error = %v, want ErrInvalidAccount", err)
+			}
+		})
+	}
+	s := authn.NewMemory(func() time.Time { return lifecycleAt })
+	if _, _, err := s.CreateAccount(authn.AccountSpec{ID: "a", PersonID: "p", Tenant: "tenant-a"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.CreateAccount(authn.AccountSpec{ID: "a", PersonID: "p", Tenant: "tenant-a"}); !errors.Is(err, authn.ErrLifecycleConflict) {
+		t.Fatalf("duplicate account = %v", err)
+	}
+	linkCases := []struct {
+		name string
+		edit func(*authn.IdentitySpec)
+		want error
+	}{
+		{"id", func(x *authn.IdentitySpec) { x.ID = " id" }, authn.ErrInvalidAccount},
+		{"account", func(x *authn.IdentitySpec) { x.AccountID = "missing" }, authn.ErrAccountNotFound},
+		{"provider", func(x *authn.IdentitySpec) { x.ProviderRef = "" }, authn.ErrInvalidIdentity},
+		{"digest", func(x *authn.IdentitySpec) { x.SubjectDigest = "BAD" }, authn.ErrInvalidIdentity},
+		{"tenant", func(x *authn.IdentitySpec) { x.Tenant = "tenant-b" }, authn.ErrTenantMismatch},
+	}
+	for _, tc := range linkCases {
+		t.Run("link_"+tc.name, func(t *testing.T) {
+			x := authn.IdentitySpec{ID: "i-" + tc.name, AccountID: "a", Tenant: "tenant-a", ProviderRef: "idp", SubjectDigest: validSubjectDigest()}
+			tc.edit(&x)
+			if _, _, err := s.LinkIdentity(x); !errors.Is(err, tc.want) {
+				t.Fatalf("LinkIdentity error = %v, want errors.Is(%v)", err, tc.want)
+			}
+		})
+	}
+	identity, _, err := s.LinkIdentity(authn.IdentitySpec{ID: "i", AccountID: "a", Tenant: "tenant-a", ProviderRef: "idp", SubjectDigest: validSubjectDigest()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	depCases := []struct {
+		name string
+		edit func(*authn.DependentSpec)
+		want error
+	}{
+		{"id", func(x *authn.DependentSpec) { x.ID = " d" }, authn.ErrInvalidDependent},
+		{"kind", func(x *authn.DependentSpec) { x.Kind = "bad" }, authn.ErrInvalidDependent},
+		{"assurance", func(x *authn.DependentSpec) { x.Assurance = trust.AssuranceUnspecified }, authn.ErrInvalidDependent},
+		{"account", func(x *authn.DependentSpec) { x.AccountID = "missing" }, authn.ErrAccountNotFound},
+		{"tenant", func(x *authn.DependentSpec) { x.Tenant = "tenant-b" }, authn.ErrTenantMismatch},
+		{"identity", func(x *authn.DependentSpec) { x.IdentityID = "missing" }, authn.ErrIdentityNotUsable},
+	}
+	for _, tc := range depCases {
+		t.Run("dependent_"+tc.name, func(t *testing.T) {
+			x := authn.DependentSpec{ID: "d-" + tc.name, AccountID: "a", IdentityID: identity.ID, Tenant: "tenant-a", Kind: authn.DependentSession, Assurance: trust.AssuranceSubstantial}
+			tc.edit(&x)
+			if _, err := s.RegisterDependent(x); !errors.Is(err, tc.want) {
+				t.Fatalf("RegisterDependent error = %v, want errors.Is(%v)", err, tc.want)
+			}
+		})
+	}
+}
+
+func TestLifecycleAliasesAndTransitionConflicts(t *testing.T) {
+	newService := func(t *testing.T) *authn.Service {
+		t.Helper()
+		s := authn.NewMemory(func() time.Time { return lifecycleAt })
+		if _, _, err := s.CreateAccount(authn.AccountSpec{ID: "a", PersonID: "p", Tenant: "tenant-a", At: lifecycleAt}); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, err := s.LinkIdentity(authn.IdentitySpec{ID: "i", AccountID: "a", Tenant: "tenant-a", ProviderRef: "idp", SubjectDigest: validSubjectDigest(), At: lifecycleAt}); err != nil {
+			t.Fatal(err)
+		}
+		return s
+	}
+	for _, tc := range []struct {
+		name string
+		call func(*authn.Service) error
+	}{
+		{"suspend_account", func(s *authn.Service) error {
+			_, _, err := s.SuspendAccount(context.Background(), "a", evidence("suspend"))
+			return err
+		}},
+		{"disable_account", func(s *authn.Service) error {
+			_, _, err := s.DisableAccount(context.Background(), "a", evidence("disable"))
+			return err
+		}},
+		{"terminate_account", func(s *authn.Service) error {
+			_, _, err := s.TerminateAccount(context.Background(), "a", evidence("terminate"))
+			return err
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := tc.call(newService(t)); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+	s := newService(t)
+	if _, _, err := s.UnlinkIdentity(context.Background(), "i", evidence("unlink")); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.RelinkIdentity(context.Background(), "i", evidence("relink")); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.Resume(context.Background(), "a", evidence("resume")); !errors.Is(err, authn.ErrLifecycleConflict) {
+		t.Fatalf("resume active account = %v, want ErrLifecycleConflict", err)
+	}
+	if _, _, err := s.Terminate(context.Background(), "a", authn.Evidence{}); !errors.Is(err, authn.ErrInvalidAuthentication) {
+		t.Fatalf("invalid transition evidence = %v, want ErrInvalidAuthentication", err)
+	}
+	if _, _, err := s.Disable(context.Background(), "missing", evidence("missing")); !errors.Is(err, authn.ErrAccountNotFound) {
+		t.Fatalf("missing account transition = %v, want ErrAccountNotFound", err)
+	}
+}
+
+func TestLifecycleAuthenticateAndRecoveryDenials(t *testing.T) {
+	s, identity, _ := lifecycleFixture(t)
+	dependent, err := s.RegisterDependent(authn.DependentSpec{ID: "dependent-auth", AccountID: "account-1", IdentityID: identity.ID, Tenant: "tenant-a", Kind: authn.DependentSession, Assurance: trust.AssuranceSubstantial, At: lifecycleAt})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := s.Authenticate(authn.AuthenticationRequest{AccountID: "account-1", IdentityID: identity.ID, At: lifecycleAt}); err != nil || got.RevocationEpoch != 1 || got.Tenant != "tenant-a" {
+		t.Fatalf("basic authentication=%+v err=%v", got, err)
+	}
+	if got, err := s.Authenticate(authn.AuthenticationRequest{AccountID: "account-1", IdentityID: identity.ID, DependentID: dependent.ID, Assurance: trust.AssuranceLow, At: lifecycleAt}); err != nil || got.Assurance != trust.AssuranceSubstantial {
+		t.Fatalf("dependent authentication=%+v err=%v", got, err)
+	}
+	cases := []struct {
+		name    string
+		request authn.AuthenticationRequest
+		want    error
+	}{
+		{"zero_time", authn.AuthenticationRequest{AccountID: "account-1", IdentityID: identity.ID}, authn.ErrInvalidAuthentication},
+		{"missing_account", authn.AuthenticationRequest{AccountID: "missing", IdentityID: identity.ID, At: lifecycleAt}, authn.ErrAccountNotFound},
+		{"missing_identity", authn.AuthenticationRequest{AccountID: "account-1", IdentityID: "missing", At: lifecycleAt}, authn.ErrIdentityNotFound},
+		{"missing_dependent", authn.AuthenticationRequest{AccountID: "account-1", IdentityID: identity.ID, DependentID: "missing", At: lifecycleAt}, authn.ErrDependentNotFound},
+		{"assurance", authn.AuthenticationRequest{AccountID: "account-1", IdentityID: identity.ID, DependentID: dependent.ID, Assurance: trust.AssuranceHigh, At: lifecycleAt}, authn.ErrAssuranceInsufficient},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := s.Authenticate(tc.request)
+			if !errors.Is(err, tc.want) || (tc.name == "assurance" && authn.CodeOf(err) != authn.CodeAssuranceInsufficient) {
+				t.Fatalf("Authenticate error = %v code=%q, want errors.Is(%v)", err, authn.CodeOf(err), tc.want)
+			}
+		})
+	}
+	if err := s.CheckDependent("account-1", dependent.ID, lifecycleAt); err != nil {
+		t.Fatalf("CheckDependent valid = %v", err)
+	}
+	if err := s.CheckDependent("account-1", "missing", lifecycleAt); !errors.Is(err, authn.ErrDependentNotFound) {
+		t.Fatalf("CheckDependent missing = %v, want ErrDependentNotFound", err)
+	}
+	revokedService, revokedIdentity, _ := lifecycleFixture(t)
+	revoked, err := revokedService.RegisterDependent(authn.DependentSpec{ID: "dependent-revoked-check", AccountID: "account-1", IdentityID: revokedIdentity.ID, Tenant: "tenant-a", Kind: authn.DependentSession, Assurance: trust.AssuranceSubstantial, At: lifecycleAt})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := revokedService.Unlink(context.Background(), revokedIdentity.ID, evidence("revoke-dependent")); err != nil {
+		t.Fatal(err)
+	}
+	if err := revokedService.CheckDependent("account-1", revoked.ID, lifecycleAt); !errors.Is(err, authn.ErrDependentRevoked) || authn.CodeOf(err) != authn.CodeDependentRevoked {
+		t.Fatalf("CheckDependent revoked = %v code=%q, want dependent refusal", err, authn.CodeOf(err))
+	}
+	for _, req := range []authn.RecoveryRequest{
+		{AccountID: "account-1", IdentityID: identity.ID, CurrentAssurance: trust.AssuranceUnspecified, RequestedAssurance: trust.AssuranceLow, Evidence: evidence("recovery")},
+		{AccountID: "account-1", IdentityID: identity.ID, CurrentAssurance: trust.AssuranceSubstantial, RequestedAssurance: trust.AssuranceUnspecified, Evidence: evidence("recovery")},
+		{AccountID: "account-1", IdentityID: identity.ID, CurrentAssurance: trust.AssuranceSubstantial, RequestedAssurance: trust.AssuranceLow, Evidence: authn.Evidence{}},
+	} {
+		if _, err := s.Recover(req); !errors.Is(err, authn.ErrRecoveryAssurance) && !errors.Is(err, authn.ErrInvalidAuthentication) {
+			t.Fatalf("Recover error = %v, want recovery or evidence refusal", err)
+		}
+	}
+}
+
+func TestLifecycleStoreErrorsAndSnapshots(t *testing.T) {
+	inner := authn.NewMemoryStore()
+	store := &lifecycleErrorStore{inner: inner, err: errors.New("store failure")}
+	s := authn.New(store, func() time.Time { return lifecycleAt })
+	if _, _, err := s.CreateAccount(authn.AccountSpec{ID: "a", PersonID: "p", Tenant: "tenant-a", At: lifecycleAt}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.LinkIdentity(authn.IdentitySpec{ID: "i", AccountID: "a", Tenant: "tenant-a", ProviderRef: "idp", SubjectDigest: validSubjectDigest(), At: lifecycleAt}); err != nil {
+		t.Fatal(err)
+	}
+	for _, method := range []string{"GetAccount", "GetIdentity", "GetDependent", "ListIdentities", "ListDependents", "Commit", "AppendIdentity", "AppendDependent", "Events"} {
+		store.fail = method
+		switch method {
+		case "GetAccount":
+			if _, _, err := s.Account("a"); !errors.Is(err, store.err) {
+				t.Errorf("Account error=%v", err)
+			}
+		case "GetIdentity":
+			if _, _, err := s.Identity("i"); !errors.Is(err, store.err) {
+				t.Errorf("Identity error=%v", err)
+			}
+		case "GetDependent":
+			if _, _, err := s.Dependent("d"); !errors.Is(err, store.err) {
+				t.Errorf("Dependent error=%v", err)
+			}
+		case "ListIdentities":
+			if _, _, err := s.Suspend(context.Background(), "a", evidence("list-identities")); !errors.Is(err, store.err) {
+				t.Errorf("ListIdentities error=%v", err)
+			}
+		case "ListDependents":
+			store.fail = "ListDependents"
+			if _, _, err := s.Suspend(context.Background(), "a", evidence("list-dependents")); !errors.Is(err, store.err) {
+				t.Errorf("ListDependents error=%v", err)
+			}
+		case "Commit":
+			store.fail = "Commit"
+			if _, _, err := s.Suspend(context.Background(), "a", evidence("commit")); !errors.Is(err, store.err) {
+				t.Errorf("Commit error=%v", err)
+			}
+		case "AppendIdentity":
+			store.fail = "AppendIdentity"
+			if _, _, err := s.LinkIdentity(authn.IdentitySpec{ID: "i2", AccountID: "a", Tenant: "tenant-a", ProviderRef: "idp", SubjectDigest: validSubjectDigest(), At: lifecycleAt}); !errors.Is(err, store.err) {
+				t.Errorf("AppendIdentity error=%v", err)
+			}
+		case "AppendDependent":
+			store.fail = "AppendDependent"
+			if _, err := s.RegisterDependent(authn.DependentSpec{ID: "d", AccountID: "a", Tenant: "tenant-a", Kind: authn.DependentSession, Assurance: trust.AssuranceLow}); !errors.Is(err, store.err) {
+				t.Errorf("AppendDependent error=%v", err)
+			}
+		case "Events":
+			if _, err := s.Events("a"); !errors.Is(err, store.err) {
+				t.Errorf("Events error=%v", err)
+			}
+		}
+		store.fail = ""
+	}
+	account, ok, err := s.Account("a")
+	if err != nil || !ok || account.Status != authn.AccountActive || account.RevocationEpoch != 1 {
+		t.Fatalf("failed transitions changed state: account=%+v ok=%v err=%v", account, ok, err)
+	}
+}
+
+func TestMemoryStoreContractsAndTypedErrors(t *testing.T) {
+	var nilStore *authn.MemoryStore
+	if _, _, err := nilStore.GetAccount("a"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil GetAccount=%v", err)
+	}
+	if _, _, err := nilStore.GetIdentity("i"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil GetIdentity=%v", err)
+	}
+	if _, err := nilStore.ListIdentities("a"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil ListIdentities=%v", err)
+	}
+	if _, _, err := nilStore.GetDependent("d"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil GetDependent=%v", err)
+	}
+	if _, err := nilStore.ListDependents("a"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil ListDependents=%v", err)
+	}
+	if err := nilStore.CreateAccount(authn.Account{}, authn.LifecycleEvent{}); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil CreateAccount=%v", err)
+	}
+	if err := nilStore.Commit(authn.Account{}, nil, nil, authn.LifecycleEvent{}); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil Commit=%v", err)
+	}
+	if err := nilStore.AppendIdentity(authn.Identity{}, authn.LifecycleEvent{}); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil AppendIdentity=%v", err)
+	}
+	if err := nilStore.AppendDependent(authn.Dependent{}); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil AppendDependent=%v", err)
+	}
+	if _, err := nilStore.Events("a"); !errors.Is(err, authn.ErrStore) {
+		t.Errorf("nil Events=%v", err)
+	}
+
+	m := authn.NewMemoryStore()
+	a := authn.Account{ID: "a"}
+	e := authn.LifecycleEvent{AccountID: "a", Affected: []authn.Reference{{ID: "original"}}}
+	if err := m.CreateAccount(a, e); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.CreateAccount(a, e); !errors.Is(err, authn.ErrLifecycleConflict) {
+		t.Fatalf("duplicate CreateAccount=%v", err)
+	}
+	if err := m.AppendIdentity(authn.Identity{ID: "i", AccountID: "a"}, e); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.AppendIdentity(authn.Identity{ID: "i", AccountID: "a"}, e); !errors.Is(err, authn.ErrLifecycleConflict) {
+		t.Fatalf("duplicate AppendIdentity=%v", err)
+	}
+	if err := m.AppendDependent(authn.Dependent{ID: "d", AccountID: "a"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.AppendDependent(authn.Dependent{ID: "d", AccountID: "a"}); !errors.Is(err, authn.ErrLifecycleConflict) {
+		t.Fatalf("duplicate AppendDependent=%v", err)
+	}
+	if err := m.Commit(authn.Account{ID: "missing"}, nil, nil, e); !errors.Is(err, authn.ErrAccountNotFound) {
+		t.Fatalf("missing Commit=%v", err)
+	}
+	if _, err := m.Events("missing"); !errors.Is(err, authn.ErrAccountNotFound) {
+		t.Fatalf("missing Events=%v", err)
+	}
+	events, err := m.Events("a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	events[0].Affected[0].ID = "tampered"
+	again, err := m.Events("a")
+	if err != nil || again[0].Affected[0].ID != "original" {
+		t.Fatalf("event defensive copy=%+v err=%v", again, err)
+	}
+}
+
+func TestLifecycleErrorTypesAndCodeOf(t *testing.T) {
+	refusal := &authn.Refusal{Err: authn.ErrAccountNotActive, AccountID: "a"}
+	if refusal.Error() == "" || !errors.Is(refusal, authn.ErrAccountNotActive) || refusal.Code() != "" || authn.CodeOf(refusal) != "" {
+		t.Fatalf("refusal methods: error=%q code=%q", refusal.Error(), refusal.Code())
+	}
+	fanout := &authn.FanoutError{Target: authn.RevocationTarget{Reference: authn.Reference{Kind: authn.DependentSession, ID: "s"}}, Err: errors.New("adapter")}
+	if fanout.Error() == "" || !errors.Is(fanout, authn.ErrFanoutIncomplete) || !errors.Is(fanout, fanout.Err) || fanout.Code() != authn.CodeFanoutIncomplete || authn.CodeOf(fanout) != authn.CodeFanoutIncomplete {
+		t.Fatalf("fanout methods: error=%q code=%q", fanout.Error(), fanout.Code())
+	}
+	if authn.CodeOf(nil) != "" || authn.CodeOf(errors.New("plain")) != "" {
+		t.Fatal("CodeOf returned a code for an untyped error")
+	}
+}

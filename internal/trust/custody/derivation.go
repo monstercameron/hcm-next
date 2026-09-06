@@ -29,6 +29,15 @@ func (f *InMemoryFake) Derive(ctx Context, handle Handle, label []byte) (Derived
 	if handle.Kind != Key {
 		return DerivedValue{}, Receipt{}, fmt.Errorf("%w: derivation requires a key", ErrWrongObjectKind)
 	}
+	f.mu.Lock()
+	lifecycle, ok := f.objects[handle]
+	f.mu.Unlock()
+	if !ok {
+		return DerivedValue{}, Receipt{}, fmt.Errorf("%w: %s", ErrObjectNotFound, handle.ID)
+	}
+	if lifecycle.Status == StatusRevoked {
+		return DerivedValue{}, Receipt{}, ErrObjectRevoked
+	}
 	// This deterministic seed belongs to the fake provider. It models a key
 	// that remains inside custody; callers receive only a scoped PRF result.
 	seed := sha256.Sum256([]byte("in-memory-custody-key\x00" + handle.ID + "\x00" + handle.Version + "\x00" + handle.Tenant + "\x00" + handle.Region))

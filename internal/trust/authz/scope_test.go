@@ -1,8 +1,10 @@
 package authz_test
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
 )
 
@@ -282,5 +284,72 @@ func TestTodo_TRUST_009_Mutation(t *testing.T) {
 				t.Errorf("mutating %q left the fact able to authorize access", name)
 			}
 		})
+	}
+}
+
+func TestScope_ValidationSelectionAndErrors(t *testing.T) {
+	for _, tc := range []struct {
+		kind authz.RelationshipKind
+		wire string
+	}{
+		{authz.RelationshipUnspecified, "RELATIONSHIP_UNSPECIFIED"},
+		{authz.RelationshipSelf, "SELF"},
+		{authz.RelationshipManagerChain, "MANAGER_CHAIN"},
+		{authz.RelationshipHRPartner, "HR_PARTNER"},
+		{authz.RelationshipAssignedPopulation, "ASSIGNED_POPULATION"},
+		{authz.RelationshipAdministrative, "ADMINISTRATIVE"},
+		{authz.RelationshipKind(255), "RELATIONSHIP_UNSPECIFIED"},
+	} {
+		if got := tc.kind.String(); got != tc.wire {
+			t.Errorf("RelationshipKind(%d).String() = %q, want %q", tc.kind, got, tc.wire)
+		}
+	}
+
+	subject := workerSubject(tenantAcme, subjectOtherID)
+	valid := managerFact(subject)
+	invalid := []struct {
+		name string
+		fact authz.RelationshipFact
+	}{
+		{"unknown kind", func() authz.RelationshipFact { f := valid; f.Kind = authz.RelationshipSelf; return f }()},
+		{"invalid subject", func() authz.RelationshipFact { f := valid; f.Subject = workerSubject("", subjectOtherID); return f }()},
+		{"missing source", func() authz.RelationshipFact { f := valid; f.Source = ""; return f }()},
+		{"invalid effective interval", func() authz.RelationshipFact { f := valid; f.Effective = values.EffectiveInterval{}; return f }()},
+		{"known after recorded", func() authz.RelationshipFact { f := valid; f.KnownAt = mustKnownAt(shortlyAfter); return f }()},
+	}
+	for _, tc := range invalid {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := tc.fact.Validate(); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+				t.Fatalf("RelationshipFact.Validate() = %v, want ErrInvalidPolicyInput", err)
+			}
+		})
+	}
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("valid RelationshipFact.Validate() = %v", err)
+	}
+
+	principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleManager)}})
+	if _, err := authz.ResolveAuthorizationScope(nil, authz.ScopeInput{Subject: subject, EffectiveAt: baseInstant}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("ResolveAuthorizationScope(nil) = %v, want ErrInvalidPolicyInput", err)
+	}
+	if _, err := authz.ResolveAuthorizationScope(principal, authz.ScopeInput{Subject: values.EntityRef{}, EffectiveAt: baseInstant}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("ResolveAuthorizationScope(invalid subject) = %v, want ErrInvalidPolicyInput", err)
+	}
+	if _, err := authz.FilterPopulation(nil, []authz.ScopeInput{{Subject: subject, EffectiveAt: baseInstant}}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("FilterPopulation(nil) = %v, want ErrInvalidPolicyInput", err)
+	}
+
+	late := valid
+	late.Source = "z-source"
+	early := valid
+	early.Source = "a-source"
+	scope, err := authz.ResolveAuthorizationScope(principal, authz.ScopeInput{
+		Subject: subject, EffectiveAt: baseInstant, Relationships: []authz.RelationshipFact{late, early},
+	})
+	if err != nil {
+		t.Fatalf("ResolveAuthorizationScope with two valid facts: %v", err)
+	}
+	if scope.Effect != authz.EffectAllow || scope.MatchedFact == nil || scope.MatchedFact.Source != "a-source" {
+		t.Fatalf("selected scope = %+v, want deterministic lowest source", scope)
 	}
 }

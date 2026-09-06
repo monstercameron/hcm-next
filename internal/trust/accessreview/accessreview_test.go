@@ -232,3 +232,236 @@ func TestTodo_SECARCH_003_Mutation(t *testing.T) {
 		t.Fatal("NARROW without narrow_to was accepted")
 	}
 }
+
+type failingReviewPort struct{ err error }
+
+func (f failingReviewPort) EffectiveGrants(time.Time) ([]Grant, error) { return nil, f.err }
+func (f failingReviewPort) JITRoles(time.Time) ([]Grant, error)        { return nil, f.err }
+
+type stagedEvidence struct {
+	count int
+}
+
+func (s *stagedEvidence) Append(in Evidence) (Evidence, error) {
+	s.count++
+	if s.count > 1 {
+		return Evidence{}, errors.New("evidence unavailable")
+	}
+	in.Revision = uint64(s.count)
+	return in, nil
+}
+
+func TestAccessReview_PublicValueAPIsAndRefusals(t *testing.T) {
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	clockCalled := false
+	clock := ClockFunc(func() time.Time { clockCalled = true; return now })
+	if !clock.Now().Equal(now) || !clockCalled {
+		t.Fatal("ClockFunc did not return its source instant")
+	}
+	g := grant("g", "holder", GrantClassAuthz, now.Add(-time.Hour))
+	if g.Digest() == "" {
+		t.Fatal("Grant.Digest returned empty digest")
+	}
+	policy := standardPolicy()
+	store := NewMemoryEvidenceStore()
+	if _, err := store.Append(Evidence{}); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("zero evidence err=%v", err)
+	}
+	if _, err := store.Append(Evidence{Kind: EvidenceKind("BAD"), At: now}); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("bad evidence kind err=%v", err)
+	}
+	if _, err := (*MemoryEvidenceStore)(nil).Append(Evidence{Kind: EvidenceSchedule, At: now}); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil evidence store err=%v", err)
+	}
+	if got := (*MemoryEvidenceStore)(nil).Evidence(); got != nil {
+		t.Fatalf("nil store evidence=%v, want nil", got)
+	}
+	entry := ScheduleEntry{Grant: g, ReviewDue: now}
+	schedule := Schedule{AsOf: now, Policy: policy, Entries: []ScheduleEntry{entry}, Digest: "schedule-digest"}
+	if !strings.Contains(schedule.Explain(), "entries=1") || !strings.Contains(schedule.Explain(), "overdue_at_schedule=1") {
+		t.Fatalf("schedule explanation=%q", schedule.Explain())
+	}
+	report := OverdueReport{AsOf: now, Policy: policy.Version, Entries: []ScheduleEntry{entry}, Digest: "overdue-digest"}
+	if !strings.Contains(report.Explain(), "entries=1") {
+		t.Fatalf("overdue explanation=%q", report.Explain())
+	}
+	record := ReviewRecord{GrantID: g.ID, GrantClass: g.Class, Reviewer: "reviewer", Action: Continue, ReviewedAt: now, ReviewDue: now.Add(-time.Hour), PolicyVersion: policy.Version, Digest: "review-digest"}
+	if record.DigestValue() != record.Digest || !strings.Contains(record.Explain(), "overdue=true") {
+		t.Fatalf("review record helpers failed: %q", record.Explain())
+	}
+	evidence := Evidence{Revision: 1, Kind: EvidenceReview, At: now, PolicyVersion: policy.Version, GrantClass: g.Class, Action: Continue, Digest: "evidence-digest"}
+	if !strings.Contains(evidence.Explain(), "revision=1") {
+		t.Fatalf("evidence explanation=%q", evidence.Explain())
+	}
+	copyEvidence, err := store.Append(Evidence{Kind: EvidenceSchedule, At: now, PolicyVersion: policy.Version, GrantDigest: "digest"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := store.Evidence()
+	rows[0].Digest = "mutated"
+	if store.Evidence()[0].Digest != copyEvidence.Digest {
+		t.Fatal("Evidence did not return copies")
+	}
+}
+
+func TestAccessReview_NewAndScheduleFailures(t *testing.T) {
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	base := Config{Authz: fakeAuthz{}, JIT: fakeJIT{}, Evidence: NewMemoryEvidenceStore(), Clock: fixedClock{at: now}, Policy: standardPolicy()}
+	for name, mutate := range map[string]func(*Config){
+		"authz": func(c *Config) { c.Authz = nil }, "jit": func(c *Config) { c.JIT = nil }, "evidence": func(c *Config) { c.Evidence = nil }, "clock": func(c *Config) { c.Clock = nil },
+		"policy version": func(c *Config) { c.Policy.Version = " " }, "policy intervals": func(c *Config) { c.Policy.Intervals = nil }, "policy class": func(c *Config) { c.Policy.Intervals = map[GrantClass]time.Duration{" ": time.Hour} }, "policy interval": func(c *Config) { c.Policy.Intervals = map[GrantClass]time.Duration{GrantClassAuthz: 0} },
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := base
+			mutate(&cfg)
+			if _, err := New(cfg); err == nil || !errors.Is(err, ErrInvalidRequest) {
+				t.Fatalf("New err=%v", err)
+			}
+		})
+	}
+	if _, err := (*Manager)(nil).Schedule(); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil manager schedule err=%v", err)
+	}
+	zeroClock := fixedClock{}
+	cfg := base
+	cfg.Clock = zeroClock
+	m, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Schedule(); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("zero clock schedule err=%v", err)
+	}
+	for name, ports := range map[string]Config{
+		"authz error": func() Config { c := base; c.Authz = failingReviewPort{err: errors.New("authz down")}; return c }(),
+		"jit error":   func() Config { c := base; c.JIT = failingReviewPort{err: errors.New("jit down")}; return c }(),
+	} {
+		m, err := New(ports)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := m.Schedule(); err == nil {
+			t.Fatalf("%s schedule unexpectedly succeeded", name)
+		}
+	}
+	dup := grant("same", "h", GrantClassAuthz, now)
+	cfg = base
+	cfg.Authz = fakeAuthz{grants: []Grant{dup}}
+	cfg.JIT = fakeJIT{grants: []Grant{dup}}
+	m, err = New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Schedule(); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("duplicate schedule err=%v", err)
+	}
+	unknown := grant("unknown", "h", GrantClass("UNKNOWN"), now)
+	cfg = base
+	cfg.Authz = fakeAuthz{grants: []Grant{unknown}}
+	m, err = New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Schedule(); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("missing interval schedule err=%v", err)
+	}
+}
+
+func TestAccessReview_GrantAndReviewRequestBoundaries(t *testing.T) {
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	base := grant("g", "holder", GrantClassAuthz, now)
+	for name, mutate := range map[string]func(*Grant){
+		"id": func(g *Grant) { g.ID = " " }, "holder": func(g *Grant) { g.Holder = " holder" }, "class": func(g *Grant) { g.Class = " " }, "granted": func(g *Grant) { g.GrantedAt = time.Time{} }, "expired ordering": func(g *Grant) { g.ExpiresAt = g.GrantedAt }, "jit expiry": func(g *Grant) { g.Class = GrantClassJIT; g.ExpiresAt = time.Time{} },
+	} {
+		t.Run(name, func(t *testing.T) {
+			g := base
+			mutate(&g)
+			m, _ := reviewManager(t, now, []Grant{g}, nil, standardPolicy())
+			if _, err := m.Schedule(); err == nil || !errors.Is(err, ErrInvalidRequest) {
+				t.Fatalf("Schedule err=%v", err)
+			}
+		})
+	}
+	valid := ReviewRequest{GrantID: "g", Reviewer: "reviewer", Action: Continue, Justification: "justified"}
+	cases := []struct {
+		name   string
+		mutate func(*ReviewRequest)
+	}{
+		{"grant", func(r *ReviewRequest) { r.GrantID = " " }}, {"reviewer", func(r *ReviewRequest) { r.Reviewer = " " }}, {"justification", func(r *ReviewRequest) { r.Justification = " " }}, {"continue scope", func(r *ReviewRequest) { r.NarrowTo = []string{"x"} }}, {"revoke scope", func(r *ReviewRequest) { r.Action = Revoke; r.NarrowTo = []string{"x"} }}, {"narrow empty", func(r *ReviewRequest) { r.Action = Narrow }}, {"narrow padded", func(r *ReviewRequest) { r.Action = Narrow; r.NarrowTo = []string{" x"} }}, {"narrow wildcard", func(r *ReviewRequest) { r.Action = Narrow; r.NarrowTo = []string{"*"} }}, {"narrow duplicate", func(r *ReviewRequest) { r.Action = Narrow; r.NarrowTo = []string{"x", "x"} }}, {"action", func(r *ReviewRequest) { r.Action = "UNKNOWN" }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := valid
+			tc.mutate(&r)
+			m, _ := reviewManager(t, now, []Grant{base}, nil, standardPolicy())
+			if _, err := m.CompleteReview(r); err == nil || !errors.Is(err, ErrInvalidRequest) {
+				t.Fatalf("CompleteReview err=%v", err)
+			}
+		})
+	}
+	missing, _ := reviewManager(t, now, []Grant{base}, nil, standardPolicy())
+	if _, err := missing.CompleteReview(ReviewRequest{GrantID: "missing", Reviewer: "reviewer", Action: Continue, Justification: "justified"}); !errors.Is(err, ErrGrantNotFound) {
+		t.Fatalf("missing grant err=%v", err)
+	}
+	staged := &stagedEvidence{}
+	m, err := New(Config{Authz: fakeAuthz{grants: []Grant{base}}, JIT: fakeJIT{}, Evidence: staged, Clock: fixedClock{at: now}, Policy: standardPolicy()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.CompleteReview(valid); err == nil {
+		t.Fatal("evidence append failure was ignored")
+	}
+	store := NewMemoryEvidenceStore()
+	m, err = New(Config{Authz: fakeAuthz{grants: []Grant{base}}, JIT: fakeJIT{}, Evidence: store, Clock: fixedClock{at: now}, Policy: standardPolicy()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.CompleteReview(valid); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.CompleteReview(valid); !errors.Is(err, ErrReviewAlreadyRecorded) {
+		t.Fatalf("duplicate review err=%v", err)
+	}
+}
+
+func TestAccessReview_ReadersRejectInvalidInputsAndCopy(t *testing.T) {
+	if _, err := NewAuthzReader(nil, nil, nil); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil principal err=%v", err)
+	}
+	principal, err := trust.NewPrincipal(trust.PrincipalSpec{Tenant: values.TenantId("acme"), Subject: "subject", SubjectKind: trust.SubjectKindHuman, Roles: []string{string(authz.RoleManager)}, Purposes: nil, AuthenticationMethod: trust.AuthenticationMethodBearerToken, Assurance: trust.AssuranceHigh, SessionRef: "session", IssuedAt: time.Now().Add(-time.Hour), ExpiresAt: time.Now().Add(time.Hour), CredentialDigest: "digest"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewAuthzReader(principal, []authz.FieldID{authz.FieldBaseSalary}, nil); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("missing purposes err=%v", err)
+	}
+	principalWithPurpose, err := trust.NewPrincipal(trust.PrincipalSpec{Tenant: values.TenantId("acme"), Subject: "subject", SubjectKind: trust.SubjectKindHuman, Roles: []string{string(authz.RoleManager)}, Purposes: []string{authz.PurposeCompensationReview}, AuthenticationMethod: trust.AuthenticationMethodBearerToken, Assurance: trust.AssuranceHigh, SessionRef: "session", IssuedAt: time.Now().Add(-time.Hour), ExpiresAt: time.Now().Add(time.Hour), CredentialDigest: "digest-2"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader, err := NewAuthzReader(principalWithPurpose, []authz.FieldID{authz.FieldBaseSalary}, []string{authz.PurposeCompensationReview})
+	if err != nil {
+		t.Fatal(err)
+	}
+	grants, err := reader.EffectiveGrants(time.Now())
+	if err != nil || len(grants) == 0 {
+		t.Fatalf("effective grants=%+v err=%v", grants, err)
+	}
+	if _, err := (*AuthzReader)(nil).EffectiveGrants(time.Now()); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil authz reader err=%v", err)
+	}
+	if _, err := NewJITReader(nil); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil JIT grant err=%v", err)
+	}
+	jitReader, err := NewJITReader(&jit.Grant{ID: "jit", Principal: "machine", Role: jit.RoleSupportReadOnly, IssuedAt: time.Now().Add(-time.Minute), ExpiresAt: time.Now().Add(time.Hour), TicketRef: "ticket", Purpose: "audit"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jitGrants, err := jitReader.JITRoles(time.Now())
+	if err != nil || len(jitGrants) != 1 || jitGrants[0].Class != GrantClassJIT {
+		t.Fatalf("JIT grants=%+v err=%v", jitGrants, err)
+	}
+	if _, err := (*JITReader)(nil).JITRoles(time.Now()); err == nil || !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("nil JIT reader err=%v", err)
+	}
+}

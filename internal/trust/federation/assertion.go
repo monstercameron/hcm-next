@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -182,7 +183,7 @@ func (v *Validator) Validate(ctx context.Context, raw string) (*trust.Principal,
 	if err := dec.Decode(&claims); err != nil {
 		return nil, fmt.Errorf("%w: claims: %v", ErrMalformedAssertion, err)
 	}
-	if dec.More() {
+	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return nil, fmt.Errorf("%w: trailing content after claims", ErrMalformedAssertion)
 	}
 

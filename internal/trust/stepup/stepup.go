@@ -283,6 +283,9 @@ func (iss *Issuer) Issue(p *trust.Principal, op Operation, req Requirement) (Pro
 	if !sensitiveAction(op.Action) {
 		return Proof{}, fmt.Errorf("%w: %s", ErrUnknownAction, op.Action)
 	}
+	if p == nil {
+		return Proof{}, ErrIssuerAssurance
+	}
 	now := iss.now()
 	if !p.ExpiresAt().After(now) {
 		return Proof{}, fmt.Errorf("%w: expired %s", ErrExpiredPrincipal, p.ExpiresAt().UTC().Format(time.RFC3339))
@@ -451,6 +454,9 @@ func NewGate(key [32]byte, store ProofStore, sessions SessionChecker, exec Execu
 func (g *Gate) Present(ctx context.Context, proof Proof, op Operation, p *trust.Principal, req Requirement) (Outcome, error) {
 	if !proof.verifies(g.key) {
 		return "", ErrProofSignature
+	}
+	if p == nil {
+		return "", ErrProofBinding
 	}
 	now := g.now()
 

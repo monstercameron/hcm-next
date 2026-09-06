@@ -3,6 +3,8 @@ package stepup_test
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -507,4 +509,186 @@ func FuzzTodo_AUTHN_005(f *testing.F) {
 			t.Fatalf("the executor ran %d times for one presentation", exec.count())
 		}
 	})
+}
+
+func TestIssuerAndGate_MalformedPrincipalFailsClosed(t *testing.T) {
+	fx := newFixture(t)
+	if _, err := fx.issuer.Issue(nil, opFor(stepup.ActionApprove), fx.req); !errors.Is(err, stepup.ErrIssuerAssurance) {
+		t.Fatalf("Issue(nil) = %v, want ErrIssuerAssurance", err)
+	}
+	p, err := fx.issuer.Issue(highPrincipal(t), opFor(stepup.ActionApprove), fx.req)
+	if err != nil {
+		t.Fatalf("Issue: %v", err)
+	}
+	if _, err := fx.gate.Present(context.Background(), p, opFor(stepup.ActionApprove), nil, fx.req); !errors.Is(err, stepup.ErrProofBinding) {
+		t.Fatalf("Present(nil principal) = %v, want ErrProofBinding", err)
+	}
+	if fx.exec.count() != 0 {
+		t.Fatalf("malformed principal reached executor %d times", fx.exec.count())
+	}
+}
+
+func TestProofWire_RejectsMalformedInputAndPreservesCanonicalScopes(t *testing.T) {
+	fx := newFixture(t)
+	p, err := fx.issuer.Issue(highPrincipal(t), opFor(stepup.ActionApprove), fx.req)
+	if err != nil {
+		t.Fatalf("Issue: %v", err)
+	}
+	reordered := p
+	reordered.Scopes = append([]string(nil), p.Scopes...)
+	for i, j := 0, len(reordered.Scopes)-1; i < j; i, j = i+1, j-1 {
+		reordered.Scopes[i], reordered.Scopes[j] = reordered.Scopes[j], reordered.Scopes[i]
+	}
+	if reordered.Digest() != p.Digest() {
+		t.Fatal("scope ordering changed the canonical proof digest")
+	}
+	wire, err := p.Encode()
+	if err != nil {
+		t.Fatalf("Encode: %v", err)
+	}
+	decoded, err := stepup.DecodeProof(wire)
+	if err != nil || decoded.Digest() != p.Digest() || !decoded.IssuedAt.Equal(p.IssuedAt) || !decoded.ExpiresAt.Equal(p.ExpiresAt) {
+		t.Fatalf("DecodeProof = %+v, err=%v, want a digest-preserving round trip", decoded, err)
+	}
+
+	base := map[string]any{
+		"id": "sp:test", "tenant": string(tenantAcme), "subject": subjectID, "session": sessionRef,
+		"assurance": "high", "action": stepup.ActionApprove, "proposal": proposalID, "scopes": testScopes,
+		"iat": baseTime.UnixNano(), "exp": baseTime.Add(time.Minute).UnixNano(), "sig": "0000000000000000000000000000000000000000000000000000000000000000",
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(map[string]any)
+	}{
+		{"invalid json", nil},
+		{"invalid signature hex", func(m map[string]any) { m["sig"] = "not-hex" }},
+		{"wrong signature length", func(m map[string]any) { m["sig"] = "00" }},
+		{"unknown assurance", func(m map[string]any) { m["assurance"] = "root" }},
+		{"invalid tenant", func(m map[string]any) { m["tenant"] = "Tenant" }},
+		{"missing expiry window", func(m map[string]any) { m["exp"] = int64(0) }},
+		{"inverted window", func(m map[string]any) { m["exp"] = baseTime.Add(-time.Minute).UnixNano() }},
+		{"unknown risk", func(m map[string]any) { m["risk"] = "critical-ish" }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var data []byte
+			if tc.mutate == nil {
+				data = []byte("{")
+			} else {
+				candidate := make(map[string]any, len(base))
+				for k, v := range base {
+					candidate[k] = v
+				}
+				tc.mutate(candidate)
+				var err error
+				data, err = json.Marshal(candidate)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := stepup.DecodeProof(data); !errors.Is(err, stepup.ErrProofDecoded) {
+				t.Fatalf("DecodeProof error = %v, want ErrProofDecoded", err)
+			}
+		})
+	}
+	base["risk"] = ""
+	data, _ := json.Marshal(base)
+	decoded, err = stepup.DecodeProof(data)
+	if err != nil || decoded.Risk != stepup.RiskUnspecified {
+		t.Fatalf("empty risk decode = %+v, err=%v, want unspecified risk", decoded, err)
+	}
+}
+
+func TestIssuerAndMemoryAuthorities_EnforceInputs(t *testing.T) {
+	key := keyFrom("issuer")
+	issuer := stepup.NewIssuer(key, func() time.Time { return baseTime }, func(stepup.Proof) string { return "sp:custom" })
+	p := highPrincipal(t)
+	proof, err := issuer.Issue(p, opFor(stepup.ActionApprove), stepup.Requirement{MinAssurance: trust.AssuranceSubstantial, Recency: time.Minute})
+	if err != nil || proof.ID != "sp:custom" || len(proof.Signature) != 32 {
+		t.Fatalf("custom issuer output = %+v, err=%v", proof, err)
+	}
+	for _, action := range []string{"", "ordinary.read"} {
+		if _, err := issuer.Issue(p, opFor(action), fxReq()); !errors.Is(err, stepup.ErrUnknownAction) {
+			t.Fatalf("Issue(%q) = %v, want ErrUnknownAction", action, err)
+		}
+	}
+	if _, err := issuer.Issue(mustPrincipal(t, trust.AssuranceSubstantial, sessionRef), opFor(stepup.ActionApprove), stepup.Requirement{MinAssurance: trust.AssuranceHigh, Recency: time.Minute}); !errors.Is(err, stepup.ErrIssuerAssurance) {
+		t.Fatalf("insufficient requirement = %v, want ErrIssuerAssurance", err)
+	}
+	expired, err := trust.NewPrincipal(trust.PrincipalSpec{
+		Tenant: tenantAcme, Subject: subjectID, SubjectKind: trust.SubjectKindHuman,
+		AuthenticationMethod: trust.AuthenticationMethodBearerToken, Assurance: trust.AssuranceHigh,
+		SessionRef: sessionRef, IssuedAt: baseTime.Add(-time.Hour), ExpiresAt: baseTime,
+		CredentialDigest: "expired-digest",
+	})
+	if err != nil {
+		t.Fatalf("expired principal fixture: %v", err)
+	}
+	if _, err := issuer.Issue(expired, opFor(stepup.ActionApprove), fxReq()); !errors.Is(err, stepup.ErrExpiredPrincipal) {
+		t.Fatalf("expired principal Issue = %v, want ErrExpiredPrincipal", err)
+	}
+
+	sessions := stepup.NewStaticSession("live")
+	if active, err := sessions.Active(context.Background(), "live", baseTime); err != nil || !active {
+		t.Fatalf("live session = %v, %v", active, err)
+	}
+	if active, err := sessions.Active(context.Background(), "missing", baseTime); err != nil || active {
+		t.Fatalf("missing session = %v, %v, want inactive", active, err)
+	}
+	sessions.MarkInactive("live")
+	if active, _ := sessions.Active(context.Background(), "live", baseTime); active {
+		t.Fatal("MarkInactive left session active")
+	}
+	store := stepup.NewMemoryStore()
+	if consumed, err := store.Consume(context.Background(), "proof", "executed"); err != nil || consumed {
+		t.Fatalf("first memory consume = %v, %v", consumed, err)
+	}
+	if consumed, err := store.Consume(context.Background(), "proof", "executed"); err != nil || !consumed {
+		t.Fatalf("replayed memory consume = %v, %v", consumed, err)
+	}
+}
+
+func fxReq() stepup.Requirement {
+	return stepup.Requirement{MinAssurance: trust.AssuranceSubstantial, Recency: time.Minute}
+}
+
+type errorSessionChecker struct{ err error }
+
+func (s errorSessionChecker) Active(context.Context, string, time.Time) (bool, error) {
+	return false, s.err
+}
+
+type errorProofStore struct{ err error }
+
+func (s errorProofStore) Consume(context.Context, string, string) (bool, error) { return false, s.err }
+
+func TestGate_PreservesAuthorityErrorsAndExecutesUnrequiredOperations(t *testing.T) {
+	fx := newFixture(t)
+	p, err := fx.issuer.Issue(highPrincipal(t), opFor(stepup.ActionApprove), fx.req)
+	if err != nil {
+		t.Fatalf("Issue: %v", err)
+	}
+	sessionErr := errors.New("session authority unavailable")
+	g := stepup.NewGate(fx.key, fx.store, errorSessionChecker{err: sessionErr}, fx.exec.run, func() time.Time { return baseTime })
+	if _, err := g.Present(context.Background(), p, opFor(stepup.ActionApprove), highPrincipal(t), fx.req); !errors.Is(err, sessionErr) {
+		t.Fatalf("session checker error = %v, want %v", err, sessionErr)
+	}
+	storeErr := errors.New("consumption authority unavailable")
+	g = stepup.NewGate(fx.key, errorProofStore{err: storeErr}, fx.sessions, fx.exec.run, func() time.Time { return baseTime })
+	if _, err := g.Present(context.Background(), p, opFor(stepup.ActionApprove), highPrincipal(t), fx.req); !errors.Is(err, storeErr) {
+		t.Fatalf("proof store error = %v, want %v", err, storeErr)
+	}
+	if fx.exec.count() != 0 {
+		t.Fatalf("authority errors reached executor %d times", fx.exec.count())
+	}
+
+	op := opFor(stepup.ActionApprove)
+	op.Purpose, op.Capability, op.Risk = stepup.PurposeHCMOperations, "ordinary.read", stepup.RiskRoutine
+	proof, err := fx.issuer.Issue(highPrincipal(t), op, stepup.Requirement{MinAssurance: trust.AssuranceHigh, Recency: time.Minute})
+	if err != nil {
+		t.Fatalf("Issue unrequired operation: %v", err)
+	}
+	out, ob, err := fx.gate.PresentUnderObligation(context.Background(), stepup.DefaultObligationPolicy(), proof, op, highPrincipal(t), stepup.ObligationRequest{At: baseTime})
+	if err != nil || out != stepup.OutcomeExecuted || ob.Required || !ob.Satisfied || fx.exec.count() != 1 {
+		t.Fatalf("unrequired gated operation = out=%s ob=%+v err=%v calls=%d", out, ob, err, fx.exec.count())
+	}
 }

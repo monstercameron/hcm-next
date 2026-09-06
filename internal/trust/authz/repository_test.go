@@ -205,3 +205,33 @@ func TestTodo_TRUST_012(t *testing.T) {
 		}
 	})
 }
+
+func TestRepository_PlanRejectsMalformedAndCrossTenantCandidates(t *testing.T) {
+	managed := workerSubject(tenantAcme, subjectWorkerID)
+	principal := newPrincipal(t, principalOpts{roles: []string{string(authz.RoleCompAdmin)}, purposes: []string{authz.PurposePayrollProcessing}})
+	base := authz.RepositoryQueryRequest{
+		Principal: principal, EffectiveAt: baseInstant, Tenant: tenantAcme,
+		Candidates: []authz.ScopeInput{{Subject: managed}},
+		Fields:     []authz.FieldID{authz.FieldWorkerNumber},
+	}
+	cases := []struct {
+		name   string
+		mutate func(*authz.RepositoryQueryRequest)
+	}{
+		{"nil principal", func(req *authz.RepositoryQueryRequest) { req.Principal = nil }},
+		{"invalid candidate subject", func(req *authz.RepositoryQueryRequest) { req.Candidates[0].Subject = values.EntityRef{} }},
+		{"foreign candidate subject", func(req *authz.RepositoryQueryRequest) {
+			req.Candidates[0].Subject = workerSubject(tenantVendor, subjectWorkerID)
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := base
+			req.Candidates = append([]authz.ScopeInput(nil), base.Candidates...)
+			tc.mutate(&req)
+			if _, err := authz.PlanRepositoryScope(req); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+				t.Fatalf("PlanRepositoryScope() = %v, want ErrInvalidPolicyInput", err)
+			}
+		})
+	}
+}

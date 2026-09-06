@@ -264,3 +264,112 @@ func FuzzTodo_TRUST_021(f *testing.F) {
 		}
 	})
 }
+
+func TestJIT_MaxTTLAndRequestValidation(t *testing.T) {
+	for _, tc := range []struct {
+		role Role
+		want time.Duration
+	}{
+		{RoleSupportReadOnly, 4 * time.Hour},
+		{RoleIncidentResponder, 8 * time.Hour},
+		{RoleIntegrityRepair, 4 * time.Hour},
+		{RolePayrollEmergency, 2 * time.Hour},
+		{RoleAccessRevocation, 2 * time.Hour},
+	} {
+		got, ok := tc.role.MaxTTL()
+		if !ok || got != tc.want {
+			t.Errorf("%s.MaxTTL() = (%s, %v), want (%s, true)", tc.role, got, ok, tc.want)
+		}
+	}
+	if got, ok := Role("not-a-role").MaxTTL(); ok || got != 0 {
+		t.Fatalf("unknown role MaxTTL() = (%s, %v), want (0, false)", got, ok)
+	}
+
+	cases := []struct {
+		name   string
+		mutate func(*Request)
+		want   error
+	}{
+		{"principal required", func(r *Request) { r.Principal = " " }, ErrInvalidRequest},
+		{"tenant required", func(r *Request) { r.Tenant = "" }, ErrInvalidRequest},
+		{"unknown role", func(r *Request) { r.Role = Role("UNKNOWN") }, ErrUnknownRole},
+		{"ticket required", func(r *Request) { r.TicketRef = "\t" }, ErrInvalidRequest},
+		{"justification required", func(r *Request) { r.Justification = " " }, ErrInvalidRequest},
+		{"purpose required", func(r *Request) { r.Purpose = "" }, ErrInvalidRequest},
+		{"capability required", func(r *Request) { r.Capabilities = nil }, ErrInvalidRequest},
+		{"capability cannot be blank", func(r *Request) { r.Capabilities = []string{" "} }, ErrInvalidRequest},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := validRequest()
+			tc.mutate(&req)
+			grant, err := New("invalid-"+tc.name, req, validApproval(), baseNow)
+			if !errors.Is(err, tc.want) || grant != nil {
+				t.Fatalf("New() = grant=%v err=%v, want nil/%v", grant, err, tc.want)
+			}
+		})
+	}
+
+	approvalCases := []struct {
+		name     string
+		approval Approval
+	}{
+		{"approver required", Approval{At: baseNow}},
+		{"approval timestamp required", Approval{Approver: "bob"}},
+	}
+	for _, tc := range approvalCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if grant, err := New("invalid-approval-"+tc.name, validRequest(), tc.approval, baseNow); !errors.Is(err, ErrInvalidRequest) || grant != nil {
+				t.Fatalf("New() = grant=%v err=%v, want nil/ErrInvalidRequest", grant, err)
+			}
+		})
+	}
+}
+
+func TestJIT_GrantAccessorsAndEvidenceAreStateful(t *testing.T) {
+	req := validRequest()
+	req.Capabilities = []string{"support.read_diagnostics"}
+	req.Fields = []string{"worker.worker_number"}
+	g, err := New("grant-state", req, validApproval(), baseNow)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if g.ID != "grant-state" || g.Tenant != req.Tenant || g.TicketRef != req.TicketRef || g.Justification != req.Justification || g.Purpose != req.Purpose || !g.IssuedAt.Equal(baseNow) || !g.ApprovedAt.Equal(baseNow) || !g.ExpiresAt.Equal(baseNow.Add(req.TTL)) {
+		t.Fatalf("issued grant did not preserve request and approval state: %+v", g)
+	}
+	req.Capabilities[0] = "forged"
+	req.Fields[0] = "forged"
+	if g.Capabilities[0] == "forged" || g.Fields[0] == "forged" {
+		t.Fatal("New retained caller-owned capability or field slices")
+	}
+	if at, by, reason, revoked := g.Revocation(); revoked || !at.IsZero() || by != "" || reason != "" {
+		t.Fatalf("fresh grant Revocation() = %v, %q, %q, %v, want zero/not revoked", at, by, reason, revoked)
+	}
+	if len(g.Evidence()) != 1 || g.Evidence()[0].Kind != EvidenceGranted {
+		t.Fatalf("fresh evidence = %+v, want one GRANTED event", g.Evidence())
+	}
+
+	if err := g.Use("diagnostic read", baseNow.Add(time.Minute)); err != nil {
+		t.Fatalf("Use: %v", err)
+	}
+	copyOfEvidence := g.Evidence()
+	copyOfEvidence[0].Actor = "forged"
+	if g.Evidence()[0].Actor == "forged" {
+		t.Fatal("Evidence returned a slice backed by grant state")
+	}
+	if err := g.Revoke("security", "incident closed", baseNow.Add(2*time.Minute)); err != nil {
+		t.Fatalf("Revoke: %v", err)
+	}
+	if g.IsActive(baseNow.Add(3 * time.Minute)) {
+		t.Fatal("revoked grant remained active")
+	}
+	if err := g.Revoke("", "ignored", baseNow.Add(4*time.Minute)); !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("blank revoker error = %v, want ErrInvalidRequest", err)
+	}
+	if err := g.Use("late use", baseNow.Add(3*time.Minute)); !errors.Is(err, ErrGrantRevoked) {
+		t.Fatalf("Use after revoke = %v, want ErrGrantRevoked", err)
+	}
+	if at, by, reason, revoked := g.Revocation(); !revoked || !at.Equal(baseNow.Add(2*time.Minute)) || by != "security" || reason != "incident closed" {
+		t.Fatalf("final Revocation() = %v, %q, %q, %v, want original revocation", at, by, reason, revoked)
+	}
+}

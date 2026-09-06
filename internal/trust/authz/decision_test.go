@@ -1,8 +1,11 @@
 package authz_test
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
+	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
 )
 
@@ -220,4 +223,102 @@ func TestTodo_TRUST_011_Golden(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDecision_ValidationAndCanonicalEvidence(t *testing.T) {
+	decision, err := authz.Enforce(allowedRequest(t))
+	if err != nil {
+		t.Fatalf("Enforce: %v", err)
+	}
+
+	cases := []struct {
+		name   string
+		mutate func(*authz.Decision)
+	}{
+		{"tenant effect missing", func(d *authz.Decision) { d.Tenant.Effect = authz.EffectUnspecified }},
+		{"policy version missing", func(d *authz.Decision) { d.PolicyVersions = nil }},
+		{"purpose missing", func(d *authz.Decision) { d.Purpose = "" }},
+		{"assurance missing", func(d *authz.Decision) { d.Assurance = trust.AssuranceUnspecified }},
+		{"matched rule missing", func(d *authz.Decision) { d.MatchedRules = nil }},
+		{"input evidence missing", func(d *authz.Decision) { d.InputsDigest = "" }},
+		{"tenant denial missing reason", func(d *authz.Decision) { d.Tenant.Effect = authz.EffectDenied; d.Tenant.Reason = "" }},
+		{"disclosable scope not allowed", func(d *authz.Decision) { d.Scope.Effect = authz.EffectDenied }},
+		{"disclosable field mask missing", func(d *authz.Decision) { d.Fields = nil }},
+		{"invalid field effect", func(d *authz.Decision) { d.Fields[authz.FieldWorkerNumber] = authz.FieldRuling{} }},
+		{"redaction without obligation", func(d *authz.Decision) {
+			d.Fields[authz.FieldBaseSalary] = authz.FieldRuling{Effect: authz.EffectRedacted}
+		}},
+		{"refused field missing reason", func(d *authz.Decision) {
+			d.Fields[authz.FieldCaseNotes] = authz.FieldRuling{Effect: authz.EffectDenied}
+		}},
+		{"withheld field missing reason", func(d *authz.Decision) {
+			d.Fields[authz.FieldCaseNotes] = authz.FieldRuling{Effect: authz.EffectWithheld}
+		}},
+		{"non-disclosable denial reason missing", func(d *authz.Decision) { d.SubjectDisclosable = false; d.SubjectDenialReason = "" }},
+		{"non-disclosable field not withheld", func(d *authz.Decision) {
+			d.SubjectDisclosable = false
+			d.SubjectDenialReason = "hidden"
+			d.Fields[authz.FieldWorkerNumber] = authz.FieldRuling{Effect: authz.EffectAllow}
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mutated := decision
+			mutated.Fields = cloneRulings(decision.Fields)
+			tc.mutate(&mutated)
+			if err := mutated.Validate(); !errors.Is(err, authz.ErrDecisionInvalid) {
+				t.Fatalf("Validate() = %v, want ErrDecisionInvalid", err)
+			}
+		})
+	}
+
+	redactedReq := allowedRequest(t)
+	redactedReq.Principal = newPrincipal(t, principalOpts{roles: []string{string(authz.RoleAuditor)}, purposes: []string{authz.PurposeAuditReview}})
+	redactedReq.Purpose = authz.PurposeAuditReview
+	redactedReq.Relationships = nil
+	redactedReq.Fields = []authz.FieldID{authz.FieldWorkerNumber, authz.FieldBaseSalary}
+	redacted, err := authz.Enforce(redactedReq)
+	if err != nil {
+		t.Fatalf("Enforce(redacted): %v", err)
+	}
+	if got := redacted.Explain(); !strings.Contains(got, "fields_allow=1") || !strings.Contains(got, "fields_redacted=1") {
+		t.Fatalf("redacted Explain() = %q, want allow and redacted counts", got)
+	}
+
+	ordered := allowedRequest(t)
+	reversed := allowedRequest(t)
+	reversed.Fields = []authz.FieldID{authz.FieldCaseNotes, authz.FieldBaseSalary, authz.FieldWorkerNumber}
+	a, err := authz.Enforce(ordered)
+	if err != nil {
+		t.Fatalf("Enforce(ordered): %v", err)
+	}
+	b, err := authz.Enforce(reversed)
+	if err != nil {
+		t.Fatalf("Enforce(reversed): %v", err)
+	}
+	if a.InputsDigest != b.InputsDigest {
+		t.Fatalf("canonical digest changed with field order: %s != %s", a.InputsDigest, b.InputsDigest)
+	}
+	changed := reversed
+	changed.Purpose = authz.PurposePerformanceReview
+	changed.Principal = newPrincipal(t, principalOpts{roles: []string{string(authz.RoleManager)}, purposes: []string{authz.PurposePerformanceReview}})
+	changed.Relationships = []authz.RelationshipFact{managerFact(changed.Subject)}
+	c, err := authz.Enforce(changed)
+	if err != nil {
+		t.Fatalf("Enforce(changed): %v", err)
+	}
+	if a.InputsDigest == c.InputsDigest {
+		t.Fatal("changing policy-relevant request inputs left the digest unchanged")
+	}
+	if _, err := authz.Enforce(authz.Request{}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("Enforce(empty request) = %v, want ErrInvalidPolicyInput", err)
+	}
+}
+
+func cloneRulings(in map[authz.FieldID]authz.FieldRuling) map[authz.FieldID]authz.FieldRuling {
+	out := make(map[authz.FieldID]authz.FieldRuling, len(in))
+	for field, ruling := range in {
+		out[field] = ruling
+	}
+	return out
 }

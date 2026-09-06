@@ -350,3 +350,32 @@ func TestTodo_SECARCH_002_InvalidStore(t *testing.T) {
 		t.Fatal("NewPersistentManager with no Store: want an error, got nil")
 	}
 }
+
+func TestPersistentManager_RejectsInvalidConfigurationAndSpecs(t *testing.T) {
+	store := newFakeStore()
+	if _, err := session.NewPersistentManager(session.PersistentManagerConfig{Store: store, IdleTimeout: 2 * time.Hour, AbsoluteTimeout: time.Hour}); !errors.Is(err, session.ErrInvalidCreateSpec) {
+		t.Fatalf("invalid persistent timeout config = %v, want ErrInvalidCreateSpec", err)
+	}
+	mgr, err := session.NewPersistentManager(session.PersistentManagerConfig{Now: clockAt(baseTime), Store: store, IdleTimeout: time.Minute, AbsoluteTimeout: time.Hour})
+	if err != nil {
+		t.Fatalf("NewPersistentManager: %v", err)
+	}
+	for name, mutate := range map[string]func(*session.CreateSpec){
+		"tenant":      func(s *session.CreateSpec) { s.Tenant = "" },
+		"subject":     func(s *session.CreateSpec) { s.Subject = "" },
+		"fingerprint": func(s *session.CreateSpec) { s.PrincipalFingerprint = "" },
+		"assurance":   func(s *session.CreateSpec) { s.Assurance = trust.AssuranceUnspecified },
+		"timeout":     func(s *session.CreateSpec) { s.IdleTimeout, s.AbsoluteTimeout = 2*time.Hour, time.Hour },
+	} {
+		t.Run(name, func(t *testing.T) {
+			spec := session.CreateSpec{Tenant: "33333333-3333-3333-3333-333333333333", Subject: "user", PrincipalFingerprint: "fp", Assurance: trust.AssuranceHigh}
+			mutate(&spec)
+			if _, _, err := mgr.Create(context.Background(), spec); !errors.Is(err, session.ErrInvalidCreateSpec) {
+				t.Fatalf("Create invalid %s = %v, want ErrInvalidCreateSpec", name, err)
+			}
+		})
+	}
+	if len(store.sessions) != 0 {
+		t.Fatalf("invalid persistent creates changed store state: %d sessions", len(store.sessions))
+	}
+}

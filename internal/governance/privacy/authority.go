@@ -233,6 +233,9 @@ func EvaluateAuthority(in AuthorityInput) AuthorityDecision {
 	if in.Consent.PresentationID != in.Presentation.ID {
 		return deny(in, AuthorityConsentWrongNotice)
 	}
+	if in.Notice.Purpose != in.Purpose {
+		return deny(in, AuthorityPurposeOutOfScope)
+	}
 	if !in.Consent.HasScope(in.Purpose) {
 		return deny(in, AuthorityPurposeOutOfScope)
 	}

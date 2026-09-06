@@ -236,6 +236,92 @@ func TestNewRegistryAlias(t *testing.T) {
 	}
 }
 
+func TestProfileValidationBoundaries(t *testing.T) {
+	cases := []struct {
+		name   string
+		mutate func(*federation.Profile)
+	}{
+		{"tenant", func(p *federation.Profile) { p.Tenant = "" }},
+		{"issuer", func(p *federation.Profile) { p.Issuer = " " }},
+		{"version", func(p *federation.Profile) { p.Version = 0 }},
+		{"owner", func(p *federation.Profile) { p.Owner = "\t" }},
+		{"protocol", func(p *federation.Profile) { p.Protocol = "saml2" }},
+		{"audience", func(p *federation.Profile) { p.Audience = "" }},
+		{"algorithms_empty", func(p *federation.Profile) { p.Algorithms = nil }},
+		{"algorithm_blank", func(p *federation.Profile) { p.Algorithms = []string{""} }},
+		{"algorithm_duplicate", func(p *federation.Profile) { p.Algorithms = []string{"RS256", "RS256"} }},
+		{"assurance", func(p *federation.Profile) { p.Assurance = trust.AssuranceUnspecified }},
+		{"expiry", func(p *federation.Profile) { p.ExpiresAt = time.Time{} }},
+		{"key_version", func(p *federation.Profile) { p.KeyVersion = 0 }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := baseProfile()
+			tc.mutate(&p)
+			if err := federation.New().Register(p); !errors.Is(err, federation.ErrInvalidProfile) {
+				t.Fatalf("Register error = %v, want ErrInvalidProfile", err)
+			}
+		})
+	}
+}
+
+func TestRegistryValidateVersionAndFreshnessBoundaries(t *testing.T) {
+	r := federation.New()
+	p := baseProfile()
+	if err := r.Register(p); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		name string
+		edit func(*federation.Assertion)
+		want error
+	}{
+		{"profile_rollover", func(a *federation.Assertion) { a.ProfileVersion = 2 }, federation.ErrVersionConflict},
+		{"key_rollover", func(a *federation.Assertion) { a.KeyVersion = 2 }, federation.ErrKeyRollover},
+		{"before_issued", func(a *federation.Assertion) { a.At = p.IssuedAt.Add(-time.Nanosecond) }, federation.ErrStaleMetadata},
+		{"at_metadata_expiry", func(a *federation.Assertion) { a.At = p.MetadataUntil }, federation.ErrStaleMetadata},
+		{"at_profile_expiry", func(a *federation.Assertion) { a.At = p.ExpiresAt }, federation.ErrStaleMetadata},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := federation.Assertion{Tenant: tenantAcme, Issuer: issuerAcme, Algorithm: "RS256", Audience: p.Audience, At: p.IssuedAt}
+			tc.edit(&a)
+			if _, err := r.Validate(a); !errors.Is(err, tc.want) {
+				t.Fatalf("Validate error = %v, want errors.Is(%v)", err, tc.want)
+			}
+		})
+	}
+}
+
+func TestRegistryDefensiveCopiesAndReplaceValidation(t *testing.T) {
+	r := federation.New()
+	p := baseProfile()
+	if err := r.Register(p); err != nil {
+		t.Fatal(err)
+	}
+	got, err := r.Lookup(tenantAcme, issuerAcme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got.Scopes[0], got.Algorithms[0] = "tampered", "HS256"
+	again, err := r.Lookup(tenantAcme, issuerAcme)
+	if err != nil || again.Scopes[0] != "openid" || again.Algorithms[0] != "RS256" {
+		t.Fatalf("registry stored mutable slices: got=%+v err=%v", again, err)
+	}
+	bad := p
+	bad.Version = 2
+	bad.Owner = ""
+	if err := r.Replace(bad, 1); !errors.Is(err, federation.ErrInvalidProfile) {
+		t.Fatalf("invalid Replace error = %v, want ErrInvalidProfile", err)
+	}
+	if err := r.Replace(p, 99); !errors.Is(err, federation.ErrVersionConflict) {
+		t.Fatalf("wrong-version Replace error = %v, want ErrVersionConflict", err)
+	}
+	if _, err := r.Lookup(tenantAcme, " "); !errors.Is(err, federation.ErrUnknownIssuer) {
+		t.Fatalf("blank issuer Lookup error = %v, want ErrUnknownIssuer", err)
+	}
+}
+
 // TestTodo_AUTHN_001_Race_FederationProfileRegistry exercises this package's
 // [federation.Registry] under concurrent Register/Lookup/Validate calls to
 // prove the sync.RWMutex it holds actually serializes mutation against

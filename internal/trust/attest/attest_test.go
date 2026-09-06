@@ -350,3 +350,97 @@ func TestTodo_ATTEST_003_Security(t *testing.T) {
 		}
 	})
 }
+
+func TestAttest_PublicAPIs_DirectoryModesAndStructuralRefusals(t *testing.T) {
+	for mode, want := range map[attest.Mode]string{
+		attest.ModeDirect: "direct", attest.ModeProxy: "proxy", attest.ModeDelegated: "delegated", attest.ModeUnspecified: "mode_unspecified",
+	} {
+		if got := mode.String(); got != want {
+			t.Errorf("Mode(%d).String=%q, want %q", mode, got, want)
+		}
+	}
+	for _, wire := range []string{"direct", "proxy", "delegated"} {
+		if mode, err := attest.ParseMode(wire); err != nil || mode.String() != wire {
+			t.Errorf("ParseMode(%q)=%v/%v", wire, mode, err)
+		}
+	}
+	if mode, err := attest.ParseMode("unknown"); err == nil || mode != attest.ModeUnspecified {
+		t.Fatalf("unknown ParseMode=%v/%v", mode, err)
+	}
+
+	base := attest.Attestor{ID: "attestor", Tenant: tenantAcme, Authority: []attest.Mode{attest.ModeDirect}, MinAssurance: trust.AssuranceSubstantial, SigningKey: directorKey, Status: attest.StatusActive, EvidenceID: "evidence"}
+	invalid := []struct {
+		name   string
+		mutate func(*attest.Attestor)
+	}{
+		{"id", func(a *attest.Attestor) { a.ID = "" }}, {"tenant", func(a *attest.Attestor) { a.Tenant = "" }}, {"authority", func(a *attest.Attestor) { a.Authority = nil }}, {"key", func(a *attest.Attestor) { a.SigningKey = [32]byte{} }}, {"status", func(a *attest.Attestor) { a.Status = attest.StatusUnspecified }}, {"evidence", func(a *attest.Attestor) { a.EvidenceID = "" }},
+	}
+	for _, tc := range invalid {
+		t.Run("directory "+tc.name, func(t *testing.T) {
+			a := base
+			tc.mutate(&a)
+			if _, err := attest.NewDirectory([]attest.Attestor{a}); err == nil {
+				t.Fatal("invalid directory record accepted")
+			}
+		})
+	}
+	if _, err := attest.NewDirectory([]attest.Attestor{base, base}); err == nil {
+		t.Fatal("duplicate directory record accepted")
+	}
+	d, err := attest.NewDirectory([]attest.Attestor{base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, ok := d.LookUp(base.ID); !ok || got.ID != base.ID {
+		t.Fatalf("LookUp existing=%+v/%v", got, ok)
+	}
+	if _, ok := d.LookUp("missing"); ok {
+		t.Fatal("LookUp reported missing attestor present")
+	}
+	p := mustPrincipal(t, trust.AssuranceHigh, sessionRef)
+	valid := baseline(attest.ModeDirect)
+	for _, tc := range []struct {
+		name      string
+		dir       *attest.Directory
+		req       attest.Requirement
+		principal *trust.Principal
+	}{
+		{"nil directory", nil, attest.Requirement{MinAssurance: trust.AssuranceSubstantial, PermittedModes: []attest.Mode{attest.ModeDirect}}, p},
+		{"nil principal", d, attest.Requirement{MinAssurance: trust.AssuranceSubstantial, PermittedModes: []attest.Mode{attest.ModeDirect}}, nil},
+		{"missing assurance", d, attest.Requirement{PermittedModes: []attest.Mode{attest.ModeDirect}}, p},
+		{"missing modes", d, attest.Requirement{MinAssurance: trust.AssuranceSubstantial}, p},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := attest.Verify(tc.dir, valid, tc.req, tc.principal, baseTime); err == nil {
+				t.Fatal("structurally invalid Verify request accepted")
+			}
+		})
+	}
+
+	proxyRecord := base
+	proxyRecord.Authority = []attest.Mode{attest.ModeDirect}
+	proxyDirectory, err := attest.NewDirectory([]attest.Attestor{proxyRecord})
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxy := baseline(attest.ModeProxy)
+	proxy.AttestorID = base.ID
+	proxy.Sign(directorKey)
+	if decision, err := attest.Verify(proxyDirectory, proxy, attest.Requirement{MinAssurance: trust.AssuranceSubstantial, PermittedModes: []attest.Mode{attest.ModeProxy}}, p, baseTime); err != nil || decision.Accepted || decision.Reason != attest.ReasonModeNotPermitted || decision.Proof != nil {
+		t.Fatalf("unauthorized attestor mode decision=%+v err=%v", decision, err)
+	}
+	floorRecord := base
+	floorRecord.Authority = []attest.Mode{attest.ModeDirect}
+	floorRecord.MinAssurance = trust.AssuranceHigh
+	floorDirectory, err := attest.NewDirectory([]attest.Attestor{floorRecord})
+	if err != nil {
+		t.Fatal(err)
+	}
+	lowClaim := baseline(attest.ModeDirect)
+	lowClaim.AttestorID = base.ID
+	lowClaim.Assurance = trust.AssuranceSubstantial
+	lowClaim.Sign(directorKey)
+	if decision, err := attest.Verify(floorDirectory, lowClaim, attest.Requirement{MinAssurance: trust.AssuranceSubstantial, PermittedModes: []attest.Mode{attest.ModeDirect}}, p, baseTime); err != nil || decision.Accepted || decision.Reason != attest.ReasonAssuranceLow {
+		t.Fatalf("below attestor floor decision=%+v err=%v", decision, err)
+	}
+}

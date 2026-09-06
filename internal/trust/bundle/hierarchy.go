@@ -162,6 +162,9 @@ func (h *Hierarchy) IssueLeaf(ctx custody.Context, intermediateID string, reques
 	if err != nil {
 		return Leaf{}, custody.Receipt{}, err
 	}
+	if intermediate.Kind != IntermediateAuthority {
+		return Leaf{}, custody.Receipt{}, fmt.Errorf("%w: leaf issuer must be an intermediate authority", ErrInvalidHierarchy)
+	}
 	issued, receipt, err := h.issue(ctx, intermediate.Handle, request)
 	if err != nil {
 		return Leaf{}, custody.Receipt{}, err

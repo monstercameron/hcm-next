@@ -201,6 +201,10 @@ func resolveSameTenantScope(tenant values.TenantId, req TenantScopeInput) Tenant
 		return denyTenant(tenant, tenant, "p1a.tenant.resource_org_unresolved", "resource_organization_unresolved")
 	}
 
+	if req.PrincipalOrg.Tenant != tenant || req.ResourceOrg.Tenant != tenant {
+		return denyTenant(tenant, tenant, "p1a.tenant.org_tenant_mismatch", "organization_tenant_mismatch")
+	}
+
 	closure := resolveOrgClosure(req.PrincipalOrg, req.Edges, req.EffectiveAt)
 	if !slices.Contains(closure, req.ResourceOrg) {
 		return denyTenant(tenant, tenant, "p1a.tenant.org_out_of_scope", "organization_out_of_scope")
@@ -261,6 +265,9 @@ func resolveCrossTenantScope(principalTenant values.TenantId, req TenantScopeInp
 func resolveOrgClosure(root OrgUnitRef, edges []OrgEdge, at values.Instant) []OrgUnitRef {
 	children := make(map[OrgUnitRef][]OrgUnitRef)
 	for _, e := range edges {
+		if e.Child.Tenant != root.Tenant || e.Parent.Tenant != root.Tenant {
+			continue
+		}
 		if !e.active(at) {
 			continue
 		}

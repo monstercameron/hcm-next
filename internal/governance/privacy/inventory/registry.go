@@ -75,6 +75,7 @@ func canonicalInventory(input Inventory) Inventory {
 	out := input
 	out.Activities = slices.Clone(input.Activities)
 	for i := range out.Activities {
+		out.Activities[i].Obligations = slices.Clone(input.Activities[i].Obligations)
 		out.Activities[i].Subprocessors = sortedClone(out.Activities[i].Subprocessors)
 		out.Activities[i].DataSubjects = sortedClone(out.Activities[i].DataSubjects)
 		out.Activities[i].DataCategories = sortedClone(out.Activities[i].DataCategories)

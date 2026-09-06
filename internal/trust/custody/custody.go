@@ -109,7 +109,7 @@ func (l Lease) Validate(now time.Time) error {
 	if strings.TrimSpace(l.ID) == "" || l.Handle.Validate() != nil || !validOperation(l.Operation) || l.ExpiresAt.IsZero() {
 		return ErrInvalidLease
 	}
-	if l.ExpiresAt.Before(now) {
+	if !l.ExpiresAt.After(now) {
 		return ErrExpired
 	}
 	return nil

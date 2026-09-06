@@ -63,6 +63,105 @@ func TestCustodyTypesContainNoMaterialOrProviderLocator(t *testing.T) {
 	}
 }
 
+func TestHandleAndContext_ValidateEveryBoundary(t *testing.T) {
+	for _, kind := range []Kind{Secret, Key, Certificate} {
+		h := testHandle()
+		h.Kind = kind
+		if err := h.Validate(); err != nil {
+			t.Fatalf("kind %q rejected: %v", kind, err)
+		}
+	}
+	for _, field := range []string{"ID", "Version", "Tenant", "Region"} {
+		h := testHandle()
+		switch field {
+		case "ID":
+			h.ID = " \t"
+		case "Version":
+			h.Version = ""
+		case "Tenant":
+			h.Tenant = " "
+		case "Region":
+			h.Region = ""
+		}
+		if !errors.Is(h.Validate(), ErrInvalidHandle) {
+			t.Fatalf("empty %s accepted: %+v", field, h)
+		}
+	}
+	base := testContext()
+	for _, field := range []string{"Workload", "Tenant", "Region", "Purpose", "Destination"} {
+		c := base
+		switch field {
+		case "Workload":
+			c.Workload = ""
+		case "Tenant":
+			c.Tenant = " "
+		case "Region":
+			c.Region = ""
+		case "Purpose":
+			c.Purpose = ""
+		case "Destination":
+			c.Destination = "\t"
+		}
+		if !errors.Is(c.Validate(), ErrInvalidContext) {
+			t.Fatalf("empty %s accepted: %+v", field, c)
+		}
+		if !errors.Is((Context{RequestContext: c.RequestContext}).Validate(), ErrInvalidContext) {
+			t.Fatalf("Context.Validate accepted empty %s", field)
+		}
+	}
+}
+
+func TestLease_ValidateRejectsMalformedAndExpiredValues(t *testing.T) {
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	base := Lease{ID: "lease-1", Handle: testHandle(), Operation: Encrypt, ExpiresAt: now.Add(time.Minute)}
+	for _, op := range []Operation{Encrypt, Decrypt, Sign, Verify, LeaseOperation, Rotate, Revoke} {
+		lease := base
+		lease.Operation = op
+		if err := lease.Validate(now); err != nil {
+			t.Fatalf("operation %q rejected: %v", op, err)
+		}
+	}
+	for _, mutate := range []func(*Lease){
+		func(l *Lease) { l.ID = "" },
+		func(l *Lease) { l.Handle = Handle{} },
+		func(l *Lease) { l.Operation = "unknown" },
+		func(l *Lease) { l.ExpiresAt = time.Time{} },
+	} {
+		lease := base
+		mutate(&lease)
+		if !errors.Is(lease.Validate(now), ErrInvalidLease) {
+			t.Fatalf("malformed lease accepted: %+v", lease)
+		}
+	}
+	for _, expiry := range []time.Time{now, now.Add(-time.Nanosecond)} {
+		lease := base
+		lease.ExpiresAt = expiry
+		if !errors.Is(lease.Validate(now), ErrExpired) {
+			t.Fatalf("expiry %s returned %v, want ErrExpired", expiry, lease.Validate(now))
+		}
+	}
+}
+
+func TestContextDigest_IsStableAndBindsEveryDimension(t *testing.T) {
+	base := testContext().RequestContext
+	if ContextDigest(base) != ContextDigest(base) {
+		t.Fatal("digest is not stable")
+	}
+	for _, mutate := range []func(*RequestContext){
+		func(c *RequestContext) { c.Workload = "other" },
+		func(c *RequestContext) { c.Tenant = "other" },
+		func(c *RequestContext) { c.Region = "other" },
+		func(c *RequestContext) { c.Purpose = "other" },
+		func(c *RequestContext) { c.Destination = "other" },
+	} {
+		changed := base
+		mutate(&changed)
+		if ContextDigest(base) == ContextDigest(changed) {
+			t.Fatalf("digest did not change for %+v", changed)
+		}
+	}
+}
+
 type contractFake struct{}
 
 func (f *contractFake) Encrypt(c Context, h Handle, _ []byte) (Ciphertext, Receipt, error) {

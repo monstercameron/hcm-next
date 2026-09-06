@@ -1,6 +1,7 @@
 package stepup_test
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -132,5 +133,116 @@ func TestTodo_SECARCH_001_Mutation(t *testing.T) {
 	mutated, err := policy.ResolveAssurance(stepup.ActionApprove, stepup.PurposeHCMOperations, stepup.RiskCritical, stepup.CredentialEvidence{Kind: stepup.EvidenceSMSOTP})
 	if err != nil || mutated.Accepted || mutated.Digest == good.Digest {
 		t.Fatalf("mutated mapping = %+v, err=%v, want distinct refused decision", mutated, err)
+	}
+}
+
+func TestAssuranceTier_ValidityAndOrdering(t *testing.T) {
+	valid := stepup.AssuranceTier{IAL: stepup.IAL2, AAL: stepup.AAL2, FAL: stepup.FAL2}
+	if !valid.Valid() || !valid.AtLeast(stepup.AssuranceTier{IAL: stepup.IAL1, AAL: stepup.AAL2, FAL: stepup.FAL1}) {
+		t.Fatalf("valid tier ordering failed: %+v", valid)
+	}
+	for _, bad := range []stepup.AssuranceTier{{}, {IAL: 9, AAL: stepup.AAL1, FAL: stepup.FAL1}, {IAL: stepup.IAL1, AAL: 9, FAL: stepup.FAL1}, {IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: 9}} {
+		if bad.Valid() || bad.AtLeast(valid) {
+			t.Fatalf("invalid tier %+v was accepted", bad)
+		}
+	}
+	if valid.AtLeast(stepup.AssuranceTier{IAL: stepup.IAL3, AAL: stepup.AAL1, FAL: stepup.FAL1}) {
+		t.Fatal("tier with insufficient IAL was accepted")
+	}
+}
+
+func TestCredentialAssuranceTable_RejectsMalformedAndFreezesInput(t *testing.T) {
+	valid := []stepup.AssuranceMapping{
+		{EvidenceKind: stepup.EvidencePassword, IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1},
+		{Kind: stepup.EvidencePasskey, EvidenceKind: stepup.EvidencePasskey, IAL: stepup.IAL2, AAL: stepup.AAL2, FAL: stepup.FAL2},
+	}
+	table, err := stepup.NewCredentialAssuranceTable(2, valid)
+	if err != nil {
+		t.Fatalf("NewCredentialAssuranceTable: %v", err)
+	}
+	valid[0].Kind = stepup.EvidenceHardwareKey
+	if table.Mappings[0].Kind != stepup.EvidencePasskey || table.Mappings[0].EvidenceKind != stepup.EvidencePasskey || table.Digest == "" {
+		t.Fatalf("table did not canonicalize and copy mappings: %+v", table)
+	}
+	for _, tc := range []struct {
+		name string
+		v    int
+		ms   []stepup.AssuranceMapping
+	}{
+		{"zero version", 0, valid},
+		{"empty mappings", 1, nil},
+		{"duplicate kinds", 1, []stepup.AssuranceMapping{
+			{Kind: stepup.EvidencePassword, IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1},
+			{Kind: stepup.EvidencePassword, IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1},
+		}},
+		{"inconsistent aliases", 1, []stepup.AssuranceMapping{{Kind: stepup.EvidencePassword, EvidenceKind: stepup.EvidencePasskey, IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1}}},
+		{"unknown kind", 1, []stepup.AssuranceMapping{{Kind: "private-key", IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1}}},
+		{"invalid IAL", 1, []stepup.AssuranceMapping{{Kind: stepup.EvidencePassword, IAL: 0, AAL: stepup.AAL1, FAL: stepup.FAL1}}},
+		{"invalid AAL", 1, []stepup.AssuranceMapping{{Kind: stepup.EvidencePassword, IAL: stepup.IAL1, AAL: 0, FAL: stepup.FAL1}}},
+		{"invalid FAL", 1, []stepup.AssuranceMapping{{Kind: stepup.EvidencePassword, IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: 0}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := stepup.NewCredentialAssuranceTable(tc.v, tc.ms); err == nil {
+				t.Fatal("malformed table was accepted")
+			}
+		})
+	}
+}
+
+type failingAssuranceSink struct{}
+
+func (failingAssuranceSink) RecordAssuranceDecision(stepup.MappingDecision) error {
+	return errors.New("sink unavailable")
+}
+
+func TestAssuranceEvidenceStore_ValidatesAndCopies(t *testing.T) {
+	var nilStore *stepup.MemoryAssuranceEvidenceStore
+	if err := nilStore.RecordAssuranceDecision(stepup.MappingDecision{}); err == nil {
+		t.Fatal("nil evidence store accepted an incomplete decision")
+	}
+	store := stepup.NewMemoryAssuranceEvidenceStore()
+	if err := store.RecordAssuranceDecision(stepup.MappingDecision{}); err == nil {
+		t.Fatal("incomplete decision was accepted")
+	}
+	d := stepup.MappingDecision{EvidenceID: "ev:1", Digest: "digest:1", Accepted: true}
+	if err := store.RecordAssuranceDecision(d); err != nil {
+		t.Fatalf("RecordAssuranceDecision: %v", err)
+	}
+	decisions := store.Decisions()
+	if len(decisions) != 1 || decisions[0].EvidenceID != d.EvidenceID {
+		t.Fatalf("Decisions = %+v", decisions)
+	}
+	decisions[0].EvidenceID = "mutated"
+	if store.Decisions()[0].EvidenceID != d.EvidenceID {
+		t.Fatal("Decisions exposed mutable store state")
+	}
+}
+
+func TestAssurancePolicy_ErrorsAndLowRiskDefault(t *testing.T) {
+	sink := stepup.NewMemoryAssuranceEvidenceStore()
+	if _, err := stepup.NewAssuranceObligationPolicy(nil, sink); err == nil {
+		t.Fatal("nil assurance table was accepted")
+	}
+	if _, err := stepup.NewAssuranceObligationPolicy(stepup.DefaultCredentialAssuranceTable(), nil); err == nil {
+		t.Fatal("nil assurance evidence sink was accepted")
+	}
+	policy, err := stepup.NewAssuranceObligationPolicy(stepup.DefaultCredentialAssuranceTable(), sink, assuranceRule())
+	if err != nil {
+		t.Fatalf("NewAssuranceObligationPolicy: %v", err)
+	}
+	decision, err := policy.ResolveAssurance("unmatched", stepup.PurposeHCMOperations, stepup.RiskRoutine, stepup.CredentialEvidence{Kind: stepup.EvidencePassword})
+	if err != nil || !decision.Accepted || decision.Required != (stepup.AssuranceTier{IAL: stepup.IAL1, AAL: stepup.AAL1, FAL: stepup.FAL1}) {
+		t.Fatalf("unmatched routine assurance = %+v, err=%v", decision, err)
+	}
+	var nilPolicy *stepup.ObligationPolicy
+	if decision, err := nilPolicy.ResolveAssurance("x", "y", stepup.RiskRoutine, stepup.CredentialEvidence{}); err == nil || decision.Reason != stepup.ReasonAssurancePolicyMissing {
+		t.Fatalf("nil ResolveAssurance = %+v, %v", decision, err)
+	}
+	badPolicy, err := stepup.NewAssuranceObligationPolicy(stepup.DefaultCredentialAssuranceTable(), failingAssuranceSink{}, assuranceRule())
+	if err != nil {
+		t.Fatalf("bad sink policy construction: %v", err)
+	}
+	if _, err := badPolicy.ResolveAssurance(stepup.ActionApprove, stepup.PurposeHCMOperations, stepup.RiskCritical, stepup.CredentialEvidence{Kind: stepup.EvidenceHardwareKey}); err == nil {
+		t.Fatal("failing assurance sink error was swallowed")
 	}
 }

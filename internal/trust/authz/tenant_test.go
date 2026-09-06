@@ -1,8 +1,10 @@
 package authz_test
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
 )
 
@@ -217,4 +219,97 @@ func TestTodo_TRUST_008(t *testing.T) {
 			t.Fatalf("comp admin bypassed the mandatory cross-tenant deny: field effect = %s, want DENIED", ruling.Effect)
 		}
 	})
+}
+
+func TestTenant_BoundariesAndWireValues(t *testing.T) {
+	if !(authz.OrgUnitRef{}).IsZero() || (orgParent).IsZero() {
+		t.Fatal("OrgUnitRef.IsZero did not distinguish the zero organization sentinel")
+	}
+	for _, tc := range []struct {
+		direction authz.SharingDirection
+		wire      string
+		valid     bool
+	}{
+		{authz.SharingDirectionUnspecified, "SHARING_DIRECTION_INVALID", false},
+		{authz.SharingDirectionRecordVisible, "RECORD_VISIBLE", true},
+		{authz.SharingDirection(99), "SHARING_DIRECTION_INVALID", false},
+	} {
+		if got := tc.direction.String(); got != tc.wire {
+			t.Errorf("SharingDirection(%d).String() = %q, want %q", tc.direction, got, tc.wire)
+		}
+		if got := tc.direction.Valid(); got != tc.valid {
+			t.Errorf("SharingDirection(%d).Valid() = %v, want %v", tc.direction, got, tc.valid)
+		}
+	}
+
+	principal := newPrincipal(t, principalOpts{})
+	if _, err := authz.ResolveTenantScope(nil, authz.TenantScopeInput{ResourceTenant: tenantAcme}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("ResolveTenantScope(nil) = %v, want ErrInvalidPolicyInput", err)
+	}
+	if _, err := authz.ResolveTenantScope(principal, authz.TenantScopeInput{ResourceTenant: values.TenantId("")}); !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("ResolveTenantScope with empty resource tenant = %v, want ErrInvalidPolicyInput", err)
+	}
+
+	orgScoped := authz.TenantScopeInput{
+		ResourceTenant: tenantAcme,
+		PrincipalOrg:   orgParent,
+		EffectiveAt:    baseInstant,
+	}
+	decision, err := authz.ResolveTenantScope(principal, orgScoped)
+	if err != nil {
+		t.Fatalf("ResolveTenantScope with unresolved resource org: %v", err)
+	}
+	if decision.Effect != authz.EffectDenied || decision.RuleID != "p1a.tenant.resource_org_unresolved" || len(decision.AllowedOrganizations) != 0 {
+		t.Fatalf("unresolved resource organization decision = %+v, want closed deny", decision)
+	}
+
+	// Organization references and edges are tenant-bound facts. A foreign
+	// tenant must not be able to enter the closure and authorize a same-tenant
+	// resource merely because its opaque organization ID happens to match.
+	foreignRoot := authz.OrgUnitRef{Tenant: tenantVendor, ID: "foreign-root"}
+	foreignChild := authz.OrgUnitRef{Tenant: tenantVendor, ID: "foreign-child"}
+	foreignDecision, err := authz.ResolveTenantScope(principal, authz.TenantScopeInput{
+		ResourceTenant: tenantAcme,
+		PrincipalOrg:   foreignRoot,
+		ResourceOrg:    foreignChild,
+		Edges:          []authz.OrgEdge{{Child: foreignChild, Parent: foreignRoot, Effective: mustOpenInterval(t, farPast)}},
+		EffectiveAt:    baseInstant,
+	})
+	if err != nil {
+		t.Fatalf("ResolveTenantScope with foreign organization tenant: %v", err)
+	}
+	if foreignDecision.Effect != authz.EffectDenied || foreignDecision.RuleID != "p1a.tenant.org_tenant_mismatch" {
+		t.Fatalf("foreign organization decision = %+v, want org_tenant_mismatch deny", foreignDecision)
+	}
+
+	foreignEdgeDecision, err := authz.ResolveTenantScope(principal, authz.TenantScopeInput{
+		ResourceTenant: tenantAcme,
+		PrincipalOrg:   orgParent,
+		ResourceOrg:    foreignChild,
+		Edges:          []authz.OrgEdge{{Child: foreignChild, Parent: orgParent, Effective: mustOpenInterval(t, farPast)}},
+		EffectiveAt:    baseInstant,
+	})
+	if err != nil {
+		t.Fatalf("ResolveTenantScope with foreign edge tenant: %v", err)
+	}
+	if foreignEdgeDecision.Effect != authz.EffectDenied || foreignEdgeDecision.RuleID != "p1a.tenant.org_tenant_mismatch" {
+		t.Fatalf("foreign edge decision = %+v, want org_tenant_mismatch deny", foreignEdgeDecision)
+	}
+
+	cyclic, err := authz.ResolveTenantScope(principal, authz.TenantScopeInput{
+		ResourceTenant: tenantAcme,
+		PrincipalOrg:   orgParent,
+		ResourceOrg:    orgChild,
+		Edges: []authz.OrgEdge{
+			{Child: orgChild, Parent: orgParent, Effective: mustOpenInterval(t, farPast)},
+			{Child: orgParent, Parent: orgChild, Effective: mustOpenInterval(t, farPast)},
+		},
+		EffectiveAt: baseInstant,
+	})
+	if err != nil {
+		t.Fatalf("ResolveTenantScope with cyclic closure: %v", err)
+	}
+	if cyclic.Effect != authz.EffectAllow || len(cyclic.AllowedOrganizations) != 2 {
+		t.Fatalf("cyclic closure = %+v, want two unique organizations", cyclic)
+	}
 }

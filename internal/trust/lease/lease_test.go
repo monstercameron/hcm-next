@@ -2,6 +2,7 @@ package lease_test
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -467,4 +468,97 @@ func TestTodo_TRUST_016_Mutation(t *testing.T) {
 			t.Fatal("Use after used-then-revoked succeeded, want a refusal")
 		}
 	})
+}
+
+type invalidLeasePort struct {
+	err error
+}
+
+func (p invalidLeasePort) IssueLease(_ custody.Context, _ custody.Handle, _ custody.Operation, _ time.Duration) (custody.Lease, error) {
+	if p.err != nil {
+		return custody.Lease{}, p.err
+	}
+	return custody.Lease{}, nil
+}
+
+func TestLease_PublicAPIs_RequestBoundariesAndCopies(t *testing.T) {
+	fixed := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	if _, err := lease.NewManager(nil, nil); !errors.Is(err, lease.ErrInvalidRequest) {
+		t.Fatalf("nil port err=%v", err)
+	}
+	defaultManager, err := lease.NewManager(&fakePort{now: time.Now}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := defaultManager.Mint(testRequest()); err != nil {
+		t.Fatalf("default clock manager Mint: %v", err)
+	}
+	if got := (lease.Evidence{Kind: lease.EventUse, LeaseID: "clx", Destination: "destination", Operation: custody.Encrypt, Outcome: "denied", Reason: "tampered"}).String(); got == "" || !strings.Contains(got, "tampered") {
+		t.Fatalf("Evidence.String=%q", got)
+	}
+
+	cases := []struct {
+		name   string
+		mutate func(*lease.Request)
+	}{
+		{"invalid handle", func(r *lease.Request) { r.Handle = custody.Handle{} }},
+		{"workload padded", func(r *lease.Request) { r.Workload = " workload" }},
+		{"tenant padded", func(r *lease.Request) { r.Tenant = " tenant-a" }},
+		{"purpose empty", func(r *lease.Request) { r.Purpose = "" }},
+		{"destination empty", func(r *lease.Request) { r.Destination = "" }},
+		{"tenant mismatch", func(r *lease.Request) { r.Tenant = "tenant-b" }},
+		{"operation empty", func(r *lease.Request) { r.Operation = "" }},
+		{"rotate forbidden", func(r *lease.Request) { r.Operation = custody.Rotate }},
+		{"revoke forbidden", func(r *lease.Request) { r.Operation = custody.Revoke }},
+		{"ttl zero", func(r *lease.Request) { r.TTL = 0 }},
+		{"ttl negative", func(r *lease.Request) { r.TTL = -time.Second }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mgr, _ := newManager(t, func() time.Time { return fixed })
+			req := testRequest()
+			tc.mutate(&req)
+			if _, _, err := mgr.Mint(req); err == nil || !errors.Is(err, lease.ErrInvalidRequest) {
+				t.Fatalf("Mint err=%v, want ErrInvalidRequest", err)
+			}
+		})
+	}
+	providerErr := errors.New("provider unavailable")
+	mgr, err := lease.NewManager(invalidLeasePort{err: providerErr}, func() time.Time { return fixed })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := mgr.Mint(testRequest()); !errors.Is(err, providerErr) {
+		t.Fatalf("provider error=%v", err)
+	}
+	badLeaseManager, err := lease.NewManager(invalidLeasePort{}, func() time.Time { return fixed })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := badLeaseManager.Mint(testRequest()); err == nil {
+		t.Fatal("invalid custody lease was accepted")
+	}
+
+	if _, err := mgr.Revoke("unknown", "cleanup"); !errors.Is(err, lease.ErrUnknown) {
+		t.Fatalf("unknown revoke err=%v", err)
+	}
+	working, _ := newManager(t, func() time.Time { return fixed })
+	cl, _, err := working.Mint(testRequest())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := working.Revoke(cl.ID, "first"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := working.Revoke(cl.ID, "second"); err != nil {
+		t.Fatal(err)
+	}
+	events := working.Events()
+	if len(events) != 3 {
+		t.Fatalf("event count=%d, want mint+2 revoke", len(events))
+	}
+	events[0].Reason = "mutated"
+	if working.Events()[0].Reason == "mutated" {
+		t.Fatal("Events did not return a copy")
+	}
 }

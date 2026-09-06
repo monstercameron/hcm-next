@@ -252,3 +252,73 @@ func FuzzTodo_TRUST_023(f *testing.F) {
 		}
 	})
 }
+
+func TestBundle_PublicAPIs_ConstructionPoolsRotationAndRevocation(t *testing.T) {
+	fx := buildFixture(t)
+	if DigestOf(fx.rootA.cert.Raw) == DigestOf(fx.intA.cert.Raw) {
+		t.Fatal("different certificates received the same pin digest")
+	}
+	if _, err := NewPinnedCert([]byte("not-a-certificate")); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("malformed certificate err=%v", err)
+	}
+	leafPin, err := NewPinnedCert(fx.leafA.Raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := New(1, "mtls", []PinnedCert{mustPin(t, fx.rootA)}, []PinnedCert{leafPin}, v1ActivatesAt, v1ExpiresAt); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("leaf intermediate err=%v", err)
+	}
+	if _, err := New(1, "mtls", []PinnedCert{{}}, nil, v1ActivatesAt, v1ExpiresAt); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("nil pinned root err=%v", err)
+	}
+
+	roots := []PinnedCert{mustPin(t, fx.rootA)}
+	intermediates := []PinnedCert{mustPin(t, fx.intA)}
+	copyBundle, err := New(7, "mtls", roots, intermediates, v1ActivatesAt, v1ExpiresAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots[0] = PinnedCert{}
+	intermediates[0] = PinnedCert{}
+	if len(copyBundle.RootPool().Subjects()) != 1 || len(copyBundle.IntermediatePool().Subjects()) != 1 {
+		t.Fatalf("pools did not retain copied pins: roots=%d intermediates=%d", len(copyBundle.RootPool().Subjects()), len(copyBundle.IntermediatePool().Subjects()))
+	}
+	if got := copyBundle.StatusAt(v1ActivatesAt.Add(-time.Nanosecond)); got != StatusDraft {
+		t.Fatalf("draft status=%q", got)
+	}
+	if at, reason, revoked := copyBundle.Revocation(); revoked || !at.IsZero() || reason != "" {
+		t.Fatalf("unrevoked state at=%v reason=%q revoked=%v", at, reason, revoked)
+	}
+	if err := copyBundle.Revoke("key compromise", v1ActivatesAt); err != nil {
+		t.Fatal(err)
+	}
+	if err := copyBundle.Revoke("again", v1ActivatesAt); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("second revoke err=%v", err)
+	}
+	if at, reason, revoked := copyBundle.Revocation(); !revoked || !at.Equal(v1ActivatesAt) || reason != "key compromise" {
+		t.Fatalf("revocation=%v/%q/%v", at, reason, revoked)
+	}
+
+	if _, err := Rotate(nil, roots, intermediates, v2ActivatesAt, v2ExpiresAt); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("nil rotation source err=%v", err)
+	}
+	if _, err := Rotate(fx.v1, roots, intermediates, v2ActivatesAt, v2ActivatesAt); !errors.Is(err, ErrInvalidBundle) {
+		t.Fatalf("invalid rotated window err=%v", err)
+	}
+	list := NewRevocationList()
+	digest := mustPin(t, fx.rootA).Digest
+	at := time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)
+	list.Revoke(digest, at.Add(time.Hour))
+	list.Revoke(digest, at)
+	if list.IsRevoked(digest, at.Add(-time.Nanosecond)) || !list.IsRevoked(digest, at) || !list.IsRevoked(digest, at.Add(time.Hour)) {
+		t.Fatal("revocation list did not keep the earliest revocation instant")
+	}
+	if list.IsRevoked(Digest("other"), at) {
+		t.Fatal("unlisted digest was reported revoked")
+	}
+	v := NewVerifier(fx.v1)
+	listVerifier := v.WithRevocationList(list)
+	if listVerifier != v || v.revocations != list {
+		t.Fatal("WithRevocationList did not attach and return receiver")
+	}
+}

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -179,7 +180,8 @@ func (v *HMACVerifier) Verify(_ context.Context, cred Credential) (*Principal, e
 	if err := dec.Decode(&claims); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidCredential, err)
 	}
-	if dec.More() {
+	var trailing any
+	if err := dec.Decode(&trailing); err != io.EOF {
 		return nil, fmt.Errorf("%w: trailing content after claims", ErrInvalidCredential)
 	}
 

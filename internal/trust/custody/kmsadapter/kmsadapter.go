@@ -398,8 +398,14 @@ func (a *Adapter) Verify(ctx custody.Context, handle custody.Handle, message []b
 func verifyPublic(public crypto.PublicKey, message, signature []byte) (bool, error) {
 	switch key := public.(type) {
 	case ed25519.PublicKey:
+		if len(key) != ed25519.PublicKeySize {
+			return false, fmt.Errorf("%w: invalid ed25519 public key length %d", ErrUnsupportedKeyType, len(key))
+		}
 		return ed25519.Verify(key, message, signature), nil
 	case *ecdsa.PublicKey:
+		if key == nil || key.Curve == nil || key.X == nil || key.Y == nil {
+			return false, fmt.Errorf("%w: malformed ecdsa public key", ErrUnsupportedKeyType)
+		}
 		return ecdsa.VerifyASN1(key, message, signature), nil
 	default:
 		return false, fmt.Errorf("%w: public key type %T", ErrUnsupportedKeyType, public)
@@ -432,6 +438,9 @@ func (a *Adapter) RenewLease(ctx custody.Context, presented custody.Lease, ttl t
 	}
 	if ttl <= 0 {
 		return custody.Lease{}, fmt.Errorf("%w: ttl field is invalid", ErrInvalidLease)
+	}
+	if presented.ContextDigest != custody.ContextDigest(ctx.RequestContext) {
+		return custody.Lease{}, ErrLeaseTampered
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
