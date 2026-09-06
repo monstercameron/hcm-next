@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hcmnext.compatfixture.v1;
+
+// Widget is a self-contained fixture message used only to exercise the buf
+// breaking wrapper in buffreaking_test.go. It intentionally lives outside
+// schema/proto so these tests never depend on, or risk perturbing, the real
+// committed API surface.
+message Widget {
+  string widget_id = 1;
+  string name = 2;
+}

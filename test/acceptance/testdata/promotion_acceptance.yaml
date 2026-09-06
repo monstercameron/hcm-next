@@ -1,0 +1,211 @@
+version: 1
+items:
+  - id: phase1-01
+    source: phase1
+    text: "Compiler rejection of type-invalid edges, unresolved capabilities, and retried non-idempotent mutations (conflicting parallel write sets once `PARALLEL` exists)"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow::TestTodo_WF_COMP_002"
+      - "github.com/monstercameron/hcm-next/internal/workflow::TestTodo_WF_COMP_003"
+      - "github.com/monstercameron/hcm-next/internal/workflow::TestTodo_WF_STEP_001"
+  - id: phase1-02
+    source: phase1
+    text: "Durable resume after process failure during approval, effective-date wait, and connector retry"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/test/workflow::TestPromotionWorkflowCompletesEndToEnd"
+      - "github.com/monstercameron/hcm-next/test/workflow::TestPromotionWorkflowDuplicateTimerFireAndDuplicateResumeAreIdempotent"
+      - "github.com/monstercameron/hcm-next/test/workflow::TestTodo_PROMO_009_Fault"
+  - id: phase1-03
+    source: phase1
+    text: "Exact proposal binding plus current approver-authority re-evaluation after relationship change"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestDurableProposalFactsReportsADecisionBoundToAnotherDigest"
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestApprovalDecisionUsesTheConfiguredApprover"
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestPromotionApprovalReevaluatesCurrentManagerAuthority"
+      - "github.com/monstercameron/hcm-next/internal/domains/promotion/simassign::TestTodo_PROMO_002"
+  - id: phase1-04
+    source: phase1
+    text: "Stable node/capability idempotency across lease expiry and redelivery"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/lease::TestTodo_WF_RUN_002"
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestTodo_WORK_006"
+  - id: phase1-05
+    source: phase1
+    text: "`PAUSE_REQUESTED` truthfulness inside an atomic external-effect region"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow::TestConcurrency_InterventionIsRefusedExactlyInsideARegion"
+      - "github.com/monstercameron/hcm-next/internal/workflow/intervention::TestTodo_WF_RUN_015"
+  - id: phase1-06
+    source: phase1
+    text: "Cancellation behavior before approval, after approval, and after an internal or ambiguous external effect"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestCancellationBeforeApprovalWritesNothing"
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestCancellationAfterApprovalBeforeExecutionWritesNothing"
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestCancellationAfterAnAmbiguousExternalEffectIsRefusedUntilObserved"
+  - id: phase1-07
+    source: phase1
+    text: "Bounded retry exhaustion into a typed RepairPlan or human route"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/recover::TestTodo_WF_RUN_003"
+      - "github.com/monstercameron/hcm-next/internal/workflow/migrate/artifacts::TestRepairPath_FollowsTheRuntimeStateMachine"
+  - id: phase1-08
+    source: phase1
+    text: "Separate instance `runtime_status` and the intent's `ExecutionState`, `BusinessState`, `ConsistencyState`, and `ObligationState`"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestTodo_WF_RUN_027"
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestDeriveJourneyStageFromDurableExecutionState"
+  - id: phase1-09
+    source: phase1
+    text: "Simulation suppresses all mutations and external effects"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/simulate::TestSimulateModeExecutesThePromotionReferenceWithZeroEffects"
+      - "github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract::TestTodo_PROMO_004"
+  - id: phase1-10
+    source: phase1
+    text: "Replay of pure nodes cannot produce tasks, notifications, charges, or business effects"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/replay::TestAdmit_RefusesAContractThatIsNotZeroEffect"
+      - "github.com/monstercameron/hcm-next/internal/workflow/replay::TestGuardedAdapter_NeverDelegates"
+      - "github.com/monstercameron/hcm-next/internal/workflow/replay::TestTodo_WF_RUN_013_Conformance"
+  - id: phase1-11
+    source: phase1
+    text: "Inspector traversal from workflow to node, approval/AuthZ/legal decision, transaction, connector operation, reconciliation, and trace"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/inspect::TestTodo_WF_RUN_019"
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestWorkflowInspectorLoadsTheCompleteDurableRecordOnAHappyPath"
+  - id: phase1-12
+    source: phase1
+    text: "Tenant and criticality limits prevent bulk/replay work from starving the live pilot path"
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestSelectionStatementsCarryTheirConcurrencyClauses"
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestNewAcceptsSeveralQueuesForOneTenant"
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestLivePilotWorkIsNotStarvedByBulkWork"
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestReplayWorkIsAdmittedBelowLiveWork"
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestPerTenantBatchBoundIsHonoured"
+      - "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler::TestTenantAndCriticalityClaimsRaceAcrossReplicas"
+  - id: scenario-01
+    source: scenario
+    text: "Happy path with exact proposal, reservations, approvals, acknowledgement, commit, effects, and reconciliation."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/test/workflow::TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite"
+      - "github.com/monstercameron/hcm-next/test/workflow::TestPromotionWorkflowCompletesEndToEnd"
+      - "github.com/monstercameron/hcm-next/test/workflow::TestTodo_PROMO_009_Integration"
+      - "github.com/monstercameron/hcm-next/internal/domains/promotion/localcommit::TestTodo_PROMO_005"
+      - "github.com/monstercameron/hcm-next/internal/workflow/simulate::TestSimulateModeExecutesThePromotionReferenceWithZeroEffects"
+  - id: scenario-02
+    source: scenario
+    text: "Position or budget reservation expires before execution."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/resource/reservation::TestPromotionReservationExpiresBeforeExecutionRefusesConsumption"
+      - "github.com/monstercameron/hcm-next/internal/resource/reservation::TestPromotionReservationExpiryRoutesRevalidationToReapproval"
+      - "github.com/monstercameron/hcm-next/internal/resource/reservation::TestTodo_RESERVE_001_Mutation_ExpiryCheck"
+  - id: scenario-03
+    source: scenario
+    text: "Manager/team/organization changes after approval and forces rebase."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestDurableProposalFactsReadsASupersedesEdge"
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestJourneyApprovalRefIsDerivedFromTheIntent"
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestApprovedPromotionRebasesAfterAManagerChange"
+  - id: scenario-04
+    source: scenario
+    text: "Legal or compensation policy version changes before effective date."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestJourneyBaselineRefusesAMalformedEffectiveDate"
+      - "github.com/monstercameron/hcm-next/internal/workflow/version::TestTodo_WF_COMP_006_Golden"
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestPolicyVersionChangeBeforeEffectiveDateRequiresRevalidation"
+  - id: scenario-05
+    source: scenario
+    text: "Payroll cutoff makes the requested date invalid or retroactive."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/conformance/payroll::TestPromotionEffectiveDateAfterCutoffIsRetroactive"
+      - "github.com/monstercameron/hcm-next/internal/workflow/conformance/payroll::TestPromotionEffectiveDateBeforeCutoffIsCurrent"
+      - "github.com/monstercameron/hcm-next/internal/workflow/conformance/payroll::TestPromotionEffectiveDateOnACutoffBoundaryIsDeterministic"
+      - "github.com/monstercameron/hcm-next/internal/workflow/conformance/payroll::TestPromotionRevalidationRefusesAnInvalidPayrollDate"
+  - id: scenario-06
+    source: scenario
+    text: "Competing transfer, termination, leave, or promotion wins the conflict race."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestPromotionLosesTheConflictRaceToACompetingTransfer"
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestPromotionLosesTheConflictRaceToATermination"
+      - "github.com/monstercameron/hcm-next/internal/workflow/runtime::TestPromotionConflictRaceOnRealConnections"
+  - id: scenario-07
+    source: scenario
+    text: "Core commit succeeds and one downstream effect permanently fails."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/recover::TestTodo_WF_RUN_003_Fault"
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestPromotionCoreCommitSurvivesAPermanentDownstreamFailure"
+  - id: scenario-08
+    source: scenario
+    text: "Duplicate outbox delivery never duplicates payroll, access, learning, document, message, usage, or billing effects."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestTodo_WORK_006"
+      - "github.com/monstercameron/hcm-next/internal/workflow/replay::TestTodo_WF_RUN_013"
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestDuplicateOutboxDeliveryNeverDuplicatesAnyEffect"
+  - id: scenario-09
+    source: scenario
+    text: "Sensitive access expansion requires step-up or additional approval."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/intent/app::TestPromotionExecutionRequiresStepUpOrAdditionalApprovalForSensitiveAccess"
+  - id: scenario-10
+    source: scenario
+    text: "Team notification is prevented from releasing early."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestTeamNotificationCannotReleaseBeforeTheEffectivePoint"
+  - id: scenario-11
+    source: scenario
+    text: "Repair succeeds without rewriting original business history."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/recover::TestTodo_WF_RUN_003_Recovery"
+      - "github.com/monstercameron/hcm-next/internal/workflow/migrate/artifacts::TestRepairPath_FollowsTheRuntimeStateMachine"
+  - id: scenario-12
+    source: scenario
+    text: "Analytics/search/semantic systems are unavailable while the business transaction still executes safely."
+    status: PROVEN
+    gap: ""
+    tests:
+      - "github.com/monstercameron/hcm-next/internal/workflow/execute::TestAnalyticsUnavailabilityDoesNotBlockTheBusinessTransaction"

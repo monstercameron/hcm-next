@@ -1,8 +1,11 @@
 capabilities -> engines
+data -> domains
 data -> engines
 data -> kernel
+domains -> data
 domains -> engines
 domains -> kernel
+domains -> transaction
 engines -> kernel
 ledger -> data
 ledger -> engines
@@ -11,6 +14,7 @@ transaction -> kernel
 transport -> capabilities
 transport -> domains
 transport -> kernel
+transport -> workflow
 workflow -> capabilities
 workflow -> data
 workflow -> domains

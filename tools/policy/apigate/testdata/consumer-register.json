@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "consumers": [
+    {
+      "id": "workflow-ui",
+      "owner": "experience",
+      "service": "hcmnext.intents.v1.IntentService",
+      "adopted_version": 1,
+      "watermark": "schema-baseline-2026-09-05",
+      "sunset": "2027-09-05",
+      "methods": [
+        "ExplainIntent",
+        "GetIntent"
+      ],
+      "fields": [
+        {
+          "message": "hcmnext.intents.v1.IntentDefinition",
+          "field": "revision"
+        }
+      ]
+    }
+  ]
+}

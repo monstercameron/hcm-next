@@ -1070,7 +1070,20 @@ type wfrun030Fixture struct {
 // from Execute through both governed WorkItems to COMPLETE, exactly as
 // TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite does, and returns
 // the identities and ports WF-RUN-030's own assertions need.
+type promotionTerminalFactory func(
+	t *testing.T,
+	db *pgtest.DB,
+	tenantID uuid.UUID,
+	proposal intent.ProposalRevision,
+	plan *workflow.CompiledWorkflow,
+	base *effects.LedgerTerminalWriter,
+) execute.TerminalWriter
+
 func runPromotionToComplete(t *testing.T, tenantKey string, at time.Time) wfrun030Fixture {
+	return runPromotionToCompleteWithTerminal(t, tenantKey, at, nil)
+}
+
+func runPromotionToCompleteWithTerminal(t *testing.T, tenantKey string, at time.Time, factory promotionTerminalFactory) wfrun030Fixture {
 	t.Helper()
 	ctx := context.Background()
 	db := pgtest.New(t)
@@ -1089,10 +1102,14 @@ func runPromotionToComplete(t *testing.T, tenantKey string, at time.Time) wfrun0
 		Appender: newLedgerAppender(t), ProjectionName: "workflow_promotion_outcome_test_" + tenantKey,
 		SourceRef: "hcmnext:test:workflow",
 	}
+	var terminalWriter execute.TerminalWriter = terminal
+	if factory != nil {
+		terminalWriter = factory(t, db, tenantID, proposal, plan, terminal)
+	}
 	workItems := demoWorkItems{proposal: proposal, managerReq: managerReq, managerResolution: managerRes, taskOwner: humanwork.PrincipalHRBP}
 
 	drv, err := execute.New(execute.Options{
-		DB: beginner, Steps: endOnlySteps{}, WorkItems: workItems, Terminal: terminal,
+		DB: beginner, Steps: endOnlySteps{}, WorkItems: workItems, Terminal: terminalWriter,
 		Items: workitem.Store{},
 		Guard: idempotency.PostgresStore{}, Retention: idempotency.RetentionPolicy{Retention: 72 * time.Hour, RetryWindow: 6 * time.Hour},
 		Clock: func() time.Time { return at },

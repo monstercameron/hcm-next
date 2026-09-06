@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -354,10 +355,27 @@ func Check(root string) error {
 	if err != nil {
 		return err
 	}
-	if !bytes.Equal(old, expected) {
+	if !bytes.Equal(normalizeTables(old), normalizeTables(expected)) {
 		return fmt.Errorf("librarystrategy: README.md library-strategy region is stale; run go run ./tools/gen/librarystrategy/cmd/generatelibrarystrategy")
 	}
 	return nil
+}
+
+// tableCellPadding matches the padding prettier adds inside Markdown table
+// cells (runs of spaces around pipes) and the dash runs it stretches in
+// separator rows. The checked-in README is prettier-formatted by the commit
+// hook, while Render emits minimal tables; the two must compare equal on
+// content, not on padding.
+var tableCellPadding = regexp.MustCompile(`[ 	]*\|[ 	]*`)
+
+// tableSeparatorRun matches a Markdown table separator run of any width.
+var tableSeparatorRun = regexp.MustCompile(`-{3,}`)
+
+// normalizeTables collapses prettier's table padding so Check compares the
+// generated region by content.
+func normalizeTables(b []byte) []byte {
+	b = tableCellPadding.ReplaceAll(b, []byte("|"))
+	return tableSeparatorRun.ReplaceAll(b, []byte("---"))
 }
 
 // Verify is a compatibility name for callers that use checker terminology.

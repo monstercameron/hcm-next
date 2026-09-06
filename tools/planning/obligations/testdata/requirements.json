@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "obligations": [
+    {
+      "id": "REQ-D2CD3E09FC7FA544027A4AB398D85F341DEA9337B66278641B0A4CC8E673EF2E",
+      "document": "planning/specs/records-management-and-disposition.md",
+      "line": 78,
+      "text_digest": "a9157858f57277cd33fd673fb2ed3a6ff9e5f61a4716f96dfaabd48f176e40e6",
+      "todo_ids_cited_nearby": []
+    },
+    {
+      "id": "REQ-19777E6F15D9783FA887E354468F4DC4B42830C13F39BDA472E6FCD7BCA8DC99",
+      "document": "planning/specs/records-management-and-disposition.md",
+      "line": 91,
+      "text_digest": "0153c6b967ad06348cfd9712c08c458d65594e0649bf0a532e3750373b87dbeb",
+      "todo_ids_cited_nearby": []
+    }
+  ]
+}

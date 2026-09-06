@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hcmnext.compatfixture.v1;
+
+// Widget here changes widget_id's wire type from string to int64: a breaking
+// field-type change relative to v1/fixture.proto, used to prove RunBufBreaking
+// actually detects a real Protobuf-level break rather than only the
+// hand-authored Version structs in internal/transport/manifest.
+message Widget {
+  int64 widget_id = 1;
+  string name = 2;
+}

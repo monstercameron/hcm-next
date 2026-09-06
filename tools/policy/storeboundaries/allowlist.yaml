@@ -1,0 +1,135 @@
+# STORE-002 reviewed allowlist.
+#
+# Every entry here is a real finding from storeboundaries.Scan against the
+# checked-in tree on branch plan-revision-2026-09-02 (see
+# storeboundaries_test.go's TestTodo_STORE_002 for the raw count this file
+# is reviewed against: exactly these findings, no more). CheckWithPolicy
+# only waives a finding whose kind and package both match an active,
+# fully-populated entry below -- adding a table/file scope narrower than
+# "package" is not supported on purpose (see policy.go's Exception.Covers
+# doc comment): a new violation in an already-listed package still fails,
+# because Covers matches this exact (kind, package) pair only for the
+# specific statements already understood and counted below, and
+# TestTodo_STORE_002_Integration additionally re-derives and asserts the
+# per-entry finding COUNT, not just its presence, so a new statement in the
+# same package that trips the same rule still turns the suite red.
+#
+# policy_date is the date CheckWithPolicy evaluates every entry's expiry
+# against; it is a literal, not time.Now, so this file's result never
+# changes between two runs of the same checkout (see PolicyDate).
+policy_date: "2026-09-05"
+
+exceptions:
+  # internal/data/partition/kit.go (3 findings: Kit.Load INSERT,
+  # Kit.Build CREATE TABLE, Kit.fetchJSON SELECT, all resolved to
+  # ledger_event via Tier B -- see literalTableMentions).
+  #
+  # Kit is DATA-017's partition-parity test kit: it imports "testing"
+  # directly, every entry method takes an admin/superuser dbport.Conn (its
+  # own doc comment: "the least-privilege application role is never granted
+  # CREATE"), and it exists to clone a partitioned table's RLS
+  # policies/triggers/grants onto an unpartitioned shadow copy for
+  # comparison inside a test, not to serve tenant traffic. STORE-002's rule
+  # has no way yet to distinguish an admin/DDL test-support kit from a
+  # serving-path adapter; until it does, this is a placement gap in the
+  # rule, not in the kit.
+  - kind: tenant_scope
+    package: github.com/monstercameron/hcm-next/internal/data/partition
+    owner: data-platform
+    rationale: >-
+      Kit (internal/data/partition/kit.go) is DATA-017's partition-parity
+      test-support kit: it imports "testing", every method takes an
+      admin/superuser dbport.Conn by its own documented design, and its
+      SQL text names whichever table plan.go's fixtures configure (only
+      ledger_event today) purely to clone that table's RLS/trigger/grant
+      shape onto a disposable shadow table for a test assertion. It never
+      runs against tenant-facing traffic, so STORE-002's Tier B table
+      match (which cannot tell "test comparison kit" from "serving
+      adapter") is a false positive against this package's actual RED
+      clause exposure.
+    followup_todo: >-
+      Give storeboundaries a "test-support kit" carve-out (e.g. a package
+      that imports "testing" outside _test.go and takes an explicit admin
+      connection type) instead of a standing package-name exception, so a
+      real future adapter under internal/data/partition would not silently
+      inherit this waiver.
+    expiry: "2026-12-31"
+
+  # internal/intent/app/pgstore/pgstore.go: ActiveTenants (SELECT tenant_id
+  # FROM tenant WHERE status = 'ACTIVE').
+  - kind: tenant_scope
+    package: github.com/monstercameron/hcm-next/internal/intent/app/pgstore
+    owner: intent-and-capability
+    rationale: >-
+      ActiveTenants (internal/intent/app/pgstore/pgstore.go) is the
+      documented sweep list background workers/projectors read to find
+      which tenants to iterate; querying literally every ACTIVE tenant_id
+      is the function's entire purpose, so a tenant_id predicate would
+      contradict its contract rather than fix a boundary gap. This is the
+      STORE-002 RED clause's own "maintenance credential" case: a
+      privileged, explicitly cross-tenant read, not a forged or missing
+      tenant context on a tenant-facing call.
+    followup_todo: >-
+      Give storeboundaries a documented "intentionally cross-tenant" marker
+      (a doc-comment convention or an explicit registry escape hatch) so a
+      genuine admin/maintenance query does not have to hide behind a
+      package-wide exception indistinguishable from a real gap.
+    expiry: "2026-12-31"
+
+  # internal/data/health/probe.go: Probe.probeGeneric, the
+  # `SELECT count(*) FROM %s` branch taken only when
+  # td.TenantScopingColumn == "" (a control-plane/non-tenant table).
+  - kind: tenant_scope
+    package: github.com/monstercameron/hcm-next/internal/data/health
+    owner: data-platform
+    rationale: >-
+      probeGeneric (internal/data/health/probe.go) forks on
+      td.TenantScopingColumn at runtime: when it is set, the query the
+      *other* branch builds already carries a tenant filter (and that
+      branch is credited directly -- its %s argument's own source text,
+      td.TenantScopingColumn, contains "tenant", satisfying Heuristic H3).
+      The flagged statement is the *other* branch, reached only when a
+      table has NO tenant scoping column at all, so it can never run
+      against a tenant-scoped table in practice. It is flagged only
+      because storeboundaries' Tier B table-resolution (matching this
+      package's literal table-name mentions, which include tenant-scoped
+      tables from the sibling branch and from probeLedgerEvent/
+      probeOutbox/probeProjectionCheckpoint's own literal SQL) cannot tell
+      the two runtime branches of one dynamic-table statement apart.
+    followup_todo: >-
+      Teach EvaluateTenantScope to track dataflow between a %s argument's
+      guarding `if` condition (here, td.TenantScopingColumn != "") and
+      which literal branch it reached, so Tier A/Tier B table resolution
+      can be scoped per branch instead of per function.
+    expiry: "2026-12-31"
+
+  # internal/data/aggregates/store.go: put(), the
+  # `UPDATE %s SET superseded_at = $1 WHERE row_id = $2` statement.
+  - kind: tenant_scope
+    package: github.com/monstercameron/hcm-next/internal/data/aggregates
+    owner: workforce-data
+    rationale: >-
+      put() (internal/data/aggregates/store.go) supersedes a live
+      predecessor row by row_id, a value it only ever obtained one
+      statement earlier from a SELECT that DOES filter by
+      `tenant_id = $1 AND entity_id = $2` -- row_id is a globally-unique
+      UUID primary key, so keying the UPDATE off it carries no less
+      isolation than re-stating the tenant filter would. This is a real
+      STORE-002 gap in the *package-level fallback*, though, not just an
+      analysis blind spot: put()'s Executor parameter
+      (dbport.Execer + dbport.Querier) is satisfiable by a bare
+      dbport.Conn, so nothing here proves at the Go type level that a
+      caller ever ran tenancy.WithTenant first, the way this rule's
+      documented heuristic expects (aggregates does not import
+      internal/data/tenancy and takes no literal dbport.Tx parameter
+      anywhere). PostgreSQL's tenant_isolation RLS policy (migrations/
+      00008) still enforces this independently of the Go-level gap.
+    followup_todo: >-
+      Change Put's signature (see doc.go and STORE-002/TRUST-008) to
+      require dbport.Tx, not the local Executor interface, wherever a
+      Put can close a live predecessor -- store.go's own doc comment
+      already says a two-statement Put "closes a live predecessor" must
+      run in a transaction; requiring the concrete type turns that
+      documented expectation into something this rule (and the compiler)
+      can check.
+    expiry: "2026-12-31"

@@ -1,0 +1,444 @@
+schema_version: 1
+version: "2026-09-05.1"
+source: planning/research/security-control-matrix-2026.md
+framework_versions:
+  nist_800_53: "Rev. 5"
+  csf_2_0: "2.0"
+  iso_27001: "2022 Annex A"
+  soc_2_tsc: "2017 Trust Services Criteria"
+  cis_controls: "v8.1"
+  asvs: "5.0.0"
+
+enterprise_frameworks: &enterprise_frameworks
+  nist_800_53: AC-2
+  csf_2_0: GV.OC-03
+  iso_27001_annex_a: A.5.15
+  soc_2_tsc: CC6.1
+  cis_controls: "5"
+  asvs_5_0_0: V4.1.1
+financial_frameworks: &financial_frameworks
+  nist_800_53: SC-28
+  csf_2_0: PR.DS-01
+  iso_27001_annex_a: A.8.24
+  soc_2_tsc: CC6.7
+  cis_controls: "3"
+  asvs_5_0_0: V8.3.1
+government_frameworks: &government_frameworks
+  nist_800_53: AC-6
+  csf_2_0: GV.RM-03
+  iso_27001_annex_a: A.5.31
+  soc_2_tsc: CC1.2
+  cis_controls: "17"
+  asvs_5_0_0: V1.1.1
+
+controls:
+  - id: E-01
+    scope: enterprise
+    title: Federated workforce identity
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/federation
+    todo_ids: [AUTHN-001, AUTHN-002, AUTHN-003, AUTHN-004, TRUST-002]
+    evidence: [{todo_id: TRUST-002}]
+    ownership: OWNED
+  - id: E-02
+    scope: enterprise
+    title: OAuth delegated-access security
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/session
+    todo_ids: [TRUST-003, AUTHN-002]
+    evidence: [{todo_id: TRUST-003}]
+    ownership: OWNED
+  - id: E-03
+    scope: enterprise
+    title: Phishing-resistant authentication assurance
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/stepup
+    todo_ids: [TRUST-004, SECARCH-001]
+    evidence: [{todo_id: TRUST-004}]
+    ownership: OWNED
+  - id: E-04
+    scope: enterprise
+    title: Server-side session lifecycle
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/session
+    todo_ids: [TRUST-003, SECARCH-002]
+    evidence: [{todo_id: TRUST-003}]
+    ownership: OWNED
+  - id: E-05
+    scope: enterprise
+    title: Least privilege and privileged-access review
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/authz
+    todo_ids: [TRUST-008, TRUST-009, TRUST-010, TRUST-011, TRUST-012, TRUST-013, TRUST-014, TRUST-021, TRUST-022]
+    evidence: [{todo_id: TRUST-008}]
+    ownership: OWNED
+  - id: E-06
+    scope: enterprise
+    title: KMS and envelope-encryption custody
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/envelope
+    todo_ids: [TRUST-026, TRUST-028, SECARCH-004]
+    evidence: [{todo_id: TRUST-026}]
+    ownership: OWNED
+  - id: E-07
+    scope: enterprise
+    title: Key and certificate rotation
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/bundle
+    todo_ids: [TRUST-023, TRUST-030, TRUST-031, SECARCH-004]
+    evidence: [{todo_id: TRUST-023}]
+    ownership: OWNED
+  - id: E-08
+    scope: enterprise
+    title: Machine-readable software bill of materials
+    frameworks: *enterprise_frameworks
+    owner_package: tools/policy/sbom
+    todo_ids: [TOOL-017, SUPPLY-003]
+    evidence: [{todo_id: TOOL-017}]
+    ownership: OWNED
+  - id: E-09
+    scope: enterprise
+    title: Signed release provenance
+    frameworks: *enterprise_frameworks
+    owner_package: tools/policy/releaseadmission
+    todo_ids: [TOOL-016, TOOL-018, SUPPLY-001, SECARCH-005]
+    evidence: [{todo_id: TOOL-016}]
+    ownership: OWNED
+  - id: E-10
+    scope: enterprise
+    title: Secure software-development lifecycle
+    frameworks: *enterprise_frameworks
+    owner_package: tools/planning/riskbinding
+    todo_ids: [SECARCH-006]
+    evidence: [{todo_id: SECARCH-006}]
+    ownership: OWNED
+  - id: E-11
+    scope: enterprise
+    title: Application security testing evidence
+    frameworks: *enterprise_frameworks
+    owner_package: tools/policy/releaseadmission
+    todo_ids: [TOOL-011, TOOL-013, TOOL-019, GOV-019, GOV-021, SECARCH-007]
+    evidence: [{todo_id: TOOL-011}]
+    ownership: OWNED
+  - id: E-12
+    scope: enterprise
+    title: Tamper-evident security telemetry and alerting
+    frameworks: *enterprise_frameworks
+    owner_package: internal/platform/telemetry
+    todo_ids: [TRUST-018, SECARCH-008]
+    evidence: [{todo_id: TRUST-018}]
+    ownership: OWNED
+  - id: E-13
+    scope: enterprise
+    title: Data classification and egress protection
+    frameworks: *enterprise_frameworks
+    owner_package: internal/trust/dlp
+    todo_ids: [TRUST-010, TRUST-018, SECARCH-009]
+    evidence: [{todo_id: TRUST-010}]
+    ownership: OWNED
+  - id: E-14
+    scope: enterprise
+    title: Cross-path tenant isolation
+    frameworks: *enterprise_frameworks
+    owner_package: internal/data/tenancy
+    todo_ids: [DB-017, TRUST-025, SECARCH-010]
+    evidence: [{todo_id: DB-017}]
+    ownership: OWNED
+  - id: E-15
+    scope: enterprise
+    title: Incident response
+    frameworks: *enterprise_frameworks
+    owner_package: tools/planning/riskbinding
+    todo_ids: [OPS-004, OPS-005, RECOVERY-004]
+    evidence: [{todo_id: OPS-004}]
+    ownership: OWNED
+  - id: E-16
+    scope: enterprise
+    title: Security-control crosswalk
+    frameworks: *enterprise_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [GOV-030]
+    evidence: [{todo_id: GOV-030}]
+    ownership: OWNED
+  - id: E-17
+    scope: enterprise
+    title: Secure-by-design product goals
+    frameworks: *enterprise_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-011]
+    evidence: [{todo_id: SECARCH-011}]
+    ownership: OWNED
+  - id: E-18
+    scope: enterprise
+    title: Vulnerability and patch management
+    frameworks: *enterprise_frameworks
+    owner_package: tools/policy/vulnimpact
+    todo_ids: [SUPPLY-002, SUPPLY-004]
+    evidence: [{todo_id: SUPPLY-002}]
+    ownership: OWNED
+
+  - id: F-01
+    scope: financial
+    title: Payment-data scope and isolation
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-012]
+    evidence: [{todo_id: SECARCH-012}]
+    ownership: OWNED
+  - id: F-02
+    scope: financial
+    title: Unreadable payment account data at rest
+    frameworks: *financial_frameworks
+    owner_package: internal/trust/envelope
+    todo_ids: [TRUST-028, SECARCH-014]
+    evidence: [{todo_id: TRUST-028}]
+    ownership: OWNED
+  - id: F-03
+    scope: financial
+    title: Receiving-account validation
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-014]
+    evidence: [{todo_id: SECARCH-014}]
+    ownership: OWNED
+  - id: F-04
+    scope: financial
+    title: Risk-based ACH fraud detection
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-016]
+    evidence: [{todo_id: SECARCH-016}]
+    ownership: OWNED
+  - id: F-05
+    scope: financial
+    title: Payment transaction authentication
+    frameworks: *financial_frameworks
+    owner_package: internal/trust/stepup
+    todo_ids: [TRUST-004, TRUST-014, SECARCH-013]
+    evidence: [{todo_id: TRUST-004}]
+    ownership: OWNED
+  - id: F-06
+    scope: financial
+    title: Bank-detail dual control
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-013]
+    evidence: [{todo_id: SECARCH-013}]
+    ownership: OWNED
+  - id: F-07
+    scope: financial
+    title: Payroll exact-decimal calculation
+    frameworks: *financial_frameworks
+    owner_package: tools/policy/libfirewall
+    todo_ids: [LIB-006, SECARCH-015]
+    evidence: [{todo_id: LIB-006}]
+    ownership: OWNED
+  - id: F-08
+    scope: financial
+    title: Reconciled payroll and payment operations
+    frameworks: *financial_frameworks
+    owner_package: internal/data/ledger
+    todo_ids: [DB-018, DB-024]
+    evidence: [{todo_id: DB-018}]
+    ownership: OWNED
+  - id: F-09
+    scope: financial
+    title: Append-only signed ledger
+    frameworks: *financial_frameworks
+    owner_package: internal/data/ledger/checkpoint
+    todo_ids: [LEDGER-010, LEDGER-012]
+    evidence: [{todo_id: LEDGER-010}]
+    ownership: OWNED
+  - id: F-10
+    scope: financial
+    title: Payroll information-technology controls
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [TRUST-008, TRUST-021, CICD-001, DB-022, DB-024]
+    evidence: [{todo_id: TRUST-008}]
+    ownership: OWNED
+  - id: F-11
+    scope: financial
+    title: GLBA safeguards program
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-017]
+    evidence: [{todo_id: SECARCH-017}]
+    ownership: OWNED
+  - id: F-12
+    scope: financial
+    title: Federal taxpayer-information boundary
+    frameworks: *financial_frameworks
+    owner_package: internal/trust/authz
+    todo_ids: [TRUST-028, PRIV-008]
+    evidence: [{todo_id: TRUST-028}]
+    ownership: OWNED
+  - id: F-13
+    scope: financial
+    title: Taxpayer-data checklist
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [PRIV-008]
+    evidence: [{todo_id: PRIV-008}]
+    ownership: OWNED
+  - id: F-14
+    scope: financial
+    title: Financial breach notification decisioning
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [PRIV-009]
+    evidence: [{todo_id: PRIV-009}]
+    ownership: OWNED
+  - id: F-15
+    scope: financial
+    title: Employment-tax record retention
+    frameworks: *financial_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [RECORDS-DISP-001, DB-024]
+    evidence: [{todo_id: RECORDS-DISP-001}]
+    ownership: OWNED
+
+  - id: G-01
+    scope: government
+    title: Government authorization profile
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-018]
+    evidence: [{todo_id: SECARCH-018}]
+    ownership: OWNED
+  - id: G-02
+    scope: government
+    title: FedRAMP transition tracking
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-019]
+    evidence: [{todo_id: SECARCH-019}]
+    ownership: OWNED
+  - id: G-03
+    scope: government
+    title: GovRAMP authorization evidence
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-018]
+    evidence: [{todo_id: SECARCH-018}]
+    ownership: OWNED
+  - id: G-04
+    scope: government
+    title: TX-RAMP classification and certification
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-018]
+    evidence: [{todo_id: SECARCH-018}]
+    ownership: OWNED
+  - id: G-05
+    scope: government
+    title: Criminal-justice information boundary
+    frameworks: *government_frameworks
+    owner_package: internal/trust/authz
+    todo_ids: [TRUST-010, TRUST-028, SECARCH-020]
+    evidence: [{todo_id: TRUST-010}]
+    ownership: OWNED
+  - id: G-06
+    scope: government
+    title: IRS Publication 1075 controls
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-020, PRIV-008]
+    evidence: [{todo_id: SECARCH-020}]
+    ownership: OWNED
+  - id: G-07
+    scope: government
+    title: MARS-E and CMS control mapping
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-022]
+    evidence: [{todo_id: SECARCH-022}]
+    ownership: OWNED
+  - id: G-08
+    scope: government
+    title: CUI boundary for nonfederal systems
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-020]
+    evidence: [{todo_id: SECARCH-020}]
+    ownership: OWNED
+  - id: G-09
+    scope: government
+    title: CMMC and NIST-version contract
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-021]
+    evidence: [{todo_id: SECARCH-021}]
+    ownership: OWNED
+  - id: G-10
+    scope: government
+    title: FISMA and risk-management lifecycle
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-018]
+    evidence: [{todo_id: SECARCH-018}]
+    ownership: OWNED
+  - id: G-11
+    scope: government
+    title: Section 508 procurement evidence
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-024]
+    evidence: [{todo_id: SECARCH-024}]
+    ownership: OWNED
+  - id: G-12
+    scope: government
+    title: State privacy applicability matrix
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [PRIV-010]
+    evidence: [{todo_id: PRIV-010}]
+    ownership: OWNED
+  - id: G-13
+    scope: government
+    title: Public-records, tax, contract, and privacy retention
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [RECORDS-HOLD-001, RECORDS-DISP-001, PRIV-011]
+    evidence: [{todo_id: RECORDS-HOLD-001}]
+    ownership: OWNED
+  - id: G-14
+    scope: government
+    title: State unemployment-insurance wage reporting
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-023]
+    evidence: [{todo_id: SECARCH-023}]
+    ownership: OWNED
+  - id: G-15
+    scope: government
+    title: State new-hire reporting
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-023]
+    evidence: [{todo_id: SECARCH-023}]
+    ownership: OWNED
+  - id: G-16
+    scope: government
+    title: State and local tax withholding
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-023]
+    evidence: [{todo_id: SECARCH-023}]
+    ownership: OWNED
+  - id: G-17
+    scope: government
+    title: State and local procurement questionnaire
+    frameworks: *government_frameworks
+    owner_package: tools/planning/controlcrosswalk
+    todo_ids: [SECARCH-024]
+    evidence: [{todo_id: SECARCH-024}]
+    ownership: OWNED
+  - id: G-18
+    scope: government
+    title: Government identity assurance
+    frameworks: *government_frameworks
+    owner_package: internal/authn/issuerregistry
+    todo_ids: [AUTHN-001, AUTHN-010]
+    evidence: [{todo_id: AUTHN-001}]
+    ownership: OWNED

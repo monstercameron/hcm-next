@@ -1,0 +1,3542 @@
+{
+  "version": 1,
+  "risks": [
+    {
+      "id": "RISK-001",
+      "category": "PRODUCT",
+      "statement": "Scope Expansion",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 7
+    },
+    {
+      "id": "RISK-002",
+      "category": "PRODUCT",
+      "statement": "Existing Suites Appear Good Enough",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 15
+    },
+    {
+      "id": "RISK-003",
+      "category": "PRODUCT",
+      "statement": "Generic Workflow Platforms Compete",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 21
+    },
+    {
+      "id": "RISK-004",
+      "category": "ARCHITECTURE",
+      "statement": "Authority Conflicts Create Unsafe Writes",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 27
+    },
+    {
+      "id": "RISK-005",
+      "category": "ARCHITECTURE",
+      "statement": "Durable Workflow Complexity Consumes the Company",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 33
+    },
+    {
+      "id": "RISK-006",
+      "category": "ARCHITECTURE",
+      "statement": "AI Damages Trust",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 39
+    },
+    {
+      "id": "RISK-007",
+      "category": "ARCHITECTURE",
+      "statement": "Privacy and Identity Controls Lag Authorization",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 45
+    },
+    {
+      "id": "RISK-008",
+      "category": "PRODUCT",
+      "statement": "Implementation Services Dominate Economics",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 51
+    },
+    {
+      "id": "RISK-009",
+      "category": "PRODUCT",
+      "statement": "Customers Reject Another Write-Path Dependency",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 57
+    },
+    {
+      "id": "RISK-010",
+      "category": "PRODUCT",
+      "statement": "Commercial Assumptions Are Wrong",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 63
+    },
+    {
+      "id": "RISK-011",
+      "category": "ARCHITECTURE",
+      "statement": "The Ledger Becomes a Log Archive or Query Bottleneck",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 69
+    },
+    {
+      "id": "RISK-012",
+      "category": "ARCHITECTURE",
+      "statement": "Derived State Silently Diverges From Truth",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 75
+    },
+    {
+      "id": "RISK-013",
+      "category": "ARCHITECTURE",
+      "statement": "API Breadth Produces Semantic Drift",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 81
+    },
+    {
+      "id": "RISK-014",
+      "category": "ARCHITECTURE",
+      "statement": "Agent Composability Amplifies Data or Mutation Risk",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 87
+    },
+    {
+      "id": "RISK-015",
+      "category": "ARCHITECTURE",
+      "statement": "Escape Hatches Become Governance Bypasses",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 93
+    },
+    {
+      "id": "RISK-016",
+      "category": "ARCHITECTURE",
+      "statement": "Workflow Migration Corrupts Live Business Meaning",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 99
+    },
+    {
+      "id": "RISK-017",
+      "category": "ARCHITECTURE",
+      "statement": "Corporate Inheritance Creates Ambiguous or Leaky Policy",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 105
+    },
+    {
+      "id": "RISK-018",
+      "category": "ARCHITECTURE",
+      "statement": "Organization Policy Complexity Causes Privilege Leakage",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 111
+    },
+    {
+      "id": "RISK-019",
+      "category": "ARCHITECTURE",
+      "statement": "Localization Assumptions Corrupt Global Business Meaning",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 117
+    },
+    {
+      "id": "RISK-020",
+      "category": "ARCHITECTURE",
+      "statement": "HCM Next Encodes Incorrect or Stale Legal Interpretations",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 123
+    },
+    {
+      "id": "RISK-021",
+      "category": "ARCHITECTURE",
+      "statement": "Immutable Audit Conflicts With Privacy, Retention, or Legal Holds",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 129
+    },
+    {
+      "id": "RISK-022",
+      "category": "ARCHITECTURE",
+      "statement": "Semantic Data Becomes Untraceable HR Truth",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 135
+    },
+    {
+      "id": "RISK-023",
+      "category": "ARCHITECTURE",
+      "statement": "Workforce Intelligence Becomes Employee Surveillance",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 141
+    },
+    {
+      "id": "RISK-024",
+      "category": "ARCHITECTURE",
+      "statement": "Cross-Domain Analytics Produces Misleading or Unsafe Conclusions",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 147
+    },
+    {
+      "id": "RISK-025",
+      "category": "ARCHITECTURE",
+      "statement": "Agent Interface Becomes an Ungoverned Mutation Path",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 153
+    },
+    {
+      "id": "RISK-026",
+      "category": "ARCHITECTURE",
+      "statement": "Model Routing Optimizes Cost at the Expense of Trust",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 159
+    },
+    {
+      "id": "RISK-027",
+      "category": "ARCHITECTURE",
+      "statement": "Agent Memory Leaks, Stales, or Institutionalizes Bad Advice",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 165
+    },
+    {
+      "id": "RISK-028",
+      "category": "ARCHITECTURE",
+      "statement": "Autonomous Agents Create Scale-Amplified Failures",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 171
+    },
+    {
+      "id": "RISK-029",
+      "category": "ARCHITECTURE",
+      "statement": "Premature Polyglot Persistence Multiplies Failure Modes",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 177
+    },
+    {
+      "id": "RISK-030",
+      "category": "ARCHITECTURE",
+      "statement": "Tamper Evidence Is Misrepresented as Impossible Corruption",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 183
+    },
+    {
+      "id": "RISK-031",
+      "category": "ARCHITECTURE",
+      "statement": "Search and Analytics Leak Data Outside Authorization Scope",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 189
+    },
+    {
+      "id": "RISK-032",
+      "category": "ARCHITECTURE",
+      "statement": "Rebuildability Exists Only on Architecture Diagrams",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 195
+    },
+    {
+      "id": "RISK-033",
+      "category": "PRODUCT",
+      "statement": "Billing Complexity Arrives Before Product-Market Fit",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 201
+    },
+    {
+      "id": "RISK-034",
+      "category": "PRODUCT",
+      "statement": "Technical Refactoring Changes Customer Charges",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 207
+    },
+    {
+      "id": "RISK-035",
+      "category": "PRODUCT",
+      "statement": "Retries, Redelivery, or Replay Double-Bill Customers",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 213
+    },
+    {
+      "id": "RISK-036",
+      "category": "PRODUCT",
+      "statement": "Variable AI and API Charges Become Unpredictable",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 219
+    },
+    {
+      "id": "RISK-037",
+      "category": "PRODUCT",
+      "statement": "Billing Hierarchy Leaks Sensitive Subsidiary Activity",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 225
+    },
+    {
+      "id": "RISK-038",
+      "category": "PRODUCT",
+      "statement": "Model Routing Sacrifices Quality or Compliance for Margin",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 231
+    },
+    {
+      "id": "RISK-039",
+      "category": "ARCHITECTURE",
+      "statement": "Reference Workflows Become an Accidental Full-Suite Roadmap",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 237
+    },
+    {
+      "id": "RISK-040",
+      "category": "ARCHITECTURE",
+      "statement": "Happy-Path Demonstrations Hide Missing Transaction Semantics",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 243
+    },
+    {
+      "id": "RISK-041",
+      "category": "ARCHITECTURE",
+      "statement": "Generic Workflow Abstractions Erase Domain Meaning",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 249
+    },
+    {
+      "id": "RISK-042",
+      "category": "ARCHITECTURE",
+      "statement": "Simulation Creates False Confidence About External Outcomes",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 255
+    },
+    {
+      "id": "RISK-043",
+      "category": "ARCHITECTURE",
+      "statement": "One Generic Rules Engine Produces Legally Incorrect Composition",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 261
+    },
+    {
+      "id": "RISK-044",
+      "category": "ARCHITECTURE",
+      "statement": "Country-Level Labels Overstate Regulatory Coverage",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 267
+    },
+    {
+      "id": "RISK-045",
+      "category": "ARCHITECTURE",
+      "statement": "Regulatory Content Becomes Stale",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 273
+    },
+    {
+      "id": "RISK-046",
+      "category": "ARCHITECTURE",
+      "statement": "Deterministic Output Is Mistaken for Legal Advice",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 279
+    },
+    {
+      "id": "RISK-047",
+      "category": "ARCHITECTURE",
+      "statement": "Tax or Filing Errors Create Financial and Regulatory Exposure",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 285
+    },
+    {
+      "id": "RISK-048",
+      "category": "ARCHITECTURE",
+      "statement": "Worker Location and Classification Evidence Is Wrong",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 291
+    },
+    {
+      "id": "RISK-049",
+      "category": "ARCHITECTURE",
+      "statement": "Go-Only Cutover Loses Proven Product Behavior",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 297
+    },
+    {
+      "id": "RISK-050",
+      "category": "ARCHITECTURE",
+      "statement": "GWC/GoWebComponents Creates Browser Performance or Accessibility Regressions",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 303
+    },
+    {
+      "id": "RISK-051",
+      "category": "ARCHITECTURE",
+      "statement": "grpcbridge Becomes an Under-Maintained Critical Gateway",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 309
+    },
+    {
+      "id": "RISK-052",
+      "category": "ARCHITECTURE",
+      "statement": "SchemaFlux Is Stretched Beyond Its Structured-Compiler Strengths",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 315
+    },
+    {
+      "id": "RISK-053",
+      "category": "ARCHITECTURE",
+      "statement": "Open-Source-First Becomes Self-Hosting Everything",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 321
+    },
+    {
+      "id": "RISK-054",
+      "category": "PRODUCT",
+      "statement": "Seventy Gaps Become Seventy Services and Teams",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 327
+    },
+    {
+      "id": "RISK-055",
+      "category": "ARCHITECTURE",
+      "statement": "Identity Resolution Causes Irreversible False Merges",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 333
+    },
+    {
+      "id": "RISK-056",
+      "category": "ARCHITECTURE",
+      "statement": "Conflict and Reservation Controls Deadlock Business Work",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 339
+    },
+    {
+      "id": "RISK-057",
+      "category": "ARCHITECTURE",
+      "statement": "Classification or Provenance Metadata Drifts From Data",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 345
+    },
+    {
+      "id": "RISK-058",
+      "category": "ARCHITECTURE",
+      "statement": "Connector and Secret Frameworks Become Privilege Escalation Paths",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 351
+    },
+    {
+      "id": "RISK-059",
+      "category": "ARCHITECTURE",
+      "statement": "Architecture Diagrams Drift From Executable Contracts",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 357
+    },
+    {
+      "id": "RISK-060",
+      "category": "ARCHITECTURE",
+      "statement": "The Cell Control Plane Becomes a Global Single Point of Failure",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 363
+    },
+    {
+      "id": "RISK-061",
+      "category": "ARCHITECTURE",
+      "statement": "Tenant Relocation Produces Split-Brain Writes",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 369
+    },
+    {
+      "id": "RISK-062",
+      "category": "ARCHITECTURE",
+      "statement": "Load Shedding Sacrifices the Wrong Work",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 375
+    },
+    {
+      "id": "RISK-063",
+      "category": "ARCHITECTURE",
+      "statement": "Workload Identity Adds Credentials Without Reducing Trust",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 381
+    },
+    {
+      "id": "RISK-064",
+      "category": "ARCHITECTURE",
+      "statement": "Signed Vulnerable Software Is Treated as Safe",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 387
+    },
+    {
+      "id": "RISK-065",
+      "category": "ARCHITECTURE",
+      "statement": "Agent Security Becomes Prompt Filtering Theater",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 393
+    },
+    {
+      "id": "RISK-066",
+      "category": "ARCHITECTURE",
+      "statement": "Kill Switches Exist but Fail During the Incident",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 399
+    },
+    {
+      "id": "RISK-067",
+      "category": "ARCHITECTURE",
+      "statement": "Backups Succeed but Recovery Fails",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 405
+    },
+    {
+      "id": "RISK-068",
+      "category": "ARCHITECTURE",
+      "statement": "Clock or Cryptographic Migration Corrupts Evidence",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 411
+    },
+    {
+      "id": "RISK-069",
+      "category": "ARCHITECTURE",
+      "statement": "Telemetry Leaks HCM Data or Collapses Under Cardinality",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 417
+    },
+    {
+      "id": "RISK-070",
+      "category": "PRODUCT",
+      "statement": "Architectural Completeness Is Mistaken for Delivery Scope",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 423
+    },
+    {
+      "id": "RISK-071",
+      "category": "ARCHITECTURE",
+      "statement": "HRIS DataOps Amplifies Administrative Privilege or Scope",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 429
+    },
+    {
+      "id": "RISK-072",
+      "category": "ARCHITECTURE",
+      "statement": "A Generic Connector Framework Erases Vendor Semantics or Overstates Support",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 435
+    },
+    {
+      "id": "RISK-073",
+      "category": "ARCHITECTURE",
+      "statement": "The Workflow Kernel Becomes a Domain Monolith or an Unsafe General-Purpose Engine",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 441
+    },
+    {
+      "id": "RISK-074",
+      "category": "ARCHITECTURE",
+      "statement": "Communication Delivery Is Mistaken for Human Receipt or Legal Satisfaction",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 447
+    },
+    {
+      "id": "RISK-075",
+      "category": "PRODUCT",
+      "statement": "The Coverage Matrix Creates False Confidence That All Gaps Are Known",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 453
+    },
+    {
+      "id": "RISK-076",
+      "category": "ARCHITECTURE",
+      "statement": "Forms and Rules Become Hidden Application Code",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 459
+    },
+    {
+      "id": "RISK-077",
+      "category": "ARCHITECTURE",
+      "statement": "Workflow Bypasses Domain Ownership",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 465
+    },
+    {
+      "id": "RISK-078",
+      "category": "ARCHITECTURE",
+      "statement": "Derived or External Planes Enter the Critical Transaction Path",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 471
+    },
+    {
+      "id": "RISK-079",
+      "category": "ARCHITECTURE",
+      "statement": "Desired Configuration Is Mistaken for Applied Runtime State",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 477
+    },
+    {
+      "id": "RISK-080",
+      "category": "ARCHITECTURE",
+      "statement": "Identity Recovery or Token Refresh Bypasses Normal Assurance",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 483
+    },
+    {
+      "id": "RISK-081",
+      "category": "ARCHITECTURE",
+      "statement": "Untrusted Content Becomes Executable Instruction or Parser Attack",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 489
+    },
+    {
+      "id": "RISK-082",
+      "category": "ARCHITECTURE",
+      "statement": "Ambient Timezone or Locale Data Breaks Reproducibility",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 495
+    },
+    {
+      "id": "RISK-083",
+      "category": "ARCHITECTURE",
+      "statement": "Deletion Is Declared Complete While Copies Remain Recoverable",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 501
+    },
+    {
+      "id": "RISK-084",
+      "category": "ARCHITECTURE",
+      "statement": "Deferred Systems Are Reimplemented Invisibly Inside Phase 1 Services",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 507
+    },
+    {
+      "id": "RISK-085",
+      "category": "PRODUCT",
+      "statement": "Phase 1 Becomes Platform Completion Before Product Evidence",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 513
+    },
+    {
+      "id": "RISK-086",
+      "category": "ARCHITECTURE",
+      "statement": "Position Is Treated as Reference Data",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 519
+    },
+    {
+      "id": "RISK-087",
+      "category": "ARCHITECTURE",
+      "statement": "Mixed Application Versions Corrupt Durable State During Upgrade",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 525
+    },
+    {
+      "id": "RISK-088",
+      "category": "ARCHITECTURE",
+      "statement": "Consent Becomes an Undifferentiated Boolean",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 531
+    },
+    {
+      "id": "RISK-089",
+      "category": "ARCHITECTURE",
+      "statement": "IdP Outage Causes Unsafe Fail-Open or Total P0 Lockout",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 537
+    },
+    {
+      "id": "RISK-090",
+      "category": "ARCHITECTURE",
+      "statement": "Customer-Configured Destinations Enable SSRF or Egress Bypass",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 543
+    },
+    {
+      "id": "RISK-091",
+      "category": "ARCHITECTURE",
+      "statement": "Workflow and Ledger Are Better Defined Than the Business Mutation",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 549
+    },
+    {
+      "id": "RISK-092",
+      "category": "ARCHITECTURE",
+      "statement": "Hash Guarantees Depend on Nondeterministic Serialization",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 555
+    },
+    {
+      "id": "RISK-093",
+      "category": "ARCHITECTURE",
+      "statement": "Security-Critical Transitional Systems Lack Separation of Duties",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 561
+    },
+    {
+      "id": "RISK-094",
+      "category": "ARCHITECTURE",
+      "statement": "Source Authority Falls Back to Last Write Wins",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 567
+    },
+    {
+      "id": "RISK-095",
+      "category": "ARCHITECTURE",
+      "statement": "Authorization Consumes an Invalid or Stale Organization Graph",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 573
+    },
+    {
+      "id": "RISK-096",
+      "category": "ARCHITECTURE",
+      "statement": "False Identity Merge Causes Cross-Domain Privacy and History Damage",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 579
+    },
+    {
+      "id": "RISK-097",
+      "category": "ARCHITECTURE",
+      "statement": "Budget Checks Conflate Capacity, Compensation, and Finance Authority",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 585
+    },
+    {
+      "id": "RISK-098",
+      "category": "ARCHITECTURE",
+      "statement": "Approval Occurs Before the Material Proposal Is Simulated",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 591
+    },
+    {
+      "id": "RISK-099",
+      "category": "ARCHITECTURE",
+      "statement": "Conflict Preflight Races With Execution",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 597
+    },
+    {
+      "id": "RISK-100",
+      "category": "ARCHITECTURE",
+      "statement": "Missing or Downgraded Classification Leaks Data Everywhere Consistently",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 603
+    },
+    {
+      "id": "RISK-101",
+      "category": "ARCHITECTURE",
+      "statement": "Retention and Deletion Operate Without a Complete Record Inventory",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 609
+    },
+    {
+      "id": "RISK-102",
+      "category": "ARCHITECTURE",
+      "statement": "Incompatible Transaction Plans Are Manufactured by Workflow or Domains",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 615
+    },
+    {
+      "id": "RISK-103",
+      "category": "ARCHITECTURE",
+      "statement": "Secret References Exist Without a Safe Secret Lifecycle",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 621
+    },
+    {
+      "id": "RISK-104",
+      "category": "ARCHITECTURE",
+      "statement": "Missing or Stale Quality Inputs Are Reported as Passing",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 627
+    },
+    {
+      "id": "RISK-105",
+      "category": "ARCHITECTURE",
+      "statement": "Lineage Appears Complete Because IDs Exist but Edges Are Missing",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 633
+    },
+    {
+      "id": "RISK-106",
+      "category": "ARCHITECTURE",
+      "statement": "False Capability Metadata Authorizes Unsafe Execution",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 639
+    },
+    {
+      "id": "RISK-107",
+      "category": "ARCHITECTURE",
+      "statement": "One Governance Plane's Allow Cancels Another Plane's Deny",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 645
+    },
+    {
+      "id": "RISK-108",
+      "category": "ARCHITECTURE",
+      "statement": "Alerts, Repairs, and Customer Messages Disagree About Incident State",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 651
+    },
+    {
+      "id": "RISK-109",
+      "category": "ARCHITECTURE",
+      "statement": "SLOs Are Met by Changing Measurement or Excluding Failures",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 657
+    },
+    {
+      "id": "RISK-110",
+      "category": "ARCHITECTURE",
+      "statement": "People, Position, and Organization Disagree About the Manager",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 663
+    },
+    {
+      "id": "RISK-111",
+      "category": "ARCHITECTURE",
+      "statement": "Protected Matching Claims Leak Into Ordinary People Records",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 669
+    },
+    {
+      "id": "RISK-112",
+      "category": "ARCHITECTURE",
+      "statement": "AuthZ Creates a Second Worker Assignment State Machine",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 675
+    },
+    {
+      "id": "RISK-113",
+      "category": "PRODUCT",
+      "statement": "Incumbent Language Erases the Positioning Difference",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 681
+    },
+    {
+      "id": "RISK-114",
+      "category": "PRODUCT",
+      "statement": "The Roadmap Becomes an Incumbent Feature-Parity Checklist",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 687
+    },
+    {
+      "id": "RISK-115",
+      "category": "PRODUCT",
+      "statement": "Aspirational Architecture Is Presented as Current Competitive Capability",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 693
+    },
+    {
+      "id": "RISK-116",
+      "category": "PRODUCT",
+      "statement": "HCM Next Adds More Complexity Than It Removes",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 699
+    },
+    {
+      "id": "RISK-117",
+      "category": "PRODUCT",
+      "statement": "Vendor-Level Connector Claims Hide Edition and Semantic Limits",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 705
+    },
+    {
+      "id": "RISK-118",
+      "category": "PRODUCT",
+      "statement": "Native Payroll or WFM Is Entered Before Company-Scale Readiness",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 711
+    },
+    {
+      "id": "RISK-119",
+      "category": "PRODUCT",
+      "statement": "Catalog and Contract Maturity Is Overstated",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 717
+    },
+    {
+      "id": "RISK-120",
+      "category": "PRODUCT",
+      "statement": "Phase 1 Architecture Contracts Become Forty-Eight Staffed Projects",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 723
+    },
+    {
+      "id": "RISK-121",
+      "category": "PRODUCT",
+      "statement": "Harmed Workers Cannot Understand or Contest a Decision",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 729
+    },
+    {
+      "id": "RISK-122",
+      "category": "PRODUCT",
+      "statement": "Outcome Analytics Converts Correlation Into Causation or Surveillance",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 735
+    },
+    {
+      "id": "RISK-123",
+      "category": "ARCHITECTURE",
+      "statement": "Manual Continuity Creates an Uncontrolled Shadow HCM",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 741
+    },
+    {
+      "id": "RISK-124",
+      "category": "ARCHITECTURE",
+      "statement": "Exhausted Work Disappears Into Dead-Letter Queues",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 747
+    },
+    {
+      "id": "RISK-125",
+      "category": "ARCHITECTURE",
+      "statement": "Model, Infrastructure and Vendor Semantics Drift While Health Checks Stay Green",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 753
+    },
+    {
+      "id": "RISK-126",
+      "category": "ARCHITECTURE",
+      "statement": "Required Core Libraries Do Not Form a Reproducible Build",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 759
+    },
+    {
+      "id": "RISK-127",
+      "category": "ARCHITECTURE",
+      "statement": "Role Names Exist but Nobody Is Operationally Accountable",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 765
+    },
+    {
+      "id": "RISK-128",
+      "category": "ARCHITECTURE",
+      "statement": "Technical Success Masks Customer Process Bypass",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 771
+    },
+    {
+      "id": "RISK-129",
+      "category": "ARCHITECTURE",
+      "statement": "Requirements Become Orphaned Across Registers and Executable Artifacts",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 777
+    },
+    {
+      "id": "RISK-130",
+      "category": "ARCHITECTURE",
+      "statement": "A Validly Signed but Stale Control Bundle Re-Enables Revoked Behavior",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 783
+    },
+    {
+      "id": "RISK-131",
+      "category": "ARCHITECTURE",
+      "statement": "External Effects Execute Out of Order or After an Authority Handoff",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 789
+    },
+    {
+      "id": "RISK-132",
+      "category": "ARCHITECTURE",
+      "statement": "Architecture Prose Is Misreported as a Defined or Implemented Capability",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 795
+    },
+    {
+      "id": "RISK-133",
+      "category": "ARCHITECTURE",
+      "statement": "First Write Authority Precedes Pilot Operational Readiness",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 801
+    },
+    {
+      "id": "RISK-134",
+      "category": "ARCHITECTURE",
+      "statement": "Legacy Demo Identity and Global Object Lookup Survive the Go Cutover",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 807
+    },
+    {
+      "id": "RISK-135",
+      "category": "ARCHITECTURE",
+      "statement": "An External Effect Exists Without Durable Local Transaction Evidence",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 813
+    },
+    {
+      "id": "RISK-136",
+      "category": "ARCHITECTURE",
+      "statement": "SchemaFlux Is Assumed to Provide a Compiler It Does Not Implement",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 819
+    },
+    {
+      "id": "RISK-137",
+      "category": "ARCHITECTURE",
+      "statement": "Demo Legal Rules or Binary Floating-Point Money Escape Into Authority",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 825
+    },
+    {
+      "id": "RISK-138",
+      "category": "ARCHITECTURE",
+      "statement": "Offline or Shared-Device Use Creates an Unreviewed Approval or Privacy Breach",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 831
+    },
+    {
+      "id": "RISK-139",
+      "category": "ARCHITECTURE",
+      "statement": "Cross-Tenant Artifact Deduplication Defeats Deletion or Isolation",
+      "owner": "architecture-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 837
+    },
+    {
+      "id": "RISK-140",
+      "category": "PRODUCT",
+      "statement": "The Pilot Duplicates Incumbent Capability or Cannot Support Its Economics",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 843
+    },
+    {
+      "id": "RISK-141",
+      "category": "PRODUCT",
+      "statement": "Lineage or Process Variation Is Presented as Causation",
+      "owner": "product-governance",
+      "source_document": "planning/specs/risk-register.md",
+      "source_line": 849
+    }
+  ],
+  "bindings":   [
+    {
+      "risk_id": "RISK-001",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-002",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-003",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-004",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-005",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-006",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-007",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-008",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-009",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-010",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-011",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-012",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-013",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-014",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-015",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-016",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-017",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-018",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-019",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-020",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-021",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-022",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-023",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-024",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-025",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-026",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-027",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-028",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-029",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-030",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-031",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-032",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-033",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-034",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-035",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-036",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-037",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-038",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-039",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-040",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-041",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-042",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-043",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-044",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-045",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-046",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-047",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-048",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-049",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-050",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-051",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-052",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-053",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-054",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-055",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-056",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-057",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-058",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-059",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-060",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-061",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-062",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-063",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-064",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-065",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-066",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-067",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-068",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-069",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-070",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-071",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-072",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-073",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-074",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-075",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-076",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-077",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-078",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-079",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-080",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-081",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-082",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-083",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-084",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-085",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-086",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-087",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-088",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-089",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-090",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-091",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-092",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-093",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-094",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-095",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-096",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-097",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-098",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-099",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-100",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-101",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-102",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-103",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-104",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-105",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-106",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-107",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-108",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-109",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-110",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-111",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-112",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-113",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-114",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-115",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-116",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-117",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-118",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-119",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-120",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-121",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-122",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-123",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-124",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-125",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-126",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-127",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-128",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-129",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-130",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-131",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-132",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-133",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-134",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-135",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-136",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-137",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-138",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-139",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-140",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "DETECTION",
+          "todo_id": "GOV-018"
+        }
+      ]
+    },
+    {
+      "risk_id": "RISK-141",
+      "evidence": [
+        {
+          "kind": "PREVENTION",
+          "todo_id": "GOV-023"
+        },
+        {
+          "kind": "RECOVERY",
+          "todo_id": "OPS-007"
+        }
+      ]
+    }
+  ],
+  "allowlist": [
+    {
+      "risk_id": "RISK-140",
+      "kind": "RECOVERY",
+      "owner": "product-governance",
+      "reason": "Pilot economics recovery evidence is scheduled with the Gate A commercial review.",
+      "review_date": "2026-09-30",
+      "status": "OUT_OF_PHASE"
+    },
+    {
+      "risk_id": "RISK-141",
+      "kind": "DETECTION",
+      "owner": "product-governance",
+      "reason": "Causal-claim detection is scheduled with the outcome-evaluation contract review.",
+      "review_date": "2026-09-30",
+      "status": "OUT_OF_PHASE"
+    }
+  ]
+}

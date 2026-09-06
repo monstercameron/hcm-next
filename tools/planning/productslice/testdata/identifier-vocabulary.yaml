@@ -1,0 +1,184 @@
+schema: hcmnext.planning.productslices.identifier-vocabulary
+schema_version: 1
+identifiers:
+  - kind: action_id
+    owning_layer: presentation
+    canonical_form: lower-kebab action identifier scoped to one page region
+    digest_rule: sha256 of the canonical page definition excluding its digest
+    minted_by: [presentation]
+    carried_by: [business, persistence]
+  - kind: business_intent_ref
+    owning_layer: business
+    canonical_form: hcmnext.<domain>.<intent>/v<positive integer>
+    digest_rule: sha256 of the canonical intent manifest entry excluding its digest
+    minted_by: [business]
+    carried_by: [presentation, persistence]
+  - kind: capability_id
+    owning_layer: business
+    canonical_form: hcmnext.<domain>.<capability>
+    digest_rule: sha256 of the canonical capability definition excluding its digest
+    minted_by: [business]
+    carried_by: [presentation, persistence]
+  - kind: cell_id
+    owning_layer: identity
+    canonical_form: tenant-scoped lower-kebab cell identifier
+    digest_rule: sha256 of the canonical placement binding
+    minted_by: [identity]
+    carried_by: [business, persistence, presentation]
+  - kind: correlation_id
+    owning_layer: transport
+    canonical_form: opaque request-correlation UUID or ULID
+    digest_rule: sha256 of the request evidence envelope, never of payload values
+    minted_by: [transport]
+    carried_by: [business, persistence, presentation]
+  - kind: delegation_id
+    owning_layer: identity
+    canonical_form: values.EntityId with kind delegation
+    digest_rule: sha256 of the canonical delegation assertion
+    minted_by: [identity]
+    carried_by: [business, persistence, presentation]
+  - kind: digest
+    owning_layer: kernel
+    canonical_form: sha256:<64 lowercase hexadecimal characters>
+    digest_rule: SHA-256 over the versioned canonical bytes named by the owning contract
+    minted_by: [kernel, business, governance, presentation, persistence]
+    carried_by: [transport]
+  - kind: entity_id
+    owning_layer: business
+    canonical_form: values.EntityId canonical text with kind and opaque UUID or ULID
+    digest_rule: sha256 of the canonical entity identity when an evidence digest is required
+    minted_by: [business]
+    carried_by: [identity, persistence, presentation, transport]
+  - kind: entity_ref
+    owning_layer: business
+    canonical_form: values.EntityRef eref:v1:<tenant>:<kind>:<opaque id>
+    digest_rule: sha256 of the canonical tenant-scoped reference when included in evidence
+    minted_by: [business]
+    carried_by: [identity, persistence, presentation, transport]
+  - kind: expected_version
+    owning_layer: business
+    canonical_form: positive decimal revision selected for compare-and-swap
+    digest_rule: included in the command or proposal canonical digest
+    minted_by: [business]
+    carried_by: [presentation, persistence, transport]
+  - kind: feature_id
+    owning_layer: governance
+    canonical_form: lower_snake feature registry identifier
+    digest_rule: sha256 of the canonical feature-intent coverage entry
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence]
+  - kind: idempotency_key
+    owning_layer: business
+    canonical_form: tenant-scoped opaque request key with one semantic effect
+    digest_rule: sha256 of tenant, capability, intent and canonical request fields
+    minted_by: [business]
+    carried_by: [presentation, persistence, transport]
+  - kind: intent_id
+    owning_layer: business
+    canonical_form: values.EntityId with kind intent
+    digest_rule: sha256 of the canonical intent instance and its request digest
+    minted_by: [business]
+    carried_by: [presentation, persistence, transport]
+  - kind: package_path
+    owning_layer: governance
+    canonical_form: github.com/monstercameron/hcm-next/<slash-separated package path>
+    digest_rule: sha256 of the architecture and phase-one package manifests
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence]
+  - kind: page_ref
+    owning_layer: presentation
+    canonical_form: <page id>@<positive definition version>
+    digest_rule: sha256 of the canonical PageDefinition
+    minted_by: [presentation]
+    carried_by: [business, persistence, transport]
+  - kind: placement_epoch
+    owning_layer: identity
+    canonical_form: tenant and cell binding epoch as a positive decimal
+    digest_rule: included in the tenant placement binding digest
+    minted_by: [identity]
+    carried_by: [business, persistence, presentation]
+  - kind: policy_ref
+    owning_layer: governance
+    canonical_form: lower_snake policy id plus positive version
+    digest_rule: sha256 of the canonical policy definition
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence]
+  - kind: principal_id
+    owning_layer: identity
+    canonical_form: values.EntityId with kind principal
+    digest_rule: sha256 of the authorization evidence envelope, not protected claims
+    minted_by: [identity]
+    carried_by: [presentation, business, persistence, transport]
+  - kind: proposal_id
+    owning_layer: business
+    canonical_form: values.EntityId with kind proposal
+    digest_rule: sha256 of the immutable proposal revision canonical bytes
+    minted_by: [business]
+    carried_by: [presentation, persistence, transport]
+  - kind: projection_watermark
+    owning_layer: persistence
+    canonical_form: tenant-scoped source stream and monotonic sequence
+    digest_rule: sha256 of the source stream identity and applied sequence
+    minted_by: [persistence]
+    carried_by: [presentation, business, transport]
+  - kind: reconciliation_state
+    owning_layer: persistence
+    canonical_form: registered reconciliation finding identifier and version
+    digest_rule: sha256 of the observation comparison and repair status
+    minted_by: [persistence]
+    carried_by: [presentation, business]
+  - kind: resource_key
+    owning_layer: business
+    canonical_form: values.ResourceKey rkey:v1:<tenant>:<resource type>:<escaped segments>
+    digest_rule: sha256 of the canonical resource key
+    minted_by: [business]
+    carried_by: [identity, persistence, presentation, transport]
+  - kind: revision_token
+    owning_layer: kernel
+    canonical_form: values.RevisionToken rev:v1:<stream>:<sequence or opaque token>
+    digest_rule: sha256 of the canonical revision token when retained as evidence
+    minted_by: [kernel, business]
+    carried_by: [presentation, persistence, transport]
+  - kind: rpc_method
+    owning_layer: transport
+    canonical_form: generated service name slash method name
+    digest_rule: sha256 of the ordered endpoint manifest definition
+    minted_by: [transport]
+    carried_by: [presentation, business, persistence]
+  - kind: schema_ref
+    owning_layer: governance
+    canonical_form: schema id plus positive version
+    digest_rule: sha256 of the canonical schema manifest entry
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence, transport]
+  - kind: slice_id
+    owning_layer: governance
+    canonical_form: lower-kebab product slice id with a positive definition version
+    digest_rule: sha256 of the canonical ProductSliceDefinition
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence]
+  - kind: tenant_id
+    owning_layer: identity
+    canonical_form: values.TenantId lowercase slug
+    digest_rule: included in every tenant-scoped evidence and persistence key
+    minted_by: [identity]
+    carried_by: [presentation, business, persistence, transport]
+  - kind: todo_id
+    owning_layer: governance
+    canonical_form: uppercase registry todo id such as ALIGN-003
+    digest_rule: sha256 of the planning todo registry entry
+    minted_by: [governance]
+    carried_by: [presentation, business, persistence]
+  - kind: widget_ref
+    owning_layer: presentation
+    canonical_form: <widget id>@<positive registry version>
+    digest_rule: sha256 of the canonical WidgetDefinition
+    minted_by: [presentation]
+    carried_by: [business, persistence, transport]
+  - kind: work_item_id
+    owning_layer: business
+    canonical_form: values.EntityId with kind work_item
+    digest_rule: sha256 of the immutable work-item assignment and lifecycle revision
+    minted_by: [business]
+    carried_by: [presentation, persistence, transport]
+digest: sha256:ad898c8f2a32e7921097f1832663d06c880e1f6c7caa16d0bb038ea0bd0b1ebc

@@ -1,0 +1,9 @@
+{
+  "release": "2026-09-05",
+  "surfaces": [
+    {"name": "authn", "revision": 1, "threats": 3, "acceptance_criteria": 2, "accepted_gaps": 1},
+    {"name": "data", "revision": 1, "threats": 3, "acceptance_criteria": 2, "accepted_gaps": 1},
+    {"name": "transport", "revision": 1, "threats": 3, "acceptance_criteria": 2, "accepted_gaps": 1},
+    {"name": "trust", "revision": 1, "threats": 3, "acceptance_criteria": 2, "accepted_gaps": 1}
+  ]
+}

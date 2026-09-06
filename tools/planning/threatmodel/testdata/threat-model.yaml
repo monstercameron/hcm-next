@@ -1,0 +1,261 @@
+schema_version: 1
+release: "2026-09-05"
+surfaces:
+  - name: authn
+    revision: 1
+    purpose: "Authenticate workforce and workload principals before trust decisions."
+    assets:
+      - name: "verified authentication assertions"
+        classification: "RESTRICTED"
+        protection: "signature, issuer, audience, nonce, time and tenant validation"
+      - name: "session assurance state"
+        classification: "CONFIDENTIAL"
+        protection: "short-lived server-side state and redacted evidence"
+    trust_boundaries:
+      - name: "external identity provider boundary"
+        from: "customer identity provider"
+        to: "internal/authn and internal/trust"
+        controls: ["issuer allow-list", "pinned JWKS", "tenant binding", "algorithm allow-list"]
+      - name: "browser callback boundary"
+        from: "untrusted browser request"
+        to: "OIDC callback handler"
+        controls: ["state and PKCE", "single-use pending state", "bounded callback input"]
+    threats:
+      - id: "AUTHN-SPOOF-001"
+        stride: "SPOOFING"
+        scenario: "An assertion from an unregistered issuer or tenant is presented as a workforce login."
+        risk_id: "RISK-007"
+        mitigations:
+          - package: "internal/authn/issuerregistry"
+            tests: ["TestTodo_AUTHN_001", "TestTodo_AUTHN_001_Security"]
+            control: "Resolve only a registered issuer, pinned key set and tenant mapping."
+          - package: "internal/authn/oidc"
+            tests: ["TestTodo_AUTHN_002", "TestFlow_HandleCallback_IDTokenValidation"]
+            control: "Validate signed callback claims and refuse malformed or stale assertions."
+        residual_risk: "Provider compromise or customer misconfiguration requires review and issuer suspension."
+      - id: "AUTHN-TAMPER-001"
+        stride: "TAMPERING"
+        scenario: "Callback state or authorization parameters are altered between initiation and completion."
+        risk_id: "RISK-080"
+        mitigations:
+          - package: "internal/authn/oidc"
+            tests: ["TestFlow_BeginAuthorization_PKCEParameters", "TestFlow_HandleCallback_MalformedParams"]
+            control: "Bind callback completion to single-use state and PKCE material."
+        residual_risk: "A compromised client can still cause a denied-flow user experience without gaining authority."
+      - id: "AUTHN-REPUD-001"
+        stride: "REPUDIATION"
+        scenario: "A successful assurance decision cannot be tied to its bounded session evidence."
+        risk_id: "RISK-092"
+        mitigations:
+          - package: "internal/authn/issuerregistry"
+            tests: ["TestEvidenceRequiresActorAndTime", "TestTodo_AUTHN_001_Integration"]
+            control: "Require actor, time and pinned revision evidence for issuer decisions."
+        residual_risk: "Evidence availability depends on the configured durable adapter."
+    security_acceptance_criteria:
+      - id: "AUTHN-SA-001"
+        requirement: "Unknown issuer, audience, tenant, algorithm, state or expired assertion is refused with a typed field-level error."
+        tests: ["TestTodo_AUTHN_001_Security", "TestFlow_HandleCallback_UnknownState"]
+      - id: "AUTHN-SA-002"
+        requirement: "Explain output contains no assertion, token, account or principal value."
+        tests: ["TestTodo_SECARCH_006_Security"]
+    accepted_gaps:
+      - id: "AUTHN-GAP-001"
+        description: "Live provider outage and post-outage reconciliation evidence remains a separate trust operation."
+        risk_id: "RISK-089"
+        exception:
+          reviewer: "security-architecture-reviewer"
+          reviewed: "2026-09-05"
+          expires: "2027-09-05"
+          rationale: "The bounded in-process contract is covered; provider qualification is scheduled separately."
+  - name: data
+    revision: 1
+    purpose: "Preserve authoritative records, projections and evidence without cross-tenant disclosure."
+    assets:
+      - name: "authoritative ledger revisions"
+        classification: "RESTRICTED"
+        protection: "append-only digests, tenant isolation and immutable revision references"
+      - name: "serving projections and outbox state"
+        classification: "CONFIDENTIAL"
+        protection: "tenant-scoped keys, RLS and replay-safe transitions"
+    trust_boundaries:
+      - name: "application-to-data boundary"
+        from: "semantic owners"
+        to: "internal/data and internal/ledger"
+        controls: ["typed repository ports", "tenant context", "append-only mutation rules"]
+      - name: "data-to-operator boundary"
+        from: "stored evidence"
+        to: "planning and operations tools"
+        controls: ["redacted projections", "digest verification", "purpose-limited access"]
+    threats:
+      - id: "DATA-TAMPER-001"
+        stride: "TAMPERING"
+        scenario: "A projection or ledger revision is changed without invalidating its evidence chain."
+        risk_id: "RISK-011"
+        mitigations:
+          - package: "internal/ledger"
+            tests: ["TestTodo_LEDGER_001", "TestTodo_LEDGER_001_Security"]
+            control: "Use append-only digested revisions and reject mutation of prior events."
+        residual_risk: "Storage-adapter defects require restore and reconciliation drills."
+      - id: "DATA-DISCLOSE-001"
+        stride: "INFORMATION_DISCLOSURE"
+        scenario: "A shared data path returns another tenant's record or classified field."
+        risk_id: "RISK-100"
+        mitigations:
+          - package: "internal/data"
+            tests: ["TestTodo_DB_017", "TestTodo_TRUST_025"]
+            control: "Require tenant-scoped repository access and fail closed on missing tenant context."
+        residual_risk: "Unqualified secondary stores remain an explicit release gap."
+      - id: "DATA-REPUD-001"
+        stride: "REPUDIATION"
+        scenario: "A retention or deletion decision cannot prove which immutable revision was evaluated."
+        risk_id: "RISK-021"
+        mitigations:
+          - package: "internal/data/ledger"
+            tests: ["TestTodo_LEDGER_001", "TestTodo_GOV_023"]
+            control: "Keep hash-chained evidence and retention disposition references with each decision."
+        residual_risk: "Legal-hold policy changes require a new reviewed model revision."
+    security_acceptance_criteria:
+      - id: "DATA-SA-001"
+        requirement: "Cross-tenant reads and unscoped writes are refused before any durable effect."
+        tests: ["TestTodo_TRUST_025", "TestPGStoreInvalidTenantIdentifierIsRefused"]
+      - id: "DATA-SA-002"
+        requirement: "Every accepted record names an immutable digest and Explain never emits record contents."
+        tests: ["TestTodo_SECARCH_006_Mutation"]
+    accepted_gaps:
+      - id: "DATA-GAP-001"
+        description: "Backup restore placement conformance is not yet a dedicated release-surface test."
+        risk_id: "RISK-067"
+        exception:
+          reviewer: "security-architecture-reviewer"
+          reviewed: "2026-09-05"
+          expires: "2027-09-05"
+          rationale: "Primary RLS and append-only paths are covered; restore placement remains a named follow-up."
+  - name: transport
+    revision: 1
+    purpose: "Expose bounded protocol behavior while preserving semantic authorization ownership."
+    assets:
+      - name: "request and response envelopes"
+        classification: "CONFIDENTIAL"
+        protection: "canonical validation, typed refusal and redacted diagnostics"
+      - name: "transport authorization context"
+        classification: "RESTRICTED"
+        protection: "audience, tenant, operation and deadline binding"
+    trust_boundaries:
+      - name: "client-to-edge boundary"
+        from: "untrusted network client"
+        to: "transport edge"
+        controls: ["TLS", "canonical envelope validation", "bounded input sizes"]
+      - name: "edge-to-semantic-owner boundary"
+        from: "transport adapter"
+        to: "governance and domain packages"
+        controls: ["typed ports", "tenant propagation", "no semantic policy in adapters"]
+    threats:
+      - id: "TRANSPORT-SPOOF-001"
+        stride: "SPOOFING"
+        scenario: "A request claims an audience, tenant or operation that was not issued to the caller."
+        risk_id: "RISK-013"
+        mitigations:
+          - package: "internal/transport/transporttest"
+            tests: ["TestWrongAudienceClaims_OnlyAudienceDiffers", "TestExpiredClaims_WindowAlreadyClosed"]
+            control: "Conformance vectors require exact claim and deadline validation."
+        residual_risk: "A newly added protocol requires a new conformance vector before release."
+      - id: "TRANSPORT-TAMPER-001"
+        stride: "TAMPERING"
+        scenario: "Unknown or altered envelope bytes change the interpreted operation."
+        risk_id: "RISK-051"
+        mitigations:
+          - package: "internal/transport"
+            tests: ["TestValidate", "TestTrustedFingerprint"]
+            control: "Reject unknown fields and verify the trusted transport fingerprint."
+        residual_risk: "External edge implementation qualification remains separately governed."
+      - id: "TRANSPORT-DISCLOSE-001"
+        stride: "INFORMATION_DISCLOSURE"
+        scenario: "A refusal exposes raw identifiers, sensitive fields or the existence of another tenant's object."
+        risk_id: "RISK-100"
+        mitigations:
+          - package: "internal/transport/transporttest"
+            tests: ["TestAssertConformant_DetectsADifferingViolation", "TestWithUnknownField_SetsUnrecognizedBytes"]
+            control: "Compare typed refusal envelopes and retain only bounded redacted evidence."
+        residual_risk: "A new response field needs explicit classification and redaction review."
+    security_acceptance_criteria:
+      - id: "TRANSPORT-SA-001"
+        requirement: "Equivalent protocol paths agree on success, typed refusal code and safe violation detail."
+        tests: ["TestRefusalMatrix_HasEightNamedRowsWithExactlyTwoSuccesses", "TestAssertConformant_AgreeingOutcomesReportNothing"]
+      - id: "TRANSPORT-SA-002"
+        requirement: "Transport Explain and refusal details never disclose raw identifiers or account values."
+        tests: ["TestTodo_SECARCH_006_Security"]
+    accepted_gaps:
+      - id: "TRANSPORT-GAP-001"
+        description: "Dynamic testing against a deployed edge is not represented by this kernel-pure artifact."
+        risk_id: "RISK-051"
+        exception:
+          reviewer: "security-architecture-reviewer"
+          reviewed: "2026-09-05"
+          expires: "2027-09-05"
+          rationale: "Offline transport conformance is release-gated; live edge qualification is a separate adapter concern."
+  - name: trust
+    revision: 1
+    purpose: "Make identity, authorization, custody and assurance decisions explicit and fail closed."
+    assets:
+      - name: "authorization decisions"
+        classification: "RESTRICTED"
+        protection: "tenant, field, purpose and operation binding with typed refusals"
+      - name: "credential and key references"
+        classification: "RESTRICTED"
+        protection: "reference-only custody handles and revocation epochs"
+    trust_boundaries:
+      - name: "principal-to-policy boundary"
+        from: "authenticated principal"
+        to: "trust and governance policy"
+        controls: ["tenant scope", "field scope", "purpose binding", "JIT expiry"]
+      - name: "application-to-custody boundary"
+        from: "application process"
+        to: "custody provider port"
+        controls: ["no raw key material", "typed handle", "provider attestation", "revocation"]
+    threats:
+      - id: "TRUST-ELEVATE-001"
+        stride: "ELEVATION_OF_PRIVILEGE"
+        scenario: "A caller reuses a stale grant, delegation or break-glass capability outside its declared scope."
+        risk_id: "RISK-107"
+        mitigations:
+          - package: "internal/trust"
+            tests: ["TestTodo_TRUST_001", "TestTodo_TRUST_001_Security"]
+            control: "Resolve all governance planes with deny precedence and typed scope refusals."
+          - package: "internal/trust/workload"
+            tests: ["TestTodo_TRUST_007", "TestTodo_TRUST_007_Security"]
+            control: "Bind workload authorization to identity, tenant, destination and operation."
+        residual_risk: "A policy change must be published as a new immutable revision."
+      - id: "TRUST-SPOOF-001"
+        stride: "SPOOFING"
+        scenario: "A workload presents a credential reference belonging to another tenant or destination."
+        risk_id: "RISK-063"
+        mitigations:
+          - package: "internal/trust/workload"
+            tests: ["TestTodo_TRUST_006", "TestTodo_TRUST_006_Security"]
+            control: "Verify workload identity, tenant, destination and trust-bundle revision."
+        residual_risk: "Provider outage is handled by the bounded outage policy and reconciliation path."
+      - id: "TRUST-DISCLOSE-001"
+        stride: "INFORMATION_DISCLOSURE"
+        scenario: "A diagnostic or custody response includes a secret, account number or raw principal identifier."
+        risk_id: "RISK-103"
+        mitigations:
+          - package: "internal/trust/custody"
+            tests: ["TestTodo_TRUST_026", "TestTodo_TRUST_026_Security"]
+            control: "Expose only typed handles and audit-safe evidence across custody boundaries."
+        residual_risk: "Provider-specific logging must pass the same redaction contract."
+    security_acceptance_criteria:
+      - id: "TRUST-SA-001"
+        requirement: "Insufficient, expired, cross-tenant or replayed authority is refused and names the failing field."
+        tests: ["TestTodo_TRUST_001_Security", "TestTodo_TRUST_025"]
+      - id: "TRUST-SA-002"
+        requirement: "Every trust record remains digest-verifiable and Explain contains only aggregate safe wording."
+        tests: ["TestTodo_SECARCH_006_Mutation"]
+    accepted_gaps:
+      - id: "TRUST-GAP-001"
+        description: "Production KMS/HSM qualification is not complete for the provider-neutral custody port."
+        risk_id: "RISK-103"
+        exception:
+          reviewer: "security-architecture-reviewer"
+          reviewed: "2026-09-05"
+          expires: "2027-09-05"
+          rationale: "The custody contract and in-memory conformance boundary are complete; provider qualification is separately scheduled."

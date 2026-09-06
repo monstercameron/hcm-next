@@ -29,8 +29,8 @@ func TestTodoRegistryMatchesMarkdown(t *testing.T) {
 
 	// Count todo blocks in markdown
 	countInMarkdown := countTodoBlocks(markdownStr)
-	if countInMarkdown != 1212 {
-		t.Errorf("expected 1212 todos in markdown, got %d", countInMarkdown)
+	if countInMarkdown != 1654 {
+		t.Errorf("expected 1654 todos in markdown, got %d", countInMarkdown)
 	}
 
 	// Parse todos

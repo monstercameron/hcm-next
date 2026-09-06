@@ -1,0 +1,34 @@
+{
+  "rows": [
+    {
+      "risk_id": "RISK-A",
+      "category": "ARCHITECTURE",
+      "prevention": [
+        "todo:GOV-023=TestRiskRegisterRejectsUncontrolledOrUntestedRisk"
+      ],
+      "detection": [
+        "test:TestPolicy"
+      ],
+      "recovery": [
+        "todo:GOV-023=TestRiskRegisterRejectsUncontrolledOrUntestedRisk"
+      ],
+      "status": "MITIGATED"
+    },
+    {
+      "risk_id": "RISK-B",
+      "category": "PRODUCT",
+      "prevention": [
+        "todo:GOV-023=TestRiskRegisterRejectsUncontrolledOrUntestedRisk"
+      ],
+      "detection": [
+        "test:TestPolicy"
+      ],
+      "recovery": [
+        "todo:GOV-023=TestRiskRegisterRejectsUncontrolledOrUntestedRisk"
+      ],
+      "status": "MITIGATED"
+    }
+  ],
+  "gaps": null,
+  "allowlisted_gaps": null
+}

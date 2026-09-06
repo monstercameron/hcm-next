@@ -1,0 +1,7 @@
+{
+  "_comment": "TEST FIXTURE ONLY. Repo-local Ed25519 development keypair generated for TOOL-018/SUPPLY-001's signed build-provenance test evidence. It is checked in deliberately (an Ed25519 private key has no secret-derivation step to strip) so that generate_test.go, sign_test.go and cmd/provgen/main_test.go can sign and verify fixture provenance statements deterministically without a real signing ceremony. THIS KEY MUST NEVER BE USED TO SIGN A PRODUCTION ARTIFACT. It carries no operational authority: it follows the same schema_version/algorithm/public_key/private_key convention as tools/planning/gateevidence/testdata/dev-signing-key.yaml (TOOL-018's brief: 'the same key convention as gateevidence'), stored as JSON rather than YAML so this package's dependency footprint stays stdlib-only (crypto/ed25519, encoding/json).",
+  "schema_version": 1,
+  "algorithm": "ed25519",
+  "public_key": "93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b",
+  "private_key": "b0707e18037c8c418ffcc759a8935667bfe16413f45e243bca40744b40d2bbea93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b"
+}

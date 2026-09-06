@@ -1,0 +1,16 @@
+[
+  {
+    "file": "decision_test.go",
+    "name": "TestTodo_GOV_021_Mutation",
+    "strength": "STRONG_ORACLE"
+  },
+  {
+    "file": "decision_test.go",
+    "name": "TestExecutionOnly",
+    "strength": "WEAK_ORACLE",
+    "reasons": [
+      "assertion checks only nil or non-nil",
+      "assertion checks only that execution does not panic"
+    ]
+  }
+]

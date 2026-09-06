@@ -1,0 +1,65 @@
+[
+  {
+    "kind": "intent_capability",
+    "id": "hcmnext.work.approve_proposal/v1",
+    "owner": "intake-governance",
+    "reason": "accepted intent has no MERGED_INTO capability yet; intake/implementation is pending",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "intent_capability",
+    "id": "hcmnext.work.reject_proposal/v1",
+    "owner": "intake-governance",
+    "reason": "accepted intent has no MERGED_INTO capability yet; intake/implementation is pending",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-005",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-006",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-007",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-007",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-007",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "NEXT-009",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  },
+  {
+    "kind": "todo_direct_dangling",
+    "id": "UX-009",
+    "owner": "backlog-governance",
+    "reason": "todo DIRECT field requires repair to an accepted intent id",
+    "review_date": "2026-09-05"
+  }
+]

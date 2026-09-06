@@ -41,13 +41,13 @@ func TestTodo_SVC_001(t *testing.T) {
 	sort.Strings(initial)
 	sort.Strings(later)
 
-	wantInitial := []string{"hcmnext", "hcmctl", "migrate", "projector", "worker"}
+	wantInitial := []string{"hcmnext", "hcmctl", "migrate", "projector", "worker", "scheduler"}
 	sort.Strings(wantInitial)
 	if !equalStrings(initial, wantInitial) {
 		t.Fatalf("process-roles initial commands = %v, want %v", initial, wantInitial)
 	}
 
-	wantLater := []string{"scheduler"}
+	wantLater := []string{}
 	sort.Strings(wantLater)
 	if !equalStrings(later, wantLater) {
 		t.Fatalf("process-roles later commands = %v, want %v", later, wantLater)

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hcmnext.compatfixture.v1;
+
+// Widget here only adds display_name relative to v1/fixture.proto: an
+// additive, non-breaking change used to prove RunBufBreaking does not flag
+// compatible evolution as a regression.
+message Widget {
+  string widget_id = 1;
+  string name = 2;
+  string display_name = 3;
+}

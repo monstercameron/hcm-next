@@ -1,0 +1,394 @@
+[
+  {
+    "test_name": "TestTodo_UX_002_Integration",
+    "package": "github.com/monstercameron/hcm-next/test/workspace",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: test/workspace/ux002_test.go:77",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestWorkspaceBrowserLoginIsOffByDefaultAndWorksWhenEnabled",
+    "package": "github.com/monstercameron/hcm-next/test/workspace",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: test/workspace/login_test.go:87,100",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_WEB_002_Browser",
+    "package": "github.com/monstercameron/hcm-next/tools/uxqual/pagedef",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/uxqual/pagedef/browser_test.go:14",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestBuildProducesBothHalvesOfTheBundle",
+    "package": "github.com/monstercameron/hcm-next/tools/uxqual/cmd/journeywasm",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/uxqual/cmd/journeywasm/main_native_test.go:56,59",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestWasmExecSourceComesFromTheBuildingToolchain",
+    "package": "github.com/monstercameron/hcm-next/tools/uxqual/cmd/journeywasm",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/uxqual/cmd/journeywasm/main_native_test.go:129",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_WEB_001_SizeCeiling",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/webdelivery",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/webdelivery/webdelivery_test.go:425",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_MSRC_002_Mutation",
+    "package": "github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/gen/schemaflux/sources/msrc002_test.go:273",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_API_002_ResolveBufBinary",
+    "package": "github.com/monstercameron/hcm-next/tools/gen/compatibility",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/gen/compatibility/buffreaking_test.go:27,147",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestJourneyShellNamesTheBuildCommandWhenTheBundleIsMissing",
+    "package": "github.com/monstercameron/hcm-next/internal/humanwork/workspace",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/humanwork/workspace/journey_shell_test.go:292",
+    "owner": "connectivity",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_WORK_002",
+    "package": "github.com/monstercameron/hcm-next/internal/humanwork/workitem",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/humanwork/workitem/work002_test.go:440",
+    "owner": "connectivity",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_INTG_009",
+    "package": "github.com/monstercameron/hcm-next/internal/connectivity/observe",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/connectivity/observe/observation_test.go:579",
+    "owner": "connectivity",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_TOOL_022_Integration",
+    "package": "github.com/monstercameron/hcm-next/tools/quality/toxiproxykit",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/quality/toxiproxykit/qualification_test.go:38",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_TOOL_012",
+    "package": "github.com/monstercameron/hcm-next/tools/quality",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/quality/race_test.go:30",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestIntentHandlerCreate",
+    "package": "github.com/monstercameron/hcm-next/internal/transport/transporttest",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/transport/transporttest/transporttest_test.go:116",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_LIB_019_Integration",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/libqualification",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/libqualification/buf_protovalidate_test.go:104,258",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestCheckRejectsSymlink",
+    "package": "github.com/monstercameron/hcm-next/tools/quality/definitionscontract",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/quality/definitionscontract/definitionscontract_test.go:64",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_DOC_MAL_001",
+    "package": "github.com/monstercameron/hcm-next/internal/documentsecurity",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/documentsecurity/doc_mal_001_test.go:93",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_DOC_MAL_001",
+    "package": "github.com/monstercameron/hcm-next/internal/domains/asset/quarantine",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/domains/asset/quarantine/intake_test.go:236",
+    "owner": "domain-teams",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_LEGAL_010_Property",
+    "package": "github.com/monstercameron/hcm-next/internal/governance/legal",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/governance/legal/packrelease_test.go:281,324",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_LEGAL_010_Security",
+    "package": "github.com/monstercameron/hcm-next/internal/governance/legal",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/governance/legal/packrelease_test.go:554",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_PROTO_006",
+    "package": "github.com/monstercameron/hcm-next/internal/transport/clients",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/transport/clients/proto006_test.go:329",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_ARCH_GO_022_Golden",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/archrules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/archrules/archgo022_test.go:312",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_ARCH_GO_022_Race",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/archrules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/archrules/archgo022_test.go:319",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_ARCH_GO_022_Browser",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/archrules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/archrules/archgo022_test.go:325",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_ARCH_GO_022_Mutation",
+    "package": "github.com/monstercameron/hcm-next/tools/policy/archrules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/policy/archrules/archgo022_test.go:332",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestPhaseOneImportsRejectDeferredSubsystems",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/deferredimports",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/deferredimports/deferredimports_test.go:62",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestPlaneBoundaries",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/boundarytests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/boundarytests/boundarytests_test.go:95",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_GOV_025",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/todogovernance",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/todogovernance/intent_test.go:224",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_GOV_018",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/todogovernance",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/todogovernance/applicability_test.go:173",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestLoadIntentManifest",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/loader_test.go:14",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestLoadFeatureManifest",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/loader_test.go:32",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_FEATURE_001_Golden",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/feature_intent_test.go:98",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_INTENT_CONF_001_Golden",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/intent_conf_test.go:87",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_INTENT_CONF_001_Conformance",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/intent_conf_test.go:121",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_INTENT_010",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/intentmanifests",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/intentmanifests/coverage_test.go:126",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_MSRC_006_Golden",
+    "package": "github.com/monstercameron/hcm-next/internal/intent/model/deferred",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/intent/model/deferred/deferred_test.go:41",
+    "owner": "intent-and-capability",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_MODEL_013",
+    "package": "github.com/monstercameron/hcm-next/internal/intent/model",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/intent/model/relationship_test.go:197,208,220",
+    "owner": "intent-and-capability",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_MODEL_007_Golden",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/wire/digest",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/wire/digest/digest_test.go:623",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_MODEL_007",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/wire/digest",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/wire/digest/digest_test.go:655",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_MODEL_006",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/wire/canonical",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/wire/canonical/canonical_test.go:556",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_LEDGER_012",
+    "package": "github.com/monstercameron/hcm-next/internal/data/ledger/evidence",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/data/ledger/evidence/ledger012_test.go:558,564",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestIsRetryableLockErr",
+    "package": "github.com/monstercameron/hcm-next/internal/data/pgtest",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/data/pgtest/lock_test.go:57,60,90",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestHelperProcess_ExternalOverride",
+    "package": "github.com/monstercameron/hcm-next/internal/data/pgtest",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/data/pgtest/isolation_test.go:333",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_DB_EDGE_004_Integration",
+    "package": "github.com/monstercameron/hcm-next/internal/data/pgxadapter",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/data/pgxadapter/db_edge004_matrix_test.go:100",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzEvaluatePayBandPosition",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/payband",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/payband/payband_test.go:206",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_RULE_002",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/rules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/rules/rules_test.go:647",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_RULE_003",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/rules",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/rules/promotion_test.go:401,406",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_XFORM_002_Mutation",
+    "package": "github.com/monstercameron/hcm-next/internal/engines/transformation/ir",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: internal/engines/transformation/ir/ir_test.go:211",
+    "owner": "shared-engines",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestDefaultRunGoTestExecutesRealGoTest",
+    "package": "github.com/monstercameron/hcm-next/tools/planning/gateevidence",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: tools/planning/gateevidence/compiler_test.go:186",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  }
+]

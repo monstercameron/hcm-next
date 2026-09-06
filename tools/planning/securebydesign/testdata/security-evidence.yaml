@@ -1,0 +1,29 @@
+version: 1
+vulnerability_disclosure_policy:
+  contact: security@example.invalid
+  scope:
+    - hcm-next web application
+    - hcm-next API
+    - supported release artifacts
+  safe_harbour: Good-faith research is authorized when it avoids privacy impact, service disruption, and data access beyond proof of the issue; no legal action is pursued for compliant research.
+  timelines:
+    acknowledgement_days: 2
+    initial_triage_days: 5
+    status_update_days: 7
+    coordinated_disclosure_days: 90
+findings:
+  - release: 2026.08
+    status: CLOSED
+    days_to_close: 2
+  - release: 2026.08
+    status: CLOSED
+    days_to_close: 8
+  - release: 2026.08
+    status: OPEN
+    days_to_close: 0
+  - release: 2026.09
+    status: CLOSED
+    days_to_close: 4
+  - release: 2026.09
+    status: OPEN
+    days_to_close: 0
