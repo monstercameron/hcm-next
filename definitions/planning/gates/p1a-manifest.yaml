@@ -334,6 +334,105 @@ migrations:
     - version: 69
       name: 00069_intent_outcome_refs.sql
       checksum: "sha256:7ff9c321f08cb3ad92f3b98e62ebeab223c90c6d12a3ecf0c94e3f4104f31494"
+    - version: 70
+      name: 00070_worker_profile_photo_refs.sql
+      checksum: "sha256:f353496968fee9ae94d39122536061f572b6d340f886f2c58cc3a4791dc7a2b0"
+    - version: 71
+      name: 00071_asset_inventory.sql
+      checksum: "sha256:0135482e88dd60b98582aa9a7a064e72e0010266cdd207f81976fa710adc03ef"
+    - version: 72
+      name: 00072_benefits.sql
+      checksum: "sha256:3a7fdc0a6d227e3b3fbfae3ab74ba6d95ee368b6453b4160a5b22c55f626ff1d"
+    - version: 74
+      name: 00074_career.sql
+      checksum: "sha256:e85b39f64d0269caf853375804e17b0fe52a6ffc1adec3257ba44b9dc8436ca8"
+    - version: 76
+      name: 00076_cba.sql
+      checksum: "sha256:66bcc2111a488147c93b5cc19b9ab106f4ef6544a03af225c94d547ec2b56529"
+    - version: 78
+      name: 00078_commercial.sql
+      checksum: "sha256:edc9eaad35d3f51b6caeea251f1ecd291b0611a2cab1749a08aa64d54aa72c1b"
+    - version: 80
+      name: 00080_contact.sql
+      checksum: "sha256:9af5a77d977f6ba2c1d4b664ae51536510352c4d706aa855ab39da35fb7b1b41"
+    - version: 82
+      name: 00082_contentregistry.sql
+      checksum: "sha256:95ce8aab6428d60179c889380210f53f64e964d13304ad9f0c1f5ff32e8819ef"
+    - version: 84
+      name: 00084_crm.sql
+      checksum: "sha256:2bd36c9fa77f428a39a3da204fac56f430d3512f2a2d66dad7e26f6114adf37c"
+    - version: 86
+      name: 00086_custom.sql
+      checksum: "sha256:8d4820d94131aa66b09976b41be9e334e5360a342b28f74671f59a638a5240e7"
+    - version: 88
+      name: 00088_employeerelations.sql
+      checksum: "sha256:0a5c947026b92706d362cb65ce8731ee18c08f56cf0bfef4cb97fff50297725a"
+    - version: 90
+      name: 00090_equity.sql
+      checksum: "sha256:458906431ecea057127d688333cd51c3ebe438410c8f24b4f33a1b5b3e517f93"
+    - version: 92
+      name: 00092_fx.sql
+      checksum: "sha256:17c8b78998bccc5393c9501f4a8f4c6738493516de75318cda0a315a93930f5d"
+    - version: 94
+      name: 00094_hrcase.sql
+      checksum: "sha256:de5966dcb4d64d64e896d8eb2aaf89f835ffd87d6f1998a4f98f949e1ce03842"
+    - version: 96
+      name: 00096_identityprivacy.sql
+      checksum: "sha256:65704797b6441abf6a794d16d53ec5cd3a2198b4a94c1a2420baf114e5b9a261"
+    - version: 98
+      name: 00098_incentive.sql
+      checksum: "sha256:e860d22aebfe5fd8dad91d14a1da17f6a4ae45ce93bdc39002053ef78b348834"
+    - version: 100
+      name: 00100_merit.sql
+      checksum: "sha256:e6e71557e432407874f91538157e118daa541b0de1c7f90182fd7818f2ed8bf2"
+    - version: 102
+      name: 00102_mobility.sql
+      checksum: "sha256:8ede873de44f93ece7d40e80fda95482e5325adf2485f940b48a4bdff1563339"
+    - version: 104
+      name: 00104_payinput.sql
+      checksum: "sha256:b1dcd87d732f718cee378eff9b44fa67417ffb20d5c788b2f3c4fec2a6261789"
+    - version: 106
+      name: 00106_paymethod.sql
+      checksum: "sha256:82658e6260beb8580f9f28565e9775483731ea880f48fbfff8317d521fec05c9"
+    - version: 108
+      name: 00108_performance.sql
+      checksum: "sha256:a57ef3ddb6048b9fdf3fa4ff9f88776825d3274d7fb4b1fcb6b1aeb537116dac"
+    - version: 110
+      name: 00110_planning.sql
+      checksum: "sha256:dd965ceb15d4ffdcbf4ab85f9c9a20438792e27cb2b878f6211ce87cae6056ac"
+    - version: 112
+      name: 00112_safety.sql
+      checksum: "sha256:4051342d923374cc37f89b684f01c0521f7729264727a77d9d9cc602017c419e"
+    - version: 114
+      name: 00114_scheduling.sql
+      checksum: "sha256:ae19d88905709edd30b0c896773333fd2dfbe2383d4f579574fa3ada5316978e"
+    - version: 116
+      name: 00116_skill.sql
+      checksum: "sha256:a2fe0fd9cace04a9a00891944e84338758db4561ef4381f16b136ea3fc1560d6"
+    - version: 118
+      name: 00118_subscription.sql
+      checksum: "sha256:6838bde0e395235c41350de69be0e641240b5e1adcf9b6812e0614d6e46aa574"
+    - version: 120
+      name: 00120_succession.sql
+      checksum: "sha256:181a2f136a4d5161dbab56eaf6376b69a54e6bf53ae79574e3b496a821a40417"
+    - version: 122
+      name: 00122_survey.sql
+      checksum: "sha256:6fbcb6adb61db847b02c558bc83a53dd99b5edeb74f4d16b2b31e5cc393525a8"
+    - version: 124
+      name: 00124_taxprofile.sql
+      checksum: "sha256:6e517f2663bafe60e9f2999187bd0b173cd9dfe115902d080cffa23e1c4f1921"
+    - version: 126
+      name: 00126_trust.sql
+      checksum: "sha256:1c2f8ed687e00da32790dc83b5fe2cdf10aa5a215964f63c8361e470d1b564df"
+    - version: 128
+      name: 00128_attestation_response.sql
+      checksum: "sha256:fa883f2f779c52e5516dea481f075c4c28c0132830f510e1d0e18b3272cf75d7"
+    - version: 130
+      name: 00130_reference_dataset_release.sql
+      checksum: "sha256:c7475900eb1b640aa480bccf8dce40264dda7438bb2a86d27da718417121ecf3"
+    - version: 131
+      name: 00131_reference_dataset_adoption.sql
+      checksum: "sha256:67e4f0ba497f70527b48fdb00c8ac11d14801dbbea8d4e6516727ce87ca7b361"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -349,6 +448,64 @@ migrations:
       reason: "Reserved for the DATA-007 chain on 2026-09-05 and released unused (see 00058)."
     - version: 60
       reason: "Reserved for the DATA-007 chain on 2026-09-05 and released unused (see 00058)."
+    - version: 73
+      reason: "Second migration slot reserved for the wave-37 benefits persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 75
+      reason: "Second migration slot reserved for the wave-37 career persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 77
+      reason: "Second migration slot reserved for the wave-37 cba persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 79
+      reason: "Second migration slot reserved for the wave-37 commercial persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 81
+      reason: "Second migration slot reserved for the wave-37 contact persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 83
+      reason: "Second migration slot reserved for the wave-37 contentregistry persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 85
+      reason: "Second migration slot reserved for the wave-37 crm persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 87
+      reason: "Second migration slot reserved for the wave-37 custom persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 89
+      reason: "Second migration slot reserved for the wave-37 employeerelations persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 91
+      reason: "Second migration slot reserved for the wave-37 equity persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 93
+      reason: "Second migration slot reserved for the wave-37 fx persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 95
+      reason: "Second migration slot reserved for the wave-37 hrcase persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 97
+      reason: "Second migration slot reserved for the wave-37 identityprivacy persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 99
+      reason: "Second migration slot reserved for the wave-37 incentive persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 101
+      reason: "Second migration slot reserved for the wave-37 merit persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 103
+      reason: "Second migration slot reserved for the wave-37 mobility persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 105
+      reason: "Second migration slot reserved for the wave-37 payinput persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 107
+      reason: "Second migration slot reserved for the wave-37 paymethod persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 109
+      reason: "Second migration slot reserved for the wave-37 performance persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 111
+      reason: "Second migration slot reserved for the wave-37 planning persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 113
+      reason: "Second migration slot reserved for the wave-37 safety persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 115
+      reason: "Second migration slot reserved for the wave-37 scheduling persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 117
+      reason: "Second migration slot reserved for the wave-37 skill persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 119
+      reason: "Second migration slot reserved for the wave-37 subscription persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 121
+      reason: "Second migration slot reserved for the wave-37 succession persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 123
+      reason: "Second migration slot reserved for the wave-37 survey persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 125
+      reason: "Second migration slot reserved for the wave-37 taxprofile persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 127
+      reason: "Second migration slot reserved for the wave-37 trust persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
+    - version: 129
+      reason: "Reserved between the attestation-response (00128) and reference-dataset (00130) lanes on 2026-09-06 and released unused."
 
 # The four toolchain qualification decisions this P1A manifest depends on.
 qualification_decisions:
@@ -409,4 +566,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "dc373df35f4ff61a5c14c23600651b8ba3fd46e914508b68ff96beec52542b621a91c3d131acb6f17a705b3ee8950a985ed3781ef8409632821932b564044709"
+  value: "cc3b5bd3842e7c2460438383a28c33bcb63ba8db26747622f5b1de5ff8fc9339864a6e926172c7e807252979061a27fa00fee7037ae9d6f0876071d0a9a17d03"

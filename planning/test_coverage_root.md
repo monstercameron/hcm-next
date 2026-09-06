@@ -1,10 +1,10 @@
 ﻿=== root (github.com/monstercameron/hcm-next) ===
-files(non-test)=1811 generated=38 hand-written=1773 hand-written-in-untested-pkgs=16
-untested pkgs(11): internal/domains/benefits, internal/domains/hrcase, tools/gen/librarystrategy/cmd/generatelibrarystrategy, tools/gen/schemaflux/cmd/modelgen, tools/policy/testlayout/testdata/faults/internal/app, tools/quality/testdata/buildfixture, tools/quality/testdata/fixtures/clean, tools/quality/testdata/fixtures/impossiblebranch, tools/quality/testdata/fixtures/uncheckederror, tools/quality/testdata/fixtures/unsafeconversion, tools/uxqual/testdata
+files(non-test)=1923 generated=40 hand-written=1883 hand-written-in-untested-pkgs=9
+untested pkgs(9): tools/gen/librarystrategy/cmd/generatelibrarystrategy, tools/gen/schemaflux/cmd/modelgen, tools/policy/testlayout/testdata/faults/internal/app, tools/quality/testdata/buildfixture, tools/quality/testdata/fixtures/clean, tools/quality/testdata/fixtures/impossiblebranch, tools/quality/testdata/fixtures/uncheckederror, tools/quality/testdata/fixtures/unsafeconversion, tools/uxqual/testdata
 
 # Test-coverage file inventory - root (github.com/monstercameron/hcm-next) module
 
-generated=38 hand-written=1773
+generated=40 hand-written=1883
 
 ## Hand-written files
 
@@ -16,6 +16,7 @@ generated=38 hand-written=1773
 | cmd/hcmnext                                              | migrate.go                    | yes           |
 | cmd/hcmnext                                              | telemetry.go                  | yes           |
 | cmd/hcmnext                                              | token.go                      | yes           |
+| cmd/migrate                                              | demo_people.go                | yes           |
 | cmd/migrate                                              | main.go                       | yes           |
 | cmd/migrate                                              | migrate.go                    | yes           |
 | cmd/projector                                            | main.go                       | yes           |
@@ -38,6 +39,7 @@ generated=38 hand-written=1773
 | internal/application                                     | scheduler_workload.go         | yes           |
 | internal/application                                     | serve.go                      | yes           |
 | internal/application                                     | telemetry.go                  | yes           |
+| internal/authn                                           | lifecycle.go                  | yes           |
 | internal/authn/federation                                | doc.go                        | yes           |
 | internal/authn/federation                                | registry.go                   | yes           |
 | internal/authn/issuerregistry                            | assurance.go                  | yes           |
@@ -78,6 +80,8 @@ generated=38 hand-written=1773
 | internal/commercial                                      | contract.go                   | yes           |
 | internal/commercial                                      | entitlement.go                | yes           |
 | internal/commercial                                      | entitlement_snapshot.go       | yes           |
+| internal/commercial                                      | gate.go                       | yes           |
+| internal/commercial                                      | store.go                      | yes           |
 | internal/conformance/selectedjurisdiction                | conformance.go                | yes           |
 | internal/connectivity                                    | connection.go                 | yes           |
 | internal/connectivity                                    | connector.go                  | yes           |
@@ -148,11 +152,14 @@ generated=38 hand-written=1773
 | internal/data/artifacts                                  | schema.go                     | yes           |
 | internal/data/artifacts                                  | store.go                      | yes           |
 | internal/data/artifacts                                  | sweep.go                      | yes           |
+| internal/data/assetstore                                 | store.go                      | yes           |
 | internal/data/assurancemeta                              | store.go                      | yes           |
 | internal/data/attestationstore                           | doc.go                        | yes           |
 | internal/data/attestationstore                           | errors.go                     | yes           |
+| internal/data/attestationstore                           | response.go                   | yes           |
 | internal/data/attestationstore                           | store.go                      | yes           |
 | internal/data/balancestore                               | store.go                      | yes           |
+| internal/data/benefitsstore                              | store.go                      | yes           |
 | internal/data/bitemporal                                 | decision.go                   | yes           |
 | internal/data/bitemporal                                 | digest.go                     | yes           |
 | internal/data/bitemporal                                 | doc.go                        | yes           |
@@ -161,12 +168,26 @@ generated=38 hand-written=1773
 | internal/data/bitemporal                                 | request.go                    | yes           |
 | internal/data/bitemporal                                 | sql.go                        | yes           |
 | internal/data/budgetstore                                | store.go                      | yes           |
+| internal/data/careerstore                                | store.go                      | yes           |
+| internal/data/cbastore                                   | store.go                      | yes           |
+| internal/data/commercialstore                            | store.go                      | yes           |
 | internal/data/configregistry                             | activation.go                 | yes           |
 | internal/data/configregistry                             | doc.go                        | yes           |
 | internal/data/configregistry                             | object.go                     | yes           |
 | internal/data/configregistry                             | store.go                      | yes           |
+| internal/data/contactstore                               | doc.go                        | yes           |
+| internal/data/contactstore                               | store.go                      | yes           |
+| internal/data/contentregistrystore                       | store.go                      | yes           |
+| internal/data/crmstore                                   | store.go                      | yes           |
+| internal/data/customstore                                | store.go                      | yes           |
 | internal/data/dbport                                     | dbport.go                     | yes           |
+| internal/data/demoworkforce                              | organization.go               | yes           |
+| internal/data/demoworkforce                              | plan.go                       | yes           |
+| internal/data/demoworkforce                              | seed.go                       | yes           |
 | internal/data/documentmeta                               | store.go                      | yes           |
+| internal/data/employeerelationsstore                     | store.go                      | yes           |
+| internal/data/equitystore                                | store.go                      | yes           |
+| internal/data/fxstore                                    | store.go                      | yes           |
 | internal/data/governance                                 | authz.go                      | yes           |
 | internal/data/governance                                 | digest.go                     | yes           |
 | internal/data/governance                                 | doc.go                        | yes           |
@@ -182,8 +203,11 @@ generated=38 hand-written=1773
 | internal/data/health                                     | probe.go                      | yes           |
 | internal/data/health                                     | snapshot.go                   | yes           |
 | internal/data/health                                     | state.go                      | yes           |
+| internal/data/hrcasestore                                | store.go                      | yes           |
+| internal/data/identityprivacystore                       | store.go                      | yes           |
 | internal/data/inboundmsg                                 | store.go                      | yes           |
 | internal/data/inbox                                      | store.go                      | yes           |
+| internal/data/incentivestore                             | store.go                      | yes           |
 | internal/data/integration                                | schema.go                     | yes           |
 | internal/data/integrationmeta                            | doc.go                        | yes           |
 | internal/data/integrationmeta                            | errors.go                     | yes           |
@@ -237,8 +261,11 @@ generated=38 hand-written=1773
 | internal/data/ledger/temporal                            | sql.go                        | yes           |
 | internal/data/ledger/temporal                            | types.go                      | yes           |
 | internal/data/legalevidencestore                         | store.go                      | yes           |
+| internal/data/locationstore                              | correction.go                 | yes           |
 | internal/data/locationstore                              | store.go                      | yes           |
+| internal/data/meritstore                                 | store.go                      | yes           |
 | internal/data/messagingmeta                              | store.go                      | yes           |
+| internal/data/mobilitystore                              | store.go                      | yes           |
 | internal/data/opsmeta                                    | store.go                      | yes           |
 | internal/data/outbox                                     | commit.go                     | yes           |
 | internal/data/outbox                                     | consumer.go                   | yes           |
@@ -248,11 +275,15 @@ generated=38 hand-written=1773
 | internal/data/partition                                  | kit.go                        | yes           |
 | internal/data/partition                                  | plan.go                       | yes           |
 | internal/data/payglstore                                 | store.go                      | yes           |
+| internal/data/payinputstore                              | store.go                      | yes           |
+| internal/data/paymethodstore                             | store.go                      | yes           |
 | internal/data/payrollstore                               | store.go                      | yes           |
+| internal/data/performancestore                           | store.go                      | yes           |
 | internal/data/pgtest                                     | embedded.go                   | yes           |
 | internal/data/pgtest                                     | pgtest.go                     | yes           |
 | internal/data/pgtest                                     | sweep.go                      | yes           |
 | internal/data/pgxadapter                                 | pgxadapter.go                 | yes           |
+| internal/data/planningstore                              | store.go                      | yes           |
 | internal/data/positionstore                              | store.go                      | yes           |
 | internal/data/privacymeta                                | store.go                      | yes           |
 | internal/data/projection                                 | barrier.go                    | yes           |
@@ -283,10 +314,13 @@ generated=38 hand-written=1773
 | internal/data/rebuild                                    | snapshot.go                   | yes           |
 | internal/data/recordsmeta                                | copies.go                     | yes           |
 | internal/data/recordsmeta                                | store.go                      | yes           |
+| internal/data/refdata                                    | store.go                      | yes           |
 | internal/data/runtimestate                               | doc.go                        | yes           |
 | internal/data/runtimestate                               | inventory.go                  | yes           |
 | internal/data/runtimestate                               | scheduling.go                 | yes           |
 | internal/data/runtimestate                               | workqueue.go                  | yes           |
+| internal/data/safetystore                                | store.go                      | yes           |
+| internal/data/schedulingstore                            | store.go                      | yes           |
 | internal/data/schema                                     | journal.go                    | yes           |
 | internal/data/search                                     | doc.go                        | yes           |
 | internal/data/search                                     | errors.go                     | yes           |
@@ -296,12 +330,21 @@ generated=38 hand-written=1773
 | internal/data/search                                     | store.go                      | yes           |
 | internal/data/search                                     | types.go                      | yes           |
 | internal/data/seed                                       | seed.go                       | yes           |
+| internal/data/skillstore                                 | store.go                      | yes           |
 | internal/data/store                                      | store.go                      | yes           |
+| internal/data/subscriptionstore                          | store.go                      | yes           |
+| internal/data/successionstore                            | store.go                      | yes           |
+| internal/data/surveystore                                | store.go                      | yes           |
+| internal/data/taxprofilestore                            | store.go                      | yes           |
 | internal/data/tenancy                                    | bootstrap_store.go            | yes           |
 | internal/data/tenancy                                    | planeverification.go          | yes           |
 | internal/data/tenancy                                    | tenancy.go                    | yes           |
 | internal/data/tenancy/storagedisposition                 | registry.go                   | yes           |
 | internal/data/tenantstore                                | store.go                      | yes           |
+| internal/data/truststore                                 | accessreview.go               | yes           |
+| internal/data/truststore                                 | errors.go                     | yes           |
+| internal/data/truststore                                 | jit.go                        | yes           |
+| internal/data/truststore                                 | store.go                      | yes           |
 | internal/data/uow                                        | conformance.go                | yes           |
 | internal/data/uow                                        | doc.go                        | yes           |
 | internal/data/uow                                        | errors.go                     | yes           |
@@ -321,12 +364,15 @@ generated=38 hand-written=1773
 | internal/documentsecurity                                | security.go                   | yes           |
 | internal/domains/access                                  | entitlement_derivation.go     | yes           |
 | internal/domains/access                                  | graph.go                      | yes           |
+| internal/domains/access                                  | lifecycle.go                  | yes           |
 | internal/domains/access                                  | port.go                       | yes           |
 | internal/domains/appointment                             | contract.go                   | yes           |
 | internal/domains/appointment                             | errors.go                     | yes           |
+| internal/domains/appointment                             | repository.go                 | yes           |
 | internal/domains/appointment                             | requirement.go                | yes           |
 | internal/domains/appointment                             | resource.go                   | yes           |
 | internal/domains/asset                                   | contracts.go                  | yes           |
+| internal/domains/asset                                   | repository.go                 | yes           |
 | internal/domains/asset                                   | revisions.go                  | yes           |
 | internal/domains/asset/quarantine                        | errors.go                     | yes           |
 | internal/domains/asset/quarantine                        | intake.go                     | yes           |
@@ -351,9 +397,10 @@ generated=38 hand-written=1773
 | internal/domains/balance                                 | posting_plan.go               | yes           |
 | internal/domains/balance                                 | rules.go                      | yes           |
 | internal/domains/balance                                 | store.go                      | yes           |
-| internal/domains/benefits                                | plan.go                       | **NO**        |
-| internal/domains/benefits                                | planyear.go                   | **NO**        |
-| internal/domains/benefits                                | revision.go                   | **NO**        |
+| internal/domains/benefits                                | contract.go                   | yes           |
+| internal/domains/benefits                                | plan.go                       | yes           |
+| internal/domains/benefits                                | planyear.go                   | yes           |
+| internal/domains/benefits                                | revision.go                   | yes           |
 | internal/domains/budget                                  | budget.go                     | yes           |
 | internal/domains/budget                                  | reservation.go                | yes           |
 | internal/domains/budget                                  | reservation_port.go           | yes           |
@@ -361,12 +408,14 @@ generated=38 hand-written=1773
 | internal/domains/career                                  | objective.go                  | yes           |
 | internal/domains/career                                  | preference.go                 | yes           |
 | internal/domains/career                                  | profile.go                    | yes           |
+| internal/domains/career                                  | repository.go                 | yes           |
 | internal/domains/career                                  | target.go                     | yes           |
 | internal/domains/cba                                     | agreement.go                  | yes           |
 | internal/domains/cba                                     | applicability.go              | yes           |
 | internal/domains/cba                                     | contract.go                   | yes           |
 | internal/domains/cba                                     | doc.go                        | yes           |
 | internal/domains/cba                                     | membership.go                 | yes           |
+| internal/domains/cba                                     | persistence.go                | yes           |
 | internal/domains/cba                                     | unit.go                       | yes           |
 | internal/domains/clock                                   | errors.go                     | yes           |
 | internal/domains/clock                                   | registry.go                   | yes           |
@@ -375,10 +424,16 @@ generated=38 hand-written=1773
 | internal/domains/contact                                 | challenge.go                  | yes           |
 | internal/domains/contact                                 | endpoint.go                   | yes           |
 | internal/domains/contact                                 | revision.go                   | yes           |
+| internal/domains/contact                                 | store_port.go                 | yes           |
 | internal/domains/crm                                     | errors.go                     | yes           |
 | internal/domains/crm                                     | membership.go                 | yes           |
 | internal/domains/crm                                     | pool.go                       | yes           |
+| internal/domains/crm                                     | store.go                      | yes           |
+| internal/domains/custom                                  | capabilities.go               | yes           |
 | internal/domains/custom                                  | definitions.go                | yes           |
+| internal/domains/custom                                  | lifecycle.go                  | yes           |
+| internal/domains/custom                                  | persistence.go                | yes           |
+| internal/domains/custom                                  | search.go                     | yes           |
 | internal/domains/dataops                                 | dataops.go                    | yes           |
 | internal/domains/dataops                                 | diff.go                       | yes           |
 | internal/domains/dataops                                 | drift.go                      | yes           |
@@ -393,21 +448,30 @@ generated=38 hand-written=1773
 | internal/domains/dataops/importing                       | validate.go                   | yes           |
 | internal/domains/demand                                  | aggregate.go                  | yes           |
 | internal/domains/demand                                  | contracts.go                  | yes           |
+| internal/domains/demand                                  | store.go                      | yes           |
 | internal/domains/employeerelations                       | employeerelations.go          | yes           |
+| internal/domains/employeerelations                       | repository.go                 | yes           |
 | internal/domains/equity                                  | equity.go                     | yes           |
+| internal/domains/equity                                  | store.go                      | yes           |
 | internal/domains/evidence                                | evidence.go                   | yes           |
 | internal/domains/fixtures                                | fixtures.go                   | yes           |
 | internal/domains/fx                                      | fx.go                         | yes           |
-| internal/domains/hrcase                                  | definition.go                 | **NO**        |
-| internal/domains/hrcase                                  | errors.go                     | **NO**        |
-| internal/domains/hrcase                                  | lifecycle.go                  | **NO**        |
-| internal/domains/hrcase                                  | request.go                    | **NO**        |
+| internal/domains/fx                                      | store.go                      | yes           |
+| internal/domains/hrcase                                  | definition.go                 | yes           |
+| internal/domains/hrcase                                  | errors.go                     | yes           |
+| internal/domains/hrcase                                  | lifecycle.go                  | yes           |
+| internal/domains/hrcase                                  | port.go                       | yes           |
+| internal/domains/hrcase                                  | request.go                    | yes           |
 | internal/domains/incentive                               | incentive.go                  | yes           |
+| internal/domains/incentive                               | store.go                      | yes           |
 | internal/domains/industrypack                            | binding.go                    | yes           |
 | internal/domains/industrypack                            | manifest.go                   | yes           |
+| internal/domains/industrypack                            | persistence.go                | yes           |
 | internal/domains/intelligence                            | explain.go                    | yes           |
 | internal/domains/intelligence                            | transaction.go                | yes           |
 | internal/domains/jobarch                                 | jobarch.go                    | yes           |
+| internal/domains/jobarch                                 | lifecycle.go                  | yes           |
+| internal/domains/jobarch                                 | requirements.go               | yes           |
 | internal/domains/jobarch                                 | store.go                      | yes           |
 | internal/domains/knowledge                               | doc.go                        | yes           |
 | internal/domains/knowledge                               | knowledge.go                  | yes           |
@@ -415,11 +479,15 @@ generated=38 hand-written=1773
 | internal/domains/labor                                   | labor.go                      | yes           |
 | internal/domains/leave                                   | program.go                    | yes           |
 | internal/domains/leave                                   | request.go                    | yes           |
+| internal/domains/location                                | correction.go                 | yes           |
 | internal/domains/location                                | location.go                   | yes           |
+| internal/domains/location                                | resolution.go                 | yes           |
 | internal/domains/matching                                | matching.go                   | yes           |
 | internal/domains/matching                                | population.go                 | yes           |
 | internal/domains/merit                                   | merit.go                      | yes           |
+| internal/domains/merit                                   | store.go                      | yes           |
 | internal/domains/mobility                                | mobility.go                   | yes           |
+| internal/domains/mobility                                | persistence.go                | yes           |
 | internal/domains/org                                     | manager.go                    | yes           |
 | internal/domains/org                                     | manager_mutation.go           | yes           |
 | internal/domains/organization                            | contracts.go                  | yes           |
@@ -430,6 +498,7 @@ generated=38 hand-written=1773
 | internal/domains/paygl                                   | paygl.go                      | yes           |
 | internal/domains/paygl                                   | persistence.go                | yes           |
 | internal/domains/payinput                                | payinput.go                   | yes           |
+| internal/domains/payinput                                | store.go                      | yes           |
 | internal/domains/paymethod                               | paymethod.go                  | yes           |
 | internal/domains/paymethod                               | security_controls.go          | yes           |
 | internal/domains/paymethod/achrisk                       | risk.go                       | yes           |
@@ -463,6 +532,7 @@ generated=38 hand-written=1773
 | internal/domains/performance                             | proposed_rating.go            | yes           |
 | internal/domains/performance                             | rating_contest.go             | yes           |
 | internal/domains/performance                             | review_collection.go          | yes           |
+| internal/domains/performance                             | store.go                      | yes           |
 | internal/domains/position                                | capacity.go                   | yes           |
 | internal/domains/position                                | compatibility.go              | yes           |
 | internal/domains/position                                | contracts.go                  | yes           |
@@ -500,6 +570,7 @@ generated=38 hand-written=1773
 | internal/domains/promotion/snapshot                      | inputs.go                     | yes           |
 | internal/domains/promotion/snapshot                      | snapshot.go                   | yes           |
 | internal/domains/proofing                                | proofing.go                   | yes           |
+| internal/domains/proofing                                | store_port.go                 | yes           |
 | internal/domains/pseudonym                               | correlation.go                | yes           |
 | internal/domains/pseudonym                               | escrow.go                     | yes           |
 | internal/domains/pseudonym                               | evidence.go                   | yes           |
@@ -507,6 +578,7 @@ generated=38 hand-written=1773
 | internal/domains/pseudonym                               | revelation.go                 | yes           |
 | internal/domains/qualification                           | qualification.go              | yes           |
 | internal/domains/qualification                           | resolve.go                    | yes           |
+| internal/domains/refdata                                 | refdata.go                    | yes           |
 | internal/domains/repair                                  | plan.go                       | yes           |
 | internal/domains/repair                                  | simulate.go                   | yes           |
 | internal/domains/rewards                                 | catalog.go                    | yes           |
@@ -520,17 +592,22 @@ generated=38 hand-written=1773
 | internal/domains/schedopt                                | schedopt.go                   | yes           |
 | internal/domains/service                                 | service.go                    | yes           |
 | internal/domains/settlement                              | settlement.go                 | yes           |
+| internal/domains/skill                                   | persistence.go                | yes           |
 | internal/domains/skill                                   | resolve.go                    | yes           |
 | internal/domains/skill                                   | skill.go                      | yes           |
 | internal/domains/subscription                            | authorization.go              | yes           |
+| internal/domains/subscription                            | repository.go                 | yes           |
 | internal/domains/subscription                            | schema.go                     | yes           |
 | internal/domains/subscription                            | subscription.go               | yes           |
+| internal/domains/succession                              | store.go                      | yes           |
 | internal/domains/succession                              | succession.go                 | yes           |
 | internal/domains/survey                                  | doc.go                        | yes           |
 | internal/domains/survey                                  | launch.go                     | yes           |
+| internal/domains/survey                                  | repository.go                 | yes           |
 | internal/domains/survey                                  | response.go                   | yes           |
 | internal/domains/survey                                  | sample.go                     | yes           |
 | internal/domains/survey                                  | survey.go                     | yes           |
+| internal/domains/taxprofile                              | store.go                      | yes           |
 | internal/domains/taxprofile                              | taxprofile.go                 | yes           |
 | internal/domains/tenant                                  | bootstrap.go                  | yes           |
 | internal/domains/tenant                                  | lifecycle.go                  | yes           |
@@ -722,18 +799,29 @@ generated=38 hand-written=1773
 | internal/humanwork/formcontinuity                        | continuity.go                 | yes           |
 | internal/humanwork/formcontinuity                        | doc.go                        | yes           |
 | internal/humanwork/formdraft                             | formdraft.go                  | yes           |
+| internal/humanwork/productui                             | accessibility.go              | yes           |
+| internal/humanwork/productui                             | accessibility_components.go   | yes           |
 | internal/humanwork/productui                             | admin_components.go           | yes           |
+| internal/humanwork/productui                             | appearance.go                 | yes           |
+| internal/humanwork/productui                             | appearance_components.go      | yes           |
+| internal/humanwork/productui                             | brand_logo.go                 | yes           |
 | internal/humanwork/productui                             | components.go                 | yes           |
 | internal/humanwork/productui                             | composition_components.go     | yes           |
+| internal/humanwork/productui                             | display.go                    | yes           |
 | internal/humanwork/productui                             | doc.go                        | yes           |
 | internal/humanwork/productui                             | history_components.go         | yes           |
 | internal/humanwork/productui                             | home_components.go            | yes           |
+| internal/humanwork/productui                             | i18n.go                       | yes           |
+| internal/humanwork/productui                             | icons.go                      | yes           |
 | internal/humanwork/productui                             | insights_components.go        | yes           |
+| internal/humanwork/productui                             | loading_components.go         | yes           |
+| internal/humanwork/productui                             | locale_components.go          | yes           |
 | internal/humanwork/productui                             | model.go                      | yes           |
 | internal/humanwork/productui                             | mount_wasm.go                 | yes           |
 | internal/humanwork/productui                             | navigation_components.go      | yes           |
 | internal/humanwork/productui                             | organization_components.go    | yes           |
 | internal/humanwork/productui                             | page_admin.go                 | yes           |
+| internal/humanwork/productui                             | page_appearance.go            | yes           |
 | internal/humanwork/productui                             | page_help.go                  | yes           |
 | internal/humanwork/productui                             | page_history.go               | yes           |
 | internal/humanwork/productui                             | page_home.go                  | yes           |
@@ -754,7 +842,10 @@ generated=38 hand-written=1773
 | internal/humanwork/productui                             | shell.go                      | yes           |
 | internal/humanwork/productui                             | styles.go                     | yes           |
 | internal/humanwork/productui                             | support_components.go         | yes           |
+| internal/humanwork/productui                             | theme.go                      | yes           |
 | internal/humanwork/productui                             | work_components.go            | yes           |
+| internal/humanwork/profilephoto                          | filestore.go                  | yes           |
+| internal/humanwork/profilephoto                          | profilephoto.go               | yes           |
 | internal/humanwork/sla                                   | sla.go                        | yes           |
 | internal/humanwork/uicomponents                          | identity.go                   | yes           |
 | internal/humanwork/workitem                              | assignment.go                 | yes           |
@@ -807,6 +898,7 @@ generated=38 hand-written=1773
 | internal/intent/app                                      | capabilities.go               | yes           |
 | internal/intent/app                                      | cell.go                       | yes           |
 | internal/intent/app                                      | clock.go                      | yes           |
+| internal/intent/app                                      | commercial_entitlement.go     | yes           |
 | internal/intent/app                                      | controls.go                   | yes           |
 | internal/intent/app                                      | diagnostics.go                | yes           |
 | internal/intent/app                                      | doc.go                        | yes           |
@@ -909,6 +1001,7 @@ generated=38 hand-written=1773
 | internal/ledger                                          | temporal.go                   | yes           |
 | internal/messaging                                       | doc.go                        | yes           |
 | internal/messaging                                       | intent.go                     | yes           |
+| internal/operations/accessdrift                          | drift.go                      | yes           |
 | internal/operations/admin                                | doc.go                        | yes           |
 | internal/operations/admin                                | policy.go                     | yes           |
 | internal/operations/admincenter/connectorconfig          | center.go                     | yes           |
@@ -1045,6 +1138,7 @@ generated=38 hand-written=1773
 | internal/resource/reservation                            | expiry.go                     | yes           |
 | internal/resource/reservation                            | store.go                      | yes           |
 | internal/resource/reservation                            | types.go                      | yes           |
+| internal/store/object                                    | metadata.go                   | yes           |
 | internal/store/object                                    | object.go                     | yes           |
 | internal/transaction                                     | boundary.go                   | yes           |
 | internal/transaction                                     | canonical.go                  | yes           |
@@ -1145,6 +1239,10 @@ generated=38 hand-written=1773
 | internal/trust/adversarial                               | journeys.go                   | yes           |
 | internal/trust/attest                                    | attest.go                     | yes           |
 | internal/trust/attest                                    | binding.go                    | yes           |
+| internal/trust/attest                                    | conformance.go                | yes           |
+| internal/trust/attest                                    | evidence.go                   | yes           |
+| internal/trust/attest                                    | execution.go                  | yes           |
+| internal/trust/attest                                    | response.go                   | yes           |
 | internal/trust/authz                                     | decision.go                   | yes           |
 | internal/trust/authz                                     | doc.go                        | yes           |
 | internal/trust/authz                                     | fields.go                     | yes           |
@@ -1186,6 +1284,7 @@ generated=38 hand-written=1773
 | internal/trust/secrets                                   | resolve.go                    | yes           |
 | internal/trust/secrets                                   | secrets.go                    | yes           |
 | internal/trust/session                                   | doc.go                        | yes           |
+| internal/trust/session                                   | family.go                     | yes           |
 | internal/trust/session                                   | manager.go                    | yes           |
 | internal/trust/session                                   | record.go                     | yes           |
 | internal/trust/session                                   | revocation.go                 | yes           |
@@ -1229,6 +1328,7 @@ generated=38 hand-written=1773
 | internal/workflow/conformance/learning                   | environment.go                | yes           |
 | internal/workflow/conformance/learning                   | ports.go                      | yes           |
 | internal/workflow/conformance/learning                   | setup.go                      | yes           |
+| internal/workflow/conformance/leave                      | entitlement.go                | yes           |
 | internal/workflow/conformance/managerchange              | definition.go                 | yes           |
 | internal/workflow/conformance/managerchange              | setup.go                      | yes           |
 | internal/workflow/conformance/mobility                   | definition.go                 | yes           |
@@ -1602,6 +1702,7 @@ generated=38 hand-written=1773
 | tools/policy/depmanifest                                 | gomod.go                      | yes           |
 | tools/policy/dispositioncoverage                         | coverage.go                   | yes           |
 | tools/policy/dispositioncoverage/cmd/dispositioncoverage | main.go                       | yes           |
+| tools/policy/dispositionrebuild                          | dispositionrebuild.go         | yes           |
 | tools/policy/docintegrity                                | docintegrity.go               | yes           |
 | tools/policy/docintegrity/cmd/docintegrity               | main.go                       | yes           |
 | tools/policy/driftgate                                   | driftgate.go                  | yes           |
@@ -1629,6 +1730,7 @@ generated=38 hand-written=1773
 | tools/policy/oraclestrength/testdata/fixture             | decision.go                   | yes           |
 | tools/policy/phaseone                                    | phaseone.go                   | yes           |
 | tools/policy/phaseonegate                                | phaseonegate.go               | yes           |
+| tools/policy/placementbindings                           | placementbindings.go          | yes           |
 | tools/policy/processroles                                | processroles.go               | yes           |
 | tools/policy/prohibitedframework                         | policy.go                     | yes           |
 | tools/policy/provenance                                  | doc.go                        | yes           |
@@ -1666,6 +1768,8 @@ generated=38 hand-written=1773
 | tools/policy/storeboundaries                             | sqlscan.go                    | yes           |
 | tools/policy/substratecoverage                           | substratecoverage.go          | yes           |
 | tools/policy/substratecoverage/cmd/substratecoverage     | main.go                       | yes           |
+| tools/policy/tableinventory                              | tableinventory.go             | yes           |
+| tools/policy/tableownership                              | tableownership.go             | yes           |
 | tools/policy/testhygiene                                 | doc.go                        | yes           |
 | tools/policy/testhygiene                                 | policy.go                     | yes           |
 | tools/policy/testlayout                                  | policy.go                     | yes           |
@@ -1717,9 +1821,15 @@ generated=38 hand-written=1773
 | tools/quality/toolinventory                              | toolinventory.go              | yes           |
 | tools/quality/toxiproxykit                               | qualification.go              | yes           |
 | tools/uxqual/cmd/genfixtures                             | main.go                       | yes           |
+| tools/uxqual/cmd/journeywasm                             | accessibility_wasm.go         | yes           |
 | tools/uxqual/cmd/journeywasm                             | main_native.go                | yes           |
 | tools/uxqual/cmd/journeywasm                             | main_wasm.go                  | yes           |
+| tools/uxqual/cmd/journeywasm                             | navigation_debounce.go        | yes           |
+| tools/uxqual/cmd/journeywasm                             | navigation_group_state.go     | yes           |
+| tools/uxqual/cmd/journeywasm                             | navigation_groups_wasm.go     | yes           |
+| tools/uxqual/cmd/journeywasm                             | product_focus.go              | yes           |
 | tools/uxqual/cmd/journeywasm                             | product_wasm.go               | yes           |
+| tools/uxqual/cmd/journeywasm                             | theme_wasm.go                 | yes           |
 | tools/uxqual/cmd/uxqualwasm                              | main_native.go                | yes           |
 | tools/uxqual/cmd/uxqualwasm                              | main_wasm.go                  | yes           |
 | tools/uxqual/contract                                    | contract.go                   | yes           |
@@ -1786,6 +1896,8 @@ generated=38 hand-written=1773
 
 ## Generated files (excluded: machine output)
 
+| .gotmp-skill/go-build924004607/b001 | \_testmain.go |
+| .lane-go-tmp/go-build193133012/b001 | \_testmain.go |
 | gen/go/hcmnext/admin/v1 | admin_service.pb.go |
 | gen/go/hcmnext/admin/v1 | admin_service_grpc.pb.go |
 | gen/go/hcmnext/capabilities/v1 | capability.pb.go |

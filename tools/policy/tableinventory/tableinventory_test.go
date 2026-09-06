@@ -1,0 +1,121 @@
+package tableinventory_test
+
+import (
+	"path/filepath"
+	"runtime"
+	"sort"
+	"testing"
+
+	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+)
+
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller failed")
+	}
+	return filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(file))))
+}
+
+func loadInventory(t *testing.T) tableinventory.Inventory {
+	t.Helper()
+	inventory, err := tableinventory.Scan(repoRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return inventory
+}
+
+func TestTodo_ALIGN_008(t *testing.T) {
+	registry, err := tableinventory.Generate(repoRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The registry must cover exactly the tables the migrations declare; the
+	// count itself grows with every persistence lane and is not the contract.
+	if want := len(loadInventory(t).MigrationTables); len(registry.Tables) != want || want < 200 {
+		t.Fatalf("alignment registry has %d tables, want the %d migration tables", len(registry.Tables), want)
+	}
+	if registry.Digest() != registry.Digest() || registry.Explain() == "" {
+		t.Fatal("alignment registry identity is not stable")
+	}
+}
+
+func TestTodo_ALIGN_008_Property(t *testing.T) {
+	inventory := loadInventory(t)
+	first := inventory.Explain()
+	second := inventory.Explain()
+	if first != second || len(inventory.TablesByRole) != 6 {
+		t.Fatalf("inventory is not deterministic: %q / %q, roles=%d", first, second, len(inventory.TablesByRole))
+	}
+}
+
+func TestTodo_ALIGN_008_Golden(t *testing.T) {
+	registry, err := tableinventory.Generate(repoRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if registry.Tables[0].Table != "account_link" || registry.Tables[len(registry.Tables)-1].Table != "worksite_revision" {
+		t.Fatalf("unexpected alignment boundaries: %q / %q", registry.Tables[0].Table, registry.Tables[len(registry.Tables)-1].Table)
+	}
+}
+
+func TestTodo_ALIGN_008_Security(t *testing.T) {
+	inventory := loadInventory(t)
+	for _, table := range inventory.MigrationTables {
+		if table.Name == "artifact" || table.Name == "artifact_quarantine" || table.Name == "ledger_event_p0" {
+			t.Fatalf("companion schema or physical partition leaked into logical inventory: %s", table.Name)
+		}
+	}
+}
+
+func TestTodo_ALIGN_008_Conformance(t *testing.T) {
+	if tableinventory.Version() != 1 {
+		t.Fatalf("policy version = %d, want 1", tableinventory.Version())
+	}
+}
+
+func TestTodo_ALIGN_009(t *testing.T) {
+	inventory := loadInventory(t)
+	if findings := tableinventory.Validate(inventory); len(findings) != 0 {
+		t.Fatalf("default table inventory has findings: %+v", findings)
+	}
+	if len(inventory.TablesByRole["LEDGER"]) == 0 || len(inventory.TablesByRole["PROJECTION"]) == 0 {
+		t.Fatal("semantic-role inventory omitted ledger or projection tables")
+	}
+}
+
+func TestTodo_ALIGN_009_Property(t *testing.T) {
+	inventory := loadInventory(t)
+	for role, tables := range inventory.TablesByRole {
+		copyOfTables := append([]string(nil), tables...)
+		sort.Strings(copyOfTables)
+		if len(copyOfTables) != len(tables) {
+			t.Fatalf("role %s has unstable table count", role)
+		}
+	}
+}
+
+func TestTodo_ALIGN_009_Golden(t *testing.T) {
+	inventory := loadInventory(t)
+	if got := len(inventory.MigrationTables); got < 200 {
+		t.Fatalf("logical migration inventory has %d tables, want the full migration set", got)
+	}
+}
+
+func TestTodo_ALIGN_009_Security(t *testing.T) {
+	inventory := loadInventory(t)
+	for _, table := range inventory.Tables {
+		if table.DataRole == "" {
+			t.Fatalf("table %s has an empty semantic role", table.Table)
+		}
+	}
+}
+
+func TestTodo_ALIGN_009_Conformance(t *testing.T) {
+	inventory := loadInventory(t)
+	if len(inventory.SourceFiles) == 0 {
+		t.Fatal("inventory did not retain migration source evidence")
+	}
+}

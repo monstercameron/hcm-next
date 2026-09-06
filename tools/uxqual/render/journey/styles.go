@@ -771,6 +771,16 @@ display:flex;flex-direction:column;gap:.25rem;
 font-size:.75rem;color:var(--jn-ink-muted)}
 .jn-provenance{display:flex;flex-wrap:wrap;gap:.25rem 1rem}
 
+/* Responsive composition ------------------------------------------ */
+img,svg,video,canvas{max-width:100%}
+:where(.jn-shell,.jn-page,.jn-pagehead,.jn-card,.jn-cardhead,.jn-grid,.jn-griditem,
+.jn-columns,.jn-maincol,.jn-rail,.jn-field,.jn-fieldgrid,.jn-fact,.jn-tlbody,
+.jn-network-stage,.jn-proxy-copy){min-width:0}
+:where(input,select,textarea,button){max-width:100%}
+:where(.jn-pagehead,.jn-cardhead,.jn-toolbar,.jn-actions,.jn-provenance){flex-wrap:wrap}
+:where(.jn-title,.jn-cardtitle,.jn-tltitle,.jn-tldetail,.jn-fact dd){overflow-wrap:anywhere}
+.jn-tablewrap{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}
+
 /* Motion ------------------------------------------------------------ */
 .jn-network-stage{position:relative;min-height:24rem}
 .jn-network-stale{opacity:.22;pointer-events:none;user-select:none}

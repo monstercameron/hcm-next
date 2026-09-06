@@ -175,3 +175,18 @@ func TestStylesheetSizesInRelativeUnits(t *testing.T) {
 		t.Errorf("stylesheet sets a pixel font size (%s); text zoom would not reach it", match)
 	}
 }
+
+func TestResponsiveCompositionProtectsEveryJourneySurface(t *testing.T) {
+	css := Stylesheet()
+	for _, want := range []string{
+		`img,svg,video,canvas{max-width:100%}`,
+		`:where(.jn-shell,.jn-page,.jn-pagehead,.jn-card,.jn-cardhead,.jn-grid,.jn-griditem,`,
+		`:where(input,select,textarea,button){max-width:100%}`,
+		`:where(.jn-pagehead,.jn-cardhead,.jn-toolbar,.jn-actions,.jn-provenance){flex-wrap:wrap}`,
+		`.jn-tablewrap{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}`,
+	} {
+		if !strings.Contains(css, want) {
+			t.Errorf("journey responsive composition missing %q", want)
+		}
+	}
+}

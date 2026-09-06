@@ -303,7 +303,7 @@
     "refactor": "Human Work owns tasks; Access owns decision semantics and intended graph",
     "refs": "[Approval safety](specs/human-work-forms-and-rules.md), [integration effects](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ACCESS-004",
@@ -335,7 +335,7 @@
     "refactor": "logical accounts, device custody and physical badge adapters share reconciliation mechanics but retain distinct authority and risk policy",
     "refs": "[Promotion repair](reference-workflows/promote-into-management.md), [termination conformance](workflows/lifecycle/termination-offboarding.md), [repair](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMIN-001",
@@ -907,7 +907,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-009",
@@ -931,7 +931,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-010",
@@ -955,7 +955,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-011",
@@ -979,7 +979,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-012",
@@ -1003,7 +1003,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-013",
@@ -1053,7 +1053,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-015",
@@ -1077,7 +1077,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-016",
@@ -2654,7 +2654,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[AuthZ](specs/organization-scope-and-authz.md), [tenant lifecycle](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "APP-004",
@@ -3873,6 +3873,39 @@
     "done": true
   },
   {
+    "id": "ARCH-GO-029",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Give pure engines one schema-tagged canonical byte stream for reproducible digests",
+    "section": "2A. Modular Go monolith and semantic package architecture",
+    "depends": [
+      "ARCH-GO-004",
+      "MODEL-001",
+      "MODEL-002",
+      "MODEL-003",
+      "MODEL-004",
+      "MODEL-005",
+      "MODEL-006",
+      "MODEL-007"
+    ],
+    "test": "TestWriterRefusesAStreamWithoutASchema",
+    "test_matrix": {
+      "CONFORMANCE": "TestVersionAndExplainAreStable",
+      "FAULT": "TestWriterAbandonsTheStreamWhenAValueCannotEncode",
+      "GOLDEN": "TestDigestIsStableAndAlgorithmTagged",
+      "INTEGRATION": "TestNestedWriterPropagatesItsFailure",
+      "MUTATION": "TestWriterDistinguishesFieldsThatWouldOtherwiseCollide",
+      "PRIMARY": "TestWriterRefusesAStreamWithoutASchema",
+      "PROPERTY": "TestWriterSortsStringSetsSoMapOrderCannotLeakIn"
+    },
+    "red": "a stream opens without a schema tag, a value whose `Canonical()` yields nil silently contributes nothing instead of abandoning the stream, two structurally adjacent fields collide on the same bytes, a string set's digest depends on map iteration order, presence and absence of an optional field encode identically, the digest string omits its algorithm tag, or a nested writer's failure is swallowed instead of propagated",
+    "green": "`canonicalbytes.New` refuses an empty schema; `Writer.Value` abandons the stream with `ErrUnencodable` the moment a value cannot encode; every field is tagged and length-prefixed so adjacent fields cannot collide; `SortedStrings` sorts before framing so map order can never leak into the digest; `Optional` writes an explicit presence marker; `Digest` returns `sha256:\u003chex\u003e` prefixed by `DigestAlgorithm`; and `Nested` propagates a child writer's recorded error into the parent stream",
+    "refactor": "the package stays a pure framing layer over each kernel value's own `Canonical()` encoding; it owns no second canonicalization of kernel types and exposes `Version`/`Explain` per the ARCH-GO-009 engine package contract",
+    "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [canonical digest](specs/canonical-envelope-and-digest.md), [engine ownership](#businessintent-context-required-by-every-todo)",
+    "retired": false,
+    "done": true
+  },
+  {
     "id": "ARTIFACT-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -3897,7 +3930,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Artifact models](data/models/connectivity-access-content.md), [responsibility boundaries](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ARTIFACT-002",
@@ -3999,7 +4032,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Artifact models](data/models/connectivity-access-content.md), [document pipeline](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ARTIFACT-006",
@@ -4328,7 +4361,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ATTEST-004",
@@ -4354,7 +4387,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger](specs/transaction-ledger-reconciliation-and-repair.md), [wire time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ATTEST-005",
@@ -4376,7 +4409,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger corrections](specs/transaction-ledger-reconciliation-and-repair.md), [model conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ATTEST-006",
@@ -4399,7 +4432,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [governance composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ATTEST-007",
@@ -4426,7 +4459,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Audit evidence](specs/platform-responsibility-boundaries.md), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ATTEST-008",
@@ -4457,7 +4490,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Future conformance](#21-future-domain-intent-conformance), [human work/forms](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-001",
@@ -4535,7 +4568,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Identity resolution](specs/identity-resolution-and-entity-linkage.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-004",
@@ -4562,7 +4595,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Foundation identity](specs/platform-foundation-gap-closure.md), [workflow revalidation](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-005",
@@ -4588,7 +4621,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-006",
@@ -4702,7 +4735,7 @@
     "refactor": "lifecycle fan-out consumes canonical authority relationships; providers never own HCM Next principal truth",
     "refs": "[security models](data/models/security-trust.md), [identity foundation](specs/platform-foundation-gap-closure.md), [production identity](#32-production-identity-key-custody-and-edge-enforcement)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-010",
@@ -4727,7 +4760,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-18](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [NIST SP 800-63-4](https://pages.nist.gov/800-63-4/), [Login.gov rules of use](https://www.login.gov/policy/rules-of-use/). Maps to NIST 800-63-4 IAL/AAL/FAL; FedRAMP identity-assurance baseline",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AVAIL-001",
@@ -5177,7 +5210,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rewards/benefits models](data/models/rewards-payroll-workforce.md), [intent coverage](data/models/intent-coverage-matrix.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "BEN-002",
@@ -5451,7 +5484,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Data plane](specs/platform-plane-model.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CAP-001",
@@ -5617,7 +5650,7 @@
     "refactor": "generic workflow coordinates a case but never owns case lifecycle or disposition",
     "refs": "[Case models](data/models/talent-experience-cases.md), [HR service workflows](workflows/hr-service/catalog.md), [records](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CASE-002",
@@ -6049,7 +6082,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[People/workforce models](data/models/people-workforce.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CLOCK-002",
@@ -6253,7 +6286,7 @@
     "refactor": "no variable rating or invoice engine is introduced in Phase 1",
     "refs": "[Phase 1 commercial scope](plan.md#cross-phase-foundation-track), [execution exclusions](execution-plan.md#explicit-non-goals)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "COMM-002",
@@ -7284,7 +7317,7 @@
     "refactor": "rollback is a new activation event, not history mutation",
     "refs": "[Configuration promotion](specs/hris-admin-dataops.md), [change governance](plan.md#111-environment-and-change-governance)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONFIG-010",
@@ -7726,6 +7759,27 @@
     "done": false
   },
   {
+    "id": "CONTACT-003",
+    "phase": "PHASE_3",
+    "model": "SOL_HIGH",
+    "title": "Persist contact endpoints and challenges behind a typed Store port with per-tenant CAS",
+    "section": "51. HCM semantic engine ownership expansion",
+    "depends": [
+      "CONTACT-001",
+      "PERSIST-CONTACT-001"
+    ],
+    "test": "TestStorePortMemoryStorePreservesCASAndDigestOnlyHistory",
+    "test_matrix": {
+      "PRIMARY": "TestStorePortMemoryStorePreservesCASAndDigestOnlyHistory"
+    },
+    "red": "an endpoint revision is admitted out of sequence or without an expected prior revision, a duplicate revision or challenge event is silently accepted, a challenge write against a changed canonical digest succeeds instead of returning a stale-CAS code, or a challenge's event history can shrink or be rewritten",
+    "green": "`MemoryStore.PutEndpointRevision` enforces a strictly sequential `SupersedesRevision` chain and returns `StoreDuplicateCode` for a repeated revision or `StoreStaleCASCode` for a mismatched expected revision; `PutChallenge` requires the caller's expected `CanonicalDigest` for every update after the first write and refuses any update whose event history is shorter than or diverges from the stored one; `CodeOf` exposes the stable `StoreErrorCode` for every refusal",
+    "refactor": "`MemoryStore` stays a kernel-pure reference implementation of `Store`, distinct from the older `EndpointRevision`/`VerificationChallenge` vocabulary `PERSIST-CONTACT-001` also persists, so both can evolve independently until one is retired",
+    "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
+    "retired": false,
+    "done": true
+  },
+  {
     "id": "CONTRACT-ARCHIVE-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -8029,7 +8083,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Talent models](data/models/talent-experience-cases.md), [identity resolution](specs/identity-resolution-and-entity-linkage.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CRM-002",
@@ -8191,7 +8245,7 @@
     "refactor": "all channel adapters invoke one capability/governance entitlement contract rather than duplicating feature flags",
     "refs": "[pilot entitlement](#tenant-lifecycle-placement-sandbox-and-commercial-pilot), [endpoint parity](specs/http-grpc-endpoint-contract.md), [user flows](user-flows/README.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CRYPTO-001",
@@ -8314,7 +8368,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger](specs/transaction-ledger-reconciliation-and-repair.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CUSTOM-005",
@@ -8340,7 +8394,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Capability lifecycle](specs/capability-registry-and-lifecycle.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CUSTOM-006",
@@ -8364,7 +8418,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[DLP](specs/data-classification-and-dlp.md), [intelligence plane](specs/platform-plane-model.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CUSTOM-007",
@@ -9349,6 +9403,52 @@
     "refs": "[artifact storage](specs/platform-responsibility-boundaries.md), [records](specs/records-management-and-disposition.md), [recovery](specs/platform-responsibility-boundaries.md)",
     "retired": false,
     "done": false
+  },
+  {
+    "id": "DATA-024",
+    "phase": "GATE_A",
+    "model": "TERRA",
+    "title": "Seed the deterministic HarborCare demo workforce without perturbing the frozen conformance corpus",
+    "section": "11. Authoritative data plane, ledger, projections and artifacts",
+    "depends": [
+      "DATA-001"
+    ],
+    "test": "TestHarborCarePlanIsCoherentAndPhotoCoverageIsExact",
+    "test_matrix": {
+      "GOLDEN": "TestHarborCarePlanIsCoherentAndPhotoCoverageIsExact",
+      "PRIMARY": "TestHarborCarePlanIsCoherentAndPhotoCoverageIsExact",
+      "PROPERTY": "TestHarborCareOrganizationHierarchyHasValidParents"
+    },
+    "red": "the sixty-worker HarborCare plan omits a declared photo for a worker inside `PhotoCount`, duplicates a worker or org-unit key, or an org unit's parent reference does not resolve inside the plan's own hierarchy",
+    "green": "`demoworkforce.Company`/`Plan` produce a deterministic sixty-worker plan under the fixed `harborcare-demo` company key and namespace UUID with exact photo coverage and a valid org-unit parent tree; `organization.go`/`seed.go` insert that plan's legal entity, org units and workers into the tenant-scoped tables through `internal/data/tenancy` and `internal/data/workforce` idempotently, reporting planned/inserted/skipped counts, and never touch the four-worker conformance corpus other Promotion regression vectors depend on",
+    "refactor": "keep demo population generation and the conformance corpus on separate namespaces so expanding the demo can never move a promotion regression digest",
+    "refs": "[Promotion reference](reference-workflows/promote-into-management.md), [tenant partitioning](specs/platform-architecture-catalog.md)",
+    "retired": false,
+    "done": true
+  },
+  {
+    "id": "DATA-025",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Persist and read journey-created workers alongside the frozen conformance corpus",
+    "section": "11. Authoritative data plane, ledger, projections and artifacts",
+    "depends": [
+      "DATA-024",
+      "PEOPLE-001"
+    ],
+    "test": "TestStoreCreateAndGetRoundTripEveryColumn",
+    "test_matrix": {
+      "FAULT": "TestFactsReportAbsenceRatherThanFailing",
+      "MUTATION": "TestStoreCreateRefusesADuplicateKey",
+      "PRIMARY": "TestStoreCreateAndGetRoundTripEveryColumn",
+      "SECURITY": "TestStoreIsTenantIsolated"
+    },
+    "red": "`journey_worker` (migration `00023`) accepts a duplicate worker key or id, a stored row is mutated after insert, a cross-tenant row is readable, or `Facts` returns an error instead of `Exists=false` for a worker the created population does not hold",
+    "green": "`Store.Create` is append-only and tenant-isolated through `internal/data/tenancy`, refusing a duplicate key with a typed `ErrDuplicate`; `Facts` projects a stored row onto `internal/domains/people`'s fixed worker field mask; `NewLayeredWorkerFacts` composes the frozen four-worker conformance corpus with this store so the corpus answers first, a corpus failure propagates rather than being swallowed, and a genuine gap falls through to the database only when one is wired",
+    "refactor": "keep one governed read path for created workers so no second reader can disclose a field the corpus reader would withhold",
+    "refs": "[Promotion reference](reference-workflows/promote-into-management.md), [tenant partitioning](specs/platform-architecture-catalog.md)",
+    "retired": false,
+    "done": true
   },
   {
     "id": "DATAOPS-001",
@@ -16023,7 +16123,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "JOBARCH-003",
@@ -16052,7 +16152,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "KNOW-001",
@@ -20443,7 +20543,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "LOCATION-003",
@@ -20472,7 +20572,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "MAIL-001",
@@ -25176,7 +25276,7 @@
     "refactor": "ownership boundary with 00030 stays explicit in the migration header, mirroring 00030's own companion-schema note, so a future reader does not conflate quarantined bytes with committed custody",
     "refs": "`internal/domains/asset`, `internal/domains/asset/quarantine` (already-covered boundary), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-ATTESTATION-001",
@@ -25260,7 +25360,7 @@
     "refactor": "business meaning stays on the append-only revision chain, never on the logical `plan`/`plan_year` identity, matching the domain's own doc comment",
     "refs": "`internal/domains/benefits`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-BUDGET-001",
@@ -25314,7 +25414,7 @@
     "refactor": "the migration adds only the `profile.go` generation; the older `preference.go`/`target.go`/`objective.go` structs are dead code to remove in a follow-up, not to persist twice",
     "refs": "`internal/domains/career` (`profile.go`), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-CBA-001",
@@ -25341,7 +25441,7 @@
     "refactor": "the pinned bitemporal read the kernel evaluates stays a pure function over these rows; no evaluation logic moves into the database",
     "refs": "`internal/domains/cba`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-COMMERCIAL-001",
@@ -25369,7 +25469,7 @@
     "refactor": "commercial and partnerapp stay one table set because a partner installation is itself a product-boundary grant governed by the same entitlement logic as a commercial contract; split them if partner installations ever need a lifecycle independent of any contract",
     "refs": "`internal/commercial`, `internal/domains/partnerapp`, `migrations/00021_governance_authz_legal_evidence.sql` (the `jurisdiction` no-tenant-column precedent), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-CONTACT-001",
@@ -25396,7 +25496,7 @@
     "refactor": "the older `endpoint.go`/`challenge.go` generation is not persisted by this entry; retiring it in the kernel is a separate, later cleanup",
     "refs": "`internal/domains/contact` (`revision.go`), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-CONTENTREGISTRY-001",
@@ -25424,7 +25524,7 @@
     "refactor": "industry-pack and knowledge stay one table set only because both are versioned content/config registries feeding the same product surface; split them the moment either grows a dependency the other does not share",
     "refs": "`internal/domains/industrypack`, `internal/domains/knowledge`, `migrations/00021_governance_authz_legal_evidence.sql` (the `jurisdiction` no-tenant-column precedent), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-CRM-001",
@@ -25451,7 +25551,7 @@
     "refactor": "consent and removal-policy stay structured `jsonb`, not free text, so a later consent-audit query does not need to parse prose",
     "refs": "`internal/domains/crm`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-CUSTOM-001",
@@ -25478,7 +25578,7 @@
     "refactor": "per-field classification/residency/retention enforcement (`FieldPolicy`/`PolicyProjection`) stays a kernel-side authorization decision made before a write reaches this table, never a database trigger",
     "refs": "`internal/domains/custom`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-EMPLOYEERELATIONS-001",
@@ -25505,7 +25605,7 @@
     "refactor": "keep the six tables sharing one lineage envelope column-for-column so a shared Go repository type can serve all six without per-table special-casing",
     "refs": "`internal/domains/employeerelations`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-EQUITY-001",
@@ -25532,7 +25632,7 @@
     "refactor": "allocation, broker calls and document generation stay outside this table set, matching the kernel's own stated boundary",
     "refs": "`internal/domains/equity`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-FX-001",
@@ -25559,7 +25659,7 @@
     "refactor": "rate-source and quote stay two tables, not one, so a source's identity is stable while its quotes accumulate without limit",
     "refs": "`internal/domains/fx`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-HRCASE-001",
@@ -25586,7 +25686,7 @@
     "refactor": "\"current state\" is read as the row with the highest `event_sequence` for a `case_id`, matching the `issuer_profile`/`issuer_state_event` convention, never a mutable status column",
     "refs": "`internal/domains/hrcase`, `migrations/00038_issuer_registry.sql` (the append-only convention this table follows), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-IDENTITYPRIVACY-001",
@@ -25615,7 +25715,7 @@
     "refactor": "the three domains share one table set only because each governs identity or privacy evidence under a restricted-disclosure model; correlation across `proofing_session`, `pseudonym_identity` and `data_subject_request` stays a cross-table query, never a shared foreign key, since the kernels themselves declare no relationship between them",
     "refs": "`internal/domains/proofing`, `internal/domains/pseudonym`, `internal/domains/privacy/dsr`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-INCENTIVE-001",
@@ -25642,7 +25742,7 @@
     "refactor": "payment authority stays outside this table set; an `award_calculation.state` of e.g. `CALCULATED` is not itself a payment instruction",
     "refs": "`internal/domains/incentive`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-JOBARCH-001",
@@ -25750,7 +25850,7 @@
     "refactor": "the frozen-snapshot boundary (`frozen`/`frozen_at`) is enforced by application-level compare-and-set on write, not a database trigger, matching the kernel's own immutability contract",
     "refs": "`internal/domains/merit`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-MOBILITY-001",
@@ -25777,7 +25877,7 @@
     "refactor": "relocation-package and obligation detail stay `jsonb` inside `mobility_plan` for now; split into dedicated child tables only once a consumer needs to query across plans by relocation milestone",
     "refs": "`internal/domains/mobility`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-PAYGL-001",
@@ -25832,7 +25932,7 @@
     "refactor": "payroll calculation itself stays out of this table set; these two tables are inputs, not calculated output",
     "refs": "`internal/domains/payinput`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-PAYMETHOD-001",
@@ -25860,7 +25960,7 @@
     "refactor": "paymethod and settlement stay one table set only because settlement's `Rail` type is `paymethod`'s own `SettlementRail` and a payment instruction always resolves to a `paymethod_destination`; split them if settlement ever gains a rail-independent instruction shape",
     "refs": "`internal/domains/paymethod`, `internal/domains/settlement`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-PAYROLL-001",
@@ -25914,7 +26014,7 @@
     "refactor": "a cycle stays an immutable revision end to end; no lifecycle operation in this table set updates a `performance_cycle` row in place",
     "refs": "`internal/domains/performance`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-PLANNING-001",
@@ -25942,7 +26042,7 @@
     "refactor": "`authority_disclaimer` is a required, non-empty column precisely because a scenario row must never be mistaken for authoritative state by a downstream reader",
     "refs": "`internal/domains/demand`, `internal/domains/scenario`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-POSITION-001",
@@ -25996,7 +26096,7 @@
     "refactor": "keep this table set's shape identical column-for-column to `PERSIST-EMPLOYEERELATIONS-001`'s lineage envelope so one shared Go repository type serves both compartmentalized-evidence domains",
     "refs": "`internal/domains/safety`, `internal/domains/employeerelations` (the shared lineage-envelope pattern), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-SCHEDULING-001",
@@ -26025,7 +26125,7 @@
     "refactor": "keep these three domains in one table set only because none of them import each other and each contributes at most two tables; split into separate table sets the moment any one of them grows a second dependent aggregate",
     "refs": "`internal/domains/appointment`, `internal/domains/availability`, `internal/domains/clock`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-SKILL-001",
@@ -26052,7 +26152,7 @@
     "refactor": "proficiency resolution stays a pure read over `worker_skill_evidence` filtered by `verified`/`disputed`; no resolution logic moves into the database",
     "refs": "`internal/domains/skill`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-SUBSCRIPTION-001",
@@ -26079,7 +26179,7 @@
     "refactor": "payload delivery and provider calls stay entirely outside this table set, matching the kernel's stated boundary",
     "refs": "`internal/domains/subscription`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-SUCCESSION-001",
@@ -26106,7 +26206,7 @@
     "refactor": "`visibility` stays a required column on `succession_slate` since candidate names are the most access-sensitive field in this table set",
     "refs": "`internal/domains/succession`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-SURVEY-001",
@@ -26133,7 +26233,7 @@
     "refactor": "cohort-safe aggregation (the `Aggregate` read model) stays a pure read requiring `count \u003e= anonymity_threshold`; that guard is enforced by the read port, not a database view, so it cannot be bypassed by a direct query using an elevated role",
     "refs": "`internal/domains/survey`, `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-TAXPROFILE-001",
@@ -26160,7 +26260,7 @@
     "refactor": "`worker_ref` stays a soft reference to the already-durable `worker` table (00011); no foreign key is added here since `worker`'s natural key is `(tenant_id, entity_id)` on a different identity spine than this table's surrogate `worker_ref`",
     "refs": "`internal/domains/taxprofile`, `migrations/00011_people_aggregates.sql` (the `worker` table this entry references), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERSIST-TENANT-001",
@@ -26216,7 +26316,7 @@
     "refactor": "`internal/trust/session` stays entirely out of scope, since `trust_session`/`trust_session_pointer`/`trust_session_refresh_generation`/`trust_session_evidence` (00041) already cover it in full; this entry only fills the stepup/jit/accessreview gap the same trust package leaves open",
     "refs": "`internal/trust/stepup`, `internal/trust/jit`, `internal/trust/accessreview`, `migrations/00021_governance_authz_legal_evidence.sql`, `migrations/00041_session_store.sql` (already-covered boundary), `definitions/storage/storage-disposition.yaml`",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PHASE-001",
@@ -27355,6 +27455,97 @@
     "done": false
   },
   {
+    "id": "PROMO-010",
+    "phase": "GATE_A",
+    "model": "SOL_HIGH",
+    "title": "Pin a Promotion execution behind the commercial entitlement snapshot",
+    "section": "5. Phase 1 People, organization, position, compensation and budget domains",
+    "depends": [
+      "COMM-001"
+    ],
+    "test": "TestPromotionEntitlementGatePinsAllowedExecutionAndRefusesOutOfScope",
+    "test_matrix": {
+      "GOLDEN": "TestPromotionEntitlementGatePinsAllowedExecutionAndRefusesOutOfScope",
+      "PRIMARY": "TestPromotionEntitlementGatePinsAllowedExecutionAndRefusesOutOfScope",
+      "SECURITY": "TestPromotionEntitlementGateRefusesSuspendedAndExpiredSnapshots"
+    },
+    "red": "a Promotion capability outside the tenant's resolved entitlement snapshot is admitted, a suspended or expired snapshot still admits, or the decision is re-resolved after the execution was already accepted so a later snapshot change silently alters an in-flight run",
+    "green": "`PromotionEntitlementGate` wraps `internal/commercial`'s channel-neutral resolver (`COMM-001`) with a Promotion-specific admission adapter; `Admit` pins an immutable `PromotionEntitlementBinding` fingerprint to the accepted execution rather than re-resolving after amendment, and a denial projects into the shared transport envelope with the fingerprint as evidence but no contract detail",
+    "refactor": "every Promotion initiation and resume adapter shares the one `ReasonPromotionEntitlementRequired` refusal and rule ref instead of inventing a second entitlement policy",
+    "refs": "[Commercial entitlement](plan.md#312-portfolio-discipline), [promotion reference](reference-workflows/promote-into-management.md)",
+    "retired": false,
+    "done": true
+  },
+  {
+    "id": "PROMO-011",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Require step-up or a distinct additional approval before a Promotion expands sensitive access",
+    "section": "5. Phase 1 People, organization, position, compensation and budget domains",
+    "depends": [
+      "TRUST-004",
+      "AUTHN-005",
+      "PROMO-005"
+    ],
+    "test": "TestPromotionExecutionRequiresStepUpOrAdditionalApprovalForSensitiveAccess",
+    "test_matrix": {
+      "PRIMARY": "TestPromotionExecutionRequiresStepUpOrAdditionalApprovalForSensitiveAccess",
+      "SECURITY": "TestPromotionExecutionDoesNotRequireSensitiveAccessControlForUnchangedScopes"
+    },
+    "red": "a promotion whose proposed access scopes add `direct_reports` or `compensation.direct_reports.read` beyond the worker's existing scopes executes without a satisfied step-up obligation or a second, proposal-bound approval from a distinct principal; or an unrelated promotion that changes no access scope is wrongly blocked by the same control",
+    "green": "`AdmitPromotionExecution` detects a sensitive-access expansion and refuses execution with `ReasonPromotionSensitiveAccessStepUpOrApproval` unless satisfied by a `TRUST-004` step-up obligation or one distinct additional approval bound to the same proposal digest and requirement ref from a principal other than the one who approved the base promotion; a promotion whose scopes are unchanged never triggers the control",
+    "refactor": "keep the access-expansion detection and the step-up/approval satisfaction check as one pure gate the execution driver calls, independent from the currency/authority recheck `APPROVAL-005` already performs",
+    "refs": "[Step-up obligations](specs/organization-scope-and-authz.md), [promotion reference](reference-workflows/promote-into-management.md)",
+    "retired": false,
+    "done": true
+  },
+  {
+    "id": "PROMO-012",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Resume a fired Promotion timer into the intent it belongs to through the ledger correlation index",
+    "section": "5. Phase 1 People, organization, position, compensation and budget domains",
+    "depends": [
+      "WF-RUN-004",
+      "SVC-004",
+      "INTENT-007"
+    ],
+    "test": "TestTodo_PROMO_EXEC_TIMERDISPATCH_TimerDispatchDisposition",
+    "test_matrix": {
+      "INTEGRATION": "TestTodo_PROMO_EXEC_TIMERDISPATCH_WithResumeTenant",
+      "PRIMARY": "TestTodo_PROMO_EXEC_TIMERDISPATCH_TimerDispatchDisposition",
+      "SECURITY": "TestTodo_PROMO_EXEC_TIMERDISPATCH_TimerDispatcherRejectsForeignTenant"
+    },
+    "red": "a scheduler work item for a fired WAIT timer cannot be traced back to the intent that started it because the parked workflow instance carries no work item, so the dispatch is dropped, retried forever, misclassified as abandoned, or crosses into another tenant's instance; or `ResumeFiredTimer` proceeds against an instance that is neither `RUNNING` nor `WAITING`",
+    "green": "`pgstore.LoadIntentByCorrelation` resolves the owning intent from `ledger_event.correlation_id` on the intent's own `intent:\u003cid\u003e` stream (the one durable place the correlation is recorded today), and `Cell.ResumeFiredTimer` reconstructs the same approved `StartRequest` `ExecuteIntent` used and resumes the parked WAIT through the executor's durable timer path only when the instance is `RUNNING` or `WAITING`; `internal/application`'s `timerDispatcher`/`timerDispatchDisposition` wire that resolution into `internal/platform/execution/scheduler`'s `Dispatcher`, mapping the result to `DispositionCompleted`/`DispositionRetry`/`DispositionAbandoned` and refusing a work item whose tenant does not match the dispatch context",
+    "refactor": "keep correlation-based intent lookup additive to `intent_instance_context` rather than a second place the correlation is written",
+    "refs": "[Durable workflow timers](#8-durable-workflow-runtime-recovery-and-intervention), [scheduler](specs/platform-architecture-catalog.md)",
+    "retired": false,
+    "done": true
+  },
+  {
+    "id": "PROMO-013",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Prove the flat, digest-validated Promotion commit command",
+    "section": "5. Phase 1 People, organization, position, compensation and budget domains",
+    "depends": [
+      "PROMO-005"
+    ],
+    "test": "TestCommandValidatesTheBoundedPromotion",
+    "test_matrix": {
+      "CONFORMANCE": "TestCommandRefusesAPlanThatDropsAParticipant",
+      "PRIMARY": "TestCommandValidatesTheBoundedPromotion",
+      "SECURITY": "TestCommandRefusesMissingApprovalAndManagerCycle"
+    },
+    "red": "the command is missing a required identifier or expected-baseline digest, carries fewer than two distinct approval decision ids or no task submission id, names the worker as its own manager or an existing manager ancestor, presents a plan participant set that drops or substitutes one of the four fixed local writers, or declares a duplicate or incomplete external effect",
+    "green": "`commit.Command.Validate` fails closed on every required field and expected digest, requires two distinct `ApprovalDecisionIDs` and at least one `TaskSubmissionIDs` entry, refuses a manager-relationship cycle, and `ValidateParticipants` proves the plan materializes exactly `people.assignment`, `position.occupancy`, `rewards.compensation` and `rewards.budget_reservation`; `promotionterminal.BindResolution` binds the same command to an admitted, digest-verified `TransactionPlan` resolution and `promotioncommit`'s data-plane writer persists it inside the caller-owned transaction",
+    "refactor": "business validation stays in `internal/domains/promotion/commit`; `internal/platform/execution/promotionterminal` and `internal/data/promotioncommit` remain storage/terminal-composition adapters that add no new promotion policy",
+    "refs": "[Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [consistency boundary](data/models/kernel-governance-and-evidence.md)",
+    "retired": false,
+    "done": true
+  },
+  {
     "id": "PROOF-001",
     "phase": "PHASE_3",
     "model": "SOL_HIGH",
@@ -27412,6 +27603,27 @@
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
     "done": false
+  },
+  {
+    "id": "PROOF-003",
+    "phase": "PHASE_4",
+    "model": "SOL_HIGH",
+    "title": "Persist proofing revisions behind a typed Repository port with per-tenant CAS",
+    "section": "51. HCM semantic engine ownership expansion",
+    "depends": [
+      "PROOF-001",
+      "PERSIST-IDENTITYPRIVACY-001"
+    ],
+    "test": "TestMemoryRepositoryUsesTypedRevisionErrors",
+    "test_matrix": {
+      "PRIMARY": "TestMemoryRepositoryUsesTypedRevisionErrors"
+    },
+    "red": "a session or work-authorization revision saves without a matching expected revision, a duplicate revision number is accepted, a failed compare-and-swap reports an untyped error a caller cannot branch on, or two tenants' revisions are addressable through the same key",
+    "green": "`Repository.SaveSession`/`SaveAuthorization` require the caller's expected current revision, `MemoryRepository` refuses a duplicate revision with `StoreDuplicateCode` and a revision mismatch with `StoreStaleCASCode` carrying typed `Expected`/`Actual` revision numbers, and every lookup is scoped by the caller-supplied tenant id",
+    "refactor": "`MemoryRepository` mirrors the PostgreSQL adapter's CAS rules without opening a database, so domain and conformance tests can exercise the same typed error taxonomy the production `Repository` implementation returns",
+    "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
+    "retired": false,
+    "done": true
   },
   {
     "id": "PROTO-001",
@@ -28494,7 +28706,7 @@
     "refactor": "one reference-data service owns release mechanics while each semantic dataset retains a qualified domain/legal owner",
     "refs": "[reference data boundary](specs/platform-responsibility-boundaries.md), [configuration publication](specs/platform-foundation-gap-closure.md), [model registry](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "REPAIR-001",
@@ -29136,7 +29348,7 @@
     "refactor": "no scripting runtime or public/stored CEL type becomes part of the rules contract",
     "refs": "[Business rules](specs/human-work-forms-and-rules.md), [RULE step](workflows/_engine/step-types.md#11-rule)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RULE-002",
@@ -29854,7 +30066,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-03](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST SP 800-63-4](https://pages.nist.gov/800-63-4/), [FIDO passkeys](https://fidoalliance.org/passkeys/). Maps to NIST 800-53 IA-2(1)/IA-2(2); ASVS V2.1/V2.8",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-002",
@@ -29904,7 +30116,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-05](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/Projects/risk-management/sp800-53-controls/downloads), [AICPA SOC 2 TSC](https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2/). Maps to NIST 800-53 AC-2(j)/AC-6(7); SOC 2 CC6.1",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-004",
@@ -29929,7 +30141,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-06/E-07](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST key-management guidance](https://csrc.nist.gov/projects/key-management/key-management-guidelines), [NIST SP 800-57 Part 1](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-57pt1r5.pdf). Maps to NIST 800-53 SC-12/SC-13; FIPS 140-3",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-005",
@@ -30056,7 +30268,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-13](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [ISO/IEC 27018:2025](https://www.iso.org/standard/27018?browse=tc). Maps to NIST 800-53 SC-28/MP-6; ASVS V8",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-010",
@@ -30132,7 +30344,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §2, F-01](research/security-best-practices-2026.md#2-financial-applications-and-payment-touching-systems), [PCI DSS v4.0.1](https://www.pcisecuritystandards.org/standards/pci-dss/), [Nacha data-security rule](https://www.nacha.org/rules/supplementing-data-security-requirements), [IRS Publication 1075](https://www.irs.gov/privacy-disclosure/safeguards-program). Maps to PCI DSS v4.0.1 Req. 1/12.5; IRS Pub. 1075 §2",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-013",
@@ -30158,7 +30370,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §2, F-05/F-06](research/security-best-practices-2026.md#2-financial-applications-and-payment-touching-systems), [FFIEC authentication guidance](https://www.ffiec.gov/news/press-releases/2021/pr-08-11), [Nacha fraud rules](https://www.nacha.org/rules/supplementing-fraud-detection-standards-web-debits). Maps to NACHA WEB debit account-validation rule; PCAOB AS 2201",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-014",
@@ -30183,7 +30395,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §2, F-02/F-03](research/security-best-practices-2026.md#2-financial-applications-and-payment-touching-systems), [Nacha account validation rule](https://www.nacha.org/rules/supplementing-fraud-detection-standards-web-debits), [Nacha supplemental data security](https://www.nacha.org/rules/supplementing-data-security-requirements). Maps to NACHA supplemental data-security rule; NACHA account-validation rule",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-015",
@@ -30207,7 +30419,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §2, F-07](research/security-best-practices-2026.md#2-financial-applications-and-payment-touching-systems), [IRS Topic 758](https://www.irs.gov/taxtopics/tc758). Maps to IRS fractions-of-cents adjustment (Topic 758); ASVS V1.5",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-016",
@@ -30284,7 +30496,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-01](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [FedRAMP Rev. 5 package guidance](https://www.fedramp.gov/2026/agencies/use/packages/rev5/), [NIST SP 800-53 control catalog](https://csrc.nist.gov/Projects/risk-management/sp800-53-controls/downloads). Maps to FedRAMP Rev. 5 SSP/POA\u0026M baseline",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-019",
@@ -30309,7 +30521,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-02](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [FedRAMP 20x](https://www.fedramp.gov/20x/), [FedRAMP 2026 timeline](https://www.fedramp.gov/2026/timeline/). Maps to FedRAMP 20x Class A/B/C transition milestones",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-020",
@@ -30334,7 +30546,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-03/G-06/G-08](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [IRS Pub. 1075 encryption](https://www.irs.gov/privacy-disclosure/encryption-requirements-of-publication-1075), [CJIS Security Policy v6.0](https://le.fbi.gov/file-repository/cjis_security_policy_v6-0_20241227.pdf), [NIST SP 800-171 Rev. 3](https://csrc.nist.gov/Pubs/sp/800/171/r3/final). Maps to IRS Pub. 1075 §4/§9; CJIS Security Policy Area 5; NIST 800-171 Rev. 3 3.1/3.13",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-021",
@@ -30359,7 +30571,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-09](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [32 CFR 170.1](https://www.law.cornell.edu/cfr/text/32/170.1), [NIST SP 800-171 Rev. 3](https://csrc.nist.gov/Pubs/sp/800/171/r3/final). Maps to 32 CFR 170.14 CMMC Level 1-3; NIST 800-171 Rev. 3",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-022",
@@ -30384,7 +30596,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-07](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [CMS regulations and MARS-E](https://www.cms.gov/marketplace/resources/regulations-guidance), [CMS ARS 5.1](https://securitytest.cms.gov/policy-guidance/cms-acceptable-risk-safeguards-ars). Maps to MARS-E v2.2; CMS ARS 5.1",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-023",
@@ -30434,7 +30646,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-11/G-17](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [GovRAMP government adoption](https://www.stateramp.org/governments/adopting-for-government/), [Access Board Section 508](https://www.access-board.gov/ict/about/). Maps to Section 508 ICT Baseline; GovRAMP procurement evidence set",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SELECT-001",
@@ -33462,6 +33674,28 @@
     "retired": false,
     "done": true,
     "evidence": "`TestToolchainSupplyChainManifestRejectsUntrackedToolInput` plus golden/property/security/conformance/mutation tests in `tools/quality/toolinventory` (`definitions/toolchain/tool-inventory.yaml` from gen/TOOLS.lock, go.mod tool directives, package.json/package-lock.json, .husky; drift test); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/quality/toolinventory/...` on windows/arm64 (Go 1.26.3)"
+  },
+  {
+    "id": "TOOL-026",
+    "phase": "GATE_A",
+    "model": "TERRA",
+    "title": "Reclaim disk from abandoned embedded-PostgreSQL runtime directories after a killed test process",
+    "section": "2. Go-only repository, toolchain and contract generation",
+    "depends": [
+      "TOOL-014"
+    ],
+    "test": "TestSweepStaleRuntimesRemovesOnlyOldDeadRuntimes",
+    "test_matrix": {
+      "FAULT": "TestSweepStaleRuntimesToleratesMissingBase",
+      "GOLDEN": "TestSweepStaleRuntimesRemovesOnlyOldDeadRuntimes",
+      "PRIMARY": "TestSweepStaleRuntimesRemovesOnlyOldDeadRuntimes"
+    },
+    "red": "a `hcmnext-pg-*` runtime directory left behind by a killed test process (a `go test` timeout or an interrupted CI lane) is never removed, or a directory whose `data/postmaster.pid` still names a live process is deleted out from under a running server",
+    "green": "`sweepStaleRuntimes` runs before each embedded-PostgreSQL server starts and removes sibling `hcmnext-pg-*` directories older than the two-hour `staleRuntimeAge` whose `postmaster.pid` names no still-alive process, verified by `postmasterAlive` parsing the pid file's first line; a directory a live server still holds, or a missing base directory, is left untouched and removal failures are ignored rather than surfaced. Before this fix, orphaned runtime directories from killed processes had accumulated into the thousands and filled the disk",
+    "refactor": "keep the sweep a pre-start side effect of `internal/data/pgtest` rather than a separate maintenance job so every test run self-heals",
+    "refs": "[Environment governance](plan.md#111-environment-and-change-governance), [ephemeral test environments](#2-go-only-repository-toolchain-and-contract-generation)",
+    "retired": false,
+    "done": true
   },
   {
     "id": "TOPOLOGY-001",
@@ -42566,6 +42800,32 @@
     "evidence": "`TestTodo_WF_RUN_032` (typed `parked_continuation_refs` and `work_items` lists cross-checked against the stored WorkItem), `TestTodo_WF_RUN_032_Golden` (protojson field names; neither list carries the other's fields), `TestTodo_WF_RUN_032_Conformance` (protoreflect descriptor check of field numbers, kinds and message types) in `test/bootstrap`; `ExecutionReceipt.parked_continuations` kept as a deprecated field for compatibility; `go test -count=1 ./test/bootstrap/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
+    "id": "WF-RUN-033",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Address re-entrant WAIT-node activations by attempt on a plan that declares a cycle",
+    "section": "8. Durable workflow runtime, recovery and intervention",
+    "depends": [
+      "WF-RUN-004",
+      "WF-RUN-024",
+      "WF-RUN-025"
+    ],
+    "test": "TestTimerIDForAttempt_QualifiesLaterActivationsOnly",
+    "test_matrix": {
+      "FAULT": "TestNextAttemptForNumbersARevisitAfterThePriorAttempt",
+      "INTEGRATION": "TestWaitAttemptNamesTheContinuationActivation",
+      "MUTATION": "TestHighestAttemptAddressesTheOpenActivation",
+      "PRIMARY": "TestTimerIDForAttempt_QualifiesLaterActivationsOnly",
+      "PROPERTY": "TestReadyWorkID_IsDerivedPerNodeAttempt"
+    },
+    "red": "a workflow node revisited by a plan that declares a cycle wakes, claims, or resolves its prior activation's durable timer or open work item instead of its own, because the timer key, ready-work id or open-attempt lookup addresses the node alone rather than the node's specific activation",
+    "green": "`workflow/timer.TimerKey` scopes a wait requirement's durable key to `\u003crequirement digest\u003e|attempt:\u003cN\u003e` (`workflow_timer` is unique per instance, node and key) and `TimerIDForAttempt`/`KeyRequirementDigest` derive the timer identity and its requirement digest from that key so only a later activation's timer fires for it; `workflow/runtime.nextAttemptFor` activates a revisited successor at attempt `N+1` and carries it on `ContinuationRecord.TargetAttempt`; `workflow/execute.highestAttempt` addresses the open activation in approval completion and in `advanceOnce`'s open-attempt resolution, both gated on the plan declaring a cycle so an acyclic plan pays no extra cost; `platform/execution.waitAttempt` normalizes the continuation's target activation for the timer it schedules, and every `timer.Scheduler` that fires now sets `Attempts: runtime.Store{}` so a fired timer resolves against the correct attempt's state",
+    "refactor": "keep attempt-qualification behind the timer key and continuation record so ordinary acyclic plans never construct or compare an attempt number",
+    "refs": "[Workflow runtime](specs/workflow-runtime.md), [durable workflow timers](#8-durable-workflow-runtime-recovery-and-intervention)",
+    "retired": false,
+    "done": true
+  },
+  {
     "id": "WF-STEP-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -43136,7 +43396,7 @@
     "refactor": "Workflow owns business escalation; Messaging only delivers notices",
     "refs": "[Human work SLA](specs/human-work-forms-and-rules.md), [messaging boundary](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WORK-006",
@@ -43268,6 +43528,28 @@
     "retired": false,
     "done": true,
     "evidence": "`TestTodo_WORK_010`, `TestTodo_WORK_010_Golden`, `TestTodo_WORK_010_Security`, `TestTodo_WORK_010_Mutation` in `internal/humanwork/workitem` (migration `00022_work_item_decision.sql`: append-once `work_item_decision` keyed by (tenant, work item) with the forbid_mutation trigger, registered in `definitions/storage/storage-disposition.yaml`; `RecordDecision` refuses a body whose digest differs from the item's completed output digest, a non-COMPLETED item or a kind mismatch; `steps/approval.Complete` and `steps/task.Submit` record the full typed decision or submission in the completion transaction); `go test -count=1 ./internal/humanwork/... ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "WORK-011",
+    "phase": "GATE_A",
+    "model": "TERRA",
+    "title": "Ingest and content-address employee profile photos for demo and future upload use",
+    "section": "9. Human work, approvals, forms and deterministic business rules",
+    "depends": [],
+    "test": "TestUploadPreservesOriginalAndCreatesSquareProxy",
+    "test_matrix": {
+      "FAULT": "TestReadAllBoundedRejectsOversize",
+      "GOLDEN": "TestUploadPreservesOriginalAndCreatesSquareProxy",
+      "MUTATION": "TestFileStoreIsContentIdempotentAndRefusesOverwrite",
+      "PRIMARY": "TestUploadPreservesOriginalAndCreatesSquareProxy",
+      "SECURITY": "TestUploadRejectsMismatchedMediaTypeAndUnsafeNames"
+    },
+    "red": "an uploaded JPEG/PNG with a mismatched media type or an unsafe filename is accepted, a read exceeds the bounded size limit without refusal, or writing the same photo content twice through `FileStore` overwrites the original",
+    "green": "`profilephoto.Upload` validates media type and filename, computes a content-addressed SHA-256 digest and produces a square JPEG proxy; `FileStore` writes proxies under a public root and originals under a private root, refusing to overwrite existing content so re-ingesting the same photo is a no-op; `cmd/migrate/demo_people.go` is today's only caller, seeding the HarborCare demo population's photos",
+    "refactor": "keep upload validation and file placement behind this package so a future authenticated upload endpoint reuses the same bounded, content-addressed contract instead of re-implementing it",
+    "refs": "[Records boundaries](specs/records-management-and-disposition.md), [human work](specs/human-work-forms-and-rules.md)",
+    "retired": false,
+    "done": true
   },
   {
     "id": "WORKER-LIFE-001",

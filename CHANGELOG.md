@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-06
+
+- `ab184e2` - Added the company metadata stores and migrations 00070-00131 (asset, benefits, career, CBA, commercial, contact, content registry, CRM, custom objects, employee relations, equity, FX, HR case, identity privacy, incentive, merit, mobility, pay input, pay method, performance, planning, safety, scheduling, skill, subscription, succession, survey, tax profile, trust; attestation responses; reference dataset release and adoption), each with a tenant-isolated store package, disposition row and tests; goose statement markers on plpgsql blocks; regenerated model manifests and the re-signed P1A manifest.
+- `64ef19a` - Added the metadata behaviour behind the stores: location normalization and correction, job architecture assignment and publication, custom-object events, capabilities and search, commercial entitlement snapshots, benefit plan years, HR cases, the flat promotion commit command, the canonical byte stream engine and the bounded expression compiler.
+- `08cd05c` - Landed session rotation and revocation fan-out (AUTHN-004/009), the attestation lifecycle (ATTEST-004..008), access lifecycle and drift reconciliation (ACCESS-003/004, ARTIFACT-005), entitlement across channels (CROSS-CONF-002), the reference dataset lifecycle (REFDATA-001, CONFIG-003) and the promotion entitlement and sensitive-access gates.
+- `3bcf4b7` - Workflow and execution follow-ups: continuation target attempts, the configuration promotion step, platform config promotion and the end-to-end tests that exercise them.
+- `ea9067a` - Product workspace, UI component and UX qualification client updates from the front-end session, with their code-style, ESLint and package configuration.
+- Docs commit (this entry) - Ticks 657 -> 759 (registry 1666); twelve backfilled todos for code that had none; four stale checkboxes flipped; every evidence line now carries its go test command in the checked form; storage disposition through 00131; capability-coverage and intent-coverage goldens; table governance policy tools (ALIGN-008..015); coverage inventories.
+
 ## 2026-09-05
 
 - `829e3a9` - Added the durable stores and migrations 00040-00069 the promotion closure needs (reconciliation jobs, session store, position/budget reservations, attestation, payroll run, pay-GL, job architecture, location, tenant placement, balance accumulators, access identity, legal evidence, outbox lease fence, consumer positions, record copy links, replay snapshots, connector operation journals, intent outcome references); `pgtest` now sweeps orphaned embedded-PostgreSQL runtime directories.
