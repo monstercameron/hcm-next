@@ -1,6 +1,7 @@
 package admission
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 )
@@ -94,3 +95,68 @@ func BenchmarkTodo_ADMISSION_001(b *testing.B) {
 		_ = Decide(r, s, Policy{})
 	}
 }
+
+func TestAdmissionContractAndDecisionValidation(t *testing.T) {
+	if Version() != 1 || Explain() == "" {
+		t.Fatalf("contract metadata version=%d explain=%q", Version(), Explain())
+	}
+	valid := Decide(baseRequestForValidation(), baseSnapshotForValidation(), Policy{})
+	if err := valid.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*Decision)
+	}{
+		{"missing id", func(d *Decision) { d.DecisionID = "" }},
+		{"missing tenant", func(d *Decision) { d.TenantID = "" }},
+		{"missing cell", func(d *Decision) { d.CellID = "" }},
+		{"invalid criticality", func(d *Decision) { d.Criticality = "P9" }},
+		{"missing outcome", func(d *Decision) { d.Outcome = "" }},
+		{"missing reason", func(d *Decision) { d.Reason = "" }},
+		{"negative retry", func(d *Decision) { d.RetryAfter = -1 }},
+		{"negative reservation", func(d *Decision) { d.Reservation = -1 }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := valid
+			tc.mutate(&got)
+			if !errors.Is(got.Validate(), ErrInvalidInput) {
+				t.Fatalf("Validate=%v", got.Validate())
+			}
+		})
+	}
+}
+
+func TestAdmissionDecisionSecurityBranches(t *testing.T) {
+	cases := []struct {
+		name   string
+		mutate func(*Request, *Snapshot)
+		want   Outcome
+		reason string
+	}{
+		{"invalid context", func(r *Request, _ *Snapshot) { r.EstimatedCost = 0 }, Reject, "INVALID_CONTEXT"},
+		{"draining", func(_ *Request, s *Snapshot) { s.Draining = true }, Defer, "CELL_DRAINING"},
+		{"p0 quota reservation", func(r *Request, s *Snapshot) { r.Criticality = P0; s.Quota.Consumed = 95 }, Defer, "P0_QUOTA_RESERVED"},
+		{"p1 pressure", func(r *Request, s *Snapshot) { r.Criticality = P1; s.Capacity = 1 }, Degrade, "PRESSURE_OR_NOISY_TENANT"},
+		{"p3 pressure", func(r *Request, s *Snapshot) { r.Criticality = P3; s.Capacity = 1 }, Defer, "PRESSURE_OR_NOISY_TENANT"},
+		{"p4 pressure", func(r *Request, s *Snapshot) { r.Criticality = P4; s.Capacity = 1 }, Reject, "BEST_EFFORT_SHED"},
+		{"retry exhausted", func(r *Request, s *Snapshot) { r.RetryAttempt = 1; s.RetryRemaining = 0 }, Reject, "RETRY_BUDGET_EXHAUSTED"},
+		{"invalid capacity", func(_ *Request, s *Snapshot) { s.Capacity = -1 }, Reject, "INVALID_CAPACITY_RESERVATION"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r, s := base()
+			tc.mutate(&r, &s)
+			got := Decide(r, s, Policy{QueueRetryAfter: 2, DeferRetryAfter: 3, DegradeRetryAfter: 4})
+			if got.Outcome != tc.want || got.Reason != tc.reason {
+				t.Fatalf("decision=%+v", got)
+			}
+			if err := got.Validate(); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func baseRequestForValidation() Request   { r, _ := base(); return r }
+func baseSnapshotForValidation() Snapshot { _, s := base(); return s }

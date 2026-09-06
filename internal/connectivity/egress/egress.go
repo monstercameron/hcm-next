@@ -156,7 +156,10 @@ func (g *Gateway) Do(ctx context.Context, in Request) (Result, error) {
 			return Result{Receipts: receipts}, fmt.Errorf("%w: request: %v", ErrInvalidRequest, err)
 		}
 		req.Header = cloneHeaders(in.Headers)
-		resp, err := (&http.Client{Transport: g.transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}).Do(req)
+		// Use the configured round tripper directly. http.Client parses Location
+		// before returning even when CheckRedirect asks for the last response,
+		// which would bypass this gateway's own per-hop redirect classification.
+		resp, err := g.transport.RoundTrip(req)
 		if err != nil {
 			return Result{Receipts: receipts}, err
 		}

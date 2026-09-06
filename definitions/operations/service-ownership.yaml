@@ -32,6 +32,19 @@ ownership:
     verified_at: "2026-09-03T00:00:00Z"
     expires_at: "2026-12-31T23:59:59Z"
 
+  - id: scheduler
+    kind: SERVICE
+    version: "v1"
+    primary_owner: workflow-runtime
+    backup_owner: platform-foundation
+    tier: TIER_0
+    slo: "99.9% monthly availability; leased work p95 <= 1m"
+    escalation: "page workflow-runtime; backup platform-foundation"
+    fallback: QUEUE
+    evidence_ref: "runbook://scheduler/readiness/v1"
+    verified_at: "2026-09-03T00:00:00Z"
+    expires_at: "2026-12-31T23:59:59Z"
+
   - id: projector
     kind: SERVICE
     version: "v1"

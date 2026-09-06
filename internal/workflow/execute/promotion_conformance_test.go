@@ -146,7 +146,8 @@ func newPromotionFixtureBase(t *testing.T, key string) promotionFixture {
 	start := runtime.StartRequest{
 		TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:" + key,
 		Resolver: resolver, Versions: promotionVersionStore{plan: plan},
-		Proposal:         runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:promotion-start"},
+		Proposal:      runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:promotion-start"},
+		ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedStartFacts(proposal),
 		ExpectedIntentID: intentID, BusinessSubjectRefs: []string{"employment:jane"},
 		ExecutionMode: workflow.ModeExecute, CorrelationID: "corr:" + key, CreatedAt: at,
 	}

@@ -134,6 +134,8 @@ func newExecutionCell(t *testing.T, terminal execute.TerminalWriter) *cell {
 		ExecutionVersions:  execution.Versions,
 		ExecutionCellID:    testCellID,
 		TenantUUID:         func(tenant kernelvalues.TenantId) uuid.UUID { return pgstore.TenantID(string(tenant)) },
+		ExecutionDB:        c.pool,
+		ExecutionFacts:     approvedExecutionFacts{},
 	})
 	if err != nil {
 		t.Fatalf("app.NewCell (execution): %v", err)

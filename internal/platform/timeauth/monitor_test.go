@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
 )
 
@@ -397,4 +398,74 @@ func TestTodo_TIME_001_Security(t *testing.T) {
 			t.Fatalf("errors.Is(%v, ErrTimeUntrusted) = false", err)
 		}
 	})
+}
+
+type fixedSampleClock struct{ sample timeauth.Sample }
+
+func (c fixedSampleClock) Sample() timeauth.Sample { return c.sample }
+
+func TestMonitor_ConstructorAndObservationRefusals(t *testing.T) {
+	if _, err := timeauth.NewMonitor(nil, timeauth.Options{}); !errors.Is(err, timeauth.ErrNilClock) {
+		t.Fatalf("nil clock error = %v", err)
+	}
+	fc := timeauth.NewFakeClock("thresholds", baseTime)
+	for _, opts := range []timeauth.Options{
+		{SoftSkew: time.Second, MaxSkew: 500 * time.Millisecond},
+		{SoftUncertainty: time.Second, MaxUncertainty: 500 * time.Millisecond},
+	} {
+		if _, err := timeauth.NewMonitor(fc, opts); !errors.Is(err, timeauth.ErrInvalidThresholds) {
+			t.Fatalf("invalid thresholds error = %v", err)
+		}
+	}
+	base := values.NewInstant(baseTime)
+	for _, sample := range []timeauth.Sample{{Wall: values.Instant{}}, {Wall: base, SelfReportedHealth: timeauth.Health(99)}, {Wall: base, Uncertainty: -2 * time.Nanosecond}} {
+		m, err := timeauth.NewMonitor(fixedSampleClock{sample}, timeauth.Options{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := m.Observe(); !errors.Is(err, timeauth.ErrInvalidSample) {
+			t.Fatalf("invalid sample error = %v", err)
+		}
+	}
+}
+
+func TestMonitor_RecordsEachReasonAndRequireTrustedBinding(t *testing.T) {
+	fc := timeauth.NewFakeClock("reason-clock", baseTime)
+	m, err := timeauth.NewMonitor(fc, timeauth.Options{SoftSkew: time.Second, MaxSkew: 2 * time.Second, SoftUncertainty: time.Second, MaxUncertainty: 2 * time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Observe(); err != nil {
+		t.Fatal(err)
+	}
+	fc.SetSelfReportedHealth(timeauth.HealthDegraded)
+	fc.SetUncertainty(1500 * time.Millisecond)
+	fc.AdvanceSkewed(-1500*time.Millisecond, 0)
+	ev, err := m.Observe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantReasons := []string{timeauth.ReasonSourceDegraded, timeauth.ReasonUncertaintyElevated, timeauth.ReasonBackwardJump, timeauth.ReasonSkewElevated}
+	for _, want := range wantReasons {
+		found := false
+		for _, got := range ev.Reasons {
+			if got == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("reasons = %v, missing %s", ev.Reasons, want)
+		}
+	}
+	if !ev.HasPrevious || ev.DriftFromMonotonic != -1500*time.Millisecond || !ev.BackwardJump || ev.Health != timeauth.HealthUntrusted {
+		t.Fatalf("evidence = %+v", ev)
+	}
+	fc.SetSelfReportedHealth(timeauth.HealthTrusted)
+	fc.SetUncertainty(0)
+	fc.Advance(2 * time.Second)
+	trusted, err := m.RequireTrusted()
+	if err != nil || !trusted.At.IsSet() || trusted.At != trusted.Evidence.ObservedAt {
+		t.Fatalf("trusted binding = %+v, %v", trusted, err)
+	}
 }

@@ -186,6 +186,9 @@ type Claim struct {
 }
 
 func (r *Register) Claim(id string, now time.Time) (Claim, error) {
+	if r == nil {
+		return Claim{}, fmt.Errorf("%w: nil register", ErrInvalidAssessment)
+	}
 	a, ok := r.assessments[id]
 	if !ok {
 		return Claim{}, fmt.Errorf("%w: unknown assessment %q", ErrInvalidAssessment, id)

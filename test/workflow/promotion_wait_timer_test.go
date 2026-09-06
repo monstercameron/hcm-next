@@ -301,6 +301,7 @@ func TestPromotionWorkflowWaitsOnARealTimerAndCompletesUnderALeaseFence(t *testi
 	start := runtime.StartRequest{
 		TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:promotion-wait-demo-1",
 		Resolver: resolver, Versions: versions, Proposal: binding,
+		ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedStartFacts(proposal),
 		ExpectedIntentID: proposal.IntentID, ExpectedTenant: proposal.Tenant,
 		BusinessSubjectRefs: []string{"employment:promotion-execute-demo-1"},
 		ExecutionMode:       workflow.ModeExecute, CorrelationID: "corr:promotion-wait-demo-1", CreatedAt: at,

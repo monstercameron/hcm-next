@@ -48,7 +48,7 @@ func confirmed(op operation.Operation) operation.Revalidation {
 
 func queued(t *testing.T, j *operation.MemoryJournal, id uuid.UUID) {
 	t.Helper()
-	if _, err := j.Queue(context.Background(), id); err != nil {
+	if _, err := j.Queue(context.Background(), "tenant-promotion", id); err != nil {
 		t.Fatalf("Queue: %v", err)
 	}
 }
@@ -60,7 +60,7 @@ func TestTodo_INTG_011(t *testing.T) {
 	if op.State != operation.StatePlanned || op.OperationID != id || len(op.Attempts) != 0 {
 		t.Fatalf("planned journal = %+v", op)
 	}
-	got, err := j.Get(context.Background(), id)
+	got, err := j.Get(context.Background(), "tenant-promotion", id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestTodo_INTG_011_Fault(t *testing.T) {
 	j := newJournal()
 	id := uuid.New()
 	planned(t, j, id, "worker:w-1", 1, operation.OrderingStrict)
-	if _, err := j.Get(context.Background(), uuid.New()); !errors.Is(err, operation.ErrNotFound) {
+	if _, err := j.Get(context.Background(), "tenant-promotion", uuid.New()); !errors.Is(err, operation.ErrNotFound) {
 		t.Fatalf("missing row error = %v", err)
 	}
 }
@@ -105,7 +105,7 @@ func TestTodo_INTG_011_Mutation(t *testing.T) {
 	id := uuid.New()
 	op := planned(t, j, id, "worker:w-1", 1, operation.OrderingStrict)
 	op.MappedPayload[0] = 'X'
-	got, _ := j.Get(context.Background(), id)
+	got, _ := j.Get(context.Background(), "tenant-promotion", id)
 	if string(got.MappedPayload) == string(op.MappedPayload) {
 		t.Fatal("journal exposed mutable payload")
 	}
@@ -119,7 +119,7 @@ func TestTodo_INTG_011_Race(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, _ = j.Get(context.Background(), id)
+			_, _ = j.Get(context.Background(), "tenant-promotion", id)
 			_, _ = j.List(context.Background(), "tenant-promotion")
 		}()
 	}
@@ -137,7 +137,7 @@ func TestTodo_INTG_012(t *testing.T) {
 	id := uuid.New()
 	planned(t, j, id, "worker:w-1", 1, operation.OrderingStrict)
 	queued(t, j, id)
-	lease, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation { return confirmed(op) }})
+	lease, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation { return confirmed(op) }})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,13 +151,13 @@ func TestTodo_INTG_012_Fault(t *testing.T) {
 	id := uuid.New()
 	planned(t, j, id, "worker:w-1", 1, operation.OrderingStrict)
 	queued(t, j, id)
-	_, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation {
+	_, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation {
 		return operation.Revalidation{OperationID: op.OperationID, Requirement: "BLOCK", Explanation: "writer fence is stale"}
 	}})
 	if !errors.Is(err, operation.ErrRevalidationBlocked) {
 		t.Fatalf("lease error = %v", err)
 	}
-	op, _ := j.Get(context.Background(), id)
+	op, _ := j.Get(context.Background(), "tenant-promotion", id)
 	if op.State != operation.StateRejected {
 		t.Fatalf("blocked operation = %s", op.State)
 	}
@@ -167,7 +167,7 @@ func TestTodo_INTG_012_Security(t *testing.T) {
 	id := uuid.New()
 	planned(t, j, id, "worker:w-1", 1, operation.OrderingStrict)
 	queued(t, j, id)
-	_, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation {
+	_, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: func(op operation.Operation) operation.Revalidation {
 		return operation.Revalidation{OperationID: op.OperationID, Confirmed: true, PlanDigest: "old", CurrentPlanDigest: "new"}
 	}})
 	if !errors.Is(err, operation.ErrRevalidationBlocked) {
@@ -191,11 +191,11 @@ func TestTodo_TX_010(t *testing.T) {
 	planned(t, j, second, "worker:w-1", 2, operation.OrderingStrict)
 	queued(t, j, first)
 	queued(t, j, second)
-	_, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: second, WorkerID: "worker-2", At: testNow, Duration: time.Minute, Revalidate: confirmed})
+	_, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: second, WorkerID: "worker-2", At: testNow, Duration: time.Minute, Revalidate: confirmed})
 	if !errors.Is(err, operation.ErrCausalBlocked) {
 		t.Fatalf("overtaking lease = %v", err)
 	}
-	firstLease, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: first, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: confirmed})
+	firstLease, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: first, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: confirmed})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,11 +203,11 @@ func TestTodo_TX_010(t *testing.T) {
 	if _, err := j.Dispatch(context.Background(), firstLease, writer); err != nil {
 		t.Fatal(err)
 	}
-	_, err = j.RecordObservation(context.Background(), operation.Observation{ObservationID: uuid.New(), OperationID: first, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationApplied, ObservedAt: testNow})
+	_, err = j.RecordObservation(context.Background(), operation.Observation{TenantID: "tenant-promotion", ObservationID: uuid.New(), OperationID: first, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationApplied, ObservedAt: testNow})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: second, WorkerID: "worker-2", At: testNow, Duration: time.Minute, Revalidate: confirmed}); err != nil {
+	if _, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: second, WorkerID: "worker-2", At: testNow, Duration: time.Minute, Revalidate: confirmed}); err != nil {
 		t.Fatalf("second operation did not progress after predecessor: %v", err)
 	}
 }
@@ -224,7 +224,7 @@ func TestTodo_TX_010_Race(t *testing.T) {
 		wg.Add(1)
 		go func(id uuid.UUID) {
 			defer wg.Done()
-			_, _ = j.Lease(context.Background(), operation.LeaseRequest{OperationID: id, WorkerID: "worker", At: testNow, Duration: time.Minute, Revalidate: confirmed})
+			_, _ = j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: id, WorkerID: "worker", At: testNow, Duration: time.Minute, Revalidate: confirmed})
 		}(id)
 	}
 	wg.Wait()
@@ -233,7 +233,7 @@ func TestTodo_TX_010_Mutation(t *testing.T) { TestTodo_TX_010(t) }
 
 func leaseFor(t *testing.T, j *operation.MemoryJournal, id uuid.UUID) operation.Lease {
 	t.Helper()
-	lease, err := j.Lease(context.Background(), operation.LeaseRequest{OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: confirmed})
+	lease, err := j.Lease(context.Background(), operation.LeaseRequest{TenantID: "tenant-promotion", OperationID: id, WorkerID: "worker-1", At: testNow, Duration: time.Minute, Revalidate: confirmed})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,11 +296,11 @@ func TestTodo_INTG_014(t *testing.T) {
 	writer.TimeoutAfterSend = true
 	_, _ = j.Dispatch(context.Background(), lease, writer)
 	before := len(writer.Calls())
-	op, _ := j.Get(context.Background(), id)
+	op, _ := j.Get(context.Background(), "tenant-promotion", id)
 	if op.State != operation.StateAmbiguous || op.ResponseClass != operation.ResponseAmbiguous || len(op.Attempts) != 1 {
 		t.Fatalf("ambiguous journal = %+v", op)
 	}
-	resolved, err := j.RecordObservation(context.Background(), operation.Observation{ObservationID: uuid.New(), OperationID: id, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationApplied, ObservedDigest: "sha256:observed", ObservedAt: testNow})
+	resolved, err := j.RecordObservation(context.Background(), operation.Observation{TenantID: "tenant-promotion", ObservationID: uuid.New(), OperationID: id, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationApplied, ObservedDigest: "sha256:observed", ObservedAt: testNow})
 	if err != nil || resolved.State != operation.StateReconciled || resolved.CompletionState != "COMPLETE" {
 		t.Fatalf("resolution = %+v, err=%v", resolved, err)
 	}
@@ -318,7 +318,7 @@ func TestTodo_INTG_014_Fault(t *testing.T) {
 	writer := operation.NewPayrollSync()
 	writer.TimeoutAfterSend = true
 	_, _ = j.Dispatch(context.Background(), lease, writer)
-	op, err := j.RecordObservation(context.Background(), operation.Observation{ObservationID: uuid.New(), OperationID: id, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationUnknown, ObservedAt: testNow})
+	op, err := j.RecordObservation(context.Background(), operation.Observation{TenantID: "tenant-promotion", ObservationID: uuid.New(), OperationID: id, ExternalResourceKey: "worker:w-1", Verdict: operation.ObservationUnknown, ObservedAt: testNow})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -349,18 +349,18 @@ func TestTodo_INTG_016(t *testing.T) {
 	if err == nil {
 		t.Fatal("failed operation unexpectedly succeeded")
 	}
-	preview, err := j.PreviewRedrive(context.Background(), operation.RedriveRequest{OperationID: failedID, CurrentMappingProfileVersion: "payroll-map-v1", CurrentMappedPayloadDigest: "sha256:mapped", CurrentAuthorityPolicyFingerprint: "authz-v1", CurrentWriterFenceEpoch: 1})
+	preview, err := j.PreviewRedrive(context.Background(), operation.RedriveRequest{TenantID: "tenant-promotion", OperationID: failedID, CurrentMappingProfileVersion: "payroll-map-v1", CurrentMappedPayloadDigest: "sha256:mapped", CurrentAuthorityPolicyFingerprint: "authz-v1", CurrentWriterFenceEpoch: 1})
 	if err != nil || !preview.Compatible {
 		t.Fatalf("preview = %+v err=%v", preview, err)
 	}
-	redriven, err := j.Redrive(context.Background(), operation.RedriveRequest{OperationID: failedID, ActorRef: "operator:payroll", At: testNow, CurrentMappingProfileVersion: "payroll-map-v1", CurrentMappedPayloadDigest: "sha256:mapped", CurrentAuthorityPolicyFingerprint: "authz-v1", CurrentWriterFenceEpoch: 1})
+	redriven, err := j.Redrive(context.Background(), operation.RedriveRequest{TenantID: "tenant-promotion", OperationID: failedID, ActorRef: "operator:payroll", At: testNow, CurrentMappingProfileVersion: "payroll-map-v1", CurrentMappedPayloadDigest: "sha256:mapped", CurrentAuthorityPolicyFingerprint: "authz-v1", CurrentWriterFenceEpoch: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if redriven.OperationID != failedID || redriven.RedriveCount != 1 || redriven.State != operation.StateQueued {
 		t.Fatalf("redriven = %+v", redriven)
 	}
-	sibling, _ := j.Get(context.Background(), siblingID)
+	sibling, _ := j.Get(context.Background(), "tenant-promotion", siblingID)
 	if sibling.RedriveCount != 0 || sibling.State != operation.StateQueued {
 		t.Fatalf("sibling changed = %+v", sibling)
 	}
@@ -373,7 +373,7 @@ func TestTodo_INTG_016_Fault(t *testing.T) {
 	queued(t, j, id)
 	lease := leaseFor(t, j, id)
 	_, _ = j.Dispatch(context.Background(), lease, &failWriter{})
-	_, err := j.Redrive(context.Background(), operation.RedriveRequest{OperationID: id, ActorRef: "operator:payroll", CurrentMappingProfileVersion: "changed", CurrentMappedPayloadDigest: "sha256:new", CurrentAuthorityPolicyFingerprint: "authz-v2", CurrentWriterFenceEpoch: 2})
+	_, err := j.Redrive(context.Background(), operation.RedriveRequest{TenantID: "tenant-promotion", OperationID: id, ActorRef: "operator:payroll", CurrentMappingProfileVersion: "changed", CurrentMappedPayloadDigest: "sha256:new", CurrentAuthorityPolicyFingerprint: "authz-v2", CurrentWriterFenceEpoch: 2})
 	if !errors.Is(err, operation.ErrRedriveApprovalRequired) {
 		t.Fatalf("unapproved material redrive = %v", err)
 	}

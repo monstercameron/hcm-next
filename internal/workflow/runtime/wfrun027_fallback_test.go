@@ -20,13 +20,8 @@ import (
 //     exclusively. Its own flags are inert in both directions -- they can
 //     neither admit a start the facts refuse nor refuse one the facts admit.
 //     That is what makes internal/intent/app's migration off them meaningful.
-//  2. A caller that supplies neither port is still resolved from its own
-//     flags. That fallback is the only reason internal/workflow/execute,
-//     internal/workflow/migrate, internal/workflow/replay and test/workflow
-//     still compile against bindings carrying Approved/ApprovalRef, and it is
-//     the remaining work this todo could not finish inside its own file
-//     roots. If that fallback is ever deleted, this test is the one that says
-//     which packages have to be migrated in the same change.
+//  2. A caller that supplies neither port is refused. The deprecated fields
+//     remain source-compatible but are not authorization facts.
 
 // TestTodo_WF_RUN_027_FactsOutrankCallerFlags proves the flags are inert once
 // the ports are supplied, in both directions.
@@ -90,9 +85,8 @@ func TestTodo_WF_RUN_027_FactsOutrankCallerFlags(t *testing.T) {
 	})
 }
 
-// TestTodo_WF_RUN_027_LegacyFallbackSurface pins what the deprecated fallback
-// still does for a caller that supplies neither port, so the residual gap is a
-// stated fact rather than an assumption.
+// TestTodo_WF_RUN_027_LegacyFallbackSurface pins that a caller supplying no
+// durable-facts ports cannot use deprecated fields to admit a start.
 func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 	db := pgtest.New(t)
 	conn := appConn(t, db)
@@ -106,31 +100,29 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 		return req
 	}
 
-	t.Run("caller-asserted approval admits the start and is the receipt's decision id", func(t *testing.T) {
+	t.Run("caller-asserted approval cannot admit the start", func(t *testing.T) {
 		req := legacy("start-key-wfrun027-legacy-1")
 		req.Proposal.Approved = true
 		req.Proposal.ApprovalRef = "approval:caller-asserted"
 
-		var receipt runtime.StartReceipt
-		inTenantTx(t, conn, tenantID, func(tx dbport.Tx) error {
-			var err error
-			receipt, err = runtime.Start(context.Background(), tx, req)
-			return err
+		err := inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
+			_, startErr := runtime.Start(context.Background(), tx, req)
+			return startErr
 		})
-		if len(receipt.ApprovalDecisionIDs) != 1 || receipt.ApprovalDecisionIDs[0] != "approval:caller-asserted" {
-			t.Fatalf("ApprovalDecisionIDs = %v, want the caller's own reference", receipt.ApprovalDecisionIDs)
+		if runtime.CodeOf(err) != runtime.CodeInvalidRecord {
+			t.Fatalf("code = %q, want %q (%v)", runtime.CodeOf(err), runtime.CodeInvalidRecord, err)
 		}
 	})
 
-	t.Run("caller-asserted denial and supersession still refuse", func(t *testing.T) {
+	t.Run("caller-asserted denial and supersession cannot be evaluated", func(t *testing.T) {
 		unapproved := legacy("start-key-wfrun027-legacy-2")
 		unapproved.Proposal.Approved = false
 		err := inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
 			_, startErr := runtime.Start(context.Background(), tx, unapproved)
 			return startErr
 		})
-		if runtime.CodeOf(err) != runtime.CodeUnapprovedProposal {
-			t.Fatalf("code = %q, want %q (%v)", runtime.CodeOf(err), runtime.CodeUnapprovedProposal, err)
+		if runtime.CodeOf(err) != runtime.CodeInvalidRecord {
+			t.Fatalf("code = %q, want %q (%v)", runtime.CodeOf(err), runtime.CodeInvalidRecord, err)
 		}
 
 		superseded := legacy("start-key-wfrun027-legacy-3")
@@ -141,8 +133,8 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 			_, startErr := runtime.Start(context.Background(), tx, superseded)
 			return startErr
 		})
-		if runtime.CodeOf(err) != runtime.CodeSupersededProposal {
-			t.Fatalf("code = %q, want %q (%v)", runtime.CodeOf(err), runtime.CodeSupersededProposal, err)
+		if runtime.CodeOf(err) != runtime.CodeInvalidRecord {
+			t.Fatalf("code = %q, want %q (%v)", runtime.CodeOf(err), runtime.CodeInvalidRecord, err)
 		}
 	})
 

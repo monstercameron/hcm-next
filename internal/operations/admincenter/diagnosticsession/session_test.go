@@ -3,6 +3,7 @@ package diagnosticsession_test
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -125,5 +126,65 @@ func TestADMIN006ScopeAndAllowlistIsolation(t *testing.T) {
 	got.Actions[0] = ds.ActionViewTimeline
 	if s.AllowsResource("tenant-c:incident:123") || s.AllowsAction(ds.ActionViewTimeline) {
 		t.Fatal("Scope returned aliased mutable slices")
+	}
+}
+
+func TestADMIN006UIActionAndSensitiveKeyBoundaries(t *testing.T) {
+	for _, action := range []ds.UIAction{ds.ActionViewSummary, ds.ActionViewTimeline, ds.ActionViewEvidence, ds.ActionCopyRedactedReference} {
+		if !ds.IsSafeUIAction(action) {
+			t.Fatalf("safe action %q rejected", action)
+		}
+	}
+	if ds.IsSafeUIAction("delete") {
+		t.Fatal("unsafe action accepted")
+	}
+	for _, key := range []string{" PASSWORD ", "secret_value", "TOKEN", "authorization", "cookie", "email", "phone", "ssn", "salary", "access_key", "private_key"} {
+		if !ds.SensitiveKey(key) {
+			t.Fatalf("sensitive key %q was not recognized", key)
+		}
+	}
+	if ds.SensitiveKey("status") {
+		t.Fatal("ordinary key classified as sensitive")
+	}
+	input := []any{map[string]any{"status": "ok", "secret": "hidden"}, "plain"}
+	got := ds.Redact(input).([]any)
+	if got[0].(map[string]any)["secret"] != ds.RedactedValue || got[0].(map[string]any)["status"] != "ok" || got[1] != "plain" {
+		t.Fatalf("redacted array=%#v", got)
+	}
+}
+
+func TestADMIN006EvidenceDigestBoundIsEnforced(t *testing.T) {
+	e := ds.PrepareEvidence(ds.Evidence{ID: "large", Payload: map[string]any{"blob": strings.Repeat("x", ds.MaxEvidenceBytes)}})
+	if !e.Redacted || e.Digest != "" {
+		t.Fatalf("oversized evidence controls=%+v", e)
+	}
+	if got := ds.PrepareEvidence(ds.Evidence{ID: "scalar", Payload: "safe"}); got.Digest == "" || !got.Redacted {
+		t.Fatalf("scalar evidence=%+v", got)
+	}
+}
+
+func TestADMIN006NewDefaultsAndBoundaryErrors(t *testing.T) {
+	s, err := ds.New(ds.Scope{TenantID: "tenant", SubjectID: "subject", CaseID: "case", Purpose: ds.PurposeSupport, Resources: []string{"incident:1"}, Actions: []ds.UIAction{ds.ActionViewSummary}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Scope().IssuedAt.IsZero() || !s.Scope().ExpiresAt.After(s.Scope().IssuedAt) {
+		t.Fatalf("defaults not applied: %+v", s.Scope())
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*ds.Scope)
+	}{
+		{"empty resource", func(s *ds.Scope) { s.Resources = []string{" "} }},
+		{"equal expiry", func(s *ds.Scope) { s.ExpiresAt = s.IssuedAt }},
+		{"expired at now", func(s *ds.Scope) { s.ExpiresAt = s.IssuedAt.Add(-time.Nanosecond) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			in := scope()
+			tc.mutate(&in)
+			if _, err := ds.New(in); !errors.Is(err, ds.ErrInvalidScope) {
+				t.Fatalf("New=%v", err)
+			}
+		})
 	}
 }

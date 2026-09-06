@@ -65,7 +65,7 @@ func ParseTraceParent(header string) (Trace, error) {
 		return Trace{}, ErrRejected
 	}
 	// W3C traceparent uses lowercase hexadecimal and only the sampled bit.
-	if parts[1] == strings.Repeat("0", 32) || parts[2] == strings.Repeat("0", 16) || (parts[3][0] != '0' && parts[3][0] != '1') {
+	if parts[1] == strings.Repeat("0", 32) || parts[2] == strings.Repeat("0", 16) || parts[3] != "00" && parts[3] != "01" {
 		return Trace{}, ErrRejected
 	}
 	if _, err := hex.DecodeString(parts[1] + parts[2] + parts[3]); err != nil || strings.ToLower(parts[1]+parts[2]+parts[3]) != parts[1]+parts[2]+parts[3] {

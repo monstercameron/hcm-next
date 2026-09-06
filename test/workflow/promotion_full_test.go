@@ -337,7 +337,8 @@ func newPromotionFullFixture(t *testing.T, key string, behavior promotionFullBeh
 	return promotionFullFixture{t: t, db: db, tenantID: tenantID, key: key, at: at, fireAt: fireAt,
 		proposal: proposal,
 		start: runtime.StartRequest{TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:" + key,
-			Resolver: resolver, Versions: versions, Proposal: binding, ExpectedIntentID: proposal.IntentID,
+			Resolver: resolver, Versions: versions, Proposal: binding,
+			ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedStartFacts(proposal), ExpectedIntentID: proposal.IntentID,
 			ExpectedTenant: proposal.Tenant, BusinessSubjectRefs: []string{"employment:promotion-execute-demo-1"},
 			ExecutionMode: workflow.ModeExecute, CorrelationID: "corr:" + key, CreatedAt: at},
 		plan: plan, versions: versions, terminal: terminal, runner: runner, behavior: behavior}

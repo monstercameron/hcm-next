@@ -102,3 +102,62 @@ func TestTodo_OBS_014_Mutation(t *testing.T) {
 		t.Fatal("raw query route survived boundary mutation")
 	}
 }
+
+func TestBoundary_InstrumentMapsEveryKindAndOutcome(t *testing.T) {
+	for _, tc := range []struct {
+		kind Kind
+		name telemetry.SpanName
+	}{
+		{KindHTTP, telemetry.SpanHTTPServer},
+		{KindGRPC, telemetry.SpanGRPCServer},
+		{KindDatabase, telemetry.SpanDBOperation},
+		{KindWorker, telemetry.SpanJobPartition},
+		{KindProvider, telemetry.SpanProviderCall},
+	} {
+		t.Run(string(tc.kind), func(t *testing.T) {
+			sink := &fakeSink{}
+			got, err := Instrument(context.Background(), sink, Spec{Kind: tc.kind, Operation: "op", Retry: 0}, func(ctx context.Context) (string, error) {
+				if ctx == nil {
+					t.Fatal("callback received nil context")
+				}
+				return "ok", nil
+			})
+			if err != nil || got != "ok" || sink.name != tc.name || sink.span.outcome != telemetry.OutcomeSuccess || sink.span.err != nil {
+				t.Fatalf("success = %q, %v, sink=%+v", got, err, sink)
+			}
+			if sink.attrs["operation"] != "op" {
+				t.Fatalf("attrs = %#v", sink.attrs)
+			}
+			if _, ok := sink.attrs["retry"]; ok {
+				t.Fatalf("retry=false should be omitted: %#v", sink.attrs)
+			}
+		})
+	}
+}
+
+func TestBoundary_SpecValidationRejectsOperationAndPayloadShapes(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		spec Spec
+		want error
+	}{
+		{"unknown kind", Spec{Kind: "other", Operation: "op"}, ErrBoundaryOperation},
+		{"missing operation", Spec{Kind: KindHTTP}, ErrBoundaryOperation},
+		{"negative retry", Spec{Kind: KindHTTP, Operation: "op", Retry: -1}, ErrBoundaryOperation},
+		{"newline", Spec{Kind: KindHTTP, Operation: "op\nsecret"}, ErrBoundaryPayload},
+		{"nul", Spec{Kind: KindHTTP, Operation: "op\x00secret"}, ErrBoundaryPayload},
+		{"query route", Spec{Kind: KindHTTP, Operation: "op", RouteTemplate: "/x?secret=1"}, ErrBoundaryPayload},
+		{"fragment route", Spec{Kind: KindHTTP, Operation: "op", RouteTemplate: "/x#secret"}, ErrBoundaryPayload},
+		{"absolute route", Spec{Kind: KindHTTP, Operation: "op", RouteTemplate: "https://host/x"}, ErrBoundaryPayload},
+		{"operation punctuation", Spec{Kind: KindHTTP, Operation: "get thing"}, ErrBoundaryPayload},
+		{"dependency punctuation", Spec{Kind: KindHTTP, Operation: "get", Dependency: "db?secret"}, ErrBoundaryPayload},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			called := false
+			_, err := Instrument(context.Background(), &fakeSink{}, tc.spec, func(context.Context) (struct{}, error) { called = true; return struct{}{}, nil })
+			if !errors.Is(err, tc.want) || called {
+				t.Fatalf("error=%v called=%v, want %v and no callback", err, called, tc.want)
+			}
+		})
+	}
+}

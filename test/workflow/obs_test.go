@@ -99,6 +99,7 @@ func runPromotionWithTelemetry(
 	start := runtime.StartRequest{
 		TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:" + tenantKey,
 		Resolver: resolver, Versions: versions, Proposal: binding,
+		ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedStartFacts(proposal),
 		ExpectedIntentID: proposal.IntentID, ExpectedTenant: proposal.Tenant,
 		BusinessSubjectRefs: []string{"employment:promotion-execute-demo-1"},
 		ExecutionMode:       workflow.ModeExecute, CorrelationID: "corr:" + tenantKey, CreatedAt: at,

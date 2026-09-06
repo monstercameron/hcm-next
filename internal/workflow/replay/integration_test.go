@@ -200,6 +200,8 @@ func newExecutedRun(t *testing.T) *executedRun {
 			Proposal: runtime.ProposalBinding{
 				Revision: proposal, Approved: true, ApprovalRef: "approval:wfrun013:manager",
 			},
+			ProposalFacts:       runtime.MemoryProposalFacts{},
+			ApprovalFacts:       runtime.MemoryApprovalFacts{ByRevisionID: map[string][]runtime.ApprovalDecisionFact{proposal.ProposalRevisionID: {{DecisionID: "approval:wfrun013:manager", Outcome: runtime.ApprovalOutcomeApproved, ProposalDigest: proposal.MaterialDigest.Digest}}}},
 			BusinessSubjectRefs: []string{subject},
 			ResolvedContext:     map[string]string{"LegalContext": "legal-context:wfrun013/v1"},
 			ExecutionMode:       workflow.ModeExecute,

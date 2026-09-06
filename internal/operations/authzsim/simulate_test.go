@@ -1,6 +1,7 @@
 package authzsim_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/operations/authzsim"
@@ -111,4 +112,35 @@ func TestTodo_ADMIN_003(t *testing.T) {
 			t.Error("Digest is empty")
 		}
 	})
+}
+
+func TestSimulate_RejectsInvalidRequestWithWrappedPolicyError(t *testing.T) {
+	result, err := authzsim.Simulate(authz.Request{}, authz.PolicyVersion)
+	if !errors.Is(err, authz.ErrInvalidPolicyInput) {
+		t.Fatalf("error = %v, want authz.ErrInvalidPolicyInput", err)
+	}
+	if result.PolicyVersion != "" || result.PolicyVersionMatch || result.Explanation != "" || result.Digest != "" || result.Decision.InputsDigest != "" {
+		t.Fatalf("failed simulation returned state: %#v", result)
+	}
+}
+
+func TestSimulate_PolicyLabelChangesOnlyPinnedEvidence(t *testing.T) {
+	req := managerRequest(t)
+	first, err := authzsim.Simulate(req, "version-a")
+	if err != nil {
+		t.Fatalf("first simulation: %v", err)
+	}
+	second, err := authzsim.Simulate(req, "version-b")
+	if err != nil {
+		t.Fatalf("second simulation: %v", err)
+	}
+	if first.Decision.InputsDigest != second.Decision.InputsDigest || first.Explanation != second.Explanation {
+		t.Fatal("operator policy label changed evaluated decision")
+	}
+	if first.PolicyVersion != "version-a" || second.PolicyVersion != "version-b" || first.PolicyVersionMatch || second.PolicyVersionMatch {
+		t.Fatalf("policy pinning = %#v / %#v", first, second)
+	}
+	if first.Digest == second.Digest {
+		t.Fatal("digest ignored policy pinning label")
+	}
 }

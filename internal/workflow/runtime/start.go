@@ -98,29 +98,20 @@ func derivedStartInstanceID(tenantID uuid.UUID, workflowID, startIdempotencyKey 
 type ProposalBinding struct {
 	Revision intent.ProposalRevision
 
-	// Approved, ApprovalRef and Superseded are read only when a
-	// [StartRequest] supplies no [StartRequest.ProposalFacts] or
-	// [StartRequest.ApprovalFacts] port at all, as a fallback for a caller
-	// that has not yet migrated to one. A caller that supplies either port is
-	// resolved from stored facts exclusively; these three fields are never
-	// consulted and may be left at their zero value
-	// (TestTodo_WF_RUN_027_FactsOutrankCallerFlags pins both directions).
+	// Approved, ApprovalRef and Superseded are retained only as deprecated
+	// source-compatibility fields for callers migrating from WF-RUN-023. They
+	// are never consulted by Start; authorization and currency come only from
+	// ProposalFacts and ApprovalFacts (TestTodo_WF_RUN_027 pins this boundary).
 	//
-	// internal/intent/app.ExecuteIntent no longer uses this fallback: a cell
-	// composed with an execution database supplies both ports, backed by
+	// internal/intent/app.ExecuteIntent supplies both ports when composed with
+	// an execution database, backed by
 	// migration 00024's intent_decision and intent_relationship
-	// (internal/intent/app.DurableProposalFacts). What still depends on it is
-	// test fixtures and fakes outside that path -- internal/workflow/execute,
-	// internal/workflow/migrate, internal/workflow/replay and test/workflow
-	// each construct a ProposalBinding carrying Approved/ApprovalRef and no
-	// ports at all. Deleting these three fields therefore means migrating
-	// those four packages in the same change; that is the residual half of
-	// WF-RUN-027, and TestTodo_WF_RUN_027_LegacyFallbackSurface pins exactly
-	// what would have to move.
+	// (internal/intent/app.DurableProposalFacts). The fields remain solely so
+	// those packages can migrate their fixtures independently; a request with
+	// no facts ports is rejected before they can influence a start.
 	//
 	// Deprecated: migrate to StartRequest.ProposalFacts and
-	// StartRequest.ApprovalFacts, then delete these three fields and
-	// [ProposalBinding.legacyValidate].
+	// StartRequest.ApprovalFacts, then delete these fields.
 	Approved    bool
 	ApprovalRef string
 	Superseded  bool
@@ -142,21 +133,6 @@ func (b ProposalBinding) validate() error {
 	return nil
 }
 
-// legacyValidate is the pre-WF-RUN-027 caller-asserted check, run by [Start]
-// only when a [StartRequest] supplies neither ProposalFacts nor
-// ApprovalFacts. See the deprecation note on [ProposalBinding].
-func (b ProposalBinding) legacyValidate() error {
-	if b.Superseded {
-		return refuse(CodeSupersededProposal, "", "",
-			"proposal revision %s is superseded by a later revision of the same proposal", b.Revision.ProposalRevisionID)
-	}
-	if !b.Approved || b.ApprovalRef == "" {
-		return refuse(CodeUnapprovedProposal, "", "",
-			"proposal revision %s carries no recorded approval", b.Revision.ProposalRevisionID)
-	}
-	return nil
-}
-
 // StartRequest is one caller's request to start a workflow instance from an
 // immutable [ProposalBinding].
 type StartRequest struct {
@@ -174,12 +150,8 @@ type StartRequest struct {
 
 	// ProposalFacts and ApprovalFacts resolve Proposal.Revision's supersession
 	// and approval decisions from the caller-owned proposal and approval
-	// stores (WF-RUN-027). Supplying either requires supplying both: [Start]
-	// then resolves both facts exclusively from these ports and never reads
-	// ProposalBinding's deprecated Approved/ApprovalRef/Superseded fields.
-	// Leaving both nil falls back to those caller-asserted fields, for a
-	// caller that has not yet migrated -- see the deprecation note on
-	// [ProposalBinding].
+	// stores (WF-RUN-027). Both are mandatory: Start has no caller-asserted
+	// fallback and never treats ProposalBinding's deprecated fields as facts.
 	ProposalFacts ProposalFacts
 	ApprovalFacts ApprovalFacts
 
@@ -236,6 +208,9 @@ func (r StartRequest) validate() error {
 		return refuse(CodeInvalidRecord, "", "", "created_at must be supplied; this package never reads a wall clock")
 	case len(r.BusinessSubjectRefs) == 0:
 		return refuse(CodeInvalidRecord, "", "", "start names no business subject")
+	case r.ProposalFacts == nil && r.ApprovalFacts == nil:
+		return refuse(CodeInvalidRecord, "", "",
+			"start requires ProposalFacts and ApprovalFacts; caller-asserted proposal flags are not authorization facts")
 	case (r.ProposalFacts == nil) != (r.ApprovalFacts == nil):
 		return refuse(CodeInvalidRecord, "", "",
 			"start supplies one of ProposalFacts/ApprovalFacts without the other")
@@ -250,20 +225,7 @@ func (r StartRequest) validate() error {
 // or [CodeApprovalBindingMismatch] from stored facts, and returns the sorted
 // ids of every APPROVED decision it relied on -- WF-RUN-027's replacement for
 // [ProposalBinding]'s caller-asserted Approved/ApprovalRef/Superseded flags.
-//
-// It runs [ProposalBinding.legacyValidate] instead, unchanged, when req
-// supplies neither port: see the deprecation note on [ProposalBinding].
 func resolveProposalFacts(ctx context.Context, ex Executor, req StartRequest) ([]string, error) {
-	if req.ProposalFacts == nil || req.ApprovalFacts == nil {
-		if err := req.Proposal.legacyValidate(); err != nil {
-			return nil, err
-		}
-		if req.Proposal.ApprovalRef != "" {
-			return []string{req.Proposal.ApprovalRef}, nil
-		}
-		return nil, nil
-	}
-
 	rev := req.Proposal.Revision
 	supersession, err := req.ProposalFacts.Supersession(ctx, ex, req.TenantID, rev)
 	if err != nil {
@@ -423,11 +385,7 @@ type StartReceipt struct {
 
 	// ApprovalDecisionIDs names, sorted, every approval decision id [Start]
 	// relied on to admit the bound proposal revision (WF-RUN-027). It is the
-	// approval store's own decision ids when [StartRequest.ApprovalFacts] is
-	// set, or a single-element slice holding [ProposalBinding.ApprovalRef]
-	// under the deprecated caller-asserted fallback; empty only when the
-	// fallback ApprovalRef itself was empty (impossible on a successful
-	// Start, since an empty ApprovalRef is [CodeUnapprovedProposal]).
+	// approval store's own decision ids. There is no caller-asserted fallback.
 	ApprovalDecisionIDs []string
 
 	digest string

@@ -227,6 +227,7 @@ type Attempt struct {
 
 // Lease is a fenced right to make one provider call.
 type Lease struct {
+	TenantID    string
 	OperationID uuid.UUID
 	Token       uuid.UUID
 	FenceToken  uint64
@@ -251,6 +252,7 @@ type RevalidateFunc func(Operation) Revalidation
 
 // LeaseRequest asks the journal to revalidate and lease one queued operation.
 type LeaseRequest struct {
+	TenantID    string
 	OperationID uuid.UUID
 	WorkerID    string
 	At          time.Time
@@ -321,6 +323,7 @@ type DispatchResult struct {
 // Observation is a typed provider read-back. It is the only input that can
 // move an accepted or ambiguous operation to business completion.
 type Observation struct {
+	TenantID            string
 	ObservationID       uuid.UUID
 	OperationID         uuid.UUID
 	ExternalResourceKey string
@@ -335,6 +338,7 @@ type Observation struct {
 // RedriveRequest is the current-state comparison used before a failed
 // operation is put back in the queue. It never changes the original payload.
 type RedriveRequest struct {
+	TenantID                          string
 	OperationID                       uuid.UUID
 	At                                time.Time
 	CurrentMappingProfileVersion      string
@@ -369,10 +373,14 @@ type RedriveRecord struct {
 
 // MemoryJournal is a concurrency-safe semantic journal.
 type MemoryJournal struct {
-	mu         sync.RWMutex
-	operations map[uuid.UUID]Operation
-	redrives   map[uuid.UUID][]RedriveRecord
-	now        func() time.Time
+	mu              sync.RWMutex
+	operations      map[uuid.UUID]Operation
+	redrives        map[uuid.UUID][]RedriveRecord
+	activeLeases    map[uuid.UUID]Lease
+	events          []JournalEvent
+	journalSequence uint64
+	journalDigest   string
+	now             func() time.Time
 }
 
 // NewMemoryJournal constructs an empty journal.
@@ -380,7 +388,7 @@ func NewMemoryJournal(now func() time.Time) *MemoryJournal {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return &MemoryJournal{operations: make(map[uuid.UUID]Operation), redrives: make(map[uuid.UUID][]RedriveRecord), now: now}
+	return &MemoryJournal{operations: make(map[uuid.UUID]Operation), redrives: make(map[uuid.UUID][]RedriveRecord), activeLeases: make(map[uuid.UUID]Lease), now: now}
 }
 
 // Plan durably records a complete operation before it can be queued or leased.
@@ -438,37 +446,46 @@ func (j *MemoryJournal) Plan(ctx context.Context, req PlanRequest) (Operation, e
 		}
 	}
 	j.operations[id] = cloneOperation(op)
+	j.appendJournalLocked(op, State(""), StatePlanned, "PLANNED", uuid.Nil, 0, "", "", created)
 	return cloneOperation(op), nil
 }
 
 // Queue makes a planned operation eligible for a dispatch lease.
-func (j *MemoryJournal) Queue(ctx context.Context, id uuid.UUID) (Operation, error) {
+func (j *MemoryJournal) Queue(ctx context.Context, tenant string, id uuid.UUID) (Operation, error) {
 	if err := contextError(ctx); err != nil {
 		return Operation{}, err
+	}
+	if strings.TrimSpace(tenant) == "" {
+		return Operation{}, fmt.Errorf("%w: tenant is required", ErrInvalid)
 	}
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	op, ok := j.operations[id]
-	if !ok {
+	if !ok || op.TenantID != tenant {
 		return Operation{}, fmt.Errorf("%w: %s", ErrNotFound, id)
 	}
 	if op.State != StatePlanned && op.State != StateRetryable && op.State != StateFailed {
 		return Operation{}, fmt.Errorf("%w: %s -> QUEUED", ErrInvalidTransition, op.State)
 	}
+	from := op.State
 	op.State, op.UpdatedAt = StateQueued, j.now().UTC()
 	j.operations[id] = cloneOperation(op)
+	j.appendJournalLocked(op, from, StateQueued, "QUEUED", uuid.Nil, op.FenceToken, "", "", op.UpdatedAt)
 	return cloneOperation(op), nil
 }
 
 // Get returns a defensive copy of a journal row.
-func (j *MemoryJournal) Get(ctx context.Context, id uuid.UUID) (Operation, error) {
+func (j *MemoryJournal) Get(ctx context.Context, tenant string, id uuid.UUID) (Operation, error) {
 	if err := contextError(ctx); err != nil {
 		return Operation{}, err
+	}
+	if strings.TrimSpace(tenant) == "" {
+		return Operation{}, fmt.Errorf("%w: tenant is required", ErrInvalid)
 	}
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 	op, ok := j.operations[id]
-	if !ok {
+	if !ok || op.TenantID != tenant {
 		return Operation{}, fmt.Errorf("%w: %s", ErrNotFound, id)
 	}
 	return cloneOperation(op), nil
@@ -479,11 +496,14 @@ func (j *MemoryJournal) List(ctx context.Context, tenant string) ([]Operation, e
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
+	if strings.TrimSpace(tenant) == "" {
+		return nil, fmt.Errorf("%w: tenant is required", ErrInvalid)
+	}
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 	out := make([]Operation, 0)
 	for _, op := range j.operations {
-		if tenant == "" || op.TenantID == tenant {
+		if op.TenantID == tenant {
 			out = append(out, cloneOperation(op))
 		}
 	}
@@ -508,6 +528,9 @@ func (j *MemoryJournal) Lease(ctx context.Context, req LeaseRequest) (Lease, err
 	if req.Revalidate == nil {
 		return Lease{}, ErrRevalidationRequired
 	}
+	if strings.TrimSpace(req.TenantID) == "" {
+		return Lease{}, fmt.Errorf("%w: tenant is required", ErrInvalid)
+	}
 	if req.WorkerID == "" {
 		return Lease{}, fmt.Errorf("%w: worker id is required", ErrInvalid)
 	}
@@ -518,14 +541,33 @@ func (j *MemoryJournal) Lease(ctx context.Context, req LeaseRequest) (Lease, err
 	if req.Duration <= 0 {
 		return Lease{}, fmt.Errorf("%w: lease duration must be positive", ErrInvalid)
 	}
+	j.mu.Lock()
+	current, present := j.operations[req.OperationID]
+	if !present || current.TenantID != req.TenantID {
+		j.mu.Unlock()
+		return Lease{}, fmt.Errorf("%w: %s", ErrNotFound, req.OperationID)
+	}
+	if active, exists := j.activeLeases[req.OperationID]; exists && !at.Before(active.ExpiresAt) {
+		if current.State == StateLeased {
+			from := current.State
+			current.State, current.UpdatedAt = StateQueued, at
+			j.operations[req.OperationID] = cloneOperation(current)
+			j.appendJournalLocked(current, from, StateQueued, "LEASE_EXPIRED", uuid.Nil, active.FenceToken, "", "", at)
+		}
+		delete(j.activeLeases, req.OperationID)
+	}
+	j.mu.Unlock()
 	j.mu.RLock()
 	op, ok := j.operations[req.OperationID]
-	if !ok {
+	if !ok || op.TenantID != req.TenantID {
 		j.mu.RUnlock()
 		return Lease{}, fmt.Errorf("%w: %s", ErrNotFound, req.OperationID)
 	}
 	op = cloneOperation(op)
 	j.mu.RUnlock()
+	if op.State == StateLeased {
+		return Lease{}, ErrLeaseFenced
+	}
 	if op.State != StateQueued && op.State != StateRetryable && op.State != StateFailed {
 		return Lease{}, fmt.Errorf("%w: %s is not queued", ErrInvalidTransition, op.State)
 	}
@@ -539,18 +581,32 @@ func (j *MemoryJournal) Lease(ctx context.Context, req LeaseRequest) (Lease, err
 	if !check.Confirmed || check.PlanDigest == "" || check.CurrentPlanDigest == "" || check.PlanDigest != check.CurrentPlanDigest {
 		j.mu.Lock()
 		current := j.operations[op.OperationID]
+		from := current.State
 		current.State = StateRepairRequired
 		if check.Requirement == "BLOCK" {
 			current.State = StateRejected
 		}
 		current.UpdatedAt = at
 		j.operations[op.OperationID] = cloneOperation(current)
+		j.appendJournalLocked(current, from, current.State, "REVALIDATION_BLOCKED", uuid.Nil, current.FenceToken, "", "", at)
 		j.mu.Unlock()
 		return Lease{}, fmt.Errorf("%w: %s", ErrRevalidationBlocked, check.Explanation)
 	}
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	current, ok := j.operations[op.OperationID]
+	if active, exists := j.activeLeases[op.OperationID]; exists {
+		if at.Before(active.ExpiresAt) {
+			return Lease{}, ErrLeaseFenced
+		}
+		if current, present := j.operations[op.OperationID]; present && current.State == StateLeased {
+			from := current.State
+			current.State, current.UpdatedAt = StateQueued, at
+			j.operations[op.OperationID] = cloneOperation(current)
+			j.appendJournalLocked(current, from, StateQueued, "LEASE_EXPIRED", uuid.Nil, active.FenceToken, "", "", at)
+		}
+		delete(j.activeLeases, op.OperationID)
+	}
+	current, ok = j.operations[op.OperationID]
 	if !ok {
 		return Lease{}, fmt.Errorf("%w: %s", ErrNotFound, op.OperationID)
 	}
@@ -564,7 +620,10 @@ func (j *MemoryJournal) Lease(ctx context.Context, req LeaseRequest) (Lease, err
 	current.FenceToken++
 	current.UpdatedAt = at
 	j.operations[current.OperationID] = cloneOperation(current)
-	return Lease{OperationID: current.OperationID, Token: uuid.New(), FenceToken: current.FenceToken, WorkerID: req.WorkerID, ExpiresAt: at.Add(req.Duration)}, nil
+	granted := Lease{TenantID: current.TenantID, OperationID: current.OperationID, Token: uuid.New(), FenceToken: current.FenceToken, WorkerID: req.WorkerID, ExpiresAt: at.Add(req.Duration)}
+	j.activeLeases[current.OperationID] = granted
+	j.appendJournalLocked(current, StateQueued, StateLeased, "LEASED", uuid.Nil, current.FenceToken, "", "", at)
+	return granted, nil
 }
 
 func (j *MemoryJournal) causalReadyLocked(current Operation) bool {
@@ -603,6 +662,10 @@ func (j *MemoryJournal) Dispatch(ctx context.Context, lease Lease, writer Writer
 		j.mu.Unlock()
 		return DispatchResult{}, fmt.Errorf("%w: %s", ErrNotFound, lease.OperationID)
 	}
+	if lease.TenantID == "" || lease.TenantID != op.TenantID {
+		j.mu.Unlock()
+		return DispatchResult{}, ErrLeaseFenced
+	}
 	if op.State == StateProviderAccepted || op.State == StateObserving || op.State == StateReconciled {
 		result := DispatchResult{Operation: cloneOperation(op), ProviderCall: false, ObservationRequired: op.State != StateReconciled}
 		j.mu.Unlock()
@@ -612,13 +675,15 @@ func (j *MemoryJournal) Dispatch(ctx context.Context, lease Lease, writer Writer
 		j.mu.Unlock()
 		return DispatchResult{}, ErrLeaseRequired
 	}
-	if lease.Token == uuid.Nil || lease.FenceToken != op.FenceToken || lease.ExpiresAt.IsZero() || !now.Before(lease.ExpiresAt) {
+	active, activeExists := j.activeLeases[lease.OperationID]
+	if lease.Token == uuid.Nil || (activeExists && active.Token != lease.Token) || lease.FenceToken != op.FenceToken || lease.ExpiresAt.IsZero() || !now.Before(lease.ExpiresAt) {
 		j.mu.Unlock()
 		return DispatchResult{}, ErrLeaseExpired
 	}
 	op.State = StateSending
 	op.UpdatedAt = now
 	j.operations[op.OperationID] = cloneOperation(op)
+	j.appendJournalLocked(op, StateLeased, StateSending, "SENDING", uuid.Nil, lease.FenceToken, "", op.MappedPayloadDigest, now)
 	j.mu.Unlock()
 	response, callErr := writer.Write(ctx, WriteRequest{OperationID: op.OperationID, SemanticOperation: op.SemanticOperation, ExternalResourceKey: op.ExternalResourceKey, ExpectedExternalVersion: op.ExpectedExternalVersion, IdempotencyKey: op.ExternalIdempotencyKey, Payload: append([]byte(nil), op.MappedPayload...)})
 	received := j.now().UTC()
@@ -628,6 +693,7 @@ func (j *MemoryJournal) Dispatch(ctx context.Context, lease Lease, writer Writer
 	if current.State != StateSending || current.FenceToken != lease.FenceToken {
 		return DispatchResult{}, ErrLeaseFenced
 	}
+	delete(j.activeLeases, lease.OperationID)
 	attempt := Attempt{AttemptID: uuid.New(), OperationID: op.OperationID, AttemptNumber: len(current.Attempts) + 1, RequestDigest: current.MappedPayloadDigest, FenceToken: lease.FenceToken, AttemptedAt: now, ReceivedAt: received}
 	if callErr != nil {
 		var pe *ProviderError
@@ -641,6 +707,7 @@ func (j *MemoryJournal) Dispatch(ctx context.Context, lease Lease, writer Writer
 		current.Attempts = append(current.Attempts, attempt)
 		current.UpdatedAt = received
 		j.operations[current.OperationID] = cloneOperation(current)
+		j.appendJournalLocked(current, StateSending, current.State, "ATTEMPT_RECORDED", attempt.AttemptID, lease.FenceToken, "", attempt.RequestDigest, received)
 		return DispatchResult{Operation: cloneOperation(current), Attempt: attempt, ProviderCall: true, ObservationRequired: ambiguous}, callErr
 	}
 	if response.Result == "" {
@@ -653,6 +720,7 @@ func (j *MemoryJournal) Dispatch(ctx context.Context, lease Lease, writer Writer
 	current.ResponseClass = response.Result
 	current.UpdatedAt = received
 	j.operations[current.OperationID] = cloneOperation(current)
+	j.appendJournalLocked(current, StateSending, current.State, "ATTEMPT_RECORDED", attempt.AttemptID, lease.FenceToken, "", attempt.RequestDigest, received)
 	return DispatchResult{Operation: cloneOperation(current), Attempt: attempt, ProviderCall: true, ObservationRequired: true}, nil
 }
 
@@ -665,10 +733,13 @@ func (j *MemoryJournal) RecordObservation(ctx context.Context, obs Observation) 
 	if err := obs.validate(); err != nil {
 		return Operation{}, err
 	}
+	if strings.TrimSpace(obs.TenantID) == "" {
+		return Operation{}, fmt.Errorf("%w: tenant is required", ErrObservationRequired)
+	}
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	op, ok := j.operations[obs.OperationID]
-	if !ok {
+	if !ok || obs.TenantID != op.TenantID {
 		return Operation{}, fmt.Errorf("%w: %s", ErrNotFound, obs.OperationID)
 	}
 	if op.ObservationRequirement != ObservationBySemanticIdentity {
@@ -680,6 +751,8 @@ func (j *MemoryJournal) RecordObservation(ctx context.Context, obs Observation) 
 	if op.State != StateAmbiguous && op.State != StateProviderAccepted && op.State != StateObserving {
 		return Operation{}, fmt.Errorf("%w: state is %s", ErrObservationRequired, op.State)
 	}
+	from := op.State
+	op.State = StateObserving
 	op.ObservationID = obs.ObservationID
 	op.UpdatedAt = obs.ObservedAt.UTC()
 	op.ReconciliationStatus = string(obs.Verdict)
@@ -695,6 +768,7 @@ func (j *MemoryJournal) RecordObservation(ctx context.Context, obs Observation) 
 	}
 	op.Attempts = append([]Attempt(nil), op.Attempts...)
 	j.operations[op.OperationID] = cloneOperation(op)
+	j.appendJournalLocked(op, from, op.State, "OBSERVATION_RECORDED", uuid.Nil, op.FenceToken, "", obs.ObservedDigest, op.UpdatedAt)
 	return cloneOperation(op), nil
 }
 
@@ -703,10 +777,13 @@ func (j *MemoryJournal) PreviewRedrive(ctx context.Context, req RedriveRequest) 
 	if err := contextError(ctx); err != nil {
 		return RedrivePreview{}, err
 	}
+	if strings.TrimSpace(req.TenantID) == "" {
+		return RedrivePreview{}, fmt.Errorf("%w: tenant is required", ErrInvalid)
+	}
 	j.mu.RLock()
 	op, ok := j.operations[req.OperationID]
 	j.mu.RUnlock()
-	if !ok {
+	if !ok || req.TenantID != op.TenantID {
 		return RedrivePreview{}, fmt.Errorf("%w: %s", ErrNotFound, req.OperationID)
 	}
 	if op.State != StateFailed && op.State != StateRetryable && op.State != StateRepairRequired {
@@ -765,17 +842,21 @@ func (j *MemoryJournal) Redrive(ctx context.Context, req RedriveRequest) (Operat
 	record := RedriveRecord{RedriveID: uuid.New(), OperationID: op.OperationID, ActorRef: req.ActorRef, RepairPlanID: req.RepairPlanID, At: at, MaterialChanges: append([]string(nil), preview.MaterialChanges...)}
 	j.redrives[op.OperationID] = append(j.redrives[op.OperationID], record)
 	j.operations[op.OperationID] = cloneOperation(op)
+	j.appendJournalLocked(op, StateFailed, StateQueued, "REDRIVE_QUEUED", uuid.Nil, op.FenceToken, "", "", at)
 	return cloneOperation(op), nil
 }
 
 // Redrives returns immutable redrive lineage for one operation.
-func (j *MemoryJournal) Redrives(ctx context.Context, id uuid.UUID) ([]RedriveRecord, error) {
+func (j *MemoryJournal) Redrives(ctx context.Context, tenant string, id uuid.UUID) ([]RedriveRecord, error) {
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
+	if strings.TrimSpace(tenant) == "" {
+		return nil, fmt.Errorf("%w: tenant is required", ErrInvalid)
+	}
 	j.mu.RLock()
 	defer j.mu.RUnlock()
-	if _, ok := j.operations[id]; !ok {
+	if op, ok := j.operations[id]; !ok || op.TenantID != tenant {
 		return nil, fmt.Errorf("%w: %s", ErrNotFound, id)
 	}
 	out := append([]RedriveRecord(nil), j.redrives[id]...)

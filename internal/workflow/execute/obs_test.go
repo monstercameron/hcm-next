@@ -256,9 +256,10 @@ func newOBSScenario(t *testing.T, traceID string) *obsScenario {
 	req := ResumeRequest{
 		Start: runtime.StartRequest{
 			TenantID: tenantID, CellID: "cell-obs", StartIdempotencyKey: "start-obs",
-			Resolver:            staticResolver{selection: selection},
-			Versions:            staticVersions{record: record},
-			Proposal:            runtime.ProposalBinding{Revision: proposalRevisionFor(item)},
+			Resolver:      staticResolver{selection: selection},
+			Versions:      staticVersions{record: record},
+			Proposal:      runtime.ProposalBinding{Revision: proposalRevisionFor(item)},
+			ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedApprovalFacts(proposalRevisionFor(item)),
 			CorrelationID:       "corr-obs",
 			BusinessSubjectRefs: []string{"employment:obs"},
 		},

@@ -42,6 +42,11 @@ const EnvHealthAddr = "HCMNEXT_WORKER_HEALTH_ADDR"
 
 const EnvMessagingRole = "HCMNEXT_WORKER_MESSAGING_ROLE"
 
+// EnvWorkerRoles selects the independently authorized roles hosted by this
+// worker process. The process identity remains "worker"; these are narrower
+// in-process capabilities and are never interchangeable.
+const EnvWorkerRoles = "HCMNEXT_WORKER_ROLES"
+
 func main() {
 	os.Exit(bootstrap.Run(context.Background(), spec(os.Args[1:])))
 }
@@ -86,6 +91,7 @@ func workerConfigFields() []bootstrap.Field {
 			Kind:  bootstrap.KindString,
 		},
 		{Name: "messaging-role", Env: EnvMessagingRole, Usage: "enable the semantic messaging delivery role", Default: "true", Kind: bootstrap.KindBool},
+		{Name: "roles", Env: EnvWorkerRoles, Usage: "comma-separated capability-activity, reconciliation and repair roles", Default: string(WorkerRoleCapabilityActivity), Kind: bootstrap.KindString},
 	}
 }
 
@@ -133,6 +139,9 @@ func validateConfig(v *bootstrap.Values) error {
 	if _, err := v.Bool("messaging-role"); err != nil {
 		return err
 	}
+	if _, err := ParseWorkerRoles(v.String("roles")); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -161,6 +170,10 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
+	roles, err := ParseWorkerRoles(deps.Values.String("roles"))
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
 
 	consumer := outbox.NewConsumer(pool, outbox.WithLease(lease), outbox.WithBatchSize(batchSize))
 	tenants := pgxTenantLister{pool: pool}
@@ -183,7 +196,9 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 			return runOutboxLoop(ctx, logger, tenants, consumer, pollInterval)
 		},
 	}
-	return bootstrap.Runtime{Workloads: []bootstrap.Workload{wl}}, nil
+	workloads := []bootstrap.Workload{wl}
+	workloads = append(workloads, workerRoleWorkloads(deps.Logger, roles)...)
+	return bootstrap.Runtime{Workloads: workloads}, nil
 }
 
 // workerPool is the database capability this role needs beyond bootstrap's own

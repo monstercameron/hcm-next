@@ -163,7 +163,8 @@ func newWfrun028Fixture(t *testing.T, key string) wfrun028Fixture {
 		Versions: staticVersions{record: version.CompiledVersion{
 			WorkflowID: plan.WorkflowID, SemanticVersion: "1.0.0", CompiledPlanDigest: plan.Digest(), Status: version.StatusActive,
 		}},
-		Proposal:            runtime.ProposalBinding{Revision: proposal},
+		Proposal:      runtime.ProposalBinding{Revision: proposal},
+		ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedApprovalFacts(proposal),
 		BusinessSubjectRefs: []string{"worker:wfrun028-" + key},
 		ExecutionMode:       workflow.ModeExecute, CorrelationID: "correlation:wfrun028:" + key, CreatedAt: at.Add(-time.Hour),
 	}

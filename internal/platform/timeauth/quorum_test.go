@@ -86,3 +86,85 @@ func TestTodo_TIME_002_Mutation(t *testing.T) {
 		t.Fatal("quorum disagreement accepted")
 	}
 }
+
+func TestQuorum_ProfileValidationAndReceiptSecurity(t *testing.T) {
+	base := timeauth.QuorumProfile{ID: "p", RequiredSources: 2, MaxOffset: time.Second, MaxUncertainty: time.Second, MaxHoldover: time.Minute, LeapSmear: "smear", RequireAuthentication: true}
+	for _, mutate := range []func(*timeauth.QuorumProfile){
+		func(p *timeauth.QuorumProfile) { p.ID = "" }, func(p *timeauth.QuorumProfile) { p.RequiredSources = 1 }, func(p *timeauth.QuorumProfile) { p.MaxOffset = 0 }, func(p *timeauth.QuorumProfile) { p.MaxUncertainty = 0 }, func(p *timeauth.QuorumProfile) { p.MaxHoldover = -time.Second }, func(p *timeauth.QuorumProfile) { p.LeapSmear = "" }, func(p *timeauth.QuorumProfile) { p.RequireAuthentication = false },
+	} {
+		p := base
+		mutate(&p)
+		if _, err := timeauth.NewQuorumProfile(p); !errors.Is(err, timeauth.ErrInvalidQuorumProfile) {
+			t.Fatalf("NewQuorumProfile(%+v) = %v", p, err)
+		}
+	}
+	p, err := timeauth.NewQuorumProfile(base)
+	if err != nil || p.Digest == "" || p.Validate() != nil {
+		t.Fatalf("valid profile = %+v, %v", p, err)
+	}
+	bad := p
+	bad.Digest = "forged"
+	if !errors.Is(bad.Validate(), timeauth.ErrInvalidQuorumProfile) {
+		t.Fatalf("forged profile accepted")
+	}
+	if !errors.Is((timeauth.QuorumProfile{}).Validate(), timeauth.ErrInvalidQuorumProfile) {
+		t.Fatalf("zero profile accepted")
+	}
+
+	sources := []timeauth.QuorumSource{
+		{ID: "b", Epoch: values.NewInstant(baseTime.Add(40 * time.Millisecond)), Offset: 40 * time.Millisecond, Uncertainty: 30 * time.Millisecond, Authenticated: true, Health: timeauth.HealthTrusted, LeapSmear: "smear"},
+		{ID: "a", Epoch: values.NewInstant(baseTime), Offset: 0, Uncertainty: 20 * time.Millisecond, Authenticated: true, Health: timeauth.HealthTrusted, LeapSmear: "smear"},
+	}
+	receipt, err := p.Evaluate(sources)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if receipt.SourceIDs[0] != "a" || receipt.SourceIDs[1] != "b" || receipt.Skew != 40*time.Millisecond || receipt.Offset != 20*time.Millisecond || receipt.Uncertainty != 30*time.Millisecond || receipt.Holdover || receipt.Health != timeauth.HealthTrusted {
+		t.Fatalf("receipt = %+v", receipt)
+	}
+	if err := receipt.RequireSensitive(); err != nil || timeauth.Explain(receipt) != receipt.Explain() || !strings.Contains(receipt.Explain(), "profile=p") || strings.Contains(receipt.Explain(), "source-placeholder") {
+		t.Fatalf("receipt trust/explanation = %v, %q", err, receipt.Explain())
+	}
+	for _, mutate := range []func(*timeauth.QuorumReceipt){func(r *timeauth.QuorumReceipt) { r.Health = timeauth.HealthUntrusted }, func(r *timeauth.QuorumReceipt) { r.Digest = "forged" }} {
+		copy := receipt
+		mutate(&copy)
+		if !errors.Is(copy.RequireSensitive(), timeauth.ErrQuorumUntrusted) {
+			t.Fatalf("tampered receipt accepted: %+v", copy)
+		}
+	}
+}
+
+func TestQuorum_EvaluateRejectsEveryUntrustedCondition(t *testing.T) {
+	p := placeholderQuorum(t)
+	base := placeholderSources()
+	if _, err := p.Evaluate(base[:1]); !errors.Is(err, timeauth.ErrQuorumUntrusted) {
+		t.Fatalf("too few sources = %v", err)
+	}
+	mutations := []struct {
+		name   string
+		mutate func([]timeauth.QuorumSource)
+	}{
+		{"empty id", func(s []timeauth.QuorumSource) { s[0].ID = " " }},
+		{"unset epoch", func(s []timeauth.QuorumSource) { s[0].Epoch = values.Instant{} }},
+		{"invalid health", func(s []timeauth.QuorumSource) { s[0].Health = timeauth.Health(99) }},
+		{"negative uncertainty", func(s []timeauth.QuorumSource) { s[0].Uncertainty = -time.Nanosecond }},
+		{"negative holdover age", func(s []timeauth.QuorumSource) { s[0].HoldoverAge = -time.Nanosecond }},
+		{"wrong smear", func(s []timeauth.QuorumSource) { s[0].LeapSmear = "other" }},
+		{"unauthenticated", func(s []timeauth.QuorumSource) { s[0].Authenticated = false }},
+		{"degraded", func(s []timeauth.QuorumSource) { s[0].Health = timeauth.HealthDegraded }},
+		{"excess uncertainty", func(s []timeauth.QuorumSource) { s[0].Uncertainty = 2 * time.Second }},
+		{"excess holdover", func(s []timeauth.QuorumSource) { s[0].Holdover = true; s[0].HoldoverAge = 2 * time.Minute }},
+		{"duplicate id", func(s []timeauth.QuorumSource) { s[1].ID = s[0].ID }},
+		{"offset disagreement", func(s []timeauth.QuorumSource) { s[1].Offset = 500 * time.Millisecond }},
+		{"epoch disagreement", func(s []timeauth.QuorumSource) { s[1].Epoch = values.NewInstant(s[0].Epoch.Time().Add(time.Second)) }},
+	}
+	for _, tc := range mutations {
+		t.Run(tc.name, func(t *testing.T) {
+			s := append([]timeauth.QuorumSource(nil), base...)
+			tc.mutate(s)
+			if _, err := p.Evaluate(s); !errors.Is(err, timeauth.ErrQuorumUntrusted) {
+				t.Fatalf("Evaluate = %v", err)
+			}
+		})
+	}
+}
