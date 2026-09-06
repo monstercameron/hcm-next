@@ -26,6 +26,9 @@
 # living outside definitions/). They are out of the "live schema" this
 # registry is checked against, not merely unregistered.
 #
+# migrations/00030_artifact_quarantine.sql's artifact_quarantine and
+# artifact_quarantine_state (DOC-MAL-001) live in that same companion schema
+# and are excluded for the same reason.
 # A table's physical partitions (ledger_event_p0..p3) are not listed
 # separately: they are physical storage for their single logical table, not
 # distinct authoritative stores, and pg_class flags them relispartition so a
@@ -34,7 +37,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00022_work_item_decision.sql
+source: migrations/00001_platform_control.sql .. migrations/00069_intent_outcome_refs.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -692,7 +695,18 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: "WORK-010: the full typed approval decision or task submission recorded in the same transaction as the work item's completion, digest-verified against the item's immutable completed_output_digest; one row per completed item (PK (tenant_id, work_item_id)), append-only via forbid_mutation, SELECT/INSERT only."
-
+  - table: journey_worker
+    migration: 00023_journey_workforce.sql
+    owner_package: internal/data/workforce
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: "The durable workforce the Promotion journey creates employees into (UX-009): one append-only row per created worker carrying its placement, its declared compensation baseline and its own bitemporal coordinates, projected onto internal/domains/people's fact model by internal/data/workforce.Facts and layered behind the fixture corpus so every governed worker read sees created workers through one port. Append-only via forbid_mutation, SELECT/INSERT only; a correction would be a new revision row and is out of scope for migration 00023."
   - table: ledger_hash_chain_link
     migration: 00014_ledger_hash_chain.sql
     owner_package: internal/data/ledger/hashchain
@@ -964,3 +978,2000 @@ tables:
       DB-013: bundle of authz, legal and obligation decision ids with canonical
       digest and validity horizon, optionally bound to an evidence manifest;
       grant-level immutable.
+  - table: integration_schema_snapshot
+    migration: 00025_schema_snapshot.sql
+    owner_package: internal/connectivity/schemasnapshot/adapters/postgres
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-004: one row per externally discovered schema capture, born
+      QUARANTINED under a deterministic (tenant, provider, canonical digest)
+      identity. schema_snapshot_forbid_identity_mutation permits exactly one
+      UPDATE (QUARANTINED -> ADMITTED/REJECTED: state, state_reason,
+      decided_at); every other column is immutable, so the row is not
+      pure append-only.
+  - table: integration_schema_snapshot_evidence
+    migration: 00025_schema_snapshot.sql
+    owner_package: internal/connectivity/schemasnapshot/adapters/postgres
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-004: append-only validator-by-validator verdict for one snapshot's
+      admission decision, exactly one row per snapshot_id; written in the same
+      Decide call as the state transition whether admitted or rejected.
+  - table: config_object
+    migration: 00027_config_object.sql
+    owner_package: internal/data/configregistry
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      CP-001: one immutable row per published configuration-object revision
+      keyed (tenant_id, cell_id, kind, object_id, revision);
+      canonical_body_digest content-addresses the body, record_digest is the
+      whole-row identity recomputed on every read by
+      internal/platform/configregistry.Rehydrate. forbid_mutation; SELECT/INSERT
+      only for hcmnext_app.
+  - table: config_object_activation
+    migration: 00027_config_object.sql
+    owner_package: internal/data/configregistry
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      CP-001: one immutable row per activation act per (tenant, cell, kind,
+      object_id); the active revision is the highest gap-free
+      activation_sequence (UNIQUE per group), races resolved by that
+      constraint rather than row locks since hcmnext_app holds no UPDATE
+      grant. forbid_mutation.
+  - table: ledger_checkpoint_epoch
+    migration: 00028_ledger_checkpoint_epoch.sql
+    owner_package: internal/data/ledger/checkpoint
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      LEDGER-010: one row per signed integrity epoch (root digest over every
+      covered stream head, schema release, signing key id and public key,
+      Ed25519 signature, half-open recorded-time window). forbid_mutation and
+      SELECT/INSERT only: a false attestation is corrected by a new
+      higher-numbered epoch naming the one it corrects, never by rewriting a
+      signature. Not rebuildable: the signature needs the private key and the
+      attestation instant is itself the record.
+  - table: ledger_checkpoint_stream_head
+    migration: 00028_ledger_checkpoint_epoch.sql
+    owner_package: internal/data/ledger/checkpoint
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      LEDGER-010: the per-stream heads one epoch attests to; inside the signed
+      bytes and folded into the epoch root_digest, so regenerating them from
+      ledger_event would no longer match the signature. PERMANENT and
+      append-only for the same reason as its parent.
+  - table: tenant_bootstrap_receipt
+    migration: 00029_tenant_bootstrap_receipt.sql
+    owner_package: internal/data/tenancy
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      TENANT-002: durable evidence of every bootstrap manifest revision applied
+      against a tenant, keyed (tenant_id, receipt_id) with UNIQUE (tenant_id,
+      manifest_id, revision) as the same-revision race backstop; only APPLY
+      decisions are recorded (NOOP/REJECTED never write). forbid_mutation.
+  - table: intent_instance_context
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the origin, causation, correlation, family and mode an intent was created under, written in the same transaction as 00004's intent_instance row; separate because these facts never transition while the lifecycle dimensions do, which lets the table be append-only; origin_trust TRUSTED requires a source-authority attestation so a request cannot be relabelled trusted after the fact.
+  - table: hcm_change_request
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the governed change request an intent of family CHANGE_REQUEST realizes. Live serving state: status advances through the lifecycle graph in internal/data/intentcontrol fenced by a compare-and-swap request_version rather than forbid_mutation; SELECT/INSERT/UPDATE, never DELETE.
+  - table: intent_input_snapshot
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: internal/intent.BaselineSnapshot as stored evidence: the exact baseline a preflight, simulation, revalidation or repair read; typed jsonb paired with a NOT NULL schema_ref; forbid_mutation, SELECT/INSERT only.
+  - table: intent_simulation_result
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: what a simulation of one proposal revision produced, bound to the input snapshot it consumed; one row per (intent, revision, sequence), re-running appends and never edits; RecordResult refuses a snapshot belonging to another intent.
+  - table: proposal_write_item
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: internal/intent.ProposalRevision.Writes materialized (00004 stored only the revision digest); the ordinal pins the canonical order the digest was computed over.
+  - table: proposal_effect_item
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the revision's declared effects, ordinal-pinned like proposal_write_item, each carrying reversibility class plus the compensation and observation references CompilePlan refuses to compile without.
+  - table: proposal_approval_requirement
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the revision's required approvals with separation constraint and materiality class, ordinal-pinned so the proposal digest stays recomputable from stored rows.
+  - table: proposal_obligation
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the revision's post-commit obligations with kind and due date, ordinal-pinned so the proposal digest stays recomputable from stored rows.
+  - table: intent_relationship
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: typed parent/child, supersession, correction and repair edges between intents; UNIQUE (tenant_id, relationship_type, child_intent_id) gives each child at most one parent per type, append-only makes it unrewritable, deeper cycles refused by RelationshipStore.Link's ancestor walk.
+  - table: intent_result
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: what an intent's revision produced; PK (tenant_id, intent_id, revision) plus append-only means a second result for a revision collides instead of replacing the first.
+  - table: intent_decision
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: a governance or human decision bound to one proposal revision, distinct from 00022's work_item_decision; UNIQUE per (revision, requirement, decider) so the same principal cannot vote twice and a vote is never rewritten.
+  - table: intent_certificate
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: a signed statement that a named check passed against an exact revision; one per (revision, kind) so a second certificate of the same kind is refused by collision.
+  - table: transaction_plan
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the compiled transaction plan, never mutated in place (a changed material context is a new row with a new plan_digest); moving state lives on transaction_plan_binding; carries intent, proposal and control digests NOT NULL.
+  - table: transaction_plan_effect
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the outbox effects a plan declares with idempotency key, compensation strategy, repair reference, observation reference and deadline; the schema repeats CompilePlan's refusals so any other writer inherits them.
+  - table: transaction_plan_binding
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the one moving part of a plan, its position on the coordinator's DRAFT to COMMITTED state machine, fenced by a compare-and-swap binding_version and a transition graph in Go; SELECT/INSERT/UPDATE, never DELETE.
+  - table: transaction_commit_receipt
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: evidence that exactly one local database transaction committed this plan; UNIQUE (tenant_id, plan_id); mutual exclusion against the abort receipt is enforced by ReceiptStore under a transaction-scoped advisory lock per (tenant, plan); carries all three digests.
+  - table: transaction_abort_receipt
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the mirror of transaction_commit_receipt with a closed abort-reason vocabulary and the aborted_before_effects flag; same UNIQUE per plan, same advisory-locked mutual exclusion, same three digests.
+  - table: transaction_ambiguity
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: an ambiguous database outcome (the commit may or may not have happened) opened UNRESOLVED and resolved once the coordinator has queried the receipt; live state fenced by a compare-and-swap ambiguity_version, a CHECK keeps the resolution self-consistent, a resolution naming no evidence is refused.
+  - table: transaction_correction
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: a correction of an already-committed transaction; corrects_receipt_id is NOT NULL and foreign-keyed to a same-tenant commit receipt so a correction lacking a target is an impossible row; carries all three digests.
+  - table: repair_plan
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: how a partially-applied or ambiguous transaction is put right; status advances OPEN to IN_PROGRESS to REPAIRED/ABANDONED under a compare-and-swap repair_version; still carries intent, proposal and control digests.
+  - table: intent_closure
+    migration: 00024_intent_control.sql
+    owner_package: internal/data/intentcontrol
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-011: the terminal record that an intent is closed and the execution receipt explaining how; one row per intent, a CHECK makes the receipt reference NOT NULL for exactly the closure kinds that claim execution happened.
+  - table: workflow_frontier_entry
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: one row per node on an instance's execution frontier carrying its own state, entry sequence and the instance_version it was admitted at; the addressable truth behind workflow_instance.current_node_ids, which stays as the fast projection; fenced by entry_version.
+  - table: workflow_node_output
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the typed, immutable result one node execution produced (schema_ref plus output_digest); forbid_mutation, one row per node execution.
+  - table: workflow_ready_work
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: a durable record that one attempt of one node may start at or after eligible_at, unique per (instance, node, attempt); state, not a scheduler: nothing in this repository sweeps it, per the WF-RUN-000 gate.
+  - table: workflow_variable
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: where workflow_instance.variable_revision_head's revisions live, one row per named variable, compare-and-swap fenced and stamped with the instance revision it was written at.
+  - table: workflow_timer
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: a durable promise that some node becomes ready at fires_at, unique per (instance, node, timer_key); nothing here fires it, TimerStore.Fire is called by whoever observed the instant passed because firing is scheduler code the WF-RUN-000 gate blocks.
+  - table: workflow_signal_subscription
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: an instance's open wait for one named signal under a correlation key, unique per (instance, node, signal); closed by SignalStore.Apply in the same transaction as the receipt.
+  - table: workflow_signal
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: one delivery of a named signal with its sender-supplied dedupe token, unique per (signal_name, correlation_key, dedupe_token), which makes an at-least-once transport safe to point at this table; forbid_mutation.
+  - table: workflow_signal_receipt
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: append-only evidence that one delivery was applied to one subscription, keyed (signal, subscription) so a redelivery applies nothing twice; records the instance_version the delivery advanced to; forbid_mutation.
+  - table: workflow_lease
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the durable half of WF-RUN-002: monotonic fence_token per resource plus a partial unique index admitting one HELD lease so a returning stale holder is refusable by comparison; no background reaper, a caller that observes a lapse calls Expire.
+  - table: workflow_checkpoint
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the instance's state, frontier and variable digests at a numbered safe point (WF-RUN-008), giving workflow_instance.last_checkpoint_ref something to point at; forbid_mutation because a rewritable safe point is not a safe point.
+  - table: workflow_child_link
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the parent/child edge a fan-out creates (WF-RUN-011), one parent per child with a self-link refused in the schema; append-only because a re-parentable child would make cancellation propagation ambiguous.
+  - table: work_queue
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: a named, governed destination for human work, unique per queue_key, naming the routing policy that decides what lands in it; the policy is governed configuration, referenced not stored.
+  - table: work_queue_item
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: one work item's membership of exactly one queue; the primary key on work_item_id alone is the structural answer to two queues owning the same work; re-routing is QueueStore.Move, not a second row.
+  - table: work_item_claim
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: claim history behind migration 00017's live claim columns with a partial unique index admitting one open hold at a time; not forbid_mutation because a hold is legitimately closed once, its own work_item_claim_forbid_rewrite trigger makes holder, start and a completed close immutable.
+  - table: work_item_sla
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the deadlines one work item is measured against and its current breach state, advanced by whoever observes the passage of time, never by a sweeper here; the breached_at and escalated_to CHECKs are one-way implications so a SATISFIED row keeps the breach instant and escalation target as evidence.
+  - table: workflow_approval_requirement
+    migration: 00026_workflow_scheduling_state.sql
+    owner_package: internal/data/runtimestate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-012: the approval slot a node declares before any work item exists, unique per (instance, node, slot_key); the requirement, not the decision, which stays on migration 00022's work_item_decision.
+  - table: external_system
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a tenant's registered external system (kind, trust posture, authority class); registry state, revised in place under a version fence.
+  - table: connector_definition
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a connector definition version referencing the SPI manifest (CONN-RT-001) and its declared write capabilities.
+  - table: connector_connection
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a live connection of a definition to an external system; credentials are governed references only (connector_connection_credential_is_reference) and the configuration jsonb is CHECKed to carry no secret-shaped key.
+  - table: mapping_profile
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a versioned field-mapping profile pinned to a connector definition version and a transformation digest.
+  - table: integration_receipt
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only receipt of one inbound or outbound integration exchange with its digests; forbid_mutation.
+  - table: integration_receipt_item
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only per-record line of an integration receipt; forbid_mutation.
+  - table: mapping_execution
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only record of one mapping-profile execution with input and output digests; forbid_mutation.
+  - table: connector_operation
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a governed connector operation whose COMPLETED state requires a verified external observation (connector_operation_completion_requires_observation), so provider acceptance never counts as business completion.
+  - table: connector_operation_attempt
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only attempt log per connector operation; forbid_mutation.
+  - table: external_operation_observation
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only observation of what the external system reports about an operation, the only evidence that can complete it; forbid_mutation.
+  - table: reconciliation_job
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a reconciliation run between native state and an external system, revised under a version fence.
+  - table: reconciliation_result
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/integrationmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only findings of a reconciliation job; forbid_mutation.
+  - table: message_intent
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a governed message with purpose, channel policy and template version, revised under a version fence.
+  - table: delivery_endpoint
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a recipient endpoint stored as an address digest with a bounded hint, never the raw address.
+  - table: recipient_message
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: one message to one recipient; SATISFIED requires a delivery receipt (recipient_message_satisfaction_requires_receipt), so provider acceptance never satisfies it.
+  - table: delivery_attempt
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only delivery attempt log; forbid_mutation.
+  - table: delivery_receipt
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only receipt from the delivering channel, the only evidence that satisfies a recipient message; forbid_mutation.
+  - table: conversation_thread
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a governed conversation thread with purpose and retention class.
+  - table: thread_participant
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/messagingmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: membership of a subject in a thread with role and effective window.
+  - table: document_template
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a versioned document template with its body digest.
+  - table: document
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a governed document with subject, purpose and current version pointer.
+  - table: document_version
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only rendered version with UNIQUE (tenant_id, version_id, rendered_artifact_digest) so a signature binds exact bytes; forbid_mutation.
+  - table: signature_request
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: a request for signatures on one document version, revised under a version fence.
+  - table: signature
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only signature bound by composite foreign key to the exact rendered artifact digest; signature_value_ref is a governed reference, never raw material; forbid_mutation.
+  - table: document_artifact_reference
+    migration: 00031_integration_messaging_document_metadata.sql
+    owner_package: internal/data/documentmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-014: append-only link from a document version to a stored artifact by content digest; forbid_mutation.
+  - table: processing_purpose_declaration
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/privacymeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a declared processing purpose with lawful basis and data classes, revised under a version fence.
+  - table: data_copy_inventory
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/privacymeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: append-only inventory snapshot of where personal data copies live; COMPLETE requires no UNKNOWN entries (data_copy_inventory_complete_has_no_unknowns); forbid_mutation.
+  - table: data_copy
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/privacymeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: one known copy of personal data with location class, purpose and disposition state.
+  - table: record_declaration
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a declared record with retention class and schedule; corrections link to the corrected declaration with self-correction refused.
+  - table: legal_hold
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a legal hold with scope, custodian and release state.
+  - table: hold_intersection
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: the computed intersection of a hold with the records it covers.
+  - table: retention_disposition
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a disposition action against a record; a hold blocks execution outright (retention_disposition_hold_blocks_execution) and the BLOCKED marker names the hold; corrections link with self-correction refused.
+  - table: operational_incident
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/opsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: an operational incident with severity, scope and resolution state.
+  - table: backup_run
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/opsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a backup run; a COMPLETED run is immutable (backup_run_completed_is_immutable).
+  - table: recovery_run
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/opsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a recovery run that must name the backup it restores and report actuals when completed.
+  - table: slo_definition
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/assurancemeta
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: a versioned service-level objective definition.
+  - table: slo_observation
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/assurancemeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: append-only SLO measurement; forbid_mutation.
+  - table: control_evidence
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/assurancemeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: append-only control test evidence; a failure must name its deficiency (control_evidence_failure_names_deficiency); forbid_mutation.
+  - table: audit_package
+    migration: 00032_privacy_records_operations_assurance.sql
+    owner_package: internal/data/assurancemeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DB-015: append-only audit package; COMPLETE requires evidence (audit_package_complete_has_evidence); forbid_mutation.
+  - table: inbox_record
+    migration: 00033_inbox_record.sql
+    owner_package: internal/data/inbox
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MSG-005: the minimal inbox record, one row per (tenant, subject,
+      recipient_message), read/archived/pinned state revised under a version
+      fence; subject isolation is enforced by the store's own WHERE clause,
+      not by RLS alone.
+  - table: inbox_state_event
+    migration: 00033_inbox_record.sql
+    owner_package: internal/data/inbox
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MSG-005: append-only log of every accepted inbox-record CAS transition;
+      new_version = previous_version + 1 enforced in the schema;
+      forbid_mutation.
+  - table: job_definition
+    migration: 00034_job_definitions.sql
+    owner_package: internal/data/jobs
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      JOB-001: an immutable published job revision keyed (tenant, job_id,
+      version), referencing a schedule trigger digest and an intent target as
+      value references rather than foreign keys; forbid_mutation because a
+      run can only be safe against a version that never changes under it.
+  - table: job_run
+    migration: 00034_job_definitions.sql
+    owner_package: internal/data/jobs
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      JOB-001: one row per run of a published job definition, compare-and-swap
+      fenced by run_version, states DECLARED/RUNNING/COMPLETED/FAILED/CANCELLED
+      with an attempt counter; no dispatcher in this repository writes it on a
+      clock (WF-RUN-000 gate).
+  - table: job_partition
+    migration: 00034_job_definitions.sql
+    owner_package: internal/data/jobs
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      JOB-001: one row per partition of a run with a deterministic
+      partition_key unique per run and its own compare-and-swap fenced state;
+      the CAS is the claim-exclusivity mechanism.
+  - table: job_checkpoint
+    migration: 00034_job_definitions.sql
+    owner_package: internal/data/jobs
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      JOB-001: an append-only numbered checkpoint per partition carrying a
+      state digest and the partition_version it describes, the same shape as
+      00026's workflow_checkpoint; forbid_mutation.
+  - table: inbound_message
+    migration: 00035_inbound_reply.sql
+    owner_package: internal/data/inboundmsg
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MSG-011: append-only record of what a channel delivered; content stored
+      as a governed content_digest plus content_ref, never the raw body;
+      provider message id unique per (tenant, channel) for dedupe;
+      forbid_mutation.
+  - table: reply_binding
+    migration: 00035_inbound_reply.sql
+    owner_package: internal/data/inboundmsg
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MSG-011: the one compare-and-swap-fenced resolution of an inbound
+      message to the recipient_message its stored correlation token names;
+      UNRESOLVED/BOUND/REJECTED, resolves exactly once.
+  - table: search_projection
+    migration: 00037_lexical_search.sql
+    owner_package: internal/data/search
+    plane: DATA
+    data_role: PROJECTION
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: REBUILDABLE
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: ledger_event
+    notes: >-
+      RETRIEVAL-001: one GIN-indexed tsvector row per tenant-scoped subject,
+      built only from internal/data/search's declared classification-cleared
+      fields; rebuildable in full from the ledger fact stream by replaying the
+      projected subjects' facts through internal/data/search.Project.
+  - table: search_projection_event
+    migration: 00037_lexical_search.sql
+    owner_package: internal/data/search
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      RETRIEVAL-001: append-only evidence that (subject, source_revision) was
+      projected; forbid_mutation trigger and a SELECT/INSERT-only grant.
+  - table: issuer_profile
+    migration: 00038_issuer_registry.sql
+    owner_package: internal/authn/issuerregistry
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      AUTHN-001: one immutable revision per tenant federation issuer (issuer
+      URL, audience, pinned JWKS keys or trust-bundle ref, algorithm set, claim
+      mappings, skew and staleness bounds); lifecycle lives in
+      issuer_state_event, never in place; forbid_mutation, SELECT/INSERT only.
+  - table: issuer_state_event
+    migration: 00038_issuer_registry.sql
+    owner_package: internal/authn/issuerregistry
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      AUTHN-001: append-only DRAFT/ACTIVE/SUSPENDED/RETIRED evidence per issuer
+      revision, activation carrying a distinct approver; forbid_mutation.
+  - table: effect_reconciliation_job
+    migration: 00040_effect_reconciliation_job.sql
+    owner_package: internal/operations/reconcile
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      RECON-001: one durable reconciliation job per committed mandatory effect
+      and comparison policy (job id derived from tenant, effect idempotency key
+      and policy ref), status in the closed set PENDING/OBSERVING/PASS/MISMATCH/
+      PARTIAL/UNKNOWN/EXPIRED/REPAIR_REQUIRED advanced under a version CAS and
+      the caller's lease fence; terminal rows are never deleted.
+  - table: trust_session
+    migration: 00041_session_store.sql
+    owner_package: internal/trust/session/pgstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SECARCH-002: durable session content behind session.PersistentManager (create, touch, rotate, revoke under a generation CAS); tenant_isolation RLS.
+  - table: trust_session_pointer
+    migration: 00041_session_store.sql
+    owner_package: internal/trust/session/pgstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SECARCH-002: opaque session-id to tenant pointer with zero session content, reachable only by possessing the unguessable id, deliberately outside RLS because Get/Revoke look a session up before the tenant is known; rationale in the migration header and pgstore/doc.go.
+  - table: trust_session_refresh_generation
+    migration: 00041_session_store.sql
+    owner_package: internal/trust/session/pgstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SECARCH-002: append-only refresh-token family and generation rows so replay detection is a unique violation, never a read-then-write; pointer-only, deliberately outside RLS (same rationale as trust_session_pointer).
+  - table: trust_session_evidence
+    migration: 00041_session_store.sql
+    owner_package: internal/trust/session/pgstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SECARCH-002: append-only session lifecycle and replay evidence; tenant_isolation RLS; forbid_mutation.
+  - table: position_reservation
+    migration: 00043_position_reservation.sql
+    owner_package: internal/data/positionstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-POSITION-001: pre-commit position reservation rows for the Promotion workflow (identity, capacity, proposal digest, expiry, renewal authority) advanced under a fenced CAS; consumption and release recorded as events.
+  - table: position_reservation_event
+    migration: 00043_position_reservation.sql
+    owner_package: internal/data/positionstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-POSITION-001: append-only reservation transition events (RESERVED, RENEWED, CONSUMED, RELEASED, EXPIRED); forbid_mutation.
+  - table: compensation_reservation
+    migration: 00044_budget_reservation.sql
+    owner_package: internal/data/budgetstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-BUDGET-001: compensation budget reservation state (amount, proposal digest, expiry, renewal authority) advanced under a fenced CAS.
+  - table: reservation_event
+    migration: 00044_budget_reservation.sql
+    owner_package: internal/data/budgetstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-BUDGET-001: append-only, gapless reservation transition events; forbid_mutation.
+  - table: attestation_statement
+    migration: 00045_attestation.sql
+    owner_package: internal/data/attestationstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ATTESTATION-001: immutable attestation statement revisions.
+  - table: attestation_binding
+    migration: 00045_attestation.sql
+    owner_package: internal/data/attestationstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ATTESTATION-001: append-only bindings of statements to subjects and proposals; forbid_mutation.
+  - table: approval_requirement
+    migration: 00045_attestation.sql
+    owner_package: internal/data/attestationstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ATTESTATION-001: immutable compiled approval requirement revisions (internal/humanwork.ApprovalRequirement).
+  - table: approval_resolution
+    migration: 00045_attestation.sql
+    owner_package: internal/data/attestationstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ATTESTATION-001: append-only approval resolutions; forbid_mutation.
+  - table: payroll_run
+    migration: 00046_payroll_run.sql
+    owner_package: internal/data/payrollstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYROLL-001: payroll run revisions with a stale-revision CAS refusal.
+  - table: payroll_frozen_population
+    migration: 00046_payroll_run.sql
+    owner_package: internal/data/payrollstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYROLL-001: the frozen population a run computes over, immutable once frozen.
+  - table: payroll_population_amendment
+    migration: 00046_payroll_run.sql
+    owner_package: internal/data/payrollstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYROLL-001: append-only population amendments; forbid_mutation.
+  - table: labor_rule
+    migration: 00047_paygl_labor.sql
+    owner_package: internal/data/payglstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYGL-001: immutable labor cost rule revisions.
+  - table: paygl_accounting_rule
+    migration: 00047_paygl_labor.sql
+    owner_package: internal/data/payglstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYGL-001: immutable payroll-to-GL accounting rule revisions.
+  - table: paygl_mapping_result
+    migration: 00047_paygl_labor.sql
+    owner_package: internal/data/payglstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-PAYGL-001: append-only mapping results; forbid_mutation.
+  - table: work_location_revision
+    migration: 00049_location.sql
+    owner_package: internal/data/locationstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LOCATION-001: immutable work-location revisions.
+  - table: worksite_revision
+    migration: 00049_location.sql
+    owner_package: internal/data/locationstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LOCATION-001: immutable worksite revisions.
+  - table: jurisdiction_table
+    migration: 00049_location.sql
+    owner_package: internal/data/locationstore
+    plane: DATA
+    data_role: REGISTRY
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LOCATION-001: platform-scoped jurisdiction reference table, SELECT-only for the app role, no tenant column by design.
+  - table: accumulator_definition
+    migration: 00051_balance_accumulator.sql
+    owner_package: internal/data/balancestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-BALANCE-001: immutable accumulator definition revisions.
+  - table: balance_entry
+    migration: 00051_balance_accumulator.sql
+    owner_package: internal/data/balancestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-BALANCE-001: append-only balance entries; forbid_mutation.
+  - table: balance_lifecycle_entry
+    migration: 00051_balance_accumulator.sql
+    owner_package: internal/data/balancestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-BALANCE-001: append-only balance lifecycle entries; forbid_mutation.
+  - table: job_family_revision
+    migration: 00048_job_architecture.sql
+    owner_package: internal/data/jobarchstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-JOBARCH-001: immutable job family revision rows; a new revision is appended, never an in-place change.
+  - table: job_level_revision
+    migration: 00048_job_architecture.sql
+    owner_package: internal/data/jobarchstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-JOBARCH-001: immutable job level revision rows; a new revision is appended, never an in-place change.
+  - table: job_grade_revision
+    migration: 00048_job_architecture.sql
+    owner_package: internal/data/jobarchstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-JOBARCH-001: immutable job grade revision rows; a new revision is appended, never an in-place change.
+  - table: job_profile_revision
+    migration: 00048_job_architecture.sql
+    owner_package: internal/data/jobarchstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-JOBARCH-001: immutable job profile revision rows; a new revision is appended, never an in-place change.
+  - table: job_architecture_revision
+    migration: 00048_job_architecture.sql
+    owner_package: internal/data/jobarchstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-JOBARCH-001: immutable job architecture revision rows; a new revision is appended, never an in-place change.
+  - table: workforce_identity
+    migration: 00052_access_identity.sql
+    owner_package: internal/data/accessstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ACCESS-001: workforce identity rows under tenant RLS with mutation guards; typed duplicate and stale-revision refusals.
+  - table: account_link
+    migration: 00052_access_identity.sql
+    owner_package: internal/data/accessstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ACCESS-001: account link rows under tenant RLS with mutation guards; typed duplicate and stale-revision refusals.
+  - table: entitlement_definition
+    migration: 00052_access_identity.sql
+    owner_package: internal/data/accessstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ACCESS-001: entitlement definition rows under tenant RLS with mutation guards; typed duplicate and stale-revision refusals.
+  - table: expected_entitlement
+    migration: 00052_access_identity.sql
+    owner_package: internal/data/accessstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ACCESS-001: expected entitlement rows under tenant RLS with mutation guards; typed duplicate and stale-revision refusals.
+  - table: external_access_observation
+    migration: 00052_access_identity.sql
+    owner_package: internal/data/accessstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-ACCESS-001: external access observation rows under tenant RLS with mutation guards; typed duplicate and stale-revision refusals.
+  - table: legal_review_record
+    migration: 00053_legal_evidence.sql
+    owner_package: internal/data/legalevidencestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LEGALEVIDENCE-001: append-only legal review record evidence rows (legal.ReviewRecord); forbid_mutation.
+  - table: legal_composition_receipt
+    migration: 00053_legal_evidence.sql
+    owner_package: internal/data/legalevidencestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LEGALEVIDENCE-001: append-only legal composition receipt evidence rows (legal.CompositionReceipt); forbid_mutation.
+  - table: legal_pipeline_event
+    migration: 00053_legal_evidence.sql
+    owner_package: internal/data/legalevidencestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-LEGALEVIDENCE-001: append-only legal pipeline event evidence rows (legal/pipeline.Event); forbid_mutation.
+  - table: tenant_placement
+    migration: 00050_tenant_placement.sql
+    owner_package: internal/data/tenantstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-TENANT-001: tenant placement (cell, region, residency) advanced under a CAS.
+  - table: tenant_provisioning_event
+    migration: 00050_tenant_placement.sql
+    owner_package: internal/data/tenantstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-TENANT-001: append-only provisioning events; forbid_mutation.
+  - table: government_authorization_profile
+    migration: 00050_tenant_placement.sql
+    owner_package: internal/data/tenantstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PERSIST-TENANT-001 (SECARCH-018): versioned government authorization profile rows per tenant and integration.
+  - table: people_promotion_write_evidence
+    migration: 00061_promotion_people_write_evidence.sql
+    owner_package: internal/domains/people
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      PEOPLE-004: append-only evidence of the bounded people write (job and level) performed inside the Promotion local ACID commit, keyed by write_id and proposal revision; forbid_mutation.
+  - table: promotion_manager_relationship_evidence
+    migration: 00062_promotion_organization_manager_evidence.sql
+    owner_package: internal/domains/org
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      ORG-003: append-only evidence of the manager-relationship write performed inside the Promotion local ACID commit; forbid_mutation.
+  - table: promotion_base_pay_evidence
+    migration: 00063_promotion_compensation_evidence.sql
+    owner_package: internal/domains/compensation
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      COMP-004: append-only evidence of the base-pay effective-interval write performed inside the Promotion local ACID commit; forbid_mutation.
+  - table: promotion_invariant_evaluation
+    migration: 00064_promotion_invariant_evaluation.sql
+    owner_package: internal/domains/promotion/localcommit
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MODEL-025: append-only transaction-invariant evaluation rows recorded per committed promotion plan; forbid_mutation.
+  - table: consumer_position
+    migration: 00055_data_009_consumer_position.sql
+    owner_package: internal/data/outbox
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: internal/data/outbox
+    notes: >-
+      DATA-009: mutable serving position per consumer group, stream and source partition (CURRENT, REBUILDING, POISONED, DEGRADED); rebuilt by replaying the ledger from the recorded watermark.
+  - table: consumer_dedupe
+    migration: 00055_data_009_consumer_position.sql
+    owner_package: internal/data/outbox
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DATA-009: immutable evidence that one source event was admitted to one consumer group under its semantic identity; forbid_mutation.
+  - table: record_copy_link
+    migration: 00056_data_018_record_copy_links.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: record_copy_event
+    notes: >-
+      DATA-018: live link from a records declaration to every material copy it covers, updated for serving decisions; rebuildable from record_copy_event.
+  - table: record_copy_event
+    migration: 00056_data_018_record_copy_links.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      DATA-018: immutable hold and disposition transition evidence per copy link; forbid_mutation.
+  - table: replay_snapshot
+    migration: 00057_data_013_replay_snapshots.sql
+    owner_package: internal/data/rebuild
+    plane: DATA
+    data_role: PROJECTION
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: internal/data/rebuild
+    notes: >-
+      DATA-013: immutable replay snapshot manifest accepted only after internal/data/rebuild verifies its canonical digest; a performance artifact, the ledger stays the chronology; forbid_mutation.
+  - table: connector_operation_dispatch_lease
+    migration: 00065_connector_operation_dispatch_lease.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-011/INTG-012: mutable dispatch lease and fence per journaled connector operation; a dispatcher acknowledges only under its own lease version after revalidation.
+  - table: connector_operation_resource_order
+    migration: 00066_connector_operation_resource_order.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      TX-010: per-resource causal cursor serializing external effects on one resource key in commit order.
+  - table: connector_operation_observation_requirement
+    migration: 00067_connector_operation_observation_requirement.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-014: append-only typed observation obligation raised when a dispatch times out after send (UNKNOWN outcome); forbid_mutation.
+  - table: connector_operation_redrive
+    migration: 00068_connector_operation_redrive.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      INTG-016: append-only lineage and approval evidence for a targeted redrive of one failed operation; forbid_mutation.

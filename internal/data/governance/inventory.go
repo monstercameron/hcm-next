@@ -26,21 +26,18 @@ var GovernanceTables = []string{
 	"rule_evaluation",
 }
 
+// GatedTables names scheduler-side bookkeeping that must stay absent until
+// the WF-RUN-000 gate opens. The durable runtime state migration 00026
+// materializes (leases, timers, signals, checkpoints, child links, queues,
+// claims, SLAs) moved out of this list on 2026-09-05; see
+// internal/data/runtimestate for their owner.
 var GatedTables = []string{
 	"execution_lease",
-	"workflow_lease",
-	"workflow_timer",
 	"signal_subscription",
-	"workflow_signal_subscription",
-	"workflow_checkpoint",
-	"workflow_child_link",
 	"child_workflow_link",
-	"work_queue",
 	"work_item_queue",
 	"workflow_queue",
-	"work_item_claim",
 	"sla_policy",
-	"work_item_sla",
 }
 
 func Tables(ctx context.Context, ex dbport.Querier) ([]string, error) {

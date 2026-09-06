@@ -85,5 +85,18 @@ blob-report/
 *.jpg
 *.jpeg
 *.webp
+!internal/humanwork/workspace/assets/person-*.png
+!internal/humanwork/workspace/assets/person-*-small.jpg
 
+.husky
 .gocache*
+*gocache*
+.go-build-cache-lane
+
+# Built GoWebComponents/WASM bundles are embedded at build time, never committed
+internal/humanwork/workspace/assets/*.wasm
+internal/humanwork/workspace/assets/wasm_exec.js
+.go-build-*
+.gomodcache-*
+.pg-cache-*
+.pgcache-*

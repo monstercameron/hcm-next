@@ -22,6 +22,47 @@ migrationfiles:
   - 00020_workflow_advancement_receipt.sql
   - 00021_governance_authz_legal_evidence.sql
   - 00022_work_item_decision.sql
+  - 00023_journey_workforce.sql
+  - 00024_intent_control.sql
+  - 00025_schema_snapshot.sql
+  - 00026_workflow_scheduling_state.sql
+  - 00027_config_object.sql
+  - 00028_ledger_checkpoint_epoch.sql
+  - 00029_tenant_bootstrap_receipt.sql
+  - 00030_artifact_quarantine.sql
+  - 00031_integration_messaging_document_metadata.sql
+  - 00032_privacy_records_operations_assurance.sql
+  - 00033_inbox_record.sql
+  - 00034_job_definitions.sql
+  - 00035_inbound_reply.sql
+  - 00037_lexical_search.sql
+  - 00038_issuer_registry.sql
+  - 00040_effect_reconciliation_job.sql
+  - 00041_session_store.sql
+  - 00043_position_reservation.sql
+  - 00044_budget_reservation.sql
+  - 00045_attestation.sql
+  - 00046_payroll_run.sql
+  - 00047_paygl_labor.sql
+  - 00048_job_architecture.sql
+  - 00049_location.sql
+  - 00050_tenant_placement.sql
+  - 00051_balance_accumulator.sql
+  - 00052_access_identity.sql
+  - 00053_legal_evidence.sql
+  - 00054_data_008_outbox_lease_fence.sql
+  - 00055_data_009_consumer_position.sql
+  - 00056_data_018_record_copy_links.sql
+  - 00057_data_013_replay_snapshots.sql
+  - 00061_promotion_people_write_evidence.sql
+  - 00062_promotion_organization_manager_evidence.sql
+  - 00063_promotion_compensation_evidence.sql
+  - 00064_promotion_invariant_evaluation.sql
+  - 00065_connector_operation_dispatch_lease.sql
+  - 00066_connector_operation_resource_order.sql
+  - 00067_connector_operation_observation_requirement.sql
+  - 00068_connector_operation_redrive.sql
+  - 00069_intent_outcome_refs.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

@@ -1,0 +1,9 @@
+{
+  "warning": "TEST FIXTURE ONLY. This is a repo-local Ed25519 development keypair generated for LEDGER-010's signed checkpoint test evidence. It is checked in deliberately (an Ed25519 private key has no secret-derivation step to strip) so that this package's tests can sign and verify a fixture manifest deterministically without a real signing ceremony. THIS KEY MUST NEVER BE USED TO SIGN A PRODUCTION CHECKPOINT, AN INTEGRITY EPOCH, OR ANYTHING BESIDES THE FIXTURES UNDER THIS PACKAGE. It carries no operational authority: internal/data/ledger/checkpoint.Signer is a port precisely so that a real deployment supplies its key from a KMS or HSM and this file is never reachable from one.",
+  "shape_note": "Same field shape as tools/planning/gateevidence/testdata/dev-signing-key.yaml, rendered as JSON rather than YAML: gopkg.in/yaml.v3's allowed_import_roots in definitions/architecture/dependency-roles.yaml do not include internal/data, and a test fixture is not a reason to widen a library firewall.",
+  "schema_version": 1,
+  "algorithm": "ed25519",
+  "key_id": "hcmnext:checkpoint:dev",
+  "public_key": "59b21acfac5e8186252b2b79a99134a43d68d9a9fd2e59a7b066c4bd26a51896",
+  "private_key": "53dc923668f4d9245395c77f4b8b5ef0aaa65cb1fa45e8187b4fa624697670ca59b21acfac5e8186252b2b79a99134a43d68d9a9fd2e59a7b066c4bd26a51896"
+}

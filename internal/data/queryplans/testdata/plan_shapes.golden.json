@@ -1,0 +1,107 @@
+{
+  "INTENTCONTROL_CONTEXT_LOAD": {
+    "node": "Result",
+    "children": [
+      {
+        "node": "Index Scan",
+        "relation": "intent_instance_context",
+        "index": "intent_instance_context_pkey"
+      }
+    ]
+  },
+  "JOBS_PARTITION_LIST_BY_RUN": {
+    "node": "Sort",
+    "children": [
+      {
+        "node": "Result",
+        "children": [
+          {
+            "node": "Index Scan",
+            "relation": "job_partition",
+            "index": "job_partition_run"
+          }
+        ]
+      }
+    ]
+  },
+  "LEDGER_EFFECTIVE_AS_OF": {
+    "node": "Limit",
+    "children": [
+      {
+        "node": "Unique",
+        "children": [
+          {
+            "node": "Sort",
+            "children": [
+              {
+                "node": "Result",
+                "children": [
+                  {
+                    "node": "Nested Loop",
+                    "children": [
+                      {
+                        "node": "Index Scan",
+                        "relation": "ledger_event_pN",
+                        "index": "ledger_event_pN_tenant_id_stream_key_effective_at_idx"
+                      },
+                      {
+                        "node": "Result",
+                        "children": [
+                          {
+                            "node": "Index Scan",
+                            "relation": "ledger_event_pN",
+                            "index": "ledger_event_pN_pkey"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "LEDGER_STREAM_REPLAY": {
+    "node": "Result",
+    "children": [
+      {
+        "node": "Index Scan",
+        "relation": "ledger_event_pN",
+        "index": "ledger_event_pN_pkey"
+      }
+    ]
+  },
+  "WORKFORCE_GET_BY_KEY_OR_ID": {
+    "node": "Limit",
+    "children": [
+      {
+        "node": "Result",
+        "children": [
+          {
+            "node": "Index Scan",
+            "relation": "journey_worker",
+            "index": "journey_worker_recorded"
+          }
+        ]
+      }
+    ]
+  },
+  "WORKFORCE_LIST_BY_TENANT": {
+    "node": "Sort",
+    "children": [
+      {
+        "node": "Result",
+        "children": [
+          {
+            "node": "Index Scan",
+            "relation": "journey_worker",
+            "index": "journey_worker_recorded"
+          }
+        ]
+      }
+    ]
+  }
+}

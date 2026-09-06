@@ -196,7 +196,10 @@ func startEmbedded() (string, func() error, error) {
 	// .exe suffix, never finds it, and re-extracts on every start. Sharing that
 	// directory across concurrent test processes would have them overwrite each
 	// other's running server.
-	runtimePath, err := os.MkdirTemp("", "hcmnext-pg-")
+	// Earlier test processes that died before their stop function ran leave
+	// their runtime directories behind; reclaim the abandoned ones first.
+	sweepStaleRuntimes(os.TempDir(), staleRuntimeAge, time.Now())
+	runtimePath, err := os.MkdirTemp("", runtimePrefix)
 	if err != nil {
 		return "", nil, fmt.Errorf("create runtime directory: %w", err)
 	}

@@ -2,12 +2,13 @@ package runtimestate
 
 import (
 	"context"
+	"slices"
 	"sort"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
-// RuntimeTables is the closed, named set of tables DB-012's five migrations
+// RuntimeTables is the closed, named set of tables DB-012's migrations
 // materialize for durable workflow-runtime and human-work state:
 //
 //	00016_workflow_runtime.sql        workflow_instance, workflow_node_execution
@@ -15,6 +16,16 @@ import (
 //	00018_workflow_continuation.sql   workflow_continuation
 //	00019_idempotency_record.sql      idempotency_record
 //	00020_workflow_advancement_receipt.sql   workflow_advancement_receipt
+//	00026_workflow_scheduling_state.sql      workflow_frontier_entry,
+//	                                  workflow_node_output, workflow_ready_work,
+//	                                  workflow_variable, workflow_timer,
+//	                                  workflow_signal_subscription,
+//	                                  workflow_signal, workflow_signal_receipt,
+//	                                  workflow_lease, workflow_checkpoint,
+//	                                  workflow_child_link, work_queue,
+//	                                  work_queue_item, work_item_claim,
+//	                                  work_item_sla,
+//	                                  workflow_approval_requirement
 //
 // [SchemaInventory] compares the live schema against exactly this list, not
 // against a table count: naming every member is what makes a future migration
@@ -23,44 +34,68 @@ import (
 var RuntimeTables = []string{
 	"idempotency_record",
 	"work_item",
+	"work_item_claim",
+	"work_item_sla",
 	"work_item_transition",
+	"work_queue",
+	"work_queue_item",
 	"workflow_advancement_receipt",
+	"workflow_approval_requirement",
+	"workflow_checkpoint",
+	"workflow_child_link",
 	"workflow_continuation",
+	"workflow_frontier_entry",
 	"workflow_instance",
+	"workflow_lease",
 	"workflow_node_execution",
+	"workflow_node_output",
+	"workflow_ready_work",
+	"workflow_signal",
+	"workflow_signal_receipt",
+	"workflow_signal_subscription",
+	"workflow_timer",
+	"workflow_variable",
 }
 
-// GatedTables names lease, timer, signal-subscription, checkpoint,
-// child-link, queue and SLA table shapes that GREEN's clause for DB-012
-// mentions but definitions/runtime/durable-runtime-decision.yaml (WF-RUN-000)
-// blocks behind its P1B re-evaluation gate. This is a representative
-// candidate set, not a claim that no other table name could ever exist: the
-// point [SchemaInventory] proves is that within this exact candidate
-// universe, only [RuntimeTables]' members are present -- the gated ones are
-// named here so their absence is checked by name rather than inferred from
-// silence.
+// GatedTables names the tables a SCHEDULER PROCESS would need for its own
+// bookkeeping, which definitions/runtime/durable-runtime-decision.yaml
+// (WF-RUN-000) still blocks.
+//
+// This list changed shape when migration 00026 landed, and the reason matters.
+// Before 00026 it named the durable state itself -- leases, timers, signal
+// subscriptions, checkpoints, child links, queues -- because none of it existed
+// and DB-012's evidence had to prove the absence by name rather than infer it
+// from silence. 00026 materialized that state, which is DB-012's own scope: a
+// GATE_B data-plane todo about the rows a runtime persists, not a WF-RUN todo
+// about the code that drives them. What the gate actually blocks is that code --
+// "P1B implementation of WF-RUN-002 through WF-RUN-026 scheduler/timer/lease
+// code", a background worker with its own clock, claim loop and retry driver --
+// and a scheduler like that keeps its own operational bookkeeping in its own
+// tables: a worker registry, a heartbeat table, a timer-wheel shard map, an
+// admission/workload limit, a retry policy table, a poison quarantine.
+//
+// So the list below is that bookkeeping. Its members are still, correctly,
+// absent, and [SchemaInventory] keeps checking their absence by name -- the same
+// discipline as before, now pointed at the thing the gate is actually about.
+// This package's own stores are caller-driven and hold no goroutine, ticker or
+// background claim, so nothing here is the code the gate blocks.
 var GatedTables = []string{
-	// Leases and fencing (WF-RUN-002, explicitly blocked).
-	"execution_lease",
-	"workflow_lease",
-	// Timers (WF-RUN-004).
-	"workflow_timer",
-	// Signal subscriptions (WF-RUN-005).
-	"signal_subscription",
-	"workflow_signal_subscription",
-	// Checkpoints (safe-point pause, WF-RUN-008/009 territory).
-	"workflow_checkpoint",
-	// Child-workflow links (WF-RUN-011, PHASE_2).
-	"workflow_child_link",
-	"child_workflow_link",
-	// Queues/SLA (a scheduler's own work distribution, not work_item's claim
-	// columns, which migration 00017 already carries on the item row itself).
-	"work_queue",
-	"work_item_queue",
-	"workflow_queue",
-	"work_item_claim",
-	"sla_policy",
-	"work_item_sla",
+	// A scheduler's own worker fleet and liveness (WF-RUN-002/003 driver code,
+	// distinct from workflow_lease, which is the durable lease row a caller
+	// takes).
+	"scheduler_worker",
+	"scheduler_heartbeat",
+	"scheduler_partition",
+	// A timer wheel's shard/dispatch bookkeeping (WF-RUN-004 driver code,
+	// distinct from workflow_timer, which is the durable promise).
+	"timer_wheel_shard",
+	"timer_dispatch_log",
+	// Retry and poison-node policy the scheduler applies (WF-RUN-006/007).
+	"retry_policy",
+	"poison_node_quarantine",
+	// Admission control and workload limits (WF-RUN-021).
+	"workload_limit",
+	"admission_control_bucket",
 }
 
 // Tables returns the base table names that exist in ex's current schema,
@@ -95,12 +130,7 @@ func Tables(ctx context.Context, ex dbport.Querier) ([]string, error) {
 
 // Contains reports whether name is present in set.
 func Contains(set []string, name string) bool {
-	for _, s := range set {
-		if s == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(set, name)
 }
 
 // SchemaInventory is the live schema's answer, restricted to the candidate
@@ -113,8 +143,9 @@ type SchemaInventory struct {
 	// Missing is RuntimeTables minus Present: a required table that did not
 	// materialize.
 	Missing []string
-	// Unexpected is GatedTables intersect Present: a gated table that exists
-	// when the WF-RUN-000 gate says it should not.
+	// Unexpected is GatedTables intersect Present: a scheduler-bookkeeping
+	// table that exists when the WF-RUN-000 gate says the scheduler has not
+	// been built.
 	Unexpected []string
 }
 

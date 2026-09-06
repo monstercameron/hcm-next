@@ -143,6 +143,18 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 	for k, v := range runtimeParams {
 		cfg.ConnConfig.RuntimeParams[k] = v
 	}
+	// BeforeAcquire below runs DISCARD ALL, which deallocates every named
+	// server-side prepared statement on the session. pgx's default mode
+	// (QueryExecModeCacheStatement) prepares each distinct SQL text once per
+	// connection under a generated name and remembers it client-side, so the
+	// next borrower of a recycled session binds a statement the server no
+	// longer has and PostgreSQL answers SQLSTATE 26000. CacheDescribe keeps
+	// the extended protocol and the client-side description cache but
+	// always executes through the unnamed statement, which DISCARD ALL does
+	// not touch. This is the same setting pgx documents for any session that
+	// is reset between uses (a connection pooler in transaction mode is the
+	// usual case; here the pool's own hygiene is that reset).
+	cfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
 	// A pooled connection is a reusable PostgreSQL session. Reset all ambient
 	// state before handing an idle session to a borrower; callers must use SET
 	// LOCAL for request/tenant context. DISCARD ALL does not reset an assumed
@@ -158,20 +170,24 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 		// RESET ROLE returns from SET ROLE to the login role. The unlock-all call
 		// is intentionally unconditional: unlike transaction-scoped locks,
 		// session advisory locks survive a transaction and DISCARD ALL.
-		if _, err := conn.Exec(ctx, "RESET ROLE"); err != nil {
+		// Hygiene runs through the simple protocol: it must not depend on a
+		// prepared-statement cache that DISCARD ALL, two lines down, is about
+		// to invalidate. The set_config call carries bound arguments and so
+		// uses the extended protocol without a named statement.
+		if _, err := conn.Exec(ctx, "RESET ROLE", pgx.QueryExecModeSimpleProtocol); err != nil {
 			hygieneFailures.Add(1)
 			return false
 		}
-		if _, err := conn.Exec(ctx, "SELECT pg_advisory_unlock_all()"); err != nil {
+		if _, err := conn.Exec(ctx, "SELECT pg_advisory_unlock_all()", pgx.QueryExecModeSimpleProtocol); err != nil {
 			hygieneFailures.Add(1)
 			return false
 		}
-		if _, err := conn.Exec(ctx, "DISCARD ALL"); err != nil {
+		if _, err := conn.Exec(ctx, "DISCARD ALL", pgx.QueryExecModeSimpleProtocol); err != nil {
 			hygieneFailures.Add(1)
 			return false
 		}
 		for k, v := range params {
-			if _, err := conn.Exec(ctx, "SELECT set_config($1, $2, false)", k, v); err != nil {
+			if _, err := conn.Exec(ctx, "SELECT set_config($1, $2, false)", pgx.QueryExecModeExec, k, v); err != nil {
 				hygieneFailures.Add(1)
 				return false
 			}

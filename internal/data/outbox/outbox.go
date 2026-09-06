@@ -58,6 +58,8 @@ type Record struct {
 	Attempts       int
 	AvailableAt    time.Time
 	UpdatedAt      time.Time
+	LeaseToken     uuid.UUID
+	LeaseUntil     time.Time
 }
 
 // Enqueue inserts one PENDING message inside the caller's transaction. A
@@ -97,15 +99,26 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	return readByEffectIdentity(ctx, tx, req.Tenant, req.EffectIdentity)
 }
 
-const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, schema_ref, payload, status, attempts, available_at, updated_at`
+const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, schema_ref, payload, status, attempts, available_at, updated_at, lease_token, lease_until`
 
 func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
-	var rec Record
+	var (
+		rec        Record
+		leaseToken *uuid.UUID
+		leaseUntil *time.Time
+	)
 	if err := row.Scan(
 		&rec.Tenant, &rec.OutboxID, &rec.EffectIdentity, &rec.OrderingKey, &rec.SchemaRef,
 		&rec.Payload, &rec.Status, &rec.Attempts, &rec.AvailableAt, &rec.UpdatedAt,
+		&leaseToken, &leaseUntil,
 	); err != nil {
 		return Record{}, err
+	}
+	if leaseToken != nil {
+		rec.LeaseToken = *leaseToken
+	}
+	if leaseUntil != nil {
+		rec.LeaseUntil = leaseUntil.UTC()
 	}
 	return rec, nil
 }

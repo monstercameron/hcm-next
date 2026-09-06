@@ -82,19 +82,18 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 	}()
 
 	now := c.now()
-	leaseExpiry := now.Add(-c.lease)
 
 	rows, err := tx.Query(ctx, `
 		SELECT outbox_id FROM outbox
 		WHERE tenant_id = $1
 		  AND (
 		    (status = $2 AND available_at <= $3)
-		    OR (status = $4 AND updated_at <= $5)
+			OR (status = $4 AND lease_until <= $5)
 		  )
 		ORDER BY available_at
 		FOR UPDATE SKIP LOCKED
 		LIMIT $6`,
-		tenant, StatusPending, now, StatusInFlight, leaseExpiry, c.batchSize)
+		tenant, StatusPending, now, StatusInFlight, now, c.batchSize)
 	if err != nil {
 		return nil, fmt.Errorf("outbox: poll: select: %w", err)
 	}
@@ -122,10 +121,14 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 
 	claimed := make([]Record, 0, len(ids))
 	for _, id := range ids {
+		leaseToken := uuid.New()
+		leaseUntil := now.Add(c.lease)
 		affected, err := tx.Exec(ctx, `
-			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4
-			WHERE tenant_id = $1 AND outbox_id = $2`,
-			tenant, id, StatusInFlight, now)
+			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4,
+				lease_token = $5, lease_until = $6
+			WHERE tenant_id = $1 AND outbox_id = $2
+			  AND ((status = $7 AND available_at <= $4) OR (status = $8 AND lease_until <= $4))`,
+			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight)
 		if err != nil {
 			return nil, fmt.Errorf("outbox: poll: claim %s: %w", id, err)
 		}
@@ -150,11 +153,31 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 // harmless no-op, matching Handler's own idempotency requirement.
 func (c *Consumer) Ack(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID) error {
 	_, err := execOn(ctx, c.db, `
-		UPDATE outbox SET status = $3, updated_at = $4
-		WHERE tenant_id = $1 AND outbox_id = $2`,
-		tenant, outboxID, StatusDelivered, c.now())
+		UPDATE outbox SET status = $3, updated_at = $4, lease_token = NULL, lease_until = NULL
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5`,
+		tenant, outboxID, StatusDelivered, c.now(), StatusInFlight)
 	if err != nil {
 		return fmt.Errorf("outbox: ack %s: %w", outboxID, err)
+	}
+	return nil
+}
+
+// AckLease marks a message delivered only when token still owns the current
+// lease. A worker that wakes after its lease was reclaimed cannot acknowledge
+// the newer worker's delivery.
+func (c *Consumer) AckLease(ctx context.Context, tenant, outboxID, token uuid.UUID) error {
+	if token == uuid.Nil {
+		return fmt.Errorf("outbox: ack %s: lease token is required", outboxID)
+	}
+	affected, err := execOn(ctx, c.db, `
+		UPDATE outbox SET status = $3, updated_at = $4, lease_token = NULL, lease_until = NULL
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5 AND lease_token = $6`,
+		tenant, outboxID, StatusDelivered, c.now(), StatusInFlight, token)
+	if err != nil {
+		return fmt.Errorf("outbox: ack lease %s: %w", outboxID, err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("outbox: ack lease %s: lease fence refused", outboxID)
 	}
 	return nil
 }
@@ -165,11 +188,34 @@ func (c *Consumer) Ack(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID
 // Record.Attempts.
 func (c *Consumer) Fail(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID, cause error) error {
 	_, err := execOn(ctx, c.db, `
-		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5
-		WHERE tenant_id = $1 AND outbox_id = $2`,
-		tenant, outboxID, StatusPending, cause.Error(), c.now())
+		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
+			lease_token = NULL, lease_until = NULL
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6`,
+		tenant, outboxID, StatusPending, cause.Error(), c.now(), StatusInFlight)
 	if err != nil {
 		return fmt.Errorf("outbox: fail %s: %w", outboxID, err)
+	}
+	return nil
+}
+
+// FailLease is the fenced form of Fail.
+func (c *Consumer) FailLease(ctx context.Context, tenant, outboxID, token uuid.UUID, cause error) error {
+	if token == uuid.Nil {
+		return fmt.Errorf("outbox: fail %s: lease token is required", outboxID)
+	}
+	if cause == nil {
+		return fmt.Errorf("outbox: fail %s: cause is required", outboxID)
+	}
+	affected, err := execOn(ctx, c.db, `
+		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
+			lease_token = NULL, lease_until = NULL
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6 AND lease_token = $7`,
+		tenant, outboxID, StatusPending, cause.Error(), c.now(), StatusInFlight, token)
+	if err != nil {
+		return fmt.Errorf("outbox: fail lease %s: %w", outboxID, err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("outbox: fail lease %s: lease fence refused", outboxID)
 	}
 	return nil
 }
@@ -220,10 +266,10 @@ func (c *Consumer) Run(ctx context.Context, tenant uuid.UUID, handler Handler, p
 		}
 		for _, msg := range batch {
 			if err := handler(ctx, msg); err != nil {
-				_ = c.Fail(ctx, tenant, msg.OutboxID, err)
+				_ = c.FailLease(ctx, tenant, msg.OutboxID, msg.LeaseToken, err)
 				continue
 			}
-			if err := c.Ack(ctx, tenant, msg.OutboxID); err != nil {
+			if err := c.AckLease(ctx, tenant, msg.OutboxID, msg.LeaseToken); err != nil {
 				return err
 			}
 		}
