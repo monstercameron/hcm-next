@@ -375,6 +375,7 @@ func (e *Error) Detail() *commonv1.ErrorDetail {
 		Code:          e.code.Proto(),
 		Retryable:     e.retryable,
 		CorrelationId: e.correlationID,
+		ReasonRef:     e.reasonRef,
 	}
 	for _, v := range e.violations {
 		detail.FieldViolations = append(detail.FieldViolations, &commonv1.FieldViolation{
@@ -430,6 +431,7 @@ func FromDetail(code Code, message string, detail *commonv1.ErrorDetail) *Error 
 	}
 	e.retryable = detail.GetRetryable()
 	e.correlationID = detail.GetCorrelationId()
+	e.reasonRef = detail.GetReasonRef()
 	for _, v := range detail.GetFieldViolations() {
 		e.violations = append(e.violations, Violation{
 			FieldPath:   v.GetFieldPath(),

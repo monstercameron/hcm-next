@@ -33,12 +33,12 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	transportadmin "github.com/monstercameron/hcm-next/internal/transport/admin"
 	"github.com/monstercameron/hcm-next/internal/transport/edge"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
+	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
 	"github.com/monstercameron/hcm-next/internal/transport/manifest"
 	"github.com/monstercameron/hcm-next/internal/transport/otelmw"
 )
@@ -46,46 +46,42 @@ import (
 // NewGRPCServer builds the canonical gRPC surface over an already composed
 // application cell. grpcserver owns the required admission interceptor
 // chain; opts can only add mechanics after it. When c was composed with a
-// Telemetry provider, NewGRPCServer chains otelmw.UnaryServerInterceptor
-// after admission and after opts, so every call - including one added
-// through a caller's own opts - is instrumented; a cell composed with no
-// Telemetry adds nothing here at all.
+// Telemetry provider, NewGRPCServer chains otelmw.UnaryServerInterceptor and
+// otelmw.StreamServerInterceptor after admission and after opts, so every
+// call of either cardinality - including one added through a caller's own
+// opts - is instrumented; a cell composed with no Telemetry adds nothing
+// here at all.
 //
 // It is exactly [NewGRPCServerWithWorkflowInspector] with no workflow
-// executor: AdminService.GetWorkflowInstance (ADMIN-008) is then UNAVAILABLE,
-// matching every other optional transportadmin.Dependencies port a caller
-// does not wire.
+// instance reader: AdminService.GetWorkflowInstance (ADMIN-008) is then
+// UNAVAILABLE, matching every other optional transportadmin.Dependencies
+// port a caller does not wire.
 func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspector(c, nil, nil, opts...)
+	return NewGRPCServerWithWorkflowInspector(c, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspector is [NewGRPCServer] plus ADMIN-008's
 // workflow-inspector wiring for AdminService.GetWorkflowInstance.
 //
-// workflowExecutor is the pooled database handle (a
-// internal/data/pgxadapter.Pool in every real composition) transportadmin
-// hands to internal/workflow/runtime.Store and internal/humanwork/workitem.Store
-// to answer one GetWorkflowInstance call; tenantUUID maps the caller's
-// resolved tenant key onto the string form of the uuid those tables key rows
-// under (transportadmin parses it back through runtime.ParseUUID: LIB-002/
-// LIB-004 does not admit internal/transport as an import root for
-// "github.com/google/uuid"), the same mapping [app.CellConfig.TenantUUID]
-// threads to caller-driven execution
-// (internal/intent/app/pgstore.TenantID in every real composition). c itself
-// carries neither: app.Cell has no workflow-runtime or work-item field to
-// expose one from (LIB-003 keeps pgx/dbport composition out of internal/intent/app),
-// so a composition root that wants GetWorkflowInstance served passes its own
-// pool and mapping here instead. Either nil leaves GetWorkflowInstance
-// UNAVAILABLE.
+// instances is the application-side port that loads one instance's durable
+// record for the caller's tenant (app.NewWorkflowInstanceReader over the
+// pool the workflow runtime writes through, with the same tenant mapping
+// [app.CellConfig.TenantUUID] carries, in every real composition). c itself
+// does not carry it: the operator surface is served whether or not the cell
+// was composed with the P1B execution authority, so the composition root
+// passes the reader here rather than app.Cell growing a field that would
+// tie the two together. Nil leaves GetWorkflowInstance UNAVAILABLE.
 func NewGRPCServerWithWorkflowInspector(
-	c *app.Cell, workflowExecutor transportadmin.Executor, tenantUUID func(values.TenantId) string,
-	opts ...grpc.ServerOption,
+	c *app.Cell, instances app.WorkflowInstanceReader, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
 	if c.Telemetry != nil {
-		opts = append(opts, grpc.ChainUnaryInterceptor(otelmw.UnaryServerInterceptor(c.Telemetry)))
+		opts = append(opts,
+			grpc.ChainUnaryInterceptor(otelmw.UnaryServerInterceptor(c.Telemetry)),
+			grpc.ChainStreamInterceptor(otelmw.StreamServerInterceptor(c.Telemetry)),
+		)
 	}
 	srv, err := grpcserver.NewServer(grpcserver.Options{
 		Config: c.Config, Intent: c.Service, Registry: c.Service, ServerOptions: opts,
@@ -103,8 +99,21 @@ func NewGRPCServerWithWorkflowInspector(
 		TransactionHistory: c.Transactions,
 		CapabilityRegistry: c.Capabilities,
 		Now:                c.Config.Now,
-		WorkflowExecutor:   workflowExecutor,
-		TenantUUID:         tenantUUID,
+		WorkflowInstances:  instances,
+	})
+	// The Promotion journey service (UX-009) is hosted by the same server
+	// under the same interceptor chain - both halves of it, since
+	// WatchJourney is a server-streaming RPC and grpcserver.NewServer chains
+	// grpcserver.StreamInterceptor beside the unary one. c.Journey is nil on
+	// a cell composed without the P1B execution authority and an execution
+	// database; the service then answers UNAVAILABLE rather than being
+	// absent, so a client learns the surface exists and why it cannot act.
+	//
+	// PollInterval is left at the package default: how hard the watch reads
+	// the engine is a property of the service, and this composition has no
+	// reason to hold an opinion about it.
+	transportjourney.Register(srv, transportjourney.Dependencies{
+		Engine: c.Journey,
 	})
 	return srv, nil
 }
@@ -116,6 +125,14 @@ func NewGRPCServerWithWorkflowInspector(
 // connect.WithInterceptors(otelmw.NewConnectInterceptor(provider)) through
 // edge's HandlerOptions, mirroring NewGRPCServer exactly.
 func NewEdgeHandler(c *app.Cell, opts ...connect.HandlerOption) (http.Handler, error) {
+	return buildEdgeHandler(c, nil, opts...)
+}
+
+// buildEdgeHandler is the one edge composition both [NewEdgeHandler] and
+// [NewEdgeHandlerWithTunnel] run. A nil grpcServer means no tunnel is
+// mounted, which is exactly what NewEdgeHandler has always built; a non-nil
+// one adds [TunnelPath] to the same mux and changes nothing else.
+func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.HandlerOption) (http.Handler, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
@@ -142,14 +159,27 @@ func NewEdgeHandler(c *app.Cell, opts ...connect.HandlerOption) (http.Handler, e
 		}
 		mux.Handle(app.WorkspacePath, ws)
 		routes = workspace.Routes()
+		// A browser opening the bare origin is looking for the workspace,
+		// not for an RPC procedure named "/". The pattern is method- and
+		// path-exact, so every Connect procedure still falls through to rpc
+		// below; a process composed without the workspace keeps the plain
+		// RPC answer at the root.
+		mux.Handle(RootPattern, rootRedirect(workspace.PathProductHome))
 	}
 	discovery, err := newDiscoveryHandler(c.Config, c.Discovery, routes)
 	if err != nil {
 		return nil, fmt.Errorf("transport cell: render the discovery document: %w", err)
 	}
 	mux.Handle(app.DiscoveryPath, discovery)
+	if grpcServer != nil {
+		tunnel, tunnelErr := newTunnelHandler(c, grpcServer)
+		if tunnelErr != nil {
+			return nil, tunnelErr
+		}
+		mux.Handle(TunnelPath, tunnel)
+	}
 	mux.Handle("/", rpc)
-	return mux, nil
+	return edge.BrowserPolicy(mux, edge.BrowserPolicyOptions{}), nil
 }
 
 // discoveryHandler serves the pre-rendered API-001 discovery document to an

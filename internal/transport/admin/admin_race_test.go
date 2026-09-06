@@ -35,7 +35,7 @@ func TestTodo_ADMIN_001_Race(t *testing.T) {
 	const workers = 40
 	var wg sync.WaitGroup
 	wg.Add(workers)
-	for i := 0; i < workers; i++ {
+	for i := range workers {
 		go func(i int) {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

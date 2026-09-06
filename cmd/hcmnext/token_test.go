@@ -229,3 +229,55 @@ func TestTokenCommandMintsACredentialTheServerAccepts(t *testing.T) {
 		}
 	})
 }
+
+// TestTokenCommandCarriesTheOrganizationScope pins the -org-scope flag: the
+// kernel refuses to create an intent whose initiator carries no
+// organization_scope_id (internal/intent.Instance.Validate), so a credential
+// minted without one can read the workspace but never propose. The claim
+// must round-trip through the same verifier serve authenticates with.
+func TestTokenCommandCarriesTheOrganizationScope(t *testing.T) {
+	t.Parallel()
+
+	const key = "hcmnext-token-test-org-scope-signing-key-32+"
+	baseTime := time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
+
+	params, err := parseTokenArgs([]string{
+		"-dev-hmac-key=" + key, "-tenant=" + string(fixtures.Tenant), "-subject=user-org-scope",
+		"-org-scope= org:harborcare-demo:people-ops ",
+	}, io.Discard)
+	if err != nil {
+		t.Fatalf("parseTokenArgs: %v", err)
+	}
+	if params.orgScope != "org:harborcare-demo:people-ops" {
+		t.Fatalf("orgScope = %q, want the trimmed flag value", params.orgScope)
+	}
+
+	token, err := mintDevToken(params, baseTime)
+	if err != nil {
+		t.Fatalf("mintDevToken: %v", err)
+	}
+	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{
+		Key: []byte(key), Issuer: defaultIssuer, Audience: defaultAudience,
+		Now: func() time.Time { return baseTime },
+	})
+	if err != nil {
+		t.Fatalf("NewHMACVerifier: %v", err)
+	}
+	principal, err := verifier.Verify(context.Background(), trust.Credential{Scheme: "Bearer", Token: token})
+	if err != nil {
+		t.Fatalf("Verify: %v", err)
+	}
+	if got := principal.OrganizationScopeID(); got != "org:harborcare-demo:people-ops" {
+		t.Fatalf("OrganizationScopeID = %q, want the minted scope", got)
+	}
+
+	// The default stays empty: a scope is an assertion about where the
+	// subject acts, not something this CLI should invent.
+	bare, err := parseTokenArgs([]string{"-dev-hmac-key=" + key, "-tenant=t", "-subject=s"}, io.Discard)
+	if err != nil {
+		t.Fatalf("parseTokenArgs (bare): %v", err)
+	}
+	if bare.orgScope != "" {
+		t.Fatalf("default orgScope = %q, want empty", bare.orgScope)
+	}
+}

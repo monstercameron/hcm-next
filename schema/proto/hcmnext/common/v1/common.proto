@@ -194,4 +194,7 @@ message ErrorDetail {
   bool retryable = 3;
   string correlation_id = 4;
   EvidenceRef evidence_ref = 5;
+  // reason_ref is the stable owned reason identifier (for example
+  // `structural.request_rejected`); never free text.
+  string reason_ref = 6;
 }

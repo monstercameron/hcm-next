@@ -12,6 +12,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/transport/admin"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
@@ -61,12 +62,13 @@ func admin008InTx(t *testing.T, conn *pgxadapter.Conn, fn func(tx dbport.Tx) err
 // TestTodo_ADMIN_008_Integration proves GetWorkflowInstance end to end
 // against a real PostgreSQL instance, work item and transition, driven
 // through the generated gRPC client exactly like a real hcmctl invocation
-// would: internal/transport/admin composes internal/workflow/runtime.Store
-// and internal/humanwork/workitem.Store over one pooled connection and hands
-// their loaded rows to internal/workflow/inspect, and this test never reads
-// a runtime or work-item table itself -- it only asserts on the wire
-// response, which is the whole of ADMIN-008's "hcmctl cannot show a run
-// today" RED case being fixed.
+// would: internal/transport/admin hands the rows
+// internal/intent/app.WorkflowInstanceReader loaded (through
+// internal/workflow/runtime.Store and internal/humanwork/workitem.Store over
+// one tenant-scoped transaction) to internal/workflow/inspect, and this test
+// never reads a runtime or work-item table itself -- it only asserts on the
+// wire response, which is the whole of ADMIN-008's "hcmctl cannot show a
+// run today" RED case being fixed.
 func TestTodo_ADMIN_008_Integration(t *testing.T) {
 	ctx := context.Background()
 	db := pgtest.New(t)
@@ -130,9 +132,12 @@ func TestTodo_ADMIN_008_Integration(t *testing.T) {
 		return err
 	})
 
+	// The port is the application-side reader every real composition
+	// passes, over this test's own connection and the fixture tenant's id,
+	// so what is proven here is the served surface over the real loader,
+	// not a fake of it.
 	deps := admin.Dependencies{
-		WorkflowExecutor: conn,
-		TenantUUID:       func(values.TenantId) string { return tenant.String() },
+		WorkflowInstances: app.NewWorkflowInstanceReader(conn, func(values.TenantId) uuid.UUID { return tenant }),
 	}
 	gconn, cleanup := startTestServer(t, deps)
 	defer cleanup()

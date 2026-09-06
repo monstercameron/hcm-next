@@ -3,6 +3,7 @@ package otelmw_test
 import (
 	"context"
 	"errors"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -43,9 +44,9 @@ func attrValue(span tracetest.SpanStub, key string) (string, bool) {
 // its own call's span even when the harness's setup produced others.
 func findSpan(t testing.TB, spans tracetest.SpanStubs, name string) tracetest.SpanStub {
 	t.Helper()
-	for i := len(spans) - 1; i >= 0; i-- {
-		if spans[i].Name == name {
-			return spans[i]
+	for _, span := range slices.Backward(spans) {
+		if span.Name == name {
+			return span
 		}
 	}
 	t.Fatalf("no exported span named %q among %d spans", name, len(spans))

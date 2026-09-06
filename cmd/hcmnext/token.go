@@ -42,6 +42,7 @@ type tokenParams struct {
 	subject  string
 	roles    []string
 	purpose  string
+	orgScope string
 	ttl      time.Duration
 }
 
@@ -70,6 +71,7 @@ func parseTokenArgs(args []string, stderr io.Writer) (tokenParams, error) {
 	subject := fs.String("subject", "", "opaque subject identifier the credential authenticates (required)")
 	roles := fs.String("roles", defaultTokenRoles, "comma-separated role identifiers granted to the credential")
 	purpose := fs.String("purpose", defaultTokenPurpose, "purpose of processing the credential is authorized for")
+	orgScope := fs.String("org-scope", "", "organization scope the subject acts within; required to create intents (the kernel refuses an intent with no organization_scope_id)")
 	ttl := fs.Duration("ttl", defaultTokenTTL, "how long the minted credential remains valid")
 
 	if err := fs.Parse(args); err != nil {
@@ -101,6 +103,7 @@ func parseTokenArgs(args []string, stderr io.Writer) (tokenParams, error) {
 		subject:  *subject,
 		roles:    splitAndTrim(*roles),
 		purpose:  *purpose,
+		orgScope: strings.TrimSpace(*orgScope),
 		ttl:      *ttl,
 	}, nil
 }
@@ -140,6 +143,7 @@ func mintDevToken(p tokenParams, now time.Time) (string, error) {
 		Subject:              p.subject,
 		SubjectKind:          "human",
 		Tenant:               p.tenant,
+		OrganizationScopeID:  p.orgScope,
 		Roles:                p.roles,
 		Purposes:             []string{p.purpose},
 		AuthenticationMethod: "bearer_token",

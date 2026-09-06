@@ -1275,8 +1275,11 @@ type ErrorDetail struct {
 	Retryable       bool                   `protobuf:"varint,3,opt,name=retryable,proto3" json:"retryable,omitempty"`
 	CorrelationId   string                 `protobuf:"bytes,4,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
 	EvidenceRef     *EvidenceRef           `protobuf:"bytes,5,opt,name=evidence_ref,json=evidenceRef,proto3" json:"evidence_ref,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// reason_ref is the stable owned reason identifier (for example
+	// `structural.request_rejected`); never free text.
+	ReasonRef     string `protobuf:"bytes,6,opt,name=reason_ref,json=reasonRef,proto3" json:"reason_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ErrorDetail) Reset() {
@@ -1342,6 +1345,13 @@ func (x *ErrorDetail) GetEvidenceRef() *EvidenceRef {
 		return x.EvidenceRef
 	}
 	return nil
+}
+
+func (x *ErrorDetail) GetReasonRef() string {
+	if x != nil {
+		return x.ReasonRef
+	}
+	return ""
 }
 
 var File_hcmnext_common_v1_common_proto protoreflect.FileDescriptor
@@ -1415,13 +1425,15 @@ const file_hcmnext_common_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"field_path\x18\x01 \x01(\tR\tfieldPath\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x19\n" +
-	"\brule_ref\x18\x03 \x01(\tR\aruleRef\"\x95\x02\n" +
+	"\brule_ref\x18\x03 \x01(\tR\aruleRef\"\xb4\x02\n" +
 	"\vErrorDetail\x120\n" +
 	"\x04code\x18\x01 \x01(\x0e2\x1c.hcmnext.common.v1.ErrorCodeR\x04code\x12L\n" +
 	"\x10field_violations\x18\x02 \x03(\v2!.hcmnext.common.v1.FieldViolationR\x0ffieldViolations\x12\x1c\n" +
 	"\tretryable\x18\x03 \x01(\bR\tretryable\x12%\n" +
 	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\x12A\n" +
-	"\fevidence_ref\x18\x05 \x01(\v2\x1e.hcmnext.common.v1.EvidenceRefR\vevidenceRef*\xc4\x01\n" +
+	"\fevidence_ref\x18\x05 \x01(\v2\x1e.hcmnext.common.v1.EvidenceRefR\vevidenceRef\x12\x1d\n" +
+	"\n" +
+	"reason_ref\x18\x06 \x01(\tR\treasonRef*\xc4\x01\n" +
 	"\bPresence\x12\x18\n" +
 	"\x14PRESENCE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fPRESENCE_ABSENT\x10\x01\x12\x11\n" +

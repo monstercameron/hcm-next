@@ -1,0 +1,730 @@
+syntax = "proto3";
+
+package hcmnext.journey.v1;
+
+option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1;journeyv1";
+
+import "google/protobuf/timestamp.proto";
+
+// JourneyService is the wire form of the Promotion journey engine port
+// (internal/humanwork/workspace.JourneyEngine): one governed promotion
+// followed from the manager's proposal, through the P1B execution authority
+// gate, to the routed approver's decision and the one ledger fact the
+// workflow's END node records. It exists so the browser-resident
+// GoWebComponents/WASM journey page can read and act through exactly the
+// engine operations the workspace surface uses, over the gRPC-over-WebSocket
+// tunnel, with no HTTP/JSON business surface in between: Protobuf/gRPC is the
+// canonical contract for this page as it is for every other.
+//
+// Every message here mirrors a workspace port type field for field. This
+// service invents no HCM meaning of its own: the stage is derived by the
+// engine from durable state (the intent record, the workflow instance, its
+// work items and the ledger), never asserted by the page, and every write is
+// one of the engine's own governed operations rather than a table update.
+//
+// JourneyService is hosted by the same process as
+// hcmnext.intents.v1.IntentService and hcmnext.admin.v1.AdminService
+// (internal/transport/journey.Register adds it to the shared *grpc.Server the
+// modular application already builds via
+// internal/transport/grpcserver.NewServer) and reuses that server's whole
+// trusted-request boundary unchanged: the same transport.Admit admission
+// steps, the same deadline cap, the same envelope.Error projection. Unlike
+// AdminService there is no additional per-method role predicate: the journey
+// page is an ordinary authenticated surface, and every authorization decision
+// is made by the engine behind the port, which refuses under the same policy
+// the RPC surfaces would (workspace.ErrDenied projects to PERMISSION_DENIED).
+//
+// Eight methods are unary and WatchJourney is server-streaming. The stream
+// is admitted exactly as the unary methods are: the shared trusted-request
+// boundary is installed by grpcserver.NewServer as both
+// grpc.ChainUnaryInterceptor(grpcserver.UnaryInterceptor) and
+// grpc.ChainStreamInterceptor(grpcserver.StreamInterceptor), and the two
+// interceptors run the same transport.Admit, the same deadline cap and the
+// same envelope.Error projection over the same code. A streaming handler
+// therefore sees an admitted trust.Principal and transport.Invocation in
+// its context exactly as a unary one does.
+service JourneyService {
+  // ListJourneys returns every promotion journey in the caller's tenant,
+  // newest first. Effect class: READ_ONLY. It forwards to
+  // workspace.JourneyEngine.ListJourneys, which reads the intent records and
+  // derives each journey's stage from durable state; nothing is written and
+  // no capability runs.
+  rpc ListJourneys(ListJourneysRequest) returns (ListJourneysResponse);
+
+  // ProposeJourney creates and simulates a new promotion intent from the
+  // manager's input. Effect class: governed write through the intent service
+  // - workspace.JourneyEngine.Propose runs the engine's own CreateIntent
+  // followed by SimulateIntent, so the proposal is minted as an immutable
+  // revision with a material digest exactly as any other intent is. It
+  // returns the journey at JOURNEY_STAGE_PROPOSED, or
+  // JOURNEY_STAGE_BLOCKED when the simulation produced no executable plan.
+  // Nothing about the worker's current placement, pay or budget authority is
+  // read from this request: the engine reads those through the governed
+  // worker read.
+  rpc ProposeJourney(ProposeJourneyRequest) returns (ProposeJourneyResponse);
+
+  // ProposePromotion is the intent-only `promotion.propose` request contract
+  // (PROMO-007). It is the same governed act ProposeJourney performs -
+  // CapabilityGateway -> the application Promotion service -> IntentService ->
+  // preflight - stated as a closed contract rather than as a page form, so
+  // that a browser, a CLI, an agent and a partner connector all invoke one
+  // semantic capability and none of them can say anything the server owns.
+  //
+  // The difference from ProposeJourney is the request message, and it is the
+  // whole point. ProposePromotionRequest carries exactly the caller's
+  // intention: who the subject is, what is desired for them, when it takes
+  // effect, why, which subject revision the intention was formed against and
+  // which client request this is. It carries no current salary, no current
+  // manager, no position vacancy, no budget envelope and no authority
+  // assertion, because those are facts this cell resolves server-side through
+  // the governed reads; and it carries no principal, tenant, session, locale
+  // or legal-context selector, because those are derived from the verified
+  // credential by the trusted-request boundary and are not a caller's to
+  // choose. There is nowhere in this message to put such a fact, and a caller
+  // that appends one as an unknown or extension field is refused
+  // INVALID_ARGUMENT rather than having it ignored - a silently dropped
+  // assertion is indistinguishable, to the caller, from an accepted one. That
+  // refusal is the shared trusted-request boundary's own strict decoding
+  // (internal/transport.Validate, rule strict_decoding.unknown_field), so it
+  // is identical on both transports because it is the same code on both; the
+  // application service refuses the same bytes again for a caller that reaches
+  // it in-process.
+  //
+  // Effect class: governed write through the intent service, exactly as
+  // ProposeJourney's. Propose and its preflight simulation mutate no domain
+  // state: what they record is chronology (the intent) and what they compute
+  // is a proposal.
+  rpc ProposePromotion(ProposePromotionRequest) returns (ProposePromotionResponse);
+
+  // InspectJourney returns everything durable about one journey: the
+  // summary, the simulation findings and planned writes, the workflow
+  // instance and its node executions, the work items and their transitions,
+  // the ledger fact, the recorded evidence identifiers and the
+  // engine-composed timeline. Effect class: READ_ONLY. It forwards to
+  // workspace.JourneyEngine.Inspect and writes nothing.
+  rpc InspectJourney(InspectJourneyRequest) returns (InspectJourneyResponse);
+
+  // ExecuteJourney runs the engine's ExecuteIntent for an approved,
+  // re-simulated proposal. Effect class: governed write behind the P1B
+  // execution authority gate - workspace.JourneyEngine.Execute is refused
+  // with UNAVAILABLE when the cell was not composed with that authority
+  // (cmd/hcmnext -execution-authority=true), and with FAILED_PRECONDITION
+  // when the journey is not at a stage from which execution is available. On
+  // success the workflow instance exists and is parked on its approval
+  // WorkItem, and the returned detail carries it.
+  rpc ExecuteJourney(ExecuteJourneyRequest) returns (ExecuteJourneyResponse);
+
+  // DecideJourney records the routed approver's decision. Effect class:
+  // governed write through the WorkItem store and the caller-driven
+  // execution driver - workspace.JourneyEngine.Decide claims and completes
+  // the approval WorkItem as the routed approver, then resumes the driver,
+  // which runs the instance to its APPROVED or REJECTED terminal and, on
+  // approval, records the one ledger fact the END node raises. A caller who
+  // is not the routed approver is refused PERMISSION_DENIED by the engine,
+  // not by this service.
+  rpc DecideJourney(DecideJourneyRequest) returns (DecideJourneyResponse);
+
+  // WatchJourney is a server-streaming change feed over the same read
+  // InspectJourney performs. Effect class: READ_ONLY.
+  //
+  // The semantics are exactly these. The server emits the journey's current
+  // detail once immediately, unless since_digest equals the digest that
+  // current detail already carries, in which case the client is holding it
+  // and the initial emission is skipped. After that it emits one message per
+  // change: it re-reads the engine on a fixed short interval and sends only
+  // when JourneyDetail.detail_digest differs from the digest it last sent.
+  // An unchanged journey therefore produces no traffic at all - there is no
+  // heartbeat message and no "nothing changed" message to filter out.
+  //
+  // The stream ends in one of three ways. The client cancels, which is the
+  // ordinary case and is not an error. The server's fifteen-minute stream
+  // ceiling elapses, which ends the stream with OK - a client that still
+  // wants to watch simply opens another stream, carrying the digest it now
+  // holds as since_digest so it is not re-sent what it already has. Or the
+  // engine refuses the read, which ends the stream with that refusal
+  // projected through the owned error model exactly as InspectJourney's
+  // would be. The request's own gRPC deadline and the server's deadline cap
+  // still apply and still win whenever they are shorter than the ceiling.
+  rpc WatchJourney(WatchJourneyRequest) returns (stream WatchJourneyResponse);
+
+  // ListWorkers returns every employee a journey can be proposed for --
+  // the release's fixed corpus population and the tenant's own created one,
+  // newest created first -- together with the closed set of placements a new
+  // employee may be given. Effect class: READ_ONLY. It forwards to
+  // workspace.JourneyEngine.ListWorkers, which reads the corpus and the
+  // durable journey_worker rows; nothing is written and no capability runs.
+  //
+  // The options travel in the same response as the list because they are what
+  // makes the list actionable: a client holding one and not the other can
+  // render a picker but not a form.
+  rpc ListWorkers(ListWorkersRequest) returns (ListWorkersResponse);
+
+  // CreateWorker records one new employee as a durable, append-only fact.
+  // Effect class: governed demo-authority write - workspace.JourneyEngine
+  // .CreateWorker is gated by the same P1B execution authority ExecuteJourney
+  // and DecideJourney run behind, because creating the subject of a promotion
+  // is a workforce change and a surface that could do it without that
+  // authority would be a way around the gate rather than a step before it.
+  //
+  // It is refused UNAVAILABLE when this process was composed without the
+  // engine, or when the composed cell has no execution database to record a
+  // worker in; PERMISSION_DENIED when the caller does not carry the operator
+  // role that authority names; and INVALID_ARGUMENT, naming the field, when a
+  // name is missing, the base pay is not a positive decimal, the hire date is
+  // not an ISO-8601 date, or the placement lands outside every pay band the
+  // simulation knows -- which would otherwise produce a worker whose every
+  // promotion is refused later for a reason that has nothing to do with the
+  // promotion.
+  rpc CreateWorker(CreateWorkerRequest) returns (CreateWorkerResponse);
+}
+
+// JourneyStage is where one promotion journey currently stands
+// (workspace.JourneyStage). It is derived by the engine from durable state,
+// never asserted by the page.
+enum JourneyStage {
+  // JOURNEY_STAGE_UNSPECIFIED is the proto3 zero value. The engine never
+  // reports it; a journey carrying it means the server saw a stage token it
+  // does not know, which is a schema drift to investigate, not a stage.
+  JOURNEY_STAGE_UNSPECIFIED = 0;
+  // JOURNEY_STAGE_PROPOSED: the intent exists and has been simulated; no
+  // execution has been requested.
+  JOURNEY_STAGE_PROPOSED = 1;
+  // JOURNEY_STAGE_BLOCKED: the simulation produced no executable plan, so
+  // ExecuteJourney would be refused with p1b.no_executable_plan.
+  JOURNEY_STAGE_BLOCKED = 2;
+  // JOURNEY_STAGE_AWAITING_APPROVAL: a workflow instance exists and is
+  // parked on its approval WorkItem.
+  JOURNEY_STAGE_AWAITING_APPROVAL = 3;
+  // JOURNEY_STAGE_COMPLETED: the instance reached its APPROVED terminal and
+  // the promotion outcome is a recorded ledger fact.
+  JOURNEY_STAGE_COMPLETED = 4;
+  // JOURNEY_STAGE_REJECTED: the approver rejected; the instance reached its
+  // REJECTED terminal.
+  JOURNEY_STAGE_REJECTED = 5;
+  // JOURNEY_STAGE_FAILED: the instance ended in some other terminal
+  // (cancelled, superseded, failed).
+  JOURNEY_STAGE_FAILED = 6;
+  // JOURNEY_STAGE_FINANCE_APPROVAL: the workflow is parked on finance's
+  // approval decision.
+  JOURNEY_STAGE_FINANCE_APPROVAL = 7;
+  // JOURNEY_STAGE_MANAGER_APPROVAL: the workflow is parked on the manager's
+  // approval decision.
+  JOURNEY_STAGE_MANAGER_APPROVAL = 8;
+  // JOURNEY_STAGE_WAITING_EFFECTIVE_DATE: approvals are complete and the
+  // workflow is waiting for the effective date safe point.
+  JOURNEY_STAGE_WAITING_EFFECTIVE_DATE = 9;
+  // JOURNEY_STAGE_REVALIDATION: the workflow is rechecking its pinned facts
+  // before continuing.
+  JOURNEY_STAGE_REVALIDATION = 10;
+  // JOURNEY_STAGE_REAPPROVAL: a material change requires an approval
+  // decision again.
+  JOURNEY_STAGE_REAPPROVAL = 11;
+  // JOURNEY_STAGE_EXECUTED: the governed execution has completed its
+  // business operation and observation has not yet closed.
+  JOURNEY_STAGE_EXECUTED = 12;
+  // JOURNEY_STAGE_OBSERVING_EFFECTS: the workflow is checking the effects of
+  // its execution.
+  JOURNEY_STAGE_OBSERVING_EFFECTS = 13;
+  // JOURNEY_STAGE_RECORDED: the terminal promotion fact has been recorded.
+  JOURNEY_STAGE_RECORDED = 14;
+  // JOURNEY_STAGE_REPAIR_REQUIRED: the workflow requires governed repair
+  // before it can reach a consistent terminal state.
+  JOURNEY_STAGE_REPAIR_REQUIRED = 15;
+}
+
+// Placement is one side (current or target) of the placement change
+// (workspace.JourneyPlacement).
+message Placement {
+  string job_code = 1;
+  string grade = 2;
+  string position_id = 3;
+  string org_unit = 4;
+  string pay_zone = 5;
+}
+
+// Journey is one promotion journey as the list and the detail header show it
+// (workspace.JourneySummary).
+message Journey {
+  string intent_id = 1;
+  string correlation_id = 2;
+  // worker_ref is the canonical text encoding of the worker's tenant-scoped
+  // entity reference (internal/kernel/values.EntityRef.String), so a client
+  // that echoes it back is naming exactly the entity the engine named.
+  string worker_ref = 3;
+  string worker_name = 4;
+  Placement current = 5;
+  Placement target = 6;
+  // current_base and proposed_base are decimal strings in currency, as the
+  // domain carries them. They are strings and not
+  // hcmnext.common.v1.Decimal because the port itself carries the decimal
+  // text the domain minted; re-encoding it here would make this service the
+  // author of a money value it only forwards.
+  string current_base = 7;
+  string proposed_base = 8;
+  string currency = 9;
+  // effective_date is ISO-8601 (YYYY-MM-DD).
+  string effective_date = 10;
+  string business_reason = 11;
+  JourneyStage stage = 12;
+  // proposal_revision_id and material_digest identify the immutable proposal
+  // the simulation minted; both are empty until simulated.
+  string proposal_revision_id = 13;
+  string material_digest = 14;
+  // instance_id and instance_version name the workflow instance once
+  // executed; empty/zero before.
+  string instance_id = 15;
+  int64 instance_version = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+// Finding is one simulation finding, as the artifact reports it
+// (workspace.JourneyFinding).
+message Finding {
+  string severity = 1;
+  string code = 2;
+  string message = 3;
+}
+
+// Instance is the workflow instance the journey is running as
+// (workspace.JourneyInstance). It is unset on a JourneyDetail until the
+// journey has been executed.
+message Instance {
+  string instance_id = 1;
+  int64 instance_version = 2;
+  string workflow_id = 3;
+  uint32 workflow_version = 4;
+  string plan_digest = 5;
+  string status = 6;
+  repeated string current_node_ids = 7;
+  string correlation_id = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp completed_at = 11;
+}
+
+// NodeExecution is one durable node-execution row
+// (workspace.JourneyNode).
+message NodeExecution {
+  string node_id = 1;
+  int32 attempt = 2;
+  string step_type = 3;
+  string status = 4;
+  string trace_id = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  google.protobuf.Timestamp recorded_at = 8;
+}
+
+// WorkItem is one durable human-work row the instance's frontier raised
+// (internal/humanwork/workitem.WorkItem), projected down to what the journey
+// page shows. It is deliberately narrower than
+// hcmnext.admin.v1.WorkItemProfile: the operator inspector renders the whole
+// governance frame with redaction states, whereas this page shows who owes
+// the decision and where the item stands.
+message WorkItem {
+  string work_item_id = 1;
+  // kind is one of APPROVAL, TASK (workitem.Kind).
+  string kind = 2;
+  // status is the workitem.Status token, e.g. CREATED, ROUTED, CLAIMED,
+  // COMPLETED.
+  string status = 3;
+  string work_type = 4;
+  string node_id = 5;
+  string owner_ref = 6;
+  // chosen_owner is the principal routing named directly
+  // (workitem.Assignment.ChosenOwner), set only when resolution produced
+  // exactly one candidate. Empty means the item was left open as a
+  // candidate set, or resolution found nobody at all.
+  string chosen_owner = 7;
+  string claimed_by = 8;
+  google.protobuf.Timestamp claimed_at = 9;
+  google.protobuf.Timestamp claim_expires_at = 10;
+  string completed_by = 11;
+  google.protobuf.Timestamp completed_at = 12;
+  google.protobuf.Timestamp deadline_at = 13;
+  google.protobuf.Timestamp created_at = 14;
+  int64 item_version = 15;
+}
+
+// WorkItemTransition is one immutable WorkItem transition, for the audit
+// trail (workspace.JourneyTransition).
+message WorkItemTransition {
+  string work_item_id = 1;
+  string from = 2;
+  string to = 3;
+  string actor = 4;
+  string reason = 5;
+  google.protobuf.Timestamp at = 6;
+}
+
+// LedgerEvent is the one governed business write the END node raised
+// (workspace.JourneyLedgerEvent). It is unset until that terminal write has
+// been recorded.
+message LedgerEvent {
+  string stream_key = 1;
+  int64 sequence = 2;
+  string schema_ref = 3;
+  string digest = 4;
+  string idempotency_key = 5;
+  google.protobuf.Timestamp occurred_at = 6;
+  google.protobuf.Timestamp effective_at = 7;
+  google.protobuf.Timestamp recorded_at = 8;
+}
+
+// TimelineEvent is one entry of the engine-composed chronological timeline
+// (workspace.JourneyEvent): intent created, simulated, gate admitted,
+// instance started, work item routed/claimed/completed, node completed,
+// ledger fact recorded.
+message TimelineEvent {
+  google.protobuf.Timestamp at = 1;
+  string actor = 2;
+  string kind = 3;
+  string title = 4;
+  string detail = 5;
+  string ref = 6;
+}
+
+// JourneyDetail is everything the detail page shows for one journey
+// (workspace.JourneyDetail).
+message JourneyDetail {
+  Journey journey = 1;
+  repeated Finding findings = 2;
+  repeated string planned_writes = 3;
+  // instance, nodes, work_items and transitions are unset/empty until the
+  // journey has been executed.
+  Instance instance = 4;
+  repeated NodeExecution nodes = 5;
+  repeated WorkItem work_items = 6;
+  repeated WorkItemTransition transitions = 7;
+  LedgerEvent ledger = 8;
+  // evidence_ids are every capability-gateway and execution evidence
+  // identifier the engine recorded for this journey, in order.
+  repeated string evidence_ids = 9;
+  repeated TimelineEvent timeline = 10;
+  // approver is the principal the approval WorkItem is routed to. The page
+  // shows who will decide; the engine decides as that principal.
+  string approver = 11;
+  // detail_digest is "sha256:" followed by the lowercase hex SHA-256 of the
+  // deterministically marshalled canonical Protobuf bytes of this very
+  // message with detail_digest itself cleared. It exists so a client can
+  // decide "has anything I display changed" with one comparison rather than
+  // a deep diff, and so WatchJourney can answer the same question on the
+  // server without the page describing what it considers a change. It is
+  // computed by internal/transport/journey, not by the engine, and is not a
+  // governance artifact: the material proposal digest on Journey is.
+  string detail_digest = 12;
+}
+
+message ListJourneysRequest {}
+
+message ListJourneysResponse {
+  repeated Journey journeys = 1;
+}
+
+// ProposeJourneyRequest is what the manager fills in
+// (workspace.ProposalInput). Everything else the intent needs - the worker's
+// current placement and pay, the budget authority - the engine reads through
+// the governed worker read, never from this message.
+message ProposeJourneyRequest {
+  string worker_ref = 1;
+  Placement target = 2;
+  // proposed_base is a decimal string in the worker's current currency.
+  string proposed_base = 3;
+  // effective_date is ISO-8601 (YYYY-MM-DD).
+  string effective_date = 4;
+  string business_reason = 5;
+}
+
+message ProposeJourneyResponse {
+  Journey journey = 1;
+}
+
+// ProposePromotionRequest is the intent-only `promotion.propose` contract
+// (PROMO-007): everything a caller is entitled to say about a promotion, and
+// nothing else.
+//
+// The field set is closed and is mirrored by a closed allowlist in
+// internal/intent/app, which refuses to serve at all if the two ever disagree.
+// Read the absences as deliberately as the fields: there is no current base
+// pay, no current manager, no current placement, no position vacancy or
+// headcount, no budget envelope or remaining pool, and no approval-authority
+// assertion, because every one of those is a server-resolved fact and a
+// request that could state one would be a request that could lie about one.
+// There is likewise no principal, tenant, organization scope, session,
+// delegation, purpose, locale or legal-context selector: the trusted-request
+// boundary derives all of those from the verified credential
+// (internal/transport.ApplyTrustedContext and internal/intent/app's own
+// origin derivation), and admission already refuses a caller that tries to
+// choose them.
+//
+// Every field is a string because every one of them is either a reference, a
+// vocabulary token, a decimal in text as the domain carries it, or an
+// ISO-8601 date. This message re-encodes none of them; it forwards what the
+// caller said and lets the domain parse it.
+message ProposePromotionRequest {
+  // subject_worker_ref names the employee being promoted. It is the stable
+  // reference the journey's own worker list shows
+  // (ListWorkersResponse.workers[].worker_ref), never a raw internal id the
+  // caller happens to have seen. Required.
+  string subject_worker_ref = 1;
+
+  // The desired end state. desired_job_code, desired_grade and
+  // desired_position_id are required: a promotion that names no target job,
+  // no target grade and no target position is not a promotion.
+  string desired_job_code = 2;
+  string desired_grade = 3;
+  string desired_position_id = 4;
+  // desired_org_unit may be empty, meaning "the organizational unit the
+  // subject is in today", which the server reads rather than the caller
+  // asserting it.
+  string desired_org_unit = 5;
+  // desired_manager_ref may be empty, meaning "unchanged". It is the desired
+  // manager, not a claim about the current one: the current manager is a
+  // governed read.
+  string desired_manager_ref = 6;
+  // desired_base_pay is the proposed base pay, a decimal in text. Required.
+  // It is the only money figure in this message, and it is a proposal, not a
+  // baseline: the subject's current pay, the pay band and the budget
+  // authority are all resolved server-side.
+  string desired_base_pay = 7;
+  // desired_pay_currency may be empty, meaning the subject's own currency.
+  // When it is set it must equal that currency; this contract proposes a
+  // promotion, not a redenomination, and accepting a different one would be
+  // accepting a currency assertion.
+  string desired_pay_currency = 8;
+
+  // effective_date is ISO-8601 (YYYY-MM-DD). Required.
+  string effective_date = 9;
+  // reason is the business reason the requester gives. Required.
+  string reason = 10;
+
+  // expected_subject_revision is the revision of the subject the intention
+  // was formed against, and it is required: a promotion proposed against a
+  // view of the employee that has since moved on is a proposal about
+  // somebody who no longer exists in that state, and accepting it silently
+  // is how a lost update happens. Its form is the subject's compensation
+  // revision coordinate, "<revision_stream>@<revision_sequence>" - see
+  // internal/intent/app.PromotionSubjectRevision, which is the one
+  // implementation the server compares against.
+  string expected_subject_revision = 11;
+
+  // client_request_id is the caller's own identifier for this request and is
+  // required. It is the idempotency coordinate: two calls carrying the same
+  // one are one intent, whichever transport each arrived on. It is
+  // deliberately excluded from ProposePromotionResponse.request_digest,
+  // because it says which call this is and nothing about what is being
+  // proposed.
+  string client_request_id = 12;
+}
+
+// ProposePromotionResponse is what the server did. Every field is
+// server-derived; none of it echoes the request.
+message ProposePromotionResponse {
+  // intent_id and correlation_id identify the recorded intent. A replayed
+  // client_request_id returns the intent that was actually recorded first.
+  string intent_id = 1;
+  string correlation_id = 2;
+  // proposal_revision_id and material_digest identify the immutable proposal
+  // the preflight simulation minted. They are empty when the simulation
+  // produced no executable plan, which is what stage = BLOCKED reports.
+  string proposal_revision_id = 3;
+  string material_digest = 4;
+  // canonical_request_digest is the intent's own IDEMPOTENT_REQUEST digest as
+  // the kernel minted it. It binds the idempotency key, so two proposals of
+  // the same promotion under different client_request_ids carry different
+  // values here and the same request_digest.
+  string canonical_request_digest = 5;
+  // request_digest is the canonical digest of this very request contract:
+  // "sha256:" followed by lowercase hex over the length-prefixed, allowlist-
+  // ordered encoding of every field above except client_request_id. Two
+  // callers proposing the same promotion produce the same value on either
+  // transport, which is what makes "the browser, the CLI and the connector
+  // invoke one capability" a checkable claim rather than a description.
+  string request_digest = 6;
+  // stage is where the journey stands after propose and preflight:
+  // PROPOSED, or BLOCKED when the simulation produced no executable plan.
+  JourneyStage stage = 7;
+}
+
+message InspectJourneyRequest {
+  string intent_id = 1;
+}
+
+message InspectJourneyResponse {
+  JourneyDetail detail = 1;
+}
+
+message ExecuteJourneyRequest {
+  string intent_id = 1;
+}
+
+message ExecuteJourneyResponse {
+  JourneyDetail detail = 1;
+}
+
+message DecideJourneyRequest {
+  string intent_id = 1;
+  bool approve = 2;
+  string reason = 3;
+}
+
+message DecideJourneyResponse {
+  JourneyDetail detail = 1;
+}
+
+message WatchJourneyRequest {
+  string intent_id = 1;
+  // since_digest is the JourneyDetail.detail_digest the client already
+  // holds. Empty means "I hold nothing", so the initial emission is always
+  // sent. When it equals the digest of the journey's current detail, the
+  // initial emission is skipped and the stream stays silent until the
+  // journey actually changes.
+  string since_digest = 2;
+  // Field 3 held the long poll's timeout. The watch is a stream now: how
+  // long it lasts is the client's decision (it cancels) bounded by the
+  // server's ceiling, not a number the request carries.
+  reserved 3;
+  reserved "timeout";
+  // resume_cursor is the opaque, signed cursor a prior
+  // WatchJourneyResponse.cursor carried, presented back so a reconnect
+  // continues the same resumable stream (internal/transport/streaming,
+  // PROTO-007) rather than opening an unrelated one. It is unrelated to
+  // since_digest: since_digest still governs which detail the initial
+  // emission may skip, while resume_cursor authenticates and positions the
+  // stream itself, tenant- and stream-bound and expiring. Empty means "no
+  // stream to resume" and is always accepted; a forged, expired or
+  // foreign-tenant cursor is refused before the stream opens. It has no
+  // effect at all when the server was composed with no cursor signing key,
+  // in which case the response's own cursor field is left empty too.
+  string resume_cursor = 4;
+}
+
+message WatchJourneyResponse {
+  JourneyDetail detail = 1;
+  // Field 2 held the long poll's changed flag, which distinguished a real
+  // change from a wait that elapsed. A stream emits only on change, so
+  // every message on it is a change and the flag would be a constant true.
+  reserved 2;
+  reserved "changed";
+  // cursor is the opaque, signed position of this message in the stream
+  // (internal/transport/streaming.Cursor, PROTO-007): present it back as
+  // WatchJourneyRequest.resume_cursor on a later stream for this same
+  // journey to prove continuity to the server rather than merely to resume
+  // content-wise, which since_digest already does on its own. It is empty
+  // when the server was composed with no cursor signing key.
+  string cursor = 3;
+  // sequence is this message's position in the resumable stream, counting
+  // from one: the first message a stream sends carries 1, the next 2, and a
+  // stream resumed from a cursor naming sequence N carries N+1 next. It is
+  // the plain form of what cursor names, carried so a client can check for
+  // itself that a reconnect left no gap and delivered no duplicate
+  // (internal/transport/streaming.OrderTracker performs exactly that
+  // comparison) without ever parsing the opaque cursor, which it is not
+  // entitled to read. It is zero, like cursor is empty, when the server was
+  // composed with no cursor signing key: a stream that issues no cursor
+  // numbers nothing, because a sequence a client cannot resume from would
+  // be a number with no contract behind it.
+  uint64 sequence = 4;
+}
+
+// Worker is one employee as the worker list shows them
+// (workspace.WorkerSummary).
+//
+// It is a listing row, not a worker record: it carries what somebody needs to
+// recognise a person and choose them, and nothing that would make this service
+// a second, ungoverned way to read worker state. The authoritative answer to
+// "what is true about this worker" is the governed worker read the engine
+// itself performs while proposing.
+message Worker {
+  // worker_ref is the stable reference the journey accepts: the corpus key for
+  // a corpus worker, the created worker's own key otherwise. It is what
+  // ProposeJourneyRequest.worker_ref is filled with.
+  string worker_ref = 1;
+  // worker_id is the entity id the governed read names the worker by.
+  string worker_id = 2;
+  string legal_name = 3;
+  string preferred_name = 4;
+  string worker_number = 5;
+  string job_code = 6;
+  string grade = 7;
+  string org_unit = 8;
+  string position_id = 9;
+  string location = 10;
+  string pay_zone = 11;
+  // base_pay and bonus_target are decimal strings, in currency and as a
+  // fraction respectively, as the domain carries them. They are empty on a
+  // corpus worker, whose compensation baseline comes from the ported legacy
+  // corpus rather than from a record of its own.
+  string base_pay = 12;
+  string currency = 13;
+  string bonus_target = 14;
+  // hire_date is ISO-8601 (YYYY-MM-DD).
+  string hire_date = 15;
+  // source is CORPUS or CREATED (workspace.WorkerSourceCorpus /
+  // workspace.WorkerSourceCreated).
+  string source = 16;
+  // created_at is when a created worker was recorded. It is unset for a corpus
+  // worker, which was not created at any moment this cell witnessed.
+  google.protobuf.Timestamp created_at = 17;
+}
+
+// WorkforceOptions is the closed set of placements a created worker may be
+// given (workspace.WorkforceOptions), derived by the engine from the pay-band
+// catalog and the corpus population.
+//
+// It exists so the form and the refusal agree: CreateWorker refuses a
+// placement outside it with INVALID_ARGUMENT naming the field, and this is
+// that same answer stated in advance.
+message WorkforceOptions {
+  repeated string job_codes = 1;
+  repeated string grades = 2;
+  repeated string org_units = 3;
+  repeated string pay_zones = 4;
+  repeated string positions = 5;
+  // currency is the one currency the pay-band catalog is denominated in. A
+  // created worker's baseline is carried in it.
+  string currency = 6;
+}
+
+message ListWorkersRequest {}
+
+message ListWorkersResponse {
+  repeated Worker workers = 1;
+  WorkforceOptions options = 2;
+}
+
+// CreateWorkerRequest is what somebody fills in to add an employee
+// (workspace.WorkerInput). Everything the record needs that is not asked for
+// here -- the worker number, the employment and assignment identifiers, the
+// lifecycle status, the revision stream position and the bitemporal
+// coordinates -- the engine derives, because those are identity and evidence
+// rather than choices a form gets to make.
+message CreateWorkerRequest {
+  string legal_name = 1;
+  // preferred_name may be empty; the engine derives one from the legal name.
+  string preferred_name = 2;
+  string job_code = 3;
+  string grade = 4;
+  string org_unit = 5;
+  string position_id = 6;
+  // location may be empty; the engine falls back to the org unit, which is the
+  // closest thing to a place this record actually knows.
+  string location = 7;
+  string pay_zone = 8;
+  // base_pay is a decimal string in currency and must be greater than zero.
+  string base_pay = 9;
+  // currency may be empty, meaning WorkforceOptions.currency.
+  string currency = 10;
+  // bonus_target is a decimal fraction (0.0500 is five percent). Empty means
+  // the engine's own default.
+  string bonus_target = 11;
+  // hire_date is ISO-8601 (YYYY-MM-DD).
+  string hire_date = 12;
+  // manager_ref may be empty; the engine derives a relationship reference.
+  string manager_ref = 13;
+}
+
+message CreateWorkerResponse {
+  Worker worker = 1;
+}

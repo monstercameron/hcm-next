@@ -67,7 +67,6 @@ func TestTodo_ADMIN_001_Security(t *testing.T) {
 
 	t.Run("every reserved trusted-context key is screened, not just one", func(t *testing.T) {
 		for _, key := range trust.ReservedMetadataKeys()[:5] {
-			key := key
 			t.Run(key, func(t *testing.T) {
 				reserved := metadata.AppendToOutgoingContext(withToken(ctx, fixtureOperatorToken), key, "smuggled-value")
 				_, err := client.GetReleaseManifest(reserved, &adminv1.GetReleaseManifestRequest{})

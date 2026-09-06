@@ -67,6 +67,13 @@ var ErrNoVerifier = errors.New("grpcserver: a trust.Verifier is required")
 // structured log record and projects every failure through the owned error
 // model. A caller who wants a server without one of those steps wants a
 // different product.
+//
+// Both cardinalities are chained, and they are the same boundary:
+// [UnaryInterceptor] for unary methods and [StreamInterceptor] for streaming
+// ones share one implementation, so a service published on this server may
+// declare a server-streaming RPC without opting out of admission. That is
+// what makes hcmnext.journey.v1.JourneyService.WatchJourney a real stream
+// rather than a long poll.
 func NewServer(opts Options) (*grpc.Server, error) {
 	if opts.Config.Verifier == nil {
 		return nil, ErrNoVerifier
@@ -83,6 +90,7 @@ func NewServer(opts Options) (*grpc.Server, error) {
 	serverOptions := []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(maxRecv),
 		grpc.ChainUnaryInterceptor(UnaryInterceptor(opts.Config)),
+		grpc.ChainStreamInterceptor(StreamInterceptor(opts.Config)),
 	}
 	serverOptions = append(serverOptions, opts.ServerOptions...)
 

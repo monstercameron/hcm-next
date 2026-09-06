@@ -8,34 +8,19 @@ import (
 
 	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
 	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
 	adminpolicy "github.com/monstercameron/hcm-next/internal/operations/admin"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/workflow/inspect"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
-// Executor is the minimal database capability GetWorkflowInstance needs: a
-// pooled connection or a single connection, stated in dbport's driver-free
-// terms exactly like internal/workflow/runtime.Executor and
-// internal/humanwork/workitem.Executor (both are precisely this shape), so
-// one configured handle (internal/data/pgxadapter.Pool in every real
-// composition) satisfies all three without this package importing either
-// package's own Executor alias.
-type Executor interface {
-	dbport.Execer
-	dbport.Querier
-}
-
 // GetWorkflowInstance is ADMIN-008's governed, read-only execution inspector:
-// it loads the instance, its recorded node executions, its work items and
-// their transitions through internal/workflow/runtime.Store and
-// internal/humanwork/workitem.Store, then hands the loaded rows to
-// internal/workflow/inspect.Build and inspect.BuildWorkItems, which do the
-// actual rendering and redaction. This method never opens a transaction,
-// writes anything, or evaluates an HCM business rule; it composes two read
-// ports and two pure projections.
+// it asks the application-side [app.WorkflowInstanceReader] for the
+// instance, its recorded node executions, its work items and their
+// transitions, then hands the loaded rows to internal/workflow/inspect.Build
+// and inspect.BuildWorkItems, which do the actual rendering and redaction.
+// This method reads no table, writes nothing, and evaluates no HCM business
+// rule; it composes one read port and two pure projections.
 func (s *server) GetWorkflowInstance(ctx context.Context, req *adminv1.GetWorkflowInstanceRequest) (*adminv1.GetWorkflowInstanceResponse, error) {
 	principal, inv, opErr := requireOperator(ctx)
 	if opErr != nil {
@@ -53,22 +38,14 @@ func (s *server) GetWorkflowInstance(ctx context.Context, req *adminv1.GetWorkfl
 			WithViolation("instance_id", "must be a valid uuid", "inspect.Build").
 			WithCorrelation(inv.RequestID()).WithEvidence(evidence)
 	}
-	if s.deps.WorkflowExecutor == nil || s.deps.TenantUUID == nil {
+	if s.deps.WorkflowInstances == nil {
 		return nil, envelope.New(envelope.CodeUnavailable,
 			"admin.workflow_instance_unconfigured",
 			"the workflow runtime read port is not configured").
 			WithCorrelation(inv.RequestID()).WithEvidence(evidence)
 	}
 
-	tenantID, tenantErr := runtime.ParseUUID(s.deps.TenantUUID(principal.Tenant()))
-	if tenantErr != nil {
-		return nil, envelope.New(envelope.CodeUnavailable,
-			"admin.workflow_instance_tenant_mapping_failed", "the caller's tenant could not be resolved").
-			WithDiagnostic(tenantErr).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
-	}
-	ex := s.deps.WorkflowExecutor
-
-	inst, err := (runtime.Store{}).LoadInstance(ctx, ex, tenantID, instanceID)
+	record, err := s.deps.WorkflowInstances.ReadWorkflowInstance(ctx, principal.Tenant(), instanceID)
 	if err != nil {
 		if runtime.CodeOf(err) == runtime.CodeInstanceNotFound {
 			return nil, envelope.New(envelope.CodeNotFound,
@@ -79,16 +56,10 @@ func (s *server) GetWorkflowInstance(ctx context.Context, req *adminv1.GetWorkfl
 			"admin.workflow_instance_load_failed", "the workflow instance could not be read").
 			WithDiagnostic(err).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
 	}
-	nodes, err := (runtime.Store{}).LoadNodeExecutions(ctx, ex, tenantID, instanceID)
-	if err != nil {
-		return nil, envelope.New(envelope.CodeUnavailable,
-			"admin.workflow_instance_nodes_load_failed", "the node executions could not be read").
-			WithDiagnostic(err).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
-	}
 
 	view, err := inspect.Build(inspect.Request{
-		Instance:      inst,
-		Nodes:         nodes,
+		Instance:      record.Instance,
+		Nodes:         record.Nodes,
 		Authorization: adminpolicy.OperatorWorkflowInstanceAuthorization(principal.Subject()),
 	})
 	if err != nil {
@@ -96,24 +67,7 @@ func (s *server) GetWorkflowInstance(ctx context.Context, req *adminv1.GetWorkfl
 			"admin.workflow_instance_build_failed", "the workflow instance could not be projected").
 			WithDiagnostic(err).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
 	}
-
-	items, err := (workitem.Store{}).ListForInstance(ctx, ex, tenantID, instanceID)
-	if err != nil {
-		return nil, envelope.New(envelope.CodeUnavailable,
-			"admin.workflow_instance_work_items_load_failed", "the instance's work items could not be read").
-			WithDiagnostic(err).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
-	}
-	transitionsByItem := make(map[string][]workitem.TransitionRecord, len(items))
-	for _, item := range items {
-		transitions, tErr := (workitem.Store{}).LoadTransitions(ctx, ex, tenantID, item.WorkItemID)
-		if tErr != nil {
-			return nil, envelope.New(envelope.CodeUnavailable,
-				"admin.workflow_instance_transitions_load_failed", "a work item's transitions could not be read").
-				WithDiagnostic(tErr).WithCorrelation(inv.RequestID()).WithEvidence(evidence)
-		}
-		transitionsByItem[item.WorkItemID.String()] = transitions
-	}
-	workItems := inspect.BuildWorkItems(items, transitionsByItem, adminpolicy.OperatorWorkItemAuthorization())
+	workItems := inspect.BuildWorkItems(record.WorkItems, record.Transitions, adminpolicy.OperatorWorkItemAuthorization())
 
 	resp := &adminv1.GetWorkflowInstanceResponse{
 		Disclosed:             true,
