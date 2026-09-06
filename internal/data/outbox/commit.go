@@ -29,6 +29,7 @@ type ProjectionSpec struct {
 type OutboxSpec struct {
 	EffectIdentity string
 	OrderingKey    string
+	Criticality    string
 	SchemaRef      string
 	Payload        []byte
 }
@@ -86,6 +87,7 @@ func Commit(ctx context.Context, tx dbport.Tx, appender Appender, req CommitRequ
 		OutboxID:       deterministicOutboxID(receipt),
 		EffectIdentity: req.Outbox.EffectIdentity,
 		OrderingKey:    req.Outbox.OrderingKey,
+		Criticality:    req.Outbox.Criticality,
 		SchemaRef:      req.Outbox.SchemaRef,
 		Payload:        req.Outbox.Payload,
 	})

@@ -10,6 +10,7 @@
 package outbox
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -29,6 +30,26 @@ const (
 	StatusAbandoned = "ABANDONED"
 )
 
+// Criticality is the durable priority attached to a delivery. It follows the
+// platform-wide P0 (highest) through P4 (lowest) vocabulary without importing
+// the operations admission package into the data plane.
+const (
+	CriticalityP0 = "P0"
+	CriticalityP1 = "P1"
+	CriticalityP2 = "P2"
+	CriticalityP3 = "P3"
+	CriticalityP4 = "P4"
+)
+
+var (
+	// ErrIdentityConflict means an idempotency key was reused for different
+	// immutable delivery content. Silently returning the first row would hide
+	// a logical duplicate or a caller bug.
+	ErrIdentityConflict   = errors.New("outbox: effect identity conflicts with existing message")
+	ErrInvalidCriticality = errors.New("outbox: invalid criticality")
+	ErrLeaseFence         = errors.New("outbox: lease fence refused")
+)
+
 // EnqueueRequest is one message to distribute after the authoritative commit.
 type EnqueueRequest struct {
 	Tenant uuid.UUID
@@ -42,6 +63,7 @@ type EnqueueRequest struct {
 	// record per idempotent effect (migrations/00006, outbox_effect_identity_unique).
 	EffectIdentity string
 	OrderingKey    string
+	Criticality    string
 	SchemaRef      string
 	Payload        []byte
 }
@@ -52,6 +74,7 @@ type Record struct {
 	OutboxID       uuid.UUID
 	EffectIdentity string
 	OrderingKey    string
+	Criticality    string
 	SchemaRef      string
 	Payload        []byte
 	Status         string
@@ -60,6 +83,8 @@ type Record struct {
 	UpdatedAt      time.Time
 	LeaseToken     uuid.UUID
 	LeaseUntil     time.Time
+	LeaseVersion   int64
+	LastError      *string
 }
 
 // Enqueue inserts one PENDING message inside the caller's transaction. A
@@ -75,6 +100,13 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	if req.OrderingKey == "" {
 		return Record{}, fmt.Errorf("outbox: enqueue requires an ordering key")
 	}
+	criticality := req.Criticality
+	if criticality == "" {
+		criticality = CriticalityP2
+	}
+	if !validCriticality(criticality) {
+		return Record{}, fmt.Errorf("%w: %q", ErrInvalidCriticality, criticality)
+	}
 	if req.SchemaRef == "" {
 		return Record{}, fmt.Errorf("outbox: enqueue requires a schema reference")
 	}
@@ -84,10 +116,10 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	}
 
 	affected, err := tx.Exec(ctx, `
-		INSERT INTO outbox (tenant_id, outbox_id, effect_identity, ordering_key, schema_ref, payload)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO outbox (tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (tenant_id, effect_identity) DO NOTHING`,
-		req.Tenant, id, req.EffectIdentity, req.OrderingKey, req.SchemaRef, req.Payload)
+		req.Tenant, id, req.EffectIdentity, req.OrderingKey, criticality, req.SchemaRef, req.Payload)
 	if err != nil {
 		return Record{}, fmt.Errorf("outbox: enqueue %s: %w", req.EffectIdentity, err)
 	}
@@ -96,10 +128,17 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	}
 
 	// Already enqueued under this effect identity: return the existing row.
-	return readByEffectIdentity(ctx, tx, req.Tenant, req.EffectIdentity)
+	existing, err := readByEffectIdentity(ctx, tx, req.Tenant, req.EffectIdentity)
+	if err != nil {
+		return Record{}, err
+	}
+	if !sameImmutableMessage(existing, req, criticality) {
+		return Record{}, fmt.Errorf("%w: %s", ErrIdentityConflict, req.EffectIdentity)
+	}
+	return existing, nil
 }
 
-const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, schema_ref, payload, status, attempts, available_at, updated_at, lease_token, lease_until`
+const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload, status, attempts, available_at, updated_at, lease_token, lease_until, lease_version, last_error`
 
 func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 	var (
@@ -108,9 +147,9 @@ func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 		leaseUntil *time.Time
 	)
 	if err := row.Scan(
-		&rec.Tenant, &rec.OutboxID, &rec.EffectIdentity, &rec.OrderingKey, &rec.SchemaRef,
-		&rec.Payload, &rec.Status, &rec.Attempts, &rec.AvailableAt, &rec.UpdatedAt,
-		&leaseToken, &leaseUntil,
+		&rec.Tenant, &rec.OutboxID, &rec.EffectIdentity, &rec.OrderingKey, &rec.Criticality,
+		&rec.SchemaRef, &rec.Payload, &rec.Status, &rec.Attempts, &rec.AvailableAt,
+		&rec.UpdatedAt, &leaseToken, &leaseUntil, &rec.LeaseVersion, &rec.LastError,
 	); err != nil {
 		return Record{}, err
 	}
@@ -121,6 +160,18 @@ func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 		rec.LeaseUntil = leaseUntil.UTC()
 	}
 	return rec, nil
+}
+
+func validCriticality(value string) bool {
+	return value == CriticalityP0 || value == CriticalityP1 || value == CriticalityP2 || value == CriticalityP3 || value == CriticalityP4
+}
+
+func sameImmutableMessage(existing Record, req EnqueueRequest, criticality string) bool {
+	return existing.EffectIdentity == req.EffectIdentity &&
+		existing.OrderingKey == req.OrderingKey &&
+		existing.Criticality == criticality &&
+		existing.SchemaRef == req.SchemaRef &&
+		bytes.Equal(existing.Payload, req.Payload)
 }
 
 // Querier is the minimal database capability Read needs.

@@ -61,6 +61,22 @@ func NewConsumer(db Beginner, opts ...ConsumerOption) *Consumer {
 	return c
 }
 
+func (c *Consumer) validate() error {
+	if c == nil || c.db == nil {
+		return fmt.Errorf("outbox: consumer database is required")
+	}
+	if c.lease <= 0 {
+		return fmt.Errorf("outbox: lease must be positive")
+	}
+	if c.batchSize <= 0 {
+		return fmt.Errorf("outbox: batch size must be positive")
+	}
+	if c.now == nil {
+		return fmt.Errorf("outbox: clock is required")
+	}
+	return nil
+}
+
 // Poll claims up to the batch size of due messages for tenant: PENDING
 // messages whose available_at has arrived, plus IN_FLIGHT messages whose
 // lease has expired (a prior claimer crashed or was killed before acking).
@@ -70,6 +86,12 @@ func NewConsumer(db Beginner, opts ...ConsumerOption) *Consumer {
 // SKIP LOCKED serializes claims and skips whatever another poller is already
 // holding.
 func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error) {
+	if err := c.validate(); err != nil {
+		return nil, err
+	}
+	if tenant == uuid.Nil {
+		return nil, fmt.Errorf("outbox: poll requires a tenant")
+	}
 	tx, err := c.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("outbox: poll: begin: %w", err)
@@ -90,7 +112,16 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 		    (status = $2 AND available_at <= $3)
 			OR (status = $4 AND lease_until <= $5)
 		  )
-		ORDER BY available_at
+		ORDER BY
+		  CASE criticality
+		    WHEN 'P0' THEN 0
+		    WHEN 'P1' THEN 1
+		    WHEN 'P2' THEN 2
+		    WHEN 'P3' THEN 3
+		    WHEN 'P4' THEN 4
+		    ELSE 5
+		  END,
+		  available_at, ordering_key, created_at, outbox_id
 		FOR UPDATE SKIP LOCKED
 		LIMIT $6`,
 		tenant, StatusPending, now, StatusInFlight, now, c.batchSize)
@@ -125,7 +156,7 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 		leaseUntil := now.Add(c.lease)
 		affected, err := tx.Exec(ctx, `
 			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4,
-				lease_token = $5, lease_until = $6
+				lease_token = $5, lease_until = $6, lease_version = lease_version + 1
 			WHERE tenant_id = $1 AND outbox_id = $2
 			  AND ((status = $7 AND available_at <= $4) OR (status = $8 AND lease_until <= $4))`,
 			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight)
@@ -147,6 +178,12 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 	}
 	committed = true
 	return claimed, nil
+}
+
+// Claim is the descriptive name for Poll. It is kept as a small alias so
+// callers can use the queue vocabulary without creating a second protocol.
+func (c *Consumer) Claim(ctx context.Context, tenant uuid.UUID) ([]Record, error) {
+	return c.Poll(ctx, tenant)
 }
 
 // Ack marks a message DELIVERED. Acking an already-delivered message is a
@@ -171,13 +208,14 @@ func (c *Consumer) AckLease(ctx context.Context, tenant, outboxID, token uuid.UU
 	}
 	affected, err := execOn(ctx, c.db, `
 		UPDATE outbox SET status = $3, updated_at = $4, lease_token = NULL, lease_until = NULL
-		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5 AND lease_token = $6`,
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5 AND lease_token = $6
+		  AND lease_until > $4`,
 		tenant, outboxID, StatusDelivered, c.now(), StatusInFlight, token)
 	if err != nil {
 		return fmt.Errorf("outbox: ack lease %s: %w", outboxID, err)
 	}
 	if affected != 1 {
-		return fmt.Errorf("outbox: ack lease %s: lease fence refused", outboxID)
+		return fmt.Errorf("outbox: ack lease %s: %w", outboxID, ErrLeaseFence)
 	}
 	return nil
 }
@@ -187,6 +225,9 @@ func (c *Consumer) AckLease(ctx context.Context, tenant, outboxID, token uuid.UU
 // maximum-attempts policy can transition to ABANDONED itself by reading
 // Record.Attempts.
 func (c *Consumer) Fail(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID, cause error) error {
+	if cause == nil {
+		return fmt.Errorf("outbox: fail %s: cause is required", outboxID)
+	}
 	_, err := execOn(ctx, c.db, `
 		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
 			lease_token = NULL, lease_until = NULL
@@ -209,15 +250,28 @@ func (c *Consumer) FailLease(ctx context.Context, tenant, outboxID, token uuid.U
 	affected, err := execOn(ctx, c.db, `
 		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
 			lease_token = NULL, lease_until = NULL
-		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6 AND lease_token = $7`,
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6 AND lease_token = $7
+		  AND lease_until > $5`,
 		tenant, outboxID, StatusPending, cause.Error(), c.now(), StatusInFlight, token)
 	if err != nil {
 		return fmt.Errorf("outbox: fail lease %s: %w", outboxID, err)
 	}
 	if affected != 1 {
-		return fmt.Errorf("outbox: fail lease %s: lease fence refused", outboxID)
+		return fmt.Errorf("outbox: fail lease %s: %w", outboxID, ErrLeaseFence)
 	}
 	return nil
+}
+
+// AckClaim acknowledges the exact claim returned by Poll. Keeping the token
+// on the returned record makes accidental unfenced acknowledgement harder at
+// call sites that already pass records through a handler.
+func (c *Consumer) AckClaim(ctx context.Context, msg Record) error {
+	return c.AckLease(ctx, msg.Tenant, msg.OutboxID, msg.LeaseToken)
+}
+
+// FailClaim returns the exact claim to the pending queue, fenced by its lease.
+func (c *Consumer) FailClaim(ctx context.Context, msg Record, cause error) error {
+	return c.FailLease(ctx, msg.Tenant, msg.OutboxID, msg.LeaseToken, cause)
 }
 
 // execOn opens a short-lived transaction to run one statement. Ack/Fail are

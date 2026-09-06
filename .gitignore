@@ -103,3 +103,4 @@ internal/humanwork/workspace/assets/wasm_exec.js
 .gotmp-*
 .lane-go-*
 .tmp-go-*
+.tmp-*
