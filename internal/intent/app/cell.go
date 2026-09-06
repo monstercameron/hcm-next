@@ -15,6 +15,8 @@ import (
 	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/hcm-next/internal/experience/preferences"
+	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/definitions"
@@ -115,6 +117,14 @@ type CellConfig struct {
 	// otelmw.UnaryServerInterceptor/otelmw.NewConnectInterceptor from it,
 	// because only internal/transport may import connect/grpc (LIB-003).
 	Telemetry *hcmotel.Provider
+	// Preferences persists authenticated presentation state. It is optional
+	// for non-workspace compositions; the product RPC reports UNAVAILABLE
+	// when omitted rather than silently falling back to browser storage.
+	Preferences preferences.Store
+	// WorkerIDs owns organization-scoped worker-number policy and atomic
+	// reservations. Nil keeps legacy UUID-derived numbers for non-workspace
+	// compositions.
+	WorkerIDs workerids.Store
 
 	// Executor is the caller-driven workflow driver ExecuteIntent runs an
 	// approved promotion proposal through. Nil (the default for every
@@ -214,7 +224,9 @@ type Cell struct {
 	// Telemetry is the OTel provider from CellConfig, or nil. Exported so
 	// internal/transport/cell can read it without this package exposing any
 	// transport-shaped composition of its own.
-	Telemetry *hcmotel.Provider
+	Telemetry   *hcmotel.Provider
+	Preferences preferences.Store
+	WorkerIDs   workerids.Store
 
 	// Journey is the live Promotion-journey engine the workspace's journey
 	// page reads and acts through. It is non-nil only on a cell composed with
@@ -423,11 +435,12 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 	// is left at its zero value rather than assigned a nil *journeyEngine.
 	var journey workspace.JourneyEngine
 	if cfg.Executor != nil && cfg.ExecutionDB != nil {
-		journey = newJourneyEngine(svc, cfg.ExecutionDB, cfg.ExecutionApprover, cfg.Now, locateWorker)
+		journey = newJourneyEngine(svc, cfg.ExecutionDB, cfg.ExecutionApprover, cfg.Now, locateWorker, cfg.WorkerIDs)
 	}
 
 	return &Cell{
 		Journey:      journey,
+		WorkerIDs:    cfg.WorkerIDs,
 		locateWorker: locateWorker,
 
 		workspaceEnabled: workspaceEnabled,
@@ -448,6 +461,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		Clock:        monitor,
 		Discovery:    discovery,
 		Telemetry:    cfg.Telemetry,
+		Preferences:  cfg.Preferences,
 		Config: transport.Config{
 			Verifier:    cfg.Verifier,
 			Audience:    cfg.Audience,
