@@ -107,4 +107,15 @@ func TestTodo_CONFIG_003_RollbackTargetAndPins(t *testing.T) {
 	if current.RollbackTo != first.ID {
 		t.Fatalf("rollback target = %q", current.RollbackTo)
 	}
+	reverted, err := r.Rollback("prod", time.Unix(5, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reverted.Package.ID != first.ID || !reverted.Evidence.Rollback || reverted.Evidence.PreviousPackageID != second.ID {
+		t.Fatalf("rollback activation = %+v", reverted)
+	}
+	original, _ := r.Get(first.ID)
+	if !original.ActivatedAt.Equal(time.Unix(3, 0).UTC()) || original.Evidence.Rollback {
+		t.Fatalf("rollback rewrote original activation evidence: %+v", original)
+	}
 }

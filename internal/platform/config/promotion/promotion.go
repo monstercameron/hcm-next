@@ -8,6 +8,8 @@ package promotion
 
 import (
 	"crypto/ed25519"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -74,6 +76,21 @@ type Approval struct {
 	ApprovedAt time.Time
 }
 
+// ActivationEvidence is the immutable evidence emitted for one activation.
+// It names the exact package digest and the immediately preceding active
+// package, so a rollback is observable as a new activation rather than a
+// rewrite of history.
+type ActivationEvidence struct {
+	PackageID         string
+	Environment       string
+	Digest            string
+	PreviousPackageID string
+	ActivatedBy       string
+	ActivatedAt       time.Time
+	Rollback          bool
+	EvidenceDigest    string
+}
+
 // Record is the immutable publication evidence plus mutable lifecycle status.
 // Bundle, validation, simulation, and approval are copied on ingress/egress.
 type Record struct {
@@ -84,6 +101,7 @@ type Record struct {
 	Approval    Approval
 	ActivatedAt time.Time
 	RollbackTo  string
+	Evidence    ActivationEvidence
 }
 
 func clonePackage(p Package) Package {
@@ -141,8 +159,15 @@ func Approve(p Package, v Validation, s Simulation, approver string, at time.Tim
 	if strings.TrimSpace(approver) == "" || approver == p.Bundle.SignerKeyID {
 		return Approval{}, ErrInvalidPackage
 	}
-	if v.PackageID != p.ID || s.PackageID != p.ID || !strings.EqualFold(v.Digest, p.Bundle.Digest) || !strings.EqualFold(s.Digest, p.Bundle.Digest) {
+	current, err := validatePackage(clonePackage(p))
+	if err != nil {
 		return Approval{}, ErrStale
+	}
+	if v.PackageID != p.ID || s.PackageID != p.ID || !strings.EqualFold(v.Digest, current.Digest) || !strings.EqualFold(s.Digest, current.Digest) {
+		return Approval{}, ErrStale
+	}
+	if !v.Compatible {
+		return Approval{}, ErrIncompatible
 	}
 	if !s.Passed || !s.Compatible {
 		return Approval{}, ErrNotSimulated
@@ -160,13 +185,14 @@ func ApprovePackage(p Package, v Validation, s Simulation, approver string, at t
 
 // Registry is a concurrency-safe in-memory promotion control plane.
 type Registry struct {
-	mu      sync.RWMutex
-	records map[string]Record
-	active  map[string]string
+	mu          sync.RWMutex
+	records     map[string]Record
+	active      map[string]string
+	activeViews map[string]Record
 }
 
 func NewRegistry() *Registry {
-	return &Registry{records: make(map[string]Record), active: make(map[string]string)}
+	return &Registry{records: make(map[string]Record), active: make(map[string]string), activeViews: make(map[string]Record)}
 }
 
 func (r *Registry) Put(p Package) error {
@@ -190,6 +216,9 @@ func (r *Registry) Simulate(id string) (Simulation, error) {
 	if !ok {
 		return Simulation{}, ErrNotFound
 	}
+	if rec.Status != StatusValidated {
+		return Simulation{}, ErrInvalidTransition
+	}
 	s, err := Simulate(rec.Package, rec.Validation)
 	if err != nil {
 		return Simulation{}, err
@@ -205,6 +234,9 @@ func (r *Registry) Approve(id, approver string, at time.Time) (Approval, error) 
 	rec, ok := r.records[id]
 	if !ok {
 		return Approval{}, ErrNotFound
+	}
+	if rec.Status != StatusSimulated {
+		return Approval{}, ErrNotSimulated
 	}
 	a, err := Approve(rec.Package, rec.Validation, rec.Simulation, approver, at)
 	if err != nil {
@@ -222,14 +254,37 @@ func (r *Registry) Approve(id, approver string, at time.Time) (Approval, error) 
 func (r *Registry) Activate(id string, at time.Time) (Record, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return r.activateLocked(id, at, false)
+}
+
+// ActivateAs is Activate with explicit operator evidence. The legacy
+// Activate method remains available for callers that do not yet carry an
+// operator principal and records the stable registry actor.
+func (r *Registry) ActivateAs(id, actor string, at time.Time) (Record, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if strings.TrimSpace(actor) == "" {
+		return Record{}, ErrInvalidPackage
+	}
+	return r.activateLockedAs(id, actor, at, false)
+}
+
+func (r *Registry) activateLocked(id string, at time.Time, rollback bool) (Record, error) {
+	return r.activateLockedAs(id, "promotion.registry", at, rollback)
+}
+
+func (r *Registry) activateLockedAs(id, actor string, at time.Time, rollback bool) (Record, error) {
 	rec, ok := r.records[id]
 	if !ok {
 		return Record{}, ErrNotFound
 	}
-	if rec.Status != StatusApproved {
+	if r.active[rec.Package.Environment] == id {
+		return Record{}, ErrAlreadyActive
+	}
+	if !rollback && rec.Status != StatusApproved {
 		return Record{}, ErrNotApproved
 	}
-	if at.IsZero() || rec.Approval.Digest != rec.Package.Bundle.Digest || rec.Simulation.Digest != rec.Package.Bundle.Digest {
+	if at.IsZero() || rec.Simulation.Digest != rec.Package.Bundle.Digest || (!rollback && rec.Approval.Digest != rec.Package.Bundle.Digest) {
 		return Record{}, ErrStale
 	}
 	env := rec.Package.Environment
@@ -237,9 +292,47 @@ func (r *Registry) Activate(id string, at time.Time) (Record, error) {
 	rec.RollbackTo = prior
 	rec.ActivatedAt = at.UTC()
 	rec.Status = StatusActive
-	r.records[id] = rec
+	rec.Evidence = activationEvidence(rec, prior, actor, at, rollback)
+	view := cloneRecord(rec)
+	if !rollback {
+		r.records[id] = rec
+	}
 	r.active[env] = id
-	return cloneRecord(rec), nil
+	r.activeViews[env] = view
+	return view, nil
+}
+
+// Rollback activates the immediate rollback target as a new activation event.
+// It refuses to resurrect an unknown or no-longer-approved target; withdrawn
+// or otherwise invalid packages therefore cannot silently return to service.
+func (r *Registry) Rollback(environment string, at time.Time) (Record, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	currentID, ok := r.active[environment]
+	if !ok {
+		return Record{}, ErrNotFound
+	}
+	current, ok := r.records[currentID]
+	if !ok || current.RollbackTo == "" {
+		return Record{}, ErrNotFound
+	}
+	target, ok := r.records[current.RollbackTo]
+	if !ok {
+		return Record{}, ErrNotFound
+	}
+	return r.activateLockedAs(target.Package.ID, "promotion.rollback", at, true)
+}
+
+func activationEvidence(rec Record, prior, actor string, at time.Time, rollback bool) ActivationEvidence {
+	e := ActivationEvidence{
+		PackageID: rec.Package.ID, Environment: rec.Package.Environment,
+		Digest: rec.Package.Bundle.Digest, PreviousPackageID: prior,
+		ActivatedBy: actor, ActivatedAt: at.UTC(), Rollback: rollback,
+	}
+	payload := fmt.Sprintf("%s\x00%s\x00%s\x00%s\x00%s\x00%t\x00%s", e.PackageID, e.Environment, e.Digest, e.PreviousPackageID, e.ActivatedBy, e.Rollback, e.ActivatedAt.Format(time.RFC3339Nano))
+	sum := sha256.Sum256([]byte(payload))
+	e.EvidenceDigest = hex.EncodeToString(sum[:])
+	return e
 }
 
 func (r *Registry) Get(id string) (Record, bool) {
@@ -254,11 +347,11 @@ func (r *Registry) Get(id string) (Record, bool) {
 func (r *Registry) Active(environment string) (Record, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	id, ok := r.active[environment]
+	_, ok := r.active[environment]
 	if !ok {
 		return Record{}, false
 	}
-	rec, ok := r.records[id]
+	rec, ok := r.activeViews[environment]
 	if !ok {
 		return Record{}, false
 	}

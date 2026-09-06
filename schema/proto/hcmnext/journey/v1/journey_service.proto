@@ -667,6 +667,15 @@ message Worker {
   // created_at is when a created worker was recorded. It is unset for a corpus
   // worker, which was not created at any moment this cell witnessed.
   google.protobuf.Timestamp created_at = 17;
+  // manager_ref is the stable manager relationship reference. It may name a
+  // worker or an external governance body such as the company board.
+  string manager_ref = 18;
+  // profile_photo_url is a same-origin display proxy. The retained original
+  // upload reference is deliberately not exposed by this listing message.
+  string profile_photo_url = 19;
+  // job_title is the human-readable title; job_code remains the governed
+  // classification used by workflows and compensation rules.
+  string job_title = 20;
 }
 
 // WorkforceOptions is the closed set of placements a created worker may be

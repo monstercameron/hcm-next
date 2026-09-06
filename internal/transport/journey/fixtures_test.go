@@ -291,11 +291,11 @@ func fixtureCreatedWorker() workspace.WorkerSummary {
 	return workspace.WorkerSummary{
 		WorkerRef: "ada-lovelace-1a2b3c4d", WorkerID: fixtureWorkerID,
 		LegalName: "Ada Lovelace", PreferredName: "Ada", WorkerNumber: "W-J1A2B3C4D",
-		JobCode: "OPS-HRBP2", Grade: "P2", OrgUnit: "people-ops",
+		JobCode: "OPS-HRBP2", JobTitle: "Senior People Partner", Grade: "P2", OrgUnit: "people-ops",
 		PositionID: "POS-HRBP-204", Location: "Boston, MA", PayZone: "US-EAST",
 		BasePay: "90000.00", Currency: "USD", BonusTarget: "0.0500",
 		HireDate: "2021-04-05", Source: workspace.WorkerSourceCreated,
-		CreatedAt: fixtureTime(),
+		CreatedAt: fixtureTime(), ManagerRef: "manager-ada", ProfilePhotoURL: "/workspace/assets/person-ada-small.jpg",
 	}
 }
 

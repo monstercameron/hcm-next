@@ -2283,7 +2283,16 @@ type Worker struct {
 	Source string `protobuf:"bytes,16,opt,name=source,proto3" json:"source,omitempty"`
 	// created_at is when a created worker was recorded. It is unset for a corpus
 	// worker, which was not created at any moment this cell witnessed.
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// manager_ref is the stable manager relationship reference. It may name a
+	// worker or an external governance body such as the company board.
+	ManagerRef string `protobuf:"bytes,18,opt,name=manager_ref,json=managerRef,proto3" json:"manager_ref,omitempty"`
+	// profile_photo_url is a same-origin display proxy. The retained original
+	// upload reference is deliberately not exposed by this listing message.
+	ProfilePhotoUrl string `protobuf:"bytes,19,opt,name=profile_photo_url,json=profilePhotoUrl,proto3" json:"profile_photo_url,omitempty"`
+	// job_title is the human-readable title; job_code remains the governed
+	// classification used by workflows and compensation rules.
+	JobTitle      string `protobuf:"bytes,20,opt,name=job_title,json=jobTitle,proto3" json:"job_title,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2435,6 +2444,27 @@ func (x *Worker) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *Worker) GetManagerRef() string {
+	if x != nil {
+		return x.ManagerRef
+	}
+	return ""
+}
+
+func (x *Worker) GetProfilePhotoUrl() string {
+	if x != nil {
+		return x.ProfilePhotoUrl
+	}
+	return ""
+}
+
+func (x *Worker) GetJobTitle() string {
+	if x != nil {
+		return x.JobTitle
+	}
+	return ""
 }
 
 // WorkforceOptions is the closed set of placements a created worker may be
@@ -3007,7 +3037,7 @@ const file_hcmnext_journey_v1_journey_service_proto_rawDesc = "" +
 	"\x14WatchJourneyResponse\x129\n" +
 	"\x06detail\x18\x01 \x01(\v2!.hcmnext.journey.v1.JourneyDetailR\x06detail\x12\x16\n" +
 	"\x06cursor\x18\x03 \x01(\tR\x06cursor\x12\x1a\n" +
-	"\bsequence\x18\x04 \x01(\x04R\bsequenceJ\x04\b\x02\x10\x03R\achanged\"\x9d\x04\n" +
+	"\bsequence\x18\x04 \x01(\x04R\bsequenceJ\x04\b\x02\x10\x03R\achanged\"\x87\x05\n" +
 	"\x06Worker\x12\x1d\n" +
 	"\n" +
 	"worker_ref\x18\x01 \x01(\tR\tworkerRef\x12\x1b\n" +
@@ -3030,7 +3060,11 @@ const file_hcmnext_journey_v1_journey_service_proto_rawDesc = "" +
 	"\thire_date\x18\x0f \x01(\tR\bhireDate\x12\x16\n" +
 	"\x06source\x18\x10 \x01(\tR\x06source\x129\n" +
 	"\n" +
-	"created_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xbb\x01\n" +
+	"created_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1f\n" +
+	"\vmanager_ref\x18\x12 \x01(\tR\n" +
+	"managerRef\x12*\n" +
+	"\x11profile_photo_url\x18\x13 \x01(\tR\x0fprofilePhotoUrl\x12\x1b\n" +
+	"\tjob_title\x18\x14 \x01(\tR\bjobTitle\"\xbb\x01\n" +
 	"\x10WorkforceOptions\x12\x1b\n" +
 	"\tjob_codes\x18\x01 \x03(\tR\bjobCodes\x12\x16\n" +
 	"\x06grades\x18\x02 \x03(\tR\x06grades\x12\x1b\n" +

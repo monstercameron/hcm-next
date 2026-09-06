@@ -9,6 +9,7 @@
 //	migrate down    roll back the most recently applied migration
 //	migrate status  report the schema version, digest and per-migration state
 //	migrate seed    load the deterministic Promotion fixture for -tenant
+//	migrate demo-people load HarborCare's demo workforce and processed photos
 //
 // migrate is not a long-running server: process-roles.yaml marks it
 // "operator-invoked" with no readiness probe and "not applicable" drain, so
@@ -38,6 +39,12 @@ import (
 const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
 
 const fieldTenant = "tenant"
+
+const (
+	fieldPhotoSource = "photo-source"
+	fieldAssetDir    = "asset-dir"
+	fieldOriginalDir = "original-dir"
+)
 
 // migrationTimeout bounds one migrate invocation, matching the original
 // command's own budget. Unlike the original (which ran against a bare
@@ -76,7 +83,21 @@ func migrateConfigFields() []bootstrap.Field {
 		},
 		{
 			Name:  fieldTenant,
-			Usage: "tenant slug to seed (required by the seed subcommand)",
+			Usage: "tenant slug to seed (required by seed and demo-people)",
+		},
+		{
+			Name:  fieldPhotoSource,
+			Usage: "directory containing generated hc-NNN.png source photos (required by demo-people)",
+		},
+		{
+			Name:    fieldAssetDir,
+			Usage:   "workspace asset directory for retained originals and display proxies",
+			Default: "internal/humanwork/workspace/assets",
+		},
+		{
+			Name:    fieldOriginalDir,
+			Usage:   "non-public directory for byte-exact retained profile-photo originals",
+			Default: "demo-assets/profile-originals",
 		},
 	}
 }
@@ -107,13 +128,16 @@ func spec(command string, rest []string) bootstrap.Spec {
 					ctx, cancel := context.WithTimeout(ctx, migrationTimeout)
 					defer cancel()
 
-					if command == "seed" {
+					if command == "seed" || command == "demo-people" {
 						conn, err := openSeedDB(ctx, url)
 						if err != nil {
 							return err
 						}
 						defer func() { _ = conn.Close(ctx) }()
 
+						if command == "demo-people" {
+							return runDemoPeopleCommand(ctx, conn, deps.Values.String(fieldTenant), deps.Values.String(fieldPhotoSource), deps.Values.String(fieldAssetDir), deps.Values.String(fieldOriginalDir), os.Stdout)
+						}
 						return runSeedCommand(ctx, conn, deps.Values.String(fieldTenant), os.Stdout)
 					}
 
@@ -142,10 +166,17 @@ func validateConfig(command string) func(*bootstrap.Values) error {
 			if v.String(fieldTenant) == "" {
 				return fmt.Errorf("-%s is required for the seed subcommand", fieldTenant)
 			}
+		case "demo-people":
+			if v.String(fieldTenant) == "" {
+				return fmt.Errorf("-%s is required for the demo-people subcommand", fieldTenant)
+			}
+			if v.String(fieldPhotoSource) == "" {
+				return fmt.Errorf("-%s is required for the demo-people subcommand", fieldPhotoSource)
+			}
 		case "":
-			return fmt.Errorf("usage: migrate up|down|status|seed")
+			return fmt.Errorf("usage: migrate up|down|status|seed|demo-people")
 		default:
-			return fmt.Errorf("unknown command %q; usage: migrate up|down|status|seed", command)
+			return fmt.Errorf("unknown command %q; usage: migrate up|down|status|seed|demo-people", command)
 		}
 		if v.String("database-url") == "" {
 			return fmt.Errorf("%s is not set; pass -database-url or set the environment variable", EnvDatabaseURL)
