@@ -2,6 +2,8 @@ package attestationstore
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -252,5 +254,59 @@ func TestTodo_PERSIST_ATTESTATION_001_Mutation(t *testing.T) {
 	}
 	if got := CodeOf(store.PutStatement(context.Background(), key, statement(key.String(), "statement-1", 1))); got != CodeDuplicateRevision {
 		t.Fatalf("duplicate after mutation code = %q", got)
+	}
+}
+
+func TestAttestationStore_AliasesValidationAndNotFoundBranches(t *testing.T) {
+	db := newDB(t)
+	conn := appConn(t, db)
+	id := tenant(t, db, "persist-attestation-negative")
+	key := tenantValue(id)
+	store := New(conn)
+	ctx := context.Background()
+	stmt := statement(key.String(), "statement-negative", 1)
+	if err := store.SaveStatement(ctx, key, stmt); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.SaveStatement(ctx, key, statement(key.String(), stmt.ID, 2), 1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.GetStatement(ctx, key, "missing", 1); CodeOf(err) != CodeNotFound || !errors.Is(err, attestation.ErrStatementNotFound) {
+		t.Fatalf("missing statement = %v", err)
+	}
+	if _, err := store.ListStatementVersions(ctx, key, "missing"); CodeOf(err) != CodeNotFound || !errors.Is(err, attestation.ErrStatementNotFound) {
+		t.Fatalf("missing statement versions = %v", err)
+	}
+	if err := store.PutStatement(ctx, key, stmt, 1, 2); CodeOf(err) != CodeInvalid {
+		t.Fatalf("too many statement CAS args = %v", err)
+	}
+	badSubject := stmt
+	badSubject.ID = "bad-subject"
+	badSubject.SubjectRef.Id = "not-a-uuid"
+	if err := store.PutStatement(ctx, key, badSubject); CodeOf(err) != CodeInvalid {
+		t.Fatalf("invalid statement subject = %v", err)
+	}
+	b := binding(key.String(), 1)
+	if err := store.SaveBinding(ctx, key, b); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.ListBindings(ctx, key, "missing"); CodeOf(err) != CodeNotFound || !errors.Is(err, attestation.ErrStatementNotFound) {
+		t.Fatalf("missing bindings = %v", err)
+	}
+	req := humanwork.ApprovalRequirement{RequirementID: "req-negative", Revision: 1, Stage: 1, ExpressionDigest: "sha256:" + strings.Repeat("c", 64), Deadline: humanwork.Deadline{DecideBy: values.NewInstant(time.Unix(100, 0)), Expiry: values.NewInstant(time.Unix(200, 0))}}
+	if err := store.PutApprovalRequirement(ctx, key, req); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.LoadApprovalRequirement(ctx, key, "missing", 1); CodeOf(err) != CodeNotFound || !errors.Is(err, attestation.ErrStatementNotFound) {
+		t.Fatalf("missing approval requirement = %v", err)
+	}
+	if err := store.PutApprovalRequirement(ctx, key, req, 1, 2); CodeOf(err) != CodeInvalid {
+		t.Fatalf("too many approval CAS args = %v", err)
+	}
+	if err := store.AppendResolution(ctx, key, humanwork.Resolution{}, 0); CodeOf(err) != CodeInvalid {
+		t.Fatalf("invalid resolution = %v", err)
+	}
+	if _, err := store.GetStatement(ctx, values.TenantId("not-a-uuid"), stmt.ID, 1); CodeOf(err) != CodeInvalid {
+		t.Fatalf("invalid tenant = %v", err)
 	}
 }

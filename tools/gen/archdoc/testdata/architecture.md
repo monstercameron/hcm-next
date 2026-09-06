@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: 31378a71376176fa2f22e8b4c73366b74ee16445e36dfbd30870dae4593086ba
-- Package count: 707
-- Within-module edge count: 1580
+- Source graph: 50febe182ea26641235506b659959313e7d68776861549282b8df5b33b7095f0
+- Package count: 731
+- Within-module edge count: 1635
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -115,9 +115,11 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/agentsecurity`
 - `github.com/monstercameron/hcm-next/internal/application`
 - `github.com/monstercameron/hcm-next/internal/authn`
+- `github.com/monstercameron/hcm-next/internal/authn/enterprisegate`
 - `github.com/monstercameron/hcm-next/internal/authn/federation`
 - `github.com/monstercameron/hcm-next/internal/authn/issuerregistry`
 - `github.com/monstercameron/hcm-next/internal/authn/oidc`
+- `github.com/monstercameron/hcm-next/internal/authn/outage`
 - `github.com/monstercameron/hcm-next/internal/authn/subjectlink`
 - `github.com/monstercameron/hcm-next/internal/capability`
 - `github.com/monstercameron/hcm-next/internal/capability/binding`
@@ -126,6 +128,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/connectivity`
 - `github.com/monstercameron/hcm-next/internal/connectivity/adapter`
 - `github.com/monstercameron/hcm-next/internal/connectivity/adapter/connrt001`
+- `github.com/monstercameron/hcm-next/internal/connectivity/application`
 - `github.com/monstercameron/hcm-next/internal/connectivity/artifactstore`
 - `github.com/monstercameron/hcm-next/internal/connectivity/delivery`
 - `github.com/monstercameron/hcm-next/internal/connectivity/diagnostics`
@@ -145,6 +148,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/connectivity/operation`
 - `github.com/monstercameron/hcm-next/internal/connectivity/providercontract`
 - `github.com/monstercameron/hcm-next/internal/connectivity/providerdrift`
+- `github.com/monstercameron/hcm-next/internal/connectivity/providerexit`
 - `github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot`
 - `github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot/adapters/postgres`
 - `github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot/diff`
@@ -171,6 +175,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/data/cbastore`
 - `github.com/monstercameron/hcm-next/internal/data/commercialstore`
 - `github.com/monstercameron/hcm-next/internal/data/configregistry`
+- `github.com/monstercameron/hcm-next/internal/data/connectivityopstore`
 - `github.com/monstercameron/hcm-next/internal/data/contactstore`
 - `github.com/monstercameron/hcm-next/internal/data/contentregistrystore`
 - `github.com/monstercameron/hcm-next/internal/data/crmstore`
@@ -228,6 +233,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/data/rebuild`
 - `github.com/monstercameron/hcm-next/internal/data/recordsmeta`
 - `github.com/monstercameron/hcm-next/internal/data/refdata`
+- `github.com/monstercameron/hcm-next/internal/data/roleaccessstore`
 - `github.com/monstercameron/hcm-next/internal/data/runtimestate`
 - `github.com/monstercameron/hcm-next/internal/data/safetystore`
 - `github.com/monstercameron/hcm-next/internal/data/schedulingstore`
@@ -281,6 +287,8 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/domains/evidence`
 - `github.com/monstercameron/hcm-next/internal/domains/fixtures`
 - `github.com/monstercameron/hcm-next/internal/domains/fx`
+- `github.com/monstercameron/hcm-next/internal/domains/garnishment`
+- `github.com/monstercameron/hcm-next/internal/domains/headcount`
 - `github.com/monstercameron/hcm-next/internal/domains/hrcase`
 - `github.com/monstercameron/hcm-next/internal/domains/incentive`
 - `github.com/monstercameron/hcm-next/internal/domains/industrypack`
@@ -348,9 +356,11 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/engines/payband`
 - `github.com/monstercameron/hcm-next/internal/engines/popscale`
 - `github.com/monstercameron/hcm-next/internal/engines/population`
+- `github.com/monstercameron/hcm-next/internal/engines/readiness`
 - `github.com/monstercameron/hcm-next/internal/engines/replan`
 - `github.com/monstercameron/hcm-next/internal/engines/rules`
 - `github.com/monstercameron/hcm-next/internal/engines/schedule`
+- `github.com/monstercameron/hcm-next/internal/engines/search`
 - `github.com/monstercameron/hcm-next/internal/engines/snapshot`
 - `github.com/monstercameron/hcm-next/internal/engines/transformation`
 - `github.com/monstercameron/hcm-next/internal/engines/transformation/adapters`
@@ -381,6 +391,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/experience/reporting`
 - `github.com/monstercameron/hcm-next/internal/experience/reportrender`
 - `github.com/monstercameron/hcm-next/internal/experience/reportschedule`
+- `github.com/monstercameron/hcm-next/internal/experience/roleaccess`
 - `github.com/monstercameron/hcm-next/internal/experience/status`
 - `github.com/monstercameron/hcm-next/internal/experience/userflow`
 - `github.com/monstercameron/hcm-next/internal/experience/workerids`
@@ -389,6 +400,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/generated/schemaflux`
 - `github.com/monstercameron/hcm-next/internal/governance`
 - `github.com/monstercameron/hcm-next/internal/governance/decision`
+- `github.com/monstercameron/hcm-next/internal/governance/exit`
 - `github.com/monstercameron/hcm-next/internal/governance/legal`
 - `github.com/monstercameron/hcm-next/internal/governance/legal/attribution`
 - `github.com/monstercameron/hcm-next/internal/governance/legal/carveouts`
@@ -402,6 +414,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/governance/legalhold`
 - `github.com/monstercameron/hcm-next/internal/governance/masking`
 - `github.com/monstercameron/hcm-next/internal/governance/privacy`
+- `github.com/monstercameron/hcm-next/internal/governance/privacy/dispatch`
 - `github.com/monstercameron/hcm-next/internal/governance/privacy/inventory`
 - `github.com/monstercameron/hcm-next/internal/governance/records`
 - `github.com/monstercameron/hcm-next/internal/governance/revalidate`
@@ -416,6 +429,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/humanwork/workspace`
 - `github.com/monstercameron/hcm-next/internal/i18n`
 - `github.com/monstercameron/hcm-next/internal/intent`
+- `github.com/monstercameron/hcm-next/internal/intent/analysis`
 - `github.com/monstercameron/hcm-next/internal/intent/app`
 - `github.com/monstercameron/hcm-next/internal/intent/app/pgstore`
 - `github.com/monstercameron/hcm-next/internal/intent/approval`
@@ -439,6 +453,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/operations/adversarial`
 - `github.com/monstercameron/hcm-next/internal/operations/advisory`
 - `github.com/monstercameron/hcm-next/internal/operations/assurance`
+- `github.com/monstercameron/hcm-next/internal/operations/authorizedhealth`
 - `github.com/monstercameron/hcm-next/internal/operations/authzsim`
 - `github.com/monstercameron/hcm-next/internal/operations/explorer`
 - `github.com/monstercameron/hcm-next/internal/operations/export`
@@ -512,6 +527,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/transport/admin/hcmctl`
 - `github.com/monstercameron/hcm-next/internal/transport/cell`
 - `github.com/monstercameron/hcm-next/internal/transport/clients`
+- `github.com/monstercameron/hcm-next/internal/transport/conformance`
 - `github.com/monstercameron/hcm-next/internal/transport/eastwest`
 - `github.com/monstercameron/hcm-next/internal/transport/edge`
 - `github.com/monstercameron/hcm-next/internal/transport/endpoint`
@@ -523,6 +539,8 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/transport/manifest`
 - `github.com/monstercameron/hcm-next/internal/transport/operations`
 - `github.com/monstercameron/hcm-next/internal/transport/otelmw`
+- `github.com/monstercameron/hcm-next/internal/transport/productquery`
+- `github.com/monstercameron/hcm-next/internal/transport/queryenvelope`
 - `github.com/monstercameron/hcm-next/internal/transport/rpcpolicy`
 - `github.com/monstercameron/hcm-next/internal/transport/streaming`
 - `github.com/monstercameron/hcm-next/internal/transport/transporttest`
@@ -536,6 +554,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/trust/breakglass`
 - `github.com/monstercameron/hcm-next/internal/trust/bundle`
 - `github.com/monstercameron/hcm-next/internal/trust/confidentialactor`
+- `github.com/monstercameron/hcm-next/internal/trust/consent`
 - `github.com/monstercameron/hcm-next/internal/trust/content`
 - `github.com/monstercameron/hcm-next/internal/trust/cryptoagile`
 - `github.com/monstercameron/hcm-next/internal/trust/custody`
@@ -577,6 +596,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/workflow/migrate`
 - `github.com/monstercameron/hcm-next/internal/workflow/migrate/artifacts`
 - `github.com/monstercameron/hcm-next/internal/workflow/migrationpreview`
+- `github.com/monstercameron/hcm-next/internal/workflow/modeling`
 - `github.com/monstercameron/hcm-next/internal/workflow/promotionexec`
 - `github.com/monstercameron/hcm-next/internal/workflow/prototype`
 - `github.com/monstercameron/hcm-next/internal/workflow/quarantine`
@@ -706,6 +726,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/policy/cleancheckout`
 - `github.com/monstercameron/hcm-next/tools/policy/cleancheckout/cmd/cleancheckout`
 - `github.com/monstercameron/hcm-next/tools/policy/crosscut`
+- `github.com/monstercameron/hcm-next/tools/policy/defaultactivation`
 - `github.com/monstercameron/hcm-next/tools/policy/depadmission`
 - `github.com/monstercameron/hcm-next/tools/policy/depadmission/cmd/depadmission`
 - `github.com/monstercameron/hcm-next/tools/policy/depedge`
@@ -742,14 +763,17 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/policy/prohibitedframework`
 - `github.com/monstercameron/hcm-next/tools/policy/provenance`
 - `github.com/monstercameron/hcm-next/tools/policy/provenance/cmd/provgen`
+- `github.com/monstercameron/hcm-next/tools/policy/querytransport`
 - `github.com/monstercameron/hcm-next/tools/policy/racepolicy`
 - `github.com/monstercameron/hcm-next/tools/policy/racepolicy/cmd/racepolicy`
 - `github.com/monstercameron/hcm-next/tools/policy/release`
 - `github.com/monstercameron/hcm-next/tools/policy/release/cmd/release`
 - `github.com/monstercameron/hcm-next/tools/policy/releaseadmission`
+- `github.com/monstercameron/hcm-next/tools/policy/rlsparity`
 - `github.com/monstercameron/hcm-next/tools/policy/runtimedecision`
 - `github.com/monstercameron/hcm-next/tools/policy/sbom`
 - `github.com/monstercameron/hcm-next/tools/policy/sbom/cmd/sbomgen`
+- `github.com/monstercameron/hcm-next/tools/policy/storageproduct`
 - `github.com/monstercameron/hcm-next/tools/policy/storeboundaries`
 - `github.com/monstercameron/hcm-next/tools/policy/substratecoverage`
 - `github.com/monstercameron/hcm-next/tools/policy/substratecoverage/cmd/substratecoverage`
@@ -833,4 +857,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`37bbfec9b0a3d5820917ad4e2adafc8913467fd4647c8f616aa9753483a6701c`
+`9f2dd753b4e541e6c4b731c6e1d9bd6fbd8f58a98041dd6194ec2e1034359b6b`

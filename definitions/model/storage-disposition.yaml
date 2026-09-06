@@ -107,6 +107,11 @@ migrationfiles:
   - 00180_organization_scoped_appearance.sql
   - 00181_worker_id_policy.sql
   - 00182_organization_visibility.sql
+  - 00235_connector_operation_queue.sql
+  - 00236_connector_operation_journal.sql
+  - 00237_connector_operation_credential_lease.sql
+  - 00238_role_access_control.sql
+  - 00239_role_page_permissions.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

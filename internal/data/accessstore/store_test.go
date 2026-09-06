@@ -213,3 +213,55 @@ func TestTodo_PERSIST_ACCESS_001_Mutation(t *testing.T) {
 		t.Fatal("revision delete was accepted")
 	}
 }
+
+func TestAccessStore_ObserveAndLoadAliases(t *testing.T) {
+	db := pgtest.New(t)
+	tenantID := insertTenant(t, db, "tenant-observe")
+	tenant := values.TenantId("tenant-observe")
+	identity, account, _ := fixture(t, tenant, "observe")
+	store := accessstore.New(db.Conn)
+	ctx := context.Background()
+	if err := store.Add(ctx, identity); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Add(ctx, account); err != nil {
+		t.Fatal(err)
+	}
+	from := values.NewInstant(instant("2026-02-01T00:00:00Z"))
+	known, err := values.NewKnownAt(values.NewInstant(instant("2026-02-02T00:00:00Z")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	recorded, err := values.NewRecordedAt(values.NewInstant(instant("2026-02-02T00:00:01Z")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	effective, err := values.NewOpenInstantInterval(from)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observation := access.ExternalAccessObservation{ID: identity.ID, Tenant: tenant, Subject: identity.Subject, System: identity.System, Application: account.Application, AccountID: account.AccountID, ProviderVersion: "provider-v1", ObservedState: "GRANTED", Revision: mustRevision(t, "observe", 1), Authority: access.AuthorityExternalObservation, Effective: effective, KnownAt: known, Provenance: evidence.Provenance{Source: "provider", EvidenceRef: "observation-1", RecordedAt: recorded}, Lifecycle: access.LifecycleActive}
+	if err := store.Observe(ctx, observation); err != nil {
+		t.Fatal(err)
+	}
+	var count int
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM external_access_observation WHERE tenant_id=$1`, tenantID).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("observation count = %d, want 1", count)
+	}
+	loaded, err := store.Load(ctx, tenant)
+	if err != nil || loaded.Tenant != tenant || len(loaded.Identities) != 1 {
+		t.Fatalf("loaded graph = %+v, err=%v", loaded, err)
+	}
+}
+
+func mustRevision(t *testing.T, key string, sequence uint64) values.RevisionToken {
+	t.Helper()
+	revision, err := values.NewSequenceRevision(key, sequence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return revision
+}

@@ -37,7 +37,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00131_reference_dataset_adoption.sql
+source: migrations/00001_platform_control.sql .. migrations/00239_role_page_permissions.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -4509,3 +4509,250 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from migration 00126_trust.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/truststore.
+  - table: connector_operation_queue
+    migration: 00235_connector_operation_queue.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: connector_operation
+    notes: >-
+      CONN-RT-004: fenced queue membership and lease claim state for connector operations; a lease is a (worker_ref, lease_token, fence_token) triple so reclaimed work cannot be completed by a stale worker.
+  - table: connector_operation_journal
+    migration: 00236_connector_operation_journal.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      CONN-RT-004: append-only per-operation sequence journal of queue, lease, send and observation transitions; RLS on app.tenant_id.
+  - table: connector_operation_credential_lease
+    migration: 00237_connector_operation_credential_lease.sql
+    owner_package: internal/connectivity/operation
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      CONN-RT-004: short-lived credential binding leased to a specific operation attempt so a worker holds provider credentials only for the fenced window it owns.
+  - table: tenant_appearance_preference
+    migration: 00132_presentation_preferences.sql
+    owner_package: internal/data/tenantstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00132_presentation_preferences.sql: mutable control row for tenant appearance preference.
+  - table: user_presentation_preference
+    migration: 00132_presentation_preferences.sql
+    owner_package: internal/data/userstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00132_presentation_preferences.sql: mutable control row for user presentation preference.
+  - table: workflow_signal_disposition
+    migration: 00156_workflow_signal_durability.sql
+    owner_package: internal/workflow/runtime
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00156_workflow_signal_durability.sql: append-only evidence for workflow signal disposition.
+  - table: schema_upgrade_checkpoint
+    migration: 00177_schema_upgrade_control.sql
+    owner_package: internal/data/migrate
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      authoritative append-only resumable backfill and shadow evidence | local PostgreSQL | upgrade recovery and audit evidence | global, non-tenant-scoped.
+  - table: schema_upgrade_plan
+    migration: 00177_schema_upgrade_control.sql
+    owner_package: internal/data/migrate
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      authoritative immutable upgrade declaration and lifecycle state | local PostgreSQL | platform control journal | global, non-tenant-scoped.
+  - table: telemetry_backend_registry
+    migration: 00178_telemetry_backend_registry.sql
+    owner_package: internal/platform/telemetry
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      authoritative portable backend capability and deployment metadata | local PostgreSQL | operations control plane | cell-scoped, non-tenant payload.
+  - table: telemetry_pipeline_health
+    migration: 00178_telemetry_backend_registry.sql
+    owner_package: internal/platform/telemetry
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: null
+    isolation_package: null
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      authoritative append-only telemetry pipeline health and drop evidence | local PostgreSQL | independent operations health path | cell-scoped, non-tenant payload.
+  - table: telemetry_copy_inventory
+    migration: 00179_telemetry_copy_inventory.sql
+    owner_package: internal/platform/telemetry
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      authoritative tenant-scoped telemetry copy, retention, hold and deletion metadata | local PostgreSQL | records and privacy lifecycle | tenant-scoped; signal payloads remain in backend stores.
+  - table: organization_worker_id_policy
+    migration: 00181_worker_id_policy.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00181_worker_id_policy.sql: mutable control row for organization worker id policy.
+  - table: worker_id_reservation
+    migration: 00181_worker_id_policy.sql
+    owner_package: internal/data/workerstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00181_worker_id_policy.sql: append-only evidence for worker id reservation.
+  - table: organization_visibility_preference
+    migration: 00182_organization_visibility.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00182_organization_visibility.sql: mutable control row for organization visibility preference.
+  - table: access_role
+    migration: 00238_role_access_control.sql
+    owner_package: internal/domains/access
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00238_role_access_control.sql: mutable control row for access role.
+  - table: role_organization_visibility
+    migration: 00238_role_access_control.sql
+    owner_package: internal/domains/organization
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00238_role_access_control.sql: mutable control row for role organization visibility.
+  - table: worker_access_role_assignment
+    migration: 00238_role_access_control.sql
+    owner_package: internal/domains/access
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00238_role_access_control.sql: mutable control row for worker access role assignment.
+  - table: worker_access_role_set
+    migration: 00238_role_access_control.sql
+    owner_package: internal/domains/access
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00238_role_access_control.sql: mutable control row for worker access role set.
+  - table: role_page_permission
+    migration: 00239_role_page_permissions.sql
+    owner_package: internal/domains/access
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00239_role_page_permissions.sql: mutable control row for role page permission.
