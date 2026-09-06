@@ -2,6 +2,7 @@ package productui
 
 import (
 	"fmt"
+	"hash/fnv"
 	"sort"
 	"strconv"
 	"strings"
@@ -40,13 +41,61 @@ func peoplePage(view View) ui.Node {
 		}
 	}
 	if window.Total > 0 {
-		props.Directory = &PeopleDirectoryProps{
-			Rows:       peopleRowProps(view, window),
-			Columns:    peopleSortColumns(view),
-			Pagination: peoplePaginationProps(view, window),
-		}
+		props.Directory = peopleDirectoryProps(view, window)
 	}
 	return ui.CreateElement(PeoplePage, props)
+}
+
+func peopleDirectoryProps(view View, window peoplePageWindow) *PeopleDirectoryProps {
+	props := &PeopleDirectoryProps{
+		I18nProps:  I18nProps{Locale: view.Locale},
+		Rows:       peopleRowProps(view, window),
+		Columns:    peopleSortColumns(view),
+		Pagination: peoplePaginationProps(view, window),
+		Refreshing: view.RefreshingRegion == RefreshRegionPeopleDirectory,
+	}
+	props.InputKey = peopleDirectoryInputKey(*props)
+	if view.UpdatePeopleDirectory == nil {
+		return props
+	}
+	props.CommitSort = view.UpdatePeopleDirectory
+	props.ResolveSort = func(field string, descending bool) PeopleDirectoryProps {
+		next := view
+		next.PeoplePage = 1
+		next.PeopleSort = field
+		next.PeopleDirection = peopleSortAscending
+		if descending {
+			next.PeopleDirection = peopleSortDescending
+		}
+		filtered := filteredPeople(next)
+		window := paginatePeople(sortedPeople(filtered, next.PeopleSort, next.PeopleDirection), next.PeoplePage, next.PeoplePageSize)
+		return *peopleDirectoryProps(next, window)
+	}
+	return props
+}
+
+// peopleDirectoryInputKey identifies a fresh parent projection without tying
+// component state to slice addresses. A local sort keeps its original input
+// key; filters, paging, locale changes, or new worker data produce a new key
+// and reset the directory from the incoming props.
+func peopleDirectoryInputKey(props PeopleDirectoryProps) string {
+	hash := fnv.New64a()
+	write := func(values ...string) {
+		for _, value := range values {
+			_, _ = fmt.Fprintf(hash, "%d:%s|", len(value), value)
+		}
+	}
+	write(props.Locale.Resolved, strconv.Itoa(props.Pagination.Page), strconv.Itoa(props.Pagination.PageCount), strconv.Itoa(props.Pagination.PageSize.Value))
+	for _, column := range props.Columns {
+		write(column.ID, column.Label, column.Href, strconv.FormatBool(column.Active), strconv.FormatBool(column.Descending))
+	}
+	for _, row := range props.Rows {
+		write(row.ID, row.Name, row.Role, row.Team, row.Manager, row.Location, row.PhotoURL, row.Href)
+		for _, action := range row.QuickActions {
+			write(action.Label, action.AccessibleLabel, action.Href, strconv.FormatBool(action.Frequent))
+		}
+	}
+	return fmt.Sprintf("%x", hash.Sum64())
 }
 
 func peopleClearHref(view View) string {

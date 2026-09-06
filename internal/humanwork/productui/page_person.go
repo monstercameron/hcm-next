@@ -58,7 +58,7 @@ func personProfileProps(view View, person Person, target PageID) PersonProfilePr
 			Title: text("person.compensation"), Description: text("person.compensation_detail"), Class: "compensation-details",
 			Facts: []ProfileFactProps{
 				{Label: text("person.base_pay"), Value: money(view.Locale, person.BasePay)},
-				{Label: text("person.bonus_target"), Value: value(person.BonusTarget)},
+				{Label: text("person.bonus_target"), Value: percentage(view.Locale, person.BonusTarget)},
 				{Label: text("person.pay_zone"), Value: value(person.PayZone)},
 				{Label: text("person.pay_frequency"), Value: value("")},
 			}},
@@ -115,7 +115,7 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 		}
 	}
 	return WorkflowLauncherProps{
-		PersonName: person.Name, TotalCount: len(view.PersonWorkflows), Filter: filter, Workflows: workflows,
+		PersonName: person.Name, TotalCount: len(filtered), Filter: filter, Workflows: workflows,
 	}
 }
 

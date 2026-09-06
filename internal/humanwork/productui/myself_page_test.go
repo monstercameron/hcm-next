@@ -15,7 +15,7 @@ func TestMyselfPageUsesOnlyTheAuthenticatedViewerBinding(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Changes use governed workflows", "View only", "Avery Patel", "Payroll &amp; compensation",
-		"CAD 118000", "CA-ON", "Pay statements, deductions, taxes, bank details, and pay schedules are not exposed",
+		"CAD 118,000", "CA-ON", "Pay statements, deductions, taxes, bank details, and pay schedules are not exposed",
 		"My workflow history", `href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`,
 		`action="/workspace/app/myself"`,
 		"My organization tree", `role="tree"`, `aria-current="true"`,

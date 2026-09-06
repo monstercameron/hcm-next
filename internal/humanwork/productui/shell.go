@@ -110,14 +110,17 @@ func globalSearch(view View) ui.Node {
 func notificationMenu(view View) ui.Node {
 	open := len(OpenWorkItems(view.Work))
 	label := view.Locale.Text("shell.work_overview") + ", " + view.Locale.Plural("shell.work_count", int64(open))
+	children := []ui.Node{
+		html.H2(html.Props{}, ui.Text(view.Locale.Text("shell.work_overview"))),
+		html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(open)))),
+	}
+	if view.Allows(PageWork, "view") {
+		children = append(children, appLink(view, html.Props{}, statefulHref(view, PageWork), ui.Text(view.Locale.Text("shell.open_work"))))
+	}
 	return ui.CreateElement(TransientPopover, TransientPopoverProps{
 		Kind: "notification", Class: "notifications network-slot network-slot-ready", Label: label,
 		Trigger: []ui.Node{navIcon("notifications")}, PanelClass: "popover notification-popover",
-		Children: []ui.Node{
-			html.H2(html.Props{}, ui.Text(view.Locale.Text("shell.work_overview"))),
-			html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(open)))),
-			appLink(view, html.Props{}, statefulHref(view, PageWork), ui.Text(view.Locale.Text("shell.open_work"))),
-		},
+		Children: children,
 	})
 }
 

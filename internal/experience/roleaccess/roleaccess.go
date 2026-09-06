@@ -259,13 +259,32 @@ func PoliciesForRoles(snapshot Snapshot, roleIDs []string) []VisibilityPolicy {
 	for _, roleID := range NormalizeRoleIDs(roleIDs) {
 		wanted[roleID] = true
 	}
-	result := make([]VisibilityPolicy, 0, len(snapshot.Policies))
+	active := make(map[string]bool, len(snapshot.Roles))
+	for _, role := range snapshot.Roles {
+		role = NormalizeRole(role)
+		if role.Active {
+			active[role.ID] = true
+		}
+	}
+	resolved := make(map[string]bool, len(snapshot.Policies))
+	result := make([]VisibilityPolicy, 0, len(wanted))
 	for _, policy := range snapshot.Policies {
 		policy = NormalizeVisibility(policy)
 		if wanted[policy.RoleID] && ValidateVisibility(policy) == nil {
 			result = append(result, policy)
+			resolved[policy.RoleID] = true
 		}
 	}
+	// Role visibility is a data-release boundary. An active role that has not
+	// yet been configured defaults to the signed-in worker's unit, matching
+	// the admin UI's initial selection and avoiding an implicit all-workforce
+	// grant while an administrator works through new roles.
+	for roleID := range wanted {
+		if active[roleID] && !resolved[roleID] {
+			result = append(result, VisibilityPolicy{RoleID: roleID, Mode: VisibilityOwnUnit})
+		}
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].RoleID < result[j].RoleID })
 	return result
 }
 

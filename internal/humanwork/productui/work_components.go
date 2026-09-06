@@ -89,11 +89,15 @@ func WorkCollection(props WorkCollectionProps) ui.Node {
 			html.Small(html.Props{}, ui.Text(props.Text("work.empty_detail"))),
 		))
 	}
+	foot := []ui.Node{html.Span(html.Props{}, ui.Text(props.Footer.Label))}
+	if props.Footer.Action.Href != "" {
+		foot = append(foot, ui.CreateElement(ActionLink, props.Footer.Action))
+	}
 	return html.Section(html.Props{Class: "surface work-list", Aria: map[string]string{"label": props.Text("work.collection_label")}},
 		html.Div(html.Props{Class: "section-head"}, html.H2(html.Props{}, ui.Text(props.Title)), html.Span(html.Props{Class: "count"}, ui.Text(props.CountLabel))),
 		html.Nav(html.Props{Class: "tabs", Aria: map[string]string{"label": props.Text("work.filter_label")}}, tabs...),
 		html.Ul(html.Props{Class: "work-rows", Raw: map[string]any{"role": "list"}}, rows...),
-		html.Div(html.Props{Class: "panel-foot"}, html.Span(html.Props{}, ui.Text(props.Footer.Label)), ui.CreateElement(ActionLink, props.Footer.Action)),
+		html.Div(html.Props{Class: "panel-foot"}, foot...),
 	)
 }
 

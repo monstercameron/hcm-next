@@ -86,6 +86,24 @@ func TestListWorkersUsesDurableEmployeeRolesAndAdditiveRolePolicies(t *testing.T
 	}
 }
 
+func TestListWorkersDefaultsAnUnconfiguredActiveRoleToOwnUnit(t *testing.T) {
+	engine := newFakeEngine()
+	engine.workers = []workspace.WorkerSummary{
+		{WorkerRef: fixtureSubject, OrgUnit: "People"},
+		{WorkerRef: "peer", OrgUnit: "People"},
+		{WorkerRef: "outside", OrgUnit: "Finance"},
+	}
+	access := &roleAccessSpy{snapshot: roleaccess.Snapshot{Roles: roleaccess.DefaultRoles()}}
+	client := dialJourneyClient(startTestServer(t, journey.Dependencies{Engine: engine, RoleAccess: access}))
+	response, err := client.ListWorkers(testContext(t), &journeyv1.ListWorkersRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(response.GetWorkers()) != 2 {
+		t.Fatalf("unconfigured active-role response leaked workers: %+v", response.GetWorkers())
+	}
+}
+
 func TestOrganizationVisibilityWriteRequiresAdministrator(t *testing.T) {
 	spy := &preferenceSpy{snapshot: preferences.DefaultSnapshot()}
 	client := dialJourneyClient(startTestServer(t, journey.Dependencies{Preferences: spy}))

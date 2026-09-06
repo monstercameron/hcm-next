@@ -157,18 +157,19 @@ func TestPromotionWorkspaceRendersFromTheLiveCellWithZeroEffects(t *testing.T) {
 		}
 	})
 
-	t.Run("the response carries a strict content-security-policy and no inline script", func(t *testing.T) {
+	t.Run("the response carries a strict content-security-policy and pinned enhancement", func(t *testing.T) {
 		policy := page.Header.Get("Content-Security-Policy")
 		for _, want := range []string{
 			"default-src 'none'", "base-uri 'none'", "form-action 'self'",
-			"frame-ancestors 'none'", "style-src 'sha256-", "script-src 'none'",
+			"frame-ancestors 'none'", "style-src 'sha256-", "script-src 'sha256-",
+			"'self' 'wasm-unsafe-eval'", "connect-src 'self'",
 		} {
 			if !strings.Contains(policy, want) {
 				t.Errorf("the content-security-policy %q is missing %q", policy, want)
 			}
 		}
-		if strings.Contains(page.Body, "<script") {
-			t.Error("the server-rendered workspace ships a script; the no-JavaScript baseline is the whole page")
+		if !strings.Contains(page.Body, `<script type="application/json" id="gwc-contract">`) || !strings.Contains(page.Body, workspace.PathWasm) {
+			t.Error("the enhanced workspace dropped its pinned contract island or Go/WASM client")
 		}
 		if got := page.Header.Get("X-Content-Type-Options"); got != "nosniff" {
 			t.Errorf("X-Content-Type-Options is %q, want nosniff", got)
@@ -250,7 +251,7 @@ func TestPromotionWorkspaceRefusesUnauthenticatedAndUnauthorizedAccess(t *testin
 			workspace.ParamTransition: workspace.TransitionRunSimulation,
 		})
 		if res.Status != http.StatusUnauthorized {
-			t.Fatalf("anonymous POST answered %d, want 401", res.Status)
+			t.Fatalf("anonymous POST answered %d, want 401 after the browser boundary admitted its issued token", res.Status)
 		}
 	})
 

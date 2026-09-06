@@ -7,6 +7,8 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
 
+const RefreshRegionPeopleDirectory = "people-directory"
+
 // PeoplePageProps is the complete, transport-neutral contract of the People
 // surface. It contains presentation state only and no service or credential.
 type PeoplePageProps struct {
@@ -51,9 +53,33 @@ type PeopleFilterOption struct {
 // PeopleDirectoryProps owns only the rows and pagination it renders.
 type PeopleDirectoryProps struct {
 	I18nProps
-	Rows       []PeopleRowProps
-	Columns    []PeopleSortColumnProps
-	Pagination PeoplePaginationProps
+	InputKey    string
+	Rows        []PeopleRowProps
+	Columns     []PeopleSortColumnProps
+	Pagination  PeoplePaginationProps
+	Refreshing  bool
+	ResolveSort func(string, bool) PeopleDirectoryProps
+	CommitSort  func(PeopleDirectoryChange)
+}
+
+// PeopleDirectoryChange is the presentation-only sort state committed by the
+// directory component. It carries no records or authority-bearing values.
+type PeopleDirectoryChange struct {
+	Href       string
+	Sort       string
+	Descending bool
+}
+
+type peopleDirectoryState struct {
+	InputKey string
+	Current  PeopleDirectoryProps
+}
+
+func reconcilePeopleDirectoryState(incoming PeopleDirectoryProps, current peopleDirectoryState) (peopleDirectoryState, bool) {
+	if current.InputKey == incoming.InputKey {
+		return current, false
+	}
+	return peopleDirectoryState{InputKey: incoming.InputKey, Current: incoming}, true
 }
 
 // PeopleTableProps is the table's row collection.
@@ -232,11 +258,48 @@ func peopleFilterForm(props PeopleFilterProps, inputProps, teamProps, locationPr
 
 // PeopleDirectory composes the table and its pager as one bordered surface.
 func PeopleDirectory(props PeopleDirectoryProps) ui.Node {
-	props.Pagination.I18nProps = props.I18nProps
-	return html.Section(html.Props{Class: "surface people-directory"},
-		ui.CreateElement(PeopleTable, PeopleTableProps{I18nProps: props.I18nProps, Rows: props.Rows, Columns: props.Columns}),
-		ui.CreateElement(PeoplePagination, props.Pagination),
+	state := ui.UseState(peopleDirectoryState{InputKey: props.InputKey, Current: props})
+	directoryState, reset := reconcilePeopleDirectoryState(props, state.Get())
+	if reset {
+		state.Set(directoryState)
+	}
+	current := directoryState.Current
+	columns := append([]PeopleSortColumnProps(nil), current.Columns...)
+	if current.ResolveSort != nil {
+		for index := range columns {
+			column := columns[index]
+			if column.Href == "" {
+				continue
+			}
+			field, href := column.ID, column.Href
+			nextDescending := column.Active && !column.Descending
+			resolve, commit := current.ResolveSort, current.CommitSort
+			columns[index].Navigate = func(string) {
+				next := resolve(field, nextDescending)
+				state.Set(peopleDirectoryState{InputKey: directoryState.InputKey, Current: next})
+				if commit != nil {
+					commit(PeopleDirectoryChange{Href: href, Sort: field, Descending: nextDescending})
+				}
+			}
+		}
+	}
+	current.Pagination.I18nProps = current.I18nProps
+	class := "surface people-directory"
+	sectionProps := html.Props{Class: class}
+	children := make([]ui.Node, 0, 3)
+	if current.Refreshing {
+		sectionProps.Class += " is-refreshing"
+		sectionProps.Aria = map[string]string{"busy": "true", "live": "polite"}
+		children = append(children,
+			html.Div(html.Props{Class: "loading-progress people-directory-progress", Raw: map[string]any{"aria-hidden": "true"}}),
+			html.Span(html.Props{Class: "sr-only", Raw: map[string]any{"role": "status"}}, ui.Text(current.Text("shell.loading_authorized"))),
+		)
+	}
+	children = append(children,
+		ui.CreateElement(PeopleTable, PeopleTableProps{I18nProps: current.I18nProps, Rows: current.Rows, Columns: columns}),
+		ui.CreateElement(PeoplePagination, current.Pagination),
 	)
+	return html.Section(sectionProps, children...)
 }
 
 // PeopleTable renders the stable directory columns and supplied rows.

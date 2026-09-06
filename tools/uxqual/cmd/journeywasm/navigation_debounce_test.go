@@ -68,11 +68,50 @@ func TestProductRouteFocusTargetKeepsMenuInputForQueryOnlyChanges(t *testing.T) 
 
 	for _, pair := range [][2]string{
 		{"/workspace/app/home?menu_q=work", "/workspace/app/people?menu_q=work"},
-		{"/workspace/app/home?menu_q=work", "/workspace/app/home?menu_q=work&nav=collapsed"},
 	} {
 		selector, caret = productRouteFocusTarget(pair[0], pair[1])
 		if selector != productPageFocusSelector || caret {
 			t.Fatalf("ordinary route %q -> %q target=%q caret=%t", pair[0], pair[1], selector, caret)
+		}
+	}
+}
+
+func TestNavigationOnlyRouteChangePreservesShellFocusAndDetectsCollapse(t *testing.T) {
+	previous := "/workspace/app/admin?locale=en-US"
+	collapsed := "/workspace/app/admin?locale=en-US&nav=collapsed"
+	selector, caret := productRouteFocusTarget(previous, collapsed)
+	if selector != "" || caret {
+		t.Fatalf("navigation-only focus = (%q, %v), want no forced focus", selector, caret)
+	}
+	if !navigationCollapsedRouteChange(previous, collapsed) {
+		t.Fatal("expected collapsed navigation transition to be detected")
+	}
+	if navigationCollapsedRouteChange(collapsed, "/workspace/app/admin?locale=en-US&nav=expanded") {
+		t.Fatal("expanded transition must not request a collapsed-scroll reset")
+	}
+}
+
+func TestProductRouteFocusTargetKeepsPeopleCollectionViewportStable(t *testing.T) {
+	for _, pair := range [][2]string{
+		{"/workspace/app/people?locale=en-US&page_size=100", "/workspace/app/people?locale=en-US&page_size=100&sort=role"},
+		{"/workspace/app/people?locale=en-US&page_size=100&sort=role", "/workspace/app/people?dir=desc&locale=en-US&page_size=100&sort=role"},
+		{"/workspace/app/people?locale=en-US&page=2", "/workspace/app/people?locale=en-US&page=3"},
+		{"/workspace/app/people?locale=en-US", "/workspace/app/people?locale=en-US&team=Finance"},
+	} {
+		selector, caret := productRouteFocusTarget(pair[0], pair[1])
+		if selector != "" || caret {
+			t.Fatalf("people collection route %q -> %q target=%q caret=%t, want no focus move", pair[0], pair[1], selector, caret)
+		}
+	}
+
+	for _, pair := range [][2]string{
+		{"/workspace/app/people?locale=en-US", "/workspace/app/person?locale=en-US&person=worker-1"},
+		{"/workspace/app/people?locale=en-US", "/workspace/app/people?locale=fr-FR"},
+		{"/workspace/app/people?locale=en-US", "/workspace/app/people?favorites=people&locale=en-US"},
+	} {
+		selector, caret := productRouteFocusTarget(pair[0], pair[1])
+		if selector != productPageFocusSelector || caret {
+			t.Fatalf("page route %q -> %q target=%q caret=%t", pair[0], pair[1], selector, caret)
 		}
 	}
 }

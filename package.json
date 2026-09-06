@@ -32,6 +32,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run src/tests/e2e src/workflows && npm run test --workspaces --if-present",
     "test:uxqual-browser": "go run ./tools/uxqual/cmd/genfixtures && playwright test -c tools/uxqual/browser/playwright.config.mjs",
+    "test:frontend": "go test -count=1 ./cmd/frontenddev ./internal/humanwork/... ./tools/uxqual/... ./test/workspace",
     "test:go": "cd src/blocks/go && go test ./...",
     "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run check:code-style && npm run check:go && npm run check:race-policy && npm run check:driftgate && npm run check:apigate && npm run check:substratecoverage && npm run check:enginecoverage && npm run test && npm run test:go && npm run build",
     "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",

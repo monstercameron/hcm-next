@@ -59,6 +59,16 @@ func TestProductLocaleFormatsExactMoneyWithoutBinaryFloatingPoint(t *testing.T) 
 	if got := locale.FormatNumber("1234567.5", 2); got != "1.234.567,50" {
 		t.Fatalf("FormatNumber() = %q", got)
 	}
+	english := ResolveProductLocale("en-US")
+	if got := english.FormatMoney("165000.00", "USD", 2); got != "USD 165,000.00" {
+		t.Fatalf("English FormatMoney() = %q", got)
+	}
+	if got := percentage(english, "0.1800"); got != "18%" {
+		t.Fatalf("percentage() = %q", got)
+	}
+	if got := percentage(locale, "0.125"); got != "12,5%" {
+		t.Fatalf("localized percentage() = %q", got)
+	}
 }
 
 func TestComponentOwnedCopyCannotBypassI18n(t *testing.T) {

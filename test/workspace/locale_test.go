@@ -78,8 +78,7 @@ func TestTodo_UX_004_Integration(t *testing.T) {
 
 // TestTodo_UX_004_Browser is the browser-equivalent Go check. It runs the
 // actual localized SSR response through the repository's DOM qualification
-// checks; no Node or browser runtime is required for this progressive HTML
-// baseline.
+// checks and verifies the progressive Go/WASM enhancement remains attached.
 func TestTodo_UX_004_Browser(t *testing.T) {
 	t.Parallel()
 	c := newCell(t, true)
@@ -94,8 +93,8 @@ func TestTodo_UX_004_Browser(t *testing.T) {
 			t.Errorf("%s: FAIL %s", criterion.Name, criterion.Detail)
 		}
 	}
-	if strings.Contains(page.Body, "<script") {
-		t.Error("localized workspace requires script despite the SSR browser baseline")
+	if !strings.Contains(page.Body, `<script type="application/json" id="gwc-contract">`) || !strings.Contains(page.Body, workspace.PathWasm) {
+		t.Error("localized workspace dropped its progressive Go/WASM enhancement")
 	}
 	if !strings.Contains(page.Body, `<html lang="de-DE">`) {
 		t.Error("localized workspace does not publish its resolved document language")

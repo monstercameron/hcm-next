@@ -7,6 +7,7 @@ import (
 
 type HomePageProps struct {
 	Work       WorkCollectionProps
+	ShowWork   bool
 	Overview   SummaryCardProps
 	QuickStart QuickActionsProps
 	Recent     RecentActivityProps
@@ -30,14 +31,20 @@ type RecentActivityProps struct {
 }
 
 func HomePage(props HomePageProps) ui.Node {
+	side := []ui.Node{ui.CreateElement(SummaryCard, props.Overview)}
+	if len(props.QuickStart.Actions) > 0 {
+		side = append(side, ui.CreateElement(QuickActions, props.QuickStart))
+	}
+	gridClass := "home-grid"
+	grid := make([]ui.Node, 0, 2)
+	if props.ShowWork {
+		grid = append(grid, ui.CreateElement(WorkCollection, props.Work))
+	} else {
+		gridClass += " home-grid-without-work"
+	}
+	grid = append(grid, html.Div(html.Props{Class: "side-stack"}, side...))
 	return html.Div(html.Props{},
-		html.Div(html.Props{Class: "home-grid"},
-			ui.CreateElement(WorkCollection, props.Work),
-			html.Div(html.Props{Class: "side-stack"},
-				ui.CreateElement(SummaryCard, props.Overview),
-				ui.CreateElement(QuickActions, props.QuickStart),
-			),
-		),
+		html.Div(html.Props{Class: gridClass}, grid...),
 		ui.CreateElement(RecentActivity, props.Recent),
 	)
 }

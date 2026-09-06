@@ -264,12 +264,16 @@ func WorkflowLauncher(props WorkflowLauncherProps) ui.Node {
 		results = append(results, ui.CreateElement(WorkflowCard, workflow))
 	}
 	if len(results) == 0 {
+		title, detail := props.Text("workflow.none"), props.Text("workflow.none_detail")
+		if props.TotalCount == 0 {
+			title, detail = props.Text("workflow.unavailable"), props.Text("workflow.unavailable_detail")
+		}
 		results = append(results, html.Div(html.Props{Class: "workflow-empty", Raw: map[string]any{"role": "status"}},
-			html.Strong(html.Props{}, ui.Text(props.Text("workflow.none"))),
-			html.P(html.Props{Class: "muted"}, ui.Text(props.Text("workflow.none_detail"))),
+			html.Strong(html.Props{}, ui.Text(title)),
+			html.P(html.Props{Class: "muted"}, ui.Text(detail)),
 		))
 	}
-	return html.Section(html.Props{Class: "surface workflow-launcher", Aria: map[string]string{"label": props.Text("workflow.available_aria")}},
+	children := []ui.Node{
 		html.Div(html.Props{Class: "section-head workflow-heading"},
 			html.Div(html.Props{},
 				html.H2(html.Props{}, ui.Text(props.Text("workflow.start"))),
@@ -277,9 +281,12 @@ func WorkflowLauncher(props WorkflowLauncherProps) ui.Node {
 			),
 			html.Span(html.Props{Class: "count"}, ui.Text(props.Locale.Plural("workflow.available_count", int64(props.TotalCount)))),
 		),
-		ui.CreateElement(WorkflowFilter, props.Filter),
-		html.Div(html.Props{Class: "workflow-results"}, results...),
-	)
+	}
+	if props.TotalCount > 0 {
+		children = append(children, ui.CreateElement(WorkflowFilter, props.Filter))
+	}
+	children = append(children, html.Div(html.Props{Class: "workflow-results"}, results...))
+	return html.Section(html.Props{Class: "surface workflow-launcher", Aria: map[string]string{"label": props.Text("workflow.available_aria")}}, children...)
 }
 
 // WorkflowFilter is an SSR-safe GET filter with an optional live callback.

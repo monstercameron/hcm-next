@@ -7,9 +7,10 @@ import (
 )
 
 func TestRenderEveryAuthorizedProductPage(t *testing.T) {
-	for _, page := range []PageID{PageHome, PageMyself, PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
-		t.Run(string(page), func(t *testing.T) {
-			doc, err := Render(testView(page))
+	for _, definition := range PageDefinitions() {
+		definition := definition
+		t.Run(string(definition.ID), func(t *testing.T) {
+			doc, err := Render(testView(definition.ID))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -21,7 +22,7 @@ func TestRenderEveryAuthorizedProductPage(t *testing.T) {
 			if strings.Contains(strings.ToLower(doc), "medical leave") || strings.Contains(doc, "<script") {
 				t.Fatal("document leaked restricted detail or a JavaScript application runtime")
 			}
-			again, _ := Render(testView(page))
+			again, _ := Render(testView(definition.ID))
 			if doc != again {
 				t.Fatal("render is not deterministic")
 			}
@@ -71,13 +72,13 @@ func TestShellOwnsViewportAndSeparatesNavigationFromContentScroll(t *testing.T) 
 }
 
 func TestProductionPagesNeverLinkToJavaScriptReference(t *testing.T) {
-	for _, page := range []PageID{PageHome, PageMyself, PageWork, PageHistory, PagePeople, PagePerson, PageOrganization, PageInsights, PageAdmin, PageStudio, PageHelp, PageSettings} {
-		doc, err := Render(testView(page))
+	for _, definition := range PageDefinitions() {
+		doc, err := Render(testView(definition.ID))
 		if err != nil {
 			t.Fatal(err)
 		}
 		if strings.Contains(doc, `href="/design`) {
-			t.Fatalf("%s links the production Go UI to the JavaScript reference", page)
+			t.Fatalf("%s links the production Go UI to the JavaScript reference", definition.ID)
 		}
 	}
 }
@@ -382,7 +383,7 @@ func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) 
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"Avery Patel", "NW-40118", "CAD 118000", "Start a workflow", `name="workflow_q"`,
+		"Avery Patel", "NW-40118", "CAD 118,000", "Start a workflow", `name="workflow_q"`,
 		`href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`, "Start Promotion", "Start Internal transfer",
 		`href="/workspace/app/people"`, "Past workflows", `href="/workspace/app/journeys?journey=intent-2"`,
 	} {

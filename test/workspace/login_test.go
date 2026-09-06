@@ -60,8 +60,8 @@ func TestWorkspaceBrowserLoginIsOffByDefaultAndWorksWhenEnabled(t *testing.T) {
 		if res.Status != http.StatusSeeOther {
 			t.Fatalf("POST %s (good token) = %d, want 303\n%s", workspace.PathLogin, res.Status, res.Body)
 		}
-		if loc := res.Header.Get("Location"); loc != workspace.PathPromotion {
-			t.Errorf("POST %s redirected to %q, want %q", workspace.PathLogin, loc, workspace.PathPromotion)
+		if loc := res.Header.Get("Location"); loc != workspace.PathProductHome {
+			t.Errorf("POST %s redirected to %q, want %q", workspace.PathLogin, loc, workspace.PathProductHome)
 		}
 		for _, c := range res.Cookies {
 			if c.Name == "hcmnext_session" {

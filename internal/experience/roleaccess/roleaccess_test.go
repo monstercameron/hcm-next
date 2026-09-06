@@ -127,6 +127,17 @@ func TestPoliciesForRoles_AndDefaultRoles(t *testing.T) {
 	_ = values.TenantId("tenant")
 }
 
+func TestPoliciesForRolesDefaultsActiveUnconfiguredRolesToOwnUnit(t *testing.T) {
+	snapshot := Snapshot{Roles: DefaultRoles()}
+	got := PoliciesForRoles(snapshot, []string{"worker_self"})
+	if len(got) != 1 || got[0].RoleID != "worker_self" || got[0].Mode != VisibilityOwnUnit {
+		t.Fatalf("default visibility policies = %#v", got)
+	}
+	if got := PoliciesForRoles(snapshot, []string{"unrecognized"}); len(got) != 0 {
+		t.Fatalf("unrecognized admitted role gained a policy: %#v", got)
+	}
+}
+
 func TestPagePermissionsAreAdditiveAndKeepCRUDIndependent(t *testing.T) {
 	snapshot := Snapshot{PagePermissions: []PagePermission{
 		{RoleID: "worker_self", PageID: "insights", View: true},

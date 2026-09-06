@@ -117,6 +117,35 @@ func mount(store *journey.Store) {
 		root.Set("textContent", "")
 	}
 	journey.MountLive(store, rootSelector)
+	bindActionableNoticeFocus(store)
+}
+
+// bindActionableNoticeFocus brings a newly rendered refusal into view. The
+// promotion form can be taller than the viewport, so leaving its summary at
+// the top of the page makes a failed submit look like a dead button.
+func bindActionableNoticeFocus(store *journey.Store) {
+	lastNotice := ""
+	store.Subscribe(func() {
+		var callback js.Func
+		callback = js.FuncOf(func(js.Value, []js.Value) any {
+			defer callback.Release()
+			notice := js.Global().Get("document").Call("querySelector", `.jn-notice[data-tone="warning"],.jn-notice[data-tone="danger"]`)
+			if !notice.Truthy() {
+				lastNotice = ""
+				return nil
+			}
+			text := notice.Get("textContent").String()
+			if text == "" || text == lastNotice {
+				return nil
+			}
+			lastNotice = text
+			notice.Call("setAttribute", "tabindex", "-1")
+			notice.Call("focus")
+			notice.Call("scrollIntoView", map[string]any{"behavior": "smooth", "block": "center"})
+			return nil
+		})
+		js.Global().Call("requestAnimationFrame", callback)
+	})
 }
 
 // errNoIsland is the one document-shaped failure: the shell always writes

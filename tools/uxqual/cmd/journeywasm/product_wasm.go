@@ -73,6 +73,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	// state so typing never reruns page loaders or refetches workforce data.
 	navigationDebounce := newNavigationDebouncerWithScheduler(browserReplaceURL, browserDebounceScheduler)
 	journeyStore := journey.NewStore(journey.Page{})
+	bindActionableNoticeFocus(journeyStore)
 	journeyApp := journeyclient.New(cfg, service, journeyStore, time.Now)
 	journeyApp.Tasks = frontendTasks
 	journeyApp.Locate = func(fragment string) {
@@ -226,6 +227,22 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 						}
 					})
 				}
+				view.UpdatePeopleDirectory = func(change productui.PeopleDirectoryChange) {
+					browserReplaceURL(change.Href)
+					if lastResolvedProductView == nil || lastResolvedProductView.Page != productui.PagePeople {
+						return
+					}
+					updated := *lastResolvedProductView
+					updated.PeoplePage = 1
+					updated.PeopleSort = change.Sort
+					updated.PeopleDirection = "asc"
+					if change.Descending {
+						updated.PeopleDirection = "desc"
+					}
+					updated.UpdatePeopleDirectory = view.UpdatePeopleDirectory
+					lastResolvedProductView = &updated
+					preferences.PersistView(updated)
+				}
 				view.Accessibility = accessibility.Saved()
 				view.PreviewAccessibility = accessibility.Preview
 				view.SaveAccessibility = accessibility.Save
@@ -254,6 +271,13 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					// the resolved response still replaces the tree atomically.
 					view = *lastResolvedProductView
 					view.Refreshing = true
+					currentRoute := currentPath() + "?" + currentQuery()
+					if peopleDirectoryOnlyRouteChange(lastFocusedProductRoute, currentRoute) {
+						// Sorting, filtering and paging affect only the directory surface.
+						// Keep the shell and page heading mounted and scope busy/progress
+						// semantics to the table-plus-pagination component.
+						view.RefreshingRegion = productui.RefreshRegionPeopleDirectory
+					}
 				}
 				view.Navigate = navigateProduct
 				applyBrowserHistoryNavigation(&view)
@@ -366,7 +390,13 @@ func focusProductRouteAfterNavigation() {
 	}
 	previousRoute := lastFocusedProductRoute
 	lastFocusedProductRoute = route
+	if navigationCollapsedRouteChange(previousRoute, route) {
+		resetCollapsedNavigationScroll()
+	}
 	selector, caretAtEnd := productRouteFocusTarget(previousRoute, route)
+	if selector == "" {
+		return
+	}
 	var callback js.Func
 	callback = js.FuncOf(func(js.Value, []js.Value) any {
 		defer callback.Release()
@@ -381,6 +411,21 @@ func focusProductRouteAfterNavigation() {
 				length := target.Get("value").Get("length").Int()
 				target.Call("setSelectionRange", length, length)
 			}
+		}
+		return nil
+	})
+	js.Global().Call("requestAnimationFrame", callback)
+}
+
+// resetCollapsedNavigationScroll prevents an expanded menu's independent
+// scroll position from stranding the compact icon rail halfway down the list.
+func resetCollapsedNavigationScroll() {
+	var callback js.Func
+	callback = js.FuncOf(func(js.Value, []js.Value) any {
+		defer callback.Release()
+		navigation := js.Global().Get("document").Call("querySelector", ".primary-nav")
+		if navigation.Truthy() {
+			navigation.Set("scrollTop", 0)
 		}
 		return nil
 	})

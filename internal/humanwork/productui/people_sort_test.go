@@ -128,6 +128,68 @@ func TestSortThenPaginateProducesStableNonOverlappingWindows(t *testing.T) {
 	}
 }
 
+func TestPeopleDirectoryResolvesSortWithoutReloadingThePage(t *testing.T) {
+	view := testView(PagePeople)
+	var committed PeopleDirectoryChange
+	view.UpdatePeopleDirectory = func(change PeopleDirectoryChange) {
+		committed = change
+	}
+	window := paginatePeople(sortedPeople(filteredPeople(view), view.PeopleSort, view.PeopleDirection), view.PeoplePage, view.PeoplePageSize)
+	props := peopleDirectoryProps(view, window)
+	if props.ResolveSort == nil || props.CommitSort == nil {
+		t.Fatal("people directory did not expose its component-local sort contract")
+	}
+
+	next := props.ResolveSort(peopleSortRole, true)
+	var roleColumn PeopleSortColumnProps
+	for _, column := range next.Columns {
+		if column.ID == peopleSortRole {
+			roleColumn = column
+			break
+		}
+	}
+	if !roleColumn.Active || !roleColumn.Descending {
+		t.Fatalf("role column active=%t descending=%t", roleColumn.Active, roleColumn.Descending)
+	}
+	wantRows := sortedPeople(filteredPeople(view), peopleSortRole, peopleSortDescending)
+	if len(next.Rows) != len(wantRows) {
+		t.Fatalf("rows=%d want=%d", len(next.Rows), len(wantRows))
+	}
+	for index, row := range next.Rows {
+		if row.ID != wantRows[index].ID {
+			t.Fatalf("row %d=%q want=%q", index, row.ID, wantRows[index].ID)
+		}
+	}
+
+	change := PeopleDirectoryChange{Href: roleColumn.Href, Sort: peopleSortRole, Descending: true}
+	props.CommitSort(change)
+	if committed != change {
+		t.Fatalf("committed=%+v want=%+v", committed, change)
+	}
+}
+
+func TestPeopleDirectoryKeepsLocalSortUntilParentProjectionChanges(t *testing.T) {
+	view := testView(PagePeople)
+	view.UpdatePeopleDirectory = func(PeopleDirectoryChange) {}
+	window := paginatePeople(sortedPeople(filteredPeople(view), view.PeopleSort, view.PeopleDirection), view.PeoplePage, view.PeoplePageSize)
+	incoming := *peopleDirectoryProps(view, window)
+	local := incoming.ResolveSort(peopleSortTeam, true)
+	state := peopleDirectoryState{InputKey: incoming.InputKey, Current: local}
+
+	kept, reset := reconcilePeopleDirectoryState(incoming, state)
+	if reset || kept.Current.InputKey != local.InputKey {
+		t.Fatal("unchanged parent projection discarded the component-local sort")
+	}
+
+	view.PeopleTeam = "Product"
+	filtered := filteredPeople(view)
+	changed := *peopleDirectoryProps(view, paginatePeople(sortedPeople(filtered, view.PeopleSort, view.PeopleDirection), 1, view.PeoplePageSize))
+	reconciled, reset := reconcilePeopleDirectoryState(changed, state)
+	if !reset || reconciled.InputKey != changed.InputKey || len(reconciled.Current.Rows) != len(filtered) {
+		t.Fatal("new parent projection did not replace component-local directory state")
+	}
+}
+
 func BenchmarkSortedPeople(b *testing.B) {
 	for _, size := range []int{100, 10_000, 100_000} {
 		b.Run(fmt.Sprint(size), func(b *testing.B) {

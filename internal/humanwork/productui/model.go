@@ -1,6 +1,10 @@
 package productui
 
-import "github.com/monstercameron/hcm-next/internal/kernel/values"
+import (
+	"strings"
+
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
+)
 
 // PageID identifies one stable product surface. The server resolves whether a
 // page is discoverable before it includes the page in View.Navigation.
@@ -242,6 +246,7 @@ type View struct {
 	PreviewAccessibility       func(AccessibilityPreferences)
 	SaveAccessibility          func(AccessibilityPreferences)
 	ResetAccessibility         func()
+	UpdatePeopleDirectory      func(PeopleDirectoryChange)
 	Source                     string
 	LoadError                  string
 	// Loading is presentation state set only while the route's authorized
@@ -252,6 +257,10 @@ type View struct {
 	// newer projection resolves. This prevents fast filter, sort, and paging
 	// requests from replacing useful content with a one-frame loading proxy.
 	Refreshing bool
+	// RefreshingRegion narrows a warm refresh to the component whose data is
+	// changing. The surrounding shell remains stable while that component
+	// exposes its own aria-busy state and progress cue.
+	RefreshingRegion string
 	// Navigate is installed by the WASM history router. A nil callback keeps
 	// server rendering and tests as ordinary progressive-enhancement links.
 	Navigate                  func(string)
@@ -280,6 +289,13 @@ func (view View) Can(page PageID, action string) bool {
 		}
 	}
 	return len(view.EffectivePermissions) == 0 && action == "view" && PageVisible(page, view.Roles)
+}
+
+// Allows keeps isolated component previews and legacy server-rendered tests
+// usable before a permission projection is composed. A resolved production
+// projection is always authoritative.
+func (view View) Allows(page PageID, action string) bool {
+	return len(view.EffectivePermissions) == 0 || view.Can(page, action)
 }
 
 // NewView creates an empty, honest presentation projection. Live adapters
@@ -329,7 +345,11 @@ func ApplyLocale(view View, locale LocaleContext) View {
 	view.Title = locale.Text(definition.TitleKey)
 	view.Subtitle = locale.Text(definition.SubtitleKey)
 	if view.Page == PageHome && view.Principal != "" {
-		view.Title = locale.Text("page.home.greeting", map[string]string{"name": view.Principal})
+		name := strings.TrimSpace(view.Viewer.Name)
+		if name == "" {
+			name = view.Principal
+		}
+		view.Title = locale.Text("page.home.greeting", map[string]string{"name": name})
 	}
 	if len(view.Navigation) == 0 {
 		view.Navigation = defaultNavigation(locale)

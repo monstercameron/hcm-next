@@ -29,6 +29,10 @@ func BuildLoading(view View) ui.Node {
 // progress cue; it never fabricates pending values or changes action authority.
 func BuildRefreshing(view View) ui.Node {
 	view.Loading = false
+	if view.RefreshingRegion != "" {
+		view.Refreshing = false
+		return Build(view)
+	}
 	view.Refreshing = true
 	return Build(view)
 }

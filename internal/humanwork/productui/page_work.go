@@ -3,6 +3,8 @@ package productui
 import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"math/big"
+	"strings"
 )
 
 type workCollectionOptions struct {
@@ -116,4 +118,20 @@ func money(locale LocaleContext, value values.Money) string {
 		return locale.Text("common.not_disclosed")
 	}
 	return locale.FormatMoney(value.Amount().String(), value.Currency(), int(value.Amount().Scale()))
+}
+
+// percentage formats an exact decimal ratio without converting compensation
+// data through binary floating point.
+func percentage(locale LocaleContext, value string) string {
+	ratio, ok := new(big.Rat).SetString(strings.TrimSpace(value))
+	if !ok {
+		return locale.Text("common.not_disclosed")
+	}
+	ratio.Mul(ratio, big.NewRat(100, 1))
+	decimal := strings.TrimRight(strings.TrimRight(ratio.FloatString(2), "0"), ".")
+	fraction := 0
+	if point := strings.IndexByte(decimal, '.'); point >= 0 {
+		fraction = len(decimal) - point - 1
+	}
+	return locale.FormatNumber(decimal, fraction) + "%"
 }

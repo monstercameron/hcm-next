@@ -94,3 +94,37 @@ func TestWarmRefreshKeepsAuthorizedContentMounted(t *testing.T) {
 		t.Fatal("warm refresh replaced authorized rows with a cold-loading proxy")
 	}
 }
+
+func TestPeopleCollectionRefreshScopesBusyStateToDirectory(t *testing.T) {
+	view := testView(PagePeople)
+	view.RefreshingRegion = RefreshRegionPeopleDirectory
+	out, err := ui.RenderToString(BuildRefreshing(view))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`class="surface people-directory is-refreshing"`, `aria-busy="true"`,
+		`class="loading-progress people-directory-progress"`, "Avery Patel",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("people directory refresh missing %q", want)
+		}
+	}
+	for _, unwanted := range []string{
+		`class="app-shell is-refreshing"`, `data-network-state="refreshing"`,
+		`class="loading-progress network-progress"`,
+	} {
+		if strings.Contains(out, unwanted) {
+			t.Errorf("people directory refresh leaked page-wide state %q", unwanted)
+		}
+	}
+	css := Stylesheet()
+	for _, want := range []string{
+		`.people-directory.is-refreshing{position:relative}`,
+		`.people-directory.is-refreshing .people-directory-progress:after`,
+	} {
+		if !strings.Contains(css, want) {
+			t.Errorf("people directory refresh styling missing %q", want)
+		}
+	}
+}

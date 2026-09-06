@@ -28,6 +28,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
+	transportedge "github.com/monstercameron/hcm-next/internal/transport/edge"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/trust/authz"
 )
@@ -107,6 +108,10 @@ type cell struct {
 	url    string
 	client *http.Client
 	tokens map[string]string
+	// browserCookie is the edge-issued SameSite proof a real browser stores
+	// after its first workspace GET. Keeping it here makes POST helpers drive
+	// the complete browser boundary rather than bypassing it.
+	browserCookie *http.Cookie
 }
 
 // newCell migrates a private schema, composes the cell and serves its edge.
@@ -242,6 +247,10 @@ func (c *cell) post(path, as string, form map[string]string, cookies ...*http.Co
 		c.t.Fatalf("build POST %s: %v", path, err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if c.browserCookie != nil {
+		req.Header.Set("Origin", c.url)
+		cookies = append(cookies, c.browserCookie)
+	}
 	return c.do(req, as, cookies)
 }
 
@@ -266,7 +275,14 @@ func (c *cell) do(req *http.Request, as string, cookies []*http.Cookie) response
 	if err != nil {
 		c.t.Fatalf("read %s %s: %v", req.Method, req.URL.Path, err)
 	}
-	return response{Status: res.StatusCode, Header: res.Header, Body: string(body), Cookies: res.Cookies()}
+	responseCookies := res.Cookies()
+	for _, cookie := range responseCookies {
+		if cookie.Name == transportedge.BrowserCSRFCookieName {
+			copy := *cookie
+			c.browserCookie = &copy
+		}
+	}
+	return response{Status: res.StatusCode, Header: res.Header, Body: string(body), Cookies: responseCookies}
 }
 
 // ---------------------------------------------------------------------------
