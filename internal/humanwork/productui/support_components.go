@@ -24,6 +24,7 @@ type SettingsPageProps struct {
 	Locale        *LocalePreferencesProps
 	Accessibility *AccessibilityPreferencesProps
 	Preferences   EmptyStateProps
+	SignOut       *ActionLinkProps
 }
 
 type ViewerProfileProps struct {
@@ -73,6 +74,9 @@ func SettingsPage(props SettingsPageProps) ui.Node {
 		children = append(children, ui.CreateElement(ViewerProfileCard, props.Profile))
 	}
 	children = append(children, html.Div(html.Props{Class: "settings-overview-grid"}, overview...), preferencePanel)
+	if props.SignOut != nil {
+		children = append(children, html.Div(html.Props{Class: "surface"}, ui.CreateElement(ActionLink, *props.SignOut)))
+	}
 	return html.Div(html.Props{Class: "settings-page-stack"}, children...)
 }
 

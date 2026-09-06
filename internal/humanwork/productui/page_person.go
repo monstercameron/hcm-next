@@ -79,6 +79,9 @@ func personProfileProps(view View, person Person, target PageID) PersonProfilePr
 
 func personWorkflowLauncherProps(view View, person Person, target PageID) WorkflowLauncherProps {
 	filtered := filteredPersonWorkflows(view)
+	if len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create") {
+		filtered = nil
+	}
 	workflows := make([]WorkflowCardProps, 0, len(filtered))
 	for _, workflow := range filtered {
 		href := workflow.Href

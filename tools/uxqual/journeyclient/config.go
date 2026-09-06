@@ -60,10 +60,50 @@ type Config struct {
 	Tenant  string   `json:"tenant"`
 	Subject string   `json:"subject"`
 	Roles   []string `json:"roles"`
-	Purpose string   `json:"purpose"`
+	// PagePermissions is the effective, server-derived union of the signed-in
+	// worker's durable role grants. It only controls browser discoverability
+	// and affordances; every mutation is authorized again by the service.
+	PagePermissions []PagePermission `json:"page_permissions,omitempty"`
+	Purpose         string           `json:"purpose"`
 	// JourneysPath is the page's own address, used for the masthead link back
 	// to itself.
 	JourneysPath string `json:"journeys_path"`
+	// LogoutPath is present only for the explicitly enabled local browser
+	// session. It is presentation metadata, never authentication input.
+	LogoutPath string `json:"logout_path,omitempty"`
+}
+
+// PagePermission mirrors the presentation-only page/action projection in
+// the shell island without importing the server's internal policy package.
+type PagePermission struct {
+	Version int64  `json:"version"`
+	RoleID  string `json:"RoleID"`
+	PageID  string `json:"PageID"`
+	View    bool   `json:"View"`
+	Create  bool   `json:"Create"`
+	Update  bool   `json:"Update"`
+	Delete  bool   `json:"Delete"`
+}
+
+// CanPageAction checks one effective browser affordance. It is not an
+// authorization decision; the server repeats the check from trusted state.
+func (c Config) CanPageAction(pageID, action string) bool {
+	for _, permission := range c.PagePermissions {
+		if permission.PageID != pageID {
+			continue
+		}
+		switch action {
+		case "view":
+			return permission.View
+		case "create":
+			return permission.Create
+		case "update":
+			return permission.Update
+		case "delete":
+			return permission.Delete
+		}
+	}
+	return false
 }
 
 // Refusals ParseConfig reports. They are distinguished because the client

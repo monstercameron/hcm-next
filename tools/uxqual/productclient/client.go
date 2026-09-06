@@ -27,15 +27,20 @@ type Service struct {
 	ListWorkers       func(context.Context, *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error)
 	GetPreferences    func(context.Context, *journeyv1.GetProductPreferencesRequest) (*journeyv1.GetProductPreferencesResponse, error)
 	GetWorkerIDPolicy func(context.Context, *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error)
+	GetRoleAccess     func(context.Context, *journeyv1.GetRoleAccessRequest) (*journeyv1.GetRoleAccessResponse, error)
 }
 
 // Session contains display facts from the server-admitted configuration
 // island. The server authorizes every RPC independently; these values never
 // grant authority.
 type Session struct {
-	Tenant    string
-	Principal string
-	Scope     string
+	Tenant                string
+	Principal             string
+	Scope                 string
+	Roles                 []string
+	Permissions           []productui.RolePagePermission
+	EnforceRoleVisibility bool
+	LogoutHref            string
 }
 
 // State is presentation-only address-bar state.
@@ -50,6 +55,13 @@ type State struct {
 // address state without manufacturing any business records or counts.
 func LoadingView(session Session, state State) productui.View {
 	view := productui.NewView(state.Page, displayLabel(session.Tenant), displayLabel(session.Principal), displayLabel(session.Scope))
+	view.LogoutHref = session.LogoutHref
+	if session.EnforceRoleVisibility {
+		view = productui.ApplyRoleVisibility(view, session.Roles)
+	}
+	if len(session.Permissions) > 0 {
+		view = productui.ApplyPagePermissions(view, session.Permissions)
+	}
 	return productui.ApplyRequest(view, state.Request)
 }
 
@@ -108,10 +120,14 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	var workersResponse *journeyv1.ListWorkersResponse
 	var preferencesResponse *journeyv1.GetProductPreferencesResponse
 	var workerIDResponse *journeyv1.GetWorkerIDPolicyResponse
+	var roleAccessResponse *journeyv1.GetRoleAccessResponse
 	var journeysErr, workersErr, preferencesErr error
 	var workerIDErr error
+	var roleAccessErr error
 	var reads sync.WaitGroup
-	if service.ListJourneys == nil {
+	if session.EnforceRoleVisibility && !productui.PageVisible(productui.PageJourneys, session.Roles) {
+		journeysResponse = &journeyv1.ListJourneysResponse{}
+	} else if service.ListJourneys == nil {
 		journeysErr = errors.New("JourneyService.ListJourneys is not connected")
 	} else {
 		reads.Add(1)
@@ -159,7 +175,27 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 			}()
 		}
 	}
+	if state.Page == productui.PageRoles || state.Page == productui.PageOrganizationVisibility {
+		if service.GetRoleAccess == nil {
+			roleAccessErr = errors.New("JourneyService.GetRoleAccess is not connected")
+		} else {
+			reads.Add(1)
+			go func() {
+				defer reads.Done()
+				roleAccessResponse, roleAccessErr = service.GetRoleAccess(ctx, &journeyv1.GetRoleAccessRequest{})
+				if roleAccessErr != nil {
+					roleAccessErr = fmt.Errorf("load role access: %w", roleAccessErr)
+				}
+			}()
+		}
+	}
 	reads.Wait()
+	if roleAccessErr != nil {
+		failures = append(failures, roleAccessErr)
+	}
+	if roleAccessResponse != nil {
+		applyRoleAccess(&view, roleAccessResponse)
+	}
 	if preferencesErr != nil {
 		failures = append(failures, preferencesErr)
 	}
@@ -214,6 +250,31 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	return view, errors.Join(failures...)
 }
 
+func applyRoleAccess(view *productui.View, response *journeyv1.GetRoleAccessResponse) {
+	if view == nil || response == nil {
+		return
+	}
+	view.AccessRoles = make([]productui.AccessRole, 0, len(response.GetRoles()))
+	for _, role := range response.GetRoles() {
+		view.AccessRoles = append(view.AccessRoles, productui.AccessRole{Version: role.GetVersion(), ID: role.GetRoleId(), Name: role.GetName(), Description: role.GetDescription(), System: role.GetSystem(), Active: role.GetActive()})
+	}
+	view.RoleAssignments = make([]productui.WorkerRoleAssignment, 0, len(response.GetAssignments()))
+	for _, assignment := range response.GetAssignments() {
+		view.RoleAssignments = append(view.RoleAssignments, productui.WorkerRoleAssignment{Version: assignment.GetVersion(), WorkerRef: assignment.GetWorkerRef(), RoleIDs: append([]string(nil), assignment.GetRoleIds()...)})
+	}
+	view.RoleVisibilityPolicies = make([]productui.OrganizationVisibilityPolicy, 0, len(response.GetVisibilityPolicies()))
+	for _, policy := range response.GetVisibilityPolicies() {
+		view.RoleVisibilityPolicies = append(view.RoleVisibilityPolicies, productui.OrganizationVisibilityPolicy{Version: policy.GetVersion(), RoleID: policy.GetRoleId(), Mode: policy.GetMode(), OrganizationUnits: append([]string(nil), policy.GetOrganizationUnits()...)})
+	}
+	view.RolePagePermissions = make([]productui.RolePagePermission, 0, len(response.GetPagePermissions()))
+	for _, permission := range response.GetPagePermissions() {
+		view.RolePagePermissions = append(view.RolePagePermissions, productui.RolePagePermission{
+			Version: permission.GetVersion(), RoleID: permission.GetRoleId(), Page: productui.PageID(permission.GetPageId()),
+			View: permission.GetCanView(), Create: permission.GetCanCreate(), Update: permission.GetCanUpdate(), Delete: permission.GetCanDelete(),
+		})
+	}
+}
+
 func projectWorkerIDPolicy(p *journeyv1.WorkerIDPolicy, previews []string) productui.WorkerIDPolicy {
 	if p == nil {
 		return productui.WorkerIDPolicy{}
@@ -221,13 +282,10 @@ func projectWorkerIDPolicy(p *journeyv1.WorkerIDPolicy, previews []string) produ
 	return productui.WorkerIDPolicy{Version: p.GetVersion(), Prefix: p.GetPrefix(), Suffix: p.GetSuffix(), Separator: p.GetSeparator(), SequenceDigits: int(p.GetSequenceDigits()), StartAt: p.GetStartAt(), NextSequence: p.GetNextSequence(), IncrementBy: p.GetIncrementBy(), ZeroPad: p.GetZeroPad(), YearFormat: p.GetYearFormat(), IncludeUnitCode: p.GetIncludeUnitCode(), CheckDigit: p.GetCheckDigit(), ExcludedRanges: p.GetExcludedRanges(), IssuedCount: p.GetIssuedCount(), Previews: append([]string(nil), previews...)}
 }
 
-const harborcareDeveloperWorkerNumber = "HC-21050"
-
 // projectViewerProfile joins the admitted account identity to an authorized
 // worker projection without turning a display fact into authorization. Real
-// deployments match the principal to a worker identity. The local HarborCare
-// profile has one explicit persona binding so the production UI can exercise
-// the same image-proxy and profile-settings path during development.
+// and local-development deployments both match the authenticated subject to
+// a stable worker reference or ID returned by the authorized workforce read.
 func projectViewerProfile(session Session, people []productui.Person) productui.ViewerProfile {
 	name := displayLabel(session.Principal)
 	fallback := productui.ViewerProfile{Name: name, Initials: uicomponents.Initials(name)}
@@ -238,13 +296,6 @@ func projectViewerProfile(session Session, people []productui.Person) productui.
 		// used as an identity join.
 		if principal != "" && (normalizedIdentity(person.ID) == principal || normalizedIdentity(person.WorkerID) == principal) {
 			return viewerProfileFromPerson(person)
-		}
-	}
-	if normalizedIdentity(session.Tenant) == normalizedIdentity("harborcare-demo") && principal == normalizedIdentity("local-developer") {
-		for _, person := range people {
-			if strings.EqualFold(strings.TrimSpace(person.WorkerNumber), harborcareDeveloperWorkerNumber) {
-				return viewerProfileFromPerson(person)
-			}
 		}
 	}
 	return fallback

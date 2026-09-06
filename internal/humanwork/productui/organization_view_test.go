@@ -14,6 +14,11 @@ func TestOrganizationViewCanSwitchBetweenFlatAndOwnershipTree(t *testing.T) {
 	if !strings.Contains(flat, `data-organization-view="flat"`) || !strings.Contains(flat, `org_view=tree`) {
 		t.Fatalf("flat view did not expose a software-routable tree toggle")
 	}
+	for _, want := range []string{`class="organization-unit-disclosure"`, `<summary class="org-node manager">`, "Avery Patel", `class="organization-unit-members"`} {
+		if !strings.Contains(flat, want) {
+			t.Errorf("expandable flat view missing %q", want)
+		}
+	}
 	tree, err := Render(ApplyRequest(view, PageRequest{OrganizationView: "tree"}))
 	if err != nil {
 		t.Fatal(err)

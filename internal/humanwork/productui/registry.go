@@ -31,6 +31,45 @@ type PageDefinition struct {
 	render      func(View) ui.Node
 }
 
+const RoleHCMAdmin = "hcm_admin"
+
+// PageVisible reports product-route access for server-admitted roles. An
+// empty role set receives only the safe shell baseline and cannot discover
+// workforce or administrative surfaces.
+func PageVisible(page PageID, roles []string) bool {
+	if hasAnyProductRole(roles, RoleHCMAdmin, "comp_admin") {
+		return true
+	}
+	switch page {
+	case PageHome, PageHelp, PageSettings:
+		return true
+	case PageMyself, PageOrganization:
+		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageInsights:
+		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
+	default:
+		return false
+	}
+}
+
+func hasAnyProductRole(roles []string, wanted ...string) bool {
+	for _, role := range wanted {
+		if hasProductRole(roles, role) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasProductRole(roles []string, wanted string) bool {
+	for _, role := range roles {
+		if role == wanted {
+			return true
+		}
+	}
+	return false
+}
+
 func registeredPages() []PageDefinition {
 	return []PageDefinition{
 		{ID: PageHome, Route: "/workspace/app/home", Label: "Home", Icon: "home", Title: "Home", Subtitle: "Review live requests and keep your work moving.", LabelKey: "page.home.label", TitleKey: "page.home.title", SubtitleKey: "page.home.subtitle", SearchTerms: []string{"dashboard", "overview", "landing", "start"}, PrimaryNav: true, RenderOrder: 10, render: homePage},
@@ -44,8 +83,9 @@ func registeredPages() []PageDefinition {
 		{ID: PageInsights, Route: "/workspace/app/insights", Label: "Insights", Icon: "insights", Title: "Insights", Subtitle: "Operational counts derived from live journey states.", LabelKey: "page.insights.label", TitleKey: "page.insights.title", SubtitleKey: "page.insights.subtitle", SearchTerms: []string{"analytics", "reports", "metrics", "trends", "workforce data"}, PrimaryNav: true, RenderOrder: 50, render: insightsPage},
 		{ID: PageAdmin, Route: "/workspace/app/admin", Label: "Admin", Icon: "admin", Title: "Admin", Subtitle: "Published service capabilities and configuration availability.", LabelKey: "page.admin.label", TitleKey: "page.admin.title", SubtitleKey: "page.admin.subtitle", SearchTerms: []string{"administration", "configuration", "system", "capabilities", "manage"}, PrimaryNav: true, RenderOrder: 60, render: adminPage},
 		{ID: PageWorkerIDs, Route: "/workspace/app/admin/worker-ids", Label: "Worker IDs", Icon: "people", Title: "Worker ID rules", Subtitle: "Configure how this organization issues unique worker numbers.", LabelKey: "page.worker_ids.label", TitleKey: "page.worker_ids.title", SubtitleKey: "page.worker_ids.subtitle", SearchTerms: []string{"worker number", "personnel number", "prefix", "sequence", "identifier", "numbering"}, ParentNav: PageAdmin, RenderOrder: 63, render: workerIDsPage},
-		{ID: PageOrganizationVisibility, Route: "/workspace/app/admin/organization-visibility", Label: "Organization visibility", Icon: "organization", Title: "Organization visibility", Subtitle: "Control which organization units ordinary users can discover.", LabelKey: "page.organization_visibility.label", TitleKey: "page.organization_visibility.title", SubtitleKey: "page.organization_visibility.subtitle", SearchTerms: []string{"org chart access", "directory visibility", "allowlist", "denylist", "own team", "organization units"}, ParentNav: PageAdmin, RenderOrder: 64, render: organizationVisibilityPage},
-		{ID: PageAppearance, Route: "/workspace/app/appearance", Label: "Brand & appearance", Icon: "palette", Title: "Brand & appearance", Subtitle: "Shape a consistent workspace identity with governed, accessible theme choices.", LabelKey: "page.appearance.label", TitleKey: "page.appearance.title", SubtitleKey: "page.appearance.subtitle", SearchTerms: []string{"branding", "theme", "colors", "logo", "dark mode", "styling", "shapes", "glyphs"}, ParentNav: PageAdmin, RenderOrder: 65, render: appearancePage},
+		{ID: PageRoles, Route: "/workspace/app/admin/roles", Label: "Roles & access", Icon: "admin", Title: "Roles & access", Subtitle: "Create roles and assign one or more roles across the workforce.", LabelKey: "page.roles.label", TitleKey: "page.roles.title", SubtitleKey: "page.roles.subtitle", SearchTerms: []string{"authorization", "roles", "permissions", "workforce access", "assignment", "rbac"}, ParentNav: PageAdmin, RenderOrder: 64, render: rolesPage},
+		{ID: PageOrganizationVisibility, Route: "/workspace/app/admin/organization-visibility", Label: "Organization visibility", Icon: "organization", Title: "Organization visibility", Subtitle: "Control which organization units each role can discover.", LabelKey: "page.organization_visibility.label", TitleKey: "page.organization_visibility.title", SubtitleKey: "page.organization_visibility.subtitle", SearchTerms: []string{"org chart access", "directory visibility", "role visibility", "allowlist", "denylist", "own team", "organization units"}, ParentNav: PageAdmin, RenderOrder: 65, render: organizationVisibilityPage},
+		{ID: PageAppearance, Route: "/workspace/app/appearance", Label: "Brand & appearance", Icon: "palette", Title: "Brand & appearance", Subtitle: "Shape a consistent workspace identity with governed, accessible theme choices.", LabelKey: "page.appearance.label", TitleKey: "page.appearance.title", SubtitleKey: "page.appearance.subtitle", SearchTerms: []string{"branding", "theme", "colors", "logo", "dark mode", "styling", "shapes", "glyphs"}, ParentNav: PageAdmin, RenderOrder: 66, render: appearancePage},
 		{ID: PageStudio, Route: "/workspace/app/studio", Label: "Experience Studio", Icon: "studio", Title: "Experience Studio", Subtitle: "Customer page configuration requires its governed service.", LabelKey: "page.studio.label", TitleKey: "page.studio.title", SubtitleKey: "page.studio.subtitle", SearchTerms: []string{"custom pages", "layout", "builder", "designer", "experience", "configuration"}, ParentNav: PageAdmin, RenderOrder: 70, render: studioPage},
 		{ID: PageHelp, Route: "/workspace/app/help", Label: "Help", Icon: "help", Title: "Help center", Subtitle: "Guidance for the live promotion workflow.", LabelKey: "page.help.label", TitleKey: "page.help.title", SubtitleKey: "page.help.subtitle", SearchTerms: []string{"support", "guidance", "documentation", "docs", "assistance"}, RenderOrder: 80, render: helpPage},
 		{ID: PageSettings, Route: "/workspace/app/settings", Label: "Settings", Icon: "settings", Title: "Settings", Subtitle: "Current authenticated session and available preferences.", LabelKey: "page.settings.label", TitleKey: "page.settings.title", SubtitleKey: "page.settings.subtitle", SearchTerms: []string{"preferences", "locale", "language", "accessibility", "account", "session"}, RenderOrder: 90, render: settingsPage},
@@ -88,11 +128,28 @@ func renderPage(view View) (ui.Node, error) {
 }
 
 func defaultNavigation(locale LocaleContext) []NavItem {
+	return navigationFor(locale, nil)
+}
+
+func navigationForRoles(locale LocaleContext, roles []string) []NavItem {
+	restricted := roles != nil
+	return navigationFor(locale, func(page PageID) bool { return !restricted || PageVisible(page, roles) })
+}
+
+func navigationForPermissions(locale LocaleContext, permissions []RolePagePermission) []NavItem {
+	allowed := make(map[PageID]bool, len(permissions))
+	for _, permission := range permissions {
+		allowed[permission.Page] = allowed[permission.Page] || permission.View
+	}
+	return navigationFor(locale, func(page PageID) bool { return allowed[page] })
+}
+
+func navigationFor(locale LocaleContext, visible func(PageID) bool) []NavItem {
 	pages := registeredPages()
 	items := make([]NavItem, 0, len(pages))
 	indexes := make(map[PageID]int)
 	for _, definition := range pages {
-		if !definition.PrimaryNav {
+		if !definition.PrimaryNav || visible != nil && !visible(definition.ID) {
 			continue
 		}
 		item := navigationItemFromDefinition(definition, locale)
@@ -100,7 +157,7 @@ func defaultNavigation(locale LocaleContext) []NavItem {
 		indexes[definition.ID] = len(items) - 1
 	}
 	for _, definition := range pages {
-		if definition.ParentNav == "" {
+		if definition.ParentNav == "" || visible != nil && !visible(definition.ID) {
 			continue
 		}
 		index, ok := indexes[definition.ParentNav]

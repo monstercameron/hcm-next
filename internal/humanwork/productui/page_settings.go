@@ -20,7 +20,7 @@ func settingsPage(view View) ui.Node {
 		Motions: AccessibilityMotionOptions(), LinkStyles: AccessibilityLinkOptions(),
 		OnPreview: view.PreviewAccessibility, OnSave: view.SaveAccessibility, OnReset: view.ResetAccessibility,
 	}
-	return ui.CreateElement(SettingsPage, SettingsPageProps{
+	props := SettingsPageProps{
 		Profile: ViewerProfileProps{
 			SectionLabel: view.Locale.Text("settings.profile_title"), Description: view.Locale.Text("settings.profile_description"),
 			Name: profile.Name, Initials: profile.Initials, PhotoURL: profile.PhotoURL, Role: valueOrUnavailableFor(view.Locale, profile.Role),
@@ -37,5 +37,9 @@ func settingsPage(view View) ui.Node {
 			Callout: view.Locale.Text("settings.access_callout"),
 		},
 		Accessibility: &accessibility,
-	})
+	}
+	if view.LogoutHref != "" {
+		props.SignOut = &ActionLinkProps{Label: "Sign out", Href: view.LogoutHref, Class: "button secondary"}
+	}
+	return ui.CreateElement(SettingsPage, props)
 }

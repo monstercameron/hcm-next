@@ -14,14 +14,13 @@ func TestViewerProfileMatchesAnAuthorizedWorkerIdentity(t *testing.T) {
 	}
 }
 
-func TestHarborCareDevelopmentProfileUsesTheUploadedEmployeeProxy(t *testing.T) {
+func TestHarborCareDevPersonaBindsToItsDurableDirectoryWorker(t *testing.T) {
 	people := []productui.Person{
-		{WorkerNumber: "HC-21001", Name: "Amina Rahman", PhotoURL: "/workspace/assets/person-hc-001-small.jpg"},
-		{WorkerNumber: harborcareDeveloperWorkerNumber, Name: "Rafael Torres", Initials: "RT", PhotoURL: "/workspace/assets/person-hc-050-small.jpg", Role: "Director of People Operations · M4"},
+		{ID: "hc-050-rafael-torres", WorkerID: "worker-id-50", WorkerNumber: "HC-21050", Name: "Rafael Torres", Initials: "RT", PhotoURL: "/workspace/assets/person-hc-050-small.jpg", Role: "Director of People Operations · M4"},
 	}
-	got := projectViewerProfile(Session{Tenant: "harborcare-demo", Principal: "local-developer"}, people)
-	if got.Name != "Rafael Torres" || got.PhotoURL != "/workspace/assets/person-hc-050-small.jpg" {
-		t.Fatalf("HarborCare development viewer profile = %+v", got)
+	got := projectViewerProfile(Session{Tenant: "harborcare-demo", Principal: "hc-050-rafael-torres"}, people)
+	if got.PersonID != "hc-050-rafael-torres" || got.Name != "Rafael Torres" || got.PhotoURL != "/workspace/assets/person-hc-050-small.jpg" {
+		t.Fatalf("database-backed development viewer profile = %+v", got)
 	}
 }
 

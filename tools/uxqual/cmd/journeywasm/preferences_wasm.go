@@ -104,6 +104,69 @@ func (c *serverPreferenceController) SaveOrganizationVisibility(policy productui
 	})
 }
 
+func (c *serverPreferenceController) SaveAccessRole(role productui.AccessRole, done func(error)) {
+	if c == nil || c.service == nil {
+		if done != nil {
+			done(errors.New("role access service unavailable"))
+		}
+		return
+	}
+	c.enqueue(func() {
+		_, err := c.service.SaveAccessRole(c.ctx, &journeyv1.SaveAccessRoleRequest{Role: &journeyv1.AccessRole{Version: role.Version, RoleId: role.ID, Name: role.Name, Description: role.Description, System: role.System, Active: role.Active}})
+		if done != nil {
+			done(err)
+		}
+	})
+}
+
+func (c *serverPreferenceController) SaveWorkerRoleAssignment(assignment productui.WorkerRoleAssignment, done func(error)) {
+	if c == nil || c.service == nil {
+		if done != nil {
+			done(errors.New("role access service unavailable"))
+		}
+		return
+	}
+	c.enqueue(func() {
+		_, err := c.service.SaveWorkerRoleAssignment(c.ctx, &journeyv1.SaveWorkerRoleAssignmentRequest{Assignment: &journeyv1.WorkerRoleAssignment{Version: assignment.Version, WorkerRef: assignment.WorkerRef, RoleIds: append([]string(nil), assignment.RoleIDs...)}})
+		if done != nil {
+			done(err)
+		}
+	})
+}
+
+func (c *serverPreferenceController) SaveRoleVisibility(policy productui.OrganizationVisibilityPolicy, done func(error)) {
+	if c == nil || c.service == nil {
+		if done != nil {
+			done(errors.New("role access service unavailable"))
+		}
+		return
+	}
+	c.enqueue(func() {
+		_, err := c.service.SaveRoleOrganizationVisibility(c.ctx, &journeyv1.SaveRoleOrganizationVisibilityRequest{Policy: &journeyv1.RoleOrganizationVisibilityPolicy{Version: policy.Version, RoleId: policy.RoleID, Mode: policy.Mode, OrganizationUnits: append([]string(nil), policy.OrganizationUnits...)}})
+		if done != nil {
+			done(err)
+		}
+	})
+}
+
+func (c *serverPreferenceController) SaveRolePagePermission(permission productui.RolePagePermission, done func(error)) {
+	if c == nil || c.service == nil {
+		if done != nil {
+			done(errors.New("role access service unavailable"))
+		}
+		return
+	}
+	c.enqueue(func() {
+		_, err := c.service.SaveRolePagePermission(c.ctx, &journeyv1.SaveRolePagePermissionRequest{Permission: &journeyv1.RolePagePermission{
+			Version: permission.Version, RoleId: permission.RoleID, PageId: string(permission.Page),
+			CanView: permission.View, CanCreate: permission.Create, CanUpdate: permission.Update, CanDelete: permission.Delete,
+		}})
+		if done != nil {
+			done(err)
+		}
+	})
+}
+
 func (c *serverPreferenceController) SaveTheme(theme productui.CustomerTheme, done func(error)) {
 	c.enqueue(func() {
 		c.mu.Lock()

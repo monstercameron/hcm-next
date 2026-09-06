@@ -18,6 +18,7 @@ func TestMyselfPageUsesOnlyTheAuthenticatedViewerBinding(t *testing.T) {
 		"CAD 118000", "CA-ON", "Pay statements, deductions, taxes, bank details, and pay schedules are not exposed",
 		"My workflow history", `href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`,
 		`action="/workspace/app/myself"`,
+		"My organization tree", `role="tree"`, `aria-current="true"`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("Myself page missing %q", want)

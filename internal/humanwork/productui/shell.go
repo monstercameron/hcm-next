@@ -57,11 +57,20 @@ func appHeader(view View) ui.Node {
 				Raw:   map[string]any{"title": toggle.Label},
 			}, toggle.Href, navIcon(toggle.Icon)),
 		),
-		globalSearch(view),
+		html.Div(html.Props{Class: "header-navigation-tools"},
+			ui.CreateElement(HistoryNavigation, historyNavigationProps(view)),
+			globalSearch(view),
+		),
 		localeMenu(view),
 		notificationSlot(view),
 		viewerProfileLink(view),
 	)
+}
+
+func historyNavigationProps(view View) HistoryNavigationProps {
+	props := view.HistoryNavigation
+	props.I18nProps = I18nProps{Locale: view.Locale}
+	return props
 }
 
 func viewerProfileLink(view View) ui.Node {

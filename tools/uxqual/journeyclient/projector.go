@@ -336,12 +336,16 @@ func ListPage(cfg Config, data ListData, notice *journey.Notice, values map[stri
 		cards = append(cards, card(j))
 	}
 	form := ProposalForm(values, data.Workers, data.SelectedRef)
+	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("journeys", "create") {
+		form.Disabled = true
+		form.DisabledReason = "Your assigned role can review promotion journeys but cannot create one."
+	}
 	applyProposalCurrency(&form, workerCurrency(findWorker(data.Workers, data.SelectedRef), data.Options))
 	p.List = &journey.ListView{
 		Journeys: cards,
 		Empty:    "No promotion has been proposed in this tenant yet. The form below starts one.",
 		Form:     form,
-		People:   PeopleView(data, values),
+		People:   PeopleView(cfg, data, values),
 		// Whether the cell was composed with the P1B execution authority is
 		// not a fact this page can read: the engine answers it by refusing
 		// ExecuteJourney with UNAVAILABLE. Claiming execution is off before
@@ -364,6 +368,10 @@ func ProposalPage(cfg Config, data ListData, notice *journey.Notice, values map[
 	}
 	p := chrome(cfg, title, notice, values, true)
 	form := FocusedProposalForm(values, data.SelectedRef)
+	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("journeys", "create") {
+		form.Disabled = true
+		form.DisabledReason = "Your assigned role can review promotion journeys but cannot create one."
+	}
 	applyProposalCurrency(&form, workerCurrency(worker, data.Options))
 	loading := worker == nil && notice != nil && notice.Title == "Working…"
 	if worker == nil && !loading {
@@ -623,14 +631,19 @@ var terminalStages = map[string]bool{
 // The nil is load-bearing: the renderer leaves the panel out entirely for a
 // nil view, and a panel that said "no employees" because the read was
 // refused would be this page asserting something it does not know.
-func PeopleView(data ListData, values map[string]string) *journey.PeopleView {
+func PeopleView(cfg Config, data ListData, values map[string]string) *journey.PeopleView {
 	if len(data.Workers) == 0 && data.Options == nil {
 		return nil
+	}
+	form := WorkerForm(data.Options, values, data.WorkerErrors)
+	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("people", "create") {
+		form.Disabled = true
+		form.DisabledReason = "Your assigned role can review people but cannot create an employee record."
 	}
 	return &journey.PeopleView{
 		Workers:     workerCards(data.Workers, data.Journeys, data.SelectedRef, data.Options),
 		Empty:       PeopleEmpty,
-		Form:        WorkerForm(data.Options, values, data.WorkerErrors),
+		Form:        form,
 		SelectedRef: data.SelectedRef,
 		Note:        PeopleNote,
 	}
@@ -973,6 +986,10 @@ func DetailPage(cfg Config, detail *journeyv1.JourneyDetail, notice *journey.Not
 		title = name + " · Promotion journey · " + Brand
 	}
 	p := chrome(cfg, title, notice, values, true)
+	detailActions := actions(head, detail.GetApprover(), detail.GetWorkItems())
+	if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction("journeys", "update") && !cfg.CanPageAction("work", "update") {
+		detailActions = nil
+	}
 	p.Detail = &journey.DetailView{
 		Journey:         head,
 		BackLink:        journey.NavLink{Label: "Back to " + nonEmpty(summary.GetWorkerName(), "employee") + " in People", Href: personHref(summary.GetWorkerRef())},
@@ -987,7 +1004,7 @@ func DetailPage(cfg Config, detail *journeyv1.JourneyDetail, notice *journey.Not
 		Ledger:          ledger(detail.GetLedger(), summary.GetEffectiveDate()),
 		Evidence:        detail.GetEvidenceIds(),
 		Timeline:        timeline(detail.GetTimeline()),
-		Actions:         actions(head, detail.GetApprover(), detail.GetWorkItems()),
+		Actions:         detailActions,
 		EffectiveWindow: effectiveWindow(summary),
 	}
 	// PayBand and Budget stay nil: the detail carries no band and no

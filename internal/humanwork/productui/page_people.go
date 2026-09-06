@@ -100,7 +100,11 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 	rows := make([]PeopleRowProps, 0, len(window.People))
 	for _, person := range window.People {
 		actions := make([]PeopleQuickActionProps, 0, len(view.PersonWorkflows))
-		for _, workflow := range rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses) {
+		workflows := rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses)
+		if len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create") {
+			workflows = nil
+		}
+		for _, workflow := range workflows {
 			href := workflow.Href
 			if workflow.LaunchHref != nil {
 				href = workflow.LaunchHref(person.ID)

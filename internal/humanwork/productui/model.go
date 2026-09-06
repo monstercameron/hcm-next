@@ -18,6 +18,7 @@ const (
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
 	PageWorkerIDs              PageID = "worker-ids"
+	PageRoles                  PageID = "roles"
 	PageOrganizationVisibility PageID = "organization-visibility"
 	PageAppearance             PageID = "appearance"
 	PageStudio                 PageID = "studio"
@@ -136,8 +137,37 @@ type WorkerIDPolicy struct {
 
 type OrganizationVisibilityPolicy struct {
 	Version           int64
+	RoleID            string
 	Mode              string
 	OrganizationUnits []string
+}
+
+type AccessRole struct {
+	Version     int64
+	ID          string
+	Name        string
+	Description string
+	System      bool
+	Active      bool
+}
+
+type WorkerRoleAssignment struct {
+	Version   int64
+	WorkerRef string
+	RoleIDs   []string
+}
+
+// RolePagePermission is one role's page-level CRUD boundary. This client
+// projection controls affordances; the service independently enforces every
+// operation from authenticated role state.
+type RolePagePermission struct {
+	Version int64
+	RoleID  string
+	Page    PageID
+	View    bool
+	Create  bool
+	Update  bool
+	Delete  bool
 }
 
 // View is an already-authorized presentation projection. It contains no
@@ -150,6 +180,8 @@ type View struct {
 	Principal              string
 	Viewer                 ViewerProfile
 	Scope                  string
+	Roles                  []string
+	LogoutHref             string
 	Navigation             []NavItem
 	Work                   []WorkItem
 	People                 []Person
@@ -178,6 +210,11 @@ type View struct {
 	AppearanceVersion      int64
 	WorkerIDPolicy         WorkerIDPolicy
 	OrganizationVisibility OrganizationVisibilityPolicy
+	AccessRoles            []AccessRole
+	RoleAssignments        []WorkerRoleAssignment
+	RoleVisibilityPolicies []OrganizationVisibilityPolicy
+	RolePagePermissions    []RolePagePermission
+	EffectivePermissions   []RolePagePermission
 	StoredPreferences      StoredUserPreferences
 	Mode                   string
 	WorkFilter             string
@@ -198,6 +235,10 @@ type View struct {
 	ResetTheme                 func()
 	SaveWorkerIDPolicy         func(WorkerIDPolicy)
 	SaveOrganizationVisibility func(OrganizationVisibilityPolicy)
+	SaveAccessRole             func(AccessRole)
+	SaveWorkerRoleAssignment   func(WorkerRoleAssignment)
+	SaveRoleVisibility         func(OrganizationVisibilityPolicy)
+	SaveRolePagePermission     func(RolePagePermission)
 	PreviewAccessibility       func(AccessibilityPreferences)
 	SaveAccessibility          func(AccessibilityPreferences)
 	ResetAccessibility         func()
@@ -216,6 +257,29 @@ type View struct {
 	Navigate                  func(string)
 	NavigateDebounced         func(string)
 	CancelDebouncedNavigation func()
+	HistoryNavigation         HistoryNavigationProps
+}
+
+// Can reports whether the resolved role grants an operation on a page. An
+// empty permission projection is the compatibility path for cells that have
+// not composed role access yet; only legacy view visibility is retained.
+func (view View) Can(page PageID, action string) bool {
+	for _, permission := range view.EffectivePermissions {
+		if permission.Page != page {
+			continue
+		}
+		switch action {
+		case "view":
+			return permission.View
+		case "create":
+			return permission.Create
+		case "update":
+			return permission.Update
+		case "delete":
+			return permission.Delete
+		}
+	}
+	return len(view.EffectivePermissions) == 0 && action == "view" && PageVisible(page, view.Roles)
 }
 
 // NewView creates an empty, honest presentation projection. Live adapters
@@ -231,6 +295,26 @@ func NewView(page PageID, tenant, principal, scope string) View {
 		Locale: ResolveProductLocale(""), Accessibility: DefaultAccessibilityPreferences(),
 	}
 	return ApplyLocale(view, view.Locale)
+}
+
+// ApplyRoleVisibility limits discoverability to the server-admitted roles.
+// Transport authorization remains the enforcement boundary; this projection
+// prevents navigation, favorites, and global search from advertising routes
+// the active identity cannot open.
+func ApplyRoleVisibility(view View, roles []string) View {
+	// Start from a non-nil slice so an admitted identity with zero roles stays
+	// distinguishable from NewView's unrestricted component-preview default.
+	view.Roles = append([]string{}, roles...)
+	view.Navigation = navigationForRoles(view.Locale, view.Roles)
+	return view
+}
+
+// ApplyPagePermissions replaces static navigation visibility with the
+// effective union of the employee's durable role grants.
+func ApplyPagePermissions(view View, permissions []RolePagePermission) View {
+	view.EffectivePermissions = append([]RolePagePermission(nil), permissions...)
+	view.Navigation = navigationForPermissions(view.Locale, view.EffectivePermissions)
+	return view
 }
 
 // ApplyLocale resolves all shell and page-registry copy from one immutable

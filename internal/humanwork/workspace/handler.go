@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/tools/uxqual/forms"
@@ -59,10 +60,18 @@ type Options struct {
 	// explicitly. When on, the session cookie PathLogin sets is also accepted
 	// as the bearer source for every other workspace route.
 	DevBrowserLogin bool
+	// DevPersonas are server-issued local identities offered by the dev-only
+	// sign-in page. Their credentials never enter HTML; the form submits only
+	// an opaque ID and the handler selects the credential from this immutable
+	// server-owned collection. Empty preserves the pasted-token fallback.
+	DevPersonas []DevPersona
 	// Journey is the live engine the Promotion journey page reads and acts
 	// through (journey_port.go). Nil means the journey routes answer that
 	// execution is not composed on this cell.
 	Journey JourneyEngine
+	// RoleAccess resolves durable employee roles and page/action grants for
+	// the product shell. Nil retains the signed-role compatibility policy.
+	RoleAccess roleaccess.Store
 }
 
 // Handler serves the Promotion workspace over one live cell.
@@ -77,6 +86,14 @@ type Handler struct {
 	enhanced   bool
 	// devBrowserLogin mirrors Options.DevBrowserLogin.
 	devBrowserLogin bool
+	devPersonas     map[string]DevPersona
+	roleAccess      roleaccess.Store
+}
+
+// DevPersona is one server-owned local-development sign-in identity. Token is
+// deliberately never rendered; only ID crosses the browser boundary.
+type DevPersona struct {
+	ID, Name, Access, Description, Token string
 }
 
 // NewHandler builds the workspace HTTP surface.
@@ -99,6 +116,14 @@ func NewHandler(opts Options) (*Handler, error) {
 		now = func() time.Time { return time.Now().UTC() }
 	}
 
+	personas := make(map[string]DevPersona, len(opts.DevPersonas))
+	for _, persona := range opts.DevPersonas {
+		persona.ID = strings.TrimSpace(persona.ID)
+		persona.Token = normalizeBearerInput(persona.Token)
+		if persona.ID != "" && persona.Token != "" {
+			personas[persona.ID] = persona
+		}
+	}
 	h := &Handler{
 		cell:            opts.Cell,
 		config:          opts.Config,
@@ -108,11 +133,16 @@ func NewHandler(opts Options) (*Handler, error) {
 		receipts:        newReceiptStore(),
 		enhanced:        BundleBuilt(),
 		devBrowserLogin: opts.DevBrowserLogin,
+		devPersonas:     personas,
+		roleAccess:      opts.RoleAccess,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+PathPromotion, h.servePromotion)
 	mux.HandleFunc("GET "+PathJourney, h.serveJourney)
-	mux.HandleFunc("GET "+PathProductPrefix+"{page}", h.serveProduct)
+	// Product routes may be nested (for example, Admin-owned configuration
+	// pages). Capture the complete suffix so a cold reload reaches the same
+	// registered route as client-side navigation.
+	mux.HandleFunc("GET "+PathProductPrefix+"{page...}", h.serveProduct)
 	mux.HandleFunc("POST "+PathSimulate, h.serveSimulate)
 	mux.HandleFunc("GET "+PathReceiptPrefix+"{digest}", h.serveReceipt)
 	mux.HandleFunc("GET "+PathAssetPrefix+"{name}", h.serveAsset)
@@ -190,6 +220,10 @@ func (h *Handler) admit(w http.ResponseWriter, r *http.Request) (*http.Request, 
 		h.admissionMetadata(r), r.URL.Path)
 	if ownedErr != nil {
 		status := ownedErr.HTTPStatus()
+		if status == http.StatusUnauthorized && h.devBrowserLogin && r.Method == http.MethodGet && strings.TrimSpace(r.Header.Get("Authorization")) == "" {
+			http.Redirect(w, r, PathLogin, http.StatusSeeOther)
+			return nil, false
+		}
 		if status == http.StatusUnauthorized {
 			w.Header().Set("WWW-Authenticate", `Bearer realm="hcm-next"`)
 		}
@@ -363,6 +397,7 @@ const maxLoginFormBytes = 8 << 10
 
 // paramLoginToken names the sign-in form's one field.
 const paramLoginToken = "token"
+const paramLoginPersona = "persona"
 
 // serveLoginForm renders the plain, accessible sign-in form.
 func (h *Handler) serveLoginForm(w http.ResponseWriter, r *http.Request) {
@@ -381,9 +416,19 @@ func (h *Handler) serveLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		h.writeLoginPage(w, http.StatusBadRequest, "Unreadable submission.")
 		return
 	}
-	token := normalizeBearerInput(r.PostFormValue(paramLoginToken))
+	token := ""
+	if personaID := strings.TrimSpace(r.PostFormValue(paramLoginPersona)); personaID != "" {
+		persona, ok := h.devPersonas[personaID]
+		if !ok {
+			h.writeLoginPage(w, http.StatusUnauthorized, "That development persona was not accepted.")
+			return
+		}
+		token = persona.Token
+	} else {
+		token = normalizeBearerInput(r.PostFormValue(paramLoginToken))
+	}
 	if token == "" {
-		h.writeLoginPage(w, http.StatusBadRequest, "Paste a bearer credential.")
+		h.writeLoginPage(w, http.StatusBadRequest, "Choose a development persona or paste a bearer credential.")
 		return
 	}
 	if _, err := h.config.Verifier.Verify(r.Context(), trust.Credential{
@@ -401,7 +446,7 @@ func (h *Handler) serveLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 		Expires:  h.now().Add(12 * time.Hour),
 	})
-	http.Redirect(w, r, PathPromotion, http.StatusSeeOther)
+	http.Redirect(w, r, PathProductHome, http.StatusSeeOther)
 }
 
 // serveLogout clears the session cookie PathLogin set.
@@ -437,32 +482,61 @@ func (h *Handler) writeLoginPage(w http.ResponseWriter, status int, problem stri
 	if problem != "" {
 		banner = `<div class="status-banner" data-status="failed" role="alert">` + html.EscapeString(problem) + `</div>`
 	}
+	var personaForms strings.Builder
+	for _, id := range []string{"admin", "hiring-manager", "payroll-manager", "individual-contributor"} {
+		persona, ok := h.devPersonas[id]
+		if !ok {
+			continue
+		}
+		personaForms.WriteString(`<form class="persona" method="post" action="` + PathLogin + `">`)
+		personaForms.WriteString(`<span class="persona-access">` + html.EscapeString(persona.Access) + `</span>`)
+		personaForms.WriteString(`<strong>` + html.EscapeString(persona.Name) + `</strong>`)
+		personaForms.WriteString(`<span>` + html.EscapeString(persona.Description) + `</span>`)
+		// Put the selected persona on the successful submit control itself.
+		// Besides making the association explicit to assistive technology, this
+		// avoids depending on a hidden input surviving browser form mediation.
+		personaForms.WriteString(`<button type="submit" name="` + paramLoginPersona + `" value="` + html.EscapeString(persona.ID) + `">Continue as ` + html.EscapeString(persona.Name) + `</button></form>`)
+	}
+	credentialForm := `<details class="advanced"><summary>Use a bearer credential</summary><form method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off"><button type="submit">Sign in</button></form></details>`
+	if len(h.devPersonas) == 0 {
+		credentialForm = `<form method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off" required><button type="submit">Sign in</button></form>`
+	}
+	stylesheet := loginStylesheet()
 	doc := `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in</title>
-<style>` + tokens.WorkspaceCSS() + `</style>
+<style>` + stylesheet + `</style>
 </head>
 <body>
-<div class="workspace">
-<header class="workspace-header"><h1>Sign in</h1></header>
-<main id="main-content">
-<section>
+<main id="main-content" class="login-shell"><section class="login-card">
+<div class="login-brand"><span class="login-mark" aria-hidden="true">H</span><strong>HarborCare</strong></div>
+<p class="persona-access">Local development</p><h1>Choose a workspace persona</h1>
+<p class="login-intro">Each persona starts a signed server session with different permissions. Production deployments use the configured enterprise identity provider.</p>
 ` + banner + `
-<form method="post" action="` + PathLogin + `">
-<label for="` + paramLoginToken + `">Bearer credential</label>
-<input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off" required>
-<button type="submit">Sign in</button>
-</form>
-</section>
-</main>
-</div>
+<div class="persona-grid">` + personaForms.String() + `</div>` + credentialForm + `
+</section></main>
 </body>
 </html>
 `
-	h.writeDocument(w, status, doc, false)
+	h.writeLoginDocument(w, status, doc, stylesheet)
+}
+
+func loginStylesheet() string {
+	return tokens.WorkspaceCSS() + `
+body{background:#f4f7f5;color:#17231d}.login-shell{display:block;width:min(60rem,calc(100% - 2rem));margin:7vh auto;padding:0}.login-card{display:block;background:#fff;border:1px solid #dbe5df;border-radius:1.125rem;box-shadow:0 1.125rem 3.5rem rgba(24,57,40,.10);padding:clamp(1.5rem,4vw,3rem)}.login-brand{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem}.login-mark{display:grid;place-items:center;width:2.375rem;height:2.375rem;border-radius:.6875rem;background:#147a4a;color:#fff;font-weight:800}.login-card h1{margin:.15rem 0;font-size:clamp(1.8rem,4vw,2.5rem)}.login-intro{max-width:62ch;color:#53645b}.persona-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.875rem;margin:1.75rem 0}.persona{display:flex;flex-direction:column;align-items:flex-start;gap:.4375rem;padding:1.125rem;border:1px solid #dbe5df;border-radius:.875rem;background:#fbfcfb}.persona strong{font-size:1.05rem}.persona span{display:block}.persona-access{color:#147a4a;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.persona button{margin-top:auto;width:100%;background:#147a4a;color:#fff}.persona button:hover{background:#0e623a}.advanced{border-top:1px solid #e7eeea;padding-top:1rem;color:#53645b}.advanced form{margin-top:.875rem}@media(max-width:42.5rem){.login-shell{margin:1rem auto}.persona-grid{grid-template-columns:1fr}.login-card{padding:1.375rem}}`
+}
+
+func (h *Handler) writeLoginDocument(w http.ResponseWriter, status int, doc, stylesheet string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Security-Policy", strings.Join([]string{"default-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'", "style-src '" + sha256Source(stylesheet) + "'", "script-src 'none'"}, "; "))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(doc))
 }
 
 // ---------------------------------------------------------------------------

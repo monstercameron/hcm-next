@@ -9,9 +9,10 @@ import (
 
 type WorkerIDPageProps struct {
 	I18nProps
-	Policy WorkerIDPolicy
-	Back   ActionLinkProps
-	OnSave func(WorkerIDPolicy)
+	Policy   WorkerIDPolicy
+	Back     ActionLinkProps
+	Editable bool
+	OnSave   func(WorkerIDPolicy)
 }
 
 func WorkerIDPage(props WorkerIDPageProps) ui.Node {
@@ -22,22 +23,24 @@ func WorkerIDPage(props WorkerIDPageProps) ui.Node {
 			ui.CreateElement(ActionLink, props.Back),
 		),
 		html.Form(html.Props{Class: "worker-id-layout", OnSubmit: saveWorkerIDPolicy(props.OnSave, &draft)},
-			html.Section(html.Props{Class: "surface worker-id-rules"},
-				html.Div(html.Props{Class: "section-head"}, html.Div(html.Props{}, html.H2(html.Props{}, ui.Text(props.Text("worker_ids.format_title"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("worker_ids.format_help"))))),
-				html.Div(html.Props{Class: "worker-id-fields"},
-					workerIDTextField("worker-prefix", props.Text("worker_ids.prefix"), props.Text("worker_ids.prefix_help"), draft.Prefix, 12, func(v string) { draft.Prefix = v }),
-					workerIDTextField("worker-suffix", props.Text("worker_ids.suffix"), props.Text("worker_ids.suffix_help"), draft.Suffix, 12, func(v string) { draft.Suffix = v }),
-					workerIDSelect("worker-separator", props.Text("worker_ids.separator"), draft.Separator, []workerIDOption{{"-", "Dash ( - )"}, {"/", "Slash ( / )"}, {".", "Dot ( . )"}, {"", "No separator"}}, func(v string) { draft.Separator = v }),
-					workerIDNumberField("worker-digits", props.Text("worker_ids.digits"), props.Text("worker_ids.digits_help"), int64(draft.SequenceDigits), 1, 12, func(v int64) { draft.SequenceDigits = int(v) }),
-					workerIDNumberField("worker-start", props.Text("worker_ids.start"), props.Text("worker_ids.start_help"), draft.StartAt, 0, 999999999999, func(v int64) { draft.StartAt = v }),
-					workerIDNumberField("worker-increment", props.Text("worker_ids.increment"), props.Text("worker_ids.increment_help"), draft.IncrementBy, 1, 1000000, func(v int64) { draft.IncrementBy = v }),
-					workerIDSelect("worker-padding", props.Text("worker_ids.padding"), strconv.FormatBool(draft.ZeroPad), []workerIDOption{{"true", "Pad with leading zeroes"}, {"false", "Natural number width"}}, func(v string) { draft.ZeroPad = v == "true" }),
-					workerIDSelect("worker-year", props.Text("worker_ids.year"), draft.YearFormat, []workerIDOption{{"NONE", "Do not include year"}, {"YY", "Two-digit year"}, {"YYYY", "Four-digit year"}}, func(v string) { draft.YearFormat = v }),
-					workerIDSelect("worker-unit", props.Text("worker_ids.unit"), strconv.FormatBool(draft.IncludeUnitCode), []workerIDOption{{"false", "Do not include unit"}, {"true", "Include organization-unit code"}}, func(v string) { draft.IncludeUnitCode = v == "true" }),
-					workerIDSelect("worker-check", props.Text("worker_ids.check"), draft.CheckDigit, []workerIDOption{{"NONE", "No check digit"}, {"LUHN_MOD10", "Luhn mod-10 check digit"}}, func(v string) { draft.CheckDigit = v }),
-					workerIDTextField("worker-excluded", props.Text("worker_ids.excluded"), props.Text("worker_ids.excluded_help"), draft.ExcludedRanges, 160, func(v string) { draft.ExcludedRanges = v }),
+			html.Fieldset(html.Props{Class: "worker-id-edit-boundary", Disabled: !props.Editable},
+				html.Section(html.Props{Class: "surface worker-id-rules"},
+					html.Div(html.Props{Class: "section-head"}, html.Div(html.Props{}, html.H2(html.Props{}, ui.Text(props.Text("worker_ids.format_title"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("worker_ids.format_help"))))),
+					html.Div(html.Props{Class: "worker-id-fields"},
+						workerIDTextField("worker-prefix", props.Text("worker_ids.prefix"), props.Text("worker_ids.prefix_help"), draft.Prefix, 12, func(v string) { draft.Prefix = v }),
+						workerIDTextField("worker-suffix", props.Text("worker_ids.suffix"), props.Text("worker_ids.suffix_help"), draft.Suffix, 12, func(v string) { draft.Suffix = v }),
+						workerIDSelect("worker-separator", props.Text("worker_ids.separator"), draft.Separator, []workerIDOption{{"-", "Dash ( - )"}, {"/", "Slash ( / )"}, {".", "Dot ( . )"}, {"", "No separator"}}, func(v string) { draft.Separator = v }),
+						workerIDNumberField("worker-digits", props.Text("worker_ids.digits"), props.Text("worker_ids.digits_help"), int64(draft.SequenceDigits), 1, 12, func(v int64) { draft.SequenceDigits = int(v) }),
+						workerIDNumberField("worker-start", props.Text("worker_ids.start"), props.Text("worker_ids.start_help"), draft.StartAt, 0, 999999999999, func(v int64) { draft.StartAt = v }),
+						workerIDNumberField("worker-increment", props.Text("worker_ids.increment"), props.Text("worker_ids.increment_help"), draft.IncrementBy, 1, 1000000, func(v int64) { draft.IncrementBy = v }),
+						workerIDSelect("worker-padding", props.Text("worker_ids.padding"), strconv.FormatBool(draft.ZeroPad), []workerIDOption{{"true", "Pad with leading zeroes"}, {"false", "Natural number width"}}, func(v string) { draft.ZeroPad = v == "true" }),
+						workerIDSelect("worker-year", props.Text("worker_ids.year"), draft.YearFormat, []workerIDOption{{"NONE", "Do not include year"}, {"YY", "Two-digit year"}, {"YYYY", "Four-digit year"}}, func(v string) { draft.YearFormat = v }),
+						workerIDSelect("worker-unit", props.Text("worker_ids.unit"), strconv.FormatBool(draft.IncludeUnitCode), []workerIDOption{{"false", "Do not include unit"}, {"true", "Include organization-unit code"}}, func(v string) { draft.IncludeUnitCode = v == "true" }),
+						workerIDSelect("worker-check", props.Text("worker_ids.check"), draft.CheckDigit, []workerIDOption{{"NONE", "No check digit"}, {"LUHN_MOD10", "Luhn mod-10 check digit"}}, func(v string) { draft.CheckDigit = v }),
+						workerIDTextField("worker-excluded", props.Text("worker_ids.excluded"), props.Text("worker_ids.excluded_help"), draft.ExcludedRanges, 160, func(v string) { draft.ExcludedRanges = v }),
+					),
+					html.Div(html.Props{Class: "worker-id-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit"}, ui.Text(props.Text("worker_ids.save"))), html.P(html.Props{ID: "worker-id-status", Class: "muted", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("worker_ids.status")))),
 				),
-				html.Div(html.Props{Class: "worker-id-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit"}, ui.Text(props.Text("worker_ids.save"))), html.P(html.Props{ID: "worker-id-status", Class: "muted", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("worker_ids.status")))),
 			),
 			ui.CreateElement(WorkerIDPreview, WorkerIDPreviewProps{I18nProps: props.I18nProps, Policy: props.Policy}),
 		),

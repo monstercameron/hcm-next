@@ -47,8 +47,16 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	if preferenceService, ok := service.(journeyclient.PreferenceService); ok {
 		liveService.GetPreferences = preferenceService.GetProductPreferences
 		liveService.GetWorkerIDPolicy = preferenceService.GetWorkerIDPolicy
+		liveService.GetRoleAccess = preferenceService.GetRoleAccess
 	}
-	session := productclient.Session{Tenant: cfg.Tenant, Principal: cfg.Subject, Scope: cfg.Purpose}
+	pagePermissions := make([]productui.RolePagePermission, 0, len(cfg.PagePermissions))
+	for _, permission := range cfg.PagePermissions {
+		pagePermissions = append(pagePermissions, productui.RolePagePermission{
+			Version: permission.Version, RoleID: permission.RoleID, Page: productui.PageID(permission.PageID),
+			View: permission.View, Create: permission.Create, Update: permission.Update, Delete: permission.Delete,
+		})
+	}
+	session := productclient.Session{Tenant: cfg.Tenant, Principal: cfg.Subject, Scope: cfg.Purpose, Roles: cfg.Roles, Permissions: pagePermissions, EnforceRoleVisibility: true, LogoutHref: cfg.LogoutPath}
 	preferences := newServerPreferenceController(ctx, service)
 	appearance := newBrowserThemeController(preferences.SaveTheme)
 	appearance.Apply(appearance.Saved())
@@ -59,6 +67,8 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	productTransientPopovers = newBrowserTransientPopoverController()
 	productTransientPopovers.Bind()
 	productRouter := router.NewHistoryRouter(router.RouterOptions{DefaultRoute: productui.Path(productui.PageHome)})
+	productHistory = newBrowserProductHistoryController()
+	navigateProduct := func(href string) { productHistory.Navigate(productRouter.Navigate, href) }
 	// Menu filtering is local component state. Debounce only its shareable URL
 	// state so typing never reruns page loaders or refetches workforce data.
 	navigationDebounce := newNavigationDebouncerWithScheduler(browserReplaceURL, browserDebounceScheduler)
@@ -66,11 +76,14 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	journeyApp := journeyclient.New(cfg, service, journeyStore, time.Now)
 	journeyApp.Tasks = frontendTasks
 	journeyApp.Locate = func(fragment string) {
-		productRouter.Navigate(productclient.ProductJourneyHref(fragment, currentQuery()))
+		navigateProduct(productclient.ProductJourneyHref(fragment, currentQuery()))
 	}
-	journeyApp.NavigateProduct = productRouter.Navigate
+	journeyApp.NavigateProduct = navigateProduct
 	journeys := &productJourneyBridge{ctx: ctx, app: journeyApp}
 	for _, definition := range productui.PageDefinitions() {
+		if len(cfg.PagePermissions) > 0 && !cfg.CanPageAction(string(definition.ID), "view") || len(cfg.PagePermissions) == 0 && !productui.PageVisible(definition.ID, cfg.Roles) {
+			continue
+		}
 		definition := definition
 		productRouter.Register(definition.Route, productRouteComponent, router.Options{
 			Title: definition.Title + " · HCM Next",
@@ -109,7 +122,8 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					handle.Cancel()
 					return nil, loadCtx.Err()
 				}
-				view.Navigate = productRouter.Navigate
+				view.Navigate = navigateProduct
+				applyBrowserHistoryNavigation(&view)
 				view.NavigateDebounced = navigationDebounce.Schedule
 				view.CancelDebouncedNavigation = navigationDebounce.Cancel
 				preferences.Adopt(view)
@@ -141,7 +155,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 							statusNode.Set("textContent", "Worker ID rules saved for this organization.")
 						}
 						if err == nil {
-							productRouter.Navigate(currentPath() + "?" + currentQuery())
+							navigateProduct(currentPath() + "?" + currentQuery())
 						}
 					})
 				}
@@ -156,7 +170,59 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 							statusNode.Set("textContent", "Organization visibility saved.")
 						}
 						if err == nil {
-							productRouter.Navigate(currentPath() + "?" + currentQuery())
+							navigateProduct(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
+				view.SaveAccessRole = func(role productui.AccessRole) {
+					preferences.SaveAccessRole(role, func(err error) {
+						statusNode := js.Global().Get("document").Call("getElementById", "role-access-status")
+						if statusNode.Truthy() {
+							if err != nil {
+								statusNode.Set("textContent", "Could not save role: "+status.Code(err).String())
+								return
+							}
+							statusNode.Set("textContent", "Role created.")
+						}
+						if err == nil {
+							navigateProduct(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
+				view.SaveWorkerRoleAssignment = func(assignment productui.WorkerRoleAssignment) {
+					preferences.SaveWorkerRoleAssignment(assignment, func(err error) {
+						if err == nil {
+							navigateProduct(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
+				view.SaveRoleVisibility = func(policy productui.OrganizationVisibilityPolicy) {
+					preferences.SaveRoleVisibility(policy, func(err error) {
+						statusNode := js.Global().Get("document").Call("getElementById", "organization-visibility-status-"+policy.RoleID)
+						if statusNode.Truthy() {
+							if err != nil {
+								statusNode.Set("textContent", "Could not save visibility: "+status.Code(err).String())
+								return
+							}
+							statusNode.Set("textContent", "Role visibility saved.")
+						}
+						if err == nil {
+							navigateProduct(currentPath() + "?" + currentQuery())
+						}
+					})
+				}
+				view.SaveRolePagePermission = func(permission productui.RolePagePermission) {
+					preferences.SaveRolePagePermission(permission, func(err error) {
+						statusNode := js.Global().Get("document").Call("getElementById", "role-page-permission-status-"+permission.RoleID+"-"+string(permission.Page))
+						if statusNode.Truthy() {
+							if err != nil {
+								statusNode.Set("textContent", "Could not save page access: "+status.Code(err).String())
+								return
+							}
+							statusNode.Set("textContent", "Page access saved.")
+						}
+						if err == nil {
+							navigateProduct(currentPath() + "?" + currentQuery())
 						}
 					})
 				}
@@ -189,7 +255,8 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					view = *lastResolvedProductView
 					view.Refreshing = true
 				}
-				view.Navigate = productRouter.Navigate
+				view.Navigate = navigateProduct
+				applyBrowserHistoryNavigation(&view)
 				view.NavigateDebounced = navigationDebounce.Schedule
 				view.CancelDebouncedNavigation = navigationDebounce.Cancel
 				view.Appearance = appearance.Saved()
@@ -238,7 +305,7 @@ func browserDebounceScheduler(delay time.Duration, fire func()) debounceTimer {
 func browserReplaceURL(href string) {
 	history := js.Global().Get("history")
 	if history.Truthy() && history.Get("replaceState").Truthy() {
-		history.Call("replaceState", nil, "", href)
+		history.Call("replaceState", history.Get("state"), "", href)
 	}
 }
 

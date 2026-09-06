@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
 )
@@ -119,10 +120,16 @@ type JourneyConfig struct {
 	Tenant  string   `json:"tenant"`
 	Subject string   `json:"subject"`
 	Roles   []string `json:"roles"`
-	Purpose string   `json:"purpose"`
+	// PagePermissions is the effective union of durable role grants. It is
+	// presentation metadata only; RPC handlers enforce the same policy.
+	PagePermissions []roleaccess.PagePermission `json:"page_permissions,omitempty"`
+	Purpose         string                      `json:"purpose"`
 	// JourneysPath is this page's own address, so the client can build
 	// links back to itself.
 	JourneysPath string `json:"journeys_path"`
+	// LogoutPath is populated only for the explicitly enabled local browser
+	// session. Enterprise deployments leave sign-out to their identity edge.
+	LogoutPath string `json:"logout_path,omitempty"`
 }
 
 // serveJourney renders the Promotion journey page shell.
@@ -142,6 +149,9 @@ func (h *Handler) serveJourney(w http.ResponseWriter, r *http.Request) {
 		Bearer:       normalizeBearerInput(BearerFromRequest(r, h.devBrowserLogin)),
 		Roles:        []string{},
 		JourneysPath: PathJourney,
+	}
+	if h.devBrowserLogin {
+		config.LogoutPath = PathLogout
 	}
 	if principal != nil {
 		config.Tenant = string(principal.Tenant())

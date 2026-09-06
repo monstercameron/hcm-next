@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
+	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
@@ -38,11 +39,35 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 		TunnelURL: JourneyTunnelURL(r), Bearer: normalizeBearerInput(BearerFromRequest(r, h.devBrowserLogin)),
 		Roles: []string{}, JourneysPath: PathJourney,
 	}
+	if h.devBrowserLogin {
+		config.LogoutPath = PathLogout
+	}
 	if principal != nil {
 		config.Tenant = string(principal.Tenant())
 		config.Subject = principal.Subject()
 		config.Roles = principal.Roles()
 		config.Purpose = principal.DefaultPurpose()
+	}
+	permissionConfigured := false
+	if principal != nil && h.roleAccess != nil {
+		snapshot, loadErr := h.roleAccess.Load(admitted.Context(), principal.Tenant(), principal.OrganizationScopeID())
+		if loadErr != nil {
+			h.writeProblem(w, http.StatusServiceUnavailable, "Access unavailable", "The role policy could not be resolved for this page.")
+			return
+		}
+		if len(snapshot.PagePermissions) > 0 {
+			permissionConfigured = true
+			config.Roles = roleaccess.AssignedRoles(snapshot, principal.Subject(), principal.Roles())
+			config.PagePermissions = roleaccess.EffectivePagePermissions(snapshot, config.Roles)
+		}
+	}
+	allowed := productui.PageVisible(definition.ID, config.Roles)
+	if permissionConfigured {
+		allowed = roleaccess.CanPageAction(config.PagePermissions, string(definition.ID), roleaccess.ActionView)
+	}
+	if !allowed {
+		h.writeProblem(w, http.StatusForbidden, "Page unavailable", "Your current role does not grant access to this workspace page.")
+		return
 	}
 	locale := productui.ResolveProductLocale(r.URL.Query().Get("locale"))
 	doc, err := productShellDocumentForRoute(config, JourneyBundleBuilt(), locale, definition.ID)
@@ -96,6 +121,11 @@ func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale
 	b.WriteString(`<div id="` + JourneyRootElementID + `">`)
 	if bundleBuilt {
 		view := productui.NewView(page, productui.DisplayLabel(config.Tenant), productui.DisplayLabel(config.Subject), productui.DisplayLabel(config.Purpose))
+		view.LogoutHref = config.LogoutPath
+		view = productui.ApplyRoleVisibility(view, config.Roles)
+		if len(config.PagePermissions) > 0 {
+			view = productui.ApplyPagePermissions(view, productPagePermissions(config.PagePermissions))
+		}
 		view = productui.ApplyLocale(view, locale)
 		loading, renderErr := ui.RenderToString(productui.BuildLoading(view))
 		if renderErr != nil {
@@ -119,6 +149,14 @@ func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale
 	}
 	b.WriteString("</body></html>")
 	return b.String(), nil
+}
+
+func productPagePermissions(values []roleaccess.PagePermission) []productui.RolePagePermission {
+	result := make([]productui.RolePagePermission, 0, len(values))
+	for _, value := range values {
+		result = append(result, productui.RolePagePermission{Version: value.Version, RoleID: value.RoleID, Page: productui.PageID(value.PageID), View: value.View, Create: value.Create, Update: value.Update, Delete: value.Delete})
+	}
+	return result
 }
 
 func productStylesheet() string {

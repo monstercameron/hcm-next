@@ -21,6 +21,7 @@ type AppearancePageProps struct {
 	Typefaces  []AppearanceOption
 	Navigation []AppearanceOption
 	Motions    []AppearanceOption
+	Editable   bool
 	OnPreview  func(CustomerTheme)
 	OnSave     func(CustomerTheme)
 	OnReset    func()
@@ -38,51 +39,53 @@ func AppearancePage(props AppearancePageProps) ui.Node {
 			html.Span(html.Props{Class: "appearance-badge"}, navIcon("palette"), ui.Text(props.Text("appearance.tenant"))),
 		),
 		html.Form(html.Props{Class: "appearance-form", OnSubmit: preventFormSubmit(props.OnSave, &draft)},
-			html.Div(html.Props{Class: "appearance-controls"},
-				appearanceChoices(props.Text("appearance.color_mode"), props.Text("appearance.color_mode_help"), "color_mode", draft.ColorMode, props.ColorModes, "color-mode-choices", func(value string) {
-					draft.ColorMode = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceBrandSignature(props.I18nProps, draft, func(value string) {
-					draft.BrandName = value
-					previewAppearance(props.OnPreview, draft)
-				}, func(value string) {
-					draft.BrandMark = value
-					previewAppearance(props.OnPreview, draft)
-				}, func(value string) {
-					draft.BrandLogoURL = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.palette"), props.Text("appearance.palette_help"), "palette", draft.Palette, props.Palettes, "palette-choices", func(value string) {
-					draft.Palette = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.shape"), props.Text("appearance.shape_help"), "shape", draft.Shape, props.Shapes, "", func(value string) {
-					draft.Shape = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.density"), props.Text("appearance.density_help"), "density", draft.Density, props.Densities, "", func(value string) {
-					draft.Density = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.glyphs"), props.Text("appearance.glyphs_help"), "glyphs", draft.Glyphs, props.Glyphs, "", func(value string) {
-					draft.Glyphs = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.typeface"), props.Text("appearance.typeface_help"), "typeface", draft.Typeface, props.Typefaces, "", func(value string) {
-					draft.Typeface = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.navigation"), props.Text("appearance.navigation_help"), "navigation", draft.Navigation, props.Navigation, "", func(value string) {
-					draft.Navigation = value
-					previewAppearance(props.OnPreview, draft)
-				}),
-				appearanceChoices(props.Text("appearance.motion"), props.Text("appearance.motion_help"), "motion", draft.Motion, props.Motions, "", func(value string) {
-					draft.Motion = value
-					previewAppearance(props.OnPreview, draft)
-				}),
+			html.Fieldset(html.Props{Class: "appearance-edit-boundary", Disabled: !props.Editable},
+				html.Div(html.Props{Class: "appearance-controls"},
+					appearanceChoices(props.Text("appearance.color_mode"), props.Text("appearance.color_mode_help"), "color_mode", draft.ColorMode, props.ColorModes, "color-mode-choices", func(value string) {
+						draft.ColorMode = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceBrandSignature(props.I18nProps, draft, func(value string) {
+						draft.BrandName = value
+						previewAppearance(props.OnPreview, draft)
+					}, func(value string) {
+						draft.BrandMark = value
+						previewAppearance(props.OnPreview, draft)
+					}, func(value string) {
+						draft.BrandLogoURL = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.palette"), props.Text("appearance.palette_help"), "palette", draft.Palette, props.Palettes, "palette-choices", func(value string) {
+						draft.Palette = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.shape"), props.Text("appearance.shape_help"), "shape", draft.Shape, props.Shapes, "", func(value string) {
+						draft.Shape = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.density"), props.Text("appearance.density_help"), "density", draft.Density, props.Densities, "", func(value string) {
+						draft.Density = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.glyphs"), props.Text("appearance.glyphs_help"), "glyphs", draft.Glyphs, props.Glyphs, "", func(value string) {
+						draft.Glyphs = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.typeface"), props.Text("appearance.typeface_help"), "typeface", draft.Typeface, props.Typefaces, "", func(value string) {
+						draft.Typeface = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.navigation"), props.Text("appearance.navigation_help"), "navigation", draft.Navigation, props.Navigation, "", func(value string) {
+						draft.Navigation = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+					appearanceChoices(props.Text("appearance.motion"), props.Text("appearance.motion_help"), "motion", draft.Motion, props.Motions, "", func(value string) {
+						draft.Motion = value
+						previewAppearance(props.OnPreview, draft)
+					}),
+				),
+				appearancePreview(props),
 			),
-			appearancePreview(props),
 		),
 	)
 }
@@ -142,7 +145,7 @@ func appearanceChoices(title, help, name, selected string, options []AppearanceO
 
 func appearancePreview(props AppearancePageProps) ui.Node {
 	theme := NormalizeCustomerTheme(props.Theme)
-	reset := html.Props{Class: "button", Type: "button"}
+	reset := html.Props{Class: "button", Type: "button", Disabled: !props.Editable}
 	if props.OnReset != nil {
 		reset.OnClick = ui.UseEvent(func(ui.MouseEvent) { props.OnReset() })
 	}
@@ -158,7 +161,7 @@ func appearancePreview(props AppearancePageProps) ui.Node {
 			),
 		),
 		html.P(html.Props{Class: "callout"}, ui.Text(props.Text("appearance.protected"))),
-		html.Div(html.Props{Class: "appearance-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit"}, ui.Text(props.Text("appearance.save"))), html.Button(reset, ui.Text(props.Text("appearance.restore")))),
+		html.Div(html.Props{Class: "appearance-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit", Disabled: !props.Editable}, ui.Text(props.Text("appearance.save"))), html.Button(reset, ui.Text(props.Text("appearance.restore")))),
 		html.P(html.Props{ID: "appearance-status", Class: "appearance-status", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("appearance.status"))),
 	)
 }

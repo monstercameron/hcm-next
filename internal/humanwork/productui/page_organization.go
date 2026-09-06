@@ -120,7 +120,14 @@ func ownershipTree(view View) []OwnershipNodeProps {
 }
 
 func ownershipPerson(view View, person Person) OwnershipNodeProps {
-	return OwnershipNodeProps{Name: person.Name, Role: valueOrUnavailable(person.Role), Team: valueOrUnavailable(person.Team), Initials: person.Initials, PhotoURL: person.PhotoURL, Href: statefulHref(view, PagePerson, "person", person.ID), Navigate: view.Navigate, Current: person.ID != "" && person.ID == view.Viewer.PersonID}
+	current := person.ID != "" && person.ID == view.Viewer.PersonID
+	href := ""
+	if PageVisible(PagePerson, view.Roles) {
+		href = statefulHref(view, PagePerson, "person", person.ID)
+	} else if current {
+		href = statefulHref(view, PageMyself)
+	}
+	return OwnershipNodeProps{Name: person.Name, Role: valueOrUnavailable(person.Role), Team: valueOrUnavailable(person.Team), Initials: person.Initials, PhotoURL: person.PhotoURL, Href: href, Navigate: view.Navigate, Current: current}
 }
 
 func sortedOrganizationValues(values map[string]bool) []string {

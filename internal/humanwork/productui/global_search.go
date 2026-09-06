@@ -57,9 +57,13 @@ func globalSearchProps(view View) GlobalSearchProps {
 		}
 		hidden["favorites"] = strings.Join(favorites, ",")
 	}
+	fallback := pageHref(PageHome)
+	if PageVisible(PagePeople, view.Roles) {
+		fallback = pageHref(PagePeople)
+	}
 	return GlobalSearchProps{
 		I18nProps: I18nProps{Locale: view.Locale}, Items: globalSearchItems(view),
-		Navigate: view.Navigate, FallbackHref: pageHref(PagePeople), HiddenInputs: hidden,
+		Navigate: view.Navigate, FallbackHref: fallback, HiddenInputs: hidden,
 	}
 }
 
@@ -169,20 +173,22 @@ func globalSearchItems(view View) []GlobalSearchItem {
 		})
 	}
 
-	for _, work := range view.Work {
-		details := []string{work.Status, work.Summary}
-		if work.CompletedAt != "" {
-			details = append(details, view.Locale.Text("global_search.closed", map[string]string{"value": work.CompletedAt}))
-		} else if work.EffectiveDate != "" {
-			details = append(details, view.Locale.Text("global_search.effective", map[string]string{"value": work.EffectiveDate}))
+	if allowed[PageJourneys] {
+		for _, work := range view.Work {
+			details := []string{work.Status, work.Summary}
+			if work.CompletedAt != "" {
+				details = append(details, view.Locale.Text("global_search.closed", map[string]string{"value": work.CompletedAt}))
+			} else if work.EffectiveDate != "" {
+				details = append(details, view.Locale.Text("global_search.effective", map[string]string{"value": work.EffectiveDate}))
+			}
+			items = append(items, GlobalSearchItem{
+				ID: "workflow-instance:" + work.ID, Kind: "workflow", KindLabel: globalSearchKindLabel(view.Locale, "workflow"),
+				Label:       strings.TrimSpace(work.Title + " · " + work.Person),
+				Description: strings.Trim(strings.Join(details, " · "), " ·"),
+				Href:        JourneyDetailHref(view, work.ID), Icon: "journeys", Initials: work.Initials, PhotoURL: work.PhotoURL,
+				Keywords: []string{work.PersonRef, work.InstanceID, work.MaterialDigest, "workflow record", "journey"},
+			})
 		}
-		items = append(items, GlobalSearchItem{
-			ID: "workflow-instance:" + work.ID, Kind: "workflow", KindLabel: globalSearchKindLabel(view.Locale, "workflow"),
-			Label:       strings.TrimSpace(work.Title + " · " + work.Person),
-			Description: strings.Trim(strings.Join(details, " · "), " ·"),
-			Href:        JourneyDetailHref(view, work.ID), Icon: "journeys", Initials: work.Initials, PhotoURL: work.PhotoURL,
-			Keywords: []string{work.PersonRef, work.InstanceID, work.MaterialDigest, "workflow record", "journey"},
-		})
 	}
 
 	if allowed[PageSettings] {

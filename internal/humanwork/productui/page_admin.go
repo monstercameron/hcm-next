@@ -14,7 +14,11 @@ func adminPage(view View) ui.Node {
 		},
 		Capabilities: []CapabilityCardProps{
 			{
-				Title: "Organization visibility", Description: "Choose whether ordinary users see everyone, their own unit, an approved set of units, or all units except a restricted set.", State: "Available", Tone: "positive",
+				Title: "Roles & access", Description: "Create tenant roles and assign one or more roles to every employee from the live workforce directory.", State: "Available", Tone: "positive",
+				Action: ActionLinkProps{Label: "Manage roles →", Href: statefulHref(view, PageRoles), Navigate: view.Navigate},
+			},
+			{
+				Title: "Organization visibility", Description: "For each role, choose everyone, the employee's own unit, an approved set of units, or all units except a restricted set.", State: "Available", Tone: "positive",
 				Action: ActionLinkProps{Label: "Configure visibility →", Href: statefulHref(view, PageOrganizationVisibility), Navigate: view.Navigate},
 			},
 			{

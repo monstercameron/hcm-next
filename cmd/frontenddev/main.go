@@ -37,7 +37,7 @@ func main() {
 	if err != nil || upstream.Scheme == "" || upstream.Host == "" {
 		log.Fatalf("frontenddev: invalid upstream %q", *upstreamText)
 	}
-	bearer, err := developmentBearer(*profile, os.Getenv(envDevBearer), os.Getenv(envDevHMACKey), *tenant, time.Now().UTC())
+	bearer, err := gatewayBearer(*profile, os.Getenv(envDevBearer), os.Getenv(envDevHMACKey), *tenant, time.Now().UTC())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,9 +46,22 @@ func main() {
 			log.Fatal("frontenddev: local-dev profile requires loopback listen and upstream addresses")
 		}
 	}
-	server := &http.Server{Addr: *listen, Handler: frontendHandler(upstream, bearer), ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{Addr: *listen, Handler: frontendHandler(upstream, bearer, *profile == devprofile.Name), ReadHeaderTimeout: 5 * time.Second}
 	fmt.Fprintf(os.Stdout, "HCM Next live gateway: http://%s/ -> %s\n", *listen, upstream)
 	log.Fatal(server.ListenAndServe())
+}
+
+// gatewayBearer leaves the local-dev browser unauthenticated so the production
+// workspace's persona login can establish its cookie-backed session. An
+// explicit bearer remains an intentional escape hatch for automation.
+func gatewayBearer(profile, existing, key, tenant string, now time.Time) (string, error) {
+	if strings.TrimSpace(existing) != "" {
+		return developmentBearer(profile, existing, key, tenant, now)
+	}
+	if profile == devprofile.Name {
+		return "", nil
+	}
+	return developmentBearer(profile, existing, key, tenant, now)
 }
 
 func developmentBearer(profile, existing, key, tenant string, now time.Time) (string, error) {
@@ -85,17 +98,35 @@ func developmentBearer(profile, existing, key, tenant string, now time.Time) (st
 	return token, nil
 }
 
-func frontendHandler(upstream *url.URL, bearer string) http.Handler {
-	proxy := httputil.NewSingleHostReverseProxy(upstream)
-	originalDirector := proxy.Director
-	proxy.Director = func(request *http.Request) {
-		originalDirector(request)
-		if request.Header.Get("Authorization") == "" && strings.TrimSpace(bearer) != "" {
-			request.Header.Set("Authorization", "Bearer "+strings.TrimSpace(bearer))
-		}
-	}
-	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
-		http.Error(w, "live HCM Next cell unavailable", http.StatusBadGateway)
+func frontendHandler(upstream *url.URL, bearer string, allowOpaqueBrowserOrigin bool) http.Handler {
+	proxy := &httputil.ReverseProxy{
+		Rewrite: func(request *httputil.ProxyRequest) {
+			request.SetURL(upstream)
+			// The gateway and the cell form one browser origin. Preserve the
+			// authority the browser actually reached so the cell's same-origin
+			// policy, absolute WebSocket URL, cookies, and redirects all bind to
+			// the public development address rather than the private upstream.
+			request.Out.Host = request.In.Host
+			request.SetXForwarded()
+			// Codex's sandboxed in-app browser has an opaque origin and therefore
+			// emits "Origin: null" even for a form submitted to the page that
+			// rendered it. Only the explicitly selected local-dev profile may
+			// translate that opaque origin, and only when the public authority is
+			// loopback. The cell still requires its own HttpOnly SameSite CSRF
+			// cookie after this translation. Standard and non-loopback gateways
+			// continue to reject opaque origins.
+			if allowOpaqueBrowserOrigin && request.Out.Header.Get("Origin") == "null" {
+				if publicOrigin, ok := loopbackPublicOrigin(request.In); ok {
+					request.Out.Header.Set("Origin", publicOrigin)
+				}
+			}
+			if request.Out.Header.Get("Authorization") == "" && strings.TrimSpace(bearer) != "" {
+				request.Out.Header.Set("Authorization", "Bearer "+strings.TrimSpace(bearer))
+			}
+		},
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			http.Error(w, "live HCM Next cell unavailable", http.StatusBadGateway)
+		},
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -112,4 +143,19 @@ func frontendHandler(upstream *url.URL, bearer string) http.Handler {
 		}
 		proxy.ServeHTTP(w, r)
 	})
+}
+
+func loopbackPublicOrigin(request *http.Request) (string, bool) {
+	if request == nil || strings.TrimSpace(request.Host) == "" {
+		return "", false
+	}
+	publicURL, err := url.Parse("http://" + request.Host)
+	if err != nil || !devprofile.IsLoopbackHost(publicURL.Hostname()) {
+		return "", false
+	}
+	scheme := "http"
+	if request.TLS != nil {
+		scheme = "https"
+	}
+	return scheme + "://" + strings.ToLower(request.Host), true
 }

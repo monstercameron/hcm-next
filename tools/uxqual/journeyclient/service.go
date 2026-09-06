@@ -49,6 +49,11 @@ type PreferenceService interface {
 	SaveUserPreferences(context.Context, *journeyv1.SaveUserPreferencesRequest) (*journeyv1.SaveUserPreferencesResponse, error)
 	SaveTenantAppearance(context.Context, *journeyv1.SaveTenantAppearanceRequest) (*journeyv1.SaveTenantAppearanceResponse, error)
 	SaveOrganizationVisibility(context.Context, *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error)
+	GetRoleAccess(context.Context, *journeyv1.GetRoleAccessRequest) (*journeyv1.GetRoleAccessResponse, error)
+	SaveAccessRole(context.Context, *journeyv1.SaveAccessRoleRequest) (*journeyv1.SaveAccessRoleResponse, error)
+	SaveWorkerRoleAssignment(context.Context, *journeyv1.SaveWorkerRoleAssignmentRequest) (*journeyv1.SaveWorkerRoleAssignmentResponse, error)
+	SaveRoleOrganizationVisibility(context.Context, *journeyv1.SaveRoleOrganizationVisibilityRequest) (*journeyv1.SaveRoleOrganizationVisibilityResponse, error)
+	SaveRolePagePermission(context.Context, *journeyv1.SaveRolePagePermissionRequest) (*journeyv1.SaveRolePagePermissionResponse, error)
 	RecordWorkflowUse(context.Context, *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error)
 	GetWorkerIDPolicy(context.Context, *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error)
 	SaveWorkerIDPolicy(context.Context, *journeyv1.SaveWorkerIDPolicyRequest) (*journeyv1.SaveWorkerIDPolicyResponse, error)
@@ -154,6 +159,26 @@ func (s *grpcService) SaveTenantAppearance(ctx context.Context, in *journeyv1.Sa
 
 func (s *grpcService) SaveOrganizationVisibility(ctx context.Context, in *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error) {
 	return s.client.SaveOrganizationVisibility(s.authorize(ctx), in)
+}
+
+func (s *grpcService) GetRoleAccess(ctx context.Context, in *journeyv1.GetRoleAccessRequest) (*journeyv1.GetRoleAccessResponse, error) {
+	return s.client.GetRoleAccess(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveAccessRole(ctx context.Context, in *journeyv1.SaveAccessRoleRequest) (*journeyv1.SaveAccessRoleResponse, error) {
+	return s.client.SaveAccessRole(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveWorkerRoleAssignment(ctx context.Context, in *journeyv1.SaveWorkerRoleAssignmentRequest) (*journeyv1.SaveWorkerRoleAssignmentResponse, error) {
+	return s.client.SaveWorkerRoleAssignment(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveRoleOrganizationVisibility(ctx context.Context, in *journeyv1.SaveRoleOrganizationVisibilityRequest) (*journeyv1.SaveRoleOrganizationVisibilityResponse, error) {
+	return s.client.SaveRoleOrganizationVisibility(s.authorize(ctx), in)
+}
+
+func (s *grpcService) SaveRolePagePermission(ctx context.Context, in *journeyv1.SaveRolePagePermissionRequest) (*journeyv1.SaveRolePagePermissionResponse, error) {
+	return s.client.SaveRolePagePermission(s.authorize(ctx), in)
 }
 
 func (s *grpcService) RecordWorkflowUse(ctx context.Context, in *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error) {

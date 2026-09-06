@@ -5,8 +5,11 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/hcm-next/internal/transport"
+	"github.com/monstercameron/hcm-next/internal/trust"
 )
 
 func TestProductShellCarriesAuthenticatedLiveClientConfiguration(t *testing.T) {
@@ -29,6 +32,34 @@ func TestProductShellCarriesAuthenticatedLiveClientConfiguration(t *testing.T) {
 	}
 	if got := recorder.Header().Get("Content-Security-Policy"); got != ProductContentSecurityPolicy("cell.test") {
 		t.Fatalf("product CSP = %q", got)
+	}
+}
+
+func TestProductRouteAuthorizationRejectsHiddenPageButAllowsVisiblePage(t *testing.T) {
+	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{Key: shellSigningKey, Issuer: shellIssuer, Audience: shellAudience, Now: func() time.Time { return shellNow }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	token, err := verifier.Issue(trust.Claims{Issuer: shellIssuer, Audience: shellAudience, Subject: "omar-reyes", SubjectKind: "human", Tenant: shellTenant, OrganizationScopeID: "org:acme:people", Roles: []string{"worker_self"}, Purposes: []string{"self_service_view"}, AuthenticationMethod: "bearer_token", Assurance: "substantial", SessionRef: "session-ic", IssuedAtUnix: shellNow.Add(-time.Minute).Unix(), ExpiresAtUnix: shellNow.Add(time.Hour).Unix()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := NewHandler(Options{Cell: unreachableCell{t: t}, Config: transport.Config{Verifier: verifier, Audience: shellAudience, Now: func() time.Time { return shellNow }}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := func(path string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodGet, "http://cell.test"+path, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		recorder := httptest.NewRecorder()
+		h.ServeHTTP(recorder, req)
+		return recorder
+	}
+	if got := request(PathProductHome).Code; got != http.StatusOK {
+		t.Fatalf("visible home = %d", got)
+	}
+	if got := request("/workspace/app/admin").Code; got != http.StatusForbidden {
+		t.Fatalf("hidden admin = %d, want 403", got)
 	}
 }
 
@@ -86,6 +117,20 @@ func TestProductShellRefusesUnknownAndUnauthenticatedRoutes(t *testing.T) {
 	h.ServeHTTP(unauthenticatedRecorder, unauthenticated)
 	if unauthenticatedRecorder.Code != http.StatusUnauthorized {
 		t.Fatalf("unauthenticated product page = %d", unauthenticatedRecorder.Code)
+	}
+}
+
+func TestProductShellServesNestedRegisteredRoutesOnColdReload(t *testing.T) {
+	handler, token := newShellHandler(t, false)
+	request := httptest.NewRequest(http.MethodGet, "http://cell.test/workspace/app/admin/organization-visibility", nil)
+	request.Header.Set("Authorization", "Bearer "+token)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET nested product route = %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if !strings.Contains(recorder.Body.String(), "Organization visibility") {
+		t.Fatalf("nested product route rendered the wrong shell: %s", recorder.Body.String())
 	}
 }
 

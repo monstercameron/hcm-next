@@ -135,7 +135,11 @@ func ownershipNode(props OwnershipNodeProps) ui.Node {
 	if len(children) > 0 {
 		branch = append(branch, html.Ul(html.Props{Raw: map[string]any{"role": "group"}}, children...))
 	}
-	return html.Li(html.Props{Raw: map[string]any{"role": "treeitem", "aria-expanded": fmt.Sprintf("%t", len(children) > 0)}}, branch...)
+	item := html.Props{Raw: map[string]any{"role": "treeitem"}}
+	if len(children) > 0 {
+		item.Raw["aria-expanded"] = "true"
+	}
+	return html.Li(item, branch...)
 }
 
 func organizationPersonCard(props OwnershipNodeProps, showReportCount bool) ui.Node {
@@ -153,6 +157,9 @@ func organizationPersonCard(props OwnershipNodeProps, showReportCount bool) ui.N
 	linkProps := html.Props{Class: class}
 	if props.Current {
 		linkProps.Raw = map[string]any{"aria-current": "true"}
+	}
+	if props.Href == "" {
+		return html.Div(linkProps, children...)
 	}
 	return softwareLink(props.Navigate, linkProps, props.Href, children...)
 }
