@@ -78,3 +78,19 @@ func TestTodo_ADMISSION_001_Race(t *testing.T) {
 		}
 	}
 }
+
+func TestTodo_ADMISSION_001_Fault(t *testing.T) {
+	r, s := base()
+	s.Quota.Consumed = int(^uint(0) >> 1)
+	s.Quota.Pending = 1
+	if got := Decide(r, s, Policy{}); got.Outcome != Reject || got.Reason != "INVALID_CAPACITY_RESERVATION" {
+		t.Fatalf("overflow snapshot = %+v", got)
+	}
+}
+
+func BenchmarkTodo_ADMISSION_001(b *testing.B) {
+	r, s := base()
+	for i := 0; i < b.N; i++ {
+		_ = Decide(r, s, Policy{})
+	}
+}

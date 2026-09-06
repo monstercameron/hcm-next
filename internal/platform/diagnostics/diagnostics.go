@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -15,6 +16,14 @@ import (
 )
 
 type Surface string
+
+const contractVersion = 1
+
+// Version identifies the stable diagnostic admission contract.
+func Version() int { return contractVersion }
+
+// Explain describes the package boundary without exposing runtime endpoints.
+func Explain() string { return "default-off scoped expiring diagnostic admission and redaction" }
 
 // Compatibility aliases keep the policy vocabulary explicit at integration
 // boundaries without introducing another registry or adapter.
@@ -113,6 +122,7 @@ type Session struct {
 	expiresAt time.Time
 	budget    Budget
 	used      int64
+	usedCPU   time.Duration
 	closed    bool
 	mu        sync.Mutex
 }
@@ -209,6 +219,17 @@ func (m *Manager) Authorize(r Request) (*Session, error) {
 func (m *Manager) Open(r Request) (*Session, error) { return m.Authorize(r) }
 
 func (s *Session) Capture(input []byte) (Artifact, error) {
+	return s.capture(input, time.Nanosecond)
+}
+
+// CaptureWithCPU records the bounded CPU allowance consumed by a capture.
+// Adapters that can measure CPU should use this method; Capture uses a minimal
+// unit so callers cannot bypass the configured CPU ceiling accidentally.
+func (s *Session) CaptureWithCPU(input []byte, cpu time.Duration) (Artifact, error) {
+	return s.capture(input, cpu)
+}
+
+func (s *Session) capture(input []byte, cpu time.Duration) (Artifact, error) {
 	if s == nil {
 		return Artifact{}, ErrClosed
 	}
@@ -223,11 +244,17 @@ func (s *Session) Capture(input []byte) (Artifact, error) {
 		s.drop(now, "expired")
 		return Artifact{}, ErrExpired
 	}
-	if int64(len(input)) > s.budget.MaxBytes-s.used {
+	if cpu <= 0 || cpu > s.budget.MaxCPU-s.usedCPU {
+		s.drop(now, "cpu_budget")
 		return Artifact{}, ErrCaptureBounds
 	}
-	out, classified := redact(input)
+	if int64(len(input)) > s.budget.MaxBytes-s.used {
+		s.drop(now, "byte_budget")
+		return Artifact{}, ErrCaptureBounds
+	}
+	out, classified := Redact(input)
 	s.used += int64(len(input))
+	s.usedCPU += cpu
 	d := sha256.Sum256(out)
 	a := Artifact{ID: hex.EncodeToString(d[:]), Tenant: s.request.Tenant, Surface: s.request.Surface, Classification: classified, Bytes: out, Redacted: !equalBytes(input, out), CreatedAt: now}
 	s.m.record(Event{Kind: EventAccess, At: now, Workload: s.request.Workload.ID, Tenant: s.request.Tenant, Purpose: s.request.Purpose, Surface: s.request.Surface, Artifact: a.ID, Reason: "capture"})
@@ -272,19 +299,28 @@ func (m *Manager) currentTime() time.Time {
 	return clock()
 }
 
-var sensitive = regexp.MustCompile(`(?i)(password|passwd|secret|token|credential|authorization|cookie|private[_ -]?key|ssn|sql|query|payload)`)
+var sensitive = regexp.MustCompile(`(?i)^(password|passwd|secret|token|credential|authorization|cookie|private[_ -]?key|ssn|sql|query|payload)([_-].*)?$`)
 var sqlWord = regexp.MustCompile(`(?i)^(select|insert|update|delete|drop|alter|truncate|with)$`)
 
-func redact(in []byte) ([]byte, Classification) {
+// Redact removes sensitive diagnostic content before it becomes an artifact.
+// It is deterministic and intentionally conservative: a SQL-looking payload
+// is replaced in full, while ordinary structured fields retain their keys.
+func Redact(in []byte) ([]byte, Classification) {
 	if len(in) == 0 {
 		return nil, ClassificationPublic
 	}
 	parts := strings.Fields(string(in))
+	if len(parts) > 0 && sqlWord.MatchString(strings.Trim(parts[0], "`\"'(),")) {
+		return []byte("[REDACTED]"), ClassificationRestricted
+	}
 	changed := false
 	restricted := false
 	for i, p := range parts {
-		key := strings.TrimSpace(strings.SplitN(p, "=", 2)[0])
-		if sensitive.MatchString(key) || sensitive.MatchString(p) || sqlWord.MatchString(p) {
+		key := strings.Trim(strings.TrimSpace(strings.SplitN(p, "=", 2)[0]), "`\"'(),")
+		if sensitive.MatchString(key) || sensitive.MatchString(strings.Trim(p, "`\"'(),")) || sqlWord.MatchString(strings.Trim(p, "`\"'(),")) {
+			if key == "" {
+				key = "value"
+			}
 			parts[i] = key + "=[REDACTED]"
 			changed = true
 			restricted = true
@@ -298,6 +334,12 @@ func redact(in []byte) ([]byte, Classification) {
 		return out, ClassificationProtected
 	}
 	return out, ClassificationProtected
+}
+
+// ExplainArtifact is safe diagnostic presentation: it includes identity and
+// classification but never the protected bytes.
+func ExplainArtifact(a Artifact) string {
+	return fmt.Sprintf("artifact=%s tenant=%s surface=%s class=%s redacted=%t bytes=%d", a.ID, a.Tenant, a.Surface, a.Classification, a.Redacted, len(a.Bytes))
 }
 func equalBytes(a, b []byte) bool {
 	if len(a) != len(b) {

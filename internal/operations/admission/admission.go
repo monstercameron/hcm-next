@@ -12,6 +12,14 @@ import (
 	"strings"
 )
 
+const contractVersion = 1
+
+// Version returns the version of the overload decision contract.
+func Version() int { return contractVersion }
+
+// Explain describes the contract without including tenant or request data.
+func Explain() string { return "tenant-aware deterministic admission and bounded retry contract" }
+
 type Criticality string
 
 const (
@@ -65,21 +73,22 @@ type Decision struct {
 }
 
 type Evidence struct {
-	TenantID         string
-	CellID           string
-	Criticality      Criticality
-	QuotaLimit       int
-	QuotaConsumed    int
-	QuotaPending     int
-	Capacity         int
-	Requested        int
-	ReservedP0       int
-	RetryRemaining   int
-	PlacementEpoch   uint64
-	ObservedEpoch    uint64
-	QuotaKnown       bool
-	PlacementCurrent bool
-	NoisyTenant      bool
+	TenantID          string
+	CellID            string
+	Criticality       Criticality
+	QuotaLimit        int
+	QuotaConsumed     int
+	QuotaPending      int
+	Capacity          int
+	Requested         int
+	ReservedP0        int
+	RetryRemaining    int
+	PlacementEpoch    uint64
+	ObservedEpoch     uint64
+	QuotaKnown        bool
+	PlacementCurrent  bool
+	NoisyTenant       bool
+	AvailableCapacity int
 }
 
 type Request struct {
@@ -141,14 +150,15 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 		QuotaLimit: state.Quota.Limit, QuotaConsumed: state.Quota.Consumed, QuotaPending: state.Quota.Pending,
 		Capacity: state.Capacity, Requested: req.EstimatedCost, ReservedP0: state.ReservedP0,
 		RetryRemaining: state.RetryRemaining, PlacementEpoch: req.PlacementEpoch, ObservedEpoch: state.PlacementEpoch,
-		QuotaKnown: state.Quota.Known, PlacementCurrent: req.PlacementEpoch == state.PlacementEpoch, NoisyTenant: state.NoisyTenant}
+		QuotaKnown: state.Quota.Known, PlacementCurrent: req.PlacementEpoch == state.PlacementEpoch, NoisyTenant: state.NoisyTenant,
+		AvailableCapacity: state.Capacity - state.ReservedP0}
 	d := Decision{TenantID: req.TenantID, CellID: req.CellID, Criticality: req.Criticality, QuotaVersion: state.Quota.Version, RetryBudget: req.RetryBudgetID, Evidence: e}
 	finish := func(out Outcome, reason string, retry, reservation int) Decision {
 		d.Outcome, d.Reason, d.RetryAfter, d.Reservation = out, reason, retry, reservation
 		d.DecisionID = id(req, state, d)
 		return d
 	}
-	if req.TenantID == "" || req.CellID == "" || req.EstimatedCost <= 0 || !validCriticality(req.Criticality) {
+	if req.TenantID == "" || req.CellID == "" || req.EstimatedCost <= 0 || req.RetryAttempt < 0 || !validCriticality(req.Criticality) {
 		return finish(Reject, "INVALID_CONTEXT", 0, 0)
 	}
 	if state.TenantID != req.TenantID || state.CellID != req.CellID {
@@ -163,7 +173,7 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 	if req.PlacementEpoch == 0 || req.PlacementEpoch != state.PlacementEpoch {
 		return finish(Defer, "STALE_PLACEMENT", p.DeferRetryAfter, 0)
 	}
-	if state.Capacity < 0 || state.ReservedP0 < 0 || state.ReservedP0 > state.Capacity {
+	if state.Capacity < 0 || state.ReservedP0 < 0 || state.ReservedP0 > state.Capacity || state.Quota.Limit < 0 || state.Quota.Consumed < 0 || state.Quota.Pending < 0 || (state.Quota.Pending > 0 && state.Quota.Consumed > int(^uint(0)>>1)-state.Quota.Pending) {
 		return finish(Reject, "INVALID_CAPACITY_RESERVATION", 0, 0)
 	}
 	if state.RetryRemaining <= 0 && req.RetryAttempt > 0 {
@@ -171,9 +181,10 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 	}
 	used := state.Quota.Consumed + state.Quota.Pending
 	quotaOK := state.Quota.Limit > 0 && used <= state.Quota.Limit-req.EstimatedCost
-	capacity := state.Capacity - req.EstimatedCost
+	availableCapacity := e.AvailableCapacity
+	capacity := availableCapacity - req.EstimatedCost
 	if req.Criticality == P0 {
-		if capacity < 0 {
+		if state.Capacity-req.EstimatedCost < 0 {
 			return finish(Defer, "P0_CAPACITY_RESERVED", p.DeferRetryAfter, 0)
 		}
 		if !quotaOK {

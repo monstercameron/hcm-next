@@ -27,6 +27,10 @@ const (
 	EnvBatchSize        = "HCMNEXT_SCHEDULER_BATCH_SIZE"
 	EnvMisfirePolicy    = "HCMNEXT_SCHEDULER_MISFIRE_POLICY"
 	EnvMisfireGrace     = "HCMNEXT_SCHEDULER_MISFIRE_GRACE"
+	EnvTimerRole        = "HCMNEXT_SCHEDULER_TIMER_ROLE"
+	EnvSignalRole       = "HCMNEXT_SCHEDULER_SIGNAL_ROLE"
+	EnvTimerShard       = "HCMNEXT_SCHEDULER_TIMER_SHARD"
+	EnvSignalShard      = "HCMNEXT_SCHEDULER_SIGNAL_SHARD"
 )
 
 // The configuration field names, so a command names them once.
@@ -42,6 +46,10 @@ const (
 	FieldBatchSize        = "batch-size"
 	FieldMisfirePolicy    = "misfire-policy"
 	FieldMisfireGrace     = "misfire-grace"
+	FieldTimerRole        = "timer-role"
+	FieldSignalRole       = "signal-role"
+	FieldTimerShard       = "timer-shard"
+	FieldSignalShard      = "signal-shard"
 )
 
 // DefaultQueueKey is the queue resource a scheduler replica leases when no
@@ -138,6 +146,18 @@ func ConfigFields() []bootstrap.Field {
 	}
 }
 
+// RoleConfigFields are the optional scheduler-host role fields. They are
+// separate from ConfigFields so the existing runtime configuration contract
+// remains stable for libraries and deployments that only host timers.
+func RoleConfigFields() []bootstrap.Field {
+	return []bootstrap.Field{
+		{Name: FieldTimerRole, Env: EnvTimerRole, Usage: "enable the durable timer role", Default: "true", Kind: bootstrap.KindBool},
+		{Name: FieldSignalRole, Env: EnvSignalRole, Usage: "enable the durable signal role", Default: "true", Kind: bootstrap.KindBool},
+		{Name: FieldTimerShard, Env: EnvTimerShard, Usage: "timer role shard label", Default: "timer", Kind: bootstrap.KindString},
+		{Name: FieldSignalShard, Env: EnvSignalShard, Usage: "signal role shard label", Default: "signal", Kind: bootstrap.KindString},
+	}
+}
+
 // ValidateConfig fails configuration resolution -- before any listener or tick
 // starts -- on anything this package can judge without naming an identifier
 // type. The tenant id's own syntax is the command's to check, because parsing
@@ -175,7 +195,30 @@ func ValidateConfig(v *bootstrap.Values) error {
 	if _, err := MisfireFrom(v); err != nil {
 		return err
 	}
+	roles, err := RolesFrom(v)
+	if err != nil {
+		return err
+	}
+	if err := roles.Validate(); err != nil {
+		return err
+	}
 	return nil
+}
+
+func RolesFrom(v *bootstrap.Values) (RoleConfig, error) {
+	if !v.Has(FieldTimerRole) && !v.Has(FieldSignalRole) {
+		return DefaultRoleConfig(), nil
+	}
+	timerEnabled, err := v.Bool(FieldTimerRole)
+	if err != nil {
+		return RoleConfig{}, err
+	}
+	signalEnabled, err := v.Bool(FieldSignalRole)
+	if err != nil {
+		return RoleConfig{}, err
+	}
+	return RoleConfig{TimerEnabled: timerEnabled, SignalEnabled: signalEnabled,
+		TimerShard: v.String(FieldTimerShard), SignalShard: v.String(FieldSignalShard)}, nil
 }
 
 // MisfireFrom builds the declared misfire policy from resolved configuration.
@@ -213,6 +256,23 @@ func Identity(deps bootstrap.Deps) lease.Identity {
 // calls is exercised by this package's own tests; the command's remaining job
 // is parsing its flags and choosing this role.
 func BuildRuntime(deps bootstrap.Deps, dispatcher Dispatcher, claims ...lease.AcquireRequest) (bootstrap.Runtime, error) {
+	return buildRuntime(deps, dispatcher, nil, nil, claims...)
+}
+
+// BuildRuntimeWithSignalRole composes the scheduler with its independently
+// hosted signal role while preserving BuildRuntime's original claim surface.
+func BuildRuntimeWithSignalRole(deps bootstrap.Deps, dispatcher Dispatcher, signalRole SignalRole, claims ...lease.AcquireRequest) (bootstrap.Runtime, error) {
+	return buildRuntime(deps, dispatcher, signalRole, nil, claims...)
+}
+
+// BuildRuntimeWithSignalRoleAndRoles composes the host with an explicitly
+// resolved role configuration. Composition roots use this when their role
+// flags are outside the stable scheduler library field list.
+func BuildRuntimeWithSignalRoleAndRoles(deps bootstrap.Deps, dispatcher Dispatcher, signalRole SignalRole, roles RoleConfig, claims ...lease.AcquireRequest) (bootstrap.Runtime, error) {
+	return buildRuntime(deps, dispatcher, signalRole, &roles, claims...)
+}
+
+func buildRuntime(deps bootstrap.Deps, dispatcher Dispatcher, signalRole SignalRole, rolesOverride *RoleConfig, claims ...lease.AcquireRequest) (bootstrap.Runtime, error) {
 	db, ok := deps.DB.(Beginner)
 	if !ok {
 		return bootstrap.Runtime{}, fmt.Errorf(
@@ -238,6 +298,15 @@ func BuildRuntime(deps bootstrap.Deps, dispatcher Dispatcher, claims ...lease.Ac
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
+	roles := DefaultRoleConfig()
+	if rolesOverride != nil {
+		roles = *rolesOverride
+	} else {
+		roles, err = RolesFrom(deps.Values)
+		if err != nil {
+			return bootstrap.Runtime{}, err
+		}
+	}
 
 	s, err := New(Config{
 		DB:          db,
@@ -249,6 +318,8 @@ func BuildRuntime(deps bootstrap.Deps, dispatcher Dispatcher, claims ...lease.Ac
 		QueueTTL:    queueTTL,
 		InstanceTTL: instanceTTL,
 		Logger:      deps.Logger,
+		Roles:       roles,
+		SignalRole:  signalRole,
 	})
 	if err != nil {
 		return bootstrap.Runtime{}, err

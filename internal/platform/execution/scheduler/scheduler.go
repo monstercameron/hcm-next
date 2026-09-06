@@ -115,6 +115,9 @@ type Config struct {
 	// Logger receives one line per lease transition, timer settle, claim and
 	// settle. Nil discards them.
 	Logger Logger
+
+	Roles      RoleConfig
+	SignalRole SignalRole
 }
 
 // nilTenant is the zero identifier value. It is read off a zero request
@@ -140,6 +143,10 @@ type Scheduler struct {
 
 // New validates a Config and returns the replica it describes.
 func New(cfg Config) (*Scheduler, error) {
+	cfg.Roles = cfg.Roles.withDefaults()
+	if err := cfg.Roles.Validate(); err != nil {
+		return nil, err
+	}
 	if cfg.DB == nil {
 		return nil, fmt.Errorf("%w: no database Beginner", ErrConfig)
 	}
@@ -227,12 +234,14 @@ type TickResult struct {
 	Completed int
 	Retried   int
 	Abandoned int
+	// Signals counts signal receipts evaluated by the enabled signal role.
+	Signals int
 }
 
 // Idle reports a tick that found nothing to do, which is what
 // [Scheduler.Run] sleeps on.
 func (r TickResult) Idle() bool {
-	return r.Fired == 0 && r.Skipped == 0 && r.Recovered == 0 && r.Claimed == 0
+	return r.Fired == 0 && r.Skipped == 0 && r.Recovered == 0 && r.Claimed == 0 && r.Signals == 0
 }
 
 func (r *TickResult) add(other TickResult) {
@@ -248,6 +257,7 @@ func (r *TickResult) add(other TickResult) {
 	r.Completed += other.Completed
 	r.Retried += other.Retried
 	r.Abandoned += other.Abandoned
+	r.Signals += other.Signals
 }
 
 // Run ticks until ctx is canceled, sleeping poll between ticks that found
@@ -324,10 +334,12 @@ func (s *Scheduler) serve(ctx context.Context, claim lease.AcquireRequest, now t
 	}
 	if held {
 		out.Leased = 1
-		fired, skipped, deferred, fireErr := s.fireTimers(ctx, claim, grant.Fence, now)
-		out.Fired, out.Skipped, out.Deferred = fired, skipped, deferred
-		if fireErr != nil {
-			return out, fireErr
+		if s.cfg.Roles.TimerEnabled {
+			fired, skipped, deferred, fireErr := s.fireTimers(ctx, claim, grant.Fence, now)
+			out.Fired, out.Skipped, out.Deferred = fired, skipped, deferred
+			if fireErr != nil {
+				return out, fireErr
+			}
 		}
 	} else {
 		out.Refused = 1
@@ -337,6 +349,13 @@ func (s *Scheduler) serve(ctx context.Context, claim lease.AcquireRequest, now t
 	out.Recovered = recovered
 	if err != nil {
 		return out, err
+	}
+	if s.cfg.Roles.SignalEnabled && s.cfg.SignalRole != nil {
+		count, signalErr := s.cfg.SignalRole.RunSignalRole(ctx, claim, now, s.cfg.Roles.SignalShard)
+		out.Signals = count
+		if signalErr != nil {
+			return out, signalErr
+		}
 	}
 
 	if s.cfg.Dispatcher == nil {

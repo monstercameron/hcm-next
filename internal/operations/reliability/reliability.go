@@ -1,13 +1,13 @@
 package reliability
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
-
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -100,15 +100,195 @@ type Result struct {
 }
 
 func Load(path string) (*Manifest, error) {
-	b, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("reliability: reading %s: %w", path, err)
 	}
+	defer f.Close()
 	var m Manifest
-	if err := yaml.Unmarshal(b, &m); err != nil {
-		return nil, fmt.Errorf("reliability: parsing %s: %w", path, err)
+	section := ""
+	var currentSLI *SLI
+	var currentSLO *SLO
+	var currentAction *BudgetAction
+	flush := func() {
+		if currentSLI != nil {
+			m.SLIs = append(m.SLIs, *currentSLI)
+			currentSLI = nil
+		}
+		if currentSLO != nil {
+			m.SLOs = append(m.SLOs, *currentSLO)
+			currentSLO = nil
+		}
+		if currentAction != nil {
+			m.Actions = append(m.Actions, *currentAction)
+			currentAction = nil
+		}
 	}
+	scanner := bufio.NewScanner(f)
+	lineNumber := 0
+	for scanner.Scan() {
+		lineNumber++
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "-") {
+			flush()
+			line = strings.TrimSpace(strings.TrimPrefix(line, "-"))
+		}
+		key, value, ok := strings.Cut(line, ":")
+		if !ok {
+			return nil, fmt.Errorf("reliability: parsing %s line %d: expected key", path, lineNumber)
+		}
+		key = strings.TrimSpace(key)
+		value = scalar(strings.TrimSpace(value))
+		if value == "" {
+			section = key
+			continue
+		}
+		if section == "" {
+			switch key {
+			case "version":
+				m.Version, err = strconv.Atoi(value)
+			case "module":
+				m.Module = value
+			case "effective_at":
+				m.EffectiveAt = value
+			case "owner":
+				m.Owner = value
+			default:
+				err = fmt.Errorf("unknown manifest field %q", key)
+			}
+		} else {
+			err = setManifestField(section, key, value, &currentSLI, &currentSLO, &currentAction)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("reliability: parsing %s line %d: %w", path, lineNumber, err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("reliability: reading %s: %w", path, err)
+	}
+	flush()
 	return &m, nil
+}
+
+func scalar(value string) string {
+	if len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
+		if unquoted, err := strconv.Unquote(value); err == nil {
+			return unquoted
+		}
+	}
+	return value
+}
+
+func setManifestField(section, key, value string, sli **SLI, slo **SLO, action **BudgetAction) error {
+	switch section {
+	case "slis":
+		if *sli == nil {
+			*sli = &SLI{}
+		}
+		s := *sli
+		switch key {
+		case "id":
+			s.ID = value
+		case "version":
+			s.Version = value
+		case "capability":
+			s.Capability = value
+		case "query":
+			s.Query = value
+		case "denominator":
+			s.Denominator = value
+		case "window":
+			s.Window = value
+		case "staleness_bound":
+			s.StalenessBound = value
+		case "owner":
+			s.Owner = value
+		case "availability_target":
+			return parseFloat(value, &s.AvailabilityTarget)
+		case "latency_target_ms":
+			return parseInt(value, &s.LatencyTargetMs)
+		default:
+			return fmt.Errorf("unknown SLI field %q", key)
+		}
+	case "slos":
+		if *slo == nil {
+			*slo = &SLO{}
+		}
+		s := *slo
+		switch key {
+		case "id":
+			s.ID = value
+		case "version":
+			s.Version = value
+		case "sli":
+			s.SLI = value
+		case "target":
+			return parseFloat(value, &s.Target)
+		case "latency_target_ms":
+			return parseInt(value, &s.LatencyTargetMs)
+		case "window":
+			s.Window = value
+		case "owner":
+			s.Owner = value
+		case "breach_action":
+			s.BreachAction = value
+		case "at_risk_action":
+			s.AtRiskAction = value
+		case "contractual":
+			return parseBool(value, &s.Contractual)
+		default:
+			return fmt.Errorf("unknown SLO field %q", key)
+		}
+	case "error_budget_actions":
+		if *action == nil {
+			*action = &BudgetAction{}
+		}
+		a := *action
+		switch key {
+		case "id":
+			a.ID = value
+		case "version":
+			a.Version = value
+		case "threshold":
+			return parseFloat(value, &a.Threshold)
+		case "action":
+			a.Action = value
+		case "owner":
+			a.Owner = value
+		default:
+			return fmt.Errorf("unknown error budget action field %q", key)
+		}
+	default:
+		return fmt.Errorf("unknown manifest section %q", section)
+	}
+	return nil
+}
+
+func parseFloat(value string, target *float64) error {
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err == nil {
+		*target = parsed
+	}
+	return err
+}
+
+func parseInt(value string, target *int64) error {
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err == nil {
+		*target = parsed
+	}
+	return err
+}
+
+func parseBool(value string, target *bool) error {
+	parsed, err := strconv.ParseBool(value)
+	if err == nil {
+		*target = parsed
+	}
+	return err
 }
 
 // Validate is deterministic: diagnostics are sorted by entry, field, state,
@@ -125,6 +305,13 @@ func Validate(m *Manifest, now time.Time) Readiness {
 	for f, v := range map[string]string{"module": m.Module, "effective_at": m.EffectiveAt, "owner": m.Owner} {
 		if strings.TrimSpace(v) == "" {
 			add("manifest", f, "MISSING", "", f+" is required")
+		}
+	}
+	if m.EffectiveAt != "" {
+		if effectiveAt, err := time.Parse(time.RFC3339, m.EffectiveAt); err != nil {
+			add("manifest", "effective_at", "INVALID", "", "effective_at must be RFC3339")
+		} else if effectiveAt.After(now) {
+			add("manifest", "effective_at", "FUTURE", "", "manifest is not effective yet")
 		}
 	}
 	if len(m.SLIs) == 0 {
@@ -146,6 +333,19 @@ func Validate(m *Manifest, now time.Time) Readiness {
 			add(s.ID, "sli", "UNKNOWN", s.Version, "SLO references an unknown SLI")
 		}
 		validateSLO(s, add)
+	}
+	seenActions := map[string]bool{}
+	for _, action := range m.Actions {
+		if action.ID == "" || action.Version == "" || action.Owner == "" || strings.TrimSpace(action.Action) == "" {
+			add(action.ID, "error_budget_action", "MISSING", action.Version, "id, version, action, and owner are required")
+		}
+		if seenActions[action.ID] {
+			add(action.ID, "error_budget_action", "DUPLICATE", action.Version, "error budget action id is duplicated")
+		}
+		seenActions[action.ID] = true
+		if action.Threshold <= 0 || action.Threshold > 1 {
+			add(action.ID, "threshold", "INVALID", action.Version, "threshold must be > 0 and <= 1")
+		}
 	}
 	sort.SliceStable(ds, func(i, j int) bool {
 		a, b := ds[i], ds[j]
@@ -218,6 +418,22 @@ func Evaluate(m Manifest, measurements map[string]Measurement, now time.Time) []
 		x, ok := measurements[sli.ID]
 		if !ok || x.Total <= 0 || x.Valid <= 0 || x.Good < 0 || x.Good > x.Valid || x.Valid > x.Total {
 			r.Reason = "measurement denominator or validity is unavailable"
+			out = append(out, r)
+			continue
+		}
+		if x.WindowStart.IsZero() || x.WindowEnd.IsZero() || !x.WindowEnd.After(x.WindowStart) {
+			r.Reason = "measurement window is unavailable"
+			out = append(out, r)
+			continue
+		}
+		window, windowErr := time.ParseDuration(slo.Window)
+		if windowErr != nil || x.WindowEnd.Sub(x.WindowStart) != window {
+			r.Reason = "measurement window does not match the SLO version"
+			out = append(out, r)
+			continue
+		}
+		if x.WindowEnd.After(now) || x.ObservedAt.After(now) {
+			r.Reason = "measurement is from the future or still open"
 			out = append(out, r)
 			continue
 		}
