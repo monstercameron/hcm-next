@@ -56,15 +56,19 @@ var (
 // usage meter, rating rule, invoice calculation, or mutable status: the
 // revision is the complete fixed-price entitlement input for P1A.
 type FixedPricePilotContract struct {
-	TenantID      string           `json:"tenant_id"`
-	ContractID    string           `json:"contract_id"`
-	Revision      uint64           `json:"revision"`
-	EffectiveFrom time.Time        `json:"effective_from"`
-	EffectiveTo   time.Time        `json:"effective_to"`
-	Capabilities  []string         `json:"capabilities"`
-	Bound         EntitlementBound `json:"bound"`
-	PriceCents    int64            `json:"price_cents"`
-	Currency      string           `json:"currency"`
+	TenantID      string    `json:"tenant_id"`
+	ContractID    string    `json:"contract_id"`
+	Revision      uint64    `json:"revision"`
+	EffectiveFrom time.Time `json:"effective_from"`
+	EffectiveTo   time.Time `json:"effective_to"`
+	// Status is part of the revision identity. An omitted status is treated as
+	// ACTIVE for compatibility with the first P1A contract fixtures; a frozen
+	// snapshot always stores the explicit value.
+	Status       ContractStatus   `json:"status"`
+	Capabilities []string         `json:"capabilities"`
+	Bound        EntitlementBound `json:"bound"`
+	PriceCents   int64            `json:"price_cents"`
+	Currency     string           `json:"currency"`
 }
 
 // ContractRevision is a descriptive compatibility name for a fixed-price
@@ -106,6 +110,9 @@ func (c FixedPricePilotContract) Validate() error {
 	if c.PriceCents <= 0 {
 		return fmt.Errorf("%w: fixed price must be positive", ErrInvalidEntitlementSnapshot)
 	}
+	if c.Status != "" && c.Status != StatusActive && c.Status != StatusSuspended && c.Status != StatusRevoked {
+		return fmt.Errorf("%w: invalid status", ErrInvalidEntitlementSnapshot)
+	}
 	return nil
 }
 
@@ -121,6 +128,7 @@ type canonicalEntitlementRevision struct {
 	Revision      uint64           `json:"revision"`
 	EffectiveFrom string           `json:"effective_from"`
 	EffectiveTo   string           `json:"effective_to"`
+	Status        ContractStatus   `json:"status"`
 	Capabilities  []string         `json:"capabilities"`
 	Bound         EntitlementBound `json:"bound"`
 	PriceCents    int64            `json:"price_cents"`
@@ -140,6 +148,7 @@ func (c FixedPricePilotContract) canonical() ([]byte, error) {
 		Revision:      c.Revision,
 		EffectiveFrom: c.EffectiveFrom.UTC().Format(time.RFC3339Nano),
 		EffectiveTo:   c.EffectiveTo.UTC().Format(time.RFC3339Nano),
+		Status:        normalizedStatus(c.Status),
 		Capabilities:  capabilities,
 		Bound:         c.Bound,
 		PriceCents:    c.PriceCents,
@@ -164,6 +173,7 @@ func NewEntitlementSnapshot(contract FixedPricePilotContract) (EntitlementSnapsh
 		return EntitlementSnapshot{}, err
 	}
 	digest := sha256.Sum256(canonical)
+	contract.Status = normalizedStatus(contract.Status)
 	return EntitlementSnapshot{
 		contract:    contract.clone(),
 		fingerprint: hex.EncodeToString(digest[:]),
@@ -181,6 +191,10 @@ func (s EntitlementSnapshot) ContractID() string { return s.contract.ContractID 
 
 // Revision returns the immutable contract revision number.
 func (s EntitlementSnapshot) Revision() uint64 { return s.contract.Revision }
+
+// Status returns the frozen lifecycle status. A suspended or revoked status
+// is a typed refusal, never a capability removal from the historical record.
+func (s EntitlementSnapshot) Status() ContractStatus { return s.contract.Status }
 
 // EffectiveWindow returns the half-open [from, to) window of the snapshot.
 func (s EntitlementSnapshot) EffectiveWindow() (time.Time, time.Time) {
@@ -279,6 +293,10 @@ func (s EntitlementSnapshot) Resolve(request EntitlementRequest) EntitlementDeci
 		d.Code = CodeContractNotYetEffective
 	case !request.At.Before(s.contract.EffectiveTo):
 		d.Code = CodeContractExpired
+	case s.contract.Status == StatusSuspended:
+		d.Code = CodeContractSuspended
+	case s.contract.Status == StatusRevoked:
+		d.Code = CodeContractRevoked
 	case !contains(s.contract.Capabilities, request.Capability):
 		d.Code = CodeCapabilityOutOfScope
 	default:
@@ -380,4 +398,11 @@ func validReference(value string) bool {
 		}
 	}
 	return true
+}
+
+func normalizedStatus(status ContractStatus) ContractStatus {
+	if status == "" {
+		return StatusActive
+	}
+	return status
 }

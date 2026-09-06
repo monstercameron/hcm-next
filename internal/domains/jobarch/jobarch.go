@@ -283,12 +283,22 @@ func (g JobGradeRevision) Digest() (string, error) { return digestOrError(g.Cano
 // JobProfileRevision is a versioned job meaning bound to exactly one family,
 // level and grade. A published profile is never edited in place.
 type JobProfileRevision struct {
-	ID, ProfileID, Revision    string
-	FamilyID, FamilyRef        string
-	LevelID, LevelRef          string
-	GradeID, GradeRef          string
-	JobCode, Title             string
-	Description                string
+	ID, ProfileID, Revision string
+	FamilyID, FamilyRef     string
+	LevelID, LevelRef       string
+	GradeID, GradeRef       string
+	JobCode, Title          string
+	Description             string
+	Requirements            JobProfileRequirements
+	// Direct reference fields are compatibility spellings for callers that
+	// build a profile without first assembling JobProfileRequirements. The
+	// canonical form merges them with Requirements; neither is a second
+	// authority.
+	ClassificationRef          VersionedReference
+	QualificationRefs          []QualificationReference
+	SkillRefs                  []SkillRequirementReference
+	CredentialRefs             []CredentialRequirementReference
+	CompensationRef            CompensationReference
 	Lifecycle                  Lifecycle
 	EffectiveFrom, EffectiveTo time.Time
 	KnownFrom, KnownTo         time.Time
@@ -340,6 +350,12 @@ func (p JobProfileRevision) Validate() error {
 	if p.Title == "" {
 		return invalidField("profile.title", "is required")
 	}
+	if p.requirementAliasesConflict() {
+		return ErrRequirementsConflict
+	}
+	if err := p.requirements().Validate(); err != nil {
+		return fmt.Errorf("%w: profile requirements: %w", ErrInvalidArchitecture, err)
+	}
 	return nil
 }
 func (p JobProfileRevision) ActiveAt(at, known time.Time) bool {
@@ -356,7 +372,8 @@ func (p JobProfileRevision) Canonical() []byte {
 		String("description", p.Description).String("lifecycle", p.Lifecycle.String()).
 		String("effective_from", archTime(p.EffectiveFrom)).String("effective_to", archTime(p.EffectiveTo)).
 		String("known_from", archTime(p.KnownFrom)).String("known_to", archTime(p.KnownTo)).
-		String("lineage.root_id", p.Lineage.RootID).String("lineage.supersedes", p.Lineage.Supersedes).Bytes()
+		String("lineage.root_id", p.Lineage.RootID).String("lineage.supersedes", p.Lineage.Supersedes).
+		Field("requirements", p.requirements().Canonical()).Bytes()
 	if err != nil {
 		return nil
 	}
@@ -395,7 +412,14 @@ func cloneGrades(in []JobGradeRevision) []JobGradeRevision {
 	return append([]JobGradeRevision(nil), in...)
 }
 func cloneProfiles(in []JobProfileRevision) []JobProfileRevision {
-	return append([]JobProfileRevision(nil), in...)
+	out := append([]JobProfileRevision(nil), in...)
+	for i := range out {
+		out[i].Requirements = out[i].Requirements.clone()
+		out[i].QualificationRefs = append([]QualificationReference(nil), out[i].QualificationRefs...)
+		out[i].SkillRefs = append([]SkillRequirementReference(nil), out[i].SkillRefs...)
+		out[i].CredentialRefs = append([]CredentialRequirementReference(nil), out[i].CredentialRefs...)
+	}
+	return out
 }
 
 func (a ArchitectureRevision) Validate() error {
@@ -727,7 +751,21 @@ func (a ArchitectureRevision) RetireProfile(ctx context.Context, profileID strin
 func nextRevision(current string) string { return current + ".next" }
 
 func (a ArchitectureRevision) Explain() string {
-	return fmt.Sprintf("job architecture %s revision=%s families=%d levels=%d grades=%d profiles=%d digest=%s", a.ID, a.Revision, len(a.Families), len(a.Levels), len(a.Grades), len(a.Profiles), a.CanonicalDigest)
+	governed := 0
+	classifications, qualifications, skills, credentials := 0, 0, 0, 0
+	for _, profile := range a.Profiles {
+		r := profile.requirements()
+		if !r.Classification.empty() || len(r.Qualifications) != 0 || len(r.Skills) != 0 || len(r.Credentials) != 0 || !r.Compensation.empty() {
+			governed++
+		}
+		if !r.Classification.empty() {
+			classifications++
+		}
+		qualifications += len(r.Qualifications)
+		skills += len(r.Skills)
+		credentials += len(r.Credentials)
+	}
+	return fmt.Sprintf("job architecture %s revision=%s families=%d levels=%d grades=%d profiles=%d requirements=%d classifications=%d qualifications=%d skills=%d credentials=%d digest=%s", a.ID, a.Revision, len(a.Families), len(a.Levels), len(a.Grades), len(a.Profiles), governed, classifications, qualifications, skills, credentials, a.CanonicalDigest)
 }
 
 // Explain is the package-level audit explanation entry point.

@@ -546,12 +546,20 @@ type SlateStore interface {
 // MemorySlateStore keeps only the latest revision per role and rejects forks
 // or conflicting current revisions. It is a fake port, not domain storage.
 type MemorySlateStore struct {
-	mu      sync.RWMutex
-	current map[string]SuccessionSlate
+	mu        sync.RWMutex
+	current   map[string]SuccessionSlate
+	critical  map[string]map[string]map[uint64]CriticalRole
+	readiness map[string]map[string]map[uint64]SuccessorReadinessRevision
+	slates    map[string]map[string]map[uint64]SuccessionSlate
 }
 
 func NewMemorySlateStore() *MemorySlateStore {
-	return &MemorySlateStore{current: make(map[string]SuccessionSlate)}
+	return &MemorySlateStore{
+		current:   make(map[string]SuccessionSlate),
+		critical:  make(map[string]map[string]map[uint64]CriticalRole),
+		readiness: make(map[string]map[string]map[uint64]SuccessorReadinessRevision),
+		slates:    make(map[string]map[string]map[uint64]SuccessionSlate),
+	}
 }
 func (m *MemorySlateStore) Save(s SuccessionSlate) error {
 	if err := s.Validate(); err != nil {
