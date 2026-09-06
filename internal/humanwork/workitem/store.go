@@ -26,10 +26,10 @@ type Executor interface {
 }
 
 // Port is the surface a durable driver calls: Create, Route, Claim, Start,
-// Complete, Return, Escalate, Expire, Cancel, Load, ListForInstance. There is
-// no lease-expiry sweep and no timer here -- WF-RUN-000 gates every one of
-// those behind the P1B re-evaluation, and every instant a method below needs
-// is supplied by the caller.
+// Complete, Return, Escalate, Expire, Cancel, Reassign, Load,
+// ListForInstance. There is no lease-expiry sweep and no timer here --
+// WF-RUN-000 gates every one of those behind the P1B re-evaluation, and every
+// instant a method below needs is supplied by the caller.
 type Port interface {
 	Create(ctx context.Context, ex Executor, item WorkItem, meta TransitionMeta) (WorkItem, error)
 	Route(ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID, expectedVersion int64, assignment Assignment, meta TransitionMeta) (WorkItem, error)
@@ -40,6 +40,10 @@ type Port interface {
 	Escalate(ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID, expectedVersion int64, meta TransitionMeta) (WorkItem, error)
 	Expire(ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID, expectedVersion int64, meta TransitionMeta) (WorkItem, error)
 	Cancel(ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID, expectedVersion int64, meta TransitionMeta) (WorkItem, error)
+	// Reassign is WORK-004: re-resolve and re-route a work item whose
+	// previously routed owner or candidate set is no longer authorized or
+	// available.
+	Reassign(ctx context.Context, ex Executor, in ReassignInput) (WorkItem, error)
 	Load(ctx context.Context, ex Executor, tenantID, workItemID uuid.UUID) (WorkItem, error)
 	ListForInstance(ctx context.Context, ex Executor, tenantID, instanceID uuid.UUID) ([]WorkItem, error)
 }

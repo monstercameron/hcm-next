@@ -15,6 +15,13 @@ const ignoredPathSegments = new Set([
 ]);
 
 const allowedTryCatchFiles = new Set([
+  // Vendored Go toolchain shim copied verbatim from $(go env GOROOT)/lib/wasm.
+  "internal/humanwork/workspace/assets/wasm_exec.js",
+  // Planning design demo and its test harness; not application code.
+  "planning/design/demo/workspace.js",
+  "planning/design/demo/workspace.test.cjs",
+  // Repository policy script; the catch is its own reporting boundary.
+  "scripts/check-race-policy.mjs",
   "src/platform/client-device-state/device-state.ts",
   "src/platform/data-store/client/transaction.ts",
   "src/platform/foundation/result/from-promise.ts",
@@ -25,7 +32,6 @@ const allowedProcessEnvFiles = new Set([
   "tools/uxqual/browser/playwright.config.mjs",
   "src/api/dependencies.ts",
   "src/api/main.ts",
-  "src/console/playwright.config.mjs",
   "src/platform/data-store/client/database-client.ts",
   "src/third-party-apis/compensation-decision/main.ts",
   "src/third-party-apis/compensation-market/main.ts",
@@ -34,7 +40,6 @@ const allowedProcessEnvFiles = new Set([
 const allowedFetchFiles = new Set([
   "src/api/compensation-decision-client.ts",
   "src/api/executor-client.ts",
-  "src/console/src/api/workflow-api.ts",
   "src/platform/foundation/executor/executor-client.ts",
   "src/platform/workflow-runtime/executor/executor-client.ts",
   "src/tests/support/workflow-api-client.ts",
@@ -171,9 +176,7 @@ const isAllowedProcessEnvFile = (filePath) =>
   allowedProcessEnvFiles.has(filePath) || filePath.startsWith("scripts/");
 
 const isAllowedFetchFile = (filePath) =>
-  allowedFetchFiles.has(filePath) ||
-  filePath.startsWith("src/console/src/api/") ||
-  isTestFile(filePath);
+  allowedFetchFiles.has(filePath) || isTestFile(filePath);
 
 const isAllowedSqlFile = (filePath) =>
   isTestFile(filePath) || filePath.startsWith("src/platform/data-store/");
@@ -242,10 +245,7 @@ const targetsForbiddenLayer = (filePath, specifier) => {
   return (
     target === "@hcm-next/api" ||
     target.startsWith("@hcm-next/api/") ||
-    target === "@hcm-next/console" ||
-    target.startsWith("@hcm-next/console/") ||
-    target.startsWith("src/api/") ||
-    target.startsWith("src/console/")
+    target.startsWith("src/api/")
   );
 };
 
@@ -339,7 +339,7 @@ const violationsForSourceFile = (filePath, sourceFile) => {
       locations.push({
         ...locationForNode(sourceFile, node.moduleSpecifier),
         message:
-          "Lower layers must not import API or console modules. Move shared contracts into platform/workflows.",
+          "Lower layers must not import API modules. Move shared contracts into platform/workflows.",
         rule: "dependency-direction",
       });
     }

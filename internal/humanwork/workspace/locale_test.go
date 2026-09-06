@@ -112,8 +112,8 @@ func TestTodo_UX_004_Fault(t *testing.T) {
 // TestTodo_UX_004_Security fixes the authority boundary: a locale can select
 // no legal or governed context, and unsupported input is visibly defaulted.
 func TestTodo_UX_004_Security(t *testing.T) {
-	for i := 0; i < reflect.TypeOf(LocaleContext{}).NumField(); i++ {
-		field := strings.ToLower(reflect.TypeOf(LocaleContext{}).Field(i).Name)
+	for structField := range reflect.TypeFor[LocaleContext]().Fields() {
+		field := strings.ToLower(structField.Name)
 		for _, forbidden := range []string{"legal", "jurisdiction", "authority", "country", "region", "policy", "payroll", "tax"} {
 			if strings.Contains(field, forbidden) {
 				t.Errorf("LocaleContext field %q grants or implies forbidden authority %q", field, forbidden)

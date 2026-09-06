@@ -59,6 +59,10 @@ type Options struct {
 	// explicitly. When on, the session cookie PathLogin sets is also accepted
 	// as the bearer source for every other workspace route.
 	DevBrowserLogin bool
+	// Journey is the live engine the Promotion journey page reads and acts
+	// through (journey_port.go). Nil means the journey routes answer that
+	// execution is not composed on this cell.
+	Journey JourneyEngine
 }
 
 // Handler serves the Promotion workspace over one live cell.
@@ -107,6 +111,8 @@ func NewHandler(opts Options) (*Handler, error) {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+PathPromotion, h.servePromotion)
+	mux.HandleFunc("GET "+PathJourney, h.serveJourney)
+	mux.HandleFunc("GET "+PathProductPrefix+"{page}", h.serveProduct)
 	mux.HandleFunc("POST "+PathSimulate, h.serveSimulate)
 	mux.HandleFunc("GET "+PathReceiptPrefix+"{digest}", h.serveReceipt)
 	mux.HandleFunc("GET "+PathAssetPrefix+"{name}", h.serveAsset)
@@ -131,8 +137,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func Routes() []Route {
 	return []Route{
 		{
+			Path: PathProductPrefix + "{page}", Method: http.MethodGet,
+			Description: "Serve the authenticated Go/WASM product shell backed by canonical JourneyService RPCs.",
+			EffectClass: effectClassReadOnly,
+		},
+		{
 			Path: PathPromotion, Method: http.MethodGet,
 			Description: "Render the Promotion workspace for ?worker=<ref> from live cell data.",
+			EffectClass: effectClassReadOnly,
+		},
+		{
+			Path: PathJourney, Method: http.MethodGet,
+			Description: "Serve the Promotion journey page shell; its client reaches the cell's gRPC services over the WebSocket tunnel.",
 			EffectClass: effectClassReadOnly,
 		},
 		{
@@ -192,18 +208,13 @@ func (h *Handler) admit(w http.ResponseWriter, r *http.Request) (*http.Request, 
 // and only place a cookie ever substitutes for the header the API requires,
 // it is entirely gated behind the operator's own explicit flag, and it never
 // changes what admission itself does with the resulting metadata.
+//
+// The rule itself lives in [AdmissionMetadata] (tunnel_admission.go) because
+// the cell's gRPC-over-WebSocket tunnel admits the very same browser session
+// on its upgrade request and must apply the identical rule; one exported
+// function is how "the one and only place" stays true across two surfaces.
 func (h *Handler) admissionMetadata(r *http.Request) transport.Metadata {
-	md := transport.MapMetadata(r.Header)
-	if !h.devBrowserLogin || len(md.Get(transport.AuthorizationMetadataKey)) > 0 {
-		return md
-	}
-	cookie, err := r.Cookie(loginSessionCookie)
-	if err != nil || cookie.Value == "" {
-		return md
-	}
-	cloned := r.Header.Clone()
-	cloned.Set("Authorization", "Bearer "+cookie.Value)
-	return transport.MapMetadata(cloned)
+	return AdmissionMetadata(r, h.devBrowserLogin)
 }
 
 // ---------------------------------------------------------------------------

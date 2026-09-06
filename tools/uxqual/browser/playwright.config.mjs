@@ -1,7 +1,5 @@
 // Standalone Playwright config for UX-QUAL-001's supplementary real-browser
-// pass. It is scoped entirely to tools/uxqual/browser (this lane may not
-// edit the repository's existing src/console/playwright.config.mjs or
-// package.json), and needs no webServer: the specs load the static
+// pass. It is scoped entirely to tools/uxqual/browser and needs no webServer: the specs load the static
 // documents tools/uxqual/cmd/genfixtures writes to
 // tools/uxqual/testdata/rendered/*.html directly via file:// URLs.
 //

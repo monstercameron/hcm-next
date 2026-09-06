@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -102,9 +103,7 @@ func localizeMoneyPrefix(locale LocaleContext, value string) string {
 // a locale's punctuation.
 func CanonicalizePresentationAnswers(locale LocaleContext, currency string, answers map[string]string) (map[string]string, error) {
 	canonical := make(map[string]string, len(answers))
-	for key, value := range answers {
-		canonical[key] = value
-	}
+	maps.Copy(canonical, answers)
 	if value, ok := canonical[FieldProposedComp]; ok && value != "" {
 		amount, err := canonicalAmountOrLocalized(locale, value, currency)
 		if err != nil {

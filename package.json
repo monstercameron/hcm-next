@@ -10,13 +10,12 @@
   },
   "workspaces": [
     "src/api",
-    "src/console",
     "src/platform/*",
     "src/third-party-apis/*"
   ],
   "scripts": {
     "dev": "npm --workspace @hcm-next/api run dev",
-    "dev:console": "npm --workspace @hcm-next/console run dev",
+    "dev:frontend": "go run ./cmd/frontenddev",
     "dev:blocks": "cd src/blocks/go && go run ./cmd/executor",
     "dev:executor": "npm run dev:blocks",
     "dev:third-party:compensation": "npm --workspace @hcm-next/third-party-compensation-market-api run dev",
@@ -26,17 +25,21 @@
     "check:code-style": "node scripts/check-code-style.mjs",
     "check:code-style:staged": "node scripts/check-code-style.mjs --staged",
     "check:go": "node scripts/check-go-style.mjs",
+    "check:race-policy": "node scripts/check-race-policy.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run src/tests/e2e src/workflows && npm run test --workspaces --if-present",
-    "test:console:ux": "playwright test --config src/console/playwright.config.mjs",
     "test:uxqual-browser": "go run ./tools/uxqual/cmd/genfixtures && playwright test -c tools/uxqual/browser/playwright.config.mjs",
     "test:go": "cd src/blocks/go && go test ./...",
-    "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run check:code-style && npm run check:go && npm run test && npm run test:go && npm run build",
+    "test:all": "npm run format:check && npm run typecheck && npm run lint && npm run check:code-style && npm run check:go && npm run check:race-policy && npm run check:driftgate && npm run check:apigate && npm run check:substratecoverage && npm run check:enginecoverage && npm run test && npm run test:go && npm run build",
     "db:migrate": "npm --workspace @hcm-next/data-store run db:migrate",
     "db:seed": "npm --workspace @hcm-next/data-store run db:seed",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check:driftgate": "go run ./tools/policy/driftgate/cmd/driftgate -root .",
+    "check:apigate": "go run ./tools/policy/apigate/cmd/apigate -root .",
+    "check:substratecoverage": "go run ./tools/policy/substratecoverage/cmd/substratecoverage -root .",
+    "check:enginecoverage": "go run ./tools/policy/enginecoverage/cmd/enginecoverage -root ."
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,css}": [

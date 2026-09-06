@@ -1,12 +1,23 @@
-This directory holds the optional GWC/WASM progressive-enhancement bundle for
-the Promotion workspace. A stock checkout carries only this marker file, and
-the workspace then serves the server-rendered document alone.
+This directory holds the optional GWC/WASM progressive-enhancement bundle and
+the checked-in profile-photo source assets used by the product demo.
+
+Each profile photo has two deliberately different artifacts:
+
+    person-<identity>.png        immutable uploaded/source original
+    person-<identity>-small.jpg  160x160 display proxy
+
+The browser-facing product projection and public asset allowlist reference
+only the small proxy; originals are not web-routable.
+The shared Avatar component adds loading="lazy" and decoding="async", so a
+directory does not fetch off-screen portraits. The original remains available
+to a future governed media pipeline for replacement proxy generation and is
+never overwritten by that generation step.
 
 To build the bundle into this directory:
 
     GOOS=js GOARCH=wasm go build -o internal/humanwork/workspace/assets/uxqual.wasm ./tools/uxqual/cmd/uxqualwasm
     cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" internal/humanwork/workspace/assets/wasm_exec.js
 
-Neither file is committed: the server-rendered page is already the qualified
+Neither WASM file is committed: the server-rendered page is already the qualified
 renderer (definitions/ux/workspace-renderer-decision.yaml), so a multi-megabyte
 binary in the source tree would buy nothing a reader can see.

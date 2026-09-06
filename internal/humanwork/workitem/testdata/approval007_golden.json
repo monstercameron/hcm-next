@@ -1,0 +1,28 @@
+{
+  "slots": [
+    {
+      "requirement_id": "req.promotion.current_manager/v1",
+      "work_type": "req.promotion.current_manager/v1",
+      "status": "AVAILABLE",
+      "owner_kind": "CANDIDATE_SET",
+      "owner_ref_prefix": "candidates:req.promotion.current_manager/v1@",
+      "visibility": "CANDIDATE_SET"
+    },
+    {
+      "requirement_id": "req.promotion.hrbp/v1",
+      "work_type": "req.promotion.hrbp/v1",
+      "status": "ASSIGNED",
+      "owner_kind": "PRINCIPAL",
+      "owner_ref_prefix": "principal:hrbp-2",
+      "visibility": "ASSIGNEE_ONLY"
+    },
+    {
+      "requirement_id": "req.promotion.compensation_partner/v1",
+      "work_type": "req.promotion.compensation_partner/v1",
+      "status": "ASSIGNED",
+      "owner_kind": "PRINCIPAL",
+      "owner_ref_prefix": "principal:comp-3",
+      "visibility": "ASSIGNEE_ONLY"
+    }
+  ]
+}
