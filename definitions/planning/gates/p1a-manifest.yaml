@@ -207,10 +207,148 @@ migrations:
       checksum: "sha256:66456f272426dd4be67b53c22a1fe22c5ce034b2d8b0a253dae07312c6940582"
     - version: 21
       name: 00021_governance_authz_legal_evidence.sql
-      checksum: "sha256:ca221dc8627c4789223a11e37bf34b45e9070dd337be3899edb01770d06f50f2"
+      checksum: "sha256:7b7ab81f101960235e1d11ebbfc71e3029eb0e3c6f27563c34a96c4ae28c9008"
+    - version: 22
+      name: 00022_work_item_decision.sql
+      checksum: "sha256:7d5b5f3a9f8481bc3ca402acf6725939da7e051f302e71b6b81c72035c3d2d76"
+    - version: 23
+      name: 00023_journey_workforce.sql
+      checksum: "sha256:f5441ad9e8a599edfbbfd2d6e94b43aeb08746c26fe781d5d1befe9a9b0954c9"
+    - version: 24
+      name: 00024_intent_control.sql
+      checksum: "sha256:91ef6e90aa9647fb956e3724821092a7d92178b02bcb9cb7815a94bc94d4f008"
+    - version: 25
+      name: 00025_schema_snapshot.sql
+      checksum: "sha256:578eaf430926cd4c7469e0203944fb1affb91738cf3d3365b9ce77ab28ce9f9e"
+    - version: 26
+      name: 00026_workflow_scheduling_state.sql
+      checksum: "sha256:def59c9766401b47175a7aaa93230a0dfeda67d535e8dac7b7571ee687d8a426"
+    - version: 27
+      name: 00027_config_object.sql
+      checksum: "sha256:1c2d20e8944ac43217f7511e0e14e80c762d573fe446b0331dd15e4288613aed"
+    - version: 28
+      name: 00028_ledger_checkpoint_epoch.sql
+      checksum: "sha256:561902f4e4639bcf42809866b8d9fd4cef1b41b59c238a98ca67d4a7c90d521b"
+    - version: 29
+      name: 00029_tenant_bootstrap_receipt.sql
+      checksum: "sha256:139f01e6efdd48953d52fdf72bfb7992684887fa030d6ab242bbee44f08babf8"
+    - version: 30
+      name: 00030_artifact_quarantine.sql
+      checksum: "sha256:4d14cc8138a2928c0db236694d882bca3248d66523152eb03158679dc0b2a2e9"
+    - version: 31
+      name: 00031_integration_messaging_document_metadata.sql
+      checksum: "sha256:3bd80d4a86c2a4785bc5517043139d18f907b0cf51129a4f548b2712a9f1a1e5"
+    - version: 32
+      name: 00032_privacy_records_operations_assurance.sql
+      checksum: "sha256:d9e87cc7f17453e090768639380291fea2c57fbcbcae05b497fc35165e0fb822"
+    - version: 33
+      name: 00033_inbox_record.sql
+      checksum: "sha256:9416309a177ea6f90c1481f71b201a96e7665f7cd06fb32f3ebe7330e63d239f"
+    - version: 34
+      name: 00034_job_definitions.sql
+      checksum: "sha256:a59be31762251ee88f90567cd430c0325fdc9a7664a80c6051bd68c799ce3d7e"
+    - version: 35
+      name: 00035_inbound_reply.sql
+      checksum: "sha256:20ef7a58307d14b3746a0156f77abccfb6b79703f55959daf919423e2ffbcabe"
+    - version: 37
+      name: 00037_lexical_search.sql
+      checksum: "sha256:d1bf4fbc4693b53e9bb46f37947a695183133463c1647344e53ed2d5ad51d01c"
+    - version: 38
+      name: 00038_issuer_registry.sql
+      checksum: "sha256:7858e0e72e88f5f4e41ef9ad6f65c1e571b4d3ff40a0a515d5af21d799792137"
+    - version: 40
+      name: 00040_effect_reconciliation_job.sql
+      checksum: "sha256:8efc1a58e468b13d0cde1ccef5e815a70fbab41511bc19fad5b2bdd06d2742d8"
+    - version: 41
+      name: 00041_session_store.sql
+      checksum: "sha256:0672f392bbe49e8fedfe37e2ae4129ba6c6625f28b1729d9efb3f4407a35de6a"
+    - version: 43
+      name: 00043_position_reservation.sql
+      checksum: "sha256:ef1411a3a2356d4e3c692e7285bb77fa98126d17645ca9ab2ef9d2bbff040e44"
+    - version: 44
+      name: 00044_budget_reservation.sql
+      checksum: "sha256:4f23346e1253c7836b6995e3872a3a1ff86e3e1291a0f2fb7435900002ffa274"
+    - version: 45
+      name: 00045_attestation.sql
+      checksum: "sha256:131d54858eee13d57bfe446dd866e7099cf106a8a5774b8e25e59b4957ddcf8a"
+    - version: 46
+      name: 00046_payroll_run.sql
+      checksum: "sha256:20ddba54b257281d7063b6dd6ffae02fadbde31869a029ac79a5958cef4021ef"
+    - version: 47
+      name: 00047_paygl_labor.sql
+      checksum: "sha256:6f158904dc2ca55dc707afff6ae640da254591d5e8b84dd387aaf76956288f4c"
+    - version: 48
+      name: 00048_job_architecture.sql
+      checksum: "sha256:51e160a2539cccee22a28a3f065616dee03e3f25997285420e807718cf476083"
+    - version: 49
+      name: 00049_location.sql
+      checksum: "sha256:c124600010dda817b1d8d9aae75b9ee8d7b3b9978f50733939fd8b2bdefcfdba"
+    - version: 50
+      name: 00050_tenant_placement.sql
+      checksum: "sha256:72c6ac080ee0259fa50710cec0956c1e3c7a2c6150c43ea0cd720ca67bbb2790"
+    - version: 51
+      name: 00051_balance_accumulator.sql
+      checksum: "sha256:e13eac678077b0c099fb4bcde021f683b5d199332bbc430ca619f4903d317459"
+    - version: 52
+      name: 00052_access_identity.sql
+      checksum: "sha256:823de1e84b99160027491ab6b939cc16542fd153a394af2eb9de36296901e2cd"
+    - version: 53
+      name: 00053_legal_evidence.sql
+      checksum: "sha256:5d76fe9f592cda48ec2debe2f97796fd38041dbc1d3379c56a9e8e14523e4cc7"
+    - version: 54
+      name: 00054_data_008_outbox_lease_fence.sql
+      checksum: "sha256:20855e4486b1430fabf884db6d2cae6e45d28570fe87a3d08b4aa864917abbe7"
+    - version: 55
+      name: 00055_data_009_consumer_position.sql
+      checksum: "sha256:2212315730fd5c3a2595c2619847180daa29288d1a4497cae39d7d10edb8879c"
+    - version: 56
+      name: 00056_data_018_record_copy_links.sql
+      checksum: "sha256:b5e44a996fdcf1d429ffea614536cf985fa3951d124aca8fa1f517deed0a773b"
+    - version: 57
+      name: 00057_data_013_replay_snapshots.sql
+      checksum: "sha256:5d7e97436cb1a6669fc4ef3f1c81dbba8ecd7bccb79cb761421fbd1c003fc008"
+    - version: 61
+      name: 00061_promotion_people_write_evidence.sql
+      checksum: "sha256:83c260e88f5b36a12eec8e023cf3dad27912e0cd0a142cc509776c2ba6537966"
+    - version: 62
+      name: 00062_promotion_organization_manager_evidence.sql
+      checksum: "sha256:e9e7a6712972dd562c8219c1921479b6b146299a63440c189461e66196f77cd9"
+    - version: 63
+      name: 00063_promotion_compensation_evidence.sql
+      checksum: "sha256:d81edf1c0dd0dc0084cc83b01419a2ade2d5b723c45cbccc5f3824eec3e018bc"
+    - version: 64
+      name: 00064_promotion_invariant_evaluation.sql
+      checksum: "sha256:287766ff9d87d3255fedeea34929ebf225951d8b496c8a64240b60c0b4915080"
+    - version: 65
+      name: 00065_connector_operation_dispatch_lease.sql
+      checksum: "sha256:a9380b8a1d91378aafa560cc3e722ab05323074f142de194b6e58d4eb5d9fefb"
+    - version: 66
+      name: 00066_connector_operation_resource_order.sql
+      checksum: "sha256:4467bb957b67dd4b4b43a3e3d4efcf4406464ea5184684f20f2c302ea2b2544f"
+    - version: 67
+      name: 00067_connector_operation_observation_requirement.sql
+      checksum: "sha256:f1ee43c8564232ecebb257eb73523e6bd4564180582aadf7fae42ddf33c9ce06"
+    - version: 68
+      name: 00068_connector_operation_redrive.sql
+      checksum: "sha256:6791ed0cadfe4ee9e74712cfd027b78c144f1dcfbd6bc26e6a732d4b2efd99bb"
+    - version: 69
+      name: 00069_intent_outcome_refs.sql
+      checksum: "sha256:7ff9c321f08cb3ad92f3b98e62ebeab223c90c6d12a3ecf0c94e3f4104f31494"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
+    - version: 36
+      reason: "No 00036_*.sql file was ever added under migrations/ (git history has no add or delete for that version); the lanes that wrote 00035 and 00037 on 2026-09-04 numbered past it. Recorded on 2026-09-05 as an unexplained gap rather than renumbered."
+    - version: 39
+      reason: "00039 was a no-op migration written by the RECON-001 lane that collided with the table 00031 already owns; removed on 2026-09-05 during integration rather than renumbered, so the version stays vacant."
+    - version: 42
+      reason: "00042 was reserved for the session-store follow-up and never written; the PERSIST backfill took 00043 onward on 2026-09-05. Recorded as a deliberate gap."
+    - version: 58
+      reason: "00058 through 00060 were reserved for the DATA-007 chain on 2026-09-05; the chain needed only 00054 through 00057, so the reservation was released unused and recorded as a deliberate gap."
+    - version: 59
+      reason: "Reserved for the DATA-007 chain on 2026-09-05 and released unused (see 00058)."
+    - version: 60
+      reason: "Reserved for the DATA-007 chain on 2026-09-05 and released unused (see 00058)."
 
 # The four toolchain qualification decisions this P1A manifest depends on.
 qualification_decisions:
@@ -271,4 +409,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "e7289337946ce05b397a1b5b3afd12ab2fd2168adc33b6a0b0d616fb7650456f9bb71e361569cc6f16d825f8bb51a4458764f0a02a49ded07c1c7779fff63909"
+  value: "dc373df35f4ff61a5c14c23600651b8ba3fd46e914508b68ff96beec52542b621a91c3d131acb6f17a705b3ee8950a985ed3781ef8409632821932b564044709"

@@ -101,6 +101,16 @@ jobs:
       # RED/GREEN proof.
       - name: Run root module tests with the race detector (TOOL-012)
         run: go test -race -count=1 ./...
+      - name: Drift gate (MSRC-010)
+        run: go run ./tools/policy/driftgate/cmd/driftgate -root .
+      - name: API compatibility gate (PROTO-008)
+        run: go run ./tools/policy/apigate/cmd/apigate -root .
+      - name: Substrate coverage (SUBSTRATE-COVERAGE-001)
+        run: go run ./tools/policy/substratecoverage/cmd/substratecoverage -root .
+      - name: Engine coverage (ENGINE-COVERAGE-001)
+        run: go run ./tools/policy/enginecoverage/cmd/enginecoverage -root .
+      - name: Verify concurrent-package race coverage policy (TOOL-012)
+        run: go run ./tools/policy/racepolicy/cmd/racepolicy -root .
 
   go-core-ephemeral-pg:
     name: Go tests (ephemeral embedded PostgreSQL, TOOL-014)

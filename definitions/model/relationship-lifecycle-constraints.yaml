@@ -96,7 +96,7 @@ lifecyclechecks:
       - NOT_STARTED
       - UNKNOWN
     sql: CHECK (business_state IN ('COMPLETED', 'CORRECTED', 'IN_PROGRESS', 'NOT_ACHIEVED', 'NOT_STARTED', 'UNKNOWN'))
-    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+    conformancenote: 'MATCHES_MIGRATIONS: allowed value set is identical'
   - entityref: IntentInstance/v1
     column: consistency_state
     generatedvalues:
@@ -107,7 +107,7 @@ lifecyclechecks:
       - REPAIRING
       - UNKNOWN
     sql: CHECK (consistency_state IN ('CONSISTENT', 'DEGRADED', 'NOT_APPLICABLE', 'PENDING_OBSERVATION', 'REPAIRING', 'UNKNOWN'))
-    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+    conformancenote: 'MATCHES_MIGRATIONS: allowed value set is identical'
   - entityref: IntentInstance/v1
     column: execution_state
     generatedvalues:
@@ -119,7 +119,7 @@ lifecyclechecks:
       - REVALIDATING
       - SCHEDULED
     sql: CHECK (execution_state IN ('BLOCKED', 'COMMITTED', 'EXECUTING', 'NOT_PLANNED', 'REPAIR_REQUIRED', 'REVALIDATING', 'SCHEDULED'))
-    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+    conformancenote: 'MATCHES_MIGRATIONS: allowed value set is identical'
   - entityref: IntentInstance/v1
     column: obligation_state
     generatedvalues:
@@ -130,7 +130,7 @@ lifecyclechecks:
       - UNKNOWN
       - WAIVED
     sql: CHECK (obligation_state IN ('NOT_APPLICABLE', 'OVERDUE', 'PENDING', 'SATISFIED', 'UNKNOWN', 'WAIVED'))
-    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+    conformancenote: 'MATCHES_MIGRATIONS: allowed value set is identical'
   - entityref: IntentInstance/v1
     column: request_state
     generatedvalues:
@@ -146,4 +146,4 @@ lifecyclechecks:
       - SUPERSEDED
       - WITHDRAWN
     sql: CHECK (request_state IN ('APPROVED', 'CANCELLED', 'CLOSED', 'DRAFT', 'PREFLIGHTED', 'REJECTED', 'REOPENED', 'SIMULATED', 'SUBMITTED', 'SUPERSEDED', 'WITHDRAWN'))
-    conformancenote: "MATCHES_MIGRATIONS: allowed value set is identical"
+    conformancenote: 'MATCHES_MIGRATIONS: allowed value set is identical'

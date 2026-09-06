@@ -10,6 +10,11 @@ export default tseslint.config(
       "**/coverage/**",
       "**/node_modules/**",
       "**/next-env.d.ts",
+      // Planning design demo: a static mock-up and its Node test harness, not
+      // application code.
+      "planning/design/demo/**",
+      // Vendored Go toolchain shim (gitignored, copied from GOROOT/lib/wasm).
+      "internal/humanwork/workspace/assets/wasm_exec.js",
     ],
   },
   js.configs.recommended,

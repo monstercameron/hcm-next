@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="HCM Next customer-brandable workspace design slice. Fictional data and local-only interactions."
+    />
+    <title>Northstar · HCM Next</title>
+    <link rel="stylesheet" href="demo/workspace.css" />
+    <script defer src="https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js"></script>
+    <script defer src="demo/workspace.js"></script>
+  </head>
+  <body>
+    <div
+      id="hcm-workspace-demo"
+      data-layout="focus"
+      data-menu="closed"
+      aria-label="HCM Next customizable workspace"
+    >
+      <header class="hcm-header">
+        <div class="hcm-logo">
+          <span class="hcm-wordmark" id="hcm-brand-name">HCM Next</span
+          ><button
+            class="hcm-quiet hcm-mobile-menu"
+            id="hcm-menu"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+          >
+            <i data-lucide="menu" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="hcm-topbar">
+          <label class="hcm-search"
+            ><i data-lucide="search" aria-hidden="true"></i
+            ><input
+              id="hcm-search-input"
+              aria-label="Search people, work, or actions"
+              placeholder="Search people, work, or actions" /></label
+          ><button
+            class="hcm-button"
+            id="hcm-customize"
+            aria-expanded="false"
+            aria-controls="hcm-customizer"
+          >
+            <i data-lucide="sliders-horizontal" aria-hidden="true"></i>Customize
+            workspace
+          </button>
+          <div class="hcm-user">
+            <button
+              class="hcm-quiet"
+              id="hcm-notifications"
+              aria-label="Notifications, 3 unread"
+            >
+              <i data-lucide="bell" aria-hidden="true"></i></button
+            ><span class="hcm-avatar">MC</span
+            ><span class="hcm-user-name">Maya Chen</span>
+          </div>
+        </div>
+      </header>
+      <section
+        class="hcm-customizer"
+        id="hcm-customizer"
+        hidden
+        aria-label="Customer branding and layout options"
+      >
+        <div class="hcm-flex" style="justify-content: space-between">
+          <h2>Your brand. Your workspace.</h2>
+          <button class="hcm-quiet" id="hcm-reset">Restore defaults</button>
+        </div>
+        <div class="hcm-controls">
+          <label class="hcm-field"
+            >Company name<input
+              id="hcm-company-input"
+              value="Northstar Group"
+              maxlength="40"
+          /></label>
+          <div class="hcm-field">
+            <span>Brand accent</span>
+            <div class="hcm-swatches">
+              <button
+                class="hcm-swatch"
+                data-accent="#006b57"
+                aria-label="Emerald brand"
+                aria-pressed="true"
+              >
+                <span style="--swatch: #006b57"></span></button
+              ><button
+                class="hcm-swatch"
+                data-accent="#2159b5"
+                aria-label="Cobalt brand"
+                aria-pressed="false"
+              >
+                <span style="--swatch: #2159b5"></span></button
+              ><button
+                class="hcm-swatch"
+                data-accent="#6a3d7c"
+                aria-label="Plum brand"
+                aria-pressed="false"
+              >
+                <span style="--swatch: #6a3d7c"></span></button
+              ><input
+                type="color"
+                id="hcm-accent-input"
+                value="#006b57"
+                aria-label="Custom brand accent"
+              />
+            </div>
+          </div>
+          <label class="hcm-field"
+            >Shape<select id="hcm-shape">
+              <option value="balanced">Balanced corners</option>
+              <option value="square">Squared corners</option>
+              <option value="soft">Soft corners</option>
+            </select></label
+          >
+          <label class="hcm-field"
+            >Navigation organization<select id="hcm-navigation">
+              <option value="standard">Product areas</option>
+              <option value="department">By department</option>
+              <option value="daily">My day</option>
+            </select></label
+          >
+          <label class="hcm-field"
+            >Home layout<select id="hcm-layout">
+              <option value="focus">Work first</option>
+              <option value="team">Team first</option>
+              <option value="briefing">Wide briefing</option>
+            </select></label
+          >
+          <label class="hcm-field"
+            >Density<select id="hcm-density">
+              <option value="comfortable">Comfortable</option>
+              <option value="compact">Compact</option>
+            </select></label
+          >
+          <label class="hcm-field"
+            >Network simulation<select id="hcm-latency">
+              <option value="350">Fast · 350 ms</option>
+              <option value="750" selected>Typical · 750 ms</option>
+              <option value="1500">Slow · 1.5 s</option>
+            </select></label
+          >
+        </div>
+        <label class="hcm-field" style="max-width: 320px; margin-top: 20px"
+          >Navigation surface<select id="hcm-nav-tone">
+            <option value="light">Light</option>
+            <option value="dark">Deep green</option>
+          </select></label
+        >
+        <p
+          class="hcm-small"
+          id="hcm-theme-check"
+          style="margin-top: 15px"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </section>
+      <div class="hcm-shell">
+        <aside class="hcm-sidebar" aria-label="Workspace navigation">
+          <div class="hcm-company">
+            <i data-lucide="building-2" aria-hidden="true"></i
+            ><span id="hcm-tenant-name">Northstar Group</span>
+          </div>
+          <nav id="hcm-navigation-items" aria-label="Main"></nav>
+          <div class="hcm-nav-bottom">
+            <button class="hcm-nav-button" id="hcm-help">
+              <i data-lucide="circle-help" aria-hidden="true"></i>Help</button
+            ><button class="hcm-nav-button" id="hcm-settings">
+              <i data-lucide="settings-2" aria-hidden="true"></i>Settings
+            </button>
+          </div>
+        </aside>
+        <main class="hcm-main" tabindex="-1">
+          <div class="hcm-page-heading">
+            <div>
+              <div class="hcm-eyebrow">Saturday, September 5</div>
+              <h1 id="hcm-page-title">Good morning, Maya.</h1>
+              <p class="hcm-subtitle" id="hcm-page-subtitle">
+                Review requests and keep your team moving.
+              </p>
+            </div>
+            <div class="hcm-scope-wrap">
+              <button class="hcm-scope" id="hcm-scope">
+                <i data-lucide="users" aria-hidden="true"></i>People Operations · North
+                America<i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+              <span>Acting as yourself</span>
+            </div>
+          </div>
+          <div id="hcm-home-view">
+            <section class="hcm-work-overview" id="hcm-work-overview" hidden>
+              <div class="hcm-work-metric">
+                <span>Open assignments</span><strong id="hcm-summary-open">4</strong>
+              </div>
+              <div class="hcm-work-metric">
+                <span>Ready for review</span><strong id="hcm-summary-review">3</strong>
+              </div>
+              <div class="hcm-work-metric">
+                <span>Waiting on others</span
+                ><strong id="hcm-summary-waiting">1</strong>
+              </div>
+              <div class="hcm-work-metric hcm-work-metric-alert">
+                <span>Due today</span><strong id="hcm-summary-due">1</strong>
+              </div>
+            </section>
+            <div class="hcm-home-layout" id="hcm-home-layout">
+              <section class="hcm-surface" id="hcm-attention">
+                <div class="hcm-section-head">
+                  <h2 id="hcm-queue-title">Needs your attention</h2>
+                  <span class="hcm-small" id="hcm-queue-count">4 items</span>
+                </div>
+                <div class="hcm-tabs" aria-label="Filter work">
+                  <button class="hcm-tab" data-filter="all" aria-pressed="true">
+                    All work</button
+                  ><button class="hcm-tab" data-filter="review" aria-pressed="false">
+                    Ready for review</button
+                  ><button class="hcm-tab" data-filter="waiting" aria-pressed="false">
+                    Waiting
+                  </button>
+                  <button class="hcm-tab" data-filter="complete" aria-pressed="false">
+                    Completed
+                  </button>
+                </div>
+                <div id="hcm-work-list"></div>
+                <div class="hcm-panel-footer" id="hcm-work-footer">
+                  <span class="hcm-small">Your authorized work</span
+                  ><button class="hcm-quiet" id="hcm-open-work">
+                    View My Work <i data-lucide="arrow-right" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </section>
+              <div class="hcm-aside-stack" id="hcm-aside-stack">
+                <section class="hcm-surface">
+                  <div class="hcm-section-head">
+                    <h2>Team coverage</h2>
+                    <i data-lucide="calendar-days" aria-hidden="true"></i>
+                  </div>
+                  <div class="hcm-coverage-list">
+                    <div class="hcm-person">
+                      <span class="hcm-avatar">AP</span>
+                      <div class="hcm-row-main">
+                        Avery Patel<span class="hcm-row-meta"
+                          >Cross-team coverage · Sep 8</span
+                        >
+                      </div>
+                    </div>
+                    <div class="hcm-person">
+                      <span class="hcm-avatar">NW</span>
+                      <div class="hcm-row-main">
+                        Noah Williams<span class="hcm-row-meta"
+                          >PTO requested · Sep 14–15</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="hcm-coverage-note">
+                    One coverage decision needs review.
+                  </div>
+                </section>
+                <section class="hcm-surface">
+                  <div class="hcm-section-head"><h2>Start something</h2></div>
+                  <div class="hcm-actions">
+                    <button class="hcm-quiet" data-action="promotion">
+                      <i data-lucide="trending-up" aria-hidden="true"></i>Promote or
+                      transfer<i
+                        data-lucide="chevron-right"
+                        aria-hidden="true"
+                      ></i></button
+                    ><button class="hcm-quiet" data-action="hire">
+                      <i data-lucide="user-plus" aria-hidden="true"></i>Request
+                      headcount<i
+                        data-lucide="chevron-right"
+                        aria-hidden="true"
+                      ></i></button
+                    ><button class="hcm-quiet" data-action="profile">
+                      <i data-lucide="contact-round" aria-hidden="true"></i>Update
+                      worker details<i
+                        data-lucide="chevron-right"
+                        aria-hidden="true"
+                      ></i>
+                    </button>
+                  </div>
+                </section>
+              </div>
+              <aside
+                class="hcm-surface hcm-work-preview"
+                id="hcm-work-preview"
+                hidden
+                aria-label="Selected work summary"
+              ></aside>
+            </div>
+            <section class="hcm-surface hcm-recent" id="hcm-recent">
+              <div class="hcm-section-head">
+                <h2>Recently completed</h2>
+                <span class="hcm-small">Updated just now</span>
+              </div>
+              <button class="hcm-recent-row" data-route-action="activity-open">
+                <span class="hcm-success-mark"
+                  ><i data-lucide="circle-check" aria-hidden="true"></i></span
+                ><span
+                  ><strong>Manager change completed</strong
+                  ><small>Elena Ruiz</small></span
+                ><time>10:42 AM</time
+                ><i data-lucide="chevron-right" aria-hidden="true"></i>
+              </button>
+              <button class="hcm-recent-row" data-route-action="activity-open">
+                <span class="hcm-success-mark"
+                  ><i data-lucide="circle-check" aria-hidden="true"></i></span
+                ><span
+                  ><strong>Address update verified</strong
+                  ><small>Noah Williams</small></span
+                ><time>Yesterday</time
+                ><i data-lucide="chevron-right" aria-hidden="true"></i>
+              </button>
+            </section>
+            <section class="hcm-surface hcm-news" id="hcm-news">
+              <div class="hcm-news-mark">
+                <i data-lucide="megaphone" aria-hidden="true"></i>
+              </div>
+              <div class="hcm-row-main">
+                <h3>Benefits enrollment opens September 21.</h3>
+                <p class="hcm-small">Your enrollment guide is ready to review.</p>
+              </div>
+              <button class="hcm-quiet" id="hcm-guide">
+                Read guide<i data-lucide="arrow-up-right" aria-hidden="true"></i>
+              </button>
+            </section>
+          </div>
+          <section id="hcm-people-view" hidden aria-label="People directory">
+            <div class="hcm-directory" id="hcm-directory"></div>
+          </section>
+          <section id="hcm-route-view" hidden aria-live="polite"></section>
+          <section
+            class="hcm-surface hcm-detail"
+            id="hcm-detail-view"
+            hidden
+            aria-label="Selected work preview"
+          >
+            <button class="hcm-quiet" id="hcm-back">
+              <i data-lucide="arrow-left" aria-hidden="true"></i>Back to work
+            </button>
+            <div id="hcm-detail-content"></div>
+          </section>
+          <div class="hcm-demo-footer">
+            <span>HCM Next · Customer experience preview</span
+            ><span>Fictional data · No business actions are sent</span>
+          </div>
+        </main>
+      </div>
+      <div
+        class="hcm-feedback"
+        id="hcm-feedback"
+        hidden
+        role="status"
+        aria-live="polite"
+      ></div>
+      <div class="hcm-route-progress" id="hcm-route-progress" hidden>
+        <span></span>
+      </div>
+      <aside
+        class="hcm-popover hcm-notification-popover"
+        id="hcm-notification-panel"
+        hidden
+        aria-label="Notifications"
+      ></aside>
+      <div class="hcm-modal-layer" id="hcm-modal-layer" hidden></div>
+      <div
+        class="hcm-toast-region"
+        id="hcm-toast-region"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
+    </div>
+  </body>
+</html>

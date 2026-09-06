@@ -62,6 +62,23 @@ allowed_roots:
 # presence never implies the package is implemented or the plane is
 # deployed; empty directories for deferred planes are expected.
 internal_package_roots:
+  - name: application
+    owner: platform-foundation
+    layer: application
+    phase: P1A
+    description: >-
+      Single explicit application composition root (ARCH-GO-020). Builds
+      registries, governance, workflows, engines, domains, ports/adapters and
+      worker roles for one process role from a validated Config value, and
+      exposes the Start/Stop lifecycle cmd/* invokes.
+  - name: authn
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: >-
+      Authentication adapters: the tenant federation issuer registry
+      (AUTHN-001) and the federation registry that binds issuers to the
+      internal/trust/federation port.
   - name: kernel
     owner: platform-foundation
     layer: kernel
@@ -151,8 +168,8 @@ approved_commands:
     - projector
     - migrate
     - hcmctl
-  later:
     - scheduler
+  later: []
 
 # The legacy Go module at src/blocks/go is a separate module (its own
 # go.mod, module hcm-next-executor) and is out of scope of this root-module

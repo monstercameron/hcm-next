@@ -314,6 +314,194 @@ Two facts for whoever resumes. The concurrent session keeps generating
 failures are not this pass's. And `TestTodo_ARCH_GO_009_Integration` fails on
 that session's new engines lacking `Version` and `Explain`.
 
+## 10. Evening: the console goes, the journey slice begins
+
+Three decisions after the pause, each with its reason.
+
+**The React console is archived, not kept.** The plan selected
+GoWebComponents on 2026-09-03 (UX-QUAL-001) and the P1B release image rule
+forbids a Node, React or Vite runtime on the production path. Two front ends
+would have meant two sources of truth for the same screens, and the console
+ran on local demo data against a TypeScript API, not the Go cell. It is
+zipped outside the repository (`Desktop/hcm-next-archive/react-console-2026-09-03-8224919.zip`)
+and removed from the workspaces, `tsconfig`, the code-style rules and the
+lockfile. Git history keeps the rest.
+
+**The Go cell is the dev server.** PostgreSQL 17 (arm64) comes from the
+embedded-postgres archive the test suite already caches; there is no `psql`
+in that bundle, so the database is created from a Go one-off. Two traps cost
+an hour and are now in the README: the workspace resolves workers against the
+fixture tenant `harborcare-demo`, so a cell served or seeded as `harborcare`
+answers a silent 403; and `hcmnext token` mints `comp_admin` only, while the
+workspace needs `intent_author` too and ExecuteIntent needs
+`promotion_operator`.
+
+**The journey page speaks gRPC over a WebSocket, not HTTP forms.** The
+first design was a server-rendered page with `<form method="post">` actions,
+in the pattern of the Promotion workspace. The owner rejected it: "no http,
+use grpc and web sockets". The revised shape is the one the plan already
+names (grpcbridge is the sole public projection; TOOL-009 is its streaming
+qualification): a canonical `hcmnext.journey.v1.JourneyService` on the shared
+gRPC server, GoGRPCBridge's `pkg/grpctunnel` mounted at `/grpc` on the HTTP
+edge, and a GoWebComponents client compiled to WASM that dials the tunnel
+with `pkg/wasm/dialer` and sends the bearer as per-RPC metadata. The only
+HTTP left is what a browser needs to load a page: the shell document, the
+wasm bundle, the dev sign-in form. The tunnel forwards trace and correlation
+headers into metadata but not cookies or Authorization, so the shell places
+the admitted bearer in a JSON island for the client to use; that is
+acceptable for a dev-login demo and is named as such in the code.
+
+The engine side is unchanged by the pivot: `workspace.JourneyEngine` is the
+port, implemented in `internal/intent/app` over CreateIntent, SimulateIntent,
+ExecuteIntent, the WorkItem store and the driver's Resume. The approver
+decision is rebuilt deterministically from the completed WorkItem row, so a
+restart between "approve" and "resume" loses nothing. The stage a page shows
+is derived from durable rows (intent, instance, work items, ledger), never
+asserted by the client.
+
+Rendered-HTML goldens were also dropped from the renderer's tests at the
+owner's request: the product surface is the live WASM mount, and committing
+HTML files invited the wrong reading of what the page is.
+
+Lanes: renderer (opus), engine (opus), JourneyService proto and gRPC (opus),
+tunnel and shell (opus), README recipe (haiku); a fable review pass follows.
+The HTTP-handler lane was stopped before it wrote a file. New dependency:
+GoGRPCBridge v1.1.2 (with gorilla/websocket transitive), classified in
+`definitions/architecture/dependency-roles.yaml`; grpc and protobuf roots
+widened to the wasm client packages only. Todo `UX-009` tracks the slice.
+
+### 10a. Two defects the live cell found that the suites had not
+
+**The pool's own hygiene invalidated pgx's statement cache.** `pgxadapter.NewPool`
+runs `RESET ROLE`, `pg_advisory_unlock_all()` and `DISCARD ALL` in `BeforeAcquire`
+so a borrower never inherits session state. `DISCARD ALL` also deallocates every
+named server-side prepared statement, and pgx's default query mode
+(`QueryExecModeCacheStatement`) prepares each SQL text once per connection and
+remembers the name client-side. The second borrower of a recycled session binds
+a statement the server no longer has: SQLSTATE 26000, surfaced on the wire as
+`intent.domain_unavailable`. On a schema-pinned pool (every test) the failure
+hid behind a second defect: the hygiene's own `set_config` call was itself a
+cached statement, failed the same way, and made pgxpool destroy the session and
+open a fresh one on every acquisition, so tests passed on connection churn while
+`HygieneFailures()` climbed. Fix: `DefaultQueryExecMode = QueryExecModeCacheDescribe`
+(extended protocol through the unnamed statement, the setting pgx documents for
+any reset-between-uses session) and hygiene through the simple protocol.
+`TestPoolReusesAConnectionAcrossItsOwnHygiene` pins both: zero hygiene failures
+and exactly one connection reused across five acquisitions.
+
+**A dev token could read but never propose.** `intent.Instance.Validate`
+requires `organization_scope_id`; `hcmnext token` had no way to mint one, so
+CreateIntent refused every proposal with the opaque
+`release.p1a_zero_effect_ceiling` violation while the workspace's reads worked.
+`-org-scope` added, with the claim round-tripped through the verifier in
+`TestTokenCommandCarriesTheOrganizationScope`. The diagnostic that named the
+field is deliberately never rendered on the wire; an in-process harness that
+composes the cell like `cmd/hcmnext` and calls the engine port is how it was
+read, and that is the right tool for the next opaque refusal too.
+
+**First live run (21:20 UTC), over gRPC on 127.0.0.1:8443:** propose →
+PROPOSED; execute → AWAITING_APPROVAL, instance version 5, one APPROVAL
+WorkItem routed to `principal:promotion-approver`; approve → COMPLETED,
+instance version 16, six node executions (`end_approved` SUCCEEDED, the four
+sibling terminals SKIPPED), one `ledger_event` on the instance's own stream
+(`hcmnext.workflow.PromotionOutcome/v2`), sixteen timeline entries. A second
+proposal for another worker came back BLOCKED: that corpus scenario has no
+executable plan, which is the correct answer, not a fault.
+
+### 10b. The page runs the slice from the browser
+
+At 21:43 UTC the GoWebComponents client, compiled to WASM (24.5 MB with grpc-go
+inside; a size to revisit, not a blocker) and mounted by the shell at
+`/workspace/journey`, dialled the cell's gRPC server through GoGRPCBridge's
+WebSocket tunnel, listed the three journeys already in the database, opened
+the proposed one, ran "Execute under authority" and "Approve" as buttons
+backed by RPCs, and drew the recorded ledger fact as the WatchJourney stream
+delivered it. No form post, no JSON route: the browser speaks
+`hcmnext.journey.v1.JourneyService` over `/workspace/grpc`.
+
+One placement finding on the way: the tunnel first sat at `/grpc`, and every
+upgrade was refused `authentication.missing_credential`. The dev sign-in
+cookie is scoped to `RoutePrefix` (`/workspace/`), so a socket opened outside
+that path carried nothing. The tunnel moved under the prefix rather than the
+cookie widening; the constant's comment says why.
+
+The stream path needed its own admission: the shared gRPC server chained only
+a unary interceptor, so a server-streaming handler would have run with no
+principal, no invocation and no deadline cap. `grpcserver.StreamInterceptor`
+now shares the unary boundary's admit/refuse/conclude, and `WatchJourney` is
+a real server stream (one message per digest change, 15-minute ceiling).
+`transport.Admit` sees no request message on the stream path, which is fine
+for `WatchJourneyRequest` today and is written down where it will matter.
+
+### 10c. Employees the page can create
+
+The owner's third clarification: a vertical slice means the user creates
+employees, picks one and runs that person through the workflow. The cell's
+worker facts were four corpus fixtures in memory, so "create" needed a durable
+home the governed read could see. Migration `00023_journey_workforce.sql`
+adds `journey_worker`: one append-only, tenant-scoped row per created worker
+carrying placement, declared compensation baseline and its own bitemporal
+coordinates. `internal/data/workforce.Facts` projects rows onto
+`people.WorkerFacts` exactly as the corpus reader does, and
+`NewLayeredWorkerFacts` answers corpus first, then the table, so
+`explain_worker_state`, the workspace and the journey all see created people
+through the one port. `app.WorkerLocator` is the single reference resolver
+(corpus key, then table key or id, then the permissive corpus id fallback)
+bound to the domain-input resolver, the workspace reader and the journey;
+before it existed a created worker was visible to capability handlers and
+invisible to the simulation that certifies the promotion, because the
+resolver held a private corpus reader. `JourneyService` gains `ListWorkers`
+and `CreateWorker` (a governed demo-authority write behind the operator
+role, evidence `WORKER_CREATED`/`WORKER_REFUSED`), the renderer a People
+table and a New employee form, the client the selection route
+`#/journeys?worker=<ref>` and the create flow. The acceptance test
+`TestJourneyCreatedWorkerCompletesTheWholePromotion` runs a created worker
+from proposal to the recorded ledger fact.
+
+Two facts recorded rather than hidden: a created worker's key is not a
+well-formed `values.EntityId`, so the promotion payload carries the key
+while the journey's subject carries the uuid; both resolve to one row and
+nothing cross-checks them. And `WorkforceOptions.Currency` is only set for
+a single-currency band catalog.
+
+### 10d. 2026-09-05: the slice from the browser, and the review pass
+
+Resumed after the overnight break with PostgreSQL down (the launch entry is
+a foreground process; it does not survive the session). Once it was back:
+
+**The create-select-run flow from the page.** Signed in at the dev form,
+added "Priya Raman" through the New employee panel (OPS-HRBP2 / P2,
+people-ops, USD 91,000.00), watched the row appear as CREATED and selected,
+proposed OPS-HRBP3 / P3 for her with the form's defaults, opened the
+journey, executed under authority, approved as the routed approver, and read
+the `hcmnext.workflow.PromotionOutcome/v2` fact off the page as the stream
+delivered it. Every step was an RPC over the WebSocket tunnel; nothing was
+a form post. That is UX-009's GREEN, and it is ticked.
+
+**The fable review pass** was cut off by the weekly usage limit (HTTP 429)
+after landing four of its nine items: `journey_decide.go` resumes through
+`stepsapproval.NewContinuation` + `Resolve` because the execution
+composition now routes the approval with a real compiled requirement
+(`prototype.CompileApprovalRequirement`) rather than placeholder digests;
+the driver's evidence sink is the cell's own, so Inspect lists
+`APPROVAL_COMPLETED` and `TERMINAL_WRITTEN`; the operator surface's
+database read moved behind `app.WorkflowInspector` (transport imports no
+store again; the layer-graph golden gained `data -> domains` and
+`transport -> workflow`, both reviewed); and `otelmw` gained a stream
+interceptor. It rewrote the bootstrap audit assertions without running them:
+`workitem.Store.Complete` releases the claim, and the routing transitions are
+the factory's, so the test now asserts exactly that (the journey's own claim,
+start and decision name the signed-in actor; the routing rows never do).
+The port test the lane owed (`workflow_inspector_test.go`) is being written
+by a sonnet lane; items 5 to 9 (lint noise, workforce validation review,
+watch leak review, pgxadapter Connect review) remain for the next pass.
+
+Housekeeping: `test/tunnel`'s fake engine gained the workforce methods it
+was missing; the P1A manifest carries migrations 00022 and 00023 with a
+refreshed checksum for 00021 (changed by another session's commit) and is
+re-signed with the fixture key; `go mod tidy` promoted GoGRPCBridge,
+GoWebComponents and the OpenTelemetry modules to direct requirements.
+
 ## 8. Numbers
 
 | Measure                                         | Value                                    |

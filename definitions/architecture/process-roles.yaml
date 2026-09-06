@@ -14,8 +14,10 @@ disposition: >-
   P1A ships four commands: hcmnext, worker, projector, migrate. hcmctl (the
   operator CLI over the read-only hcmnext.admin.v1 service, SVC-011/ADMIN-001)
   was promoted from later to initial on 2026-09-03 for the executable
-  prototype. scheduler is added when P1B needs durable timers; the later row
-  does not imply a cmd/ directory exists yet.
+  prototype. scheduler was promoted from later to initial on 2026-09-05 when
+  SVC-004 landed cmd/scheduler over internal/platform/execution/scheduler
+  (durable timer firing and ready-work dispatch under queue and instance
+  leases).
 
 processes:
   - command: hcmnext
@@ -152,21 +154,26 @@ processes:
     degradation_policy: A failed migration blocks the deploy it belongs to; it does not degrade already-running hcmnext/worker/projector replicas.
 
   - command: scheduler
-    status: later
+    status: initial
     role: >-
-      Reserved for P1B: durable future-date timer firing (one future-date
-      timer per next-steps.md P1B scope) and other time-driven workflow
-      signals. No cmd/scheduler directory is expected before P1B.
+      P1B durable timer firing and ready-work dispatch: leases the workflow
+      queue per tenant, settles due workflow_timer promises into
+      workflow_ready_work under the declared misfire policy, returns
+      abandoned DISPATCHED work to READY, and claims admissible work under
+      instance leases for a Dispatcher (publish-only when none is wired).
     semantic_packages:
       - internal/workflow
       - internal/operations
     dependencies:
       - PostgreSQL (durable timer state)
-    criticality: to-be-determined-at-P1B
-    concurrency: to-be-determined-at-P1B
+    criticality: critical
+    concurrency: >-
+      One or more replicas per queue; the queue lease elects the one replica
+      that fires timers, and instance leases plus the ready-work version CAS
+      let every replica claim work without duplicating a logical execution.
     probes:
-      liveness: to-be-determined-at-P1B
-      readiness: to-be-determined-at-P1B
+      liveness: process renews its own queue lease each tick
+      readiness: PostgreSQL connectivity via the bootstrap health endpoint (-health-addr)
     data_access:
       reads: [workflow timer state]
       writes: [workflow timer state, workflow signal delivery]

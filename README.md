@@ -520,6 +520,8 @@ this README remains human-authored.
 ```text
 Go product core (github.com/monstercameron/hcm-next)
 ├── package roots
+│   ├── internal/application [application; P1A; owner=platform-foundation]
+│   ├── internal/authn [trust; P1A; owner=governance-and-trust]
 │   ├── internal/kernel [kernel; P1A; owner=platform-foundation]
 │   ├── internal/intent [intent; P1A; owner=intent-and-capability]
 │   ├── internal/capability [capability; P1A; owner=intent-and-capability]
@@ -551,6 +553,7 @@ Go product core (github.com/monstercameron/hcm-next)
 | `github.com/go-logr/logr`                                           | `v1.4.4`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `github.com/go-logr/stdr`                                           | `v1.2.2`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `github.com/google/uuid`                                            | `v1.6.0`                               | `INFRASTRUCTURE_MECHANIC` | direct   | kernel                   |
+| `github.com/gorilla/websocket`                                      | `v1.5.3`                               | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
 | `github.com/grpc-ecosystem/grpc-gateway/v2`                         | `v2.30.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `github.com/jackc/pgpassfile`                                       | `v1.0.0`                               | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
 | `github.com/jackc/pgservicefile`                                    | `v0.0.0-20240606120523-5a60cdf6a761`   | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
@@ -559,8 +562,9 @@ Go product core (github.com/monstercameron/hcm-next)
 | `github.com/joho/godotenv`                                          | `v1.5.1`                               | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
 | `github.com/lib/pq`                                                 | `v1.10.9`                              | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
 | `github.com/mfridman/interpolate`                                   | `v0.0.2`                               | `INFRASTRUCTURE_MECHANIC` | indirect | data-and-ledger          |
-| `github.com/monstercameron/GoWebComponents/v5`                      | `v5.0.1`                               | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
-| `github.com/monstercameron/schemaflux`                              | `v1.2.0`                               | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
+| `github.com/monstercameron/GoGRPCBridge`                            | `v1.1.2`                               | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `github.com/monstercameron/GoWebComponents/v5`                      | `v5.0.1`                               | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
+| `github.com/monstercameron/schemaflux`                              | `v1.2.0`                               | `DEV_TEST_ONLY`           | direct   | platform-foundation      |
 | `github.com/pressly/goose/v3`                                       | `v3.28.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | data-and-ledger          |
 | `github.com/rogpeppe/go-internal`                                   | `v1.16.0`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
 | `github.com/sashabaranov/go-openai`                                 | `v1.20.4`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
@@ -569,20 +573,20 @@ Go product core (github.com/monstercameron/hcm-next)
 | `github.com/xi2/xz`                                                 | `v0.0.0-20171230120015-48954b6210f8`   | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
 | `github.com/yuin/goldmark`                                          | `v1.7.13`                              | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
 | `go.opentelemetry.io/auto/sdk`                                      | `v1.2.1`                               | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel`                                          | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel`                                          | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
 | `go.opentelemetry.io/otel/exporters/otlp/otlptrace`                 | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp`   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/exporters/stdout/stdouttrace`             | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/metric`                                   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/sdk`                                      | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/sdk/metric`                               | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
-| `go.opentelemetry.io/otel/trace`                                    | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp`   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/exporters/stdout/stdouttrace`             | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/metric`                                   | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/sdk`                                      | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/sdk/metric`                               | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
+| `go.opentelemetry.io/otel/trace`                                    | `v1.46.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | platform-foundation      |
 | `go.opentelemetry.io/proto/otlp`                                    | `v1.11.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `go.uber.org/multierr`                                              | `v1.11.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | operations-and-assurance |
 | `golang.org/x/exp/typeparams`                                       | `v0.0.0-20231108232855-2478ac86f678`   | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
 | `golang.org/x/mod`                                                  | `v0.38.0`                              | `DEV_TEST_ONLY`           | direct   | platform-foundation      |
-| `golang.org/x/net`                                                  | `v0.58.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `golang.org/x/net`                                                  | `v0.58.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
 | `golang.org/x/sync`                                                 | `v0.22.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `golang.org/x/sys`                                                  | `v0.47.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `golang.org/x/text`                                                 | `v0.41.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
@@ -677,6 +681,26 @@ Important starting points:
 
 ## Working in the repository
 
+### Review the production frontend
+
+The development frontend contains no sample-data provider or alternate UI
+server. It is a same-origin gateway to a running HCM Next cell, including the
+authenticated HTML shell, Go/WASM client, and gRPC-over-WebSocket tunnel.
+Start the cell as described below, mint a token, and run:
+
+```powershell
+$env:HCMNEXT_DEV_BEARER = go run ./cmd/hcmnext token -tenant=harborcare-demo -subject=local-developer -roles=intent_author,comp_admin,promotion_operator -org-scope=org:harborcare-demo:people-ops
+go run ./cmd/frontenddev -upstream http://127.0.0.1:8080
+```
+
+Open <http://127.0.0.1:8768/workspace/app/home>. The gateway injects the
+development bearer only at its upstream boundary and never logs it. The page
+loads the production GoWebComponents WASM bundle, which calls
+`JourneyService.ListJourneys` and `JourneyService.ListWorkers` through
+`/workspace/grpc`. Pages for capabilities the cell has not published show an
+explicit unavailable state; they do not substitute fixture records or pretend
+to save changes.
+
 ### Run the prototype locally
 
 The root prototype is Go-only and requires a reachable PostgreSQL server. It
@@ -696,14 +720,24 @@ consumption). Start a fresh database with:
 
 ```powershell
 go run ./cmd/migrate up
-go run ./cmd/migrate seed -tenant=harborcare
+go run ./cmd/migrate seed -tenant=harborcare-demo
 ```
+
+The embedded PostgreSQL binaries this repo's tests cache ship no `psql` or `createdb`; the `hcm_next` database must exist before `migrate up` (create it with any PostgreSQL client, e.g. from a Go one-off using pgx, or an external server).
 
 Run the API cell after migration and seeding:
 
 ```powershell
-go run ./cmd/hcmnext serve -tenant=harborcare -migrate=false -dev-browser-login=true
+go run ./cmd/hcmnext serve -tenant=harborcare-demo -migrate=false -dev-browser-login=true
 ```
+
+Without `-execution-authority` the cell is P1A and refuses ExecuteIntent. To enable P1B execution:
+
+```powershell
+go run ./cmd/hcmnext serve -tenant=harborcare-demo -migrate=false -dev-browser-login=true -execution-authority=true -execution-authority-digest=sha256:dev-local-demo-authority
+```
+
+The digest is carried as evidence and is not verified by the process (cmd/hcmnext/main.go documents this).
 
 It listens on gRPC `127.0.0.1:8443` and HTTP `127.0.0.1:8080` by default. The
 Promotion workspace is at <http://127.0.0.1:8080/workspace/promotion>; the
@@ -712,8 +746,10 @@ remain off outside local development. Mint a development credential for the
 workspace or API with:
 
 ```powershell
-$token = go run ./cmd/hcmnext token -tenant=harborcare -subject=local-developer
+$token = go run ./cmd/hcmnext token -tenant=harborcare-demo -subject=local-developer -roles=intent_author,comp_admin,promotion_operator -org-scope=org:harborcare-demo:people-ops
 ```
+
+The three roles are: `intent_author` to author intents in the workspace, `comp_admin` for administrative capability access, and `promotion_operator` for ExecuteIntent when the cell has `-execution-authority=true`. `-org-scope` is required to create intents: the kernel refuses an intent whose initiator carries no organization scope.
 
 The projector and worker are separate long-running processes against the same
 database:

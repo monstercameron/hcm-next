@@ -1,0 +1,48 @@
+version: "1.0.0"
+owner: "frontend-platform-security"
+trust_boundaries:
+  - browser_to_edge
+  - edge_to_capability_services
+  - customer_configuration_to_renderer
+  - browser_storage_and_cache
+threats:
+  - id: WEB-T01
+    boundary: browser_to_edge
+    attack: "A forged route, action token, or stale resource version attempts unauthorized mutation."
+    controls:
+      - "Authorize discovery, open, and action independently."
+      - "Require opaque action tokens, expected versions, and semantic idempotency keys."
+      - "Never automatically replay a material action after reconnect or sign-in."
+    evidence:
+      - "semantic-action contract tests"
+      - "browser-edge authorization conformance"
+  - id: WEB-T02
+    boundary: customer_configuration_to_renderer
+    attack: "Customer-authored content injects markup, script, CSS, SQL, or an unregistered capability."
+    controls:
+      - "Accept versioned PageDefinitions and registered widget references only."
+      - "Sanitize content widgets and forbid arbitrary executable content."
+      - "Enforce a classification ceiling before publication."
+    evidence:
+      - "PageDefinition security tests"
+      - "widget-registry conformance"
+  - id: WEB-T03
+    boundary: browser_storage_and_cache
+    attack: "Sensitive records, reusable authority, or cross-tenant data persist in browser state."
+    controls:
+      - "Store device-local preferences and opaque resume references only."
+      - "Use no-store for authority-bearing documents."
+      - "Invalidate projections when principal, purpose, or policy changes."
+    evidence:
+      - "browser-state boundary tests"
+      - "cache and logout convergence tests"
+  - id: WEB-T04
+    boundary: edge_to_capability_services
+    attack: "A WebSocket event or RPC response exposes data outside current authority."
+    controls:
+      - "Authenticate and authorize every RPC and stream."
+      - "Filter invalidations by current authority and carry no protected payload."
+      - "Refetch authoritative projections after sequence gaps."
+    evidence:
+      - "gRPC tunnel admission tests"
+      - "stream authorization and reconnect tests"

@@ -1,0 +1,710 @@
+# Intent Conformance Descriptors
+# Generated from the Business Intent Catalog initial draft-contract slice.
+# This manifest provides exactly fourteen finite conformance descriptors for the
+# initial intended definitions. Each descriptor includes required sections: family,
+# entities/properties, reads/writes/effects, authority, time, five-dimension
+# lifecycle, evidence, negative-policy matrix, scenario, and phase depth.
+
+descriptors:
+  - intent_type_id: hcmnext.people.change_manager
+    version: 1
+    display_name: ChangeManager
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: DESIGN_CONFORMANCE_ONLY
+    entities:
+      - Worker
+      - manager_relationship
+      - organization_unit
+    properties:
+      - effective_date
+      - reason_code
+      - material_input
+      - delegation_chain
+    reads:
+      - authoritative_worker_state
+      - organization_graph
+      - conflict_cache
+    writes:
+      - none
+    effects:
+      - policy_effects
+      - relationship_effects
+      - observation_effects
+    authority:
+      - tenant_policy
+      - initiator_authority
+      - approval_authority
+      - organization_scope
+    time:
+      - effective_at
+      - recorded_at
+    lifecycle:
+      request: DRAFT -> SUBMITTED -> PREFLIGHT -> APPROVED -> SCHEDULED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RUNNING -> OBSERVED -> SETTLED -> RECONCILED
+      business: PENDING -> ACTIVE -> CLOSED
+      consistency: NOT_COMPARED -> COMPARING -> CONSISTENT -> DRIFT -> UNKNOWN
+      obligation: PENDING -> DISCHARGED -> WAIVED -> BLOCKED
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+      - conflict_resolution
+    negative_policy:
+      - condition: unauthorized_initiator_or_stale_delegation
+        disposition: REJECT
+      - condition: circular_relationship_or_invalid_graph
+        disposition: REPLAN
+      - condition: missing_required_approval_authority
+        disposition: FAIL_CLOSED
+      - condition: materially_changed_facts_at_revalidation
+        disposition: REPLAN_AND_REAPPROVE
+    scenario:
+      name: conformance-fixture-isolated-graph-change
+      given: valid worker, eligible incoming manager, no conflicts, conformance-only execution mode
+      when: a change-manager intent is submitted with valid proposal and approval binding
+      then: fixture returns exact APPROVED/REJECTED state without creating production relationship mutations
+    conformance_only: true
+
+  - intent_type_id: hcmnext.people.explain_worker_state
+    version: 1
+    display_name: ExplainWorkerState
+    family: ANALYTICAL_REQUEST
+    side_effect_profile: READ_ONLY
+    phase: GATE_A
+    entities:
+      - Worker
+      - Employment
+      - Assignment
+      - state_snapshot
+    properties:
+      - effective_at
+      - include_redacted
+      - material_input
+    reads:
+      - authoritative_worker_state
+      - source_authority
+      - organization_graph
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+      - initiator_authority
+      - purpose_and_context
+    time:
+      - effective_at
+      - known_at
+      - recorded_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: PENDING -> RESOLVED
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+      - denied_access
+    negative_policy:
+      - condition: caller_lacks_read_authorization
+        disposition: DENY_WITH_NO_DISCLOSURE
+      - condition: requested_fields_are_withheld
+        disposition: RETURN_PRESENCE_ONLY
+      - condition: effective_at_is_future_unknown_or_stale
+        disposition: RETURN_UNCERTAINTY
+    scenario:
+      name: canonical-read-authorized-facts
+      given: valid worker, authorized initiator, pinned effective date, proper authority snapshot
+      when: an explain_worker_state intent is submitted
+      then: result returns exact typed authorized facts with revision, presence, source authority and provenance; denied fields return non-disclosing state; zero writes/effects
+
+  - intent_type_id: hcmnext.people.promote_worker
+    version: 1
+    display_name: PromoteWorker
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_A_SIMULATE_GATE_B_EXECUTE
+    entities:
+      - Worker
+      - Job
+      - Position
+      - Compensation
+      - manager
+    properties:
+      - effective_date
+      - promotion_reason
+      - material_input
+      - child_intent_bindings
+    reads:
+      - authoritative_worker_state
+      - job_position_data
+      - compensation_rules
+      - budget_reservations
+      - conflict_cache
+    writes:
+      - assignment_changes
+      - relationship_updates
+      - compensation_staging
+    effects:
+      - payroll_effects
+      - approval_effects
+      - observation_effects
+    authority:
+      - tenant_policy
+      - initiator_authority
+      - approval_authority
+      - organization_scope
+    time:
+      - effective_at
+      - recorded_at
+    lifecycle:
+      request: DRAFT -> SUBMITTED -> PREFLIGHT -> APPROVED -> SCHEDULED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RUNNING -> OBSERVED -> SETTLED -> RECONCILED
+      business: PENDING -> ACTIVE -> CLOSED
+      consistency: COMPARING -> CONSISTENT -> DRIFT
+      obligation: PENDING -> DISCHARGED -> BLOCKED
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+      - simulation_result
+      - child_intent_results
+    negative_policy:
+      - condition: target_worker_is_inactive_or_terminated
+        disposition: REJECT
+      - condition: proposed_compensation_creates_conflict
+        disposition: REPLAN
+      - condition: concurrent_competing_promotion
+        disposition: CONFLICT_BLOCK
+      - condition: approval_authority_stale_or_missing
+        disposition: FAIL_CLOSED
+    scenario:
+      name: promotion-through-simulation-and-approval
+      given: active worker, eligible target job/position, sufficient budget, no blocking conflicts
+      when: a promote_worker intent with linked base-pay child is submitted, simulated and approved
+      then: execution creates immutable assignment change and schedules linked child intent completion; exact digest and all evidence preserved
+
+  - intent_type_id: hcmnext.rewards.change_base_pay
+    version: 1
+    display_name: ChangeBasePay
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_B
+    entities:
+      - Worker
+      - Compensation
+      - Budget
+    properties:
+      - effective_date
+      - change_reason
+      - proposed_salary
+      - material_input
+    reads:
+      - current_compensation
+      - budget_reservations
+      - payroll_rules
+      - tax_profiles
+    writes:
+      - compensation_package_staging
+      - budget_consumption
+    effects:
+      - payroll_effects
+      - tax_effects
+      - observation_effects
+    authority:
+      - tenant_policy
+      - initiator_authority
+      - approval_authority
+    time:
+      - effective_at
+      - recorded_at
+    lifecycle:
+      request: SUBMITTED -> APPROVED -> SCHEDULED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RUNNING -> OBSERVED -> SETTLED -> RECONCILED
+      business: PENDING -> ACTIVE -> CLOSED
+      consistency: COMPARING -> CONSISTENT -> DRIFT
+      obligation: PENDING -> DISCHARGED
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+      - simulation_result
+    negative_policy:
+      - condition: proposed_salary_below_minimum_wage
+        disposition: REJECT
+      - condition: exceeds_allocated_budget_without_exception
+        disposition: REPLAN
+      - condition: insufficient_approval_authority
+        disposition: FAIL_CLOSED
+    scenario:
+      name: salary-increase-with-budget-consumption
+      given: active worker, valid new salary, available budget, proper approval authority
+      when: a change_base_pay intent is submitted and approved
+      then: execution reserves and consumes budget; next payrun uses new rate; exact salary and approval digest preserved
+
+  - intent_type_id: hcmnext.rewards.simulate_compensation
+    version: 1
+    display_name: SimulateCompensation
+    family: CALCULATION_REQUEST
+    side_effect_profile: PURE
+    phase: GATE_A
+    entities:
+      - Worker
+      - Compensation
+      - Calendar
+    properties:
+      - proposed_package
+      - pinned_effective_date
+      - material_input
+    reads:
+      - compensation_rules
+      - tax_profiles
+      - calendar_rules
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+      - initiator_authority
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: missing_or_stale_formula_version
+        disposition: FAIL_CLOSED_WITH_UNKNOWN
+      - condition: unresolved_tax_jurisdiction
+        disposition: RETURN_UNKNOWN_SEGMENT
+    scenario:
+      name: deterministic-compensation-calculation
+      given: valid worker, complete proposed package, pinned rule/band/tax versions
+      when: a simulate_compensation intent is submitted
+      then: result returns exact components, annualized/prorated amounts, deltas, assumptions and formula version digest; zero writes/effects/outbox
+
+  - intent_type_id: hcmnext.rewards.evaluate_pay_band_position
+    version: 1
+    display_name: EvaluatePayBandPosition
+    family: CALCULATION_REQUEST
+    side_effect_profile: PURE
+    phase: GATE_A
+    entities:
+      - Worker
+      - Job
+      - Band
+    properties:
+      - job_context
+      - material_input
+    reads:
+      - compensation_band_data
+      - job_specifications
+      - market_data
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: band_rules_unresolved_or_stale
+        disposition: RETURN_UNKNOWN
+    scenario:
+      name: pay-band-positioning
+      given: valid job and band rules, worker compensation history
+      when: an evaluate_pay_band_position intent is submitted
+      then: result returns exact position in band, recommended range, market data if present, and rule version digest; zero effects
+
+  - intent_type_id: hcmnext.rewards.reserve_compensation_budget
+    version: 1
+    display_name: ReserveCompensationBudget
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_B
+    entities:
+      - Budget
+      - Reservation
+    properties:
+      - reserved_amount
+      - promotion_id
+      - material_input
+    reads:
+      - available_budget
+      - existing_reservations
+    writes:
+      - budget_reservations
+    effects:
+      - budget_visibility
+    authority:
+      - tenant_policy
+      - initiator_authority
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> APPROVED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RESERVED -> CONSUMED -> RELEASED
+      business: PENDING -> HELD -> ACTIVE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+    negative_policy:
+      - condition: insufficient_budget_available
+        disposition: REJECT
+    scenario:
+      name: budget-hold-for-promotion
+      given: available budget, valid promotion proposal reference
+      when: a reserve_compensation_budget intent is submitted
+      then: creates immutable reservation; reduces available balance; linked to parent intent
+
+  - intent_type_id: hcmnext.rewards.release_compensation_budget
+    version: 1
+    display_name: ReleaseCompensationBudget
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_B
+    entities:
+      - Reservation
+    properties:
+      - reservation_id
+      - release_reason
+    reads:
+      - existing_reservations
+    writes:
+      - budget_reservations
+    effects:
+      - budget_visibility
+    authority:
+      - tenant_policy
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> APPROVED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RELEASED
+      business: PENDING -> RELEASED
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+    negative_policy:
+      - condition: reservation_already_consumed_or_expired
+        disposition: IDEMPOTENT_NO_OP
+    scenario:
+      name: budget-release-on-cancellation
+      given: active reservation without consumption
+      when: a release_compensation_budget intent is submitted
+      then: reservation marked released; available balance restored if not yet consumed
+
+  - intent_type_id: hcmnext.work.approve_proposal
+    version: 1
+    display_name: ApproveProposal
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_B
+    entities:
+      - Proposal
+      - WorkItem
+    properties:
+      - proposal_id
+      - decision_rationale
+      - material_input
+    reads:
+      - current_proposal
+      - work_item
+      - authority_context
+    writes:
+      - approval_record
+      - work_item_completion
+    effects:
+      - workflow_progression
+      - notification_effects
+    authority:
+      - approval_authority
+      - separation_of_duties
+      - proposal_authority
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RUNNING -> OBSERVED -> SETTLED
+      business: PENDING -> APPROVED -> ACTIVE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: caller_is_stale_or_unauthorized
+        disposition: REJECT
+      - condition: proposal_has_been_superseded
+        disposition: REJECT
+      - condition: approval_window_has_closed
+        disposition: REJECT
+    scenario:
+      name: human-approval-of-promotion
+      given: pending proposal, valid approver, open decision window
+      when: an approve_proposal intent is submitted
+      then: creates immutable APPROVED decision; completes associated work item exactly once; records approver and rationale; subsequent replay returns same decision
+
+  - intent_type_id: hcmnext.work.reject_proposal
+    version: 1
+    display_name: RejectProposal
+    family: CHANGE_REQUEST
+    side_effect_profile: INTERNAL_MUTATION
+    phase: GATE_B
+    entities:
+      - Proposal
+      - WorkItem
+    properties:
+      - proposal_id
+      - rejection_reason
+      - material_input
+    reads:
+      - current_proposal
+      - work_item
+      - authority_context
+    writes:
+      - approval_record
+      - work_item_completion
+    effects:
+      - workflow_halting
+      - notification_effects
+    authority:
+      - approval_authority
+      - proposal_authority
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: NOT_STARTED -> RUNNING -> OBSERVED -> SETTLED
+      business: PENDING -> REJECTED
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: caller_is_stale_or_unauthorized
+        disposition: REJECT
+      - condition: proposal_has_been_superseded
+        disposition: REJECT
+    scenario:
+      name: human-rejection-of-promotion
+      given: pending proposal, valid rejector, open decision window
+      when: a reject_proposal intent is submitted
+      then: creates immutable REJECTED decision; completes associated work item exactly once; records rejector and rationale; subsequent replay returns same decision
+
+  - intent_type_id: hcmnext.intelligence.explain_transaction
+    version: 1
+    display_name: ExplainTransaction
+    family: ANALYTICAL_REQUEST
+    side_effect_profile: READ_ONLY
+    phase: GATE_A
+    entities:
+      - Transaction
+      - Evidence
+    properties:
+      - transaction_id
+      - include_redacted
+      - material_input
+    reads:
+      - authoritative_transaction
+      - ledger_events
+      - provenance_graph
+      - observations
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+      - initiator_authority
+      - purpose
+    time:
+      - effective_at
+      - recorded_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: caller_lacks_read_authorization
+        disposition: DENY_WITH_NO_DISCLOSURE
+      - condition: evidence_is_withheld_or_redacted
+        disposition: RETURN_WITH_EXPLICIT_GAPS
+      - condition: causation_cannot_be_established
+        disposition: RETURN_ASSOCIATION_WITH_CAVEATS
+    scenario:
+      name: canonical-transaction-lineage
+      given: valid transaction, authorized caller, finalized evidence
+      when: an explain_transaction intent is submitted
+      then: result reconstructs authorized intent/proposal/approval/write/effect/observation/repair links with authority, times and epistemic labels; redacted/partial cases remain explicit; zero mutation/effect counts
+
+  - intent_type_id: hcmnext.operations.detect_drift
+    version: 1
+    display_name: DetectDrift
+    family: ANALYTICAL_REQUEST
+    side_effect_profile: READ_ONLY
+    phase: GATE_A
+    entities:
+      - Expected
+      - Observed
+    properties:
+      - scope
+      - material_input
+    reads:
+      - expected_state
+      - observed_state
+      - reconciliation_policy
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: stale_or_unavailable_observation
+        disposition: REPORT_WITH_STALENESS_MARKER
+      - condition: authority_conflict
+        disposition: REPORT_AS_AMBIGUOUS
+    scenario:
+      name: external-state-comparison
+      given: complete expected and observed state snapshots
+      when: a detect_drift intent is submitted
+      then: result returns per-entity MATCH/MISSING/EXCESS/PARTIAL classifications; zero writes/effects
+
+  - intent_type_id: hcmnext.operations.create_repair_plan
+    version: 1
+    display_name: CreateRepairPlan
+    family: ANALYTICAL_REQUEST
+    side_effect_profile: READ_ONLY
+    phase: GATE_A
+    entities:
+      - Finding
+      - Plan
+    properties:
+      - drift_finding
+      - authority
+      - material_input
+    reads:
+      - drift_evidence
+      - repair_rules
+      - authority_context
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+      - initiator_authority
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: repair_is_irreversible_or_high_risk
+        disposition: FLAG_FOR_MANUAL_REVIEW
+      - condition: authority_insufficient
+        disposition: NARROW_PLAN_TO_EXECUTABLE_SCOPE
+    scenario:
+      name: repair-recommendation-from-drift
+      given: confirmed drift finding, authorization context
+      when: a create_repair_plan intent is submitted
+      then: result returns recommended repair plan with impact, risks, approvals needed and proposed writes; plan is recommendation only; zero execution/effect
+
+  - intent_type_id: hcmnext.operations.simulate_repair
+    version: 1
+    display_name: SimulateRepair
+    family: CALCULATION_REQUEST
+    side_effect_profile: PURE
+    phase: GATE_A
+    entities:
+      - Plan
+      - Impact
+    properties:
+      - repair_plan
+      - material_input
+    reads:
+      - repair_plan_definition
+      - current_evidence
+      - repair_rules
+    writes:
+      - none
+    effects:
+      - none
+    authority:
+      - tenant_policy
+    time:
+      - effective_at
+    lifecycle:
+      request: SUBMITTED -> EXECUTING -> COMPLETED
+      execution: RUNNING -> OBSERVED -> SETTLED
+      business: IMMEDIATE
+      consistency: IMMEDIATE
+      obligation: IMMEDIATE
+    evidence:
+      - request_digest
+      - decision_or_result
+      - provenance
+    negative_policy:
+      - condition: repair_plan_is_stale_or_underconstrained
+        disposition: RETURN_UNKNOWN_OR_BLOCKED
+      - condition: conflicting_concurrent_repairs
+        disposition: FLAG_CONFLICT
+    scenario:
+      name: repair-impact-assessment
+      given: confirmed repair plan, current state snapshot
+      when: a simulate_repair intent is submitted
+      then: result returns proposed writes/effects, risks, approvals needed, success/rollback expectations and rule version digest; zero corrective/provider/work/effect counts

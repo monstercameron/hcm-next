@@ -45,6 +45,10 @@ protobuf_grpc:
     - internal/engines/wire
     - tools/gen
     - tools/quality/bufprotovalidatekit
+    # UX-009: the browser-resident GoWebComponents client speaks canonical gRPC
+    # over the WebSocket tunnel; these two roots are the whole client.
+    - tools/uxqual/journeyclient
+    - tools/uxqual/cmd/journeywasm
     - cmd
 
 # LIB-004: pgx/v5 confined behind the PostgreSQL adapter boundary. The

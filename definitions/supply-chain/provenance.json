@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "predicate_type": "https://slsa.dev/provenance/v1",
+  "generated_at": "2026-09-06T03:32:46Z",
+  "subjects": [
+    {
+      "name": "hcmnext",
+      "sha256": "424d2fb5e9f12dbf6ee5c15228d0919a2ea525fb90d78d0ae8d2c14f23f3f3ad"
+    }
+  ],
+  "builder": {
+    "id": "github.com/monstercameron/hcm-next/tools/policy/provenance/cmd/provgen"
+  },
+  "source": {
+    "repository": "github.com/monstercameron/hcm-next",
+    "ref": "unknown",
+    "commit": "unknown"
+  },
+  "build_config": {
+    "go_version": "go1.26.3",
+    "goos": "windows",
+    "goarch": "arm64",
+    "flags": ["-trimpath=true", "CGO_ENABLED=0", "-compiler=gc", "-buildmode=exe"],
+    "config_digest": "cde747fbe838ee886ddc09527bed529cc09915a7b7bd1e45d013d60e3779cd3d"
+  },
+  "sbom": {
+    "path": "definitions/supply-chain/sbom.cdx.json",
+    "sha256": "70b290b26aac40b8ea9f5f4fb0e3edbe219391a2c3643adcc545a14d543ff43d"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b",
+    "value": "4ff3b2fcdb55bf1cd5d70fa85276fad9e829f262b26df7e64bc620dce5afca859ed895a7dfedb590461802b610930cf6d5f53fb7823018affc25ef6b7a3aa901",
+    "key_fixture": "tools/planning/gateevidence/testdata/dev-signing-key.yaml"
+  }
+}

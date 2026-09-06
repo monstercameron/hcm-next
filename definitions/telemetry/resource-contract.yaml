@@ -100,6 +100,36 @@ attribute_allowlist:
     signals: [log, span, metric]
     max_cardinality: 32
     description: Named replication/consistency edge for parity checks.
+  - key: operation
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 256
+    description: Bounded registry-named boundary operation (OBS-014 boundary instrumentation).
+  - key: route
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 256
+    description: Route template of a transport boundary, never a concrete path.
+  - key: dependency
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 64
+    description: Named external or storage dependency behind a boundary call.
+  - key: status
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 32
+    description: Bounded status class of a boundary call (HTTP or gRPC status family).
+  - key: size_class
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 8
+    description: Bucketed payload size class, never a raw byte count.
+  - key: retry
+    class: OPERATIONAL_PUBLIC
+    signals: [log, span, metric]
+    max_cardinality: 2
+    description: Whether the boundary call was a retry attempt.
   - key: error_type
     class: OPERATIONAL_RESTRICTED
     signals: [log, span]

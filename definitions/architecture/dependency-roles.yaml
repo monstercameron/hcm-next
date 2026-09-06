@@ -148,6 +148,7 @@ modules:
         internal/humanwork,
         internal/workflow,
         internal/operations/explorer,
+        internal/operations/reconcile,
         internal/engines/wire/digest,
         cmd,
         test,
@@ -424,6 +425,47 @@ modules:
       the ENDPOINT-001 route manifest exists; GoGRPCBridge remains the
       WebSocket/WASM candidate for TOOL-009. Neither is pinned until imported.
 
+  - path: github.com/gorilla/websocket
+    version: v1.5.3
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks github.com/monstercameron/GoGRPCBridge's own pin.
+    exposure: >-
+      Transitive dependency of GoGRPCBridge (the server-side WebSocket upgrade
+      and framing under pkg/grpctunnel); never imported directly. The browser
+      side uses the platform WebSocket through pkg/wasm/dialer instead.
+    replacement_strategy: Removed automatically if GoGRPCBridge is dropped.
+
+  - path: github.com/monstercameron/GoGRPCBridge
+    version: v1.1.2
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: experience-and-transport
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots:
+      [
+        internal/transport,
+        cmd,
+        tools/uxqual/journeyclient,
+        tools/uxqual/cmd/journeywasm,
+      ]
+    direct_import_expected: true
+    upgrade_sla: Minor within 90 days; security patch within 7 days.
+    exposure: >-
+      gRPC-over-WebSocket tunnel (pkg/grpctunnel on the HTTP edge, pkg/wasm/dialer
+      in the GOOS=js client) so a browser-resident GoWebComponents client reaches
+      the canonical gRPC services without an HTTP/JSON projection. Adopted
+      2026-09-03 for the Promotion journey vertical slice (UX-009); the TOOL-009
+      streaming qualification matrix is still owed before Gate C.
+    replacement_strategy: >-
+      The tunnel is a transport mechanic behind internal/transport; the
+      canonical services never depend on it. grpc-web or a native HTTP/2 edge
+      replaces it by swapping the edge composition in internal/transport/cell.
+
   - path: github.com/monstercameron/GoWebComponents/v5
     version: v5.0.1
     role: INFRASTRUCTURE_MECHANIC
@@ -614,7 +656,15 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [internal/transport, gen, tools/gen, cmd]
+    allowed_import_roots:
+      [
+        internal/transport,
+        gen,
+        tools/gen,
+        cmd,
+        tools/uxqual/journeyclient,
+        tools/uxqual/cmd/journeywasm,
+      ]
     direct_import_expected: true
     upgrade_sla: Minor within 60 days; security patch within 7 days.
     exposure: >-
@@ -648,6 +698,8 @@ modules:
         internal/intent/protomap,
         internal/engines/wire,
         tools/gen,
+        tools/uxqual/journeyclient,
+        tools/uxqual/cmd/journeywasm,
         tools/quality/bufprotovalidatekit,
       ]
     direct_import_expected: true

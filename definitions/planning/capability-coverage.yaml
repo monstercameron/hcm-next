@@ -23,6 +23,18 @@ items:
       - SCENARIO-005:DOMAIN
       - SCENARIO-006:DOMAIN
       - SCENARIO-007:DOMAIN
+      - WEB-217:DOMAIN
+      - WEB-218:DOMAIN
+      - WEB-219:DOMAIN
+      - WEB-220:DOMAIN
+      - WEB-221:DOMAIN
+      - WEB-222:DOMAIN
+      - WEB-223:DOMAIN
+      - WEB-224:DOMAIN
+      - WEB-225:DOMAIN
+      - WEB-226:DOMAIN
+      - WEB-227:DOMAIN
+      - WEB-228:DOMAIN
       - WF-DISC-006:DOMAIN
       - WF-DISC-008:DOMAIN
     tests:
@@ -96,6 +108,18 @@ items:
       - ROLLOUT-007:DOMAIN
       - ROLLOUT-008:DOMAIN
       - STATUS-001:DOMAIN
+      - WEB-229:DOMAIN
+      - WEB-230:DOMAIN
+      - WEB-231:DOMAIN
+      - WEB-232:DOMAIN
+      - WEB-233:DOMAIN
+      - WEB-234:DOMAIN
+      - WEB-235:DOMAIN
+      - WEB-236:DOMAIN
+      - WEB-237:DOMAIN
+      - WEB-238:DOMAIN
+      - WEB-239:DOMAIN
+      - WEB-240:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests:
@@ -167,6 +191,18 @@ items:
       - ROLLOUT-007:DOMAIN
       - ROLLOUT-008:DOMAIN
       - STATUS-001:DOMAIN
+      - WEB-229:DOMAIN
+      - WEB-230:DOMAIN
+      - WEB-231:DOMAIN
+      - WEB-232:DOMAIN
+      - WEB-233:DOMAIN
+      - WEB-234:DOMAIN
+      - WEB-235:DOMAIN
+      - WEB-236:DOMAIN
+      - WEB-237:DOMAIN
+      - WEB-238:DOMAIN
+      - WEB-239:DOMAIN
+      - WEB-240:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests:
@@ -237,6 +273,18 @@ items:
       - ROLLOUT-007:DOMAIN
       - ROLLOUT-008:DOMAIN
       - STATUS-001:DOMAIN
+      - WEB-229:DOMAIN
+      - WEB-230:DOMAIN
+      - WEB-231:DOMAIN
+      - WEB-232:DOMAIN
+      - WEB-233:DOMAIN
+      - WEB-234:DOMAIN
+      - WEB-235:DOMAIN
+      - WEB-236:DOMAIN
+      - WEB-237:DOMAIN
+      - WEB-238:DOMAIN
+      - WEB-239:DOMAIN
+      - WEB-240:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests:
@@ -295,6 +343,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -305,6 +354,43 @@ items:
       - TAXPROFILE-001:DOMAIN
       - TAXPROFILE-002:DOMAIN
       - TAXPROFILE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-109:DOMAIN
+      - WEB-110:DOMAIN
+      - WEB-111:DOMAIN
+      - WEB-112:DOMAIN
+      - WEB-113:DOMAIN
+      - WEB-114:DOMAIN
+      - WEB-115:DOMAIN
+      - WEB-116:DOMAIN
+      - WEB-117:DOMAIN
+      - WEB-118:DOMAIN
+      - WEB-119:DOMAIN
+      - WEB-120:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-181:DOMAIN
+      - WEB-182:DOMAIN
+      - WEB-183:DOMAIN
+      - WEB-184:DOMAIN
+      - WEB-185:DOMAIN
+      - WEB-186:DOMAIN
+      - WEB-187:DOMAIN
+      - WEB-188:DOMAIN
+      - WEB-189:DOMAIN
+      - WEB-190:DOMAIN
+      - WEB-191:DOMAIN
+      - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
       - TestExplainWorkerStateReturnsAuthorizedBitemporalFactsAndProvenance
@@ -325,6 +411,7 @@ items:
       - PROMO-006:DIRECT
       - PROMO-007:DIRECT
       - PROMO-008:DIRECT
+      - UX-009:DIRECT
       - CONF-025:DOMAIN
       - CONTACT-001:DOMAIN
       - CONTACT-002:DOMAIN
@@ -354,6 +441,7 @@ items:
       - PEOPLE-003:DOMAIN
       - PEOPLE-004:DOMAIN
       - PEOPLE-005:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -364,6 +452,42 @@ items:
       - TAXPROFILE-001:DOMAIN
       - TAXPROFILE-002:DOMAIN
       - TAXPROFILE-003:DOMAIN
+      - WEB-109:DOMAIN
+      - WEB-110:DOMAIN
+      - WEB-111:DOMAIN
+      - WEB-112:DOMAIN
+      - WEB-113:DOMAIN
+      - WEB-114:DOMAIN
+      - WEB-115:DOMAIN
+      - WEB-116:DOMAIN
+      - WEB-117:DOMAIN
+      - WEB-118:DOMAIN
+      - WEB-119:DOMAIN
+      - WEB-120:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-181:DOMAIN
+      - WEB-182:DOMAIN
+      - WEB-183:DOMAIN
+      - WEB-184:DOMAIN
+      - WEB-185:DOMAIN
+      - WEB-186:DOMAIN
+      - WEB-187:DOMAIN
+      - WEB-188:DOMAIN
+      - WEB-189:DOMAIN
+      - WEB-190:DOMAIN
+      - WEB-191:DOMAIN
+      - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
       - TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect
@@ -482,6 +606,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -489,6 +614,31 @@ items:
       - SERVICE-001:DOMAIN
       - SERVICE-002:DOMAIN
       - SERVICE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-157:DOMAIN
+      - WEB-158:DOMAIN
+      - WEB-159:DOMAIN
+      - WEB-160:DOMAIN
+      - WEB-161:DOMAIN
+      - WEB-162:DOMAIN
+      - WEB-163:DOMAIN
+      - WEB-164:DOMAIN
+      - WEB-165:DOMAIN
+      - WEB-166:DOMAIN
+      - WEB-167:DOMAIN
+      - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests: []
@@ -595,6 +745,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -602,6 +753,31 @@ items:
       - SERVICE-001:DOMAIN
       - SERVICE-002:DOMAIN
       - SERVICE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-157:DOMAIN
+      - WEB-158:DOMAIN
+      - WEB-159:DOMAIN
+      - WEB-160:DOMAIN
+      - WEB-161:DOMAIN
+      - WEB-162:DOMAIN
+      - WEB-163:DOMAIN
+      - WEB-164:DOMAIN
+      - WEB-165:DOMAIN
+      - WEB-166:DOMAIN
+      - WEB-167:DOMAIN
+      - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests:
@@ -711,6 +887,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -721,6 +898,43 @@ items:
       - TAXPROFILE-001:DOMAIN
       - TAXPROFILE-002:DOMAIN
       - TAXPROFILE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-109:DOMAIN
+      - WEB-110:DOMAIN
+      - WEB-111:DOMAIN
+      - WEB-112:DOMAIN
+      - WEB-113:DOMAIN
+      - WEB-114:DOMAIN
+      - WEB-115:DOMAIN
+      - WEB-116:DOMAIN
+      - WEB-117:DOMAIN
+      - WEB-118:DOMAIN
+      - WEB-119:DOMAIN
+      - WEB-120:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-181:DOMAIN
+      - WEB-182:DOMAIN
+      - WEB-183:DOMAIN
+      - WEB-184:DOMAIN
+      - WEB-185:DOMAIN
+      - WEB-186:DOMAIN
+      - WEB-187:DOMAIN
+      - WEB-188:DOMAIN
+      - WEB-189:DOMAIN
+      - WEB-190:DOMAIN
+      - WEB-191:DOMAIN
+      - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests: []
   - id: hcmnext.people.explain_worker_state
@@ -769,6 +983,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -779,6 +994,43 @@ items:
       - TAXPROFILE-001:DOMAIN
       - TAXPROFILE-002:DOMAIN
       - TAXPROFILE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-109:DOMAIN
+      - WEB-110:DOMAIN
+      - WEB-111:DOMAIN
+      - WEB-112:DOMAIN
+      - WEB-113:DOMAIN
+      - WEB-114:DOMAIN
+      - WEB-115:DOMAIN
+      - WEB-116:DOMAIN
+      - WEB-117:DOMAIN
+      - WEB-118:DOMAIN
+      - WEB-119:DOMAIN
+      - WEB-120:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-181:DOMAIN
+      - WEB-182:DOMAIN
+      - WEB-183:DOMAIN
+      - WEB-184:DOMAIN
+      - WEB-185:DOMAIN
+      - WEB-186:DOMAIN
+      - WEB-187:DOMAIN
+      - WEB-188:DOMAIN
+      - WEB-189:DOMAIN
+      - WEB-190:DOMAIN
+      - WEB-191:DOMAIN
+      - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
       - TestExplainWorkerStateReturnsAuthorizedBitemporalFactsAndProvenance
@@ -799,6 +1051,7 @@ items:
       - PROMO-006:DIRECT
       - PROMO-007:DIRECT
       - PROMO-008:DIRECT
+      - UX-009:DIRECT
       - CONF-025:DOMAIN
       - CONTACT-001:DOMAIN
       - CONTACT-002:DOMAIN
@@ -828,6 +1081,7 @@ items:
       - PEOPLE-003:DOMAIN
       - PEOPLE-004:DOMAIN
       - PEOPLE-005:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -838,6 +1092,42 @@ items:
       - TAXPROFILE-001:DOMAIN
       - TAXPROFILE-002:DOMAIN
       - TAXPROFILE-003:DOMAIN
+      - WEB-109:DOMAIN
+      - WEB-110:DOMAIN
+      - WEB-111:DOMAIN
+      - WEB-112:DOMAIN
+      - WEB-113:DOMAIN
+      - WEB-114:DOMAIN
+      - WEB-115:DOMAIN
+      - WEB-116:DOMAIN
+      - WEB-117:DOMAIN
+      - WEB-118:DOMAIN
+      - WEB-119:DOMAIN
+      - WEB-120:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-181:DOMAIN
+      - WEB-182:DOMAIN
+      - WEB-183:DOMAIN
+      - WEB-184:DOMAIN
+      - WEB-185:DOMAIN
+      - WEB-186:DOMAIN
+      - WEB-187:DOMAIN
+      - WEB-188:DOMAIN
+      - WEB-189:DOMAIN
+      - WEB-190:DOMAIN
+      - WEB-191:DOMAIN
+      - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
       - TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect
@@ -944,6 +1234,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -951,6 +1242,31 @@ items:
       - SERVICE-001:DOMAIN
       - SERVICE-002:DOMAIN
       - SERVICE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-157:DOMAIN
+      - WEB-158:DOMAIN
+      - WEB-159:DOMAIN
+      - WEB-160:DOMAIN
+      - WEB-161:DOMAIN
+      - WEB-162:DOMAIN
+      - WEB-163:DOMAIN
+      - WEB-164:DOMAIN
+      - WEB-165:DOMAIN
+      - WEB-166:DOMAIN
+      - WEB-167:DOMAIN
+      - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests: []
@@ -1057,6 +1373,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -1064,6 +1381,31 @@ items:
       - SERVICE-001:DOMAIN
       - SERVICE-002:DOMAIN
       - SERVICE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-157:DOMAIN
+      - WEB-158:DOMAIN
+      - WEB-159:DOMAIN
+      - WEB-160:DOMAIN
+      - WEB-161:DOMAIN
+      - WEB-162:DOMAIN
+      - WEB-163:DOMAIN
+      - WEB-164:DOMAIN
+      - WEB-165:DOMAIN
+      - WEB-166:DOMAIN
+      - WEB-167:DOMAIN
+      - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests: []
@@ -1186,6 +1528,7 @@ items:
       - PROMO-006:DOMAIN
       - PROMO-007:DOMAIN
       - PROMO-008:DOMAIN
+      - PROMO-009:DOMAIN
       - PROVIDER-001:DOMAIN
       - PROVIDER-002:DOMAIN
       - SELECT-001:DOMAIN
@@ -1193,6 +1536,31 @@ items:
       - SERVICE-001:DOMAIN
       - SERVICE-002:DOMAIN
       - SERVICE-003:DOMAIN
+      - UX-009:DOMAIN
+      - WEB-121:DOMAIN
+      - WEB-122:DOMAIN
+      - WEB-123:DOMAIN
+      - WEB-124:DOMAIN
+      - WEB-125:DOMAIN
+      - WEB-126:DOMAIN
+      - WEB-127:DOMAIN
+      - WEB-128:DOMAIN
+      - WEB-129:DOMAIN
+      - WEB-130:DOMAIN
+      - WEB-131:DOMAIN
+      - WEB-132:DOMAIN
+      - WEB-157:DOMAIN
+      - WEB-158:DOMAIN
+      - WEB-159:DOMAIN
+      - WEB-160:DOMAIN
+      - WEB-161:DOMAIN
+      - WEB-162:DOMAIN
+      - WEB-163:DOMAIN
+      - WEB-164:DOMAIN
+      - WEB-165:DOMAIN
+      - WEB-166:DOMAIN
+      - WEB-167:DOMAIN
+      - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
     tests:

@@ -1,0 +1,1355 @@
+# Feature-to-Intent Intake Manifest
+# This manifest groups all named HCM features into exactly 49 groups with
+# mappings to drafted or deferred intent definitions. Each group preserves
+# original source provenance and canonical digest.
+#
+# Groups 1-39 correspond to the business domains in the intent-coverage-matrix.
+# Groups 40-49 are cross-cutting organizational and UX feature categories.
+
+groups:
+  # Groups 1-39: Business Domain Feature Groups
+  # (from planning/data/models/intent-coverage-matrix.md)
+
+  - group_id: 1
+    name: People Core HR
+    domain: people
+    features:
+      - feature_id: person_create
+        label: Create Person
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: person_identity_verify
+        label: Verify Identity Claims
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: worker_create
+        label: Create Worker Record
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: employment_create
+        label: Create Employment
+        category: CREATE
+        mapped_intent_id: hcmnext.people.explain_worker_state/v1
+      - feature_id: assignment_create
+        label: Create Assignment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: worker_state_explain
+        label: Explain Worker State
+        category: OBSERVE
+        mapped_intent_id: hcmnext.people.explain_worker_state/v1
+      - feature_id: worker_merge
+        label: Merge Worker Records
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: manager_change
+        label: Change Manager
+        category: CHANGE
+        mapped_intent_id: hcmnext.people.change_manager/v1
+    source_provenance: business-intent-catalog#initial-draft-contract-slice
+    canonical_digest: draft_implied_1
+
+  - group_id: 2
+    name: Jobs Positions Organization
+    domain: organization
+    features:
+      - feature_id: job_define
+        label: Define Job
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: position_create
+        label: Create Position
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: position_occupancy
+        label: Set Position Occupancy
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: org_unit_create
+        label: Create Organization Unit
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: org_relationship_define
+        label: Define Organization Relationship
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: workforce_plan_create
+        label: Create Workforce Plan
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_40-67
+    canonical_digest: draft_implied_2
+
+  - group_id: 3
+    name: Compensation Rewards
+    domain: rewards
+    features:
+      - feature_id: compensation_package_create
+        label: Create Compensation Package
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: compensation_simulate
+        label: Simulate Compensation
+        category: CALCULATE
+        mapped_intent_id: hcmnext.rewards.simulate_compensation/v1
+      - feature_id: payband_position_evaluate
+        label: Evaluate Pay Band Position
+        category: CALCULATE
+        mapped_intent_id: hcmnext.rewards.evaluate_pay_band_position/v1
+      - feature_id: base_pay_change
+        label: Change Base Pay
+        category: CHANGE
+        mapped_intent_id: hcmnext.rewards.change_base_pay/v1
+      - feature_id: promotion_execute
+        label: Promote Worker
+        category: CHANGE
+        mapped_intent_id: hcmnext.people.promote_worker/v1
+      - feature_id: compensation_budget_reserve
+        label: Reserve Compensation Budget
+        category: CHANGE
+        mapped_intent_id: hcmnext.rewards.reserve_compensation_budget/v1
+      - feature_id: compensation_budget_release
+        label: Release Compensation Budget
+        category: CHANGE
+        mapped_intent_id: hcmnext.rewards.release_compensation_budget/v1
+      - feature_id: merit_cycle_manage
+        label: Manage Merit Cycle
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: business-intent-catalog#promotion-workflow
+    canonical_digest: draft_p1a_promotion
+
+  - group_id: 4
+    name: Payroll
+    domain: payroll
+    features:
+      - feature_id: payroll_run_execute
+        label: Execute Payroll Run
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: payroll_calculation
+        label: Calculate Payroll
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: pay_statement_generate
+        label: Generate Pay Statement
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: payment_settlement
+        label: Settle Payment
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: payroll_reconcile
+        label: Reconcile Payroll
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_89-110
+    canonical_digest: deferred_payroll_1
+
+  - group_id: 5
+    name: Tax Regulatory
+    domain: regulatory
+    features:
+      - feature_id: jurisdiction_resolve
+        label: Resolve Jurisdiction
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: tax_profile_manage
+        label: Manage Tax Profile
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: tax_calculation_compute
+        label: Calculate Tax
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: government_filing_submit
+        label: Submit Government Filing
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: regulatory_compliance_check
+        label: Check Regulatory Compliance
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_111-130
+    canonical_digest: deferred_regulatory_1
+
+  - group_id: 6
+    name: Benefits
+    domain: benefits
+    features:
+      - feature_id: benefit_eligibility_determine
+        label: Determine Benefit Eligibility
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: benefit_enrollment_process
+        label: Process Benefit Enrollment
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: life_event_record
+        label: Record Life Event
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: benefit_dependent_manage
+        label: Manage Benefit Dependent
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: carrier_reconciliation
+        label: Reconcile with Carrier
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_131-142
+    canonical_digest: deferred_benefits_1
+
+  - group_id: 7
+    name: Time Attendance Scheduling
+    domain: time
+    features:
+      - feature_id: time_punch_record
+        label: Record Time Punch
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: timecard_submit
+        label: Submit Timecard
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: schedule_manage
+        label: Manage Work Schedule
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: shift_swap_approve
+        label: Approve Shift Swap
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: labor_allocation_calculate
+        label: Calculate Labor Allocation
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_143-160
+    canonical_digest: deferred_time_1
+
+  - group_id: 8
+    name: Leave Absence
+    domain: leave
+    features:
+      - feature_id: leave_request_submit
+        label: Submit Leave Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: leave_eligibility_check
+        label: Check Leave Eligibility
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: leave_approval_workflow
+        label: Approve Leave Request
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: absence_balance_track
+        label: Track Absence Balance
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: accommodation_manage
+        label: Manage Work Accommodation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_161-176
+    canonical_digest: deferred_leave_1
+
+  - group_id: 9
+    name: Recruiting ATS
+    domain: recruiting
+    features:
+      - feature_id: requisition_create
+        label: Create Job Requisition
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: job_posting_publish
+        label: Publish Job Posting
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: candidate_application_process
+        label: Process Candidate Application
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: interview_schedule
+        label: Schedule Interview
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: offer_create_and_sign
+        label: Create and Sign Offer
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: background_check_order
+        label: Order Background Check
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_177-199
+    canonical_digest: deferred_recruiting_1
+
+  - group_id: 10
+    name: Onboarding Offboarding
+    domain: lifecycle
+    features:
+      - feature_id: onboarding_plan_create
+        label: Create Onboarding Plan
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: onboarding_requirement_track
+        label: Track Onboarding Requirements
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: equipment_assignment_manage
+        label: Manage Equipment Assignment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: offboarding_plan_execute
+        label: Execute Offboarding Plan
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: access_revocation_manage
+        label: Manage Access Revocation
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_200-217
+    canonical_digest: deferred_lifecycle_1
+
+  - group_id: 11
+    name: Workforce Access IAM
+    domain: access
+    features:
+      - feature_id: workforce_identity_create
+        label: Create Workforce Identity
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: access_entitlement_grant
+        label: Grant Access Entitlement
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: access_request_submit
+        label: Submit Access Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: access_review_campaign_run
+        label: Run Access Review Campaign
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: access_drift_detect
+        label: Detect Access Drift
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_218-235
+    canonical_digest: deferred_access_1
+
+  - group_id: 12
+    name: Talent Performance
+    domain: talent
+    features:
+      - feature_id: goal_set_and_track
+        label: Set and Track Goals
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: performance_review_conduct
+        label: Conduct Performance Review
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: performance_rating_assign
+        label: Assign Performance Rating
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: calibration_session_conduct
+        label: Conduct Calibration Session
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: succession_plan_manage
+        label: Manage Succession Plan
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_236-249
+    canonical_digest: deferred_talent_1
+
+  - group_id: 13
+    name: Learning Skills
+    domain: learning
+    features:
+      - feature_id: skill_requirement_define
+        label: Define Skill Requirement
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: learning_content_assign
+        label: Assign Learning Content
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: course_enrollment_track
+        label: Track Course Enrollment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: skill_assessment_conduct
+        label: Conduct Skill Assessment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: certification_manage
+        label: Manage Certification
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_250-260
+    canonical_digest: deferred_learning_1
+
+  - group_id: 14
+    name: Employee Experience Communications
+    domain: experience
+    features:
+      - feature_id: message_send_to_audience
+        label: Send Message to Audience
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: announcement_post
+        label: Post Announcement
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: survey_launch_and_analyze
+        label: Launch and Analyze Survey
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: recognition_award_give
+        label: Give Recognition Award
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: employee_preference_manage
+        label: Manage Employee Preferences
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_261-274
+    canonical_digest: deferred_experience_1
+
+  - group_id: 15
+    name: HR Service Delivery Cases
+    domain: cases
+    features:
+      - feature_id: service_request_submit
+        label: Submit HR Service Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: case_open_and_assign
+        label: Open and Assign Case
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: case_note_add
+        label: Add Case Note
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: case_resolve_and_close
+        label: Resolve and Close Case
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: employment_verification_process
+        label: Process Employment Verification
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_275-286
+    canonical_digest: deferred_cases_1
+
+  - group_id: 16
+    name: Employee Relations Investigations
+    domain: relations
+    features:
+      - feature_id: concern_report_submit
+        label: Submit Concern Report
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: investigation_conduct
+        label: Conduct Investigation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: disciplinary_action_take
+        label: Take Disciplinary Action
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: pip_create_and_track
+        label: Create and Track PIP
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: grievance_process
+        label: Process Grievance
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_287-297
+    canonical_digest: deferred_relations_1
+
+  - group_id: 17
+    name: Global Mobility Immigration
+    domain: mobility
+    features:
+      - feature_id: mobility_case_manage
+        label: Manage Mobility Case
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: relocation_package_create
+        label: Create Relocation Package
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: international_assignment_track
+        label: Track International Assignment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: work_authorization_verify
+        label: Verify Work Authorization
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: mobility_tax_assess
+        label: Assess Mobility Tax Impact
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_298-308
+    canonical_digest: deferred_mobility_1
+
+  - group_id: 18
+    name: Safety Workplace
+    domain: safety
+    features:
+      - feature_id: safety_incident_report
+        label: Report Safety Incident
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: workplace_injury_track
+        label: Track Workplace Injury
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: workers_comp_claim_file
+        label: File Workers Comp Claim
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: safety_investigation_conduct
+        label: Conduct Safety Investigation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: work_restriction_manage
+        label: Manage Work Restriction
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_309-316
+    canonical_digest: deferred_safety_1
+
+  - group_id: 19
+    name: Privacy Data Governance
+    domain: privacy
+    features:
+      - feature_id: processing_authority_define
+        label: Define Processing Authority
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: consent_obtain_and_track
+        label: Obtain and Track Consent
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: data_subject_request_process
+        label: Process Data Subject Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: retention_schedule_apply
+        label: Apply Retention Schedule
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: dpia_conduct
+        label: Conduct DPIA
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_317-333
+    canonical_digest: deferred_privacy_1
+
+  - group_id: 20
+    name: Documents Forms Signatures
+    domain: documents
+    features:
+      - feature_id: document_template_create
+        label: Create Document Template
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: form_definition_design
+        label: Design Form Definition
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: form_submission_process
+        label: Process Form Submission
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: signature_request_send
+        label: Send Signature Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: document_redaction_apply
+        label: Apply Document Redaction
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_334-346
+    canonical_digest: deferred_documents_1
+
+  - group_id: 21
+    name: Workflow Human Work
+    domain: work
+    features:
+      - feature_id: workflow_define_and_compile
+        label: Define and Compile Workflow
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: workflow_instance_execute
+        label: Execute Workflow Instance
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: work_item_claim_and_complete
+        label: Claim and Complete Work Item
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: approval_requirement_define
+        label: Define Approval Requirement
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: approval_decision_record
+        label: Record Approval Decision
+        category: CHANGE
+        mapped_intent_id: hcmnext.work.approve_proposal/v1,hcmnext.work.reject_proposal/v1
+    source_provenance: business-intent-catalog#approval-workflow
+    canonical_digest: draft_p1b_approval
+
+  - group_id: 22
+    name: Integration External Systems
+    domain: integration
+    features:
+      - feature_id: external_system_connect
+        label: Connect External System
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: connector_operation_track
+        label: Track Connector Operation
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: schema_mapping_define
+        label: Define Schema Mapping
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: sync_operation_execute
+        label: Execute Sync Operation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: webhook_subscription_manage
+        label: Manage Webhook Subscription
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_369-384
+    canonical_digest: deferred_integration_1
+
+  - group_id: 23
+    name: DataOps Administration
+    domain: dataops
+    features:
+      - feature_id: reference_data_manage
+        label: Manage Reference Data
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: data_import_stage_migrate
+        label: Import Stage and Migrate Data
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: configuration_package_promote
+        label: Promote Configuration Package
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: data_quality_monitor
+        label: Monitor Data Quality
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: batch_job_schedule_execute
+        label: Schedule and Execute Batch Job
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_385-404
+    canonical_digest: deferred_dataops_1
+
+  - group_id: 24
+    name: Authorization Security Identity
+    domain: security
+    features:
+      - feature_id: principal_register
+        label: Register Principal
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: session_initiate_manage
+        label: Initiate and Manage Session
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: delegation_grant_revoke
+        label: Grant and Revoke Delegation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: authorization_decision_make
+        label: Make Authorization Decision
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: support_jit_grant_request
+        label: Request JIT Support Grant
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_405-418
+    canonical_digest: deferred_security_1
+
+  - group_id: 25
+    name: Reporting Analytics
+    domain: intelligence
+    features:
+      - feature_id: report_define_and_schedule
+        label: Define and Schedule Report
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: metric_definition_track
+        label: Define and Track Metric
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: dataset_snapshot_create
+        label: Create Dataset Snapshot
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: dashboard_design_publish
+        label: Design and Publish Dashboard
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: analysis_result_explain
+        label: Explain Analysis Result
+        category: OBSERVE
+        mapped_intent_id: hcmnext.intelligence.explain_transaction/v1
+    source_provenance: business-intent-catalog#intelligence-intent
+    canonical_digest: draft_p1a_intelligence
+
+  - group_id: 26
+    name: Semantic Agent Intelligence
+    domain: intelligence
+    features:
+      - feature_id: ontology_concept_define
+        label: Define Ontology Concept
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: knowledge_source_ingest
+        label: Ingest Knowledge Source
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: semantic_observation_record
+        label: Record Semantic Observation
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: prediction_generate
+        label: Generate Prediction
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: recommendation_provide
+        label: Provide Recommendation
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_438-460
+    canonical_digest: deferred_agent_1
+
+  - group_id: 27
+    name: Reconciliation Repair Operations
+    domain: operations
+    features:
+      - feature_id: reconciliation_policy_define
+        label: Define Reconciliation Policy
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: drift_finding_detect
+        label: Detect Drift Finding
+        category: OBSERVE
+        mapped_intent_id: hcmnext.operations.detect_drift/v1
+      - feature_id: repair_plan_create
+        label: Create Repair Plan
+        category: OBSERVE
+        mapped_intent_id: hcmnext.operations.create_repair_plan/v1
+      - feature_id: repair_action_execute
+        label: Execute Repair Action
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: repair_impact_simulate
+        label: Simulate Repair Impact
+        category: CALCULATE
+        mapped_intent_id: hcmnext.operations.simulate_repair/v1
+    source_provenance: business-intent-catalog#repair-intents
+    canonical_digest: draft_p1a_repair
+
+  - group_id: 28
+    name: Billing Commercial
+    domain: commercial
+    features:
+      - feature_id: product_offering_define
+        label: Define Product Offering
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: commercial_entitlement_grant
+        label: Grant Commercial Entitlement
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: usage_event_record
+        label: Record Usage Event
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: invoice_generate_send
+        label: Generate and Send Invoice
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: subscription_manage
+        label: Manage Subscription
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_482-497
+    canonical_digest: deferred_commercial_1
+
+  - group_id: 29
+    name: Tenant Platform Administration
+    domain: platform
+    features:
+      - feature_id: tenant_provision_lifecycle
+        label: Provision Tenant Lifecycle
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: tenant_environment_configure
+        label: Configure Tenant Environment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: feature_flag_manage
+        label: Manage Feature Flag
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: configuration_publication_track
+        label: Track Configuration Publication
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: platform_application_register
+        label: Register Platform Application
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_498-512
+    canonical_digest: deferred_platform_1
+
+  - group_id: 30
+    name: System Trigger Driven
+    domain: system
+    features:
+      - feature_id: trigger_definition_create
+        label: Create Trigger Definition
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: trigger_subscription_manage
+        label: Manage Trigger Subscription
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: scheduled_job_create
+        label: Create Scheduled Job
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: business_deadline_event_fire
+        label: Fire Business Deadline Event
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: effective_date_activation_process
+        label: Process Effective Date Activation
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+    source_provenance: intent-coverage-matrix#rows_513-530
+    canonical_digest: deferred_system_1
+
+  # Groups 31-39: Additional domain-specific groups from matrix coverage
+
+  - group_id: 31
+    name: Employee Self-Service Portal
+    features:
+      - feature_id: profile_view_update
+        label: View and Update Profile
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: pay_statement_view
+        label: View Pay Statement
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: benefits_self_enroll
+        label: Self-Enroll in Benefits
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: time_punch_self_submit
+        label: Submit Time Punch
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: leave_request_self_submit
+        label: Submit Leave Request
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/experience#employee-ux
+    canonical_digest: implied_selfservice_1
+
+  - group_id: 32
+    name: Manager Dashboard Actions
+    features:
+      - feature_id: team_view
+        label: View Team
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: direct_report_manage
+        label: Manage Direct Reports
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: approval_pending_view
+        label: View Pending Approvals
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: manager_performance_review_conduct
+        label: Conduct Performance Review (manager dashboard)
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: promotion_request_submit
+        label: Submit Promotion Request
+        category: CREATE
+        mapped_intent_id: hcmnext.people.promote_worker/v1
+    source_provenance: planning/experience#manager-ux
+    canonical_digest: implied_manager_1
+
+  - group_id: 33
+    name: HR Administration Console
+    features:
+      - feature_id: organization_manage
+        label: Manage Organization
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: policy_configuration
+        label: Configure Policy
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: bulk_operation_execute
+        label: Execute Bulk Operation
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: compliance_report_generate
+        label: Generate Compliance Report
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: audit_trail_review
+        label: Review Audit Trail
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/experience#admin-ux
+    canonical_digest: implied_admin_1
+
+  - group_id: 34
+    name: Universal Experience Patterns
+    features:
+      - feature_id: search_find_workers
+        label: Search and Find Workers
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: filter_and_export_data
+        label: Filter and Export Data
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: notification_receive
+        label: Receive Notification
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: accessibility_accommodate
+        label: Accommodate Accessibility Needs
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: multi_language_support
+        label: Multi-Language Support
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/experience-ui-and-branding.md
+    canonical_digest: universal_ux_1
+
+  - group_id: 35
+    name: Connectivity Integration Hub
+    features:
+      - feature_id: connector_health_monitor
+        label: Monitor Connector Health
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: api_endpoint_consume
+        label: Consume API Endpoint
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: webhook_event_receive
+        label: Receive Webhook Event
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: sync_status_track
+        label: Track Sync Status
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: integration_troubleshoot
+        label: Troubleshoot Integration
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/integration-platform.md
+    canonical_digest: connectivity_1
+
+  - group_id: 36
+    name: DataOps Quality Governance
+    features:
+      - feature_id: data_quality_rule_define
+        label: Define Data Quality Rule
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: data_profiling_run
+        label: Run Data Profiling
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: data_lineage_trace
+        label: Trace Data Lineage
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: remediation_plan_execute
+        label: Execute Remediation Plan
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: retention_rule_enforce
+        label: Enforce Retention Rule
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/data-quality-and-invariant-evaluation.md
+    canonical_digest: dataops_quality_1
+
+  - group_id: 37
+    name: Configuration Rules Policies
+    features:
+      - feature_id: rule_define_test
+        label: Define and Test Rule
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: policy_create_publish
+        label: Create and Publish Policy
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: decision_table_manage
+        label: Manage Decision Table
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: configuration_validate
+        label: Validate Configuration
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: rollback_configuration
+        label: Rollback Configuration
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/human-work-forms-and-rules.md
+    canonical_digest: config_rules_1
+
+  - group_id: 38
+    name: Population Segmentation Batch
+    features:
+      - feature_id: population_define_query
+        label: Define Population Query
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: population_snapshot_create
+        label: Create Population Snapshot
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: batch_action_define
+        label: Define Batch Action
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: batch_execution_monitor
+        label: Monitor Batch Execution
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: batch_error_handle
+        label: Handle Batch Errors
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/plan.md#batch-operations
+    canonical_digest: population_batch_1
+
+  - group_id: 39
+    name: Search Discovery Intelligence
+    features:
+      - feature_id: full_text_search
+        label: Full Text Search
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: faceted_search
+        label: Faceted Search
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: semantic_search
+        label: Semantic Search
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: search_result_rank
+        label: Rank Search Results
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: search_to_batch_action
+        label: Convert Search to Batch Action
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/platform-responsibility-boundaries.md#search
+    canonical_digest: search_discovery_1
+
+  # Groups 40-49: Cross-cutting organizational and UX feature categories
+
+  - group_id: 40
+    name: Operations Incident Management
+    features:
+      - feature_id: incident_detect_and_classify
+        label: Detect and Classify Incident
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: incident_response_plan
+        label: Plan Incident Response
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: incident_communication
+        label: Communicate Incident Status
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: incident_resolution_track
+        label: Track Incident Resolution
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: incident_postmortem_conduct
+        label: Conduct Incident Postmortem
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/incident-management.md
+    canonical_digest: operations_incident_1
+
+  - group_id: 41
+    name: Repair Remediation Recovery
+    features:
+      - feature_id: repair_diagnosis_run
+        label: Run Repair Diagnosis
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: repair_plan_review_approve
+        label: Review and Approve Repair Plan
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: repair_execution_track
+        label: Track Repair Execution
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: recovery_verification
+        label: Verify Recovery
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: remediation_evidence_collect
+        label: Collect Remediation Evidence
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/transaction-ledger-reconciliation-and-repair.md
+    canonical_digest: repair_recovery_1
+
+  - group_id: 42
+    name: Events Scheduling Automation
+    features:
+      - feature_id: event_definition_create
+        label: Create Event Definition
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: event_subscription_manage
+        label: Manage Event Subscription
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: schedule_configure_manage
+        label: Configure and Manage Schedule
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: automation_workflow_design
+        label: Design Automation Workflow
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: automation_execution_monitor
+        label: Monitor Automation Execution
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/platform-responsibility-boundaries.md#scheduling
+    canonical_digest: events_scheduling_1
+
+  - group_id: 43
+    name: Commercial Entitlements Metering
+    features:
+      - feature_id: entitlement_grant_track
+        label: Grant and Track Entitlement
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: usage_meter_configure
+        label: Configure Usage Meter
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: billing_scenario_model
+        label: Model Billing Scenario
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: commercial_intelligence_track
+        label: Track Commercial Intelligence
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: cost_attribution_analyze
+        label: Analyze Cost Attribution
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/competitive-positioning-and-authority-expansion.md
+    canonical_digest: commercial_metering_1
+
+  - group_id: 44
+    name: Sandbox Testing Isolation
+    features:
+      - feature_id: sandbox_environment_create
+        label: Create Sandbox Environment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: test_data_generate
+        label: Generate Test Data
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: test_scenario_execute
+        label: Execute Test Scenario
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: sandbox_reset_perform
+        label: Perform Sandbox Reset
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: test_result_analyze
+        label: Analyze Test Result
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/platform-responsibility-boundaries.md#sandbox
+    canonical_digest: sandbox_testing_1
+
+  - group_id: 45
+    name: Governance Compliance Audit
+    features:
+      - feature_id: compliance_control_define
+        label: Define Compliance Control
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: compliance_assessment_run
+        label: Run Compliance Assessment
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: audit_trail_generate
+        label: Generate Audit Trail
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: evidence_package_create
+        label: Create Evidence Package
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: compliance_report_publish
+        label: Publish Compliance Report
+        category: CREATE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/governance-decision-and-obligation-composition.md
+    canonical_digest: governance_compliance_1
+
+  - group_id: 46
+    name: Program Portfolio Management
+    features:
+      - feature_id: program_define_charter
+        label: Define Program Charter
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: initiative_track_progress
+        label: Track Initiative Progress
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: portfolio_prioritize
+        label: Prioritize Portfolio
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: stakeholder_communication_manage
+        label: Manage Stakeholder Communication
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: program_outcome_measure
+        label: Measure Program Outcome
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/plan.md#program-management
+    canonical_digest: program_portfolio_1
+
+  - group_id: 47
+    name: Agent AI Assistance
+    features:
+      - feature_id: ai_recommendation_provide
+        label: Provide AI Recommendation
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: ai_prediction_generate
+        label: Generate AI Prediction
+        category: CALCULATE
+        mapped_intent_id: DEFERRED
+      - feature_id: ai_task_automate
+        label: Automate Task with AI
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: ai_model_performance_track
+        label: Track AI Model Performance
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: ai_fairness_bias_monitor
+        label: Monitor AI Fairness and Bias
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/semantic-and-agent-intelligence.md
+    canonical_digest: agent_ai_1
+
+  - group_id: 48
+    name: Provisioning Lifecycle Management
+    features:
+      - feature_id: resource_provision_request
+        label: Request Resource Provisioning
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: provisioning_task_track
+        label: Track Provisioning Task
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+      - feature_id: readiness_verification_conduct
+        label: Conduct Readiness Verification
+        category: CREATE
+        mapped_intent_id: DEFERRED
+      - feature_id: deprovisioning_execute
+        label: Execute Deprovisioning
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: lifecycle_milestone_track
+        label: Track Lifecycle Milestone
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/plan.md#provisioning
+    canonical_digest: provisioning_lifecycle_1
+
+  - group_id: 49
+    name: Higher-Order Business Capabilities
+    features:
+      - feature_id: change_request_submit_and_track
+        label: Submit and Track Change Request
+        category: CREATE
+        mapped_intent_id: hcmnext.people.promote_worker/v1
+      - feature_id: proposal_simulate_and_validate
+        label: Simulate and Validate Proposal
+        category: CALCULATE
+        mapped_intent_id: hcmnext.rewards.simulate_compensation/v1
+      - feature_id: business_outcome_measure
+        label: Measure Business Outcome
+        category: OBSERVE
+        mapped_intent_id: hcmnext.intelligence.explain_transaction/v1
+      - feature_id: multi_step_workflow_orchestrate
+        label: Orchestrate Multi-Step Workflow
+        category: CHANGE
+        mapped_intent_id: DEFERRED
+      - feature_id: cross_domain_governance_apply
+        label: Apply Cross-Domain Governance
+        category: OBSERVE
+        mapped_intent_id: DEFERRED
+    source_provenance: planning/specs/business-intent-and-change-request.md
+    canonical_digest: higher_order_capabilities_1
+
+source_manifest_digest: feature_intent_intake_digest_2026_09_05
+total_groups: 49
+version: "1.0"

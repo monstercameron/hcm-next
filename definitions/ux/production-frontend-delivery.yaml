@@ -1,0 +1,263 @@
+# Production Frontend Delivery Manifest
+# Describes the qualified delivery of the Promotion workspace frontend
+# rendering platform (GWC v5.0.1 compiled to WASM with Go SSR fallback).
+#
+# Authority: planning/specs/production-frontend-and-page-composition.md
+# Related: definitions/ux/workspace-renderer-decision.yaml (todo UX-QUAL-001)
+
+delivery:
+  name: "Production Frontend"
+  version: "1.0.0"
+  title: "Promotion Workspace Rendering (GWC v5.0.1 + WASM + SSR Fallback)"
+  purpose: |
+    Delivers the qualified, production-ready rendering platform for the
+    Promotion workspace. The platform is composed of three layers:
+    1. Go server-rendered shell (net/http, SSR-only fallback)
+    2. GoWebComponents v5.0.1 client compiled to WebAssembly (progressive enhancement)
+    3. gRPC-over-WebSocket tunnel to canonical cell services
+  authority: "planning/specs/production-frontend-and-page-composition.md"
+  renderer_decision_ref: "definitions/ux/workspace-renderer-decision.yaml"
+
+bundles:
+  - name: "journey.wasm"
+    description: "Promotion journey page client (GoWebComponents v5.0.1 compiled to WASM)"
+    purpose: "Live workflow visualization and interaction via gRPC-over-WebSocket tunnel"
+    build_command: "go run ./tools/uxqual/cmd/journeywasm -out internal/humanwork/workspace/assets"
+    output_path: "internal/humanwork/workspace/assets/journey.wasm"
+    embed_site: "internal/humanwork/workspace.assetsFS (go:embed all:assets)"
+    content_type: "application/wasm"
+    runtime: "WebAssembly (GOARCH=wasm GOOS=js)"
+    size_bytes: 25911840
+    size_mib: 24.7
+    size_ceiling_mib: 32
+    transport_qualified: true
+    notes: |
+      Built with GOOS=js GOARCH=wasm go build. Embedded at build time
+      with go:embed; missing bundle returns 404 at /workspace/assets/journey.wasm.
+      No fallback: the Promotion journey page has no server-rendered equivalent.
+
+  - name: "wasm_exec.js"
+    description: "WebAssembly runtime glue (Go standard library)"
+    purpose: "Bridge between Go WASM and browser JavaScript APIs"
+    build_command: "cp $(go env GOROOT)/misc/wasm/wasm_exec.js internal/humanwork/workspace/assets/wasm_exec.js"
+    output_path: "internal/humanwork/workspace/assets/wasm_exec.js"
+    embed_site: "internal/humanwork/workspace.assetsFS (go:embed all:assets)"
+    content_type: "text/javascript; charset=utf-8"
+    runtime: "JavaScript (browser native)"
+    size_bytes: 16992
+    size_mib: 0.016
+    transport_qualified: true
+    notes: |
+      Shared shim for both journey.wasm and uxqual.wasm bundles.
+      Embedded at build time; serves from /workspace/assets/wasm_exec.js.
+
+shell:
+  routes:
+    - path: "/workspace/journey"
+      handler: "internal/humanwork/workspace.Handler.serveJourney"
+      method: "GET"
+      response: "text/html; charset=utf-8 (complete document)"
+      authentication: "Bearer token (per-request admission)"
+      cache_control: "no-store"
+      description: |
+        Promotion journey page shell. Serves a complete HTML document
+        carrying the JourneyConfig JSON island (id="journey-config")
+        and inline loader script. The shell contains no page content;
+        content is rendered in-browser by journey.wasm against live
+        gRPC-over-WebSocket answers. Response always includes
+        Content-Security-Policy header.
+
+    - path: "/workspace/assets/journey.wasm"
+      handler: "internal/humanwork/workspace.Handler.serveAsset"
+      method: "GET"
+      response: "application/wasm (binary bundle)"
+      authentication: "None (public asset, embedded in release image)"
+      cache_control: "public, max-age=31536000, immutable"
+      description: |
+        WASM bundle delivery. Served if embedded in the build.
+        Returns 404 if not yet built. Static asset with long cache.
+
+    - path: "/workspace/assets/wasm_exec.js"
+      handler: "internal/humanwork/workspace.Handler.serveAsset"
+      method: "GET"
+      response: "text/javascript; charset=utf-8 (text)"
+      authentication: "None (public asset, embedded in release image)"
+      cache_control: "public, max-age=31536000, immutable"
+      description: |
+        WebAssembly runtime shim. Static asset with long cache.
+
+    - path: "/workspace/grpc"
+      handler: "internal/transport/cell.TunnelPath (mounted by gRPCBridge)"
+      method: "GET (WebSocket upgrade)"
+      response: "WebSocket connection (gRPC protocol)"
+      authentication: "Bearer token from request headers or dev sign-in"
+      description: |
+        gRPC-over-WebSocket tunnel. Mounted at root by the cell transport
+        package. The journey.wasm client dials this at the URL in
+        JourneyConfig.TunnelURL (derived from request Host and scheme).
+        Mirrors internal/transport/cell.TunnelPath constant; kept in sync
+        by an assertion in internal/transport/cell's test suite.
+
+content_security_policy:
+  header_name: "Content-Security-Policy"
+  issued_by: "JourneyContentSecurityPolicy(host string) string"
+  issued_in: "internal/humanwork/workspace.journey_shell.go"
+  base_directives:
+    - "default-src 'none'"
+    - "base-uri 'none'"
+    - "form-action 'none'"
+    - "frame-ancestors 'none'"
+    - "img-src 'none'"
+  dynamic_directives:
+    - name: "script-src"
+      value: "sha256-<hash> 'self' 'wasm-unsafe-eval'"
+      description: |
+        - sha256-<hash>: hash of the inline loader script (computed constant)
+        - 'self': this origin (for wasm_exec.js and journey.wasm bundles)
+        - 'wasm-unsafe-eval': required for WebAssembly.instantiateStreaming
+        Hash is verified by TestTodo_WEB_001_Conformance to match the
+        actual loader source in journey_shell.go.
+    - name: "connect-src"
+      value: "'self' ws://<host> wss://<host>"
+      description: |
+        - 'self': this origin
+        - ws://<host> and wss://<host>: the gRPC-over-WebSocket tunnel
+          Host is derived from the request's own Host header.
+        Both schemes are listed because the policy must not predict
+        whether the page was reached over TLS; neither scheme widens
+        the policy beyond this single host.
+    - name: "style-src"
+      value: "sha256-<hash>"
+      description: |
+        - sha256-<hash>: hash of journey.Stylesheet() (computed constant)
+        - No 'unsafe-inline': the client injects that exact string only
+        Hash is verified by TestTodo_WEB_001_Conformance to match the
+        actual stylesheet in tools/uxqual/render/journey.
+  notes: |
+    Deny-by-default with three exact allowances. Host authority is
+    sanitized to prevent header injection. Policies are pinned by hash
+    for the inline loader and stylesheet so both can be verified at
+    load time without trusting runtime state.
+
+transport:
+  tunnel:
+    path: "/workspace/grpc"
+    protocol: "WebSocket + gRPC (gRPCBridge)"
+    authentication_scheme: "Authorization: Bearer <token>"
+    authentication_placement: "Per-RPC metadata on every call"
+    authentication_source: |
+      Extracted from the initial request that asked for /workspace/journey
+      and carried in JourneyConfig.Bearer. The tunnel forwards diagnostic
+      headers (x-request-id, x-correlation-id, traceparent) but not
+      Authorization; so every RPC must provide its own metadata bearer.
+    tls_termination: "Browser WSS layer (TLS between browser and server)"
+    grpc_credentials: "insecure.NewCredentials() (security is at transport layer)"
+    notes: |
+      The client dials with pkg/wasm/dialer.New(cfg.TunnelURL) and
+      grpc.NewClient with insecure credentials. The credentials are
+      insecure at the gRPC layer on purpose: transport security is the
+      browser's wss:// connection, which gRPC inside a WASM page cannot
+      see and must not try to negotiate.
+
+forbidden_runtimes:
+  - name: "Node.js / React"
+    reason: "Go-only technology constitution; Go owns presentation and routing"
+    enforcement: "Archived React console 2026-09-03; release image forbids Node"
+  - name: "Arbitrary JavaScript execution"
+    reason: "No raw innerHTML/eval; CSP allows only pinned scripts and WASM"
+    enforcement: "CSP default-src 'none'; script-src whitelist only"
+  - name: "Customer plugins / arbitrary SQL / SchemaFlux generation"
+    reason: "Deterministic Go compiler; no model/network participation in builds"
+    enforcement: "Page definitions select registered widgets; zero code generation"
+  - name: "Second business surface (HTTP/JSON query API)"
+    reason: "Canonical gRPC services; browser edge admits projection only"
+    enforcement: "grpcbridge tunnel; no alternative query surface"
+
+size_budget:
+  journey_wasm_bytes: 25911840
+  journey_wasm_mib: "24.7"
+  ceiling_mib: 32
+  ceiling_bytes: 33554432
+  current_utilization_percent: "77.2"
+  notes: |
+    The journey.wasm bundle is currently 24.7 MiB (77.2% of the 32 MiB
+    ceiling). The ceiling is set to permit growth in the GWC rendering
+    tree without requiring a new delivery manifest. If the bundle exceeds
+    32 MiB, the breach must be approved by the product owner and the
+    ceiling updated before the release.
+
+workflow:
+  admission_flow: |
+    1. Browser reaches /workspace/journey (GET)
+    2. Handler.serveJourney calls admit(w, r)
+    3. Same bearer credential required as for /workspace/promotion
+    4. 401 returned if no valid credential
+    5. JourneyConfig populated with principal context and tunnel URL
+    6. HTML shell rendered with CSP header set
+    7. Client (journey.wasm) loads and reads #journey-config JSON island
+    8. Client dials tunnel at JourneyConfig.TunnelURL
+    9. Every RPC carries "authorization: Bearer " + JourneyConfig.Bearer metadata
+    10. Tunnel forwards RPC to cell services; each call re-authorized server-side
+
+  session_preservation: |
+    - Bearer credential is written into the HTML island so the client can
+      present it per-RPC. It is the same credential the browser already
+      holds (Authorization header or dev sign-in cookie).
+    - Cache-Control: no-store prevents caching the credential in the document
+    - No img-src, connect-src only to this origin, form-action 'none' prevents
+      the credential from leaving the page
+    - WASM cannot read HttpOnly cookies, so the island is the only way for
+      WASM to reach the credential
+
+  fallback: |
+    - Server-rendered Promotion workspace (/workspace/promotion) is fully
+      functional with no WASM; link is provided in the shell's no-script fallback
+    - Slow or failed WASM: the page remains read-only; no fallback form submission
+      for the journey page (unlike the workspace, which has SSR-rendered actions)
+
+  invalidation: |
+    WebSocket carries filtered invalidation and attention signals only.
+    Browser refetches current state through the authorized RPC contract
+    (never replaying from cached client-authored state or timing-observable
+    collections).
+
+quality_gates:
+  - name: "Buildable"
+    requirement: "go run ./tools/uxqual/cmd/journeywasm -out internal/humanwork/workspace/assets succeeds"
+    evidence: "workspace-renderer-decision.yaml, method section (UX-QUAL-001)"
+
+  - name: "Keyboard-only completion"
+    requirement: "12 natively-focusable controls in DOM order, zero positive tabindex"
+    evidence: "workspace-renderer-decision.yaml, candidates.gwc.criteria[1]"
+
+  - name: "Screen-reader semantics"
+    requirement: "Landmarks, labels, live regions per WCAG 2.2 AA"
+    evidence: "workspace-renderer-decision.yaml, candidates.gwc.criteria[2]"
+
+  - name: "WCAG 2.2 AA contrast"
+    requirement: "All foreground/background pairs >= 4.5:1 contrast ratio"
+    evidence: "workspace-renderer-decision.yaml, candidates.gwc.criteria[3]"
+
+  - name: "Reflow at 320px"
+    requirement: "No content loss at 320 CSS pixels viewport width"
+    evidence: "workspace-renderer-decision.yaml, candidates.gwc.criteria[4]"
+
+  - name: "Never renders a masked field"
+    requirement: "Hidden/redacted fields do not appear in rendered document"
+    evidence: "workspace-renderer-decision.yaml, candidates.gwc.criteria[5]"
+
+  - name: "Browser qualification (Chromium)"
+    requirement: "10/10 passed on Playwright (1.60.0) with Chrome 148.0.7778.96"
+    evidence: "workspace-renderer-decision.yaml, browser_pass section"
+
+  - name: "CSP determinism"
+    requirement: "CSP header value matches JourneyContentSecurityPolicy(host)"
+    evidence: "TestTodo_WEB_001_Conformance validation in webdelivery_test.go"
+
+  - name: "Asset embedding"
+    requirement: "journey.wasm and wasm_exec.js present in embedded filesystem"
+    evidence: "TestTodo_WEB_001 integration test"
+
+  - name: "Size budget"
+    requirement: "journey.wasm <= 32 MiB (33554432 bytes)"
+    evidence: "TestTodo_WEB_001 size ceiling validation"

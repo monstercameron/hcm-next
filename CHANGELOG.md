@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-05
+
+- `829e3a9` - Added the durable stores and migrations 00040-00069 the promotion closure needs (reconciliation jobs, session store, position/budget reservations, attestation, payroll run, pay-GL, job architecture, location, tenant placement, balance accumulators, access identity, legal evidence, outbox lease fence, consumer positions, record copy links, replay snapshots, connector operation journals, intent outcome references); `pgtest` now sweeps orphaned embedded-PostgreSQL runtime directories.
+- `89d8c1b` - Landed the transaction plane: plan preparation against stream heads (TX-003), the commit coordinator with idempotent replay and crash-at-every-boundary proofs (TX-004), evidence resolution (TX-005), immutable corrections (TX-007), cancel-before/after commit under an advisory lock (TX-008), the crash-boundary conformance suite (TX-009).
+- `5b64e58` - Made the compiled promotion execute plan terminate accurately: revisited nodes activate at attempt N+1 and continuations carry the attempt, approval completion and resume address the open attempt, WAIT timers are activation-qualified in identity and key, OBSERVE retry exhaustion routes to the repair terminal, `end_blocked` completes; SHADOW mode, worker-death recovery, RepairPlan execution mode, telemetry per advancement.
+- `ad58d6a` - Bound workflow terminals back onto the Intent as one OutcomeReceipt carrying commit-receipt and repair references (INTENT-007), closure under the completion policy (INTENT-008), atomic approval election, pre-execution revalidation, rendered-digest binding and separation of duties with idempotent replay (APPROVAL-003/005/006/008), journey stages for the execute plan.
+- `1352e3d` - Added governed connector operations (journals before dispatch, lease-time revalidation, per-resource causal order, exactly-once dispatch, UNKNOWN after timeout, isolated redrive), reconciliation completion (RECON-002) and RepairPlan revalidation (REPAIR-002).
+- `d3c2a53` - Added the bounded people, organization and compensation writes with append-only evidence inside the Promotion local ACID commit (PEOPLE-004, ORG-003, COMP-004, PROMO-005) and the transaction-invariant suite (MODEL-025), plus domain packages for the persisted stores and engine updates.
+- `b524715` - Wired serve for the execute plan: root redirect, health listener, timer dataset flags, scheduler as an initial process role, `-workflow-plan=execute`, browser Origin/Host/CSRF policy, journey stage wire values, serve-graph golden.
+- `760eb1b` - Product workspace UI, journey client labels and actions for the execute-plan stages, UX qualification tooling; code-style allow-list for the vendored wasm shim, the design demo and the race-policy script.
+- `0a56524` - Promotion end-to-end suite (nine scenarios, PROMO-009, WF-RUN-016 repair execution), acceptance matrix 24/24 PROVEN, bootstrap and otelmw tests aligned, architecture golden, gate-evidence signing, policy and planning tools.
+- Docs commit (this entry) - Todos 588 -> 657, storage disposition through 00069, P1A manifest re-signed over 62 migration files with recorded gaps, telemetry allow-list rows, process/dependency roles, coverage inventories, workflow catalogue, user stories, security research, devlog `planning/devlog/2026-09-05-promotion-termination-wave.md`.
+
 ## 2026-09-03
 
 - `aef1496` - Moved `internal/kernel/canonical` and `internal/kernel/digest` to `internal/engines/wire/canonical|digest`; updated all import sites, docs, and architecture firewall roles; added `ledger.NewAppenderWithClock` for deterministic clock pinning.
