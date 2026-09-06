@@ -14,6 +14,9 @@ import (
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
 
 const proofLogDDL = `
+-- Migration 00126 now owns the durable stepup_proof_log (internal/data/truststore);
+-- this legacy sqlstore test keeps its private minimal shape inside the test schema.
+DROP TABLE IF EXISTS stepup_proof_log CASCADE;
 CREATE TABLE stepup_proof_log (
   proof_id    text primary key,
   outcome     text   not null,

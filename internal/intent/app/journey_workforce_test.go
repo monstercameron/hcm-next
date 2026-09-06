@@ -329,6 +329,9 @@ func TestCreatedWorkerSummaryProjectsTheDurableRow(t *testing.T) {
 	if got.BasePay != row.BasePay || got.Currency != row.Currency || got.BonusTarget != row.BonusTarget {
 		t.Errorf("baseline = %s/%s/%s, want the row's own", got.BasePay, got.Currency, got.BonusTarget)
 	}
+	if got.JobTitle != row.JobTitle || got.ManagerRef != row.ManagerRelationshipRef || got.ProfilePhotoURL != row.ProfilePhotoProxyRef {
+		t.Errorf("display projection lost title, manager, or photo: %+v", got)
+	}
 	if !got.CreatedAt.Equal(row.RecordedAt) {
 		t.Errorf("created at = %s, want the row's recorded instant %s", got.CreatedAt, row.RecordedAt)
 	}
@@ -445,32 +448,36 @@ func workforceWrap(err error) error { return errors.Join(errors.New("app: journe
 func createdRowFixture() workforce.WorkerRow {
 	id := uuid.MustParse("7f3b1c22-0000-4000-8000-0000000000aa")
 	return workforce.WorkerRow{
-		WorkerID:         id,
-		WorkerKey:        "ada-7f3b1c22",
-		LegalName:        "Ada Lovelace",
-		PreferredName:    "Ada",
-		WorkerNumber:     "W-J7F3B1C22",
-		WorkerType:       journeyWorkerType,
-		LifecycleStatus:  journeyWorkerLifecycleActive,
-		JobCode:          "OPS-HRBP2",
-		Grade:            "P2",
-		OrgUnit:          "people-ops",
-		PositionID:       "POS-HRBP-204",
-		Location:         "Boston, MA",
-		PayZone:          "US-EAST",
-		FTE:              journeyWorkerFTE,
-		HireDate:         "2021-04-05",
-		EffectiveFrom:    "2021-04-05",
-		BasePay:          "81500.00",
-		Currency:         "USD",
-		PayBasis:         journeyWorkerPayBasis,
-		BonusTarget:      "0.0700",
-		RevisionStream:   "people.worker." + id.String(),
-		RevisionSequence: 1,
-		KnownAt:          time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC),
-		RecordedAt:       time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC),
-		CreatedBy:        "user-0191f3c4",
-		Source:           workforce.SourceCreated,
+		WorkerID:                id,
+		WorkerKey:               "ada-7f3b1c22",
+		LegalName:               "Ada Lovelace",
+		PreferredName:           "Ada",
+		WorkerNumber:            "W-J7F3B1C22",
+		WorkerType:              journeyWorkerType,
+		LifecycleStatus:         journeyWorkerLifecycleActive,
+		JobCode:                 "OPS-HRBP2",
+		JobTitle:                "Senior People Partner",
+		Grade:                   "P2",
+		OrgUnit:                 "people-ops",
+		PositionID:              "POS-HRBP-204",
+		Location:                "Boston, MA",
+		PayZone:                 "US-EAST",
+		FTE:                     journeyWorkerFTE,
+		ManagerRelationshipRef:  "manager-ada",
+		ProfilePhotoOriginalRef: "profile-originals/ada.png",
+		ProfilePhotoProxyRef:    "/workspace/assets/person-ada-small.jpg",
+		HireDate:                "2021-04-05",
+		EffectiveFrom:           "2021-04-05",
+		BasePay:                 "81500.00",
+		Currency:                "USD",
+		PayBasis:                journeyWorkerPayBasis,
+		BonusTarget:             "0.0700",
+		RevisionStream:          "people.worker." + id.String(),
+		RevisionSequence:        1,
+		KnownAt:                 time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC),
+		RecordedAt:              time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC),
+		CreatedBy:               "user-0191f3c4",
+		Source:                  workforce.SourceCreated,
 	}
 }
 
