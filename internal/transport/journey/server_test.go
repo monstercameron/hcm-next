@@ -387,8 +387,8 @@ func TestJourneyServiceSecurity(t *testing.T) {
 	})
 }
 
-// TestJourneyServicePublishesEightUnaryMethodsAndOneServerStream pins the
-// cardinality the proto declares: eight unary methods plus WatchJourney, and
+// TestJourneyServicePublishesFourteenUnaryMethodsAndOneServerStream pins the
+// cardinality the proto declares: fourteen unary methods plus WatchJourney, and
 // WatchJourney is a server stream - the server sends many, the client sends
 // exactly one request and never sends again.
 //
@@ -398,13 +398,16 @@ func TestJourneyServiceSecurity(t *testing.T) {
 // same boundary. A WatchJourney that quietly regressed to unary, or that
 // became bidirectional, would be admitted by a different path than the one
 // its tests exercise.
-func TestJourneyServicePublishesEightUnaryMethodsAndOneServerStream(t *testing.T) {
+func TestJourneyServicePublishesFourteenUnaryMethodsAndOneServerStream(t *testing.T) {
 	desc := journeyv1.JourneyService_ServiceDesc
 
 	wantUnary := map[string]bool{
 		"ListJourneys": true, "ProposeJourney": true, "ProposePromotion": true,
 		"InspectJourney": true, "ExecuteJourney": true, "DecideJourney": true,
 		"ListWorkers": true, "CreateWorker": true,
+		"GetProductPreferences": true, "SaveUserPreferences": true,
+		"SaveTenantAppearance": true, "RecordWorkflowUse": true,
+		"GetWorkerIDPolicy": true, "SaveWorkerIDPolicy": true,
 	}
 	if len(desc.Methods) != len(wantUnary) {
 		names := make([]string, 0, len(desc.Methods))

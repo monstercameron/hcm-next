@@ -11,6 +11,10 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	transporthealth "github.com/monstercameron/hcm-next/internal/transport/health"
+	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
+	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
+	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
 )
 
 // defaultMaxBodyBytes bounds an inbound request body. Bounded decoding is part
@@ -26,11 +30,21 @@ type Options struct {
 	// Intent is the BusinessIntent lifecycle handler port. Optional.
 	Intent transport.IntentHandler
 	// Registry is the discovery handler port. Optional.
-	Registry transport.RegistryHandler
+	Registry   transport.RegistryHandler
+	Journey    *transportjourney.Dependencies
+	Workflow   *transportworkflow.Dependencies
+	Operations *transportoperations.Dependencies
+	Health     *transporthealth.Server
 	// MaxBodyBytes bounds an inbound body. Zero means 4 MiB.
 	MaxBodyBytes int
 	// HandlerOptions are appended after the options this package sets.
 	HandlerOptions []connect.HandlerOption
+	// IngressPolicy bounds hostile request shape before protocol decoding. The
+	// zero value selects DefaultRequestShapePolicy.
+	IngressPolicy RequestShapePolicy
+	// BurstGate optionally enforces an in-process edge burst budget. Tenant
+	// quotas remain owned by internal/operations/admission.
+	BurstGate *BurstGate
 }
 
 // Configuration errors for [NewHandler].
@@ -49,7 +63,7 @@ func NewHandler(opts Options) (http.Handler, error) {
 	if opts.Config.Verifier == nil {
 		return nil, ErrNoVerifier
 	}
-	if opts.Intent == nil && opts.Registry == nil {
+	if opts.Intent == nil && opts.Registry == nil && opts.Journey == nil && opts.Workflow == nil && opts.Operations == nil && opts.Health == nil {
 		return nil, ErrNoHandlers
 	}
 	maxBody := opts.MaxBodyBytes
@@ -82,8 +96,27 @@ func NewHandler(opts Options) (http.Handler, error) {
 		mount(mux, ProcedureListCapabilities, unary(h.ListCapabilities), handlerOptions)
 		mount(mux, ProcedureGetCapability, unary(h.GetCapability), handlerOptions)
 	}
+	if opts.Journey != nil {
+		mux.Handle(transportjourney.ProposePromotionProcedure, transportjourney.NewProposePromotionHandler(*opts.Journey, handlerOptions...))
+	}
+	if opts.Workflow != nil {
+		h := transportworkflow.NewHandler(*opts.Workflow, handlerOptions...)
+		mux.Handle(transportworkflow.GetWorkflowProcedure, h)
+		mux.Handle(transportworkflow.ListNodeExecutionsProcedure, h)
+	}
+	if opts.Operations != nil {
+		h := transportoperations.NewHandler(*opts.Operations, handlerOptions...)
+		mux.Handle(transportoperations.GetOperationProcedure, h)
+		mux.Handle(transportoperations.CancelOperationProcedure, h)
+	}
+	if opts.Health != nil {
+		mux.Handle("/healthz", opts.Health.Handler())
+		mux.Handle("/readyz", opts.Health.Handler())
+	}
 
-	return statusOverrideMiddleware(strictJSONMiddleware(mux, opts.Config, maxBody)), nil
+	handler := strictJSONMiddleware(mux, opts.Config, maxBody)
+	handler = IngressMiddleware(handler, opts.IngressPolicy, opts.BurstGate)
+	return statusOverrideMiddleware(handler), nil
 }
 
 // unary adapts a handler port method to the connect unary signature. The

@@ -15,11 +15,14 @@ package application
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/hcm-next/internal/trust/devprofile"
 )
 
 // EnvDatabaseURL names the server the serve role connects to, matching
@@ -38,6 +41,7 @@ const EnvHealthAddr = "HCMNEXT_HEALTH_ADDR"
 // declares them and ServeConfigFromValues reads them back: a typo between the
 // two is a startup failure rather than a silently defaulted value.
 const (
+	FieldProfile         = "profile"
 	FieldGRPCListen      = "grpc-listen"
 	FieldHTTPListen      = "http-listen"
 	FieldDatabaseURL     = "database-url"
@@ -69,6 +73,23 @@ const (
 	FieldWorkflowPlan             = "workflow-plan"
 )
 
+// Serve profiles are named sets of defaults, not alternate implementations.
+// The standard profile remains the fail-closed deployment shape. local-dev
+// keeps the real database, authentication, authorization and transports, but
+// removes repetitive setup from a loopback-only developer process.
+const (
+	ServeProfileStandard = "standard"
+	ServeProfileLocalDev = devprofile.Name
+
+	LocalDevDatabaseURL = "postgres://postgres:postgres@127.0.0.1:5432/hcm_next?sslmode=disable"
+	LocalDevHMACKey     = devprofile.HMACKey
+	LocalDevTenant      = devprofile.Tenant
+	LocalDevSubject     = devprofile.Subject
+	LocalDevOrgScope    = devprofile.OrgScope
+	LocalDevRoles       = devprofile.Roles
+	LocalDevPurpose     = devprofile.Purpose
+)
+
 const (
 	WorkflowPlanPrototype = "prototype"
 	WorkflowPlanExecute   = "execute"
@@ -91,8 +112,8 @@ const (
 // with no flags beyond its own -dev-hmac-key: the two commands cannot drift
 // apart by one of them changing a literal the other did not.
 const (
-	DefaultIssuer   = "https://issuer.local.hcm-next.invalid"
-	DefaultAudience = "hcm-next-api"
+	DefaultIssuer   = devprofile.Issuer
+	DefaultAudience = devprofile.Audience
 )
 
 // DefaultTimerTzdbVersion and DefaultTimerCalendarVersion are the dataset
@@ -124,6 +145,7 @@ const TelemetryShutdownGrace = 5 * time.Second
 // at read time: ServeConfigFromValues resolves every field once, and the
 // composition reads only this struct afterwards.
 type ServeConfig struct {
+	Profile     string
 	GRPCListen  string
 	HTTPListen  string
 	DatabaseURL string
@@ -166,6 +188,7 @@ type ServeConfig struct {
 // add, rename or re-default one.
 func ServeConfigFields() []bootstrap.Field {
 	return []bootstrap.Field{
+		{Name: FieldProfile, Usage: "runtime default profile: standard or local-dev", Default: ServeProfileStandard},
 		{Name: FieldGRPCListen, Usage: "address the canonical gRPC surface listens on", Default: "127.0.0.1:8443"},
 		{Name: FieldHTTPListen, Usage: "address the HTTP edge listens on", Default: "127.0.0.1:8080"},
 		{Name: FieldDatabaseURL, Env: EnvDatabaseURL, Usage: "PostgreSQL connection URL"},
@@ -192,6 +215,54 @@ func ServeConfigFields() []bootstrap.Field {
 	}
 }
 
+// ServeConfigFieldsForArgs returns the same declared field set with the
+// requested profile's defaults applied. Profile defaults remain below both
+// environment values and explicit flags in bootstrap's normal precedence.
+func ServeConfigFieldsForArgs(args []string) []bootstrap.Field {
+	fields := ServeConfigFields()
+	if requestedServeProfile(args) != ServeProfileLocalDev {
+		return fields
+	}
+	defaults := map[string]string{
+		FieldDatabaseURL:              LocalDevDatabaseURL,
+		FieldDevHMACKey:               LocalDevHMACKey,
+		FieldTenant:                   LocalDevTenant,
+		FieldMigrate:                  "false",
+		FieldDevBrowserLogin:          "true",
+		FieldExecutionAuthority:       "true",
+		FieldExecutionAuthorityDigest: "sha256:local-dev-profile-authority",
+		FieldWorkflowPlan:             WorkflowPlanExecute,
+	}
+	for i := range fields {
+		if value, ok := defaults[fields[i].Name]; ok {
+			fields[i].Default = value
+		}
+	}
+	return fields
+}
+
+// requestedServeProfile performs only enough parsing to select defaults.
+// bootstrap.ParseConfig remains the sole parser and reports malformed or
+// duplicate inputs in the usual way.
+func requestedServeProfile(args []string) string {
+	profile := ServeProfileStandard
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "-"+FieldProfile || arg == "--"+FieldProfile:
+			if i+1 < len(args) {
+				profile = args[i+1]
+				i++
+			}
+		case strings.HasPrefix(arg, "-"+FieldProfile+"="):
+			profile = strings.TrimPrefix(arg, "-"+FieldProfile+"=")
+		case strings.HasPrefix(arg, "--"+FieldProfile+"="):
+			profile = strings.TrimPrefix(arg, "--"+FieldProfile+"=")
+		}
+	}
+	return profile
+}
+
 // ServeConfigFromValues resolves parsed configuration into the value the
 // composition reads. It returns only the typed-parse failures
 // bootstrap.Values reports; semantic rejection is ServeConfig.Validate's job,
@@ -201,6 +272,7 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 		return ServeConfig{}, fmt.Errorf("application: serve configuration needs parsed values")
 	}
 	cfg := ServeConfig{
+		Profile:                  values.String(FieldProfile),
 		GRPCListen:               values.String(FieldGRPCListen),
 		HTTPListen:               values.String(FieldHTTPListen),
 		DatabaseURL:              values.String(FieldDatabaseURL),
@@ -245,6 +317,15 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 // semantic half of the contract: everything here is a statement about the
 // deployment, not about whether a string parsed.
 func (c ServeConfig) Validate() error {
+	switch c.Profile {
+	case "", ServeProfileStandard:
+	case ServeProfileLocalDev:
+		if err := validateLocalDevBoundary(c); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("-%s must be %q or %q; got %q", FieldProfile, ServeProfileStandard, ServeProfileLocalDev, c.Profile)
+	}
 	if c.DatabaseURL == "" {
 		return fmt.Errorf("%s is not set; pass -%s or set the environment variable",
 			EnvDatabaseURL, FieldDatabaseURL)
@@ -288,6 +369,19 @@ func (c ServeConfig) Validate() error {
 	if (c.TimerTzdbVersion == "") != (c.TimerCalendarVersion == "") {
 		return fmt.Errorf("-%s and -%s are set together or not at all; a timer promise names both releases",
 			FieldTimerTzdbVersion, FieldTimerCalendarVersion)
+	}
+	return nil
+}
+
+func validateLocalDevBoundary(c ServeConfig) error {
+	for name, addr := range map[string]string{FieldGRPCListen: c.GRPCListen, FieldHTTPListen: c.HTTPListen} {
+		if !devprofile.IsLoopbackAddress(addr) {
+			return fmt.Errorf("-%s=%s requires -%s=%q to bind a loopback address", FieldProfile, ServeProfileLocalDev, name, addr)
+		}
+	}
+	database, err := url.Parse(c.DatabaseURL)
+	if err != nil || database.Hostname() == "" || !devprofile.IsLoopbackHost(database.Hostname()) {
+		return fmt.Errorf("-%s=%s requires a loopback PostgreSQL URL", FieldProfile, ServeProfileLocalDev)
 	}
 	return nil
 }

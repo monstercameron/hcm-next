@@ -33,6 +33,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -85,7 +87,39 @@ func validateConfig(v *bootstrap.Values) error {
 		return err
 	}
 	_, err := tenantOf(v)
+	if err != nil {
+		return err
+	}
+	_, err = roleConfigFromEnv()
 	return err
+}
+
+func roleConfigFromEnv() (scheduler.RoleConfig, error) {
+	roles := scheduler.DefaultRoleConfig()
+	for _, field := range []struct {
+		env    string
+		target *bool
+	}{
+		{scheduler.EnvTimerRole, &roles.TimerEnabled}, {scheduler.EnvSignalRole, &roles.SignalEnabled},
+	} {
+		if raw, ok := os.LookupEnv(field.env); ok {
+			value, err := strconv.ParseBool(raw)
+			if err != nil {
+				return scheduler.RoleConfig{}, fmt.Errorf("%s %q is not a boolean: %w", field.env, raw, err)
+			}
+			*field.target = value
+		}
+	}
+	if raw, ok := os.LookupEnv(scheduler.EnvTimerShard); ok {
+		roles.TimerShard = raw
+	}
+	if raw, ok := os.LookupEnv(scheduler.EnvSignalShard); ok {
+		roles.SignalShard = raw
+	}
+	if err := roles.Validate(); err != nil {
+		return scheduler.RoleConfig{}, err
+	}
+	return roles, nil
 }
 
 // tenantOf parses the configured tenant identifier.
@@ -125,7 +159,22 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
-	return scheduler.BuildRuntime(deps, nil, claim)
+	roles, err := roleConfigFromEnv()
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
+	return scheduler.BuildRuntimeWithSignalRoleAndRoles(deps, nil, signalRole{logger: deps.Logger}, roles, claim)
+}
+
+// signalRole is the scheduler-hosted signal role. Inbound integrations write
+// durable signal receipts through the shared signal runtime; this role is the
+// lease-owned sweep boundary for follow-up signal work and remains provider-
+// neutral at the process edge.
+type signalRole struct{ logger bootstrap.Logger }
+
+func (r signalRole) RunSignalRole(_ context.Context, claim lease.AcquireRequest, now time.Time, shard string) (int, error) {
+	r.logger.Info("scheduler.signal_role_tick", "tenant", claim.TenantID.String(), "shard", shard, "at", now.Format(time.RFC3339Nano))
+	return 0, nil
 }
 
 // pgxDBPoolFactory opens a pgx pool against url and pings it once, so a bad

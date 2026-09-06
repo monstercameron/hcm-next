@@ -40,6 +40,8 @@ const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
 // endpoint is served on; empty (the default) disables it.
 const EnvHealthAddr = "HCMNEXT_WORKER_HEALTH_ADDR"
 
+const EnvMessagingRole = "HCMNEXT_WORKER_MESSAGING_ROLE"
+
 func main() {
 	os.Exit(bootstrap.Run(context.Background(), spec(os.Args[1:])))
 }
@@ -83,6 +85,7 @@ func workerConfigFields() []bootstrap.Field {
 			Usage: "loopback host:port (127.0.0.1, localhost or ::1) to serve the health/readiness endpoint on; empty disables it",
 			Kind:  bootstrap.KindString,
 		},
+		{Name: "messaging-role", Env: EnvMessagingRole, Usage: "enable the semantic messaging delivery role", Default: "true", Kind: bootstrap.KindBool},
 	}
 }
 
@@ -127,6 +130,9 @@ func validateConfig(v *bootstrap.Values) error {
 	if _, err := v.Int("batch-size"); err != nil {
 		return err
 	}
+	if _, err := v.Bool("messaging-role"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -151,6 +157,10 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
+	messagingRole, err := deps.Values.Bool("messaging-role")
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
 
 	consumer := outbox.NewConsumer(pool, outbox.WithLease(lease), outbox.WithBatchSize(batchSize))
 	tenants := pgxTenantLister{pool: pool}
@@ -160,10 +170,15 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 		"poll_interval", pollInterval.String(),
 		"lease", lease.String(),
 		"batch_size", batchSize,
+		"messaging_role", messagingRole,
 	)
 
+	workloadName := "outbox-consumer"
+	if messagingRole {
+		workloadName = "messaging-delivery"
+	}
 	wl := bootstrap.Workload{
-		Name: "outbox-consumer",
+		Name: workloadName,
 		Run: func(ctx context.Context) error {
 			return runOutboxLoop(ctx, logger, tenants, consumer, pollInterval)
 		},

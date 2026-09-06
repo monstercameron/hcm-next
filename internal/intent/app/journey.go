@@ -15,6 +15,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
+	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/protomap"
@@ -61,14 +62,15 @@ type journeyEngine struct {
 	// locate is the cell's own worker-reference resolver. The journey shares
 	// it with the domain-input resolver and the workspace read surface, so a
 	// reference the list shows is a reference the proposal resolves.
-	locate WorkerLocator
+	locate    WorkerLocator
+	workerIDs workerids.Store
 }
 
 var _ workspace.JourneyEngine = (*journeyEngine)(nil)
 
 // newJourneyEngine composes the engine [NewCell] hands the workspace.
 func newJourneyEngine(
-	svc *IntentService, db dbport.Beginner, approver string, now func() time.Time, locate WorkerLocator,
+	svc *IntentService, db dbport.Beginner, approver string, now func() time.Time, locate WorkerLocator, stores ...workerids.Store,
 ) *journeyEngine {
 	if approver == "" {
 		approver = DefaultJourneyApprover
@@ -79,7 +81,11 @@ func newJourneyEngine(
 	if locate == nil {
 		locate = corpusWorkerLocator
 	}
-	engine := &journeyEngine{svc: svc, db: db, approver: approver, now: now, locate: locate}
+	var workerIDStore workerids.Store
+	if len(stores) > 0 {
+		workerIDStore = stores[0]
+	}
+	engine := &journeyEngine{svc: svc, db: db, approver: approver, now: now, locate: locate, workerIDs: workerIDStore}
 	if svc != nil {
 		svc.bindProposalDecisioner(engine)
 	}

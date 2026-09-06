@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/hcm-next/internal/experience/preferences"
+	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
@@ -25,6 +27,11 @@ type Dependencies struct {
 	// host this service before the engine is wired - the same rule
 	// internal/transport/admin applies to each of its optional ports.
 	Engine workspace.JourneyEngine
+	// Preferences is the authenticated product-workspace preference store.
+	// The handler derives tenant and principal from trusted context before
+	// forwarding, so the wire contract cannot select another user's record.
+	Preferences preferences.Store
+	WorkerIDs   workerids.Store
 	// PollInterval is how often WatchJourney re-reads the engine looking for
 	// a change. Zero or negative means [defaultWatchPollInterval].
 	//

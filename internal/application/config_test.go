@@ -35,7 +35,7 @@ func TestServeConfigFieldsDeclareEveryConfigurationTheRoleReads(t *testing.T) {
 		declared[field.Name] = field
 	}
 	for _, name := range []string{
-		FieldGRPCListen, FieldHTTPListen, FieldDatabaseURL, FieldDevHMACKey,
+		FieldProfile, FieldGRPCListen, FieldHTTPListen, FieldDatabaseURL, FieldDevHMACKey,
 		FieldIssuer, FieldAudience, FieldTenant, FieldCellID, FieldMaxDeadline,
 		FieldMigrate, FieldWorkspace, FieldDevBrowserLogin, FieldOTelExporter,
 		FieldOTelEndpoint, FieldExecutionAuthority, FieldExecutionAuthorityDigest,
@@ -85,6 +85,7 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 		t.Fatalf("ServeConfigFromValues: %v", err)
 	}
 	want := ServeConfig{
+		Profile:    ServeProfileStandard,
 		GRPCListen: "127.0.0.1:1", HTTPListen: "127.0.0.1:2",
 		DatabaseURL: "postgres://x", DevHMACKey: testDevKey,
 		Issuer: "https://issuer.test", Audience: "aud", Tenant: "acme",
@@ -101,6 +102,62 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 	}
 	if err := cfg.Validate(); err != nil {
 		t.Errorf("Validate on a complete configuration: %v", err)
+	}
+}
+
+func TestLocalDevProfileAppliesFastSafeDefaultsAndKeepsExplicitOverrides(t *testing.T) {
+	fields := ServeConfigFieldsForArgs([]string{"-profile=local-dev", "-migrate=true"})
+	values, err := bootstrap.ParseConfig(
+		[]string{"-profile=local-dev", "-migrate=true"},
+		func(string) (string, bool) { return "", false }, fields,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := ServeConfigFromValues(values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Profile != ServeProfileLocalDev || cfg.DatabaseURL != LocalDevDatabaseURL || cfg.DevHMACKey != LocalDevHMACKey || cfg.Tenant != LocalDevTenant {
+		t.Fatalf("local profile identity defaults = %+v", cfg)
+	}
+	if !cfg.Migrate {
+		t.Fatal("explicit -migrate=true did not override the profile default")
+	}
+	if !cfg.DevBrowserLogin || !cfg.ExecutionAuthority || cfg.WorkflowPlan != WorkflowPlanExecute {
+		t.Fatalf("local profile runtime defaults = %+v", cfg)
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("local profile defaults do not validate: %v", err)
+	}
+}
+
+func TestLocalDevProfileRejectsEveryNonLoopbackBoundary(t *testing.T) {
+	base, err := ServeConfigFromValues(func() *bootstrap.Values {
+		values, parseErr := bootstrap.ParseConfig([]string{"-profile=local-dev"}, func(string) (string, bool) { return "", false }, ServeConfigFieldsForArgs([]string{"-profile=local-dev"}))
+		if parseErr != nil {
+			t.Fatal(parseErr)
+		}
+		return values
+	}())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*ServeConfig)
+	}{
+		{"http listener", func(c *ServeConfig) { c.HTTPListen = "0.0.0.0:8080" }},
+		{"grpc listener", func(c *ServeConfig) { c.GRPCListen = "[::]:8443" }},
+		{"database", func(c *ServeConfig) { c.DatabaseURL = "postgres://db.example/hcm_next" }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := base
+			tc.mutate(&cfg)
+			if err := cfg.Validate(); err == nil || !strings.Contains(err.Error(), "loopback") {
+				t.Fatalf("Validate() = %v, want a loopback refusal", err)
+			}
+		})
 	}
 }
 

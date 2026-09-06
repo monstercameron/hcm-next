@@ -3,6 +3,7 @@ package application
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
@@ -95,5 +96,22 @@ func TestSpecForHonoursTheSuppliedLogger(t *testing.T) {
 	}
 	if spec.Logger != bootstrap.Logger(recorder) {
 		t.Errorf("spec.Logger = %T, want the supplied recorder", spec.Logger)
+	}
+}
+
+func TestLocalDevProfileShortensOnlyItsOwnShutdownDeadline(t *testing.T) {
+	local, err := SpecFor(RoleServe, []string{"-profile=local-dev"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if local.ShutdownDeadline != time.Second {
+		t.Fatalf("local shutdown deadline = %s, want 1s", local.ShutdownDeadline)
+	}
+	standard, err := SpecFor(RoleServe, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if standard.ShutdownDeadline != ShutdownGrace {
+		t.Fatalf("standard shutdown deadline = %s, want %s", standard.ShutdownDeadline, ShutdownGrace)
 	}
 }

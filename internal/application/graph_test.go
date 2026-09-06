@@ -138,6 +138,7 @@ intent-store|adapter|*application.stubStore|config,database-pool
 journey-engine|workflow|<nil>|cell
 observation-store|adapter|*observe.MemoryStore|
 pay-band-catalog|port|<nil>|
+presentation-preferences|adapter|*preferencestore.Store|database-pool
 proposal-executor|workflow|<nil>|execution-authority
 schema-migrator|adapter|<nil>|
 shutdown:shutdown-telemetry|shutdown|func(context.Context) error|telemetry-provider

@@ -19,15 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JourneyService_ListJourneys_FullMethodName     = "/hcmnext.journey.v1.JourneyService/ListJourneys"
-	JourneyService_ProposeJourney_FullMethodName   = "/hcmnext.journey.v1.JourneyService/ProposeJourney"
-	JourneyService_ProposePromotion_FullMethodName = "/hcmnext.journey.v1.JourneyService/ProposePromotion"
-	JourneyService_InspectJourney_FullMethodName   = "/hcmnext.journey.v1.JourneyService/InspectJourney"
-	JourneyService_ExecuteJourney_FullMethodName   = "/hcmnext.journey.v1.JourneyService/ExecuteJourney"
-	JourneyService_DecideJourney_FullMethodName    = "/hcmnext.journey.v1.JourneyService/DecideJourney"
-	JourneyService_WatchJourney_FullMethodName     = "/hcmnext.journey.v1.JourneyService/WatchJourney"
-	JourneyService_ListWorkers_FullMethodName      = "/hcmnext.journey.v1.JourneyService/ListWorkers"
-	JourneyService_CreateWorker_FullMethodName     = "/hcmnext.journey.v1.JourneyService/CreateWorker"
+	JourneyService_ListJourneys_FullMethodName          = "/hcmnext.journey.v1.JourneyService/ListJourneys"
+	JourneyService_ProposeJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/ProposeJourney"
+	JourneyService_ProposePromotion_FullMethodName      = "/hcmnext.journey.v1.JourneyService/ProposePromotion"
+	JourneyService_InspectJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/InspectJourney"
+	JourneyService_ExecuteJourney_FullMethodName        = "/hcmnext.journey.v1.JourneyService/ExecuteJourney"
+	JourneyService_DecideJourney_FullMethodName         = "/hcmnext.journey.v1.JourneyService/DecideJourney"
+	JourneyService_WatchJourney_FullMethodName          = "/hcmnext.journey.v1.JourneyService/WatchJourney"
+	JourneyService_ListWorkers_FullMethodName           = "/hcmnext.journey.v1.JourneyService/ListWorkers"
+	JourneyService_CreateWorker_FullMethodName          = "/hcmnext.journey.v1.JourneyService/CreateWorker"
+	JourneyService_GetProductPreferences_FullMethodName = "/hcmnext.journey.v1.JourneyService/GetProductPreferences"
+	JourneyService_SaveUserPreferences_FullMethodName   = "/hcmnext.journey.v1.JourneyService/SaveUserPreferences"
+	JourneyService_SaveTenantAppearance_FullMethodName  = "/hcmnext.journey.v1.JourneyService/SaveTenantAppearance"
+	JourneyService_RecordWorkflowUse_FullMethodName     = "/hcmnext.journey.v1.JourneyService/RecordWorkflowUse"
+	JourneyService_GetWorkerIDPolicy_FullMethodName     = "/hcmnext.journey.v1.JourneyService/GetWorkerIDPolicy"
+	JourneyService_SaveWorkerIDPolicy_FullMethodName    = "/hcmnext.journey.v1.JourneyService/SaveWorkerIDPolicy"
 )
 
 // JourneyServiceClient is the client API for JourneyService service.
@@ -62,7 +68,7 @@ const (
 // is made by the engine behind the port, which refuses under the same policy
 // the RPC surfaces would (workspace.ErrDenied projects to PERMISSION_DENIED).
 //
-// Eight methods are unary and WatchJourney is server-streaming. The stream
+// Fourteen methods are unary and WatchJourney is server-streaming. The stream
 // is admitted exactly as the unary methods are: the shared trusted-request
 // boundary is installed by grpcserver.NewServer as both
 // grpc.ChainUnaryInterceptor(grpcserver.UnaryInterceptor) and
@@ -196,6 +202,31 @@ type JourneyServiceClient interface {
 	// promotion is refused later for a reason that has nothing to do with the
 	// promotion.
 	CreateWorker(ctx context.Context, in *CreateWorkerRequest, opts ...grpc.CallOption) (*CreateWorkerResponse, error)
+	// GetProductPreferences returns the authenticated user's presentation
+	// defaults together with the authenticated organization's shared
+	// appearance. Tenant, organization scope, and principal are derived from
+	// the admitted credential, never from fields in this request. Effect class:
+	// READ_ONLY.
+	GetProductPreferences(ctx context.Context, in *GetProductPreferencesRequest, opts ...grpc.CallOption) (*GetProductPreferencesResponse, error)
+	// SaveUserPreferences replaces the authenticated user's presentation
+	// defaults under optimistic versioning. It cannot alter another user's
+	// record because neither tenant nor principal is accepted on the wire.
+	SaveUserPreferences(ctx context.Context, in *SaveUserPreferencesRequest, opts ...grpc.CallOption) (*SaveUserPreferencesResponse, error)
+	// SaveTenantAppearance replaces organization-wide branding under optimistic
+	// versioning. The organization scope comes from the admitted credential and
+	// the server additionally requires the comp_admin role. The RPC name is kept
+	// for wire compatibility.
+	SaveTenantAppearance(ctx context.Context, in *SaveTenantAppearanceRequest, opts ...grpc.CallOption) (*SaveTenantAppearanceResponse, error)
+	// RecordWorkflowUse increments the authenticated user's usage count for a
+	// workflow so launchers can rank real frequent actions rather than hardcode
+	// a single action. It grants no authority to run the named workflow.
+	RecordWorkflowUse(ctx context.Context, in *RecordWorkflowUseRequest, opts ...grpc.CallOption) (*RecordWorkflowUseResponse, error)
+	// GetWorkerIDPolicy returns the authenticated organization's formatting
+	// and allocation state. It requires the compensation administrator role.
+	GetWorkerIDPolicy(ctx context.Context, in *GetWorkerIDPolicyRequest, opts ...grpc.CallOption) (*GetWorkerIDPolicyResponse, error)
+	// SaveWorkerIDPolicy replaces configurable formatting rules under
+	// optimistic versioning. Allocation state can never be moved backwards.
+	SaveWorkerIDPolicy(ctx context.Context, in *SaveWorkerIDPolicyRequest, opts ...grpc.CallOption) (*SaveWorkerIDPolicyResponse, error)
 }
 
 type journeyServiceClient struct {
@@ -305,6 +336,66 @@ func (c *journeyServiceClient) CreateWorker(ctx context.Context, in *CreateWorke
 	return out, nil
 }
 
+func (c *journeyServiceClient) GetProductPreferences(ctx context.Context, in *GetProductPreferencesRequest, opts ...grpc.CallOption) (*GetProductPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProductPreferencesResponse)
+	err := c.cc.Invoke(ctx, JourneyService_GetProductPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveUserPreferences(ctx context.Context, in *SaveUserPreferencesRequest, opts ...grpc.CallOption) (*SaveUserPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveUserPreferencesResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveUserPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveTenantAppearance(ctx context.Context, in *SaveTenantAppearanceRequest, opts ...grpc.CallOption) (*SaveTenantAppearanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveTenantAppearanceResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveTenantAppearance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) RecordWorkflowUse(ctx context.Context, in *RecordWorkflowUseRequest, opts ...grpc.CallOption) (*RecordWorkflowUseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordWorkflowUseResponse)
+	err := c.cc.Invoke(ctx, JourneyService_RecordWorkflowUse_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) GetWorkerIDPolicy(ctx context.Context, in *GetWorkerIDPolicyRequest, opts ...grpc.CallOption) (*GetWorkerIDPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkerIDPolicyResponse)
+	err := c.cc.Invoke(ctx, JourneyService_GetWorkerIDPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *journeyServiceClient) SaveWorkerIDPolicy(ctx context.Context, in *SaveWorkerIDPolicyRequest, opts ...grpc.CallOption) (*SaveWorkerIDPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveWorkerIDPolicyResponse)
+	err := c.cc.Invoke(ctx, JourneyService_SaveWorkerIDPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JourneyServiceServer is the server API for JourneyService service.
 // All implementations must embed UnimplementedJourneyServiceServer
 // for forward compatibility.
@@ -337,7 +428,7 @@ func (c *journeyServiceClient) CreateWorker(ctx context.Context, in *CreateWorke
 // is made by the engine behind the port, which refuses under the same policy
 // the RPC surfaces would (workspace.ErrDenied projects to PERMISSION_DENIED).
 //
-// Eight methods are unary and WatchJourney is server-streaming. The stream
+// Fourteen methods are unary and WatchJourney is server-streaming. The stream
 // is admitted exactly as the unary methods are: the shared trusted-request
 // boundary is installed by grpcserver.NewServer as both
 // grpc.ChainUnaryInterceptor(grpcserver.UnaryInterceptor) and
@@ -471,6 +562,31 @@ type JourneyServiceServer interface {
 	// promotion is refused later for a reason that has nothing to do with the
 	// promotion.
 	CreateWorker(context.Context, *CreateWorkerRequest) (*CreateWorkerResponse, error)
+	// GetProductPreferences returns the authenticated user's presentation
+	// defaults together with the authenticated organization's shared
+	// appearance. Tenant, organization scope, and principal are derived from
+	// the admitted credential, never from fields in this request. Effect class:
+	// READ_ONLY.
+	GetProductPreferences(context.Context, *GetProductPreferencesRequest) (*GetProductPreferencesResponse, error)
+	// SaveUserPreferences replaces the authenticated user's presentation
+	// defaults under optimistic versioning. It cannot alter another user's
+	// record because neither tenant nor principal is accepted on the wire.
+	SaveUserPreferences(context.Context, *SaveUserPreferencesRequest) (*SaveUserPreferencesResponse, error)
+	// SaveTenantAppearance replaces organization-wide branding under optimistic
+	// versioning. The organization scope comes from the admitted credential and
+	// the server additionally requires the comp_admin role. The RPC name is kept
+	// for wire compatibility.
+	SaveTenantAppearance(context.Context, *SaveTenantAppearanceRequest) (*SaveTenantAppearanceResponse, error)
+	// RecordWorkflowUse increments the authenticated user's usage count for a
+	// workflow so launchers can rank real frequent actions rather than hardcode
+	// a single action. It grants no authority to run the named workflow.
+	RecordWorkflowUse(context.Context, *RecordWorkflowUseRequest) (*RecordWorkflowUseResponse, error)
+	// GetWorkerIDPolicy returns the authenticated organization's formatting
+	// and allocation state. It requires the compensation administrator role.
+	GetWorkerIDPolicy(context.Context, *GetWorkerIDPolicyRequest) (*GetWorkerIDPolicyResponse, error)
+	// SaveWorkerIDPolicy replaces configurable formatting rules under
+	// optimistic versioning. Allocation state can never be moved backwards.
+	SaveWorkerIDPolicy(context.Context, *SaveWorkerIDPolicyRequest) (*SaveWorkerIDPolicyResponse, error)
 	mustEmbedUnimplementedJourneyServiceServer()
 }
 
@@ -507,6 +623,24 @@ func (UnimplementedJourneyServiceServer) ListWorkers(context.Context, *ListWorke
 }
 func (UnimplementedJourneyServiceServer) CreateWorker(context.Context, *CreateWorkerRequest) (*CreateWorkerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateWorker not implemented")
+}
+func (UnimplementedJourneyServiceServer) GetProductPreferences(context.Context, *GetProductPreferencesRequest) (*GetProductPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProductPreferences not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveUserPreferences(context.Context, *SaveUserPreferencesRequest) (*SaveUserPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveUserPreferences not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveTenantAppearance(context.Context, *SaveTenantAppearanceRequest) (*SaveTenantAppearanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveTenantAppearance not implemented")
+}
+func (UnimplementedJourneyServiceServer) RecordWorkflowUse(context.Context, *RecordWorkflowUseRequest) (*RecordWorkflowUseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordWorkflowUse not implemented")
+}
+func (UnimplementedJourneyServiceServer) GetWorkerIDPolicy(context.Context, *GetWorkerIDPolicyRequest) (*GetWorkerIDPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkerIDPolicy not implemented")
+}
+func (UnimplementedJourneyServiceServer) SaveWorkerIDPolicy(context.Context, *SaveWorkerIDPolicyRequest) (*SaveWorkerIDPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveWorkerIDPolicy not implemented")
 }
 func (UnimplementedJourneyServiceServer) mustEmbedUnimplementedJourneyServiceServer() {}
 func (UnimplementedJourneyServiceServer) testEmbeddedByValue()                        {}
@@ -684,6 +818,114 @@ func _JourneyService_CreateWorker_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JourneyService_GetProductPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).GetProductPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_GetProductPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).GetProductPreferences(ctx, req.(*GetProductPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveUserPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveUserPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveUserPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveUserPreferences(ctx, req.(*SaveUserPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveTenantAppearance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveTenantAppearanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveTenantAppearance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveTenantAppearance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveTenantAppearance(ctx, req.(*SaveTenantAppearanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_RecordWorkflowUse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordWorkflowUseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).RecordWorkflowUse(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_RecordWorkflowUse_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).RecordWorkflowUse(ctx, req.(*RecordWorkflowUseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_GetWorkerIDPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkerIDPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).GetWorkerIDPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_GetWorkerIDPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).GetWorkerIDPolicy(ctx, req.(*GetWorkerIDPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JourneyService_SaveWorkerIDPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveWorkerIDPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyServiceServer).SaveWorkerIDPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JourneyService_SaveWorkerIDPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyServiceServer).SaveWorkerIDPolicy(ctx, req.(*SaveWorkerIDPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JourneyService_ServiceDesc is the grpc.ServiceDesc for JourneyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -722,6 +964,30 @@ var JourneyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateWorker",
 			Handler:    _JourneyService_CreateWorker_Handler,
+		},
+		{
+			MethodName: "GetProductPreferences",
+			Handler:    _JourneyService_GetProductPreferences_Handler,
+		},
+		{
+			MethodName: "SaveUserPreferences",
+			Handler:    _JourneyService_SaveUserPreferences_Handler,
+		},
+		{
+			MethodName: "SaveTenantAppearance",
+			Handler:    _JourneyService_SaveTenantAppearance_Handler,
+		},
+		{
+			MethodName: "RecordWorkflowUse",
+			Handler:    _JourneyService_RecordWorkflowUse_Handler,
+		},
+		{
+			MethodName: "GetWorkerIDPolicy",
+			Handler:    _JourneyService_GetWorkerIDPolicy_Handler,
+		},
+		{
+			MethodName: "SaveWorkerIDPolicy",
+			Handler:    _JourneyService_SaveWorkerIDPolicy_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -86,15 +86,10 @@ func sweep(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, d
 	return didWork, nil
 }
 
-// dispatch delivers one outbox message. P1A has no external distribution
-// target wired yet (no funded consumer reads the outbox outside this
-// process); this composition root logs the delivery so the at-least-once,
-// restart-safe mechanics are exercised end to end in the real binary. A real
-// destination (a queue, a webhook) plugs in here without changing
-// internal/data/outbox. SVC-010 will eventually give worker a real
-// messaging-delivery role; until that lands, this stays a plain, logging
-// consumer rather than growing provider-specific behavior of its own.
+// dispatch is the semantic delivery role's outbox boundary. The durable
+// outbox lease and acknowledgement remain here; provider adapters are supplied
+// behind internal/connectivity/delivery and never enter this command package.
 func dispatch(logger bootstrap.Logger, msg outbox.Record) error {
-	logger.Info("worker.dispatched", "effect", msg.EffectIdentity, "schema", msg.SchemaRef, "bytes", len(msg.Payload))
+	logger.Info("worker.messaging_intent_dispatched", "effect", msg.EffectIdentity, "schema", msg.SchemaRef, "bytes", len(msg.Payload))
 	return nil
 }

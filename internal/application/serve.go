@@ -26,6 +26,8 @@ import (
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
+	"github.com/monstercameron/hcm-next/internal/data/preferencestore"
+	"github.com/monstercameron/hcm-next/internal/data/workeridstore"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
@@ -67,6 +69,7 @@ const (
 	ComponentCapabilityGateway     = "capability-gateway"
 	ComponentIntentService         = "intent-service"
 	ComponentJourneyEngine         = "journey-engine"
+	ComponentPresentationPrefs     = "presentation-preferences"
 	ComponentGRPCSurface           = "grpc-surface"
 	ComponentHTTPEdge              = "http-edge"
 	ComponentWorkloadGRPC          = "workload:grpc-surface"
@@ -170,6 +173,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	graph.add(ComponentEvidenceSink, KindRegistry, evidence)
 
 	workspaceEnabled := cfg.Workspace
+	workerIDs := workeridstore.New(in.Pool, tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
 	cellConfig := app.CellConfig{
 		Store:           store,
 		Verifier:        verifier,
@@ -186,7 +190,10 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		Now:             options.Now,
 		Clock:           options.Clock,
 		IDs:             options.IDs,
+		Preferences:     preferencestore.New(in.Pool, tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID)),
+		WorkerIDs:       workerIDs,
 	}
+	graph.add(ComponentPresentationPrefs, KindAdapter, cellConfig.Preferences, ComponentDatabasePool)
 	graph.add(ComponentPayBandCatalog, KindPort, cellConfig.Bands)
 
 	if cfg.ExecutionAuthority {
@@ -424,6 +431,7 @@ func composeVerifier(cfg ServeConfig, options Options) (trust.Verifier, error) {
 // bootstrap runs and drains. It is the one call a command makes.
 func ServeSpec(args []string, opts ...Option) bootstrap.Spec {
 	options := Options{}.Apply(opts...)
+	fields := ServeConfigFieldsForArgs(args)
 
 	// The store needs a pool it can Begin and Query on, and bootstrap's
 	// DBPool port is deliberately narrower than that. The factory therefore
@@ -441,7 +449,7 @@ func ServeSpec(args []string, opts ...Option) bootstrap.Spec {
 		Role:             bootstrap.RoleHCMNext,
 		Args:             args,
 		Logger:           logger,
-		ConfigFields:     ServeConfigFields(),
+		ConfigFields:     fields,
 		Validate:         ValidateServeValues,
 		DatabaseURLField: FieldDatabaseURL,
 		HealthAddr:       HealthAddrOf(args),
@@ -470,8 +478,15 @@ func ServeSpec(args []string, opts ...Option) bootstrap.Spec {
 			}
 			return composed.Runtime(), nil
 		},
-		ShutdownDeadline: ShutdownGrace,
+		ShutdownDeadline: shutdownGraceForArgs(args),
 	}
+}
+
+func shutdownGraceForArgs(args []string) time.Duration {
+	if requestedServeProfile(args) == ServeProfileLocalDev {
+		return time.Second
+	}
+	return ShutdownGrace
 }
 
 // HealthAddrOf pre-resolves -health-addr from args with the same precedence
@@ -481,7 +496,7 @@ func ServeSpec(args []string, opts ...Option) bootstrap.Spec {
 // side-effect-free rerun of the parse Run performs moments later. A bad flag
 // here yields an empty address and is reported, correctly, by Run's own parse.
 func HealthAddrOf(args []string) string {
-	values, err := bootstrap.ParseConfig(args, nil, ServeConfigFields())
+	values, err := bootstrap.ParseConfig(args, nil, ServeConfigFieldsForArgs(args))
 	if err != nil {
 		return ""
 	}

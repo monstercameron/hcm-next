@@ -1,10 +1,18 @@
 package edge
 
 import (
+	"sort"
+
 	"google.golang.org/protobuf/proto"
 
+	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
+	workflowv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1"
+	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
+	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
+	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
 )
 
 // Procedure paths. They are the gRPC method names verbatim, so one method
@@ -44,17 +52,34 @@ var requestFactories = map[string]func() proto.Message{
 	ProcedureExplainIntent:      func() proto.Message { return &intentsv1.ExplainIntentRequest{} },
 	ProcedureListIntentTimeline: func() proto.Message { return &intentsv1.ListIntentTimelineRequest{} },
 
-	ProcedureListIntentDefinitions: func() proto.Message { return &registryv1.ListIntentDefinitionsRequest{} },
-	ProcedureGetIntentDefinition:   func() proto.Message { return &registryv1.GetIntentDefinitionRequest{} },
-	ProcedureListCapabilities:      func() proto.Message { return &registryv1.ListCapabilitiesRequest{} },
-	ProcedureGetCapability:         func() proto.Message { return &registryv1.GetCapabilityRequest{} },
+	ProcedureListIntentDefinitions:                func() proto.Message { return &registryv1.ListIntentDefinitionsRequest{} },
+	ProcedureGetIntentDefinition:                  func() proto.Message { return &registryv1.GetIntentDefinitionRequest{} },
+	ProcedureListCapabilities:                     func() proto.Message { return &registryv1.ListCapabilitiesRequest{} },
+	ProcedureGetCapability:                        func() proto.Message { return &registryv1.GetCapabilityRequest{} },
+	transportjourney.ProposePromotionProcedure:    func() proto.Message { return &journeyv1.ProposePromotionRequest{} },
+	transportworkflow.GetWorkflowProcedure:        func() proto.Message { return &workflowv1.GetWorkflowRequest{} },
+	transportworkflow.ListNodeExecutionsProcedure: func() proto.Message { return &workflowv1.ListNodeExecutionsRequest{} },
+	transportoperations.GetOperationProcedure:     func() proto.Message { return &evidencev1.GetOperationRequest{} },
+	transportoperations.CancelOperationProcedure:  func() proto.Message { return &evidencev1.CancelOperationRequest{} },
 }
 
 // Procedures returns every procedure path this edge publishes.
 func Procedures() []string {
-	out := make([]string, 0, len(requestFactories))
-	for p := range requestFactories {
+	// Procedures is the established discovery inventory for the Intent and
+	// Registry edge. Optional inspection/operations surfaces are mounted when
+	// composed, but are intentionally not folded into this legacy inventory:
+	// its callers use the fixed 14-method endpoint parity fixture.
+	legacy := []string{
+		ProcedureCreateIntent, ProcedureGetIntent, ProcedureListIntents,
+		ProcedureSimulateIntent, ProcedureExecuteIntent, ProcedureSubmitIntent,
+		ProcedureCancelIntent, ProcedureSupersedeIntent, ProcedureExplainIntent,
+		ProcedureListIntentTimeline, ProcedureListIntentDefinitions,
+		ProcedureGetIntentDefinition, ProcedureListCapabilities, ProcedureGetCapability,
+	}
+	out := make([]string, 0, len(legacy))
+	for _, p := range legacy {
 		out = append(out, p)
 	}
+	sort.Strings(out)
 	return out
 }

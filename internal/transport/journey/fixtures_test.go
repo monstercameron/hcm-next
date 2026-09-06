@@ -23,16 +23,20 @@ import (
 	"github.com/monstercameron/hcm-next/internal/trust"
 )
 
-// Fixture identities. fakeVerifier recognizes exactly these two tokens, so
+// Fixture identities. fakeVerifier recognizes the manager and organization
+// appearance administrator tokens; the unknown token remains a negative
+// fixture. Every accepted token exercises the real admission pipeline, so
 // every test here exercises the real transport.Admit admission pipeline
 // (deadline capping, reserved-metadata screening, authentication, strict
 // validation, trusted-field derivation) without standing up an identity
 // provider.
 const (
-	fixtureTenant       = "harborcare-demo"
-	fixtureManagerToken = "test-manager-token"
-	fixtureUnknownToken = "test-unrecognized-token"
-	fixtureSubject      = "manager-jane"
+	fixtureTenant               = "harborcare-demo"
+	fixtureManagerToken         = "test-manager-token"
+	fixtureAppearanceAdminToken = "test-appearance-admin-token"
+	fixtureUnknownToken         = "test-unrecognized-token"
+	fixtureSubject              = "manager-jane"
+	fixtureOrganization         = "org:harborcare-demo:people-ops"
 
 	fixtureIntentID = "intent-9f2a"
 	fixtureWorkerID = "11111111-1111-4111-8111-111111111111"
@@ -44,15 +48,22 @@ const (
 type fakeVerifier struct{}
 
 func (fakeVerifier) Verify(_ context.Context, cred trust.Credential) (*trust.Principal, error) {
-	if cred.Token != fixtureManagerToken {
+	if cred.Token != fixtureManagerToken && cred.Token != fixtureAppearanceAdminToken {
 		return nil, trust.ErrInvalidCredential
+	}
+	subject := fixtureSubject
+	roles := []string{"intent_author"}
+	if cred.Token == fixtureAppearanceAdminToken {
+		subject = "appearance-admin"
+		roles = append(roles, "comp_admin")
 	}
 	now := time.Now()
 	return trust.NewPrincipal(trust.PrincipalSpec{
 		Tenant:               fixtureTenant,
-		Subject:              fixtureSubject,
+		OrganizationScopeID:  fixtureOrganization,
+		Subject:              subject,
 		SubjectKind:          trust.SubjectKindHuman,
-		Roles:                []string{"intent_author"},
+		Roles:                roles,
 		AuthenticationMethod: trust.AuthenticationMethodBearerToken,
 		Assurance:            trust.AssuranceHigh,
 		SessionRef:           "session-fixture",

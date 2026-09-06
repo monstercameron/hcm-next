@@ -14,6 +14,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/workforce"
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
+	"github.com/monstercameron/hcm-next/internal/experience/workerids"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -334,7 +335,7 @@ func (e *journeyEngine) CreateWorker(ctx context.Context, in workspace.WorkerInp
 	if err != nil {
 		return workspace.WorkerSummary{}, err
 	}
-	row, err := e.newWorkerRow(principal, in, options)
+	row, err := e.newWorkerRowContext(ctx, principal, in, options)
 	if err != nil {
 		e.recordWorkforceEvidence(ctx, EvidenceKindWorkerRefused, workforceSubject(in), reasonWorkforceInput)
 		return workspace.WorkerSummary{}, err
@@ -388,6 +389,12 @@ func (e *journeyEngine) insertWorker(
 // coordinates and the employment/assignment identifiers.
 func (e *journeyEngine) newWorkerRow(
 	principal *trust.Principal, in workspace.WorkerInput, options workspace.WorkforceOptions,
+) (workforce.WorkerRow, error) {
+	return e.newWorkerRowContext(context.Background(), principal, in, options)
+}
+
+func (e *journeyEngine) newWorkerRowContext(
+	ctx context.Context, principal *trust.Principal, in workspace.WorkerInput, options workspace.WorkforceOptions,
 ) (workforce.WorkerRow, error) {
 	legal := strings.TrimSpace(in.LegalName)
 	if legal == "" {
@@ -450,6 +457,13 @@ func (e *journeyEngine) newWorkerRow(
 	}
 	now := e.now().UTC()
 	short := shortID(workerID)
+	workerNumber := journeyWorkerNumberPrefix + strings.ToUpper(short)
+	if e.workerIDs != nil {
+		workerNumber, err = e.workerIDs.Reserve(ctx, principal.Tenant(), principal.OrganizationScopeID(), principal.Subject(), workerids.FormatContext{At: now, UnitCode: placement.OrgUnit})
+		if err != nil {
+			return workforce.WorkerRow{}, fmt.Errorf("app: journey: reserve worker number: %w", err)
+		}
+	}
 	manager := strings.TrimSpace(in.ManagerRef)
 	if manager == "" {
 		manager = "rel_mgr_" + short
@@ -461,7 +475,7 @@ func (e *journeyEngine) newWorkerRow(
 		WorkerKey:              journeyWorkerKey(preferred, legal, short),
 		LegalName:              legal,
 		PreferredName:          preferred,
-		WorkerNumber:           journeyWorkerNumberPrefix + strings.ToUpper(short),
+		WorkerNumber:           workerNumber,
 		WorkerType:             journeyWorkerType,
 		LifecycleStatus:        journeyWorkerLifecycleActive,
 		EmploymentID:           "emp_" + short,

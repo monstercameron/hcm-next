@@ -38,9 +38,12 @@ import (
 	"github.com/monstercameron/hcm-next/internal/transport/edge"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
+	transporthealth "github.com/monstercameron/hcm-next/internal/transport/health"
 	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
 	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
 	"github.com/monstercameron/hcm-next/internal/transport/otelmw"
+	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
 )
 
 // NewGRPCServer builds the canonical gRPC surface over an already composed
@@ -113,8 +116,14 @@ func NewGRPCServerWithWorkflowInspector(
 	// the engine is a property of the service, and this composition has no
 	// reason to hold an opinion about it.
 	transportjourney.Register(srv, transportjourney.Dependencies{
-		Engine: c.Journey,
+		Engine: c.Journey, Preferences: c.Preferences, WorkerIDs: c.WorkerIDs,
 	})
+	// The workflow transport consumes its string-ID reader port. The existing
+	// application reader remains owned by AdminService; a composition that
+	// wants this inspection projection supplies the transport reader adapter.
+	transportworkflow.Register(srv, transportworkflow.Dependencies{})
+	transportoperations.Register(srv, transportoperations.Dependencies{})
+	transporthealth.Register(srv, transporthealth.Dependencies{})
 	return srv, nil
 }
 
@@ -140,7 +149,10 @@ func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.Hand
 		opts = append(opts, connect.WithInterceptors(otelmw.NewConnectInterceptor(c.Telemetry)))
 	}
 	rpc, err := edge.NewHandler(edge.Options{
-		Config: c.Config, Intent: c.Service, Registry: c.Service, HandlerOptions: opts,
+		Config: c.Config, Intent: c.Service, Registry: c.Service,
+		Journey:  &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, WorkerIDs: c.WorkerIDs},
+		Workflow: &transportworkflow.Dependencies{}, Operations: &transportoperations.Dependencies{},
+		Health: transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
 	})
 	if err != nil {
 		return nil, err

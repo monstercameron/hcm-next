@@ -24,6 +24,12 @@
 // gateway; -workspace=false publishes the API surface alone, and the
 // discovery document then advertises no workspace route.
 //
+// -profile=local-dev applies loopback-only defaults for the local PostgreSQL
+// URL, development key and tenant, skips automatic migration, enables the
+// development browser admission path and the executable promotion plan, and
+// shortens graceful shutdown. It does not bypass authentication or
+// authorization. Explicit flags and environment values still win.
+//
 // -dev-browser-login=true additionally serves a dev-only pasted-token sign-in
 // form at /workspace/login: off by default, because a workspace that is
 // reachable with an Authorization header must not grow a second, cookie-based

@@ -34,7 +34,7 @@ import "google/protobuf/timestamp.proto";
 // is made by the engine behind the port, which refuses under the same policy
 // the RPC surfaces would (workspace.ErrDenied projects to PERMISSION_DENIED).
 //
-// Eight methods are unary and WatchJourney is server-streaming. The stream
+// Fourteen methods are unary and WatchJourney is server-streaming. The stream
 // is admitted exactly as the unary methods are: the shared trusted-request
 // boundary is installed by grpcserver.NewServer as both
 // grpc.ChainUnaryInterceptor(grpcserver.UnaryInterceptor) and
@@ -176,6 +176,37 @@ service JourneyService {
   // promotion is refused later for a reason that has nothing to do with the
   // promotion.
   rpc CreateWorker(CreateWorkerRequest) returns (CreateWorkerResponse);
+
+  // GetProductPreferences returns the authenticated user's presentation
+  // defaults together with the authenticated organization's shared
+  // appearance. Tenant, organization scope, and principal are derived from
+  // the admitted credential, never from fields in this request. Effect class:
+  // READ_ONLY.
+  rpc GetProductPreferences(GetProductPreferencesRequest) returns (GetProductPreferencesResponse);
+
+  // SaveUserPreferences replaces the authenticated user's presentation
+  // defaults under optimistic versioning. It cannot alter another user's
+  // record because neither tenant nor principal is accepted on the wire.
+  rpc SaveUserPreferences(SaveUserPreferencesRequest) returns (SaveUserPreferencesResponse);
+
+  // SaveTenantAppearance replaces organization-wide branding under optimistic
+  // versioning. The organization scope comes from the admitted credential and
+  // the server additionally requires the comp_admin role. The RPC name is kept
+  // for wire compatibility.
+  rpc SaveTenantAppearance(SaveTenantAppearanceRequest) returns (SaveTenantAppearanceResponse);
+
+  // RecordWorkflowUse increments the authenticated user's usage count for a
+  // workflow so launchers can rank real frequent actions rather than hardcode
+  // a single action. It grants no authority to run the named workflow.
+  rpc RecordWorkflowUse(RecordWorkflowUseRequest) returns (RecordWorkflowUseResponse);
+
+  // GetWorkerIDPolicy returns the authenticated organization's formatting
+  // and allocation state. It requires the compensation administrator role.
+  rpc GetWorkerIDPolicy(GetWorkerIDPolicyRequest) returns (GetWorkerIDPolicyResponse);
+
+  // SaveWorkerIDPolicy replaces configurable formatting rules under
+  // optimistic versioning. Allocation state can never be moved backwards.
+  rpc SaveWorkerIDPolicy(SaveWorkerIDPolicyRequest) returns (SaveWorkerIDPolicyResponse);
 }
 
 // JourneyStage is where one promotion journey currently stands
@@ -736,4 +767,86 @@ message CreateWorkerRequest {
 
 message CreateWorkerResponse {
   Worker worker = 1;
+}
+
+message TablePreferences {
+  int32 page_size = 1;
+  map<string, string> filters = 2;
+  string sort = 3;
+  string direction = 4;
+}
+
+message AccessibilityPreferences {
+  string text_size = 1;
+  string contrast = 2;
+  string motion = 3;
+  string links = 4;
+}
+
+message UserPreferences {
+  int64 version = 1;
+  string locale = 2;
+  AccessibilityPreferences accessibility = 3;
+  bool nav_collapsed = 4;
+  map<string, bool> navigation_groups = 5;
+  repeated string favorite_pages = 6;
+  map<string, TablePreferences> tables = 7;
+  map<string, int64> workflow_uses = 8;
+}
+
+message CustomerTheme {
+  int64 version = 1;
+  string brand_name = 2;
+  string brand_mark = 3;
+  string brand_logo_url = 4;
+  string color_mode = 5;
+  string palette = 6;
+  string shape = 7;
+  string density = 8;
+  string glyphs = 9;
+  string typeface = 10;
+  string navigation = 11;
+  string motion = 12;
+}
+
+message GetProductPreferencesRequest {}
+
+message GetProductPreferencesResponse {
+  UserPreferences user = 1;
+  CustomerTheme theme = 2;
+}
+
+message SaveUserPreferencesRequest { UserPreferences user = 1; }
+message SaveUserPreferencesResponse { UserPreferences user = 1; }
+message SaveTenantAppearanceRequest { CustomerTheme theme = 1; }
+message SaveTenantAppearanceResponse { CustomerTheme theme = 1; }
+message RecordWorkflowUseRequest { string workflow_id = 1; }
+message RecordWorkflowUseResponse { UserPreferences user = 1; }
+
+message WorkerIDPolicy {
+  int64 version = 1;
+  string prefix = 2;
+  string suffix = 3;
+  string separator = 4;
+  int32 sequence_digits = 5;
+  int64 start_at = 6;
+  int64 next_sequence = 7;
+  int64 increment_by = 8;
+  bool zero_pad = 9;
+  string year_format = 10;
+  bool include_unit_code = 11;
+  string check_digit = 12;
+  string excluded_ranges = 13;
+  int64 issued_count = 14;
+}
+
+message GetWorkerIDPolicyRequest {}
+message GetWorkerIDPolicyResponse {
+  WorkerIDPolicy policy = 1;
+  repeated string previews = 2;
+}
+message SaveWorkerIDPolicyRequest { WorkerIDPolicy policy = 1; }
+message SaveWorkerIDPolicyResponse {
+  WorkerIDPolicy policy = 1;
+  repeated string previews = 2;
 }
