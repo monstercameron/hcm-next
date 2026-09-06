@@ -116,7 +116,7 @@ func NewGRPCServerWithWorkflowInspector(
 	// the engine is a property of the service, and this composition has no
 	// reason to hold an opinion about it.
 	transportjourney.Register(srv, transportjourney.Dependencies{
-		Engine: c.Journey, Preferences: c.Preferences, WorkerIDs: c.WorkerIDs,
+		Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs,
 	})
 	// The workflow transport consumes its string-ID reader port. The existing
 	// application reader remains owned by AdminService; a composition that
@@ -150,7 +150,7 @@ func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.Hand
 	}
 	rpc, err := edge.NewHandler(edge.Options{
 		Config: c.Config, Intent: c.Service, Registry: c.Service,
-		Journey:  &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, WorkerIDs: c.WorkerIDs},
+		Journey:  &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs},
 		Workflow: &transportworkflow.Dependencies{}, Operations: &transportoperations.Dependencies{},
 		Health: transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
 	})
@@ -165,6 +165,8 @@ func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.Hand
 			Config:          c.Config,
 			Now:             c.Config.Now,
 			DevBrowserLogin: c.DevBrowserLogin(),
+			DevPersonas:     c.DevPersonas(),
+			RoleAccess:      c.RoleAccess,
 		})
 		if wsErr != nil {
 			return nil, fmt.Errorf("transport cell: compose the promotion workspace: %w", wsErr)
