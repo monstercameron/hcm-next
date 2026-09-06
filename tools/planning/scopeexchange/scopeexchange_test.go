@@ -122,3 +122,30 @@ func TestTodo_GOV_006_Golden(t *testing.T) {
 		}
 	}
 }
+
+func TestScopeExchange_ValidationBranchesAndFormatting(t *testing.T) {
+	if got := (Violation{ID: "REQ-1", Field: "owner", Issue: "missing"}).String(); got != "REQ-1: owner: missing" {
+		t.Fatalf("Violation.String() = %q", got)
+	}
+	for _, gate := range []string{"", "P0", "GATE_C"} {
+		ex := Exchange{Requirement: manifest.Manifest{ID: "OUTSIDE", Gate: gate}}
+		if violations := Validate(ex); violations != nil {
+			t.Fatalf("Validate(%q) = %#v, want nil outside Gate A/B", gate, violations)
+		}
+	}
+	missingDependency := fundedExchange()
+	missingDependency.Requirement.Dependencies = nil
+	violations := Validate(missingDependency)
+	found := false
+	for _, violation := range violations {
+		if violation.Field == "dependencies" && violation.Issue == "missing dependency" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("missing dependency violation = %#v", violations)
+	}
+	if violations := Validate(fundedExchange()); len(violations) != 0 {
+		t.Fatalf("funded exchange violations = %#v", violations)
+	}
+}

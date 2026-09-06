@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	checkedInImpactDigest  = "8a5b17b5d78a979501f5a4550f1161bd051c85b3ca254bc61af3d230eb52bf72"
-	checkedInFindingDigest = "b67655652fc759ae41efe8d1e48d4de9b73d021ac7bb751c659aad8d4a99f095"
-	checkedInCanonicalSBOM = "988784301deb72978f516f4ddfc994c55b267df751f0bb2eb5ce692dbde42b72"
+	checkedInImpactDigest  = "2da4392b5aac9b1387fd3a14466699299c063ce07a89d4b9f7ccda221fc38a80"
+	checkedInFindingDigest = "3bc751cf0c6b206731b554fc3a9b7b85a44b58a3afab999bd51f3ce5edaa40ca"
+	checkedInCanonicalSBOM = "c5c40a15bcfbcf4976e2d7d9ac4e3f702462a30e0392a3d67c6310b9f8ae7171"
 )
 
 func checkedInSBOM(t *testing.T) sbom.Document {

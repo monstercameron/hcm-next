@@ -121,3 +121,56 @@ func TestBuildDependencies_EveryComponentGetsAnEntry(t *testing.T) {
 		t.Errorf("Dependencies %+v missing an entry for %s", deps, leafRef)
 	}
 }
+
+func TestBuildDependenciesRejectsUnselectedEndpointsAndSelfEdges(t *testing.T) {
+	selected := map[string]string{
+		"example.com/root": "v0.0.0",
+		"example.com/a":    "v1.0.0",
+		"example.com/b":    "v2.0.0",
+	}
+	rootRef := purl("example.com/root", "v0.0.0")
+	edges := []GraphEdge{
+		{FromPath: "example.com/root", ToPath: "example.com/a", ToVersion: "v1.0.0"},
+		{FromPath: "example.com/root", ToPath: "example.com/a", ToVersion: "v1.0.0"},                           // duplicate must be collapsed
+		{FromPath: "example.com/root", ToPath: "example.com/b", ToVersion: "v1.9.0"},                           // target version rejected
+		{FromPath: "example.com/a", FromVersion: "v0.9.0", ToPath: "example.com/b", ToVersion: "v2.0.0"},       // source version rejected
+		{FromPath: "example.com/unknown", FromVersion: "v1.0.0", ToPath: "example.com/b", ToVersion: "v2.0.0"}, // unknown source rejected
+		{FromPath: "example.com/a", FromVersion: "v1.0.0", ToPath: "example.com/b", ToVersion: "v2.0.0"},
+		{FromPath: "example.com/a", FromVersion: "v1.0.0", ToPath: "example.com/a", ToVersion: "v1.0.0"}, // self edge rejected
+	}
+	deps := buildDependencies("example.com/root", rootRef, selected, edges)
+	byRef := make(map[string]Dependency, len(deps))
+	for _, dep := range deps {
+		byRef[dep.Ref] = dep
+	}
+	rootDep := byRef[rootRef]
+	if len(rootDep.DependsOn) != 1 || rootDep.DependsOn[0] != purl("example.com/a", "v1.0.0") {
+		t.Fatalf("root dependencies = %v, want one selected edge", rootDep.DependsOn)
+	}
+	aDep := byRef[purl("example.com/a", "v1.0.0")]
+	if len(aDep.DependsOn) != 1 || aDep.DependsOn[0] != purl("example.com/b", "v2.0.0") {
+		t.Fatalf("a dependencies = %v, want one selected edge", aDep.DependsOn)
+	}
+}
+
+func TestApplyLicenseEvidenceHandlesNilAndSortsExceptions(t *testing.T) {
+	applyLicenseEvidence(nil, nil, nil)
+	doc := &Document{
+		Metadata:   Metadata{Component: Component{Name: "root", Version: "v1"}},
+		Components: []Component{{Name: "b", Version: "v2"}, {Name: "a", Version: "v1"}},
+	}
+	applyLicenseEvidence(doc, map[string]LicenseEvidence{
+		"root@v1": {Expression: "MIT"},
+		"a@v1":    {Expression: "Apache-2.0"},
+	}, []LicenseException{
+		{Component: "z", Version: "v1"},
+		{Component: "a", Version: "v2"},
+		{Component: "a", Version: "v1"},
+	})
+	if doc.Metadata.Component.License != "MIT" || doc.Components[1].License != "Apache-2.0" || doc.Components[0].License != "" {
+		t.Fatalf("license evidence = root %q, components %+v", doc.Metadata.Component.License, doc.Components)
+	}
+	if got := doc.LicenseExceptions; got[0].Component != "a" || got[0].Version != "v1" || got[1].Version != "v2" || got[2].Component != "z" {
+		t.Fatalf("LicenseExceptions not sorted deterministically: %+v", got)
+	}
+}

@@ -171,7 +171,7 @@ func licenseDeclarationValue(line string) string {
 		line = strings.TrimSpace(strings.TrimPrefix(line, prefix))
 	}
 	lower := strings.ToLower(line)
-	for _, key := range []string{"license", "licenses", "licence", "licences"} {
+	for _, key := range []string{"licenses", "licences", "license", "licence"} {
 		if !strings.HasPrefix(lower, key) {
 			continue
 		}

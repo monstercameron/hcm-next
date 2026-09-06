@@ -2,6 +2,7 @@ package sbom_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/tools/policy/sbom"
 )
@@ -99,5 +100,50 @@ func TestValidateCompletenessAgainst_RootVersionless(t *testing.T) {
 	got := sbom.ValidateCompletenessAgainst(doc, requires)
 	if got.Empty() {
 		t.Fatal("ValidateCompletenessAgainst: expected a versionless-root finding, got Empty")
+	}
+}
+
+func TestValidateCompletenessReportsReadErrorsAndRendersAllFindings(t *testing.T) {
+	if _, err := sbom.ValidateCompleteness(&sbom.Document{}, t.TempDir()); err == nil {
+		t.Fatal("ValidateCompleteness accepted a root without go.mod")
+	}
+	if _, err := sbom.ValidateCompletenessAt(&sbom.Document{}, t.TempDir(), time.Now()); err == nil {
+		t.Fatal("ValidateCompletenessAt accepted a root without go.mod")
+	}
+
+	result := sbom.Completeness{
+		RootMismatch:          "root mismatch",
+		MissingRequires:       []string{"example.com/m@v1"},
+		VersionlessRefs:       []string{"root (x)"},
+		MissingLicenses:       []string{"example.com/m@v1"},
+		InvalidLicenseRecords: []string{"example.com/m@v1 expired"},
+	}
+	if result.Empty() {
+		t.Fatal("non-empty completeness result reported Empty")
+	}
+	errors := result.Errors()
+	if len(errors) != 5 || errors[0] != "root mismatch" {
+		t.Fatalf("Completeness.Errors = %v, want all five rendered findings", errors)
+	}
+	if !((sbom.Completeness{}).Empty()) {
+		t.Fatal("zero completeness result is not Empty")
+	}
+}
+
+func TestValidateLicenseCompletenessRejectsNilAndMalformedExpiry(t *testing.T) {
+	nilResult := sbom.ValidateLicenseCompletenessAt(nil, time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC))
+	if len(nilResult.InvalidLicenseRecords) != 1 || nilResult.InvalidLicenseRecords[0] != "document is nil" {
+		t.Fatalf("nil document result = %+v", nilResult)
+	}
+	doc := &sbom.Document{
+		Components: []sbom.Component{{Name: "example.com/m", Version: "v1", License: sbom.UnknownLicense}},
+		LicenseExceptions: []sbom.LicenseException{
+			{Component: "example.com/m", Version: "v1", Reason: "reason", Reviewer: "reviewer", Expiry: "not-a-date"},
+			{Component: "example.com/other", Version: "v1", Reason: "reason", Reviewer: "reviewer", Expiry: "2027-01-01"},
+		},
+	}
+	result := sbom.ValidateLicenseCompletenessAt(doc, time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC))
+	if len(result.InvalidLicenseRecords) != 1 || len(result.MissingLicenses) != 1 {
+		t.Fatalf("malformed/misapplied exceptions = %+v, want one invalid and one missing", result)
 	}
 }

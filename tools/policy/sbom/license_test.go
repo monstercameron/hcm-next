@@ -3,6 +3,7 @@ package sbom
 import (
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -325,5 +326,159 @@ func TestTodo_SUPPLY_003_Mutation(t *testing.T) {
 		if !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("nil-reader fallback returned unrelated error: %v", err)
 		}
+	}
+}
+
+type faultLicenseReader struct {
+	files map[string]string
+	errs  map[string]error
+}
+
+func (r faultLicenseReader) ReadFile(name string) ([]byte, error) {
+	if err, ok := r.errs[name]; ok {
+		return nil, err
+	}
+	if content, ok := r.files[name]; ok {
+		return []byte(content), nil
+	}
+	return nil, fs.ErrNotExist
+}
+
+func TestLicenseResolverAndReaderErrorBranches(t *testing.T) {
+	if !isMissingFile(fs.ErrNotExist) || !isMissingFile(os.ErrNotExist) || isMissingFile(errors.New("different")) {
+		t.Fatal("isMissingFile did not classify filesystem absence correctly")
+	}
+
+	resolver := NewLicenseResolver(nil, "")
+	if _, ok := resolver.Reader.(OSFileReader); !ok {
+		t.Fatalf("nil reader = %T, want OSFileReader", resolver.Reader)
+	}
+	evidence, err := resolver.Resolve("example.com/no-cache", "v1.0.0", "")
+	if err != nil || evidence.Expression != UnknownLicense {
+		t.Fatalf("Resolve without a module cache = %+v, %v, want UNKNOWN", evidence, err)
+	}
+
+	root := t.TempDir()
+	writeLicenseFixture(t, root, map[string]string{"go.mod": "module example.com/root\n// SPDX-License-Identifier: MIT\n"})
+	evidence, err = resolver.Resolve("example.com/root", "v1.0.0", root)
+	if err != nil || evidence.Expression != "MIT" || evidence.Source != "go.mod" {
+		t.Fatalf("Resolve(rootDir) = %+v, %v", evidence, err)
+	}
+	if alias, err := ResolveLicense(nil, root); err != nil || alias != evidence {
+		t.Fatalf("ResolveLicense alias = %+v, %v; want %+v", alias, err, evidence)
+	}
+	if _, err := NewLicenseResolver(nil, t.TempDir()).Resolve("bad\x00module", "v1.0.0", ""); err == nil || !strings.Contains(err.Error(), "escaping module") {
+		t.Fatal("Resolve accepted an invalid module path")
+	}
+
+	faults := faultLicenseReader{errs: map[string]error{filepath.Join("fault", "go.mod"): errors.New("go.mod unreadable")}}
+	if _, err := resolveLicenseInDir(faults, "fault"); err == nil || !strings.Contains(err.Error(), "go.mod unreadable") {
+		t.Fatalf("go.mod reader error = %v, want wrapped reader error", err)
+	}
+	faults = faultLicenseReader{files: map[string]string{filepath.Join("fault", "go.mod"): "module example.com/fault\n"}, errs: map[string]error{filepath.Join("fault", "LICENSE"): errors.New("license unreadable")}}
+	if _, err := resolveLicenseInDir(faults, "fault"); err == nil || !strings.Contains(err.Error(), "license unreadable") {
+		t.Fatalf("license reader error = %v, want wrapped reader error", err)
+	}
+	unknownDir := t.TempDir()
+	writeLicenseFixture(t, unknownDir, map[string]string{"LICENSE": "unrecognized license prose"})
+	evidence, err = ResolveLicenseEvidence(OSFileReader{}, unknownDir)
+	if err != nil || evidence != (LicenseEvidence{Expression: UnknownLicense, Source: "LICENSE"}) {
+		t.Fatalf("unrecognized license evidence = %+v, %v", evidence, err)
+	}
+}
+
+func TestLicenseDeclarationRecognitionAndSPDXGrammar(t *testing.T) {
+	declarations := []struct {
+		line string
+		want string
+	}{
+		{"// license = \"MIT AND Apache-2.0\"", "MIT AND Apache-2.0"},
+		{"# licence: 'BSD-3-Clause'", "BSD-3-Clause"},
+		{"licenses = MIT // trailing comment", "MIT"},
+		{"not-a-license: MIT", ""},
+	}
+	for _, tc := range declarations {
+		if got := licenseDeclarationValue(tc.line); got != tc.want {
+			t.Errorf("licenseDeclarationValue(%q) = %q, want %q", tc.line, got, tc.want)
+		}
+	}
+	if got := declaredSPDXExpression("SPDX-License-Identifier: MIT OR Apache-2.0", false); got != "MIT OR Apache-2.0" {
+		t.Errorf("declared SPDX marker = %q", got)
+	}
+	if got := declaredSPDXExpression("license: MIT # comment", false); got != "MIT" {
+		t.Errorf("declared license file expression = %q", got)
+	}
+	if got := declaredSPDXExpression("license: MIT", true); got != "MIT" {
+		t.Errorf("declared go.mod expression = %q", got)
+	}
+	if got := declaredSPDXExpression("SPDX-License-Identifier: MIT AND", false); got != "" {
+		t.Errorf("malformed SPDX expression = %q, want empty", got)
+	}
+	if cleanSPDXExpression("  MIT // note # another") != "MIT" {
+		t.Fatal("cleanSPDXExpression did not remove trailing comments")
+	}
+
+	valid := []string{"MIT", "MIT AND Apache-2.0", "MIT OR Apache-2.0", "(MIT OR Apache-2.0) WITH GCC-exception-3.1"}
+	for _, expression := range valid {
+		if !validSPDXExpression(expression) {
+			t.Errorf("validSPDXExpression(%q) = false", expression)
+		}
+	}
+	invalid := []string{"", "MIT AND", "OR MIT", "MIT WITH", "(MIT", "MIT)", "MIT@Apache"}
+	for _, expression := range invalid {
+		if validSPDXExpression(expression) {
+			t.Errorf("validSPDXExpression(%q) = true, want false", expression)
+		}
+	}
+	for _, tc := range []struct {
+		b    byte
+		want bool
+	}{{'A', true}, {'9', true}, {'-', true}, {':', true}, {'_', false}, {' ', false}} {
+		if got := isSPDXIdentifierByte(tc.b); got != tc.want {
+			t.Errorf("isSPDXIdentifierByte(%q) = %v, want %v", tc.b, got, tc.want)
+		}
+	}
+}
+
+func TestRecognizedLicenseTextAndLicenseCounts(t *testing.T) {
+	cases := []struct {
+		text string
+		want string
+	}{
+		{"GNU AFFERO GENERAL PUBLIC LICENSE Version 3", "AGPL-3.0"},
+		{"GNU AFFERO GENERAL PUBLIC LICENSE", ""},
+		{"SERVER SIDE PUBLIC LICENSE", "SSPL-1.0"},
+		{"GNU GENERAL PUBLIC LICENSE Version 3", "GPL-3.0"},
+		{"GNU GENERAL PUBLIC LICENSE Version 2", "GPL-2.0"},
+		{"Mozilla Public License 2.0", "MPL-2.0"},
+		{"PUBLIC DOMAIN", "Public-Domain"},
+		{"APACHE LICENSE Version 2.0", "Apache-2.0"},
+		{"ISC LICENSE", "ISC"},
+		{"PERMISSION TO USE, COPY, MODIFY, AND/OR DISTRIBUTE", "ISC"},
+		{"REDISTRIBUTION AND USE IN SOURCE AND BINARY FORMS; NEITHER THE NAME", "BSD-3-Clause"},
+		{"REDISTRIBUTION AND USE IN SOURCE AND BINARY FORMS", "BSD-2-Clause"},
+		{"MIT LICENSE", "MIT"},
+		{"unrecognized", ""},
+	}
+	for _, tc := range cases {
+		if got := recognizedLicenseText(tc.text); got != tc.want {
+			t.Errorf("recognizedLicenseText(%q) = %q, want %q", tc.text, got, tc.want)
+		}
+	}
+	doc := &Document{Components: []Component{{License: "MIT"}, {License: "MIT"}, {License: ""}, {License: UnknownLicense}, {License: "Apache-2.0"}}}
+	counts := LicenseCounts(doc)
+	if counts["MIT"] != 2 || counts[UnknownLicense] != 2 || counts["Apache-2.0"] != 1 {
+		t.Fatalf("LicenseCounts = %v", counts)
+	}
+	if got := FormatLicenseCounts(doc); got != "Apache-2.0=1, MIT=2, UNKNOWN=2" {
+		t.Fatalf("FormatLicenseCounts = %q", got)
+	}
+	if got := LicenseCounts(nil); len(got) != 0 || FormatLicenseCounts(nil) != "" {
+		t.Fatalf("nil license counts = %v / %q", got, FormatLicenseCounts(nil))
+	}
+
+	t.Setenv("GOMODCACHE", filepath.Join(t.TempDir(), "cache"))
+	if cache, err := defaultModuleCache(); err != nil || cache != os.Getenv("GOMODCACHE") {
+		t.Fatalf("defaultModuleCache = %q, %v", cache, err)
 	}
 }

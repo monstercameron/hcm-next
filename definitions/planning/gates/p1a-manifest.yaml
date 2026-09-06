@@ -433,6 +433,54 @@ migrations:
     - version: 131
       name: 00131_reference_dataset_adoption.sql
       checksum: "sha256:67e4f0ba497f70527b48fdb00c8ac11d14801dbbea8d4e6516727ce87ca7b361"
+    - version: 132
+      name: 00132_presentation_preferences.sql
+      checksum: "sha256:f52a144bfb71a53c109389117c3ae4d6f7223fb7078df275f813d73bb4cab44a"
+    - version: 156
+      name: 00156_workflow_signal_durability.sql
+      checksum: "sha256:059dcabb5a9754207b563e2432079eb75699b29784456467a3a6b9e97b5f9589"
+    - version: 168
+      name: 00168_outbox_claim_state.sql
+      checksum: "sha256:26fa64d41f5e7d3654503cef63ee744f3a68d95db35199eae4981857996312f1"
+    - version: 169
+      name: 00169_outbox_claim_indexes.sql
+      checksum: "sha256:20bfb31c61ee7345a4c2212909b2a03ce7c961d21afc7e0f0e247a9b0d775af3"
+    - version: 170
+      name: 00170_outbox_claim_protocol.sql
+      checksum: "sha256:20bd8535e5c863b83c95d8f613ac50b773809d4fbf787812ccd3e4b3300f342f"
+    - version: 177
+      name: 00177_schema_upgrade_control.sql
+      checksum: "sha256:15c5baffbdb2f2d46d15d21f62c982e494152bdcb552a51b0669fb11ab00ae92"
+    - version: 178
+      name: 00178_telemetry_backend_registry.sql
+      checksum: "sha256:49e2b8603969f29d300d99bf282b30182e664c996fc7017660b0b079f24332ef"
+    - version: 179
+      name: 00179_telemetry_copy_inventory.sql
+      checksum: "sha256:88c6aede0e984dd0e1db7c3f22a68511d316c93363b795031233b7218599b360"
+    - version: 180
+      name: 00180_organization_scoped_appearance.sql
+      checksum: "sha256:dfdc07a2dbf7af20fb49910ab9e2e31b803a042e32bb1ff868d6c863060695c2"
+    - version: 181
+      name: 00181_worker_id_policy.sql
+      checksum: "sha256:ab8d45bac97fedcdf8a19612074452351306a815d290b4d02a1f17a0142fd17c"
+    - version: 182
+      name: 00182_organization_visibility.sql
+      checksum: "sha256:e79b6764860329f285ff59ba2631b078d60919aaa73b78e79719c363c6edc98a"
+    - version: 235
+      name: 00235_connector_operation_queue.sql
+      checksum: "sha256:4d12d9c7a18fcfe06edf8f551aaf9f834e071d882b4838bc80e8302cec9cd397"
+    - version: 236
+      name: 00236_connector_operation_journal.sql
+      checksum: "sha256:3fdd45ad722f926c525ab72d9073aaeacb1ac9c555e9f9c578fe51eb66c9c915"
+    - version: 237
+      name: 00237_connector_operation_credential_lease.sql
+      checksum: "sha256:248c5e0766785cad58ed1b107dde66de83a3d71bfae114ba7433f775be09b85a"
+    - version: 238
+      name: 00238_role_access_control.sql
+      checksum: "sha256:414528b394b772097d0921313327722012850877e3f9467c7719340cf20550d3"
+    - version: 239
+      name: 00239_role_page_permissions.sql
+      checksum: "sha256:6cd9eab4dce186d8bba3f9a8e1f7a9c298077ab154e2e5f98022259e69f9afc2"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -506,6 +554,190 @@ migrations:
       reason: "Second migration slot reserved for the wave-37 trust persistence lane on 2026-09-06; the lane needed one file, so the slot was released unused."
     - version: 129
       reason: "Reserved between the attestation-response (00128) and reference-dataset (00130) lanes on 2026-09-06 and released unused."
+    - version: 133
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 134
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 135
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 136
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 137
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 138
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 139
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 140
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 141
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 142
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 143
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 144
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 145
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 146
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 147
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 148
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 149
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 150
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 151
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 152
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 153
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 154
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 155
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 157
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 158
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 159
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 160
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 161
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 162
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 163
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 164
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 165
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 166
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 167
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 171
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 172
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 173
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 174
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 175
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 176
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 183
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 184
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 185
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 186
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 187
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 188
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 189
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 190
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 191
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 192
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 193
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 194
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 195
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 196
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 197
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 198
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 199
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 200
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 201
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 202
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 203
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 204
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 205
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 206
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 207
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 208
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 209
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 210
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 211
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 212
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 213
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 214
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 215
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 216
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 217
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 218
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 219
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 220
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 221
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 222
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 223
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 224
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 225
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 226
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 227
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 228
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 229
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 230
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 231
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 232
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 233
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
+    - version: 234
+      reason: "Reserved for a 2026-09-06 Gate A or authorization lane block (three numbers per lane) and released unused; the lane needed fewer files."
 
 # The four toolchain qualification decisions this P1A manifest depends on.
 qualification_decisions:
@@ -566,4 +798,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "cc3b5bd3842e7c2460438383a28c33bcb63ba8db26747622f5b1de5ff8fc9339864a6e926172c7e807252979061a27fa00fee7037ae9d6f0876071d0a9a17d03"
+  value: "41eaf503e4117f76a15d4d4924d1ed6a732a88ad3ccef826fa710b30e39e5c533d0c0ef518e0a28badf9659b2a5c1eb5cd93ebb53c66671a47a9184bc37d5206"

@@ -47,6 +47,18 @@ func TestTodo_TOOL_018(t *testing.T) {
 		}
 	})
 
+	t.Run("rejects an unsupported signature algorithm", func(t *testing.T) {
+		unsupported := signed
+		unsupported.Signature = &provenance.Signature{
+			Algorithm: "rsa",
+			PublicKey: signed.Signature.PublicKey,
+			Value:     signed.Signature.Value,
+		}
+		if err := provenance.Verify(unsupported, provenance.VerifyOptions{TrustedPublicKeys: trusted}); err == nil {
+			t.Fatal("expected an error for an unsupported signature algorithm")
+		}
+	})
+
 	t.Run("rejects a digest-mismatched (tampered) subject", func(t *testing.T) {
 		tampered := signed
 		tampered.Subjects = append([]provenance.Subject(nil), signed.Subjects...)
@@ -69,6 +81,19 @@ func TestTodo_TOOL_018(t *testing.T) {
 	t.Run("rejects a nil trusted-key set (trusts no one)", func(t *testing.T) {
 		if err := provenance.Verify(signed, provenance.VerifyOptions{}); err == nil {
 			t.Fatal("expected an error when no keys are trusted")
+		}
+	})
+
+	t.Run("rejects a trusted key with malformed signature bytes", func(t *testing.T) {
+		malformed := signed
+		malformed.Signature = &provenance.Signature{
+			Algorithm: provenance.AlgorithmEd25519,
+			PublicKey: signed.Signature.PublicKey,
+			Value:     "00",
+		}
+		trustedMalformed := map[string]bool{malformed.Signature.PublicKey: true}
+		if err := provenance.Verify(malformed, provenance.VerifyOptions{TrustedPublicKeys: trustedMalformed}); err == nil {
+			t.Fatal("expected an error for malformed signature bytes")
 		}
 	})
 

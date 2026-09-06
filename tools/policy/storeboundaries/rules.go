@@ -351,6 +351,14 @@ func isIdentByte(b byte) bool {
 	return b == '_' || (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')
 }
 
+// WholeWordContains reports whether word occurs in text outside an identifier.
+// It is shared by policy packages that must apply the same identifier-boundary
+// rule when matching table or tenant-column names.
+func WholeWordContains(text, word string) bool { return wholeWordContains(text, word) }
+
+// IsIdentifierByte reports whether b can be part of a SQL/Go identifier.
+func IsIdentifierByte(b byte) bool { return isIdentByte(b) }
+
 // --- Rule 2: no adapter opens its own pool ----------------------------------
 
 // pgxpoolImportPath is the exact import path only internal/data/pgxadapter

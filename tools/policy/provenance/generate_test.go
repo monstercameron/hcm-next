@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/tools/policy/provenance"
 )
@@ -150,5 +151,45 @@ func TestTodo_SUPPLY_001_Recovery(t *testing.T) {
 		SBOMDigest:        checkedInSBOMDigest(t, root),
 	}); err != nil {
 		t.Fatalf("durable provenance failed after recovery from a build error: %v", err)
+	}
+}
+
+func TestGenerateBuildsStatementAndReportsSBOMReadErrors(t *testing.T) {
+	root := provenanceRepoRoot(t)
+	t.Setenv("HCM_NEXT_PROVENANCE_COMMIT", "commit-from-test")
+	t.Setenv("HCM_NEXT_PROVENANCE_REF", "refs/heads/test")
+
+	statement, err := provenance.Generate(root, provenance.Options{
+		Pattern:       "./cmd/hcmnext",
+		SBOMPath:      provenance.DefaultSBOMPath,
+		CommitEnvVars: []string{"HCM_NEXT_PROVENANCE_COMMIT"},
+		RefEnvVars:    []string{"HCM_NEXT_PROVENANCE_REF"},
+		Now:           func() time.Time { return time.Date(2026, 9, 6, 12, 0, 0, 0, time.UTC) },
+	})
+	if err != nil {
+		t.Fatalf("Generate(valid inputs): %v", err)
+	}
+	if statement == nil {
+		t.Fatal("Generate returned a nil statement")
+	}
+	if statement.Signature != nil {
+		t.Fatal("Generate must return an unsigned statement")
+	}
+	if statement.Subjects[0].Name != "hcmnext" || len(statement.Subjects[0].SHA256) != sha256.Size*2 {
+		t.Fatalf("generated subject = %+v, want hcmnext with a sha256 digest", statement.Subjects)
+	}
+	if statement.Source.Commit != "commit-from-test" || statement.Source.Ref != "refs/heads/test" {
+		t.Fatalf("generated source = %+v, want test environment values", statement.Source)
+	}
+	if statement.GeneratedAt != "2026-09-06T12:00:00Z" {
+		t.Fatalf("GeneratedAt = %q, want fixed timestamp", statement.GeneratedAt)
+	}
+
+	_, err = provenance.Generate(root, provenance.Options{
+		Pattern:  "./cmd/hcmnext",
+		SBOMPath: "does-not-exist/sbom.json",
+	})
+	if err == nil || !strings.Contains(err.Error(), "reading SBOM") {
+		t.Fatalf("Generate(missing SBOM) error = %v, want an SBOM read error", err)
 	}
 }

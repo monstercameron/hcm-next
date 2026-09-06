@@ -108,3 +108,71 @@ func TestTodo_LIB_010_Conformance(t *testing.T) {
 		}
 	}
 }
+
+func TestOIDCKit_LoadAndAdapterPlanFailures(t *testing.T) {
+	dir := t.TempDir()
+	if _, err := oidckit.LoadQualification(filepath.Join(dir, "missing.yaml")); err == nil || !strings.Contains(err.Error(), "read qualification") {
+		t.Fatalf("missing qualification error = %v", err)
+	}
+	bad := filepath.Join(dir, "bad.yaml")
+	if err := os.WriteFile(bad, []byte("version: ["), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := oidckit.LoadQualification(bad); err == nil || !strings.Contains(err.Error(), "parse qualification") {
+		t.Fatalf("malformed qualification error = %v", err)
+	}
+	for _, tc := range []struct {
+		name   string
+		mutate func(*oidckit.AdapterPlan)
+	}{
+		{"not test only", func(p *oidckit.AdapterPlan) { p.TestOnly = false }},
+		{"unconfirmed oidc version", func(p *oidckit.AdapterPlan) { p.OIDCVersion = "v1" }},
+		{"unconfirmed oauth version", func(p *oidckit.AdapterPlan) { p.OAuth2Version = "latest" }},
+		{"missing issuer", func(p *oidckit.AdapterPlan) { p.Issuer = "" }},
+		{"missing audience", func(p *oidckit.AdapterPlan) { p.Audience = "" }},
+		{"issuer not verified", func(p *oidckit.AdapterPlan) { p.VerifyIssuer = false }},
+		{"missing pkce", func(p *oidckit.AdapterPlan) { p.RequirePKCE = false }},
+		{"missing state", func(p *oidckit.AdapterPlan) { p.RequireState = false }},
+		{"missing nonce", func(p *oidckit.AdapterPlan) { p.RequireNonce = false }},
+		{"missing key refresh", func(p *oidckit.AdapterPlan) { p.RefreshOnKeyMiss = false }},
+		{"claims authorize", func(p *oidckit.AdapterPlan) { p.NoAuthorizationFromClaims = false }},
+		{"missing normalization", func(p *oidckit.AdapterPlan) { p.NormalizeClaims = false }},
+		{"missing algorithms", func(p *oidckit.AdapterPlan) { p.Algorithms = nil }},
+		{"unapproved algorithm", func(p *oidckit.AdapterPlan) { p.Algorithms = []string{"none"} }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			plan := valid()
+			tc.mutate(&plan)
+			if err := oidckit.ValidateAdapterPlan(plan); err == nil {
+				t.Fatal("invalid adapter plan was accepted")
+			}
+		})
+	}
+}
+
+func TestOIDCKit_ReleaseGraphAndRepoRootErrors(t *testing.T) {
+	if _, err := oidckit.ReleaseGraph(root(t)); err == nil || !strings.Contains(err.Error(), "requires a target") {
+		t.Fatalf("empty ReleaseGraph error = %v", err)
+	}
+	if _, err := oidckit.ReleaseGraph(filepath.Join(t.TempDir(), "missing"), "./cmd/missing"); err == nil || !strings.Contains(err.Error(), "go list") {
+		t.Fatalf("invalid ReleaseGraph error = %v", err)
+	}
+	if _, err := oidckit.FindRepoRoot(filepath.Join(t.TempDir(), "missing")); err == nil {
+		t.Fatal("missing path found a repository root")
+	}
+	rootDir, err := os.MkdirTemp(os.Getenv("TEMP"), "oidckit-rootless-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(rootDir)
+	if _, err := oidckit.FindRepoRoot(rootDir); err == nil || !strings.Contains(err.Error(), "repository root not found") {
+		t.Fatalf("rootless directory error = %v", err)
+	}
+	modFile := filepath.Join(rootDir, "go.mod")
+	if err := os.WriteFile(modFile, []byte("module example.com/test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := oidckit.FindRepoRoot(rootDir); err != nil || got != rootDir {
+		t.Fatalf("FindRepoRoot directory = %q, %v; want %q", got, err, rootDir)
+	}
+}

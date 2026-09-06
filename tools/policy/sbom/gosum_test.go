@@ -65,3 +65,25 @@ func TestParseGoSum_MalformedLine(t *testing.T) {
 		t.Fatal("ParseGoSum: expected error for malformed line, got nil")
 	}
 }
+
+func TestParseGoSumSkipsUnknownSchemesAndRejectsBadBase64(t *testing.T) {
+	dir := t.TempDir()
+	content := "example.com/mod v1.0.0 sha256:unknown\n"
+	if err := os.WriteFile(filepath.Join(dir, "go.sum"), []byte(content), 0o644); err != nil {
+		t.Fatalf("writing unknown-scheme fixture: %v", err)
+	}
+	hashes, err := sbom.ParseGoSum(dir)
+	if err != nil {
+		t.Fatalf("ParseGoSum(unknown scheme): %v", err)
+	}
+	if len(hashes) != 0 {
+		t.Fatalf("unknown scheme produced hashes: %+v", hashes)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "go.sum"), []byte("example.com/mod v1.0.0 h1:not-base64!\n"), 0o644); err != nil {
+		t.Fatalf("writing invalid-base64 fixture: %v", err)
+	}
+	if _, err := sbom.ParseGoSum(dir); err == nil {
+		t.Fatal("ParseGoSum accepted invalid base64")
+	}
+}

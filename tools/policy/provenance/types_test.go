@@ -55,6 +55,7 @@ func TestStatementValidateRejectsEachMissingField(t *testing.T) {
 		{"undigested subject", func(s *provenance.Statement) { s.Subjects[0].SHA256 = "" }, "subjects"},
 		{"no builder id", func(s *provenance.Statement) { s.Builder.ID = "" }, "builder.id"},
 		{"no source repository", func(s *provenance.Statement) { s.Source.Repository = "" }, "source.repository"},
+		{"no source ref", func(s *provenance.Statement) { s.Source.Ref = "" }, "source.ref"},
 		{"no source commit", func(s *provenance.Statement) { s.Source.Commit = "" }, "source.commit"},
 		{"no go version", func(s *provenance.Statement) { s.BuildConfig.GoVersion = "" }, "build_config.go_version"},
 		{"no config digest", func(s *provenance.Statement) { s.BuildConfig.ConfigDigest = "" }, "build_config.config_digest"},

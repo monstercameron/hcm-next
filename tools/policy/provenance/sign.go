@@ -56,6 +56,9 @@ func (s Statement) CanonicalDigest() (string, error) {
 // hex-encoded Ed25519 signature. Mirrors
 // tools/planning/gateevidence.SignDigest's convention exactly.
 func SignDigest(priv ed25519.PrivateKey, digestHex string) (string, error) {
+	if len(priv) != ed25519.PrivateKeySize {
+		return "", fmt.Errorf("provenance: private key has %d bytes, want %d", len(priv), ed25519.PrivateKeySize)
+	}
 	digest, err := hex.DecodeString(digestHex)
 	if err != nil {
 		return "", fmt.Errorf("provenance: decode digest: %w", err)
@@ -83,6 +86,9 @@ func VerifyDigestSignature(pubHex, digestHex, sigHex string) (bool, error) {
 	sig, err := hex.DecodeString(sigHex)
 	if err != nil {
 		return false, fmt.Errorf("provenance: decode signature: %w", err)
+	}
+	if len(sig) != ed25519.SignatureSize {
+		return false, fmt.Errorf("provenance: signature has %d bytes, want %d", len(sig), ed25519.SignatureSize)
 	}
 	return ed25519.Verify(ed25519.PublicKey(pub), digest, sig), nil
 }

@@ -56,6 +56,16 @@ known_authority_gate_gaps:
       itself being decided; Gate B cannot be decided before Gate A per
       execution-plan.md ("Incremental work begins only after Gate A
       demonstrates repeated value").
+  - gate: GATE_C
+    kind: undecided
+    owner: governance-lead
+    expiry: "2026-12-03"
+    reason: >-
+      61 GATE_C-phase todos are complete (2026-09-06 count, closed by the
+      Gate A, company-metadata and authorization waves) ahead of Gates A
+      and B being decided; Gate C cannot be decided before them per
+      execution-plan.md, so the gap is tracked here until the decision
+      compiler runs.
 
 # Known platform-capability coverage gaps (GOV-011).
 #

@@ -243,3 +243,188 @@ func TestSecureByDesignAuditEvidenceOn(t *testing.T) {
 		t.Fatal("ledger evidence capability is not available")
 	}
 }
+
+func TestSecureByDesign_PublicHelpersAndLoadErrors(t *testing.T) {
+	if securebydesign.Version() != securebydesign.SchemaVersion || securebydesign.Explain() == "" {
+		t.Fatalf("package metadata = version %d, explanation %q", securebydesign.Version(), securebydesign.Explain())
+	}
+	if got := (securebydesign.Refusal{Field: "field", Reason: "reason"}).Error(); got != "securebydesign: refusal field field: reason" {
+		t.Fatalf("Refusal.Error() = %q", got)
+	}
+	if got := (securebydesign.InvalidRecord{}).Error(); got != "securebydesign: invalid record" {
+		t.Fatalf("empty InvalidRecord.Error() = %q", got)
+	}
+	if got := (securebydesign.InvalidRecord{Refusals: []securebydesign.Refusal{{Field: "a", Reason: "bad"}, {Field: "b", Reason: "worse"}}}).Error(); !strings.Contains(got, "field a: bad") || !strings.Contains(got, "field b: worse") {
+		t.Fatalf("InvalidRecord.Error() = %q", got)
+	}
+
+	dir := t.TempDir()
+	if _, err := securebydesign.LoadFixture(filepath.Join(dir, "missing.yaml")); err == nil {
+		t.Fatal("missing fixture was accepted")
+	}
+	bad := filepath.Join(dir, "bad.yaml")
+	if err := os.WriteFile(bad, []byte("version: ["), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := securebydesign.LoadFixture(bad); err == nil || !strings.Contains(err.Error(), "parse fixture") {
+		t.Fatalf("malformed fixture error = %v", err)
+	}
+	wrong := filepath.Join(dir, "wrong.yaml")
+	if err := os.WriteFile(wrong, []byte("version: 2\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var refusal securebydesign.Refusal
+	if _, err := securebydesign.LoadFixture(wrong); !errors.As(err, &refusal) || refusal.Field != "fixture.version" {
+		t.Fatalf("wrong fixture version error = %T %v", err, err)
+	}
+	if _, err := securebydesign.LoadDisclosurePolicyYAML(wrong); !errors.As(err, &refusal) {
+		t.Fatalf("wrong policy fixture error = %T %v", err, err)
+	}
+}
+
+func TestSecureByDesign_ComputeTrendsAndConstruction(t *testing.T) {
+	findings := []securebydesign.Finding{
+		{Release: "v2", Status: " closed ", DaysToClose: 8},
+		{Release: "v1", Status: "OPEN"},
+		{Release: "v2", Status: "CLOSED", DaysToClose: 2},
+		{Release: "v2", Status: "CLOSED", DaysToClose: 4},
+	}
+	trends, err := securebydesign.ComputeTrends(findings)
+	if err != nil || len(trends) != 2 || trends[0].Release != "v1" || trends[0].MedianDays != 0 || trends[1].MedianDays != 4 || trends[1].FindingsClosed != 3 {
+		t.Fatalf("ComputeTrends = %#v, %v", trends, err)
+	}
+	for _, tc := range []struct {
+		name    string
+		finding securebydesign.Finding
+		field   string
+	}{
+		{"missing release", securebydesign.Finding{Status: "OPEN"}, "findings[0].release"},
+		{"bad status", securebydesign.Finding{Release: "v1", Status: "UNKNOWN"}, "findings[0].status"},
+		{"negative days", securebydesign.Finding{Release: "v1", Status: "CLOSED", DaysToClose: -1}, "findings[0].days_to_close"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var refusal securebydesign.Refusal
+			_, err := securebydesign.ComputeTrends([]securebydesign.Finding{tc.finding})
+			if !errors.As(err, &refusal) || refusal.Field != tc.field {
+				t.Fatalf("ComputeTrends error = %T %v, want %s", err, err, tc.field)
+			}
+		})
+	}
+
+	fixture, err := securebydesign.LoadFixture(fixturePath(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	trends, err = securebydesign.ComputeTrends(fixture.Findings)
+	if err != nil {
+		t.Fatal(err)
+	}
+	goals := securebydesign.DefaultGoals()
+	policy := fixture.VulnerabilityDisclosure
+	exceptions := []securebydesign.Exception{{GoalNumber: 1, Reason: "review", Owner: "owner", ApprovedBy: "approver", StartsOn: "2026-09-01", ExpiresOn: "2026-12-31"}}
+	record, err := securebydesign.NewRecord(1, goals, policy, trends, exceptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	goals[0].DefaultTests[0] = "mutated"
+	policy.Scope[0] = "mutated"
+	trends[0].Release = "mutated"
+	exceptions[0].Reason = "mutated"
+	if record.Goals[0].DefaultTests[0] == "mutated" || record.DisclosurePolicy.Scope[0] == "mutated" || record.Trends[0].Release == "mutated" || record.Exceptions[0].Reason == "mutated" {
+		t.Fatal("NewRecord did not clone caller-owned slices")
+	}
+	if _, err := securebydesign.NewRecord(0, securebydesign.DefaultGoals(), fixture.VulnerabilityDisclosure, trends, nil); err == nil {
+		t.Fatal("zero revision was accepted")
+	}
+	if _, err := securebydesign.NewRecordFromFixture(1, securebydesign.Fixture{Findings: []securebydesign.Finding{{Status: "BAD"}}}, securebydesign.DefaultGoals(), nil); err == nil {
+		t.Fatal("invalid fixture findings were accepted")
+	}
+}
+
+func TestSecureByDesign_ValidateAtDigestAndConformanceBranches(t *testing.T) {
+	record := recordFixture(t)
+	if err := record.ValidateAt(time.Time{}); err != nil {
+		t.Fatalf("zero-time ValidateAt = %v", err)
+	}
+	if err := record.ValidateAt(time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)); err != nil {
+		t.Fatalf("active exception ValidateAt = %v", err)
+	}
+	if len(record.Canonical()) == 0 || !strings.Contains(record.Explain(), "secure-by-design revision 1") {
+		t.Fatalf("record representations are empty: canonical=%q explain=%q", record.Canonical(), record.Explain())
+	}
+	if err := record.VerifyDigest(); err != nil {
+		t.Fatal(err)
+	}
+	missingDigest := record
+	missingDigest.Digest = ""
+	var refusal securebydesign.Refusal
+	if !errors.As(missingDigest.VerifyDigest(), &refusal) || refusal.Field != "digest" {
+		t.Fatalf("missing digest error = %v", missingDigest.VerifyDigest())
+	}
+	if refusals := record.Conformance(map[string]bool{}); len(refusals) == 0 || refusals[0].Field == "" {
+		t.Fatalf("missing conformance tests produced %#v", refusals)
+	}
+
+	mutations := []struct {
+		name   string
+		mutate func(*securebydesign.Record)
+		field  string
+	}{
+		{"schema", func(r *securebydesign.Record) { r.Schema = "other" }, "schema"},
+		{"schema version", func(r *securebydesign.Record) { r.SchemaVersion = 2 }, "schema_version"},
+		{"pledge", func(r *securebydesign.Record) { r.Pledge = "other" }, "pledge"},
+		{"goal count", func(r *securebydesign.Record) { r.Goals = r.Goals[:1] }, "goals"},
+		{"duplicate goal", func(r *securebydesign.Record) { r.Goals[1].Number = r.Goals[0].Number }, "goals[1].number"},
+		{"goal name", func(r *securebydesign.Record) { r.Goals[0].Name = "other" }, "goals[0].name"},
+		{"missing goal test", func(r *securebydesign.Record) { r.Goals[0].DefaultTests = nil }, "default_tests"},
+		{"duplicate goal test", func(r *securebydesign.Record) {
+			r.Goals[0].DefaultTests = append(r.Goals[0].DefaultTests, r.Goals[0].DefaultTests[0])
+		}, "default_tests"},
+		{"negative opened", func(r *securebydesign.Record) { r.Trends[0].FindingsOpened = -1 }, "findings_opened"},
+		{"closed exceeds opened", func(r *securebydesign.Record) { r.Trends[0].FindingsClosed = r.Trends[0].FindingsOpened + 1 }, "findings_closed"},
+		{"negative median", func(r *securebydesign.Record) { r.Trends[0].MedianDays = -1 }, "median_days"},
+		{"exception goal", func(r *securebydesign.Record) { r.Exceptions[0].GoalNumber = 0 }, "goal_number"},
+		{"exception reason", func(r *securebydesign.Record) { r.Exceptions[0].Reason = "" }, "reason"},
+		{"exception owner", func(r *securebydesign.Record) { r.Exceptions[0].Owner = "" }, "owner"},
+		{"exception approver", func(r *securebydesign.Record) { r.Exceptions[0].ApprovedBy = "" }, "approved_by"},
+		{"exception date", func(r *securebydesign.Record) { r.Exceptions[0].StartsOn = "bad" }, "starts_on"},
+		{"exception order", func(r *securebydesign.Record) { r.Exceptions[0].ExpiresOn = r.Exceptions[0].StartsOn }, "expires_on"},
+	}
+	for _, tc := range mutations {
+		t.Run(tc.name, func(t *testing.T) {
+			mutated := recordFixture(t)
+			tc.mutate(&mutated)
+			var invalid securebydesign.InvalidRecord
+			if !errors.As(mutated.Validate(), &invalid) {
+				t.Fatalf("mutation was accepted")
+			}
+			found := false
+			for _, item := range invalid.Refusals {
+				if strings.Contains(item.Field, tc.field) {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatalf("refusals = %#v, want field containing %q", invalid.Refusals, tc.field)
+			}
+		})
+	}
+}
+
+func TestSecureByDesign_ScanAndRepositoryFailures(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "valid_test.go"), []byte("package p\nfunc TestFound() {}\nfunc (x X) TestMethod() {}\n// func TestComment() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	names, err := securebydesign.ScanTestNames(root)
+	if err != nil || !names["TestFound"] || names["TestMethod"] || names["TestComment"] {
+		t.Fatalf("ScanTestNames = %#v, %v", names, err)
+	}
+	bad := filepath.Join(t.TempDir(), "bad_test.go")
+	if err := os.WriteFile(bad, []byte("package"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := securebydesign.ScanTestNames(filepath.Dir(bad)); err == nil || !strings.Contains(err.Error(), "parse test file") {
+		t.Fatalf("malformed test scan error = %v", err)
+	}
+}

@@ -271,3 +271,65 @@ func TestTodo_GOV_013_Recovery(t *testing.T) {
 		}
 	})
 }
+
+func TestBoundaryTests_ClassifyGraphAndSubtreeBranches(t *testing.T) {
+	policy := &depedge.Policy{
+		Module:           "example.com/hcm",
+		Layers:           []depedge.Layer{{Name: "kernel", Roots: []string{"internal/kernel"}}, {Name: "workflow", Roots: []string{"internal/workflow"}}},
+		PortsAndAdapters: []depedge.PortAdapter{{Name: "ledger", Roots: []string{"internal/ledger"}}},
+	}
+	for _, tc := range []struct {
+		rel, name string
+		port, ok  bool
+	}{
+		{"internal/kernel", "kernel", false, true},
+		{"internal/kernel/value", "kernel", false, true},
+		{"internal/ledger", "ledger", true, true},
+		{"internal/unknown", "", false, false},
+		{"internal/kernelish", "", false, false},
+	} {
+		name, port, ok := ClassifyRel(policy, tc.rel)
+		if name != tc.name || port != tc.port || ok != tc.ok {
+			t.Errorf("ClassifyRel(%q) = %q, %t, %t; want %q, %t, %t", tc.rel, name, port, ok, tc.name, tc.port, tc.ok)
+		}
+	}
+	if got := (LayerEdge{From: "workflow", To: "kernel"}).String(); got != "workflow -> kernel" {
+		t.Fatalf("LayerEdge.String() = %q", got)
+	}
+	graph := &importgraph.Graph{Module: policy.Module, Edges: []importgraph.Edge{
+		{Importer: policy.Module + "/internal/workflow/run", Imported: policy.Module + "/internal/kernel/value"},
+		{Importer: policy.Module + "/internal/workflow/run", Imported: policy.Module + "/internal/kernel/value"},
+		{Importer: policy.Module + "/internal/kernel/value", Imported: policy.Module + "/internal/kernel/other"},
+		{Importer: policy.Module + "/internal/workflow/run", Imported: policy.Module + "/internal/ledger/port"},
+		{Importer: "external/module", Imported: policy.Module + "/internal/kernel/value"},
+		{Importer: policy.Module + "/internal/unknown", Imported: policy.Module + "/internal/kernel/value"},
+	}}
+	edges := LayerGraph(graph, policy)
+	if len(edges) != 2 || !HasEdge(edges, "workflow", "kernel") || !HasEdge(edges, "workflow", "ledger") {
+		t.Fatalf("LayerGraph = %#v", edges)
+	}
+	if HasEdge(edges, "kernel", "kernel") || HasEdge(edges, "unknown", "kernel") {
+		t.Fatalf("LayerGraph retained self/unclassified edges: %#v", edges)
+	}
+	if !ImportsSubtree(graph, policy.Module, "internal/workflow", "internal/ledger") || ImportsSubtree(graph, policy.Module, "internal/kernel", "internal/ledger") || ImportsSubtree(graph, policy.Module, "internal/workflowish", "internal/ledger") {
+		t.Fatal("ImportsSubtree classified a missing or partial prefix")
+	}
+}
+
+func TestBoundaryTests_GoldenAndRenderingEdges(t *testing.T) {
+	if got := RenderGolden(nil); got != "" {
+		t.Fatalf("RenderGolden(nil) = %q", got)
+	}
+	if diff, ok := GoldenDiff("a -> b\n", "a -> b\n"); !ok || diff != "" {
+		t.Fatalf("equal GoldenDiff = %q, %t", diff, ok)
+	}
+	if diff, ok := GoldenDiff("a -> b\n", "a -> b\na -> b\nc -> d\n"); ok || !strings.Contains(diff, "+ c -> d") {
+		t.Fatalf("added-edge GoldenDiff = %q, %t", diff, ok)
+	}
+	if diff, ok := GoldenDiff("a -> b\nc -> d\n", "a -> b\n"); ok || !strings.Contains(diff, "- c -> d") {
+		t.Fatalf("removed-edge GoldenDiff = %q, %t", diff, ok)
+	}
+	if !HasEdge([]LayerEdge{{From: "a", To: "b"}}, "a", "b") || HasEdge([]LayerEdge{{From: "a", To: "b"}}, "b", "a") {
+		t.Fatal("HasEdge returned the wrong result")
+	}
+}

@@ -152,6 +152,21 @@ func TestSignDigestAndVerifyDigestSignatureRoundTrip(t *testing.T) {
 	}
 }
 
+func TestSignDigestRejectsMalformedPrivateKeyAndShortSignature(t *testing.T) {
+	if _, err := provenance.SignDigest(ed25519.PrivateKey{1}, strings.Repeat("00", 32)); err == nil {
+		t.Fatal("SignDigest accepted a malformed private key without an error")
+	}
+
+	priv, err := provenance.LoadSigningKeyFixture(devSigningKeyFixture)
+	if err != nil {
+		t.Fatalf("LoadSigningKeyFixture: %v", err)
+	}
+	pub := hex.EncodeToString(priv.Public().(ed25519.PublicKey))
+	if _, err := provenance.VerifyDigestSignature(pub, strings.Repeat("00", 32), "00"); err == nil {
+		t.Fatal("VerifyDigestSignature accepted a short signature without an error")
+	}
+}
+
 func TestVerifyDigestSignatureRejectsMalformedInput(t *testing.T) {
 	if _, err := provenance.VerifyDigestSignature("not-hex", strings.Repeat("00", 32), strings.Repeat("00", 64)); err == nil {
 		t.Error("expected an error for a non-hex public key")

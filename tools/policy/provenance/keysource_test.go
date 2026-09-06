@@ -1,6 +1,7 @@
 package provenance_test
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"errors"
 	"fmt"
@@ -163,6 +164,182 @@ func TestTodo_SECARCH_005_Security(t *testing.T) {
 func TestTodo_SECARCH_005_Mutation(t *testing.T) {
 	if _, err := provenance.SignStatementWithKeySource(nil, keySourceStatement(), ""); err == nil {
 		t.Fatal("nil key source was accepted")
+	}
+}
+
+func TestFixtureKeySourceRejectsMalformedInputAndCopiesPrivateKey(t *testing.T) {
+	if _, err := provenance.NewFixtureKeySource(nil, "nil"); err == nil {
+		t.Fatal("nil fixture private key was accepted")
+	}
+
+	private := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{4}, ed25519.SeedSize))
+	wantPublic := fmt.Sprintf("%x", private.Public())
+	source, err := provenance.NewFixtureKeySource(private, "  fixture  ")
+	if err != nil {
+		t.Fatalf("NewFixtureKeySource: %v", err)
+	}
+	private[0] ^= 0xff
+	if source.PublicKey() != wantPublic {
+		t.Fatalf("PublicKey changed after caller mutation: got %q, want %q", source.PublicKey(), wantPublic)
+	}
+	if _, err := source.SignDigest("not-hex"); err == nil {
+		t.Fatal("SignDigest accepted a malformed digest")
+	}
+	if signature, err := source.SignDigest(strings.Repeat("00", 32)); err != nil || len(signature) != ed25519.SignatureSize*2 {
+		t.Fatalf("SignDigest(valid digest) = %q, %v", signature, err)
+	}
+
+	var nilSource *provenance.FixtureKeySource
+	if nilSource.PublicKey() != "" {
+		t.Fatal("nil FixtureKeySource returned a public key")
+	}
+	if _, err := nilSource.SignDigest(strings.Repeat("00", 32)); err == nil {
+		t.Fatal("nil FixtureKeySource signed a digest")
+	}
+}
+
+func TestLoadFixtureKeySourceAndCustodySourceValidation(t *testing.T) {
+	loaded, err := provenance.LoadFixtureKeySource(devSigningKeyFixture)
+	if err != nil {
+		t.Fatalf("LoadFixtureKeySource: %v", err)
+	}
+	if loaded.PublicKey() == "" {
+		t.Fatal("LoadFixtureKeySource returned an empty public key")
+	}
+
+	private := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{5}, ed25519.SeedSize))
+	public := fmt.Sprintf("%x", private.Public())
+	fake := &keySourceCustodyFake{keys: map[string]ed25519.PrivateKey{"release-key": private}}
+	cases := []struct {
+		name     string
+		provider custody.Provider
+		context  custody.Context
+		handle   custody.Handle
+		public   string
+		wantText string
+	}{
+		{"nil provider", nil, keySourceContext(), keySourceHandle("v1"), public, "requires a provider"},
+		{"invalid context", fake, custody.Context{}, keySourceHandle("v1"), public, "context"},
+		{"invalid handle", fake, keySourceContext(), custody.Handle{}, public, "handle"},
+		{"wrong kind", fake, keySourceContext(), func() custody.Handle { h := keySourceHandle("v1"); h.Kind = custody.Secret; return h }(), public, "handle.kind"},
+		{"tenant mismatch", fake, keySourceContext(), func() custody.Handle { h := keySourceHandle("v1"); h.Tenant = "other"; return h }(), public, "scope mismatch"},
+		{"region mismatch", fake, keySourceContext(), func() custody.Handle { h := keySourceHandle("v1"); h.Region = "eu-west-1"; return h }(), public, "scope mismatch"},
+		{"bad public hex", fake, keySourceContext(), keySourceHandle("v1"), "not-hex", "public_key"},
+		{"short public key", fake, keySourceContext(), keySourceHandle("v1"), strings.Repeat("00", ed25519.PublicKeySize-1), "public_key"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := provenance.NewCustodyKeySource(tc.provider, tc.context, tc.handle, tc.public); err == nil || !strings.Contains(err.Error(), tc.wantText) {
+				t.Fatalf("NewCustodyKeySource error = %v, want %q", err, tc.wantText)
+			}
+		})
+	}
+
+	source, err := provenance.NewCustodyKeySource(fake, keySourceContext(), keySourceHandle("v1"), strings.ToUpper(public))
+	if err != nil {
+		t.Fatalf("NewCustodyKeySource(uppercase public key): %v", err)
+	}
+	if source.PublicKey() != public || source.Explain() == "" {
+		t.Fatalf("custody source identity = %q, explanation = %q", source.PublicKey(), source.Explain())
+	}
+	if _, err := source.SignDigest("not-hex"); err == nil {
+		t.Fatal("custody source accepted a malformed digest")
+	}
+	if _, err := source.SignDigest(strings.Repeat("00", 31)); err == nil {
+		t.Fatal("custody source accepted a non-sha256 digest")
+	}
+	missing := &keySourceCustodyFake{}
+	missingSource, err := provenance.NewCustodyKeySource(missing, keySourceContext(), keySourceHandle("v1"), public)
+	if err != nil {
+		t.Fatalf("NewCustodyKeySource(missing key): %v", err)
+	}
+	if _, err := missingSource.SignDigest(strings.Repeat("00", 32)); err == nil || !strings.Contains(err.Error(), "custody sign") {
+		t.Fatalf("missing custody key error = %v, want custody sign error", err)
+	}
+
+	var nilSource *provenance.CustodyKeySource
+	if nilSource.PublicKey() != "" || nilSource.Explain() == "" {
+		t.Fatal("nil CustodyKeySource methods returned invalid values")
+	}
+	if _, err := nilSource.SignDigest(strings.Repeat("00", 32)); err == nil {
+		t.Fatal("nil CustodyKeySource signed a digest")
+	}
+}
+
+type malformedCustodyProvider struct {
+	keySourceCustodyFake
+	signature custody.Signature
+	err       error
+}
+
+func (f *malformedCustodyProvider) Sign(custody.Context, custody.Handle, []byte) (custody.Signature, custody.Receipt, error) {
+	return f.signature, custody.Receipt{}, f.err
+}
+
+func TestCustodyKeySourceRejectsMalformedProviderSignatures(t *testing.T) {
+	private := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{6}, ed25519.SeedSize))
+	handle := keySourceHandle("v1")
+	public := fmt.Sprintf("%x", private.Public())
+	cases := []struct {
+		name      string
+		signature custody.Signature
+		wantText  string
+	}{
+		{"wrong handle", custody.Signature{Handle: keySourceHandle("v2"), Algorithm: provenance.AlgorithmEd25519, Data: make([]byte, ed25519.SignatureSize)}, "does not match"},
+		{"wrong algorithm", custody.Signature{Handle: handle, Algorithm: "rsa", Data: make([]byte, ed25519.SignatureSize)}, "algorithm"},
+		{"wrong length", custody.Signature{Handle: handle, Algorithm: provenance.AlgorithmEd25519, Data: []byte{1}}, "signature.value"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := &malformedCustodyProvider{signature: tc.signature}
+			source, err := provenance.NewCustodyKeySource(provider, keySourceContext(), handle, public)
+			if err != nil {
+				t.Fatalf("NewCustodyKeySource: %v", err)
+			}
+			_, err = source.SignDigest(strings.Repeat("00", 32))
+			if err == nil || !strings.Contains(err.Error(), tc.wantText) {
+				t.Fatalf("SignDigest error = %v, want %q", err, tc.wantText)
+			}
+		})
+	}
+	providerError := &malformedCustodyProvider{err: errors.New("provider unavailable")}
+	source, err := provenance.NewCustodyKeySource(providerError, keySourceContext(), handle, public)
+	if err != nil {
+		t.Fatalf("NewCustodyKeySource(provider error): %v", err)
+	}
+	if _, err := source.SignDigest(strings.Repeat("00", 32)); err == nil || !strings.Contains(err.Error(), "provider unavailable") {
+		t.Fatalf("provider error = %v, want wrapped provider error", err)
+	}
+}
+
+type stubKeySource struct {
+	public string
+	sig    string
+	err    error
+}
+
+func (s stubKeySource) PublicKey() string                 { return s.public }
+func (s stubKeySource) SignDigest(string) (string, error) { return s.sig, s.err }
+
+func TestSignStatementWithKeySourceRejectsBadSourceOutputs(t *testing.T) {
+	private := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{7}, ed25519.SeedSize))
+	public := fmt.Sprintf("%x", private.Public())
+	cases := []struct {
+		name   string
+		source stubKeySource
+		want   string
+	}{
+		{"bad public key", stubKeySource{public: "not-hex", sig: strings.Repeat("00", ed25519.SignatureSize)}, "public_key"},
+		{"signing error", stubKeySource{public: public, err: errors.New("signing failed")}, "signing failed"},
+		{"bad signature", stubKeySource{public: public, sig: "00"}, "signature.value"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := provenance.SignStatementWithKeySource(tc.source, keySourceStatement(), "label")
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("SignStatementWithKeySource error = %v, want %q", err, tc.want)
+			}
+		})
 	}
 }
 

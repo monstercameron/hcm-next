@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -167,4 +168,184 @@ func repoRoot(t *testing.T) string {
 		t.Fatal("resolve package path")
 	}
 	return filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(file))))
+}
+
+func TestRiskBinding_DiagnosticMethodsAndLoads(t *testing.T) {
+	finding := Finding{RiskID: "RISK-1", Kind: "DETECTION", Code: "MISSING", Detail: "evidence", Reason: "not covered"}
+	if finding.Key() != "RISK-1|DETECTION|MISSING|evidence" {
+		t.Fatalf("Finding.Key() = %q", finding.Key())
+	}
+	if finding.String() != "RISK-1: DETECTION/MISSING: not covered" {
+		t.Fatalf("Finding.String() = %q", finding.String())
+	}
+	if (Finding{Code: "TABLE", Reason: "bad"}).String() != "<table>: TABLE: bad" {
+		t.Fatalf("table Finding.String() did not use table label")
+	}
+	gap := Gap{RiskID: "RISK-1", Kind: Recovery, Code: "MISSING_RECOVERY", Detail: "x"}
+	if gap.Key() != "RISK-1|RECOVERY|MISSING_RECOVERY|x" {
+		t.Fatalf("Gap.Key() = %q", gap.Key())
+	}
+	report := Report{Findings: []Finding{{RiskID: "RISK-2", Code: "STRUCTURAL", Reason: "bad"}}, NewGaps: []Gap{{RiskID: "RISK-1", Kind: Recovery, Code: "MISSING_RECOVERY", Detail: "x"}}}
+	violations := report.Violations()
+	if len(violations) != 2 || !hasFinding(violations, "RISK-1", "MISSING_RECOVERY") || !hasFinding(violations, "RISK-2", "STRUCTURAL") {
+		t.Fatalf("Report.Violations() = %#v", violations)
+	}
+
+	t.Run("load errors and version validation", func(t *testing.T) {
+		if _, err := Load(filepath.Join(t.TempDir(), "missing.json")); err == nil || !strings.Contains(err.Error(), "read risk table") {
+			t.Fatalf("missing Load error = %v", err)
+		}
+		bad := filepath.Join(t.TempDir(), "bad.json")
+		if err := os.WriteFile(bad, []byte("{"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Load(bad); err == nil || !strings.Contains(err.Error(), "parse risk table") {
+			t.Fatalf("malformed Load error = %v", err)
+		}
+		version := filepath.Join(t.TempDir(), "version.json")
+		if err := os.WriteFile(version, []byte(`{"version":2}`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Load(version); err == nil || !strings.Contains(err.Error(), "want 1") {
+			t.Fatalf("version Load error = %v", err)
+		}
+	})
+
+	data, err := (Table{Version: 1}).JSON()
+	if err != nil || !strings.HasSuffix(string(data), "\n") || !strings.Contains(string(data), `"version": 1`) {
+		t.Fatalf("Table.JSON() = %q, %v", data, err)
+	}
+}
+
+func TestRiskBinding_EvaluateRejectsMalformedAndUnresolvedEvidence(t *testing.T) {
+	table := Table{
+		Version: 1,
+		Risks: []Risk{
+			{ID: "", Category: Architecture, Statement: "missing id", Owner: "owner", SourceDocument: "fixture", SourceLine: 1},
+			{ID: "RISK-DUP", Category: Architecture, Statement: "first", Owner: "owner", SourceDocument: "fixture", SourceLine: 1},
+			{ID: "RISK-DUP", Category: Product, Statement: "duplicate", Owner: "owner", SourceDocument: "fixture", SourceLine: 1},
+			{ID: "RISK-BAD", Category: "OTHER", Statement: " ", Owner: "", SourceLine: 0},
+			{ID: "RISK-GAPS", Category: Product, Statement: "gaps", Owner: "product", SourceDocument: "fixture", SourceLine: 1},
+		},
+		Bindings: []Binding{
+			{RiskID: "UNKNOWN", Evidence: []Evidence{{Kind: Prevention, TestName: "TestPolicy"}}},
+			{RiskID: "RISK-DUP", Evidence: []Evidence{{Kind: Prevention, TestName: "TestPolicy"}}},
+			{RiskID: "RISK-DUP", Evidence: []Evidence{{Kind: Detection, TestName: "TestPolicy"}}},
+			{RiskID: "RISK-GAPS", Evidence: []Evidence{
+				{Kind: "OTHER", TestName: "TestPolicy"},
+				{Kind: Prevention},
+				{Kind: Detection, TodoID: "TODO-MISSING", TestName: "also-set"},
+				{Kind: Recovery, TodoID: "TODO-UNKNOWN"},
+				{Kind: Prevention, TodoID: "TODO-EMPTY"},
+				{Kind: Detection, TestName: "TestMissing"},
+			}},
+		},
+		Allowlist: []AllowlistedGap{
+			{RiskID: "RISK-GAPS", Kind: string(Detection), Owner: "other-owner", Reason: "reviewed", ReviewDate: "2026-12-31", Status: Accepted},
+			{RiskID: "RISK-GAPS", Kind: "OTHER", Owner: "product", Reason: "bad kind", ReviewDate: "2026-12-31"},
+			{RiskID: "STALE", Kind: string(Recovery), Owner: "product", Reason: "stale", ReviewDate: "2026-12-31"},
+		},
+	}
+	report := Evaluate(table, map[string]string{"TODO-EMPTY": ""}, map[string]bool{"TestPolicy": true})
+	for _, expected := range []struct{ riskID, code string }{
+		{"", "MISSING_RISK_ID"}, {"RISK-DUP", "DUPLICATE_RISK_ID"},
+		{"RISK-BAD", "INVALID_CATEGORY"}, {"RISK-BAD", "INCOMPLETE_RISK"}, {"RISK-BAD", "MISSING_SOURCE_CITATION"},
+		{"UNKNOWN", "UNKNOWN_RISK_BINDING"}, {"RISK-DUP", "DUPLICATE_RISK_BINDING"},
+		{"RISK-GAPS", "INVALID_EVIDENCE_KIND"}, {"RISK-GAPS", "INVALID_EVIDENCE_REFERENCE"},
+		{"RISK-GAPS", "UNRESOLVED_TODO"}, {"RISK-GAPS", "TODO_MISSING_TEST"}, {"RISK-GAPS", "UNRESOLVED_TEST"},
+		{"RISK-GAPS", "INVALID_ALLOWLIST"}, {"RISK-GAPS", "ALLOWLIST_OWNER_MISMATCH"}, {"STALE", "STALE_ALLOWLIST"},
+	} {
+		if !hasFinding(report.Findings, expected.riskID, expected.code) {
+			t.Errorf("missing %s/%s finding: %#v", expected.riskID, expected.code, report.Findings)
+		}
+	}
+	if !hasGap(report.Gaps, "RISK-GAPS", Recovery) || len(report.AllowlistedGaps) != 1 || report.Rows[len(report.Rows)-1].Status == Mitigated {
+		t.Fatalf("gap projection = gaps=%#v allowlisted=%#v rows=%#v", report.Gaps, report.AllowlistedGaps, report.Rows)
+	}
+}
+
+func TestRiskBinding_DefaultEvidenceAndCitations(t *testing.T) {
+	t.Run("default evidence binds an otherwise unbound risk and duplicate labels are deduplicated", func(t *testing.T) {
+		table := Table{Version: 1, Risks: []Risk{{ID: "RISK-A", Category: Architecture, Statement: "A", Owner: "owner", SourceDocument: "fixture.md", SourceLine: 1}}, DefaultEvidence: []Evidence{{Kind: Prevention, TestName: "TestPolicy"}, {Kind: Prevention, TestName: "TestPolicy"}, {Kind: Detection, TodoID: "TODO-1"}, {Kind: Recovery, TodoID: "TODO-1"}}}
+		report := Evaluate(table, map[string]string{"TODO-1": "TestTodo"}, map[string]bool{"TestPolicy": true})
+		if len(report.Violations()) != 0 || len(report.Rows) != 1 || len(report.Rows[0].Prevention) != 1 || report.Rows[0].Status != Mitigated {
+			t.Fatalf("default evidence report = %#v", report)
+		}
+	})
+
+	dir := t.TempDir()
+	fixture := filepath.Join(dir, "fixture.md")
+	if err := os.WriteFile(fixture, []byte("### Risk 1: Matching statement\n### Risk 2: Other\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	risky := []Risk{
+		{ID: "RISK-001", Statement: "Matching statement", SourceDocument: "fixture.md", SourceLine: 1},
+		{ID: "RISK-002", Statement: "Wrong statement", SourceDocument: "fixture.md", SourceLine: 1},
+		{ID: "RISK-003", Statement: "Other", SourceDocument: "fixture.md", SourceLine: 99},
+		{ID: "RISK-004", Statement: "Missing", SourceDocument: "missing.md", SourceLine: 1},
+	}
+	findings := ValidateCitations(dir, risky)
+	if len(findings) != 3 || !hasFinding(findings, "RISK-002", "SOURCE_LINE_MISMATCH") || !hasFinding(findings, "RISK-003", "SOURCE_LINE_MISMATCH") || !hasFinding(findings, "RISK-004", "SOURCE_DOCUMENT_UNREADABLE") {
+		t.Fatalf("ValidateCitations = %#v", findings)
+	}
+}
+
+func TestRiskBinding_RepositoryReaders(t *testing.T) {
+	t.Run("todo registry and test scanner report file and parse errors", func(t *testing.T) {
+		if _, err := LoadTodoTests(filepath.Join(t.TempDir(), "missing.json")); err == nil {
+			t.Fatal("missing todo registry was accepted")
+		}
+		bad := filepath.Join(t.TempDir(), "bad.json")
+		if err := os.WriteFile(bad, []byte("{"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadTodoTests(bad); err == nil || !strings.Contains(err.Error(), "parse todo registry") {
+			t.Fatalf("malformed todo registry error = %v", err)
+		}
+		root := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(root, "tools", "policy", "testdata"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "tools", "planning"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "tools", "policy", "policy_test.go"), []byte("package p\nfunc TestFound(t *T) {}\n// func TestComment(t *T) {}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "tools", "policy", "testdata", "ignored_test.go"), []byte("package p\nfunc TestIgnored(t *T) {}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		names, err := ScanTestNames(root)
+		if err != nil || !names["TestFound"] || names["TestComment"] || names["TestIgnored"] {
+			t.Fatalf("ScanTestNames = %#v, %v", names, err)
+		}
+		if _, err := ScanTestNames(filepath.Join(root, "missing")); err == nil {
+			t.Fatal("missing test root was accepted")
+		}
+	})
+
+	t.Run("repository evaluation propagates load errors and succeeds with empty registries", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(root, "tools", "policy"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "tools", "planning"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		tablePath := filepath.Join(root, "table.json")
+		if err := os.WriteFile(tablePath, []byte(`{"version":1,"risks":[],"bindings":[]}`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		registryPath := filepath.Join(root, "registry.json")
+		if err := os.WriteFile(registryPath, []byte(`[{"id":"TODO-1","test":"TestFound"}]`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		report, err := EvaluateRepository(root, tablePath, registryPath)
+		if err != nil || len(report.Findings) != 0 || len(report.Rows) != 0 {
+			t.Fatalf("EvaluateRepository = %#v, %v", report, err)
+		}
+		if _, err := EvaluateRepository(root, filepath.Join(root, "missing.json"), registryPath); err == nil {
+			t.Fatal("missing repository table was accepted")
+		}
+	})
 }

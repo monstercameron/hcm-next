@@ -83,3 +83,20 @@ func TestLoadSigningKeyFixtureRejectsPublicKeyMismatch(t *testing.T) {
 		t.Fatal("expected an error when declared public_key does not match the key embedded in private_key")
 	}
 }
+
+func TestLoadSigningKeyFixtureRejectsUnsupportedSchemaAndMalformedYAML(t *testing.T) {
+	unsupported := writeFixture(t, `{"schema_version":2,"algorithm":"ed25519"}`)
+	if _, err := provenance.LoadSigningKeyFixture(unsupported); err == nil || !strings.Contains(err.Error(), "schema_version") {
+		t.Fatalf("unsupported schema error = %v, want schema_version finding", err)
+	}
+
+	malformedYAML := writeFixture(t, "schema_version: 1\nnot-a-field\n")
+	if _, err := provenance.LoadSigningKeyFixture(malformedYAML); err == nil {
+		t.Fatal("expected malformed YAML to be rejected")
+	}
+
+	missingYAMLField := writeFixture(t, "schema_version: 1\nalgorithm: ed25519\n")
+	if _, err := provenance.LoadSigningKeyFixture(missingYAMLField); err == nil {
+		t.Fatal("expected a YAML fixture missing key material to be rejected")
+	}
+}

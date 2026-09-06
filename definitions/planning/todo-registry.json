@@ -140,7 +140,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Governance composition](specs/governance-decision-and-obligation-composition.md), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ABUSE-006",
@@ -563,7 +563,7 @@
     "refactor": "reserved capacity is explicit and cannot exceed physical/provider limits",
     "refs": "[Admission and criticality](data/models/operations-production.md), [production architecture](plan.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ADMISSION-002",
@@ -588,7 +588,7 @@
     "refactor": "retry accounting is per logical operation, tenant and dependency",
     "refs": "[Backpressure](data/models/operations-production.md), [connector capacity](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AGENT-001",
@@ -1029,7 +1029,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-014",
@@ -1101,7 +1101,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-017",
@@ -1125,7 +1125,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-018",
@@ -1249,7 +1249,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-023",
@@ -1275,7 +1275,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-024",
@@ -1899,7 +1899,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-049",
@@ -1925,7 +1925,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-050",
@@ -1951,7 +1951,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-051",
@@ -1977,7 +1977,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-052",
@@ -2159,7 +2159,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-059",
@@ -2185,7 +2185,7 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ALIGN-060",
@@ -2677,7 +2677,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "APP-005",
@@ -2702,7 +2702,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Control plane](#30-control-plane-publication-distribution-and-activation), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "APP-006",
@@ -3956,7 +3956,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Document models](data/models/connectivity-access-content.md), [hostile ingress](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ARTIFACT-003",
@@ -3981,7 +3981,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Artifact authorization](specs/data-classification-and-dlp.md), [artifact models](data/models/connectivity-access-content.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ARTIFACT-004",
@@ -4647,7 +4647,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Secrets/key custody](specs/secrets-key-custody-and-credential-leases.md), [foundation trust](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-007",
@@ -4674,7 +4674,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Incident management](specs/incident-management.md), [trust models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-008",
@@ -4700,7 +4700,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Execution plan](execution-plan.md), [foundation identity](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "AUTHN-009",
@@ -5887,7 +5887,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Database materialization](#26-postgresql-database-and-model-materialization), [configuration lifecycle](data/models/dataops-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CICD-003",
@@ -6105,7 +6105,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Identity resolution](specs/identity-resolution-and-entity-linkage.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CLOCK-003",
@@ -6309,7 +6309,7 @@
     "refactor": "invoice generation, tax calculation and payment collection remain out of Phase 1",
     "refs": "[Pricing hypothesis](plan.md#125-commercial-architecture-hypotheses), [Phase 1 scope](execution-plan.md#explicit-non-goals)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "COMM-003",
@@ -6332,7 +6332,7 @@
     "refactor": "evidence calculations remain reproducible from immutable inputs",
     "refs": "[Commercial proof](next-steps.md#non-negotiable-stop-rules), [Gate A evidence](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "COMMERCIAL-001",
@@ -7350,7 +7350,7 @@
     "refactor": "one compatibility graph serves publication, rollout and live runtime revalidation across all configuration object types",
     "refs": "[configuration control](#30-control-plane-publication-distribution-and-activation), [workflow migration](specs/workflow-runtime.md), [rollout](#42-confidential-actors-abuse-detection-and-progressive-rollout)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONFLICT-001",
@@ -7496,7 +7496,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Generic adapters](specs/integration-platform.md), [outbound trust](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONN-RT-003",
@@ -7524,7 +7524,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Connector operation](specs/integration-platform.md), [connectivity models](data/models/connectivity-access-content.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONN-RT-004",
@@ -7551,7 +7551,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Credential leases](specs/secrets-key-custody-and-credential-leases.md), [integration security](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONN-RT-005",
@@ -7604,7 +7604,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Connector maturity](specs/integration-platform.md), [sandbox responsibility](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CONN-RT-007",
@@ -7809,7 +7809,7 @@
     "refactor": "all publication systems deposit one common archival envelope; archive is immutable evidence, not an activation source",
     "refs": "[canonical digest](specs/canonical-envelope-and-digest.md), [configuration lifecycle](specs/platform-responsibility-boundaries.md), [evidence](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-001",
@@ -7908,7 +7908,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Platform foundation](specs/platform-foundation-gap-closure.md), [tenant lifecycle](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-005",
@@ -7930,7 +7930,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Configuration promotion](specs/hris-admin-dataops.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-006",
@@ -7954,7 +7954,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Platform responsibilities](specs/platform-responsibility-boundaries.md), [control plane models](data/models/dataops-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-007",
@@ -7979,7 +7979,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[SLO contract](specs/slo-sli-error-budget.md), [foundation activation](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-008",
@@ -8005,7 +8005,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Agent safety](specs/platform-architecture-catalog.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CP-009",
@@ -8505,7 +8505,7 @@
     "refactor": "use DataOps/transform/identity/configuration engines; implementation tooling must not create a second migration semantics stack",
     "refs": "[HRIS DataOps](specs/hris-admin-dataops.md), [customer onboarding](#35-artifact-bytes-and-customer-data-onboarding), [model coverage](data/models/intent-coverage-matrix.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "CUSTOMER-003",
@@ -10247,7 +10247,7 @@
     "refactor": "destructive contract step waits for consumer-adoption watermark",
     "refs": "[Foundation upgrades](specs/platform-foundation-gap-closure.md), [schema lifecycle](data/models/dataops-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "DB-022",
@@ -10277,7 +10277,7 @@
     "refactor": "tenant restore limitations and whole-cluster restore path are documented separately",
     "refs": "[Recovery models](data/models/operations-production.md), [records](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "DB-023",
@@ -10643,7 +10643,7 @@
     "refactor": "process roles register diagnostics through one hardened adapter and no package exposes a listener independently",
     "refs": "[support access](specs/platform-foundation-gap-closure.md), [telemetry diagnostics](specs/structured-logging-and-opentelemetry.md), [edge security](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "DISCLOSURE-001",
@@ -10925,7 +10925,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Foundation hostile ingress](specs/platform-foundation-gap-closure.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-003",
@@ -10950,7 +10950,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[SLO contract](specs/slo-sli-error-budget.md), [platform architecture](specs/platform-architecture-catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-004",
@@ -11000,7 +11000,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Outbound trust](specs/platform-foundation-gap-closure.md), [integration security](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-006",
@@ -11025,7 +11025,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Foundation endpoint discovery](specs/platform-foundation-gap-closure.md), [service AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-007",
@@ -11085,7 +11085,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Adversarial model audit](data/models/adversarial-model-audit-2026-08-14.md), [conformance audit](specs/adversarial-audit-32-reviewers-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-009",
@@ -11116,7 +11116,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Experience/API plane](specs/platform-plane-model.md), [edge controls](#32-production-identity-key-custody-and-edge-enforcement)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EDGE-010",
@@ -11149,7 +11149,7 @@
     "refactor": "edge products remain adapters to HCM Next route/security policy and cannot define semantic authorization",
     "refs": "[edge enforcement](#32-production-identity-key-custody-and-edge-enforcement), [endpoint contract](specs/http-grpc-endpoint-contract.md), [threat registry](#product-decision-and-implementation-convergence)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EFFECT-001",
@@ -11563,7 +11563,7 @@
     "refactor": "grpcbridge middleware consumes endpoint metadata; route handlers contain no custom edge policy",
     "refs": "[endpoint contract](specs/http-grpc-endpoint-contract.md), [edge controls](#32-production-identity-key-custody-and-edge-enforcement), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ENDPOINT-007",
@@ -11593,7 +11593,7 @@
     "refactor": "one policy compiler emits gRPC service config, HTTP middleware and test vectors from capability metadata",
     "refs": "[endpoint manifest](specs/http-grpc-endpoint-contract.md#endpoint-manifest), [RPC edge](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [admission](#34-batch-scheduling-and-connector-execution-substrate)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ENDPOINT-008",
@@ -11629,7 +11629,7 @@
     "refactor": "endpoint-specific tests provide fixtures and semantic oracles; harness owns transport mechanics and diagnostics",
     "refs": "[required endpoint tests](specs/http-grpc-endpoint-contract.md#required-test-layers-for-every-endpoint), [grpcbridge parity](#29-machine-readable-model-sources-and-public-api-contracts), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ENDPOINT-009",
@@ -11815,7 +11815,7 @@
     "refactor": "typed domain façades call the same create application service; list/read use owned projections, never workflow tables directly",
     "refs": "[intent endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [BusinessIntent](specs/business-intent-and-change-request.md), [intent creation](#6-businessintent-capabilities-governance-and-transaction-integrity)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EP-INTENT-002",
@@ -11847,7 +11847,7 @@
     "refactor": "endpoint delegates to execution-mode-aware capability/workflow simulation; it contains no domain-specific calculator",
     "refs": "[simulation endpoint](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [workflow simulation](specs/workflow-runtime.md), [Promotion simulation](reference-workflows/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EP-INTENT-003",
@@ -11908,7 +11908,7 @@
     "refactor": "compose ledger/provenance/governance projections; endpoint does not reconstruct truth ad hoc",
     "refs": "[intent inspection endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [provenance](specs/provenance-graph-and-lineage.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EP-OPS-001",
@@ -12003,7 +12003,7 @@
     "refactor": "global action/search/SDK discovery consume this service rather than separate registries",
     "refs": "[initial registry endpoints](specs/http-grpc-endpoint-contract.md#registry-and-discovery), [capability registry](specs/capability-registry-and-lifecycle.md), [action discovery](#17-experience-api-and-accessibility)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EP-WF-001",
@@ -12306,7 +12306,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger spec](specs/transaction-ledger-reconciliation-and-repair.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "EVENT-002",
@@ -12497,7 +12497,7 @@
     "refactor": "one export planner chooses typed renderer profiles; never apply presentation escaping to canonical stored data",
     "refs": "[OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "FEATURE-001",
@@ -13088,7 +13088,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Settlement engine](#43-deep-payroll-accounting-settlement-and-garnishment-engines), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "GARN-006",
@@ -13943,7 +13943,7 @@
     "refactor": "snapshot minimizes sensitive values while preserving reproducibility",
     "refs": "[Governance composition](specs/governance-decision-and-obligation-composition.md), [reproducibility](plan.md#93-reproducibility-contract)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "GOVERN-002",
@@ -13965,7 +13965,7 @@
     "refactor": "composition is a pure versioned function",
     "refs": "[Governance coordinator](specs/governance-decision-and-obligation-composition.md), [Legal/AuthZ distinction](plan.md#512-law-is-a-versioned-constraint-system)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "GOVERN-003",
@@ -14021,7 +14021,7 @@
     "refactor": "shared reservation/fencing mechanics do not erase the three domain lifecycles or their distinct owners",
     "refs": "[Headcount requisition workflow](workflows/workforce/headcount-requisition.md), [position domain](specs/position-and-headcount-domain.md), [budget authority](specs/workforce-budget-authority.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "I18N-001",
@@ -14185,7 +14185,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security models](data/models/security-trust.md), [operations production](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-004",
@@ -14211,7 +14211,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Foundation endpoint discovery](specs/platform-foundation-gap-closure.md), [integration security](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-005",
@@ -14236,7 +14236,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Go technology constitution](specs/go-only-technology-constitution.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-006",
@@ -14263,7 +14263,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Database section](#26-postgresql-database-and-model-materialization), [recovery matrix](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-007",
@@ -14288,7 +14288,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Artifact models](data/models/connectivity-access-content.md), [records management](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-008",
@@ -14315,7 +14315,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-009",
@@ -14340,7 +14340,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Operations models](data/models/operations-production.md), [SLO contract](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IAC-010",
@@ -14456,7 +14456,7 @@
     "refactor": "tool selection implements owned deployment contracts and remains replaceable behind generated manifests",
     "refs": "[IaC](#31-infrastructure-as-code-and-physical-data-services), [supply chain](#59-adversarial-infrastructure-edges-and-third-party-tool-qualification), [topology](#product-decision-and-implementation-convergence)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "IDEMP-001",
@@ -14491,7 +14491,7 @@
     "refactor": "layer adapters map to one lifecycle contract but keep business idempotency distinct from transport delivery dedupe",
     "refs": "[idempotency lifecycle](specs/platform-foundation-gap-closure.md), [transaction idempotency](specs/transaction-plan-and-commit-coordinator.md), [integration operation identity](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "INCENTIVE-001",
@@ -15099,7 +15099,7 @@
     "refactor": "analysis may suggest; deterministic capability/workflow/domain code executes",
     "refs": "[Agent and intelligence models](data/models/assurance-intelligence-platform.md), [provenance](specs/provenance-graph-and-lineage.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "INTENT-021",
@@ -15883,7 +15883,7 @@
     "refactor": "health projection cannot change connection authority",
     "refs": "[Integration health](specs/integration-platform.md), [incident management](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "INTG-018",
@@ -15913,7 +15913,7 @@
     "refactor": "receipt bytes stay quarantined/protected",
     "refs": "[Webhooks](specs/integration-platform.md), [system subscriptions](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "INTG-019",
@@ -20430,7 +20430,7 @@
     "refactor": "isolate SDK configuration and error translation in `store/object` provider code; no domain/workflow package imports it",
     "refs": "[edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [AWS SDK for Go v2](https://github.com/aws/aws-sdk-go-v2), [artifact contracts](#35-artifact-bytes-and-customer-data-onboarding)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "LIB-019",
@@ -20637,7 +20637,7 @@
     "refactor": "masking uses Transformation/classification/provenance engines but retains separate privacy-risk and fidelity evaluation",
     "refs": "[masking boundary](specs/platform-responsibility-boundaries.md), [classification](specs/data-classification-and-dlp.md), [sandbox](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "MATCH-001",
@@ -21784,7 +21784,7 @@
     "refactor": "value objects remain reusable while ownership and authority stay on typed relationship/revision contracts rather than nullable foreign-key conventions",
     "refs": "[Workflow data register](workflows/hr-workflow-data-register.md#unresolved-modeling-decisions), [People models](data/models/people-workforce.md), [model conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "MODEL-032",
@@ -21977,7 +21977,7 @@
     "refactor": "provider adapter is replaceable and health-aware",
     "refs": "[Async delivery](specs/messaging-and-notification-plane.md), [integration platform](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "MSG-007",
@@ -22531,7 +22531,7 @@
     "refactor": "`WEDGE-014` consumes only this evidence receipt; phase membership is data, not numeric todo ranges",
     "refs": "[Gate A milestone](next-steps.md#m4--gate-a-decision), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false,
+    "done": true,
     "evidence": "Compiler done: `TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence`, `TestP1AEvidenceReportArtifactsAreCurrent` in `tools/planning/gateevidence` (OK/MISSING/STALE/OUT_OF_MANIFEST/EFFECTFUL resolution, `-live` reruns, deterministic `p1a-evidence-report.{md,json}`; the checked-in manifest compiles GATE_CLEAR); `go test -count=1 ./tools/planning/gateevidence/...` PASS on windows/arm64 (Go 1.26.3). Cannot close: NEXT-008 and WEDGE-001..013 are open; branch plan-revision-2026-09-02"
   },
   {
@@ -22822,7 +22822,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Open-source policy](plan.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OBS-004",
@@ -23246,7 +23246,7 @@
     "refactor": "dynamic level filter is an owned handler layer driven by configuration snapshots, not package globals or provider console state",
     "refs": "[diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [configuration](#14-configuration-regulatory-and-reference-data), [support access](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OBS-019",
@@ -23276,7 +23276,7 @@
     "refactor": "reuse admission/retry primitives but keep telemetry budgets and failure policy independent from business retry budgets",
     "refs": "[export failure and shutdown](specs/structured-logging-and-opentelemetry.md#export-failure-and-shutdown), [telemetry pipeline health](data/models/operations-production.md), [backpressure](#16-operations-assurance-overload-and-recovery)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OBS-020",
@@ -23333,7 +23333,7 @@
     "refactor": "backend adapters translate one records/query policy; operational identifiers remain non-reversible and tenant-name-free",
     "refs": "[diagnostic controls](specs/structured-logging-and-opentelemetry.md#diagnostic-controls), [records management](specs/records-management-and-disposition.md), [privacy copy inventory](#15-privacy-records-rights-and-tenant-exit)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OBS-022",
@@ -23585,7 +23585,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Provenance](specs/provenance-graph-and-lineage.md), [canonical digest](specs/canonical-envelope-and-digest.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "ONBOARD-008",
@@ -23608,7 +23608,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Records](specs/records-management-and-disposition.md), [DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-001",
@@ -23631,7 +23631,7 @@
     "refactor": "analytics/search outages are not allowed to redefine transaction-path availability",
     "refs": "[Operations model](data/models/operations-production.md), [SLO contract](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-002",
@@ -23656,7 +23656,7 @@
     "refactor": "high-cardinality correlation belongs in traces/log indexes, not metrics labels",
     "refs": "[Telemetry governance](data/models/operations-production.md), [classification and DLP](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-003",
@@ -23679,7 +23679,7 @@
     "refactor": "absence of telemetry is never interpreted as absence of failure",
     "refs": "[Telemetry health](data/models/operations-production.md), [incident model](specs/incident-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-004",
@@ -23703,7 +23703,7 @@
     "refactor": "technical alerts aggregate into business incidents by correlation and affected set",
     "refs": "[Incident management](specs/incident-management.md), [operations assurance](plan.md#112-operational-readiness)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-005",
@@ -23727,7 +23727,7 @@
     "refactor": "advisory wording is separate from internal forensic detail",
     "refs": "[Customer communications](specs/incident-management.md), [messaging](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-006",
@@ -23800,7 +23800,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Incident management](specs/incident-management.md), [SLOs](specs/slo-sli-error-budget.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "OPS-009",
@@ -24412,7 +24412,7 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PAYMETHOD-003",
@@ -24609,7 +24609,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Governance composition](specs/governance-decision-and-obligation-composition.md), [human work](specs/human-work-forms-and-rules.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PAYRUN-007",
@@ -24971,7 +24971,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Commercial proof](execution-plan.md), [billing models](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERF-008",
@@ -25058,7 +25058,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Master plan SLOs](plan.md), [operations models](data/models/operations-production.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PERFORMANCE-001",
@@ -26730,7 +26730,7 @@
     "refactor": "inventory changes are governed configuration, not prose updates",
     "refs": "[Privacy and records model](specs/records-management-and-disposition.md), [governance plane](plan.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PRIV-002",
@@ -26781,7 +26781,7 @@
     "refactor": "approval-time decision alone is insufficient",
     "refs": "[DLP and egress](specs/data-classification-and-dlp.md), [integration dispatch](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PRIV-004",
@@ -27012,7 +27012,7 @@
     "refactor": "actual irreversible destruction remains Gate C",
     "refs": "[Tenant exit](specs/platform-responsibility-boundaries.md#tenant-exit-and-portability), [privacy records](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PROCESS-001",
@@ -27941,7 +27941,7 @@
     "refactor": "generated fixtures share semantic cases while transport quirks stay inside the selected provider adapter",
     "refs": "[provider adapter boundaries](specs/integration-platform.md), [external effects](specs/transaction-ledger-reconciliation-and-repair.md), [tool qualification](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PROVIDER-002",
@@ -27971,7 +27971,7 @@
     "refactor": "reuse provider schema/support manifests and rollout gates; avoid provider-specific drift logic in workflows",
     "refs": "[integration drift](specs/integration-platform.md), [provider selection](#product-decision-and-implementation-convergence), [progressive rollout](#42-confidential-actors-abuse-detection-and-progressive-rollout)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "PROVIDER-003",
@@ -28002,7 +28002,7 @@
     "refactor": "exit consumes generic tenant/privacy/vendor-continuity contracts plus provider inventory adapter",
     "refs": "[tenant exit](specs/platform-responsibility-boundaries.md), [records](specs/records-management-and-disposition.md), [integration lifecycle](specs/integration-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "QUAL-001",
@@ -28178,7 +28178,7 @@
     "refactor": "domain-specific eligibility, legality and qualification remain external inputs",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [capability lifecycle](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "READINESS-002",
@@ -28202,7 +28202,7 @@
     "refactor": "engine receives typed evidence descriptors, never raw medical/document content",
     "refs": "[Provenance](specs/provenance-graph-and-lineage.md), [classification](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "READINESS-003",
@@ -28380,7 +28380,7 @@
     "refactor": "Gate A remains non-destructive",
     "refs": "[Records management](specs/records-management-and-disposition.md), [retention governance](plan.md), [Per-kind composition](specs/legal-rule-packs-and-state-configuration.md#63-per-kind-composition)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RECORDS-HOLD-001",
@@ -28433,7 +28433,7 @@
     "refactor": "`RPO=N/A` is valid only for demonstrably replayable data",
     "refs": "[Recovery matrix](data/models/operations-production.md), [data planes](plan.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RECOVERY-002",
@@ -28458,7 +28458,7 @@
     "refactor": "backup job success is not restore success",
     "refs": "[Backup plane](data/models/operations-production.md), [cryptographic integrity](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RECOVERY-003",
@@ -29069,7 +29069,7 @@
     "refactor": "placement, privacy and copy inventories share stable location/processor identities; no adapter infers residency from endpoint hostname",
     "refs": "[tenant placement](data/models/operations-production.md), [privacy flows](specs/platform-responsibility-boundaries.md), [records inventory](specs/records-management-and-disposition.md), [Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RETRIEVAL-001",
@@ -29321,7 +29321,7 @@
     "refactor": "generate service config and conformance cases from capability effect metadata rather than handwritten client defaults",
     "refs": "[gRPC retry](https://grpc.io/docs/guides/retry/), [gRPC deadlines](https://grpc.io/docs/guides/deadlines/), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "RULE-001",
@@ -29983,7 +29983,7 @@
     "refactor": "ranking never receives an unauthorized candidate",
     "refs": "[Intelligence model](data/models/assurance-intelligence-platform.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SEARCH-002",
@@ -30041,7 +30041,7 @@
     "refactor": "search ranks candidates, Population owns frozen membership and BusinessIntent owns material action",
     "refs": "[Search-driven features](#25-search-metrics-and-outcome-intelligence), [population engine](#37-shared-transformation-and-population-engines), [batch intents](#6-businessintent-capabilities-governance-and-transaction-integrity)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-001",
@@ -30166,7 +30166,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-09](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [SLSA levels](https://slsa.dev/spec/v1.0-rc2/levels), [Sigstore cosign verification](https://docs.sigstore.dev/cosign/verifying/verify/). Maps to SLSA Build L3; NIST 800-53 SA-10/SA-11",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SECARCH-006",
@@ -30869,7 +30869,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Human work](specs/human-work-forms-and-rules.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SETTLE-004",
@@ -31825,7 +31825,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Integration event runtime](specs/integration-platform.md), [event substrate](#31-infrastructure-as-code-and-physical-data-services)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SUB-005",
@@ -31904,7 +31904,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Credential leases](specs/secrets-key-custody-and-credential-leases.md), [security models](data/models/security-trust.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SUB-008",
@@ -31963,7 +31963,7 @@
     "refactor": "provider and processing inventories share one processor identity and change graph; customer communication remains a typed obligation",
     "refs": "[privacy flows](specs/platform-responsibility-boundaries.md), [integration lifecycle](specs/integration-platform.md), [risk register](specs/risk-register.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SUBSTRATE-COVERAGE-001",
@@ -32471,7 +32471,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Capability contract](specs/business-intent-and-change-request.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SVC-007",
@@ -32553,7 +32553,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Ledger/reconciliation/repair](specs/transaction-ledger-reconciliation-and-repair.md), [workflow repair](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "SVC-010",
@@ -32703,7 +32703,7 @@
     "refactor": "journeys compile from selected vertical slices with generated safe probes rather than bespoke monitoring scripts",
     "refs": "[SLOs](specs/slo-sli-error-budget.md), [sandbox](specs/platform-responsibility-boundaries.md), [telemetry](specs/structured-logging-and-opentelemetry.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TAX-001",
@@ -33010,7 +33010,7 @@
     "refactor": "generate journeys from user-flow and threat graphs; keep only high-value hand-authored attack sequences as regression fixtures",
     "refs": "[user flows](user-flows/README.md), [structured telemetry](specs/structured-logging-and-opentelemetry.md), [organization scope and AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TIME-001",
@@ -33068,7 +33068,7 @@
     "refactor": "infrastructure adapter supplies TimeAuthority receipts to the existing temporal kernel without exposing NTP mechanics to domains",
     "refs": "[trusted time](specs/platform-architecture-catalog.md), [operations model](data/models/operations-production.md), [temporal primitives](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TOOL-001",
@@ -33726,7 +33726,7 @@
     "refactor": "derive diagrams and operational inventory from deployable manifests rather than maintain topology pictures separately",
     "refs": "[platform architecture catalog](specs/platform-architecture-catalog.md), [IaC](#31-infrastructure-as-code-and-physical-data-services), [performance](#36-operator-surfaces-ownership-and-measurable-production-limits)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TRUST-001",
@@ -34324,7 +34324,7 @@
     "refactor": "mandatory employment processing is not mislabeled as consent",
     "refs": "[Foundation consent lifecycle](specs/platform-foundation-gap-closure.md), [privacy models](data/models/assurance-intelligence-platform.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TRUST-025",
@@ -34406,7 +34406,7 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Credential leases](specs/secrets-key-custody-and-credential-leases.md), [Go services](#28-executable-topology-and-go-service-binaries)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "TRUST-028",
@@ -41123,7 +41123,7 @@
     "refactor": "keep partner-specific values outside shared domain contracts",
     "refs": "[Gate A](execution-plan.md#gate-a--paid-design-partner-observation), [target market](plan.md#4-target-market)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-002",
@@ -41144,7 +41144,7 @@
     "refactor": "reuse governed metric definitions without implementing general analytics",
     "refs": "[Pilot success measures](plan.md#123-pilot-success-measures), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-003",
@@ -41190,7 +41190,7 @@
     "refactor": "use the field registry shared by AuthZ, DLP, conflict and proposal digest",
     "refs": "[First workflow family](plan.md#71-first-workflow-family), [Phase 1 depth matrix](plan.md#phase-1-implementation-depth-matrix)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-005",
@@ -41211,7 +41211,7 @@
     "refactor": "express topology through connector/system identities, not prose names",
     "refs": "[Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation), [Integration Platform](plan.md#77-horizontal-subsystem-integration-platform)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-006",
@@ -41234,7 +41234,7 @@
     "refactor": "keep bypass reason codes versioned and customer-readable",
     "refs": "[Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation), [learning agenda](plan.md#124-learning-agenda)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-007",
@@ -41255,7 +41255,7 @@
     "refactor": "do not introduce usage billing; retain evidence for commercial hypotheses",
     "refs": "[Commercial hypotheses](plan.md#125-commercial-architecture-hypotheses), [Gate A scorecard](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-008",
@@ -41279,7 +41279,7 @@
     "refactor": "parameterize metrics without changing historical decisions",
     "refs": "[Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation), [strategic success measures](plan.md#14-strategic-success-measures)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-009",
@@ -41301,7 +41301,7 @@
     "refactor": "align with later tenant-exit contracts without building the full platform",
     "refs": "[Primary adoption objection](plan.md#122-primary-adoption-objection), [tenant lifecycle boundary](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-010",
@@ -41325,7 +41325,7 @@
     "refactor": "changes to topology or classifications invalidate approval automatically",
     "refs": "[Privacy contract](plan.md#95-privacy-contract), [DLP specification](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-011",
@@ -41349,7 +41349,7 @@
     "refactor": "version fixture provenance and expected-result digest",
     "refs": "[Reference workflow suite](reference-workflows/reference-suite.md), [sandbox/test data boundary](specs/platform-foundation-gap-closure.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-012",
@@ -41371,7 +41371,7 @@
     "refactor": "keep customer policy parameters separate from the reusable scenario",
     "refs": "[Promotion reference workflow](reference-workflows/promote-into-management.md), [reference suite simulation contract](reference-workflows/reference-suite.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-013",
@@ -41395,7 +41395,7 @@
     "refactor": "minimize actor data while preserving auditability",
     "refs": "[Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-014",
@@ -41417,7 +41417,7 @@
     "refactor": "preserve evidence snapshot for later counterfactual review",
     "refs": "[Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation), [authority expansion](specs/competitive-positioning-and-authority-expansion.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEDGE-015",
@@ -42666,7 +42666,7 @@
     "refactor": "the ports are consumer-owned in `internal/workflow/runtime`; adapters over `internal/intent/approval` and the proposal store live in `internal/platform/execution`",
     "refs": "[workflow runtime](specs/workflow-runtime.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WF-RUN-028",
@@ -43883,6 +43883,6 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [integration platform](specs/integration-platform.md), [DataOps](specs/hris-admin-dataops.md)",
     "retired": false,
-    "done": false
+    "done": true
   }
 ]

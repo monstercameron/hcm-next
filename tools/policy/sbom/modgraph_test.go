@@ -40,3 +40,9 @@ func TestModGraph_Live(t *testing.T) {
 		t.Errorf("no edge in the graph originates from the root module %q", modulePath)
 	}
 }
+
+func TestModGraphRejectsARootWithoutAModule(t *testing.T) {
+	if _, err := sbom.ModGraph(t.TempDir()); err == nil {
+		t.Fatal("ModGraph unexpectedly succeeded outside a Go module")
+	}
+}

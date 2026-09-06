@@ -2,6 +2,7 @@ capabilities -> engines
 data -> domains
 data -> engines
 data -> kernel
+data -> workflow
 domains -> data
 domains -> engines
 domains -> kernel

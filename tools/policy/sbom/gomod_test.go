@@ -51,6 +51,19 @@ func TestModulePath_MissingGoMod(t *testing.T) {
 	}
 }
 
+func TestModulePath_RejectsGoModWithoutModuleDirective(t *testing.T) {
+	dir := writeFixtureModule(t, map[string]string{"go.mod": "go 1.26.3\n"})
+	if _, err := sbom.ModulePath(dir); err == nil {
+		t.Fatal("ModulePath accepted go.mod without a module directive")
+	}
+}
+
+func TestParseRequires_MissingGoMod(t *testing.T) {
+	if _, err := sbom.ParseRequires(t.TempDir()); err == nil {
+		t.Fatal("ParseRequires accepted a directory without go.mod")
+	}
+}
+
 func TestParseRequires(t *testing.T) {
 	dir := writeFixtureModule(t, map[string]string{"go.mod": fixtureGoMod})
 	requires, err := sbom.ParseRequires(dir)

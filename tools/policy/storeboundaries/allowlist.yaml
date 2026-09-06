@@ -55,25 +55,28 @@ exceptions:
       inherit this waiver.
     expiry: "2026-12-31"
 
-  # internal/intent/app/pgstore/pgstore.go: ActiveTenants (SELECT tenant_id
-  # FROM tenant WHERE status = 'ACTIVE').
+  # internal/data/runtimestate/scheduling.go: TimerStore.list (SELECT ...
+  # FROM workflow_timer <where>). The predicate is a caller-supplied
+  # fragment, so the scanner cannot see it.
   - kind: tenant_scope
-    package: github.com/monstercameron/hcm-next/internal/intent/app/pgstore
-    owner: intent-and-capability
+    package: github.com/monstercameron/hcm-next/internal/data/runtimestate
+    owner: workflow-runtime
     rationale: >-
-      ActiveTenants (internal/intent/app/pgstore/pgstore.go) is the
-      documented sweep list background workers/projectors read to find
-      which tenants to iterate; querying literally every ACTIVE tenant_id
-      is the function's entire purpose, so a tenant_id predicate would
-      contradict its contract rather than fix a boundary gap. This is the
-      STORE-002 RED clause's own "maintenance credential" case: a
-      privileged, explicitly cross-tenant read, not a forged or missing
-      tenant context on a tenant-facing call.
+      TimerStore.list (internal/data/runtimestate/scheduling.go) is the
+      single row-reader behind every workflow_timer query; its WHERE clause
+      is a fragment supplied by the caller. Per-instance callers pass an
+      explicit tenant_id predicate, and the only caller without one is the
+      scheduler process's due-timer sweep (SVC-009 worker roles), which by
+      design claims armed timers across every tenant and then re-enters
+      that timer's tenant scope before touching any tenant row. That sweep
+      is the STORE-002 RED clause's "maintenance credential" case, the same
+      shape rlsparity pins as its one documented repository-scope
+      exception; it is not a missing tenant context on a tenant-facing
+      call.
     followup_todo: >-
-      Give storeboundaries a documented "intentionally cross-tenant" marker
-      (a doc-comment convention or an explicit registry escape hatch) so a
-      genuine admin/maintenance query does not have to hide behind a
-      package-wide exception indistinguishable from a real gap.
+      Split TimerStore.list into a tenant-bound reader and an explicitly
+      named cross-tenant sweep reader so the scanner sees the predicate in
+      the SQL text and this package-wide exception can be retired.
     expiry: "2026-12-31"
 
   # internal/data/health/probe.go: Probe.probeGeneric, the

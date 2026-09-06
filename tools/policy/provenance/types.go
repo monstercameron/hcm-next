@@ -131,6 +131,9 @@ func (s Statement) Validate() []Violation {
 	if s.Source.Repository == "" {
 		add("source.repository", "missing")
 	}
+	if s.Source.Ref == "" {
+		add("source.ref", "missing")
+	}
 	if s.Source.Commit == "" {
 		add("source.commit", "missing")
 	}

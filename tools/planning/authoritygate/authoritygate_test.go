@@ -350,3 +350,121 @@ func TestTodo_GOV_010_Security(t *testing.T) {
 		}
 	})
 }
+
+func TestAuthorityGate_LoadAndViolationFormatting(t *testing.T) {
+	t.Run("missing file is an empty decision set", func(t *testing.T) {
+		records, err := Load(filepath.Join(t.TempDir(), "missing.yaml"))
+		if err != nil || records != nil {
+			t.Fatalf("Load missing = %#v, %v; want nil, nil", records, err)
+		}
+	})
+	t.Run("directory read is reported", func(t *testing.T) {
+		_, err := Load(t.TempDir())
+		if err == nil || !strings.Contains(err.Error(), "reading") {
+			t.Fatalf("Load directory error = %v, want reading error", err)
+		}
+	})
+	t.Run("malformed YAML is reported", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "records.yaml")
+		mustWrite(t, path, "decisions: [")
+		_, err := Load(path)
+		if err == nil || !strings.Contains(err.Error(), "parsing") {
+			t.Fatalf("Load malformed error = %v, want parsing error", err)
+		}
+	})
+	t.Run("violation string includes gate and reason", func(t *testing.T) {
+		got := (Violation{Gate: GateB, Kind: "unsigned", Reason: "missing signer"}).String()
+		if got != "GATE_B: missing signer" {
+			t.Fatalf("Violation.String() = %q", got)
+		}
+	})
+}
+
+func TestAuthorityGate_ValidateRecordAndEvidenceBranches(t *testing.T) {
+	cases := []struct {
+		name   string
+		mutate func(*Record)
+		kind   string
+	}{
+		{"whitespace signer role", func(r *Record) { r.Signers = []Signer{{Name: "owner", Role: "  "}} }, "unsigned"},
+		{"whitespace proposal", func(r *Record) { r.ProposalRef = " \t" }, "missing_proposal_ref"},
+		{"whitespace date", func(r *Record) { r.Date = " " }, "missing_date"},
+		{"whitespace review date", func(r *Record) { r.ReviewBy = "\t" }, "missing_review_by"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if !hasKind(ValidateRecord(func() Record { r := fullRecord(); tc.mutate(&r); return r }()), tc.kind) {
+				t.Fatalf("ValidateRecord did not report %s", tc.kind)
+			}
+		})
+	}
+
+	t.Run("all gate values and done counts are retained", func(t *testing.T) {
+		todos := []todoregistry.Todo{
+			{Phase: string(GateA), Done: true}, {Phase: string(GateB), Done: true},
+			{Phase: string(GateC), Done: true}, {Phase: string(GateC), Done: true},
+			{Phase: string(GateA), Done: false}, {Phase: "P1", Done: true},
+		}
+		counts := TickedGateCounts(todos)
+		want := map[Gate]int{GateA: 1, GateB: 1, GateC: 2}
+		for gate, n := range want {
+			if counts[gate] != n {
+				t.Errorf("TickedGateCounts[%s] = %d, want %d", gate, counts[gate], n)
+			}
+		}
+	})
+
+	t.Run("undecided gates are sorted and invalid decisions do not decide", func(t *testing.T) {
+		todos := []todoregistry.Todo{{Phase: string(GateC), Done: true}, {Phase: string(GateA), Done: true}}
+		violations := CheckUndecidedGates(todos, []Record{{Gate: GateC, Decision: "UNKNOWN"}})
+		if len(violations) != 2 || violations[0].Gate != GateA || violations[1].Gate != GateC {
+			t.Fatalf("CheckUndecidedGates = %#v, want sorted GATE_A/GATE_C", violations)
+		}
+	})
+
+	t.Run("evidence paths reject missing, absolute, and parent traversal refs", func(t *testing.T) {
+		dir := t.TempDir()
+		mustWrite(t, filepath.Join(dir, "present"), "evidence")
+		r := fullRecord()
+		r.EvidenceRefs = map[EvidenceClass][]string{ClassSecurity: {"present", "missing", "../outside", filepath.Join(dir, "present")}}
+		violations := CheckEvidencePaths(r, dir)
+		if len(violations) != 3 {
+			t.Fatalf("CheckEvidencePaths = %#v, want three violations", violations)
+		}
+		missing, escaped := 0, 0
+		for _, violation := range violations {
+			switch violation.Kind {
+			case "missing_evidence_path":
+				missing++
+			case "evidence_path_escape":
+				escaped++
+			}
+		}
+		if missing != 1 || escaped != 2 {
+			t.Fatalf("CheckEvidencePaths kinds = %#v, want one missing and two escapes", violations)
+		}
+	})
+}
+
+func TestAuthorityGate_LoadKnownGaps(t *testing.T) {
+	t.Run("missing file is an empty allowlist", func(t *testing.T) {
+		gaps, err := LoadKnownGaps(filepath.Join(t.TempDir(), "missing.yaml"))
+		if err != nil || gaps != nil {
+			t.Fatalf("LoadKnownGaps missing = %#v, %v; want nil, nil", gaps, err)
+		}
+	})
+	t.Run("valid and malformed files are distinguished", func(t *testing.T) {
+		dir := t.TempDir()
+		valid := filepath.Join(dir, "valid.yaml")
+		mustWrite(t, valid, "known_authority_gate_gaps:\n  - gate: GATE_A\n    kind: undecided\n    owner: owner\n    expiry: 2026-12-31\n    reason: review\n")
+		gaps, err := LoadKnownGaps(valid)
+		if err != nil || len(gaps) != 1 || gaps[0].Owner != "owner" {
+			t.Fatalf("LoadKnownGaps valid = %#v, %v", gaps, err)
+		}
+		bad := filepath.Join(dir, "bad.yaml")
+		mustWrite(t, bad, "known_authority_gate_gaps: [")
+		if _, err := LoadKnownGaps(bad); err == nil || !strings.Contains(err.Error(), "parsing") {
+			t.Fatalf("LoadKnownGaps malformed error = %v", err)
+		}
+	})
+}

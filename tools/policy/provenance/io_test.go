@@ -88,3 +88,13 @@ func TestLoadStatementRecoversCleanlyFromCorruptFiles(t *testing.T) {
 		t.Fatalf("valid statement failed to verify after recovery: ok=%v err=%v", ok, err)
 	}
 }
+
+func TestWriteStatementRejectsAnUnwritablePath(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "missing", "provenance.json")
+	if err := provenance.WriteStatement(path, goldenStatement()); err == nil {
+		t.Fatal("WriteStatement unexpectedly succeeded beneath a missing directory")
+	}
+	if _, err := os.Stat(path); err == nil {
+		t.Fatal("WriteStatement created a file after reporting an error")
+	}
+}

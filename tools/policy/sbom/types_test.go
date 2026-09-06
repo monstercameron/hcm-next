@@ -60,4 +60,27 @@ func TestConstants(t *testing.T) {
 	if HashAlgSHA256 != "SHA-256" {
 		t.Errorf("HashAlgSHA256 = %q", HashAlgSHA256)
 	}
+	if ComponentTypeApplication != "application" || ComponentTypeLibrary != "library" {
+		t.Errorf("component types = %q, %q", ComponentTypeApplication, ComponentTypeLibrary)
+	}
+	if ScopeRequired != "required" || ScopeOptional != "optional" || UnknownLicense != "UNKNOWN" {
+		t.Errorf("scope/license constants = %q, %q, %q", ScopeRequired, ScopeOptional, UnknownLicense)
+	}
+}
+
+func TestLicenseExceptionCompleteAndCovers(t *testing.T) {
+	complete := LicenseException{Component: "example.com/mod", Version: "v1.0.0", Reason: "pending", Reviewer: "reviewer", Expiry: "2027-01-01"}
+	if missing := complete.Complete(); len(missing) != 0 {
+		t.Fatalf("complete exception missing = %v", missing)
+	}
+	if !complete.Covers(Component{Name: "example.com/mod", Version: "v1.0.0"}) {
+		t.Fatal("exception did not cover the exact component revision")
+	}
+	if complete.Covers(Component{Name: "example.com/mod", Version: "v2.0.0"}) {
+		t.Fatal("exception covered a different component revision")
+	}
+	missing := (LicenseException{}).Complete()
+	if len(missing) != 5 || missing[0] != "component" || missing[4] != "expiry" {
+		t.Fatalf("empty exception missing = %v, want all fields in order", missing)
+	}
 }
