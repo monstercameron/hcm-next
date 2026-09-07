@@ -172,7 +172,7 @@ func TestNavigationProjectionFailsClosedOnEmptyOrDeniedAnswer(t *testing.T) {
 	}
 }
 
-func TestNavigationProjectionSecurityBoundsBeforeCopyAndFailsClosed(t *testing.T) {
+func TestTodo_WEB_039_Security(t *testing.T) {
 	t.Run("deep graph", func(t *testing.T) {
 		item := authorizedNavigationTestItem(PageHistory)
 		for depth := 0; depth < 10000; depth++ {
