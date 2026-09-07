@@ -13685,13 +13685,15 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Depends:** `JOBARCH-004`, `PERSIST-JOBARCH-001`, `STORE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.REWARDS; DIRECT=none; WHY=make a path and both assignment profiles durable evidence for proposal, simulation and terminal commit`.
   - **TEST:** `TestPromotionPathStorePinsProfileRevisionsAndRefusesOverlappingPublishedEdges`.
+  - **TEST MATRIX:** `PRIMARY=TestPromotionPathStorePinsProfileRevisionsAndRefusesOverlappingPublishedEdges`; `PROPERTY=TestTodo_PERSIST_JOBARCH_002_Property`; `GOLDEN=TestTodo_PERSIST_JOBARCH_002_Golden`; `INTEGRATION=TestTodo_PERSIST_JOBARCH_002_Integration`; `FAULT=TestTodo_PERSIST_JOBARCH_002_Fault`; `SECURITY=TestTodo_PERSIST_JOBARCH_002_Security`; `MUTATION=TestTodo_PERSIST_JOBARCH_002_Mutation`.
   - **RED:** assignment stores only free-text job code/grade, a path is edited in place, overlapping published edges are ambiguous, or a proposal can change which profile revision it means between simulation and commit.
   - **GREEN:** tenant-scoped append-only path rows carry effective/known coordinates and RLS; assignment and proposal snapshots pin source/target job-profile revisions while denormalized job code/grade are checked projections.
 
-- [ ] `UX-JOBARCH-001` **[PHASE_4][TERRA_HIGH] Add an authorized Job Architecture admin workspace.**
+- [ ] `UX-JOBARCH-001` **[PHASE_4][TERRA] Add an authorized Job Architecture admin workspace.**
   - **Depends:** `PERSIST-JOBARCH-002`, `AUTHZ-004`, `I18N-002`, `A11Y-003`.
   - **INTENT CONTEXT:** `ROLE=EXPERIENCE; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=let authorized customers manage job codes, families, levels, grades, ladders and rule references without bypassing publication governance`.
   - **TEST:** `TestJobArchitectureWorkspaceShowsLadderRulesAndPublishesOnlyThroughWorkflow`.
+  - **TEST MATRIX:** `PRIMARY=TestJobArchitectureWorkspaceShowsLadderRulesAndPublishesOnlyThroughWorkflow`; `GOLDEN=TestTodo_UX_JOBARCH_001_Golden`; `SECURITY=TestTodo_UX_JOBARCH_001_Security`; `CONFORMANCE=TestTodo_UX_JOBARCH_001_Conformance`.
   - **RED:** admin UI edits published architecture in place, offers unsupported job/grade combinations, exposes salary or benefit rules without authority, or saves browser-only configuration.
   - **GREEN:** responsive reusable components show the family/level/profile graph, exact pay-band and increase rules, benefit impacts and publish status; all writes use server-side governed workflows and role/page/action authorization.
 
@@ -15406,7 +15408,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
   - **Evidence (2026-09-06):** `TestTodo_WEB_022`, its GOLDEN/BROWSER/CONFORMANCE matrix, canonical-adapter and security tests prove a reusable GoWebComponents provenance grammar over canonical `AuthorityKind` and lineage status with seven independently-present facts, explicit partial/redacted/opaque/unavailable states, stable accessible definition-list markup, and structural exclusion of protected policy/evidence references, digests, graph identifiers, confidence, trust, and permission inference; unbound projections render no misleading panel; the registered-page i18n/accessibility release gate passes, as do focused `productui`, `localize`, journey client/render/WASM packages; Codex in-app browser review covered light, dark, and RTL Arabic layouts; provenance interaction p95 remained 0.00-0.52 ms against the 16 ms budget and `BenchmarkProvenancePresentationRendering` measured 48.0-54.6 us/op, 36,703-36,705 B/op, 349 allocs/op; implemented by a GPT-5.6 Luna lane, independently hardened by GPT-5.6 Sol, and refined through manual visual QA.
 
-- [ ] `WEB-023` **[GATE_C][TERRA] Define responsive layout transformation rules.**
+- [x] `WEB-023` **[GATE_C][TERRA] Define responsive layout transformation rules.**
   - **Depends:** `WEB-022`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define responsive layout transformation rules without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_023`.
@@ -15415,6 +15417,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—define responsive layout transformation rules—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
+  - **Evidence (2026-09-06):** `TestTodo_WEB_023`, `TestTodo_WEB_023_Golden`, `TestTodo_WEB_023_Browser`, and `TestTodo_WEB_023_Conformance` prove a deterministic mobile-first transformation of the existing governed floorplan vocabulary into one stable GoWebComponents DOM carrying closed narrow/compact/standard/wide metadata, with renderer-owned 40/60/80rem CSS, semantic breakpoint ordering independent of declaration order, narrow minimum-column fallback, immutable document/action order, 1-12 bounded columns, cumulative-rule validation, logical RTL properties, full-row region headings, and no user-agent, viewport, markup, CSS, policy, or authority input; intrinsically two-dimensional tables retain native semantics and readable values inside labeled keyboard/touch-scrollable regions rather than using hidden page overflow or destructive character wrapping; the registered-page i18n/accessibility gate and focused floorplan/page/workspace/GWC/SSR/token/qualification suites pass; Codex in-app browser QA covered 320px LTR, 320px RTL, keyboard focus plus arrow-key table scrolling, and wide layout, catching and refining both dense-table fragmentation and heading-as-grid-cell defects; responsive latency passed five repetitions under the 16 ms p95 budget, `BenchmarkResponsiveLayoutTransformation` measured 5.26-5.63 us/op at 1,728 B/op and 15 allocs/op, and full construction plus serialization measured 154-164 us/op at about 64.4 KB/op and 432 allocs/op; implemented by GPT-5.6 Luna, independently hardened by GPT-5.6 Sol, and refined through manual visual QA.
 
 - [ ] `WEB-024` **[GATE_C][TERRA] Define high-contrast and print modes.**
   - **Depends:** `WEB-023`.
