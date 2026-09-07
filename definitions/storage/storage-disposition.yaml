@@ -37,7 +37,7 @@
 
 version: 1
 module: github.com/monstercameron/hcm-next
-source: migrations/00001_platform_control.sql .. migrations/00239_role_page_permissions.sql
+source: migrations/00001_platform_control.sql .. migrations/00261_operation_store.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -4756,3 +4756,29 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from 00239_role_page_permissions.sql: mutable control row for role page permission.
+  - table: operation
+    migration: 00261_operation_store.sql
+    owner_package: internal/data/operationstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00261_operation_store.sql: append-only evidence for operation.
+  - table: operation_cancel
+    migration: 00261_operation_store.sql
+    owner_package: internal/data/operationstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Registered from 00261_operation_store.sql: append-only evidence for operation cancel.
