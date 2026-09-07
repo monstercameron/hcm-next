@@ -56,6 +56,32 @@ type view struct {
 	Provenance  contract.Provenance
 }
 
+func severityLabel(s contract.Severity) string {
+	switch s {
+	case contract.SeverityBlocking:
+		return "Blocking"
+	case contract.SeverityWarning:
+		return "Warning"
+	case contract.SeveritySuccess:
+		return "Passed"
+	default:
+		return "Information"
+	}
+}
+
+func simulationStatusLabel(s contract.SimulationStatus) string {
+	switch s {
+	case contract.SimulationReady:
+		return "Ready"
+	case contract.SimulationNeedsReview:
+		return "Needs review"
+	case contract.SimulationFailed:
+		return "Failed"
+	default:
+		return "Pending"
+	}
+}
+
 func viewModel(c contract.WorkspaceContract) view {
 	fields := make([]fieldView, 0, len(c.Request.Fields))
 	for _, f := range c.Request.Fields {
@@ -122,7 +148,9 @@ func inputTag(f contract.RequestField) template.HTML {
 // tree rather than duplicating them.
 func pageCSS() string { return tokens.WorkspaceCSS() }
 
-var pageTemplate = template.Must(template.New("workspace").Parse(`<!doctype html>
+var pageTemplate = template.Must(template.New("workspace").Funcs(template.FuncMap{
+	"severity": severityLabel, "simulationStatus": simulationStatusLabel,
+}).Parse(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -164,7 +192,7 @@ var pageTemplate = template.Must(template.New("workspace").Parse(`<!doctype html
 <ul class="findings" role="list">
 {{range .Preflight}}
 <li class="finding" data-severity="{{.Severity}}">
-<strong>{{.Label}}:</strong> {{.Detail}}
+<strong class="severity-label">{{severity .Severity}}:</strong> <strong>{{.Label}}:</strong> {{.Detail}}
 </li>
 {{end}}
 </ul>
@@ -173,12 +201,13 @@ var pageTemplate = template.Must(template.New("workspace").Parse(`<!doctype html
 <section id="simulation-section" aria-labelledby="simulation-heading">
 <h2 id="simulation-heading">Transaction simulation</h2>
 <div class="status-banner" data-status="{{.Simulation.Status}}" role="status" aria-live="polite">
-{{.Simulation.Summary}}
+<strong class="status-label">Status: {{simulationStatus .Simulation.Status}}.</strong> {{.Simulation.Summary}}
 </div>
+<p class="simulation-generated visually-hidden print-evidence">Generated <time datetime="{{.Simulation.GeneratedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.Simulation.GeneratedAt.Format "Jan 2, 2006 15:04 MST"}}</time></p>
 <ul class="findings" role="list">
 {{range .Simulation.Checks}}
 <li class="check" data-severity="{{.Status}}">
-<strong>{{.Label}}:</strong> {{.Detail}}
+<strong class="severity-label">{{severity .Status}}:</strong> <strong>{{.Label}}:</strong> {{.Detail}}
 </li>
 {{end}}
 </ul>
@@ -209,7 +238,7 @@ var pageTemplate = template.Must(template.New("workspace").Parse(`<!doctype html
 </section>
 </main>
 <footer>
-<p class="visually-hidden">Source: {{.Provenance.SourceSystem}} &middot; Capability {{.Provenance.CapabilityID}}@{{.Provenance.CapabilityVersion}}</p>
+<p class="provenance visually-hidden print-evidence">Source: <strong>{{.Provenance.SourceSystem}}</strong> &middot; Capability {{.Provenance.CapabilityID}}@{{.Provenance.CapabilityVersion}} &middot; As of <time datetime="{{.Provenance.AsOf.Format "2006-01-02T15:04:05Z07:00"}}">{{.Provenance.AsOf.Format "Jan 2, 2006 15:04 MST"}}</time></p>
 </footer>
 </div>
 </body>

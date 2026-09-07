@@ -163,6 +163,7 @@ func preflightSection(c contract.WorkspaceContract) ui.Node {
 	items := make([]ui.Node, 0, len(c.Preflight))
 	for _, finding := range c.Preflight {
 		items = append(items, html.Li(html.Props{Class: "finding", Raw: map[string]any{"data-severity": string(finding.Severity)}},
+			html.Strong(html.Props{Class: "severity-label"}, html.Text(severityLabel(finding.Severity)+": ")),
 			html.Strong(html.Props{}, html.Text(finding.Label+": ")),
 			html.Text(finding.Detail),
 		))
@@ -177,6 +178,7 @@ func simulationSection(c contract.WorkspaceContract) ui.Node {
 	checks := make([]ui.Node, 0, len(c.Simulation.Checks))
 	for _, check := range c.Simulation.Checks {
 		checks = append(checks, html.Li(html.Props{Class: "check", Raw: map[string]any{"data-severity": string(check.Status)}},
+			html.Strong(html.Props{Class: "severity-label"}, html.Text(severityLabel(check.Status)+": ")),
 			html.Strong(html.Props{}, html.Text(check.Label+": ")),
 			html.Text(check.Detail),
 		))
@@ -190,7 +192,10 @@ func simulationSection(c contract.WorkspaceContract) ui.Node {
 			Role:  "status",
 			Aria:  map[string]string{"live": "polite"},
 			Raw:   map[string]any{"data-status": string(c.Simulation.Status)},
-		}, html.Text(c.Simulation.Summary)),
+		}, html.Strong(html.Props{Class: "status-label"}, html.Text("Status: "+simulationStatusLabel(c.Simulation.Status)+". ")), html.Text(c.Simulation.Summary)),
+		html.P(html.Props{Class: "simulation-generated visually-hidden print-evidence"},
+			html.Text("Generated "),
+			html.Time(html.Props{Raw: map[string]any{"datetime": c.Simulation.GeneratedAt.Format("2006-01-02T15:04:05Z07:00")}}, html.Text(c.Simulation.GeneratedAt.Format("Jan 2, 2006 15:04 MST")))),
 		html.Ul(html.Props{Class: "findings", Role: "list"}, checks...),
 	)
 }
@@ -233,7 +238,35 @@ func actionsSection(c contract.WorkspaceContract) ui.Node {
 
 func footer(c contract.WorkspaceContract) ui.Node {
 	return html.Footer(html.Props{},
-		html.P(html.Props{Class: "visually-hidden"},
-			html.Text("Source: "+c.Provenance.SourceSystem+" · Capability "+c.Provenance.CapabilityID+"@"+c.Provenance.CapabilityVersion)),
+		html.P(html.Props{Class: "provenance visually-hidden print-evidence"},
+			html.Text("Source: "), html.Strong(html.Props{}, html.Text(c.Provenance.SourceSystem)),
+			html.Text(" · Capability "+c.Provenance.CapabilityID+"@"+c.Provenance.CapabilityVersion+" · As of "),
+			html.Time(html.Props{Raw: map[string]any{"datetime": c.Provenance.AsOf.Format("2006-01-02T15:04:05Z07:00")}}, html.Text(c.Provenance.AsOf.Format("Jan 2, 2006 15:04 MST")))),
 	)
+}
+
+func severityLabel(s contract.Severity) string {
+	switch s {
+	case contract.SeverityBlocking:
+		return "Blocking"
+	case contract.SeverityWarning:
+		return "Warning"
+	case contract.SeveritySuccess:
+		return "Passed"
+	default:
+		return "Information"
+	}
+}
+
+func simulationStatusLabel(s contract.SimulationStatus) string {
+	switch s {
+	case contract.SimulationReady:
+		return "Ready"
+	case contract.SimulationNeedsReview:
+		return "Needs review"
+	case contract.SimulationFailed:
+		return "Failed"
+	default:
+		return "Pending"
+	}
 }

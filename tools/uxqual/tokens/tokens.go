@@ -209,7 +209,57 @@ pre{max-inline-size:100%;overflow:auto}
 .table-scroll table{inline-size:max-content;min-inline-size:100%;table-layout:auto;border-collapse:collapse}
 .table-scroll :where(th,td){min-inline-size:8rem;overflow-wrap:normal;word-break:normal;white-space:nowrap}
 .table-scroll-cue{color:var(--color-text-muted);font-size:.875rem;margin-block:.25rem}
-` + responsiveLayoutCSS()
+` + responsiveLayoutCSS() + modeContractsCSS()
+}
+
+// modeContractsCSS contains renderer-owned presentation contracts for user
+// agents that replace the normal colour scheme, and for printed evidence.
+// System colours and important declarations keep these safety rules outside
+// the customer-token cascade. State words and evidence remain real DOM text;
+// CSS generated content is deliberately not used because user agents expose
+// it inconsistently to assistive technology and document exporters.
+func modeContractsCSS() string {
+	return `
+@media (prefers-contrast:more){
+  body,section,.workspace-header,.field :where(input,select,textarea),.status-banner,.table-scroll :where(th,td){color:CanvasText!important;background:Canvas!important}
+  section,.workspace-header,.field :where(input,select,textarea),.status-banner,.table-scroll :where(th,td){border-color:CanvasText!important}
+  .field .error,.table-scroll-cue{color:CanvasText!important}
+  a{color:LinkText!important}
+  button{color:ButtonText!important;background:ButtonFace!important;border-color:ButtonText!important}
+  :where(a[href],input,select,textarea,button,summary):focus-visible{outline:3px solid Highlight!important;outline-offset:2px;box-shadow:0 0 0 1px Canvas!important}
+  .finding,.check{border-inline-start:.35rem solid CanvasText!important}
+  .status-banner{border-width:2px!important}
+}
+@media (forced-colors:active){
+  body{background:Canvas!important;color:CanvasText!important}
+  section,.workspace-header,.field :where(input,select,textarea),.table-scroll :where(th,td),.provenance{
+    background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText!important
+  }
+  a{color:LinkText!important}
+  button{background:ButtonFace!important;color:ButtonText!important;border:1px solid ButtonText!important}
+  button[data-variant="primary"],button[data-variant="danger"]{background:ButtonFace!important;color:ButtonText!important}
+  .status-banner{background:Canvas!important;color:CanvasText!important;border:2px solid CanvasText!important}
+  .field .error,.table-scroll-cue{color:CanvasText!important}
+  .finding,.check{border-inline-start:.35rem solid CanvasText!important}
+  :where(a[href],input,select,textarea,button,summary):focus-visible{outline:3px solid Highlight!important;outline-offset:2px;box-shadow:0 0 0 1px Canvas!important;forced-color-adjust:auto}
+}
+@media print{
+  @page{margin:1.5cm}
+  html,body{background:#fff!important;color:#000!important}
+  body{font-size:10.5pt;line-height:1.35;max-width:none;overflow:visible}
+  .workspace{max-width:none;padding:0}
+  header.workspace-header,main,section,footer,.finding,.check,.status-banner,.provenance,.simulation-generated,.table-scroll :where(th,td){
+    color:#000!important;background:#fff!important;border-color:#000!important
+  }
+  section{break-inside:avoid;page-break-inside:avoid}
+  nav,.skip-link,.actions,.interactive-only,[data-print="interactive-only"]{display:none!important}
+  .print-evidence{position:static!important;width:auto!important;height:auto!important;margin:.5rem 0!important;overflow:visible!important;clip:auto!important;white-space:normal!important}
+  :where(input,select,textarea){color:#000!important;background:#fff!important;border-color:#000!important}
+  .table-scroll{overflow:visible!important}
+  .table-scroll table{inline-size:100%!important;min-inline-size:0!important}
+  .table-scroll :where(th,td){min-inline-size:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+}
+`
 }
 
 // responsiveLayoutCSS is the renderer-owned mapping from the closed
