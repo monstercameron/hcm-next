@@ -110,8 +110,17 @@ func TestNativeCapabilityAssessmentRejectsStaleOrUnlicensedClaims(t *testing.T) 
 	if got := ValidateNativeCapabilityAssessment(good); len(got) != 0 {
 		t.Fatalf("valid assessment rejected: %v", got)
 	}
+	if len(good.Gaps) != 1 || good.Gaps[0] == "" {
+		t.Fatalf("assessment gaps = %#v, want an explicit gap record", good.Gaps)
+	}
 	if err := good.VerifyDigest(); err != nil {
 		t.Fatalf("assessment digest: %v", err)
+	}
+
+	malformed := PlaceholderNativeCapabilityAssessment()
+	malformed.Claims[0].EvidenceDate = "undated"
+	if !hasViolation(ValidateNativeCapabilityAssessment(malformed), "claims[0].evidence_date", "YYYY-MM-DD") {
+		t.Fatal("malformed evidence date was accepted")
 	}
 }
 

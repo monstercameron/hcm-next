@@ -453,6 +453,7 @@ type NativeCapabilityAssessment struct {
 	Version            string                  `json:"version"`
 	LicenseRef         string                  `json:"license_ref"`
 	ConfigurationRef   string                  `json:"configuration_ref"`
+	Gaps               []string                `json:"gaps"`
 	AsOf               string                  `json:"as_of"`
 	FreshnessDays      int                     `json:"freshness_days"`
 	Claims             []NativeCapabilityClaim `json:"claims"`
@@ -481,6 +482,14 @@ func ValidateNativeCapabilityAssessment(a NativeCapabilityAssessment) []Violatio
 	if a.FreshnessDays < 0 {
 		add("freshness_days", "freshness window cannot be negative")
 	}
+	if a.Gaps == nil {
+		add("gaps", "capability gaps must be explicitly recorded, even when empty")
+	}
+	for i, gap := range a.Gaps {
+		if strings.TrimSpace(gap) == "" {
+			add(fmt.Sprintf("gaps[%d]", i), "capability gap must not be empty")
+		}
+	}
 	asOf, _ := time.Parse("2006-01-02", a.AsOf)
 	if len(a.Claims) == 0 {
 		add("claims", "at least one native capability claim is required")
@@ -502,7 +511,11 @@ func ValidateNativeCapabilityAssessment(a NativeCapabilityAssessment) []Violatio
 		if !c.Configured && c.Native {
 			add(prefix+".configured", "native claim is not configured by the partner")
 		}
+		if strings.TrimSpace(c.EvidenceDate) == "" {
+			continue
+		}
 		if !validDate(c.EvidenceDate) {
+			add(prefix+".evidence_date", "evidence date must be YYYY-MM-DD")
 			continue
 		}
 		observed, _ := time.Parse("2006-01-02", c.EvidenceDate)
@@ -693,7 +706,7 @@ func PlaceholderBaseline() Baseline {
 }
 
 func PlaceholderNativeCapabilityAssessment() NativeCapabilityAssessment {
-	a := NativeCapabilityAssessment{SchemaVersion: SchemaVersion, AssessmentID: "native-capability:PLACEHOLDER", PartnerManifestRef: "partner-manifest:PLACEHOLDER", Product: "PLACEHOLDER_PRODUCT", Edition: "PLACEHOLDER_EDITION", Version: "PLACEHOLDER_VERSION", LicenseRef: "fixture:placeholder-license", ConfigurationRef: "fixture:placeholder-configuration", AsOf: "2026-09-06", FreshnessDays: 30, Claims: []NativeCapabilityClaim{{Capability: "promotion_workflow", Native: true, LicenseState: "LICENSED", Configured: true, EvidenceRef: "fixture:placeholder-capability", EvidenceDate: "2026-09-01", EvidenceVersion: "PLACEHOLDER_VERSION"}}, Signature: PlaceholderSignature()}
+	a := NativeCapabilityAssessment{SchemaVersion: SchemaVersion, AssessmentID: "native-capability:PLACEHOLDER", PartnerManifestRef: "partner-manifest:PLACEHOLDER", Product: "PLACEHOLDER_PRODUCT", Edition: "PLACEHOLDER_EDITION", Version: "PLACEHOLDER_VERSION", LicenseRef: "fixture:placeholder-license", ConfigurationRef: "fixture:placeholder-configuration", Gaps: []string{"PLACEHOLDER_GAP"}, AsOf: "2026-09-06", FreshnessDays: 30, Claims: []NativeCapabilityClaim{{Capability: "promotion_workflow", Native: true, LicenseState: "LICENSED", Configured: true, EvidenceRef: "fixture:placeholder-capability", EvidenceDate: "2026-09-01", EvidenceVersion: "PLACEHOLDER_VERSION"}}, Signature: PlaceholderSignature()}
 	a.Digest = DigestNativeCapabilityAssessment(a)
 	return a
 }
