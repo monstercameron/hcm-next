@@ -34,6 +34,8 @@ const (
 	PathWasm = PathAssetPrefix + assetWasm
 	// PathWasmExec is the Go WASM runtime shim the bundle needs.
 	PathWasmExec = PathAssetPrefix + assetWasmExec
+	// PathAssetManifest describes the exact static bytes this binary can serve.
+	PathAssetManifest = PathAssetPrefix + AssetIntegrityManifestName
 	// PathLogin renders (GET) and accepts (POST) the dev-only pasted-token
 	// sign-in form. It is registered only when Options.DevBrowserLogin is
 	// set; otherwise this cell serves no route here at all.
@@ -268,10 +270,15 @@ func loaderScript() string {
 }
 
 const loaderSource = `(function(){` +
-	`if(!window.WebAssembly||!window.Go){return}` +
-	`var g=new window.Go();` +
-	`window.WebAssembly.instantiateStreaming(fetch("` + PathWasm + `"),g.importObject)` +
-	`.then(function(r){g.run(r.instance)}).catch(function(){});` +
+	`if(!window.WebAssembly){return}` +
+	`var c=document.getElementById("` + JourneyConfigElementID + `"),j=JSON.parse(c?c.textContent||"{}":"{}");` +
+	`function o(i){return{credentials:"same-origin",headers:{authorization:"Bearer "+(j.bearer||"")},integrity:i||""}}` +
+	`fetch("` + PathAssetManifest + `",o())` +
+	`.then(function(r){if(!r.ok){throw new Error("asset manifest unavailable")}return r.json()})` +
+	`.then(function(m){var a,s;for(var i=0;i<m.assets.length;i++){if(m.assets[i].path=="` + PathWasm + `"){a=m.assets[i]}else if(m.assets[i].path=="` + PathWasmExec + `"){s=m.assets[i]}}` +
+	`if(!a||!s||typeof a.integrity!=="string"||typeof s.integrity!=="string"){throw new Error("asset integrity unavailable")}` +
+	`return fetch("` + PathWasmExec + `",o(s.integrity)).then(function(r){if(!r.ok){throw new Error("wasm runtime unavailable")}return r.blob()}).then(function(b){var u=URL.createObjectURL(b);return import(u).then(function(){URL.revokeObjectURL(u)},function(e){URL.revokeObjectURL(u);throw e})}).then(function(){if(!window.Go){throw new Error("wasm runtime unavailable")}var g=new window.Go();return window.WebAssembly.instantiateStreaming(fetch("` + PathWasm + `",o(a.integrity)),g.importObject).then(function(r){g.run(r.instance)})})})` +
+	`.catch(function(){});` +
 	`})();`
 
 // ContentSecurityPolicy returns the policy header value for a workspace
@@ -292,7 +299,7 @@ func ContentSecurityPolicy(enhanced bool) string {
 	}
 	if enhanced {
 		directives = append(directives,
-			"script-src '"+sha256Source(loaderSource)+"' 'self' 'wasm-unsafe-eval'",
+			"script-src '"+sha256Source(loaderSource)+"' 'self' blob: 'wasm-unsafe-eval'",
 			"connect-src 'self'")
 	} else {
 		directives = append(directives, "script-src 'none'")

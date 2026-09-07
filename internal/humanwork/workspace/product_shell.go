@@ -144,7 +144,6 @@ func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale
 	b.Write(island)
 	b.WriteString("</script>")
 	if bundleBuilt {
-		b.WriteString(`<script src="` + PathWasmExec + `"></script>`)
 		b.WriteString("<script>" + journeyLoaderSource + "</script>")
 	}
 	b.WriteString("</body></html>")
@@ -172,7 +171,7 @@ var productStylesheetHash = sha256Source(productStylesheet())
 func ProductContentSecurityPolicy(host string) string {
 	directives := []string{
 		"default-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'",
-		"script-src '" + journeyLoaderHash + "' 'self' 'wasm-unsafe-eval'",
+		"script-src '" + journeyLoaderHash + "' 'self' blob: 'wasm-unsafe-eval'",
 	}
 	connect := "connect-src 'self'"
 	if authority := sanitizeHostAuthority(host); authority != "" {

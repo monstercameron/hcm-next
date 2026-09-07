@@ -84,6 +84,12 @@ type Handler struct {
 	receipts   *receiptStore
 	mux        *http.ServeMux
 	enhanced   bool
+	// assetManifestJSON is generated once from the exact embedded files at
+	// construction time. Keeping the immutable bytes on the handler avoids
+	// hashing a large WASM module on every manifest request.
+	assetManifestJSON []byte
+	assetIndex        map[string]assetIntegrityMetadata
+	assetManifestETag string
 	// devBrowserLogin mirrors Options.DevBrowserLogin.
 	devBrowserLogin bool
 	devPersonas     map[string]DevPersona
@@ -115,6 +121,18 @@ func NewHandler(opts Options) (*Handler, error) {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
+	assetManifest, err := LoadEmbeddedAssetIntegrityManifest()
+	if err != nil {
+		return nil, fmt.Errorf("workspace: build asset integrity manifest: %w", err)
+	}
+	assetManifestJSON, err := assetManifest.CanonicalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("workspace: encode asset integrity manifest: %w", err)
+	}
+	assetManifestDigest, err := assetManifest.Digest()
+	if err != nil {
+		return nil, fmt.Errorf("workspace: digest asset integrity manifest: %w", err)
+	}
 
 	personas := make(map[string]DevPersona, len(opts.DevPersonas))
 	for _, persona := range opts.DevPersonas {
@@ -125,16 +143,19 @@ func NewHandler(opts Options) (*Handler, error) {
 		}
 	}
 	h := &Handler{
-		cell:            opts.Cell,
-		config:          opts.Config,
-		now:             now,
-		sessionKey:      key,
-		secure:          opts.Secure,
-		receipts:        newReceiptStore(),
-		enhanced:        BundleBuilt(),
-		devBrowserLogin: opts.DevBrowserLogin,
-		devPersonas:     personas,
-		roleAccess:      opts.RoleAccess,
+		cell:              opts.Cell,
+		config:            opts.Config,
+		now:               now,
+		sessionKey:        key,
+		secure:            opts.Secure,
+		receipts:          newReceiptStore(),
+		enhanced:          BundleBuilt(),
+		assetManifestJSON: assetManifestJSON,
+		assetIndex:        indexAssetIntegrityManifest(assetManifest),
+		assetManifestETag: `"` + assetManifestDigest + `"`,
+		devBrowserLogin:   opts.DevBrowserLogin,
+		devPersonas:       personas,
+		roleAccess:        opts.RoleAccess,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+PathPromotion, h.servePromotion)
@@ -193,7 +214,7 @@ func Routes() []Route {
 		},
 		{
 			Path: PathAssetPrefix + "{name}", Method: http.MethodGet,
-			Description: "Serve the optional GWC/WASM progressive-enhancement bundle; 404 when it is not built into this binary.",
+			Description: "Serve the authenticated frontend asset or its generated integrity manifest; 404 when an optional bundle is not built into this binary.",
 			EffectClass: effectClassReadOnly,
 		},
 	}
@@ -355,10 +376,20 @@ func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := r.PathValue("name")
+	if name == AssetIntegrityManifestName {
+		h.serveAssetIntegrityManifest(w, r)
+		return
+	}
+	metadata, catalogued := h.assetIndex[PathAssetPrefix+name]
+	if !catalogued {
+		h.writeProblem(w, http.StatusNotFound, "No enhancement bundle",
+			"This build carries no GWC/WASM bundle; the server-rendered workspace is the whole page.")
+		return
+	}
 	body, found := asset(name)
 	if !found {
-		h.writeProblem(w, http.StatusNotFound, "No enhancement bundle",
-			"This build carries no GWC/WASM bundle; the server-rendered workspace is the whole page. See internal/humanwork/workspace/assets/.keep for the two commands that build one.")
+		h.writeProblem(w, http.StatusInternalServerError, "Enhancement unavailable",
+			"the generated frontend asset manifest names bytes unavailable to this build")
 		return
 	}
 	encoding := ""
@@ -368,14 +399,20 @@ func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 			encoding = "gzip"
 		}
 	}
-	w.Header().Set("Content-Type", assetContentType(name))
+	w.Header().Set("Content-Type", metadata.ContentType)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
 	w.Header().Set("Vary", "Accept-Encoding")
 	if encoding != "" {
 		w.Header().Set("Content-Encoding", encoding)
 	}
-	etag := assetETag(name+":"+encoding, body)
+	variant := encodingOrIdentity(encoding)
+	etag, represented := metadata.ETags[variant]
+	if !represented {
+		h.writeProblem(w, http.StatusInternalServerError, "Enhancement unavailable",
+			"the requested transfer representation is not in the generated manifest")
+		return
+	}
 	w.Header().Set("ETag", etag)
 	if matchesETag(r.Header.Get("If-None-Match"), etag) {
 		w.WriteHeader(http.StatusNotModified)
@@ -383,6 +420,28 @@ func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
+}
+
+func encodingOrIdentity(encoding string) string {
+	if encoding == "" {
+		return "identity"
+	}
+	return encoding
+}
+
+func (h *Handler) serveAssetIntegrityManifest(w http.ResponseWriter, r *http.Request) {
+	// The manifest is an authenticated release description. It is never a
+	// source of browser authority and is deliberately not publicly cacheable.
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+	w.Header().Set("ETag", h.assetManifestETag)
+	if matchesETag(r.Header.Get("If-None-Match"), h.assetManifestETag) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(h.assetManifestJSON)
 }
 
 func acceptsGzip(value string) bool {

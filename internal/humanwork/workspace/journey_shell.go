@@ -218,7 +218,6 @@ func journeyShellDocument(config JourneyConfig, bundleBuilt bool) (string, error
 	b.Write(island)
 	b.WriteString("</script>\n")
 	if bundleBuilt {
-		b.WriteString(`<script src="` + PathWasmExec + `"></script>` + "\n")
 		b.WriteString("<script>" + journeyLoaderSource + "</script>\n")
 	}
 	b.WriteString("</body>\n</html>\n")
@@ -233,10 +232,15 @@ func journeyShellDocument(config JourneyConfig, bundleBuilt bool) (string, error
 // failed instantiation, no start - because the fallback paragraph the shell
 // already rendered is the correct thing for the reader to be left looking at.
 const journeyLoaderSource = `(function(){` +
-	`if(!window.WebAssembly||!window.Go){return}` +
-	`var g=new window.Go();` +
-	`window.WebAssembly.instantiateStreaming(fetch("` + PathJourneyWasm + `"),g.importObject)` +
-	`.then(function(r){g.run(r.instance)}).catch(function(){});` +
+	`if(!window.WebAssembly){return}` +
+	`var c=document.getElementById("` + JourneyConfigElementID + `"),j=JSON.parse(c?c.textContent||"{}":"{}");` +
+	`function o(i){return{credentials:"same-origin",headers:{authorization:"Bearer "+(j.bearer||"")},integrity:i||""}}` +
+	`fetch("` + PathAssetManifest + `",o())` +
+	`.then(function(r){if(!r.ok){throw new Error("asset manifest unavailable")}return r.json()})` +
+	`.then(function(m){var a,s;for(var i=0;i<m.assets.length;i++){if(m.assets[i].path=="` + PathJourneyWasm + `"){a=m.assets[i]}else if(m.assets[i].path=="` + PathWasmExec + `"){s=m.assets[i]}}` +
+	`if(!a||!s||typeof a.integrity!=="string"||typeof s.integrity!=="string"){throw new Error("asset integrity unavailable")}` +
+	`return fetch("` + PathWasmExec + `",o(s.integrity)).then(function(r){if(!r.ok){throw new Error("wasm runtime unavailable")}return r.blob()}).then(function(b){var u=URL.createObjectURL(b);return import(u).then(function(){URL.revokeObjectURL(u)},function(e){URL.revokeObjectURL(u);throw e})}).then(function(){if(!window.Go){throw new Error("wasm runtime unavailable")}var g=new window.Go();return window.WebAssembly.instantiateStreaming(fetch("` + PathJourneyWasm + `",o(a.integrity)),g.importObject).then(function(r){g.run(r.instance)})})})` +
+	`.catch(function(){});` +
 	`})();`
 
 // journeyStylesheetHash pins the exact stylesheet the journey client injects.
@@ -253,8 +257,9 @@ var journeyLoaderHash = sha256Source(journeyLoaderSource)
 //
 // It is deny-by-default with three exact allowances and nothing else:
 //
-//   - script-src: the inline loader by hash, this origin (for
-//     wasm_exec.js and journey.wasm) and 'wasm-unsafe-eval', which is what
+//   - script-src: the inline loader by hash, this origin, loader-created
+//     blob modules (for the authenticated wasm_exec.js fetch), and
+//     'wasm-unsafe-eval', which is what
 //     WebAssembly.instantiateStreaming needs and is strictly narrower than
 //     'unsafe-eval'.
 //   - connect-src: this origin, plus its own ws:// and wss:// origins so the
@@ -274,7 +279,7 @@ func JourneyContentSecurityPolicy(host string) string {
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'none'",
-		"script-src '" + journeyLoaderHash + "' 'self' 'wasm-unsafe-eval'",
+		"script-src '" + journeyLoaderHash + "' 'self' blob: 'wasm-unsafe-eval'",
 	}
 	connect := "connect-src 'self'"
 	if authority := sanitizeHostAuthority(host); authority != "" {

@@ -324,12 +324,14 @@ func TestJourneyShellDocumentLoadsTheClientWhenBuilt(t *testing.T) {
 		t.Fatalf("journeyShellDocument: %v", err)
 	}
 	for _, want := range []string{
-		`<script src="` + PathWasmExec + `"></script>`,
 		"<script>" + journeyLoaderSource + "</script>",
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("a built shell does not contain %q", want)
 		}
+	}
+	if strings.Contains(doc, `<script src="`) {
+		t.Fatal("a bearer-only shell cannot use a script request that omits its Authorization header")
 	}
 	if strings.Contains(doc, `data-journey-bundle="missing"`) {
 		t.Error("a built shell must not carry the not-built notice")
@@ -340,10 +342,15 @@ func TestJourneyShellDocumentLoadsTheClientWhenBuilt(t *testing.T) {
 // byte. It is the string whose sha256 the policy allows, so a change to it
 // that is not also a change to the policy is a page that will not start.
 func TestJourneyLoaderSourceIsTheDocumentedConstant(t *testing.T) {
-	const want = `(function(){if(!window.WebAssembly||!window.Go){return}` +
-		`var g=new window.Go();` +
-		`window.WebAssembly.instantiateStreaming(fetch("/workspace/assets/journey.wasm"),g.importObject)` +
-		`.then(function(r){g.run(r.instance)}).catch(function(){});})();`
+	const want = `(function(){if(!window.WebAssembly){return}` +
+		`var c=document.getElementById("journey-config"),j=JSON.parse(c?c.textContent||"{}":"{}");` +
+		`function o(i){return{credentials:"same-origin",headers:{authorization:"Bearer "+(j.bearer||"")},integrity:i||""}}` +
+		`fetch("/workspace/assets/manifest.json",o())` +
+		`.then(function(r){if(!r.ok){throw new Error("asset manifest unavailable")}return r.json()})` +
+		`.then(function(m){var a,s;for(var i=0;i<m.assets.length;i++){if(m.assets[i].path=="/workspace/assets/journey.wasm"){a=m.assets[i]}else if(m.assets[i].path=="/workspace/assets/wasm_exec.js"){s=m.assets[i]}}` +
+		`if(!a||!s||typeof a.integrity!=="string"||typeof s.integrity!=="string"){throw new Error("asset integrity unavailable")}` +
+		`return fetch("/workspace/assets/wasm_exec.js",o(s.integrity)).then(function(r){if(!r.ok){throw new Error("wasm runtime unavailable")}return r.blob()}).then(function(b){var u=URL.createObjectURL(b);return import(u).then(function(){URL.revokeObjectURL(u)},function(e){URL.revokeObjectURL(u);throw e})}).then(function(){if(!window.Go){throw new Error("wasm runtime unavailable")}var g=new window.Go();return window.WebAssembly.instantiateStreaming(fetch("/workspace/assets/journey.wasm",o(a.integrity)),g.importObject).then(function(r){g.run(r.instance)})})})` +
+		`.catch(function(){});})();`
 	if journeyLoaderSource != want {
 		t.Fatalf("journeyLoaderSource =\n%q\nwant\n%q", journeyLoaderSource, want)
 	}
@@ -360,7 +367,7 @@ func TestJourneyContentSecurityPolicy(t *testing.T) {
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'none'",
-		"script-src '" + sha256Source(journeyLoaderSource) + "' 'self' 'wasm-unsafe-eval'",
+		"script-src '" + sha256Source(journeyLoaderSource) + "' 'self' blob: 'wasm-unsafe-eval'",
 		"connect-src 'self' ws://cell.test:8080 wss://cell.test:8080",
 		"style-src '" + sha256Source(journey.Stylesheet()) + "'",
 		"img-src 'none'",

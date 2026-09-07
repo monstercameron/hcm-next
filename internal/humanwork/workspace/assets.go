@@ -1,14 +1,11 @@
 package workspace
 
 import (
-	"crypto/sha256"
 	"embed"
-	"encoding/hex"
 	"errors"
 	"io/fs"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // Asset file names the progressive-enhancement bundle is looked for under.
@@ -44,8 +41,6 @@ const (
 //go:embed all:assets
 var assetsFS embed.FS
 
-var assetETags sync.Map
-
 // asset returns one embedded bundle file.
 func asset(name string) ([]byte, bool) {
 	// uxqual.wasm is the legacy fixture-only mount. It rebuilds the request
@@ -56,13 +51,8 @@ func asset(name string) ([]byte, bool) {
 	if name == assetWasm {
 		return nil, false
 	}
-	switch name {
-	case assetJourneyWasm, assetWasmExec, assetHarborcareLogo,
-		assetPersonPriyaSmall, assetPersonJaneSmall, assetPersonOmarSmall, assetPersonLenaSmall, assetPersonNoorSmall:
-	default:
-		if !isSeedPhotoProxy(name) {
-			return nil, false
-		}
+	if _, ok := FrontendAssetContentType(name); !ok {
+		return nil, false
 	}
 	return embeddedAsset(name)
 }
@@ -112,25 +102,42 @@ func embeddedAsset(name string) ([]byte, bool) {
 func compressedAsset(name string) ([]byte, bool) {
 	switch name {
 	case assetJourneyWasm, assetWasmExec:
+		if _, identityExists := embeddedAsset(name); !identityExists {
+			return nil, false
+		}
 		return embeddedAsset(name + ".gz")
 	default:
 		return nil, false
 	}
 }
 
-func assetETag(name string, body []byte) string {
-	if cached, ok := assetETags.Load(name); ok {
-		return cached.(string)
+// FrontendAssetContentType returns the fixed media type for a publicly
+// routable frontend asset. Packaging uses this same allowlist as serving so
+// source originals and legacy fixtures cannot enter the release manifest.
+func FrontendAssetContentType(name string) (string, bool) {
+	switch name {
+	case assetJourneyWasm, assetWasmExec, assetHarborcareLogo,
+		assetPersonPriyaSmall, assetPersonJaneSmall, assetPersonOmarSmall, assetPersonLenaSmall, assetPersonNoorSmall:
+	default:
+		if !isSeedPhotoProxy(name) {
+			return "", false
+		}
 	}
-	digest := sha256.Sum256(body)
-	etag := `"` + hex.EncodeToString(digest[:]) + `"`
-	actual, _ := assetETags.LoadOrStore(name, etag)
-	return actual.(string)
+	if name == assetWasm || name == assetJourneyWasm {
+		return "application/wasm", true
+	}
+	if strings.HasSuffix(name, ".png") {
+		return "image/png", true
+	}
+	if strings.HasSuffix(name, ".jpg") {
+		return "image/jpeg", true
+	}
+	if strings.HasSuffix(name, ".svg") {
+		return "image/svg+xml", true
+	}
+	return "text/javascript; charset=utf-8", true
 }
 
-// assetContentType is the media type one bundle file is served under. Both
-// are named explicitly: sniffing a wasm module would produce
-// application/octet-stream, which instantiateStreaming refuses.
 func assetContentType(name string) string {
 	if name == assetWasm || name == assetJourneyWasm {
 		return "application/wasm"

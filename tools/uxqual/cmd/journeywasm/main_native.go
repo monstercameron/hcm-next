@@ -29,6 +29,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 )
 
 // wasmPackage is what gets built. It is the module-absolute import path
@@ -122,6 +125,95 @@ func build(outDir string, stdout io.Writer) error {
 		}
 		fmt.Fprintf(stdout, "%s  %s\n", path, humanSize(info.Size()))
 	}
+	if err := writeAssetIntegrityManifest(outDir); err != nil {
+		return err
+	}
+	return nil
+}
+
+// writeAssetIntegrityManifest packages a manifest beside the generated
+// bundles. It reads the output directory after all copies/compression finish,
+// so the manifest describes exactly the bytes the workspace will embed.
+func writeAssetIntegrityManifest(outDir string) error {
+	entries, err := os.ReadDir(outDir)
+	if err != nil {
+		return fmt.Errorf("reading asset output: %w", err)
+	}
+	identities := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if !entry.IsDir() && !strings.HasSuffix(entry.Name(), ".gz") {
+			identities[entry.Name()] = struct{}{}
+		}
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".gz") {
+			continue
+		}
+		identity := strings.TrimSuffix(entry.Name(), ".gz")
+		if _, ok := identities[identity]; !ok {
+			return fmt.Errorf("orphaned compressed asset %q has no identity file", entry.Name())
+		}
+	}
+	sources := make([]workspace.AssetIntegritySource, 0, len(entries))
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || name == ".keep" || name == workspace.AssetIntegrityManifestName || strings.HasSuffix(name, ".gz") {
+			continue
+		}
+		contentType, routable := workspace.FrontendAssetContentType(name)
+		if !routable {
+			continue
+		}
+		body, err := os.ReadFile(filepath.Join(outDir, name))
+		if err != nil {
+			return fmt.Errorf("reading asset %q: %w", name, err)
+		}
+		var gzipBody []byte
+		if compressed, readErr := os.ReadFile(filepath.Join(outDir, name+".gz")); readErr == nil {
+			gzipBody = compressed
+		} else if !os.IsNotExist(readErr) {
+			return fmt.Errorf("reading compressed asset %q: %w", name, readErr)
+		}
+		sources = append(sources, workspace.AssetIntegritySource{
+			Name: name, Body: body, ContentType: contentType, GzipBody: gzipBody,
+		})
+	}
+	manifest, err := workspace.GenerateAssetIntegrityManifest(sources)
+	if err != nil {
+		return fmt.Errorf("generate asset integrity manifest: %w", err)
+	}
+	body, err := manifest.CanonicalJSON()
+	if err != nil {
+		return fmt.Errorf("encode asset integrity manifest: %w", err)
+	}
+	destination := filepath.Join(outDir, workspace.AssetIntegrityManifestName)
+	temporary, err := os.CreateTemp(outDir, ".asset-manifest-*")
+	if err != nil {
+		return fmt.Errorf("create temporary asset manifest: %w", err)
+	}
+	temporaryName := temporary.Name()
+	defer os.Remove(temporaryName)
+	if _, err := temporary.Write(body); err != nil {
+		_ = temporary.Close()
+		return fmt.Errorf("write temporary asset manifest: %w", err)
+	}
+	if err := temporary.Sync(); err != nil {
+		_ = temporary.Close()
+		return fmt.Errorf("sync temporary asset manifest: %w", err)
+	}
+	if err := temporary.Close(); err != nil {
+		return fmt.Errorf("close temporary asset manifest: %w", err)
+	}
+	// Windows does not offer replacement through os.Rename. Removing the old
+	// file creates a brief publication gap, but handler construction validates
+	// this artifact against every embedded byte and therefore fails closed if
+	// a build observes an interrupted packaging run.
+	if err := os.Remove(destination); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("replace asset manifest: %w", err)
+	}
+	if err := os.Rename(temporaryName, destination); err != nil {
+		return fmt.Errorf("publish asset manifest: %w", err)
+	}
 	return nil
 }
 
@@ -143,6 +235,12 @@ func writeGzip(source string) error {
 		_ = output.Close()
 		return err
 	}
+	// Pin every gzip header field that can carry host/build time metadata so
+	// identical identity bytes produce byte-identical transfer artifacts.
+	writer.Header.ModTime = time.Unix(0, 0)
+	writer.Header.Name = ""
+	writer.Header.Comment = ""
+	writer.Header.OS = 255
 	_, copyErr := io.Copy(writer, input)
 	closeWriterErr := writer.Close()
 	closeOutputErr := output.Close()
