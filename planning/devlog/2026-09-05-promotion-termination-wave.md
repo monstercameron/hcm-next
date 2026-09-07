@@ -622,6 +622,14 @@ organization-structure-maximal-2026.md` and the 30-table draft
   committed. The helper now reconnects and gives drops five minutes, the
   migration takes a transaction advisory lock, and the gate prints the
   failing test's own lines so the next refusal explains itself.
+- **Completed-but-unticked todos.** A scan of the 751 open todos found 38
+  whose `TestTodo_<ID>` already existed; 36 (the two `tools/uxqual` ones are
+  the front-end session's) had every declared matrix test present, none
+  skipped, and passed individually and as full packages, so they are ticked
+  with evidence naming the tests, the commit that wrote them and the run.
+  The one package failure was environmental: `sbom.ModGraph` ran `go mod
+graph` in a temp directory that now lives under the checkout and so
+  resolved the repository module; it requires a go.mod at its root.
 - **Left open.** The remaining row-at-a-time loops (jobarchstore, budgetstore,
   contentregistrystore, recordsmeta, contactstore, meritstore, workeridstore,
   seed) can move to `dbport.ExecAll` the same way; `transport.Validate`'s

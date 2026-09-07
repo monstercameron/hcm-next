@@ -626,7 +626,8 @@
     "refactor": "deterministic services execute all effects",
     "refs": "[Agent runtime](data/models/assurance-intelligence-platform.md), [Gate A bounded agent](execution-plan.md#gate-a--paid-design-partner-observation)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_AGENT_001`, `TestTodo_AGENT_001_Mutation`, `TestTodo_AGENT_001_Security` in `internal/agentsecurity` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: gateway binds agent identity/delegation, tenant, purpose, capability/version, nonce, exact args, taint/provenance and budget; only approved read/analyze/draft calls return typed results); `go test -count=1 ./internal/agentsecurity/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "AGENT-002",
@@ -803,7 +804,8 @@
     "refactor": "keep canonical semantics with their domain or workflow owner, physical durability with the owning repository, and presentation mechanics behind registered page and widget contracts",
     "refs": "[default product alignment](specs/default-product-slice-alignment.md), [frontend plan](specs/production-frontend-and-page-composition.md), [modeling conventions](data/models/modeling-conventions.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ALIGN_003`, `TestTodo_ALIGN_003_Conformance`, `TestTodo_ALIGN_003_Golden`, `TestTodo_ALIGN_003_Property`, `TestTodo_ALIGN_003_Security` in `tools/planning/productslice` (written in 0a56524 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: the named test deterministically proves the `Define the cross-layer identifier vocabulary` contract from versioned inputs with tenant isolation, explicit authority, exact persistence effects, safe presentation and retained evidence); `go test -count=1 ./tools/planning/productslice/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ALIGN-004",
@@ -2373,7 +2375,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Intelligence plane](specs/platform-plane-model.md), [privacy lifecycle](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ANALYTICS_001`, `TestTodo_ANALYTICS_001_Golden`, `TestTodo_ANALYTICS_001_Security` in `internal/data/analytics` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: governed snapshot produces partitioned Parquet and DuckDB-compatible catalog with provenance, deletion/hold propagation and deterministic metric fixtures; OLAP service promotion is evidence-gated); `go test -count=1 ./internal/data/analytics/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ANON-001",
@@ -4264,7 +4267,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[People/workforce models](data/models/people-workforce.md), [rules models](data/models/rules-and-decisions.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ATTEND_001`, `TestTodo_ATTEND_001_Conformance`, `TestTodo_ATTEND_001_Mutation`, `TestTodo_ATTEND_001_Property`, `TestTodo_ATTEND_001_Security` in `internal/domains/attendance` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: missing evidence yields unknown/exception, not compliant); `go test -count=1 ./internal/domains/attendance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ATTEND-002",
@@ -6693,7 +6697,8 @@
     "refactor": "no native ATS/payroll implementation is required",
     "refs": "[Recruit-to-onboard](workflows/lifecycle/recruit-hire-onboard.md), [recruiting data](data/models/talent-experience-cases.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONF_002`, `TestTodo_CONF_002_Conformance`, `TestTodo_CONF_002_Mutation`, `TestTodo_CONF_002_Security` in `tools/conformance/recruit` (written in e3d0849 on 2026-09-03 and never ticked; the named tests prove the GREEN contract: golden scenario preserves candidate+worker roles, binds offer/approvals, creates employment once and returns business `COMPLETED` with explicit downstream consistency/repair states); `go test -count=1 ./tools/conformance/recruit/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "CONF-003",
@@ -6858,7 +6863,8 @@
     "refactor": "domain capability composition remains customer-configurable",
     "refs": "[Promotion workflow](workflows/rewards/promotion-into-management.md), [reference suite](reference-workflows/reference-suite.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_CONF_008`, `TestTodo_CONF_008_Conformance`, `TestTodo_CONF_008_Fault`, `TestTodo_CONF_008_Golden`, `TestTodo_CONF_008_Mutation`, `TestTodo_CONF_008_Race` in `internal/workflow/conformance/payroll` (written in 5b64e58 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: golden trace proves intent-only ingress, mixed-authority snapshot, zero-effect simulation, a signed `LegalEvaluationReceipt` naming the pinned rule-pack releases, the applied and considered-not-applicable obligations, and the composition trace, immutable proposal, four governed approvals, durable effective-date wait, execution revalidation, fenced position/budget holds, one atomic People/Org/Position/Comp commit, effect DAG, fresh observations, business `COMPLETED` plus external `DEGRADED`/reconciliation `REPAIR_REQUIRED`, targeted IAM repair, final consistent closure and verifiable execution receipt); `go test -count=1 ./internal/workflow/conformance/payroll/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "CONF-009",
@@ -10848,7 +10854,8 @@
     "refactor": "privacy control happens before export/agent narration",
     "refs": "[Disclosure model](data/models/assurance-intelligence-platform.md), [privacy](specs/data-classification-and-dlp.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DISCLOSURE_001`, `TestTodo_DISCLOSURE_001_Golden`, `TestTodo_DISCLOSURE_001_Property`, `TestTodo_DISCLOSURE_001_Security` in `internal/governance/privacy` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: minimum-cell, complementary suppression, rounding/noise, cumulative budget and review policy produce suppression evidence bound to query digest); `go test -count=1 ./internal/governance/privacy/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DOC-001",
@@ -10899,7 +10906,8 @@
     "refactor": "verification is independent of signature provider availability",
     "refs": "[Evidence model](data/models/kernel-governance-and-evidence.md), [records](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DOC_EVIDENCE_001`, `TestTodo_DOC_EVIDENCE_001_Golden`, `TestTodo_DOC_EVIDENCE_001_Integration`, `TestTodo_DOC_EVIDENCE_001_Mutation`, `TestTodo_DOC_EVIDENCE_001_Security`, `TestTodo_DOC_EVIDENCE_001_Unknown` in `internal/documents/evidence` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: verifier returns `COMPLETE`, `PARTIAL`, `UNKNOWN`, or `REJECTED` with exact missing/invalid elements and canonical package digest); `go test -count=1 ./internal/documents/evidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DOC-EXTRACT-001",
@@ -10954,7 +10962,8 @@
     "refactor": "malware scanning, byte storage, classification and domain evidence sufficiency remain separate owners",
     "refs": "[Document pipeline](specs/platform-responsibility-boundaries.md), [artifact models](data/models/connectivity-access-content.md), [records](specs/records-management-and-disposition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DOC_INTAKE_001`, `TestTodo_DOC_INTAKE_001_Golden`, `TestTodo_DOC_INTAKE_001_Integration`, `TestTodo_DOC_INTAKE_001_Mutation`, `TestTodo_DOC_INTAKE_001_Race`, `TestTodo_DOC_INTAKE_001_Security` in `internal/documents/intake` (written in 171cafc on 2026-09-03 and never ticked; the named tests prove the GREEN contract: intake freezes safe artifact generation, server-derived document type/metadata, `MEDICAL_SENSITIVE`-class compartment, evidence authority, provenance, purpose/access policy, retention/hold policy and returns only a typed `EvidenceRef`; later reclassification/rescan can revoke usability without rewriting history); `go test -count=1 ./internal/documents/intake/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "DOC-MAL-001",
@@ -14142,7 +14151,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-16](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [security control matrix](research/security-control-matrix-2026.md), [NIST 800-53](https://csrc.nist.gov/Projects/risk-management/sp800-53-controls/downloads), [ISO 27001](https://www.iso.org/standard/27001?browse=tc). Maps to NIST CSF 2.0 GOVERN function; ISO/IEC 27001:2022 Annex A; SOC 2 CC1-CC9; OWASP ASVS 5.0.0",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_GOV_030`, `TestTodo_GOV_030_Conformance`, `TestTodo_GOV_030_Golden`, `TestTodo_GOV_030_Integration`, `TestTodo_GOV_030_Mutation`, `TestTodo_GOV_030_Security` in `tools/planning/controlcrosswalk` (written in c1e9791 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a versioned crosswalk resolves, per NIST 800-53 Rev. 5 control, CSF 2.0 outcome, ISO/IEC 27001:2022 Annex A control, SOC 2 TSC and ASVS 5.0.0 requirement, the owning package/todo, implementation status (`IMPLEMENTED`/`PARTIAL`/`MISSING`), inherited-vs-owned classification and an evidence pointer that resolves against the todo registry (`GOV-002`) and requirement traceability (`GOV-003`); the crosswalk is regenerated whenever a cited todo's status or evidence changes); `go test -count=1 ./tools/planning/controlcrosswalk/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "GOVERN-001",
@@ -14217,8 +14227,8 @@
     "refactor": "revalidation result is bound to prepared transaction plan",
     "refs": "[Revalidation depth](plan.md#phase-1-implementation-depth-matrix), [Gate B acceptance](execution-plan.md#gate-b-acceptance--limited-write-authority)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestTodo_GOVERN_003` in `internal/governance/revalidate` (current evaluation either confirms exact proposal or returns typed block/reapproval/replan requirement before dispatch/commit; written by an earlier lane (Luna or Sonnet) and verified independently); `go test -count=1 ./internal/governance/revalidate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held partial on purpose: PRIV-001 (the privacy inventory it depends on) is open behind WEDGE-010 | `TestTodo_GOVERN_003` in `internal/governance/revalidate` (Revalidate rebuilds decision.Inputs from the historical record with the seven live fact categories substituted (AuthZ verdict, session state, source authority, field classification version, legal and policy pack versions, budget and position facts, conflict classification), recomposes through decision.Compose and confirms only an exact digest match; otherwise a typed BLOCK, REPLAN_REQUIRED or REAPPROVAL_REQUIRED naming the changed inputs; a tampered historical record is refused; Result.VerifyBoundPlan binds the result to the prepared TransactionPlan digest; written by a Sonnet subagent and verified independently); `go test -count=1 ./internal/governance/revalidate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held with GOVERN-001/002: dependency PRIV-001 (via WEDGE-010) is still open; implementation is complete"
+    "done": true,
+    "evidence": "`TestTodo_GOVERN_003`, `TestTodo_GOVERN_003_InvalidInput`, `TestTodo_GOVERN_003_Mutation`, `TestTodo_GOVERN_003_Security` in `internal/governance/revalidate` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: current evaluation either confirms exact proposal or returns typed block/reapproval/replan requirement before dispatch/commit); `go test -count=1 ./internal/governance/revalidate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02 | `TestTodo_GOVERN_003` in `internal/governance/revalidate` (current evaluation either confirms exact proposal or returns typed block/reapproval/replan requirement before dispatch/commit; written by an earlier lane (Luna or Sonnet) and verified independently); `go test -count=1 ./internal/governance/revalidate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held partial on purpose: PRIV-001 (the privacy inventory it depends on) is open behind WEDGE-010 | `TestTodo_GOVERN_003` in `internal/governance/revalidate` (Revalidate rebuilds decision.Inputs from the historical record with the seven live fact categories substituted (AuthZ verdict, session state, source authority, field classification version, legal and policy pack versions, budget and position facts, conflict classification), recomposes through decision.Compose and confirms only an exact digest match; otherwise a typed BLOCK, REPLAN_REQUIRED or REAPPROVAL_REQUIRED naming the changed inputs; a tampered historical record is refused; Result.VerifyBoundPlan binds the result to the prepared TransactionPlan digest; written by a Sonnet subagent and verified independently); `go test -count=1 ./internal/governance/revalidate/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Tick held with GOVERN-001/002: dependency PRIV-001 (via WEDGE-010) is still open; implementation is complete"
   },
   {
     "id": "HEADCOUNT-001",
@@ -16502,7 +16512,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Configuration lifecycle](data/models/dataops-configuration.md), [governance composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_KNOW_002`, `TestTodo_KNOW_002_Mutation`, `TestTodo_KNOW_002_Security` in `internal/domains/knowledge` (written in d3c2a53 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: exact locale/reviewer/source bundle activates and retirement preserves history); `go test -count=1 ./internal/domains/knowledge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "KNOW-003",
@@ -18103,7 +18114,8 @@
     "refactor": "comparators are registered per kind in one table; no `switch` on kind is duplicated at a call site",
     "refs": "[Evaluation semantics](specs/legal-rule-packs-and-state-configuration.md#6-evaluation-semantics), [governance decision and obligation composition](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_012`, `TestTodo_LEGAL_012_Golden`, `TestTodo_LEGAL_012_Mutation`, `TestTodo_LEGAL_012_Property`, `TestTodo_LEGAL_012_Race` in `internal/governance/legal` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: each kind applies its declared comparator, composition is commutative, associative and idempotent over the jurisdiction set, mutually impossible obligations return `CONTRADICTORY_REQUIREMENTS` with both obligations and both citations, and the composition trace names the inputs, comparator and winner per kind); `go test -count=1 ./internal/governance/legal/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-013",
@@ -19955,7 +19967,8 @@
     "refactor": "`WAGE-001`, once built, reads these parameters by jurisdiction and business-effective-date exactly as it reads `WageFloorRule` today; no second overtime-parameter store is invented inside the wage engine",
     "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds), [Wage-hour engine](plan.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_001`, `TestTodo_LEGAL_TOOL_001_Conformance`, `TestTodo_LEGAL_TOOL_001_Golden`, `TestTodo_LEGAL_TOOL_001_Mutation` in `internal/governance/legal/stateparams` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a schema-validated parameter set, loaded through `internal/governance/legal/packdefinition.go`'s existing loader, extends the `CLASSIFICATION` kind's `OVERTIME_THRESHOLD` dimension (contract § 4.2) with `daily_threshold_hours?`, `weekly_threshold_hours`, `consecutive_day_trigger bool`, `multiplier`, `tipped_rate Money?`, `tip_credit_max Money?`, `subminimum_class[]`; the loader round-trips Alaska (8/40), Colorado (40/12/12 greater-of), Kentucky (7th-consecutive-day) and California (8/40/12/7th-day double-time, Lab. Code § 510) without loss, and a definition omitting `weekly_threshold_hours` fails `PACK_VALIDATION_FAILED` rather than defaulting silently); `go test -count=1 ./internal/governance/legal/stateparams/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-002",
@@ -19979,7 +19992,8 @@
     "refactor": "break composition follows the same per-kind comparator table (contract § 6.3) as every other kind; no break-specific evaluation path is added to the engine",
     "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds), [Wage-hour engine](plan.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_002`, `TestTodo_LEGAL_TOOL_002_Conformance`, `TestTodo_LEGAL_TOOL_002_Golden` in `internal/governance/legal/stateparams` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a new kind `MEAL_REST_BREAK` (`id, break_type (MEAL|REST), trigger_hours, duration_minutes, paid bool, penalty_amount Money?, citation`) is added at `vocabulary_version 3`, bound to PREFLIGHT/EXECUTE with a GUARD binding parallel to `WAGE_FLOOR`; a matrix column is added and populated for California, Colorado, Kentucky (no statute, `F`) and Minnesota so the `Y`-implies-present / `F`-implies-absent conformance rule extends to breaks); `go test -count=1 ./internal/governance/legal/stateparams/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-003",
@@ -20005,7 +20019,8 @@
     "refactor": "`LEGAL-016`'s canonical promotion-and-separation vector exercises all four `separation_kind` values, not just one",
     "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds), [Test strategy](specs/legal-rule-packs-and-state-configuration.md#8-test-strategy)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_003`, `TestTodo_LEGAL_TOOL_003_Conformance`, `TestTodo_LEGAL_TOOL_003_Golden`, `TestTodo_LEGAL_TOOL_003_Mutation` in `internal/governance/legal/stateparams` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: `FinalPayDeadline` gains `separation_kind (DISCHARGE|RESIGNATION|LAYOFF|MASS_LAYOFF)`, `deadline_days_or_hours int`, `unit (CALENDAR_DAYS|BUSINESS_DAYS|WORKING_HOURS)`, `comparator (EARLIER_OF|LATER_OF|FIXED)` and an optional `alternate_trigger`; golden vectors cover Arizona (7 working days / earlier-of, A.R.S. § 23-353), Colorado (immediate / 6-hour-if-payroll-closed, C.R.S. § 8-4-109), Montana (immediate / later-of-15-day-or-payday with the theft carve-out, MCA § 39-3-205) and Kentucky (later-of-14-day-or-next-payday, KRS 337.055) without collapsing them to one figure); `go test -count=1 ./internal/governance/legal/stateparams/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-004",
@@ -20029,7 +20044,8 @@
     "refactor": "the lead-time comparator is the existing `NOTICE` row of the per-kind comparator table (contract § 6.3, \"earliest required delivery date\"); no second notice-timing code path is added",
     "refs": "[Per-kind composition](specs/legal-rule-packs-and-state-configuration.md#63-per-kind-composition)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_004`, `TestTodo_LEGAL_TOOL_004_Conformance`, `TestTodo_LEGAL_TOOL_004_Golden` in `internal/governance/legal/payrules` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: `PayFrequencyConstraint` gains `min_frequency (WEEKLY|BIWEEKLY|SEMIMONTHLY|MONTHLY)` and a `NoticeLeadTime{lead_unit (CALENDAR_DAYS|BUSINESS_DAYS|PAY_PERIODS|PRIOR_PAYDAY), lead_count int, applies_to (INCREASE|DECREASE|BOTH)}` consumed by the `NOTICE` kind's PREFLIGHT step; golden vectors prove Minnesota (0-day/same-day-insufficient), South Carolina (7 calendar days), West Virginia (1 pay period) and Alaska (prior payday, both directions) each block a same-day pay change and allow one dated at or beyond the lead time); `go test -count=1 ./internal/governance/legal/payrules/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-005",
@@ -20054,7 +20070,8 @@
     "refactor": "the registry feeds `PAY_STATEMENT`'s loader the same way `LEGAL-TOOL-001`'s schema feeds `WAGE_FLOOR`; no separate pay-stub validation path exists in payroll",
     "refs": "[Open questions](specs/legal-rule-packs-and-state-configuration.md#11-open-questions), [Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#4-obligation-kinds)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_005`, `TestTodo_LEGAL_TOOL_005_Conformance`, `TestTodo_LEGAL_TOOL_005_Golden` in `internal/governance/legal/payrules` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a `pay-statement-fields` registry states, per state, whether an itemized statement is `MANDATORY` or `NOT_MANDATED`, the required field set when mandatory, delivery medium (`PAPER|ELECTRONIC|EITHER`) and any consent requirement; the test fails while any `?`-marked state in Table A's `PAY_STMT` column lacks a resolved `MANDATORY`/`NOT_MANDATED` citation, closing the open question rather than leaving it permanently blocking those states' releases); `go test -count=1 ./internal/governance/legal/payrules/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-006",
@@ -20079,7 +20096,8 @@
     "refactor": "`LEGAL-006`'s statutory/collective/company leave composition reads this parameter set as one input per program; accrual arithmetic itself stays out of the Legal plane per contract § 10 non-goal 4 and is delegated to `internal/domains/leave`/`internal/domains/balance`",
     "refs": "[Existing kinds](specs/legal-rule-packs-and-state-configuration.md#41-existing-kinds-unchanged), [Rule composition](plan.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_006`, `TestTodo_LEGAL_TOOL_006_Conformance`, `TestTodo_LEGAL_TOOL_006_Golden` in `internal/governance/legal/payrules` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: `LeaveInteraction` gains `accrual_hours_per_hours_worked (numerator, denominator)`, `annual_cap_hours`, `employer_size_tier[]` (threshold + cap pairs), `carryover_cap_hours?`, `front_load_permitted bool`, `waiting_period_days?`, `no_forfeiture_on_role_change bool` (always true per the twenty-eight-state finding in contract § 4.1); golden vectors cover Arizona's two-tier cap, Minnesota's carryover cap and Michigan's both-not-either correction, and prove a promotion never zeroes or caps down an existing accrued balance); `go test -count=1 ./internal/governance/legal/payrules/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-007",
@@ -20103,7 +20121,8 @@
     "refactor": "exceptions are evaluated before the trigger predicate fires, not as a post-hoc override; a state with no exception on file behaves exactly as it does today",
     "refs": "[Obligation kinds](specs/legal-rule-packs-and-state-configuration.md#42-added-kinds), [Evaluation order](specs/legal-rule-packs-and-state-configuration.md#62-evaluation-order)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_007`, `TestTodo_LEGAL_TOOL_007_Conformance`, `TestTodo_LEGAL_TOOL_007_Golden` in `internal/governance/legal/carveouts` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a `PayTransparencyException{applies_to (SALARY_HISTORY_BAN|POSTING_MANDATE), exception_kind (VOLUNTARY_DISCLOSURE|SAME_EMPLOYER_VERIFICATION|LATERAL_TRANSFER_NO_PAY_CHANGE|EMPLOYER_SIZE_BELOW_THRESHOLD), citation}` attaches to `PayTransparencyDuty`; golden vectors prove a voluntary disclosure never trips the California/Delaware/Hawaii ban, same-employer verification is permitted where carved out, and an employer below the 15-employee posting threshold is not required to post a range while still bound by the size-independent salary-history ban); `go test -count=1 ./internal/governance/legal/carveouts/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-008",
@@ -20128,7 +20147,8 @@
     "refactor": "the registry is a checked-in reference file the extractor reads like a research file; per contract § 10 non-goal 2 it produces an obligation with a deadline and owner, never a transmission",
     "refs": "[Open questions](specs/legal-rule-packs-and-state-configuration.md#11-open-questions), [Non-goals](specs/legal-rule-packs-and-state-configuration.md#10-non-goals)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_008`, `TestTodo_LEGAL_TOOL_008_Conformance`, `TestTodo_LEGAL_TOOL_008_Golden` in `internal/governance/legal/carveouts` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a `separation-filing-formats` registry states, per state, the UI-notice form name (or `NONE_IDENTIFIED` with a citation), recipient authority, filing deadline/basis and content fields; the test fails while any state remains `?` without either a resolved form or an explicit `NONE_IDENTIFIED` citation); `go test -count=1 ./internal/governance/legal/carveouts/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-009",
@@ -20153,7 +20173,8 @@
     "refactor": "registration is data, not code; adding a locality never touches `internal/governance/legal`'s Go source",
     "refs": "[Attribution rules](specs/legal-rule-packs-and-state-configuration.md#22-attribution-rules), [Preemption](specs/legal-rule-packs-and-state-configuration.md#64-preemption)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_009`, `TestTodo_LEGAL_TOOL_009_Conformance`, `TestTodo_LEGAL_TOOL_009_Golden` in `internal/governance/legal/carveouts` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a `definitions/legal/localities/registry.json` file lists each known locality's `JurisdictionRef`, the kinds it regulates, its release citation, and whether the parent state preempts it (cross-referenced against the five preemption assertions in contract § 6.4: WI, LA, TX, OK, TN); golden vectors prove Chicago/Cook County both register as Illinois overlays, Milwaukee records as preempted rather than silently omitted, and Florida/North Carolina's `LOCAL=?` cells resolve to either a populated overlay or an explicit \"no locality identified\" finding); `go test -count=1 ./internal/governance/legal/carveouts/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-010",
@@ -20225,7 +20246,8 @@
     "refactor": "reciprocity is its own registry rather than folded into the employment-law corpus, because it answers a tax-withholding question the fifty state files were never asked to research",
     "refs": "[Scope and phase placement](specs/legal-rule-packs-and-state-configuration.md#1-scope-and-phase-placement), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_012`, `TestTodo_LEGAL_TOOL_012_Conformance`, `TestTodo_LEGAL_TOOL_012_Golden` in `internal/governance/legal/reciprocity` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a `reciprocity-status` registry marks each state pair `NO_RECIPROCITY_CONFIRMED` (citation), `RECIPROCITY_AGREEMENT` (scope: income-tax, unemployment-insurance, or both), or `UNRESEARCHED`; the test fails while any state pair a tenant has active workers in remains `UNRESEARCHED`, forcing an explicit research pass or tenant-confirmed default before multi-state allocation proceeds); `go test -count=1 ./internal/governance/legal/reciprocity/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LEGAL-TOOL-013",
@@ -20247,7 +20269,8 @@
     "refactor": "this is a corpus-completeness gate, not a scheduling-engine change; `internal/domains/schedopt`/`internal/domains/availability` are untouched until the research exists",
     "refs": "[state employment-law research](research/state-employment-law/README.md), [Non-goals](specs/legal-rule-packs-and-state-configuration.md#10-non-goals)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_TOOL_013`, `TestTodo_LEGAL_TOOL_013_Golden` in `internal/governance/legal/researchgaps` (written in ad58d6a on 2026-09-06 and never ticked; the named tests prove the GREEN contract: the test fails for as long as no state or locality research file contains a \"predictive scheduling\"/\"fair workweek\" finding, naming the real-world statutes the next research pass must confirm or rule out (Oregon statewide; Chicago, NYC, Seattle, San Francisco, Philadelphia local); it passes only once each is explicitly researched and recorded `Y`, `L`, `F` or `?` in a new matrix column, the same way `LEGAL-017`/`LEGAL-018` closed the federal-baseline and contradiction gaps); `go test -count=1 ./internal/governance/legal/researchgaps/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "LIB-001",
@@ -24363,7 +24386,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Rules models](data/models/rules-and-decisions.md), [registry contracts](data/models/registry-and-coverage-contracts.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_PACK_002`, `TestTodo_PACK_002_Fault`, `TestTodo_PACK_002_Golden`, `TestTodo_PACK_002_Mutation`, `TestTodo_PACK_002_Property`, `TestTodo_PACK_002_Security` in `internal/domains/industrypack` (written in d3c2a53 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: content is namespaced, effective-dated and dependency-complete); `go test -count=1 ./internal/domains/industrypack/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "PACK-003",
@@ -27220,7 +27244,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Performance limits](#36-operator-surfaces-ownership-and-measurable-production-limits), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_POP_010`, `TestTodo_POP_010_Benchmark_Once`, `TestTodo_POP_010_Mutation`, `TestTodo_POP_010_Property`, `TestTodo_POP_010_Security` in `internal/engines/popscale` (written in 3bffc6f on 2026-09-03 and never ticked; the named tests prove the GREEN contract: representative multi-tenant/bulk fixtures meet declared p95/memory limits, paginate consistently and keep denied/empty/unknown timing/count responses non-distinguishing); `go test -count=1 ./internal/engines/popscale/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "POSITION-001",
@@ -28903,7 +28928,8 @@
     "refactor": "similarity of names is not sufficient evidence for abstraction",
     "refs": "[Modeling conventions](data/models/modeling-conventions.md), [reference workflows](workflows/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_READINESS_CONF_001`, `TestTodo_READINESS_CONF_001_Conformance`, `TestTodo_READINESS_CONF_001_Fault`, `TestTodo_READINESS_CONF_001_Golden`, `TestTodo_READINESS_CONF_001_Race` in `internal/engines/readiness` (written in 66318d1 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: conformance report identifies the exact common kernel and domain-owned extensions for `READY|CONDITIONAL|NOT_READY|UNKNOWN`; if no stable kernel exists, generic engine todos remain blocked and domains keep local evaluators); `go test -count=1 ./internal/engines/readiness/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "RECON-001",
@@ -29902,7 +29928,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Provenance](specs/provenance-graph-and-lineage.md), [AuthZ](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_ROLLOUT_007`, `TestTodo_ROLLOUT_007_Mutation`, `TestTodo_ROLLOUT_007_Rejects` in `internal/platform/versionexplain` (written in fe89a37 on 2026-09-03 and never ticked; the named tests prove the GREEN contract: query returns target/cohort/stage/bundle/epoch/receipt/override/kill state at known/effective time without exposing other cohort membership); `go test -count=1 ./internal/platform/versionexplain/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "ROLLOUT-008",
@@ -30847,7 +30874,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-10](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST SSDF v1.1](https://csrc.nist.gov/pubs/sp/800/218/final), [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/). Maps to NIST SSDF PW.1; ASVS V1",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_006`, `TestTodo_SECARCH_006_Conformance`, `TestTodo_SECARCH_006_Golden`, `TestTodo_SECARCH_006_Integration`, `TestTodo_SECARCH_006_Mutation`, `TestTodo_SECARCH_006_Security` in `tools/planning/threatmodel` (written in c000a21 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: each such package resolves to a versioned threat-model record cross-linked into `tools/planning/riskbinding` (GOV-023) with security-acceptance criteria and a reviewed release exception path for any accepted gap); `go test -count=1 ./tools/planning/threatmodel/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-007",
@@ -30873,7 +30901,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-06/E-11](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NIST SSDF](https://csrc.nist.gov/pubs/sp/800/218/final), [OWASP Top 10:2025](https://owasp.org/Top10/). Maps to NIST SSDF PW.7/PW.8; ASVS V14; CIS Control 16",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_007`, `TestTodo_SECARCH_007_Golden`, `TestTodo_SECARCH_007_Integration`, `TestTodo_SECARCH_007_Mutation`, `TestTodo_SECARCH_007_Security` in `tools/policy/releaseadmission` (written in 0a56524 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a versioned tool/config/finding/triage record for SAST, secret-scanning, IaC-scanning and DAST is a required `release.RequiredPolicyReports` entry; an unresolved high-severity finding blocks `releaseadmission.Evaluate` unless a time-bounded, reviewed exception is on file); `go test -count=1 ./tools/policy/releaseadmission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-008",
@@ -30898,7 +30927,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-12](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [OWASP Top 10:2025](https://owasp.org/Top10/), [NIST SP 800-61 Rev. 3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r3.pdf). Maps to NIST 800-53 AU-6/AU-11/AU-9; CIS Control 8",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_008`, `TestTodo_SECARCH_008_Golden`, `TestTodo_SECARCH_008_Integration`, `TestTodo_SECARCH_008_Mutation`, `TestTodo_SECARCH_008_Security` in `internal/platform/telemetry/securityevidence` (written in 85f7f5f on 2026-09-06 and never ticked; the named tests prove the GREEN contract: `OBS-001`'s typed envelope carries retention class and hold-state for every SECURITY-tagged signal; a declared alert-rule registry maps named high-risk sequences (repeated DLP refusal, break-glass use, JIT grant near TTL ceiling, cross-tenant denial burst) to a routed alert, and an offline export/verification path proves the signal was not altered after emission); `go test -count=1 ./internal/platform/telemetry/securityevidence/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-009",
@@ -30975,7 +31005,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-17](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [CISA Secure by Design pledge](https://www.cisa.gov/sites/default/files/2024-05/CISA%20Secure%20by%20Design%20Pledge_508c.pdf). Maps to CISA Secure by Design goals 1-7",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_011`, `TestTodo_SECARCH_011_Conformance`, `TestTodo_SECARCH_011_Golden`, `TestTodo_SECARCH_011_Integration`, `TestTodo_SECARCH_011_Mutation`, `TestTodo_SECARCH_011_Security` in `tools/planning/securebydesign` (written in c000a21 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a versioned secure-by-design record names default-configuration tests (deny-by-default AuthZ, MFA/step-up available, audit evidence on), a vulnerability-disclosure policy document, and a trend metric reviewed each release; exceptions are explicit and time-bounded); `go test -count=1 ./tools/planning/securebydesign/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-012",
@@ -31104,7 +31135,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §2, F-04](research/security-best-practices-2026.md#2-financial-applications-and-payment-touching-systems), [Nacha 2026 fraud responsibilities](https://www.nacha.org/news/new-nacha-rules-new-fraud-compliance-responsibilities-all-organizations-sending-ach-payments). Maps to NACHA 2026 risk-management rule set",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_016`, `TestTodo_SECARCH_016_Golden`, `TestTodo_SECARCH_016_Integration`, `TestTodo_SECARCH_016_Mutation`, `TestTodo_SECARCH_016_Security` in `internal/domains/paymethod/achrisk` (written in 66318d1 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: a versioned risk-scoring policy evaluates amount/velocity/destination/operator/device/timing/payroll-change signals, returns alert/hold/release/reject with rule version and threshold, records investigator disposition, and resolves the tenant's applicable Nacha 2026 compliance deadline by originator/participant type); `go test -count=1 ./internal/domains/paymethod/achrisk/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-017",
@@ -31286,7 +31318,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §3, G-14/G-15/G-16](research/security-best-practices-2026.md#3-applications-interacting-with-federal-state-and-local-government), [Department of Labor wage reporting](https://www.dol.gov/node/159684), [OCSS state new-hire directory](https://ocsp.acf.hhs.gov/irg/irgpdf.pdf?addrClassType=EMP\u0026addrType=NHR\u0026geoType=OGP\u0026groupCode=EMP). Maps to Social Security Act quarterly wage-reporting requirement",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SECARCH_023`, `TestTodo_SECARCH_023_Golden`, `TestTodo_SECARCH_023_Integration`, `TestTodo_SECARCH_023_Mutation`, `TestTodo_SECARCH_023_Security` in `internal/domains/payroll/filing` (written in d3c2a53 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: every such exchange resolves a jurisdiction/schema-version profile, validates required elements before transmission, encrypts the payload end to end, and records payload digest, submission, acknowledgment and correction chain as durable evidence); `go test -count=1 ./internal/domains/payroll/filing/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SECARCH-024",
@@ -32807,7 +32840,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Security research §1, E-08](research/security-best-practices-2026.md#1-enterprise-applications-in-general), [NTIA SBOM minimum elements](https://www.ntia.gov/report/2021/minimum-elements-software-bill-materials-sbom). Maps to NTIA SBOM minimum elements (license field); ASVS V14.2",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_SUPPLY_003`, `TestTodo_SUPPLY_003_Golden`, `TestTodo_SUPPLY_003_Integration`, `TestTodo_SUPPLY_003_Mutation`, `TestTodo_SUPPLY_003_Security` in `tools/policy/sbom` (written in c000a21 on 2026-09-06 and never ticked; the named tests prove the GREEN contract: each generated `Component` resolves an SPDX license expression from the module's own `go.mod`/`LICENSE` evidence where declared, marks it `UNKNOWN` rather than guessing where it is not, and `ValidateCompleteness` refuses a document with an unexplained missing license on a component actually vendored into the release); `go test -count=1 ./tools/policy/sbom/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "SUPPLY-004",
@@ -42911,7 +42945,8 @@
     "refactor": "continuation consumes reference, not unrestricted raw payload",
     "refs": "[Workflow signals](specs/workflow-runtime.md), [SIGNAL step](workflows/_engine/step-types.md#6-signal)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WF_RUN_005`, `TestTodo_WF_RUN_005_Fault`, `TestTodo_WF_RUN_005_Mutation`, `TestTodo_WF_RUN_005_Race`, `TestTodo_WF_RUN_005_Security` in `internal/data/signals` (written in 14442de on 2026-09-06 and never ticked; the named tests prove the GREEN contract: receipt, dedupe reservation, subscription match and continuation enqueue commit atomically; all dispositions remain inspectable); `go test -count=1 ./internal/data/signals/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WF-RUN-006",
