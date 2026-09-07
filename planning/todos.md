@@ -15483,7 +15483,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
 
-- [ ] `WEB-027` **[GATE_C][SOL_HIGH] Implement the Go-WASM mount lifecycle.**
+- [x] `WEB-027` **[GATE_C][SOL_HIGH] Implement the Go-WASM mount lifecycle.**
   - **Depends:** `WEB-026`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the go-wasm mount lifecycle without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_027`.
@@ -15492,6 +15492,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the go-wasm mount lifecycle—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
+  - **Evidence (2026-09-07):** `TestTodo_WEB_027`, `TestTodo_WEB_027_Golden`, `TestTodo_WEB_027_Browser`, `TestTodo_WEB_027_Conformance`, `TestTodo_WEB_027_Security`, `TestTodo_WEB_027_Integration`, and `TestTodo_WEB_027_Fault` prove one process-wide Go-WASM mount lifecycle with explicit idle/mounting/mounted/failed/stopped states, typed selector/mount/stop/failure errors, duplicate-mount convergence, stop-safe in-flight rendering, panic-contained idempotent cleanup, retry after failure or stop, and real GWC unmounting that releases the Store subscription. A compiled `js/wasm` test binary executed under Go's Node WASM harness mounted the live component, observed its accessible landmarks and live region, propagated a Store update into the DOM, and verified that unmount removed the DOM and subscriber; the native renderer, WASM command, journey client, workspace, and vet suites passed. The production i18n/accessibility release gate passed over every registered page and supported locale, and its quality-runner wiring test passed. Codex in-app browser QA followed the live journey list into a completed promotion detail and found one stable mounted shell with no blank, duplicate, or fallback content. `BenchmarkMountLifecycle` measured 97.31-126.0 ns/op, 208 B/op, and 3 allocs/op; Windows could not run Go's race detector because CGO is unavailable. Implemented by GPT-5.6 Luna and independently hardened to a no-P0/P1 verdict by GPT-5.6 Sol.
 
 - [ ] `WEB-028` **[GATE_C][SOL_HIGH] Prove SSR-to-WASM hydration parity.**
   - **Depends:** `WEB-027`.

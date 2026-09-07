@@ -5,19 +5,81 @@ package journey
 import (
 	"strings"
 	"testing"
+
+	gwctest "github.com/monstercameron/GoWebComponents/v5/testkit/render"
 )
 
 // These tests carry the same build tag as mount_wasm.go so
 // `GOOS=js GOARCH=wasm go vet ./tools/uxqual/render/journey/` type-checks
 // the product entrypoint with its test alongside it.
 //
-// They deliberately do not call Mount or MountLive: there is no DOM under
-// `go test`, and ui.Render would reach into a document that does not exist.
-// What they can check without a browser is that the three halves of the
-// wasm contract hold -- the tree the entrypoints hand to ui.Render is the
-// same one every native test asserts against, the string injected into
-// <head> is the same constant the content-security-policy hashes, and the
-// store the client drives is wired to the component before anything mounts.
+// The GWC testkit installs the js/wasm runtime with a deterministic DOM and
+// scheduler. That makes TestTodo_WEB_027_Browser an actual live mount/update/
+// unmount oracle without Playwright or a second renderer.
+
+func TestTodo_WEB_027_Browser(t *testing.T) {
+	fixture := gwctest.New(t)
+	store := NewStore(SampleListPage())
+	lifecycle := NewMountLifecycle()
+	if err := lifecycle.Mount(RootSelector, func() error {
+		fixture.Render(LiveComponent(store))
+		return nil
+	}, func() { fixture.Rerender(nil) }); err != nil {
+		t.Fatal(err)
+	}
+	if store.SubscriberCount() != 1 {
+		t.Fatalf("mounted subscriber count=%d, want 1", store.SubscriberCount())
+	}
+	if got := len(fixture.AllByTag("main")); got != 1 {
+		t.Fatalf("main landmarks=%d, want 1", got)
+	}
+	if got := len(fixture.AllByTag("h1")); got != 1 {
+		t.Fatalf("h1 count=%d, want 1", got)
+	}
+	if fixture.ByLiveRegion("polite", "") == nil {
+		t.Fatal("mounted DOM has no polite live region")
+	}
+
+	store.Set(SampleDetailPage())
+	fixture.Flush()
+	if !strings.Contains(fixture.Text(), "Omar Reyes") {
+		t.Fatalf("live store update did not reach DOM: %q", fixture.Text())
+	}
+
+	lifecycle.Stop()
+	fixture.Flush()
+	if store.SubscriberCount() != 0 {
+		t.Fatalf("unmounted subscriber count=%d, want 0", store.SubscriberCount())
+	}
+	if children := fixture.Container().Children(); len(children) != 0 {
+		t.Fatalf("unmount left %d DOM children", len(children))
+	}
+}
+
+func TestMountBrowserDOMPreservesLocalizedAccessibleText(t *testing.T) {
+	fixture := gwctest.New(t)
+	page := SampleListPage()
+	page.Brand = "موارد بشرية"
+	page.Nav[0].Label = "رحلات الترقية"
+	page.Notice.Title = "تم تسجيل الاقتراح"
+	store := NewStore(page)
+	fixture.Render(LiveComponent(store))
+
+	if fixture.ByText("موارد بشرية") == nil {
+		t.Fatal("localized brand text missing from live DOM")
+	}
+	if fixture.ByRole("link", "رحلات الترقية") == nil {
+		t.Fatal("localized navigation link has no accessible name")
+	}
+	if fixture.ByLiveRegion("polite", "") == nil {
+		t.Fatal("localized notice is not exposed as a live region")
+	}
+	fixture.Rerender(nil)
+	fixture.Flush()
+	if store.SubscriberCount() != 0 {
+		t.Fatalf("localized tree leaked %d subscribers", store.SubscriberCount())
+	}
+}
 
 func TestMountBuildsTheSameTreeTheNativeTestsAssertAgainst(t *testing.T) {
 	for name, page := range samplePages() {

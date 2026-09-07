@@ -22,8 +22,8 @@ import (
 // smoke test, and correct only while nothing changes.
 //
 // Anything that answers an RPC wants MountLive.
-func Mount(p Page, selector string) {
-	MountLive(NewStore(p), selector)
+func Mount(p Page, selector string) error {
+	return MountLive(NewStore(p), selector)
 }
 
 // MountLive renders the store's page and keeps it rendered: every Set,
@@ -33,10 +33,27 @@ func Mount(p Page, selector string) {
 //
 // The client's loop is: mount once, then call store.Set with each new Page
 // the gRPC stream produces. Nothing here knows about the transport.
-func MountLive(store *Store, selector string) {
-	injectStylesheet()
-	ui.Render(LiveComponent(store), selector)
+func MountLive(store *Store, selector string) error {
+	if store == nil {
+		return ErrMountFailed
+	}
+	return defaultMount.Mount(selector, func() error {
+		injectStylesheet()
+		ui.Render(LiveComponent(store), selector)
+		return nil
+	}, func() {
+		// Rendering an empty root is GWC v5's public unmount path. It runs
+		// effect cleanups (including LiveComponent's Store unsubscribe) and
+		// removes the owned DOM tree without reaching into runtime internals.
+		ui.Render(nil, selector)
+	})
 }
+
+var defaultMount = NewMountLifecycle()
+
+// StopMount releases the process-wide mount. It is primarily used by host
+// teardown and tests; repeated calls are safe.
+func StopMount() { defaultMount.Stop() }
 
 // injectStylesheet puts the one hashed stylesheet into document.head via
 // textContent, never innerHTML: Stylesheet() is our own static constant, so

@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Promotion for Adrian Cole</title><style>:root{--color-text:#1a1d29;--color-text-muted:#4a4f63;--color-background:#ffffff;--color-surface:#f4f5f8;--color-border:#c7cad6;--color-accent:#1d4f91;--color-accent-text:#ffffff;--color-success:#166534;--color-warning:#7a4a00;--color-warning-text:#fff6e5;--color-danger:#a3123a;--color-danger-text:#ffffff;--color-info:#1a4f66;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--color-background);color:var(--color-text);
-  font:1rem/1.5 system-ui,sans-serif;max-width:100%;overflow-x:hidden}
+  font:1rem/1.5 system-ui,sans-serif;max-width:100%;overflow-wrap:anywhere}
 .workspace{max-width:60rem;margin:0 auto;padding:1rem}
 header.workspace-header{padding:1rem;border-bottom:1px solid var(--color-border)}
 main{display:flex;flex-direction:column;gap:1.5rem;padding:1rem}
@@ -18,7 +18,7 @@ section{background:var(--color-surface);border:1px solid var(--color-border);
 .field .field-static{margin:0;padding:.5rem 0}
 .field .error{color:var(--color-danger);font-size:.875rem}
 ul.findings,ol.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
-.finding,.check{border-left:.25rem solid var(--color-border);padding:.25rem .75rem}
+.finding,.check{border-inline-start:.25rem solid var(--color-border);padding:.25rem .75rem}
 .finding[data-severity="blocking"],.check[data-severity="blocking"]{border-color:var(--color-danger)}
 .finding[data-severity="warning"],.check[data-severity="warning"]{border-color:var(--color-warning)}
 .finding[data-severity="success"],.check[data-severity="success"]{border-color:var(--color-success)}
@@ -36,4 +36,121 @@ button[data-variant="secondary"]{background:var(--color-surface);color:var(--col
 button[data-variant="danger"]{background:var(--color-danger);color:var(--color-danger-text)}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0}
-</style></head><body><div class="workspace"><header class="workspace-header"><h1>Promotion for Adrian Cole</h1><p>Worker: Adrian Cole · Workspace ws.promotion.fix-001</p></header><nav aria-label="Workspace sections"><ul><li><a href="#request-section">Request</a></li><li><a href="#preflight-section">Preflight findings</a></li><li><a href="#simulation-section">Simulation</a></li><li><a href="#timeline-section">Approval timeline</a></li></ul></nav><main id="main-content"><section aria-labelledby="request-heading" id="request-section"><h2 id="request-heading">Requested change</h2><form action="/workspace/promotion/simulate" id="promotion-request" method="post"><input type="hidden" name="csrf_token" value="csrf-fixture"><input type="hidden" name="worker" value="worker-fixture"><div class="field"><label for="proposedJobTitle">Proposed job title<span aria-hidden="true"> *</span></label><input aria-required="true" id="proposedJobTitle" name="proposedJobTitle" type="text" value="Senior Engineer"></div><div class="field"><label for="currentJobTitle">Current job title</label><p class="field-static" id="currentJobTitle">Engineer</p></div><div class="field"><label for="effectiveDate">Effective date<span aria-hidden="true"> *</span></label><input aria-required="true" id="effectiveDate" name="effectiveDate" type="date" value="2026-10-01"></div><div class="field"><label for="businessReason">Business reason</label><textarea id="businessReason" name="businessReason">scope_growth</textarea></div></form></section><section aria-labelledby="preflight-heading" id="preflight-section"><h2 id="preflight-heading">Preflight findings</h2><ul class="findings" role="list"><li class="finding" data-severity="warning"><strong>Increase over ten percent: </strong>the proposal exceeds the default threshold</li></ul></section><section aria-labelledby="simulation-heading" id="simulation-section"><h2 id="simulation-heading">Transaction simulation</h2><div aria-live="polite" class="status-banner" data-status="ready" role="status">Preflight READY: one warning, no blocking findings</div><ul class="findings" role="list"><li class="check" data-severity="info"><strong>band position: </strong>within band</li></ul></section><section aria-labelledby="timeline-heading" class="timeline" id="timeline-section"><h2 id="timeline-heading">Approval timeline</h2><ol class="timeline"><li><time datetime="2026-09-01T09:30:00Z">Sep 1, 2026 09:30 UTC</time> — <strong>intake</strong>: request accepted</li></ol></section><section aria-labelledby="actions-heading" class="actions"><h2 class="visually-hidden" id="actions-heading">Available actions</h2><form action="/workspace/promotion/simulate" method="post"><input form="promotion-request" name="transition" type="hidden" value="approve"><button form="promotion-request" data-variant="primary" type="submit">Approve</button></form><form action="/workspace/promotion/simulate" method="post"><input form="promotion-request" name="transition" type="hidden" value="run_simulation"><button form="promotion-request" data-variant="secondary" type="submit">Run simulation</button></form></section></main><footer><p class="visually-hidden">Source: hcm-next · Capability people.promote@v1</p></footer></div></body></html>
+img,svg,video,canvas{max-inline-size:100%;height:auto}
+:where(input,select,textarea,button){max-inline-size:100%}
+pre{max-inline-size:100%;overflow:auto}
+.widget-slot{min-inline-size:0;max-inline-size:100%}
+.table-container,.table-scroll{min-inline-size:0;max-inline-size:100%}
+.table-scroll{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;touch-action:pan-x pan-y}
+.table-scroll table{inline-size:max-content;min-inline-size:100%;table-layout:auto;border-collapse:collapse}
+.table-scroll :where(th,td){min-inline-size:8rem;overflow-wrap:normal;word-break:normal;white-space:nowrap}
+.table-scroll-cue{color:var(--color-text-muted);font-size:.875rem;margin-block:.25rem}
+.layout-region{min-inline-size:0;gap:.5rem}
+.layout-region>:where(h1,h2,h3,h4,h5,h6){grid-column:1/-1}
+.layout-region[data-layout-narrow-mode="flow"]{display:flex;flex-direction:column}
+.layout-region[data-layout-narrow-mode="grid"]{display:grid}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="1"]{grid-template-columns:repeat(1,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="5"]{grid-template-columns:repeat(5,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="6"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="7"]{grid-template-columns:repeat(7,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="8"]{grid-template-columns:repeat(8,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="9"]{grid-template-columns:repeat(9,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="10"]{grid-template-columns:repeat(10,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="11"]{grid-template-columns:repeat(11,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr))}
+.layout-region[data-layout-narrow-mode="grid"][data-layout-narrow-stacked="true"]{grid-template-columns:1fr}
+@media (min-width:40rem){
+.layout-region[data-layout-compact-mode="flow"]{display:flex;flex-direction:column}
+.layout-region[data-layout-compact-mode="grid"]{display:grid}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="1"]{grid-template-columns:repeat(1,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="5"]{grid-template-columns:repeat(5,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="6"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="7"]{grid-template-columns:repeat(7,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="8"]{grid-template-columns:repeat(8,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="9"]{grid-template-columns:repeat(9,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="10"]{grid-template-columns:repeat(10,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="11"]{grid-template-columns:repeat(11,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr))}
+.layout-region[data-layout-compact-mode="grid"][data-layout-compact-stacked="true"]{grid-template-columns:1fr}
+}
+@media (min-width:60rem){
+.layout-region[data-layout-standard-mode="flow"]{display:flex;flex-direction:column}
+.layout-region[data-layout-standard-mode="grid"]{display:grid}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="1"]{grid-template-columns:repeat(1,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="5"]{grid-template-columns:repeat(5,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="6"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="7"]{grid-template-columns:repeat(7,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="8"]{grid-template-columns:repeat(8,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="9"]{grid-template-columns:repeat(9,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="10"]{grid-template-columns:repeat(10,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="11"]{grid-template-columns:repeat(11,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr))}
+.layout-region[data-layout-standard-mode="grid"][data-layout-standard-stacked="true"]{grid-template-columns:1fr}
+}
+@media (min-width:80rem){
+.layout-region[data-layout-wide-mode="flow"]{display:flex;flex-direction:column}
+.layout-region[data-layout-wide-mode="grid"]{display:grid}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="1"]{grid-template-columns:repeat(1,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="5"]{grid-template-columns:repeat(5,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="6"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="7"]{grid-template-columns:repeat(7,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="8"]{grid-template-columns:repeat(8,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="9"]{grid-template-columns:repeat(9,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="10"]{grid-template-columns:repeat(10,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="11"]{grid-template-columns:repeat(11,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr))}
+.layout-region[data-layout-wide-mode="grid"][data-layout-wide-stacked="true"]{grid-template-columns:1fr}
+}
+
+@media (prefers-contrast:more){
+  body,section,.workspace-header,.field :where(input,select,textarea),.status-banner,.table-scroll :where(th,td){color:CanvasText!important;background:Canvas!important}
+  section,.workspace-header,.field :where(input,select,textarea),.status-banner,.table-scroll :where(th,td){border-color:CanvasText!important}
+  .field .error,.table-scroll-cue{color:CanvasText!important}
+  a{color:LinkText!important}
+  button{color:ButtonText!important;background:ButtonFace!important;border-color:ButtonText!important}
+  :where(a[href],input,select,textarea,button,summary):focus-visible{outline:3px solid Highlight!important;outline-offset:2px;box-shadow:0 0 0 1px Canvas!important}
+  .finding,.check{border-inline-start:.35rem solid CanvasText!important}
+  .status-banner{border-width:2px!important}
+}
+@media (forced-colors:active){
+  body{background:Canvas!important;color:CanvasText!important}
+  section,.workspace-header,.field :where(input,select,textarea),.table-scroll :where(th,td),.provenance{
+    background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText!important
+  }
+  a{color:LinkText!important}
+  button{background:ButtonFace!important;color:ButtonText!important;border:1px solid ButtonText!important}
+  button[data-variant="primary"],button[data-variant="danger"]{background:ButtonFace!important;color:ButtonText!important}
+  .status-banner{background:Canvas!important;color:CanvasText!important;border:2px solid CanvasText!important}
+  .field .error,.table-scroll-cue{color:CanvasText!important}
+  .finding,.check{border-inline-start:.35rem solid CanvasText!important}
+  :where(a[href],input,select,textarea,button,summary):focus-visible{outline:3px solid Highlight!important;outline-offset:2px;box-shadow:0 0 0 1px Canvas!important;forced-color-adjust:auto}
+}
+@media print{
+  @page{margin:1.5cm}
+  html,body{background:#fff!important;color:#000!important}
+  body{font-size:10.5pt;line-height:1.35;max-width:none;overflow:visible}
+  .workspace{max-width:none;padding:0}
+  header.workspace-header,main,section,footer,.finding,.check,.status-banner,.provenance,.simulation-generated,.table-scroll :where(th,td){
+    color:#000!important;background:#fff!important;border-color:#000!important
+  }
+  section{break-inside:avoid;page-break-inside:avoid}
+  nav,.skip-link,.actions,.interactive-only,[data-print="interactive-only"]{display:none!important}
+  .print-evidence{position:static!important;width:auto!important;height:auto!important;margin:.5rem 0!important;overflow:visible!important;clip:auto!important;white-space:normal!important}
+  :where(input,select,textarea){color:#000!important;background:#fff!important;border-color:#000!important}
+  .table-scroll{overflow:visible!important}
+  .table-scroll table{inline-size:100%!important;min-inline-size:0!important}
+  .table-scroll :where(th,td){min-inline-size:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+}
+</style></head><body><div class="workspace"><header class="workspace-header"><h1>Promotion for Adrian Cole</h1><p>Worker: Adrian Cole · Workspace ws.promotion.fix-001</p></header><nav aria-label="Workspace sections"><ul><li><a href="#request-section">Request</a></li><li><a href="#preflight-section">Preflight findings</a></li><li><a href="#simulation-section">Simulation</a></li><li><a href="#timeline-section">Approval timeline</a></li></ul></nav><main id="main-content"><section aria-labelledby="request-heading" id="request-section"><h2 id="request-heading">Requested change</h2><form action="/workspace/promotion/simulate" id="promotion-request" method="post"><input type="hidden" name="csrf_token" value="csrf-fixture"><input type="hidden" name="worker" value="worker-fixture"><div class="field"><label for="proposedJobTitle">Proposed job title<span aria-hidden="true"> *</span></label><input aria-required="true" id="proposedJobTitle" name="proposedJobTitle" type="text" value="Senior Engineer"></div><div class="field"><label for="currentJobTitle">Current job title</label><p class="field-static" id="currentJobTitle">Engineer</p></div><div class="field"><label for="effectiveDate">Effective date<span aria-hidden="true"> *</span></label><input aria-required="true" id="effectiveDate" name="effectiveDate" type="date" value="2026-10-01"></div><div class="field"><label for="businessReason">Business reason</label><textarea id="businessReason" name="businessReason">scope_growth</textarea></div></form></section><section aria-labelledby="preflight-heading" id="preflight-section"><h2 id="preflight-heading">Preflight findings</h2><ul class="findings" role="list"><li class="finding" data-severity="warning"><strong class="severity-label">Warning: </strong><strong>Increase over ten percent: </strong>the proposal exceeds the default threshold</li></ul></section><section aria-labelledby="simulation-heading" id="simulation-section"><h2 id="simulation-heading">Transaction simulation</h2><div aria-live="polite" class="status-banner" data-status="ready" role="status"><strong class="status-label">Status: Ready. </strong>Preflight READY: one warning, no blocking findings</div><p class="simulation-generated visually-hidden print-evidence">Generated <time datetime="2026-09-03T12:00:00Z">Sep 3, 2026 12:00 UTC</time></p><ul class="findings" role="list"><li class="check" data-severity="info"><strong class="severity-label">Information: </strong><strong>band position: </strong>within band</li></ul></section><section aria-labelledby="timeline-heading" class="timeline" id="timeline-section"><h2 id="timeline-heading">Approval timeline</h2><ol class="timeline"><li><time datetime="2026-09-01T09:30:00Z">Sep 1, 2026 09:30 UTC</time> — <strong>intake</strong>: request accepted</li></ol></section><section aria-labelledby="actions-heading" class="actions"><h2 class="visually-hidden" id="actions-heading">Available actions</h2><form action="/workspace/promotion/simulate" method="post"><input form="promotion-request" name="transition" type="hidden" value="approve"><button form="promotion-request" data-variant="primary" type="submit">Approve</button></form><form action="/workspace/promotion/simulate" method="post"><input form="promotion-request" name="transition" type="hidden" value="run_simulation"><button form="promotion-request" data-variant="secondary" type="submit">Run simulation</button></form></section></main><footer><p class="provenance visually-hidden print-evidence">Source: <strong>hcm-next</strong> · Capability people.promote@v1 · As of <time datetime="2026-09-03T12:00:00Z">Sep 3, 2026 12:00 UTC</time></p></footer></div></body></html>

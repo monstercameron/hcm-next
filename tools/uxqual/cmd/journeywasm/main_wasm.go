@@ -33,8 +33,8 @@ import (
 // the same two identifiers.
 const (
 	configElementID = "journey-config"
-	rootElementID   = "app"
-	rootSelector    = "#" + rootElementID
+	rootElementID   = journey.RootElementID
+	rootSelector    = journey.RootSelector
 )
 
 func main() {
@@ -77,7 +77,9 @@ func start() error {
 	// browser's own Back button works.
 	app.Locate = setHash
 
-	mount(store)
+	if err := mount(store); err != nil {
+		return err
+	}
 	js.Global().Set("onhashchange", js.FuncOf(func(js.Value, []js.Value) any {
 		app.OnHashChange(currentHash())
 		return nil
@@ -112,12 +114,15 @@ func dial(cfg journeyclient.Config) (*grpc.ClientConn, error) {
 // above a working page telling its reader the page does not work.
 // textContent is used rather than innerHTML because it is not an injection
 // sink, and clearing a node needs nothing that is.
-func mount(store *journey.Store) {
+func mount(store *journey.Store) error {
 	if root := js.Global().Get("document").Call("getElementById", rootElementID); root.Truthy() {
 		root.Set("textContent", "")
 	}
-	journey.MountLive(store, rootSelector)
+	if err := journey.MountLive(store, rootSelector); err != nil {
+		return err
+	}
 	bindActionableNoticeFocus(store)
+	return nil
 }
 
 // bindActionableNoticeFocus brings a newly rendered refusal into view. The
@@ -187,7 +192,7 @@ func setHash(href string) {
 // sees on failure is the page they know, with the reason in the notice
 // rather than a blank document or a console message they will never open.
 func mountStartupFailure(err error) {
-	mount(journey.NewStore(startupFailurePage(err)))
+	_ = mount(journey.NewStore(startupFailurePage(err)))
 }
 
 // startupFailurePage is the failure page as a value, so it can be asserted
