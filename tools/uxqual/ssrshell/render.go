@@ -22,6 +22,11 @@ import (
 // without re-deriving it from the rendered markup.
 const PageIslandElementID = "page-definition"
 
+// LiveRegionElementID is the stable cross-renderer id of a governed page's
+// one explicit live region. GWC aliases this value so SSR and hydrated trees
+// cannot silently choose different announcement targets.
+const LiveRegionElementID = "live-region"
+
 // RenderedShell is [Render]'s result: the shell document and a digest of
 // its own bytes.
 //
@@ -244,7 +249,7 @@ var shellTemplate = template.Must(template.New("shell").Parse(
 <body>
 <a class="visually-hidden" href="#main-content">Skip to main content</a>
 ` +
-		`{{if .LiveRegion}}<div id="live-region" role="{{.LiveRegion.Role}}" aria-live="{{.LiveRegion.Politeness}}" aria-atomic="true"></div>
+		`{{if .LiveRegion}}<div id="` + LiveRegionElementID + `" role="{{.LiveRegion.Role}}" aria-live="{{.LiveRegion.Politeness}}" aria-atomic="true"></div>
 {{end}}` +
 		`{{range .Regions}}` +
 		`{{if eq .Tag "header"}}<header id="region-{{.ID}}" aria-label="{{.AriaLabel}}">

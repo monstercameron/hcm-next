@@ -14,8 +14,8 @@ const AuthorityElementID = "workspace-authority"
 
 // SessionStrip renders s as the shell's authority-context region. A zero
 // Session (see [Session.IsZero]) renders nothing at all, matching
-// [StatusRegion]'s LiveRegionOff behavior: a session the reader carries no
-// display fact for is not the same as a broken renderer, so it is an
+// the page renderer's LiveRegionOff behavior: a session the reader carries
+// no display fact for is not the same as a broken renderer, so it is an
 // explicit empty fragment rather than a strip full of blank labels.
 func SessionStrip(s Session) ui.Node {
 	if s.IsZero() {

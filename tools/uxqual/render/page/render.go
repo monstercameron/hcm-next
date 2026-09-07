@@ -17,6 +17,12 @@ import (
 // tools/uxqual/render/workspace) can find it without restating the literal.
 const RootElementIDPrefix = "page-"
 
+// LiveRegionElementID is the stable id of the governed page's one explicit
+// live region. The page renderer owns this node so rendering a page alone and
+// composing that same page inside a workspace cannot create competing
+// announcers.
+const LiveRegionElementID = ssrshell.LiveRegionElementID
+
 // Render builds res.Page's component tree using res.Floorplan's declared
 // regions and reg's registered widgets, in the page's own definition order.
 //
@@ -68,7 +74,10 @@ func buildResponsivePage(pd pagedef.PageDefinition, fp floorplan.Floorplan, reg 
 }
 
 func buildPageWithResponsiveProps(pd pagedef.PageDefinition, reg *Registry, responsive map[string]html.Props) (ui.Node, error) {
-	children := make([]ui.Node, 0, len(pd.Regions))
+	children := make([]ui.Node, 0, len(pd.Regions)+1)
+	if pd.Accessibility.LiveRegion != pagedef.LiveRegionOff {
+		children = append(children, LiveRegion(pd.Accessibility.LiveRegion))
+	}
 	for _, region := range pd.Regions {
 		node, err := buildRegionWithResponsiveProps(pd, region, reg, responsive)
 		if err != nil {
@@ -77,9 +86,32 @@ func buildPageWithResponsiveProps(pd pagedef.PageDefinition, reg *Registry, resp
 		children = append(children, node)
 	}
 	return html.Div(html.Props{
-		ID:   RootElementIDPrefix + pd.PageID,
-		Data: map[string]string{"page-version": strconv.Itoa(pd.Version)},
+		ID: RootElementIDPrefix + pd.PageID,
+		Data: map[string]string{
+			"page-version": strconv.Itoa(pd.Version),
+			"page-digest":  pd.Digest(),
+		},
 	}, children...), nil
+}
+
+// LiveRegion renders the governed page's canonical announcer. Callers that
+// compose [Render] must not add this node separately: it is already the first
+// child of the page root. LiveRegionOff renders an empty fragment.
+func LiveRegion(politeness pagedef.LiveRegionPoliteness) ui.Node {
+	var role string
+	switch politeness {
+	case pagedef.LiveRegionPolite:
+		role = "status"
+	case pagedef.LiveRegionAssertive:
+		role = "alert"
+	default:
+		return html.Fragment()
+	}
+	return html.Div(html.Props{
+		ID:   LiveRegionElementID,
+		Role: role,
+		Aria: map[string]string{"live": string(politeness), "atomic": "true"},
+	})
 }
 
 // buildRegion renders one region: its landmark element, its heading (if
@@ -184,6 +216,7 @@ func buildSlot(pd pagedef.PageDefinition, region pagedef.Region, slot pagedef.Wi
 	}
 	return html.Div(html.Props{
 		Class: "widget-slot",
+		Role:  "presentation",
 		Data:  map[string]string{"slot-id": slot.ID, "widget-ref": slot.WidgetRef},
 	}, content), nil
 }

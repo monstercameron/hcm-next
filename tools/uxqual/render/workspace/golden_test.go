@@ -21,9 +21,10 @@ func digest(t *testing.T, s string) string {
 // and a fixed session, resolved and widget-mounted through the exact same
 // real registries TestTodo_WEB_121_Integration exercises
 // (floorplan.PromotionRegistry, page.PromotionWidgetRegistry). A silent
-// change to the shell's own chrome (nav, status region, authority strip,
-// document order) or to anything the page renderer or its registered
-// widgets produce shows up here as a digest mismatch, the same way
+// change to the shell's own chrome (nav, authority strip, document order)
+// or to anything the page renderer produces (including its one canonical
+// status region) or its registered widgets produce shows up here as a digest
+// mismatch, the same way
 // tools/uxqual/render/page's own TestTodo_WEB_026_Golden pins the page
 // renderer alone.
 //
@@ -43,13 +44,13 @@ func TestTodo_WEB_121_Golden(t *testing.T) {
 			name:       "list",
 			resolution: listResolution,
 			route:      journeyclient.Parse(""),
-			wantDigest: "sha256:73be42be13b9733a32fdc3ef9f18b95c0869a6a3286baabbeab5302c26bd2393",
+			wantDigest: "sha256:59a34141b179020ed1f8e8789a38f9a8cf83c868341cd3d6a4732a0601673292",
 		},
 		{
 			name:       "detail",
 			resolution: detailResolution,
 			route:      journeyclient.Parse("#/journeys/int_01JX6Y8B2C7D9EFG"),
-			wantDigest: "sha256:7f664ee2a8296ef658c851c410edcca15b9caac29fa29df65b893bbe03fe0ead",
+			wantDigest: "sha256:9f209dfbfcf8b7f09f34ef3ddbdd85690d89e5c7a85c37ec275c6e3c6eac0968",
 		},
 	}
 

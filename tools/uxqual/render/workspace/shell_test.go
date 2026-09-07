@@ -49,9 +49,9 @@ func buildString(t *testing.T, in Input) string {
 	return renderNode(t, node)
 }
 
-// TestTodo_WEB_121 is the PRIMARY test: Build composes the navigation
-// region, the status/live region, the authority-context strip, and the
-// page's own rendered tree into one shell, for a real Promotion page.
+// TestTodo_WEB_121 is the PRIMARY test: Build composes the navigation and
+// authority-context regions with the page's own rendered tree, including
+// that page tree's canonical status/live region, for a real Promotion page.
 func TestTodo_WEB_121(t *testing.T) {
 	in := Input{
 		Resolution: listResolution(t),
@@ -79,10 +79,10 @@ func TestTodo_WEB_121(t *testing.T) {
 }
 
 // TestTodo_WEB_121_Conformance proves the shell's own document order: skip
-// link, then navigation, then status region, then authority strip, then the
-// page's own root -- the frontend plan's page-anatomy order (shell chrome
-// before page identity), and never any other order regardless of which
-// page is inside it.
+// link, then navigation, then authority strip, then the page's own root. The
+// page-owned status region is the root's first child, never a competing shell
+// sibling -- preserving shell chrome before page identity and one announcer
+// regardless of which page is inside it.
 func TestTodo_WEB_121_Conformance(t *testing.T) {
 	in := Input{
 		Resolution: listResolution(t),
@@ -95,9 +95,9 @@ func TestTodo_WEB_121_Conformance(t *testing.T) {
 	markers := []string{
 		`href="#` + SkipTargetElementID + `"`,
 		`id="` + NavElementID + `"`,
-		`id="` + StatusElementID + `"`,
 		`id="` + AuthorityElementID + `"`,
 		`id="page-promotion.journeys.list"`,
+		`id="` + StatusElementID + `"`,
 	}
 	positions := make([]int, len(markers))
 	for i, m := range markers {
@@ -110,6 +110,49 @@ func TestTodo_WEB_121_Conformance(t *testing.T) {
 		if positions[i-1] >= positions[i] {
 			t.Errorf("shell document order violated: %q (at %d) does not precede %q (at %d)", markers[i-1], positions[i-1], markers[i], positions[i])
 		}
+	}
+}
+
+// TestBuildOwnsExactlyOneLiveRegion prevents the page-owned announcer and
+// shell composition from drifting back to two AT announcement targets.
+func TestBuildOwnsExactlyOneLiveRegion(t *testing.T) {
+	out := buildString(t, Input{
+		Resolution: listResolution(t),
+		Widgets:    page.PromotionWidgetRegistry(),
+		Route:      journeyclient.Parse(""),
+		Session:    fixtureSession(),
+	})
+	root, err := xhtml.Parse(strings.NewReader("<body>" + out + "</body>"))
+	if err != nil {
+		t.Fatalf("rendered shell does not parse as HTML: %v", err)
+	}
+
+	pageRoot := findByID(root, page.RootElementIDPrefix+"promotion.journeys.list")
+	if pageRoot == nil {
+		t.Fatal("composed workspace has no governed page root")
+	}
+	var liveRegions []*xhtml.Node
+	var walk func(*xhtml.Node)
+	walk = func(n *xhtml.Node) {
+		if n.Type == xhtml.ElementNode {
+			role := attrOf(n, "role")
+			if role == "status" || role == "alert" || attrOf(n, "aria-live") != "" {
+				liveRegions = append(liveRegions, n)
+			}
+		}
+		for child := n.FirstChild; child != nil; child = child.NextSibling {
+			walk(child)
+		}
+	}
+	walk(root)
+	if len(liveRegions) != 1 {
+		t.Fatalf("composed workspace live regions = %d, want exactly 1", len(liveRegions))
+	}
+	if got := attrOf(liveRegions[0], "id"); got != page.LiveRegionElementID {
+		t.Fatalf("composed workspace live-region id = %q, want %q", got, page.LiveRegionElementID)
+	}
+	if !isDescendant(pageRoot, liveRegions[0]) {
+		t.Fatal("canonical live region is not owned by the governed page root")
 	}
 }
 
@@ -252,6 +295,15 @@ func findFirstA(n *xhtml.Node) *xhtml.Node {
 		}
 	}
 	return nil
+}
+
+func isDescendant(ancestor, node *xhtml.Node) bool {
+	for current := node; current != nil; current = current.Parent {
+		if current == ancestor {
+			return true
+		}
+	}
+	return false
 }
 
 func attrOf(n *xhtml.Node, key string) string {

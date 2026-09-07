@@ -46,11 +46,9 @@ type Input struct {
 //
 //  1. a skip link targeting the page's Primary landmark;
 //  2. the navigation region ([Nav]), driven by in.Route;
-//  3. the status/live region ([StatusRegion]), driven by the page's own
-//     declared Accessibility.LiveRegion;
-//  4. the authority-context strip ([SessionStrip]), driven by in.Session;
-//  5. the page's own rendered tree (tools/uxqual/render/page.Render),
-//     unmodified.
+//  3. the authority-context strip ([SessionStrip]), driven by in.Session;
+//  4. the page's own rendered tree (tools/uxqual/render/page.Render),
+//     including that governed page's one canonical live region.
 //
 // It never falls back to free HTML for a page.Render failure: an
 // unregistered widget ref, or a PageDefinition that fails validation, is
@@ -67,7 +65,6 @@ func Build(in Input) (ui.Node, error) {
 	return html.Div(html.Props{ID: RootElementID},
 		skipLink(),
 		Nav(in.Route),
-		StatusRegion(in.Resolution.Page.Accessibility.LiveRegion),
 		SessionStrip(in.Session),
 		body,
 	), nil

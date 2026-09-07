@@ -7,14 +7,12 @@
 //	    + this package's navigation region (driven by the hash routes
 //	      tools/uxqual/journeyclient already parses and builds:
 //	      "#/journeys", "#/journeys?worker=<ref>")
-//	    + this package's status/live region (the page's own declared
-//	      Accessibility.LiveRegion politeness)
 //	    + this package's session/authority-context reader ([ReadSession])
 //	    -> Build: the whole shell as one GWC component tree
 //
 // # What this package does and does not own
 //
-// workspace owns exactly one thing: assembling the four pieces above into
+// workspace owns exactly one thing: assembling the three pieces above into
 // one deterministic tree, in the frontend plan's own page-anatomy order
 // (shell chrome, then the page's own regions starting at page identity). It
 // never:
@@ -23,7 +21,8 @@
 //     [tools/uxqual/render/page.Render]'s job; this package hands it a
 //     pre-resolved floorplan.Resolution and a widget [page.Registry] and
 //     propagates its error unchanged rather than rendering a partial shell
-//     around a failure;
+//     around a failure. The page renderer also owns the governed page's one
+//     canonical live region; Build does not add a second shell announcer;
 //   - parses or owns hash routing -- [tools/uxqual/journeyclient.Parse] and
 //     Href/ListHref/WorkerHref/DetailHref remain the one place a route and
 //     an address translate into each other; this package only reads an
