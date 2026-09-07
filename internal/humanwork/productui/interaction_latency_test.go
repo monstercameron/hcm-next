@@ -39,6 +39,18 @@ func TestInteractionLatencyGate(t *testing.T) {
 		})
 	})
 
+	t.Run("provenance feedback within one frame", func(t *testing.T) {
+		projection := canonicalProvenanceFixture()
+		assertInteractionLatency(t, latencygate.Budget{
+			Name: "provenance feedback", P95: 16 * time.Millisecond, Warmups: 3, Samples: interactionLatencySamples,
+		}, func() error {
+			_, err := ui.RenderToString(ui.CreateElement(ProvenancePresentation, ProvenancePresentationProps{
+				I18nProps: I18nProps{Locale: ResolveProductLocale("en-US")}, IDSeed: "latency-provenance", Projection: projection,
+			}))
+			return err
+		})
+	})
+
 	t.Run("loading feedback within one frame", func(t *testing.T) {
 		view := testView(PagePeople)
 		assertInteractionLatency(t, latencygate.Budget{

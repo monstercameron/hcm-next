@@ -59,6 +59,7 @@ type WorkPreviewProps struct {
 	Person           string
 	Summary          string
 	StatusProjection StatusProjection
+	Provenance       ProvenanceProjection
 	FactsTitle       string
 	Facts            []FactProps
 	Action           ActionLinkProps
@@ -140,6 +141,7 @@ func WorkPreview(props WorkPreviewProps) ui.Node {
 	}
 	facts := append([]ui.Node{html.H3(html.Props{}, ui.Text(props.FactsTitle))}, factRows(props.Facts)...)
 	status := ui.CreateElement(StatusPresentation, StatusPresentationProps{I18nProps: props.I18nProps, IDSeed: "work-preview-status-" + props.ID, Projection: props.StatusProjection})
+	provenance := ui.CreateElement(ProvenancePresentation, ProvenancePresentationProps{I18nProps: props.I18nProps, IDSeed: "work-preview-provenance-" + props.ID, Projection: props.Provenance})
 	return html.Aside(html.Props{Class: "surface work-preview", Aria: map[string]string{"label": props.Text("work.selected_summary")}},
 		html.Div(html.Props{Class: "preview-head"},
 			personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
@@ -147,6 +149,7 @@ func WorkPreview(props WorkPreviewProps) ui.Node {
 			status,
 		),
 		html.Div(html.Props{Class: "facts"}, facts...),
+		provenance,
 		ui.CreateElement(ActionLink, props.Action),
 	)
 }

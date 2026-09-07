@@ -13,6 +13,7 @@ func TestFeatureComponentPropsNeverEmbedPageView(t *testing.T) {
 	props := []any{
 		ActionLinkProps{}, FactProps{}, MetricProps{}, ActivityProps{}, PanelProps{}, EmptyStateProps{}, PopoverSurfaceProps{}, TransientPopoverProps{},
 		WorkPageProps{}, WorkCollectionProps{}, WorkTabProps{}, WorkRowProps{}, WorkCollectionFooterProps{}, WorkPreviewProps{},
+		ProvenancePresentationProps{},
 		HomePageProps{}, SummaryCardProps{}, QuickActionsProps{}, RecentActivityProps{},
 		OrganizationPageProps{}, OrganizationGroupProps{}, BusinessMetadataProps{}, BusinessMetadataItemProps{}, InsightsPageProps{}, AttentionPanelProps{},
 		AdminPageProps{}, AdminHeroProps{}, CapabilityCardProps{}, HelpPageProps{}, InformationalPanelProps{},

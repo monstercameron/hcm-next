@@ -89,7 +89,7 @@ func workPreviewProps(view View, item WorkItem) WorkPreviewProps {
 	}
 	return WorkPreviewProps{
 		ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-		Summary: item.Summary, StatusProjection: item.StatusProjection, FactsTitle: view.Locale.Text("work.server_proposal"),
+		Summary: item.Summary, StatusProjection: item.StatusProjection, Provenance: item.Provenance, FactsTitle: view.Locale.Text("work.server_proposal"),
 		Facts: []FactProps{
 			{Label: view.Locale.Text("work.effective_date"), Value: valueOrUnavailableFor(view.Locale, item.EffectiveDate)},
 			{Label: view.Locale.Text("work.current_base"), Value: money(view.Locale, item.CurrentBase)},

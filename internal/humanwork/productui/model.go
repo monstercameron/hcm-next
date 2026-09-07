@@ -64,6 +64,9 @@ type WorkItem struct {
 	// StatusProjection is supplied by the authorized service adapter when
 	// available. The page never treats it as action authority.
 	StatusProjection StatusProjection
+	// Provenance is supplied by the authorized service adapter when available.
+	// It is presentation evidence only and never grants action authority.
+	Provenance ProvenanceProjection
 }
 
 type Person struct {
