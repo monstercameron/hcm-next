@@ -288,6 +288,10 @@ type View struct {
 	NavigateDebounced         func(string)
 	CancelDebouncedNavigation func()
 	HistoryNavigation         HistoryNavigationProps
+	// ContextSwitcher is the server-resolved tenant and acting-authority
+	// projection. It is intentionally separate from Tenant/Scope strings so
+	// presentation cannot mint a context or authority from a URL value.
+	ContextSwitcher ContextSwitcherProps
 }
 
 // Can reports whether the resolved role grants an operation on a page. An

@@ -18,6 +18,7 @@ func TestFeatureComponentPropsNeverEmbedPageView(t *testing.T) {
 		OrganizationPageProps{}, OrganizationGroupProps{}, BusinessMetadataProps{}, BusinessMetadataItemProps{}, InsightsPageProps{}, AttentionPanelProps{},
 		AdminPageProps{}, AdminHeroProps{}, CapabilityCardProps{}, HelpPageProps{}, InformationalPanelProps{},
 		SettingsPageProps{}, ViewerProfileProps{}, AccessContextProps{}, LocalePreferencesProps{}, LocaleOptionProps{}, StudioPageProps{}, AppearancePageProps{}, AppearanceOption{}, BrandLogoProps{},
+		ContextSwitcherProps{},
 		PeoplePageProps{}, PeopleSummaryProps{}, PeopleFilterProps{}, PeopleDirectoryProps{}, PeopleTableProps{}, PeopleRowProps{},
 		DataTableProps{}, DataTableColumnProps{}, DataTableRowProps{}, DataTableCellProps{},
 		PeoplePaginationProps{}, PageSizeControlProps{}, PaginationLinkProps{}, PeopleEmptyStateProps{}, PersonPageProps{}, MyselfPageProps{}, SelfServiceBoundaryProps{},

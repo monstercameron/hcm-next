@@ -60,6 +60,7 @@ func appHeader(view View) ui.Node {
 			}, toggle.Href, navIcon(toggle.Icon)),
 		),
 		html.Div(html.Props{Class: "header-navigation-tools"},
+			contextSwitcherSlot(view),
 			ui.CreateElement(HistoryNavigation, historyNavigationProps(view)),
 			globalSearch(view),
 		),
@@ -67,6 +68,14 @@ func appHeader(view View) ui.Node {
 		notificationSlot(view),
 		viewerProfileLink(view),
 	)
+}
+
+func contextSwitcherSlot(view View) ui.Node {
+	props := view.ContextSwitcher
+	if !contextSwitcherVisible(props) {
+		return html.Fragment()
+	}
+	return ui.CreateElement(ContextSwitcher, props)
 }
 
 func historyNavigationProps(view View) HistoryNavigationProps {
