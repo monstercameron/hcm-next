@@ -414,7 +414,10 @@ func ScanTestNames(root string) (map[string]bool, error) {
 			return walkErr
 		}
 		if info.IsDir() {
-			if info.Name() == ".git" || info.Name() == "vendor" {
+			// Dot-prefixed directories hold caches and embedded-server runtimes
+			// whose files appear and vanish while a scan runs; they never hold
+			// repository tests.
+			if name := info.Name(); name == "vendor" || name == "node_modules" || (strings.HasPrefix(name, ".") && path != root) {
 				return filepath.SkipDir
 			}
 			return nil
