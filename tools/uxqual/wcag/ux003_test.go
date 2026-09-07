@@ -104,7 +104,7 @@ func TestTodo_UX_003_Integration(t *testing.T) {
 // order, names, errors and authorization projection as the Go gate.
 func TestTodo_UX_003_Browser(t *testing.T) {
 	ssrDoc, _ := rendered(t)
-	got := strings.Join([]string{"proposedJobTitle", "proposedCompensation", "effectiveDate", "businessReason"}, ",")
+	got := strings.Join([]string{"proposedJobTitle", "proposedGrade", "proposedCompensation", "effectiveDate", "businessReason"}, ",")
 	if want := strings.Join(fieldIDs(ssrDoc), ","); !strings.Contains(want, got) {
 		t.Fatalf("browser fixture field order missing: want %s in %s", got, want)
 	}

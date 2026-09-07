@@ -65,7 +65,7 @@ func start() error {
 	if err != nil {
 		return err
 	}
-	service := journeyclient.NewGRPCService(conn, cfg.Bearer)
+	service := newJourneyService(conn, cfg)
 	if isProductPath(currentPath()) {
 		return startProduct(context.Background(), cfg, service)
 	}
@@ -88,6 +88,13 @@ func start() error {
 	return nil
 }
 
+// newJourneyService keeps the WASM composition on the qualified adapter seam;
+// the command owns only the browser dial and passes the connection to the
+// generated-contract client boundary.
+func newJourneyService(conn grpc.ClientConnInterface, cfg journeyclient.Config) journeyclient.Service {
+	return journeyclient.NewGRPCService(conn, cfg.Bearer)
+}
+
 // dial builds the gRPC client over the browser's WebSocket.
 //
 // Three things here are deliberate. The dial target is a passthrough address
@@ -101,6 +108,9 @@ func dial(cfg journeyclient.Config) (*grpc.ClientConn, error) {
 	return grpc.NewClient(
 		cfg.DialTarget(),
 		dialer.New(cfg.TunnelURL),
+		// Browser mutations are never replayed by this composition. The
+		// server owns idempotency; the client only reports the one attempt.
+		grpc.WithDisableRetry(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 }

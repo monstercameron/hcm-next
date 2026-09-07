@@ -127,9 +127,16 @@ func (c *Conn) Close(ctx context.Context) error { return c.conn.Close(ctx) }
 // safe for concurrent use, and every Exec/Query/QueryRow acquires and releases
 // a connection of its own.
 type Pool struct {
-	pool            *pgxpool.Pool
-	hygieneFailures *atomic.Int64
+	pool              *pgxpool.Pool
+	hygieneFailures   *atomic.Int64
+	hygieneRoundTrips *atomic.Int64
 }
+
+// hygieneSQL is the transaction-safe form of DISCARD ALL. PostgreSQL rejects
+// DISCARD ALL inside a multi-statement simple-protocol message because that
+// message runs in a transaction block, so its individual reset operations are
+// sent together instead.
+const hygieneSQL = "RESET ROLE; SET SESSION AUTHORIZATION DEFAULT; SELECT pg_advisory_unlock_all(); CLOSE ALL; RESET ALL; DEALLOCATE ALL; UNLISTEN *; DISCARD PLANS; DISCARD TEMPORARY; DISCARD SEQUENCES"
 
 // NewPool opens a pool against url and pings it once, so a bad connection
 // string or an unreachable server fails here rather than on first use.
@@ -157,40 +164,25 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 	cfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
 	// A pooled connection is a reusable PostgreSQL session. Reset all ambient
 	// state before handing an idle session to a borrower; callers must use SET
-	// LOCAL for request/tenant context. DISCARD ALL does not reset an assumed
-	// role or session-level advisory locks, so those are reset explicitly too.
-	// Re-apply trusted runtime parameters (notably search_path), which DISCARD
-	// ALL resets to defaults.
-	params := make(map[string]string, len(runtimeParams))
-	for k, v := range runtimeParams {
-		params[k] = v
-	}
+	// LOCAL for request/tenant context. The transaction-safe components of
+	// DISCARD ALL reset session state; DISCARD ALL itself cannot be included in
+	// this one multi-statement message. It also does not reset an assumed role
+	// or session-level advisory locks, so those are reset explicitly too.
 	var hygieneFailures atomic.Int64
+	var hygieneRoundTrips atomic.Int64
 	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
 		// RESET ROLE returns from SET ROLE to the login role. The unlock-all call
 		// is intentionally unconditional: unlike transaction-scoped locks,
 		// session advisory locks survive a transaction and DISCARD ALL.
 		// Hygiene runs through the simple protocol: it must not depend on a
-		// prepared-statement cache that DISCARD ALL, two lines down, is about
-		// to invalidate. The set_config call carries bound arguments and so
-		// uses the extended protocol without a named statement.
-		if _, err := conn.Exec(ctx, "RESET ROLE", pgx.QueryExecModeSimpleProtocol); err != nil {
+		// prepared-statement cache that the discard operations here are about to
+		// invalidate. Runtime parameters are sent in PostgreSQL's
+		// startup packet and DISCARD ALL restores those startup values, so they
+		// do not need a per-acquire set_config round trip.
+		hygieneRoundTrips.Add(1)
+		if _, err := conn.Exec(ctx, hygieneSQL, pgx.QueryExecModeSimpleProtocol); err != nil {
 			hygieneFailures.Add(1)
 			return false
-		}
-		if _, err := conn.Exec(ctx, "SELECT pg_advisory_unlock_all()", pgx.QueryExecModeSimpleProtocol); err != nil {
-			hygieneFailures.Add(1)
-			return false
-		}
-		if _, err := conn.Exec(ctx, "DISCARD ALL", pgx.QueryExecModeSimpleProtocol); err != nil {
-			hygieneFailures.Add(1)
-			return false
-		}
-		for k, v := range params {
-			if _, err := conn.Exec(ctx, "SELECT set_config($1, $2, false)", pgx.QueryExecModeExec, k, v); err != nil {
-				hygieneFailures.Add(1)
-				return false
-			}
 		}
 		return true
 	}
@@ -202,7 +194,7 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 		pool.Close()
 		return nil, err
 	}
-	return &Pool{pool: pool, hygieneFailures: &hygieneFailures}, nil
+	return &Pool{pool: pool, hygieneFailures: &hygieneFailures, hygieneRoundTrips: &hygieneRoundTrips}, nil
 }
 
 // WithConn lends one physical connection to fn and releases it afterwards.
@@ -260,20 +252,22 @@ func (p *Pool) HygieneFailures() int64 {
 // Saturation is a snapshot of the pool's connection accounting, reported
 // without handing out pgxpool's own stat type.
 type Saturation struct {
-	AcquiredConns int32
-	IdleConns     int32
-	MaxConns      int32
-	TotalConns    int32
+	AcquiredConns     int32
+	IdleConns         int32
+	MaxConns          int32
+	TotalConns        int32
+	HygieneRoundTrips int64
 }
 
 // Stats reports the pool's current saturation.
 func (p *Pool) Stats() Saturation {
 	s := p.pool.Stat()
 	return Saturation{
-		AcquiredConns: s.AcquiredConns(),
-		IdleConns:     s.IdleConns(),
-		MaxConns:      s.MaxConns(),
-		TotalConns:    s.TotalConns(),
+		AcquiredConns:     s.AcquiredConns(),
+		IdleConns:         s.IdleConns(),
+		MaxConns:          s.MaxConns(),
+		TotalConns:        s.TotalConns(),
+		HygieneRoundTrips: p.hygieneRoundTrips.Load(),
 	}
 }
 

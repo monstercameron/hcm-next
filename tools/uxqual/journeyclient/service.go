@@ -5,7 +5,6 @@ import (
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 // Service is the workflow page's view of the cell: the eight workflow operations
@@ -84,61 +83,46 @@ const BearerScheme = "Bearer "
 // grpcService is [Service] over one client connection.
 type grpcService struct {
 	client journeyv1.JourneyServiceClient
-	bearer string
 }
 
 // NewGRPCService returns the production [Service]: the generated client over
-// conn, with "authorization: Bearer <bearer>" attached to every call.
-//
-// The credential is attached per RPC rather than by a connection-level
-// PerRPCCredentials for one reason worth stating: PerRPCCredentials refuse to
-// send over a connection they consider insecure, and this connection is
-// insecure by construction -- transport security is the browser's wss://
-// socket, which gRPC inside a WASM page cannot see. Appending the metadata
-// directly is the same wire result without asking gRPC to certify a
-// transport it is not looking at.
+// the qualified [RPCAdapter]. The adapter owns the per-RPC credential,
+// canonical-method, message-bound, metadata and deadline policy.
 func NewGRPCService(conn grpc.ClientConnInterface, bearer string) Service {
-	return &grpcService{client: journeyv1.NewJourneyServiceClient(conn), bearer: bearer}
-}
-
-// authorize returns ctx carrying the page's credential.
-func (s *grpcService) authorize(ctx context.Context) context.Context {
-	if s.bearer == "" {
-		return ctx
-	}
-	return metadata.AppendToOutgoingContext(ctx, AuthorizationHeader, BearerScheme+s.bearer)
+	adapter := NewRPCAdapter(conn, RPCAdapterConfig{Bearer: bearer})
+	return &grpcService{client: journeyv1.NewJourneyServiceClient(adapter)}
 }
 
 func (s *grpcService) ListJourneys(ctx context.Context, in *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
-	return s.client.ListJourneys(s.authorize(ctx), in)
+	return s.client.ListJourneys(ctx, in)
 }
 
 func (s *grpcService) ProposeJourney(ctx context.Context, in *journeyv1.ProposeJourneyRequest) (*journeyv1.ProposeJourneyResponse, error) {
-	return s.client.ProposeJourney(s.authorize(ctx), in)
+	return s.client.ProposeJourney(ctx, in)
 }
 
 func (s *grpcService) InspectJourney(ctx context.Context, in *journeyv1.InspectJourneyRequest) (*journeyv1.InspectJourneyResponse, error) {
-	return s.client.InspectJourney(s.authorize(ctx), in)
+	return s.client.InspectJourney(ctx, in)
 }
 
 func (s *grpcService) ExecuteJourney(ctx context.Context, in *journeyv1.ExecuteJourneyRequest) (*journeyv1.ExecuteJourneyResponse, error) {
-	return s.client.ExecuteJourney(s.authorize(ctx), in)
+	return s.client.ExecuteJourney(ctx, in)
 }
 
 func (s *grpcService) DecideJourney(ctx context.Context, in *journeyv1.DecideJourneyRequest) (*journeyv1.DecideJourneyResponse, error) {
-	return s.client.DecideJourney(s.authorize(ctx), in)
+	return s.client.DecideJourney(ctx, in)
 }
 
 func (s *grpcService) ListWorkers(ctx context.Context, in *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error) {
-	return s.client.ListWorkers(s.authorize(ctx), in)
+	return s.client.ListWorkers(ctx, in)
 }
 
 func (s *grpcService) CreateWorker(ctx context.Context, in *journeyv1.CreateWorkerRequest) (*journeyv1.CreateWorkerResponse, error) {
-	return s.client.CreateWorker(s.authorize(ctx), in)
+	return s.client.CreateWorker(ctx, in)
 }
 
 func (s *grpcService) WatchJourney(ctx context.Context, in *journeyv1.WatchJourneyRequest) (WatchStream, error) {
-	stream, err := s.client.WatchJourney(s.authorize(ctx), in)
+	stream, err := s.client.WatchJourney(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -146,49 +130,49 @@ func (s *grpcService) WatchJourney(ctx context.Context, in *journeyv1.WatchJourn
 }
 
 func (s *grpcService) GetProductPreferences(ctx context.Context, in *journeyv1.GetProductPreferencesRequest) (*journeyv1.GetProductPreferencesResponse, error) {
-	return s.client.GetProductPreferences(s.authorize(ctx), in)
+	return s.client.GetProductPreferences(ctx, in)
 }
 
 func (s *grpcService) SaveUserPreferences(ctx context.Context, in *journeyv1.SaveUserPreferencesRequest) (*journeyv1.SaveUserPreferencesResponse, error) {
-	return s.client.SaveUserPreferences(s.authorize(ctx), in)
+	return s.client.SaveUserPreferences(ctx, in)
 }
 
 func (s *grpcService) SaveTenantAppearance(ctx context.Context, in *journeyv1.SaveTenantAppearanceRequest) (*journeyv1.SaveTenantAppearanceResponse, error) {
-	return s.client.SaveTenantAppearance(s.authorize(ctx), in)
+	return s.client.SaveTenantAppearance(ctx, in)
 }
 
 func (s *grpcService) SaveOrganizationVisibility(ctx context.Context, in *journeyv1.SaveOrganizationVisibilityRequest) (*journeyv1.SaveOrganizationVisibilityResponse, error) {
-	return s.client.SaveOrganizationVisibility(s.authorize(ctx), in)
+	return s.client.SaveOrganizationVisibility(ctx, in)
 }
 
 func (s *grpcService) GetRoleAccess(ctx context.Context, in *journeyv1.GetRoleAccessRequest) (*journeyv1.GetRoleAccessResponse, error) {
-	return s.client.GetRoleAccess(s.authorize(ctx), in)
+	return s.client.GetRoleAccess(ctx, in)
 }
 
 func (s *grpcService) SaveAccessRole(ctx context.Context, in *journeyv1.SaveAccessRoleRequest) (*journeyv1.SaveAccessRoleResponse, error) {
-	return s.client.SaveAccessRole(s.authorize(ctx), in)
+	return s.client.SaveAccessRole(ctx, in)
 }
 
 func (s *grpcService) SaveWorkerRoleAssignment(ctx context.Context, in *journeyv1.SaveWorkerRoleAssignmentRequest) (*journeyv1.SaveWorkerRoleAssignmentResponse, error) {
-	return s.client.SaveWorkerRoleAssignment(s.authorize(ctx), in)
+	return s.client.SaveWorkerRoleAssignment(ctx, in)
 }
 
 func (s *grpcService) SaveRoleOrganizationVisibility(ctx context.Context, in *journeyv1.SaveRoleOrganizationVisibilityRequest) (*journeyv1.SaveRoleOrganizationVisibilityResponse, error) {
-	return s.client.SaveRoleOrganizationVisibility(s.authorize(ctx), in)
+	return s.client.SaveRoleOrganizationVisibility(ctx, in)
 }
 
 func (s *grpcService) SaveRolePagePermission(ctx context.Context, in *journeyv1.SaveRolePagePermissionRequest) (*journeyv1.SaveRolePagePermissionResponse, error) {
-	return s.client.SaveRolePagePermission(s.authorize(ctx), in)
+	return s.client.SaveRolePagePermission(ctx, in)
 }
 
 func (s *grpcService) RecordWorkflowUse(ctx context.Context, in *journeyv1.RecordWorkflowUseRequest) (*journeyv1.RecordWorkflowUseResponse, error) {
-	return s.client.RecordWorkflowUse(s.authorize(ctx), in)
+	return s.client.RecordWorkflowUse(ctx, in)
 }
 
 func (s *grpcService) GetWorkerIDPolicy(ctx context.Context, in *journeyv1.GetWorkerIDPolicyRequest) (*journeyv1.GetWorkerIDPolicyResponse, error) {
-	return s.client.GetWorkerIDPolicy(s.authorize(ctx), in)
+	return s.client.GetWorkerIDPolicy(ctx, in)
 }
 
 func (s *grpcService) SaveWorkerIDPolicy(ctx context.Context, in *journeyv1.SaveWorkerIDPolicyRequest) (*journeyv1.SaveWorkerIDPolicyResponse, error) {
-	return s.client.SaveWorkerIDPolicy(s.authorize(ctx), in)
+	return s.client.SaveWorkerIDPolicy(ctx, in)
 }

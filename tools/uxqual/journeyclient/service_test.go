@@ -6,7 +6,9 @@ import (
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 // recordingConn is a grpc.ClientConnInterface that answers every call with
@@ -145,17 +147,12 @@ func TestTheRPCsAreTheCanonicalOnes(t *testing.T) {
 	}
 }
 
-// TestNoBearerAttachesNothing keeps an unconfigured client from sending an
-// empty credential, which the cell would have to parse and refuse rather
-// than simply seeing an anonymous call.
-func TestNoBearerAttachesNothing(t *testing.T) {
+// TestNoBearerFailsClosed keeps an unconfigured client from sending an
+// anonymous call: the browser boundary refuses before the connection sees it.
+func TestNoBearerFailsClosed(t *testing.T) {
 	conn := &recordingConn{}
 	svc := NewGRPCService(conn, "")
-	if _, err := svc.ListJourneys(context.Background(), &journeyv1.ListJourneysRequest{}); err != nil {
-		t.Fatalf("ListJourneys: %v", err)
-	}
-	md, ok := metadata.FromOutgoingContext(conn.ctx)
-	if ok && len(md.Get(AuthorizationHeader)) != 0 {
-		t.Errorf("authorization = %v, want none", md.Get(AuthorizationHeader))
+	if _, err := svc.ListJourneys(context.Background(), &journeyv1.ListJourneysRequest{}); status.Code(err) != codes.Unauthenticated {
+		t.Fatalf("ListJourneys code = %v, want UNAUTHENTICATED", status.Code(err))
 	}
 }
