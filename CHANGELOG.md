@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-07
+
+- `WEB-031` closes the browser-state boundary around a random per-tab history ledger only, with hostile-storage fault coverage, real GWC history traversal, and no browser-persisted credentials, authority, business records, or configuration truth.
+- `WEB-032` generates and embeds a bounded frontend asset-integrity manifest, authenticates and integrity-verifies the shim and WASM loader path, pre-indexes request metadata, validates the exact routable catalogue at startup, and publishes deterministic gzip representations. Interrupted multi-file publication fails closed during startup validation; bundle-wide filesystem atomicity is not claimed on Windows.
+- Frontend qualification now treats the 17-page by 3-locale i18n/accessibility suite as a mandatory acceptance gate alongside interaction-latency, native, compiled `js/wasm`, security, integration, fault, and Codex-browser checks.
+
 ## 2026-09-06
 
 - Artifact root (this batch) - `.artifacts/` is the single ignored home for binaries, lane output, coverage, Go temp and test binaries, lane build caches and the embedded PostgreSQL cache; the pre-commit hook and `scripts/run-lane.sh` route `GOTMPDIR`, `TMP`, `TEMP` and `HCMNEXT_TEST_PG_CACHE` there; `scripts/build.sh` builds into `.artifacts/bin`.

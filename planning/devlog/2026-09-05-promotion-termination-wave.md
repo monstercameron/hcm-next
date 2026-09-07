@@ -506,3 +506,39 @@ organization-structure-maximal-2026.md` and the 30-table draft
   cache. The pre-commit hook and the lane launcher export `GOTMPDIR`, `TMP`,
   `TEMP` and `HCMNEXT_TEST_PG_CACHE` to those paths so the leaks stop at the
   source instead of being swept after the fact.
+
+## 10. 2026-09-07: frontend delivery gates
+
+- **WEB-031 browser state.** The production router now stores only a random,
+  bounded per-tab history-ledger identifier and index. Credentials, authority,
+  business records, configuration truth and authorization-shaped values are
+  rejected by the reviewed adapter and recursive AST gate. Native and actual
+  `js/wasm` fault suites exercised hostile browser getters and methods; Codex
+  browser QA covered reload plus People/My Work back-forward traversal without
+  replacing the persistent shell. The validation benchmark was 143.9 ns/op,
+  7 B/op and 0 allocs/op.
+- **WEB-032 asset integrity.** A deterministic generated manifest now binds
+  the exact routable shim and WASM identities and gzip representations with
+  SHA-256 and SRI. The bounded parser and handler constructor reject missing,
+  stale, extra, orphaned, reordered, malformed, empty, oversized or mutated
+  catalogues before serving. Authenticated same-origin loaders integrity-check
+  both executable assets, while request handling uses pre-indexed content type,
+  ETag and SRI metadata. Deterministic gzip packaging publishes synchronized
+  temporary replacements. Windows does not provide a bundle-wide atomic
+  replacement for all five files; exact startup validation is therefore the
+  fail-closed interruption boundary. The interaction p95 was 1.0004 ms against
+  2 ms, and the build/startup benchmark was 1.43-1.51 ms/op, 820,153 B/op and
+  1,033 allocs/op outside the request path.
+- **Adversarial refinement.** Luna produced each first implementation; Sol
+  found and drove fixes for missing bearer propagation, non-routable source
+  assets, permissive manifest bounds and canonicalization, duplicate matrix
+  cases, and per-render parsing. The orchestrator fixed a shallow-copy alias in
+  the final mutation test. Both todos passed their exact seven-test matrices,
+  focused package tests, vet and the full repository hook.
+- **Internationalization and accessibility.** Every frontend todo is now
+  accepted only after the registered-page gate passes all 17 pages in `en-US`,
+  `de-DE` and RTL `ar` (51 cases). It verifies document language/direction,
+  unresolved keys, ID and ARIA references, accessible control names, keyboard
+  semantics, reduced motion and form-error association. This is a deterministic
+  regression gate, not a claim that semantic translation or assistive-technology
+  conformance is complete.
