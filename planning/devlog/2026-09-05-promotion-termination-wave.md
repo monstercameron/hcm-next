@@ -334,3 +334,42 @@ organization-structure-maximal-2026.md` and the 30-table draft
   evidence. Persistent promotion-path rows and assignment profile pins remain
   `PERSIST-JOBARCH-002`; the authorized administration surface remains
   `UX-JOBARCH-001`; benefit eligibility execution remains `BEN-003`.
+
+## 9. 2026-09-06 (night): persistent-route performance and an executable UI latency gate
+
+- **Route and component performance (`d121105`).** Product navigation now
+  replaces only the feature outlet under a persistent shell. Warm transitions
+  reuse already-authorized baseline projections, refresh only the datasets a
+  route requires and keep useful content mounted while a response is pending.
+  People records carry an immutable normalized search/sort index, the generic
+  data table precomputes its column map, and the Journey operational page caps
+  its mounted workforce preview while retaining an explicitly selected worker.
+  The full directory remains available through software navigation to People.
+  Static WASM assets have deterministic gzip representations, ETags and cache
+  revalidation; the compressed journey module is about 6.4 MB rather than the
+  roughly 29.5 MB uncompressed transfer.
+- **Executable interaction budgets (this commit).** The reusable
+  `tools/uxqual/latencygate` package measures a warmed corpus with the
+  nearest-rank p95 and produces actionable p50/p95/max/sample diagnostics on a
+  breach. CI runs the wall-clock gate outside race instrumentation. Budgets are
+  loading feedback <=16 ms; every registered leaf page <=50 ms; persistent
+  shell <=50 ms; filtering, sorting, paginating and rendering 100 rows from
+  10,000 indexed workers <=100 ms; a generic 1,000-by-12 table <=75 ms; and the
+  bounded Journey workforce preview from 10,000 workers <=16 ms. Network and
+  database SLOs remain separately measured boundaries rather than being hidden
+  inside client-compute numbers.
+- **Observed evidence.** Nine repeated large-directory runs reported p95
+  between 40.8 and 75.5 ms, including a run during concurrent repository work.
+  Across the complete repeated gate the slowest leaf
+  stayed below 26 ms, the persistent shell below 18.1 ms, the 12,000-cell table
+  below 19.5 ms, the loading proxy below 0.6 ms and the Journey preview below
+  1.6 ms. This leaves headroom while retaining the 100 ms immediate-response
+  ceiling for the most expensive local interaction.
+- **Verification.** Three complete latency-gate repetitions and five additional
+  10,000-worker repetitions pass. `go test -count=1 ./internal/humanwork/...
+  ./tools/uxqual/... ./cmd/frontenddev ./cmd/hcmnext` passes. The percentile
+  engine has independent tests for nearest-rank calculation, corpus immutability,
+  operation failures, statistically weak sample sets and diagnostic budget
+  failures. The local Windows/ARM64 host cannot run `go test -race` because CGO
+  is unavailable; the timed suites carry `!race`, and Linux CI retains the
+  repository's separate race correctness gate.

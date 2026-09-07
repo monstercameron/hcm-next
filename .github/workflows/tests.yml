@@ -91,6 +91,11 @@ jobs:
       - name: Run the quality gate (gofmt, go vet, staticcheck)
         run: go run ./tools/quality
 
+      # Wall-clock interaction budgets are intentionally measured outside the
+      # race detector, whose instrumentation changes timing and allocations.
+      - name: UI interaction latency gate
+        run: go test -count=1 -run '^TestInteractionLatencyGate$' -v ./internal/humanwork/productui ./tools/uxqual/render/journey
+
       # TOOL-012: the race class only runs for real on Linux CI; the local
       # dev machine (windows/arm64) has no race detector support, so
       # tools/quality's TestTodo_TOOL_012 skips itself there. This is that
