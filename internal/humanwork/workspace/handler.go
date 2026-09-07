@@ -242,7 +242,7 @@ func (h *Handler) admit(w http.ResponseWriter, r *http.Request) (*http.Request, 
 	if ownedErr != nil {
 		status := ownedErr.HTTPStatus()
 		if status == http.StatusUnauthorized && h.devBrowserLogin && r.Method == http.MethodGet && strings.TrimSpace(r.Header.Get("Authorization")) == "" {
-			http.Redirect(w, r, PathLogin, http.StatusSeeOther)
+			writeRedirect(w, r, PathLogin, http.StatusSeeOther)
 			return nil, false
 		}
 		if status == http.StatusUnauthorized {
@@ -368,7 +368,7 @@ func (h *Handler) serveReceipt(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	h.writeDocument(w, http.StatusOK, doc, false)
+	h.writeDocument(w, http.StatusOK, doc, r.Host, false)
 }
 
 func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
@@ -553,7 +553,7 @@ func (h *Handler) serveLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 		Expires:  h.now().Add(12 * time.Hour),
 	})
-	http.Redirect(w, r, PathProductHome, http.StatusSeeOther)
+	writeRedirect(w, r, PathProductHome, http.StatusSeeOther)
 }
 
 // serveLogout clears the session cookie PathLogin set.
@@ -567,7 +567,7 @@ func (h *Handler) serveLogout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})
-	http.Redirect(w, r, PathLogin, http.StatusSeeOther)
+	writeRedirect(w, r, PathLogin, http.StatusSeeOther)
 }
 
 // normalizeBearerInput trims a pasted credential and its optional "Bearer "
@@ -637,13 +637,10 @@ body{background:#f4f7f5;color:#17231d}.login-shell{display:block;width:min(60rem
 }
 
 func (h *Handler) writeLoginDocument(w http.ResponseWriter, status int, doc, stylesheet string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Content-Security-Policy", strings.Join([]string{"default-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'", "style-src '" + sha256Source(stylesheet) + "'", "script-src 'none'"}, "; "))
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "no-referrer")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(doc))
+	writeHTMLDocument(w, status, doc, cspPolicy{
+		styleHashes:    []string{sha256Source(stylesheet)},
+		formActionSelf: true,
+	}.header())
 }
 
 // ---------------------------------------------------------------------------
@@ -699,19 +696,32 @@ func (h *Handler) renderWorkspace(w http.ResponseWriter, r *http.Request, query 
 	if locale.Fallback != LocaleFallbackNone {
 		w.Header().Set("X-HCM-Workspace-Locale-Fallback", string(locale.Fallback))
 	}
-	h.writeDocument(w, http.StatusOK, doc, h.enhanced)
+	h.writeDocument(w, http.StatusOK, doc, r.Host, h.enhanced)
 }
 
 // writeDocument writes one workspace document under the security headers
 // every workspace response carries.
-func (h *Handler) writeDocument(w http.ResponseWriter, status int, doc string, enhanced bool) {
+func (h *Handler) writeDocument(w http.ResponseWriter, status int, doc, host string, enhanced bool) {
+	writeHTMLDocument(w, status, doc, ContentSecurityPolicy(host, enhanced))
+}
+
+func writeHTMLDocument(w http.ResponseWriter, status int, doc, policy string) {
+	setHTMLSecurityHeaders(w, policy)
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(doc))
+}
+
+func setHTMLSecurityHeaders(w http.ResponseWriter, policy string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Content-Security-Policy", ContentSecurityPolicy(enhanced))
+	w.Header().Set("Content-Security-Policy", policy)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "no-referrer")
 	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(doc))
+}
+
+func writeRedirect(w http.ResponseWriter, r *http.Request, target string, status int) {
+	setHTMLSecurityHeaders(w, (cspPolicy{}).header())
+	http.Redirect(w, r, target, status)
 }
 
 // writeProblem renders a refusal as a page rather than a bare status line.
@@ -740,7 +750,7 @@ func (h *Handler) writeProblem(w http.ResponseWriter, status int, title, detail 
 </body>
 </html>
 `
-	h.writeDocument(w, status, doc, false)
+	writeHTMLDocument(w, status, doc, cspPolicy{styleHashes: []string{stylesheetHash}}.header())
 }
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"gopkg.in/yaml.v3"
 )
 
@@ -218,10 +219,10 @@ func TestTodo_WEB_001_Conformance(t *testing.T) {
 			t.Errorf("Host %q: style-src directive is empty", testHost)
 		}
 
-		// Verify script-src contains required sources.
+		// Verify script-src contains only the authenticated loader capabilities.
 		scriptSrc := actualDirs["script-src"]
-		if !strings.Contains(scriptSrc, "'self'") {
-			t.Errorf("Host %q: script-src missing 'self': %s", testHost, scriptSrc)
+		if strings.Contains(scriptSrc, "'self'") {
+			t.Errorf("Host %q: script-src grants ambient same-origin execution: %s", testHost, scriptSrc)
 		}
 		if !strings.Contains(scriptSrc, "'wasm-unsafe-eval'") {
 			t.Errorf("Host %q: script-src missing 'wasm-unsafe-eval': %s", testHost, scriptSrc)
@@ -230,16 +231,17 @@ func TestTodo_WEB_001_Conformance(t *testing.T) {
 			t.Errorf("Host %q: script-src missing sha256 hash: %s", testHost, scriptSrc)
 		}
 
-		// Verify connect-src includes both schemes to the host.
+		// Verify connect-src scopes fetches to the authenticated asset prefix
+		// and WebSockets to the one published tunnel path.
 		connectSrc := actualDirs["connect-src"]
-		if !strings.Contains(connectSrc, "'self'") {
-			t.Errorf("Host %q: connect-src missing 'self': %s", testHost, connectSrc)
+		if strings.Contains(connectSrc, "'self'") {
+			t.Errorf("Host %q: connect-src grants origin-wide authority: %s", testHost, connectSrc)
 		}
-		if !strings.Contains(connectSrc, "ws://"+testHost) && !strings.Contains(connectSrc, "ws://") {
-			t.Logf("Host %q: connect-src may not include ws://: %s", testHost, connectSrc)
+		if !strings.Contains(connectSrc, "http://"+testHost+workspace.PathAssetPrefix) || !strings.Contains(connectSrc, "https://"+testHost+workspace.PathAssetPrefix) {
+			t.Errorf("Host %q: connect-src does not pin the asset prefix: %s", testHost, connectSrc)
 		}
-		if !strings.Contains(connectSrc, "wss://"+testHost) && !strings.Contains(connectSrc, "wss://") {
-			t.Logf("Host %q: connect-src may not include wss://: %s", testHost, connectSrc)
+		if !strings.Contains(connectSrc, "ws://"+testHost+workspace.PathTunnel) || !strings.Contains(connectSrc, "wss://"+testHost+workspace.PathTunnel) {
+			t.Errorf("Host %q: connect-src does not pin the tunnel path: %s", testHost, connectSrc)
 		}
 
 		// Verify style-src has only hash (no unsafe-inline).

@@ -367,8 +367,8 @@ func TestJourneyContentSecurityPolicy(t *testing.T) {
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'none'",
-		"script-src '" + sha256Source(journeyLoaderSource) + "' 'self' blob: 'wasm-unsafe-eval'",
-		"connect-src 'self' ws://cell.test:8080 wss://cell.test:8080",
+		"script-src '" + sha256Source(journeyLoaderSource) + "' blob: 'wasm-unsafe-eval'",
+		"connect-src http://cell.test:8080" + PathAssetPrefix + " https://cell.test:8080" + PathAssetPrefix + " ws://cell.test:8080" + PathTunnel + " wss://cell.test:8080" + PathTunnel,
 		"style-src '" + sha256Source(journey.Stylesheet()) + "'",
 		"img-src 'none'",
 	} {
@@ -402,7 +402,7 @@ func TestJourneyShellServesThePolicy(t *testing.T) {
 	if got != JourneyContentSecurityPolicy("cell.test") {
 		t.Fatalf("Content-Security-Policy = %q", got)
 	}
-	if !strings.Contains(got, "ws://cell.test") || !strings.Contains(got, "wss://cell.test") {
+	if !strings.Contains(got, "ws://cell.test"+PathTunnel) || !strings.Contains(got, "wss://cell.test"+PathTunnel) {
 		t.Fatalf("the served policy does not admit this host's tunnel: %s", got)
 	}
 }
@@ -411,7 +411,9 @@ func TestSanitizeHostAuthority(t *testing.T) {
 	cases := map[string]string{
 		"cell.test":        "cell.test",
 		"cell.test:8080":   "cell.test:8080",
-		"[::1]:8080":       "[::1]:8080",
+		"[::1]:8080":       "",
+		"192.0.2.1:8080":   "",
+		"127.0.0.1:8080":   "127.0.0.1:8080",
 		"":                 "",
 		"   ":              "",
 		"cell.test; evil":  "",

@@ -105,27 +105,40 @@ content_security_policy:
   base_directives:
     - "default-src 'none'"
     - "base-uri 'none'"
+    - "object-src 'none'"
+    - "frame-src 'none'"
+    - "child-src 'none'"
     - "form-action 'none'"
     - "frame-ancestors 'none'"
     - "img-src 'none'"
+    - "font-src 'none'"
+    - "media-src 'none'"
+    - "worker-src 'none'"
+    - "manifest-src 'none'"
   dynamic_directives:
     - name: "script-src"
-      value: "sha256-<hash> 'self' 'wasm-unsafe-eval'"
+      value: "sha256-<hash> blob: 'wasm-unsafe-eval'"
       description: |
         - sha256-<hash>: hash of the inline loader script (computed constant)
-        - 'self': this origin (for wasm_exec.js and journey.wasm bundles)
+        - blob: the authenticated, SRI-verified wasm_exec.js module only
         - 'wasm-unsafe-eval': required for WebAssembly.instantiateStreaming
+        - No 'self': unrelated same-origin scripts cannot execute
         Hash is verified by TestTodo_WEB_001_Conformance to match the
         actual loader source in journey_shell.go.
+    - name: "script-src-elem"
+      value: "sha256-<hash> blob:"
+      description: "CSP3 element boundary for the loader and verified blob module"
+    - name: "script-src-attr"
+      value: "'none'"
+      description: "Inline event-handler attributes are forbidden"
     - name: "connect-src"
-      value: "'self' ws://<host> wss://<host>"
+      value: "http://<host>/workspace/assets/ https://<host>/workspace/assets/ ws://<host>/workspace/grpc wss://<host>/workspace/grpc"
       description: |
-        - 'self': this origin
-        - ws://<host> and wss://<host>: the gRPC-over-WebSocket tunnel
+        - HTTP(S) sources are restricted to the authenticated asset prefix
+        - WS(S) sources are restricted to the exact gRPC-over-WebSocket tunnel
           Host is derived from the request's own Host header.
-        Both schemes are listed because the policy must not predict
-        whether the page was reached over TLS; neither scheme widens
-        the policy beyond this single host.
+        Both schemes are listed because the policy must not predict whether
+        the page was reached over TLS. No origin-wide 'self' source remains.
     - name: "style-src"
       value: "sha256-<hash>"
       description: |
@@ -133,11 +146,20 @@ content_security_policy:
         - No 'unsafe-inline': the client injects that exact string only
         Hash is verified by TestTodo_WEB_001_Conformance to match the
         actual stylesheet in tools/uxqual/render/journey.
+    - name: "style-src-elem"
+      value: "sha256-<hash>"
+      description: "CSP3 element boundary for the exact inline stylesheet"
+    - name: "style-src-attr"
+      value: "'none'"
+      description: "Runtime style attributes are forbidden"
   notes: |
-    Deny-by-default with three exact allowances. Host authority is
-    sanitized to prevent header injection. Policies are pinned by hash
-    for the inline loader and stylesheet so both can be verified at
-    load time without trusting runtime state.
+    Deny-by-default with path-scoped network capabilities. Host authority is
+    canonicalized and malformed, IPv6-literal, or non-loopback-IP authorities
+    fail closed. Policies pin the inline loader and stylesheet by hash. Trusted
+    Types enforcement is not enabled yet because GWC v5's private serialized
+    subtree fast path still assigns template.innerHTML; that upstream sink must
+    accept a named TrustedHTML policy or be removed before enforcement can be
+    enabled without breaking the production browser mount.
 
 transport:
   tunnel:
@@ -164,8 +186,8 @@ forbidden_runtimes:
     reason: "Go-only technology constitution; Go owns presentation and routing"
     enforcement: "Archived React console 2026-09-03; release image forbids Node"
   - name: "Arbitrary JavaScript execution"
-    reason: "No raw innerHTML/eval; CSP allows only pinned scripts and WASM"
-    enforcement: "CSP default-src 'none'; script-src whitelist only"
+    reason: "No product-authored raw HTML/eval; CSP allows only the pinned loader, verified blob shim and WASM"
+    enforcement: "CSP default-src 'none'; hash-only loader and path-scoped connect sources"
   - name: "Customer plugins / arbitrary SQL / SchemaFlux generation"
     reason: "Deterministic Go compiler; no model/network participation in builds"
     enforcement: "Page definitions select registered widgets; zero code generation"

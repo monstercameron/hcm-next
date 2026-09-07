@@ -281,30 +281,28 @@ const loaderSource = `(function(){` +
 	`.catch(function(){});` +
 	`})();`
 
+// loaderHash pins the exact inline enhancement loader emitted by
+// [loaderScript]. Keeping the source and its hash adjacent prevents a policy
+// change from silently authorizing different bytes.
+var loaderHash = sha256Source(loaderSource)
+
 // ContentSecurityPolicy returns the policy header value for a workspace
-// document.
-//
-// It is a deny-by-default policy with two exact allowances, both pinned by
-// hash rather than by 'unsafe-inline': the frozen stylesheet the renderer
-// inlines, and - only when the bundle is served - the progressive-enhancement
-// loader and the wasm_exec shim it needs. Everything else, including images,
-// fonts, frames and any other origin, is refused.
-func ContentSecurityPolicy(enhanced bool) string {
-	directives := []string{
-		"default-src 'none'",
-		"base-uri 'none'",
-		"form-action 'self'",
-		"frame-ancestors 'none'",
-		"style-src '" + stylesheetHash + "'",
+// document served on host. The shared builder keeps the no-JavaScript
+// response and the authenticated enhancement response on the same explicit
+// deny boundary.
+func ContentSecurityPolicy(host string, enhanced bool) string {
+	policy := cspPolicy{
+		styleHashes:    []string{stylesheetHash},
+		formActionSelf: true,
 	}
 	if enhanced {
-		directives = append(directives,
-			"script-src '"+sha256Source(loaderSource)+"' 'self' blob: 'wasm-unsafe-eval'",
-			"connect-src 'self'")
-	} else {
-		directives = append(directives, "script-src 'none'")
+		policy.scriptHash = loaderHash
+		policy.connectHost = host
+		policy.allowAssetConnections = true
+		policy.allowBlobScript = true
+		policy.allowWASM = true
 	}
-	return strings.Join(directives, "; ")
+	return policy.header()
 }
 
 // stylesheetHash pins the exact stylesheet the frozen renderer inlines. It is

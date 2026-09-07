@@ -167,13 +167,7 @@ func (h *Handler) serveJourney(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Content-Security-Policy", JourneyContentSecurityPolicy(r.Host))
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "no-referrer")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(doc))
+	writeHTMLDocument(w, http.StatusOK, doc, JourneyContentSecurityPolicy(r.Host))
 }
 
 // journeyShellDocument renders the shell for one configuration.
@@ -257,15 +251,16 @@ var journeyLoaderHash = sha256Source(journeyLoaderSource)
 //
 // It is deny-by-default with three exact allowances and nothing else:
 //
-//   - script-src: the inline loader by hash, this origin, loader-created
-//     blob modules (for the authenticated wasm_exec.js fetch), and
+//   - script-src: the inline loader by hash, loader-created blob modules
+//     (for the authenticated wasm_exec.js fetch), and
 //     'wasm-unsafe-eval', which is what
 //     WebAssembly.instantiateStreaming needs and is strictly narrower than
 //     'unsafe-eval'.
-//   - connect-src: this origin, plus its own ws:// and wss:// origins so the
-//     tunnel can be dialed. Both schemes are listed because whether the page
+//   - connect-src: this host's authenticated asset prefix and exact gRPC
+//     tunnel path. Both transport schemes are listed because whether the page
 //     was reached over TLS is a deployment fact the policy should not have
-//     to predict, and neither widens the policy beyond this one host.
+//     to predict; paths prevent unrelated same-origin endpoints or WebSocket
+//     upgrades from inheriting either capability.
 //   - style-src: the journey stylesheet by hash. No 'unsafe-inline': the
 //     client injects that exact string and nothing else.
 //
@@ -274,21 +269,15 @@ var journeyLoaderHash = sha256Source(journeyLoaderSource)
 // default-src because "this page loads no images" is a claim worth reading
 // in the header.
 func JourneyContentSecurityPolicy(host string) string {
-	directives := []string{
-		"default-src 'none'",
-		"base-uri 'none'",
-		"form-action 'none'",
-		"frame-ancestors 'none'",
-		"script-src '" + journeyLoaderHash + "' 'self' blob: 'wasm-unsafe-eval'",
-	}
-	connect := "connect-src 'self'"
-	if authority := sanitizeHostAuthority(host); authority != "" {
-		connect += " ws://" + authority + " wss://" + authority
-	}
-	directives = append(directives, connect,
-		"style-src '"+journeyStylesheetHash+"'",
-		"img-src 'none'")
-	return strings.Join(directives, "; ")
+	return cspPolicy{
+		styleHashes:           []string{journeyStylesheetHash},
+		scriptHash:            journeyLoaderHash,
+		connectHost:           host,
+		allowAssetConnections: true,
+		allowTunnelConnection: true,
+		allowBlobScript:       true,
+		allowWASM:             true,
+	}.header()
 }
 
 // JourneyTunnelURL derives the absolute tunnel address for one request.
@@ -302,11 +291,15 @@ func JourneyTunnelURL(r *http.Request) string {
 	if r == nil {
 		return ""
 	}
+	authority := sanitizeHostAuthority(r.Host)
+	if authority == "" {
+		return ""
+	}
 	scheme := "ws"
 	if r.TLS != nil || forwardedProtoIsHTTPS(r) {
 		scheme = "wss"
 	}
-	return scheme + "://" + r.Host + PathTunnel
+	return scheme + "://" + authority + PathTunnel
 }
 
 // forwardedProtoIsHTTPS reports whether X-Forwarded-Proto names https. The
@@ -319,28 +312,4 @@ func forwardedProtoIsHTTPS(r *http.Request) bool {
 	}
 	first, _, _ := strings.Cut(raw, ",")
 	return strings.EqualFold(strings.TrimSpace(first), "https")
-}
-
-// sanitizeHostAuthority returns host when it is a plausible host[:port]
-// authority, or "" when it is not.
-//
-// The value reaches a response header, and the Host of a request is caller
-// text. Rather than trusting it, anything outside the characters a host,
-// an IPv6 literal and a port are made of drops the ws:// origins from the
-// policy: a page that then cannot dial its tunnel is a visible, safe
-// failure, whereas a header assembled from unvetted text is not.
-func sanitizeHostAuthority(host string) string {
-	host = strings.TrimSpace(host)
-	if host == "" || len(host) > 255 {
-		return ""
-	}
-	for _, r := range host {
-		switch {
-		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
-		case r == '.' || r == '-' || r == ':' || r == '[' || r == ']' || r == '_':
-		default:
-			return ""
-		}
-	}
-	return host
 }

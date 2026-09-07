@@ -27,7 +27,7 @@ func TestDataTableRendersConfigurableRectangularMatrix(t *testing.T) {
 	for _, want := range []string{
 		`role="region"`, `aria-label="Compensation matrix results"`, `<table`, `<caption`, `<thead`, `<tbody`,
 		`scope="col"`, `scope="row"`, `aria-sort="ascending"`, `data-row-id="worker-1"`,
-		`data-column="salary"`, `data-label="Salary"`, `style="min-width:14rem"`, `tabIndex="0"`,
+		`data-column="salary"`, `data-label="Salary"`, `data-table-width-14`, `tabIndex="0"`,
 	} {
 		if !strings.Contains(markup, want) {
 			t.Fatalf("configurable data table missing %q\n%s", want, markup)
@@ -47,6 +47,31 @@ func TestDataTableNormalizesUnsafeColumnDefinitions(t *testing.T) {
 	})
 	if len(columns) != 2 || columns[0].ID != "name" || columns[0].Sort != DataTableUnsorted || columns[1].ID != "role" {
 		t.Fatalf("normalized columns = %+v", columns)
+	}
+}
+
+func TestDataTableWidthUsesTheClosedClassContract(t *testing.T) {
+	for _, test := range []struct {
+		name, width, want string
+	}{
+		{name: "approved", width: "14rem", want: "data-table-width-14"},
+		{name: "arbitrary-css", width: `14rem; color: red`, want: ""},
+		{name: "external-css", width: `url(https://attacker.invalid)`, want: ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			markup, err := ui.RenderToString(ui.CreateElement(DataTable, DataTableProps{
+				Columns: []DataTableColumnProps{{ID: "column", Label: "Column", Width: test.width}},
+			}))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(markup, "style=") {
+				t.Fatalf("width %q emitted a CSP-blocked style attribute: %s", test.width, markup)
+			}
+			if test.want != "" && !strings.Contains(markup, test.want) {
+				t.Fatalf("width %q class contract mismatch: %s", test.width, markup)
+			}
+		})
 	}
 }
 

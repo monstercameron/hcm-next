@@ -42,6 +42,31 @@ type DataTableColumnProps struct {
 	AlignEnd bool
 }
 
+// dataTableWidthClass is the closed width contract for table columns. Width
+// values are converted to classes backed by the frozen product stylesheet;
+// arbitrary CSS declarations never cross the Go/WASM boundary as a style
+// attribute.
+func dataTableWidthClass(width string) string {
+	switch strings.TrimSpace(width) {
+	case "8rem":
+		return "data-table-width-8"
+	case "10rem":
+		return "data-table-width-10"
+	case "12rem":
+		return "data-table-width-12"
+	case "14rem":
+		return "data-table-width-14"
+	case "16rem":
+		return "data-table-width-16"
+	case "18rem":
+		return "data-table-width-18"
+	case "20rem":
+		return "data-table-width-20"
+	default:
+		return ""
+	}
+}
+
 // DataTableRowProps is one addressable row. Cells may arrive in any order;
 // DataTable renders them in the configured column order and pads omissions.
 type DataTableRowProps struct {
@@ -107,10 +132,10 @@ func DataTableColumn(column DataTableColumnProps) ui.Node {
 	if column.AlignEnd {
 		class += " align-end"
 	}
-	props := html.Props{Class: class, Raw: map[string]any{"scope": "col"}}
-	if column.Width != "" {
-		props.Style = map[string]string{"min-width": column.Width}
+	if widthClass := dataTableWidthClass(column.Width); widthClass != "" {
+		class += " " + widthClass
 	}
+	props := html.Props{Class: class, Raw: map[string]any{"scope": "col"}}
 	if column.Sort != "" && column.Sort != DataTableUnsorted {
 		props.Aria = map[string]string{"sort": string(column.Sort)}
 	}

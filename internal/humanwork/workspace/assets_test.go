@@ -52,7 +52,7 @@ func TestLegacyWorkspaceWASMIsRefusedAndNativePOSTRemains(t *testing.T) {
 	if strings.Contains(doc, `action="#"`) || strings.Contains(doc, "<script") {
 		t.Fatal("native fallback contains an unbound action or executable enhancement")
 	}
-	if !strings.Contains(ContentSecurityPolicy(BundleBuilt()), "script-src 'none'") {
+	if !strings.Contains(ContentSecurityPolicy("cell.test", BundleBuilt()), "script-src 'none'") {
 		t.Fatal("native-only workspace does not refuse script execution")
 	}
 }

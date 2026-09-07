@@ -104,8 +104,12 @@ func TestFrontendE2EPersonaLoginAndEveryProductRoute(t *testing.T) {
 					if got := response.Header.Get("Cache-Control"); got != "no-store" {
 						t.Errorf("Cache-Control = %q", got)
 					}
-					if got := response.Header.Get("Content-Security-Policy"); !strings.Contains(got, "script-src") || !strings.Contains(got, "connect-src 'self'") {
-						t.Errorf("product CSP is incomplete: %q", got)
+					if got := response.Header.Get("Content-Security-Policy"); !strings.Contains(got, "script-src '") ||
+						!strings.Contains(got, PathAssetPrefix) ||
+						!strings.Contains(got, PathTunnel) ||
+						strings.Contains(got, "connect-src 'self'") ||
+						strings.Contains(got, "script-src 'self'") {
+						t.Errorf("product CSP is incomplete or grants origin-wide authority: %q", got)
 					}
 					for _, contract := range []string{`<html lang="de-DE" dir="ltr"`, `id="` + JourneyRootElementID + `"`, `id="main-content"`, `aria-busy="true"`} {
 						if !strings.Contains(body, contract) {

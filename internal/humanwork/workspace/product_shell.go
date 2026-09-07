@@ -75,13 +75,7 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Content-Security-Policy", ProductContentSecurityPolicy(r.Host))
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "no-referrer")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(doc))
+	writeHTMLDocument(w, http.StatusOK, doc, ProductContentSecurityPolicy(r.Host))
 }
 
 func productShellDocument(config JourneyConfig, bundleBuilt bool) (string, error) {
@@ -169,13 +163,15 @@ var productStylesheetHash = sha256Source(productStylesheet())
 // ProductContentSecurityPolicy allows exactly the shared Go/WASM loader, the
 // same-origin gRPC tunnel, and the product component stylesheet.
 func ProductContentSecurityPolicy(host string) string {
-	directives := []string{
-		"default-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'",
-		"script-src '" + journeyLoaderHash + "' 'self' blob: 'wasm-unsafe-eval'",
-	}
-	connect := "connect-src 'self'"
-	if authority := sanitizeHostAuthority(host); authority != "" {
-		connect += " ws://" + authority + " wss://" + authority
-	}
-	return strings.Join(append(directives, connect, "style-src '"+productStylesheetHash+"'", "img-src 'self'"), "; ")
+	return cspPolicy{
+		styleHashes:           []string{productStylesheetHash},
+		scriptHash:            journeyLoaderHash,
+		formActionSelf:        true,
+		connectHost:           host,
+		allowAssetConnections: true,
+		allowTunnelConnection: true,
+		sameOriginImages:      true,
+		allowBlobScript:       true,
+		allowWASM:             true,
+	}.header()
 }

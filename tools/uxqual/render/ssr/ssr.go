@@ -226,7 +226,7 @@ var pageTemplate = template.Must(template.New("workspace").Funcs(template.FuncMa
 <section class="actions" aria-labelledby="actions-heading">
 <h2 id="actions-heading" class="visually-hidden">Available actions</h2>
 {{range .Actions}}
-<form method="post" action="#" style="display:inline">
+<form method="post" action="#">
 <input type="hidden" name="transition" value="{{.Transition}}">
 {{if .RequiresReason}}
 <label class="visually-hidden" for="reason-{{.Transition}}">Reason</label>
