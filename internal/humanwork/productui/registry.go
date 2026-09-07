@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
@@ -144,6 +146,241 @@ func navigationForPermissions(locale LocaleContext, permissions []RolePagePermis
 	return navigationFor(locale, func(page PageID) bool { return allowed[page] })
 }
 
+// authorizedNavigationForRoles preserves the established role adapter while
+// marking its result as an authoritative projection. Production adapters can
+// replace this compatibility constructor with a resolver-owned projection;
+// presentation never derives access after this boundary.
+func authorizedNavigationForRoles(locale LocaleContext, roles []string) AuthorizedNavigationProjection {
+	return authorizedNavigationProjection(locale, navigationForRoles(locale, roles), func(page PageID) bool { return PageVisible(page, roles) })
+}
+
+func authorizedNavigationForPermissions(locale LocaleContext, permissions []RolePagePermission) AuthorizedNavigationProjection {
+	allowed := make(map[PageID]bool, len(permissions))
+	for _, permission := range permissions {
+		allowed[permission.Page] = allowed[permission.Page] || permission.View
+	}
+	return authorizedNavigationProjection(locale, navigationForPermissions(locale, permissions), func(page PageID) bool { return allowed[page] })
+}
+
+func authorizedNavigationProjection(locale LocaleContext, items []NavItem, supportAllowed func(PageID) bool) AuthorizedNavigationProjection {
+	// Version one is the compatibility adapter's schema version. Production
+	// resolvers supply their own positive version; zero is never an admitted
+	// answer because it cannot be distinguished from an unversioned payload.
+	projection := AuthorizedNavigationProjection{Version: 1}
+	for _, item := range items {
+		projection.Items = append(projection.Items, authorizedNavigationItem(item))
+	}
+	for _, page := range []PageID{PageHelp, PageSettings} {
+		item, ok := navigationItemForPage(page, locale)
+		if ok && supportAllowed(page) {
+			projection.Support = append(projection.Support, authorizedNavigationItem(item))
+		}
+	}
+	return projection
+}
+
+func authorizedNavigationItem(item NavItem) AuthorizedNavigationItem {
+	result := AuthorizedNavigationItem{
+		Page: item.Page, Label: item.Label, LabelKey: item.LabelKey, Description: item.Description,
+		Keywords: append([]string(nil), item.Keywords...), Icon: item.Icon, Href: pageHref(item.Page), Count: item.Count, Authorized: true,
+	}
+	for _, child := range item.Children {
+		result.Children = append(result.Children, authorizedNavigationItem(child))
+	}
+	return result
+}
+
+const (
+	maxAuthorizedNavigationItems    = 64
+	maxAuthorizedNavigationDepth    = 2
+	maxAuthorizedNavigationText     = 256
+	maxAuthorizedNavigationKeywords = 24
+)
+
+// ApplyNavigationProjection adopts a complete server answer. Validation is a
+// safety boundary only; it does not grant access. Invalid answers remain
+// authoritative and render no destinations, rather than reintroducing the
+// registry's default catalogue.
+func ApplyNavigationProjection(view View, projection AuthorizedNavigationProjection) View {
+	// Validate the caller-owned graph before allocating or recursively copying
+	// any of it. The validator charges each node before descending and rejects
+	// excess depth, fan-out, and total size, so hostile graphs cannot turn this
+	// display boundary into unbounded stack or heap work.
+	if err := validateAuthorizedNavigationProjection(projection); err != nil {
+		projection = AuthorizedNavigationProjection{Version: projection.Version}
+	} else {
+		projection = cloneAuthorizedNavigationProjection(projection, view.Locale)
+	}
+	view.NavigationProjection = &projection
+	view.Navigation = navigationItemsFromProjection(projection.Items, view.Locale)
+	view.NavigationSupport = navigationItemsFromProjection(projection.Support, view.Locale)
+	return view
+}
+
+func cloneAuthorizedNavigationProjection(projection AuthorizedNavigationProjection, locale LocaleContext) AuthorizedNavigationProjection {
+	copy := AuthorizedNavigationProjection{Version: projection.Version}
+	copy.Items = make([]AuthorizedNavigationItem, 0, len(projection.Items))
+	for _, item := range projection.Items {
+		copy.Items = append(copy.Items, cloneAuthorizedNavigationItem(item, locale))
+	}
+	copy.Support = make([]AuthorizedNavigationItem, 0, len(projection.Support))
+	for _, item := range projection.Support {
+		copy.Support = append(copy.Support, cloneAuthorizedNavigationItem(item, locale))
+	}
+	return copy
+}
+
+func cloneAuthorizedNavigationItem(item AuthorizedNavigationItem, locale LocaleContext) AuthorizedNavigationItem {
+	definition, _ := LookupPage(item.Page)
+	copy := AuthorizedNavigationItem{
+		Page: item.Page, Label: locale.Text(item.LabelKey), LabelKey: item.LabelKey,
+		Description: locale.Text(definition.SubtitleKey), Keywords: append([]string(nil), definition.SearchTerms...),
+		Icon: definition.Icon, Href: definition.Route, Count: item.Count, Authorized: true,
+	}
+	copy.Children = make([]AuthorizedNavigationItem, 0, len(item.Children))
+	for _, child := range item.Children {
+		copy.Children = append(copy.Children, cloneAuthorizedNavigationItem(child, locale))
+	}
+	return copy
+}
+
+func navigationItemsFromProjection(items []AuthorizedNavigationItem, locale LocaleContext) []NavItem {
+	result := make([]NavItem, 0, len(items))
+	for _, item := range items {
+		result = append(result, navigationItemFromProjection(item, locale))
+	}
+	return result
+}
+
+func navigationItemFromProjection(item AuthorizedNavigationItem, locale LocaleContext) NavItem {
+	definition, _ := LookupPage(item.Page)
+	result := NavItem{
+		Page: item.Page, Label: locale.Text(item.LabelKey), LabelKey: item.LabelKey,
+		Description: locale.Text(definition.SubtitleKey), Keywords: append([]string(nil), definition.SearchTerms...),
+		Icon: definition.Icon, Href: definition.Route, Count: item.Count,
+	}
+	for _, child := range item.Children {
+		result.Children = append(result.Children, navigationItemFromProjection(child, locale))
+	}
+	return result
+}
+
+func validateAuthorizedNavigationProjection(projection AuthorizedNavigationProjection) error {
+	if projection.Version <= 0 {
+		return fmt.Errorf("productui: navigation projection has no positive version")
+	}
+	if len(projection.Items) > maxAuthorizedNavigationItems || len(projection.Support) > maxAuthorizedNavigationItems-len(projection.Items) {
+		return fmt.Errorf("productui: navigation projection exceeds item limit")
+	}
+	seen := make(map[PageID]bool)
+	overviews := make(map[PageID]bool)
+	count := 0
+	for _, item := range projection.Items {
+		if err := validateAuthorizedNavigationItem(item, true, 0, "", seen, overviews, &count); err != nil {
+			return err
+		}
+	}
+	for _, item := range projection.Support {
+		if err := validateAuthorizedNavigationItem(item, false, 0, "", seen, overviews, &count); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary bool, depth int, parent PageID, seen, overviews map[PageID]bool, count *int) error {
+	if depth > maxAuthorizedNavigationDepth || *count >= maxAuthorizedNavigationItems {
+		return fmt.Errorf("productui: navigation projection exceeds structural limit")
+	}
+	(*count)++
+	if len(item.Children) > maxAuthorizedNavigationItems-*count {
+		return fmt.Errorf("productui: navigation projection exceeds item limit")
+	}
+	definition, ok := LookupPage(item.Page)
+	if !ok || !item.Authorized || item.Count < 0 || len(item.Keywords) > maxAuthorizedNavigationKeywords {
+		return fmt.Errorf("productui: malformed navigation projection item")
+	}
+	if !validNavigationText(item.Label, true) || !validNavigationText(item.LabelKey, true) || !validNavigationText(item.Icon, true) ||
+		!validNavigationText(item.Description, false) {
+		return fmt.Errorf("productui: unsafe navigation projection text")
+	}
+	if item.Icon != definition.Icon || !validNavigationHref(item.Page, item.Href) {
+		return fmt.Errorf("productui: malformed navigation projection route")
+	}
+	for _, keyword := range item.Keywords {
+		if !validNavigationText(keyword, true) {
+			return fmt.Errorf("productui: malformed navigation projection keyword")
+		}
+	}
+	if seen[item.Page] {
+		// Only a direct, leaf overview may repeat its containing group's page,
+		// and it may do so once. A repeated leaf elsewhere cannot smuggle an
+		// unrelated route through duplicate handling or evade the item budget.
+		if depth != 1 || parent == "" || item.Page != parent || len(item.Children) > 0 || overviews[item.Page] || item.LabelKey != navigationOverviewLabelKey(item.Page) {
+			return fmt.Errorf("productui: duplicate navigation projection page %q", item.Page)
+		}
+		overviews[item.Page] = true
+		return nil
+	}
+	if item.LabelKey != definition.LabelKey {
+		return fmt.Errorf("productui: navigation projection label key is not canonical")
+	}
+	if parent != "" {
+		if definition.ParentNav != parent {
+			return fmt.Errorf("productui: navigation projection child has wrong parent")
+		}
+	} else if primary {
+		if !definition.PrimaryNav {
+			return fmt.Errorf("productui: navigation projection page is not primary navigation")
+		}
+	} else if item.Page != PageHelp && item.Page != PageSettings || len(item.Children) > 0 {
+		return fmt.Errorf("productui: navigation projection page is not in its allowed region")
+	}
+	seen[item.Page] = true
+	for _, child := range item.Children {
+		if err := validateAuthorizedNavigationItem(child, false, depth+1, item.Page, seen, overviews, count); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validNavigationHref(page PageID, href string) bool {
+	if href == "" || strings.TrimSpace(href) != href || len(href) > maxAuthorizedNavigationText || !validNavigationText(href, true) {
+		return false
+	}
+	parsed, err := url.Parse(href)
+	definition, ok := LookupPage(page)
+	return err == nil && ok && !parsed.IsAbs() && parsed.Opaque == "" && parsed.Scheme == "" && parsed.User == nil && parsed.Host == "" &&
+		parsed.Path == definition.Route && parsed.RawPath == "" && parsed.RawQuery == "" && parsed.Fragment == ""
+}
+
+func validNavigationText(value string, required bool) bool {
+	if value == "" {
+		return !required
+	}
+	if len(value) > maxAuthorizedNavigationText || !utf8.ValidString(value) || strings.TrimSpace(value) != value {
+		return false
+	}
+	for _, character := range value {
+		if unicode.IsControl(character) || unicode.Is(unicode.Cf, character) {
+			return false
+		}
+	}
+	return true
+}
+
+func navigationOverviewLabelKey(page PageID) string {
+	switch page {
+	case PageWork:
+		return "nav.work_queue"
+	case PageAdmin:
+		return "nav.admin_overview"
+	default:
+		return "nav.overview"
+	}
+}
+
 func navigationFor(locale LocaleContext, visible func(PageID) bool) []NavItem {
 	pages := registeredPages()
 	items := make([]NavItem, 0, len(pages))
@@ -173,12 +410,7 @@ func navigationFor(locale LocaleContext, visible func(PageID) bool) []NavItem {
 			case PageAdmin:
 				label = locale.Text("nav.admin_overview")
 			}
-			labelKey := "nav.overview"
-			if parent.Page == PageWork {
-				labelKey = "nav.work_queue"
-			} else if parent.Page == PageAdmin {
-				labelKey = "nav.admin_overview"
-			}
+			labelKey := navigationOverviewLabelKey(parent.Page)
 			overview := NavItem{Page: parent.Page, Label: label, LabelKey: labelKey, Description: parent.Description, Keywords: append([]string(nil), parent.Keywords...), Icon: parent.Icon}
 			parent.Children = append(parent.Children, overview)
 		}
@@ -261,9 +493,9 @@ func setMenuAddressState(values url.Values, view View) {
 	if view.MenuQuery != "" {
 		values.Set("menu_q", view.MenuQuery)
 	}
-	if len(view.FavoritePages) > 0 {
-		pages := make([]string, 0, len(view.FavoritePages))
-		for _, page := range view.FavoritePages {
+	if favorites := authorizedFavoritePages(view.Navigation, view.FavoritePages); len(favorites) > 0 {
+		pages := make([]string, 0, len(favorites))
+		for _, page := range favorites {
 			pages = append(pages, string(page))
 		}
 		values.Set("favorites", strings.Join(pages, ","))

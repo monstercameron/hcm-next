@@ -37,8 +37,38 @@ type NavItem struct {
 	Description string
 	Keywords    []string
 	Icon        string
+	// Href is supplied by an authorized navigation projection. Registry-built
+	// preview items leave it empty and use the canonical route instead.
+	Href     string
+	Count    int
+	Children []NavItem
+}
+
+// AuthorizedNavigationItem is the bounded, display-safe record emitted by a
+// server-side navigation resolver. Authorized is deliberately explicit: a
+// malformed or denied record is never treated as a hint to consult roles,
+// URLs, preferences, or the page registry.
+type AuthorizedNavigationItem struct {
+	Page        PageID
+	Label       string
+	LabelKey    string
+	Description string
+	Keywords    []string
+	Icon        string
+	Href        string
 	Count       int
-	Children    []NavItem
+	Authorized  bool
+	Children    []AuthorizedNavigationItem
+}
+
+// AuthorizedNavigationProjection is the complete navigation answer for one
+// admitted presentation context. A non-nil projection is authoritative even
+// when it is empty or invalid; callers must never fall back to default nav.
+// Support contains safe secondary destinations such as Help and Settings.
+type AuthorizedNavigationProjection struct {
+	Version int64
+	Items   []AuthorizedNavigationItem
+	Support []AuthorizedNavigationItem
 }
 
 type WorkItem struct {
@@ -193,16 +223,21 @@ type RolePagePermission struct {
 // View is an already-authorized presentation projection. It contains no
 // credential or raw sensitive record and grants no action authority.
 type View struct {
-	Page                   PageID
-	Title                  string
-	Subtitle               string
-	Tenant                 string
-	Principal              string
-	Viewer                 ViewerProfile
-	Scope                  string
-	Roles                  []string
-	LogoutHref             string
-	Navigation             []NavItem
+	Page              PageID
+	Title             string
+	Subtitle          string
+	Tenant            string
+	Principal         string
+	Viewer            ViewerProfile
+	Scope             string
+	Roles             []string
+	LogoutHref        string
+	Navigation        []NavItem
+	NavigationSupport []NavItem
+	// NavigationProjection is nil only for isolated legacy/component previews.
+	// Once supplied, it owns discoverability and suppresses all registry
+	// fallback, including when its answer is empty or malformed.
+	NavigationProjection   *AuthorizedNavigationProjection
 	Work                   []WorkItem
 	People                 []Person
 	PersonWorkflows        []PersonWorkflow
@@ -346,16 +381,14 @@ func ApplyRoleVisibility(view View, roles []string) View {
 	// Start from a non-nil slice so an admitted identity with zero roles stays
 	// distinguishable from NewView's unrestricted component-preview default.
 	view.Roles = append([]string{}, roles...)
-	view.Navigation = navigationForRoles(view.Locale, view.Roles)
-	return view
+	return ApplyNavigationProjection(view, authorizedNavigationForRoles(view.Locale, view.Roles))
 }
 
 // ApplyPagePermissions replaces static navigation visibility with the
 // effective union of the employee's durable role grants.
 func ApplyPagePermissions(view View, permissions []RolePagePermission) View {
 	view.EffectivePermissions = append([]RolePagePermission(nil), permissions...)
-	view.Navigation = navigationForPermissions(view.Locale, view.EffectivePermissions)
-	return view
+	return ApplyNavigationProjection(view, authorizedNavigationForPermissions(view.Locale, view.EffectivePermissions))
 }
 
 // ApplyLocale resolves all shell and page-registry copy from one immutable
@@ -376,7 +409,21 @@ func ApplyLocale(view View, locale LocaleContext) View {
 		}
 		view.Title = locale.Text("page.home.greeting", map[string]string{"name": name})
 	}
-	if len(view.Navigation) == 0 {
+	if view.NavigationProjection != nil {
+		if err := validateAuthorizedNavigationProjection(*view.NavigationProjection); err != nil {
+			// Preserve non-nil authority while dropping every untrusted field.
+			// Locale changes must not revive registry navigation after an invalid
+			// resolver answer.
+			view.NavigationProjection = &AuthorizedNavigationProjection{Version: view.NavigationProjection.Version}
+			view.Navigation = nil
+			view.NavigationSupport = nil
+		} else {
+			projection := cloneAuthorizedNavigationProjection(*view.NavigationProjection, locale)
+			view.NavigationProjection = &projection
+			view.Navigation = navigationItemsFromProjection(projection.Items, locale)
+			view.NavigationSupport = navigationItemsFromProjection(projection.Support, locale)
+		}
+	} else if len(view.Navigation) == 0 {
 		view.Navigation = defaultNavigation(locale)
 	} else {
 		view.Navigation = localizeNavigation(view.Navigation, locale)
@@ -389,8 +436,6 @@ func localizeNavigation(items []NavItem, locale LocaleContext) []NavItem {
 	for index := range result {
 		if result[index].LabelKey != "" {
 			result[index].Label = locale.Text(result[index].LabelKey)
-		} else if definition, ok := LookupPage(result[index].Page); ok {
-			result[index].Label = locale.Text(definition.LabelKey)
 		}
 		result[index].Children = localizeNavigation(result[index].Children, locale)
 	}

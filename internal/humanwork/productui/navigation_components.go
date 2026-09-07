@@ -16,6 +16,7 @@ type NavigationSidebarProps struct {
 	I18nProps
 	Collapsed bool
 	Tenant    string
+	EmptyText string
 	Filter    MenuFilterProps
 	Favorites []NavigationItemProps
 	Items     []NavigationItemProps
@@ -110,10 +111,19 @@ func navigationSidebarPropsForQuery(view View) NavigationSidebarProps {
 			}
 		}
 	}
-	support := make([]NavigationItemProps, 0, 2)
-	for _, page := range []PageID{PageHelp, PageSettings} {
-		item, ok := navigationItemForPage(page, view.Locale)
-		if !ok || navigationSearchScore(item, view.MenuQuery) == 0 {
+	supportItems := view.NavigationSupport
+	if view.NavigationProjection == nil {
+		supportItems = make([]NavItem, 0, 2)
+		for _, page := range []PageID{PageHelp, PageSettings} {
+			item, ok := navigationItemForPage(page, view.Locale)
+			if ok {
+				supportItems = append(supportItems, item)
+			}
+		}
+	}
+	support := make([]NavigationItemProps, 0, len(supportItems))
+	for _, item := range supportItems {
+		if navigationSearchScore(item, view.MenuQuery) == 0 {
 			continue
 		}
 		props := navigationLeafProps(view, item, false)
@@ -121,9 +131,13 @@ func navigationSidebarPropsForQuery(view View) NavigationSidebarProps {
 		support = append(support, props)
 	}
 	sort.SliceStable(support, func(left, right int) bool { return support[left].MatchScore > support[right].MatchScore })
+	emptyText := view.Locale.Text("nav.none")
+	if view.NavigationProjection != nil && strings.TrimSpace(view.MenuQuery) == "" {
+		emptyText = view.Locale.Text("nav.unavailable")
+	}
 	return NavigationSidebarProps{
 		I18nProps: I18nProps{Locale: view.Locale},
-		Collapsed: view.NavCollapsed, Tenant: view.Tenant, Filter: filter,
+		Collapsed: view.NavCollapsed, Tenant: view.Tenant, EmptyText: emptyText, Filter: filter,
 		Favorites: favorites, Items: items, Support: support,
 	}
 }
@@ -163,16 +177,17 @@ func menuFilterHiddenState(view View) []MenuHiddenInput {
 }
 
 func projectNavigation(view View) ([]NavigationItemProps, []NavigationItemProps) {
-	favoriteSet := make(map[PageID]bool, len(view.FavoritePages))
-	for _, page := range view.FavoritePages {
+	favoritePages := authorizedFavoritePages(view.Navigation, view.FavoritePages)
+	favoriteSet := make(map[PageID]bool, len(favoritePages))
+	for _, page := range favoritePages {
 		favoriteSet[page] = true
 	}
 	leaves := make(map[PageID]NavItem)
 	for _, item := range view.Navigation {
 		collectNavigationLeaves(item, leaves)
 	}
-	favorites := make([]NavigationItemProps, 0, len(view.FavoritePages))
-	for _, page := range view.FavoritePages {
+	favorites := make([]NavigationItemProps, 0, len(favoritePages))
+	for _, page := range favoritePages {
 		if leaf, ok := leaves[page]; ok && navigationSearchScore(leaf, view.MenuQuery) > 0 {
 			favorites = append(favorites, navigationLeafProps(view, leaf, true))
 		}
@@ -228,7 +243,7 @@ func projectNavigationItem(view View, item NavItem, favorites map[PageID]bool) (
 	return NavigationItemProps{
 		I18nProps: I18nProps{Locale: view.Locale},
 		Page:      item.Page, Label: item.Label, Icon: item.Icon, Count: item.Count,
-		Href: navigationHref(view, item.Page), Active: active, Expanded: expanded, ForceOpen: view.MenuQuery != "",
+		Href: navigationHrefForItem(view, item), Active: active, Expanded: expanded, ForceOpen: view.MenuQuery != "",
 		MatchScore: maxNavigationScore(groupScore, children), Children: children, Navigate: view.Navigate,
 	}, true
 }
@@ -241,7 +256,7 @@ func navigationLeafProps(view View, item NavItem, favorite bool) NavigationItemP
 	return NavigationItemProps{
 		I18nProps: I18nProps{Locale: view.Locale},
 		Page:      item.Page, Label: item.Label, Icon: item.Icon, Count: item.Count,
-		Href: navigationHref(view, item.Page), Active: navigationPageActive(item.Page, view.Page),
+		Href: navigationHrefForItem(view, item), Active: navigationPageActive(item.Page, view.Page),
 		Favorite: favorite, FavoriteHref: favoriteToggleHref(view, item.Page), MatchScore: navigationSearchScore(item, view.MenuQuery), MatchDetail: detail, Navigate: view.Navigate,
 	}
 }
@@ -337,7 +352,11 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 		menu = append(menu, ui.CreateElement(NavigationItem, item))
 	}
 	if len(menu) == 0 && len(props.Support) == 0 {
-		menu = append(menu, html.Li(html.Props{Class: "nav-empty", Raw: map[string]any{"role": "status"}}, ui.Text(props.Text("nav.none"))))
+		emptyText := props.EmptyText
+		if emptyText == "" {
+			emptyText = props.Text("nav.none")
+		}
+		menu = append(menu, html.Li(html.Props{Class: "nav-empty", Raw: map[string]any{"role": "status"}}, ui.Text(emptyText)))
 	}
 	children = append(children, html.Nav(html.Props{Class: "primary-nav", Aria: map[string]string{"label": props.Text("nav.main")}}, html.Ul(html.Props{}, menu...)))
 	if len(props.Support) > 0 {

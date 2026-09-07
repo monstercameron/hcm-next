@@ -48,11 +48,15 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 func appHeader(view View) ui.Node {
 	appearance := NormalizeCustomerTheme(view.Appearance)
 	toggle := navigationToggleProps(view)
+	brandProps := html.Props{Class: "wordmark", Title: appearance.BrandName, Data: map[string]string{"hcm-brand-link": ""}}
+	brandContent := ui.CreateElement(BrandLogo, BrandLogoProps{Name: appearance.BrandName, Mark: appearance.BrandMark, LogoURL: appearance.BrandLogoURL})
+	var brand ui.Node = html.Div(brandProps, brandContent)
+	if navigationDestinationAuthorized(view, PageHome) {
+		brand = appLink(view, brandProps, navigationHref(view, PageHome), brandContent)
+	}
 	return html.Header(html.Props{Class: "topbar"},
 		html.Div(html.Props{Class: "brand-cluster"},
-			appLink(view, html.Props{Class: "wordmark", Title: appearance.BrandName, Data: map[string]string{"hcm-brand-link": ""}}, navigationHref(view, PageHome),
-				ui.CreateElement(BrandLogo, BrandLogoProps{Name: appearance.BrandName, Mark: appearance.BrandMark, LogoURL: appearance.BrandLogoURL}),
-			),
+			brand,
 			softwareLink(toggle.Navigate, html.Props{
 				Class: "header-nav-toggle",
 				Aria:  map[string]string{"label": toggle.Label, "expanded": fmt.Sprint(!view.NavCollapsed), "controls": "workspace-navigation"},
@@ -99,10 +103,15 @@ func viewerProfileLink(view View) ui.Node {
 		profile.Initials = uicomponents.Initials(profile.Name)
 	}
 	label := view.Locale.Text("shell.myself", map[string]string{"name": profile.Name})
-	return appLink(view, html.Props{
+	props := html.Props{
 		Class: "viewer-profile-link network-slot network-slot-ready", Title: label,
 		Aria: map[string]string{"label": label},
-	}, statefulHref(view, PageMyself), personAvatar(profile.Name, profile.Initials, profile.PhotoURL, "viewer"))
+	}
+	avatar := personAvatar(profile.Name, profile.Initials, profile.PhotoURL, "viewer")
+	if !navigationDestinationAuthorized(view, PageMyself) {
+		return html.Div(props, avatar)
+	}
+	return appLink(view, props, statefulHref(view, PageMyself), avatar)
 }
 
 func notificationSlot(view View) ui.Node {
@@ -115,7 +124,93 @@ func notificationSlot(view View) ui.Node {
 }
 
 func globalSearch(view View) ui.Node {
-	return ui.CreateElement(GlobalSearch, globalSearchProps(view))
+	props := globalSearchProps(view)
+	if view.NavigationProjection != nil {
+		props.Items = authorizedGlobalSearchItems(view, props.Items)
+		props.FallbackHref = authorizedGlobalSearchFallback(view)
+		if favorites := authorizedFavoritePages(view.Navigation, view.FavoritePages); len(favorites) == 0 {
+			delete(props.HiddenInputs, "favorites")
+		} else {
+			values := make([]string, 0, len(favorites))
+			for _, page := range favorites {
+				values = append(values, string(page))
+			}
+			props.HiddenInputs["favorites"] = strings.Join(values, ",")
+		}
+	}
+	return ui.CreateElement(GlobalSearch, props)
+}
+
+func authorizedGlobalSearchItems(view View, items []GlobalSearchItem) []GlobalSearchItem {
+	allowed := authorizedNavigationPages(view)
+	if allowed[PagePeople] {
+		// Person results come only from the already-filtered People projection.
+		// This enables a destination; it does not authorize its independent RPC.
+		allowed[PagePerson] = true
+	}
+	result := make([]GlobalSearchItem, 0, len(items))
+	for _, item := range items {
+		parsed, err := url.Parse(item.Href)
+		if err != nil || parsed.IsAbs() || parsed.Host != "" {
+			continue
+		}
+		definition, ok := LookupRoute(parsed.Path)
+		if ok && allowed[definition.ID] {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func authorizedGlobalSearchFallback(view View) string {
+	for _, page := range []PageID{PagePeople, PageHome, view.Page} {
+		if navigationDestinationAuthorized(view, page) {
+			return statefulHref(view, page)
+		}
+	}
+	return "#"
+}
+
+// navigationDestinationAuthorized answers only whether the resolver chose to
+// advertise a destination. It is deliberately not action or route authority;
+// every destination service still authenticates and authorizes its own read.
+func navigationDestinationAuthorized(view View, page PageID) bool {
+	if view.NavigationProjection == nil {
+		return view.Allows(page, "view")
+	}
+	if err := validateAuthorizedNavigationProjection(*view.NavigationProjection); err != nil {
+		return false
+	}
+	return authorizedNavigationPages(view)[page]
+}
+
+func authorizedNavigationPages(view View) map[PageID]bool {
+	result := make(map[PageID]bool)
+	if view.NavigationProjection != nil {
+		if err := validateAuthorizedNavigationProjection(*view.NavigationProjection); err != nil {
+			return result
+		}
+		var collect func([]AuthorizedNavigationItem)
+		collect = func(items []AuthorizedNavigationItem) {
+			for _, item := range items {
+				result[item.Page] = true
+				collect(item.Children)
+			}
+		}
+		collect(view.NavigationProjection.Items)
+		collect(view.NavigationProjection.Support)
+		return result
+	}
+	var collect func([]NavItem)
+	collect = func(items []NavItem) {
+		for _, item := range items {
+			result[item.Page] = true
+			collect(item.Children)
+		}
+	}
+	collect(view.Navigation)
+	collect(view.NavigationSupport)
+	return result
 }
 
 func notificationMenu(view View) ui.Node {
@@ -125,7 +220,7 @@ func notificationMenu(view View) ui.Node {
 		html.H2(html.Props{}, ui.Text(view.Locale.Text("shell.work_overview"))),
 		html.P(html.Props{}, ui.Text(view.Locale.Plural("shell.work_count", int64(open)))),
 	}
-	if view.Allows(PageWork, "view") {
+	if navigationDestinationAuthorized(view, PageWork) {
 		children = append(children, appLink(view, html.Props{}, statefulHref(view, PageWork), ui.Text(view.Locale.Text("shell.open_work"))))
 	}
 	return ui.CreateElement(TransientPopover, TransientPopoverProps{
@@ -160,6 +255,28 @@ func primarySidebar(view View) ui.Node {
 
 func navigationHref(view View, page PageID) string {
 	return statefulHref(view, page)
+}
+
+func navigationHrefForItem(view View, item NavItem) string {
+	if strings.TrimSpace(item.Href) == "" {
+		return navigationHref(view, item.Page)
+	}
+	return statefulHrefAtRoute(view, item.Href)
+}
+
+func statefulHrefAtRoute(view View, route string) string {
+	route = strings.TrimSpace(route)
+	if route == "" {
+		return pageHref(PageHome)
+	}
+	parsed, err := url.Parse(route)
+	if err != nil || parsed.IsAbs() || parsed.Host != "" || !strings.HasPrefix(parsed.Path, "/workspace/app/") {
+		return pageHref(PageHome)
+	}
+	values := parsed.Query()
+	setMenuAddressState(values, view)
+	parsed.RawQuery = values.Encode()
+	return parsed.String()
 }
 
 func currentPageHref(view View, collapsed bool) string {
@@ -316,10 +433,16 @@ func pageHeader(view View) ui.Node {
 	if scope == "" {
 		scope = view.Locale.Text("shell.authenticated_scope")
 	}
+	scopeProps := html.Props{Class: "scope"}
+	scopeText := ui.Text(scope + " ⌄")
+	var scopeControl ui.Node = html.Span(scopeProps, scopeText)
+	if navigationDestinationAuthorized(view, PageSettings) {
+		scopeControl = appLink(view, scopeProps, statefulHref(view, PageSettings), scopeText)
+	}
 	return html.Div(html.Props{Class: "page-head"},
 		html.Div(html.Props{}, html.H1(html.Props{ID: "page-title", Raw: map[string]any{"tabindex": "-1"}}, ui.Text(view.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(view.Subtitle))),
 		html.Div(html.Props{Class: "scope-wrap"},
-			appLink(view, html.Props{Class: "scope"}, statefulHref(view, PageSettings), ui.Text(scope+" ⌄")),
+			scopeControl,
 			html.Span(html.Props{}, ui.Text(view.Locale.Text("shell.acting_self"))),
 		),
 	)
