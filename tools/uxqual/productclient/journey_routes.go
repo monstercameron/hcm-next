@@ -28,11 +28,34 @@ func JourneyFragment(request productui.PageRequest) string {
 // client back into a history-router URL. Only shell preferences survive the
 // transition; stale journey-specific fields are always replaced.
 func ProductJourneyHref(fragment, currentQuery string) string {
-	current, _ := url.ParseQuery(currentQuery)
+	if len(currentQuery) > maxRouteQueryBytes {
+		currentQuery = ""
+	}
+	current, err := url.ParseQuery(currentQuery)
+	if err != nil {
+		// A malformed current address is not a reason to block a safe
+		// navigation, but none of its partially parsed values are trusted.
+		current = url.Values{}
+	}
 	values := url.Values{}
-	for _, key := range []string{"nav", "menu_q", "favorites"} {
-		if value := current.Get(key); value != "" {
-			values.Set(key, value)
+	if entries := current["nav"]; len(entries) == 1 && entries[0] == "collapsed" {
+		values.Set("nav", "collapsed")
+	}
+	for _, key := range []string{"locale", "menu_q"} {
+		if entries := current[key]; len(entries) == 1 && safeRouteValue(entries[0]) {
+			if value := strings.TrimSpace(entries[0]); value != "" {
+				values.Set(key, value)
+			}
+		}
+	}
+	if entries := current["favorites"]; len(entries) == 1 && safeRouteValue(entries[0]) {
+		favorites := parseFavoritePages(entries[0])
+		if len(favorites) > 0 {
+			serialized := make([]string, 0, len(favorites))
+			for _, page := range favorites {
+				serialized = append(serialized, string(page))
+			}
+			values.Set("favorites", strings.Join(serialized, ","))
 		}
 	}
 	route := journeyclient.Parse(fragment)

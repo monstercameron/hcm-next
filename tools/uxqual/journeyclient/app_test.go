@@ -3,6 +3,7 @@ package journeyclient
 import (
 	"context"
 	"io"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -918,7 +919,7 @@ func TestAJourneyThatCannotBeReadStillRendersItsChrome(t *testing.T) {
 
 	h.app.Start(context.Background(), DetailHref("int_missing"))
 
-	p := h.awaitPage(t, "the refusal", noticeTitled("No such journey"))
+	p := h.awaitPage(t, "the refusal", noticeTitled("This journey is unavailable"))
 	if p.Detail == nil {
 		t.Fatal("the page rendered nothing at all")
 	}
@@ -929,8 +930,22 @@ func TestAJourneyThatCannotBeReadStillRendersItsChrome(t *testing.T) {
 	if err != nil {
 		t.Fatalf("rendering: %v", err)
 	}
-	if !strings.Contains(html, "no such journey in this tenant") {
-		t.Error("the rendered page does not carry the engine's refusal")
+	if strings.Contains(html, "no such journey in this tenant") || !strings.Contains(html, "cannot be opened in this session") {
+		t.Error("the rendered page exposed the engine's existence-bearing refusal")
+	}
+}
+
+func TestTodo_WEB_030_Security(t *testing.T) {
+	notFound := routeReadNotice(status.Error(codes.NotFound, "intent-secret exists in tenant-a"))
+	denied := routeReadNotice(status.Error(codes.PermissionDenied, "principal-b lacks intent-secret"))
+	stale := routeReadNotice(status.Error(codes.FailedPrecondition, "intent-secret is stale at version 7"))
+	if !reflect.DeepEqual(notFound, denied) || !reflect.DeepEqual(denied, stale) {
+		t.Fatalf("route refusal disclosed resource disposition: not-found=%+v denied=%+v stale=%+v", notFound, denied, stale)
+	}
+	for _, secret := range []string{"intent-secret", "tenant-a", "principal-b", "version 7", "not found", "denied"} {
+		if strings.Contains(strings.ToLower(notFound.Title+" "+notFound.Detail), strings.ToLower(secret)) {
+			t.Fatalf("safe route refusal leaked %q: %+v", secret, notFound)
+		}
 	}
 }
 

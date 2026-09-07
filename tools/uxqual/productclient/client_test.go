@@ -155,16 +155,15 @@ func TestParseStateUsesProductionRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.Page != productui.PageWork || !state.Request.NavCollapsed || state.Request.SelectedWork != "intent-1" || state.Request.PeoplePage != 3 ||
-		state.Request.MenuQuery != "work" || state.Request.Locale != "de-DE" || len(state.Request.FavoritePages) != 3 || state.Request.FavoritePages[0] != productui.PageHistory {
+	if state.Page != productui.PageWork || !state.Request.NavCollapsed || state.Request.SelectedWork != "intent-1" || state.Request.PeoplePage != 1 ||
+		state.Request.MenuQuery != "work" || state.Request.Locale != "de-DE" || len(state.Request.FavoritePages) != 2 || state.Request.FavoritePages[0] != productui.PageHistory {
 		t.Fatalf("state = %+v", state)
 	}
 	if _, err := ParseState("/app/work", ""); err == nil || !strings.Contains(err.Error(), "unknown") {
 		t.Fatalf("legacy mock route unexpectedly accepted: %v", err)
 	}
-	state, err = ParseState("/workspace/app/people", "page=invalid")
-	if err != nil || state.Request.PeoplePage != 1 {
-		t.Fatalf("invalid people page was not normalized: state=%+v err=%v", state, err)
+	if _, err = ParseState("/workspace/app/people", "page=invalid"); err == nil {
+		t.Fatal("invalid people page was accepted as canonical route state")
 	}
 	state, err = ParseState("/workspace/app/people", "q=engineer&team=Platform&location=Boston&sort=location&dir=desc&page=2")
 	if err != nil || state.Request.Query != "engineer" || state.Request.PeopleTeam != "Platform" || state.Request.PeopleLocation != "Boston" ||

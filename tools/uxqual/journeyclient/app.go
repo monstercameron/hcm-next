@@ -503,12 +503,27 @@ func (a *App) loadDetail(ctx context.Context, generation int, intentID string) {
 			return
 		}
 		if err != nil {
-			a.show(NoticeFromError(err))
+			a.show(routeReadNotice(err))
 			return
 		}
 		a.applyDetail(generation, resp.GetDetail(), nil)
 		a.startWatch(generation, intentID, resp.GetDetail().GetDetailDigest())
 	})
+}
+
+// routeReadNotice deliberately gives unknown, stale, and unauthorized
+// resource selectors the same presentation. A copied address is untrusted;
+// neither its title nor a service-supplied diagnostic may reveal whether a
+// journey exists outside the current principal's authorized projection.
+func routeReadNotice(err error) *journey.Notice {
+	if err == nil {
+		return nil
+	}
+	return &journey.Notice{
+		Tone:   toneDanger,
+		Title:  "This journey is unavailable",
+		Detail: "The link cannot be opened in this session. Return to Journeys to choose an item you can currently access.",
+	}
 }
 
 // ---------------------------------------------------------------------

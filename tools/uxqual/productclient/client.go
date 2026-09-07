@@ -9,9 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
+	"unicode"
+	"unicode/utf8"
 
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
@@ -85,32 +88,252 @@ func ParseState(pathname, rawQuery string) (State, error) {
 	if !ok {
 		return State{}, fmt.Errorf("productclient: unknown product route %q", pathname)
 	}
+	// Route state is presentation-only, but it still crosses an untrusted
+	// address-bar boundary. Keep recognized state strict: an ambiguous
+	// repeated key must not silently win by map iteration/order. Unknown keys
+	// are ignored below for forward compatibility and are never copied into a
+	// PageRequest, so a copied link cannot smuggle an action/credential
+	// parameter into the product router.
+	if len(rawQuery) > maxRouteQueryBytes {
+		return State{}, errors.New("productclient: route state is too large")
+	}
 	values, err := url.ParseQuery(rawQuery)
 	if err != nil {
-		return State{}, fmt.Errorf("productclient: parse route state: %w", err)
+		return State{}, errors.New("productclient: route state is malformed")
 	}
-	peoplePage, _ := strconv.Atoi(values.Get("page"))
-	if peoplePage < 1 {
-		peoplePage = 1
-	}
-	peoplePageSize, _ := strconv.Atoi(values.Get("page_size"))
-	historyPage, _ := strconv.Atoi(values.Get("history_page"))
-	historyPageSize, _ := strconv.Atoi(values.Get("history_page_size"))
+	allowed := routeQueryKeys(definition.ID)
 	provided := make(map[string]bool, len(values))
-	for key := range values {
+	for key, entries := range values {
+		// Unknown and wrong-page keys are intentionally omitted. The loader
+		// replaces the address with CanonicalHref before it issues a read, so
+		// credentials, action names, and stale selectors cannot survive in
+		// browser history or become a future route feature by accident.
+		if !allowed[key] {
+			values.Del(key)
+			continue
+		}
+		if len(entries) != 1 || !safeRouteValue(entries[0]) {
+			return State{}, errors.New("productclient: route state is malformed")
+		}
+		if key == "nav" && entries[0] != "" && entries[0] != "collapsed" && entries[0] != "expanded" {
+			return State{}, errors.New("productclient: route state is malformed")
+		}
 		provided[key] = true
 	}
-	return State{Page: definition.ID, Provided: provided, Request: productui.PageRequest{
-		Page: definition.ID, Locale: values.Get("locale"), Query: values.Get("q"), Mode: values.Get("mode"),
-		SelectedWork: values.Get("selected"), SelectedPerson: values.Get("person"),
-		PeoplePage: peoplePage, PeoplePageSize: peoplePageSize, PeopleTeam: values.Get("team"), PeopleLocation: values.Get("location"), PeopleSort: values.Get("sort"), PeopleDirection: values.Get("dir"),
-		OrganizationView: values.Get("org_view"),
-		WorkflowQuery:    values.Get("workflow_q"), HistoryQuery: values.Get("history_q"), HistoryOutcome: values.Get("outcome"),
-		HistoryPerson: values.Get("history_person"), HistoryYear: values.Get("history_year"), HistorySort: values.Get("history_sort"), HistoryDirection: values.Get("history_dir"), HistoryPage: historyPage, HistoryPageSize: historyPageSize,
-		WorkFilter: values.Get("filter"), NavCollapsed: values.Get("nav") == "collapsed",
-		JourneyID: values.Get("journey"), JourneyWorker: values.Get("worker"), JourneyMode: values.Get("mode"),
-		MenuQuery: values.Get("menu_q"), FavoritePages: parseFavoritePages(values.Get("favorites")),
-	}}, nil
+	peoplePage, err := parsePositiveRouteInt(values, "page", 1)
+	if err != nil {
+		return State{}, err
+	}
+	peoplePageSize, err := parsePageSizeRouteInt(values, "page_size")
+	if err != nil {
+		return State{}, err
+	}
+	historyPage, err := parsePositiveRouteInt(values, "history_page", 1)
+	if err != nil {
+		return State{}, err
+	}
+	historyPageSize, err := parsePageSizeRouteInt(values, "history_page_size")
+	if err != nil {
+		return State{}, err
+	}
+	if !validControlledRouteValues(definition.ID, values) {
+		return State{}, errors.New("productclient: route state is malformed")
+	}
+	state := State{Page: definition.ID, Provided: provided, Request: productui.PageRequest{
+		Page: definition.ID, Locale: routeValue(values, "locale"), Query: routeValue(values, "q"), Mode: routeValue(values, "mode"),
+		SelectedWork: routeValue(values, "selected"), SelectedPerson: routeValue(values, "person"),
+		PeoplePage: peoplePage, PeoplePageSize: peoplePageSize, PeopleTeam: routeValue(values, "team"), PeopleLocation: routeValue(values, "location"), PeopleSort: routeValue(values, "sort"), PeopleDirection: routeValue(values, "dir"),
+		OrganizationView: routeValue(values, "org_view"),
+		WorkflowQuery:    routeValue(values, "workflow_q"), HistoryQuery: routeValue(values, "history_q"), HistoryOutcome: routeValue(values, "outcome"),
+		HistoryPerson: routeValue(values, "history_person"), HistoryYear: routeValue(values, "history_year"), HistorySort: routeValue(values, "history_sort"), HistoryDirection: routeValue(values, "history_dir"), HistoryPage: historyPage, HistoryPageSize: historyPageSize,
+		WorkFilter: routeValue(values, "filter"), NavCollapsed: routeValue(values, "nav") == "collapsed",
+		JourneyID: routeValue(values, "journey"), JourneyWorker: routeValue(values, "worker"), JourneyMode: routeValue(values, "mode"),
+		MenuQuery: routeValue(values, "menu_q"), FavoritePages: parseFavoritePages(routeValue(values, "favorites")),
+	}}
+	if state.Page == productui.PageJourneys {
+		if state.Request.JourneyID != "" {
+			state.Request.Mode = ""
+			state.Request.JourneyMode = ""
+			state.Request.JourneyWorker = ""
+			delete(state.Provided, "mode")
+			delete(state.Provided, "worker")
+		} else if state.Request.JourneyMode != "" && state.Request.JourneyMode != "new" {
+			return State{}, errors.New("productclient: route state is malformed")
+		}
+	}
+	return state, nil
+}
+
+const maxRouteQueryBytes = 4096
+
+var shellRouteQueryKeys = []string{"locale", "nav", "menu_q", "favorites"}
+
+var pageRouteQueryKeys = map[productui.PageID][]string{
+	productui.PageMyself:       {"workflow_q", "history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
+	productui.PageJourneys:     {"journey", "mode", "worker"},
+	productui.PageWork:         {"filter", "selected"},
+	productui.PageHistory:      {"history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
+	productui.PagePeople:       {"q", "page", "page_size", "team", "location", "sort", "dir"},
+	productui.PagePerson:       {"person", "q", "page", "page_size", "team", "location", "sort", "dir", "workflow_q", "history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
+	productui.PageOrganization: {"org_view"},
+	productui.PageStudio:       {"mode"},
+}
+
+func safeRouteValue(value string) bool {
+	return len(value) <= maxRouteQueryBytes && utf8.ValidString(value) && strings.IndexFunc(value, unicode.IsControl) < 0
+}
+
+func routeQueryKeys(page productui.PageID) map[string]bool {
+	keys := make(map[string]bool, len(shellRouteQueryKeys)+len(pageRouteQueryKeys[page]))
+	for _, key := range shellRouteQueryKeys {
+		keys[key] = true
+	}
+	for _, key := range pageRouteQueryKeys[page] {
+		keys[key] = true
+	}
+	return keys
+}
+
+func parsePositiveRouteInt(values url.Values, key string, absent int) (int, error) {
+	raw, ok := values[key]
+	if !ok {
+		return absent, nil
+	}
+	value, err := strconv.Atoi(raw[0])
+	if err != nil || value < 1 {
+		return 0, errors.New("productclient: route state is malformed")
+	}
+	return value, nil
+}
+
+func parsePageSizeRouteInt(values url.Values, key string) (int, error) {
+	value, err := parsePositiveRouteInt(values, key, 0)
+	if err != nil || value != 0 && value != 10 && value != 20 && value != 50 && value != 100 {
+		return 0, errors.New("productclient: route state is malformed")
+	}
+	return value, nil
+}
+
+func validControlledRouteValues(page productui.PageID, values url.Values) bool {
+	oneOf := func(key string, allowed ...string) bool {
+		value := strings.ToLower(strings.TrimSpace(values.Get(key)))
+		return value == "" || slices.Contains(allowed, value)
+	}
+	if !oneOf("sort", "name", "role", "team", "manager", "location") ||
+		!oneOf("dir", "asc", "desc") ||
+		!oneOf("history_sort", "person", "change", "closed", "outcome") ||
+		!oneOf("history_dir", "asc", "desc") ||
+		!oneOf("outcome", "completed", "rejected", "failed") {
+		return false
+	}
+	switch page {
+	case productui.PageWork:
+		return oneOf("filter", "review", "blocked", "complete")
+	case productui.PageOrganization:
+		return oneOf("org_view", "flat", "tree")
+	case productui.PageStudio:
+		return oneOf("mode", "preview", "validate")
+	default:
+		return true
+	}
+}
+
+func routeValue(values url.Values, key string) string {
+	return strings.TrimSpace(values.Get(key))
+}
+
+// CanonicalHref returns the only browser address representation of parsed
+// product state. It serializes page-scoped presentation values and nothing
+// else; it can never carry a credential, action token, or service response.
+func CanonicalHref(state State) string {
+	values := url.Values{}
+	set := func(key, value string) {
+		if state.Provided[key] {
+			values.Set(key, value)
+		}
+	}
+	request := state.Request
+	set("locale", request.Locale)
+	if state.Provided["nav"] {
+		if request.NavCollapsed {
+			values.Set("nav", "collapsed")
+		} else {
+			values.Set("nav", "expanded")
+		}
+	}
+	set("menu_q", request.MenuQuery)
+	if state.Provided["favorites"] {
+		favorites := make([]string, 0, len(request.FavoritePages))
+		for _, page := range request.FavoritePages {
+			favorites = append(favorites, string(page))
+		}
+		values.Set("favorites", strings.Join(favorites, ","))
+	}
+	switch state.Page {
+	case productui.PageMyself:
+		setHistoryRouteValues(values, state)
+		set("workflow_q", request.WorkflowQuery)
+	case productui.PageJourneys:
+		set("journey", request.JourneyID)
+		set("mode", request.JourneyMode)
+		set("worker", request.JourneyWorker)
+	case productui.PageWork:
+		set("filter", request.WorkFilter)
+		set("selected", request.SelectedWork)
+	case productui.PageHistory:
+		setHistoryRouteValues(values, state)
+	case productui.PagePeople:
+		setPeopleRouteValues(values, state)
+	case productui.PagePerson:
+		set("person", request.SelectedPerson)
+		setPeopleRouteValues(values, state)
+		set("workflow_q", request.WorkflowQuery)
+		setHistoryRouteValues(values, state)
+	case productui.PageOrganization:
+		set("org_view", request.OrganizationView)
+	case productui.PageStudio:
+		set("mode", request.Mode)
+	}
+	href := productui.Path(state.Page)
+	if query := values.Encode(); query != "" {
+		return href + "?" + query
+	}
+	return href
+}
+
+func setPeopleRouteValues(values url.Values, state State) {
+	request := state.Request
+	setProvidedRouteValue(values, state, "q", request.Query)
+	setProvidedRouteInt(values, state, "page", request.PeoplePage)
+	setProvidedRouteInt(values, state, "page_size", request.PeoplePageSize)
+	setProvidedRouteValue(values, state, "team", request.PeopleTeam)
+	setProvidedRouteValue(values, state, "location", request.PeopleLocation)
+	setProvidedRouteValue(values, state, "sort", request.PeopleSort)
+	setProvidedRouteValue(values, state, "dir", request.PeopleDirection)
+}
+
+func setHistoryRouteValues(values url.Values, state State) {
+	request := state.Request
+	setProvidedRouteValue(values, state, "history_q", request.HistoryQuery)
+	setProvidedRouteValue(values, state, "outcome", request.HistoryOutcome)
+	setProvidedRouteValue(values, state, "history_person", request.HistoryPerson)
+	setProvidedRouteValue(values, state, "history_year", request.HistoryYear)
+	setProvidedRouteValue(values, state, "history_sort", request.HistorySort)
+	setProvidedRouteValue(values, state, "history_dir", request.HistoryDirection)
+	setProvidedRouteInt(values, state, "history_page", request.HistoryPage)
+	setProvidedRouteInt(values, state, "history_page_size", request.HistoryPageSize)
+}
+
+func setProvidedRouteValue(values url.Values, state State, key, value string) {
+	if state.Provided[key] {
+		values.Set(key, value)
+	}
+}
+
+func setProvidedRouteInt(values url.Values, state State, key string, value int) {
+	if state.Provided[key] {
+		values.Set(key, strconv.Itoa(value))
+	}
 }
 
 func parseFavoritePages(raw string) []productui.PageID {
@@ -118,6 +341,9 @@ func parseFavoritePages(raw string) []productui.PageID {
 	pages := make([]productui.PageID, 0, len(parts))
 	for _, part := range parts {
 		if page := productui.PageID(strings.TrimSpace(part)); page != "" {
+			if _, ok := productui.LookupPage(page); !ok || slices.Contains(pages, page) {
+				continue
+			}
 			pages = append(pages, page)
 		}
 	}
@@ -159,7 +385,7 @@ func requirementsForPage(page productui.PageID) pageDataRequirements {
 func load(ctx context.Context, service Service, session Session, state State, baseline *productui.View) (productui.View, error) {
 	view := LoadingView(session, state)
 	requirements := pageDataRequirements{journeys: true, workers: true}
-	if baseline != nil {
+	if baseline != nil && baselineMatchesSession(*baseline, view) {
 		requirements = requirementsForPage(state.Page)
 		seedBaselineProjection(&view, *baseline)
 		// Work filters are applied destructively to the route projection. Never
@@ -309,6 +535,11 @@ func load(ctx context.Context, service Service, session Session, state State, ba
 	}
 	view.PersonWorkflows = projectPersonWorkflows(view, view.SelectedPerson)
 	return view, errors.Join(failures...)
+}
+
+func baselineMatchesSession(baseline, current productui.View) bool {
+	return baseline.Tenant == current.Tenant && baseline.Principal == current.Principal && baseline.Scope == current.Scope &&
+		slices.Equal(baseline.Roles, current.Roles) && slices.Equal(baseline.EffectivePermissions, current.EffectivePermissions)
 }
 
 func seedBaselineProjection(view *productui.View, baseline productui.View) {

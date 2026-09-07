@@ -3,6 +3,8 @@
 package main
 
 import (
+	"math"
+	"net/url"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -24,9 +26,10 @@ var productHistory *browserProductHistoryController
 // report forward availability, so the controller retains the high-water mark
 // in session storage. A ledger ID in history.state keeps stale sessions apart.
 type browserProductHistoryController struct {
-	id       string
-	index    int
-	maxIndex int
+	id                        string
+	index                     int
+	maxIndex                  int
+	pendingSoftwareNavigation string
 }
 
 func newBrowserProductHistoryController() *browserProductHistoryController {
@@ -54,6 +57,9 @@ func (controller *browserProductHistoryController) Navigate(navigate func(string
 	if navigate == nil {
 		return
 	}
+	if controller != nil {
+		controller.pendingSoftwareNavigation = normalizedProductHistoryHref(href)
+	}
 	navigate(href)
 	if controller == nil || controller.id == "" {
 		return
@@ -65,6 +71,35 @@ func (controller *browserProductHistoryController) Navigate(navigate func(string
 	controller.maxIndex = controller.index
 	controller.replaceCurrentState(controller.index)
 	controller.writeMax()
+}
+
+// ClaimSoftwareNavigation distinguishes a user-initiated software push from
+// cold rendering and browser popstate resumption. Route loaders may persist
+// presentation preferences only for the former; a history read must never
+// replay a preference or workflow-use mutation.
+func (controller *browserProductHistoryController) ClaimSoftwareNavigation(path, encodedQuery string) bool {
+	if controller == nil {
+		return false
+	}
+	pending := controller.pendingSoftwareNavigation
+	controller.pendingSoftwareNavigation = ""
+	current := path
+	if encodedQuery != "" {
+		current += "?" + encodedQuery
+	}
+	return pending != "" && pending == current
+}
+
+func normalizedProductHistoryHref(href string) string {
+	parsed, err := url.Parse(strings.TrimSpace(href))
+	if err != nil || parsed.Path == "" {
+		return ""
+	}
+	normalized := parsed.Path
+	if query := parsed.Query().Encode(); query != "" {
+		normalized += "?" + query
+	}
+	return normalized
 }
 
 func (controller *browserProductHistoryController) Props(locale productui.LocaleContext) productui.HistoryNavigationProps {
@@ -136,8 +171,32 @@ func productHistoryState(state js.Value) (string, int, bool) {
 		return "", 0, false
 	}
 	id := strings.TrimSpace(idValue.String())
-	index := indexValue.Int()
-	return id, index, id != "" && index >= 0
+	indexFloat := indexValue.Float()
+	// history.state is browser-owned input. Do not let NaN, infinity,
+	// fractions, or an unbounded value turn the history controls into a
+	// surprising history.go request (or a platform-dependent int overflow).
+	if !safeProductHistoryID(id) || math.IsNaN(indexFloat) || math.IsInf(indexFloat, 0) || indexFloat < 0 || math.Trunc(indexFloat) != indexFloat || indexFloat > float64(maxIntValue()) {
+		return "", 0, false
+	}
+	return id, int(indexFloat), true
+}
+
+func safeProductHistoryID(id string) bool {
+	if id == "" || len(id) > 128 {
+		return false
+	}
+	for _, char := range id {
+		if char < '0' || char > '9' {
+			if char < 'a' || char > 'z' {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func maxIntValue() int {
+	return int(^uint(0) >> 1)
 }
 
 func applyBrowserHistoryNavigation(view *productui.View) {

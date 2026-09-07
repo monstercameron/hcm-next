@@ -90,3 +90,16 @@ func TestDialTargetIsResolvableWithoutDNS(t *testing.T) {
 		t.Errorf("dial target = %q, want a passthrough target", got)
 	}
 }
+
+func TestProductPathRecognizesTheShellRootAndCanonicalDeepLinks(t *testing.T) {
+	for _, path := range []string{"/workspace/app/", "/workspace/app/journeys", "/workspace/app/people"} {
+		if !isProductPath(path) {
+			t.Errorf("isProductPath(%q) = false, want product shell routing", path)
+		}
+	}
+	for _, path := range []string{"/workspace/app", "/workspace/journey", "/workspace/promotion", "/workspace/appetite", " /workspace/app/people", "/workspace/app/people "} {
+		if isProductPath(path) {
+			t.Errorf("isProductPath(%q) = true, want standalone/document routing", path)
+		}
+	}
+}

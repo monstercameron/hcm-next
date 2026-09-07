@@ -69,11 +69,11 @@ func TestLoadWithBaselineSkipsUnusedPageDatasets(t *testing.T) {
 			return &journeyv1.GetProductPreferencesResponse{}, nil
 		},
 	}
-	baseline := productui.NewView(productui.PageHome, "HarborCare", "worker-1", "employee")
+	baseline := productui.NewView(productui.PageHome, "Harborcare", "Worker 1", "Employee")
 	baseline.Work = []productui.WorkItem{{ID: "journey-1"}}
 	baseline.People = []productui.Person{{ID: "worker-1", Name: "Rafael Torres"}}
 
-	view, err := LoadWithBaseline(context.Background(), service, Session{Principal: "worker-1"}, State{
+	view, err := LoadWithBaseline(context.Background(), service, Session{Tenant: "harborcare", Principal: "worker-1", Scope: "employee"}, State{
 		Page: productui.PageSettings, Request: productui.PageRequest{Page: productui.PageSettings},
 	}, baseline)
 	if err != nil {
@@ -100,11 +100,11 @@ func TestLoadWithBaselineRefreshesOnlyPeopleForDirectory(t *testing.T) {
 			return &journeyv1.ListWorkersResponse{Workers: []*journeyv1.Worker{{WorkerRef: "worker-new", PreferredName: "New Worker"}}}, nil
 		},
 	}
-	baseline := productui.NewView(productui.PageHome, "HarborCare", "worker-1", "employee")
+	baseline := productui.NewView(productui.PageHome, "Harborcare", "Worker 1", "Employee")
 	baseline.Work = []productui.WorkItem{{ID: "journey-1"}}
 	baseline.People = []productui.Person{{ID: "worker-old", Name: "Old Worker"}}
 
-	view, err := LoadWithBaseline(context.Background(), service, Session{}, State{
+	view, err := LoadWithBaseline(context.Background(), service, Session{Tenant: "harborcare", Principal: "worker-1", Scope: "employee"}, State{
 		Page: productui.PagePeople, Request: productui.PageRequest{Page: productui.PagePeople},
 	}, baseline)
 	if err != nil {
@@ -126,11 +126,11 @@ func TestLoadWithBaselineDoesNotReuseFilteredWorkAsShellData(t *testing.T) {
 			return &journeyv1.ListJourneysResponse{Journeys: []*journeyv1.Journey{{IntentId: "journey-complete", Stage: journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED}}}, nil
 		},
 	}
-	baseline := productui.NewView(productui.PageWork, "HarborCare", "worker-1", "employee")
+	baseline := productui.NewView(productui.PageWork, "Harborcare", "Worker 1", "Employee")
 	baseline.WorkFilter = "review"
 	baseline.Work = []productui.WorkItem{{ID: "journey-review"}}
 
-	view, err := LoadWithBaseline(context.Background(), service, Session{}, State{
+	view, err := LoadWithBaseline(context.Background(), service, Session{Tenant: "harborcare", Principal: "worker-1", Scope: "employee"}, State{
 		Page: productui.PageSettings, Request: productui.PageRequest{Page: productui.PageSettings},
 	}, baseline)
 	if err != nil {
@@ -145,14 +145,14 @@ func TestLoadWithBaselineDoesNotReuseFilteredWorkAsShellData(t *testing.T) {
 }
 
 func TestLoadWithBaselineFailsClosedWhenRequiredRefreshIsDenied(t *testing.T) {
-	baseline := productui.NewView(productui.PageHome, "HarborCare", "worker-1", "employee")
+	baseline := productui.NewView(productui.PageHome, "Harborcare", "Worker 1", "Employee")
 	baseline.Work = []productui.WorkItem{{ID: "journey-old"}}
 	baseline.People = []productui.Person{{ID: "worker-old", Name: "Old Worker"}}
 	view, err := LoadWithBaseline(context.Background(), Service{
 		ListWorkers: func(context.Context, *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error) {
 			return nil, errors.New("permission denied")
 		},
-	}, Session{}, State{Page: productui.PagePeople, Request: productui.PageRequest{Page: productui.PagePeople}}, baseline)
+	}, Session{Tenant: "harborcare", Principal: "worker-1", Scope: "employee"}, State{Page: productui.PagePeople, Request: productui.PageRequest{Page: productui.PagePeople}}, baseline)
 	if err == nil {
 		t.Fatal("required refresh denial returned no error")
 	}

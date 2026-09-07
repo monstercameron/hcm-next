@@ -29,12 +29,12 @@ func TestLiveJourneyNavigationStaysInProductRouterAndPreservesShellState(t *test
 		fragment string
 		want     string
 	}{
-		{journeyclient.ListHref(), "/workspace/app/journeys?favorites=people%2Chistory&menu_q=journey&nav=collapsed"},
-		{journeyclient.DetailHref("intent+17"), "/workspace/app/journeys?favorites=people%2Chistory&journey=intent%2B17&menu_q=journey&nav=collapsed"},
-		{journeyclient.ProposalHref("worker/a+b"), "/workspace/app/journeys?favorites=people%2Chistory&menu_q=journey&mode=new&nav=collapsed&worker=worker%2Fa%2Bb"},
+		{journeyclient.ListHref(), "/workspace/app/journeys?favorites=people%2Chistory&locale=de-DE&menu_q=journey&nav=collapsed"},
+		{journeyclient.DetailHref("intent+17"), "/workspace/app/journeys?favorites=people%2Chistory&journey=intent%2B17&locale=de-DE&menu_q=journey&nav=collapsed"},
+		{journeyclient.ProposalHref("worker/a+b"), "/workspace/app/journeys?favorites=people%2Chistory&locale=de-DE&menu_q=journey&mode=new&nav=collapsed&worker=worker%2Fa%2Bb"},
 	}
 	for _, test := range tests {
-		got := ProductJourneyHref(test.fragment, "nav=collapsed&menu_q=journey&favorites=people,history&journey=stale&worker=stale")
+		got := ProductJourneyHref(test.fragment, "nav=collapsed&locale=de-DE&menu_q=journey&favorites=people,history,unknown,people&journey=stale&worker=stale")
 		if got != test.want {
 			t.Errorf("ProductJourneyHref(%q) = %q, want %q", test.fragment, got, test.want)
 		}
@@ -46,7 +46,7 @@ func TestParseStateReadsJourneyAddressState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.Page != productui.PageJourneys || state.Request.JourneyID != "intent-17" || state.Request.JourneyWorker != "worker-1" || state.Request.JourneyMode != "new" || !state.Request.NavCollapsed {
+	if state.Page != productui.PageJourneys || state.Request.JourneyID != "intent-17" || state.Request.JourneyWorker != "" || state.Request.JourneyMode != "" || !state.Request.NavCollapsed {
 		t.Fatalf("journey state = %+v", state)
 	}
 }

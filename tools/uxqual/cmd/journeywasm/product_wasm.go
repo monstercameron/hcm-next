@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"net/url"
 	"strings"
 	"syscall/js"
 	"time"
@@ -30,7 +31,9 @@ var lastResolvedProductView *productui.View
 var activeProductLayoutView productui.View
 var activeProductLayoutShowHeading = true
 
-func isProductPath(path string) bool { return strings.HasPrefix(path, productPathPrefix) }
+func isProductPath(path string) bool {
+	return strings.HasPrefix(path, productPathPrefix)
+}
 
 func startProduct(ctx context.Context, cfg journeyclient.Config, service journeyclient.Service) error {
 	// Finite RPC work shares a bounded lane. WatchJourney subscriptions stay
@@ -68,7 +71,17 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	productNavigationGroups.Bind()
 	productTransientPopovers = newBrowserTransientPopoverController()
 	productTransientPopovers.Bind()
+	// Normalize the cold address before GWC constructs its first loader key.
+	// This keeps unknown, wrong-page, and action/credential-shaped parameters
+	// out of both the visible address and the router's internal loader cache.
+	canonicalizeCurrentProductLocation()
 	productRouter := router.NewHistoryRouter(router.RouterOptions{DefaultRoute: productui.Path(productui.PageHome)})
+	// Product routing has page-aware focus continuity: collection controls keep
+	// focus for local filter/sort/paging changes, shell toggles keep their own
+	// focus, and only a true destination change focuses the page heading. Turn
+	// off GWC's generic container focus so loading and resolved renders cannot
+	// move focus a second time.
+	productRouter.SetFocusManagement(false)
 	// The application shell is a persistent layout route. Leaf routes own only
 	// the outlet below /workspace/app, so navigation cannot temporarily unmount
 	// the header, sidebar, or their local interaction state.
@@ -96,23 +109,38 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 			Title: definition.Title + " · HCM Next",
 			Loader: func(loadCtx context.Context, routeContext router.RouteContext) (router.Attrs, error) {
 				navigationDebounce.Cancel()
+				persistPresentation := productHistory != nil && productHistory.ClaimSoftwareNavigation(routeContext.Path, routeContext.Query.Encode())
 				// A route change discards an unsaved preview and reapplies the last
 				// customer selection before the next component tree is mounted.
 				appearance.Apply(appearance.Saved())
 				accessibility.Apply(accessibility.Saved())
-				// The history router's RouteContext can lag the address bar query
-				// during same-page navigation. The browser URL is the canonical
-				// presentation state: using the stale context here made a sort click
-				// reload the previously persisted column and direction.
-				state, parseErr := productclient.ParseState(routeContext.Path, currentQuery())
+				// GWC v5 binds RouteContext to the loader's route generation. Reading
+				// location.search here would race a later push/pop navigation and let
+				// the older generation issue reads for the newer address.
+				state, parseErr := productclient.ParseState(routeContext.Path, routeContext.Query.Encode())
 				if parseErr != nil {
+					if loadCtx.Err() == nil && browserRouteGenerationMatches(routeContext.Path, routeContext.Query.Encode()) {
+						browserReplaceURL(routeContext.Path)
+					}
 					return nil, parseErr
+				}
+				canonicalHref := productclient.CanonicalHref(state)
+				currentHref := currentProductHref()
+				if loadCtx.Err() == nil && browserRouteGenerationMatches(routeContext.Path, routeContext.Query.Encode()) && canonicalHref != currentHref {
+					// Preserve the history ledger state while removing unknown,
+					// wrong-page, and stale route fields before any service read.
+					browserReplaceURL(canonicalHref)
 				}
 				var view productui.View
 				var loadErr error
 				handle, scheduleErr := frontendTasks.Submit(loadCtx, taskmux.Spec{
 					Key: "product:route-projection", Priority: taskmux.UserVisible, Duplicate: taskmux.ReplaceExisting,
 				}, func(taskCtx context.Context) error {
+					// The URL is a presentation bookmark, never an authorization or
+					// data snapshot. LoadWithBaseline still rereads every authoritative
+					// dataset consumed by this destination (and live preferences), while
+					// retaining the already-authorized shell projection for pages that
+					// do not consume that dataset.
 					if lastResolvedProductView != nil {
 						view, loadErr = productclient.LoadWithBaseline(taskCtx, liveService, session, state, *lastResolvedProductView)
 					} else {
@@ -133,6 +161,12 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					handle.Cancel()
 					return nil, loadCtx.Err()
 				}
+				if loadCtx.Err() != nil || currentProductHref() != canonicalHref {
+					// The service is allowed to ignore cancellation. Do not let an
+					// answer for an address the browser has since left adopt local
+					// state, start a journey read, or enqueue a preference write.
+					return nil, context.Canceled
+				}
 				view.Navigate = navigateProduct
 				applyBrowserHistoryNavigation(&view)
 				view.NavigateDebounced = navigationDebounce.Schedule
@@ -145,9 +179,13 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					groups[string(page)] = open
 				}
 				productNavigationGroups.Load(groups)
-				preferences.PersistView(view)
+				if persistPresentation {
+					preferences.PersistView(view)
+				}
 				if state.Page == productui.PageJourneys && state.Request.JourneyMode == "new" && state.Request.JourneyWorker != "" {
-					preferences.RecordWorkflowUse("promotion", state.Request.JourneyWorker)
+					if persistPresentation {
+						preferences.RecordWorkflowUse("promotion", state.Request.JourneyWorker)
+					}
 				} else {
 					preferences.ResetWorkflowUseMarker()
 				}
@@ -348,6 +386,40 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	clearRoot()
 	productRouter.Mount(rootSelector)
 	return nil
+}
+
+func browserRouteGenerationMatches(path, encodedQuery string) bool {
+	if currentPath() != path {
+		return false
+	}
+	query, err := url.ParseQuery(currentQuery())
+	return err == nil && query.Encode() == encodedQuery
+}
+
+func currentProductHref() string {
+	href := currentPath()
+	if query := currentQuery(); query != "" {
+		href += "?" + query
+	}
+	return href
+}
+
+func canonicalizeCurrentProductLocation() {
+	path := currentPath()
+	state, err := productclient.ParseState(path, currentQuery())
+	if err != nil {
+		if _, known := productui.LookupRoute(path); known {
+			browserReplaceURL(path)
+		} else {
+			browserReplaceURL(productui.Path(productui.PageHome))
+		}
+		return
+	}
+	canonical := productclient.CanonicalHref(state)
+	current := currentProductHref()
+	if canonical != current {
+		browserReplaceURL(canonical)
+	}
 }
 
 type browserDebounceTimer struct {
