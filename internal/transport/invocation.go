@@ -307,6 +307,10 @@ func PreAdmit(ctx context.Context, cfg Config, md Metadata, method string) (*tru
 	if md == nil {
 		md = MapMetadata(nil)
 	}
+	if carrier, ok := ctx.Value(preAdmissionContextKey{}).(*preAdmission); ok && carrier != nil &&
+		carrier.method == method && carrier.fingerprint == preAdmissionFingerprint(md) {
+		return carrier.principal, carrier.requestID, nil
+	}
 	requestID := resolveRequestID(cfg, md, method)
 
 	if selected := trust.RejectCallerSelectedAuthority(md.Keys()); len(selected) > 0 {

@@ -291,6 +291,9 @@ func (e *Error) WithViolation(fieldPath, description, ruleRef string) *Error {
 	if !ok {
 		safe = "field rejected by " + ruleRef
 	}
+	if e.violations == nil {
+		e.violations = make([]Violation, 0, 3)
+	}
 	e.violations = append(e.violations, Violation{
 		FieldPath:   fieldPath,
 		Description: safe,
@@ -377,12 +380,15 @@ func (e *Error) Detail() *commonv1.ErrorDetail {
 		CorrelationId: e.correlationID,
 		ReasonRef:     e.reasonRef,
 	}
-	for _, v := range e.violations {
-		detail.FieldViolations = append(detail.FieldViolations, &commonv1.FieldViolation{
+	if len(e.violations) > 0 {
+		detail.FieldViolations = make([]*commonv1.FieldViolation, len(e.violations))
+	}
+	for i, v := range e.violations {
+		detail.FieldViolations[i] = &commonv1.FieldViolation{
 			FieldPath:   v.FieldPath,
 			Description: v.Description,
 			RuleRef:     v.RuleRef,
-		})
+		}
 	}
 	if e.evidence.ID != "" || e.evidence.Kind != "" || e.evidence.Digest != "" {
 		detail.EvidenceRef = &commonv1.EvidenceRef{
@@ -432,12 +438,15 @@ func FromDetail(code Code, message string, detail *commonv1.ErrorDetail) *Error 
 	e.retryable = detail.GetRetryable()
 	e.correlationID = detail.GetCorrelationId()
 	e.reasonRef = detail.GetReasonRef()
-	for _, v := range detail.GetFieldViolations() {
-		e.violations = append(e.violations, Violation{
-			FieldPath:   v.GetFieldPath(),
-			Description: v.GetDescription(),
-			RuleRef:     v.GetRuleRef(),
-		})
+	if violations := detail.GetFieldViolations(); len(violations) > 0 {
+		e.violations = make([]Violation, len(violations))
+		for i, v := range violations {
+			e.violations[i] = Violation{
+				FieldPath:   v.GetFieldPath(),
+				Description: v.GetDescription(),
+				RuleRef:     v.GetRuleRef(),
+			}
+		}
 	}
 	if ev := detail.GetEvidenceRef(); ev != nil {
 		e.evidence = Evidence{ID: ev.GetEvidenceId(), Kind: ev.GetEvidenceKind(), Digest: ev.GetDigest()}

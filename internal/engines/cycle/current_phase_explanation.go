@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,20 +88,6 @@ var standardCycleOperations = []string{
 	OperationAdmitLateEntrant, OperationRemoveLateEntrant,
 }
 
-func cloneCutoffResolutions(in []CutoffResolution) []CutoffResolution {
-	out := append([]CutoffResolution(nil), in...)
-	sort.SliceStable(out, func(i, j int) bool {
-		if out[i].PhaseID != out[j].PhaseID {
-			return out[i].PhaseID < out[j].PhaseID
-		}
-		if out[i].Status != out[j].Status {
-			return out[i].Status < out[j].Status
-		}
-		return out[i].Instant.Before(out[j].Instant)
-	})
-	return out
-}
-
 func cloneCompiledPhase(in CompiledPhase) CompiledPhase {
 	out := in
 	out.AllowedOperations = append([]string(nil), in.AllowedOperations...)
@@ -136,38 +123,32 @@ func validateCutoffForExplanation(c CutoffResolution) error {
 }
 
 func phaseCapabilities(phase CompiledPhase) ([]PhaseCapability, []string, []string) {
-	permitted := append([]string(nil), phase.AllowedOperations...)
+	var permitted []string
+	if len(phase.AllowedOperations) > 0 {
+		permitted = make([]string, len(phase.AllowedOperations))
+		copy(permitted, phase.AllowedOperations)
+		sort.Strings(permitted)
+	}
 	seen := make(map[string]struct{}, len(permitted))
 	for _, operation := range permitted {
 		seen[operation] = struct{}{}
 	}
-	known := append([]string(nil), standardCycleOperations...)
-	for _, operation := range permitted {
-		found := false
-		for _, existing := range known {
-			if existing == operation {
-				found = true
-				break
-			}
-		}
-		if !found {
-			known = append(known, operation)
-		}
-	}
-	forbidden := make([]string, 0, len(known))
-	for _, operation := range known {
+	forbidden := make([]string, 0, len(standardCycleOperations))
+	for _, operation := range standardCycleOperations {
 		if _, ok := seen[operation]; !ok {
 			forbidden = append(forbidden, operation)
 		}
 	}
-	sort.Strings(permitted)
 	sort.Strings(forbidden)
-	capabilities := make([]PhaseCapability, 0, len(permitted)+len(forbidden))
+	capabilities := make([]PhaseCapability, len(permitted)+len(forbidden))
+	i := 0
 	for _, operation := range permitted {
-		capabilities = append(capabilities, PhaseCapability{Operation: operation, Permitted: true, Reason: "declared by active phase"})
+		capabilities[i] = PhaseCapability{Operation: operation, Permitted: true, Reason: "declared by active phase"}
+		i++
 	}
 	for _, operation := range forbidden {
-		capabilities = append(capabilities, PhaseCapability{Operation: operation, Reason: "not declared by active phase"})
+		capabilities[i] = PhaseCapability{Operation: operation, Reason: "not declared by active phase"}
+		i++
 	}
 	return capabilities, permitted, forbidden
 }
@@ -255,37 +236,87 @@ func transitionOperationStrings(in []TransitionOperation) []string {
 }
 
 func renderCurrentPhase(e CurrentPhaseExplanation) string {
-	lines := []string{
-		fmt.Sprintf("cycle revision %s (%s) at effective %s, known at %s", e.CycleRevisionVersion, e.CycleRevisionDigest, e.EffectiveAt.UTC().Format(time.RFC3339Nano), e.KnownAt.UTC().Format(time.RFC3339Nano)),
-		fmt.Sprintf("state: %s (sequence %d)", e.State, e.Sequence),
-	}
+	var b strings.Builder
+	b.Grow(512)
+	b.WriteString("cycle revision ")
+	b.WriteString(e.CycleRevisionVersion)
+	b.WriteString(" (")
+	b.WriteString(e.CycleRevisionDigest)
+	b.WriteString(") at effective ")
+	writeTime(&b, e.EffectiveAt)
+	b.WriteString(", known at ")
+	writeTime(&b, e.KnownAt)
+	b.WriteString("\nstate: ")
+	b.WriteString(string(e.State))
+	b.WriteString(" (sequence ")
+	writeInt(&b, int64(e.Sequence))
+	b.WriteByte(')')
 	if e.HasPhase {
-		lines = append(lines, fmt.Sprintf("active phase: %s (%s), window [%s, %s)", e.Phase.ID, e.Phase.Name, e.Window.Start.UTC().Format(time.RFC3339Nano), e.Window.End.UTC().Format(time.RFC3339Nano)))
+		b.WriteString("\nactive phase: ")
+		b.WriteString(e.Phase.ID)
+		b.WriteString(" (")
+		b.WriteString(e.Phase.Name)
+		b.WriteString("), window [")
+		writeTime(&b, e.Window.Start)
+		b.WriteString(", ")
+		writeTime(&b, e.Window.End)
+		b.WriteByte(')')
 	} else {
-		lines = append(lines, "active phase: none")
+		b.WriteString("\nactive phase: none")
 	}
-	lines = append(lines, fmt.Sprintf("permitted operations: %s", strings.Join(e.PermittedOperations, ", ")))
-	lines = append(lines, fmt.Sprintf("forbidden operations: %s", strings.Join(e.ForbiddenOperations, ", ")))
-	available := transitionOperationStrings(e.AvailableTransitions)
-	lines = append(lines, fmt.Sprintf("available transitions: %s", strings.Join(available, ", ")))
+	b.WriteString("\npermitted operations: ")
+	writeJoined(&b, e.PermittedOperations)
+	b.WriteString("\nforbidden operations: ")
+	writeJoined(&b, e.ForbiddenOperations)
+	b.WriteString("\navailable transitions: ")
+	for i, operation := range e.AvailableTransitions {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(string(operation))
+	}
 	if len(e.Cutoffs) == 0 {
-		lines = append(lines, "bounding cutoffs: none supplied")
+		b.WriteString("\nbounding cutoffs: none supplied")
 	} else {
 		for _, cutoff := range e.Cutoffs {
+			b.WriteString("\nbounding cutoff ")
+			b.WriteString(cutoff.PhaseID)
+			b.WriteString(": ")
 			if cutoff.Status == CutoffResolved {
-				lines = append(lines, fmt.Sprintf("bounding cutoff %s: %s", cutoff.PhaseID, cutoff.Instant.UTC().Format(time.RFC3339Nano)))
+				writeTime(&b, cutoff.Instant)
 			} else {
-				lines = append(lines, fmt.Sprintf("bounding cutoff %s: REVIEW_REQUIRED", cutoff.PhaseID))
+				b.WriteString("REVIEW_REQUIRED")
 			}
 		}
 	}
 	if len(e.Locks) > 0 {
-		lines = append(lines, "locks: "+strings.Join(e.Locks, ", "))
+		b.WriteString("\nlocks: ")
+		writeJoined(&b, e.Locks)
 	}
 	if len(e.Exceptions) > 0 {
-		lines = append(lines, "exceptions: "+strings.Join(e.Exceptions, ", "))
+		b.WriteString("\nexceptions: ")
+		writeJoined(&b, e.Exceptions)
 	}
-	return strings.Join(lines, "\n")
+	return b.String()
+}
+
+func writeJoined(b *strings.Builder, values []string) {
+	for i, value := range values {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(value)
+	}
+}
+
+func writeTime(b *strings.Builder, value time.Time) {
+	var buf [len(time.RFC3339Nano)]byte
+	b.Write(value.UTC().AppendFormat(buf[:0], time.RFC3339Nano))
+}
+
+func writeInt(b *strings.Builder, value int64) {
+	var buf [20]byte
+	b.Write(strconv.AppendInt(buf[:0], value, 10))
 }
 
 func finishCurrentPhaseExplanation(e CurrentPhaseExplanation) (CurrentPhaseExplanation, error) {
@@ -331,13 +362,28 @@ func ExplainCurrentPhase(c GovernedCycle, graph PhaseGraph, cutoffs []CutoffReso
 			return CurrentPhaseExplanation{}, err
 		}
 	}
-	activeCutoffs := make([]CutoffResolution, 0, len(cutoffs))
+	var activeCutoffs []CutoffResolution
+	if len(cutoffs) > 0 {
+		activeCutoffs = make([]CutoffResolution, 0, len(cutoffs))
+	}
 	for _, cutoff := range cutoffs {
 		if cutoff.PhaseID == phase.ID {
 			activeCutoffs = append(activeCutoffs, cutoff)
 		}
 	}
-	activeCutoffs = cloneCutoffResolutions(activeCutoffs)
+	if len(activeCutoffs) > 0 {
+		sort.SliceStable(activeCutoffs, func(i, j int) bool {
+			if activeCutoffs[i].PhaseID != activeCutoffs[j].PhaseID {
+				return activeCutoffs[i].PhaseID < activeCutoffs[j].PhaseID
+			}
+			if activeCutoffs[i].Status != activeCutoffs[j].Status {
+				return activeCutoffs[i].Status < activeCutoffs[j].Status
+			}
+			return activeCutoffs[i].Instant.Before(activeCutoffs[j].Instant)
+		})
+	} else {
+		activeCutoffs = nil
+	}
 	capabilities, permitted, forbidden := phaseCapabilities(phase)
 	transitions, available := transitionAvailability(c.State, phase)
 	locks := []string(nil)

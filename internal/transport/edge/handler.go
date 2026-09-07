@@ -162,12 +162,13 @@ func strictJSONMiddleware(next http.Handler, cfg transport.Config, maxBody int) 
 			return
 		}
 
-		principal, requestID, admitErr := transport.PreAdmit(r.Context(), cfg,
+		admitted, principal, requestID, admitErr := transport.WithPreAdmission(r.Context(), cfg,
 			transport.MapMetadata(r.Header), r.URL.Path)
 		if admitErr != nil {
 			writeOwned(errorWriter, w, r, admitErr)
 			return
 		}
+		r = r.WithContext(admitted)
 		evidence := envelope.Evidence{ID: principal.EvidenceID(), Kind: "authentication"}
 
 		body, err := io.ReadAll(io.LimitReader(r.Body, int64(maxBody)+1))
