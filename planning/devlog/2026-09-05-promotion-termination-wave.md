@@ -758,3 +758,37 @@ graph` in a temp directory that now lives under the checkout and so
   17-page by 3-locale i18n/accessibility, RTL and theme gates passed. Manual
   Codex-browser navigation kept the shell visually stable with no warnings or
   errors.
+
+## 16. 2026-09-07: WEB-038 authorized tenant and acting context
+
+- **Exact server-resolved choices.** The switcher receives a bounded catalogue
+  of complete tenant and acting-authority pairs. Tenant and authority are never
+  separate pickers, so the browser cannot manufacture an unauthorized
+  cross-product. Delegation, delegator, expiry and elevated state remain
+  explicit presentation facts, not authority inputs.
+- **Narrow component boundary.** Adversarial review found that the first result
+  type carried an entire replacement `View` through component props. The Sol
+  pass replaced it with a bounded receipt and added the props to the recursive
+  architecture guard. The injected adapter now privately stages the full view
+  behind an opaque non-authoritative reference, verifies the receipt, clears
+  old tenant/principal scoped state and adopts the replacement transactionally.
+  Failed or panicking commits roll back; stale overlapping exchanges cannot
+  commit after a newer generation begins.
+- **Fail-closed interaction.** Same-context selection is a no-op. Foreign,
+  malformed, duplicated, oversized, partial and stale results are rejected;
+  transport and commit errors remain generic. Native disclosure, list and
+  button semantics preserve keyboard operation, focus restoration and live
+  status while English, German and Arabic/RTL copy uses the shared catalogue.
+- **Qualification.** Commit `1346552` passed the exact four-test matrix, full
+  product UI, native and js/wasm vet, actual Node/WASM WEB-037/038 execution,
+  reflection architecture guard, registered-page i18n/accessibility, theme,
+  token, qualification and WCAG gates, scoped formatting/diff checks and the
+  full repository hook. Five latency runs measured p95 508.9-538.8 us against
+  2 ms; the benchmark measured 90.3-100.5 us/op, 41,958 B/op and 321
+  allocations.
+- **Visual refinement and honest limit.** Desktop, 390 px and 320 px light and
+  dark layouts were inspected in the Codex browser. The review exposed a mobile
+  search/panel overlap, which was fixed; diagnostics stayed clean. There is no
+  authoritative backend context-exchange RPC yet, so the production shell must
+  receive the documented authenticated adapter. No endpoint or browser-side
+  authority was invented to make the component appear more complete.
