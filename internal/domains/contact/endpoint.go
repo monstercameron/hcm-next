@@ -10,7 +10,6 @@ import (
 	"unicode"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"golang.org/x/text/unicode/norm"
 )
 
 type EndpointType string
@@ -62,7 +61,7 @@ func (e EndpointRevision) IsVerified() bool { return e.Verification == Verified 
 // number. It rejects input where punctuation, whitespace, or Unicode would
 // make two materially different values collapse to one value.
 func NormalizeEndpoint(typ EndpointType, raw string) (normalized, masked string, err error) {
-	s := norm.NFC.String(strings.TrimSpace(raw))
+	s := values.NFC(strings.TrimSpace(raw))
 	if s == "" || s != raw && strings.TrimSpace(raw) != raw {
 		return "", "", fmt.Errorf("%w: surrounding whitespace", ErrAmbiguousNormalization)
 	}

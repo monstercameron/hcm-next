@@ -1,4 +1,5 @@
-// Package trustabuse is a test-only cross-tenant authorization abuse suite.
+// Package trustabuse is a test-only cross-system, cross-tenant authorization
+// abuse harness for the composed cell.
 // It deliberately keeps foreign credentials and identifiers in memory and
 // never requires a database or a production-side bypass.
 package trustabuse_test

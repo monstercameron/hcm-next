@@ -12,7 +12,7 @@ import (
 	"github.com/monstercameron/hcm-next/tools/policy/releaseadmission"
 )
 
-const checkedInSBOMDigest = "d8e37bf2e37e2b46c32c0808f6f77695df31cdc23ef74510e4efc1395f70a5dc"
+const checkedInSBOMDigest = "70b290b26aac40b8ea9f5f4fb0e3edbe219391a2c3643adcc545a14d543ff43d"
 
 func signedFixture(t *testing.T) provenance.Statement {
 	t.Helper()

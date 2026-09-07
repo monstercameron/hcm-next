@@ -1,6 +1,7 @@
 package tableinventory_test
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -56,7 +57,7 @@ func TestTodo_ALIGN_008_Golden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if registry.Tables[0].Table != "account_link" || registry.Tables[len(registry.Tables)-1].Table != "worksite_revision" {
+	if registry.Tables[0].Table != "access_role" || registry.Tables[len(registry.Tables)-1].Table != "worksite_revision" {
 		t.Fatalf("unexpected alignment boundaries: %q / %q", registry.Tables[0].Table, registry.Tables[len(registry.Tables)-1].Table)
 	}
 }
@@ -117,5 +118,37 @@ func TestTodo_ALIGN_009_Conformance(t *testing.T) {
 	inventory := loadInventory(t)
 	if len(inventory.SourceFiles) == 0 {
 		t.Fatal("inventory did not retain migration source evidence")
+	}
+}
+
+func TestLoadCheckAndFindingErrorsRenderTheRegistryTruth(t *testing.T) {
+	root := repoRoot(t)
+	inventory, err := tableinventory.Load(filepath.Join(root, filepath.FromSlash(tableinventory.DefaultRegistryPath)))
+	if err != nil || inventory == nil || len(inventory.Tables) == 0 {
+		t.Fatalf("Load must read the checked-in registry: %v", err)
+	}
+	if _, err := tableinventory.Load(filepath.Join(t.TempDir(), "missing.yaml")); err == nil {
+		t.Fatal("Load must refuse a missing registry")
+	}
+	if err := tableinventory.Check(root); err != nil {
+		t.Fatalf("Check must pass on the repository: %v", err)
+	}
+	broken := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(broken, filepath.Dir(filepath.FromSlash(tableinventory.DefaultRegistryPath))), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(broken, filepath.FromSlash(tableinventory.DefaultRegistryPath)), []byte("version: 1\ntables: []\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := tableinventory.Check(broken); err == nil {
+		t.Fatal("Check must refuse a root whose registry declares nothing the migrations create")
+	}
+	scoped := tableinventory.Finding{Table: "worksite", Code: "MISSING", Detail: "no migration"}
+	if scoped.Error() != "tableinventory: worksite: MISSING: no migration" {
+		t.Fatalf("scoped finding renders %q", scoped.Error())
+	}
+	global := tableinventory.Finding{Code: "EMPTY", Detail: "no tables"}
+	if global.Error() != "tableinventory: EMPTY: no tables" {
+		t.Fatalf("global finding renders %q", global.Error())
 	}
 }

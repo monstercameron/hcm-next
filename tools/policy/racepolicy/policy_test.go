@@ -133,9 +133,8 @@ func TestDo(t *testing.T) { pkga.Do() }
 // concurrent package it finds, and exactly which ones currently violate
 // the policy), and forces a deliberate update — rather than silent staleness
 // — whenever that set changes. See doc.go's "Known live-repository finding"
-// section for internal/authn/federation, the one violation this snapshot
-// currently pins; that package sits outside tools/policy/racepolicy's file
-// root, so this test documents the gap rather than attempting to close it.
+// section is empty because the security test wave closed the previously
+// recorded internal/authn/federation gap.
 func TestTodo_TOOL_012_Golden(t *testing.T) {
 	root := repopath.RootDir()
 	modulePath := repopath.ModulePath(root)
@@ -149,9 +148,7 @@ func TestTodo_TOOL_012_Golden(t *testing.T) {
 	}
 	t.Logf("Evaluate declared %d concurrent packages", len(report.Findings))
 
-	wantViolations := []string{
-		modulePath + "/internal/authn/federation",
-	}
+	wantViolations := []string{}
 	violations := report.Violations()
 	if len(violations) != len(wantViolations) {
 		names := make([]string, len(violations))

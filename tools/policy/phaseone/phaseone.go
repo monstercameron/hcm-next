@@ -8,6 +8,7 @@ import (
 )
 
 var allowedPhaseOneLayers = map[string]bool{
+	"application":  true,
 	"kernel":       true,
 	"intent":       true,
 	"capability":   true,

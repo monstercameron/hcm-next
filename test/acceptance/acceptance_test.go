@@ -1,3 +1,5 @@
+// Package acceptance is the cross-system acceptance harness for the composed
+// Phase 1 cell; it intentionally lives under the top-level test tree.
 package acceptance
 
 import (

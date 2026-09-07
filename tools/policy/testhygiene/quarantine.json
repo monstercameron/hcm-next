@@ -390,5 +390,77 @@
     "evidence_ref": "GOV-020: tools/planning/gateevidence/compiler_test.go:186",
     "owner": "governance-and-trust",
     "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_LEDGER_009",
+    "package": "github.com/monstercameron/hcm-next/internal/data/ledger/partition",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: embedded PostgreSQL hash probing did not produce two partitions on this run",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_DB_020_Golden",
+    "package": "github.com/monstercameron/hcm-next/internal/data/queryplans",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: intentional golden regeneration skip when UPDATE_QUERYPLANS_GOLDEN is set",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_MASK_001",
+    "package": "github.com/monstercameron/hcm-next/internal/governance/masking",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: fuzz input outside the masking fixture contract is skipped",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestBuiltWASMHasAValidPrecompressedRepresentation",
+    "package": "github.com/monstercameron/hcm-next/internal/humanwork/workspace",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: generated browser bundle is not present in this source checkout",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestAssetHandlerServesCompressedConditionalWASM",
+    "package": "github.com/monstercameron/hcm-next/internal/humanwork/workspace",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: generated browser bundle is not present in this source checkout",
+    "owner": "experience-and-transport",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_CONN_RT_006",
+    "package": "github.com/monstercameron/hcm-next/internal/platform/sandbox",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: oversized fuzz bodies are intentionally bounded out of the emulator fixture",
+    "owner": "platform-foundation",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_TX_003_Integration",
+    "package": "github.com/monstercameron/hcm-next/internal/transaction/plan",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: embedded PostgreSQL is unavailable without HCMNEXT_TEST_DATABASE_URL on this host",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "FuzzTodo_TRUST_005",
+    "package": "github.com/monstercameron/hcm-next/internal/trust/session",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: empty or whitespace-containing fuzz references are outside the session fixture contract",
+    "owner": "governance-and-trust",
+    "expiry": "2026-12-31"
+  },
+  {
+    "test_name": "TestTodo_WF_RUN_014_PGTest",
+    "package": "github.com/monstercameron/hcm-next/internal/workflow/shadow",
+    "first_seen": "2026-09-05",
+    "evidence_ref": "GOV-020: embedded PostgreSQL is unavailable without HCMNEXT_TEST_DATABASE_URL on this host",
+    "owner": "data-and-ledger",
+    "expiry": "2026-12-31"
   }
 ]

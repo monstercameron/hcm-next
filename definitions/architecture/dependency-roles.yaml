@@ -148,6 +148,7 @@ modules:
         internal/humanwork,
         internal/workflow,
         internal/operations/explorer,
+        internal/resource,
         internal/operations/reconcile,
         internal/engines/wire/digest,
         cmd,
@@ -734,14 +735,19 @@ modules:
     license_owner: platform-foundation
     security_owner: platform-foundation
     allowed_import_roots:
-      [tools, internal/data/tenancy/storagedisposition, internal/platform/telemetry]
+      [
+        tools,
+        internal/data/tenancy/storagedisposition,
+        internal/platform/telemetry,
+        internal/transport/eastwest,
+      ]
     direct_import_expected: true
     upgrade_sla: Best-effort.
     exposure: >-
       Parses definitions/architecture/*.yaml governance manifests inside
       tools/policy at test/build time. The only runtime mechanics roots are
       internal/data/tenancy/storagedisposition, which owns the physical
-      storage registry parser, and internal/platform/telemetry, which owns
+      storage registry parser, internal/platform/telemetry, which owns
       telemetry-contract loading. Neither parser grants YAML data business
       authority: each projects it into an owned typed contract and validates
       it before use.

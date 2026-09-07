@@ -22,8 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/apd/v3"
-
 	"github.com/monstercameron/hcm-next/internal/engines/transformation"
 	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -35,6 +33,15 @@ var ErrRefused = errors.New("XFORM_003_REFUSED")
 // ErrExecution covers a program-shape problem discovered while building an
 // Interpreter (never during a row's execution: those become a Refusal).
 var ErrExecution = errors.New("transformation/exec: invalid program")
+
+// Version reports the transformation executor contract version required by
+// ARCH-GO-009. It changes only when this package's exported execution
+// contract changes incompatibly.
+func Version() int { return 1 }
+
+// Explain describes the executor without exposing implementation details such
+// as the decimal backend.
+func Explain() string { return "transformation executor: validated deterministic IR execution" }
 
 var decimalRE = regexp.MustCompile(`^[+-]?[0-9]+(\.[0-9]+)?$`)
 
@@ -484,25 +491,38 @@ func aggregateNumeric(instr ir.Instruction, vals []Value) (Value, error) {
 			}
 			return Present(t, sum.Int64()), nil
 		case transformation.TypeDecimal:
-			ctx := apd.BaseContext.WithPrecision(uint32(values.MaxPrecision + 10))
-			total, _, err := apd.NewFromString("0")
-			if err != nil {
-				return Value{}, err
-			}
-			for _, v := range vals {
+			decimals := make([]values.Decimal, len(vals))
+			maxScale := int32(0)
+			for i, v := range vals {
 				s, ok := v.Data.(string)
 				if !ok || !decimalRE.MatchString(s) {
 					return Value{}, fmt.Errorf("sum source is not decimal text: %v", v.Data)
 				}
-				d, _, err := apd.NewFromString(s)
+				d, err := executionDecimal(s)
 				if err != nil {
 					return Value{}, err
 				}
-				if _, err := ctx.Add(total, total, d); err != nil {
+				decimals[i] = d
+				if d.Scale() > maxScale {
+					maxScale = d.Scale()
+				}
+			}
+			var total values.Decimal
+			for i, d := range decimals {
+				aligned, err := d.Quantize(maxScale, values.RoundingExactRequired)
+				if err != nil {
+					return Value{}, err
+				}
+				if i == 0 {
+					total = aligned
+					continue
+				}
+				total, err = total.Add(aligned)
+				if err != nil {
 					return Value{}, err
 				}
 			}
-			return Present(t, total.Text('f')), nil
+			return Present(t, total.String()), nil
 		default:
 			return Value{}, fmt.Errorf("sum is not defined for type %s", t)
 		}
@@ -545,11 +565,11 @@ func compareValues(t transformation.Type, a, b any) (int, error) {
 		if !ok1 || !ok2 || !decimalRE.MatchString(xs) || !decimalRE.MatchString(ys) {
 			return 0, errors.New("min/max source is not decimal text")
 		}
-		x, _, err := apd.NewFromString(xs)
+		x, err := executionDecimal(xs)
 		if err != nil {
 			return 0, err
 		}
-		y, _, err := apd.NewFromString(ys)
+		y, err := executionDecimal(ys)
 		if err != nil {
 			return 0, err
 		}
@@ -564,6 +584,14 @@ func compareValues(t transformation.Type, a, b any) (int, error) {
 	default:
 		return 0, fmt.Errorf("min/max is not defined for type %s", t)
 	}
+}
+
+func executionDecimal(text string) (values.Decimal, error) {
+	scale := int32(0)
+	if dot := strings.IndexByte(text, '.'); dot >= 0 {
+		scale = int32(len(text) - dot - 1)
+	}
+	return values.NewDecimal(text, scale, values.RoundingExactRequired)
 }
 
 // coerce is a self-contained type conversion, deliberately independent of

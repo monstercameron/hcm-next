@@ -28,6 +28,12 @@
       "reason": "generated wire contract consumed by the Phase 1 intent and transport surfaces"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1",
+      "repository_root": "gen",
+      "layer": "composition",
+      "reason": "generated wire contract consumed by the Phase 1 intent and transport surfaces"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1",
       "repository_root": "gen",
       "layer": "composition",
@@ -46,9 +52,33 @@
       "reason": "generated wire contract consumed by the Phase 1 intent and transport surfaces"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1",
+      "repository_root": "gen",
+      "layer": "composition",
+      "reason": "generated wire contract consumed by the Phase 1 intent and transport surfaces"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/gen/wire",
+      "repository_root": "gen",
+      "layer": "composition",
+      "reason": "generated wire contract consumed by the Phase 1 intent and transport surfaces"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/application",
+      "repository_root": "internal/application",
+      "layer": "application",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/capability",
       "repository_root": "internal/capability",
       "layer": "capability",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/commercial",
+      "repository_root": "internal/commercial",
+      "layer": "domains",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
@@ -70,6 +100,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/aggregates",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/bitemporal",
       "repository_root": "internal/data",
       "layer": "data",
@@ -77,6 +113,18 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/data/dbport",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/demoworkforce",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/intentcontrol",
       "repository_root": "internal/data",
       "layer": "data",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -112,6 +160,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/operationstore",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/outbox",
       "repository_root": "internal/data",
       "layer": "data",
@@ -124,13 +178,49 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/preferencestore",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/projection",
       "repository_root": "internal/data",
       "layer": "data",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/provenance",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/roleaccessstore",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/runtimestate",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/tenancy",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition",
+      "repository_root": "internal/data",
+      "layer": "data",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/workeridstore",
       "repository_root": "internal/data",
       "layer": "data",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -166,7 +256,19 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/jobarch",
+      "repository_root": "internal/domains",
+      "layer": "domains",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/people",
+      "repository_root": "internal/domains",
+      "layer": "domains",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/position",
       "repository_root": "internal/domains",
       "layer": "domains",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -196,7 +298,25 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/tenant/govauth",
+      "repository_root": "internal/domains",
+      "layer": "domains",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/effectgraph",
+      "repository_root": "internal/effectgraph",
+      "layer": "platform",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/engines/canonicalbytes",
+      "repository_root": "internal/engines",
+      "layer": "engines",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/engines/cycle",
       "repository_root": "internal/engines",
       "layer": "engines",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -226,6 +346,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/engines/schedule",
+      "repository_root": "internal/engines",
+      "layer": "engines",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/engines/wire/canonical",
       "repository_root": "internal/engines",
       "layer": "engines",
@@ -238,7 +364,55 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/experience/localize",
+      "repository_root": "internal/experience",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/experience/preferences",
+      "repository_root": "internal/experience",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/experience/roleaccess",
+      "repository_root": "internal/experience",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/experience/workerids",
+      "repository_root": "internal/experience",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/decision",
+      "repository_root": "internal/governance",
+      "layer": "governance",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/revalidate",
+      "repository_root": "internal/governance",
+      "layer": "governance",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/humanwork",
+      "repository_root": "internal/humanwork",
+      "layer": "connectivity",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/humanwork/productui",
+      "repository_root": "internal/humanwork",
+      "layer": "connectivity",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/humanwork/uicomponents",
       "repository_root": "internal/humanwork",
       "layer": "connectivity",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -310,7 +484,25 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/messaging",
+      "repository_root": "internal/messaging",
+      "layer": "connectivity",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/operations/admin",
+      "repository_root": "internal/operations",
+      "layer": "operations",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/reconcile",
+      "repository_root": "internal/operations",
+      "layer": "operations",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/repair",
       "repository_root": "internal/operations",
       "layer": "operations",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -328,7 +520,19 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/configregistry",
+      "repository_root": "internal/platform",
+      "layer": "platform",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/platform/execution",
+      "repository_root": "internal/platform",
+      "layer": "platform",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler",
       "repository_root": "internal/platform",
       "layer": "platform",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -346,6 +550,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/boundary",
+      "repository_root": "internal/platform",
+      "layer": "platform",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel",
       "repository_root": "internal/platform",
       "layer": "platform",
@@ -358,7 +568,31 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/cancel",
+      "repository_root": "internal/transaction",
+      "layer": "transaction",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/commit",
+      "repository_root": "internal/transaction",
+      "layer": "transaction",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/conflict",
+      "repository_root": "internal/transaction",
+      "layer": "transaction",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/transaction/idempotency",
+      "repository_root": "internal/transaction",
+      "layer": "transaction",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/plan",
       "repository_root": "internal/transaction",
       "layer": "transaction",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -400,6 +634,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/health",
+      "repository_root": "internal/transport",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/transport/journey",
       "repository_root": "internal/transport",
       "layer": "transport",
@@ -407,6 +647,12 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/transport/manifest",
+      "repository_root": "internal/transport",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/operations",
       "repository_root": "internal/transport",
       "layer": "transport",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -424,6 +670,12 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/workflow",
+      "repository_root": "internal/transport",
+      "layer": "transport",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/trust",
       "repository_root": "internal/trust",
       "layer": "trust",
@@ -431,6 +683,36 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/trust/authz",
+      "repository_root": "internal/trust",
+      "layer": "trust",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/custody",
+      "repository_root": "internal/trust",
+      "layer": "trust",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/devprofile",
+      "repository_root": "internal/trust",
+      "layer": "trust",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/envelope",
+      "repository_root": "internal/trust",
+      "layer": "trust",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/session",
+      "repository_root": "internal/trust",
+      "layer": "trust",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/stepup",
       "repository_root": "internal/trust",
       "layer": "trust",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -466,6 +748,18 @@
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/lease",
+      "repository_root": "internal/workflow",
+      "layer": "workflow",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/promotionexec",
+      "repository_root": "internal/workflow",
+      "layer": "workflow",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/prototype",
       "repository_root": "internal/workflow",
       "layer": "workflow",
@@ -485,6 +779,18 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/steps/approval",
+      "repository_root": "internal/workflow",
+      "layer": "workflow",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/steps/wait",
+      "repository_root": "internal/workflow",
+      "layer": "workflow",
+      "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/timer",
       "repository_root": "internal/workflow",
       "layer": "workflow",
       "reason": "reachable production dependency of cmd/hcmnext; required by the Phase 1 composition closure"
@@ -546,6 +852,13 @@
   ],
   "deferred": [
     {
+      "path": "github.com/monstercameron/hcm-next/cmd/frontenddev",
+      "repository_root": "cmd",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/cmd/hcmctl",
       "repository_root": "cmd",
       "deferred_gate": "ARCH-GO-018",
@@ -567,6 +880,13 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/cmd/scheduler",
+      "repository_root": "cmd",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/cmd/worker",
       "repository_root": "cmd",
       "deferred_gate": "ARCH-GO-018",
@@ -575,13 +895,6 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1",
-      "repository_root": "gen",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1",
       "repository_root": "gen",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -609,20 +922,6 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1",
-      "repository_root": "gen",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/gen/wire",
-      "repository_root": "gen",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
       "path": "github.com/monstercameron/hcm-next/internal/a11y",
       "repository_root": "internal/a11y",
       "deferred_gate": "ARCH-GO-018",
@@ -637,8 +936,15 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/application",
-      "repository_root": "internal/application",
+      "path": "github.com/monstercameron/hcm-next/internal/authn",
+      "repository_root": "internal/authn",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/authn/enterprisegate",
+      "repository_root": "internal/authn",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -651,15 +957,36 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/capability/binding",
-      "repository_root": "internal/capability",
+      "path": "github.com/monstercameron/hcm-next/internal/authn/issuerregistry",
+      "repository_root": "internal/authn",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/commercial",
-      "repository_root": "internal/commercial",
+      "path": "github.com/monstercameron/hcm-next/internal/authn/oidc",
+      "repository_root": "internal/authn",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/authn/outage",
+      "repository_root": "internal/authn",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/authn/subjectlink",
+      "repository_root": "internal/authn",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/capability/binding",
+      "repository_root": "internal/capability",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -679,7 +1006,56 @@
       "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/application",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/artifactstore",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/delivery",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/connectivity/diagnostics",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/edge",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/egress",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/health",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/iac",
       "repository_root": "internal/connectivity",
       "deferred_gate": "INTG-001",
       "owner_todo": "INTG-001",
@@ -728,6 +1104,41 @@
       "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/onboarding/readiness",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/operation",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/providercontract",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/providerdrift",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/providerexit",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot",
       "repository_root": "internal/connectivity",
       "deferred_gate": "INTG-001",
@@ -770,6 +1181,13 @@
       "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/connectivity/webhook",
+      "repository_root": "internal/connectivity",
+      "deferred_gate": "INTG-001",
+      "owner_todo": "INTG-001",
+      "reason": "integration adapter is deferred until its selected connector contract has an approved consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/contractarchive",
       "repository_root": "internal/contractarchive",
       "deferred_gate": "ARCH-GO-018",
@@ -798,7 +1216,7 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/data/aggregates",
+      "path": "github.com/monstercameron/hcm-next/internal/data/accessstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -819,7 +1237,63 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/assetstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/assurancemeta",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/attestationstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/balancestore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/benefitsstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/budgetstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/careerstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/cbastore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/commercialstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -833,7 +1307,63 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/connectivityopstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/contactstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/contentregistrystore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/crmstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/customstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/documentmeta",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/employeerelationsstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/equitystore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/fxstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -854,6 +1384,20 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/hrcasestore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/identityprivacystore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/inboundmsg",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
@@ -862,6 +1406,13 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/data/inbox",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/incentivestore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -882,7 +1433,7 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/data/intentcontrol",
+      "path": "github.com/monstercameron/hcm-next/internal/data/jobarchstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -896,6 +1447,13 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/ledger/commit",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/ledger/lineage",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
@@ -903,7 +1461,42 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/ledger/partition",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/legalevidencestore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/locationstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/meritstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/messagingmeta",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/mobilitystore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -924,7 +1517,56 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/payglstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/payinputstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/paymethodstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/payrollstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/performancestore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/pgtest",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/planningstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/positionstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -945,7 +1587,7 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/data/provenance",
+      "path": "github.com/monstercameron/hcm-next/internal/data/promotioncommit",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -973,7 +1615,21 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/data/runtimestate",
+      "path": "github.com/monstercameron/hcm-next/internal/data/refdata",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/safetystore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/schedulingstore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1001,6 +1657,20 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/data/signals",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/skillstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/data/store",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
@@ -1008,7 +1678,42 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition",
+      "path": "github.com/monstercameron/hcm-next/internal/data/subscriptionstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/successionstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/surveystore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/taxprofilestore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/tenantstore",
+      "repository_root": "internal/data",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/data/truststore",
       "repository_root": "internal/data",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1211,11 +1916,60 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/employeerelations",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/equity",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/fx",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/garnishment",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/headcount",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/hrcase",
       "repository_root": "internal/domains",
       "deferred_gate": "DB-016",
       "owner_todo": "DB-016",
       "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/incentive",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/industrypack",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/domains/knowledge",
@@ -1239,7 +1993,28 @@
       "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/location",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/matching",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/merit",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/mobility",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1260,7 +2035,35 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/partnerapp",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/paygl",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/payinput",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/paymethod",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/paymethod/achrisk",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1274,14 +2077,35 @@
       "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/domains/performance",
+      "path": "github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack",
       "repository_root": "internal/domains",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+      "deferred_gate": "DB-016",
+      "owner_todo": "DB-016",
+      "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/domains/position",
+      "path": "github.com/monstercameron/hcm-next/internal/domains/payroll/calcpolicy",
+      "repository_root": "internal/domains",
+      "deferred_gate": "DB-016",
+      "owner_todo": "DB-016",
+      "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/payroll/filing",
+      "repository_root": "internal/domains",
+      "deferred_gate": "DB-016",
+      "owner_todo": "DB-016",
+      "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/payroll/paymentprofile",
+      "repository_root": "internal/domains",
+      "deferred_gate": "DB-016",
+      "owner_todo": "DB-016",
+      "reason": "deferred-domain schema/conformance only; a future domain authority todo must precede production admission"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/performance",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1295,7 +2119,49 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/commit",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/localcommit",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/simassign",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/simcomp",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/proofing",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1316,6 +2182,20 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/refdata",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/safety",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/scenario",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
@@ -1330,7 +2210,35 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/service",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/domains/settlement",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/skill",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/subscription",
+      "repository_root": "internal/domains",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/domains/succession",
       "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1344,8 +2252,8 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/effectgraph",
-      "repository_root": "internal/effectgraph",
+      "path": "github.com/monstercameron/hcm-next/internal/domains/taxprofile",
+      "repository_root": "internal/domains",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -1359,13 +2267,6 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/engines/abuse/anomaly002",
-      "repository_root": "internal/engines",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "engine remains definitions/conformance-only until a first approved consumer reaches it"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/internal/engines/cycle",
       "repository_root": "internal/engines",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1414,6 +2315,13 @@
       "reason": "engine remains definitions/conformance-only until a first approved consumer reaches it"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/engines/readiness",
+      "repository_root": "internal/engines",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "engine remains definitions/conformance-only until a first approved consumer reaches it"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/engines/replan",
       "repository_root": "internal/engines",
       "deferred_gate": "ARCH-GO-018",
@@ -1421,7 +2329,7 @@
       "reason": "engine remains definitions/conformance-only until a first approved consumer reaches it"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/engines/schedule",
+      "path": "github.com/monstercameron/hcm-next/internal/engines/search",
       "repository_root": "internal/engines",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1561,13 +2469,6 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/experience/localize",
-      "repository_root": "internal/experience",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
       "path": "github.com/monstercameron/hcm-next/internal/experience/outcome",
       "repository_root": "internal/experience",
       "deferred_gate": "ARCH-GO-018",
@@ -1652,7 +2553,28 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/exit",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/governance/legal",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/attribution",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/carveouts",
       "repository_root": "internal/governance",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1666,7 +2588,42 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/indexation",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/payrules",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/governance/legal/pipeline",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/reciprocity",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/researchgaps",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/legal/stateparams",
       "repository_root": "internal/governance",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1680,6 +2637,13 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/masking",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/governance/privacy",
       "repository_root": "internal/governance",
       "deferred_gate": "ARCH-GO-018",
@@ -1687,7 +2651,21 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/privacy/dispatch",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/governance/privacy/inventory",
+      "repository_root": "internal/governance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/governance/records",
       "repository_root": "internal/governance",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1708,8 +2686,29 @@
       "reason": "human-work separation and delivery authority remain deferred until the owning gate admits a consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/humanwork/profilephoto",
+      "repository_root": "internal/humanwork",
+      "deferred_gate": "ARCH-GO-022",
+      "owner_todo": "ARCH-GO-022",
+      "reason": "human-work separation and delivery authority remain deferred until the owning gate admits a consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/humanwork/sla",
+      "repository_root": "internal/humanwork",
+      "deferred_gate": "ARCH-GO-022",
+      "owner_todo": "ARCH-GO-022",
+      "reason": "human-work separation and delivery authority remain deferred until the owning gate admits a consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/i18n",
       "repository_root": "internal/i18n",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/intent/analysis",
+      "repository_root": "internal/intent",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -1743,8 +2742,8 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/messaging",
-      "repository_root": "internal/messaging",
+      "path": "github.com/monstercameron/hcm-next/internal/operations/accessdrift",
+      "repository_root": "internal/operations",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -1785,7 +2784,28 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/adversarial",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/advisory",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/operations/assurance",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/authorizedhealth",
       "repository_root": "internal/operations",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1806,6 +2826,20 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/export",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/incidentstate",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/operations/inspector",
       "repository_root": "internal/operations",
       "deferred_gate": "ARCH-GO-018",
@@ -1820,7 +2854,70 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/messagingdelivery",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/recovery",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/operations/reliability",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/residency",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/slo",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/subprocessor",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/synthetic",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/telemetry",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/telemetryhealth",
+      "repository_root": "internal/operations",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/operations/wedge",
       "repository_root": "internal/operations",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1829,6 +2926,13 @@
     {
       "path": "github.com/monstercameron/hcm-next/internal/performance",
       "repository_root": "internal/performance",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/archive",
+      "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -1855,7 +2959,21 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/platform/configregistry",
+      "path": "github.com/monstercameron/hcm-next/internal/platform/config/revalidation",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/configbundle",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/database",
       "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1869,6 +2987,34 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/execution/promotionsteps",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/execution/promotionterminal",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/idempotency",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/identitybinding",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/platform/observability",
       "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
@@ -1876,7 +3022,35 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/boundary",
+      "path": "github.com/monstercameron/hcm-next/internal/platform/sandbox",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/schemaupgrade",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/backends",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/diagnostic",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/lifecycle",
       "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1890,6 +3064,20 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/queue",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/securityevidence",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/platform/telemetry/testexport",
       "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
@@ -1897,7 +3085,21 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/topology",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/platform/versionexplain",
+      "repository_root": "internal/platform",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/platform/workload",
       "repository_root": "internal/platform",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1925,6 +3127,13 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/store/object/aws",
+      "repository_root": "internal/store",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/transaction",
       "repository_root": "internal/transaction",
       "deferred_gate": "TX-001",
@@ -1932,7 +3141,7 @@
       "reason": "transaction authority is admitted only by its first approved coordinator consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/transaction/conflict",
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/conformance",
       "repository_root": "internal/transaction",
       "deferred_gate": "TX-001",
       "owner_todo": "TX-001",
@@ -1940,6 +3149,20 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/transaction/coordinator",
+      "repository_root": "internal/transaction",
+      "deferred_gate": "TX-001",
+      "owner_todo": "TX-001",
+      "reason": "transaction authority is admitted only by its first approved coordinator consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/correction",
+      "repository_root": "internal/transaction",
+      "deferred_gate": "TX-001",
+      "owner_todo": "TX-001",
+      "reason": "transaction authority is admitted only by its first approved coordinator consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transaction/recovery",
       "repository_root": "internal/transaction",
       "deferred_gate": "TX-001",
       "owner_todo": "TX-001",
@@ -1960,7 +3183,21 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/conformance",
+      "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/transport/eastwest",
+      "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/endpoint",
       "repository_root": "internal/transport",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -1974,8 +3211,36 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/productquery",
+      "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/queryenvelope",
+      "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/transport/rpcpolicy",
+      "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/transport/transporttest",
       "repository_root": "internal/transport",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/accessreview",
+      "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
@@ -1989,6 +3254,13 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/trust/attest",
+      "repository_root": "internal/trust",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/bootstrap",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -2016,6 +3288,13 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/consent",
+      "repository_root": "internal/trust",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/trust/content",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
@@ -2030,7 +3309,14 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/trust/custody",
+      "path": "github.com/monstercameron/hcm-next/internal/trust/custody/kmsadapter",
+      "repository_root": "internal/trust",
+      "deferred_gate": "ARCH-GO-018",
+      "owner_todo": "ARCH-GO-018",
+      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/trust/dataclass",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -2038,13 +3324,6 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/trust/dlp",
-      "repository_root": "internal/trust",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/internal/trust/envelope",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -2100,7 +3379,7 @@
       "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
     },
     {
-      "path": "github.com/monstercameron/hcm-next/internal/trust/session",
+      "path": "github.com/monstercameron/hcm-next/internal/trust/session/pgstore",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -2108,13 +3387,6 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/trust/sod",
-      "repository_root": "internal/trust",
-      "deferred_gate": "ARCH-GO-018",
-      "owner_todo": "ARCH-GO-018",
-      "reason": "not reached by cmd/hcmnext; admit only after its first approved Phase 1 consumer"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/internal/trust/stepup",
       "repository_root": "internal/trust",
       "deferred_gate": "ARCH-GO-018",
       "owner_todo": "ARCH-GO-018",
@@ -2143,6 +3415,20 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/conformance/learning",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/conformance/leave",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/conformance/managerchange",
       "repository_root": "internal/workflow",
       "deferred_gate": "WF-RUN-000",
       "owner_todo": "WF-RUN-000",
@@ -2198,6 +3484,20 @@
       "reason": "workflow runtime admission is governed by the selected runtime gate"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/migrate",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/migrate/artifacts",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/migrationpreview",
       "repository_root": "internal/workflow",
       "deferred_gate": "WF-RUN-000",
@@ -2205,7 +3505,35 @@
       "reason": "workflow runtime admission is governed by the selected runtime gate"
     },
     {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/modeling",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/quarantine",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/recover",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/replay",
+      "repository_root": "internal/workflow",
+      "deferred_gate": "WF-RUN-000",
+      "owner_todo": "WF-RUN-000",
+      "reason": "workflow runtime admission is governed by the selected runtime gate"
+    },
+    {
+      "path": "github.com/monstercameron/hcm-next/internal/workflow/shadow",
       "repository_root": "internal/workflow",
       "deferred_gate": "WF-RUN-000",
       "owner_todo": "WF-RUN-000",
@@ -2220,13 +3548,6 @@
     },
     {
       "path": "github.com/monstercameron/hcm-next/internal/workflow/steps/task",
-      "repository_root": "internal/workflow",
-      "deferred_gate": "WF-RUN-000",
-      "owner_todo": "WF-RUN-000",
-      "reason": "workflow runtime admission is governed by the selected runtime gate"
-    },
-    {
-      "path": "github.com/monstercameron/hcm-next/internal/workflow/steps/wait",
       "repository_root": "internal/workflow",
       "deferred_gate": "WF-RUN-000",
       "owner_todo": "WF-RUN-000",

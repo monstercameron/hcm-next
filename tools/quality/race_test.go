@@ -26,7 +26,7 @@ func TestTodo_TOOL_012(t *testing.T) {
 	probe := exec.Command("go", "test", "-race", "-run", "^$", fixturePattern)
 	probe.Dir = root
 	probeOut, _ := probe.CombinedOutput()
-	if strings.Contains(string(probeOut), "not supported on") {
+	if raceUnsupported(probeOut) {
 		t.Skipf("race detector not supported on %s/%s; TOOL-012 must be verified on race-capable CI (e.g. linux/amd64). go test output:\n%s", runtime.GOOS, runtime.GOARCH, probeOut)
 	}
 
@@ -50,4 +50,11 @@ func TestTodo_TOOL_012(t *testing.T) {
 			t.Fatalf("expected the synchronized fixture to pass under -race, got:\n%s", out)
 		}
 	})
+}
+
+func raceUnsupported(output []byte) bool {
+	text := strings.ToLower(string(output))
+	return strings.Contains(text, "race detector is not supported") ||
+		strings.Contains(text, "not supported on") ||
+		strings.Contains(text, "-race requires cgo")
 }
