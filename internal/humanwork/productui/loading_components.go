@@ -20,7 +20,20 @@ type LoadingProxyProps struct {
 // atomically for Build(view) when every required answer has resolved.
 func BuildLoading(view View) ui.Node {
 	view.Loading = true
+	view.ContentLoading = false
 	view.Refreshing = false
+	return appShell(view, ui.CreateElement(LoadingProxy, LoadingProxyProps{Page: view.Page}))
+}
+
+// BuildContentLoading keeps already-resolved application chrome mounted while
+// only the destination page projection is unresolved. This is the normal SPA
+// transition after cold boot and avoids turning global navigation, identity,
+// and notifications back into placeholders for every route change.
+func BuildContentLoading(view View) ui.Node {
+	view.Loading = false
+	view.ContentLoading = true
+	view.Refreshing = false
+	view.RefreshingRegion = ""
 	return appShell(view, ui.CreateElement(LoadingProxy, LoadingProxyProps{Page: view.Page}))
 }
 
@@ -29,6 +42,7 @@ func BuildLoading(view View) ui.Node {
 // progress cue; it never fabricates pending values or changes action authority.
 func BuildRefreshing(view View) ui.Node {
 	view.Loading = false
+	view.ContentLoading = false
 	if view.RefreshingRegion != "" {
 		view.Refreshing = false
 		return Build(view)

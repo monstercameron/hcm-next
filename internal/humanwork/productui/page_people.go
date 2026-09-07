@@ -147,12 +147,12 @@ func peopleSortColumns(view View) []PeopleSortColumnProps {
 
 func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 	rows := make([]PeopleRowProps, 0, len(window.People))
+	workflows := rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses)
+	if len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create") {
+		workflows = nil
+	}
 	for _, person := range window.People {
 		actions := make([]PeopleQuickActionProps, 0, len(view.PersonWorkflows))
-		workflows := rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses)
-		if len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create") {
-			workflows = nil
-		}
 		for _, workflow := range workflows {
 			href := workflow.Href
 			if workflow.LaunchHref != nil {

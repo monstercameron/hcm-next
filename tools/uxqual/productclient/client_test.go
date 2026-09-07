@@ -22,6 +22,27 @@ func TestOpenWorkCountExcludesTerminalJourneys(t *testing.T) {
 	}
 }
 
+func TestContentLoadingViewRetargetsRouteWithoutDiscardingAuthorizedShell(t *testing.T) {
+	previous := productui.NewView(productui.PageHome, "HarborCare Demo", "Rafael Torres", "admin")
+	previous.Viewer = productui.ViewerProfile{Name: "Rafael Torres", PhotoURL: "/workspace/assets/rafael-small.jpg"}
+	previous.Work = []productui.WorkItem{{ID: "work-live", Title: "Review promotion"}}
+	previous.Navigation = []productui.NavItem{{Page: productui.PageHome}, {Page: productui.PageWork}}
+
+	view := ContentLoadingView(previous, State{Page: productui.PageWork, Request: productui.PageRequest{
+		Page: productui.PageWork, WorkFilter: "review", NavCollapsed: true,
+	}})
+
+	if view.Page != productui.PageWork || view.Title != "My Work" || !view.ContentLoading || view.Loading || view.Refreshing {
+		t.Fatalf("route transition state = %+v", view)
+	}
+	if view.Viewer.Name != "Rafael Torres" || view.Viewer.PhotoURL == "" || len(view.Navigation) != 2 {
+		t.Fatalf("authorized shell projection was discarded: %+v", view)
+	}
+	if !view.NavCollapsed || view.WorkFilter != "review" {
+		t.Fatalf("destination address state was not applied: %+v", view)
+	}
+}
+
 func TestConcisePlacementLabelRemovesDuplicatedSourceCodes(t *testing.T) {
 	if got := concisePlacementLabel("OPS-HRBP3OPS-HRBP3", "P3"); got != "OPS-HRBP3 P3" {
 		t.Fatalf("concisePlacementLabel = %q, want OPS-HRBP3 P3", got)

@@ -587,6 +587,8 @@ font-weight:660;letter-spacing:.05em;text-transform:uppercase}
 
 /* Tables ------------------------------------------------------------ */
 .jn-tablewrap{overflow-x:auto;border:1px solid var(--jn-hairline);border-radius:var(--jn-r2)}
+.jn-people-preview-foot{position:sticky;left:0;display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem;border-top:1px solid var(--jn-hairline);background:var(--jn-surface-muted)}
+.jn-people-preview-foot p{margin:0;color:var(--jn-ink-muted);font-size:.8125rem}
 table.jn-table{width:100%;border-collapse:collapse;font-size:.875rem}
 .jn-table th,.jn-table td{padding:.5625rem .75rem;text-align:left;vertical-align:top;
 border-bottom:1px solid var(--jn-hairline)}

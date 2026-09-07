@@ -22,11 +22,25 @@ func Render(view View) (string, error) {
 // Build returns the same component tree used by SSR tests and the browser
 // WASM client.
 func Build(view View) ui.Node {
+	return BuildShell(view, BuildPageContent(view), true)
+}
+
+// BuildPageContent renders only the feature-owned route body. Browser routers
+// place this node in a persistent shell outlet so a leaf navigation cannot
+// unmount global application chrome.
+func BuildPageContent(view View) ui.Node {
 	page, err := renderPage(view)
 	if err != nil {
 		page = unavailablePanel("Page unavailable", err.Error())
 	}
-	return appShell(view, page)
+	return page
+}
+
+// BuildShell composes persistent application chrome around a route outlet.
+// showHeading is false for feature modules, such as Journeys, that own their
+// own page heading.
+func BuildShell(view View, content ui.Node, showHeading bool) ui.Node {
+	return appShellWithHeading(view, content, showHeading)
 }
 
 // BuildEmbedded composes feature-owned content into the product shell. It is
@@ -60,7 +74,8 @@ func document(title string, appearance CustomerTheme, accessibility Accessibilit
 	return "<!doctype html>" + root + "<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"light dark\"><meta name=\"application-name\" content=\"" + brand + "\"><title>" + escapeTitle(title) + " · " + brand + "</title><style>" + Stylesheet() + "</style></head><body>" + body + "</body></html>"
 }
 
+var titleEscaper = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&#34;")
+
 func escapeTitle(value string) string {
-	r := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&#34;")
-	return r.Replace(value)
+	return titleEscaper.Replace(value)
 }

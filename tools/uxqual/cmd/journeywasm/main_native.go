@@ -20,6 +20,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
@@ -85,7 +86,10 @@ func build(outDir string, stdout io.Writer) error {
 	}
 
 	wasmPath := filepath.Join(outDir, wasmFile)
-	cmd := exec.Command(goBin, "build", "-o", wasmPath, wasmPackage)
+	// Browser bundles do not need Go symbol/debug tables. Stripping them here
+	// reduces both the transferred module and the work WebAssembly performs
+	// while decoding it, without changing runtime behavior or stack safety.
+	cmd := exec.Command(goBin, "build", "-ldflags=-s -w", "-o", wasmPath, wasmPackage)
 	cmd.Env = append(os.Environ(), "GOOS=js", "GOARCH=wasm")
 	// The build's own diagnostics are the useful part of a failure, so they
 	// are carried into the error rather than discarded.
@@ -105,8 +109,13 @@ func build(outDir string, stdout io.Writer) error {
 	if err := copyFile(shimSource, shimPath); err != nil {
 		return fmt.Errorf("copying %s: %w", wasmExecFile, err)
 	}
-
 	for _, path := range []string{wasmPath, shimPath} {
+		if err := writeGzip(path); err != nil {
+			return fmt.Errorf("compressing %s: %w", filepath.Base(path), err)
+		}
+	}
+
+	for _, path := range []string{wasmPath, wasmPath + ".gz", shimPath, shimPath + ".gz"} {
 		info, statErr := os.Stat(path)
 		if statErr != nil {
 			return fmt.Errorf("stat %s: %w", path, statErr)
@@ -114,6 +123,36 @@ func build(outDir string, stdout io.Writer) error {
 		fmt.Fprintf(stdout, "%s  %s\n", path, humanSize(info.Size()))
 	}
 	return nil
+}
+
+// writeGzip creates the precompressed transfer representation during the
+// build instead of spending CPU and delaying the first browser request.
+func writeGzip(source string) error {
+	input, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+
+	output, err := os.Create(source + ".gz")
+	if err != nil {
+		return err
+	}
+	writer, err := gzip.NewWriterLevel(output, gzip.BestCompression)
+	if err != nil {
+		_ = output.Close()
+		return err
+	}
+	_, copyErr := io.Copy(writer, input)
+	closeWriterErr := writer.Close()
+	closeOutputErr := output.Close()
+	if copyErr != nil {
+		return copyErr
+	}
+	if closeWriterErr != nil {
+		return closeWriterErr
+	}
+	return closeOutputErr
 }
 
 // goBinary finds the toolchain to build with.

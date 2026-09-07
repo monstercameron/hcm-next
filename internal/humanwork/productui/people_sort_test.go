@@ -201,6 +201,7 @@ func BenchmarkSortedPeople(b *testing.B) {
 					Manager: fmt.Sprintf("Manager %04d", index%1000), Location: fmt.Sprintf("Location %03d", index%120),
 				}
 			}
+			IndexPeople(people)
 			b.ReportAllocs()
 			for b.Loop() {
 				_ = sortedPeople(people, peopleSortManager, peopleSortDescending)

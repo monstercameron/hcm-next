@@ -27,6 +27,8 @@ var lastFocusedProductRoute string
 var productNavigationGroups *browserNavigationGroupController
 var productTransientPopovers *browserTransientPopoverController
 var lastResolvedProductView *productui.View
+var activeProductLayoutView productui.View
+var activeProductLayoutShowHeading = true
 
 func isProductPath(path string) bool { return strings.HasPrefix(path, productPathPrefix) }
 
@@ -67,6 +69,10 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 	productTransientPopovers = newBrowserTransientPopoverController()
 	productTransientPopovers.Bind()
 	productRouter := router.NewHistoryRouter(router.RouterOptions{DefaultRoute: productui.Path(productui.PageHome)})
+	// The application shell is a persistent layout route. Leaf routes own only
+	// the outlet below /workspace/app, so navigation cannot temporarily unmount
+	// the header, sidebar, or their local interaction state.
+	productRouter.Register("/workspace/app", productShellLayoutComponent, router.Options{Layout: true})
 	productHistory = newBrowserProductHistoryController()
 	navigateProduct := func(href string) { productHistory.Navigate(productRouter.Navigate, href) }
 	// Menu filtering is local component state. Debounce only its shareable URL
@@ -107,7 +113,11 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				handle, scheduleErr := frontendTasks.Submit(loadCtx, taskmux.Spec{
 					Key: "product:route-projection", Priority: taskmux.UserVisible, Duplicate: taskmux.ReplaceExisting,
 				}, func(taskCtx context.Context) error {
-					view, loadErr = productclient.Load(taskCtx, liveService, session, state)
+					if lastResolvedProductView != nil {
+						view, loadErr = productclient.LoadWithBaseline(taskCtx, liveService, session, state, *lastResolvedProductView)
+					} else {
+						view, loadErr = productclient.Load(taskCtx, liveService, session, state)
+					}
 					return nil
 				})
 				if scheduleErr != nil {
@@ -256,6 +266,19 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					view.LoadError = "The live Journey service could not complete this view (" + status.Code(loadErr).String() + ")."
 					attrs[productViewKey] = view
 				}
+				// Publish the stable shell projection at the loader completion
+				// boundary. Waiting for the leaf component to render leaves a small
+				// interval in which a fast follow-up navigation can incorrectly look
+				// like a cold boot and replace global controls with placeholders.
+				if loadCtx.Err() != nil {
+					return nil, loadCtx.Err()
+				}
+				resolved := view
+				resolved.Loading = false
+				resolved.ContentLoading = false
+				resolved.Refreshing = false
+				resolved.RefreshingRegion = ""
+				lastResolvedProductView = &resolved
 				return attrs, nil
 			},
 			Loading: func(_ router.Attrs) *router.Element {
@@ -265,6 +288,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				}
 				view := productclient.LoadingView(session, state)
 				warmRefresh := lastResolvedProductView != nil && lastResolvedProductView.Page == state.Page && state.Page != productui.PageJourneys
+				contentTransition := lastResolvedProductView != nil && !warmRefresh
 				if warmRefresh {
 					// Same-page network effects retain the last authorized projection.
 					// This avoids a skeleton flash for fast filters, sorts and paging;
@@ -278,6 +302,11 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 						// semantics to the table-plus-pagination component.
 						view.RefreshingRegion = productui.RefreshRegionPeopleDirectory
 					}
+				} else if contentTransition {
+					// Cross-page navigation reuses the authorized shell and only swaps
+					// the main region for a destination-shaped loading proxy. The
+					// reconciler can therefore preserve header/sidebar DOM and state.
+					view = productclient.ContentLoadingView(*lastResolvedProductView, state)
 				}
 				view.Navigate = navigateProduct
 				applyBrowserHistoryNavigation(&view)
@@ -293,10 +322,26 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				}
 				applyThemeDocumentIdentity(view.Title, view.Appearance)
 				applyLocaleDocumentIdentity(view.Locale)
+				showHeading := state.Page != productui.PageJourneys
 				if warmRefresh {
-					return productui.BuildRefreshing(view)
+					view.Loading = false
+					view.ContentLoading = false
+					view.Refreshing = view.RefreshingRegion == ""
+					setActiveProductLayout(view, showHeading)
+					return productui.BuildPageContent(view)
 				}
-				return productui.BuildLoading(view)
+				if contentTransition {
+					view.Loading = false
+					view.ContentLoading = true
+					view.Refreshing = false
+					setActiveProductLayout(view, showHeading)
+					return productui.LoadingProxy(productui.LoadingProxyProps{Page: view.Page})
+				}
+				view.Loading = true
+				view.ContentLoading = false
+				view.Refreshing = false
+				setActiveProductLayout(view, showHeading)
+				return productui.LoadingProxy(productui.LoadingProxyProps{Page: view.Page})
 			},
 		})
 	}
@@ -362,18 +407,39 @@ func productRouteComponent(_ router.Attrs) *router.Element {
 	focusProductRouteAfterNavigation()
 	resolved := view
 	resolved.Loading = false
+	resolved.ContentLoading = false
 	resolved.Refreshing = false
 	lastResolvedProductView = &resolved
+	showHeading := view.Page != productui.PageJourneys
+	setActiveProductLayout(view, showHeading)
 	var result *router.Element
 	if view.Page == productui.PageJourneys {
 		if store, storeOK := data[productJourneyStoreKey].(*journey.Store); storeOK {
-			result = productui.BuildEmbedded(view, journey.LiveContentComponent(store))
+			result = journey.LiveContentComponent(store)
 		}
 	}
 	if result == nil {
-		result = productui.Build(view)
+		result = productui.BuildPageContent(view)
 	}
 	return result
+}
+
+func setActiveProductLayout(view productui.View, showHeading bool) {
+	activeProductLayoutView = view
+	activeProductLayoutShowHeading = showHeading
+}
+
+func productShellLayoutComponent(_ router.Attrs) *router.Element {
+	view := activeProductLayoutView
+	if view.Page == "" {
+		view = productui.NewView(productui.PageHome, "", "", "")
+		view.Loading = true
+	}
+	outlet := router.GetOutlet()
+	if outlet == nil {
+		outlet = productui.LoadingProxy(productui.LoadingProxyProps{Page: view.Page})
+	}
+	return productui.BuildShell(view, outlet, activeProductLayoutShowHeading)
 }
 
 // focusProductRouteAfterNavigation restores the missing browser behavior of

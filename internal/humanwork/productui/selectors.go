@@ -69,15 +69,14 @@ func filteredPeople(view View) []Person {
 	}
 	result := make([]Person, 0, len(view.People))
 	for _, person := range view.People {
-		searchable := person.Name + " " + person.Role + " " + person.Team + " " + person.Manager + " " + person.Location + " " +
-			person.WorkerNumber + " " + person.JobCode + " " + person.Grade + " " + person.PositionID
-		if query != "" && !strings.Contains(strings.ToLower(searchable), query) {
+		index := normalizedPerson(person)
+		if query != "" && !strings.Contains(index.search, query) {
 			continue
 		}
-		if team != "" && strings.ToLower(strings.TrimSpace(person.Team)) != team {
+		if team != "" && index.team != team {
 			continue
 		}
-		if location != "" && strings.ToLower(strings.TrimSpace(person.Location)) != location {
+		if location != "" && index.location != location {
 			continue
 		}
 		result = append(result, person)
@@ -96,9 +95,10 @@ func sortedPeople(people []Person, field, direction string) []Person {
 	}
 	decorated := make([]sortablePerson, len(people))
 	for index, person := range people {
+		normalized := normalizedPerson(person)
 		decorated[index] = sortablePerson{
-			index: index, primary: normalizedSortText(peopleSortValue(person, field)),
-			name: normalizedSortText(person.Name), id: person.ID,
+			index: index, primary: normalizedPeopleSortValue(normalized, field),
+			name: normalized.name, id: person.ID,
 		}
 	}
 	sort.SliceStable(decorated, func(left, right int) bool {
@@ -118,6 +118,50 @@ func sortedPeople(people []Person, field, direction string) []Person {
 		result[index] = people[decorated[index].index]
 	}
 	return result
+}
+
+// IndexPeople populates immutable normalized fields once per server
+// projection. It mutates only private presentation metadata and preserves all
+// public record values and ordering.
+func IndexPeople(people []Person) {
+	for index := range people {
+		people[index].normalized = buildPersonNormalizedIndex(people[index])
+	}
+}
+
+func normalizedPerson(person Person) personNormalizedIndex {
+	if person.normalized.ready {
+		return person.normalized
+	}
+	return buildPersonNormalizedIndex(person)
+}
+
+func buildPersonNormalizedIndex(person Person) personNormalizedIndex {
+	return personNormalizedIndex{
+		ready: true,
+		search: strings.ToLower(strings.Join([]string{
+			person.Name, person.Role, person.Team, person.Manager, person.Location,
+			person.WorkerNumber, person.JobCode, person.Grade, person.PositionID,
+		}, " ")),
+		name: normalizedSortText(person.Name), role: normalizedSortText(person.Role),
+		team: normalizedSortText(person.Team), manager: normalizedSortText(person.Manager),
+		location: normalizedSortText(person.Location),
+	}
+}
+
+func normalizedPeopleSortValue(index personNormalizedIndex, field string) string {
+	switch field {
+	case peopleSortRole:
+		return index.role
+	case peopleSortTeam:
+		return index.team
+	case peopleSortManager:
+		return index.manager
+	case peopleSortLocation:
+		return index.location
+	default:
+		return index.name
+	}
 }
 
 func normalizedSortText(value string) string {

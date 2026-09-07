@@ -21,6 +21,8 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 	}
 	if view.Loading {
 		class += " is-loading"
+	} else if view.ContentLoading {
+		class += " is-content-loading"
 	} else if view.Refreshing {
 		class += " is-refreshing"
 	}
@@ -32,7 +34,7 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		)
 	}
 	announcement := view.Locale.Text("shell.page_loaded", map[string]string{"title": view.Title})
-	if view.Loading || view.Refreshing {
+	if view.Loading || view.ContentLoading || view.Refreshing {
 		announcement = view.Locale.Text("shell.loading_authorized")
 	}
 	return html.Div(html.Props{Class: class},
@@ -283,12 +285,12 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 	if showHeading {
 		mainProps.Aria["labelledby"] = "page-title"
 	}
-	if view.Loading || view.Refreshing {
+	if view.Loading || view.ContentLoading || view.Refreshing {
 		mainProps.Aria["busy"] = "true"
 	}
 	stageClass := "main network-stage network-stage-ready"
 	stage := "ready"
-	if view.Loading {
+	if view.Loading || view.ContentLoading {
 		stageClass = "main network-stage network-stage-pending"
 		stage = "pending"
 	} else if view.Refreshing {

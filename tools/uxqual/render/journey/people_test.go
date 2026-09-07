@@ -1,6 +1,7 @@
 package journey
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -68,6 +69,22 @@ func TestPeopleTableRendersEveryWorkerWithEveryColumn(t *testing.T) {
 	}
 	if !strings.Contains(out, `<caption class="jn-visually-hidden">`) {
 		t.Error("the people table has no caption; a screen reader would meet an unnamed table")
+	}
+}
+
+func TestPeopleTableWindowsLargeWorkforcesAndKeepsSelectionVisible(t *testing.T) {
+	workers := make([]WorkerCard, peoplePreviewLimit+5)
+	for index := range workers {
+		workers[index] = WorkerCard{Ref: fmt.Sprintf("worker-%02d", index), Name: fmt.Sprintf("Worker %02d", index)}
+	}
+	view := PeopleView{Workers: workers, SelectedRef: workers[len(workers)-1].Ref, DirectoryLink: NavLink{Label: "Open the full People directory", Href: "/workspace/app/people"}}
+	out := renderNode(t, peopleTable(view))
+	rows := peopleRows(out)
+	if len(rows) != peoplePreviewLimit+1 {
+		t.Fatalf("rendered %d preview rows, want %d", len(rows), peoplePreviewLimit+1)
+	}
+	if !strings.Contains(out, workers[len(workers)-1].Name) || !strings.Contains(out, "Showing 21 of 25 employees") || !strings.Contains(out, "/workspace/app/people") {
+		t.Fatalf("window did not retain the selected worker or directory handoff: %s", out)
 	}
 }
 

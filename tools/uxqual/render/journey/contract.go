@@ -151,6 +151,10 @@ type PromotionSubject struct {
 // in that order, before the proposal form means anything.
 type PeopleView struct {
 	Workers []WorkerCard
+	// DirectoryLink hands large-workforce browsing back to the canonical,
+	// filterable product directory. Embedded clients upgrade it to software
+	// navigation while SSR retains a real fallback href.
+	DirectoryLink NavLink
 	// Empty is shown instead of the table when the cell knows no workers.
 	Empty string
 	// Form records a new employee as a fact in this cell's workforce table.

@@ -58,6 +58,9 @@ func TestLoadingProxyMotionHonorsExplicitAndOperatingSystemPreferences(t *testin
 			t.Errorf("loading motion contract missing %q", want)
 		}
 	}
+	if strings.Contains(css, `.network-slot-ready{opacity`) {
+		t.Fatal("persistent shell slots replay an entrance animation during leaf-route navigation")
+	}
 }
 
 func TestNetworkTransitionsResolveAsOneRegionWithoutNestedFlicker(t *testing.T) {
@@ -92,6 +95,30 @@ func TestWarmRefreshKeepsAuthorizedContentMounted(t *testing.T) {
 	}
 	if strings.Contains(out, "loading-table-layout") {
 		t.Fatal("warm refresh replaced authorized rows with a cold-loading proxy")
+	}
+}
+
+func TestContentLoadingKeepsResolvedShellAndScopesPendingStateToMain(t *testing.T) {
+	view := testView(PageWork)
+	out, err := ui.RenderToString(BuildContentLoading(view))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`class="app-shell is-content-loading"`, `id="main-content"`, `aria-busy="true"`,
+		`data-network-state="pending"`, `loading-work-layout`, "Taylor",
+		`viewer-profile-link network-slot network-slot-ready`, `notifications network-slot network-slot-ready`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("content loading surface missing %q", want)
+		}
+	}
+	for _, unwanted := range []string{
+		`viewer-profile-loading`, `notification-loading`, `class="app-shell is-loading"`,
+	} {
+		if strings.Contains(out, unwanted) {
+			t.Errorf("content loading remounted global shell placeholder %q", unwanted)
+		}
 	}
 }
 

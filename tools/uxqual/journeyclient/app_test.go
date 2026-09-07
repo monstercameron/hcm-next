@@ -499,6 +499,24 @@ func TestEmbeddedClientUsesHostSoftwareNavigationForProductLinks(t *testing.T) {
 	}
 }
 
+func TestEmbeddedJourneyDirectoryHandoffUsesHostSoftwareNavigation(t *testing.T) {
+	h := staffed(t)
+	var navigated []string
+	h.app.NavigateProduct = func(href string) { navigated = append(navigated, href) }
+	h.app.Start(context.Background(), ListHref())
+	p := h.awaitPage(t, "the list", listLoaded)
+	if p.List.People == nil || p.List.People.DirectoryLink.OnNavigate == nil {
+		t.Fatal("embedded workforce preview did not wire its People directory handoff")
+	}
+	p.List.People.DirectoryLink.OnNavigate()
+	if p.List.People.DirectoryLink.Href != "/workspace/app/people" {
+		t.Fatalf("directory href = %q", p.List.People.DirectoryLink.Href)
+	}
+	if len(navigated) != 1 || navigated[0] != p.List.People.DirectoryLink.Href {
+		t.Fatalf("directory handoff navigated to %v, want %q", navigated, p.List.People.DirectoryLink.Href)
+	}
+}
+
 func TestTypedValuesSurviveARedraw(t *testing.T) {
 	h := newHarness(t)
 	h.app.Start(context.Background(), ListHref())

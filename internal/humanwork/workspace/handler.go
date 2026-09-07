@@ -361,11 +361,59 @@ func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 			"This build carries no GWC/WASM bundle; the server-rendered workspace is the whole page. See internal/humanwork/workspace/assets/.keep for the two commands that build one.")
 		return
 	}
+	encoding := ""
+	if acceptsGzip(r.Header.Get("Accept-Encoding")) {
+		if compressed, ok := compressedAsset(name); ok {
+			body = compressed
+			encoding = "gzip"
+		}
+	}
 	w.Header().Set("Content-Type", assetContentType(name))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+	w.Header().Set("Vary", "Accept-Encoding")
+	if encoding != "" {
+		w.Header().Set("Content-Encoding", encoding)
+	}
+	etag := assetETag(name+":"+encoding, body)
+	w.Header().Set("ETag", etag)
+	if matchesETag(r.Header.Get("If-None-Match"), etag) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
+}
+
+func acceptsGzip(value string) bool {
+	for _, part := range strings.Split(strings.ToLower(value), ",") {
+		fields := strings.Split(part, ";")
+		encoding := strings.TrimSpace(fields[0])
+		if encoding != "gzip" && encoding != "*" {
+			continue
+		}
+		enabled := true
+		for _, parameter := range fields[1:] {
+			parameter = strings.TrimSpace(parameter)
+			if strings.HasPrefix(parameter, "q=") && strings.TrimSpace(strings.TrimPrefix(parameter, "q=")) == "0" {
+				enabled = false
+			}
+		}
+		if enabled {
+			return true
+		}
+	}
+	return false
+}
+
+func matchesETag(value, etag string) bool {
+	for _, candidate := range strings.Split(value, ",") {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "*" || candidate == etag || strings.TrimPrefix(candidate, "W/") == etag {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Handler) serveNotFound(w http.ResponseWriter, r *http.Request) {

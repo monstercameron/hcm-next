@@ -1,11 +1,23 @@
 package productui
 
+import "sync"
+
+var (
+	defaultStylesheetOnce sync.Once
+	defaultStylesheet     string
+	platformStylesOnce    sync.Once
+	platformStyles        string
+)
+
 // Stylesheet is the fixed platform stylesheet for the first product slice.
 // Customer branding resolves semantic custom properties; it cannot replace
 // focus, status, high-contrast, print, or responsive safety rules.
 func Stylesheet() string {
-	theme, _ := ResolveTheme(nil)
-	return stylesheetForTheme(theme)
+	defaultStylesheetOnce.Do(func() {
+		theme, _ := ResolveTheme(nil)
+		defaultStylesheet = stylesheetForTheme(theme)
+	})
+	return defaultStylesheet
 }
 
 // StylesheetForTheme validates customer overrides and returns one complete,
@@ -20,7 +32,10 @@ func StylesheetForTheme(overrides map[string]string) (string, error) {
 }
 
 func stylesheetForTheme(theme Theme) string {
-	return theme.CSS() + stylesheet + semanticThemeAliases + refinements + componentRefinements + responsiveGridFix + responsiveSafety + collapsibleNavigation + navigationEnhancements + liveDataRefinements + viewportShell + personProfileStyles + peopleDirectoryStyles + workflowHistoryStyles + photoStyles + profileDetailStyles + historyTableStyles + journeyIntegrationStyles + motionStyles + customerThemeStylesheet() + appearanceStyles + appearanceSwatchStyles + customerIdentityStyles + brandLogoStyles + appearanceRobustnessStyles + localeStyles + localePreferenceStyles + accessibilityStyles + accessibilityLayoutStyles + accessibilityReviewStyles + localePreferenceAccessibilityStyles + interactionMotionStyles + navigationPolishStyles + navigationScrollbarStyles + navigationViewportStyles + navigationViewportXStyles + colorModeControlStyles + surfaceTokenCoverage + legacySurfaceCoverage + loadingProxyStyles + loadingLayoutOffsets + navigationSearchStyles + peopleSortFilterStyles + peopleQuickActionStyles + collectionControlStyles + uxReviewRefinements + responsiveComponentStyles + peopleStickyHeaderStyles + dataTableStyles + globalSearchStyles + historyNavigationStyles + popoverStyles + viewerProfileStyles + organizationMetadataStyles + organizationHierarchyStyles + organizationDisclosureStyles + organizationVisibilityStyles + roleAccessStyles + workerIDStyles + permissionBoundaryStyles + myselfStyles + networkTransitionStyles + navigationInteractionRefinements + interactionThemeStyles + visualQARefinements + peopleActionColumnStyles + darkModeStyles
+	platformStylesOnce.Do(func() {
+		platformStyles = stylesheet + semanticThemeAliases + refinements + componentRefinements + responsiveGridFix + responsiveSafety + collapsibleNavigation + navigationEnhancements + liveDataRefinements + viewportShell + personProfileStyles + peopleDirectoryStyles + workflowHistoryStyles + photoStyles + profileDetailStyles + historyTableStyles + journeyIntegrationStyles + motionStyles + customerThemeStylesheet() + appearanceStyles + appearanceSwatchStyles + customerIdentityStyles + brandLogoStyles + appearanceRobustnessStyles + localeStyles + localePreferenceStyles + accessibilityStyles + accessibilityLayoutStyles + accessibilityReviewStyles + localePreferenceAccessibilityStyles + interactionMotionStyles + navigationPolishStyles + navigationScrollbarStyles + navigationViewportStyles + navigationViewportXStyles + colorModeControlStyles + surfaceTokenCoverage + legacySurfaceCoverage + loadingProxyStyles + loadingLayoutOffsets + navigationSearchStyles + peopleSortFilterStyles + peopleQuickActionStyles + collectionControlStyles + uxReviewRefinements + responsiveComponentStyles + peopleStickyHeaderStyles + dataTableStyles + globalSearchStyles + historyNavigationStyles + popoverStyles + viewerProfileStyles + organizationMetadataStyles + organizationHierarchyStyles + organizationDisclosureStyles + organizationVisibilityStyles + roleAccessStyles + workerIDStyles + permissionBoundaryStyles + myselfStyles + networkTransitionStyles + navigationInteractionRefinements + interactionThemeStyles + visualQARefinements + peopleActionColumnStyles + darkModeStyles
+	})
+	return theme.CSS() + platformStyles
 }
 
 const visualQARefinements = `.brand-logo-fallback{direction:ltr}.studio-back-link{display:inline-flex;width:max-content;align-items:center;min-height:36px;padding:5px 2px;color:var(--accent);font-size:.875rem;font-weight:700;text-decoration:none}.studio-back-link:hover{text-decoration:underline}.home-grid-without-work{grid-template-columns:minmax(0,1fr)}.home-grid-without-work .side-stack{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.subnav .nav-copy>.nav-label{display:-webkit-box;max-width:none;overflow:hidden;white-space:normal;text-overflow:clip;-webkit-box-orient:vertical;-webkit-line-clamp:2}.subnav .nav-link{min-height:46px;height:auto}.nav-link.has-search-detail .nav-copy>.nav-label{white-space:normal;text-overflow:clip}@media(min-width:761px) and (max-width:1190px){.brand-logo-slot[data-hcm-brand-logo-state="fallback"] .wordmark-label{display:none}.brand-logo-slot[data-hcm-brand-logo-state="fallback"] .wordmark-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--on-brand);font-size:1rem;letter-spacing:0}}@media(forced-colors:active){.studio-back-link{color:LinkText}}`
@@ -52,10 +67,11 @@ const organizationMetadataStyles = `.organization-page{display:grid;gap:var(--th
 
 // networkTransitionStyles owns the visual hand-off between pending and
 // resolved RPC projections. Warm refreshes preserve the mounted authorized
-// tree, while @starting-style gives genuinely new regions one restrained
-// entrance. Late overrides remove the older nested opacity/stagger effects
-// that caused headings, rows, counts, and status chips to flash separately.
-const networkTransitionStyles = `.network-stage{opacity:1;transform:none;transition:opacity var(--hcm-motion-normal) var(--hcm-motion-easing),transform var(--hcm-motion-normal) var(--hcm-motion-easing)}.network-stage-refreshing{opacity:.985;transform:translateY(1px)}.network-stage>.page-head,.network-stage>.home-grid,.network-stage>.workbench,.network-stage>.people-page,.network-stage>.person-page,.network-stage>.organization-page,.network-stage>.insights-grid,.network-stage>.admin-grid,.network-stage>.studio-page,.network-stage>.jn-embedded,.network-stage :where(.work-row,.people-row,.history-row,.status,.count),.network-stage .jn-embedded .jn-griditem{animation:none}.network-slot{opacity:1;transform:none;transition:opacity var(--hcm-motion-fast) var(--hcm-motion-easing),transform var(--hcm-motion-fast) var(--hcm-motion-easing),border-color var(--hcm-motion-fast) var(--hcm-motion-easing),background-color var(--hcm-motion-fast) var(--hcm-motion-easing)}.network-slot-pending{opacity:.72}.loading-viewer-profile{width:40px;height:40px;border-radius:50%}.network-progress{pointer-events:none}.app-shell.is-refreshing .network-progress:after{animation:hcm-route-progress 1.15s var(--hcm-motion-easing) infinite}.people-directory.is-refreshing{position:relative}.people-directory-progress{position:absolute;z-index:8;inset:0 0 auto;height:3px;pointer-events:none;overflow:hidden}.people-directory.is-refreshing .people-directory-progress:after{animation:hcm-route-progress 1.15s var(--hcm-motion-easing) infinite}@starting-style{.network-stage-ready{opacity:.94;transform:translateY(2px)}.network-slot-ready{opacity:.72;transform:scale(.985)}}:root[data-hcm-motion-preference="limited"] .network-stage-refreshing{opacity:.995;transform:none}:root[data-hcm-motion-preference="limited"] .network-slot-pending{opacity:.86}@media(prefers-reduced-motion:reduce){.network-stage,.network-slot{opacity:1;transform:none;transition:none}.app-shell.is-refreshing .network-progress:after,.people-directory.is-refreshing .people-directory-progress:after{animation:none}}@media(forced-colors:active){.network-stage-refreshing,.network-slot-pending{opacity:1}.loading-viewer-profile{border:1px solid CanvasText}.people-directory-progress{border-top:2px solid Highlight}}`
+// tree, while @starting-style gives genuinely new page regions one restrained
+// entrance. Global shell slots remain visually stationary across leaf-route
+// changes. Late overrides remove the older nested opacity/stagger effects that
+// caused headings, rows, counts, and status chips to flash separately.
+const networkTransitionStyles = `.network-stage{opacity:1;transform:none;transition:opacity var(--hcm-motion-normal) var(--hcm-motion-easing),transform var(--hcm-motion-normal) var(--hcm-motion-easing)}.network-stage-refreshing{opacity:.985;transform:translateY(1px)}.network-stage>.page-head,.network-stage>.home-grid,.network-stage>.workbench,.network-stage>.people-page,.network-stage>.person-page,.network-stage>.organization-page,.network-stage>.insights-grid,.network-stage>.admin-grid,.network-stage>.studio-page,.network-stage>.jn-embedded,.network-stage :where(.work-row,.people-row,.history-row,.status,.count),.network-stage .jn-embedded .jn-griditem{animation:none}.network-slot{opacity:1;transform:none;transition:border-color var(--hcm-motion-fast) var(--hcm-motion-easing),background-color var(--hcm-motion-fast) var(--hcm-motion-easing)}.network-slot-pending{opacity:.72}.loading-viewer-profile{width:40px;height:40px;border-radius:50%}.network-progress{pointer-events:none}.app-shell.is-refreshing .network-progress:after{animation:hcm-route-progress 1.15s var(--hcm-motion-easing) infinite}.people-directory.is-refreshing{position:relative}.people-directory-progress{position:absolute;z-index:8;inset:0 0 auto;height:3px;pointer-events:none;overflow:hidden}.people-directory.is-refreshing .people-directory-progress:after{animation:hcm-route-progress 1.15s var(--hcm-motion-easing) infinite}@starting-style{.network-stage-ready{opacity:.94;transform:translateY(2px)}}:root[data-hcm-motion-preference="limited"] .network-stage-refreshing{opacity:.995;transform:none}:root[data-hcm-motion-preference="limited"] .network-slot-pending{opacity:.86}@media(prefers-reduced-motion:reduce){.network-stage,.network-slot{opacity:1;transform:none;transition:none}.app-shell.is-refreshing .network-progress:after,.people-directory.is-refreshing .people-directory-progress:after{animation:none}}@media(forced-colors:active){.network-stage-refreshing,.network-slot-pending{opacity:1}.loading-viewer-profile{border:1px solid CanvasText}.people-directory-progress{border-top:2px solid Highlight}}`
 
 // navigationInteractionRefinements keeps secondary navigation actions quiet
 // until the row is engaged and moves the native scroll affordance to the

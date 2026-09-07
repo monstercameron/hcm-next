@@ -62,6 +62,7 @@ type DataTableCellProps struct {
 type dataTableRowRenderProps struct {
 	Columns []DataTableColumnProps
 	Row     DataTableRowProps
+	Cells   []DataTableCellProps
 }
 
 // DataTable renders a semantic, keyboard-scrollable table. The wrapper owns
@@ -73,9 +74,15 @@ func DataTable(props DataTableProps) ui.Node {
 	for _, column := range columns {
 		headings = append(headings, ui.CreateElement(DataTableColumn, column))
 	}
+	columnIndexes := make(map[string]int, len(columns))
+	for index, column := range columns {
+		columnIndexes[column.ID] = index
+	}
 	rows := make([]ui.Node, 0, len(props.Rows))
 	for _, row := range props.Rows {
-		rows = append(rows, ui.CreateElement(dataTableRow, dataTableRowRenderProps{Columns: columns, Row: row}))
+		rows = append(rows, ui.CreateElement(dataTableRow, dataTableRowRenderProps{
+			Columns: columns, Row: row, Cells: alignDataTableCells(row.Cells, columns, columnIndexes),
+		}))
 	}
 	class := strings.TrimSpace("data-table " + props.Class)
 	label := strings.TrimSpace(props.AriaLabel)
@@ -121,20 +128,28 @@ func DataTableColumn(column DataTableColumnProps) ui.Node {
 }
 
 func dataTableRow(props dataTableRowRenderProps) ui.Node {
-	cellsByColumn := make(map[string]DataTableCellProps, len(props.Row.Cells))
-	for _, cell := range props.Row.Cells {
-		if id := strings.TrimSpace(cell.ColumnID); id != "" {
-			cellsByColumn[id] = cell
-		}
-	}
 	cells := make([]ui.Node, 0, len(props.Columns))
-	for _, column := range props.Columns {
-		cell := cellsByColumn[column.ID]
-		cell.ColumnID = column.ID
-		cells = append(cells, dataTableCell(column, cell))
+	for index, column := range props.Columns {
+		cells = append(cells, dataTableCell(column, props.Cells[index]))
 	}
 	class := strings.TrimSpace("data-table-row " + props.Row.Class)
 	return html.Tr(html.Props{Class: class, Data: map[string]string{"row-id": props.Row.ID}}, cells...)
+}
+
+func alignDataTableCells(cells []DataTableCellProps, columns []DataTableColumnProps, indexes map[string]int) []DataTableCellProps {
+	result := make([]DataTableCellProps, len(columns))
+	for index, column := range columns {
+		result[index].ColumnID = column.ID
+	}
+	for _, cell := range cells {
+		index, ok := indexes[strings.TrimSpace(cell.ColumnID)]
+		if !ok {
+			continue
+		}
+		cell.ColumnID = columns[index].ID
+		result[index] = cell
+	}
+	return result
 }
 
 func dataTableCell(column DataTableColumnProps, cell DataTableCellProps) ui.Node {

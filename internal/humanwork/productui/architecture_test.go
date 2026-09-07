@@ -139,6 +139,21 @@ func TestShellAndFeatureCompositionRemainSeparate(t *testing.T) {
 	}
 }
 
+func TestPageContentCanRenderWithoutOwningApplicationChrome(t *testing.T) {
+	content, err := ui.RenderToString(BuildPageContent(testView(PageHome)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(content, `class="home-grid"`) {
+		t.Fatal("feature content did not render its route body")
+	}
+	for _, shellNode := range []string{`class="app-shell`, `class="topbar"`, `class="sidebar"`, `id="main-content"`} {
+		if strings.Contains(content, shellNode) {
+			t.Fatalf("feature content unexpectedly owns persistent shell node %s", shellNode)
+		}
+	}
+}
+
 func TestAppLinkInstallsSoftwareNavigationHandler(t *testing.T) {
 	view := NewView(PageHome, "tenant-test", "Taylor", "manager")
 	view.Navigate = func(string) {}

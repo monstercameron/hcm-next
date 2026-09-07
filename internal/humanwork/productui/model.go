@@ -85,6 +85,16 @@ type Person struct {
 	HireDate      string
 	Source        string
 	CreatedAt     string
+	// normalized is an immutable client-side search/sort index populated once
+	// when a workforce projection arrives. Keeping it beside the projection
+	// avoids allocating lower-cased copies for every filter and sort render.
+	normalized personNormalizedIndex
+}
+
+type personNormalizedIndex struct {
+	ready                    bool
+	search, name, role, team string
+	manager, location        string
 }
 
 // ViewerProfile is the presentation identity associated with the admitted
@@ -253,6 +263,10 @@ type View struct {
 	// database-backed projection is resolving. It never implies authority or
 	// substitutes empty records for an answer from the service.
 	Loading bool
+	// ContentLoading is set for an in-app route transition after the shell has
+	// already resolved. It keeps application chrome mounted and limits pending
+	// semantics and loading geometry to the destination content region.
+	ContentLoading bool
 	// Refreshing keeps an already-authorized page projection mounted while a
 	// newer projection resolves. This prevents fast filter, sort, and paging
 	// requests from replacing useful content with a one-frame loading proxy.

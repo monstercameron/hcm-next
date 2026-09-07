@@ -772,11 +772,12 @@ func PeopleView(cfg Config, data ListData, values map[string]string) *journey.Pe
 		form.DisabledReason = "Your assigned role can review people but cannot create an employee record."
 	}
 	return &journey.PeopleView{
-		Workers:     workerCards(data.Workers, data.Journeys, data.SelectedRef, data.Options),
-		Empty:       PeopleEmpty,
-		Form:        form,
-		SelectedRef: data.SelectedRef,
-		Note:        PeopleNote,
+		Workers:       workerCards(data.Workers, data.Journeys, data.SelectedRef, data.Options),
+		DirectoryLink: journey.NavLink{Label: "Open the full People directory", Href: "/workspace/app/people"},
+		Empty:         PeopleEmpty,
+		Form:          form,
+		SelectedRef:   data.SelectedRef,
+		Note:          PeopleNote,
 	}
 }
 

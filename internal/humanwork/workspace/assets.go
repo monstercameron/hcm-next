@@ -1,11 +1,14 @@
 package workspace
 
 import (
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"errors"
 	"io/fs"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Asset file names the progressive-enhancement bundle is looked for under.
@@ -40,6 +43,8 @@ const (
 //
 //go:embed all:assets
 var assetsFS embed.FS
+
+var assetETags sync.Map
 
 // asset returns one embedded bundle file.
 func asset(name string) ([]byte, bool) {
@@ -92,6 +97,27 @@ func embeddedAsset(name string) ([]byte, bool) {
 		return nil, false
 	}
 	return body, true
+}
+
+// compressedAsset returns only build-produced transfer representations for
+// compressible executable assets. The .gz files are never directly routable.
+func compressedAsset(name string) ([]byte, bool) {
+	switch name {
+	case assetWasm, assetJourneyWasm, assetWasmExec:
+		return embeddedAsset(name + ".gz")
+	default:
+		return nil, false
+	}
+}
+
+func assetETag(name string, body []byte) string {
+	if cached, ok := assetETags.Load(name); ok {
+		return cached.(string)
+	}
+	digest := sha256.Sum256(body)
+	etag := `"` + hex.EncodeToString(digest[:]) + `"`
+	actual, _ := assetETags.LoadOrStore(name, etag)
+	return actual.(string)
 }
 
 // assetContentType is the media type one bundle file is served under. Both

@@ -65,6 +65,20 @@ func LoadingView(session Session, state State) productui.View {
 	return productui.ApplyRequest(view, state.Request)
 }
 
+// ContentLoadingView retargets a previously authorized shell to a destination
+// route without discarding its resolved chrome. Only address-derived
+// presentation state is changed; the destination's business data remains a
+// loading proxy until Load returns the newly authorized projection.
+func ContentLoadingView(previous productui.View, state State) productui.View {
+	previous.Page = state.Page
+	previous.LoadError = ""
+	previous.Loading = false
+	previous.ContentLoading = true
+	previous.Refreshing = false
+	previous.RefreshingRegion = ""
+	return productui.ApplyRequest(previous, state.Request)
+}
+
 // ParseState resolves a production product route and its presentation query.
 func ParseState(pathname, rawQuery string) (State, error) {
 	definition, ok := productui.LookupRoute(pathname)
@@ -110,11 +124,50 @@ func parseFavoritePages(raw string) []productui.PageID {
 	return pages
 }
 
-// Load calls the live service and returns an authorized component view. It
-// preserves partial successful answers and joins failures so the UI can show
-// an honest degraded state instead of substituting sample records.
+// Load calls the live service and returns an authorized component view. A cold
+// load resolves the complete shell projection so global search, identity, and
+// notifications are ready regardless of the initial route.
 func Load(ctx context.Context, service Service, session Session, state State) (productui.View, error) {
+	return load(ctx, service, session, state, nil)
+}
+
+// LoadWithBaseline reuses already-authorized shell data and refreshes only the
+// datasets the destination page consumes. Preferences remain live on every
+// route; page data is never reused across sessions because the caller supplies
+// the baseline from the same admitted browser composition.
+func LoadWithBaseline(ctx context.Context, service Service, session Session, state State, baseline productui.View) (productui.View, error) {
+	return load(ctx, service, session, state, &baseline)
+}
+
+type pageDataRequirements struct {
+	journeys bool
+	workers  bool
+}
+
+func requirementsForPage(page productui.PageID) pageDataRequirements {
+	switch page {
+	case productui.PageHome, productui.PageMyself, productui.PageWork, productui.PageHistory,
+		productui.PagePerson, productui.PageInsights:
+		return pageDataRequirements{journeys: true, workers: true}
+	case productui.PagePeople, productui.PageOrganization, productui.PageRoles, productui.PageOrganizationVisibility:
+		return pageDataRequirements{workers: true}
+	default:
+		return pageDataRequirements{}
+	}
+}
+
+func load(ctx context.Context, service Service, session Session, state State, baseline *productui.View) (productui.View, error) {
 	view := LoadingView(session, state)
+	requirements := pageDataRequirements{journeys: true, workers: true}
+	if baseline != nil {
+		requirements = requirementsForPage(state.Page)
+		seedBaselineProjection(&view, *baseline)
+		// Work filters are applied destructively to the route projection. Never
+		// mistake a filtered previous page for the complete shell dataset.
+		if baseline.Page == productui.PageWork && baseline.WorkFilter != "" {
+			requirements.journeys = true
+		}
+	}
 	var failures []error
 	var journeysResponse *journeyv1.ListJourneysResponse
 	var workersResponse *journeyv1.ListWorkersResponse
@@ -125,7 +178,9 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	var workerIDErr error
 	var roleAccessErr error
 	var reads sync.WaitGroup
-	if session.EnforceRoleVisibility && !productui.PageVisible(productui.PageJourneys, session.Roles) {
+	if !requirements.journeys {
+		// The authorized baseline already supplies shell counts/search records.
+	} else if session.EnforceRoleVisibility && !productui.PageVisible(productui.PageJourneys, session.Roles) {
 		journeysResponse = &journeyv1.ListJourneysResponse{}
 	} else if service.ListJourneys == nil {
 		journeysErr = errors.New("JourneyService.ListJourneys is not connected")
@@ -139,7 +194,9 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 			}
 		}()
 	}
-	if service.ListWorkers == nil {
+	if !requirements.workers {
+		// The destination does not consume workforce records; keep the baseline.
+	} else if service.ListWorkers == nil {
 		workersErr = errors.New("JourneyService.ListWorkers is not connected")
 	} else {
 		reads.Add(1)
@@ -211,7 +268,10 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 
 	if journeysErr != nil {
 		failures = append(failures, journeysErr)
-	} else {
+		// A required authorization/read refresh fails closed. Retaining an
+		// older projection here could outlive a server-side access revocation.
+		view.Work = nil
+	} else if requirements.journeys {
 		var projectionErr error
 		view.Work, projectionErr = projectJourneys(journeysResponse.GetJourneys())
 		if projectionErr != nil {
@@ -220,7 +280,8 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	}
 	if workersErr != nil {
 		failures = append(failures, workersErr)
-	} else {
+		view.People = nil
+	} else if requirements.workers {
 		var projectionErr error
 		view.People, projectionErr = projectWorkers(workersResponse.GetWorkers())
 		if projectionErr != nil {
@@ -248,6 +309,21 @@ func Load(ctx context.Context, service Service, session Session, state State) (p
 	}
 	view.PersonWorkflows = projectPersonWorkflows(view, view.SelectedPerson)
 	return view, errors.Join(failures...)
+}
+
+func seedBaselineProjection(view *productui.View, baseline productui.View) {
+	view.Work = baseline.Work
+	view.People = baseline.People
+	view.Viewer = baseline.Viewer
+	view.WorkflowUses = baseline.WorkflowUses
+	view.PreferenceVersion = baseline.PreferenceVersion
+	view.AppearanceVersion = baseline.AppearanceVersion
+	view.Appearance = baseline.Appearance
+	view.Accessibility = baseline.Accessibility
+	view.OrganizationVisibility = baseline.OrganizationVisibility
+	view.StoredPreferences = baseline.StoredPreferences
+	view.NavigationGroupOpen = baseline.NavigationGroupOpen
+	view.Source = baseline.Source
 }
 
 func applyRoleAccess(view *productui.View, response *journeyv1.GetRoleAccessResponse) {
@@ -493,6 +569,7 @@ func projectWorkers(workers []*journeyv1.Worker) ([]productui.Person, error) {
 			CreatedAt: timestampLabel(worker.GetCreatedAt()),
 		})
 	}
+	productui.IndexPeople(people)
 	return people, errors.Join(failures...)
 }
 

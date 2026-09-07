@@ -938,6 +938,10 @@ func (a *App) wire(p journey.Page) journey.Page {
 		href := p.Proposal.BackHref
 		p.Proposal.BackNavigate = func() { a.NavigateProduct(href) }
 	}
+	if p.List != nil && p.List.People != nil && p.List.People.DirectoryLink.Href != "" && a.NavigateProduct != nil {
+		href := p.List.People.DirectoryLink.Href
+		p.List.People.DirectoryLink.OnNavigate = func() { a.NavigateProduct(href) }
+	}
 	if p.Detail != nil && strings.HasPrefix(p.Detail.JourneysLink.Href, "#") {
 		href := p.Detail.JourneysLink.Href
 		p.Detail.JourneysLink.OnNavigate = func() { a.Navigate(href) }

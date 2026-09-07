@@ -35,6 +35,10 @@ import (
 const (
 	sourceCorpus  = "CORPUS"
 	sourceCreated = "CREATED"
+	// The full workforce already has a dedicated, filterable product route.
+	// Keeping this operational journey page to a representative window avoids
+	// mounting hundreds of row controls before the user has chosen a worker.
+	peoplePreviewLimit = 20
 )
 
 func sourceOf(source string) string {
@@ -112,6 +116,15 @@ func peopleEmptyState(message string) ui.Node {
 // at all, so it carries tabindex="0" and a name, which is also why it is a
 // labelled region rather than a bare div.
 func peopleTable(v PeopleView) ui.Node {
+	workers := peoplePreviewWorkers(v)
+	showDirectoryLink := len(workers) < len(v.Workers)
+	directoryLink := v.DirectoryLink
+	if directoryLink.Label == "" {
+		directoryLink.Label = "Open the full People directory"
+	}
+	if directoryLink.Href == "" {
+		directoryLink.Href = "/workspace/app/people"
+	}
 	return html.Div(html.Props{Class: "jn-tablewrap jn-peoplewrap", Role: "region",
 		TabIndex: html.TabIndexZero, Aria: map[string]string{"label": "People"}},
 		html.Table(html.Props{Class: "jn-table jn-zebra jn-people"},
@@ -131,11 +144,38 @@ func peopleTable(v PeopleView) ui.Node {
 						visuallyHidden("Row actions")),
 				),
 			),
-			html.Tbody(html.Props{}, html.Map(v.Workers, func(c WorkerCard) ui.Node {
+			html.Tbody(html.Props{}, html.Map(workers, func(c WorkerCard) ui.Node {
 				return workerRow(v, c)
 			})...),
 		),
+		htmlIf(showDirectoryLink, func() ui.Node {
+			return html.Div(html.Props{Class: "jn-people-preview-foot"},
+				html.P(html.Props{}, html.Text("Showing "+strconv.Itoa(len(workers))+" of "+strconv.Itoa(len(v.Workers))+" employees.")),
+				html.A(html.Props{Class: "jn-btn", Href: directoryLink.Href, OnClick: activate(directoryLink.OnNavigate), Data: map[string]string{"variant": "secondary", "size": "sm"}}, html.Text(directoryLink.Label)),
+			)
+		}),
 	)
+}
+
+func peoplePreviewWorkers(v PeopleView) []WorkerCard {
+	if len(v.Workers) <= peoplePreviewLimit {
+		return v.Workers
+	}
+	workers := append([]WorkerCard(nil), v.Workers[:peoplePreviewLimit]...)
+	if v.SelectedRef == "" {
+		return workers
+	}
+	for _, worker := range workers {
+		if worker.Ref == v.SelectedRef {
+			return workers
+		}
+	}
+	for _, worker := range v.Workers[peoplePreviewLimit:] {
+		if worker.Ref == v.SelectedRef {
+			return append(workers, worker)
+		}
+	}
+	return workers
 }
 
 func peopleHead(label string, numeric bool) ui.Node {

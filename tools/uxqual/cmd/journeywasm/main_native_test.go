@@ -4,6 +4,8 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,10 +87,37 @@ func TestBuildProducesBothHalvesOfTheBundle(t *testing.T) {
 	}
 
 	printed := stdout.String()
-	for _, want := range []string{wasmFile, wasmExecFile, "bytes"} {
+	for _, want := range []string{wasmFile, wasmFile + ".gz", wasmExecFile, wasmExecFile + ".gz", "bytes"} {
 		if !strings.Contains(printed, want) {
 			t.Errorf("the command printed %q, which does not mention %q", printed, want)
 		}
+	}
+}
+
+func TestWriteGzipRoundTripsSource(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bundle.wasm")
+	want := bytes.Repeat([]byte("webassembly-transfer-payload"), 256)
+	if err := os.WriteFile(path, want, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeGzip(path); err != nil {
+		t.Fatal(err)
+	}
+	compressed, err := os.Open(path + ".gz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer compressed.Close()
+	reader, err := gzip.NewReader(compressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Fatal("precompressed bundle did not round-trip")
 	}
 }
 
