@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -34,6 +36,12 @@ type GraphEdge struct {
 // selected, so the emitted dependency graph reflects modules as built, not
 // every version MVS considered and discarded.
 func ModGraph(root string) ([]GraphEdge, error) {
+	// An SBOM root is a module root. Without this check `go mod graph`
+	// would climb to any enclosing go.mod (a temp directory routed under
+	// the checkout, for one) and describe the wrong module.
+	if _, err := os.Stat(filepath.Join(root, "go.mod")); err != nil {
+		return nil, fmt.Errorf("sbom: %s is not a module root: %w", root, err)
+	}
 	cmd := exec.Command("go", "mod", "graph")
 	cmd.Dir = root
 
