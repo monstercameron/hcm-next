@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: d99cc4ab2063180c73814262cdad6c21dc19a8cd47e291aefcee112f79ff0142
-- Package count: 733
-- Within-module edge count: 1653
+- Source graph: 34be9f0cbea03421ca870e59c0f534b3ff923e0b8d60f153679fcdfb57331482
+- Package count: 735
+- Within-module edge count: 1657
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -793,6 +793,8 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/quality/compositionroot`
 - `github.com/monstercameron/hcm-next/tools/quality/configboundaries`
 - `github.com/monstercameron/hcm-next/tools/quality/cosignkit`
+- `github.com/monstercameron/hcm-next/tools/quality/covergate`
+- `github.com/monstercameron/hcm-next/tools/quality/covergate/cmd/covergate`
 - `github.com/monstercameron/hcm-next/tools/quality/decomposition`
 - `github.com/monstercameron/hcm-next/tools/quality/definitionscontract`
 - `github.com/monstercameron/hcm-next/tools/quality/ephemeralenv`
@@ -859,4 +861,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`61e01e956b603b1d2f98c7cdd192ccaff4d8450c2cf3c1d04ecfa1f7f747b3b2`
+`15795a7afe3e70f22d47c98ec85650dd448f7e1560b78eb59b4451ed7d05f55f`

@@ -11,4 +11,1229 @@
 # new package can never inherit a waiver.
 threshold: 70
 
-exceptions: []
+exceptions:
+  - package: cmd/frontenddev
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      59.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: cmd/hcmctl
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: cmd/hcmnext
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: cmd/migrate
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      54.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: cmd/scheduler
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity/adapter
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity/mapping
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity/mappingprofile
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      52.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity/schemasnapshot/adapters/postgres
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/connectivity/transport
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      57.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/customobject
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      21.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/accessstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/aggregates
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/analytics
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/assetstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/balancestore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/benefitsstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/budgetstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/careerstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/cbastore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      50.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/contentregistrystore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/crmstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/customstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/demoworkforce
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      39.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/documentmeta
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/employeerelationsstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      54.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/equitystore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/fxstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/governance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      50.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/hrcasestore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/incentivestore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/ledger/partition
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/locationstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/messagingmeta
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/mobilitystore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/operationstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/opsmeta
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/payglstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/payinputstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      59.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/paymethodstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      41.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/planningstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/projection
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/refdata
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/schedulingstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      57.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/skillstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/subscriptionstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/successionstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/taxprofilestore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/workeridstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/documents/intake
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/appointment
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/asset
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/attendance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/availability
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/benefits
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      44.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/career
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      39.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/cba
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      42.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/compensation
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      10.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/contact
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      44.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/crm
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      18.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/custom
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/demand
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/employeerelations
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      52.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/equity
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      56.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/fixtures
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      56.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/fx
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      57.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/headcount
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/hrcase
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/incentive
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      48.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/industrypack
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/labor
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/merit
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      56.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/mobility
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      51.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/org
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/paygl
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      55.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/payinput
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      52.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/payroll
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/payroll/calcpolicy
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/payroll/paymentprofile
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/performance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/qualification
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/safety
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      46.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/service
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/skill
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/succession
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      45.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/survey
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      59.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/domains/taxprofile
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/engines/rules
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/engines/schedule
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/engines/transformation
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/engines/transformation/exec
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      52.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/experience/reportrender
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/experience/reportschedule
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/governance/legal/payrules
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/governance/legal/pipeline
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/governance/legal/stateparams
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/humanwork/workspace
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      53.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/i18n
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/intent/app
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      22.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/intent/app/pgstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      13.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/intent/model/deferred
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      53.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/intent/protomap
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/ledger
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/operations/admincenter/connectorconfig
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      40.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/operations/adversarial
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/operations/slo
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/operations/telemetryhealth
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/platform/configbundle
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/platform/execution
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/platform/execution/promotionsteps
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/platform/telemetry/otel
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      57.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/cancel
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/commit
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      59.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/conflict
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      50.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/correction
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      46.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/idempotency
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transaction/plan
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      19.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/admin/hcmctl
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      37.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/cell
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/conformance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/health
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      57.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/operations
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/otelmw
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.5% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/transporttest
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      43.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/transport/workflow
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/trust/session/pgstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/execute
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/execute/effects
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      18.7% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/intervention
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/prototype
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      33.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/quarantine
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/workflow/shadow
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      64.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/conformance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/conformance/internal/reporoot
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/conformance/transformationvectors
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      34.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/gen/archdoc/cmd/archdoc
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/gen/clients/cmd/generateclients
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/gen/modelgen/cmd/modelgen
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      50.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/cmd/featurecoverage
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/cmd/productslice
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/cmd/todoregistry
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/corpus
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      40.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/corpus/cmd/corpus
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      48.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/docintegrity
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/intentmanifests
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      63.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/planning/obligations/cmd/obligations
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      53.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/apigate/cmd/apigate
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      29.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/cleancheckout/cmd/cleancheckout
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      28.6% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/depadmission/cmd/depadmission
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      36.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/depmanifest
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      65.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/dispositioncoverage/cmd/dispositioncoverage
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/dispositionrebuild
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/driftgate
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      19.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/driftgate/cmd/driftgate
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      33.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/endpointmanifest/cmd/endpointmanifest
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/enginecoverage/cmd/enginecoverage
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      26.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/internal/repopath
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/invocationpath
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      67.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/mutationpolicy
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      48.4% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/provenance/cmd/provgen
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      5.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/querytransport
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      69.2% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/release
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.1% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/release/cmd/release
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      50.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/substratecoverage/cmd/substratecoverage
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      26.3% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/policy/webdelivery
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      60.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/quality/bufprotovalidatekit
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      66.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/quality/compositionroot
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      53.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/quality/provenance
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      45.8% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/quality/toxiproxykit
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      62.9% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/uxqual/cmd/genfixtures
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/uxqual/render/gwc
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/uxqual/render/ssr
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: tools/uxqual/tokens
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      0.0% of statements covered when the gate was introduced on
+      2026-09-06; raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"

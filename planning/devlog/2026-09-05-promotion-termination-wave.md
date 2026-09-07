@@ -447,3 +447,13 @@ organization-structure-maximal-2026.md` and the 30-table draft
   this host has no race detector; CI runs them on Linux. The first
   whole-module coverage run is seeding the exception list for packages that
   are genuinely under the floor today.
+- **Baseline.** The first whole-module run measured every package: 175 are
+  under the 70% floor today (95 between 60 and 70, 34 between 50 and 60, 21
+  between 30 and 50, 25 under 30; heaviest in internal/data, internal/domains
+  and tools/policy), none lack tests, and 62 reported failures under the
+  load of nine hundred packages at once, which are being rerun with limited
+  parallelism to separate real breakage from contention. Every under-floor
+  package now carries an exact-path, expiring `below_floor` exception owned
+  by the backlog with its measured percentage in the reason, so the gate
+  holds the line from here without pretending the baseline is green; each
+  exception retires when its package reaches the floor.
