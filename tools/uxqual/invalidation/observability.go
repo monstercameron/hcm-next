@@ -12,12 +12,16 @@ type Event struct {
 type EventKind string
 
 const (
-	EventAccepted   EventKind = "accepted"
-	EventRejected   EventKind = "rejected"
-	EventRefetched  EventKind = "refetched"
-	EventRefetchErr EventKind = "refetch_error"
-	EventQueueFull  EventKind = "queue_full"
-	EventClosed     EventKind = "closed"
+	EventAccepted     EventKind = "accepted"
+	EventRejected     EventKind = "rejected"
+	EventRefetched    EventKind = "refetched"
+	EventRefetchErr   EventKind = "refetch_error"
+	EventQueueFull    EventKind = "queue_full"
+	EventClosed       EventKind = "closed"
+	EventReconnected  EventKind = "reconnected"
+	EventReconnectErr EventKind = "reconnect_error"
+	EventCaughtUp     EventKind = "caught_up"
+	EventCatchUpErr   EventKind = "catch_up_error"
 )
 
 // Snapshot is a race-free diagnostic view of one client.
@@ -29,6 +33,8 @@ type Snapshot struct {
 	Refetched          uint64
 	RefetchErrors      uint64
 	QueueFull          uint64
+	CatchUps           uint64
+	CatchUpErrors      uint64
 	ObserverDrops      uint64
 	LastSourceSequence uint64
 }
@@ -84,8 +90,9 @@ func (c *Client) Snapshot() Snapshot {
 		queued = len(c.run.jobs)
 	}
 	return Snapshot{
-		Running: c.run != nil, Queued: queued, Accepted: c.accepted, Rejected: c.rejected,
+		Running: c.run != nil || c.reconnecting, Queued: queued, Accepted: c.accepted, Rejected: c.rejected,
 		Refetched: c.refetched, RefetchErrors: c.refetchErrors, QueueFull: c.queueFull,
+		CatchUps: c.catchUps, CatchUpErrors: c.catchUpErrors,
 		ObserverDrops: c.observerDrops.Load(), LastSourceSequence: c.scope.SourceSequence,
 	}
 }

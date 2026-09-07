@@ -3,8 +3,8 @@
 // An invalidation is deliberately only a hint: it contains no display data
 // and never changes a view. Accepted hints schedule a fresh, authorized
 // projection read through the injected Refetch function. The stream is an
-// independent lane from finite RPC capacity and this package owns no
-// reconnect or catch-up policy (WEB-036).
+// independent lane from finite RPC capacity. RunReconnect adds bounded
+// transport retry and sequence catch-up without changing this authority.
 package invalidation
 
 import (
@@ -20,6 +20,7 @@ type refreshJob struct {
 	refresh    Refresh
 	revisions  map[string]uint64
 	ready      chan struct{}
+	result     chan error
 }
 
 type runState struct {
@@ -27,14 +28,16 @@ type runState struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	stream     CloseStream
+	managed    bool
 	closeOnce  sync.Once
+	closeDone  chan struct{}
 	jobs       chan refreshJob
 	workerDone chan struct{}
 	done       chan error
 }
 
-// Client is one bounded invalidation subscription. It supports one live
-// connection only; reconnect/catch-up sequencing belongs to WEB-036.
+// Client is one bounded invalidation subscription. Start owns one live
+// connection; RunReconnect owns generations with bounded consecutive failure.
 type Client struct {
 	mu      sync.Mutex
 	scope   Scope
@@ -46,7 +49,11 @@ type Client struct {
 	nextJobID      uint64
 	pending        []refreshJob
 
+	reconnecting    bool
+	reconnectCancel context.CancelFunc
+
 	accepted, rejected, refetched, refetchErrors, queueFull uint64
+	catchUps, catchUpErrors                                 uint64
 
 	eventMu       sync.Mutex
 	events        []Event
@@ -81,7 +88,7 @@ func (c *Client) UpdateScope(scope Scope) error {
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.run != nil {
+	if c.run != nil || c.reconnecting {
 		return ErrAlreadyRunning
 	}
 	c.scope = normalized
@@ -94,15 +101,20 @@ func (c *Client) UpdateScope(scope Scope) error {
 // no reconnect is attempted. A stream must be closeable so cancellation can
 // interrupt Recv.
 func (c *Client) Start(parent context.Context, stream Stream) (<-chan error, error) {
+	done, _, err := c.start(parent, stream, false)
+	return done, err
+}
+
+func (c *Client) start(parent context.Context, stream Stream, managed bool) (<-chan error, *runState, error) {
 	if c == nil {
-		return nil, errors.New("invalidation: nil client")
+		return nil, nil, errors.New("invalidation: nil client")
 	}
 	if isNilInterface(stream) {
-		return nil, ErrNoStream
+		return nil, nil, ErrNoStream
 	}
 	closable, ok := stream.(CloseStream)
 	if !ok || isNilInterface(closable) {
-		return nil, ErrStreamNotCloseable
+		return nil, nil, ErrStreamNotCloseable
 	}
 	if parent == nil {
 		parent = context.Background()
@@ -110,7 +122,11 @@ func (c *Client) Start(parent context.Context, stream Stream) (<-chan error, err
 	c.mu.Lock()
 	if c.run != nil {
 		c.mu.Unlock()
-		return nil, ErrAlreadyRunning
+		return nil, nil, ErrAlreadyRunning
+	}
+	if c.reconnecting && !managed {
+		c.mu.Unlock()
+		return nil, nil, ErrAlreadyRunning
 	}
 	ctx, cancel := context.WithCancel(parent)
 	c.nextGeneration++
@@ -119,6 +135,8 @@ func (c *Client) Start(parent context.Context, stream Stream) (<-chan error, err
 		ctx:        ctx,
 		cancel:     cancel,
 		stream:     closable,
+		managed:    managed,
+		closeDone:  make(chan struct{}),
 		jobs:       make(chan refreshJob, c.options.MaxQueue),
 		workerDone: make(chan struct{}),
 		done:       make(chan error, 1),
@@ -126,6 +144,16 @@ func (c *Client) Start(parent context.Context, stream Stream) (<-chan error, err
 	c.run = run
 	c.pending = nil
 	c.mu.Unlock()
+	if generationAware, ok := stream.(interface{ setGeneration(uint64) }); ok {
+		generationAware.setGeneration(run.generation)
+	}
+	if managed {
+		// Publish the connection before its reader can publish catch-up,
+		// acceptance, completion, or closure. This makes the serialized event
+		// stream deterministic even for a transport that returns immediately.
+		cursor := c.currentCursor()
+		c.observe(Event{Kind: EventReconnected, SourceSequence: cursor.Sequence()})
+	}
 
 	go c.worker(run)
 	go c.read(run)
@@ -133,7 +161,7 @@ func (c *Client) Start(parent context.Context, stream Stream) (<-chan error, err
 		<-ctx.Done()
 		c.interrupt(run)
 	}()
-	return run.done, nil
+	return run.done, run, nil
 }
 
 // Run is the blocking counterpart to Start and is convenient for native
@@ -155,7 +183,11 @@ func (c *Client) Close() error {
 	}
 	c.mu.Lock()
 	run := c.run
+	reconnectCancel := c.reconnectCancel
 	c.mu.Unlock()
+	if reconnectCancel != nil {
+		reconnectCancel()
+	}
 	if run == nil {
 		return nil
 	}
@@ -172,6 +204,7 @@ func (c *Client) interrupt(run *runState) {
 		// Transport code is outside this package's trust boundary. Run it away
 		// from cancellation callers and contain both blocking and panic.
 		go func() {
+			defer close(run.closeDone)
 			defer func() { _ = recover() }()
 			_ = run.stream.Close()
 		}()

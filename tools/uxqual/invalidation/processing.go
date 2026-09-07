@@ -12,9 +12,14 @@ func (c *Client) read(run *runState) {
 	var terminal error
 	defer func() {
 		close(run.jobs)
+		if terminal != nil || run.ctx.Err() != nil {
+			run.cancel()
+			c.interrupt(run)
+		}
 		<-run.workerDone
 		run.cancel()
 		c.interrupt(run)
+		<-run.closeDone
 		c.mu.Lock()
 		if c.run == run {
 			c.run = nil
@@ -39,7 +44,24 @@ func (c *Client) read(run *runState) {
 			}
 			return
 		}
-		c.handle(run, raw)
+		result := c.handle(run, raw)
+		if !run.managed || result == nil {
+			continue
+		}
+		select {
+		case err := <-result:
+			if err != nil {
+				if contextErr := run.ctx.Err(); contextErr != nil {
+					terminal = contextErr
+				} else {
+					terminal = ErrRefetchFailed
+				}
+				return
+			}
+		case <-run.ctx.Done():
+			terminal = run.ctx.Err()
+			return
+		}
 	}
 }
 
@@ -73,24 +95,20 @@ func (c *Client) worker(run *runState) {
 	}
 }
 
-func (c *Client) callRefetch(run *runState, refresh Refresh) error {
-	result := make(chan error, 1)
-	go func() {
-		var err error
-		defer func() {
-			if recover() != nil {
-				err = ErrRefetchFailed
-			}
-			result <- err
-		}()
-		err = c.refetch(run.ctx, refresh)
-	}()
-	select {
-	case err := <-result:
+func (c *Client) callRefetch(run *runState, refresh Refresh) (err error) {
+	if err := run.ctx.Err(); err != nil {
 		return err
-	case <-run.ctx.Done():
-		return run.ctx.Err()
 	}
+	defer func() {
+		if recover() != nil {
+			err = ErrRefetchFailed
+		}
+	}()
+	err = c.refetch(run.ctx, refresh)
+	if contextErr := run.ctx.Err(); contextErr != nil {
+		return contextErr
+	}
+	return err
 }
 
 func (c *Client) complete(run *runState, job refreshJob, err error) {
@@ -101,7 +119,7 @@ func (c *Client) complete(run *runState, job refreshJob, err error) {
 			break
 		}
 	}
-	queued := len(run.jobs)
+	queued := len(c.pending)
 	current := c.run == run && run.ctx.Err() == nil
 	if current && err == nil {
 		if job.refresh.SourceSequence > c.scope.SourceSequence {
@@ -121,27 +139,38 @@ func (c *Client) complete(run *runState, job refreshJob, err error) {
 	}
 	c.mu.Unlock()
 	if !current {
+		finishRefreshJob(job, err)
 		return
 	}
 	if err == nil {
 		c.observe(Event{Kind: EventRefetched, QueueLength: queued, SourceSequence: job.refresh.SourceSequence})
+		finishRefreshJob(job, err)
 		return
 	}
 	if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
 		c.observe(Event{Kind: EventRefetchErr, QueueLength: queued, SourceSequence: job.refresh.SourceSequence})
 	}
+	finishRefreshJob(job, err)
 }
 
-func (c *Client) handle(run *runState, raw []byte) {
+func finishRefreshJob(job refreshJob, err error) {
+	if job.result == nil {
+		return
+	}
+	job.result <- err
+	close(job.result)
+}
+
+func (c *Client) handle(run *runState, raw []byte) <-chan error {
 	message, err := Decode(raw, c.options.MaxMessageBytes)
 	if err != nil {
 		c.reject(run, EventRejected)
-		return
+		return nil
 	}
 	c.mu.Lock()
 	if c.run != run {
 		c.mu.Unlock()
-		return
+		return nil
 	}
 	scope := c.scope
 	admissionSequence := scope.SourceSequence
@@ -169,7 +198,7 @@ func (c *Client) handle(run *runState, raw []byte) {
 	if message.Tenant != scope.Tenant || message.Projection != scope.Projection || message.SourceSequence <= admissionSequence || message.Watermark < admissionWatermark {
 		c.mu.Unlock()
 		c.reject(run, EventRejected)
-		return
+		return nil
 	}
 	allowed := make(map[string]struct{}, len(scope.Subjects))
 	for _, subject := range scope.Subjects {
@@ -182,31 +211,37 @@ func (c *Client) handle(run *runState, raw []byte) {
 		if _, ok := allowed[key]; !ok || item.Revision <= admissionRevisions[key] {
 			c.mu.Unlock()
 			c.reject(run, EventRejected)
-			return
+			return nil
 		}
 		job.Subjects[i] = item.Subject
 		revisions[key] = item.Revision
 	}
 	c.nextJobID++
 	queuedJob := refreshJob{id: c.nextJobID, generation: run.generation, refresh: job, revisions: revisions, ready: make(chan struct{})}
+	if run.managed {
+		queuedJob.result = make(chan error, 1)
+	}
 	select {
 	case run.jobs <- queuedJob:
 		c.pending = append(c.pending, queuedJob)
 		c.accepted++
-		queued := len(run.jobs)
+		queued := len(c.pending)
 		// The observer queue sees acceptance before the worker can publish a
 		// completion, even when the refetch closure returns immediately.
 		c.observe(Event{Kind: EventAccepted, Items: len(message.Items), QueueLength: queued, SourceSequence: message.SourceSequence})
 		close(queuedJob.ready)
 		c.mu.Unlock()
+		return queuedJob.result
 	case <-run.ctx.Done():
 		c.mu.Unlock()
+		return nil
 	default:
 		c.queueFull++
 		c.rejected++
-		queued := len(run.jobs)
+		queued := len(c.pending)
 		c.mu.Unlock()
 		c.observe(Event{Kind: EventQueueFull, Items: len(message.Items), QueueLength: queued})
+		return nil
 	}
 }
 
@@ -217,7 +252,7 @@ func (c *Client) reject(run *runState, kind EventKind) {
 		return
 	}
 	c.rejected++
-	queued := len(run.jobs)
+	queued := len(c.pending)
 	c.mu.Unlock()
 	// A rejected event intentionally carries no attacker-controlled sequence.
 	c.observe(Event{Kind: kind, QueueLength: queued})
