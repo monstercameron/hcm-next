@@ -337,6 +337,11 @@ func (s *Scheduler) serve(ctx context.Context, claim lease.AcquireRequest, now t
 		if s.cfg.Roles.TimerEnabled {
 			fired, skipped, deferred, fireErr := s.fireTimers(ctx, claim, grant.Fence, now)
 			out.Fired, out.Skipped, out.Deferred = fired, skipped, deferred
+			s.cfg.Logger.Info("scheduler.timer_role_tick",
+				"tenant", claim.TenantID.String(), "queue", claim.Resource.ID,
+				"shard", s.cfg.Roles.TimerShard, "fired", fired,
+				"skipped", skipped, "deferred", deferred,
+				"fence_token", grant.Fence.Token)
 			if fireErr != nil {
 				return out, fireErr
 			}
@@ -350,8 +355,8 @@ func (s *Scheduler) serve(ctx context.Context, claim lease.AcquireRequest, now t
 	if err != nil {
 		return out, err
 	}
-	if s.cfg.Roles.SignalEnabled && s.cfg.SignalRole != nil {
-		count, signalErr := s.cfg.SignalRole.RunSignalRole(ctx, claim, now, s.cfg.Roles.SignalShard)
+	if held && s.cfg.Roles.SignalEnabled && s.cfg.SignalRole != nil {
+		count, signalErr := runSignalRole(ctx, s.cfg.SignalRole, claim, grant.Fence, now, s.cfg.Roles.SignalShard)
 		out.Signals = count
 		if signalErr != nil {
 			return out, signalErr
@@ -381,6 +386,13 @@ func (s *Scheduler) serve(ctx context.Context, claim lease.AcquireRequest, now t
 		}
 	}
 	return out, nil
+}
+
+func runSignalRole(ctx context.Context, role SignalRole, claim lease.AcquireRequest, fence lease.Fence, now time.Time, shard string) (int, error) {
+	if fenced, ok := role.(FencedSignalRole); ok {
+		return fenced.RunFencedSignalRole(ctx, claim, fence, now, shard)
+	}
+	return role.RunSignalRole(ctx, claim, now, shard)
 }
 
 // holdQueue takes or renews this replica's lease on one claim's queue. The

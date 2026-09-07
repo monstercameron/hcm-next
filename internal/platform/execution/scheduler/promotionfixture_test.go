@@ -377,8 +377,17 @@ func (c promotionCell) startRequest(tenantID uuid.UUID, proposal intent.Proposal
 	return wfruntime.StartRequest{
 		TenantID: tenantID, CellID: "cell-local", StartIdempotencyKey: "start:" + subject,
 		Resolver: c.resolver, Versions: c.versions,
-		Proposal: wfruntime.ProposalBinding{
-			Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start",
+		Proposal: wfruntime.ProposalBinding{Revision: proposal},
+		// WF-RUN-027: approval and supersession are derived from fact ports,
+		// never from caller-asserted flags on the binding.
+		ProposalFacts: wfruntime.MemoryProposalFacts{},
+		ApprovalFacts: wfruntime.MemoryApprovalFacts{
+			ByRevisionID: map[string][]wfruntime.ApprovalDecisionFact{
+				proposal.ProposalRevisionID: {{
+					DecisionID: "decision:hr-partner-approves-start", Outcome: wfruntime.ApprovalOutcomeApproved,
+					ProposalDigest: proposal.MaterialDigest.Digest,
+				}},
+			},
 		},
 		ExpectedIntentID: proposal.IntentID, ExpectedTenant: proposal.Tenant,
 		BusinessSubjectRefs: []string{"employment:" + subject},

@@ -56,3 +56,12 @@ func (r RoleConfig) Validate() error {
 type SignalRole interface {
 	RunSignalRole(ctx context.Context, claim lease.AcquireRequest, now time.Time, shard string) (int, error)
 }
+
+// FencedSignalRole is the stronger scheduler-host seam. Implementations that
+// consume durable signal work may use the queue fence to prove that the role
+// is running under the lease this tick acquired. SignalRole remains supported
+// for semantic adapters whose own transactional receive path already carries
+// its evidence and fencing.
+type FencedSignalRole interface {
+	RunFencedSignalRole(ctx context.Context, claim lease.AcquireRequest, fence lease.Fence, now time.Time, shard string) (int, error)
+}

@@ -12,9 +12,9 @@
 // killing and restarting worker loses nothing and never double-applies a
 // delivered message (DATA-008).
 //
-// SVC-010 eventually hosts messaging delivery as a cmd/worker role; this
-// composition root keeps worker's current role - a plain, logging outbox
-// consumer - and adds no provider/messaging behavior of its own.
+// SVC-010 hosts semantic messaging delivery as one mode of the cmd/worker
+// outbox role. The provider-neutral runner and durable observation adapter
+// live below this composition root; this command only selects the role.
 //
 // The target server is HCMNEXT_DATABASE_URL, overridable with -database-url.
 package main
@@ -91,6 +91,7 @@ func workerConfigFields() []bootstrap.Field {
 			Kind:  bootstrap.KindString,
 		},
 		{Name: "messaging-role", Env: EnvMessagingRole, Usage: "enable the semantic messaging delivery role", Default: "true", Kind: bootstrap.KindBool},
+		{Name: "messaging-max-attempts", Env: "HCMNEXT_WORKER_MESSAGING_MAX_ATTEMPTS", Usage: "maximum provider attempts for one messaging delivery", Default: "3", Kind: bootstrap.KindInt},
 		{Name: "roles", Env: EnvWorkerRoles, Usage: "comma-separated capability-activity, reconciliation and repair roles", Default: string(WorkerRoleCapabilityActivity), Kind: bootstrap.KindString},
 	}
 }
@@ -139,6 +140,13 @@ func validateConfig(v *bootstrap.Values) error {
 	if _, err := v.Bool("messaging-role"); err != nil {
 		return err
 	}
+	maxAttempts, err := v.Int("messaging-max-attempts")
+	if err != nil {
+		return err
+	}
+	if maxAttempts < 1 {
+		return fmt.Errorf("messaging-max-attempts must be positive")
+	}
 	if _, err := ParseWorkerRoles(v.String("roles")); err != nil {
 		return err
 	}
@@ -185,6 +193,13 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 		"batch_size", batchSize,
 		"messaging_role", messagingRole,
 	)
+	maxAttempts := 3
+	if deps.Values.Has("messaging-max-attempts") {
+		maxAttempts, err = deps.Values.Int("messaging-max-attempts")
+		if err != nil {
+			return bootstrap.Runtime{}, err
+		}
+	}
 
 	workloadName := "outbox-consumer"
 	if messagingRole {
@@ -197,6 +212,12 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 		},
 	}
 	workloads := []bootstrap.Workload{wl}
+	if messagingRole {
+		messaging := messagingRoleFor(deps, pool, maxAttempts)
+		workloads[0].Run = func(ctx context.Context) error {
+			return runOutboxLoopWithHandler(ctx, logger, tenants, consumer, pollInterval, messaging.dispatch)
+		}
+	}
 	workloads = append(workloads, workerRoleWorkloads(deps.Logger, roles)...)
 	return bootstrap.Runtime{Workloads: workloads}, nil
 }

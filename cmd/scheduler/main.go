@@ -33,7 +33,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -57,7 +56,11 @@ func main() {
 // banner and full error) by Run's own parse. cmd/worker resolves it the same
 // way, for the same reason.
 func spec(args []string) bootstrap.Spec {
-	fields := scheduler.ConfigFields()
+	// Role settings are part of this command's configuration surface. Keeping
+	// them in the same bootstrap parse gives flags the same precedence as the
+	// existing scheduler settings (flag > environment > default), while the
+	// runtime package still owns their validation and meaning.
+	fields := append(scheduler.ConfigFields(), scheduler.RoleConfigFields()...)
 	healthAddr := ""
 	if values, err := bootstrap.ParseConfig(args, nil, fields); err == nil {
 		healthAddr = values.String(scheduler.FieldHealthAddr)
@@ -87,39 +90,7 @@ func validateConfig(v *bootstrap.Values) error {
 		return err
 	}
 	_, err := tenantOf(v)
-	if err != nil {
-		return err
-	}
-	_, err = roleConfigFromEnv()
 	return err
-}
-
-func roleConfigFromEnv() (scheduler.RoleConfig, error) {
-	roles := scheduler.DefaultRoleConfig()
-	for _, field := range []struct {
-		env    string
-		target *bool
-	}{
-		{scheduler.EnvTimerRole, &roles.TimerEnabled}, {scheduler.EnvSignalRole, &roles.SignalEnabled},
-	} {
-		if raw, ok := os.LookupEnv(field.env); ok {
-			value, err := strconv.ParseBool(raw)
-			if err != nil {
-				return scheduler.RoleConfig{}, fmt.Errorf("%s %q is not a boolean: %w", field.env, raw, err)
-			}
-			*field.target = value
-		}
-	}
-	if raw, ok := os.LookupEnv(scheduler.EnvTimerShard); ok {
-		roles.TimerShard = raw
-	}
-	if raw, ok := os.LookupEnv(scheduler.EnvSignalShard); ok {
-		roles.SignalShard = raw
-	}
-	if err := roles.Validate(); err != nil {
-		return scheduler.RoleConfig{}, err
-	}
-	return roles, nil
 }
 
 // tenantOf parses the configured tenant identifier.
@@ -159,7 +130,7 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
-	roles, err := roleConfigFromEnv()
+	roles, err := scheduler.RolesFrom(deps.Values)
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
@@ -174,6 +145,12 @@ type signalRole struct{ logger bootstrap.Logger }
 
 func (r signalRole) RunSignalRole(_ context.Context, claim lease.AcquireRequest, now time.Time, shard string) (int, error) {
 	r.logger.Info("scheduler.signal_role_tick", "tenant", claim.TenantID.String(), "shard", shard, "at", now.Format(time.RFC3339Nano))
+	return 0, nil
+}
+
+func (r signalRole) RunFencedSignalRole(_ context.Context, claim lease.AcquireRequest, fence lease.Fence, now time.Time, shard string) (int, error) {
+	r.logger.Info("scheduler.signal_role_tick", "tenant", claim.TenantID.String(), "shard", shard,
+		"fence_token", fence.Token, "at", now.Format(time.RFC3339Nano))
 	return 0, nil
 }
 

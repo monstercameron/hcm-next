@@ -177,24 +177,24 @@ func TestTodo_SVC_002(t *testing.T) {
 		}
 	})
 
-	t.Run("health_handler_reflects_state", func(t *testing.T) {
+	t.Run("health_endpoint_does_not_disclose_state", func(t *testing.T) {
 		h := NewHealth()
 		req := httptest.NewRequest("GET", "/healthz", nil)
 
 		rec := httptest.NewRecorder()
-		h.Handler().ServeHTTP(rec, req)
-		if rec.Code != 503 {
-			t.Fatalf("STARTING status = %d, want 503", rec.Code)
+		h.EndpointHandler().ServeHTTP(rec, req)
+		if rec.Code != 200 || rec.Body.String() != "{\"ok\":true}\n" {
+			t.Fatalf("STARTING healthz = %d %q, want 200 and minimal live body", rec.Code, rec.Body.String())
 		}
 
 		_ = h.Set(StateReady)
 		rec = httptest.NewRecorder()
-		h.Handler().ServeHTTP(rec, req)
-		if rec.Code != 200 {
-			t.Fatalf("READY status = %d, want 200", rec.Code)
+		h.EndpointHandler().ServeHTTP(rec, httptest.NewRequest("GET", "/readyz", nil))
+		if rec.Code != 200 || rec.Body.String() != "{\"ok\":true}\n" {
+			t.Fatalf("READY readyz = %d %q, want 200 and minimal ready body", rec.Code, rec.Body.String())
 		}
-		if !strings.Contains(rec.Body.String(), "READY") {
-			t.Fatalf("body = %q, want it to mention READY", rec.Body.String())
+		if strings.Contains(rec.Body.String(), "READY") {
+			t.Fatalf("health body = %q, must not disclose lifecycle state", rec.Body.String())
 		}
 	})
 

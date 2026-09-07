@@ -191,7 +191,7 @@ func Run(ctx context.Context, spec Spec) int {
 			logger.Error("bootstrap.health_listen_failed", "error", listenErr.Error())
 			return ExitCodeFor(&ConfigError{Err: fmt.Errorf("health endpoint: %w", listenErr)})
 		}
-		healthServer = &http.Server{Handler: health.Handler()}
+		healthServer = &http.Server{Handler: health.EndpointHandler()}
 		go func() {
 			if serveErr := healthServer.Serve(ln); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
 				logger.Error("bootstrap.health_server_failed", "error", serveErr.Error())

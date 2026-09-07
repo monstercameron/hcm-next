@@ -42,9 +42,27 @@ func TestSpecSelectsTheSchedulerRole(t *testing.T) {
 	if s.Validate == nil || s.Build == nil || s.DBPoolFactory == nil {
 		t.Fatal("the spec leaves validation, build or the pool factory unwired")
 	}
-	if len(s.ConfigFields) != len(scheduler.ConfigFields()) {
+	wantFields := len(scheduler.ConfigFields()) + len(scheduler.RoleConfigFields())
+	if len(s.ConfigFields) != wantFields {
 		t.Fatalf("the spec declares %d fields, the runtime package declares %d",
-			len(s.ConfigFields), len(scheduler.ConfigFields()))
+			len(s.ConfigFields), wantFields)
+	}
+	values, err := bootstrap.ParseConfig([]string{
+		"-database-url=postgres://localhost/hcmnext",
+		"-tenant-id=" + uuid.NewString(),
+		"-timer-role=false",
+		"-signal-role=true",
+		"-signal-shard=signal-west",
+	}, noEnv, s.ConfigFields)
+	if err != nil {
+		t.Fatalf("ParseConfig with role flags: %v", err)
+	}
+	roles, err := scheduler.RolesFrom(values)
+	if err != nil {
+		t.Fatalf("RolesFrom: %v", err)
+	}
+	if roles.TimerEnabled || !roles.SignalEnabled || roles.SignalShard != "signal-west" {
+		t.Fatalf("resolved roles = %+v, want timer disabled and signal-west enabled", roles)
 	}
 }
 

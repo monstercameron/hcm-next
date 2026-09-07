@@ -97,24 +97,30 @@ func (h *Health) Set(next HealthState) error {
 	return nil
 }
 
-// healthResponse is the exact, stable JSON shape the loopback health
-// endpoint serves.
-type healthResponse struct {
-	State string `json:"state"`
+// EndpointHandler returns the non-disclosing process probes used by command
+// roots. Liveness answers whether the process loop is still present; it is
+// intentionally healthy while STARTING and DRAINING so a dependency outage
+// or an orderly shutdown does not create a restart loop. Readiness is the
+// separate admission signal and is healthy only after bootstrap reaches READY.
+func (h *Health) EndpointHandler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		h.writeProbe(w, h.Get() != StateStopped)
+	})
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
+		h.writeProbe(w, h.Get() == StateReady)
+	})
+	return mux
 }
 
-// Handler returns an http.Handler serving the current state as JSON:
-// 200 while StateReady, 503 in every other state (STARTING and DRAINING
-// are both "not ready"; STOPPED should never be observed by a live probe).
-// Bootstrap binds this handler to a loopback-only address when
-// Spec.HealthAddr is set; it never listens on a non-loopback interface.
-func (h *Health) Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		state := h.Get()
-		w.Header().Set("Content-Type", "application/json")
-		if state != StateReady {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}
-		_ = json.NewEncoder(w).Encode(healthResponse{State: state.String()})
-	})
+func (h *Health) writeProbe(w http.ResponseWriter, ok bool) {
+	status := http.StatusOK
+	if !ok {
+		status = http.StatusServiceUnavailable
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(struct {
+		OK bool `json:"ok"`
+	}{OK: ok})
 }

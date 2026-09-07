@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/monstercameron/hcm-next/internal/application"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
 
@@ -151,24 +151,9 @@ func workerRoleWorkloads(logger bootstrap.Logger, roles []WorkerRole) []bootstra
 	return workloads
 }
 
-// CapabilityDescriptorResolver is the read side of application wiring. It
-// resolves one exact immutable descriptor version; it never selects latest.
-type CapabilityDescriptorResolver interface {
-	ResolveCapability(context.Context, capability.Key) (capability.Record, bool)
-}
-
-type registryCapabilityResolver struct{ registry *capability.Registry }
-
-func (r registryCapabilityResolver) ResolveCapability(_ context.Context, key capability.Key) (capability.Record, bool) {
-	if r.registry == nil {
-		return capability.Record{}, false
-	}
-	return r.registry.Lookup(key)
-}
-
-func newRegistryCapabilityResolver(registry *capability.Registry) CapabilityDescriptorResolver {
-	return registryCapabilityResolver{registry: registry}
-}
+// CapabilityDescriptorResolver is the application seam through which this
+// command resolves capability descriptors (see internal/application).
+type CapabilityDescriptorResolver = application.CapabilityDescriptorResolver
 
 // ActivityLease is the execution lease/fence presented by a caller. The
 // worker checks it before execution and lets the durable lease port recheck it
@@ -199,7 +184,7 @@ type ActivityLeaseVerifier interface {
 type CapabilityActivityRequest struct {
 	TenantID         uuid.UUID
 	ActivityID       string
-	Capability       capability.Key
+	Capability       application.CapabilityKey
 	DescriptorDigest string
 	IdempotencyKey   string
 	Attempt          int
@@ -225,7 +210,7 @@ func (r CapabilityActivityRequest) validate(at time.Time) error {
 // only supplies the exact immutable descriptor and execution coordinates.
 type CapabilityActivityExecution struct {
 	Request    CapabilityActivityRequest
-	Definition capability.Definition
+	Definition application.CapabilityDefinition
 	Digest     string
 }
 
@@ -236,7 +221,7 @@ type CapabilityActivityExecutor interface {
 type ActivityAttemptEvidence struct {
 	TenantID         uuid.UUID
 	ActivityID       string
-	Capability       capability.Key
+	Capability       application.CapabilityKey
 	DescriptorDigest string
 	IdempotencyKey   string
 	LeaseID          string

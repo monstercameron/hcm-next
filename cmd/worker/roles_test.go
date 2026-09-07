@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/monstercameron/hcm-next/internal/application"
 	"sync"
 	"testing"
 	"time"
@@ -69,7 +70,7 @@ func activityFixture(t *testing.T) (CapabilityActivity, CapabilityActivityReques
 	executor := &activityExecutorFixture{}
 	evidence := &activityEvidenceRecorder{}
 	activity := CapabilityActivity{
-		Resolver: newRegistryCapabilityResolver(registry), Executor: executor, Evidence: evidence,
+		Resolver: application.NewRegistryCapabilityResolver(registry), Executor: executor, Evidence: evidence,
 		Now: func() time.Time { return now },
 	}
 	req := CapabilityActivityRequest{
