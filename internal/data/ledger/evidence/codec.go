@@ -157,6 +157,20 @@ func uuidText(id uuid.UUID) string {
 	return id.String()
 }
 
+type uuidTextCache map[uuid.UUID]string
+
+func (c uuidTextCache) text(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return ""
+	}
+	if text, ok := c[id]; ok {
+		return text
+	}
+	text := id.String()
+	c[id] = text
+	return text
+}
+
 func parseUUID(path, field, text string) (uuid.UUID, error) {
 	if text == "" {
 		return uuid.Nil, nil
@@ -168,12 +182,12 @@ func parseUUID(path, field, text string) (uuid.UUID, error) {
 	return id, nil
 }
 
-func projectEvent(e Event) eventFile {
+func projectEvent(e Event, tenantText string, cache uuidTextCache) eventFile {
 	out := eventFile{
-		Tenant:          uuidText(e.Tenant),
+		Tenant:          tenantText,
 		StreamKey:       e.StreamKey,
 		Sequence:        e.Sequence,
-		EventID:         uuidText(e.EventID),
+		EventID:         cache.text(e.EventID),
 		AssertionClass:  string(e.AssertionClass),
 		Authority:       e.Authority,
 		SourceRef:       e.SourceRef,
@@ -186,8 +200,8 @@ func projectEvent(e Event) eventFile {
 		OccurredAtNS:    nanos(e.OccurredAt),
 		EffectiveAtNS:   nanos(e.EffectiveAt),
 		RecordedAtNS:    nanos(e.RecordedAt),
-		CorrelationID:   uuidText(e.CorrelationID),
-		CausationID:     uuidText(e.CausationID),
+		CorrelationID:   cache.text(e.CorrelationID),
+		CausationID:     cache.text(e.CausationID),
 		IdempotencyKey:  e.IdempotencyKey,
 	}
 	if e.Corrects != nil {
@@ -241,9 +255,9 @@ func restoreEvent(path string, f eventFile) (Event, error) {
 	return out, nil
 }
 
-func projectChain(tenant uuid.UUID, s Stream) chainFile {
+func projectChain(tenant uuid.UUID, s Stream, cache uuidTextCache) chainFile {
 	out := chainFile{
-		Tenant:       uuidText(tenant),
+		Tenant:       cache.text(tenant),
 		StreamKey:    s.StreamKey,
 		HeadSequence: s.Head.Sequence,
 		Links:        make([]chainLinkFile, 0, len(s.Links)),
@@ -252,7 +266,7 @@ func projectChain(tenant uuid.UUID, s Stream) chainFile {
 	for _, link := range s.Links {
 		out.Links = append(out.Links, chainLinkFile{
 			Sequence:  link.Sequence,
-			EventID:   uuidText(link.EventID),
+			EventID:   cache.text(link.EventID),
 			PrevHash:  link.PrevHash,
 			ChainHash: link.ChainHash,
 			Algorithm: link.Algorithm,
@@ -260,7 +274,7 @@ func projectChain(tenant uuid.UUID, s Stream) chainFile {
 	}
 	for _, d := range s.Digests {
 		out.Digests = append(out.Digests, eventDigestFile{
-			Sequence: d.Sequence, EventID: uuidText(d.EventID), Digest: d.Digest,
+			Sequence: d.Sequence, EventID: cache.text(d.EventID), Digest: d.Digest,
 		})
 	}
 	return out

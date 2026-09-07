@@ -63,6 +63,14 @@
 -- reports a second CREATE ROLE of the same name as duplicate_object (42710),
 -- but true concurrent inserts can instead surface as the underlying unique
 -- index violation, unique_violation (23505), so both are caught.
+-- Two schemas migrating at once (every parallel test on one embedded server)
+-- can both pass the pre-check while the first CREATE ROLE is still
+-- uncommitted; the second then swallows the duplicate and its COMMENT ON
+-- ROLE fails with "role does not exist". The transaction-scoped advisory
+-- lock serialises this block across sessions, so the second application
+-- waits for the first to commit and sees the role.
+SELECT pg_advisory_xact_lock(hashtext('migration:00008:hcmnext_app'));
+
 -- +goose StatementBegin
 DO $$
 BEGIN

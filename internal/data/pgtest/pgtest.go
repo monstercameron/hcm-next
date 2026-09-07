@@ -181,7 +181,46 @@ func withAdmin(ctx context.Context, fn func(dbport.Conn) error) error {
 	if adminConn == nil {
 		return fmt.Errorf("no server; the test package must call pgtest.RunMain from TestMain")
 	}
+	if adminConn.IsClosed() {
+		if err := reconnectAdminLocked(ctx); err != nil {
+			return err
+		}
+	}
+	err := fn(adminConn)
+	if err == nil || !adminConn.IsClosed() {
+		return err
+	}
+	// pgx closes a connection whose statement was interrupted by its
+	// context. One schema drop that overran its deadline under load must not
+	// turn into "conn closed" for every later CREATE SCHEMA in the package,
+	// so reconnect, and retry only when the caller's context is still live
+	// (retrying with a spent context would close the new connection too).
+	if rerr := reconnectAdminLocked(ctx); rerr != nil {
+		return fmt.Errorf("%w (and reconnecting the admin connection failed: %v)", err, rerr)
+	}
+	if ctx.Err() != nil {
+		return err
+	}
 	return fn(adminConn)
+}
+
+// reconnectAdminLocked replaces the shared admin connection. adminMu must be
+// held.
+func reconnectAdminLocked(ctx context.Context) error {
+	serverMu.Lock()
+	url := serverURL
+	serverMu.Unlock()
+	if url == "" {
+		return fmt.Errorf("no server URL to reconnect the admin connection")
+	}
+	connectCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 60*time.Second)
+	defer cancel()
+	conn, err := pgxadapter.Connect(connectCtx, url, nil)
+	if err != nil {
+		return fmt.Errorf("reconnect admin connection to %s: %w", redact(url), err)
+	}
+	adminConn = conn
+	return nil
 }
 
 func startEmbedded() (string, func() error, error) {
@@ -289,6 +328,9 @@ type DB struct {
 }
 
 // New returns an isolated schema with every migration applied.
+// schemaDropTimeout bounds the DROP SCHEMA ... CASCADE that ends every test.
+const schemaDropTimeout = 5 * time.Minute
+
 func New(t *testing.T) *DB {
 	t.Helper()
 	db := NewEmpty(t)
@@ -327,7 +369,12 @@ func NewEmpty(t *testing.T) *DB {
 			t.Logf("pgtest: keeping schema %s", schema)
 			return
 		}
-		dropCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		// Dropping a fully migrated schema cascades through several hundred
+		// relations; under a loaded machine (a pre-commit hook running five
+		// database packages while another session's hook runs) that has
+		// taken over a minute, and an interrupted drop closes the shared
+		// admin connection. Give it room.
+		dropCtx, cancel := context.WithTimeout(context.Background(), schemaDropTimeout)
 		defer cancel()
 		dropErr := withAdmin(dropCtx, func(conn dbport.Conn) error {
 			_, execErr := conn.Exec(dropCtx, fmt.Sprintf("DROP SCHEMA %s CASCADE", quoteIdentifier(schema)))

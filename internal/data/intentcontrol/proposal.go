@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // Reversibility classes, matching the schema's closed vocabulary.
@@ -207,75 +209,111 @@ func (s ProposalSetStore) Record(ctx context.Context, ex Executor, tenantID, int
 		return err
 	}
 
+	writeStatements := make([]dbport.Statement, 0, len(sets.Writes))
 	for i, w := range sets.Writes {
-		affected, err := ex.Exec(ctx, `
+		writeStatements = append(writeStatements, dbport.Statement{SQL: `
 			INSERT INTO proposal_write_item (
 				tenant_id, intent_id, revision, ordinal,
 				subject_kind, subject_id, resource_key, field_path,
 				current_canonical_text, proposed_canonical_text,
 				expected_revision, source_authority_decision)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-			ON CONFLICT DO NOTHING`,
-			tenantID, intentID, int64(revision), i+1,
+			ON CONFLICT DO NOTHING`, Args: []any{
+			tenantID, intentID, int64(revision), i + 1,
 			w.SubjectKind, w.SubjectID, w.ResourceKey, w.FieldPath,
 			w.CurrentCanonicalText, w.ProposedCanonicalText,
-			w.ExpectedRevision, w.SourceAuthorityDecision)
-		if err != nil {
-			return fmt.Errorf("intentcontrol: record write item %d: %w", i+1, err)
+			w.ExpectedRevision, w.SourceAuthorityDecision,
+		}})
+	}
+	writeCounts, err := dbport.ExecAll(ctx, ex, writeStatements)
+	if err != nil {
+		index := dbport.FailedStatement(writeCounts, len(sets.Writes))
+		if index >= 0 {
+			return fmt.Errorf("intentcontrol: record write item %d: %w", index+1, err)
 		}
+		return fmt.Errorf("intentcontrol: record write items: %w", err)
+	}
+	for i, affected := range writeCounts {
 		if affected == 0 {
 			return fmt.Errorf("%w: proposal_write_item %s/%d/%d", ErrDuplicate, intentID, revision, i+1)
 		}
 	}
 
+	effectStatements := make([]dbport.Statement, 0, len(sets.Effects))
 	for i, e := range sets.Effects {
-		affected, err := ex.Exec(ctx, `
+		effectStatements = append(effectStatements, dbport.Statement{SQL: `
 			INSERT INTO proposal_effect_item (
 				tenant_id, intent_id, revision, ordinal,
 				effect_id, effect_kind, destination_ref, reversibility,
 				compensation_ref, observation_ref)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-			ON CONFLICT DO NOTHING`,
-			tenantID, intentID, int64(revision), i+1,
+			ON CONFLICT DO NOTHING`, Args: []any{
+			tenantID, intentID, int64(revision), i + 1,
 			e.EffectID, e.Kind, e.DestinationRef, e.Reversibility,
-			e.CompensationRef, e.ObservationRef)
-		if err != nil {
-			return fmt.Errorf("intentcontrol: record effect item %d: %w", i+1, err)
+			e.CompensationRef, e.ObservationRef,
+		}})
+	}
+	effectCounts, err := dbport.ExecAll(ctx, ex, effectStatements)
+	if err != nil {
+		index := dbport.FailedStatement(effectCounts, len(sets.Effects))
+		if index >= 0 {
+			return fmt.Errorf("intentcontrol: record effect item %d: %w", index+1, err)
 		}
+		return fmt.Errorf("intentcontrol: record effect items: %w", err)
+	}
+	for i, affected := range effectCounts {
 		if affected == 0 {
 			return fmt.Errorf("%w: proposal_effect_item %s/%d/%d", ErrDuplicate, intentID, revision, i+1)
 		}
 	}
 
+	approvalStatements := make([]dbport.Statement, 0, len(sets.Approvals))
 	for i, a := range sets.Approvals {
-		affected, err := ex.Exec(ctx, `
+		approvalStatements = append(approvalStatements, dbport.Statement{SQL: `
 			INSERT INTO proposal_approval_requirement (
 				tenant_id, intent_id, revision, ordinal,
 				requirement_id, separation_constraint, materiality_class)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			ON CONFLICT DO NOTHING`,
-			tenantID, intentID, int64(revision), i+1,
-			a.RequirementID, a.SeparationConstraint, a.MaterialityClass)
-		if err != nil {
-			return fmt.Errorf("intentcontrol: record approval requirement %d: %w", i+1, err)
+			ON CONFLICT DO NOTHING`, Args: []any{
+			tenantID, intentID, int64(revision), i + 1,
+			a.RequirementID, a.SeparationConstraint, a.MaterialityClass,
+		}})
+	}
+	approvalCounts, err := dbport.ExecAll(ctx, ex, approvalStatements)
+	if err != nil {
+		index := dbport.FailedStatement(approvalCounts, len(sets.Approvals))
+		if index >= 0 {
+			return fmt.Errorf("intentcontrol: record approval requirement %d: %w", index+1, err)
 		}
+		return fmt.Errorf("intentcontrol: record approval requirements: %w", err)
+	}
+	for i, affected := range approvalCounts {
 		if affected == 0 {
 			return fmt.Errorf("%w: proposal_approval_requirement %s/%d/%d", ErrDuplicate, intentID, revision, i+1)
 		}
 	}
 
+	obligationStatements := make([]dbport.Statement, 0, len(sets.Obligations))
 	for i, o := range sets.Obligations {
-		affected, err := ex.Exec(ctx, `
+		obligationStatements = append(obligationStatements, dbport.Statement{SQL: `
 			INSERT INTO proposal_obligation (
 				tenant_id, intent_id, revision, ordinal,
 				obligation_id, obligation_kind, due_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			ON CONFLICT DO NOTHING`,
-			tenantID, intentID, int64(revision), i+1,
-			o.ObligationID, o.Kind, o.DueAt.UTC())
-		if err != nil {
-			return fmt.Errorf("intentcontrol: record obligation %d: %w", i+1, err)
+			ON CONFLICT DO NOTHING`, Args: []any{
+			tenantID, intentID, int64(revision), i + 1,
+			o.ObligationID, o.Kind, o.DueAt.UTC(),
+		}})
+	}
+	obligationCounts, err := dbport.ExecAll(ctx, ex, obligationStatements)
+	if err != nil {
+		index := dbport.FailedStatement(obligationCounts, len(sets.Obligations))
+		if index >= 0 {
+			return fmt.Errorf("intentcontrol: record obligation %d: %w", index+1, err)
 		}
+		return fmt.Errorf("intentcontrol: record obligations: %w", err)
+	}
+	for i, affected := range obligationCounts {
 		if affected == 0 {
 			return fmt.Errorf("%w: proposal_obligation %s/%d/%d", ErrDuplicate, intentID, revision, i+1)
 		}

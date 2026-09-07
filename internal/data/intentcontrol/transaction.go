@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
 
 // Compiled plan statuses, matching internal/intent.PlanStatus and the schema.
@@ -225,24 +227,33 @@ func (s PlanStore) Compile(ctx context.Context, ex Executor, plan Plan, effects 
 		return fmt.Errorf("%w: transaction_plan %s", ErrDuplicate, plan.PlanID)
 	}
 
+	effectStatements := make([]dbport.Statement, 0, len(effects))
 	for i, e := range effects {
-		affected, err := ex.Exec(ctx, `
+		effectStatements = append(effectStatements, dbport.Statement{SQL: `
 			INSERT INTO transaction_plan_effect (
 				tenant_id, plan_id, effect_id, ordinal,
 				destination_ref, effect_idempotency_key, reversibility,
 				compensation_strategy, repair_plan_ref,
 				observation_ref, observation_deadline)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-			ON CONFLICT DO NOTHING`,
-			plan.TenantID, plan.PlanID, e.EffectID, i+1,
+			ON CONFLICT DO NOTHING`, Args: []any{
+			plan.TenantID, plan.PlanID, e.EffectID, i + 1,
 			e.DestinationRef, e.IdempotencyKey, e.Reversibility,
 			e.CompensationStrategy, e.RepairPlanRef,
-			e.ObservationRef, e.ObservationDeadline.UTC())
-		if err != nil {
-			return fmt.Errorf("intentcontrol: record plan effect %s: %w", e.EffectID, err)
+			e.ObservationRef, e.ObservationDeadline.UTC(),
+		}})
+	}
+	effectCounts, err := dbport.ExecAll(ctx, ex, effectStatements)
+	if err != nil {
+		index := dbport.FailedStatement(effectCounts, len(effects))
+		if index >= 0 {
+			return fmt.Errorf("intentcontrol: record plan effect %s: %w", effects[index].EffectID, err)
 		}
+		return fmt.Errorf("intentcontrol: record plan effects: %w", err)
+	}
+	for i, affected := range effectCounts {
 		if affected == 0 {
-			return fmt.Errorf("%w: transaction_plan_effect %s/%s", ErrDuplicate, plan.PlanID, e.EffectID)
+			return fmt.Errorf("%w: transaction_plan_effect %s/%s", ErrDuplicate, plan.PlanID, effects[i].EffectID)
 		}
 	}
 

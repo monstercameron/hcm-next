@@ -1,7 +1,7 @@
 package evidence
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,15 +64,36 @@ const (
 
 // StreamChainPath is the path of the nth exported stream's chain part,
 // numbered from zero in stream-key order.
-func StreamChainPath(index int) string { return fmt.Sprintf("streams/%04d/chain.json", index+1) }
+func StreamChainPath(index int) string { return numberedPath("streams/", "/chain.json", index+1) }
 
 // StreamEventsPath is the path of the nth exported stream's covered-event
 // part, numbered from zero in stream-key order.
-func StreamEventsPath(index int) string { return fmt.Sprintf("streams/%04d/events.json", index+1) }
+func StreamEventsPath(index int) string { return numberedPath("streams/", "/events.json", index+1) }
 
 // EpochPath is the path of the nth exported checkpoint epoch, numbered from
 // zero in epoch-number order.
-func EpochPath(index int) string { return fmt.Sprintf("epochs/%04d.json", index+1) }
+func EpochPath(index int) string { return numberedPath("epochs/", ".json", index+1) }
+
+func numberedPath(prefix, suffix string, number int) string {
+	// Same shape as fmt.Sprintf("%s%04d%s", ...) without the formatter: the
+	// number is zero-padded to four characters, the sign counting as one.
+	var digits [24]byte
+	raw := strconv.AppendInt(digits[:0], int64(number), 10)
+	var b strings.Builder
+	b.Grow(len(prefix) + len(raw) + 4 + len(suffix))
+	b.WriteString(prefix)
+	body := raw
+	if raw[0] == '-' {
+		b.WriteByte('-')
+		body = raw[1:]
+	}
+	for pad := 4 - len(raw); pad > 0; pad-- {
+		b.WriteByte('0')
+	}
+	b.Write(body)
+	b.WriteString(suffix)
+	return b.String()
+}
 
 // PartKind says what a path in the package holds. It is inside the digested
 // manifest, so a part cannot be re-purposed by moving it.
@@ -187,7 +208,7 @@ type ErrContentInvalid struct {
 func (ErrContentInvalid) Code() string { return "LEDGER_EVIDENCE_CONTENT_INVALID" }
 
 func (e ErrContentInvalid) Error() string {
-	return fmt.Sprintf("%s: tenant %s: %s", e.Code(), e.Tenant, strings.Join(e.Missing, "; "))
+	return e.Code() + ": tenant " + e.Tenant.String() + ": " + strings.Join(e.Missing, "; ")
 }
 
 // ErrTenantLeak reports a row naming a tenant other than the one being
@@ -203,8 +224,7 @@ type ErrTenantLeak struct {
 func (ErrTenantLeak) Code() string { return "LEDGER_EVIDENCE_TENANT_LEAK" }
 
 func (e ErrTenantLeak) Error() string {
-	return fmt.Sprintf("%s: %s names tenant %s, but this package covers tenant %s",
-		e.Code(), e.Where, e.Found, e.Expected)
+	return e.Code() + ": " + e.Where + " names tenant " + e.Found.String() + ", but this package covers tenant " + e.Expected.String()
 }
 
 // ErrIncompleteEpochCoverage reports an export whose window is not wholly
@@ -220,9 +240,8 @@ type ErrIncompleteEpochCoverage struct {
 func (ErrIncompleteEpochCoverage) Code() string { return "LEDGER_EVIDENCE_EPOCH_COVERAGE_INCOMPLETE" }
 
 func (e ErrIncompleteEpochCoverage) Error() string {
-	return fmt.Sprintf("%s: tenant %s has no signed checkpoint epoch covering [%s, %s)",
-		e.Code(), e.Tenant,
-		e.GapFrom.UTC().Format(time.RFC3339Nano), e.GapUntil.UTC().Format(time.RFC3339Nano))
+	return e.Code() + ": tenant " + e.Tenant.String() + " has no signed checkpoint epoch covering [" +
+		e.GapFrom.UTC().Format(time.RFC3339Nano) + ", " + e.GapUntil.UTC().Format(time.RFC3339Nano) + ")"
 }
 
 // ErrPackageMalformed reports package bytes that could not be read as a
@@ -236,7 +255,7 @@ type ErrPackageMalformed struct {
 func (ErrPackageMalformed) Code() string { return "LEDGER_EVIDENCE_PACKAGE_MALFORMED" }
 
 func (e ErrPackageMalformed) Error() string {
-	return fmt.Sprintf("%s: %s: %s", e.Code(), e.Path, e.Reason)
+	return e.Code() + ": " + e.Path + ": " + e.Reason
 }
 
 // Truncate normalizes an instant to UTC at the resolution PostgreSQL's

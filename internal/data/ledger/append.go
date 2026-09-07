@@ -235,6 +235,57 @@ func (a *Appender) Append(ctx context.Context, tx dbport.Tx, req AppendRequest) 
 		}
 	}
 
+	write := a.planEvent(req, head, digest, algorithm, length)
+	counts, err := dbport.ExecAll(ctx, tx, write.statements[:])
+	if err != nil {
+		if len(counts) > 0 {
+			return AppendReceipt{}, fmt.Errorf("advance stream head %s: %w", req.StreamKey, err)
+		}
+		if conflict, ok := idempotencyConflict(err, req, digest); ok {
+			return AppendReceipt{}, conflict
+		}
+		return AppendReceipt{}, fmt.Errorf("append to stream %s at sequence %d: %w", req.StreamKey, write.receipt.Sequence, err)
+	}
+	if len(counts) != len(write.statements) {
+		return AppendReceipt{}, fmt.Errorf("append to stream %s at sequence %d: batch returned %d results, want %d", req.StreamKey, write.receipt.Sequence, len(counts), len(write.statements))
+	}
+	if counts[1] != 1 {
+		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %d rows updated", req.StreamKey, counts[1])
+	}
+
+	return write.receipt, nil
+}
+
+// insertEventSQL records one event row. The column list is the whole
+// ledger_event row shape; it exists once so the single-stream and the
+// multi-stream append cannot drift apart.
+const insertEventSQL = `
+		INSERT INTO ledger_event (
+			tenant_id, stream_key, sequence, event_id, assertion_class, authority_ref,
+			source_ref, schema_ref, payload, artifact_ref, canonical_length, digest,
+			digest_algorithm, occurred_at, effective_at, recorded_at, correlation_id,
+			causation_id, idempotency_key, corrects_stream_key, corrects_sequence)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+			$17, $18, $19, $20, $21)`
+
+// advanceHeadSQL moves a stream head to the sequence and digest just
+// recorded. Exactly one row must change.
+const advanceHeadSQL = `
+		UPDATE stream_head
+		SET head_sequence = $3, head_digest = $4, head_digest_algorithm = $5, updated_at = $6
+		WHERE tenant_id = $1 AND stream_key = $2`
+
+// eventWrite is one event's insert and head advance together with the
+// receipt they produce once executed.
+type eventWrite struct {
+	receipt    AppendReceipt
+	statements [2]dbport.Statement
+}
+
+// planEvent builds the two statements that record req at head+1. It does no
+// I/O: the single-stream append executes them on their own and the
+// multi-stream append collects them into one batch.
+func (a *Appender) planEvent(req AppendRequest, head int64, digest, algorithm string, length int) eventWrite {
 	sequence := head + 1
 	recordedAt := a.now()
 	eventID := uuid.New()
@@ -261,54 +312,44 @@ func (a *Appender) Append(ctx context.Context, tx dbport.Tx, req AppendRequest) 
 		correctsSequence = req.Corrects.Sequence
 	}
 
-	_, err = tx.Exec(ctx, `
-		INSERT INTO ledger_event (
-			tenant_id, stream_key, sequence, event_id, assertion_class, authority_ref,
-			source_ref, schema_ref, payload, artifact_ref, canonical_length, digest,
-			digest_algorithm, occurred_at, effective_at, recorded_at, correlation_id,
-			causation_id, idempotency_key, corrects_stream_key, corrects_sequence)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-			$17, $18, $19, $20, $21)`,
-		req.Tenant, req.StreamKey, sequence, eventID, string(req.AssertionClass), authority,
-		req.SourceRef, req.SchemaRef, payload, artifactRef, length, digest,
-		algorithm, req.OccurredAt, req.EffectiveAt, recordedAt, req.CorrelationID,
-		causation, req.IdempotencyKey, correctsStream, correctsSequence)
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" &&
-			pgErr.ConstraintName == "ledger_event_idempotency_unique" {
-			return AppendReceipt{}, ErrIdempotencyConflict{
-				StreamKey:      req.StreamKey,
-				IdempotencyKey: req.IdempotencyKey,
-				RequestDigest:  digest,
-			}
-		}
-		return AppendReceipt{}, fmt.Errorf("append to stream %s at sequence %d: %w", req.StreamKey, sequence, err)
+	return eventWrite{
+		receipt: AppendReceipt{
+			EventID:         eventID,
+			Tenant:          req.Tenant,
+			StreamKey:       req.StreamKey,
+			Sequence:        sequence,
+			PreviousHead:    head,
+			Digest:          digest,
+			DigestAlgorithm: algorithm,
+			CanonicalLength: length,
+			RecordedAt:      recordedAt,
+		},
+		statements: [2]dbport.Statement{
+			{SQL: insertEventSQL, Args: []any{
+				req.Tenant, req.StreamKey, sequence, eventID, string(req.AssertionClass), authority,
+				req.SourceRef, req.SchemaRef, payload, artifactRef, length, digest,
+				algorithm, req.OccurredAt, req.EffectiveAt, recordedAt, req.CorrelationID,
+				causation, req.IdempotencyKey, correctsStream, correctsSequence,
+			}},
+			{SQL: advanceHeadSQL, Args: []any{
+				req.Tenant, req.StreamKey, sequence, digest, algorithm, recordedAt,
+			}},
+		},
 	}
+}
 
-	affected, err := tx.Exec(ctx, `
-		UPDATE stream_head
-		SET head_sequence = $3, head_digest = $4, head_digest_algorithm = $5, updated_at = $6
-		WHERE tenant_id = $1 AND stream_key = $2`,
-		req.Tenant, req.StreamKey, sequence, digest, algorithm, recordedAt)
-	if err != nil {
-		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %w", req.StreamKey, err)
+// idempotencyConflict maps the unique violation on the idempotency index to
+// the typed conflict error the ledger contract promises.
+func idempotencyConflict(err error, req AppendRequest, digest string) (ErrIdempotencyConflict, bool) {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "ledger_event_idempotency_unique" {
+		return ErrIdempotencyConflict{
+			StreamKey:      req.StreamKey,
+			IdempotencyKey: req.IdempotencyKey,
+			RequestDigest:  digest,
+		}, true
 	}
-	if affected != 1 {
-		return AppendReceipt{}, fmt.Errorf("advance stream head %s: %d rows updated", req.StreamKey, affected)
-	}
-
-	return AppendReceipt{
-		EventID:         eventID,
-		Tenant:          req.Tenant,
-		StreamKey:       req.StreamKey,
-		Sequence:        sequence,
-		PreviousHead:    head,
-		Digest:          digest,
-		DigestAlgorithm: algorithm,
-		CanonicalLength: length,
-		RecordedAt:      recordedAt,
-	}, nil
+	return ErrIdempotencyConflict{}, false
 }
 
 // digestInput is the byte string the canonical digest covers: the inline payload

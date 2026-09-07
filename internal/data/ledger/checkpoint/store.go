@@ -86,15 +86,24 @@ func (s *Store) Append(ctx context.Context, tx dbport.Tx, m Manifest, dir KeyDir
 		return fmt.Errorf("checkpoint: record epoch %d: %w", m.EpochNumber, err)
 	}
 
-	for _, head := range m.OrderedStreams() {
-		if _, err := tx.Exec(ctx, `
+	heads := m.OrderedStreams()
+	statements := make([]dbport.Statement, 0, len(heads))
+	for _, head := range heads {
+		statements = append(statements, dbport.Statement{SQL: `
 			INSERT INTO ledger_checkpoint_stream_head (
 				tenant_id, epoch_id, stream_key, head_sequence, chain_hash, chain_algorithm)
-			VALUES ($1, $2, $3, $4, $5, $6)`,
-			m.Tenant, m.EpochID, head.StreamKey, head.Sequence, head.ChainHash, head.ChainAlgorithm); err != nil {
+			VALUES ($1, $2, $3, $4, $5, $6)`, Args: []any{
+			m.Tenant, m.EpochID, head.StreamKey, head.Sequence, head.ChainHash, head.ChainAlgorithm,
+		}})
+	}
+	counts, err := dbport.ExecAll(ctx, tx, statements)
+	if err != nil {
+		index := dbport.FailedStatement(counts, len(heads))
+		if index >= 0 {
 			return fmt.Errorf("checkpoint: record epoch %d head for stream %s: %w",
-				m.EpochNumber, head.StreamKey, err)
+				m.EpochNumber, heads[index].StreamKey, err)
 		}
+		return fmt.Errorf("checkpoint: record epoch %d heads: %w", m.EpochNumber, err)
 	}
 	return nil
 }

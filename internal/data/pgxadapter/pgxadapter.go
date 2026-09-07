@@ -123,6 +123,11 @@ func (c *Conn) Ping(ctx context.Context) error { return c.conn.Ping(ctx) }
 // Close closes the connection.
 func (c *Conn) Close(ctx context.Context) error { return c.conn.Close(ctx) }
 
+// IsClosed reports whether the underlying connection is no longer usable.
+// pgx closes a connection whose statement was interrupted by its context,
+// so a caller that shares one connection can detect that and reconnect.
+func (c *Conn) IsClosed() bool { return c.conn.IsClosed() }
+
 // Pool is a pgx connection pool exposed through the port. Unlike [Conn] it is
 // safe for concurrent use, and every Exec/Query/QueryRow acquires and releases
 // a connection of its own.

@@ -150,23 +150,42 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 		return nil, nil
 	}
 
-	claimed := make([]Record, 0, len(ids))
+	type claim struct {
+		id         uuid.UUID
+		leaseToken uuid.UUID
+		leaseUntil time.Time
+	}
+	claims := make([]claim, 0, len(ids))
+	statements := make([]dbport.Statement, 0, len(ids))
 	for _, id := range ids {
 		leaseToken := uuid.New()
 		leaseUntil := now.Add(c.lease)
-		affected, err := tx.Exec(ctx, `
+		claims = append(claims, claim{id: id, leaseToken: leaseToken, leaseUntil: leaseUntil})
+		statements = append(statements, dbport.Statement{SQL: `
 			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4,
 				lease_token = $5, lease_until = $6, lease_version = lease_version + 1
 			WHERE tenant_id = $1 AND outbox_id = $2
-			  AND ((status = $7 AND available_at <= $4) OR (status = $8 AND lease_until <= $4))`,
-			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight)
-		if err != nil {
-			return nil, fmt.Errorf("outbox: poll: claim %s: %w", id, err)
+			  AND ((status = $7 AND available_at <= $4) OR (status = $8 AND lease_until <= $4))`, Args: []any{
+			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight,
+		}})
+	}
+	counts, err := dbport.ExecAll(ctx, tx, statements)
+	if err != nil {
+		index := dbport.FailedStatement(counts, len(claims))
+		if index >= 0 {
+			return nil, fmt.Errorf("outbox: poll: claim %s: %w", claims[index].id, err)
 		}
+		return nil, fmt.Errorf("outbox: poll: claims: %w", err)
+	}
+	for i, affected := range counts {
 		if affected != 1 {
-			return nil, fmt.Errorf("outbox: poll: claim %s: %d rows updated", id, affected)
+			return nil, fmt.Errorf("outbox: poll: claim %s: %d rows updated", claims[i].id, affected)
 		}
-		rec, err := Read(ctx, tx, tenant, id)
+	}
+
+	claimed := make([]Record, 0, len(ids))
+	for _, item := range claims {
+		rec, err := Read(ctx, tx, tenant, item.id)
 		if err != nil {
 			return nil, err
 		}

@@ -81,43 +81,64 @@ func AppendMulti(ctx context.Context, tx dbport.Tx, req MultiStreamAppendRequest
 
 	// This phase is deliberately separate from the write phase. PostgreSQL
 	// keeps these row locks until the caller commits or rolls back, so no other
-	// append can change a validated head while this batch is being written.
+	// append can change a validated head while this batch is being written. The
+	// canonical stream order is also the database lock order, which prevents two
+	// overlapping multi-stream appends from waiting on each other in a cycle.
+	streamKeys := make([]string, 0, len(streams))
+	for _, stream := range streams {
+		streamKeys = append(streamKeys, stream.StreamKey)
+	}
+	rows, err := tx.Query(ctx, `
+		SELECT stream_key, head_sequence, head_digest
+		FROM stream_head
+		WHERE tenant_id = $1 AND stream_key = ANY($2::text[])
+		ORDER BY stream_key ASC
+		FOR UPDATE`, req.Tenant, streamKeys)
+	if err != nil {
+		return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: lock stream heads: %w", err)
+	}
+	type lockedHead struct {
+		sequence int64
+		digest   *string
+	}
+	locked := make(map[string]lockedHead, len(streams))
+	for rows.Next() {
+		var (
+			streamKey string
+			head      lockedHead
+		)
+		if err := rows.Scan(&streamKey, &head.sequence, &head.digest); err != nil {
+			rows.Close()
+			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: scan stream heads: %w", err)
+		}
+		locked[streamKey] = head
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: read stream heads: %w", err)
+	}
+	rows.Close()
+
 	for i := range streams {
 		stream := &streams[i]
-		var actual int64
-		err := tx.QueryRow(ctx, `
-			SELECT head_sequence FROM stream_head
-			WHERE tenant_id = $1 AND stream_key = $2
-			FOR UPDATE`, req.Tenant, stream.StreamKey).Scan(&actual)
-		if errors.Is(err, dbport.ErrNoRows) {
+		head, ok := locked[stream.StreamKey]
+		if !ok {
 			return MultiStreamAppendReceipt{}, ErrStreamNotFound{Tenant: req.Tenant, StreamKey: stream.StreamKey}
 		}
-		if err != nil {
-			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: lock stream head %s: %w", stream.StreamKey, err)
-		}
-		if actual != stream.expected {
+		if head.sequence != stream.expected {
 			return MultiStreamAppendReceipt{}, ErrStaleStream{
 				Tenant: req.Tenant, StreamKey: stream.StreamKey,
-				Expected: stream.expected, Actual: actual,
+				Expected: stream.expected, Actual: head.sequence,
 			}
 		}
-		stream.actual = actual
+		stream.actual = head.sequence
 	}
 
-	appender := New()
-	result = MultiStreamAppendReceipt{
-		Events: make([]AppendReceipt, 0, totalEvents(streams)),
-		Heads:  make([]StreamHeadTransition, 0, len(streams)),
-	}
+	// Validate every event's tenant and expected position before the first
+	// insert. canonicalStreams validates the request shape; this second phase
+	// preserves the old per-event stale-head error and ordering semantics.
 	for i := range streams {
 		stream := &streams[i]
-		before := stream.actual
-		var beforeDigest *string
-		if err := tx.QueryRow(ctx, `
-			SELECT head_digest FROM stream_head
-			WHERE tenant_id = $1 AND stream_key = $2`, req.Tenant, stream.StreamKey).Scan(&beforeDigest); err != nil {
-			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: read stream head %s: %w", stream.StreamKey, err)
-		}
 		for eventIndex, event := range stream.Events {
 			if event.Tenant != req.Tenant {
 				return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: event %d on stream %s belongs to tenant %s, want %s", eventIndex, stream.StreamKey, event.Tenant, req.Tenant)
@@ -129,23 +150,83 @@ func AppendMulti(ctx context.Context, tx dbport.Tx, req MultiStreamAppendRequest
 					Expected: expected, Actual: event.ExpectedHead,
 				}
 			}
-			receipt, appendErr := appender.Append(ctx, tx, event)
-			if appendErr != nil {
-				return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: %w", stream.StreamKey, eventIndex, appendErr)
-			}
-			result.Events = append(result.Events, receipt)
 		}
-		after := before + int64(len(stream.Events))
-		var afterDigest *string
-		if err := tx.QueryRow(ctx, `
-			SELECT head_digest FROM stream_head
-			WHERE tenant_id = $1 AND stream_key = $2`, req.Tenant, stream.StreamKey).Scan(&afterDigest); err != nil {
-			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: read resulting stream head %s: %w", stream.StreamKey, err)
+	}
+
+	appender := New()
+	result = MultiStreamAppendReceipt{
+		Events: make([]AppendReceipt, 0, totalEvents(streams)),
+		Heads:  make([]StreamHeadTransition, 0, len(streams)),
+	}
+	type pendingAppend struct {
+		streamKey  string
+		eventIndex int
+		req        AppendRequest
+		receipt    AppendReceipt
+	}
+	var statements []dbport.Statement
+	var pending []pendingAppend
+	for i := range streams {
+		stream := &streams[i]
+		before := stream.actual
+		head := locked[stream.StreamKey]
+		currentDigest := stringPointer(head.digest)
+		currentHead := before
+		for eventIndex, event := range stream.Events {
+			algorithm, digest, length, digestErr := appender.digester.Digest(digestInput(event), event.SchemaRef)
+			if digestErr != nil {
+				return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: canonical digest: %w", stream.StreamKey, eventIndex, digestErr)
+			}
+			receipt, found, replayErr := appender.replay(ctx, tx, event, digest, algorithm, length)
+			if replayErr != nil {
+				return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: %w", stream.StreamKey, eventIndex, replayErr)
+			}
+			if found {
+				result.Events = append(result.Events, receipt)
+				continue
+			}
+			if event.AssertionClass.RequiresAuthority() {
+				if err := appender.checkAuthority(ctx, tx, event); err != nil {
+					return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: %w", stream.StreamKey, eventIndex, err)
+				}
+			}
+
+			write := appender.planEvent(event, currentHead, digest, algorithm, length)
+			statements = append(statements, write.statements[:]...)
+			pending = append(pending, pendingAppend{
+				streamKey: stream.StreamKey, eventIndex: eventIndex, req: event,
+				receipt: write.receipt,
+			})
+			result.Events = append(result.Events, pending[len(pending)-1].receipt)
+			currentHead = write.receipt.Sequence
+			currentDigest = digest
 		}
 		result.Heads = append(result.Heads, StreamHeadTransition{
-			Tenant: req.Tenant, StreamKey: stream.StreamKey, Before: before, After: after,
-			BeforeDigest: stringPointer(beforeDigest), AfterDigest: stringPointer(afterDigest),
+			Tenant: req.Tenant, StreamKey: stream.StreamKey, Before: before, After: currentHead,
+			BeforeDigest: stringPointer(head.digest), AfterDigest: currentDigest,
 		})
+	}
+	counts, batchErr := dbport.ExecAll(ctx, tx, statements)
+	if batchErr != nil {
+		pendingIndex := len(counts) / 2
+		if pendingIndex < len(pending) {
+			item := pending[pendingIndex]
+			if len(counts)%2 == 0 {
+				if conflict, ok := idempotencyConflict(batchErr, item.req, item.receipt.Digest); ok {
+					return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: %w", item.streamKey, item.eventIndex, conflict)
+				}
+			}
+			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: %w", item.streamKey, item.eventIndex, batchErr)
+		}
+		return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: batch append: %w", batchErr)
+	}
+	if len(counts) != len(statements) {
+		return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: batch append returned %d results, want %d", len(counts), len(statements))
+	}
+	for i, item := range pending {
+		if counts[2*i+1] != 1 {
+			return MultiStreamAppendReceipt{}, fmt.Errorf("ledger: append stream %s event %d: advance stream head %s: %d rows updated", item.streamKey, item.eventIndex, item.streamKey, counts[2*i+1])
+		}
 	}
 	return result, nil
 }

@@ -23,6 +23,9 @@ const DigestProfile = "hcmnext.canonical.LEDGER_EVIDENCE_MANIFEST.v1"
 // character across a field boundary would leave the preimage unchanged.
 type folder struct {
 	h interface{ Write([]byte) (int, error) }
+	// buf is scratch space so hashing a string does not allocate a copy of it
+	// on every call; it is reused across calls and never escapes.
+	buf []byte
 }
 
 func newFolder() (*folder, func() string) {
@@ -37,7 +40,15 @@ func (f *folder) bytes(b []byte) {
 	_, _ = f.h.Write(b)
 }
 
-func (f *folder) text(s string) { f.bytes([]byte(s)) }
+func (f *folder) text(s string) {
+	var frame [8]byte
+	binary.BigEndian.PutUint64(frame[:], uint64(len(s)))
+	_, _ = f.h.Write(frame[:])
+	if len(s) > 0 {
+		f.buf = append(f.buf[:0], s...)
+		_, _ = f.h.Write(f.buf)
+	}
+}
 
 func (f *folder) number(n int64) {
 	var v [8]byte
@@ -78,6 +89,12 @@ func ComputeDigest(m Manifest) (string, error) {
 }
 
 func orderedParts(parts []Part) []Part {
+	if len(parts) == 0 {
+		return make([]Part, 0)
+	}
+	if sort.SliceIsSorted(parts, func(i, j int) bool { return parts[i].Path < parts[j].Path }) {
+		return parts
+	}
 	out := make([]Part, len(parts))
 	copy(out, parts)
 	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
@@ -176,6 +193,12 @@ func Build(c Content) (Package, error) {
 
 	parts := make([]Part, 0, 2*len(c.Streams)+len(c.Epochs)+1)
 	bytesByPath := make(map[string][]byte, cap(parts))
+	tenantText := c.Tenant.String()
+	totalEvents := 0
+	for _, stream := range c.Streams {
+		totalEvents += len(stream.Events)
+	}
+	uuidCache := make(uuidTextCache, 3*totalEvents+len(c.Streams)+1)
 	add := func(path string, kind PartKind, raw []byte) {
 		bytesByPath[path] = raw
 		parts = append(parts, Part{
@@ -186,7 +209,7 @@ func Build(c Content) (Package, error) {
 
 	header := headerFile{
 		LayoutVersion:        LayoutVersion,
-		Tenant:               c.Tenant.String(),
+		Tenant:               tenantText,
 		CoversFromNS:         nanos(c.CoversFrom),
 		CoversToNS:           nanos(c.CoversTo),
 		SchemaReleaseVersion: c.Schema.Version,
@@ -197,16 +220,16 @@ func Build(c Content) (Package, error) {
 
 	for i, s := range c.Streams {
 		chainPath, eventsPath := StreamChainPath(i), StreamEventsPath(i)
-		chainRaw, err := encodePart(projectChain(c.Tenant, s))
+		chainRaw, err := encodePart(projectChain(c.Tenant, s, uuidCache))
 		if err != nil {
 			return Package{}, err
 		}
 		events := eventsFile{
 			Tenant: c.Tenant.String(), StreamKey: s.StreamKey,
-			Events: make([]eventFile, 0, len(s.Events)),
+			Events: make([]eventFile, len(s.Events)),
 		}
-		for _, e := range s.Events {
-			events.Events = append(events.Events, projectEvent(e))
+		for eventIndex, e := range s.Events {
+			events.Events[eventIndex] = projectEvent(e, tenantText, uuidCache)
 		}
 		eventsRaw, err := encodePart(events)
 		if err != nil {
@@ -520,9 +543,12 @@ func validateStream(c Content, s Stream, add func(string, ...any)) error {
 // construction (each epoch's window starts where its predecessor's ended),
 // so this walk is exact rather than an approximation of an interval union.
 func epochCoverageGap(from, to time.Time, epochs []Epoch) (gapFrom, gapUntil time.Time, ok bool) {
-	ordered := make([]Epoch, len(epochs))
-	copy(ordered, epochs)
-	sort.Slice(ordered, func(i, j int) bool { return ordered[i].CoversFrom.Before(ordered[j].CoversFrom) })
+	ordered := epochs
+	if !sort.SliceIsSorted(ordered, func(i, j int) bool { return ordered[i].CoversFrom.Before(ordered[j].CoversFrom) }) {
+		ordered = make([]Epoch, len(epochs))
+		copy(ordered, epochs)
+		sort.Slice(ordered, func(i, j int) bool { return ordered[i].CoversFrom.Before(ordered[j].CoversFrom) })
+	}
 
 	cursor := from
 	for _, epoch := range ordered {
