@@ -62,11 +62,32 @@ Root `go test ./...` is not a gate on the development machine: every data packag
 - Package-level mutable registries are refused by the composition-root rule; state lives on the value that owns it.
 - Never edit `go.mod` or `go.sum` inside a lane; report the dependency instead.
 
+## Delivery loop and model routing
+
+Implementation is cheap and review is expensive, so route the work that way.
+
+- **Implementation runs in Codex GPT-5.6 Luna lanes.** They are dirt cheap; spawn as many as the machine can carry (about twenty concurrent on this host before embedded PostgreSQL starts timing out). One lane per todo or per tightly coupled todo chain, launched with `scripts/run-lane.sh <name>` from a brief that names the todo ids, the file roots the lane owns, its reserved migration numbers and the standing rules in `.claude/lanes/luna-lane-preamble.md`. A lane never runs git, never edits `planning/`, `definitions/`, `go.mod` or `go.sum`, and reports the registry rows and policy edits it needs verbatim.
+- **Review and integration run in GPT-6 or Claude Fable 5.1.** The strong model reads what the lanes produced (`.claude/agents/integration-reviewer.md`), hunts for real defects (authorization after a side effect, tenant-scoping gaps, aliased or assertion-free tests, forged or replayable inputs, business logic in transport), applies the fixes, registers the definitions rows, ticks the todos with evidence, and takes the commit through the gates. Do not spend the strong model on first drafts, and do not let a cheap lane be the last set of eyes on anything.
+
+**Treat every todo as atomic.** Each one goes through the whole loop before the next one is called done:
+
+1. **Code.** A lane implements RED to GREEN in the packages the todo's Refs name, with the tests the TEST and TEST MATRIX fields name.
+2. **Review.** The strong model reads the diff against the todo's contract and the rules in this file. Findings are fixed, not filed.
+3. **Refine.** Remove speculative abstraction, duplicated helpers and dead code the change introduced; match the surrounding style.
+4. **Unit test.** Every hand-written file is exercised in its package; matrix labels prove what they say; the package clears the 70% floor.
+5. **End-to-end test.** Where the todo touches a workflow, a store or an endpoint, run the harness that drives it through the real runtime (`test/workflow`, `test/bootstrap`, the endpoint parity harness, the embedded-PostgreSQL integration test), not only the unit suite.
+6. **Visual inspection when a surface exists.** If the change is observable in the product UI, drive it in the browser pane (dev server, the affected page, the state after the interaction, a screenshot) before calling it done; do not ask the user to look.
+7. **Commit gates.** Tick the todo with its evidence line, then commit in its group through the full pre-commit hook: format, lint, unit tests, coverage floor, drift, API, substrate and race policies, nested-module tests and build. A red gate is fixed at the source, never bypassed.
+
 ## Ownership and lanes
 
 Work is delivered by coding lanes (Codex "Luna" subagents) coordinated by an orchestrator session. The orchestrator owns `planning/`, `definitions/`, `go.mod`, `go.sum`, git, registry ticks, migration numbering and commits. A lane owns only the file roots its brief names, writes additive files, never runs git, never edits planning or definitions, and reports the registry rows, manifest entries and policy edits it needs verbatim.
 
 Front-end surfaces (`WEB-`, `UX-`, `UXFLOW-`, `A11Y-` todos; `internal/humanwork`, `tools/uxqual`, `cmd/frontenddev`) belong to a separate session. Leave those files alone.
+
+## One artifact root
+
+`.artifacts/` is the only place in the checkout for disposable output, and it is ignored by git. Built binaries go to `.artifacts/bin/` (`scripts/build.sh`), lane briefs, logs and reports to `.artifacts/lanes/` (`scripts/run-lane.sh`), coverage output to `.artifacts/coverage/`, Go temp directories and test binaries to `.artifacts/tmp/`, lane build caches to `.artifacts/gocache/`, and the embedded PostgreSQL binary cache to `.artifacts/pg/`. The pre-commit hook and the lane launcher export `GOTMPDIR`, `TMP`, `TEMP` and `HCMNEXT_TEST_PG_CACHE` to those paths; do the same for any command you run by hand that builds or tests. A scratch directory at the repository root is a bug: delete it and fix the command that made it. Never force-add anything under `.artifacts/`, and never point cleanup at anything broader than a child of it.
 
 ## Git discipline
 

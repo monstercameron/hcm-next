@@ -494,3 +494,15 @@ organization-structure-maximal-2026.md` and the 30-table draft
   reports is the front-end session's: experience/i18n, productui,
   uicomponents, workspace and the uxqual tools importing x/text,
   GoWebComponents and x/net outside their declared roots.
+- **One artifact root.** Cam asked for the temp, cache and stale artifacts
+  cleared and every build output routed to one place. Fifty-three orphaned
+  embedded PostgreSQL processes across twenty-one runtimes were stopped (the
+  dev PostgreSQL 17 service kept), their runtime directories and the stale
+  Go build and cache directories removed from the user temp folder, and the
+  scratch entries at the repository root deleted. `.artifacts/` is now the
+  sole root: `bin/` for binaries (`scripts/build.sh`), `lanes/` for lane
+  briefs and reports, `coverage/`, `tmp/` for Go temp and test binaries,
+  `gocache/` for lane build caches and `pg/` for the embedded PostgreSQL
+  cache. The pre-commit hook and the lane launcher export `GOTMPDIR`, `TMP`,
+  `TEMP` and `HCMNEXT_TEST_PG_CACHE` to those paths so the leaks stop at the
+  source instead of being swept after the fact.

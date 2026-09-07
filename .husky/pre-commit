@@ -1,4 +1,11 @@
 #!/usr/bin/env sh
+# Every disposable output of the gates lands under .artifacts/ (ignored):
+# Go temp and test binaries, embedded PostgreSQL runtimes, coverage output.
+HCMNEXT_ARTIFACTS="$(pwd -W 2>/dev/null || pwd)/.artifacts"
+mkdir -p "$HCMNEXT_ARTIFACTS/tmp" "$HCMNEXT_ARTIFACTS/pg" "$HCMNEXT_ARTIFACTS/coverage"
+GOTMPDIR="$HCMNEXT_ARTIFACTS/tmp"; TMP="$HCMNEXT_ARTIFACTS/tmp"; TEMP="$HCMNEXT_ARTIFACTS/tmp"
+HCMNEXT_TEST_PG_CACHE="$HCMNEXT_ARTIFACTS/pg"
+export HCMNEXT_ARTIFACTS GOTMPDIR TMP TEMP HCMNEXT_TEST_PG_CACHE
 npm exec lint-staged
 npm run check:code-style
 npm run check:go

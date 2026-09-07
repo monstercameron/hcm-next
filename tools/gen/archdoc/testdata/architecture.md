@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: 34be9f0cbea03421ca870e59c0f534b3ff923e0b8d60f153679fcdfb57331482
-- Package count: 735
-- Within-module edge count: 1657
+- Source graph: 342d39159f4a5a07c01bb9d83c90db21bb3c7b18cac7e233c7046ac2781dd770
+- Package count: 736
+- Within-module edge count: 1659
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -844,6 +844,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/uxqual/contract`
 - `github.com/monstercameron/hcm-next/tools/uxqual/floorplan`
 - `github.com/monstercameron/hcm-next/tools/uxqual/forms`
+- `github.com/monstercameron/hcm-next/tools/uxqual/hydration`
 - `github.com/monstercameron/hcm-next/tools/uxqual/i18n`
 - `github.com/monstercameron/hcm-next/tools/uxqual/journeyclient`
 - `github.com/monstercameron/hcm-next/tools/uxqual/latencygate`
@@ -883,4 +884,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`7696dddf03ed2939fa7474db05cfeeec3c49f56c701be00f981f37ca483a2cdd`
+`d9b5dc94d2329b6d7a008430d60ee5e68addf9d296511e46c1f6e57d23253e0c`
