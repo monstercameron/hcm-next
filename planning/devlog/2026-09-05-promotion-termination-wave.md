@@ -559,3 +559,86 @@ organization-structure-maximal-2026.md` and the 30-table draft
   explicit upstream blocker: GWC v5's private serialized-subtree fast paths
   write `template.innerHTML`, so enforcement requires a named `TrustedHTML`
   policy or removal of those sinks before it can be enabled safely.
+
+## 11. 2026-09-07: backend performance wave
+
+- **Where the time actually went.** The 32 existing benchmarks are all
+  sub-millisecond in-process work, so the baseline run was not where the
+  cost was. Reading the request and storage paths found it: every pool
+  acquire ran three hygiene round trips plus one `set_config` per runtime
+  parameter, and every `Pool.Query` acquires; the edge middleware and the
+  connect interceptor each ran the credential verifier; twenty-two stores
+  issued one statement per row inside loops, including the ledger
+  multi-stream append; and a textual scan found 218 foreign keys with no
+  supporting index.
+- **Six atomic todos, six Luna lanes.** `PERFOPT-001` to `006` were written
+  with the benchmark that proves each change and the behaviour that must not
+  move, then implemented on disjoint file roots. Every lane was reviewed by
+  reading the diff, not the report.
+- **What the review changed.** The regex lane had aliased `regexp.MustCompile`
+  into package variables so its own AST checker would pass; the checker now
+  reports aliases and exempts only lines marked `regexhoist:dynamic`, the
+  aliases are gone, and the quality FORMAT rule (evaluated per record) got a
+  bounded pattern cache. The batch lane had copied the 21-column
+  `ledger_event` insert into the multi-stream path; both appends now build
+  their statements through one `planEvent`, and the repeated failed-index
+  arithmetic became `dbport.FailedStatement`. Its receipt golden was
+  hand-typed because embedded PostgreSQL will not start under the lane
+  sandbox (restricted-token error 87); it was regenerated from the real
+  server. The allocation lane hashed strings through `unsafe`; a reused
+  scratch buffer does the same without it, and its zero-padded path
+  formatter now matches `%04d` for every input. The pool lane found that
+  PostgreSQL refuses `DISCARD ALL` inside the implicit transaction of a
+  multi-statement message and spelled out its components, but omitted
+  `SET SESSION AUTHORIZATION DEFAULT`; it is back, pinned by a spec test.
+- **Proof of no behaviour change.** The goldens for the envelope, cycle
+  explanation, evidence package and legal extractor were run against the
+  pre-change code in a throwaway HEAD worktree and pass unchanged. The
+  existing ledger, checkpoint, intentcontrol, outbox and pgxadapter suites
+  pass against the embedded server; the checkpoint failures seen while four
+  embedded servers ran at once did not reproduce alone.
+- **Numbers.** Acquire and release 139,966 to 40,367 ns/op; `QueryRow`
+  170,290 to 91,901 ns/op; edge request 50,456 to 34,751 ns/op; statements
+  per three-stream ten-event append 51 to 33; allocs/op 12 to 8 (envelope),
+  209 to 152 (evidence), 104 to 71 (cycle); 65 indexes added, 22 foreign
+  keys left unindexed by recorded decision.
+- **Left open.** The remaining row-at-a-time loops (jobarchstore, budgetstore,
+  contentregistrystore, recordsmeta, contactstore, meritstore, workeridstore,
+  seed) can move to `dbport.ExecAll` the same way; `transport.Validate`'s
+  reflective walk was not profiled; `PERF-002` and `PERF-008` still own the
+  end-to-end latency targets and the regression gate.
+
+## 12. 2026-09-07: WEB-034 qualified browser RPC adapter
+
+- **One transport seam.** `journeyclient.RPCAdapter` wraps the generated
+  Journey gRPC client surface through `grpc.ClientConnInterface`; it does not
+  duplicate workflow, authorization or persistence decisions. The large
+  implementation was separated from the thin service composition seam so
+  transport qualification remains independently testable.
+- **Fail-closed contract.** Startup cross-checks every generated and protobuf
+  descriptor. Calls accept only the exact generated request and response
+  types for the named method, bounded protobuf bodies, a closed metadata set
+  and approved call options. Missing or malformed bearer credentials,
+  authority injection, typed nils, path/stream mismatches and expired
+  contexts are rejected before dispatch. Short caller deadlines and
+  cancellation are preserved, long calls are capped, upstream status details
+  survive intact, and adapter-owned stream contexts are released on EOF and
+  every error path.
+- **Real execution proof.** The native seven-test matrix and full package,
+  focused vet, actual js/wasm test binary under Go's Node harness, and the
+  17-page x 3-locale i18n/accessibility gate passed. A tunnel integration test
+  ran unary and cancellable streaming RPCs through the real GoGRPCBridge
+  WebSocket tunnel against embedded PostgreSQL. Windows reported only the
+  repository-documented post-PASS test-binary cleanup lock.
+- **Browser and performance proof.** The exact rebuilt Go/WASM asset was
+  served through the local gateway and manually inspected in the Codex
+  browser. Authenticated Organization, Work and People routes loaded live
+  authorized data, including 64 people, and the browser emitted no warnings
+  or errors. Five latency repetitions passed the 2 ms gate; measured p95 was
+  526.8 us and invocation benchmarks were 1.58-3.94 us/op, 970-973 B/op and
+  13 allocations.
+- **Shared-tree incident.** The full repository hook completed every gate,
+  but another agent advanced HEAD before Git could install the planned
+  frontend commit. Its concurrent shared-index commit `a42586a` therefore
+  contains WEB-034 beside unrelated pgxadapter work. The implementation is
+  safely landed; shared history was not rewritten merely to improve grouping.

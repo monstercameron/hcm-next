@@ -25440,6 +25440,148 @@
     "evidence": "`TestTodo_PERF_ENV_001` in `internal/performance`, `tools/planning/performance` (Small/medium/large/peak fixtures declare resource and correctness budgets; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/performance/ ./tools/planning/performance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
+    "id": "PERFOPT-001",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Collapse pool session hygiene into one round trip",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "DB-001"
+    ],
+    "test": "TestTodo_PERFOPT_001",
+    "test_matrix": {
+      "BENCHMARK": "BenchmarkTodo_PERFOPT_001",
+      "INTEGRATION": "TestTodo_PERFOPT_001_Integration",
+      "PRIMARY": "TestTodo_PERFOPT_001",
+      "SECURITY": "TestTodo_PERFOPT_001_Security"
+    },
+    "red": "the BeforeAcquire hook in `pgxadapter.NewPool` issues RESET ROLE, pg_advisory_unlock_all, DISCARD ALL and one set_config per runtime parameter as separate round trips on every acquire; the benchmark records the acquire cost and the round-trip count before the change",
+    "green": "hygiene runs as a single simple-protocol statement per acquire, the benchmark shows the round-trip count fell to one (plus zero per runtime parameter when startup parameters are proven to survive DISCARD ALL, else one), and `TestPooledConnectionCannotLeakTenantRoleLocksOrSessionState` still proves role, advisory locks, temp tables, prepared statements and session settings are reset",
+    "refactor": "keep the reset list in one place with the reason each item is there; no statement text is built from untrusted input",
+    "refs": "[SLOs](specs/slo-sli-error-budget.md), [Master plan quantitative envelope](plan.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_001`, `TestTodo_PERFOPT_001_Security`, `TestTodo_PERFOPT_001_Integration`, `TestTodo_PERFOPT_001_StartupParameterEvidence`, `TestHygieneSQLSpellsOutEveryDiscardAllComponent`, `BenchmarkTodo_PERFOPT_001` in `internal/data/pgxadapter` (the BeforeAcquire hook now sends one simple-protocol message per acquire; PostgreSQL refuses DISCARD ALL inside the implicit transaction of a multi-statement message, so the message spells out every DISCARD ALL component plus RESET ROLE, pinned by the spec test; startup runtime parameters such as search_path are proven to survive the reset on PostgreSQL 17.5, so the per-parameter set_config round trips are gone; `Stats` exposes the hygiene round-trip counter and the existing leak tests still prove role, advisory locks, temp tables, prepared statements and settings are reset; acquire and release 139,966 to 40,367 ns/op, QueryRow 170,290 to 91,901 ns/op on the embedded server); `go test -count=1 ./internal/data/pgxadapter/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "PERFOPT-002",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Authenticate each edge request once",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "EDGE-002"
+    ],
+    "test": "TestTodo_PERFOPT_002",
+    "test_matrix": {
+      "BENCHMARK": "BenchmarkTodo_PERFOPT_002",
+      "INTEGRATION": "TestTodo_PERFOPT_002_Integration",
+      "PRIMARY": "TestTodo_PERFOPT_002",
+      "SECURITY": "TestTodo_PERFOPT_002_Security"
+    },
+    "red": "the strict JSON middleware in `internal/transport/edge` runs `transport.PreAdmit` and the connect admission interceptor runs `transport.Admit`, so the credential verifier and request-id resolution execute twice per HTTP request; a counting verifier in the test observes two Verify calls for one request",
+    "green": "the middleware's admission result is carried to the interceptor in the request context and reused only when the metadata it was derived from is unchanged; the counting verifier observes one Verify call, a request that bypasses the middleware (non-JSON, unknown path) still authenticates in the interceptor, and a tampered Authorization header between the two stages is refused",
+    "refactor": "the carrier type is unexported, immutable, and set only by the middleware; no handler can read or forge it",
+    "refs": "[SLOs](specs/slo-sli-error-budget.md), [trusted request boundary](specs/trusted-request-boundary.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_002`, `TestTodo_PERFOPT_002_Security`, `TestTodo_PERFOPT_002_Integration`, `BenchmarkTodo_PERFOPT_002` in `internal/transport/edge` and `TestPreAdmissionFingerprintMismatch`, `TestPreAdmissionMethodMismatch`, `TestPreAdmissionAbsentCarrier` in `internal/transport` (the strict JSON middleware stores its admission result in an unexported request-context carrier fingerprinted over the authorization, request-id and reserved metadata; `PreAdmit` reuses it only when method and fingerprint match, so a counting verifier sees one Verify per request, a tampered Authorization header is re-verified and refused, and non-JSON or unknown-path requests still authenticate in the interceptor; end-to-end request 50,456 ns/op, 279 allocs/op before, 34,751 ns/op, 245 allocs/op after); `go test -count=1 ./internal/transport/ ./internal/transport/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "PERFOPT-003",
+    "phase": "GATE_B",
+    "model": "SOL_LOW",
+    "title": "Compile regular expressions once and repair the reservation benchmark",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "PERF-ENV-001"
+    ],
+    "test": "TestTodo_PERFOPT_003",
+    "test_matrix": {
+      "BENCHMARK": "BenchmarkTodo_PERFOPT_003",
+      "GOLDEN": "TestTodo_PERFOPT_003_Golden",
+      "PRIMARY": "TestTodo_PERFOPT_003"
+    },
+    "red": "twenty-seven `regexp.MustCompile` calls sit inside function bodies in `internal/governance/legal/extract`, `internal/domains/dataops/importing`, `internal/intent/model`, `internal/customobject`, `internal/trust/dlp`, `internal/data/partition` and `internal/domains/paymethod`, so each call recompiles its pattern; `BenchmarkTodo_RESERVE_001` fails because a rune-cast loop counter yields duplicate idempotency keys",
+    "green": "every fixed pattern is a package-level compiled value (patterns built from input keep a bounded cache or are documented as per-call), the golden test proves the extracted output is byte-identical before and after, benchmarks show the allocation count per call dropped, and the reservation benchmark passes at any benchtime",
+    "refactor": "no behaviour change; a static check in the primary test scans the named packages for indented `regexp.MustCompile` so the pattern cannot return",
+    "refs": "[Master plan quantitative envelope](plan.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_003`, `TestScan_FixtureCatchesIndentedCompile`, `TestScan_MarkerExemptsOnlyItsOwnLine` in `tools/policy/regexhoist`, `TestTodo_PERFOPT_003_Golden`, `BenchmarkTodo_PERFOPT_003` in `internal/governance/legal/extract`, `TestCompileQualityPatternReusesCompiledPatterns`, `TestCompileQualityPatternCacheIsBounded` in `internal/intent/model` (the AST checker reports regexp compiles inside function bodies and package-level compiler aliases, exempting only lines marked `regexhoist:dynamic`; the real per-call sites were the DLP bank-detail pattern, two evidence annotation patterns and the quality FORMAT rule, now package-level or served from a bounded 512-entry cache; the remaining marked sites compile runtime schema or configuration input once per construction; the extractor golden digest is unchanged; `BenchmarkTodo_RESERVE_001` keys are now `strconv.Itoa` and it passes at any benchtime, 3,232 ns/op); `go test -count=1 ./tools/policy/regexhoist/ ./internal/governance/legal/extract/ ./internal/intent/model/ ./internal/trust/dlp/ ./internal/data/partition/ ./internal/domains/paymethod/ ./internal/customobject/ ./internal/domains/dataops/importing/ ./internal/resource/reservation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "PERFOPT-004",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Batch row-at-a-time writes on the ledger and intent hot paths",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "DB-001",
+      "LEDGER-001"
+    ],
+    "test": "TestTodo_PERFOPT_004",
+    "test_matrix": {
+      "BENCHMARK": "BenchmarkTodo_PERFOPT_004",
+      "INTEGRATION": "TestTodo_PERFOPT_004_Integration",
+      "PRIMARY": "TestTodo_PERFOPT_004",
+      "RACE": "TestTodo_PERFOPT_004_Race"
+    },
+    "red": "`dbport` exposes no batch or multi-row primitive, so the ledger multi-stream append, the ledger checkpoint store, the intentcontrol proposal and transaction writes and the outbox consumer issue one statement per row inside loops; the benchmark records statements per append for a ten-event, three-stream request",
+    "green": "`dbport` gains an optional batch capability implemented by `pgxadapter` (pgx SendBatch in one round trip, results checked per statement), the named hot paths use it or a multi-row insert from unnest, the benchmark shows statements per append fell, and every existing ledger, checkpoint, intentcontrol and outbox test passes unchanged, including stale-head, duplicate-key and rollback behaviour",
+    "refactor": "callers keep the same receipts and errors; a store without batch support falls back to the loop through one helper, not per-site branches",
+    "refs": "[SLOs](specs/slo-sli-error-budget.md), [ledger contract](plan.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_004`, `TestTodo_PERFOPT_004_Integration`, `TestTodo_PERFOPT_004_Race`, `BenchmarkTodo_PERFOPT_004` in `internal/data/ledger`, `TestTodo_PERFOPT_004_ExecAllFallback`, `TestTodo_PERFOPT_004_ExecAllBatch`, `TestTodo_PERFOPT_004_ExecAllBatchError`, `TestFailedStatementNamesTheStatementThatDidNotComplete` in `internal/data/dbport`, `TestTodo_PERFOPT_004_AdapterBatchIntegration` in `internal/data/pgxadapter` (`dbport.Batcher` and `dbport.ExecAll` give stores one batch primitive with a loop fallback and `FailedStatement` names the statement that failed; `pgxadapter` Conn and Tx implement it over pgx SendBatch; the multi-stream append locks every head in one ordered `FOR UPDATE` query, validates every event before the first insert, and writes all event rows and head advances in one batch built by the same `planEvent` the single append uses, so the ledger_event row shape exists once; the checkpoint store, intentcontrol proposal and transaction writes and the outbox consumer batch their per-row loops; receipts pinned by a golden, stale second stream rolls everything back, overlapping appends on two connections resolve one winner with no deadlock; statements per three-stream ten-event append 51 to 33); `go test -count=1 ./internal/data/dbport/ ./internal/data/ledger/ ./internal/data/ledger/checkpoint/ ./internal/data/intentcontrol/ ./internal/data/outbox/ ./internal/data/pgxadapter/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "PERFOPT-005",
+    "phase": "GATE_B",
+    "model": "SOL_HIGH",
+    "title": "Audit foreign keys against indexes from the live catalog and add the missing ones that queries use",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "DB-020"
+    ],
+    "test": "TestTodo_PERFOPT_005",
+    "test_matrix": {
+      "GOLDEN": "TestTodo_PERFOPT_005_Golden",
+      "INTEGRATION": "TestTodo_PERFOPT_005_Integration",
+      "PRIMARY": "TestTodo_PERFOPT_005"
+    },
+    "red": "a textual scan of `migrations/` finds 218 foreign-key constraints with no index whose leading columns cover the constraint; nothing in the repository proves which of them a store query actually filters or joins on",
+    "green": "a policy package boots embedded PostgreSQL with every migration applied, reads the constraint and index catalogs, lists unindexed foreign keys, cross-references the SQL text under `internal/data` for those columns in WHERE, JOIN or ON clauses, pins the list as a golden, and a new migration adds `CREATE INDEX IF NOT EXISTS` for exactly the referenced ones with the reason per index; the integration test proves each new index exists and that EXPLAIN on the referencing query no longer sequential-scans",
+    "refactor": "unreferenced foreign keys stay unindexed and appear in the golden marked unreferenced so the decision is visible; the audit runs in the policy suite, not per commit",
+    "refs": "[PostgreSQL model](plan.md), [SLOs](specs/slo-sli-error-budget.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_005`, `TestTodo_PERFOPT_005_Integration`, `TestTodo_PERFOPT_005_Golden`, `TestAuditMatchesLeadingIndexColumns`, `TestReferencesAndPlanAreDeterministic` in `tools/policy/fkindex` (the audit reads pg_constraint and pg_index on embedded PostgreSQL with every migration applied, treating an index as covering only when its leading key columns equal the constraint's columns in order and resolving partition children to their parent; store SQL under `internal/data` is scanned for the constrained columns in WHERE, JOIN, ON or USING clauses; the golden pins 87 unindexed foreign keys before, 65 referenced ones now indexed by `migrations/00262_fk_indexes.sql` with the citing store line beside each index, and 22 unreferenced ones left unindexed by decision; the integration test proves the indexes exist and that EXPLAIN on the referencing queries uses them; `tools/policy/rlsparity` and `tools/policy/tableinventory` pass with the migration applied); `go test -count=1 ./tools/policy/fkindex/ ./tools/policy/rlsparity/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
+    "id": "PERFOPT-006",
+    "phase": "GATE_B",
+    "model": "SOL_LOW",
+    "title": "Cut allocations on the envelope, ledger evidence and cycle engine paths",
+    "section": "68. Backend performance optimization",
+    "depends": [
+      "PERF-ENV-001"
+    ],
+    "test": "TestTodo_PERFOPT_006",
+    "test_matrix": {
+      "BENCHMARK": "BenchmarkTodo_PERFOPT_006",
+      "GOLDEN": "TestTodo_PERFOPT_006_Golden",
+      "PRIMARY": "TestTodo_PERFOPT_006"
+    },
+    "red": "benchmarks with allocation reporting and a CPU and allocation profile over `internal/transport/envelope`, `internal/data/ledger/evidence` and `internal/engines/cycle` record the top allocation sites (string formatting in loops, unsized slices and maps, repeated marshalling) before any change",
+    "green": "each top site is fixed (preallocation, a string builder, strconv over fmt.Sprintf, marshal once), the benchmark shows allocations per operation fell by at least a quarter on each package, and golden tests prove the produced envelopes, evidence text and cycle outputs are byte-identical",
+    "refactor": "no exported signature changes; the profile command and the before and after numbers are recorded in the evidence line",
+    "refs": "[Master plan quantitative envelope](plan.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestTodo_PERFOPT_006`, `TestTodo_PERFOPT_006_Golden`, `BenchmarkTodo_PERFOPT_006` in `internal/transport/envelope`, `internal/data/ledger/evidence` and `internal/engines/cycle` (allocation profiles taken before any change with `go tool pprof -top -sample_index=alloc_objects`; violations and proto detail slices are sized once, evidence caches UUID text, hashes strings through a reused scratch buffer and formats paths without fmt, the cycle explanation renders through a pre-sized builder; the goldens were generated from the pre-change code and pass unchanged against it in a HEAD worktree, so outputs are byte-identical; allocs/op 12 to 8 for envelope, 209 to 152 for evidence, 104 to 71 for cycle, each pinned by `testing.AllocsPerRun` ceilings); `go test -count=1 ./internal/transport/envelope/ ./internal/data/ledger/evidence/ ./internal/engines/cycle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+  },
+  {
     "id": "PERFORMANCE-001",
     "phase": "CONFORMANCE",
     "model": "SOL_HIGH",
@@ -36898,7 +37040,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_034`, `TestTodo_WEB_034_Golden`, `TestTodo_WEB_034_Browser`, `TestTodo_WEB_034_Conformance`, `TestTodo_WEB_034_Security`, `TestTodo_WEB_034_Integration`, and `TestTodo_WEB_034_Fault` prove the browser RPC boundary is one bounded `grpc.ClientConnInterface` adapter over generated Journey service descriptors rather than a second API or business-authority layer. It cross-checks the complete generated and protobuf descriptor sets, enforces each method's exact generated request and response types, bounds protobuf messages and metadata, rejects authority-shaped or malformed metadata and unapproved call options, injects only a validated server-issued bearer, propagates short deadlines and cancellation, caps long calls, preserves typed gRPC status details, and releases owned stream contexts on every terminal path. Native and full client tests, focused vet, the registered 17-page x 3-locale i18n/accessibility gate, five latency-gate repetitions, and the full repository pre-commit gate passed. The actual js/wasm test binary ran through Go's Node harness, and `TestWEB034QualifiedAdapterRunsThroughRealTunnel` exercised unary and cancellable streaming calls through the real GoGRPCBridge WebSocket tunnel against embedded PostgreSQL. The exact rebuilt asset was served on the local development gateway and manually qualified in the Codex browser: authenticated Organization, Work and People routes loaded authorized live data, including 64 people, with no browser warning or error log entries. Adapter construction measured p95 526.8 us against 2 ms; invocation benchmarks measured 1.58-3.94 us/op, 970-973 B/op and 13 allocs/op. The code is present in `a42586a`; a concurrent shared-index commit grouped it with an unrelated pgxadapter optimization after the complete hook had passed, and history was deliberately not rewritten. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, then tunnel-, browser-, accessibility-, internationalization- and performance-qualified by the orchestrator"
   },
   {
     "id": "WEB-035",
