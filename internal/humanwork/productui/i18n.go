@@ -163,6 +163,7 @@ func (c LocaleContext) Plural(key string, count int64) string {
 var productMessages = map[string]map[string]localize.Message{
 	"en-US": {
 		"common.previous": {Text: "Previous"}, "common.next": {Text: "Next"}, "common.not_reported": {Text: "Not reported"}, "common.not_disclosed": {Text: "Not disclosed"},
+		"validation.summary_title": {Text: "Review the highlighted fields"}, "validation.summary_intro": {Text: "Correct these items before continuing."}, "validation.generic_error": {Text: "Check this value and try again."}, "validation.required": {Text: "This field is required."},
 		"shell.skip_main":           {Text: "Skip to main content"},
 		"shell.search_employees":    {Text: "Search employees"},
 		"global_search.label":       {Text: "Search HCM Next"},
@@ -301,6 +302,7 @@ var productMessages = map[string]map[string]localize.Message{
 	},
 	"de-DE": {
 		"common.previous": {Text: "Zurück"}, "common.next": {Text: "Weiter"}, "common.not_reported": {Text: "Nicht gemeldet"}, "common.not_disclosed": {Text: "Nicht offengelegt"},
+		"validation.summary_title": {Text: "Hervorgehobene Felder prüfen"}, "validation.summary_intro": {Text: "Korrigieren Sie diese Angaben, bevor Sie fortfahren."}, "validation.generic_error": {Text: "Prüfen Sie diesen Wert und versuchen Sie es erneut."}, "validation.required": {Text: "Dieses Feld ist erforderlich."},
 		"shell.skip_main": {Text: "Zum Hauptinhalt springen"}, "shell.search_employees": {Text: "Mitarbeitende suchen"}, "shell.work_overview": {Text: "Arbeitsübersicht"}, "shell.open_work": {Text: "Meine Aufgaben öffnen"}, "shell.acting_self": {Text: "Sie handeln als Sie selbst"}, "shell.live_source": {Text: "Live-Quelle · {source}"}, "shell.authenticated_scope": {Text: "Autorisierter Bereich"}, "shell.no_source": {Text: "Keine Dienstantwort"}, "shell.live_unavailable": {Text: "Live-Daten nicht verfügbar"}, "shell.locale": {Text: "Sprache"}, "shell.profile_settings": {Text: "Profileinstellungen für {name} öffnen"}, "shell.myself": {Text: "Eigenes Beschäftigtenprofil öffnen, {name}"},
 		"global_search.label": {Text: "HCM Next durchsuchen"}, "global_search.placeholder": {Text: "Personen, Seiten, Workflows und Einstellungen suchen"}, "global_search.results": {Text: "Suchergebnisse"}, "global_search.no_results": {Text: "Keine passenden Personen, Seiten, Workflows oder Einstellungen"}, "global_search.hint": {Text: "Mit ↑↓ navigieren · Eingabetaste zum Öffnen"},
 		"global_search.kind_page": {Text: "Seite"}, "global_search.kind_person": {Text: "Person"}, "global_search.kind_workflow": {Text: "Workflow"}, "global_search.kind_setting": {Text: "Einstellung"}, "global_search.kind_component": {Text: "Funktion"}, "global_search.kind_action": {Text: "Aktion"}, "global_search.promote_person": {Text: "Beförderung für {name} starten"},
@@ -358,6 +360,7 @@ var productMessages = map[string]map[string]localize.Message{
 		"settings.access_callout": {Text: "Diese Anzeigefakten erteilen keine Berechtigung; jeder RPC wird erneut vom Server autorisiert."},
 	},
 	"ar": {
+		"validation.summary_title": {Text: "راجع الحقول المميزة"}, "validation.summary_intro": {Text: "صحح هذه العناصر قبل المتابعة."}, "validation.generic_error": {Text: "تحقق من هذه القيمة وحاول مرة أخرى."}, "validation.required": {Text: "هذا الحقل مطلوب."},
 		"shell.skip_main": {Text: "الانتقال إلى المحتوى الرئيسي"}, "shell.search_employees": {Text: "البحث عن الموظفين"}, "shell.work_overview": {Text: "نظرة عامة على العمل"}, "shell.open_work": {Text: "فتح عملي"}, "shell.acting_self": {Text: "أنت تتصرف بصفتك"}, "shell.locale": {Text: "اللغة"}, "shell.profile_settings": {Text: "فتح إعدادات الملف الشخصي لـ {name}"}, "shell.myself": {Text: "فتح ملف الموظف الخاص بك، {name}"},
 		"global_search.label": {Text: "البحث في HCM Next"}, "global_search.placeholder": {Text: "ابحث عن الأشخاص والصفحات ومسارات العمل والإعدادات"}, "global_search.results": {Text: "نتائج البحث"}, "global_search.no_results": {Text: "لا توجد نتائج مطابقة من الأشخاص أو الصفحات أو مسارات العمل أو الإعدادات"}, "global_search.hint": {Text: "استخدم ↑↓ للتنقل · Enter للفتح"},
 		"global_search.kind_page": {Text: "صفحة"}, "global_search.kind_person": {Text: "شخص"}, "global_search.kind_workflow": {Text: "مسار عمل"}, "global_search.kind_setting": {Text: "إعداد"}, "global_search.kind_component": {Text: "ميزة"}, "global_search.kind_action": {Text: "إجراء"}, "global_search.promote_person": {Text: "بدء ترقية لـ {name}"},

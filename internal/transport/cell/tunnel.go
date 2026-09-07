@@ -14,6 +14,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/transport"
+	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
 )
 
 // TunnelPath is the edge route the gRPC-over-WebSocket bridge is mounted on.
@@ -96,10 +97,20 @@ const tunnelMaxConnectionsPerClient = 8
 // The tunnel is discovered the way it is reached: by the page shell that
 // hands its URL to the client (workspace.PathJourney's config island).
 func NewEdgeHandlerWithTunnel(c *app.Cell, grpcServer *grpc.Server, opts ...connect.HandlerOption) (http.Handler, error) {
+	return NewEdgeHandlerWithTunnelAndDependencies(c, grpcServer, nil, nil, nil, opts...)
+}
+
+// NewEdgeHandlerWithTunnelAndDependencies is [NewEdgeHandlerWithTunnel] with
+// the durable workflow and operation dependencies used by the application
+// composition. The tunnel and HTTP edge therefore publish the same handlers.
+func NewEdgeHandlerWithTunnelAndDependencies(
+	c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader,
+	operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption,
+) (http.Handler, error) {
 	if grpcServer == nil {
 		return nil, fmt.Errorf("transport cell: a gRPC server is required to mount the tunnel")
 	}
-	return buildEdgeHandler(c, grpcServer, opts...)
+	return buildEdgeHandlerWithDependencies(c, grpcServer, instances, operationStore, cursorKey, opts...)
 }
 
 // newTunnelHandler builds the bridge handler for one composed cell.

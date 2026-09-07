@@ -6,11 +6,11 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,11 +29,18 @@ import (
 const (
 	GetWorkflowProcedure        = "/hcmnext.workflow.v1.WorkflowService/GetWorkflow"
 	ListNodeExecutionsProcedure = "/hcmnext.workflow.v1.WorkflowService/ListNodeExecutions"
+	ActionGetWorkflow           = "get_workflow"
+	ActionListNodeExecutions    = "list_node_executions"
 	defaultPageSize             = 100
 	maxPageSize                 = 1000
 )
 
-var ErrNotFound = errors.New("workflow: instance not found")
+var (
+	ErrNotFound       = errors.New("workflow: instance not found")
+	ErrInvalidRecord  = errors.New("workflow: inspection record is invalid")
+	ErrInvalidCursor  = errors.New("workflow: inspection cursor is invalid")
+	ErrCursorKeyUnset = errors.New("workflow: inspection cursor key is unset")
+)
 
 // Instance is the redacted, transport-safe instance projection supplied by a
 // reader. It contains no payload bytes or provider response content.
@@ -146,12 +153,15 @@ func (s *server) GetWorkflow(ctx context.Context, req *workflowv1.GetWorkflowReq
 	if req == nil || strings.TrimSpace(req.GetInstanceId()) == "" {
 		return nil, invalid(inv, "instance_id")
 	}
-	if !s.authorized(p, "get_workflow") {
+	if !s.authorized(p, ActionGetWorkflow) {
 		return nil, denied(inv, p)
 	}
 	record, readErr := s.read(ctx, p.Tenant().String(), req.GetInstanceId())
 	if readErr != nil {
 		return nil, projectReadError(readErr, inv, p)
+	}
+	if err := validateRecord(record, p.Tenant().String(), req.GetInstanceId()); err != nil {
+		return nil, projectReadError(err, inv, p)
 	}
 	return &workflowv1.GetWorkflowResponse{Instance: ProjectInstance(record.Instance)}, nil
 }
@@ -164,12 +174,15 @@ func (s *server) ListNodeExecutions(ctx context.Context, req *workflowv1.ListNod
 	if req == nil || strings.TrimSpace(req.GetInstanceId()) == "" {
 		return nil, invalid(inv, "instance_id")
 	}
-	if !s.authorized(p, "list_node_executions") {
+	if !s.authorized(p, ActionListNodeExecutions) {
 		return nil, denied(inv, p)
 	}
 	record, readErr := s.read(ctx, p.Tenant().String(), req.GetInstanceId())
 	if readErr != nil {
 		return nil, projectReadError(readErr, inv, p)
+	}
+	if err := validateRecord(record, p.Tenant().String(), req.GetInstanceId()); err != nil {
+		return nil, projectReadError(err, inv, p)
 	}
 	nodes := append([]NodeExecution(nil), record.Nodes...)
 	sort.SliceStable(nodes, func(i, j int) bool {
@@ -181,21 +194,19 @@ func (s *server) ListNodeExecutions(ctx context.Context, req *workflowv1.ListNod
 		}
 		return nodes[i].NodeExecutionID < nodes[j].NodeExecutionID
 	})
-	start, cursorErr := decodeCursor(req.GetPage(), s.deps.CursorKey)
+	page := req.GetPage()
+	pageSize, pageErr := pageSizeOf(page)
+	if pageErr != nil {
+		return nil, invalid(inv, "page.page_size")
+	}
+	start, cursorErr := decodeSnapshotCursor(page, s.deps.CursorKey, p.Tenant().String(), req.GetInstanceId(), record.Instance.InstanceVersion)
 	if cursorErr != nil {
 		return nil, invalid(inv, "page.cursor")
-	}
-	pageSize := int32(defaultPageSize)
-	if req.GetPage() != nil && req.GetPage().GetPageSize() > 0 {
-		pageSize = req.GetPage().GetPageSize()
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
 	}
 	if start > len(nodes) {
 		return nil, invalid(inv, "page.cursor")
 	}
-	end := start + int(pageSize)
+	end := start + pageSize
 	if end > len(nodes) {
 		end = len(nodes)
 	}
@@ -204,9 +215,41 @@ func (s *server) ListNodeExecutions(ctx context.Context, req *workflowv1.ListNod
 		res.NodeExecutions = append(res.NodeExecutions, ProjectNodeExecution(node))
 	}
 	if end < len(nodes) {
-		res.Page.NextCursor = encodeCursor(end, s.deps.CursorKey)
+		cursor, encodeErr := encodeSnapshotCursor(snapshotCursor{
+			TenantID: p.Tenant().String(), InstanceID: req.GetInstanceId(),
+			InstanceVersion: record.Instance.InstanceVersion, Index: end,
+		}, s.deps.CursorKey)
+		if encodeErr != nil {
+			return nil, projectReadError(encodeErr, inv, p)
+		}
+		res.Page.NextCursor = cursor
 	}
 	return res, nil
+}
+
+func pageSizeOf(page *commonv1.PageRequest) (int, error) {
+	if page == nil || page.GetPageSize() == 0 {
+		return defaultPageSize, nil
+	}
+	if page.GetPageSize() < 0 || page.GetPageSize() > maxPageSize {
+		return 0, ErrInvalidCursor
+	}
+	return int(page.GetPageSize()), nil
+}
+
+func validateRecord(record Record, tenant, requestedID string) error {
+	if record.Instance.TenantID != "" && record.Instance.TenantID != tenant {
+		return ErrNotFound
+	}
+	if record.Instance.InstanceID != "" && record.Instance.InstanceID != requestedID {
+		return ErrNotFound
+	}
+	for _, node := range record.Nodes {
+		if node.WorkflowInstanceID != "" && node.WorkflowInstanceID != requestedID {
+			return ErrInvalidRecord
+		}
+	}
+	return nil
 }
 
 func (s *server) read(ctx context.Context, tenant, id string) (Record, error) {
@@ -362,36 +405,63 @@ func enumValue(values map[string]int32, state string) int32 {
 	}
 	return 0
 }
-func encodeCursor(index int, key []byte) string {
-	payload := strconv.Itoa(index)
-	mac := hmac.New(sha256.New, cursorKey(key))
-	_, _ = mac.Write([]byte(payload))
-	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-	return base64.RawURLEncoding.EncodeToString([]byte(payload + "." + sig))
+
+type snapshotCursor struct {
+	TenantID        string `json:"tenant_id"`
+	InstanceID      string `json:"instance_id"`
+	InstanceVersion uint64 `json:"instance_version"`
+	Index           int    `json:"index"`
 }
-func decodeCursor(page *commonv1.PageRequest, key []byte) (int, error) {
+
+func encodeSnapshotCursor(cursor snapshotCursor, key []byte) (string, error) {
+	secret, err := cursorKey(key)
+	if err != nil {
+		return "", err
+	}
+	payload, err := json.Marshal(cursor)
+	if err != nil {
+		return "", fmt.Errorf("workflow: encode inspection cursor: %w", err)
+	}
+	mac := hmac.New(sha256.New, secret)
+	_, _ = mac.Write(payload)
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	return base64.RawURLEncoding.EncodeToString(append(append(payload, '.'), []byte(sig)...)), nil
+}
+
+func decodeSnapshotCursor(page *commonv1.PageRequest, key []byte, tenant, instance string, version uint64) (int, error) {
 	if page == nil || page.GetCursor() == "" {
 		return 0, nil
 	}
+	secret, keyErr := cursorKey(key)
+	if keyErr != nil {
+		return 0, keyErr
+	}
 	raw, err := base64.RawURLEncoding.DecodeString(page.GetCursor())
 	if err != nil {
-		return 0, err
+		return 0, ErrInvalidCursor
 	}
-	parts := strings.Split(string(raw), ".")
+	parts := strings.SplitN(string(raw), ".", 2)
 	if len(parts) != 2 {
-		return 0, errors.New("invalid cursor")
+		return 0, ErrInvalidCursor
 	}
-	mac := hmac.New(sha256.New, cursorKey(key))
-	_, _ = mac.Write([]byte(parts[0]))
 	got, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil || !hmac.Equal(got, mac.Sum(nil)) {
-		return 0, errors.New("invalid cursor")
+	if err != nil {
+		return 0, ErrInvalidCursor
 	}
-	return strconv.Atoi(parts[0])
+	mac := hmac.New(sha256.New, secret)
+	_, _ = mac.Write([]byte(parts[0]))
+	if !hmac.Equal(got, mac.Sum(nil)) {
+		return 0, ErrInvalidCursor
+	}
+	var cursor snapshotCursor
+	if err := json.Unmarshal([]byte(parts[0]), &cursor); err != nil || cursor.TenantID != tenant || cursor.InstanceID != instance || cursor.InstanceVersion != version || cursor.Index < 0 {
+		return 0, ErrInvalidCursor
+	}
+	return cursor.Index, nil
 }
-func cursorKey(key []byte) []byte {
+func cursorKey(key []byte) ([]byte, error) {
 	if len(key) != 0 {
-		return key
+		return key, nil
 	}
-	return []byte("hcmnext-workflow-inspection-cursor-v1")
+	return nil, ErrCursorKeyUnset
 }

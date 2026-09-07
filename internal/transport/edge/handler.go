@@ -98,6 +98,7 @@ func NewHandler(opts Options) (http.Handler, error) {
 	}
 	if opts.Journey != nil {
 		mux.Handle(transportjourney.ProposePromotionProcedure, transportjourney.NewProposePromotionHandler(*opts.Journey, handlerOptions...))
+		mux.Handle(transportjourney.ProposeIntoManagementProcedure, transportjourney.NewProposeIntoManagementHandler(*opts.Journey, handlerOptions...))
 	}
 	if opts.Workflow != nil {
 		h := transportworkflow.NewHandler(*opts.Workflow, handlerOptions...)
@@ -110,8 +111,8 @@ func NewHandler(opts Options) (http.Handler, error) {
 		mux.Handle(transportoperations.CancelOperationProcedure, h)
 	}
 	if opts.Health != nil {
-		mux.Handle("/healthz", opts.Health.Handler())
-		mux.Handle("/readyz", opts.Health.Handler())
+		mux.HandleFunc("/healthz", opts.Health.Healthz)
+		mux.HandleFunc("/readyz", opts.Health.Readyz)
 	}
 
 	handler := strictJSONMiddleware(mux, opts.Config, maxBody)

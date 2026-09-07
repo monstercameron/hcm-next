@@ -223,6 +223,7 @@ type View struct {
 	PreferenceVersion      int64
 	AppearanceVersion      int64
 	WorkerIDPolicy         WorkerIDPolicy
+	WorkerIDValidation     ValidationState
 	OrganizationVisibility OrganizationVisibilityPolicy
 	AccessRoles            []AccessRole
 	RoleAssignments        []WorkerRoleAssignment

@@ -33,6 +33,7 @@ var (
 	ErrNotFound       = errors.New("operations: operation not found")
 	ErrNotConfigured  = errors.New("operations: store is not configured")
 	ErrNotCancellable = errors.New("operations: operation is not cancellable")
+	ErrNotOwner       = errors.New("operations: operation is not visible to this principal")
 )
 
 // Record is the transport-safe operation view. It deliberately contains
@@ -79,12 +80,18 @@ func (s *MemoryStore) Put(record Record) error {
 	if !validState(record.State) {
 		return errors.New("operations: invalid operation state")
 	}
+	record.TenantID = strings.TrimSpace(record.TenantID)
+	record.OperationID = strings.TrimSpace(record.OperationID)
+	record.Owner = strings.TrimSpace(record.Owner)
+	record.RequestType = strings.TrimSpace(record.RequestType)
 	if record.CreatedAt.IsZero() {
 		record.CreatedAt = s.now().UTC()
 	}
 	if record.UpdatedAt.IsZero() {
 		record.UpdatedAt = record.CreatedAt
 	}
+	record.CreatedAt = record.CreatedAt.UTC()
+	record.UpdatedAt = record.UpdatedAt.UTC()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.records[record.TenantID+"\x00"+record.OperationID]; exists {
@@ -188,6 +195,9 @@ func (s *server) GetOperation(ctx context.Context, req *evidencev1.GetOperationR
 	if readErr != nil {
 		return nil, projectError(readErr, inv, p)
 	}
+	if !visibleTo(record, p) {
+		return nil, projectError(ErrNotOwner, inv, p)
+	}
 	return &evidencev1.GetOperationResponse{Operation: Project(record, p)}, nil
 }
 
@@ -202,6 +212,17 @@ func (s *server) CancelOperation(ctx context.Context, req *evidencev1.CancelOper
 	if s.store == nil {
 		return nil, unavailable(inv, p)
 	}
+	// Read and authorize before invoking the cancellation port. This keeps an
+	// unauthorized caller from turning a non-disclosing read into a durable
+	// state transition, even when a store's Cancel method does not repeat the
+	// owner check itself.
+	current, readErr := s.store.Get(ctx, p.Tenant().String(), req.GetOperationId())
+	if readErr != nil {
+		return nil, projectError(readErr, inv, p)
+	}
+	if !visibleTo(current, p) {
+		return nil, projectError(ErrNotOwner, inv, p)
+	}
 	record, cancelErr := s.store.Cancel(ctx, p.Tenant().String(), req.GetOperationId(), req.GetIdempotencyKey(), req.GetReasonRef())
 	if cancelErr != nil {
 		return nil, projectError(cancelErr, inv, p)
@@ -214,7 +235,26 @@ func Project(record Record, p *trust.Principal) *evidencev1.Operation {
 	if p != nil {
 		tenant = p.Tenant().String()
 	}
-	return &evidencev1.Operation{OperationId: record.OperationID, Scope: &commonv1.ScopeContext{TenantId: tenant}, State: projectState(record.State), Result: record.Result, Error: record.Error, MetadataRef: record.MetadataRef, CreatedAt: timestamp(record.CreatedAt), UpdatedAt: timestamp(record.UpdatedAt)}
+	result, detail := record.Result, record.Error
+	if record.State != streaming.OperationSucceeded {
+		result = nil
+	}
+	if record.State != streaming.OperationFailed {
+		detail = nil
+	}
+	return &evidencev1.Operation{OperationId: record.OperationID, Scope: &commonv1.ScopeContext{TenantId: tenant}, State: projectState(record.State), Result: result, Error: detail, MetadataRef: record.MetadataRef, CreatedAt: timestamp(record.CreatedAt), UpdatedAt: timestamp(record.UpdatedAt)}
+}
+
+// visibleTo applies the endpoint's owner boundary. Tenant scoping is already
+// enforced by the Store call; owner scoping is kept here because the transport
+// contract must not assume that a persistence adapter has performed the second
+// authorization check. A record without an owner is deliberately not visible
+// through an authenticated operation endpoint.
+func visibleTo(record Record, p *trust.Principal) bool {
+	return p != nil &&
+		strings.TrimSpace(record.TenantID) == p.Tenant().String() &&
+		strings.TrimSpace(record.Owner) != "" &&
+		record.Owner == p.Subject()
 }
 
 func projectState(state streaming.OperationState) evidencev1.OperationState {
@@ -284,7 +324,7 @@ func unavailable(inv *transport.Invocation, p *trust.Principal) *envelope.Error 
 }
 func projectError(err error, inv *transport.Invocation, p *trust.Principal) *envelope.Error {
 	code, reason, message := envelope.CodeUnavailable, "operations.unavailable", "operations are unavailable"
-	if errors.Is(err, ErrNotFound) {
+	if errors.Is(err, ErrNotFound) || errors.Is(err, ErrNotOwner) {
 		code, reason, message = envelope.CodeNotFound, "operations.not_found", "the operation does not exist or is not visible"
 	}
 	if errors.Is(err, ErrNotCancellable) {

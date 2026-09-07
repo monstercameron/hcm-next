@@ -52,15 +52,16 @@ var requestFactories = map[string]func() proto.Message{
 	ProcedureExplainIntent:      func() proto.Message { return &intentsv1.ExplainIntentRequest{} },
 	ProcedureListIntentTimeline: func() proto.Message { return &intentsv1.ListIntentTimelineRequest{} },
 
-	ProcedureListIntentDefinitions:                func() proto.Message { return &registryv1.ListIntentDefinitionsRequest{} },
-	ProcedureGetIntentDefinition:                  func() proto.Message { return &registryv1.GetIntentDefinitionRequest{} },
-	ProcedureListCapabilities:                     func() proto.Message { return &registryv1.ListCapabilitiesRequest{} },
-	ProcedureGetCapability:                        func() proto.Message { return &registryv1.GetCapabilityRequest{} },
-	transportjourney.ProposePromotionProcedure:    func() proto.Message { return &journeyv1.ProposePromotionRequest{} },
-	transportworkflow.GetWorkflowProcedure:        func() proto.Message { return &workflowv1.GetWorkflowRequest{} },
-	transportworkflow.ListNodeExecutionsProcedure: func() proto.Message { return &workflowv1.ListNodeExecutionsRequest{} },
-	transportoperations.GetOperationProcedure:     func() proto.Message { return &evidencev1.GetOperationRequest{} },
-	transportoperations.CancelOperationProcedure:  func() proto.Message { return &evidencev1.CancelOperationRequest{} },
+	ProcedureListIntentDefinitions:                  func() proto.Message { return &registryv1.ListIntentDefinitionsRequest{} },
+	ProcedureGetIntentDefinition:                    func() proto.Message { return &registryv1.GetIntentDefinitionRequest{} },
+	ProcedureListCapabilities:                       func() proto.Message { return &registryv1.ListCapabilitiesRequest{} },
+	ProcedureGetCapability:                          func() proto.Message { return &registryv1.GetCapabilityRequest{} },
+	transportjourney.ProposePromotionProcedure:      func() proto.Message { return &journeyv1.ProposePromotionRequest{} },
+	transportjourney.ProposeIntoManagementProcedure: func() proto.Message { return &journeyv1.ProposePromotionRequest{} },
+	transportworkflow.GetWorkflowProcedure:          func() proto.Message { return &workflowv1.GetWorkflowRequest{} },
+	transportworkflow.ListNodeExecutionsProcedure:   func() proto.Message { return &workflowv1.ListNodeExecutionsRequest{} },
+	transportoperations.GetOperationProcedure:       func() proto.Message { return &evidencev1.GetOperationRequest{} },
+	transportoperations.CancelOperationProcedure:    func() proto.Message { return &evidencev1.CancelOperationRequest{} },
 }
 
 // Procedures returns every procedure path this edge publishes.

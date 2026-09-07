@@ -18,6 +18,15 @@ const interactionLatencySamples = 25
 // SLOs are measured independently, while this gate proves client compute can
 // acknowledge work and compose the next state without adding perceptible lag.
 func TestInteractionLatencyGate(t *testing.T) {
+	t.Run("validation feedback within one frame", func(t *testing.T) {
+		assertInteractionLatency(t, latencygate.Budget{
+			Name: "validation feedback", P95: 16 * time.Millisecond, Warmups: 3, Samples: interactionLatencySamples,
+		}, func() error {
+			_, err := validationFixture("en-US")
+			return err
+		})
+	})
+
 	t.Run("loading feedback within one frame", func(t *testing.T) {
 		view := testView(PagePeople)
 		assertInteractionLatency(t, latencygate.Budget{

@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 )
@@ -33,6 +35,7 @@ type Server struct {
 	healthpb.UnimplementedHealthServer
 	deps      Dependencies
 	mu        sync.Mutex
+	checkMu   sync.Mutex
 	checkedAt time.Time
 	ready     bool
 }
@@ -62,16 +65,103 @@ func New(deps Dependencies) *Server {
 func Register(srv *grpc.Server, deps Dependencies) { healthpb.RegisterHealthServer(srv, New(deps)) }
 
 func (s *Server) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
-	if req != nil && req.GetService() == ReadyService {
-		if s.isReady(ctx) {
-			return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
+	service := ""
+	if req != nil {
+		service = req.GetService()
+	}
+	serving, err := s.serving(ctx, service)
+	if err != nil {
+		return nil, err
+	}
+	return &healthpb.HealthCheckResponse{Status: servingStatus(serving)}, nil
+}
+
+// List returns the two intentionally public health names. It exposes no
+// dependency names, role names or readiness failure reasons.
+func (s *Server) List(ctx context.Context, _ *healthpb.HealthListRequest) (*healthpb.HealthListResponse, error) {
+	live, err := s.serving(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+	ready, err := s.serving(ctx, ReadyService)
+	if err != nil {
+		return nil, err
+	}
+	return &healthpb.HealthListResponse{Statuses: map[string]*healthpb.HealthCheckResponse{
+		"":           {Status: servingStatus(live)},
+		ReadyService: {Status: servingStatus(ready)},
+	}}, nil
+}
+
+// Watch implements the standard gRPC health watch contract. The initial
+// response is immediate; later responses are emitted only when the observed
+// status changes. Polling is deliberately no faster than the configured
+// readiness cache interval, keeping health traffic bounded.
+func (s *Server) Watch(req *healthpb.HealthCheckRequest, stream grpc.ServerStreamingServer[healthpb.HealthCheckResponse]) error {
+	if stream == nil {
+		return status.Error(codes.InvalidArgument, "health stream is required")
+	}
+	service := ""
+	if req != nil {
+		service = req.GetService()
+	}
+	if service != "" && service != ReadyService {
+		if err := stream.Send(&healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_UNKNOWN}); err != nil {
+			return err
 		}
-		return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_NOT_SERVING}, nil
+		<-stream.Context().Done()
+		return stream.Context().Err()
 	}
-	if s.isLive() {
-		return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
+
+	last, err := s.serving(stream.Context(), service)
+	if err != nil {
+		return err
 	}
-	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_NOT_SERVING}, nil
+	if err := stream.Send(&healthpb.HealthCheckResponse{Status: servingStatus(last)}); err != nil {
+		return err
+	}
+	interval := s.deps.CheckInterval
+	if interval <= 0 {
+		interval = 5 * time.Second
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stream.Context().Done():
+			return stream.Context().Err()
+		case <-ticker.C:
+			current, checkErr := s.serving(stream.Context(), service)
+			if checkErr != nil {
+				return checkErr
+			}
+			if current == last {
+				continue
+			}
+			if err := stream.Send(&healthpb.HealthCheckResponse{Status: servingStatus(current)}); err != nil {
+				return err
+			}
+			last = current
+		}
+	}
+}
+
+func (s *Server) serving(ctx context.Context, service string) (bool, error) {
+	switch service {
+	case "":
+		return s.isLive(), nil
+	case ReadyService:
+		return s.isReady(ctx), nil
+	default:
+		return false, status.Error(codes.NotFound, "health service is not registered")
+	}
+}
+
+func servingStatus(serving bool) healthpb.HealthCheckResponse_ServingStatus {
+	if serving {
+		return healthpb.HealthCheckResponse_SERVING
+	}
+	return healthpb.HealthCheckResponse_NOT_SERVING
 }
 
 func (s *Server) Healthz(w http.ResponseWriter, r *http.Request) { s.writeStatus(w, s.isLive()) }
@@ -89,6 +179,12 @@ func (s *Server) Handler() http.Handler {
 func (s *Server) isLive() bool { return s.deps.Live == nil || s.deps.Live() }
 
 func (s *Server) isReady(parent context.Context) bool {
+	// Serialize refreshes so concurrent probes cannot stampede a dependency.
+	// The lock is held only for the bounded check and is not held while reading
+	// or writing the cached result.
+	s.checkMu.Lock()
+	defer s.checkMu.Unlock()
+
 	now := s.deps.Now().UTC()
 	s.mu.Lock()
 	if !s.checkedAt.IsZero() && now.Sub(s.checkedAt) < s.deps.CheckInterval {

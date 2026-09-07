@@ -9,6 +9,7 @@ The initial product budgets are:
 
 | Interaction | Workload | p95 budget |
 | --- | --- | ---: |
+| Validation feedback | Render a localized error summary and linked invalid fields | 16 ms |
 | Loading feedback | Render the network-backed page loading proxy | 16 ms |
 | People query | Filter, sort, paginate, and render 100 rows from 10,000 indexed workers | 100 ms |
 | Page transition | Render each registered leaf page | 50 ms |

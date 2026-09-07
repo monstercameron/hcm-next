@@ -60,7 +60,7 @@ import (
 // UNAVAILABLE, matching every other optional transportadmin.Dependencies
 // port a caller does not wire.
 func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspector(c, nil, opts...)
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, nil, nil, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspector is [NewGRPCServer] plus ADMIN-008's
@@ -76,6 +76,18 @@ func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error)
 // tie the two together. Nil leaves GetWorkflowInstance UNAVAILABLE.
 func NewGRPCServerWithWorkflowInspector(
 	c *app.Cell, instances app.WorkflowInstanceReader, opts ...grpc.ServerOption,
+) (*grpc.Server, error) {
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, instances, nil, nil, opts...)
+}
+
+// NewGRPCServerWithWorkflowInspectorAndOperations is
+// [NewGRPCServerWithWorkflowInspector] plus the durable operation store and
+// the shared cursor-signing key used by both published transports. The
+// application root owns construction of these adapters; this package only
+// threads the already-composed ports into the listener-facing services.
+func NewGRPCServerWithWorkflowInspectorAndOperations(
+	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	cursorKey []byte, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
@@ -119,10 +131,11 @@ func NewGRPCServerWithWorkflowInspector(
 		Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs,
 	})
 	// The workflow transport consumes its string-ID reader port. The existing
-	// application reader remains owned by AdminService; a composition that
-	// wants this inspection projection supplies the transport reader adapter.
-	transportworkflow.Register(srv, transportworkflow.Dependencies{})
-	transportoperations.Register(srv, transportoperations.Dependencies{})
+	// application reader remains owned by AdminService; this adapter supplies
+	// the same durable record without moving database access into transport.
+	workflowDeps := transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)}
+	transportworkflow.Register(srv, workflowDeps)
+	transportoperations.Register(srv, transportoperations.Dependencies{Store: operationStore})
 	transporthealth.Register(srv, transporthealth.Dependencies{})
 	return srv, nil
 }
@@ -137,11 +150,25 @@ func NewEdgeHandler(c *app.Cell, opts ...connect.HandlerOption) (http.Handler, e
 	return buildEdgeHandler(c, nil, opts...)
 }
 
+// NewEdgeHandlerWithDependencies builds the HTTP edge with the same workflow
+// reader, operation store and cursor key as the gRPC surface. It is the
+// non-tunnel counterpart of [NewEdgeHandlerWithTunnelAndDependencies].
+func NewEdgeHandlerWithDependencies(
+	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	cursorKey []byte, opts ...connect.HandlerOption,
+) (http.Handler, error) {
+	return buildEdgeHandlerWithDependencies(c, nil, instances, operationStore, cursorKey, opts...)
+}
+
 // buildEdgeHandler is the one edge composition both [NewEdgeHandler] and
 // [NewEdgeHandlerWithTunnel] run. A nil grpcServer means no tunnel is
 // mounted, which is exactly what NewEdgeHandler has always built; a non-nil
 // one adds [TunnelPath] to the same mux and changes nothing else.
 func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.HandlerOption) (http.Handler, error) {
+	return buildEdgeHandlerWithDependencies(c, grpcServer, nil, nil, nil, opts...)
+}
+
+func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader, operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption) (http.Handler, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
@@ -150,9 +177,10 @@ func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.Hand
 	}
 	rpc, err := edge.NewHandler(edge.Options{
 		Config: c.Config, Intent: c.Service, Registry: c.Service,
-		Journey:  &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs},
-		Workflow: &transportworkflow.Dependencies{}, Operations: &transportoperations.Dependencies{},
-		Health: transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
+		Journey:    &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs},
+		Workflow:   &transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)},
+		Operations: &transportoperations.Dependencies{Store: operationStore},
+		Health:     transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
 	})
 	if err != nil {
 		return nil, err
