@@ -35,6 +35,14 @@ func TestParseGoTestOutput_ClassifiesEveryPackageLineAndIgnoresNoise(t *testing.
 		t.Fatalf("parsed %d results, want %d: %+v", len(got), len(want), got)
 	}
 	for _, r := range got {
+		if r.Package == Module+"/internal/domains/access" && (len(r.FailedTests) != 1 || r.FailedTests[0] != "TestSomething" || !strings.Contains(r.Line, "TestSomething")) {
+			t.Fatalf("a failing package must carry the names of its failing tests, got %+v", r)
+		}
+		if r.Package == Module+"/internal/broken" && len(r.FailedTests) != 0 {
+			t.Fatalf("a build failure must not inherit another package's failing tests, got %+v", r)
+		}
+	}
+	for _, r := range got {
 		w, ok := want[r.Package]
 		if !ok {
 			t.Fatalf("unexpected package %s", r.Package)

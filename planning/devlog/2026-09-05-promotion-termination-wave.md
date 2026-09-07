@@ -479,3 +479,18 @@ organization-structure-maximal-2026.md` and the 30-table draft
   runtimestate, workforce fixtures, pseudonym custody, jobarch digest,
   commercial fingerprint, pgtest rollback pin, deferred schema preview) and
   the policy-tool pins are in two fix lanes.
+- **Fix lanes landed.** The data-plane lane's fixes verified green in all
+  eleven packages once I corrected the workforce fixture it had left alone
+  (migration 00181 made worker numbers unique per tenant). The policy lane
+  re-pinned the capability-binding allowlist and wire-method count, moved
+  the transformation engine off the direct decimal import, refreshed the
+  race-policy, release-admission, gensources, table-inventory and phase-one
+  goldens, quarantined the skipped tests, declared the two detached test
+  harnesses, regenerated the generator outputs, and made the TOOL-012 race
+  tests skip where no race detector exists. The contact domain now
+  normalises Unicode through a kernel helper instead of importing x/text,
+  and the dependency roles declare the reservation store's uuid use and the
+  east-west transport's manifest parser. What the library firewall still
+  reports is the front-end session's: experience/i18n, productui,
+  uicomponents, workspace and the uxqual tools importing x/text,
+  GoWebComponents and x/net outside their declared roots.

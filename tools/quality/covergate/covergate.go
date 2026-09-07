@@ -71,6 +71,9 @@ type Result struct {
 	Coverage    float64
 	HasCoverage bool
 	Line        string
+	// FailedTests names the tests go test reported as failing for this
+	// package, so a hook log says which test broke, not just which package.
+	FailedTests []string
 }
 
 // Finding is one refusal the gate reports.
@@ -139,6 +142,9 @@ var (
 	coverageTag = regexp.MustCompile(`coverage:\s+([0-9.]+)% of statements`)
 	noTestsLine = regexp.MustCompile(`^\?\s+(\S+)\s+\[no test files\]`)
 	failLine    = regexp.MustCompile(`^FAIL\s+(\S+)(?:\s+.*)?$`)
+	// failedTestLine is go test's per-test failure marker, printed before
+	// the package summary line it belongs to.
+	failedTestLine = regexp.MustCompile(`^\s*--- FAIL: (\S+)`)
 )
 
 // ParseGoTestOutput turns go test's per-package summary lines into results.
@@ -146,8 +152,13 @@ var (
 // Windows unlink complaint) are ignored.
 func ParseGoTestOutput(out string) []Result {
 	var results []Result
-	for _, raw := range strings.Split(out, "\n") {
+	var failed []string
+	for raw := range strings.SplitSeq(out, "\n") {
 		line := strings.TrimRight(raw, "\r")
+		if m := failedTestLine.FindStringSubmatch(line); m != nil {
+			failed = append(failed, m[1])
+			continue
+		}
 		if m := okLine.FindStringSubmatch(line); m != nil {
 			r := Result{Package: m[1], Status: "ok", Line: line}
 			if c := coverageTag.FindStringSubmatch(m[2]); c != nil {
@@ -163,7 +174,12 @@ func ParseGoTestOutput(out string) []Result {
 			continue
 		}
 		if m := failLine.FindStringSubmatch(line); m != nil && m[1] != "" {
-			results = append(results, Result{Package: m[1], Status: "fail", Line: line})
+			detail := line
+			if len(failed) > 0 {
+				detail = line + " (" + strings.Join(failed, ", ") + ")"
+			}
+			results = append(results, Result{Package: m[1], Status: "fail", Line: detail, FailedTests: append([]string(nil), failed...)})
+			failed = nil
 		}
 	}
 	return results
