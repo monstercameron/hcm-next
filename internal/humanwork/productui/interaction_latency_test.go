@@ -27,6 +27,18 @@ func TestInteractionLatencyGate(t *testing.T) {
 		})
 	})
 
+	t.Run("multidimensional status feedback within one frame", func(t *testing.T) {
+		projection := canonicalStatusFixture()
+		assertInteractionLatency(t, latencygate.Budget{
+			Name: "multidimensional status feedback", P95: 16 * time.Millisecond, Warmups: 3, Samples: interactionLatencySamples,
+		}, func() error {
+			_, err := ui.RenderToString(ui.CreateElement(StatusPresentation, StatusPresentationProps{
+				I18nProps: I18nProps{Locale: ResolveProductLocale("en-US")}, IDSeed: "latency-status", Projection: projection,
+			}))
+			return err
+		})
+	})
+
 	t.Run("loading feedback within one frame", func(t *testing.T) {
 		view := testView(PagePeople)
 		assertInteractionLatency(t, latencygate.Budget{

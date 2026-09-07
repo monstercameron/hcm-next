@@ -61,6 +61,9 @@ type WorkItem struct {
 	CurrentBase     values.Money
 	ProposedBase    values.Money
 	Terminal        bool
+	// StatusProjection is supplied by the authorized service adapter when
+	// available. The page never treats it as action authority.
+	StatusProjection StatusProjection
 }
 
 type Person struct {

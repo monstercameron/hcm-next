@@ -12,18 +12,18 @@ func TestWorkComponentsRenderWithoutPageProjection(t *testing.T) {
 		Collection: WorkCollectionProps{
 			Title: "Promotion journeys", CountLabel: "1 item",
 			Tabs:   []WorkTabProps{{Label: "All work", Href: "/work", Active: true}},
-			Rows:   []WorkRowProps{{Initials: "AP", Title: "Promotion", Person: "Avery Patel", Summary: "Director", Status: "Awaiting approval", Tone: "warning", Href: "/work/one", Selected: true}},
+			Rows:   []WorkRowProps{{Initials: "AP", Title: "Promotion", Person: "Avery Patel", Summary: "Director", Href: "/work/one", Selected: true}},
 			Footer: WorkCollectionFooterProps{Label: "Authorized work", Action: ActionLinkProps{Label: "View My Work →", Href: "/work"}},
 		},
 		Preview: WorkPreviewProps{
-			Initials: "AP", Title: "Promotion", Person: "Avery Patel", Summary: "Director", Status: "Awaiting approval", Tone: "warning", FactsTitle: "Proposal",
+			Initials: "AP", Title: "Promotion", Person: "Avery Patel", Summary: "Director", FactsTitle: "Proposal",
 			Facts: []FactProps{{Label: "Effective date", Value: "2026-10-01"}}, Action: ActionLinkProps{Label: "Open live journey", Href: "/journey", Class: "button primary full"},
 		},
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"Promotion journeys", "1 item", "Avery Patel", "Awaiting approval", "Effective date", "2026-10-01", `href="/journey"`} {
+	for _, want := range []string{"Promotion journeys", "1 item", "Avery Patel", "Lifecycle status is not available in this view", "Effective date", "2026-10-01", `href="/journey"`} {
 		if !strings.Contains(markup, want) {
 			t.Fatalf("standalone Work composition missing %q", want)
 		}

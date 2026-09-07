@@ -1,5 +1,6 @@
 // Command quality is the TOOL-011 authoritative quality gate: it runs
-// gofmt -l, go vet ./... and go tool staticcheck ./... over the root
+// gofmt -l, go vet ./..., go tool staticcheck ./..., and the registry-driven
+// frontend localization/accessibility matrix over the root
 // module and exits non-zero if any of them reports a problem. Run it with
 // `go run ./tools/quality` from the repository root.
 package main
@@ -68,6 +69,14 @@ func main() {
 		fmt.Print(out)
 	} else {
 		fmt.Println("staticcheck: clean")
+	}
+
+	fmt.Println("== frontend i18n + accessibility ==")
+	if out, passed := runFrontendExperienceGate(root); !passed {
+		ok = false
+		fmt.Print(out)
+	} else {
+		fmt.Println("frontend i18n + accessibility: clean")
 	}
 
 	if !ok {

@@ -1,6 +1,7 @@
 package localize
 
 import (
+	"fmt"
 	"math/big"
 	"sync"
 	"testing"
@@ -68,6 +69,32 @@ func TestTodo_I18N_002_Race(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			_, _ = r.Resolve(Context{Locale: "en-US", CatalogVersion: "v1"}, "welcome", ResolveOptions{})
+		}()
+	}
+	wg.Wait()
+}
+
+func TestRegistryConcurrentRegistrationAndResolution(t *testing.T) {
+	r := fixtureRegistry(t)
+	var wg sync.WaitGroup
+	for i := 0; i < 20; i++ {
+		wg.Add(2)
+		go func(version int) {
+			defer wg.Done()
+			_ = r.Register(Catalog{
+				Locale:  "de-DE",
+				Version: fmt.Sprintf("concurrent-%d", version),
+				Messages: map[string]Message{
+					"welcome": {Text: "Willkommen"},
+				},
+			})
+		}(i)
+		go func() {
+			defer wg.Done()
+			got, err := r.Resolve(Context{Locale: "en-US", CatalogVersion: "v1"}, "welcome", ResolveOptions{})
+			if err != nil || got.Text == "" {
+				t.Errorf("concurrent resolve failed: %+v, %v", got, err)
+			}
 		}()
 	}
 	wg.Wait()

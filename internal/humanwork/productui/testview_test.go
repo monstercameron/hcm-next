@@ -3,6 +3,7 @@ package productui
 import (
 	"strings"
 
+	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -23,8 +24,8 @@ func testMoney(amount, currency string) values.Money {
 func testView(page PageID) View {
 	view := NewView(page, "tenant-test", "Taylor", "manager")
 	view.Work = []WorkItem{
-		{ID: "intent-1", Initials: "JL", Title: "Promotion journey", Person: "Jordan Lee", Summary: "ENG2 G6 → ENG3 G7", Status: "Awaiting approval", Due: "2026-09-15", Tone: "warning", Href: "/workspace/app/journeys?journey=intent-1", EffectiveDate: "2026-09-15"},
-		{ID: "intent-2", Initials: "AP", Title: "Promotion journey", Person: "Avery Patel", PersonRef: "worker-avery", Summary: "DES2 G6 → DES3 G7", Status: "Completed", Tone: "success", Terminal: true, EffectiveDate: "2026-08-01", CompletedAt: "4 Aug 2026 · 14:32 UTC", InstanceID: "instance-2", InstanceVersion: 9, MaterialDigest: "sha256:proposal-2", Href: "/workspace/app/journeys?journey=intent-2"},
+		{ID: "intent-1", Initials: "JL", Title: "Promotion journey", Person: "Jordan Lee", Summary: "ENG2 G6 → ENG3 G7", Status: "Awaiting approval", Due: "2026-09-15", Tone: "warning", Href: "/workspace/app/journeys?journey=intent-1", EffectiveDate: "2026-09-15", StatusProjection: CompleteStatusProjection(&intentsv1.LifecycleDimensions{Request: intentsv1.RequestState_REQUEST_STATE_SUBMITTED, Execution: intentsv1.ExecutionState_EXECUTION_STATE_NOT_PLANNED, Business: intentsv1.BusinessState_BUSINESS_STATE_NOT_STARTED, Consistency: intentsv1.ConsistencyState_CONSISTENCY_STATE_NOT_APPLICABLE, Obligation: intentsv1.ObligationState_OBLIGATION_STATE_PENDING})},
+		{ID: "intent-2", Initials: "AP", Title: "Promotion journey", Person: "Avery Patel", PersonRef: "worker-avery", Summary: "DES2 G6 → DES3 G7", Status: "Completed", Tone: "success", Terminal: true, EffectiveDate: "2026-08-01", CompletedAt: "4 Aug 2026 · 14:32 UTC", InstanceID: "instance-2", InstanceVersion: 9, MaterialDigest: "sha256:proposal-2", Href: "/workspace/app/journeys?journey=intent-2", StatusProjection: CompleteStatusProjection(&intentsv1.LifecycleDimensions{Request: intentsv1.RequestState_REQUEST_STATE_CLOSED, Execution: intentsv1.ExecutionState_EXECUTION_STATE_COMMITTED, Business: intentsv1.BusinessState_BUSINESS_STATE_COMPLETED, Consistency: intentsv1.ConsistencyState_CONSISTENCY_STATE_CONSISTENT, Obligation: intentsv1.ObligationState_OBLIGATION_STATE_SATISFIED})},
 	}
 	view.People = []Person{
 		{ID: "worker-jordan", Initials: "JL", Name: "Jordan Lee", Role: "ENG2 · G6", Team: "Strategy", Location: "New York"},

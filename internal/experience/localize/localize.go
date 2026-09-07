@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -41,7 +42,10 @@ type Catalog struct {
 }
 type CatalogRevision = Catalog
 
-type Registry struct{ catalogs map[string]Catalog }
+type Registry struct {
+	mu       sync.RWMutex
+	catalogs map[string]Catalog
+}
 
 func NewRegistry() *Registry { return &Registry{catalogs: make(map[string]Catalog)} }
 func (r *Registry) Register(c Catalog) error {
@@ -56,6 +60,8 @@ func (r *Registry) Register(c Catalog) error {
 	}
 	c.Locale = canonicalLocale(c.Locale)
 	c.Messages = m
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	if r.catalogs == nil {
 		r.catalogs = make(map[string]Catalog)
 	}
@@ -63,6 +69,8 @@ func (r *Registry) Register(c Catalog) error {
 	return nil
 }
 func (r *Registry) Catalog(locale, version string) (Catalog, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	c, ok := r.catalogs[canonicalLocale(locale)+"\x00"+version]
 	if !ok {
 		return Catalog{}, false
@@ -97,8 +105,14 @@ func (r *Registry) Resolve(ctx Context, key string, o ResolveOptions) (Result, e
 	locales := append([]string{ctx.Locale}, o.Fallback...)
 	var msg Message
 	var used, version string
+	r.mu.RLock()
 	for _, loc := range locales {
-		if c, ok := r.Catalog(loc, ctx.CatalogVersion); ok {
+		// Resolve is read-only and can safely inspect the registry's immutable
+		// registered catalog. Catalog() clones the complete message map for
+		// callers that may mutate it; doing that for every rendered label made a
+		// five-dimension status presentation allocate the whole product catalog
+		// eleven times per render.
+		if c, ok := r.catalogs[canonicalLocale(loc)+"\x00"+ctx.CatalogVersion]; ok {
 			if x, yes := c.Messages[key]; yes {
 				msg = x
 				used = c.Locale
@@ -107,6 +121,7 @@ func (r *Registry) Resolve(ctx Context, key string, o ResolveOptions) (Result, e
 			}
 		}
 	}
+	r.mu.RUnlock()
 	if used == "" {
 		return Result{}, fmt.Errorf("%w: %s", ErrMissingMessage, key)
 	}

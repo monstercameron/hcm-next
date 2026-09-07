@@ -42,10 +42,11 @@ func workCollectionProps(view View, options workCollectionOptions) WorkCollectio
 	rows := make([]WorkRowProps, 0, len(items))
 	for _, item := range items {
 		rows = append(rows, WorkRowProps{
-			Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-			Summary: item.Summary, Status: item.Status, Due: item.Due, Tone: item.Tone,
-			Href:     statefulHref(view, PageWork, "filter", view.WorkFilter, "selected", item.ID),
-			Selected: options.ListDetail && item.ID == selectedID, Navigate: view.Navigate,
+			ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
+			Summary: item.Summary, Due: item.Due,
+			StatusProjection: item.StatusProjection,
+			Href:             statefulHref(view, PageWork, "filter", view.WorkFilter, "selected", item.ID),
+			Selected:         options.ListDetail && item.ID == selectedID, Navigate: view.Navigate,
 		})
 	}
 	return WorkCollectionProps{
@@ -87,8 +88,8 @@ func workPreviewProps(view View, item WorkItem) WorkPreviewProps {
 		}
 	}
 	return WorkPreviewProps{
-		Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-		Summary: item.Summary, Status: item.Status, Tone: item.Tone, FactsTitle: view.Locale.Text("work.server_proposal"),
+		ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
+		Summary: item.Summary, StatusProjection: item.StatusProjection, FactsTitle: view.Locale.Text("work.server_proposal"),
 		Facts: []FactProps{
 			{Label: view.Locale.Text("work.effective_date"), Value: valueOrUnavailableFor(view.Locale, item.EffectiveDate)},
 			{Label: view.Locale.Text("work.current_base"), Value: money(view.Locale, item.CurrentBase)},

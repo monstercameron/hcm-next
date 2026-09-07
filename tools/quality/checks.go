@@ -111,3 +111,22 @@ func runStaticcheck(root, pattern string) (string, bool) {
 	out, err := cmd.CombinedOutput()
 	return string(out), err == nil
 }
+
+// runFrontendExperienceGate executes the registry-driven production matrix
+// rather than a hand-maintained page list. A newly registered page or locale
+// therefore joins both the localization and accessibility release gate.
+func runFrontendExperienceGate(root string) (string, bool) {
+	cmd := frontendExperienceGateCommand(root)
+	out, err := cmd.CombinedOutput()
+	return string(out), err == nil
+}
+
+func frontendExperienceGateCommand(root string) *exec.Cmd {
+	cmd := exec.Command(
+		"go", "test", "-count=1",
+		"-run", "^TestFrontendI18nAccessibilityGateEveryRegisteredPage$",
+		"./internal/humanwork/productui",
+	)
+	cmd.Dir = root
+	return cmd
+}
