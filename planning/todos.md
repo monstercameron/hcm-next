@@ -15384,7 +15384,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-021` **[GATE_C][TERRA] Define multidimensional status presentation.**
+- [x] `WEB-021` **[GATE_C][TERRA] Define multidimensional status presentation.**
   - **Depends:** `WEB-020`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define multidimensional status presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_021`.
@@ -15393,6 +15393,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—define multidimensional status presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
+  - **Evidence (2026-09-06):** `TestTodo_WEB_021`, `TestTodo_WEB_021_Golden`, `TestTodo_WEB_021_Browser`, and `TestTodo_WEB_021_Conformance` prove a reusable GoWebComponents presentation of the five canonical lifecycle dimensions with typed protobuf enums, explicit presence/redaction handling, stable hashed DOM identity, independent contradictory states, localized text+glyph cues, responsive/dark/forced-color/reduced-motion styling, and no aggregate status authority; `TestFrontendI18nAccessibilityGateEveryRegisteredPage` passes the complete 17-page × 3-locale registry matrix and is now wired into `go run ./tools/quality` as a release gate; Codex in-app browser review covered light, dark, and RTL Arabic layouts and caught/refined truncated labels plus incomplete accessible link names; focused interaction p95 remained 0.55 ms against the 16 ms budget and `BenchmarkStatusPresentationRendering` measured 61.6–68.5 µs/op, 25,120 B/op, 244 allocs/op; focused `productui`, `localize`, journey transport/client/render/WASM, and quality-gate tests pass on windows/amd64 (Go 1.26.3); implemented by a GPT-5.6 Luna lane, independently corrected by GPT-5.6 Sol, and refined through manual visual QA.
 
 - [ ] `WEB-022` **[GATE_C][TERRA] Define the provenance visual grammar.**
   - **Depends:** `WEB-021`.
