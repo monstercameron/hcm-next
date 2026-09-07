@@ -29,7 +29,9 @@ type KindMatcher struct {
 	Pattern *regexp.Regexp
 }
 
-func mustMatch(expr string) *regexp.Regexp { return regexp.MustCompile(`(?i)` + expr) }
+// mustMatch is called only from the fixed kindMatchers table during package
+// initialisation, so each expression compiles once.
+func mustMatch(expr string) *regexp.Regexp { return regexp.MustCompile(`(?i)` + expr) } // regexhoist:dynamic
 
 // kindMatchers is the evidence table, in kind-ordinal order.
 var kindMatchers = []KindMatcher{
@@ -208,10 +210,12 @@ func ReadsRecommendation(text string) bool { return recommendationRE.MatchString
 // --- numbers ----------------------------------------------------------------
 
 var (
-	dayRE   = regexp.MustCompile(`(?i)\b(\d{1,3})[- ](calendar |business |working |)days?\b`)
-	yearRE  = regexp.MustCompile(`(?i)\b(\d{1,2})[- ]?(?:\+\s*)?years?\b`)
-	moneyRE = regexp.MustCompile(`\$\s?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)`)
-	countRE = regexp.MustCompile(`\b(\d{1,4})\+?\s*(?:or more\s*)?(?:employees|workers)\b`)
+	dayRE             = regexp.MustCompile(`(?i)\b(\d{1,3})[- ](calendar |business |working |)days?\b`)
+	yearRE            = regexp.MustCompile(`(?i)\b(\d{1,2})[- ]?(?:\+\s*)?years?\b`)
+	moneyRE           = regexp.MustCompile(`\$\s?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)`)
+	countRE           = regexp.MustCompile(`\b(\d{1,4})\+?\s*(?:or more\s*)?(?:employees|workers)\b`)
+	annotationDaysRE  = regexp.MustCompile(`^(\d+)d$`)
+	annotationCountRE = regexp.MustCompile(`^(\d+)\+?$`)
 )
 
 // ExtractDays returns the first day count and its basis, or (0, "").
@@ -280,7 +284,7 @@ func ExtractEmployeeCount(text string) int {
 // Hours are not days and are not silently converted; an hour annotation
 // returns zero and leaves the day count unstated.
 func ExtractAnnotationDays(annotation string) int {
-	m := regexp.MustCompile(`^(\d+)d$`).FindStringSubmatch(strings.TrimSpace(annotation))
+	m := annotationDaysRE.FindStringSubmatch(strings.TrimSpace(annotation))
 	if m == nil {
 		return 0
 	}
@@ -293,7 +297,7 @@ func ExtractAnnotationDays(annotation string) int {
 
 // ExtractAnnotationCount reads a matrix annotation such as "25+" or "11+".
 func ExtractAnnotationCount(annotation string) int {
-	m := regexp.MustCompile(`^(\d+)\+?$`).FindStringSubmatch(strings.TrimSpace(annotation))
+	m := annotationCountRE.FindStringSubmatch(strings.TrimSpace(annotation))
 	if m == nil {
 		return 0
 	}

@@ -2,6 +2,7 @@ package reservation
 
 import (
 	"errors"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -162,8 +163,8 @@ func BenchmarkTodo_RESERVE_001(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		s := NewStore()
 		r := request(Digest([]byte("benchmark")))
-		r.IdempotencyKey = string(rune(i + 1))
-		if _, err := s.Acquire(r, Quantity{Value: 1, Scale: 3}, now); err != nil {
+		r.IdempotencyKey = strconv.Itoa(i + 1)
+		if _, err := s.Acquire(r, Quantity{Value: 1000, Scale: 3}, now); err != nil {
 			b.Fatal(err)
 		}
 	}

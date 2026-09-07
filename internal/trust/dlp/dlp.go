@@ -155,7 +155,7 @@ func (d Detector) validate() error {
 		return fmt.Errorf("%w: detector %q has no matcher", ErrInvalidDetector, d.ID)
 	}
 	if d.Pattern != "" {
-		if _, err := regexp.Compile(d.Pattern); err != nil {
+		if _, err := regexp.Compile(d.Pattern); err != nil { // regexhoist:dynamic
 			return fmt.Errorf("%w: detector %q pattern: %v", ErrInvalidDetector, d.ID, err)
 		}
 	}
@@ -238,7 +238,8 @@ func NewInspector(detectors ...Detector) (*Inspector, error) {
 		var pattern *regexp.Regexp
 		if d.Pattern != "" {
 			var err error
-			pattern, err = regexp.Compile(d.Pattern)
+			// Detector patterns are configuration compiled once per scanner here.
+			pattern, err = regexp.Compile(d.Pattern) // regexhoist:dynamic
 			if err != nil {
 				return nil, fmt.Errorf("%w: detector %q pattern: %v", ErrInvalidDetector, d.ID, err)
 			}

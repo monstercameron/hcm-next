@@ -8,9 +8,39 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"sync"
+	"sync/atomic"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
+
+// qualityPatternCache holds compiled FORMAT patterns. Rules are evaluated
+// once per record, so without it every evaluation recompiles the same
+// pattern. The cache is bounded: once full, further patterns compile per
+// call rather than growing memory without limit.
+var qualityPatternCache sync.Map // pattern string -> *regexp.Regexp
+
+var qualityPatternCacheSize atomic.Int64
+
+const qualityPatternCacheCap = 512
+
+// compileQualityPattern compiles a FORMAT pattern, reusing a cached
+// compilation when one exists.
+func compileQualityPattern(pattern string) (*regexp.Regexp, error) {
+	if cached, ok := qualityPatternCache.Load(pattern); ok {
+		return cached.(*regexp.Regexp), nil
+	}
+	re, err := regexp.Compile(pattern) // regexhoist:dynamic
+	if err != nil {
+		return nil, err
+	}
+	if qualityPatternCacheSize.Load() < qualityPatternCacheCap {
+		if _, loaded := qualityPatternCache.LoadOrStore(pattern, re); !loaded {
+			qualityPatternCacheSize.Add(1)
+		}
+	}
+	return re, nil
+}
 
 // Sentinel causes for data-quality evaluation envelopes (MODEL-024).
 // Classify with [errors.Is]; never by matching strings.
@@ -198,7 +228,7 @@ func (r QualityRule) Validate() error {
 			return newError("QualityRule.Validate", "pattern", ErrInvalidQualityRule,
 				"%s is FORMAT but declares no pattern", r.RuleRef)
 		}
-		if _, err := regexp.Compile(r.Pattern); err != nil {
+		if _, err := compileQualityPattern(r.Pattern); err != nil {
 			return newError("QualityRule.Validate", "pattern", ErrInvalidQualityRule,
 				"%s pattern %q does not compile: %v", r.RuleRef, r.Pattern, err)
 		}
@@ -342,7 +372,11 @@ func EvaluateRule(rule QualityRule, facts map[string]QualityFact, asOf values.In
 		if unk != nil {
 			findings = append(findings, *unk)
 		} else {
-			re := regexp.MustCompile(rule.Pattern)
+			re, err := compileQualityPattern(rule.Pattern)
+			if err != nil {
+				return QualityResult{}, newError("EvaluateRule", "pattern", ErrInvalidQualityRule,
+					"%s pattern %q does not compile: %v", rule.RuleRef, rule.Pattern, err)
+			}
 			if !re.MatchString(f.Value) {
 				findings = append(findings, finding(path, QualityFail,
 					fmt.Sprintf("value %q does not match pattern %q", f.Value, rule.Pattern)))

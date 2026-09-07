@@ -14,6 +14,8 @@ import (
 	"github.com/monstercameron/hcm-next/internal/trust/sod"
 )
 
+var rawBankDetailRE = regexp.MustCompile(`^\d{8,17}$`)
+
 const securityControlSchemaVersion = 1
 
 var (
@@ -369,7 +371,7 @@ func (p ProtectedAccount) Validate() error {
 	if !validProtectedDigest(p.ValueDigest) {
 		return fieldError(ErrInvalidProtection, "value_digest", errors.New("protected value digest is required"))
 	}
-	if regexp.MustCompile(`^\d{8,17}$`).MatchString(p.OpaqueReference) {
+	if rawBankDetailRE.MatchString(p.OpaqueReference) {
 		return fieldError(ErrInvalidProtection, "opaque_reference", ErrRawBankDetailProhibited)
 	}
 	digest, err := p.digest()

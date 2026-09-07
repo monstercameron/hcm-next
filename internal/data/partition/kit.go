@@ -150,7 +150,8 @@ func (k Kit) cloneTriggers(t *testing.T, ctx context.Context, admin dbport.Conn)
 	}
 	defer rows.Close()
 
-	renamer := regexp.MustCompile(`\b` + regexp.QuoteMeta(k.Table) + `\b`)
+	// Table names come from the runtime schema, so the pattern is per call.
+	renamer := regexp.MustCompile(`\b` + regexp.QuoteMeta(k.Table) + `\b`) // regexhoist:dynamic
 	var defs []string
 	for rows.Next() {
 		var def string
@@ -445,7 +446,8 @@ func (k Kit) triggerSignatures(t *testing.T, ctx context.Context, admin dbport.C
 	}
 	defer rows.Close()
 
-	renamer := regexp.MustCompile(`\b` + regexp.QuoteMeta(tableName) + `\b`)
+	// Table names come from the runtime schema, so the pattern is per call.
+	renamer := regexp.MustCompile(`\b` + regexp.QuoteMeta(tableName) + `\b`) // regexhoist:dynamic
 	var out []triggerSignature
 	for rows.Next() {
 		var name, def string
