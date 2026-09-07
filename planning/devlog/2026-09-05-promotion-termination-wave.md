@@ -697,3 +697,39 @@ graph` in a temp directory that now lives under the checkout and so
   endpoint, authentication/subprotocol contract or HTTP shadow, so this change
   does not fabricate one or falsely claim a live subscription. WEB-036 owns
   sequence-based reconnect and cursor catch-up over the governed seam.
+
+## 14. 2026-09-07: WEB-036 reconnect and authoritative catch-up
+
+- **Committed progress only.** Reconnect opens from a private read-only local
+  checkpoint. A gap invokes the injected authoritative catch-up and admits the
+  later hint only after catch-up succeeds; the hint's own refetch must then
+  succeed before its sequence, watermark and revisions commit.
+- **No borrowed authority.** The checkpoint has no public fields or wire
+  encoding. It is not the signed opaque cursor owned by the server streaming
+  contract, and the WASM package does not import signing keys or pretend a bare
+  sequence authenticates anything. Catch-up/refetch must re-authorize through
+  their owning RPC.
+- **Bounded recovery.** Exponential backoff and an attempt ceiling bound
+  consecutive failed generations. Useful committed progress resets that
+  budget; every later reconnect still waits, preventing clean-EOF hot loops.
+  Processing is sequential across catch-up and refetch, cancellation interrupts
+  open/backoff/receive/cooperative callbacks, and each transport closes once
+  before replacement.
+- **Adversarial repairs.** The initial pass exposed public forgeable cursor
+  fields, exhausted healthy long-lived sessions, raced later hints past pending
+  refetches, wrapped callbacks in leakable goroutines, overflowed `sequence+1`
+  gap math and published reconnect events nondeterministically. The Sol pass
+  corrected each issue and added hostile lifecycle, scope-renewal and cursor
+  contradiction coverage.
+- **Qualification.** Commit `d225e01` passed the seven exact matrix tests,
+  WEB-035 regressions, full focused packages, vet, 86.2% coverage, five latency
+  repetitions and the full repository hook. A fresh js/wasm binary ran both
+  browser tests under Go's Node runtime. Native p95 was 0-512.5 us against
+  2 ms; the root benchmark measured 35.2-35.6 us/op, 10,186-10,188 B/op and
+  112 allocations. The unchanged local product remained visually stable in
+  the Codex browser with no warning/error diagnostics. No rendered or localized
+  output changed, and Windows race execution remained unavailable with CGO off.
+- **Still deliberately absent.** The repository has no canonical product
+  invalidation endpoint, authentication/subprotocol contract or server-issued
+  cursor in that protocol. This closes the injectable recovery contract, not a
+  fabricated live subscription.
