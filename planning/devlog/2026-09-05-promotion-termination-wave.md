@@ -733,3 +733,28 @@ graph` in a temp directory that now lives under the checkout and so
   invalidation endpoint, authentication/subprotocol contract or server-issued
   cursor in that protocol. This closes the injectable recovery contract, not a
   fabricated live subscription.
+
+## 15. 2026-09-07: WEB-037 stable hydrated application shell
+
+- **Stable production boundary.** The product starts by hydrating the existing
+  server-rendered GoWebComponents shell rather than deleting it. HistoryRouter
+  owns the page outlet while the banner, authorization-resolved navigation,
+  main region and live region retain their DOM identities and component state.
+- **Runtime repairs.** The initial implementation exposed two browser defects:
+  startup cleared SSR markup before mounting, and route factories called
+  hook-using renderers outside a component context. The Sol pass replaced the
+  destructive mount with `HydrateMount` and added explicit component boundaries
+  around both the shell layout and page content.
+- **Actual WASM regression coverage.** The compiled js/wasm test seeds and
+  hydrates shell markup, navigates Home to People to Settings through the real
+  production factories, proves that only the outlet changes, preserves a local
+  `UseState` marker, rejects reloads and duplicate announcements, and cancels a
+  stale People loader generation.
+- **Qualification.** Commit `7570f57` passed the exact four-test matrix, full
+  product UI, native and js/wasm vet, actual Node/WASM execution, five latency
+  repetitions, benchmark, formatting/diff checks and the full repository hook.
+  Stable-shell p95 was 2.036-9.556 ms against 16 ms; the benchmark measured
+  0.884-1.266 ms/op, about 744 KB/op and 3,752 allocations. The registered
+  17-page by 3-locale i18n/accessibility, RTL and theme gates passed. Manual
+  Codex-browser navigation kept the shell visually stable with no warnings or
+  errors.

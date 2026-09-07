@@ -15630,7 +15630,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Application shell and navigation
 
-- [ ] `WEB-037` **[GATE_C][TERRA] Implement the stable application shell.**
+- [x] `WEB-037` **[GATE_C][TERRA] Implement the stable application shell.**
   - **Depends:** `WEB-025`, `WEB-013`, `TRUST-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the stable application shell without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_037`.
@@ -15639,6 +15639,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the stable application shell—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
+  - **Evidence (2026-09-07):** `TestTodo_WEB_037`, `TestTodo_WEB_037_Golden`, `TestTodo_WEB_037_Browser`, and `TestTodo_WEB_037_Conformance` prove one hydrated GoWebComponents application shell retains its banner, authorization-resolved navigation, main region, live region, DOM identities and component-local hook state while HistoryRouter replaces only the route outlet across Home, People and Settings. Startup now hydrates the server-rendered shell instead of clearing it, and both the layout and page route factories establish explicit component boundaries before hook-using renderers execute. The actual compiled js/wasm browser test exercises production route factories, preserved shell nodes and state, title and heading updates, exactly one live announcement, zero reloads and generation-safe cancellation of a stale People loader. Commit `7570f57` contains the production hydration and component-context repairs plus the exact matrix. `go test -count=1 ./internal/humanwork/productui` passed, as did actual Node/WASM execution, native and js/wasm vet, compilation, five repeated latency runs, the 17-page x 3-locale i18n/accessibility, RTL and theme gates, scoped formatting/diff checks and the full repository hook. Stable-shell navigation p95 was 2.036-9.556 ms against 16 ms; the benchmark measured 0.884-1.266 ms/op, about 744 KB/op and 3,752 allocations. Home, People and Settings were manually traversed with software navigation in the Codex browser; the shell remained visually stable and browser diagnostics contained no warnings or errors. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, and independently native-, WASM-, performance-, accessibility-, internationalization- and browser-qualified by the orchestrator.
 
 - [ ] `WEB-038` **[GATE_C][TERRA] Implement the tenant and acting-context switcher.**
   - **Depends:** `WEB-037`.
