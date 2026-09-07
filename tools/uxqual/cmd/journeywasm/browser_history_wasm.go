@@ -3,20 +3,20 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"math"
 	"net/url"
-	"strconv"
 	"strings"
 	"syscall/js"
-	"time"
 
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
 )
 
 const (
 	productHistoryIDField    = "hcmProductHistoryID"
 	productHistoryIndexField = "hcmProductHistoryIndex"
-	productHistoryStoreKey   = "hcm-next.product-history."
 )
 
 var productHistory *browserProductHistoryController
@@ -45,10 +45,23 @@ func newBrowserProductHistoryController() *browserProductHistoryController {
 		controller.maxIndex = maxInt(index, readProductHistoryMax(id))
 		return controller
 	}
-	controller.id = strconv.FormatInt(time.Now().UnixNano(), 36)
+	if controller.id = newProductHistoryLedgerID(); controller.id == "" {
+		// A browser without a secure random source cannot safely mint the
+		// ledger namespace. Keep the router usable; only forward controls that
+		// require this non-authoritative hint are disabled.
+		return controller
+	}
 	controller.replaceCurrentState(0)
 	controller.writeMax()
 	return controller
+}
+
+func newProductHistoryLedgerID() string {
+	var randomID [16]byte
+	if _, err := rand.Read(randomID[:]); err != nil {
+		return ""
+	}
+	return hex.EncodeToString(randomID[:])
 }
 
 // Navigate delegates to the production router, then annotates the entry it
@@ -133,29 +146,35 @@ func (controller *browserProductHistoryController) replaceCurrentState(index int
 		return
 	}
 	state := js.Global().Get("Object").New()
-	current := history.Get("state")
-	if current.Type() == js.TypeObject {
-		state = js.Global().Get("Object").Call("assign", state, current)
-	}
 	state.Set(productHistoryIDField, controller.id)
 	state.Set(productHistoryIndexField, index)
 	history.Call("replaceState", state, "", js.Global().Get("location").Get("href"))
 }
 
 func (controller *browserProductHistoryController) writeMax() {
-	storage := js.Global().Get("sessionStorage")
-	if storage.Type() == js.TypeObject {
-		storage.Call("setItem", productHistoryStoreKey+controller.id, strconv.Itoa(controller.maxIndex))
+	key := productclient.HistoryStorageKey(controller.id)
+	value, ok := productclient.EncodeHistoryIndex(controller.maxIndex)
+	storage, storageOK := browserSessionStorage()
+	if storageOK && ok && productclient.ValidateBrowserStorageWrite(key, value) == nil {
+		browserStorageSet(storage, key, value)
 	}
 }
 
 func readProductHistoryMax(id string) int {
-	storage := js.Global().Get("sessionStorage")
-	if storage.Type() != js.TypeObject {
+	key := productclient.HistoryStorageKey(id)
+	if key == "" {
 		return 0
 	}
-	value, err := strconv.Atoi(strings.TrimSpace(storage.Call("getItem", productHistoryStoreKey+id).String()))
-	if err != nil || value < 0 {
+	storage, storageOK := browserSessionStorage()
+	if !storageOK {
+		return 0
+	}
+	raw, ok := browserStorageGet(storage, key)
+	if !ok {
+		return 0
+	}
+	value, ok := productclient.DecodeHistoryIndex(raw)
+	if !ok {
 		return 0
 	}
 	return value
@@ -175,28 +194,62 @@ func productHistoryState(state js.Value) (string, int, bool) {
 	// history.state is browser-owned input. Do not let NaN, infinity,
 	// fractions, or an unbounded value turn the history controls into a
 	// surprising history.go request (or a platform-dependent int overflow).
-	if !safeProductHistoryID(id) || math.IsNaN(indexFloat) || math.IsInf(indexFloat, 0) || indexFloat < 0 || math.Trunc(indexFloat) != indexFloat || indexFloat > float64(maxIntValue()) {
+	if !safeProductHistoryID(id) || math.IsNaN(indexFloat) || math.IsInf(indexFloat, 0) || indexFloat < 0 || math.Trunc(indexFloat) != indexFloat || indexFloat > float64(productclient.MaxHistoryIndex) {
 		return "", 0, false
 	}
 	return id, int(indexFloat), true
 }
 
 func safeProductHistoryID(id string) bool {
-	if id == "" || len(id) > 128 {
+	return productclient.ValidHistoryLedgerID(id)
+}
+
+// Web Storage is an optional, user-controlled capability. Private browsing,
+// disabled cookies, quota exhaustion and sandboxed iframes can make either
+// operation throw a DOMException. A storage failure must never tear down the
+// Go event loop or turn an optional hint into a hard navigation failure.
+func browserStorageSet(storage js.Value, key, value string) (ok bool) {
+	defer func() {
+		if recover() != nil {
+			ok = false
+		}
+	}()
+	if storage.Type() != js.TypeObject || key == "" || productclient.ValidateBrowserStorageWrite(key, value) != nil {
 		return false
 	}
-	for _, char := range id {
-		if char < '0' || char > '9' {
-			if char < 'a' || char > 'z' {
-				return false
-			}
-		}
-	}
+	storage.Call("setItem", key, value)
 	return true
 }
 
-func maxIntValue() int {
-	return int(^uint(0) >> 1)
+func browserSessionStorage() (storage js.Value, ok bool) {
+	defer func() {
+		if recover() != nil {
+			storage = js.Undefined()
+			ok = false
+		}
+	}()
+	storage = js.Global().Get("sessionStorage")
+	if storage.Type() != js.TypeObject {
+		return js.Undefined(), false
+	}
+	return storage, true
+}
+
+func browserStorageGet(storage js.Value, key string) (value string, ok bool) {
+	defer func() {
+		if recover() != nil {
+			value = ""
+			ok = false
+		}
+	}()
+	if storage.Type() != js.TypeObject || key == "" || productclient.ValidateHistoryStorageEntry(key, "0") != nil {
+		return "", false
+	}
+	raw := storage.Call("getItem", key)
+	if raw.Type() != js.TypeString {
+		return "", false
+	}
+	return raw.String(), true
 }
 
 func applyBrowserHistoryNavigation(view *productui.View) {

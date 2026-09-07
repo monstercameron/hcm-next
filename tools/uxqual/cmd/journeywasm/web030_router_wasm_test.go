@@ -146,12 +146,12 @@ func TestTodo_WEB_030_Conformance(t *testing.T) {
 		id    string
 		index any
 	}{
-		"fraction":         {id: "ledger1", index: 1.5},
-		"negative":         {id: "ledger1", index: -1},
-		"not finite":       {id: "ledger1", index: js.Global().Get("Infinity")},
+		"fraction":         {id: "0123456789abcdef0123456789abcdef", index: 1.5},
+		"negative":         {id: "0123456789abcdef0123456789abcdef", index: -1},
+		"not finite":       {id: "0123456789abcdef0123456789abcdef", index: js.Global().Get("Infinity")},
 		"unsafe id":        {id: "ledger.tenant-a", index: 1},
 		"oversized id":     {id: strings.Repeat("a", 129), index: 1},
-		"wrong index type": {id: "ledger1", index: "1"},
+		"wrong index type": {id: "0123456789abcdef0123456789abcdef", index: "1"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			state := object.New()
@@ -163,9 +163,9 @@ func TestTodo_WEB_030_Conformance(t *testing.T) {
 		})
 	}
 	state := object.New()
-	state.Set(productHistoryIDField, "ledger1")
+	state.Set(productHistoryIDField, "0123456789abcdef0123456789abcdef")
 	state.Set(productHistoryIndexField, 17)
-	if id, index, ok := productHistoryState(state); !ok || id != "ledger1" || index != 17 {
+	if id, index, ok := productHistoryState(state); !ok || id != "0123456789abcdef0123456789abcdef" || index != 17 {
 		t.Fatalf("valid history state = %q %d %v", id, index, ok)
 	}
 
