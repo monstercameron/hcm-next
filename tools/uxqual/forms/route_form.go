@@ -8,6 +8,7 @@ import "fmt"
 // so it is not part of what a submission carries.
 const (
 	fieldProposedJobTitle     = "proposedJobTitle"
+	fieldProposedGrade        = "proposedGrade"
 	fieldProposedCompensation = "proposedCompensation"
 	fieldEffectiveDate        = "effectiveDate"
 	fieldBusinessReason       = "businessReason"
@@ -23,6 +24,7 @@ func FromFormSubmission(workerID string, answers map[string]string) (IntentInsta
 	in := PromotionRequestInputs{
 		WorkerID:             workerID,
 		ProposedJobTitle:     answers[fieldProposedJobTitle],
+		ProposedGrade:        answers[fieldProposedGrade],
 		ProposedCompensation: answers[fieldProposedCompensation],
 		EffectiveDate:        answers[fieldEffectiveDate],
 		BusinessReason:       answers[fieldBusinessReason],

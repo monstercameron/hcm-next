@@ -18,13 +18,14 @@ var ErrIntentInputsInvalid = errors.New("forms: promotion request inputs fail va
 // ([FromFormSubmission]) and the route that completes the same request
 // without the form ([FromCapabilityCall]). Field names match
 // tools/uxqual/contract's RequestField ids exactly (proposedJobTitle,
-// proposedCompensation, effectiveDate, businessReason), so a value read off
-// the rendered form and a value passed straight to a governed capability
-// call are, by construction, the same typed shape -- not two schemas a
-// caller has to keep in sync by hand.
+// proposedGrade, proposedCompensation, effectiveDate, businessReason), so a
+// value read off the rendered form and a value passed straight to a governed
+// capability call are, by construction, the same typed shape -- not two
+// schemas a caller has to keep in sync by hand.
 type PromotionRequestInputs struct {
 	WorkerID             string
 	ProposedJobTitle     string
+	ProposedGrade        string
 	ProposedCompensation string
 	EffectiveDate        string
 	BusinessReason       string
@@ -38,6 +39,8 @@ func (in PromotionRequestInputs) Validate() error {
 		return fmt.Errorf("%w: no worker id", ErrIntentInputsInvalid)
 	case in.ProposedJobTitle == "":
 		return fmt.Errorf("%w: no proposed job title", ErrIntentInputsInvalid)
+	case in.ProposedGrade == "":
+		return fmt.Errorf("%w: no proposed grade", ErrIntentInputsInvalid)
 	case in.ProposedCompensation == "":
 		return fmt.Errorf("%w: no proposed compensation", ErrIntentInputsInvalid)
 	case in.EffectiveDate == "":
@@ -64,6 +67,7 @@ func (in PromotionRequestInputs) canonicalBytes() []byte {
 	}
 	appendField("worker_id", in.WorkerID)
 	appendField("proposed_job_title", in.ProposedJobTitle)
+	appendField("proposed_grade", in.ProposedGrade)
 	appendField("proposed_compensation", in.ProposedCompensation)
 	appendField("effective_date", in.EffectiveDate)
 	appendField("business_reason", in.BusinessReason)

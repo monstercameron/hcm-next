@@ -41,7 +41,7 @@ func PromotionEquivalentRoute() EquivalentRoute {
 		Description: fmt.Sprintf(
 			"Call the %s %s capability directly with the same typed "+
 				"PromotionRequestInputs (worker id, proposed job title, "+
-				"proposed compensation, effective date, business reason) a "+
+				"proposed grade, proposed compensation, effective date, business reason) a "+
 				"caller who cannot use the rendered form -- an API "+
 				"integration, a bulk loader, or an operator using a governed "+
 				"CLI -- would supply instead of filling in the workspace "+

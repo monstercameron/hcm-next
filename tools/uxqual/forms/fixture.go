@@ -11,7 +11,7 @@ import (
 // [CheckRequiredFieldSemantics] use this list rather than re-deriving it, so
 // a future fixture change that adds or removes a required field is caught
 // by this list going stale instead of silently under-checking.
-var RequiredFieldIDs = []string{"proposedJobTitle", "proposedCompensation", "effectiveDate", "businessReason"}
+var RequiredFieldIDs = []string{"proposedJobTitle", "proposedGrade", "proposedCompensation", "effectiveDate", "businessReason"}
 
 // erroredFieldID is the one fixture field FixtureWithValidationError puts a
 // validation error message on.

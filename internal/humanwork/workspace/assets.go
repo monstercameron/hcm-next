@@ -48,8 +48,16 @@ var assetETags sync.Map
 
 // asset returns one embedded bundle file.
 func asset(name string) ([]byte, bool) {
+	// uxqual.wasm is the legacy fixture-only mount. It rebuilds the request
+	// form with action="#" and without this workspace's CSRF, worker, locale,
+	// and form-owner binding. Never advertise or serve it as an enhancement
+	// until its entrypoint consumes the bound contract island. The complete
+	// server-rendered POST form remains the production path.
+	if name == assetWasm {
+		return nil, false
+	}
 	switch name {
-	case assetWasm, assetJourneyWasm, assetWasmExec, assetHarborcareLogo,
+	case assetJourneyWasm, assetWasmExec, assetHarborcareLogo,
 		assetPersonPriyaSmall, assetPersonJaneSmall, assetPersonOmarSmall, assetPersonLenaSmall, assetPersonNoorSmall:
 	default:
 		if !isSeedPhotoProxy(name) {
@@ -103,7 +111,7 @@ func embeddedAsset(name string) ([]byte, bool) {
 // compressible executable assets. The .gz files are never directly routable.
 func compressedAsset(name string) ([]byte, bool) {
 	switch name {
-	case assetWasm, assetJourneyWasm, assetWasmExec:
+	case assetJourneyWasm, assetWasmExec:
 		return embeddedAsset(name + ".gz")
 	default:
 		return nil, false

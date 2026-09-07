@@ -20,7 +20,7 @@ var ErrQueryInvalid = errors.New("workspace: the promotion query is not answerab
 
 // Field identifiers the workspace renders and the form submits.
 //
-// The four editable ones are exactly tools/uxqual/forms.RequiredFieldIDs, so
+// The five editable ones are exactly tools/uxqual/forms.RequiredFieldIDs, so
 // a value read off this workspace's rendered form and a value handed straight
 // to the governed capability call are the same typed shape by construction -
 // that equality is FORM-004's "equivalent governed route", and this package
@@ -162,6 +162,7 @@ func (q Query) Intent() (forms.IntentInstance, error) {
 	return forms.FromCapabilityCall(forms.PromotionRequestInputs{
 		WorkerID:             q.WorkerRef,
 		ProposedJobTitle:     q.TargetJobCode,
+		ProposedGrade:        q.TargetGrade,
 		ProposedCompensation: q.ProposedBase,
 		EffectiveDate:        q.EffectiveDate,
 		BusinessReason:       q.BusinessReason,

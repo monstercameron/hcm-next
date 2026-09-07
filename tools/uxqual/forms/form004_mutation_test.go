@@ -53,6 +53,7 @@ func TestTodo_FORM_004_Mutation(t *testing.T) {
 		base := PromotionRequestInputs{
 			WorkerID:             "worker-1",
 			ProposedJobTitle:     "Senior Engineer",
+			ProposedGrade:        "P4",
 			ProposedCompensation: "$120,000.00",
 			EffectiveDate:        "2026-10-01",
 			BusinessReason:       "Scope increase.",
@@ -75,6 +76,7 @@ func TestTodo_FORM_004_Mutation(t *testing.T) {
 		mutants := map[string]string{
 			"worker_id": mutate(func(m *PromotionRequestInputs) { m.WorkerID += "-x" }),
 			"job_title": mutate(func(m *PromotionRequestInputs) { m.ProposedJobTitle += "-x" }),
+			"grade":     mutate(func(m *PromotionRequestInputs) { m.ProposedGrade += "-x" }),
 			"comp":      mutate(func(m *PromotionRequestInputs) { m.ProposedCompensation = "$999,999.00" }),
 			"date":      mutate(func(m *PromotionRequestInputs) { m.EffectiveDate = "2099-01-01" }),
 			"reason":    mutate(func(m *PromotionRequestInputs) { m.BusinessReason += " Additional text." }),
@@ -98,7 +100,7 @@ func TestTodo_FORM_004_Mutation(t *testing.T) {
 	t.Run("FromFormSubmission rejects an incomplete answer set the same way FromCapabilityCall rejects incomplete inputs", func(t *testing.T) {
 		incompleteAnswers := map[string]string{
 			fieldProposedJobTitle: "Senior Engineer",
-			// proposedCompensation, effectiveDate, businessReason all missing.
+			// proposedGrade, proposedCompensation, effectiveDate, and businessReason all missing.
 		}
 		if _, err := FromFormSubmission("worker-1", incompleteAnswers); err == nil {
 			t.Errorf("FromFormSubmission accepted an incomplete answer set")

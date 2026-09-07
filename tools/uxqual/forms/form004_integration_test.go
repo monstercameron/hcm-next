@@ -22,6 +22,7 @@ func TestTodo_FORM_004_Integration(t *testing.T) {
 	capabilityInputs := PromotionRequestInputs{
 		WorkerID:             fixture.Request.WorkerID,
 		ProposedJobTitle:     fieldValue(fixture, fieldProposedJobTitle),
+		ProposedGrade:        fieldValue(fixture, fieldProposedGrade),
 		ProposedCompensation: fieldValue(fixture, fieldProposedCompensation),
 		EffectiveDate:        fieldValue(fixture, fieldEffectiveDate),
 		BusinessReason:       fieldValue(fixture, fieldBusinessReason),
@@ -83,6 +84,7 @@ func TestTodo_FORM_004_Integration(t *testing.T) {
 
 		mutatedAnswers := map[string]string{
 			fieldProposedJobTitle:     capabilityInputs.ProposedJobTitle,
+			fieldProposedGrade:        capabilityInputs.ProposedGrade,
 			fieldProposedCompensation: capabilityInputs.ProposedCompensation,
 			fieldEffectiveDate:        capabilityInputs.EffectiveDate,
 			fieldBusinessReason:       mutated.BusinessReason,

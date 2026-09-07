@@ -41,6 +41,11 @@ func SourceRecord() contract.SourceRecord {
 				Validation: contract.FieldValidation{Required: true},
 			},
 			{
+				ID: "proposedGrade", Label: "Proposed grade",
+				Kind: contract.FieldKindText, Value: "RN3",
+				Validation: contract.FieldValidation{Required: true},
+			},
+			{
 				ID: "proposedCompensation", Label: "Proposed base pay",
 				Kind: contract.FieldKindMoney, Value: "$98,000.00",
 				Validation: contract.FieldValidation{Required: true},
@@ -108,7 +113,7 @@ func SourceRecord() contract.SourceRecord {
 // VisibleFields is the authorized field allowlist used everywhere in this
 // lane: it deliberately excludes "nationalId".
 func VisibleFields() contract.FieldVisibility {
-	return contract.Allow("currentJobTitle", "proposedJobTitle", "proposedCompensation", "effectiveDate", "businessReason")
+	return contract.Allow("currentJobTitle", "proposedJobTitle", "proposedGrade", "proposedCompensation", "effectiveDate", "businessReason")
 }
 
 // VisibleActions is the authorized action allowlist used everywhere in this
