@@ -1,0 +1,14 @@
+# Unit-test and coverage floor gate (tools/quality/covergate).
+#
+# Every package holding staged Go files is tested with `go test -cover` before
+# a commit (npm run check:coverage:staged); CI gates the whole root module
+# (npm run check:coverage). A package fails the gate when any test fails, when
+# it has no test files, or when it covers fewer statements than `threshold`.
+#
+# An exception waives exactly one kind (`no_tests` or `below_floor`) for one
+# exact package path until `expiry`; it needs an owner and a reason, and an
+# expired exception waives nothing. Prefixes and wildcards are refused so a
+# new package can never inherit a waiver.
+threshold: 70
+
+exceptions: []

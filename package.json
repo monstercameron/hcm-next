@@ -41,7 +41,9 @@
     "check:driftgate": "go run ./tools/policy/driftgate/cmd/driftgate -root .",
     "check:apigate": "go run ./tools/policy/apigate/cmd/apigate -root .",
     "check:substratecoverage": "go run ./tools/policy/substratecoverage/cmd/substratecoverage -root .",
-    "check:enginecoverage": "go run ./tools/policy/enginecoverage/cmd/enginecoverage -root ."
+    "check:enginecoverage": "go run ./tools/policy/enginecoverage/cmd/enginecoverage -root .",
+    "check:coverage:staged": "go run ./tools/quality/covergate/cmd/covergate -root . -changed",
+    "check:coverage": "go run ./tools/quality/covergate/cmd/covergate -root . -all"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,css}": [

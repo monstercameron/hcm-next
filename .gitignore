@@ -113,3 +113,4 @@ internal/humanwork/workspace/assets/wasm_exec.js
 .codex-*
 .gotmp/
 .lane-gotmp-*
+.artifacts/

@@ -2,4 +2,5 @@
 npm exec lint-staged
 npm run check:code-style
 npm run check:go
+npm run check:coverage:staged
 npm run test:all

@@ -106,6 +106,8 @@ jobs:
       # RED/GREEN proof.
       - name: Run root module tests with the race detector (TOOL-012)
         run: go test -race -count=1 ./...
+      - name: Unit-test and coverage floor gate (70%)
+        run: go run ./tools/quality/covergate/cmd/covergate -root . -all
       - name: Drift gate (MSRC-010)
         run: go run ./tools/policy/driftgate/cmd/driftgate -root .
       - name: API compatibility gate (PROTO-008)
