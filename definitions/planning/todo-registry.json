@@ -37195,14 +37195,16 @@
       "BROWSER": "TestTodo_WEB_039_Browser",
       "CONFORMANCE": "TestTodo_WEB_039_Conformance",
       "GOLDEN": "TestTodo_WEB_039_Golden",
-      "PRIMARY": "TestTodo_WEB_039"
+      "PRIMARY": "TestTodo_WEB_039",
+      "SECURITY": "TestTodo_WEB_039_Security"
     },
     "red": "the named test returns an accepted result when the declared behavior—implement authorization-resolved primary navigation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract",
     "green": "the named test returns an exact deterministic result proving the declared behavior—implement authorization-resolved primary navigation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence",
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_039`, `TestTodo_WEB_039_Golden`, `TestTodo_WEB_039_Browser`, `TestTodo_WEB_039_Conformance`, and `TestTodo_WEB_039_Security` prove that the stable GoWebComponents shell consumes a bounded, versioned authorization-resolved navigation projection and never treats route, label, browser state, roles, favorites, fuzzy search or the page registry as authority once a projection is supplied. Validation fails closed before copying hostile deep or wide graphs; exact canonical page, route, label-key and icon relationships reject foreign, traversal, query, fragment, control, bidi, duplicate and cross-page inputs. Invalid, denied and intentionally empty projections remain authoritative across locale changes, support links, global search and shell shortcuts; unauthorized favorites are removed from rendered URLs while destination RPC and page authorization remain independent enforcement boundaries. Commits `04e8ffe` and `e431b76` contain the componentized projection, navigation rendering, shell integration, English/German/Arabic copy, narrow-props architecture guard and exact native/WASM/security matrix. `go test -count=1 ./internal/humanwork/productui` PASS on windows/amd64 (Go 1.26.3); branch plan-revision-2026-09-02. Native and js/wasm vet, token/qualification/WCAG gates, a freshly compiled Node/WASM run of WEB-037/038/039, scoped formatting/diff checks and the full repository hook also passed. Five final latency runs measured p95 511.3 us-1.7641 ms against 5 ms; the benchmark measured 195.5-223.7 us/op, about 104,881 B/op and 1,262 allocations. Desktop, 390 px and 320 px layouts were manually inspected in light and dark modes with the Codex browser; the review separated authorization-empty copy from fuzzy-search misses and replaced a truncated 320 px fallback wordmark with its compact brand mark. Browser diagnostics were clean. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, and independently native-, WASM-, performance-, accessibility-, internationalization- and browser-qualified by the orchestrator"
   },
   {
     "id": "WEB-040",

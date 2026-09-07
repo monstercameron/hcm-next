@@ -792,3 +792,33 @@ graph` in a temp directory that now lives under the checkout and so
   authoritative backend context-exchange RPC yet, so the production shell must
   receive the documented authenticated adapter. No endpoint or browser-side
   authority was invented to make the component appear more complete.
+
+## 17. 2026-09-07: WEB-039 authorization-resolved primary navigation
+
+- **Projection, not browser authority.** The primary and support navigation now
+  consume a bounded, versioned resolver result. Once supplied, it remains the
+  complete answer across locale changes, favorites, fuzzy search, shell
+  shortcuts and registry or role fallbacks. Empty, denied and malformed answers
+  render no destination rather than reviving defaults.
+- **Canonical and hostile-input boundary.** Validation charges depth, fan-out
+  and total-node limits before recursive copying, requires positive versions,
+  and accepts only exact registered page, route, label-key and icon
+  relationships. Queries, fragments, traversal, foreign routes, control/bidi
+  characters, cross-page metadata and unauthorized duplicate favorites fail
+  closed. Resolver display strings are replaced with trusted localized registry
+  presentation, while destination RPC and page authorization remain separate
+  enforcement boundaries.
+- **Stable component behavior.** Existing software navigation, grouped
+  disclosures, fuzzy menu filtering, favorites, Person-as-People active state,
+  SSR/WASM parity and WEB-037 shell identity are preserved. Component props are
+  reflection-guarded narrow records and contain neither page-wide views nor
+  credentials or authorization decisions.
+- **Qualification and refinement.** Commits `04e8ffe` and `e431b76` passed the
+  exact five-test matrix, including its named security gate, full product UI,
+  native and js/wasm vet, a freshly compiled Node/WASM
+  WEB-037/038/039 run, token/qualification/WCAG gates, formatting/diff checks and
+  the full repository hook. Five latency runs measured p95 511.3 us-1.7641 ms
+  against 5 ms; the benchmark measured 195.5-223.7 us/op, about 104,881 B/op
+  and 1,262 allocations. Codex-browser inspection covered desktop, 390 px and
+  320 px light/dark layouts. It exposed and fixed ambiguous authorization-empty
+  copy and a truncated narrow fallback wordmark; browser diagnostics were clean.
