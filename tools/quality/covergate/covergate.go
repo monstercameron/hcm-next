@@ -74,7 +74,15 @@ type Result struct {
 	// FailedTests names the tests go test reported as failing for this
 	// package, so a hook log says which test broke, not just which package.
 	FailedTests []string
+	// FailureLog holds the first test log lines (file_test.go:N: message)
+	// go test printed for this package's failures, so the gate says why a
+	// test failed, not only that it did. It is capped at MaxFailureLogLines.
+	FailureLog []string
 }
+
+// MaxFailureLogLines bounds FailureLog so one noisy package cannot flood a
+// hook log.
+const MaxFailureLogLines = 12
 
 // Finding is one refusal the gate reports.
 type Finding struct {
@@ -145,6 +153,9 @@ var (
 	// failedTestLine is go test's per-test failure marker, printed before
 	// the package summary line it belongs to.
 	failedTestLine = regexp.MustCompile(`^\s*--- FAIL: (\S+)`)
+	// failureLogLine matches the indented "file_test.go:12: message" lines go
+	// test prints under a failing test.
+	failureLogLine = regexp.MustCompile(`^\s+\S+_test\.go:\d+: `)
 )
 
 // ParseGoTestOutput turns go test's per-package summary lines into results.
@@ -152,11 +163,17 @@ var (
 // Windows unlink complaint) are ignored.
 func ParseGoTestOutput(out string) []Result {
 	var results []Result
-	var failed []string
+	var failed, logs []string
 	for raw := range strings.SplitSeq(out, "\n") {
 		line := strings.TrimRight(raw, "\r")
 		if m := failedTestLine.FindStringSubmatch(line); m != nil {
 			failed = append(failed, m[1])
+			continue
+		}
+		if failureLogLine.MatchString(line) {
+			if len(logs) < MaxFailureLogLines {
+				logs = append(logs, strings.TrimSpace(line))
+			}
 			continue
 		}
 		if m := okLine.FindStringSubmatch(line); m != nil {
@@ -167,10 +184,12 @@ func ParseGoTestOutput(out string) []Result {
 				}
 			}
 			results = append(results, r)
+			failed, logs = nil, nil
 			continue
 		}
 		if m := noTestsLine.FindStringSubmatch(line); m != nil {
 			results = append(results, Result{Package: m[1], Status: "notests", Line: line})
+			failed, logs = nil, nil
 			continue
 		}
 		if m := failLine.FindStringSubmatch(line); m != nil && m[1] != "" {
@@ -178,8 +197,12 @@ func ParseGoTestOutput(out string) []Result {
 			if len(failed) > 0 {
 				detail = line + " (" + strings.Join(failed, ", ") + ")"
 			}
-			results = append(results, Result{Package: m[1], Status: "fail", Line: detail, FailedTests: append([]string(nil), failed...)})
-			failed = nil
+			if len(logs) > 0 {
+				detail += " [" + strings.Join(logs, " | ") + "]"
+			}
+			results = append(results, Result{Package: m[1], Status: "fail", Line: detail,
+				FailedTests: append([]string(nil), failed...), FailureLog: append([]string(nil), logs...)})
+			failed, logs = nil, nil
 		}
 	}
 	return results
