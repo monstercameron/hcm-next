@@ -4,12 +4,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strings"
 	"syscall/js"
 	"time"
 
 	"github.com/monstercameron/GoWebComponents/v5/router"
+	"github.com/monstercameron/GoWebComponents/v5/ui"
 	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
@@ -386,8 +388,22 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 			},
 		})
 	}
-	clearRoot()
-	productRouter.Mount(rootSelector)
+	return hydrateProductRouter(productRouter)
+}
+
+// hydrateProductRouter resumes the server-rendered loading shell before the
+// router owns future updates. Current starts the initial route generation on
+// the single-threaded WASM runtime; HydrateMount is bound before that loader
+// can resume, so its resolved answer cannot be lost between the two calls.
+func hydrateProductRouter(productRouter *router.Router) error {
+	initial := productRouter.Current()
+	if initial == nil {
+		return fmt.Errorf("product router did not resolve the initial location")
+	}
+	if _, err := ui.Hydrate(initial, rootSelector); err != nil {
+		return fmt.Errorf("hydrate product shell: %w", err)
+	}
+	productRouter.HydrateMount(rootSelector)
 	return nil
 }
 
@@ -469,7 +485,10 @@ func (t *browserDebounceTimer) Stop() bool {
 }
 
 func productRouteComponent(_ router.Attrs) *router.Element {
-	data := router.UseRouteData()
+	return ui.CreateElement(renderProductRoute, router.UseRouteData())
+}
+
+func renderProductRoute(data router.Attrs) ui.Node {
 	view, ok := data[productViewKey].(productui.View)
 	if !ok {
 		view = productui.NewView(productui.PageHome, "", "", "")
@@ -518,16 +537,27 @@ func setActiveProductLayout(view productui.View, showHeading bool) {
 }
 
 func productShellLayoutComponent(_ router.Attrs) *router.Element {
+	// Route factories run before the reconciler enters a component context.
+	// Keep the shell itself behind a component boundary so its software links
+	// can safely use GWC event hooks in js/wasm builds.
+	outlet := router.GetOutlet()
+	if outlet == nil {
+		outlet = productui.LoadingProxy(productui.LoadingProxyProps{Page: activeProductLayoutView.Page})
+	}
+	return ui.CreateElement(renderProductShellLayout, productShellLayoutProps{Outlet: outlet})
+}
+
+type productShellLayoutProps struct {
+	Outlet ui.Node
+}
+
+func renderProductShellLayout(props productShellLayoutProps) ui.Node {
 	view := activeProductLayoutView
 	if view.Page == "" {
 		view = productui.NewView(productui.PageHome, "", "", "")
 		view.Loading = true
 	}
-	outlet := router.GetOutlet()
-	if outlet == nil {
-		outlet = productui.LoadingProxy(productui.LoadingProxyProps{Page: view.Page})
-	}
-	return productui.BuildShell(view, outlet, activeProductLayoutShowHeading)
+	return productui.BuildShell(view, props.Outlet, activeProductLayoutShowHeading)
 }
 
 // focusProductRouteAfterNavigation restores the missing browser behavior of
@@ -604,12 +634,6 @@ func (b *productJourneyBridge) Load(fragment string) {
 		return
 	}
 	b.app.OnHashChange(fragment)
-}
-
-func clearRoot() {
-	if root := js.Global().Get("document").Call("getElementById", rootElementID); root.Truthy() {
-		root.Set("textContent", "")
-	}
 }
 
 func currentPath() string {

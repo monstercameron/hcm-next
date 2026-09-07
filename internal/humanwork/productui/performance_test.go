@@ -37,6 +37,19 @@ func BenchmarkProductShell(b *testing.B) {
 	}
 }
 
+// BenchmarkStableApplicationShell is the allocation/CPU regression oracle for
+// a software route transition. It renders the real persistent shell around a
+// replaceable outlet, rather than benchmarking a hand-written markup proxy.
+func BenchmarkStableApplicationShell(b *testing.B) {
+	view, content := web037StableShellFixture(PagePeople)
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, err := ui.RenderToString(BuildShell(view, content, true)); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 // BenchmarkProductDocument covers the cold-entry SSR path, including the
 // immutable platform stylesheet cache shared by every route.
 func BenchmarkProductDocument(b *testing.B) {

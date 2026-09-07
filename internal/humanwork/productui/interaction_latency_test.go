@@ -116,6 +116,16 @@ func TestInteractionLatencyGate(t *testing.T) {
 		})
 	})
 
+	t.Run("stable shell navigation", func(t *testing.T) {
+		view, content := web037StableShellFixture(PagePeople)
+		assertInteractionLatency(t, latencygate.Budget{
+			Name: "stable shell navigation", P95: 16 * time.Millisecond, Warmups: 3, Samples: interactionLatencySamples,
+		}, func() error {
+			_, err := ui.RenderToString(BuildShell(view, content, true))
+			return err
+		})
+	})
+
 	t.Run("reusable 1000 by 12 data table", func(t *testing.T) {
 		props := latencyDataTable(1_000, 12)
 		assertInteractionLatency(t, latencygate.Budget{
