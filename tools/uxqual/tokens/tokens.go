@@ -165,7 +165,7 @@ func WorkspaceCSS() string {
 	return CSSVariables() + `
 *{box-sizing:border-box}
 body{margin:0;background:var(--color-background);color:var(--color-text);
-  font:1rem/1.5 system-ui,sans-serif;max-width:100%;overflow-x:hidden}
+  font:1rem/1.5 system-ui,sans-serif;max-width:100%;overflow-wrap:anywhere}
 .workspace{max-width:60rem;margin:0 auto;padding:1rem}
 header.workspace-header{padding:1rem;border-bottom:1px solid var(--color-border)}
 main{display:flex;flex-direction:column;gap:1.5rem;padding:1rem}
@@ -182,7 +182,7 @@ section{background:var(--color-surface);border:1px solid var(--color-border);
 .field .field-static{margin:0;padding:.5rem 0}
 .field .error{color:var(--color-danger);font-size:.875rem}
 ul.findings,ol.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
-.finding,.check{border-left:.25rem solid var(--color-border);padding:.25rem .75rem}
+.finding,.check{border-inline-start:.25rem solid var(--color-border);padding:.25rem .75rem}
 .finding[data-severity="blocking"],.check[data-severity="blocking"]{border-color:var(--color-danger)}
 .finding[data-severity="warning"],.check[data-severity="warning"]{border-color:var(--color-warning)}
 .finding[data-severity="success"],.check[data-severity="success"]{border-color:var(--color-success)}
@@ -200,5 +200,45 @@ button[data-variant="secondary"]{background:var(--color-surface);color:var(--col
 button[data-variant="danger"]{background:var(--color-danger);color:var(--color-danger-text)}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0}
-`
+img,svg,video,canvas{max-inline-size:100%;height:auto}
+:where(input,select,textarea,button){max-inline-size:100%}
+pre{max-inline-size:100%;overflow:auto}
+.widget-slot{min-inline-size:0;max-inline-size:100%}
+.table-container,.table-scroll{min-inline-size:0;max-inline-size:100%}
+.table-scroll{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;touch-action:pan-x pan-y}
+.table-scroll table{inline-size:max-content;min-inline-size:100%;table-layout:auto;border-collapse:collapse}
+.table-scroll :where(th,td){min-inline-size:8rem;overflow-wrap:normal;word-break:normal;white-space:nowrap}
+.table-scroll-cue{color:var(--color-text-muted);font-size:.875rem;margin-block:.25rem}
+` + responsiveLayoutCSS()
+}
+
+// responsiveLayoutCSS is the renderer-owned mapping from the closed
+// floorplan projection to CSS. The narrow rules are unconditional; wider
+// rules only add capability through fixed min-width queries. No page,
+// request, locale, or user-agent value is interpolated into this stylesheet.
+func responsiveLayoutCSS() string {
+	var b strings.Builder
+	b.WriteString(".layout-region{min-inline-size:0;gap:.5rem}\n")
+	b.WriteString(".layout-region>:where(h1,h2,h3,h4,h5,h6){grid-column:1/-1}\n")
+	writeResponsiveTier(&b, "narrow", "")
+	writeResponsiveTier(&b, "compact", "40rem")
+	writeResponsiveTier(&b, "standard", "60rem")
+	writeResponsiveTier(&b, "wide", "80rem")
+	return b.String()
+}
+
+func writeResponsiveTier(b *strings.Builder, breakpoint, minWidth string) {
+	if minWidth != "" {
+		fmt.Fprintf(b, "@media (min-width:%s){\n", minWidth)
+	}
+	prefix := `.layout-region[data-layout-` + breakpoint
+	fmt.Fprintf(b, "%s-mode=\"flow\"]{display:flex;flex-direction:column}\n", prefix)
+	fmt.Fprintf(b, "%s-mode=\"grid\"]{display:grid}\n", prefix)
+	for columns := 1; columns <= 12; columns++ {
+		fmt.Fprintf(b, "%s-mode=\"grid\"][data-layout-%s-columns=\"%d\"]{grid-template-columns:repeat(%d,minmax(0,1fr))}\n", prefix, breakpoint, columns, columns)
+	}
+	fmt.Fprintf(b, "%s-mode=\"grid\"][data-layout-%s-stacked=\"true\"]{grid-template-columns:1fr}\n", prefix, breakpoint)
+	if minWidth != "" {
+		b.WriteString("}\n")
+	}
 }

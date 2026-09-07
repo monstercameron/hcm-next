@@ -35,19 +35,18 @@ const RootElementIDPrefix = "page-"
 //  3. A widget slot names a ref reg has no entry for: a
 //     [*UnregisteredWidgetError], wrapping [ErrUnregisteredWidget].
 //
-// res.Floorplan is not otherwise consulted: floorplan.Registry.Resolve has
-// already checked that every region res.Page declares is one res.Floorplan
-// also declares, and this package's document order is res.Page's own
-// Regions order (the frontend plan's page anatomy), not the floorplan's
-// responsive layout rules -- those govern presentation within a region at a
-// given breakpoint, not which regions exist or in what order they appear in
-// the DOM.
+// res.Floorplan supplies only validated responsive presentation metadata.
+// floorplan.Registry.Resolve has already checked that every region res.Page
+// declares is present in the floorplan. This package still preserves the
+// PageDefinition's region order (the frontend plan's page anatomy); responsive
+// rules can change layout within a region, never which regions or actions exist
+// or where they appear in the DOM.
 func Render(res floorplan.Resolution, reg *Registry) (ui.Node, error) {
 	pd := res.Page
 	if violations := pd.Validate(); len(violations) != 0 {
 		return nil, fmt.Errorf("page: refusing to render invalid PageDefinition %q: %v", pd.PageID, violations)
 	}
-	return buildPage(pd, reg)
+	return buildResponsivePage(pd, res.Floorplan, reg)
 }
 
 // buildPage renders pd without first calling pagedef.Validate. It is
@@ -57,9 +56,21 @@ func Render(res floorplan.Resolution, reg *Registry) (ui.Node, error) {
 // Validate, applied here to prove GWC's own SSR escaping (see doc.go) holds
 // the same way.
 func buildPage(pd pagedef.PageDefinition, reg *Registry) (ui.Node, error) {
+	return buildPageWithResponsiveProps(pd, reg, nil)
+}
+
+func buildResponsivePage(pd pagedef.PageDefinition, fp floorplan.Floorplan, reg *Registry) (ui.Node, error) {
+	responsive, err := responsiveProps(fp)
+	if err != nil {
+		return nil, fmt.Errorf("page: refusing to render invalid responsive floorplan: %w", err)
+	}
+	return buildPageWithResponsiveProps(pd, reg, responsive)
+}
+
+func buildPageWithResponsiveProps(pd pagedef.PageDefinition, reg *Registry, responsive map[string]html.Props) (ui.Node, error) {
 	children := make([]ui.Node, 0, len(pd.Regions))
 	for _, region := range pd.Regions {
-		node, err := buildRegion(pd, region, reg)
+		node, err := buildRegionWithResponsiveProps(pd, region, reg, responsive)
 		if err != nil {
 			return nil, err
 		}
@@ -74,6 +85,10 @@ func buildPage(pd pagedef.PageDefinition, reg *Registry) (ui.Node, error) {
 // buildRegion renders one region: its landmark element, its heading (if
 // any), and each of its widget slots, in declaration order.
 func buildRegion(pd pagedef.PageDefinition, region pagedef.Region, reg *Registry) (ui.Node, error) {
+	return buildRegionWithResponsiveProps(pd, region, reg, nil)
+}
+
+func buildRegionWithResponsiveProps(pd pagedef.PageDefinition, region pagedef.Region, reg *Registry, responsive map[string]html.Props) (ui.Node, error) {
 	tag, label, ok := ssrshell.LandmarkForRegionKind(region.Kind)
 	if !ok {
 		return nil, fmt.Errorf("page: region %q has kind %q with no documented landmark mapping", region.ID, region.Kind)
@@ -101,7 +116,46 @@ func buildRegion(pd pagedef.PageDefinition, region pagedef.Region, reg *Registry
 		id = "main-content"
 	}
 	props := html.Props{ID: id, Aria: map[string]string{"label": label + ": " + region.ID}}
+	if responsive != nil {
+		regionProps, ok := responsive[region.ID]
+		if !ok {
+			return nil, fmt.Errorf("page: responsive region %q is not declared by floorplan", region.ID)
+		}
+		props.Class = regionProps.Class
+		props.Data = regionProps.Data
+	}
 	return landmarkElement(tag, props, children...)
+}
+
+// responsiveProps is the only floorplan-to-DOM projection. One stable
+// DOM carries every bounded breakpoint result so viewport changes, text zoom,
+// and container resizing reflow entirely in renderer-owned CSS. Attribute
+// names are fixed here and values come only from validated closed vocabularies
+// and bounded integers; page definitions cannot supply classes or CSS.
+// Layouts are computed once per page, not once per region.
+func responsiveProps(fp floorplan.Floorplan) (map[string]html.Props, error) {
+	props := make(map[string]html.Props, len(fp.Regions))
+	for _, region := range fp.Regions {
+		props[region.Name] = html.Props{
+			Class: "layout-region",
+			Data:  make(map[string]string, len(floorplan.Breakpoints())*3),
+		}
+	}
+	layouts, err := fp.TransformAll()
+	if err != nil {
+		return nil, err
+	}
+	for _, layout := range layouts {
+		breakpoint := layout.Breakpoint
+		for _, effective := range layout.Regions {
+			regionProps := props[effective.Region.Name]
+			prefix := "layout-" + string(breakpoint) + "-"
+			regionProps.Data[prefix+"mode"] = string(effective.Region.Layout.Mode)
+			regionProps.Data[prefix+"columns"] = strconv.Itoa(effective.Region.Layout.MaxColumns)
+			regionProps.Data[prefix+"stacked"] = strconv.FormatBool(effective.Stacked)
+		}
+	}
+	return props, nil
 }
 
 // buildSlot resolves slot's widget ref against reg and wraps the result in

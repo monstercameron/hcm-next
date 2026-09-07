@@ -87,7 +87,7 @@ func workforceTableWidget(WidgetContext) ui.Node {
 			html.Td(html.Props{}, ui.Text(w.PayLine)),
 		))
 	}
-	return html.Table(html.Props{Aria: map[string]string{"label": "Workforce"}}, rows...)
+	return scrollableTable("workforce-table", "Workforce", html.Table(html.Props{Aria: map[string]string{"label": "Workforce"}}, rows...))
 }
 
 func createWorkerFormWidget(WidgetContext) ui.Node {
@@ -162,7 +162,7 @@ func comparisonTableWidget(WidgetContext) ui.Node {
 			html.Td(html.Props{}, ui.Text(r.Delta)),
 		))
 	}
-	return html.Table(html.Props{Aria: map[string]string{"label": "Comparison"}}, trs...)
+	return scrollableTable("comparison-table", "Comparison", html.Table(html.Props{Aria: map[string]string{"label": "Comparison"}}, trs...))
 }
 
 func payBandGaugeWidget(WidgetContext) ui.Node {
@@ -219,7 +219,25 @@ func workItemsTableWidget(WidgetContext) ui.Node {
 			html.Td(html.Props{}, ui.Text(w.Owner)),
 		))
 	}
-	return html.Table(html.Props{Aria: map[string]string{"label": "Work items"}}, trs...)
+	return scrollableTable("work-items-table", "Work items", html.Table(html.Props{Aria: map[string]string{"label": "Work items"}}, trs...))
+}
+
+// scrollableTable preserves native table semantics while containing intrinsic
+// two-dimensional overflow. The focusable named region gives keyboard and
+// screen-reader users an operable viewport; the visible cue also covers touch
+// and magnification users without relying on a scrollbar being visible.
+func scrollableTable(id, label string, table ui.Node) ui.Node {
+	cueID := id + "-scroll-cue"
+	return html.Div(html.Props{Class: "table-container"},
+		html.P(html.Props{ID: cueID, Class: "table-scroll-cue"}, ui.Text("Scroll horizontally to see all columns.")),
+		html.Div(html.Props{
+			ID:       id,
+			Class:    "table-scroll",
+			Role:     "region",
+			TabIndex: html.TabIndexZero,
+			Aria:     map[string]string{"label": label + " table", "describedby": cueID},
+		}, table),
+	)
 }
 
 func timelineWidget(WidgetContext) ui.Node {

@@ -155,11 +155,33 @@ func (f Floorplan) Validate() error {
 		if rule.Stacked && rule.Columns > 1 {
 			return fmt.Errorf("%w: stacked responsive rule cannot declare multiple columns", ErrInvalidFloorplan)
 		}
+		if rule.Mode == LayoutFlow && (rule.Columns > 1 || rule.Stacked) {
+			return fmt.Errorf("%w: flow responsive rule cannot declare multiple columns or stacking", ErrInvalidFloorplan)
+		}
 		key := string(rule.Breakpoint) + "\x00" + rule.Region
 		if seenRules[key] {
 			return fmt.Errorf("%w: duplicate responsive rule for %q at %q", ErrInvalidFloorplan, rule.Region, rule.Breakpoint)
 		}
 		seenRules[key] = true
+	}
+	// Validate the cumulative cascade as well as each rule in isolation. A
+	// columns-only rule applied to a flow region, for example, must not create
+	// an effective multi-column flow layout even though both fields are valid
+	// separately.
+	effective := make(map[string]ResponsiveRegion, len(f.Regions))
+	for _, region := range f.Regions {
+		if region.Layout.Mode == LayoutGrid {
+			region.Layout.MaxColumns = region.Layout.MinColumns
+		}
+		effective[region.Name] = ResponsiveRegion{Region: region}
+	}
+	for _, rule := range sortedResponsiveRules(f.ResponsiveRules) {
+		region := effective[rule.Region]
+		applyResponsiveRule(&region, rule)
+		if err := validateLayout(region.Region.Layout); err != nil {
+			return fmt.Errorf("%w: responsive result for region %q at %q: %v", ErrInvalidFloorplan, region.Region.Name, rule.Breakpoint, err)
+		}
+		effective[rule.Region] = region
 	}
 	return nil
 }

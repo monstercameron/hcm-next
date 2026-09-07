@@ -50,8 +50,8 @@ func TestTodo_WEB_026_Golden(t *testing.T) {
 		pd         pagedef.PageDefinition
 		wantDigest string
 	}{
-		{"list", pagedef.PromotionListPageDefinition(), "sha256:b6414262183613bd37d0f2440c7be4d857baa22287fbe66c682300e57ffc15f6"},
-		{"detail", pagedef.PromotionDetailPageDefinition(), "sha256:87aa815116fdace2c6e2931de5659b041a0999fbc6ef0e10ba23025bfbae94e6"},
+		{"list", pagedef.PromotionListPageDefinition(), "sha256:cc59c4741637e19fca339fb55e5c4d76a0d671acb2b5b2f0782f915a026c10c7"},
+		{"detail", pagedef.PromotionDetailPageDefinition(), "sha256:23ab8d5cbeddb7fe29572c92cd6060ddb851e02b960df2ec0f4778fae80d89e5"},
 	}
 
 	for _, tc := range cases {
