@@ -4,6 +4,7 @@
 
 - `WEB-031` closes the browser-state boundary around a random per-tab history ledger only, with hostile-storage fault coverage, real GWC history traversal, and no browser-persisted credentials, authority, business records, or configuration truth.
 - `WEB-032` generates and embeds a bounded frontend asset-integrity manifest, authenticates and integrity-verifies the shim and WASM loader path, pre-indexes request metadata, validates the exact routable catalogue at startup, and publishes deterministic gzip representations. Interrupted multi-file publication fails closed during startup validation; bundle-wide filesystem atomicity is not claimed on Windows.
+- `WEB-033` centralizes production CSP for every HTML response, removes origin-wide script and network authority, scopes asset and gRPC-tunnel connections by path, blocks inline event/style attributes, converts configurable table widths to a closed CSS-class contract, and hardens redirects, refusals, hosts, hashes and cached responses. Trusted Types remains explicitly blocked by GWC v5's private `template.innerHTML` fast paths rather than being enabled in a way that breaks mounting.
 - Frontend qualification now treats the 17-page by 3-locale i18n/accessibility suite as a mandatory acceptance gate alongside interaction-latency, native, compiled `js/wasm`, security, integration, fault, and Codex-browser checks.
 
 ## 2026-09-06

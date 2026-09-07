@@ -542,3 +542,20 @@ organization-structure-maximal-2026.md` and the 30-table draft
   semantics, reduced motion and form-error association. This is a deterministic
   regression gate, not a claim that semantic translation or assistive-technology
   conformance is complete.
+- **WEB-033 production CSP.** Product, journey, legacy workspace, login,
+  refusal, redirect and SSR documents now share one typed deny-by-default
+  policy builder. Sol's adversarial pass removed the initial draft's CSP2
+  same-origin script bypass and origin-wide connection allowance: executable
+  sources are the exact hash-pinned loader, SRI-verified blob shim and narrow
+  WASM compilation token, while network access is limited to the canonical
+  host's asset prefix and exact gRPC tunnel path. Malformed hosts and hashes,
+  inline event/style attributes, redirects, errors and cached responses have
+  regression coverage. DataTable column widths use a closed CSS class contract
+  instead of runtime style attributes. The exact rebuilt Go/WASM bundle logged
+  in through the Codex browser, mounted, navigated Home to People and returned
+  via in-app history with no browser diagnostics. The 51-case i18n/accessibility
+  gate passed; policy construction measured p95 513.5 us under 2 ms and
+  11.7-12.1 us/op in the three-policy benchmark. Trusted Types remains an
+  explicit upstream blocker: GWC v5's private serialized-subtree fast paths
+  write `template.innerHTML`, so enforcement requires a named `TrustedHTML`
+  policy or removal of those sinks before it can be enabled safely.
