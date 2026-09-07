@@ -670,3 +670,30 @@ graph` in a temp directory that now lives under the checkout and so
   frontend commit. Its concurrent shared-index commit `a42586a` therefore
   contains WEB-034 beside unrelated pgxadapter work. The implementation is
   safely landed; shared history was not rewritten merely to improve grouping.
+
+## 13. 2026-09-07: WEB-035 filtered invalidation client
+
+- **Hints never become product truth.** The client accepts only the bounded
+  canonical invalidation protobuf, filters it against the active tenant,
+  projection and authorized-subject scope, then invokes the qualified RPC
+  refetch seam. Sequence, watermark and revision cursors advance only after
+  that authoritative refetch succeeds.
+- **Bounded lifecycle.** One live generation owns a closeable stream, bounded
+  refresh and observer queues, cancellation and exactly-once shutdown. Failed,
+  cancelled and queue-full work remains retryable. Observability is serialized,
+  asynchronous, bounded, panic-contained and identifier-free.
+- **Real browser boundary.** The js/wasm adapter uses the browser WebSocket API,
+  accepts only same-origin `ws`/`wss` URLs and bounded complete text frames,
+  fails closed on binary, overflow and socket errors, and releases every JS
+  listener and callback. Native and actual Node/WASM matrix tests passed.
+- **Qualification.** The seven exact matrix tests, full focused packages, vet,
+  five latency repetitions, the registered i18n/accessibility gate and the
+  full repository hook passed. Native p95 was 509.6 us and WASM p95 847.1 us
+  against 2 ms; the benchmark measured 20.8-27.8 us/op, about 6.7 KB/op and
+  70 allocations. Journeys and People were inspected in the Codex browser
+  without diagnostic warnings or errors.
+- **Honest boundary.** Commit `f29b156` supplies an injectable client and real
+  browser adapter. The repository has no canonical product-invalidation
+  endpoint, authentication/subprotocol contract or HTTP shadow, so this change
+  does not fabricate one or falsely claim a live subscription. WEB-036 owns
+  sequence-based reconnect and cursor catch-up over the governed seam.
