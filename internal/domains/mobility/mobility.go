@@ -932,6 +932,11 @@ type PlanStore interface {
 type InMemoryPlanStore struct {
 	mu    sync.RWMutex
 	plans map[string]MobilityPlan
+	// ext holds the immigration milestone state persistence.go keeps per
+	// store; it lives on the store itself so no package-level registry
+	// outlives its owner.
+	ext     *tenantMemoryState
+	extOnce sync.Once
 }
 
 func NewInMemoryPlanStore() *InMemoryPlanStore {

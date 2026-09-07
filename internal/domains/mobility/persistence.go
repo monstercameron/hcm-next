@@ -33,15 +33,11 @@ type tenantMemoryState struct {
 	milestones map[string][]immigrationRecord
 }
 
-var tenantMemoryStates sync.Map // map[*InMemoryPlanStore]*tenantMemoryState
-
 func tenantState(s *InMemoryPlanStore) *tenantMemoryState {
-	if state, ok := tenantMemoryStates.Load(s); ok {
-		return state.(*tenantMemoryState)
-	}
-	state := &tenantMemoryState{plans: make(map[string]MobilityPlan), milestones: make(map[string][]immigrationRecord)}
-	actual, _ := tenantMemoryStates.LoadOrStore(s, state)
-	return actual.(*tenantMemoryState)
+	s.extOnce.Do(func() {
+		s.ext = &tenantMemoryState{plans: make(map[string]MobilityPlan), milestones: make(map[string][]immigrationRecord)}
+	})
+	return s.ext
 }
 
 var _ TenantPlanStore = (*InMemoryPlanStore)(nil)
