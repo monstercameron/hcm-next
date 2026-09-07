@@ -322,10 +322,10 @@ organization-structure-maximal-2026.md` and the 30-table draft
   `hcmnext.workflow.PromotionOutcome/v2` ledger row.
 - **Verification.** `npm run check:code-style`, `npm run check:go`,
   `npm run test:frontend`, `go test ./internal/domains/jobarch
-  ./internal/domains/fixtures`, `go test ./internal/intent/app
-  ./internal/transport/journey ./internal/humanwork/workspace`, `go test
-  ./tools/uxqual/journeyclient ./internal/humanwork/productui`, `go test
-  ./test/workflow -count=1` and `npm run check:driftgate` pass. A broad
+./internal/domains/fixtures`, `go test ./internal/intent/app
+./internal/transport/journey ./internal/humanwork/workspace`, `go test
+./tools/uxqual/journeyclient ./internal/humanwork/productui`, `go test
+./test/workflow -count=1` and `npm run check:driftgate` pass. A broad
   `go test ./internal/application` remains red only in the composition-root
   policy test for concurrently edited `cmd/worker/roles.go` and
   `internal/domains/mobility/persistence.go`; the focused local-profile config
@@ -367,9 +367,54 @@ organization-structure-maximal-2026.md` and the 30-table draft
   ceiling for the most expensive local interaction.
 - **Verification.** Three complete latency-gate repetitions and five additional
   10,000-worker repetitions pass. `go test -count=1 ./internal/humanwork/...
-  ./tools/uxqual/... ./cmd/frontenddev ./cmd/hcmnext` passes. The percentile
+./tools/uxqual/... ./cmd/frontenddev ./cmd/hcmnext` passes. The percentile
   engine has independent tests for nearest-rank calculation, corpus immutability,
   operation failures, statistically weak sample sets and diagnostic budget
   failures. The local Windows/ARM64 host cannot run `go test -race` because CGO
   is unavailable; the timed suites carry `!race`, and Linux CI retains the
   repository's separate race correctness gate.
+
+## 8. 2026-09-06 (evening): Gate A backend closure
+
+- **Seven lanes, seven ticks.** The last backend Gate A todos went out as
+  one lane each: WEDGE-003 (incumbent capability inventory), EP-PROMO-001,
+  EP-WF-001, EP-OPS-001, EP-HEALTH-001 (the typed endpoints), SVC-005
+  (scheduler timer and signal roles) and SVC-010 (worker messaging
+  delivery). All landed and are ticked; backlog 895 -> 904. UX-003 and
+  A11Y-001 are the only Gate A entries left and both belong to the
+  front-end session. The signed Gate A decision record itself is still a
+  human step; known-defects carries the undecided gap.
+- **Regression caught.** SVC-005's tick failed because WF-RUN-027 (landed
+  earlier today) made proposal and approval fact ports mandatory at Start,
+  and the scheduler's SVC-004 fixture still started instances with
+  caller-asserted flags. The fixture now supplies memory facts bound to the
+  proposal's material digest; every other Start consumer (scheduler,
+  worker, execute, test/workflow) was already green.
+- **Review findings, fixed.** A read-only review of the seven lanes found
+  that the operations endpoint had no production store at all (only the
+  in-memory test double, so every deployed call would return unavailable),
+  that workflow inspection over HTTP had no reader wired, that the cursor
+  signing key fell back to a checked-in literal, that five matrix tests
+  were aliases of one projection test, that the race tests ran
+  sequentially, and that the durable delivery store had only two
+  input-validation tests. Two fix lanes closed all of it: a PostgreSQL
+  operation store on migration 00261 threaded through both edges, the HTTP
+  edge given the workflow reader, a fail-closed cursor key sourced from
+  configuration, real paging, forgery, replay and concurrency tests,
+  embedded-PostgreSQL tests for delivery claims, receipts and replay, a
+  serve-level test that the signal role needs the queue lease, and the old
+  disclosing bootstrap health handler deleted.
+- **Architecture rules the wave surfaced.** ARCH-GO-022 had three
+  pre-existing unallowlisted cross-plane imports (execute -> messaging,
+  migrate/artifacts and promotionexec -> humanwork); they are allowlisted
+  with rationale. ARCH-GO-027 flagged four one-method interfaces with no
+  consumer; each gained a real consumer with its own test rather than an
+  exception. The composition-root rule flagged the worker importing
+  internal/capability directly and the mobility store keeping state in a
+  package-level registry; both fixed. The front-end session's
+  workspace/assets.go carries the same registry pattern and is left to that
+  session.
+- **Environment.** Dev database at schema 261; server, scheduler and worker
+  binaries rebuilt.
+- **Commits.** Data `c26f730`, domain `725ef15`, operations `e885a59`,
+  transport `6d81163`, policy `c2fdf94`, and this docs commit.

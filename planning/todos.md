@@ -614,7 +614,8 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** reuse governed metric definitions without implementing general analytics.
   - **Refs:** [Pilot success measures](plan.md#123-pilot-success-measures), [Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation).
 
-- [ ] `WEDGE-003` **[GATE_A][TERRA] Inventory incumbent native capability.**
+- [x] `WEDGE-003` **[GATE_A][TERRA] Inventory incumbent native capability.**
+  - **Evidence (2026-09-05):** `TestNativeCapabilityAssessmentRejectsStaleOrUnlicensedClaims` in `tools/planning/wedge` (NativeCapabilityAssessment: one immutable evidence schema for the incumbent native capability inventory that rejects stale, unlicensed, misconfigured or unprovenanced claims; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `WEDGE-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestNativeCapabilityAssessmentRejectsStaleOrUnlicensedClaims`.
@@ -7972,7 +7973,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Workflow runtime](specs/workflow-runtime.md), [workflow models](data/models/kernel-governance-and-evidence.md).
 
-- [ ] `SVC-005` **[GATE_A][SOL_HIGH] Host timer and signal roles inside `cmd/scheduler`.**
+- [x] `SVC-005` **[GATE_A][SOL_HIGH] Host timer and signal roles inside `cmd/scheduler`.**
+  - **Evidence (2026-09-05):** `TestTodo_SVC_005` in `internal/platform/execution/scheduler` (scheduler process hosts independently configurable/shardable timer and signal roles using shared runtime packages; roles claim with leases, preserve calendar/event versions, dedupe receipts and resume deterministically; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/execution/scheduler/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SVC-004`, `WF-RUN-004`, `WF-RUN-005`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_SVC_005`.
@@ -8025,7 +8027,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Ledger/reconciliation/repair](specs/transaction-ledger-reconciliation-and-repair.md), [workflow repair](specs/workflow-runtime.md).
 
-- [ ] `SVC-010` **[GATE_A][TERRA] Host messaging delivery as a `cmd/worker` role.**
+- [x] `SVC-010` **[GATE_A][TERRA] Host messaging delivery as a `cmd/worker` role.**
+  - **Evidence (2026-09-05):** `TestTodo_SVC_010` in `cmd/worker`, `internal/connectivity/delivery` (messaging worker role consumes semantic intents, resolves policy/channel, performs bounded provider attempts and persists delivery observations/signals; workflow and command packages import no email/SMS/provider adapters; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./cmd/worker/ ./internal/connectivity/delivery/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `SVC-002`, `MSG-003`, `MSG-004`, `DATA-008`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_SVC_010`.
@@ -14167,7 +14170,8 @@ path regardless of transport.
   - **REFACTOR:** compose ledger/provenance/governance projections; endpoint does not reconstruct truth ad hoc.
   - **Refs:** [intent inspection endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [provenance](specs/provenance-graph-and-lineage.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [ ] `EP-PROMO-001` **[GATE_A][SOL_HIGH] Implement the no-effect typed ProposeIntoManagement gRPC and HTTP endpoint.**
+- [x] `EP-PROMO-001` **[GATE_A][SOL_HIGH] Implement the no-effect typed ProposeIntoManagement gRPC and HTTP endpoint.**
+  - **Evidence (2026-09-05):** `TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth` in `internal/transport/journey` (typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one PromoteWorker intent/change request plus immutable snapshot/simulation/proposal candidates with zero author; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/journey/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `PROMO-007`, `PROMO-001`–`PROMO-004`, `INTENT-004`.
   - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; KERNEL=CHANGE_REQUEST; WHY=provide the first typed semantic endpoint that creates a governed management-promotion intent from desired outcome only`.
   - **TEST:** `TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth`.
@@ -14207,7 +14211,8 @@ path regardless of transport.
   - **REFACTOR:** approval is a specialized WorkItem result; both methods share current-authority and signal publication mechanics.
   - **Refs:** [approval endpoint](specs/http-grpc-endpoint-contract.md#human-work-and-approvals), [human decisions](specs/human-work-forms-and-rules.md), [approval safety](#24-human-decision-safety-and-continuity).
 
-- [ ] `EP-WF-001` **[GATE_A][SOL_HIGH] Implement GetWorkflow and ListNodeExecutions inspection endpoints.**
+- [x] `EP-WF-001` **[GATE_A][SOL_HIGH] Implement GetWorkflow and ListNodeExecutions inspection endpoints.**
+  - **Evidence (2026-09-05):** `TestWorkflowInspectionEndpointsReturnAuthorizedConsistentExecutionView` in `internal/transport/cell`, `internal/transport/workflow` (authorized projection pins instance/definition/proposal versions and watermark, returns redacted frontier/nodes/attempts/waits/signals/errors/repairs/evidence with stable pagination and identical transport digest; unavailable projection is explicit; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/cell/ ./internal/transport/workflow/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `WF-RUN-019`, `ADMIN-002`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.DATAOPS; DIRECT=none; WHY=inspect durable execution truth and multidimensional completion without exposing raw runtime persistence`.
   - **TEST:** `TestWorkflowInspectionEndpointsReturnAuthorizedConsistentExecutionView`.
@@ -14237,7 +14242,8 @@ path regardless of transport.
   - **REFACTOR:** evidence owner composes registered sources; transport streams only authorized artifact/operation references.
   - **Refs:** [evidence endpoints](specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations), [ledger evidence](specs/transaction-ledger-reconciliation-and-repair.md), [evidence export](specs/platform-responsibility-boundaries.md#audit-evidence-packaging).
 
-- [ ] `EP-OPS-001` **[GATE_A][SOL_HIGH] Implement GetOperation and CancelOperation endpoints for long-running work.**
+- [x] `EP-OPS-001` **[GATE_A][SOL_HIGH] Implement GetOperation and CancelOperation endpoints for long-running work.**
+  - **Evidence (2026-09-05):** `TestLongRunningOperationEndpointsPreserveStateResultErrorAndCancellationTruth` in `internal/transport/operations` (operation resource returns immutable owner/request/type/create/update, PENDING|RUNNING|SUCCEEDED|FAILED|CANCELLATION_REQUESTED|CANCELLED, progress/completeness, typed result/error/evidence; cancellation is idempotent, policy/safe-boundary aware and recovery preserves state; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/operations/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `PROTO-007`, `SVC-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=inspect and request cancellation of resumable long-running endpoint work without equating transport lifetime with business completion`.
   - **TEST:** `TestLongRunningOperationEndpointsPreserveStateResultErrorAndCancellationTruth`.
@@ -14247,7 +14253,8 @@ path regardless of transport.
   - **REFACTOR:** all long-running endpoint families reuse one owned Operation contract; it does not replace BusinessIntent or Workflow state.
   - **Refs:** [operation endpoints](specs/http-grpc-endpoint-contract.md#evidence-and-long-running-operations), [streaming contract](#29-machine-readable-model-sources-and-public-api-contracts), [workflow truth](specs/workflow-runtime.md).
 
-- [ ] `EP-HEALTH-001` **[GATE_A][TERRA] Implement non-disclosing gRPC health, `/healthz` and `/readyz` endpoints per process role.**
+- [x] `EP-HEALTH-001` **[GATE_A][TERRA] Implement non-disclosing gRPC health, `/healthz` and `/readyz` endpoints per process role.**
+  - **Evidence (2026-09-05):** `TestHealthAndReadinessEndpointsDistinguishProcessLifeFromAdmissionReadiness` in `internal/transport/health` (standard gRPC Health plus HTTP /healthz report process-loop life; /readyz reports role-specific admission state from bounded cached dependency/control checks, public output is minimal, internal reasons are authorized telemetry and transitions meet latency/load budgets; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/health/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-006`, `SVC-002`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=provide non-material liveness/readiness signals for safe workload routing without exposing tenant or dependency internals`.
   - **TEST:** `TestHealthAndReadinessEndpointsDistinguishProcessLifeFromAdmissionReadiness`.

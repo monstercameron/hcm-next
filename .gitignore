@@ -111,3 +111,5 @@ internal/humanwork/workspace/assets/wasm_exec.js
 .pgcache-*
 .codex-*/
 .codex-*
+.gotmp/
+.lane-gotmp-*

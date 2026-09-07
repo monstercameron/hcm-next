@@ -1,10 +1,10 @@
 ﻿=== root (github.com/monstercameron/hcm-next) ===
-files(non-test)=2056 generated=42 hand-written=2014 hand-written-in-untested-pkgs=2
+files(non-test)=2069 generated=42 hand-written=2027 hand-written-in-untested-pkgs=2
 untested pkgs(2): tools/gen/librarystrategy/cmd/generatelibrarystrategy, tools/gen/schemaflux/cmd/modelgen
 
 # Test-coverage file inventory - root (github.com/monstercameron/hcm-next) module
 
-generated=42 hand-written=2014
+generated=42 hand-written=2027
 
 ## Hand-written files
 
@@ -23,13 +23,16 @@ generated=42 hand-written=2014
 | cmd/projector                                            | reconcile.go                          | yes           |
 | cmd/scheduler                                            | main.go                               | yes           |
 | cmd/worker                                               | main.go                               | yes           |
+| cmd/worker                                               | messaging_role.go                     | yes           |
 | cmd/worker                                               | roles.go                              | yes           |
 | cmd/worker                                               | sweep.go                              | yes           |
 | internal/a11y                                            | a11y001.go                            | yes           |
 | internal/agentsecurity                                   | agent001_gateway.go                   | yes           |
 | internal/agentsecurity                                   | toolgateway.go                        | yes           |
 | internal/application                                     | app001.go                             | yes           |
+| internal/application                                     | capabilityresolver.go                 | yes           |
 | internal/application                                     | config.go                             | yes           |
+| internal/application                                     | dev_workforce.go                      | yes           |
 | internal/application                                     | execution.go                          | yes           |
 | internal/application                                     | graph.go                              | yes           |
 | internal/application                                     | lifecycle.go                          | yes           |
@@ -96,6 +99,7 @@ generated=42 hand-written=2014
 | internal/connectivity/application                        | installation.go                       | yes           |
 | internal/connectivity/artifactstore                      | artifactstore.go                      | yes           |
 | internal/connectivity/delivery                           | delivery.go                           | yes           |
+| internal/connectivity/delivery                           | postgres.go                           | yes           |
 | internal/connectivity/diagnostics                        | diagnostics.go                        | yes           |
 | internal/connectivity/diagnostics                        | doc.go                                | yes           |
 | internal/connectivity/edge                               | conformance.go                        | yes           |
@@ -291,6 +295,7 @@ generated=42 hand-written=2014
 | internal/data/meritstore                                 | store.go                              | yes           |
 | internal/data/messagingmeta                              | store.go                              | yes           |
 | internal/data/mobilitystore                              | store.go                              | yes           |
+| internal/data/operationstore                             | store.go                              | yes           |
 | internal/data/opsmeta                                    | store.go                              | yes           |
 | internal/data/outbox                                     | commit.go                             | yes           |
 | internal/data/outbox                                     | consumer.go                           | yes           |
@@ -503,6 +508,7 @@ generated=42 hand-written=2014
 | internal/domains/intelligence                            | transaction.go                        | yes           |
 | internal/domains/jobarch                                 | jobarch.go                            | yes           |
 | internal/domains/jobarch                                 | lifecycle.go                          | yes           |
+| internal/domains/jobarch                                 | promotion_path.go                     | yes           |
 | internal/domains/jobarch                                 | requirements.go                       | yes           |
 | internal/domains/jobarch                                 | store.go                              | yes           |
 | internal/domains/knowledge                               | doc.go                                | yes           |
@@ -514,6 +520,7 @@ generated=42 hand-written=2014
 | internal/domains/location                                | correction.go                         | yes           |
 | internal/domains/location                                | location.go                           | yes           |
 | internal/domains/location                                | resolution.go                         | yes           |
+| internal/domains/location                                | worksite_verify.go                    | yes           |
 | internal/domains/matching                                | matching.go                           | yes           |
 | internal/domains/matching                                | population.go                         | yes           |
 | internal/domains/merit                                   | merit.go                              | yes           |
@@ -645,6 +652,7 @@ generated=42 hand-written=2014
 | internal/domains/survey                                  | response.go                           | yes           |
 | internal/domains/survey                                  | sample.go                             | yes           |
 | internal/domains/survey                                  | survey.go                             | yes           |
+| internal/domains/taxprofile                              | registration_compose.go               | yes           |
 | internal/domains/taxprofile                              | store.go                              | yes           |
 | internal/domains/taxprofile                              | taxprofile.go                         | yes           |
 | internal/domains/tenant                                  | bootstrap.go                          | yes           |
@@ -863,6 +871,7 @@ generated=42 hand-written=2014
 | internal/humanwork/productui                             | data_table.go                         | yes           |
 | internal/humanwork/productui                             | display.go                            | yes           |
 | internal/humanwork/productui                             | doc.go                                | yes           |
+| internal/humanwork/productui                             | focus.go                              | yes           |
 | internal/humanwork/productui                             | global_search.go                      | yes           |
 | internal/humanwork/productui                             | history_components.go                 | yes           |
 | internal/humanwork/productui                             | history_navigation.go                 | yes           |
@@ -1003,6 +1012,7 @@ generated=42 hand-written=2014
 | internal/intent/app/pgstore                              | pgstore.go                            | yes           |
 | internal/intent/approval                                 | decision.go                           | yes           |
 | internal/intent/approval                                 | doc.go                                | yes           |
+| internal/intent/approval                                 | elect.go                              | yes           |
 | internal/intent/approval                                 | errors.go                             | yes           |
 | internal/intent/approval                                 | execution.go                          | yes           |
 | internal/intent/approval                                 | execution_errors.go                   | yes           |
@@ -1120,6 +1130,7 @@ generated=42 hand-written=2014
 | internal/operations/recovery                             | tenant_restore.go                     | yes           |
 | internal/operations/reliability                          | doc.go                                | yes           |
 | internal/operations/reliability                          | reliability.go                        | yes           |
+| internal/operations/repair                               | admit.go                              | yes           |
 | internal/operations/repair                               | repair.go                             | yes           |
 | internal/operations/residency                            | policy.go                             | yes           |
 | internal/operations/slo                                  | slo.go                                | yes           |
@@ -1290,6 +1301,7 @@ generated=42 hand-written=2014
 | internal/transport/cell                                  | cell.go                               | yes           |
 | internal/transport/cell                                  | root.go                               | yes           |
 | internal/transport/cell                                  | tunnel.go                             | yes           |
+| internal/transport/cell                                  | workflow_reader.go                    | yes           |
 | internal/transport/conformance                           | query.go                              | yes           |
 | internal/transport/eastwest                              | eastwest.go                           | yes           |
 | internal/transport/eastwest                              | peer.go                               | yes           |
@@ -1979,6 +1991,7 @@ generated=42 hand-written=2014
 | tools/uxqual/journeyclient                               | router.go                             | yes           |
 | tools/uxqual/journeyclient                               | service.go                            | yes           |
 | tools/uxqual/journeyclient                               | watch.go                              | yes           |
+| tools/uxqual/latencygate                                 | latencygate.go                        | yes           |
 | tools/uxqual/pagedef                                     | canonical.go                          | yes           |
 | tools/uxqual/pagedef                                     | pagedef.go                            | yes           |
 | tools/uxqual/pagedef                                     | promotion.go                          | yes           |
