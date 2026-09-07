@@ -503,7 +503,41 @@ items:
       - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
+      - BenchmarkTodo_PROMO_001
+      - TestCommandRefusesAPlanThatDropsAParticipant
+      - TestCommandRefusesMissingApprovalAndManagerCycle
+      - TestCommandValidatesTheBoundedPromotion
+      - TestJourneyCreateWorkerRequiresTheOperatorRole
+      - TestJourneyCreatedWorkerCompletesTheWholePromotion
+      - TestJourneyDecideApproveCompletesWithOneGovernedWrite
+      - TestJourneyDecideRejectReachesTheRejectedTerminal
+      - TestJourneyExecuteIsRefusedWithoutTheExecutionRole
       - TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect
+      - TestProposePromotionForwardsToThePromotionService
+      - TestProposePromotionIsUnavailableWithoutTheContract
+      - TestProposePromotionProjectsThePortsRefusals
+      - TestStreamInterceptorRejectsAnUnauthenticatedStream
+      - TestTodo_PROMO_001
+      - TestTodo_PROMO_001_Conditional
+      - TestTodo_PROMO_001_Golden
+      - TestTodo_PROMO_001_Golden_Withheld
+      - TestTodo_PROMO_001_Integration
+      - TestTodo_PROMO_001_Mutation
+      - TestTodo_PROMO_001_Refusal
+      - TestTodo_PROMO_001_Security
+      - TestTodo_PROMO_002
+      - TestTodo_PROMO_003
+      - TestTodo_PROMO_004
+      - TestTodo_PROMO_005
+      - TestTodo_PROMO_006
+      - TestTodo_PROMO_007
+      - TestTodo_PROMO_007_Golden
+      - TestTodo_PROMO_007_Integration
+      - TestTodo_PROMO_007_Mutation
+      - TestTodo_PROMO_007_Security
+      - TestTunnelServesAServerStreamingRPC
+      - TestTunnelUpgradeRefusesACrossOriginBrowser
+      - TestWatchJourneyEmitsOneMessagePerChange
   - id: hcmnext.registry.explain_capability
     kind: capability
     owner_domain: registry
@@ -520,7 +554,7 @@ items:
     kind: capability
     display_name: EvaluatePayBandPosition
     owner_domain: rewards
-    state: PARTIAL
+    state: DEFINED
     claims:
       - COMP-003:DIRECT
       - BAL-001:DOMAIN
@@ -658,7 +692,8 @@ items:
       - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
-    tests: []
+    tests:
+      - TestTodo_COMP_003
   - id: hcmnext.rewards.simulate_compensation
     kind: capability
     display_name: SimulateCompensation
@@ -1166,12 +1201,46 @@ items:
       - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
     tests:
+      - BenchmarkTodo_PROMO_001
+      - TestCommandRefusesAPlanThatDropsAParticipant
+      - TestCommandRefusesMissingApprovalAndManagerCycle
+      - TestCommandValidatesTheBoundedPromotion
+      - TestJourneyCreateWorkerRequiresTheOperatorRole
+      - TestJourneyCreatedWorkerCompletesTheWholePromotion
+      - TestJourneyDecideApproveCompletesWithOneGovernedWrite
+      - TestJourneyDecideRejectReachesTheRejectedTerminal
+      - TestJourneyExecuteIsRefusedWithoutTheExecutionRole
       - TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect
+      - TestProposePromotionForwardsToThePromotionService
+      - TestProposePromotionIsUnavailableWithoutTheContract
+      - TestProposePromotionProjectsThePortsRefusals
+      - TestStreamInterceptorRejectsAnUnauthenticatedStream
+      - TestTodo_PROMO_001
+      - TestTodo_PROMO_001_Conditional
+      - TestTodo_PROMO_001_Golden
+      - TestTodo_PROMO_001_Golden_Withheld
+      - TestTodo_PROMO_001_Integration
+      - TestTodo_PROMO_001_Mutation
+      - TestTodo_PROMO_001_Refusal
+      - TestTodo_PROMO_001_Security
+      - TestTodo_PROMO_002
+      - TestTodo_PROMO_003
+      - TestTodo_PROMO_004
+      - TestTodo_PROMO_005
+      - TestTodo_PROMO_006
+      - TestTodo_PROMO_007
+      - TestTodo_PROMO_007_Golden
+      - TestTodo_PROMO_007_Integration
+      - TestTodo_PROMO_007_Mutation
+      - TestTodo_PROMO_007_Security
+      - TestTunnelServesAServerStreamingRPC
+      - TestTunnelUpgradeRefusesACrossOriginBrowser
+      - TestWatchJourneyEmitsOneMessagePerChange
   - id: hcmnext.rewards.change_base_pay
     kind: intent
     display_name: ChangeBasePay
     owner_domain: REWARDS
-    state: PARTIAL
+    state: DEFINED
     claims:
       - COMP-004:DIRECT
       - BAL-001:DOMAIN
@@ -1309,12 +1378,13 @@ items:
       - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
-    tests: []
+    tests:
+      - TestTodo_COMP_004
   - id: hcmnext.rewards.evaluate_pay_band_position
     kind: intent
     display_name: EvaluatePayBandPosition
     owner_domain: REWARDS
-    state: PARTIAL
+    state: DEFINED
     claims:
       - COMP-003:DIRECT
       - BAL-001:DOMAIN
@@ -1452,23 +1522,26 @@ items:
       - WEB-168:DOMAIN
       - WF-DISC-006:DOMAIN
       - WORKER-LIFE-004:DOMAIN
-    tests: []
+    tests:
+      - TestTodo_COMP_003
   - id: hcmnext.rewards.release_compensation_budget
     kind: intent
     display_name: ReleaseCompensationBudget
     owner_domain: WORKFORCE_BUDGET
-    state: PARTIAL
+    state: DEFINED
     claims:
       - BUDGET-002:DIRECT
-    tests: []
+    tests:
+      - TestTodo_BUDGET_002
   - id: hcmnext.rewards.reserve_compensation_budget
     kind: intent
     display_name: ReserveCompensationBudget
     owner_domain: WORKFORCE_BUDGET
-    state: PARTIAL
+    state: DEFINED
     claims:
       - BUDGET-002:DIRECT
-    tests: []
+    tests:
+      - TestTodo_BUDGET_002
   - id: hcmnext.rewards.simulate_compensation
     kind: intent
     display_name: SimulateCompensation
@@ -1619,15 +1692,17 @@ items:
     kind: intent
     display_name: ApproveProposal
     owner_domain: HUMAN_WORK
-    state: PARTIAL
+    state: DEFINED
     claims:
       - APPROVAL-008:DIRECT
-    tests: []
+    tests:
+      - TestProposalDecisionIntentsReturnBoundDecisionAndCompleteExactlyOneWorkItem
   - id: hcmnext.work.reject_proposal
     kind: intent
     display_name: RejectProposal
     owner_domain: HUMAN_WORK
-    state: PARTIAL
+    state: DEFINED
     claims:
       - APPROVAL-008:DIRECT
-    tests: []
+    tests:
+      - TestProposalDecisionIntentsReturnBoundDecisionAndCompleteExactlyOneWorkItem

@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: 342d39159f4a5a07c01bb9d83c90db21bb3c7b18cac7e233c7046ac2781dd770
-- Package count: 736
-- Within-module edge count: 1659
+- Source graph: 4ea55e21d52b567802cd6425ec5c64bb09a20fc88c23f84404465cb554ff1ae7
+- Package count: 739
+- Within-module edge count: 1663
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -765,6 +765,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/policy/endpointmanifest/cmd/endpointmanifest`
 - `github.com/monstercameron/hcm-next/tools/policy/enginecoverage`
 - `github.com/monstercameron/hcm-next/tools/policy/enginecoverage/cmd/enginecoverage`
+- `github.com/monstercameron/hcm-next/tools/policy/fkindex`
 - `github.com/monstercameron/hcm-next/tools/policy/garbagedrawer`
 - `github.com/monstercameron/hcm-next/tools/policy/gensources`
 - `github.com/monstercameron/hcm-next/tools/policy/iac`
@@ -789,6 +790,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/policy/querytransport`
 - `github.com/monstercameron/hcm-next/tools/policy/racepolicy`
 - `github.com/monstercameron/hcm-next/tools/policy/racepolicy/cmd/racepolicy`
+- `github.com/monstercameron/hcm-next/tools/policy/regexhoist`
 - `github.com/monstercameron/hcm-next/tools/policy/release`
 - `github.com/monstercameron/hcm-next/tools/policy/release/cmd/release`
 - `github.com/monstercameron/hcm-next/tools/policy/releaseadmission`
@@ -846,6 +848,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/uxqual/forms`
 - `github.com/monstercameron/hcm-next/tools/uxqual/hydration`
 - `github.com/monstercameron/hcm-next/tools/uxqual/i18n`
+- `github.com/monstercameron/hcm-next/tools/uxqual/invalidation`
 - `github.com/monstercameron/hcm-next/tools/uxqual/journeyclient`
 - `github.com/monstercameron/hcm-next/tools/uxqual/latencygate`
 - `github.com/monstercameron/hcm-next/tools/uxqual/pagedef`
@@ -884,4 +887,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`d9b5dc94d2329b6d7a008430d60ee5e68addf9d296511e46c1f6e57d23253e0c`
+`aa18c98c44249c80fd74558fa77539f7d64a601a0f1536863977be928aa5652c`

@@ -602,6 +602,26 @@ organization-structure-maximal-2026.md` and the 30-table draft
   per three-stream ten-event append 51 to 33; allocs/op 12 to 8 (envelope),
   209 to 152 (evidence), 104 to 71 (cycle); 65 indexes added, 22 foreign
   keys left unindexed by recorded decision.
+- **Commits.** `bf4cbcc` regex hoisting and the AST check; `e9b88c0` edge
+  single admission plus envelope and cycle allocations; `a42586a` pool
+  hygiene and the batch port; `86093e3` the gate reports failure reasons;
+  `e77d7f9` the pgtest admin-connection and role-creation fixes together
+  with the ledger, intentcontrol and outbox batching (the batching group
+  was still staged from a refused attempt when the pgtest group was
+  committed, and the combined commit passed the full gates); `2e22af5`
+  the foreign-key index audit and migration 00262; `b4c458e` the
+  securebydesign scanner skips dot directories (the same fix for the
+  traceability scanner waits on that package's real-corpus test, red on
+  the front-end session's evidence lines).
+- **What the gate refusals taught.** Two failures appeared only while the
+  hook ran five database packages at once beside the other session's
+  hook: a schema drop overran its 60-second deadline and pgx closed the
+  shared admin connection, so every later CREATE SCHEMA in the package
+  failed with "conn closed"; and two sessions applying migration 00008
+  at once could leave the second without the role the first had not yet
+  committed. The helper now reconnects and gives drops five minutes, the
+  migration takes a transaction advisory lock, and the gate prints the
+  failing test's own lines so the next refusal explains itself.
 - **Left open.** The remaining row-at-a-time loops (jobarchstore, budgetstore,
   contentregistrystore, recordsmeta, contactstore, meritstore, workeridstore,
   seed) can move to `dbport.ExecAll` the same way; `transport.Validate`'s
