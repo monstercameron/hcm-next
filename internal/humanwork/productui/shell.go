@@ -67,6 +67,7 @@ func appHeader(view View) ui.Node {
 			contextSwitcherSlot(view),
 			ui.CreateElement(HistoryNavigation, historyNavigationProps(view)),
 			globalSearch(view),
+			actionLauncher(view),
 		),
 		localeMenu(view),
 		notificationSlot(view),
@@ -139,6 +140,26 @@ func globalSearch(view View) ui.Node {
 		}
 	}
 	return ui.CreateElement(GlobalSearch, props)
+}
+
+func actionLauncher(view View) ui.Node {
+	props := actionLauncherProps(view)
+	props.Items = authorizedActionLauncherItems(view, props.Items)
+	return ui.CreateElement(ActionLauncher, props)
+}
+
+// authorizedActionLauncherItems intersects the allowed starts with the pages
+// the authorized navigation (projection or legacy) admits, so the launcher
+// never advertises a route the shell itself omits.
+func authorizedActionLauncherItems(view View, items []ActionLauncherItem) []ActionLauncherItem {
+	allowed := authorizedNavigationPages(view)
+	result := make([]ActionLauncherItem, 0, len(items))
+	for _, item := range items {
+		if allowed[item.Page] {
+			result = append(result, item)
+		}
+	}
+	return result
 }
 
 func authorizedGlobalSearchItems(view View, items []GlobalSearchItem) []GlobalSearchItem {

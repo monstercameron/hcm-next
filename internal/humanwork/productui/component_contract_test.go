@@ -23,7 +23,7 @@ func TestFeatureComponentPropsNeverEmbedPageView(t *testing.T) {
 		DataTableProps{}, DataTableColumnProps{}, DataTableRowProps{}, DataTableCellProps{},
 		PeoplePaginationProps{}, PageSizeControlProps{}, PaginationLinkProps{}, PeopleEmptyStateProps{}, PersonPageProps{}, MyselfPageProps{}, SelfServiceBoundaryProps{},
 		PersonUnavailableProps{}, PersonProfileProps{}, PersonProfileCompositionProps{}, PersonHeroProps{}, EmploymentDetailsProps{}, SensitiveDetailsProps{},
-		ProfileFactProps{}, WorkflowLauncherProps{}, WorkflowFilterProps{}, WorkflowCardProps{},
+		ProfileFactProps{}, WorkflowLauncherProps{}, ActionLauncherProps{}, ActionLauncherItem{}, WorkflowFilterProps{}, WorkflowCardProps{},
 		WorkflowHistoryProps{}, WorkflowHistoryFilterProps{}, HistoryFilterOption{}, HistorySortColumnProps{}, WorkflowHistoryItemProps{},
 	}
 	for _, value := range props {

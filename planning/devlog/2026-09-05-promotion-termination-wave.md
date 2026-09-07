@@ -822,3 +822,43 @@ graph` in a temp directory that now lives under the checkout and so
   and 1,262 allocations. Codex-browser inspection covered desktop, 390 px and
   320 px light/dark layouts. It exposed and fixed ambiguous authorization-empty
   copy and a truncated narrow fallback wordmark; browser diagnostics were clean.
+
+## 18. 2026-09-07: delivery-loop verification notes hardened
+
+- Cam asked for unit, end-to-end, and responsive visual inspection to hold as
+  explicit delivery-loop steps. Steps 4 (unit) and 5 (end-to-end) already
+  existed, so no duplicate step was added; step 6 now requires responsive
+  inspection (desktop plus 390 px and 320 px, light and dark where supported,
+  no overlap, truncation, or console diagnostics, widths and states recorded)
+  and, where the surface renders text or controls, the applicable
+  `tools/uxqual/` i18n (en-US, de-DE, RTL ar) and accessibility/WCAG checks
+  with the suites recorded. Step 7 now also carries the CHANGELOG and devlog
+  updates in the loop itself, since that rule previously lived only under git
+  discipline where a lane could miss it.
+- Verified: `npx prettier --check AGENTS.md` passes; the file was re-read
+  after editing. Left partial: the change is uncommitted, per git discipline,
+  and no todo tick or behavioral code changed with it.
+
+## 19. 2026-09-07: WEB-040 global action launcher
+
+- First todo of the WEB-040..240 chain, worked in this session under Cam's
+  explicit override of the front-end-session ownership rule. RED was a build
+  failure on the missing launcher symbols; GREEN added `action_launcher.go`
+  (narrow props, authorized-starts derivation, deterministic local ranking,
+  combobox dialog), the shell mount, six catalog keys in three locales, and
+  the four-test matrix plus the props-contract guard entry.
+- Re-verification caught two real defects: the launcher first ignored the
+  authorized navigation projection (an omitted page would still be advertised;
+  fixed by intersecting starts with the admitted pages, mirroring
+  `globalSearch`), and the trigger shipped with no stylesheet (headless
+  Chromium showed a dark unstyled control; fixed with a token-driven style
+  block covering hover, narrow viewports, forced colors, reduced motion, and
+  print). Static SSR screenshots at 1280px and 390px are verified
+  (`.artifacts/web040-desktop.png`, `.artifacts/web040-mobile.png`); live
+  browser interaction is pending (no running cell in this environment).
+- Suite state: full `productui` package PASS, `go vet` clean, coverage
+  86.6%, `tools/uxqual/i18n` and `pagedef` PASS, `./internal/humanwork/...`
+  PASS. `test/workspace` has two failures proven unrelated to this change
+  (the harness does not build at clean HEAD without the concurrent session's
+  uncommitted journey-edge work). Shell and navigation goldens re-pinned to
+  digests verified stable across runs; the delta is the launcher mount alone.
