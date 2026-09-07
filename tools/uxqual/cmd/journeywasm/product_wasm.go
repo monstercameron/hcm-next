@@ -23,6 +23,8 @@ const productPathPrefix = "/workspace/app/"
 
 const productViewKey = "product-view"
 const productJourneyStoreKey = "product-journey-store"
+const productSourceHrefKey = "product-source-href"
+const productResolvedHrefKey = "product-resolved-href"
 
 var lastFocusedProductRoute string
 var productNavigationGroups *browserNavigationGroupController
@@ -167,6 +169,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 					// state, start a journey read, or enqueue a preference write.
 					return nil, context.Canceled
 				}
+				resolvedHref := productclient.ResolvedCanonicalHref(state, view)
 				view.Navigate = navigateProduct
 				applyBrowserHistoryNavigation(&view)
 				view.NavigateDebounced = navigationDebounce.Schedule
@@ -295,7 +298,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				view.PreviewAccessibility = accessibility.Preview
 				view.SaveAccessibility = accessibility.Save
 				view.ResetAccessibility = accessibility.Reset
-				attrs := router.Attrs{productViewKey: view}
+				attrs := router.Attrs{productViewKey: view, productSourceHrefKey: canonicalHref, productResolvedHrefKey: resolvedHref}
 				if state.Page == productui.PageJourneys {
 					journeys.Load(productclient.JourneyFragment(state.Request))
 					attrs[productJourneyStoreKey] = journeyStore
@@ -467,6 +470,14 @@ func productRouteComponent(_ router.Attrs) *router.Element {
 		view = productui.NewView(productui.PageHome, "", "", "")
 		view.LoadError = "The requested view did not produce route data."
 		view.Navigate = router.Navigate
+	}
+	if sourceHref, sourceOK := data[productSourceHrefKey].(string); sourceOK && currentProductHref() == sourceHref {
+		if resolvedHref, resolvedOK := data[productResolvedHrefKey].(string); resolvedOK && resolvedHref != "" && resolvedHref != sourceHref {
+			// GWC must commit the loader result under its original loader key
+			// before the address changes. Replacing from the resolved component
+			// prevents GWC from correctly suppressing its own answer as stale.
+			browserReplaceURL(resolvedHref)
+		}
 	}
 	if productNavigationGroups != nil {
 		view.NavigationGroupOpen = make(map[productui.PageID]bool)

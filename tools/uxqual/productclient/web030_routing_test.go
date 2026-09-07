@@ -54,6 +54,9 @@ func TestTodo_WEB_030(t *testing.T) {
 	if view.Page != productui.PagePeople || view.Query != "Riley Chen" || view.PeoplePage != 1 || view.PeoplePageSize != 50 || view.Locale.Resolved != "de-DE" || !view.NavCollapsed {
 		t.Fatalf("cold route projection = %+v", view)
 	}
+	if got, want := ResolvedCanonicalHref(state, view), "/workspace/app/people?dir=desc&locale=de-DE&nav=collapsed&page=1&page_size=50&q=Riley+Chen&sort=role&team=Platform"; got != want {
+		t.Fatalf("resolved cold route = %q, want %q", got, want)
+	}
 	if journeyCalls.Load() != 1 || workerCalls.Load() != 1 || len(view.People) != 1 || view.People[0].ID != "worker-current" {
 		t.Fatalf("fresh authorized cold reads = journeys %d workers %d view %+v", journeyCalls.Load(), workerCalls.Load(), view)
 	}
@@ -219,6 +222,27 @@ func TestTodo_WEB_030_Integration(t *testing.T) {
 	}
 }
 
+func TestTodo_WEB_030_ResolvedPagination(t *testing.T) {
+	var journeyCalls, workerCalls atomic.Int32
+	journey := web030Journey("intent-complete")
+	journey.Stage = journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED
+	service := web030Service([]*journeyv1.Journey{journey}, []*journeyv1.Worker{web030Worker("worker-current")}, &journeyCalls, &workerCalls)
+	state, err := ParseState("/workspace/app/history", "history_page=0009&history_page_size=10&history_sort=closed&history_dir=desc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	view, err := Load(context.Background(), service, Session{Tenant: "tenant-a", Principal: "worker-current"}, state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if view.HistoryPage != 1 || view.HistoryPageSize != 10 {
+		t.Fatalf("resolved history window = page %d size %d", view.HistoryPage, view.HistoryPageSize)
+	}
+	if got, want := ResolvedCanonicalHref(state, view), "/workspace/app/history?history_dir=desc&history_page=1&history_page_size=10&history_sort=closed"; got != want {
+		t.Fatalf("resolved history route = %q, want %q", got, want)
+	}
+}
+
 func TestTodo_WEB_030_Fault(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -249,6 +273,23 @@ func BenchmarkProductDeepLinkResolve(b *testing.B) {
 		}
 		if CanonicalHref(state) == "" {
 			b.Fatal("empty canonical route")
+		}
+	}
+}
+
+func BenchmarkProductResolvedRouteCanonicalize(b *testing.B) {
+	state, err := ParseState("/workspace/app/people", "q=Rafael&page=0002&page_size=50&sort=role&dir=desc")
+	if err != nil {
+		b.Fatal(err)
+	}
+	view := productui.NewView(productui.PagePeople, "Tenant", "Principal", "Scope")
+	view.People = []productui.Person{{ID: "worker-1", Name: "Rafael"}}
+	view = productui.ApplyRequest(view, state.Request)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for index := 0; index < b.N; index++ {
+		if href := ResolvedCanonicalHref(state, view); href != "/workspace/app/people?dir=desc&page=1&page_size=50&q=Rafael&sort=role" {
+			b.Fatal(href)
 		}
 	}
 }

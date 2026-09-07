@@ -301,6 +301,35 @@ func CanonicalHref(state State) string {
 	return href
 }
 
+// ResolvedCanonicalHref updates address-backed pagination with the effective
+// window selected from the freshly authorized projection. Parsing can
+// normalize syntax before a read, but only the resolved record set can clamp
+// an out-of-range page without disclosing or guessing a count.
+func ResolvedCanonicalHref(state State, view productui.View) string {
+	if view.Page != state.Page {
+		return CanonicalHref(state)
+	}
+	resolved := state
+	resolved.Request = state.Request
+	if state.Page == productui.PagePeople || state.Page == productui.PagePerson {
+		if state.Provided["page"] {
+			resolved.Request.PeoplePage = view.PeoplePage
+		}
+		if state.Provided["page_size"] {
+			resolved.Request.PeoplePageSize = view.PeoplePageSize
+		}
+	}
+	if state.Page == productui.PageHistory || state.Page == productui.PagePerson || state.Page == productui.PageMyself {
+		if state.Provided["history_page"] {
+			resolved.Request.HistoryPage = view.HistoryPage
+		}
+		if state.Provided["history_page_size"] {
+			resolved.Request.HistoryPageSize = view.HistoryPageSize
+		}
+	}
+	return CanonicalHref(resolved)
+}
+
 func setPeopleRouteValues(values url.Values, state State) {
 	request := state.Request
 	setProvidedRouteValue(values, state, "q", request.Query)

@@ -15,6 +15,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/router"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
 )
 
 // TestTodo_WEB_030_Browser runs as a real js/wasm Go test under Node. It uses
@@ -44,6 +45,11 @@ func TestTodo_WEB_030_Browser(t *testing.T) {
 	}, router.Options{Layout: true})
 	productRouter.Register(productui.Path(productui.PagePeople), func(attrs router.Attrs) *router.Element {
 		if answer, ok := attrs["answer"].(string); ok {
+			if source, sourceOK := attrs[productSourceHrefKey].(string); sourceOK && currentProductHref() == source {
+				if resolved, resolvedOK := attrs[productResolvedHrefKey].(string); resolvedOK && resolved != source {
+					browserReplaceURL(resolved)
+				}
+			}
 			rendered <- answer
 		}
 		return html.Div(html.Props{ID: "people-route"}, ui.Text("people"))
@@ -59,8 +65,19 @@ func TestTodo_WEB_030_Browser(t *testing.T) {
 				// suppress this stale answer rather than trusting cooperation.
 				<-releaseCold
 			}
+			state, err := productclient.ParseState(routeContext.Path, query)
+			if err != nil {
+				return nil, err
+			}
+			resolved := productui.NewView(productui.PagePeople, "Tenant", "Principal", "Scope")
+			resolved.People = []productui.Person{{ID: "worker-1", Name: "Rafael"}}
+			resolved = productui.ApplyRequest(resolved, state.Request)
+			sourceHref := productclient.CanonicalHref(state)
 			completed <- query
-			return router.Attrs{"answer": query}, nil
+			return router.Attrs{
+				"answer": query, productSourceHrefKey: sourceHref,
+				productResolvedHrefKey: productclient.ResolvedCanonicalHref(state, resolved),
+			}, nil
 		},
 		Loading: func(router.Attrs) *router.Element {
 			return html.Div(html.Props{ID: "people-route-loading"}, ui.Text("loading"))
@@ -86,6 +103,9 @@ func TestTodo_WEB_030_Browser(t *testing.T) {
 	wantEvent(t, completed, "page=3&q=fresh")
 	wantEvent(t, completed, "page=2&q=cold")
 	wantRenderedRoute(t, productRouter, rendered, "page=3&q=fresh")
+	if browser.path() != "/workspace/app/people?page=1&q=fresh" || len(browser.entries) != 2 {
+		t.Fatalf("resolved push address/history = %q entries=%d", browser.path(), len(browser.entries))
+	}
 
 	inspection := router.InspectCurrentRoute()
 	if inspection.Path != productui.Path(productui.PagePeople) || len(inspection.Stack) != 2 ||
@@ -102,17 +122,20 @@ func TestTodo_WEB_030_Browser(t *testing.T) {
 	wantBoolEvent(t, writeEligible, false, "back popstate")
 	wantEvent(t, completed, "page=2&q=cold")
 	wantRenderedRoute(t, productRouter, rendered, "page=2&q=cold")
+	if browser.path() != "/workspace/app/people?page=1&q=cold" || len(browser.entries) != 2 {
+		t.Fatalf("resolved back address/history = %q entries=%d", browser.path(), len(browser.entries))
+	}
 	props = productHistory.Props(productui.ResolveProductLocale("de-DE"))
 	if props.CanGoBack || !props.CanGoForward || props.GoForward == nil {
 		t.Fatalf("back-resumed history controls = %+v", props)
 	}
 
 	props.GoForward()
-	wantEvent(t, started, "/workspace/app/people?page=3&q=fresh")
+	wantEvent(t, started, "/workspace/app/people?page=1&q=fresh")
 	wantBoolEvent(t, writeEligible, false, "forward popstate")
-	wantEvent(t, completed, "page=3&q=fresh")
-	wantRenderedRoute(t, productRouter, rendered, "page=3&q=fresh")
-	if browser.path() != "/workspace/app/people?page=3&q=fresh" {
+	wantEvent(t, completed, "page=1&q=fresh")
+	wantRenderedRoute(t, productRouter, rendered, "page=1&q=fresh")
+	if browser.path() != "/workspace/app/people?page=1&q=fresh" || len(browser.entries) != 2 {
 		t.Fatalf("forward address = %q", browser.path())
 	}
 }

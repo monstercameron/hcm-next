@@ -84,6 +84,18 @@ func ApplyRequest(view View, request PageRequest) View {
 	if view.Page == PagePeople || view.Page == PagePerson {
 		view.PeoplePage = paginatePeople(filteredPeople(view), view.PeoplePage, view.PeoplePageSize).Page
 	}
+	switch view.Page {
+	case PageHistory:
+		view.HistoryPage = paginateHistory(filteredHistory(view, ""), view.HistoryPage, view.HistoryPageSize).Page
+	case PagePerson:
+		view.HistoryPage = paginateHistory(filteredHistory(view, view.SelectedPerson), view.HistoryPage, view.HistoryPageSize).Page
+	case PageMyself:
+		personID := ""
+		if person, ok := viewerPerson(view); ok {
+			personID = person.ID
+		}
+		view.HistoryPage = paginateHistory(filteredHistory(view, personID), view.HistoryPage, view.HistoryPageSize).Page
+	}
 	return view
 }
 
