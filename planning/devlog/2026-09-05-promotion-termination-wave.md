@@ -418,3 +418,32 @@ organization-structure-maximal-2026.md` and the 30-table draft
   binaries rebuilt.
 - **Commits.** Data `c26f730`, domain `725ef15`, operations `e885a59`,
   transport `6d81163`, policy `c2fdf94`, and this docs commit.
+
+## 9. 2026-09-06 (night): quality gates and agent configuration
+
+- **Four gates, one hook.** Cam asked for format, lint, unit tests and a 70%
+  coverage floor to hold before every commit. Format and lint were already in
+  the husky hook (prettier, eslint, gofmt, go vet, the house code-style rules
+  and the policy suites); what was missing was Go unit tests and coverage. A
+  new tool, `tools/quality/covergate`, runs `go test -cover` on every package
+  holding a staged Go file, parses the result lines (so the Windows unlink
+  exit is not a failure), and refuses a failing test, a package with no test
+  files, or a package under the floor in
+  `definitions/toolchain/coverage-gate.yaml`. Exceptions are exact-path,
+  kind-specific, owner-bearing and expiring; a prefix or wildcard is refused.
+  `npm run check:coverage:staged` sits in the hook after `check:go`;
+  `npm run check:coverage` gates the whole module in CI. Root `go test ./...`
+  stays off the local hook because every data package starts an embedded
+  PostgreSQL.
+- **Agent configuration.** `AGENTS.md` is now the authoritative instruction
+  file (who decides what, the gates, the task lifecycle, the Go rules, lane
+  ownership, git discipline, environment traps), `CLAUDE.md` a thin pointer
+  to it, and `.claude/` carries the permissions (gates and read-only git
+  allowed; `--no-verify`, stash, hard reset, amend, rebase and push denied),
+  a gate-runner subagent, and the Karpathy guidelines skill vendored verbatim
+  from the same pinned commit CodeFlux uses, with the provenance note
+  adjusted and the file exempted from prettier so it stays byte-for-byte.
+- **Known state.** `tools/quality`'s TOOL-012 race tests fail locally because
+  this host has no race detector; CI runs them on Linux. The first
+  whole-module coverage run is seeding the exception list for packages that
+  are genuinely under the floor today.
