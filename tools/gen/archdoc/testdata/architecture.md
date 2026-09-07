@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: bb9c05f30d70b2ac2c96c1cfebefb2f5987d199ef261dd19f41b18280954aa3b
-- Package count: 731
-- Within-module edge count: 1638
+- Source graph: d99cc4ab2063180c73814262cdad6c21dc19a8cd47e291aefcee112f79ff0142
+- Package count: 733
+- Within-module edge count: 1653
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -211,6 +211,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/data/meritstore`
 - `github.com/monstercameron/hcm-next/internal/data/messagingmeta`
 - `github.com/monstercameron/hcm-next/internal/data/mobilitystore`
+- `github.com/monstercameron/hcm-next/internal/data/operationstore`
 - `github.com/monstercameron/hcm-next/internal/data/opsmeta`
 - `github.com/monstercameron/hcm-next/internal/data/outbox`
 - `github.com/monstercameron/hcm-next/internal/data/partition`
@@ -821,6 +822,7 @@ Developer and CI tooling. Excluded from the release image; internal structure is
 - `github.com/monstercameron/hcm-next/tools/uxqual/forms`
 - `github.com/monstercameron/hcm-next/tools/uxqual/i18n`
 - `github.com/monstercameron/hcm-next/tools/uxqual/journeyclient`
+- `github.com/monstercameron/hcm-next/tools/uxqual/latencygate`
 - `github.com/monstercameron/hcm-next/tools/uxqual/pagedef`
 - `github.com/monstercameron/hcm-next/tools/uxqual/presentation`
 - `github.com/monstercameron/hcm-next/tools/uxqual/productclient`
@@ -857,4 +859,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`c281a33c47cf5fff423cb9ae74c8a9b331f1237db84c31b428c600ea1e0cb76f`
+`61e01e956b603b1d2f98c7cdd192ccaff4d8450c2cf3c1d04ecfa1f7f747b3b2`
