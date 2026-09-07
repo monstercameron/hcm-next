@@ -15355,7 +15355,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-019` **[GATE_C][TERRA] Define visible-focus behavior.**
+- [x] `WEB-019` **[GATE_C][TERRA] Define visible-focus behavior.**
+  - **Evidence (2026-09-06):** `TestTodo_WEB_019`, `TestTodo_WEB_019_Golden`, `TestTodo_WEB_019_Browser`, and `TestTodo_WEB_019_Conformance` in `internal/humanwork/productui` (one deterministic platform focus contract uses the protected semantic focus token across native controls and embedded Journey components, excludes programmatic route headings, preserves forced-colors and reduced-motion behavior, and prevents the viewport-edge brand mark from clipping its ring); Codex in-app browser keyboard inspection passed in light and dark modes; `BenchmarkFocusRendering` measured 76.5–79.5 µs/op, 2,888 B/op, 17 allocs/op; `go test -count=1 ./internal/humanwork/productui ./tools/uxqual/render/journey` and the interaction-latency gate PASS on windows/amd64 (Go 1.26.3); implemented by a GPT-5.6 Luna lane and independently refined with GPT-5.6 Sol.
   - **Depends:** `WEB-018`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define visible-focus behavior without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_019`.
