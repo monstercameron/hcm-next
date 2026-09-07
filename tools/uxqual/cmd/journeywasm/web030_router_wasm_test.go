@@ -341,6 +341,11 @@ func installWASMHistory(t *testing.T, initialHref string) *wasmHistoryHarness {
 		js.Global().Set("history", h.oldHistory)
 		js.Global().Set("location", h.oldLoc)
 		js.Global().Set("sessionStorage", h.oldStorage)
+		// GWC owns its popstate/hashchange handlers until the next router is
+		// installed. Leave a plain JS teardown seam on this retired test window
+		// before releasing the Go callbacks, so a later router can detach the old
+		// handlers without invoking an already released js.Func.
+		h.window.Set("removeEventListener", js.Global().Call("eval", `(()=>{})`))
 		for _, callback := range h.callbacks {
 			callback.Release()
 		}

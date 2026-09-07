@@ -447,10 +447,15 @@ func browserDebounceScheduler(delay time.Duration, fire func()) debounceTimer {
 }
 
 func browserReplaceURL(href string) {
-	history := js.Global().Get("history")
-	if history.Truthy() && history.Get("replaceState").Truthy() {
-		history.Call("replaceState", history.Get("state"), "", href)
+	history, historyOK := browserHistory()
+	if !historyOK {
+		return
 	}
+	state, stateOK := browserHistoryState(history)
+	if !stateOK {
+		return
+	}
+	browserCall(history, "replaceState", state, "", href)
 }
 
 func (t *browserDebounceTimer) Stop() bool {
@@ -608,16 +613,24 @@ func clearRoot() {
 }
 
 func currentPath() string {
-	path := js.Global().Get("location").Get("pathname")
-	if path.Type() != js.TypeString {
+	location, locationOK := browserProperty(js.Global(), "location")
+	if !locationOK {
+		return ""
+	}
+	path, pathOK := browserProperty(location, "pathname")
+	if !pathOK || path.Type() != js.TypeString {
 		return ""
 	}
 	return path.String()
 }
 
 func currentQuery() string {
-	search := js.Global().Get("location").Get("search")
-	if search.Type() != js.TypeString {
+	location, locationOK := browserProperty(js.Global(), "location")
+	if !locationOK {
+		return ""
+	}
+	search, searchOK := browserProperty(location, "search")
+	if !searchOK || search.Type() != js.TypeString {
 		return ""
 	}
 	return strings.TrimPrefix(search.String(), "?")

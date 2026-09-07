@@ -34,12 +34,12 @@ type browserProductHistoryController struct {
 
 func newBrowserProductHistoryController() *browserProductHistoryController {
 	controller := &browserProductHistoryController{}
-	history := js.Global().Get("history")
-	if history.Type() != js.TypeObject {
+	history, historyOK := browserHistory()
+	if !historyOK {
 		return controller
 	}
-	state := history.Get("state")
-	if id, index, ok := productHistoryState(state); ok {
+	state, stateOK := browserHistoryState(history)
+	if id, index, ok := productHistoryState(state); stateOK && ok {
 		controller.id = id
 		controller.index = index
 		controller.maxIndex = maxInt(index, readProductHistoryMax(id))
@@ -57,7 +57,7 @@ func newBrowserProductHistoryController() *browserProductHistoryController {
 }
 
 func newProductHistoryLedgerID() string {
-	var randomID [16]byte
+	var randomID [productclient.HistoryLedgerRandomBytes]byte
 	if _, err := rand.Read(randomID[:]); err != nil {
 		return ""
 	}
@@ -77,8 +77,12 @@ func (controller *browserProductHistoryController) Navigate(navigate func(string
 	if controller == nil || controller.id == "" {
 		return
 	}
-	if id, _, ok := productHistoryState(js.Global().Get("history").Get("state")); ok && id == controller.id {
-		return
+	if history, historyOK := browserHistory(); historyOK {
+		if state, stateOK := browserHistoryState(history); stateOK {
+			if id, _, ok := productHistoryState(state); ok && id == controller.id {
+				return
+			}
+		}
 	}
 	controller.index++
 	controller.maxIndex = controller.index
@@ -120,9 +124,16 @@ func (controller *browserProductHistoryController) Props(locale productui.Locale
 	if controller == nil || controller.id == "" {
 		return props
 	}
-	if id, index, ok := productHistoryState(js.Global().Get("history").Get("state")); ok && id == controller.id {
-		controller.index = index
+	history, historyOK := browserHistory()
+	if !historyOK {
+		return props
 	}
+	state, stateOK := browserHistoryState(history)
+	id, index, stateOK := productHistoryState(state)
+	if !stateOK || id != controller.id {
+		return props
+	}
+	controller.index = index
 	props.CanGoBack = controller.index > 0
 	props.CanGoForward = controller.index < controller.maxIndex
 	props.GoBack = func() { controller.Go(-1) }
@@ -134,21 +145,31 @@ func (controller *browserProductHistoryController) Go(offset int) {
 	if controller == nil || (offset != -1 && offset != 1) {
 		return
 	}
+	history, historyOK := browserHistory()
+	if !historyOK {
+		return
+	}
+	state, stateOK := browserHistoryState(history)
+	id, index, stateOK := productHistoryState(state)
+	if !stateOK || id != controller.id {
+		return
+	}
+	controller.index = index
 	if offset < 0 && controller.index <= 0 || offset > 0 && controller.index >= controller.maxIndex {
 		return
 	}
-	js.Global().Get("history").Call("go", offset)
+	browserHistoryGo(history, offset)
 }
 
-func (controller *browserProductHistoryController) replaceCurrentState(index int) {
-	history := js.Global().Get("history")
-	if history.Type() != js.TypeObject || history.Get("replaceState").Type() != js.TypeFunction {
-		return
+func (controller *browserProductHistoryController) replaceCurrentState(index int) (ok bool) {
+	history, historyOK := browserHistory()
+	if !historyOK {
+		return false
 	}
 	state := js.Global().Get("Object").New()
 	state.Set(productHistoryIDField, controller.id)
 	state.Set(productHistoryIndexField, index)
-	history.Call("replaceState", state, "", js.Global().Get("location").Get("href"))
+	return browserHistoryReplaceState(history, state, browserLocationHref())
 }
 
 func (controller *browserProductHistoryController) writeMax() {
@@ -180,16 +201,26 @@ func readProductHistoryMax(id string) int {
 	return value
 }
 
-func productHistoryState(state js.Value) (string, int, bool) {
+func productHistoryState(state js.Value) (id string, index int, ok bool) {
+	defer func() {
+		if recover() != nil {
+			id = ""
+			index = 0
+			ok = false
+		}
+	}()
 	if state.Type() != js.TypeObject {
 		return "", 0, false
 	}
-	idValue := state.Get(productHistoryIDField)
-	indexValue := state.Get(productHistoryIndexField)
+	idValue, idOK := browserProperty(state, productHistoryIDField)
+	indexValue, indexOK := browserProperty(state, productHistoryIndexField)
+	if !idOK || !indexOK {
+		return "", 0, false
+	}
 	if idValue.Type() != js.TypeString || indexValue.Type() != js.TypeNumber {
 		return "", 0, false
 	}
-	id := strings.TrimSpace(idValue.String())
+	id = strings.TrimSpace(idValue.String())
 	indexFloat := indexValue.Float()
 	// history.state is browser-owned input. Do not let NaN, infinity,
 	// fractions, or an unbounded value turn the history controls into a
@@ -202,6 +233,125 @@ func productHistoryState(state js.Value) (string, int, bool) {
 
 func safeProductHistoryID(id string) bool {
 	return productclient.ValidHistoryLedgerID(id)
+}
+
+// syscall/js.Value.Get lets a JavaScript getter exception escape past Go's
+// panic/recover boundary. Reflect.get invoked through Value.Call reports the
+// exception as a recoverable js.Error instead, so every untrusted browser or
+// history-state property read must pass through this seam.
+func browserProperty(target js.Value, name string) (value js.Value, ok bool) {
+	defer func() {
+		if recover() != nil {
+			value = js.Undefined()
+			ok = false
+		}
+	}()
+	if target.Type() != js.TypeObject && target.Type() != js.TypeFunction {
+		return js.Undefined(), false
+	}
+	reflect := js.Global().Get("Reflect")
+	if reflect.Type() != js.TypeObject {
+		return js.Undefined(), false
+	}
+	return reflect.Call("get", target, name), true
+}
+
+// Value.Call also performs its initial method lookup through Value.Get. Fetch
+// the method with browserProperty and invoke it through trusted Reflect.apply so
+// accessor and method exceptions both remain recoverable inside Go.
+func browserCall(target js.Value, name string, arguments ...any) (value js.Value, ok bool) {
+	defer func() {
+		if recover() != nil {
+			value = js.Undefined()
+			ok = false
+		}
+	}()
+	method, ok := browserProperty(target, name)
+	if !ok || method.Type() != js.TypeFunction {
+		return js.Undefined(), false
+	}
+	reflect := js.Global().Get("Reflect")
+	if reflect.Type() != js.TypeObject {
+		return js.Undefined(), false
+	}
+	return reflect.Call("apply", method, target, arguments), true
+}
+
+// The History API is an optional enhancement too. Browser policy, a sandbox or
+// a hostile accessor can make property reads and methods throw. These wrappers
+// keep the SSR document and GWC event loop usable while disabling only the
+// affected history control.
+func browserHistory() (history js.Value, ok bool) {
+	defer func() {
+		if recover() != nil {
+			history = js.Undefined()
+			ok = false
+		}
+	}()
+	history, ok = browserProperty(js.Global(), "history")
+	if !ok {
+		return js.Undefined(), false
+	}
+	if history.Type() != js.TypeObject {
+		return js.Undefined(), false
+	}
+	return history, true
+}
+
+func browserHistoryState(history js.Value) (state js.Value, ok bool) {
+	defer func() {
+		if recover() != nil {
+			state = js.Undefined()
+			ok = false
+		}
+	}()
+	if history.Type() != js.TypeObject {
+		return js.Undefined(), false
+	}
+	return browserProperty(history, "state")
+}
+
+func browserHistoryReplaceState(history, state js.Value, href string) (ok bool) {
+	defer func() {
+		if recover() != nil {
+			ok = false
+		}
+	}()
+	if history.Type() != js.TypeObject || state.Type() != js.TypeObject {
+		return false
+	}
+	_, ok = browserCall(history, "replaceState", state, "", href)
+	return ok
+}
+
+func browserHistoryGo(history js.Value, offset int) (ok bool) {
+	defer func() {
+		if recover() != nil {
+			ok = false
+		}
+	}()
+	if history.Type() != js.TypeObject || (offset != -1 && offset != 1) {
+		return false
+	}
+	_, ok = browserCall(history, "go", offset)
+	return ok
+}
+
+func browserLocationHref() (href string) {
+	defer func() {
+		if recover() != nil {
+			href = ""
+		}
+	}()
+	location, ok := browserProperty(js.Global(), "location")
+	if !ok || location.Type() != js.TypeObject {
+		return ""
+	}
+	value, ok := browserProperty(location, "href")
+	if !ok || value.Type() != js.TypeString {
+		return ""
+	}
+	return value.String()
 }
 
 // Web Storage is an optional, user-controlled capability. Private browsing,
@@ -217,8 +367,8 @@ func browserStorageSet(storage js.Value, key, value string) (ok bool) {
 	if storage.Type() != js.TypeObject || key == "" || productclient.ValidateBrowserStorageWrite(key, value) != nil {
 		return false
 	}
-	storage.Call("setItem", key, value)
-	return true
+	_, ok = browserCall(storage, "setItem", key, value)
+	return ok
 }
 
 func browserSessionStorage() (storage js.Value, ok bool) {
@@ -228,7 +378,10 @@ func browserSessionStorage() (storage js.Value, ok bool) {
 			ok = false
 		}
 	}()
-	storage = js.Global().Get("sessionStorage")
+	storage, ok = browserProperty(js.Global(), "sessionStorage")
+	if !ok {
+		return js.Undefined(), false
+	}
 	if storage.Type() != js.TypeObject {
 		return js.Undefined(), false
 	}
@@ -245,8 +398,8 @@ func browserStorageGet(storage js.Value, key string) (value string, ok bool) {
 	if storage.Type() != js.TypeObject || key == "" || productclient.ValidateHistoryStorageEntry(key, "0") != nil {
 		return "", false
 	}
-	raw := storage.Call("getItem", key)
-	if raw.Type() != js.TypeString {
+	raw, callOK := browserCall(storage, "getItem", key)
+	if !callOK || raw.Type() != js.TypeString {
 		return "", false
 	}
 	return raw.String(), true

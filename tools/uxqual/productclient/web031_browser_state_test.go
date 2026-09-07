@@ -45,7 +45,7 @@ func TestTodo_WEB_031_Golden(t *testing.T) {
 			t.Errorf("encode %d = %q/%v, want %q/true", index, got, ok, want)
 		}
 	}
-	for _, id := range []string{"0123456789abcdef0123456789abcdef", "abcdefabcdefabcdefabcdefabcdefab", strings.Repeat("f", MaxHistoryLedgerIDBytes)} {
+	for _, id := range []string{"0123456789abcdef0123456789abcdef", "abcdefabcdefabcdefabcdefabcdefab", strings.Repeat("f", HistoryLedgerIDLength)} {
 		if !ValidHistoryLedgerID(id) || HistoryStorageKey(id) == "" {
 			t.Errorf("valid opaque ledger id %q was refused", id)
 		}
@@ -69,8 +69,8 @@ func TestTodo_WEB_031_Browser(t *testing.T) {
 
 func TestTodo_WEB_031_Conformance(t *testing.T) {
 	for _, id := range []string{
-		"", " ", "ledger-a", "ledger_1", "ledger.1", strings.Repeat("a", MaxHistoryLedgerIDBytes+1),
-		"<script>", "tenantA", "ledger/1", strings.Repeat("g", MaxHistoryLedgerIDBytes),
+		"", " ", "ledger-a", "ledger_1", "ledger.1", strings.Repeat("a", HistoryLedgerIDLength+1),
+		"<script>", "tenantA", "ledger/1", strings.Repeat("g", HistoryLedgerIDLength),
 	} {
 		if ValidHistoryLedgerID(id) || HistoryStorageKey(id) != "" {
 			t.Errorf("unsafe ledger id %q accepted", id)
@@ -84,7 +84,7 @@ func TestTodo_WEB_031_Conformance(t *testing.T) {
 	for _, key := range []string{
 		HistoryStorageKeyPrefix,
 		HistoryStorageKeyPrefix + "ledger-a",
-		HistoryStorageKeyPrefix + strings.Repeat("a", MaxHistoryLedgerIDBytes+1),
+		HistoryStorageKeyPrefix + strings.Repeat("a", HistoryLedgerIDLength+1),
 		"HCM-NEXT.BROWSER-STATE.V1.HISTORY.ledger1",
 	} {
 		if err := ValidateHistoryStorageEntry(key, "1"); !errors.Is(err, ErrBrowserStateKey) {

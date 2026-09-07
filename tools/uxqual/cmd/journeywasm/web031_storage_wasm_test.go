@@ -6,6 +6,10 @@ import (
 	"syscall/js"
 	"testing"
 
+	"github.com/monstercameron/GoWebComponents/v5/html"
+	"github.com/monstercameron/GoWebComponents/v5/router"
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
 	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
 )
 
@@ -120,4 +124,138 @@ func TestTodo_WEB_031_Golden(t *testing.T) {
 	if captured.Get(productHistoryIDField).String() != controller.id || captured.Get(productHistoryIndexField).Int() != 3 {
 		t.Fatalf("closed history state = %s/%d", captured.Get(productHistoryIDField).String(), captured.Get(productHistoryIndexField).Int())
 	}
+}
+
+func TestTodo_WEB_031_Fault(t *testing.T) {
+	t.Run("global storage getter throws", func(t *testing.T) {
+		installThrowingGlobalGetter(t, "sessionStorage")
+		if _, ok := browserSessionStorage(); ok {
+			t.Fatal("throwing sessionStorage getter was reported as available")
+		}
+	})
+
+	t.Run("global history getter throws", func(t *testing.T) {
+		installThrowingGlobalGetter(t, "history")
+		if _, ok := browserHistory(); ok {
+			t.Fatal("throwing history getter was reported as available")
+		}
+		controller := newBrowserProductHistoryController()
+		if controller.id != "" {
+			t.Fatalf("controller minted ledger %q without an available History API", controller.id)
+		}
+	})
+
+	t.Run("history accessors and methods throw", func(t *testing.T) {
+		object := js.Global().Get("Object")
+		oldHistory := js.Global().Get("history")
+		oldLocation := js.Global().Get("location")
+		t.Cleanup(func() {
+			js.Global().Set("history", oldHistory)
+			js.Global().Set("location", oldLocation)
+		})
+
+		throwingState := js.Global().Call("eval", `new Proxy({}, {get(){throw new Error("state denied")}})`)
+		if id, index, ok := productHistoryState(throwingState); ok || id != "" || index != 0 {
+			t.Fatalf("throwing history.state decoded as %q/%d/%v", id, index, ok)
+		}
+
+		throwingHistory := js.Global().Call("eval", `new Proxy({}, {get(_target, property){throw new Error(String(property)+" denied")}})`)
+		js.Global().Set("history", throwingHistory)
+		controller := &browserProductHistoryController{
+			id: "0123456789abcdef0123456789abcdef", index: 1, maxIndex: 2,
+		}
+		if props := controller.Props(productui.ResolveProductLocale("en-US")); props.CanGoBack || props.CanGoForward || props.GoBack != nil || props.GoForward != nil {
+			t.Fatalf("throwing history.state left controls enabled: %+v", props)
+		}
+		controller.Go(1) // must fail soft before invoking a throwing method
+		if controller.replaceCurrentState(1) {
+			t.Fatal("throwing replaceState was reported as successful")
+		}
+
+		state := object.New()
+		state.Set(productHistoryIDField, controller.id)
+		state.Set(productHistoryIndexField, 1)
+		methodThrowingHistory := js.Global().Call("eval", `({replaceState(){throw new Error("replace denied")},go(){throw new Error("go denied")}})`)
+		methodThrowingHistory.Set("state", state)
+		js.Global().Set("history", methodThrowingHistory)
+		location := js.Global().Call("eval", `new Proxy({}, {get(){throw new Error("location denied")}})`)
+		js.Global().Set("location", location)
+		if href := browserLocationHref(); href != "" {
+			t.Fatalf("throwing location getter returned %q", href)
+		}
+		if path, query := currentPath(), currentQuery(); path != "" || query != "" {
+			t.Fatalf("throwing location getter returned route %q?%q", path, query)
+		}
+		if controller.replaceCurrentState(1) {
+			t.Fatal("throwing replaceState method was reported as successful")
+		}
+		if browserHistoryGo(methodThrowingHistory, 1) {
+			t.Fatal("throwing history.go method was reported as successful")
+		}
+		controller.Go(1) // validated state followed by throwing go must still fail soft
+	})
+}
+
+// TestTodo_WEB_031_GWCCompatibility uses GWC v5's real HistoryRouter. GWC
+// intentionally pushes nil state; the product adapter then writes a closed,
+// two-field marker. That closed state must remain compatible with GWC's own
+// push, popstate and route rendering rather than preserving arbitrary state.
+func TestTodo_WEB_031_GWCCompatibility(t *testing.T) {
+	browser := installWASMHistory(t, productui.Path(productui.PageHome))
+	productRouter := router.NewHistoryRouter(router.RouterOptions{DefaultRoute: productui.Path(productui.PageHome)})
+	productRouter.SetFocusManagement(false)
+	productRouter.Register(productui.Path(productui.PageHome), func(router.Attrs) *router.Element {
+		return html.Div(html.Props{ID: "home"}, ui.Text("home"))
+	})
+	productRouter.Register(productui.Path(productui.PagePeople), func(router.Attrs) *router.Element {
+		return html.Div(html.Props{ID: "people"}, ui.Text("people"))
+	})
+
+	oldProductHistory := productHistory
+	productHistory = newBrowserProductHistoryController()
+	t.Cleanup(func() { productHistory = oldProductHistory })
+	if productRouter.Current() == nil {
+		t.Fatal("GWC did not render the initial route with closed history state")
+	}
+	productHistory.Navigate(productRouter.Navigate, productui.Path(productui.PagePeople))
+	if productRouter.Current() == nil || browser.path() != productui.Path(productui.PagePeople) {
+		t.Fatalf("GWC push with closed history state failed: path=%q", browser.path())
+	}
+	assertClosedProductHistoryState(t, browser.entries[browser.index].state, productHistory.id, 1)
+
+	props := productHistory.Props(productui.ResolveProductLocale("en-US"))
+	if !props.CanGoBack || props.GoBack == nil {
+		t.Fatalf("closed state did not expose bounded back navigation: %+v", props)
+	}
+	props.GoBack()
+	if productRouter.Current() == nil || browser.path() != productui.Path(productui.PageHome) {
+		t.Fatalf("GWC popstate with closed history state failed: path=%q", browser.path())
+	}
+	assertClosedProductHistoryState(t, browser.entries[browser.index].state, productHistory.id, 0)
+}
+
+func assertClosedProductHistoryState(t *testing.T, state js.Value, wantID string, wantIndex int) {
+	t.Helper()
+	if state.Type() != js.TypeObject {
+		t.Fatalf("history state type = %s, want object", state.Type())
+	}
+	keys := js.Global().Get("Object").Call("keys", state)
+	if keys.Length() != 2 {
+		t.Fatalf("closed history state has %d enumerable fields, want 2", keys.Length())
+	}
+	if id, index, ok := productHistoryState(state); !ok || id != wantID || index != wantIndex {
+		t.Fatalf("closed history state = %q/%d/%v, want %q/%d/true", id, index, ok, wantID, wantIndex)
+	}
+}
+
+func installThrowingGlobalGetter(t *testing.T, name string) {
+	t.Helper()
+	factory := js.Global().Call("eval", `(function(name){
+		const had = Object.prototype.hasOwnProperty.call(globalThis, name);
+		const previous = Object.getOwnPropertyDescriptor(globalThis, name);
+		Object.defineProperty(globalThis, name, {configurable:true, get(){throw new Error(name+" denied")}});
+		return function(){if(had){Object.defineProperty(globalThis, name, previous)}else{delete globalThis[name]}};
+	})`)
+	restore := factory.Invoke(name)
+	t.Cleanup(func() { restore.Invoke() })
 }

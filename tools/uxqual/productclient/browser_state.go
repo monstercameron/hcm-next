@@ -12,9 +12,10 @@ import (
 // durable (preferences, workflow state, authorization and transactions) is
 // owned by the server and is deliberately outside this contract.
 const (
-	BrowserStateVersion     = "hcm-next.browser-state.v1"
-	HistoryStorageKeyPrefix = BrowserStateVersion + ".history."
-	MaxHistoryLedgerIDBytes = 32
+	BrowserStateVersion      = "hcm-next.browser-state.v1"
+	HistoryStorageKeyPrefix  = BrowserStateVersion + ".history."
+	HistoryLedgerRandomBytes = 16
+	HistoryLedgerIDLength    = HistoryLedgerRandomBytes * 2
 	// Browser history implementations cannot materialize anywhere near this
 	// many entries, but the bound keeps hostile storage finite without making a
 	// normal long-lived tab silently lose forward semantics.
@@ -27,10 +28,11 @@ var (
 	ErrBrowserStateAuthority = errors.New("browser state cannot contain authority or business state")
 )
 
-// HistoryStorageKey returns the sole key that production code may write to
-// browser session storage. An empty result means id is not a locally minted,
-// opaque ledger identifier. In particular, tenant, principal, session and
-// workflow identifiers are not accepted as namespaces.
+// HistoryStorageKey returns the sole key shape that production code may write
+// to browser session storage. An empty result means id is not the syntax
+// produced by the history-ledger minting path. Syntax validation alone cannot
+// prove where an identifier came from, so callers must still mint it locally
+// and must never derive it from tenant, principal, session or workflow data.
 func HistoryStorageKey(id string) string {
 	if !ValidHistoryLedgerID(id) {
 		return ""
@@ -38,12 +40,12 @@ func HistoryStorageKey(id string) string {
 	return HistoryStorageKeyPrefix + id
 }
 
-// ValidHistoryLedgerID accepts exactly the 128-bit lowercase hexadecimal
-// identifier minted for the current browser session. A fixed format keeps the
-// storage key opaque and prevents delimiter, URL, tenant and control-character
-// smuggling; semantic tenant/principal identifiers are never valid ledgers.
+// ValidHistoryLedgerID accepts the exact lowercase hexadecimal syntax emitted
+// for a 128-bit history-ledger nonce. It rejects delimiters, URLs and control
+// characters, but deliberately makes no semantic claim about an arbitrary
+// caller-supplied string; origin is guaranteed only by the random minting path.
 func ValidHistoryLedgerID(id string) bool {
-	if len(id) != MaxHistoryLedgerIDBytes {
+	if len(id) != HistoryLedgerIDLength {
 		return false
 	}
 	for _, r := range id {
