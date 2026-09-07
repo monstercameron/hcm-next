@@ -48,7 +48,7 @@ tools:
   - name: husky:pre-commit
     category: git_hook
     version: content-pinned
-    digest: sha256:aaa585891bb4df28ea9506dbfa70dc86b32ae6e59e781725b2e7a9fdb1d72b61
+    digest: sha256:87854d42efe588b764ff0a6bb9466ed84a233e6f1f1468748142714fb06d01e4
     source: .husky/pre-commit
     license: N/A (repository-owned script)
     cve_status: N/A (owned script, not a third-party binary)
