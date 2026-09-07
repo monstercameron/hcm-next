@@ -206,3 +206,23 @@ func main() {}
 		t.Fatalf("FindConcurrentPackages = %+v, want the root package itself flagged as example.com/mod with empty Dir", got)
 	}
 }
+
+func TestFindConcurrentPackagesSkipsDotDirectories(t *testing.T) {
+	root := t.TempDir()
+	src := "package p\n\nfunc Go() { go func() {}() }\n"
+	for _, dir := range []string{"internal/live", ".artifacts/tmp/hcmnext-pg-1/leak", ".codex-tmp/leak", ".git/leak"} {
+		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(dir)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(dir), "p.go"), []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	pkgs, err := racepolicy.FindConcurrentPackages(root, "example.com/m")
+	if err != nil {
+		t.Fatalf("find: %v", err)
+	}
+	if len(pkgs) != 1 || filepath.ToSlash(pkgs[0].Dir) != "internal/live" {
+		t.Fatalf("only the live package must be found, got %+v", pkgs)
+	}
+}

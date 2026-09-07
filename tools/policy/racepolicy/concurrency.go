@@ -79,7 +79,11 @@ func FindConcurrentPackages(root, modulePath string) ([]ConcurrentPackage, error
 		}
 		if info.IsDir() {
 			name := info.Name()
-			if name != "." && (skipDirNames[name] || strings.HasPrefix(name, ".gocache")) {
+			// Dot-prefixed directories (.git, .artifacts, lane and cache
+			// scratch) are never part of the module and may be mid-write by
+			// another process, so they are skipped before anything under them
+			// is stat'ed.
+			if name != "." && (skipDirNames[name] || strings.HasPrefix(name, ".")) {
 				return filepath.SkipDir
 			}
 			return nil

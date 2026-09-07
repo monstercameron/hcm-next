@@ -12,9 +12,11 @@ const goFilesIn = (directory, ignoredPathSegments) =>
     const filePath = normalizePath(path.join(directory, entry.name));
 
     if (entry.isDirectory()) {
+      // Dot-prefixed directories (.git, .artifacts, lane and cache scratch)
+      // are never source; they may hold generated _testmain.go files.
       const isIgnored = normalizePath(filePath)
         .split("/")
-        .some((segment) => ignoredPathSegments.has(segment));
+        .some((segment) => ignoredPathSegments.has(segment) || segment.startsWith("."));
       return isIgnored ? [] : goFilesIn(filePath, ignoredPathSegments);
     }
 
@@ -90,6 +92,7 @@ if (!existsSync(legacyGoRoot)) {
 // never be gofmt-clean). gen/ is included: generated Protobuf/Go output is
 // expected to already be gofmt-clean.
 const rootIgnoredPathSegments = new Set([
+  ".artifacts",
   ".git",
   "dist",
   "tmp",
