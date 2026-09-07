@@ -457,3 +457,25 @@ organization-structure-maximal-2026.md` and the 30-table draft
   by the backlog with its measured percentage in the reason, so the gate
   holds the line from here without pretending the baseline is green; each
   exception retires when its package reaches the floor.
+- **Corpus repair.** Of the 62 packages that failed under whole-module
+  load, 42 failed alone. The planning half was one root cause: the todo
+  registry parser only recognised evidence fields dated 2026-09-03, so
+  every later tick was invisible to traceability (649 "orphans"), and three
+  front-end todos added without TEST MATRIX, REFACTOR, Refs, a declared role
+  or existing dependencies broke every planning parser. The parser now
+  accepts any dated evidence field and keeps all of them; the entries are
+  completed; the registry is regenerated at 1669; 38 evidence lines that
+  omitted their primary test name now carry it, two named tests that never
+  existed, and 24 front-end ticks that had no evidence line at all carry
+  one recorded after running their packages. Definitions caught up too:
+  twenty-one internal package roots and the frontenddev command declared,
+  two table owners repointed to packages that exist, the capability
+  coverage matrix and control crosswalk goldens regenerated, and the parity
+  tests now expect the reviewed scheduler timer sweep. Seven front-end ticks
+  (UX-002, UX-006, UX-007, UX-008, ADMIN-007, CLIENT-001, CLIENT-002) remain
+  without evidence because their named tests do not exist or their package
+  fails; those are that session's to close. The data-plane failures
+  (provenance and ledger outbox identity conflicts, blank signal keys in
+  runtimestate, workforce fixtures, pseudonym custody, jobarch digest,
+  commercial fingerprint, pgtest rollback pin, deferred schema preview) and
+  the policy-tool pins are in two fix lanes.

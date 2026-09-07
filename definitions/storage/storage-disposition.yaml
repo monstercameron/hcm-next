@@ -4563,7 +4563,7 @@ tables:
       Registered from 00132_presentation_preferences.sql: mutable control row for tenant appearance preference.
   - table: user_presentation_preference
     migration: 00132_presentation_preferences.sql
-    owner_package: internal/data/userstore
+    owner_package: internal/data/preferencestore
     plane: DATA
     data_role: CONTROL
     tenant_scoping_column: tenant_id
@@ -4589,7 +4589,7 @@ tables:
       Registered from 00156_workflow_signal_durability.sql: append-only evidence for workflow signal disposition.
   - table: schema_upgrade_checkpoint
     migration: 00177_schema_upgrade_control.sql
-    owner_package: internal/data/migrate
+    owner_package: internal/data/schema
     plane: DATA
     data_role: LEDGER
     tenant_scoping_column: null
@@ -4602,7 +4602,7 @@ tables:
       authoritative append-only resumable backfill and shadow evidence | local PostgreSQL | upgrade recovery and audit evidence | global, non-tenant-scoped.
   - table: schema_upgrade_plan
     migration: 00177_schema_upgrade_control.sql
-    owner_package: internal/data/migrate
+    owner_package: internal/data/schema
     plane: DATA
     data_role: CONTROL
     tenant_scoping_column: null

@@ -36,21 +36,21 @@ func TestTodo_ALIGN_013(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	allowed := rlsparity.Finding{
-		Table: "workflow_timer", Package: "github.com/monstercameron/hcm-next/internal/data/runtimestate",
-		File: "scheduling.go", Function: "TimerStore.list", Code: "REPOSITORY_SCOPE_MISSING",
-		Detail: "repository evidence does not carry the declared tenant boundary",
-	}
-	seenAllowed := false
+	// The workflow_timer repository-scope gap is reviewed in
+	// tools/policy/storeboundaries/allowlist.yaml (the scheduler's cross-tenant
+	// due-timer sweep), so parity reports it as a reviewed exception, never as
+	// an unreviewed finding; any other finding is a parity break.
 	for _, finding := range report.Findings {
-		if finding == allowed {
-			seenAllowed = true
-			continue
-		}
 		t.Fatalf("unreviewed row-security parity finding: %v", finding)
 	}
-	if !seenAllowed {
-		t.Fatalf("documented workflow_timer exception was not retained: %+v", report.Findings)
+	seenReviewed := false
+	for _, scope := range report.RepositoryScopes {
+		if scope.Table == "workflow_timer" && scope.Disposition == rlsparity.DispositionReviewedException {
+			seenReviewed = true
+		}
+	}
+	if !seenReviewed || report.ReviewedExceptions == 0 {
+		t.Fatalf("documented workflow_timer exception was not retained as a reviewed exception: %+v", report.RepositoryScopes)
 	}
 	if len(report.RLS) == 0 || len(report.RepositoryScopes) == 0 || report.Explain() == "" {
 		t.Fatalf("parity report lacks retained evidence: %+v", report)

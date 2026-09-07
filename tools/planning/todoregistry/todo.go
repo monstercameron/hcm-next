@@ -199,6 +199,19 @@ func parseTodoField(t *Todo, line string) {
 
 	fieldValue = cleanFieldValue(fieldValue)
 
+	// Evidence fields carry the tick date, and partial evidence says so:
+	// "Evidence (2026-09-05)", "Evidence (partial, 2026-09-06)". Every dated
+	// form is the same field; a literal date list would silently drop every
+	// tick made on another day.
+	if fieldName == "Evidence" || strings.HasPrefix(fieldName, "Evidence (") {
+		// A todo may carry several evidence fields (a partial one from an
+		// earlier day and the final one); every test they name counts.
+		if t.Evidence != "" {
+			t.Evidence += " | "
+		}
+		t.Evidence += fieldValue
+		return
+	}
 	switch fieldName {
 	case "Depends":
 		t.Depends = parseDependencies(fieldValue)
@@ -214,8 +227,6 @@ func parseTodoField(t *Todo, line string) {
 		t.Refactor = fieldValue
 	case "Refs":
 		t.Refs = fieldValue
-	case "Evidence (2026-09-03)", "Evidence (partial, 2026-09-03)":
-		t.Evidence = fieldValue
 	case "Disposition":
 		t.Disposition = fieldValue
 	case "INTENT CONTEXT":

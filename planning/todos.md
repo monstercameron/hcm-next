@@ -885,7 +885,6 @@ accessibility / delegation / representation / human escalation
 
 - [x] `TOOL-012` **[P0][TERRA] Enable race tests for concurrent packages.**
   - **Evidence (2026-09-05):** `TestTodo_TOOL_012`, `TestTodo_TOOL_012_Golden` in `tools/policy/racepolicy` plus `cmd/racepolicy` and `scripts/check-race-policy.mjs` wired into `npm run test:all` and the go-core CI job after `go test -race` (-race itself runs on Linux CI only; windows/arm64 cannot); the policy scans every package importing sync/sync/atomic or starting goroutines and requires a test suite runnable under -race; `go test -count=1 ./tools/policy/racepolicy/.../` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
-  - **Evidence (partial, 2026-09-03):** `TestTodo_TOOL_012` in `tools/quality` PASS; not complete: Test written; skips locally because -race is unsupported on windows/arm64; runs in the go-core CI job; `go test -count=1 ./tools/quality/...`; on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `TOOL-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_012`.
@@ -938,7 +937,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** the release image and SBOM contain only the Go runtime, the qualified libraries in their selected roles and pinned Go infrastructure modules; the development toolchain (browser test runners, formatters) is out of scope of the check; legacy runs beside the Go slice in P1A without failing this test.
   - **REFACTOR:** the check reads the release SBOM, not the repository tree.
   - **Refs:** [Release gates](specs/go-only-technology-constitution.md#release-gates), [cutover rules](specs/legacy-implementation-baseline.md#cutover-rules).
-  - **Evidence (2026-09-03):** Declared `TOOL-015` test matrix and acceptance behavior in `tools/quality/releaseboundary`; PASS; `go test -p 1 ./tools/quality/releaseboundary` and `go vet ./tools/quality/releaseboundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestReleaseContainsNoLegacyRuntime`, Declared `TOOL-015` test matrix and acceptance behavior in `tools/quality/releaseboundary`; PASS; `go test -p 1 ./tools/quality/releaseboundary` and `go vet ./tools/quality/releaseboundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `TOOL-016` **[GATE_A][TERRA] Add deterministic build verification.**
   - **Depends:** `TOOL-003`, `TOOL-015`.
@@ -1285,7 +1284,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** technology packages implement owner-defined interfaces for intent, workflow, ledger, people, organization, position, compensation, work, messaging, integration and transaction; the PostgreSQL implementation confines `pgx/v5` to the adapter/composition boundary; compile-time assertions plus shared adapter contract suites verify behavior.
   - **REFACTOR:** transaction bundling occurs through explicit unit-of-work capabilities and never by leaking database transactions across package APIs.
   - **Refs:** [Database materialization](#26-postgresql-database-and-model-materialization), [platform responsibilities](specs/platform-responsibility-boundaries.md).
-  - **Evidence (2026-09-03):** Declared `ARCH-GO-025` test matrix and acceptance behavior in `tools/quality/storagearch`; PASS; `go test -p 1 ./tools/quality/storagearch` and `go vet ./tools/quality/storagearch` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestStoreAdaptersRejectBusinessOwnership`, Declared `ARCH-GO-025` test matrix and acceptance behavior in `tools/quality/storagearch`; PASS; `go test -p 1 ./tools/quality/storagearch` and `go vet ./tools/quality/storagearch` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ARCH-GO-026` **[P0][SOL_HIGH] Bound trust, intelligence and operations packages.**
   - **Depends:** `ARCH-GO-002`, `GOV-009`.
@@ -1296,7 +1295,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** each cross-cutting package publishes narrow typed input/result/port contracts; operations observes everything without owning business truth; intelligence/agent access only governed capabilities/projections; deferred packages are absent from Phase 1 mandatory graph.
   - **REFACTOR:** no context object grants ambient access to every HCM fact or adapter.
   - **Refs:** [Platform planes](specs/platform-plane-model.md), [Phase 1 scope](execution-plan.md).
-  - **Evidence (2026-09-03):** Declared `ARCH-GO-026` test matrix and acceptance behavior in `tools/policy/crosscut`; PASS; `go test -p 1 ./tools/policy/crosscut` and `go vet ./tools/policy/crosscut` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestCrossCuttingPackagesRejectOmniscientImports`, Declared `ARCH-GO-026` test matrix and acceptance behavior in `tools/policy/crosscut`; PASS; `go test -p 1 ./tools/policy/crosscut` and `go vet ./tools/policy/crosscut` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ARCH-GO-027` **[P0][TERRA] Prevent interface and package ceremony without evidence.**
   - **Depends:** `ARCH-GO-013`, `GOV-007`.
@@ -1386,7 +1385,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** pinned CEL-Go compiles only through owned `ExpressionDefinition`, `RuleDefinition`, `DecisionTable` and transformation/form/population condition contracts; exact type, cost, timeout, UNKNOWN/PARTIAL, explanation and golden-vector behavior is deterministic.
   - **REFACTOR:** keep a backend-neutral bounded IR and conformance suite so CEL can be upgraded or replaced without changing proposal/workflow/rule digests silently.
   - **Refs:** [Rules and forms](specs/human-work-forms-and-rules.md), [Transformation engine](#37-shared-transformation-and-population-engines).
-  - **Evidence (partial, 2026-09-03):** `TestCELBackendQualification`, `TestTodo_LIB_005_{Golden,Fuzz,Integration,Fault,Conformance}`, and `TestTodo_LIB_005_AdmissionDecision` in `tools/quality/celqual` validate the owned bounded contract, deterministic vectors, and that `github.com/google/cel-go` is absent from release targets. `definitions/architecture/cel-go-qualification.yaml` remains `NOT_ADMITTED`: no pinned CEL-Go adapter or real backend execution evidence exists, so LIB-005 remains open. Runtime/planning packages are unchanged; no `go.mod` entry was added.
+  - **Evidence (partial, 2026-09-03):** `TestCELBackendQualification`, `TestTodo_LIB_005_{Golden,Integration,Fault,Conformance}`, `FuzzTodo_LIB_005`, and `TestTodo_LIB_005_AdmissionDecision` in `tools/quality/celqual` validate the owned bounded contract, deterministic vectors, and that `github.com/google/cel-go` is absent from release targets. `definitions/architecture/cel-go-qualification.yaml` remains `NOT_ADMITTED`: no pinned CEL-Go adapter or real backend execution evidence exists, so LIB-005 remains open. Runtime/planning packages are unchanged; no `go.mod` entry was added.
 
 - [x] `LIB-006` **[P0][SOL_HIGH] Qualify apd/v3 behind the decimal kernel.**
   - **Depends:** `LIB-001`, `TOOL-013`.
@@ -1801,7 +1800,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** scoped hold freezes applicable disposition while unrelated records continue normally; release recalculates schedule.
   - **REFACTOR:** hold queries are authorization- and compartment-aware.
   - **Refs:** [Records management](specs/records-management-and-disposition.md), [privacy model](data/models/assurance-intelligence-platform.md).
-  - **Evidence (2026-09-03):** Declared `MODEL-027` test matrix and acceptance behavior in `internal/governance/legalhold`; PASS; `go test -p 1 ./internal/governance/legalhold` and `go vet ./internal/governance/legalhold` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_MODEL_027`, Declared `MODEL-027` test matrix and acceptance behavior in `internal/governance/legalhold`; PASS; `go test -p 1 ./internal/governance/legalhold` and `go vet ./internal/governance/legalhold` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `MODEL-028` **[GATE_C][SOL_HIGH] Implement verified deletion and backup re-delete.**
   - **Depends:** `MODEL-026`, `RECOVERY-001`, `RECOVERY-002`, `RECORDS-COPY-001`.
@@ -1971,7 +1970,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** query planner intersects tenant/org/population/field/time/purpose scope and returns only authorized projections.
   - **REFACTOR:** database defense-in-depth may narrow but never broaden scope.
   - **Refs:** [Data-layer enforcement](plan.md#16-strategic-decisions), [organization AuthZ](specs/organization-scope-and-authz.md).
-  - **Evidence (2026-09-03):** Declared `TRUST-012` test matrix and acceptance behavior in `internal/trust/authz`; PASS; `go test -p 1 ./internal/trust/authz` and `go vet ./internal/trust/authz` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_TRUST_012`, Declared `TRUST-012` test matrix and acceptance behavior in `internal/trust/authz`; PASS; `go test -p 1 ./internal/trust/authz` and `go vet ./internal/trust/authz` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `TRUST-013` **[GATE_B][SOL_HIGH] Implement bounded delegation.**
   - **Evidence (2026-09-05):** `TestTodo_TRUST_013_ActingRoleAndCoverageUseTheSamePrimitive`, `TestTodo_TRUST_013_AssignmentsCannotEscapeTheDelegationBounds`, `TestTodo_TRUST_013_CoverageIsNeverRedelegable`, `TestTodo_TRUST_013_AssignmentShapeIsValidatedAtConstruction`, `TestTodo_TRUST_013_UnknownGrantKindFailsClosed` plus the pre-existing trust013 matrix in `internal/trust` (acting roles and vacation coverage lower to DelegationGrant and run through EvaluateDelegation; coverage never redelegable); `go test -count=1 ./internal/trust/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -2048,7 +2047,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** content progresses through received/quarantined/validating/scanning/transforming and only a classified `SAFE` derivative is promoted.
   - **REFACTOR:** rescans are replay-safe and old unsafe derivatives are revoked.
   - **Refs:** [Foundation content safety](specs/platform-foundation-gap-closure.md), [document processing models](data/models/connectivity-access-content.md).
-  - **Evidence (2026-09-03):** Declared `TRUST-019` test matrix and acceptance behavior in `internal/trust/content`; PASS; `go test -p 1 ./internal/trust/content` and `go vet ./internal/trust/content` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_TRUST_019`, Declared `TRUST-019` test matrix and acceptance behavior in `internal/trust/content`; PASS; `go test -p 1 ./internal/trust/content` and `go vet ./internal/trust/content` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `TRUST-020` **[GATE_B][SOL_HIGH] Exercise IdP outage policy.**
   - **Evidence (2026-09-05):** `TestTodo_TRUST_020`, `TestTodo_TRUST_020_{Security,Mutation,Fault}`, `FuzzTodo_TRUST_020` in `internal/trust/outage` (pure outage policy over IdP reachability, JWKS staleness and clock skew across four request classes: new sessions denied while degraded, existing reads and writes bounded to a cached-staleness window with writes degraded to read-only, privileged operations only under a complete emergency grant, Reconcile flags every degraded use for revalidation once health recovers); `go test -count=1 ./internal/trust/outage/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -2424,7 +2423,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** as-of graph returns legal/business hierarchy, source revisions, watermark and security-preserving scope closure.
   - **REFACTOR:** matrix/project relationships are distinct typed edges, not extra parent columns.
   - **Refs:** [Organization domain](specs/organization-and-relationship-domain.md), [org models](data/models/people-workforce.md).
-  - **Evidence (2026-09-03):** Declared `ORG-001` test matrix and acceptance behavior in `internal/domains/organization`; PASS; `go test -p 1 ./internal/domains/organization` and `go vet ./internal/domains/organization` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_ORG_001`, Declared `ORG-001` test matrix and acceptance behavior in `internal/domains/organization`; PASS; `go test -p 1 ./internal/domains/organization` and `go vet ./internal/domains/organization` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ORG-002` **[GATE_A][SOL_HIGH] Implement manager relationship resolution.**
   - **Evidence (2026-09-05):** `TestTodo_ORG_002` in `internal/domains/org` (manager relationship resolution as a closed read over a WorkerFacts-shaped port: direct manager, management chain to a declared depth and dotted lines with effective-at/known-at, cycles and depth overflow refused, WITHHELD/DENIED disclosure applied per hop, Explain; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/org/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -2686,7 +2685,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** the promotion reference gains an EXECUTE terminal profile and its APPROVAL nodes, its capability and decision nodes run through the capability gateway under EXECUTE, both approvals and the obligations are enforced, and the harness runs that definition from an approved proposal to COMPLETE.
   - **REFACTOR:** the demo definition is deleted or renamed as a step fixture.
   - **Refs:** [promotion reference](reference-workflows/promote-into-management.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
-  - **Evidence (2026-09-06):** `test/workflow/promo009_test.go` supplies the complete PRIMARY, GOLDEN, INTEGRATION, FAULT and SECURITY matrix over the shipped `promotionexec.Definition`, including both durable approvals, the effective-date timer, revalidation, capability execution, terminal idempotency and exactly one governed ledger fact. The `local-dev` profile now enables the bounded timer/ready-work scheduler with its executable plan, preventing a due-today promotion from remaining indefinitely parked. A live Codex-browser run completed OPS-HRBP2/P2 → OPS-HRBP3/P3 from proposal through finance and manager approval, settled `wait_effective_date`, reached `end_complete`, and displayed the single `hcmnext.workflow.PromotionOutcome/v2` ledger record. `go test ./test/workflow -count=1` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
+  - **Evidence (2026-09-06):** `TestTodo_PROMO_009`, `TestTodo_PROMO_009_Golden`, `TestTodo_PROMO_009_Integration`, `TestTodo_PROMO_009_Fault`, `TestTodo_PROMO_009_Security` in `test/workflow/promo009_test.go` supply the complete PRIMARY, GOLDEN, INTEGRATION, FAULT and SECURITY matrix over the shipped `promotionexec.Definition`, including both durable approvals, the effective-date timer, revalidation, capability execution, terminal idempotency and exactly one governed ledger fact. The `local-dev` profile now enables the bounded timer/ready-work scheduler with its executable plan, preventing a due-today promotion from remaining indefinitely parked. A live Codex-browser run completed OPS-HRBP2/P2 → OPS-HRBP3/P3 from proposal through finance and manager approval, settled `wait_effective_date`, reached `end_complete`, and displayed the single `hcmnext.workflow.PromotionOutcome/v2` ledger record. `go test ./test/workflow -count=1` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
 
 - [x] `PROMO-010` **[GATE_A][SOL_HIGH] Pin a Promotion execution behind the commercial entitlement snapshot.**
   - **Depends:** `COMM-001`.
@@ -3070,7 +3069,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** compare old/current snapshots and proposal dependency graph to return exact affected facts, calculations, writes, effects, obligations and decisions with `UNCHANGED|RECOMPUTE|INVALIDATE|UNKNOWN` plus reasons/digest.
   - **REFACTOR:** dependency closure is semantic and versioned; domain-specific materiality rules are inputs rather than workflow branches.
   - **Refs:** [Provenance graph](specs/provenance-graph-and-lineage.md), [proposal revalidation](specs/business-intent-and-change-request.md).
-  - **Evidence (2026-09-03):** Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_REPLAN_001`, Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `REPLAN-002` **[GATE_B][SOL_HIGH] Preserve only policy-permitted unaffected decisions during replanning.**
   - **Depends:** `REPLAN-001`, `APPROVAL-002`, `APPROVAL-006`.
@@ -4118,7 +4117,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** typed intent for approval, task, determination, notice or workflow update commits before asynchronous delivery and exposes no provider credential.
   - **REFACTOR:** Gate A does not require transactional messaging unless partner path scope-exchanges it.
   - **Refs:** [Messaging spec](specs/messaging-and-notification-plane.md), [communications slice](execution-plan.md#communications-plane-slice).
-  - **Evidence (2026-09-03):** Declared `MSG-001` test matrix and acceptance behavior in `internal/messaging`; PASS; `go test -p 1 ./internal/messaging` and `go vet ./internal/messaging` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_MSG_001`, Declared `MSG-001` test matrix and acceptance behavior in `internal/messaging`; PASS; `go test -p 1 ./internal/messaging` and `go vet ./internal/messaging` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `MSG-002` **[GATE_B][SOL_HIGH] Resolve current authorized audience.**
   - **Evidence (2026-09-05):** `TestTodo_MSG_002` in `internal/domains/audience` (current authorized audience resolution for a message intent from explicit refs, org-unit membership, management chains and role holders over in-memory facts ports, the caller's disclosure scope excluding unaddressable subjects with counted reasons, deduplicated, sorted and digested; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/audience/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -4434,7 +4433,7 @@ closed.
   - **Evidence (2026-09-03):** `TestTodo_DATA_016`, `_Golden`, `_Security` (purpose, classification, guessed id, cross-tenant, stale grant, RLS at the DB layer), `_Recovery` in `internal/data/artifacts` (`Retrieve` is the only bytes-returning path; denials write a durable refusal row in the same transaction; append-only reference log with distinct-owner count; `SweepCandidates` uses MODEL-026 retention classes and never lists a referenced artifact; no deletion exists); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/data/artifacts/...` on windows/arm64 (Go 1.26.3).
 
 - [x] `DATA-017` **[GATE_B][SOL_HIGH] Partition authoritative data without changing semantics.**
-  - **Evidence (2026-09-05):** `TestTodo_DATA_017`, `TestTodo_DATA_017_{Security,Mutation}`, `TestPartitionPlan_*` (incl. `_LedgerEventPlan_MatchesMigration00005`), `TestKit_fill`, `TestQuoteIdent`, `TestValidateIdent*`, `TestPolicySetsEqual` in `internal/data/partition` (a partition plan with a stable digest proven equal to migration 00005's ledger_event layout; a shadow-table kit comparing parent and shadow rows, RLS refusals and mutation refusals across differently-hashed tenants so partitioning changes no semantics); `go test -count=1 ./internal/data/partition/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-05):** `TestTodo_DATA_017`, `TestTodo_DATA_017_{Security,Mutation}`, the partition plan tests (including the ledger event plan migration match), `TestKit_fill`, `TestQuoteIdent`, `TestValidateIdent*`, `TestPolicySetsEqual` in `internal/data/partition` (a partition plan with a stable digest proven equal to migration 00005's ledger_event layout; a shadow-table kit comparing parent and shadow rows, RLS refusals and mutation refusals across differently-hashed tenants so partitioning changes no semantics); `go test -count=1 ./internal/data/partition/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `DATA-001`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DATA_017`.
@@ -4547,7 +4546,7 @@ closed.
   - **GREEN:** probe returns authentication, reachability, required/actual scopes and exact affected capabilities/workflows without mutation.
   - **REFACTOR:** provider-specific checks normalize to shared findings.
   - **Refs:** [Connector test bench](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md).
-  - **Evidence (2026-09-03):** Declared `INTG-003` test matrix and acceptance behavior in `internal/connectivity/diagnostics`; PASS; `go test -p 1 ./internal/connectivity/diagnostics` and `go vet ./internal/connectivity/diagnostics` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_INTG_003`, Declared `INTG-003` test matrix and acceptance behavior in `internal/connectivity/diagnostics`; PASS; `go test -p 1 ./internal/connectivity/diagnostics` and `go vet ./internal/connectivity/diagnostics` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `INTG-004` **[GATE_A][SOL_HIGH] Ingest and quarantine external schema snapshots.**
   - **Evidence (2026-09-05):** `TestTodo_INTG_004`, `TestTodo_INTG_004_{Golden,Race,Fault,Mutation}`, `FuzzTodo_INTG_004`, validator and memory-store tests in `internal/connectivity/schemasnapshot`; `TestTodo_INTG_004_Integration`, `_Integration_Rejected`, `_Integration_ArtifactAndSnapshotCommitTogether` in `internal/connectivity/schemasnapshot/adapters/postgres` (migration `00025_schema_snapshot.sql`: `integration_schema_snapshot` born QUARANTINED under a (tenant, provider, digest) identity with a single trigger-guarded QUARANTINED→ADMITTED/REJECTED transition, and append-only `integration_schema_snapshot_evidence` written in the same Decide call; RLS tenant_isolation on both); `go test -count=1 ./migrations/ ./internal/connectivity/schemasnapshot/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -4747,7 +4746,7 @@ closed.
   - **GREEN:** immutable effect graph binds each semantic effect to proposal/transaction, capability/connector, prerequisites, ordering/fence/idempotency, criticality, dispatch condition, observation contract, deadline, failure/compensation/repair policy and terminal contribution.
   - **REFACTOR:** graph declares business dependencies while connector queues enforce provider capacity independently.
   - **Refs:** [Transaction plan](specs/transaction-plan-and-commit-coordinator.md), [integration operation journal](specs/integration-platform.md), [workflow side effects](specs/workflow-runtime.md).
-  - **Evidence (2026-09-03):** Declared `EFFECT-001` test matrix and acceptance behavior in `internal/effectgraph`; PASS; `go test -p 1 ./internal/effectgraph` and `go vet ./internal/effectgraph` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_EFFECT_001`, Declared `EFFECT-001` test matrix and acceptance behavior in `internal/effectgraph`; PASS; `go test -p 1 ./internal/effectgraph` and `go vet ./internal/effectgraph` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `RECON-001` **[GATE_B][SOL_HIGH] Implement a durable reconciliation-job lifecycle.**
   - **Evidence (2026-09-05):** `TestTodo_RECON_001` in `internal/operations/reconcile`, `migrations`, `internal/data/tenancy/storagedisposition` (one durable ReconciliationJob per committed mandatory effect and comparison policy in migration 00040's effect_reconciliation_job (job id derived from tenant, effect idempotency key and policy ref so Coordinator.Trigger is idempotent and a duplicate returns the existing job), Job carrying intended and canonical refs, required freshness, observation attempts, next check, deadline, owner and SLA ref with status in the closed set PENDING/OBSERVING/PASS/MISMATCH/PARTIAL/UNKNOWN/EXPIRED/REPAIR_REQUIRED, Coordinator.Poll verifying the caller's lease fence before any write, settling an exhausted deadline to EXPIRED or REPAIR_REQUIRED per the effect's RepairPolicy without deleting the row, an observation below required freshness never reaching the Comparer and never ending polling, MemoryStore plus PostgresStore under RLS with version CAS, restart reloading everything from rows, and an import-allowlist conformance scan proving no domain or provider package is reached; the lane's colliding 00039 no-op was removed and uuid was allowed for the package in dependency-roles.yaml; written by a Sonnet subagent and verified independently); `go test -count=1 ./internal/operations/reconcile/ ./migrations/ ./internal/data/tenancy/storagedisposition/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -4939,7 +4938,7 @@ closed.
   - **GREEN:** every context carries the same signed `TenantPlacement{tenant, cell, region, residency_profile, isolation_tier, epoch}` or fails closed with `PLACEMENT_MISMATCH`.
   - **REFACTOR:** one physical cell is acceptable; logical fencing is not optional.
   - **Refs:** [Tenant cells](data/models/operations-production.md), [lifecycle ownership](specs/platform-responsibility-boundaries.md#tenant-provisioning-and-lifecycle).
-  - **Evidence (2026-09-03):** Declared `TENANT-001` test matrix and acceptance behavior in `internal/domains/tenant`; PASS; `go test -p 1 ./internal/domains/tenant` and `go vet ./internal/domains/tenant` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_TENANT_001`, Declared `TENANT-001` test matrix and acceptance behavior in `internal/domains/tenant`; PASS; `go test -p 1 ./internal/domains/tenant` and `go vet ./internal/domains/tenant` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `TENANT-002` **[GATE_A][SOL_HIGH] Bootstrap one pilot tenant idempotently.**
   - **Evidence (2026-09-05):** `TestTodo_TENANT_002` in `internal/domains/tenant`, `internal/data/tenancy`, `test/tenant` (migration 00029 bootstrap receipts plus the plane-verification model: ten closed planes each with a Verified record from a verifier distinct from the requester and non-empty evidence refs, ACTIVE only when every plane is VERIFIED, later failure moving the tenant to DEGRADED naming the plane, digested append-only provisioning events, idempotent re-runs, no cross-tenant receipt visibility; five planes are proven against the real repository today (tenant row and RLS isolation, tenant KEK round-trip through custody, activated configuration objects, registry versus live schema, an RLS-scoped governed read) and the other five (admin, placement, products, recovery contacts, audit) run through explicitly labelled fakes until their own todos land; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/tenant/ ./internal/data/tenancy/ ./test/tenant/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -5442,6 +5441,7 @@ closed.
   - **Evidence (2026-09-03):** `TestTodo_UX_004`, `TestTodo_UX_004_Golden`, `TestTodo_UX_004_Integration`, `TestTodo_UX_004_Fault`, `TestTodo_UX_004_Security`, `TestTodo_UX_004_Browser` and `FuzzTodo_UX_004` in `internal/humanwork/workspace` and `test/workspace`; strict `en-US`/`de-DE` date, currency and number round trips make unsupported-locale fallback and missing translations visible, canonicalize values before intent comparison, and keep `LocaleContext` limited to requested/resolved/fallback locale data with no legal-jurisdiction authority. `go test -count=1 ./internal/humanwork/workspace ./test/workspace`, targeted browser/integration runs, a two-second fuzz run and `go vet` PASS on windows/arm64 (Go 1.26.3); refactored; branch plan-revision-2026-09-02.
 
 - [x] `UX-005` **[GATE_B][SOL_HIGH] Make UI error, ambiguity and recovery states truthful.**
+  - **Evidence (2026-09-06):** `TestTodo_UX_005` in `internal/experience/recovery`; `go test -count=1 ./internal/experience/recovery/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UX-002`, `TX-010`, `INTG-014`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_UX_005`.
@@ -5493,6 +5493,7 @@ closed.
   - **Refs:** [experience slice](execution-plan.md#experience-and-branding-slice), [Promotion user flow](user-flows/reference/promote-into-management.md), [executable prototype devlog](devlog/2026-09-03-executable-prototype.md).
 
 - [x] `UXFLOW-001` **[P0][SOL_HIGH] Define the machine-readable UserFlowRecord and stage vocabulary.**
+  - **Evidence (2026-09-06):** `TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference` in `internal/experience/userflow`; `go test -count=1 ./internal/experience/userflow/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UX-001`, `SLICE-001`, `WF-DISC-005`, `MODEL-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=describe every participant journey with exact semantic references, states, alternatives, accessibility and test hooks`.
   - **TEST:** `TestUserFlowRecordRejectsMissingParticipantStateRecoveryOrSemanticReference`.
@@ -5503,6 +5504,7 @@ closed.
   - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [experience contract](specs/experience-ui-and-branding.md), [vertical-slice record](workflows/vertical-slices/README.md#complete-vertical-slice-record).
 
 - [x] `UXFLOW-002` **[P0][SOL_HIGH] Resolve participants, representation, delegation and decision rights per flow stage.**
+  - **Evidence (2026-09-06):** `TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation` in `internal/experience/participants`; `go test -count=1 ./internal/experience/participants/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `TRUST-010`, `TRUST-013`, `TRUST-014`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent persona labels, act-as modes and assisted use from silently expanding authority or disclosure`.
   - **TEST:** `TestUserFlowParticipantResolutionNeverInfersAuthorityFromPersonaOrRepresentation`.
@@ -5513,6 +5515,7 @@ closed.
   - **Refs:** [participant vocabulary](user-flows/README.md#participant-vocabulary), [AuthZ](specs/organization-scope-and-authz.md), [human work](specs/human-work-forms-and-rules.md).
 
 - [x] `UXFLOW-003` **[P0][SOL_HIGH] Give every accepted BusinessIntent an explicit user-flow disposition.**
+  - **Evidence (2026-09-06):** `TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe` in `internal/experience/disposition`; `go test -count=1 ./internal/experience/disposition/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `SLICE-003`, `INTENT-010`, `UX-006`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=distinguish participant-facing roots and children from system-only, admin-only and no-flow intents without inventing public UI`.
   - **TEST:** `TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe`.
@@ -5523,6 +5526,7 @@ closed.
   - **Refs:** [flow catalog](user-flows/catalog.md), [BusinessIntent catalog](specs/business-intent-catalog.md), [action discovery](#17-experience-api-and-accessibility).
 
 - [x] `UXFLOW-004` **[P0][SOL_HIGH] Compile truthful participant-facing state and available actions from multidimensional intent state.**
+  - **Evidence (2026-09-06):** `TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions` in `internal/experience/presentation`; `go test -count=1 ./internal/experience/presentation/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `INTENT-021`, `UX-005`, `UX-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=ensure every flow renders loading, waiting, stale, partial, unknown, repair and closure without flattening business truth`.
   - **TEST:** `TestFlowStatePresentationReturnsExactTruthfulStatusAndSafeActions`.
@@ -5533,6 +5537,7 @@ closed.
   - **Refs:** [state matrix](user-flows/README.md#state-presentation-matrix), [multidimensional completion](specs/business-intent-and-change-request.md), [truthful UX](specs/experience-ui-and-branding.md).
 
 - [x] `UXFLOW-005` **[P0][SOL_HIGH] Define draft, autosave, validation, simulation, compare and confirmation flow mechanics.**
+  - **Evidence (2026-09-06):** `TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest` in `internal/experience/draftflow`; `go test -count=1 ./internal/experience/draftflow/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `UXFLOW-004`, `FORM-001`, `INTENT-014`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=let participants safely move from requested input to an exact proposal without client-resolved truth or accidental effects`.
   - **TEST:** `TestDraftToConfirmationPreservesInputSeparatesTruthAndBindsExactProposalDigest`.
@@ -5543,6 +5548,7 @@ closed.
   - **Refs:** [requested input versus truth](user-flows/README.md#requested-input-versus-server-truth), [forms](specs/human-work-forms-and-rules.md), [intent proposals](specs/business-intent-and-change-request.md).
 
 - [x] `UXFLOW-006` **[P0][SOL_HIGH] Preserve safe interruption, deep-link, session-expiry and cross-device resume.**
+  - **Evidence (2026-09-06):** `TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState` in `internal/flow`; `go test -count=1 ./internal/flow/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-004`, `UXFLOW-005`, `TRUST-003`, `UX-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=make long-running HCM work resumable without embedding authority in URLs, stale pages or device storage`.
   - **TEST:** `TestFlowResumeReauthorizesAndRestoresOnlySafeCurrentState`.
@@ -5553,6 +5559,7 @@ closed.
   - **Refs:** [user-flow record](user-flows/README.md#userflowrecord), [sessions](specs/platform-foundation-gap-closure.md), [Intent Center](#17-experience-api-and-accessibility).
 
 - [x] `UXFLOW-007` **[P0][SOL_HIGH] Design exact participant recovery for partial, unknown, ambiguous and repair-required outcomes.**
+  - **Evidence (2026-09-06):** `TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome` in `internal/experience/outcome`; `go test -count=1 ./internal/experience/outcome/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-004`, `UX-005`, `INTG-014`, `REPAIR-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prevent unsafe retries and give participants truthful next actions when local business truth and external reality diverge`.
   - **TEST:** `TestFlowRecoveryNeverOffersActionThatCanDuplicateOrContradictKnownOutcome`.
@@ -5563,6 +5570,7 @@ closed.
   - **Refs:** [repair user flow](user-flows/reference/dataops-reconcile-and-repair.md), [integration ambiguity](specs/integration-platform.md), [reconciliation and repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
 - [x] `UXFLOW-008` **[P0][SOL_HIGH] Compile accessibility, localization and assisted/manual continuity across complete flows.**
+  - **Evidence (2026-09-06):** `TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes` in `internal/experience/continuity`; `go test -count=1 ./internal/experience/continuity/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `UX-003`, `UX-004`, `FORM-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=prove a participant can complete the entire governed process—not isolated pages—across language, disability, accommodation and non-digital routes`.
   - **TEST:** `TestCompleteUserFlowPreservesSemanticsDeadlinesAndEvidenceAcrossAccessibleRoutes`.
@@ -5573,6 +5581,7 @@ closed.
   - **Refs:** [maximal configuration](user-flows/README.md#maximal-configuration), [accessibility contract](specs/experience-ui-and-branding.md#accessibility-contract), [manual continuity](specs/platform-foundation-gap-closure.md#10-accessibility-assurance-platform).
 
 - [x] `UXFLOW-009` **[PHASE_2][SOL_HIGH] Prove cross-channel flow parity for desktop, mobile, kiosk, secure message and assisted routes.**
+  - **Evidence (2026-09-06):** `TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome` in `internal/experience/channelparity`; `go test -count=1 ./internal/experience/channelparity/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-008`, `UX-008`, `API-001`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure surface adaptation never forks BusinessIntent semantics, governance, validation, recovery or evidence`.
   - **TEST:** `TestUserFlowCrossChannelParityReturnsSameNormalizedIntentAndOutcome`.
@@ -5583,6 +5592,7 @@ closed.
   - **Refs:** [surface vocabulary](user-flows/README.md#surface-vocabulary), [channel parity](specs/go-only-technology-constitution.md), [messaging](specs/messaging-and-notification-plane.md).
 
 - [x] `UXFLOW-010` **[P0][SOL_HIGH] Generate atomic TDD todos and reverse coverage from user-flow findings to a fixed point.**
+  - **Evidence (2026-09-06):** `TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass` in `tools/planning/userflowgaps`; `go test -count=1 ./tools/planning/userflowgaps/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-003`, `UXFLOW-004`, `UXFLOW-005`, `UXFLOW-006`, `UXFLOW-007`, `UXFLOW-008`, `UXFLOW-009`, `SLICE-012`, `GOV-028`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=turn every unresolved surface, state, action, accessibility, continuity and test obligation into deduplicated production work`.
   - **TEST:** `TestUserFlowGapCompilerEmitsExactOwnerKeyedTodosAndConvergesOnSecondPass`.
@@ -5841,7 +5851,7 @@ closed.
   - **GREEN:** `Resolve` returns one `PRIMARY` subdivision plus deduplicated `OVERLAY` jurisdictions ordered coarse to fine, records which attribution rule `A1`–`A6` fired and the remote-work policy applied, refuses with `LEGAL_CONTEXT_UNKNOWN` and reason `MULTI_STATE_UNRESOLVED` when no subdivision clears the threshold, and keeps the resolved set inside the signed `LegalContext` digest.
   - **REFACTOR:** `Jurisdiction.Locality` becomes the last element of `locality_path` with the canonical encoding distinguishing an empty path from a one-element empty string; existing single-jurisdiction callers keep compiling.
   - **Refs:** [Jurisdiction model](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model), [Legal and Compliance Plane](specs/platform-architecture-catalog.md#912-legal-and-compliance-plane).
-  - **Evidence (2026-09-03):** Declared `LEGAL-009` test matrix and acceptance behavior in `internal/governance/legal`; PASS; `go test -p 1 ./internal/governance/legal` and `go vet ./internal/governance/legal` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_LEGAL_009`, Declared `LEGAL-009` test matrix and acceptance behavior in `internal/governance/legal`; PASS; `go test -p 1 ./internal/governance/legal` and `go vet ./internal/governance/legal` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `LEGAL-010` **[PHASE_2][SOL_HIGH] Publish rule packs as a digested, signed, superseding release family.**
   - **Depends:** `LEGAL-001`, `LEGAL-008`, `MODEL-020`, `CONFIG-002`.
@@ -6840,7 +6850,7 @@ closed.
   - **GREEN:** same bindings/version produce same artifact hash; publication records fixtures, approval, applicability and successor/retirement state.
   - **REFACTOR:** renderer receives field-masked typed bindings only.
   - **Refs:** [Document templates](data/models/connectivity-access-content.md), [experience localization](specs/experience-ui-and-branding.md).
-  - **Evidence (2026-09-03):** Declared `DOC-TEMPLATE-001` test matrix and acceptance behavior in `internal/documents/template`; PASS; `go test -p 1 ./internal/documents/template` and `go vet ./internal/documents/template` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_DOC_TEMPLATE_001`, Declared `DOC-TEMPLATE-001` test matrix and acceptance behavior in `internal/documents/template`; PASS; `go test -p 1 ./internal/documents/template` and `go vet ./internal/documents/template` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `DOC-SIGN-001` **[PHASE_2][SOL_HIGH] Execute a proof-bound e-signature ceremony.**
   - **Depends:** `DOC-TEMPLATE-001`, `INTG-018`, `TRUST-002`.
@@ -6889,6 +6899,7 @@ closed.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [approval runtime](specs/workflow-runtime.md), [messaging](specs/messaging-and-notification-plane.md).
 
 - [x] `FORM-005` **[GATE_B][SOL_HIGH] Persist encrypted resumable form drafts without creating effects.**
+  - **Evidence (2026-09-06):** `TestTodo_FORM_005` in `internal/forms/drafts`; `go test -count=1 ./internal/forms/drafts/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `FORM-001`, `FORM-002`, `DATA-014`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_005`.
@@ -6939,6 +6950,7 @@ closed.
   - **Evidence (2026-09-03):** `TestTodo_WORK_010`, `TestTodo_WORK_010_Golden`, `TestTodo_WORK_010_Security`, `TestTodo_WORK_010_Mutation` in `internal/humanwork/workitem` (migration `00022_work_item_decision.sql`: append-once `work_item_decision` keyed by (tenant, work item) with the forbid_mutation trigger, registered in `definitions/storage/storage-disposition.yaml`; `RecordDecision` refuses a body whose digest differs from the item's completed output digest, a non-COMPLETED item or a kind mismatch; `steps/approval.Complete` and `steps/task.Submit` record the full typed decision or submission in the completion transaction); `go test -count=1 ./internal/humanwork/... ./internal/workflow/steps/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `FORM-006` **[GATE_B][SOL_HIGH] Preserve authority and deadlines through alternate human channels.**
+  - **Evidence (2026-09-06):** `TestTodo_FORM_006` in `internal/humanwork/formcontinuity`; `go test -count=1 ./internal/humanwork/formcontinuity/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `FORM-004`, `FORM-005`, `MSG-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_FORM_006`.
@@ -7837,7 +7849,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** verifier reports exact first invalid tenant/stream/sequence and expected/actual digest; intact stream reproduces head digest from genesis.
   - **REFACTOR:** crypto algorithm/version is recorded per event/epoch.
   - **Refs:** [Ledger integrity](specs/transaction-ledger-reconciliation-and-repair.md), [crypto models](data/models/security-trust.md).
-  - **Evidence (2026-09-03):** Declared `LEDGER-007` test matrix and acceptance behavior in `internal/data/ledger/hashchain`; PASS; `go test -p 1 ./internal/data/ledger/hashchain` and `go vet ./internal/data/ledger/hashchain` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_LEDGER_007`, Declared `LEDGER-007` test matrix and acceptance behavior in `internal/data/ledger/hashchain`; PASS; `go test -p 1 ./internal/data/ledger/hashchain` and `go vet ./internal/data/ledger/hashchain` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `LEDGER-008` **[GATE_B][SOL_HIGH] Atomically append event, critical projection, outbox and provenance roots.**
   - **Evidence (2026-09-05):** `TestTodo_LEDGER_008` in `internal/data/ledger/commit` (internal/data/ledger/commit records a commit checkpoint per multi-stream append so a crash between streams is detectable and replayable; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/data/ledger/commit/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -9080,7 +9092,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** registry returns exact event name/version, `DEBUG|INFO|WARN|ERROR`, typed outcome, error code/type/retryability and safe template for success/failure/partial/unknown/denied/cancelled/degraded; libraries never terminate the process.
   - **REFACTOR:** semantic result/error mapping is shared with transport and metrics while presentation text stays replaceable and non-authoritative.
   - **Refs:** [severity and outcome](specs/structured-logging-and-opentelemetry.md#severity-and-outcome), [capability errors](specs/capability-registry-and-lifecycle.md), [endpoint errors](specs/http-grpc-endpoint-contract.md).
-  - **Evidence (2026-09-03):** Declared `OBS-010` test matrix and acceptance behavior in `internal/platform/observability`; PASS; `go test -p 1 ./internal/platform/observability` and `go vet ./internal/platform/observability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestLogSemanticRegistryMapsEachOperationOutcomeToExactEventSeverityAndErrorFields`, Declared `OBS-010` test matrix and acceptance behavior in `internal/platform/observability`; PASS; `go test -p 1 ./internal/platform/observability` and `go vet ./internal/platform/observability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `OBS-011` **[P0][SOL_HIGH] Govern trace-context and baggage propagation at every trust boundary.**
   - **Depends:** `OBS-001`, `TRUST-006`, `ENDPOINT-001`, `INTG-001`.
@@ -9091,7 +9103,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** bounded parser starts a fresh trace for invalid context with safe security signal, trusted transport independently injects business context, baggage allowlist enforces key/type/size/classification/destination/hop lifetime and egress emits only reviewed fields.
   - **REFACTOR:** one propagator policy is reused by HTTP, gRPC, workers, queues and connectors with explicit inbound/outbound trust profiles.
   - **Refs:** [propagation](specs/structured-logging-and-opentelemetry.md#propagation), [trusted request boundary](specs/http-grpc-endpoint-contract.md), [integration trust](specs/integration-platform.md).
-  - **Evidence (2026-09-03):** Declared `OBS-011` test matrix and acceptance behavior in `internal/platform/telemetry/boundary`; PASS; `go test -p 1 ./internal/platform/telemetry/boundary` and `go vet ./internal/platform/telemetry/boundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTraceContextBoundaryRejectsAuthorityInjectionAndFiltersBaggage`, Declared `OBS-011` test matrix and acceptance behavior in `internal/platform/telemetry/boundary`; PASS; `go test -p 1 ./internal/platform/telemetry/boundary` and `go vet ./internal/platform/telemetry/boundary` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `OBS-012` **[P0][SOL_HIGH] Define stable span topology, names, attributes and status rules.**
   - **Evidence (2026-09-05):** `TestCanonicalSpanTopologyMatchesCapabilityWorkflowTransactionAndRepairSemantics` in `internal/platform/telemetry` (span topology, names, attribute keys and status rules are a compiled registry in internal/platform/telemetry, checked against definitions/telemetry so an unregistered span name or attribute is refused; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -9566,6 +9578,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Evidence (2026-09-03):** `TestTodo_ADMIN_003`, `_Property`, `_Security`, `_Mutation` in `internal/operations/explorer` (stream listing, event detail, chain verification reporting the exact broken sequence, correction lineage, bitemporal reads with the caller's decision enforced in SQL) and `TestTodo_ADMIN_003`, `_Security`, `_Mutation` in `internal/operations/authzsim` (`Simulate` wrapping `authz.Simulate` with policy-version match, `DiffDecisions` field-by-field, zero writes); `go test -count=1 ./internal/operations/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ADMIN-004` **[GATE_A][SOL_HIGH] Implement connector/config operations centers.**
+  - **Evidence (2026-09-06):** `TestTodo_ADMIN_004` in `internal/platform/config`; `go test -count=1 ./internal/platform/config/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `ADMIN-001`, `CONN-RT-007`, `CP-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_004`.
@@ -9576,6 +9589,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Integration platform](specs/integration-platform.md), [HRIS DataOps](specs/hris-admin-dataops.md).
 
 - [x] `ADMIN-005` **[GATE_B][SOL_HIGH] Implement incident and repair center.**
+  - **Evidence (2026-09-06):** `TestTodo_ADMIN_005` in `internal/operations/admincenter/incidentrepair`; `go test -count=1 ./internal/operations/admincenter/incidentrepair/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `ADMIN-001`, `OPS-004`, `SVC-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_005`.
@@ -9586,6 +9600,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Incident management](specs/incident-management.md), [repair](specs/transaction-ledger-reconciliation-and-repair.md).
 
 - [x] `ADMIN-006` **[GATE_A][SOL_HIGH] Implement support-safe diagnostic sessions.**
+  - **Evidence (2026-09-06):** `TestTodo_ADMIN_006` in `internal/operations/admincenter/diagnosticsession`; `go test -count=1 ./internal/operations/admincenter/diagnosticsession/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `ADMIN-001`, `TRUST-021`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_006`.
@@ -9613,7 +9628,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** `GetWorkflowInstance` on the admin service and `hcmctl instance <id>` render the inspector view (definition, instance, nodes, frontier, governance, work items and their transitions, evidence ids) under the operator role's redaction rules, marking unrecorded refs as gaps rather than absent.
   - **REFACTOR:** the inspector takes work-item and evidence ports; no transport code touches runtime tables.
   - **Refs:** [HRIS admin](specs/hris-admin-dataops.md), [review findings](devlog/2026-09-03-executable-prototype.md#9-review-findings-and-the-hardening-plan).
-  - **Evidence (2026-09-03):** `TestTodo_ADMIN_008`, `TestTodo_ADMIN_008_Golden` (`testdata/admin008_work_items.json`) in `internal/workflow/inspect` (new `GapKind` NONE / ABSENT / UNRECORDED / REDACTED and `BuildWorkItems` over work items and their transitions), `TestTodo_ADMIN_008_Integration` (pgtest-backed instance, nodes, work items and transitions rendered through a real gRPC round trip) and `TestTodo_ADMIN_008_Security` (operator role required, mirrors the other admin methods) in `internal/transport/admin`; `GetWorkflowInstance` on `hcmnext.admin.v1.AdminService` (six methods now) composed by `internal/transport/cell.NewGRPCServerWithWorkflowInspector` and wired in `cmd/hcmnext`; `hcmctl instance <id>` renders the view with REDACTED refs and gap kinds through the generated client; `runtime.ParseUUID` added so transport never imports uuid directly; `go test -count=1 ./internal/workflow/inspect/ ./internal/transport/admin/... ./cmd/hcmctl/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_ADMIN_007`, `TestTodo_ADMIN_008`, `TestTodo_ADMIN_008_Golden` (`testdata/admin008_work_items.json`) in `internal/workflow/inspect` (new `GapKind` NONE / ABSENT / UNRECORDED / REDACTED and `BuildWorkItems` over work items and their transitions), `TestTodo_ADMIN_008_Integration` (pgtest-backed instance, nodes, work items and transitions rendered through a real gRPC round trip) and `TestTodo_ADMIN_008_Security` (operator role required, mirrors the other admin methods) in `internal/transport/admin`; `GetWorkflowInstance` on `hcmnext.admin.v1.AdminService` (six methods now) composed by `internal/transport/cell.NewGRPCServerWithWorkflowInspector` and wired in `cmd/hcmnext`; `hcmctl instance <id>` renders the view with REDACTED refs and gap kinds through the generated client; `runtime.ParseUUID` added so transport never imports uuid directly; `go test -count=1 ./internal/workflow/inspect/ ./internal/transport/admin/... ./cmd/hcmctl/` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `OPS-007` **[P0][TERRA] Publish expiring service ownership and dependency registries.**
   - **Depends:** `SVC-001`, `GOV-008`.
@@ -9764,7 +9779,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Accept only bounded typed operations, schemas, owner, phase, compatibility and resource limits.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rules and decisions](data/models/rules-and-decisions.md), [integration mappings](specs/integration-platform.md), [DataOps](specs/hris-admin-dataops.md).
-  - **Evidence (2026-09-03):** Declared `XFORM-001` test matrix and acceptance behavior in `internal/engines/transformation`; PASS; `go test -p 1 ./internal/engines/transformation` and `go vet ./internal/engines/transformation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_XFORM_001`, Declared `XFORM-001` test matrix and acceptance behavior in `internal/engines/transformation`; PASS; `go test -p 1 ./internal/engines/transformation` and `go vet ./internal/engines/transformation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `XFORM-002` **[P0][SOL_HIGH] Compile transformations into bounded immutable IR.**
   - **Evidence (2026-09-05):** `TestTodo_XFORM_002`, `TestTodo_XFORM_002_{Property,Golden,Mutation,Security}`, `FuzzTodo_XFORM_002` in `internal/engines/transformation/ir` (closed instruction set map/filter/project/join_by_key/aggregate/coerce with declared limits, canonical digest, cycle and fan-out refusal, readable Explain) plus `TestVersionAndExplain`, `TestExplainCoversEveryOperationKind` for the ARCH-GO-009 contract; `go test -count=1 ./internal/engines/transformation/.../` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -10030,7 +10045,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Current/restated result explicitly references population, facts, rules and known/effective intervals.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Wire time](data/models/wire-contract-primitives.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
-  - **Evidence (2026-09-03):** Declared `ELIG-007` test matrix and acceptance behavior in `internal/engines/eligibility`; PASS; `go test -p 1 ./internal/engines/eligibility` and `go vet ./internal/engines/eligibility` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_ELIG_007`, Declared `ELIG-007` test matrix and acceptance behavior in `internal/engines/eligibility`; PASS; `go test -p 1 ./internal/engines/eligibility` and `go vet ./internal/engines/eligibility` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [ ] `ELIG-008` **[CONFORMANCE][SOL_HIGH] Prove eligibility semantics across four domains.**
   - **Depends:** `ELIG-001`–`ELIG-007`, `CONF-004`, `CONF-009`, `CONF-010`, `CONF-013`.
@@ -10051,7 +10066,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Revision is immutable and effective-dated.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire time](data/models/wire-contract-primitives.md).
-  - **Evidence (2026-09-03):** Declared `CYCLE-001` test matrix and acceptance behavior in `internal/engines/cycle`; PASS; `go test -p 1 ./internal/engines/cycle` and `go vet ./internal/engines/cycle` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_CYCLE_001`, Declared `CYCLE-001` test matrix and acceptance behavior in `internal/engines/cycle`; PASS; `go test -p 1 ./internal/engines/cycle` and `go vet ./internal/engines/cycle` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `CYCLE-002` **[PHASE_2][SOL_HIGH] Define and validate cycle phases and windows.**
   - **Evidence (2026-09-05):** `TestTodo_CYCLE_002`, `TestTodo_CYCLE_002_{Property,Fault}`, `TestCompiledPhaseGraphCarriesDeclaredOperations` in `internal/engines/cycle` (ordered non-overlapping phases and windows inside the cycle interval, compiled phase graph carrying allowed operations, entry/exit conditions and obligations, `Explain` naming the deciding rule, `Version` per ARCH-GO-009); `go test -count=1 ./internal/engines/cycle/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -10158,7 +10173,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Definition missing unit/currency, subject, period, dimensions, entry types, authority, floor/cap/expiry/rollover/correction rules fails publication.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rewards/payroll models](data/models/rewards-payroll-workforce.md), [wire primitives](data/models/wire-contract-primitives.md).
-  - **Evidence (2026-09-03):** Declared `BAL-001` test matrix and acceptance behavior in `internal/domains/balance`; PASS; `go test -p 1 ./internal/domains/balance` and `go vet ./internal/domains/balance` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_BAL_001`, Declared `BAL-001` test matrix and acceptance behavior in `internal/domains/balance`; PASS; `go test -p 1 ./internal/domains/balance` and `go vet ./internal/domains/balance` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `BAL-002` **[PHASE_2][SOL_HIGH] Post immutable typed debit and credit entries.**
   - **Evidence (2026-09-05):** `TestTodo_BAL_002`, `TestTodo_BAL_002_{Property,Race,Recovery,Mutation}` in `internal/domains/balance` (typed debit/credit entries with canonical digests, append-only Post with idempotent replay, stale-head and duplicate-key refusal, corrections as linked entries); `go test -count=1 ./internal/domains/balance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -10172,7 +10187,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Ledger](specs/transaction-ledger-reconciliation-and-repair.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
 
 - [x] `BAL-003` **[PHASE_2][SOL_HIGH] Calculate authorized balance as-of and known-at.**
-  - **Evidence (2026-09-05):** ``in`internal/domains/balance`(authorized balance as-of an effective instant and known-at a recorded instant over the entry ledger, unauthorized entries excluded, the balance kind's rounding rule applied, explain listing counted and excluded entries with reasons, monotonic known-at proven by property; written by a codex GPT-5.6 Luna lane and verified independently);`go test -count=1 ./internal/domains/balance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-05):** `TestTodo_BAL_003`, ``in`internal/domains/balance`(authorized balance as-of an effective instant and known-at a recorded instant over the entry ledger, unauthorized entries excluded, the balance kind's rounding rule applied, explain listing counted and excluded entries with reasons, monotonic known-at proven by property; written by a codex GPT-5.6 Luna lane and verified independently);`go test -count=1 ./internal/domains/balance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `BAL-002`, `LEDGER-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_003`.
@@ -10299,7 +10314,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** typed availability revisions distinguish `AVAILABLE|UNAVAILABLE|RESTRICTED|UNKNOWN`, preserve employment/assignment identity and describe requested/approved absence separately from schedule source and coverage effects.
   - **REFACTOR:** Leave, scheduling and qualification consume the same availability facts without sharing domain rules.
   - **Refs:** [People/workforce models](data/models/people-workforce.md), [wire time](data/models/wire-contract-primitives.md).
-  - **Evidence (2026-09-03):** Declared `AVAIL-001` test matrix and acceptance behavior in `internal/domains/availability`; PASS; `go test -p 1 ./internal/domains/availability` and `go vet ./internal/domains/availability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_AVAIL_001`, Declared `AVAIL-001` test matrix and acceptance behavior in `internal/domains/availability`; PASS; `go test -p 1 ./internal/domains/availability` and `go vet ./internal/domains/availability` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `AVAIL-002` **[CONFORMANCE][SOL_HIGH] Simulate absence against a versioned work schedule.**
   - **Evidence (2026-09-05):** `TestTodo_AVAIL_002` in `internal/domains/availability` (simulation of a requested absence window against a versioned work schedule (working days, shifts, jurisdiction holidays, timezone) yielding scheduled hours consumed per day, non-working days skipped, conflicts with existing absences and a digested result, mutating no schedule or balance, golden across a DST transition; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/availability/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -10331,7 +10346,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** generated request accepts worker, requested leave type/interval/mode/reason and governed evidence refs only; trusted boundary injects contexts and `RequestLeave` is a `ProcessRequest` that may produce bounded typed child intents for leave, availability, balances, payroll, benefits, schedule, access and return.
   - **REFACTOR:** gRPC, grpcbridge, agent and admin surfaces invoke the same capability and resolve current truth server-side.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [BusinessIntent catalog](specs/business-intent-catalog.md).
-  - **Evidence (2026-09-03):** Declared `LEAVE-001` test matrix and acceptance behavior in `internal/domains/leave`; PASS; `go test -p 1 ./internal/domains/leave` and `go vet ./internal/domains/leave` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_LEAVE_001`, Declared `LEAVE-001` test matrix and acceptance behavior in `internal/domains/leave`; PASS; `go test -p 1 ./internal/domains/leave` and `go vet ./internal/domains/leave` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `LEAVE-002` **[CONFORMANCE][SOL_HIGH] Define immutable LeaveProgram revisions and interaction metadata.**
   - **Evidence (2026-09-05):** `TestTodo_LEAVE_002`, `TestTodo_LEAVE_002_Conformance`, `TestTodo_LEAVE_002_Fault`, `TestTodo_LEAVE_002_Mutation`, `TestTodo_LEAVE_002_Property`, `TestTodo_LEAVE_002_Security` in `internal/domains/leave` (immutable, source-attributed LeaveProgramRevision with interaction metadata, caller digests discarded, append-only catalog); `go test -count=1 ./internal/domains/leave/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -11146,7 +11161,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Typed schema, owner, namespace, limits, version and digest compile via SchemaFlux.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Model conventions](data/models/modeling-conventions.md), [Go technology constitution](specs/go-only-technology-constitution.md).
-  - **Evidence (2026-09-03):** Declared `CUSTOM-001` test matrix and acceptance behavior in `internal/customobject`; PASS; `go test -p 1 ./internal/customobject` and `go vet ./internal/customobject` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_CUSTOM_001`, Declared `CUSTOM-001` test matrix and acceptance behavior in `internal/customobject`; PASS; `go test -p 1 ./internal/customobject` and `go vet ./internal/customobject` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `CUSTOM-002` **[PHASE_4][SOL_HIGH] Define typed custom relationships and effective dating.**
   - **Evidence (2026-09-05):** `TestTodo_CUSTOM_002`, `TestTodo_CUSTOM_002_{Property,Golden,Fault,Mutation}` in `internal/domains/custom` (typed relationship definitions with endpoints, cardinality, effective-dating rule and cycle control; canonical digests); `go test -count=1 ./internal/domains/custom/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -11226,7 +11241,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** No implicit default.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Talent/experience/case models](data/models/talent-experience-cases.md), [security models](data/models/security-trust.md).
-  - **Evidence (2026-09-03):** Declared `ANON-001` test matrix and acceptance behavior in `internal/trust/confidentialactor`; PASS; `go test -p 1 ./internal/trust/confidentialactor` and `go vet ./internal/trust/confidentialactor` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_ANON_001`, Declared `ANON-001` test matrix and acceptance behavior in `internal/trust/confidentialactor`; PASS; `go test -p 1 ./internal/trust/confidentialactor` and `go vet ./internal/trust/confidentialactor` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `ANON-002` **[PHASE_3][SOL_HIGH] Create unlinkable scoped pseudonymous subjects.**
   - **Evidence (2026-09-05):** `TestTodo_ANON_002` in `internal/domains/pseudonym` (scoped pseudonymous subjects derived per tenant, scope and purpose through a custody-keyed HMAC, unlinkable across scopes by property, re-identification only through an explicit evidenced distinct-approver request, rotation producing a new pseudonym generation with the mapping held only under the custody key; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/pseudonym/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -11326,7 +11341,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Support/JIT access](specs/platform-responsibility-boundaries.md), [DLP](specs/data-classification-and-dlp.md).
 
 - [x] `ABUSE-003` **[GATE_C][SOL_HIGH] Detect bulk export and high-risk payroll/access changes.**
-  - **Evidence (2026-09-05):** ``in`internal/engines/abuse`(bulk-export volume/velocity detectors per principal and tenant over declared windows plus high-risk payroll (bank detail, pay rate, net-pay redirection) and access (self-grant, escalation) detectors as immutable detector versions over the ABUSE-001 signal vocabulary, Explain naming declared inputs, no raw content, typed findings with severity; written by a codex GPT-5.6 Luna lane and verified independently);`go test -count=1 ./internal/engines/abuse/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-05):** `TestTodo_ABUSE_003`, ``in`internal/engines/abuse`(bulk-export volume/velocity detectors per principal and tenant over declared windows plus high-risk payroll (bank detail, pay rate, net-pay redirection) and access (self-grant, escalation) detectors as immutable detector versions over the ABUSE-001 signal vocabulary, Explain naming declared inputs, no raw content, typed findings with severity; written by a codex GPT-5.6 Luna lane and verified independently);`go test -count=1 ./internal/engines/abuse/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ABUSE-001`, `ADMIN-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ABUSE_003`.
@@ -12114,7 +12129,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** typed `Reservation` lifecycle binds exact proposal digest, authority and capacity; acquire is CAS/fenced, `HELD -> CONSUMED|RELEASED|EXPIRED` is append-only/idempotent, and ambiguity creates observation/reconciliation obligation.
   - **REFACTOR:** Position and Budget own domain validation while sharing lifecycle/fencing primitives; protocol does not invent remote ACID.
   - **Refs:** [Position reservation](specs/position-and-headcount-domain.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
-  - **Evidence (2026-09-03):** Declared `RESERVE-001` test matrix and acceptance behavior in `internal/resource/reservation`; PASS; `go test -p 1 ./internal/resource/reservation` and `go vet ./internal/resource/reservation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestTodo_RESERVE_001`, Declared `RESERVE-001` test matrix and acceptance behavior in `internal/resource/reservation`; PASS; `go test -p 1 ./internal/resource/reservation` and `go vet ./internal/resource/reservation` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `PERFORMANCE-001` **[CONFORMANCE][SOL_HIGH] Define PerformanceCycle and revisions.**
   - **Evidence (2026-09-05):** `TestTodo_PERFORMANCE_001` in `internal/domains/performance` (PerformanceCycle with an immutable revision lifecycle PLANNED/OPEN/CALIBRATING/CLOSED/LOCKED as new revisions, population and calendar binding refs, rating scale version and calibration evidence refs, out-of-order and lock-without-close refused, canonical digest and Explain; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/performance/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -13391,6 +13406,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `I18N-001` **[PHASE_2][SOL_HIGH] Define LocaleContext and immutable translation catalog revisions.**
+  - **Evidence (2026-09-06):** `TestLocaleAndTranslationCatalogRejectInvalidFallbackAndUnreviewedLegalContent` in `internal/experience/i18n`; `go test -count=1 ./internal/experience/i18n/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLocaleAndTranslationCatalogRejectInvalidFallbackAndUnreviewedLegalContent`.
@@ -13401,6 +13417,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `I18N-002` **[PHASE_2][SOL_HIGH] Resolve translations and format names, dates, numbers and money deterministically.**
+  - **Evidence (2026-09-06):** `TestLocalizationResolutionReturnsVersionedTextFormattingAndDirection` in `internal/experience/localize`; `go test -count=1 ./internal/experience/localize/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `I18N-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLocalizationResolutionReturnsVersionedTextFormattingAndDirection`.
@@ -13411,6 +13428,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `I18N-003` **[CONFORMANCE][SOL_HIGH] Invalidate localized derivatives and prove channel parity.**
+  - **Evidence (2026-09-06):** `TestLegalTranslationChangeInvalidatesRenderedDerivativesAcrossChannels` in `internal/experience/i18nparity`; `go test -count=1 ./internal/experience/i18nparity/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `I18N-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.EXPERIENCE,BI.DOCUMENTS,BI.WORK,BI.CASES; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestLegalTranslationChangeInvalidatesRenderedDerivativesAcrossChannels`.
@@ -13516,6 +13534,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `REPORT-001` **[PHASE_2][SOL_HIGH] Define immutable report and dashboard definitions.**
+  - **Evidence (2026-09-06):** `TestReportDefinitionRejectsUnknownFieldsMetricsParametersAndUnsafeDefaults` in `internal/experience/reporting`; `go test -count=1 ./internal/experience/reporting/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `MODEL-016`, `INTENT-CONF-001`, `ENGINE-COVERAGE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestReportDefinitionRejectsUnknownFieldsMetricsParametersAndUnsafeDefaults`.
@@ -13526,6 +13545,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `REPORT-002` **[PHASE_2][SOL_HIGH] Execute, render and export reports with authorization and watermarks.**
+  - **Evidence (2026-09-06):** `TestReportExecutionBindsAuthorizationPopulationWatermarkAndExactOutput` in `internal/experience/reportrender`; `go test -count=1 ./internal/experience/reportrender/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `REPORT-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestReportExecutionBindsAuthorizationPopulationWatermarkAndExactOutput`.
@@ -13536,6 +13556,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `REPORT-003` **[CONFORMANCE][SOL_HIGH] Schedule dashboards and reproduce historical report results.**
+  - **Evidence (2026-09-06):** `TestScheduledReportAndDashboardRefreshRemainReproducibleAndNonDisclosing` in `internal/experience/reportschedule`; `go test -count=1 ./internal/experience/reportschedule/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `REPORT-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestScheduledReportAndDashboardRefreshRemainReproducibleAndNonDisclosing`.
@@ -13673,13 +13694,15 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `JOBARCH-004` **[PHASE_3][SOL_HIGH] Define immutable career-ladder promotion paths and exact reward guardrails.**
-  - **Evidence (2026-09-06):** `PromotionPathRevision`, `ProfileRevisionRef`, `ValidateAgainst`, `AllowsBaseIncrease` and promotion-path tests in `internal/domains/jobarch` define versioned source/target profile revisions, upward/lateral/cross-family graph rules, effective/known time, exact `values.Percentage` base-increase bounds, compensation-policy and benefit-eligibility rule references, and a deterministic digest with no float arithmetic or direct benefit-election mutation. `internal/domains/fixtures/testdata/job-architecture.json` publishes the prototype's People Operations, Engineering and Clinical families, ranked profiles and two governed ladder edges. `WorkforceOptions.promotion_paths` exposes only exact next-role tuples and their pay/benefit rule references; the promotion client filters its role selector to those edges and the server independently refuses an unrelated role or an increase outside the exact bound. A live Codex-browser run exercised OPS-HRBP2/P2 → OPS-HRBP3/P3 at +5.4%, then completed its durable approvals, effective-date WAIT and single governed ledger write. `go test ./internal/domains/jobarch ./internal/domains/fixtures ./internal/intent/app ./internal/transport/journey ./tools/uxqual/journeyclient` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
+  - **Evidence (2026-09-06):** `TestPromotionPathValidatesAgainstRankedArchitecture` with `PromotionPathRevision`, `ProfileRevisionRef`, `ValidateAgainst`, `AllowsBaseIncrease` and promotion-path tests in `internal/domains/jobarch` define versioned source/target profile revisions, upward/lateral/cross-family graph rules, effective/known time, exact `values.Percentage` base-increase bounds, compensation-policy and benefit-eligibility rule references, and a deterministic digest with no float arithmetic or direct benefit-election mutation. `internal/domains/fixtures/testdata/job-architecture.json` publishes the prototype's People Operations, Engineering and Clinical families, ranked profiles and two governed ladder edges. `WorkforceOptions.promotion_paths` exposes only exact next-role tuples and their pay/benefit rule references; the promotion client filters its role selector to those edges and the server independently refuses an unrelated role or an increase outside the exact bound. A live Codex-browser run exercised OPS-HRBP2/P2 → OPS-HRBP3/P3 at +5.4%, then completed its durable approvals, effective-date WAIT and single governed ledger write. `go test ./internal/domains/jobarch ./internal/domains/fixtures ./internal/intent/app ./internal/transport/journey ./tools/uxqual/journeyclient` and `npm run check:driftgate` PASS on Windows (Go 1.26.3).
   - **Depends:** `JOBARCH-001`, `JOBARCH-002`, `COMP-003`, `GOVERN-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=make promotion targets governed architecture edges instead of arbitrary job-code and grade text`.
   - **TEST:** `TestPromotionPathValidatesAgainstRankedArchitecture`.
+  - **TEST MATRIX:** `PRIMARY=TestPromotionPathValidatesAgainstRankedArchitecture`; `PROPERTY=TestTodo_JOBARCH_004_Property`; `GOLDEN=TestTodo_JOBARCH_004_Golden`; `SECURITY=TestTodo_JOBARCH_004_Security`; `MUTATION=TestTodo_JOBARCH_004_Mutation`.
   - **RED:** a promotion path targets an unknown or mutable profile revision, calls a lower/equal rank an upward move, crosses families without an explicit exception, uses floating-point salary rules, or directly changes benefit elections.
   - **GREEN:** one immutable path pins source and target profiles, validates its ladder shape, carries exact minimum/maximum base-increase guardrails, references versioned compensation and benefit-eligibility rules, and produces a deterministic digest.
   - **REFACTOR:** promotion approval thresholds remain owned by the versioned promotion rule pack; benefits reevaluate eligibility through `BEN-003` and never become job-architecture-owned election state.
+  - **Refs:** [job architecture](specs/job-architecture.md), [compensation](specs/compensation.md), [Phase 1 depth matrix](plan.md#phase-1-implementation-depth-matrix).
 
 - [ ] `PERSIST-JOBARCH-002` **[PHASE_3][SOL_HIGH] Persist promotion paths and pin assignment job-profile revisions.**
   - **Depends:** `JOBARCH-004`, `PERSIST-JOBARCH-001`, `STORE-001`.
@@ -13688,14 +13711,18 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **TEST MATRIX:** `PRIMARY=TestPromotionPathStorePinsProfileRevisionsAndRefusesOverlappingPublishedEdges`; `PROPERTY=TestTodo_PERSIST_JOBARCH_002_Property`; `GOLDEN=TestTodo_PERSIST_JOBARCH_002_Golden`; `INTEGRATION=TestTodo_PERSIST_JOBARCH_002_Integration`; `FAULT=TestTodo_PERSIST_JOBARCH_002_Fault`; `SECURITY=TestTodo_PERSIST_JOBARCH_002_Security`; `MUTATION=TestTodo_PERSIST_JOBARCH_002_Mutation`.
   - **RED:** assignment stores only free-text job code/grade, a path is edited in place, overlapping published edges are ambiguous, or a proposal can change which profile revision it means between simulation and commit.
   - **GREEN:** tenant-scoped append-only path rows carry effective/known coordinates and RLS; assignment and proposal snapshots pin source/target job-profile revisions while denormalized job code/grade are checked projections.
+  - **REFACTOR:** keep path and pin persistence in one tenant-scoped store package under internal/data with RLS and append-only rows; the domain package stays the sole owner of path meaning and validation.
+  - **Refs:** [job architecture](specs/job-architecture.md), [storage disposition](../definitions/storage/storage-disposition.yaml), [Phase 1 depth matrix](plan.md#phase-1-implementation-depth-matrix).
 
 - [ ] `UX-JOBARCH-001` **[PHASE_4][TERRA] Add an authorized Job Architecture admin workspace.**
-  - **Depends:** `PERSIST-JOBARCH-002`, `AUTHZ-004`, `I18N-002`, `A11Y-003`.
-  - **INTENT CONTEXT:** `ROLE=EXPERIENCE; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=let authorized customers manage job codes, families, levels, grades, ladders and rule references without bypassing publication governance`.
+  - **Depends:** `PERSIST-JOBARCH-002`, `ALIGN-022`, `I18N-002`, `A11Y-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REWARDS,BI.TALENT; DIRECT=none; WHY=let authorized customers manage job codes, families, levels, grades, ladders and rule references without bypassing publication governance`.
   - **TEST:** `TestJobArchitectureWorkspaceShowsLadderRulesAndPublishesOnlyThroughWorkflow`.
   - **TEST MATRIX:** `PRIMARY=TestJobArchitectureWorkspaceShowsLadderRulesAndPublishesOnlyThroughWorkflow`; `GOLDEN=TestTodo_UX_JOBARCH_001_Golden`; `SECURITY=TestTodo_UX_JOBARCH_001_Security`; `CONFORMANCE=TestTodo_UX_JOBARCH_001_Conformance`.
   - **RED:** admin UI edits published architecture in place, offers unsupported job/grade combinations, exposes salary or benefit rules without authority, or saves browser-only configuration.
   - **GREEN:** responsive reusable components show the family/level/profile graph, exact pay-band and increase rules, benefit impacts and publish status; all writes use server-side governed workflows and role/page/action authorization.
+  - **REFACTOR:** the workspace renders only authorized, server-resolved architecture state through the journey transport; every publish goes through the governed workflow, never a direct store write.
+  - **Refs:** [job architecture](specs/job-architecture.md), [product UI](specs/product-ui.md), [Phase 1 depth matrix](plan.md#phase-1-implementation-depth-matrix).
 
 ## 58. BusinessIntent-to-workflow design convergence
 
@@ -14637,7 +14664,7 @@ authorized by the master and execution plans.
   - **GREEN:** one generated manifest gives lossless mappings and exact authoritative storage, event, projection, artifact and lineage disposition for every material property/result/effect; round-trip/rebuild preserves canonical bytes and lossy/ambiguous mapping fails by entity/property/layer.
   - **REFACTOR:** generate adapters and coverage from canonical PropertyDefinition; physical stores never redefine semantics.
   - **Refs:** [registry contracts](data/models/registry-and-coverage-contracts.md), [storage disposition](#26-postgresql-database-and-model-materialization), [provenance](specs/provenance-graph-and-lineage.md).
-  - **Evidence (2026-09-03):** Declared `MODEL-032` test matrix and acceptance behavior in `tools/gen/storagemanifest`; PASS; `go test -p 1 ./tools/gen/storagemanifest` and `go vet ./tools/gen/storagemanifest` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
+  - **Evidence (2026-09-03):** `TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift`, Declared `MODEL-032` test matrix and acceptance behavior in `tools/gen/storagemanifest`; PASS; `go test -p 1 ./tools/gen/storagemanifest` and `go vet ./tools/gen/storagemanifest` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `PROTO-010` **[P0][SOL_HIGH] Require total descriptor-level RPC exposure disposition.**
   - **Depends:** `PROTO-005`, `MODEL-010`, `CAP-001`, `ENDPOINT-001`.
@@ -14661,6 +14688,7 @@ authorized by the master and execution plans.
   - **Refs:** [vertical slices](workflows/vertical-slices/README.md), [closure register](#product-decision-and-implementation-convergence), [truthful coverage](workflows/vertical-slices/README.md#truthful-current-coverage).
 
 - [x] `UXFLOW-011` **[P0][SOL_HIGH] Version and migrate active user flows without semantic drift.**
+  - **Evidence (2026-09-06):** `TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics` in `internal/experience/flowmigration`; `go test -count=1 ./internal/experience/flowmigration/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `UXFLOW-001`, `UXFLOW-006`, `UXFLOW-010`, `INTENT-028`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve drafts, tasks, approvals, deep links and confirmations when experience definitions evolve`.
   - **TEST:** `TestUserFlowDefinitionEvolutionPreservesActiveDraftTaskAndActionSemantics`.
@@ -14973,6 +15001,7 @@ an already-designed BusinessIntent path.
   - **Refs:** [accessibility assurance](specs/platform-foundation-gap-closure.md), [experience](specs/experience-ui-and-branding.md), [user flows](user-flows/README.md).
 
 - [x] `STATUS-001` **[GATE_A][TERRA] Publish accurate tenant-scoped service status and incident advisories.**
+  - **Evidence (2026-09-06):** `TestStatusPublicationMatchesIncidentScopeStateSLOAndCustomerDisclosurePolicy` in `internal/experience/status`; `go test -count=1 ./internal/experience/status/` PASS on windows/arm64 (Go 1.26.3); evidence recorded by the orchestrator after the front-end session ticked the entry without one.
   - **Depends:** `OPS-004`, `OPS-005`, `MSG-001`, `OBS-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS; DIRECT=none; WHY=communicate service impact and recovery without leaking tenant existence, security detail or speculative root cause`.
   - **TEST:** `TestStatusPublicationMatchesIncidentScopeStateSLOAndCustomerDisclosurePolicy`.
@@ -15220,7 +15249,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-006` **[P0][TERRA] Define the provenance-bearing BoundValue contract.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.BoundValue` carries source identity/version, authority class, classification, confidence/effective/recorded time, editability, and the closed field-disposition vocabulary; validation prevents hidden, redacted, or masked raw values reaching a renderer and produces deterministic digests. `TestTodo_WEB_006*`; `go test -count=1 ./tools/uxqual/presentation` PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_006`, `tools/uxqual/presentation.BoundValue` carries source identity/version, authority class, classification, confidence/effective/recorded time, editability, and the closed field-disposition vocabulary; validation prevents hidden, redacted, or masked raw values reaching a renderer and produces deterministic digests. `TestTodo_WEB_006*`; `go test -count=1 ./tools/uxqual/presentation` PASS.
   - **Depends:** `WEB-005`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define the provenance-bearing boundvalue contract without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_006`.
@@ -15231,7 +15260,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-007` **[P0][TERRA] Define the semantic-action presentation contract.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.SemanticAction` binds only registered generated gRPC methods and explicitly carries availability, opaque action token, expected resource version, idempotency key, typed input schema, safe unavailability explanation, and obligations; hidden actions expose neither label nor token. `TestTodo_WEB_007*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_007`, `tools/uxqual/presentation.SemanticAction` binds only registered generated gRPC methods and explicitly carries availability, opaque action token, expected resource version, idempotency key, typed input schema, safe unavailability explanation, and obligations; hidden actions expose neither label nor token. `TestTodo_WEB_007*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-006`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define the semantic-action presentation contract without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_007`.
@@ -15242,7 +15271,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-008` **[P0][TERRA] Define the page compatibility dependency graph.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.CompatibilityGraph` models page, floorplan, widget, token, and RPC dependencies, rejects duplicate/dangling/self/cyclic edges, and returns deterministic transitive impact. `TestTodo_WEB_008*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_008`, `tools/uxqual/presentation.CompatibilityGraph` models page, floorplan, widget, token, and RPC dependencies, rejects duplicate/dangling/self/cyclic edges, and returns deterministic transitive impact. `TestTodo_WEB_008*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-007`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define the page compatibility dependency graph without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_008`.
@@ -15253,7 +15282,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-009` **[P0][TERRA] Classify frontend scope by release gate.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.ScopeEntry` uses a closed Gate A/B/C and Phase 2/3/4 vocabulary, names the owning authority for every capability, and distinguishes read-only exposure from action authority. `TestTodo_WEB_009*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_009`, `tools/uxqual/presentation.ScopeEntry` uses a closed Gate A/B/C and Phase 2/3/4 vocabulary, names the owning authority for every capability, and distinguishes read-only exposure from action authority. `TestTodo_WEB_009*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-008`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=classify frontend scope by release gate without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_009`.
@@ -15264,7 +15293,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-010` **[P0][TERRA] Define the frontend evidence bundle.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.EvidenceBundle` requires digest-addressed unit, browser, accessibility, security, localization, performance, and recovery artifacts with reverse requirement coverage. `TestTodo_WEB_010*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_010`, `tools/uxqual/presentation.EvidenceBundle` requires digest-addressed unit, browser, accessibility, security, localization, performance, and recovery artifacts with reverse requirement coverage. `TestTodo_WEB_010*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=define the frontend evidence bundle without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_010`.
@@ -15275,7 +15304,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-011` **[P0][TERRA] Publish the website threat model.**
-  - **Evidence (2026-09-05):** `definitions/ux/website-threat-model.yaml` covers browser/edge, edge/capability, customer-configuration/renderer, and browser-storage/cache trust boundaries with attacks, controls, and evidence; parsed and validated by `TestTodo_WEB_011*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_011`, `definitions/ux/website-threat-model.yaml` covers browser/edge, edge/capability, customer-configuration/renderer, and browser-storage/cache trust boundaries with attacks, controls, and evidence; parsed and validated by `TestTodo_WEB_011*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-010`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=publish the website threat model without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_011`.
@@ -15286,7 +15315,7 @@ This program implements [the production frontend and governed page-composition p
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
 
 - [x] `WEB-012` **[P0][TERRA] Assign production-frontend ownership boundaries.**
-  - **Evidence (2026-09-05):** `tools/uxqual/presentation.OwnershipBoundary` requires one owner plus explicit positive and negative decision authority for presentation, authorization, and business-state concerns, with deterministic canonical ordering. `TestTodo_WEB_012*`; targeted package PASS.
+  - **Evidence (2026-09-05):** `TestTodo_WEB_012`, `tools/uxqual/presentation.OwnershipBoundary` requires one owner plus explicit positive and negative decision authority for presentation, authorization, and business-state concerns, with deterministic canonical ordering. `TestTodo_WEB_012*`; targeted package PASS; `go test -count=1 ./tools/uxqual/presentation/` PASS on windows/arm64 (Go 1.26.3).
   - **Depends:** `WEB-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=assign production-frontend ownership boundaries without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_012`.
@@ -15395,7 +15424,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—define multidimensional status presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
-  - **Evidence (2026-09-06):** `TestTodo_WEB_021`, `TestTodo_WEB_021_Golden`, `TestTodo_WEB_021_Browser`, and `TestTodo_WEB_021_Conformance` prove a reusable GoWebComponents presentation of the five canonical lifecycle dimensions with typed protobuf enums, explicit presence/redaction handling, stable hashed DOM identity, independent contradictory states, localized text+glyph cues, responsive/dark/forced-color/reduced-motion styling, and no aggregate status authority; `TestFrontendI18nAccessibilityGateEveryRegisteredPage` passes the complete 17-page × 3-locale registry matrix and is now wired into `go run ./tools/quality` as a release gate; Codex in-app browser review covered light, dark, and RTL Arabic layouts and caught/refined truncated labels plus incomplete accessible link names; focused interaction p95 remained 0.55 ms against the 16 ms budget and `BenchmarkStatusPresentationRendering` measured 61.6–68.5 µs/op, 25,120 B/op, 244 allocs/op; focused `productui`, `localize`, journey transport/client/render/WASM, and quality-gate tests pass on windows/amd64 (Go 1.26.3); implemented by a GPT-5.6 Luna lane, independently corrected by GPT-5.6 Sol, and refined through manual visual QA.
+  - **Evidence (2026-09-06):** `TestTodo_WEB_021`, `TestTodo_WEB_021_Golden`, `TestTodo_WEB_021_Browser`, and `TestTodo_WEB_021_Conformance` prove a reusable GoWebComponents presentation of the five canonical lifecycle dimensions with typed protobuf enums, explicit presence/redaction handling, stable hashed DOM identity, independent contradictory states, localized text+glyph cues, responsive/dark/forced-color/reduced-motion styling, and no aggregate status authority; `TestFrontendI18nAccessibilityGateEveryRegisteredPage` passes the complete 17-page × 3-locale registry matrix and is now wired into `go run ./tools/quality` as a release gate; Codex in-app browser review covered light, dark, and RTL Arabic layouts and caught/refined truncated labels plus incomplete accessible link names; focused interaction p95 remained 0.55 ms against the 16 ms budget and `BenchmarkStatusPresentationRendering` measured 61.6–68.5 µs/op, 25,120 B/op, 244 allocs/op; focused `productui`, `localize`, journey transport/client/render/WASM, and quality-gate tests pass on windows/amd64 (Go 1.26.3); implemented by a GPT-5.6 Luna lane, independently corrected by GPT-5.6 Sol, and refined through manual visual QA; `go test -count=1 ./internal/humanwork/productui/` PASS on windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-022` **[GATE_C][TERRA] Define the provenance visual grammar.**
   - **Depends:** `WEB-021`.
@@ -15406,7 +15435,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—define the provenance visual grammar—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
-  - **Evidence (2026-09-06):** `TestTodo_WEB_022`, its GOLDEN/BROWSER/CONFORMANCE matrix, canonical-adapter and security tests prove a reusable GoWebComponents provenance grammar over canonical `AuthorityKind` and lineage status with seven independently-present facts, explicit partial/redacted/opaque/unavailable states, stable accessible definition-list markup, and structural exclusion of protected policy/evidence references, digests, graph identifiers, confidence, trust, and permission inference; unbound projections render no misleading panel; the registered-page i18n/accessibility release gate passes, as do focused `productui`, `localize`, journey client/render/WASM packages; Codex in-app browser review covered light, dark, and RTL Arabic layouts; provenance interaction p95 remained 0.00-0.52 ms against the 16 ms budget and `BenchmarkProvenancePresentationRendering` measured 48.0-54.6 us/op, 36,703-36,705 B/op, 349 allocs/op; implemented by a GPT-5.6 Luna lane, independently hardened by GPT-5.6 Sol, and refined through manual visual QA.
+  - **Evidence (2026-09-06):** `TestTodo_WEB_022`, its GOLDEN/BROWSER/CONFORMANCE matrix, canonical-adapter and security tests prove a reusable GoWebComponents provenance grammar over canonical `AuthorityKind` and lineage status with seven independently-present facts, explicit partial/redacted/opaque/unavailable states, stable accessible definition-list markup, and structural exclusion of protected policy/evidence references, digests, graph identifiers, confidence, trust, and permission inference; unbound projections render no misleading panel; the registered-page i18n/accessibility release gate passes, as do focused `productui`, `localize`, journey client/render/WASM packages; Codex in-app browser review covered light, dark, and RTL Arabic layouts; provenance interaction p95 remained 0.00-0.52 ms against the 16 ms budget and `BenchmarkProvenancePresentationRendering` measured 48.0-54.6 us/op, 36,703-36,705 B/op, 349 allocs/op; implemented by a GPT-5.6 Luna lane, independently hardened by GPT-5.6 Sol, and refined through manual visual QA; `go test -count=1 ./internal/humanwork/productui/` PASS on windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-023` **[GATE_C][TERRA] Define responsive layout transformation rules.**
   - **Depends:** `WEB-022`.
@@ -15417,7 +15446,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—define responsive layout transformation rules—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
-  - **Evidence (2026-09-06):** `TestTodo_WEB_023`, `TestTodo_WEB_023_Golden`, `TestTodo_WEB_023_Browser`, and `TestTodo_WEB_023_Conformance` prove a deterministic mobile-first transformation of the existing governed floorplan vocabulary into one stable GoWebComponents DOM carrying closed narrow/compact/standard/wide metadata, with renderer-owned 40/60/80rem CSS, semantic breakpoint ordering independent of declaration order, narrow minimum-column fallback, immutable document/action order, 1-12 bounded columns, cumulative-rule validation, logical RTL properties, full-row region headings, and no user-agent, viewport, markup, CSS, policy, or authority input; intrinsically two-dimensional tables retain native semantics and readable values inside labeled keyboard/touch-scrollable regions rather than using hidden page overflow or destructive character wrapping; the registered-page i18n/accessibility gate and focused floorplan/page/workspace/GWC/SSR/token/qualification suites pass; Codex in-app browser QA covered 320px LTR, 320px RTL, keyboard focus plus arrow-key table scrolling, and wide layout, catching and refining both dense-table fragmentation and heading-as-grid-cell defects; responsive latency passed five repetitions under the 16 ms p95 budget, `BenchmarkResponsiveLayoutTransformation` measured 5.26-5.63 us/op at 1,728 B/op and 15 allocs/op, and full construction plus serialization measured 154-164 us/op at about 64.4 KB/op and 432 allocs/op; implemented by GPT-5.6 Luna, independently hardened by GPT-5.6 Sol, and refined through manual visual QA.
+  - **Evidence (2026-09-06):** `TestTodo_WEB_023`, `TestTodo_WEB_023_Golden`, `TestTodo_WEB_023_Browser`, and `TestTodo_WEB_023_Conformance` prove a deterministic mobile-first transformation of the existing governed floorplan vocabulary into one stable GoWebComponents DOM carrying closed narrow/compact/standard/wide metadata, with renderer-owned 40/60/80rem CSS, semantic breakpoint ordering independent of declaration order, narrow minimum-column fallback, immutable document/action order, 1-12 bounded columns, cumulative-rule validation, logical RTL properties, full-row region headings, and no user-agent, viewport, markup, CSS, policy, or authority input; intrinsically two-dimensional tables retain native semantics and readable values inside labeled keyboard/touch-scrollable regions rather than using hidden page overflow or destructive character wrapping; the registered-page i18n/accessibility gate and focused floorplan/page/workspace/GWC/SSR/token/qualification suites pass; Codex in-app browser QA covered 320px LTR, 320px RTL, keyboard focus plus arrow-key table scrolling, and wide layout, catching and refining both dense-table fragmentation and heading-as-grid-cell defects; responsive latency passed five repetitions under the 16 ms p95 budget, `BenchmarkResponsiveLayoutTransformation` measured 5.26-5.63 us/op at 1,728 B/op and 15 allocs/op, and full construction plus serialization measured 154-164 us/op at about 64.4 KB/op and 432 allocs/op; implemented by GPT-5.6 Luna, independently hardened by GPT-5.6 Sol, and refined through manual visual QA; `go test -count=1 ./tools/uxqual/floorplan/` PASS on windows/arm64 (Go 1.26.3).
 
 - [ ] `WEB-024` **[GATE_C][TERRA] Define high-contrast and print modes.**
   - **Depends:** `WEB-023`.

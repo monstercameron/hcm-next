@@ -153,6 +153,30 @@ processes:
     drain_policy: Not applicable; a migration run either completes, fails cleanly under goose's transactional guarantees, or is retried after operator review.
     degradation_policy: A failed migration blocks the deploy it belongs to; it does not degrade already-running hcmnext/worker/projector replicas.
 
+  - command: frontenddev
+    status: initial
+    role: >-
+      Local development server for the product UI: serves the Go-rendered
+      workspace and product pages over the journey transport against the
+      local-dev profile so front-end work can be driven in a browser. It is
+      a development-only process; it never fronts a tenant in production.
+    semantic_packages:
+      - internal/humanwork/productui
+      - internal/humanwork/workspace
+    dependencies:
+      - hcmnext (journey transport)
+    criticality: development-only
+    concurrency: single-instance
+    probes:
+      liveness: not-applicable-development-only
+      readiness: not-applicable-development-only
+    data_access:
+      reads: [journey transport responses]
+      writes: []
+    queues: []
+    slo: not-applicable-development-only
+    drain_policy: not-applicable-development-only
+    degradation_policy: not-applicable-development-only
   - command: scheduler
     status: initial
     role: >-

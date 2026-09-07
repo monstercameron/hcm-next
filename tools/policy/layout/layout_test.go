@@ -54,7 +54,7 @@ func TestRepositoryLayoutRejectsUnownedOrMisplacedPackage(t *testing.T) {
 			{"another outside-root package", mod + "/pkg/helpers", false, "not one of the allowed_roots"},
 			{"undeclared internal root", mod + "/internal/somethingnew/foo", false, "is not declared in internal_package_roots"},
 			{"bare internal with no root", mod + "/internal", false, "requires a declared package root"},
-			{"unapproved command: scheduler not yet approved", mod + "/cmd/scheduler", false, "is not in approved_commands.initial"},
+			{"unapproved command: not in approved_commands.initial", mod + "/cmd/unapproved", false, "is not in approved_commands.initial"},
 			{"unapproved command: admin not yet approved", mod + "/cmd/admin", false, "is not in approved_commands.initial"},
 			{"unapproved command: arbitrary dev tool", mod + "/cmd/toolbox", false, "is not in approved_commands.initial"},
 			{"bare cmd with no command name", mod + "/cmd", false, "requires a named command directory"},

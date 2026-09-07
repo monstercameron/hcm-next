@@ -29,8 +29,8 @@ func TestTodoRegistryMatchesMarkdown(t *testing.T) {
 
 	// Count todo blocks in markdown
 	countInMarkdown := countTodoBlocks(markdownStr)
-	if countInMarkdown != 1666 {
-		t.Errorf("expected 1666 todos in markdown, got %d", countInMarkdown)
+	if countInMarkdown != 1669 {
+		t.Errorf("expected 1669 todos in markdown, got %d", countInMarkdown)
 	}
 
 	// Parse todos
@@ -297,5 +297,29 @@ func TestUnresolvedDependencyMessage(t *testing.T) {
 	msg := fmt.Sprintf("%s depends on %s (not found)", u.From, u.To)
 	if msg != "A-001 depends on B-002 (not found)" {
 		t.Errorf("unexpected message: %s", msg)
+	}
+}
+
+func TestParseEvidenceAcceptsAnyDatedForm(t *testing.T) {
+	md := "- [x] `X-001` **[GATE_A][LUNA] Title.**\n" +
+		"  - **Evidence (2026-09-06):** `TestX` in `internal/x`; `go test -count=1 ./internal/x/` PASS on windows/arm64 (Go 1.26.3).\n" +
+		"  - **Depends:** none.\n" +
+		"  - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=w`.\n" +
+		"  - **TEST:** `TestX`.\n" +
+		"  - **TEST MATRIX:** `PRIMARY=TestX`.\n" +
+		"  - **RED:** r.\n" +
+		"  - **GREEN:** g.\n" +
+		"  - **REFACTOR:** f.\n" +
+		"  - **Refs:** [p](plan.md).\n"
+	todos, errs := ParseTodos(md)
+	if len(errs) != 0 || len(todos) != 1 {
+		t.Fatalf("parse: %v %d", errs, len(todos))
+	}
+	if !strings.Contains(todos[0].Evidence, "TestX") {
+		t.Fatalf("dated evidence must populate Evidence, got %q", todos[0].Evidence)
+	}
+	partial, _ := ParseTodos(strings.Replace(md, "Evidence (2026-09-06)", "Evidence (partial, 2026-09-06)", 1))
+	if len(partial) != 1 || !strings.Contains(partial[0].Evidence, "TestX") {
+		t.Fatal("partial dated evidence must populate Evidence too")
 	}
 }

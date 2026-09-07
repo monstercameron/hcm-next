@@ -110,8 +110,8 @@ END $$;
 }
 
 func TestRLSParity_CheckRejectsUnreviewedAndEvaluateRejectsMissingRoot(t *testing.T) {
-	if err := rlsparity.Check(repoRoot(t)); err == nil || !strings.Contains(err.Error(), "workflow_timer") {
-		t.Fatalf("Check error = %v, want the retained workflow_timer finding", err)
+	if err := rlsparity.Check(repoRoot(t)); err != nil {
+		t.Fatalf("Check must pass once every repository-scope gap is reviewed in the storeboundaries allowlist, got %v", err)
 	}
 	if _, err := rlsparity.Evaluate(t.TempDir()); err == nil {
 		t.Fatal("Evaluate accepted a root without the authoritative table registry")

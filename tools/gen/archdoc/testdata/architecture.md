@@ -30,6 +30,28 @@ Generated from the checked-in architecture manifests and the current Go package 
 | operations | `internal/operations` | operations-and-assurance | P1A | Telemetry, SLOs, reconciliation, incidents, integrity, DR overlays. |
 | platform | `internal/platform` | platform-foundation | P1A | Process bootstrap, build identity, config, telemetry and reliability plumbing shared by commands. |
 | transport | `internal/transport` | experience-and-transport | P1A | Experience/API transport adaptation (grpcbridge or fallback edge, protocol exposure). |
+| transport | `internal/a11y` | experience-and-transport | P1A | Versioned assistive-technology, browser, locale and input-mode compatibility matrix (A11Y-001) the product UI qualification consumes. |
+| trust | `internal/agentsecurity` | governance-and-trust | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| domains | `internal/commercial` | intent-and-capability | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| engines | `internal/conformance` | shared-engines | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| data | `internal/contractarchive` | data-and-ledger | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| trust | `internal/cryptoagility` | governance-and-trust | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| domains | `internal/customobject` | intent-and-capability | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| engines | `internal/documentextract` | shared-engines | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| trust | `internal/documentredact` | governance-and-trust | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| data | `internal/documents` | data-and-ledger | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| trust | `internal/documentsecurity` | governance-and-trust | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/effectgraph` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| transport | `internal/experience` | experience-and-transport | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/flow` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| transport | `internal/forms` | experience-and-transport | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/generated` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| transport | `internal/i18n` | experience-and-transport | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| connectivity | `internal/messaging` | connectivity | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/performance` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/replan` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| data | `internal/resource` | data-and-ledger | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/store` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
 
 ## Allowed dependency edges
 
@@ -861,4 +883,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`15795a7afe3e70f22d47c98ec85650dd448f7e1560b78eb59b4451ed7d05f55f`
+`e353752d3399128f76caeebe01b6e23a022071ca876b166458f451e0654b951c`

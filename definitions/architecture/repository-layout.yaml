@@ -159,6 +159,116 @@ internal_package_roots:
     layer: transport
     phase: P1A
     description: Experience/API transport adaptation (grpcbridge or fallback edge, protocol exposure).
+  - name: a11y
+    owner: experience-and-transport
+    layer: transport
+    phase: P1A
+    description: Versioned assistive-technology, browser, locale and input-mode compatibility matrix (A11Y-001) the product UI qualification consumes.
+  - name: agentsecurity
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: commercial
+    owner: intent-and-capability
+    layer: domains
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: conformance
+    owner: shared-engines
+    layer: engines
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: contractarchive
+    owner: data-and-ledger
+    layer: data
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: cryptoagility
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: customobject
+    owner: intent-and-capability
+    layer: domains
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: documentextract
+    owner: shared-engines
+    layer: engines
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: documentredact
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: documents
+    owner: data-and-ledger
+    layer: data
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: documentsecurity
+    owner: governance-and-trust
+    layer: trust
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: effectgraph
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: experience
+    owner: experience-and-transport
+    layer: transport
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: flow
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: forms
+    owner: experience-and-transport
+    layer: transport
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: generated
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: i18n
+    owner: experience-and-transport
+    layer: transport
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: messaging
+    owner: connectivity
+    layer: connectivity
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: performance
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: replan
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: resource
+    owner: data-and-ledger
+    layer: data
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: store
+    owner: platform-foundation
+    layer: platform
+    phase: P1A
+    description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
 
 # Approved process set (companion to definitions/architecture/process-roles.yaml, SVC-001).
 approved_commands:
@@ -169,6 +279,7 @@ approved_commands:
     - migrate
     - hcmctl
     - scheduler
+    - frontenddev
   later: []
 
 # The legacy Go module at src/blocks/go is a separate module (its own

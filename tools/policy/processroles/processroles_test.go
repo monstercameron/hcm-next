@@ -41,7 +41,7 @@ func TestTodo_SVC_001(t *testing.T) {
 	sort.Strings(initial)
 	sort.Strings(later)
 
-	wantInitial := []string{"hcmnext", "hcmctl", "migrate", "projector", "worker", "scheduler"}
+	wantInitial := []string{"hcmnext", "hcmctl", "migrate", "projector", "worker", "scheduler", "frontenddev"}
 	sort.Strings(wantInitial)
 	if !equalStrings(initial, wantInitial) {
 		t.Fatalf("process-roles initial commands = %v, want %v", initial, wantInitial)

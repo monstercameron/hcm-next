@@ -39,7 +39,13 @@ func TestTodo_GOV_030_Golden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := os.ReadFile(filepath.Join("testdata", "real-registry.golden.json"))
+	goldenPath := filepath.Join("testdata", "real-registry.golden.json")
+	if os.Getenv("HCMNEXT_UPDATE_GOLDEN") == "1" {
+		if err := os.WriteFile(goldenPath, append(data, '\n'), 0o644); err != nil {
+			t.Fatalf("write golden: %v", err)
+		}
+	}
+	want, err := os.ReadFile(goldenPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,4 +173,64 @@ func findControl(revision Revision, id string) Control {
 		}
 	}
 	return Control{}
+}
+
+func TestRevisionJSONAndExplainAreDeterministicAndIdentifierFree(t *testing.T) {
+	revision := realRevision(t)
+	first, err := revision.JSON()
+	if err != nil {
+		t.Fatalf("JSON: %v", err)
+	}
+	second, err := revision.JSON()
+	if err != nil || !bytes.Equal(first, second) || first[len(first)-1] != '\n' {
+		t.Fatalf("JSON must be deterministic and newline-terminated: %v", err)
+	}
+	if !json.Valid(first) {
+		t.Fatal("JSON must be valid")
+	}
+	explain := revision.Explain()
+	if !strings.Contains(explain, "controls=51") || !strings.Contains(explain, "digest="+revision.Digest) {
+		t.Fatalf("Explain must summarise counts and digest without identifiers, got %q", explain)
+	}
+	for _, control := range revision.Controls {
+		if strings.Contains(explain, control.ID) {
+			t.Fatalf("Explain leaks control id %s", control.ID)
+		}
+	}
+	if Explain() == "" {
+		t.Fatal("package Explain must describe the contract")
+	}
+}
+
+func TestFindingAndValidationErrorRenderAndSortDeterministically(t *testing.T) {
+	findings := []Finding{
+		{ControlID: "E-05", Field: "status", Code: "INVALID", Detail: "b"},
+		{ControlID: "E-05", Field: "owner", Code: "MISSING", Detail: "a"},
+		{Field: "controls", Code: "EMPTY", Detail: "no controls"},
+		{ControlID: "A-01", Field: "status", Code: "INVALID", Detail: "c"},
+	}
+	sortFindings(findings)
+	if findings[0].ControlID != "" || findings[1].ControlID != "A-01" || findings[2].Field != "owner" || findings[3].Field != "status" {
+		t.Fatalf("findings must sort by control, field, code: %+v", findings)
+	}
+	if got := findings[0].Error(); got != "controls: EMPTY: no controls" {
+		t.Fatalf("unscoped finding renders %q", got)
+	}
+	if got := findings[1].Error(); got != "A-01.status: INVALID: c" {
+		t.Fatalf("scoped finding renders %q", got)
+	}
+	empty := &ValidationError{}
+	if empty.Error() != "controlcrosswalk: validation failed" {
+		t.Fatalf("empty validation error renders %q", empty.Error())
+	}
+	full := &ValidationError{Findings: findings}
+	msg := full.Error()
+	if !strings.Contains(msg, "A-01.status: INVALID: c") || !strings.Contains(msg, "controls: EMPTY: no controls") {
+		t.Fatalf("validation error must list every finding, got %q", msg)
+	}
+	var err error = full
+	var target *ValidationError
+	if !errors.As(err, &target) || len(target.Findings) != 4 {
+		t.Fatal("ValidationError must be usable through errors.As")
+	}
 }
