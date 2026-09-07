@@ -88,7 +88,7 @@ blob-report/
 !internal/humanwork/workspace/assets/person-*.png
 !internal/humanwork/workspace/assets/person-*-small.jpg
 
-.husky
+.husky/_/
 
 # Built GoWebComponents/WASM bundles are embedded at build time, never committed
 internal/humanwork/workspace/assets/*.wasm
@@ -114,3 +114,11 @@ internal/humanwork/workspace/assets/wasm_exec.js
 .gotmp/
 .lane-gotmp-*
 .artifacts/
+# go test build trees left in package directories when GOTMPDIR is unset
+go-build[0-9]*/
+.pgcache/
+.lane-*
+
+# internal/trust/secrets is source (the custody-port resolver), not secret material;
+# the **/secrets/ rule above must not hide it.
+!internal/trust/secrets/
