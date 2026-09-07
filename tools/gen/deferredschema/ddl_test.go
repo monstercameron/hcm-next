@@ -16,18 +16,18 @@ func TestRenderMigrationPreviewShape(t *testing.T) {
 	for _, want := range []string{
 		"-- +goose Up",
 		"-- +goose Down",
-		"CREATE TABLE IF NOT EXISTS payroll_run (",
+		"CREATE TABLE IF NOT EXISTS payroll_run_preview (",
 		"CREATE TABLE IF NOT EXISTS payroll_ledger_entry (",
 		"ENABLE ROW LEVEL SECURITY",
 		"FORCE ROW LEVEL SECURITY",
-		"CREATE POLICY tenant_isolation ON payroll_run",
+		"CREATE POLICY tenant_isolation ON payroll_run_preview",
 		"CREATE POLICY tenant_isolation ON payroll_ledger_entry",
 		"EXECUTE FUNCTION forbid_mutation()",
 		"REFERENCES tenant (tenant_id)",
-		"FOREIGN KEY (tenant_id, run_id) REFERENCES payroll_run (tenant_id, run_id)",
-		"GRANT SELECT, INSERT, UPDATE ON payroll_run TO hcmnext_app",
+		"FOREIGN KEY (tenant_id, run_id) REFERENCES payroll_run_preview (tenant_id, run_id)",
+		"GRANT SELECT, INSERT, UPDATE ON payroll_run_preview TO hcmnext_app",
 		"GRANT SELECT, INSERT ON payroll_ledger_entry TO hcmnext_app",
-		"DROP TABLE payroll_run",
+		"DROP TABLE payroll_run_preview",
 		"DROP TABLE payroll_ledger_entry",
 	} {
 		if !strings.Contains(sql, want) {
@@ -37,8 +37,8 @@ func TestRenderMigrationPreviewShape(t *testing.T) {
 
 	// The mutable Head table must never get a forbid_mutation trigger of its
 	// own; only the Evidence table should.
-	if strings.Contains(sql, "payroll_run_append_only") {
-		t.Error("Head table payroll_run must not carry an append-only trigger")
+	if strings.Contains(sql, "payroll_run_preview_append_only") {
+		t.Error("Head table payroll_run_preview must not carry an append-only trigger")
 	}
 	if !strings.Contains(sql, "payroll_ledger_entry_append_only") {
 		t.Error("Evidence table payroll_ledger_entry must carry an append-only trigger")

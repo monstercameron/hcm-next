@@ -9,7 +9,7 @@
 
 -- +goose Up
 
-CREATE TABLE IF NOT EXISTS payroll_run (
+CREATE TABLE IF NOT EXISTS payroll_run_preview (
     tenant_id                tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
     run_id                   uuid         NOT NULL,
     run_key                  semantic_key NOT NULL,
@@ -23,20 +23,20 @@ CREATE TABLE IF NOT EXISTS payroll_run (
     recorded_at              timestamptz  NOT NULL DEFAULT now(),
 
     PRIMARY KEY (tenant_id, run_id),
-    CONSTRAINT payroll_run_key_unique UNIQUE (tenant_id, run_key),
-    CONSTRAINT payroll_run_status_check CHECK (status IN ('PREPARING', 'CALCULATING', 'EXCEPTION', 'APPROVED', 'RELEASED')),
-    CONSTRAINT payroll_run_knowledge_order CHECK (known_at <= recorded_at)
+    CONSTRAINT payroll_run_preview_key_unique UNIQUE (tenant_id, run_key),
+    CONSTRAINT payroll_run_preview_status_check CHECK (status IN ('PREPARING', 'CALCULATING', 'EXCEPTION', 'APPROVED', 'RELEASED')),
+    CONSTRAINT payroll_run_preview_knowledge_order CHECK (known_at <= recorded_at)
 );
 
-CREATE INDEX IF NOT EXISTS payroll_run_recorded
-    ON payroll_run (tenant_id, recorded_at DESC);
+CREATE INDEX IF NOT EXISTS payroll_run_preview_recorded
+    ON payroll_run_preview (tenant_id, recorded_at DESC);
 
-ALTER TABLE payroll_run ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payroll_run FORCE ROW LEVEL SECURITY;
-CREATE POLICY tenant_isolation ON payroll_run
+ALTER TABLE payroll_run_preview ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payroll_run_preview FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON payroll_run_preview
     USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid)
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
-GRANT SELECT, INSERT, UPDATE ON payroll_run TO hcmnext_app;
+GRANT SELECT, INSERT, UPDATE ON payroll_run_preview TO hcmnext_app;
 
 CREATE TABLE IF NOT EXISTS payroll_ledger_entry (
     tenant_id                tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS payroll_ledger_entry (
     CONSTRAINT payroll_ledger_entry_direction_check CHECK (direction IN ('DEBIT', 'CREDIT')),
     CONSTRAINT payroll_ledger_entry_currency_check CHECK (currency ~ '^[A-Z]{3}$'),
     CONSTRAINT payroll_ledger_entry_knowledge_order CHECK (known_at <= recorded_at),
-    FOREIGN KEY (tenant_id, run_id) REFERENCES payroll_run (tenant_id, run_id)
+    FOREIGN KEY (tenant_id, run_id) REFERENCES payroll_run_preview (tenant_id, run_id)
 );
 
 CREATE INDEX IF NOT EXISTS payroll_ledger_entry_recorded
@@ -81,8 +81,8 @@ ALTER TABLE payroll_ledger_entry NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE payroll_ledger_entry DISABLE ROW LEVEL SECURITY;
 DROP TABLE payroll_ledger_entry;
 
-REVOKE ALL ON payroll_run FROM hcmnext_app;
-DROP POLICY tenant_isolation ON payroll_run;
-ALTER TABLE payroll_run NO FORCE ROW LEVEL SECURITY;
-ALTER TABLE payroll_run DISABLE ROW LEVEL SECURITY;
-DROP TABLE payroll_run;
+REVOKE ALL ON payroll_run_preview FROM hcmnext_app;
+DROP POLICY tenant_isolation ON payroll_run_preview;
+ALTER TABLE payroll_run_preview NO FORCE ROW LEVEL SECURITY;
+ALTER TABLE payroll_run_preview DISABLE ROW LEVEL SECURITY;
+DROP TABLE payroll_run_preview;

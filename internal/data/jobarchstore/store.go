@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -369,11 +370,103 @@ func insertProfile(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, values
 }
 
 func jsonLineage(lineage jobarch.RevisionLineage, parentID string, payload any) ([]byte, error) {
+	if profile, ok := payload.(jobarch.JobProfileRevision); ok {
+		payload = storageProfile(profile)
+	}
 	encoded, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("jobarchstore: encode revision payload: %w", err)
 	}
 	return json.Marshal(lineageEnvelope{RootID: lineage.RootID, Supersedes: lineage.Supersedes, ParentID: parentID, Payload: encoded})
+}
+
+// storageProfile makes the compatibility-shaped reference structs safe for
+// JSON storage. Several governed reference types retain their historical
+// embedded VersionedReference alongside direct fields with the same JSON
+// names. encoding/json gives the shallow fields precedence, so an embedded-
+// only reference would otherwise be stored as an all-zero reference and make
+// the architecture digest change on reload.
+func storageProfile(profile jobarch.JobProfileRevision) jobarch.JobProfileRevision {
+	profile.Requirements = storageRequirements(profile.Requirements)
+	profile.QualificationRefs = append([]jobarch.QualificationReference(nil), profile.QualificationRefs...)
+	profile.SkillRefs = append([]jobarch.SkillRequirementReference(nil), profile.SkillRefs...)
+	profile.CredentialRefs = append([]jobarch.CredentialRequirementReference(nil), profile.CredentialRefs...)
+	for i := range profile.QualificationRefs {
+		profile.QualificationRefs[i] = storageQualification(profile.QualificationRefs[i])
+	}
+	for i := range profile.SkillRefs {
+		profile.SkillRefs[i] = storageSkill(profile.SkillRefs[i])
+	}
+	for i := range profile.CredentialRefs {
+		profile.CredentialRefs[i] = storageCredential(profile.CredentialRefs[i])
+	}
+	return profile
+}
+
+func storageRequirements(requirements jobarch.JobProfileRequirements) jobarch.JobProfileRequirements {
+	requirements.Qualifications = append([]jobarch.QualificationReference(nil), requirements.Qualifications...)
+	requirements.QualificationRefs = append([]jobarch.QualificationReference(nil), requirements.QualificationRefs...)
+	requirements.Skills = append([]jobarch.SkillRequirementReference(nil), requirements.Skills...)
+	requirements.SkillRefs = append([]jobarch.SkillRequirementReference(nil), requirements.SkillRefs...)
+	requirements.Credentials = append([]jobarch.CredentialRequirementReference(nil), requirements.Credentials...)
+	requirements.CredentialRefs = append([]jobarch.CredentialRequirementReference(nil), requirements.CredentialRefs...)
+	for i := range requirements.Qualifications {
+		requirements.Qualifications[i] = storageQualification(requirements.Qualifications[i])
+	}
+	for i := range requirements.QualificationRefs {
+		requirements.QualificationRefs[i] = storageQualification(requirements.QualificationRefs[i])
+	}
+	for i := range requirements.Skills {
+		requirements.Skills[i] = storageSkill(requirements.Skills[i])
+	}
+	for i := range requirements.SkillRefs {
+		requirements.SkillRefs[i] = storageSkill(requirements.SkillRefs[i])
+	}
+	for i := range requirements.Credentials {
+		requirements.Credentials[i] = storageCredential(requirements.Credentials[i])
+	}
+	for i := range requirements.CredentialRefs {
+		requirements.CredentialRefs[i] = storageCredential(requirements.CredentialRefs[i])
+	}
+	return requirements
+}
+
+func storageQualification(value jobarch.QualificationReference) jobarch.QualificationReference {
+	value.Ref, value.Revision, value.Authority = firstText(value.Ref, value.VersionedReference.Ref), firstText(value.Revision, value.VersionedReference.Revision), firstText(value.Authority, value.VersionedReference.Authority)
+	value.EffectiveFrom = firstTime(value.EffectiveFrom, value.VersionedReference.EffectiveFrom)
+	value.EffectiveTo = firstTime(value.EffectiveTo, value.VersionedReference.EffectiveTo)
+	value.VersionedReference = jobarch.VersionedReference{}
+	return value
+}
+
+func storageSkill(value jobarch.SkillRequirementReference) jobarch.SkillRequirementReference {
+	value.Ref, value.Revision, value.Authority = firstText(value.Ref, value.VersionedReference.Ref), firstText(value.Revision, value.VersionedReference.Revision), firstText(value.Authority, value.VersionedReference.Authority)
+	value.EffectiveFrom = firstTime(value.EffectiveFrom, value.VersionedReference.EffectiveFrom)
+	value.EffectiveTo = firstTime(value.EffectiveTo, value.VersionedReference.EffectiveTo)
+	value.VersionedReference = jobarch.VersionedReference{}
+	return value
+}
+
+func storageCredential(value jobarch.CredentialRequirementReference) jobarch.CredentialRequirementReference {
+	value.Ref, value.Revision, value.Authority = firstText(value.Ref, value.VersionedReference.Ref), firstText(value.Revision, value.VersionedReference.Revision), firstText(value.Authority, value.VersionedReference.Authority)
+	value.EffectiveFrom = firstTime(value.EffectiveFrom, value.VersionedReference.EffectiveFrom)
+	value.EffectiveTo = firstTime(value.EffectiveTo, value.VersionedReference.EffectiveTo)
+	value.VersionedReference = jobarch.VersionedReference{}
+	return value
+}
+
+func firstText(primary, fallback string) string {
+	if primary != "" {
+		return primary
+	}
+	return fallback
+}
+
+func firstTime(primary, fallback time.Time) time.Time {
+	if !primary.IsZero() {
+		return primary
+	}
+	return fallback
 }
 
 func sameLineage(ctx context.Context, tx dbport.Tx, query string, tenantID uuid.UUID, id, revision string, expected []byte) error {

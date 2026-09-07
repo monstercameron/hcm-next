@@ -77,8 +77,9 @@ func TestTodo_DB_001(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read version after rollback: %v", err)
 	}
-	if rolledBack != target-1 {
-		t.Fatalf("schema version %d after rollback, want %d", rolledBack, target-1)
+	previousVersion := files[len(files)-2].Version
+	if rolledBack != previousVersion {
+		t.Fatalf("schema version %d after rollback, want %d", rolledBack, previousVersion)
 	}
 
 	// Re-apply it.

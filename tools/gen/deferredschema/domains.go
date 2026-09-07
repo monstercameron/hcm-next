@@ -95,7 +95,7 @@ func payrollDomain() Domain {
 		Disposition:       "DRAFT",
 		DispositionReason: notFunded,
 		Head: TableSpec{
-			Table:          "payroll_run",
+			Table:          "payroll_run_preview",
 			IDColumn:       "run_id",
 			KeyColumn:      "run_key",
 			DataRole:       "AGGREGATE",
@@ -115,7 +115,7 @@ func payrollDomain() Domain {
 		Evidence: TableSpec{
 			Table:          "payroll_ledger_entry",
 			IDColumn:       "entry_id",
-			ParentTable:    "payroll_run",
+			ParentTable:    "payroll_run_preview",
 			ParentIDColumn: "run_id",
 			AppendOnly:     true,
 			DataRole:       "AGGREGATE",
@@ -334,7 +334,7 @@ func talentDomain() Domain {
 		Disposition:       "DRAFT",
 		DispositionReason: notFunded,
 		Head: TableSpec{
-			Table:          "performance_review",
+			Table:          "performance_review_preview",
 			IDColumn:       "review_id",
 			KeyColumn:      "review_key",
 			DataRole:       "AGGREGATE",
@@ -353,7 +353,7 @@ func talentDomain() Domain {
 		Evidence: TableSpec{
 			Table:          "performance_review_revision",
 			IDColumn:       "revision_id",
-			ParentTable:    "performance_review",
+			ParentTable:    "performance_review_preview",
 			ParentIDColumn: "review_id",
 			AppendOnly:     true,
 			DataRole:       "AGGREGATE",

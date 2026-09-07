@@ -9,7 +9,7 @@
 
 -- +goose Up
 
-CREATE TABLE IF NOT EXISTS performance_review (
+CREATE TABLE IF NOT EXISTS performance_review_preview (
     tenant_id                tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
     review_id                uuid         NOT NULL,
     review_key               semantic_key NOT NULL,
@@ -22,20 +22,20 @@ CREATE TABLE IF NOT EXISTS performance_review (
     recorded_at              timestamptz  NOT NULL DEFAULT now(),
 
     PRIMARY KEY (tenant_id, review_id),
-    CONSTRAINT performance_review_key_unique UNIQUE (tenant_id, review_key),
-    CONSTRAINT performance_review_status_check CHECK (status IN ('IN_PROGRESS', 'SUBMITTED', 'ACKNOWLEDGED', 'APPEALED')),
-    CONSTRAINT performance_review_knowledge_order CHECK (known_at <= recorded_at)
+    CONSTRAINT performance_review_preview_key_unique UNIQUE (tenant_id, review_key),
+    CONSTRAINT performance_review_preview_status_check CHECK (status IN ('IN_PROGRESS', 'SUBMITTED', 'ACKNOWLEDGED', 'APPEALED')),
+    CONSTRAINT performance_review_preview_knowledge_order CHECK (known_at <= recorded_at)
 );
 
-CREATE INDEX IF NOT EXISTS performance_review_recorded
-    ON performance_review (tenant_id, recorded_at DESC);
+CREATE INDEX IF NOT EXISTS performance_review_preview_recorded
+    ON performance_review_preview (tenant_id, recorded_at DESC);
 
-ALTER TABLE performance_review ENABLE ROW LEVEL SECURITY;
-ALTER TABLE performance_review FORCE ROW LEVEL SECURITY;
-CREATE POLICY tenant_isolation ON performance_review
+ALTER TABLE performance_review_preview ENABLE ROW LEVEL SECURITY;
+ALTER TABLE performance_review_preview FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON performance_review_preview
     USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid)
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
-GRANT SELECT, INSERT, UPDATE ON performance_review TO hcmnext_app;
+GRANT SELECT, INSERT, UPDATE ON performance_review_preview TO hcmnext_app;
 
 CREATE TABLE IF NOT EXISTS performance_review_revision (
     tenant_id                tenant_ref   NOT NULL REFERENCES tenant (tenant_id),
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS performance_review_revision (
     CONSTRAINT performance_review_revision_revision_positive CHECK (revision_sequence >= 1),
     CONSTRAINT performance_review_revision_rating_value_check CHECK (rating_value >= 0),
     CONSTRAINT performance_review_revision_knowledge_order CHECK (known_at <= recorded_at),
-    FOREIGN KEY (tenant_id, review_id) REFERENCES performance_review (tenant_id, review_id)
+    FOREIGN KEY (tenant_id, review_id) REFERENCES performance_review_preview (tenant_id, review_id)
 );
 
 CREATE INDEX IF NOT EXISTS performance_review_revision_recorded
@@ -77,8 +77,8 @@ ALTER TABLE performance_review_revision NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE performance_review_revision DISABLE ROW LEVEL SECURITY;
 DROP TABLE performance_review_revision;
 
-REVOKE ALL ON performance_review FROM hcmnext_app;
-DROP POLICY tenant_isolation ON performance_review;
-ALTER TABLE performance_review NO FORCE ROW LEVEL SECURITY;
-ALTER TABLE performance_review DISABLE ROW LEVEL SECURITY;
-DROP TABLE performance_review;
+REVOKE ALL ON performance_review_preview FROM hcmnext_app;
+DROP POLICY tenant_isolation ON performance_review_preview;
+ALTER TABLE performance_review_preview NO FORCE ROW LEVEL SECURITY;
+ALTER TABLE performance_review_preview DISABLE ROW LEVEL SECURITY;
+DROP TABLE performance_review_preview;

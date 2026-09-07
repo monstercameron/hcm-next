@@ -116,6 +116,9 @@ func escrowService(t *testing.T) (*pseudonym.EscrowedService, *escrowTestProvide
 	t.Helper()
 	derivationKey, escrowKey, tenantKEK := escrowHandles()
 	base := custody.NewInMemoryFake(func() time.Time { return testNow })
+	if err := base.Register(derivationKey); err != nil {
+		t.Fatal(err)
+	}
 	deriver := &recordingDeriver{inner: base, allowed: derivationKey}
 	provider := &escrowTestProvider{}
 	service, err := pseudonym.NewEscrowedService(pseudonym.EscrowConfig{Deriver: deriver, Provider: provider, DerivationKey: derivationKey, EscrowKey: escrowKey, TenantKEKs: []custody.Handle{tenantKEK}, Clock: func() time.Time { return testNow }})

@@ -147,7 +147,12 @@ func Publish(ctx context.Context, tx dbport.Tx, req PublishRequest) (Record, err
 			return Record{}, err
 		}
 		existing.Published = false
-		record = existing
+		// The provenance row and its publication message are created in the
+		// same transaction. A duplicate row therefore already has its
+		// publication recorded; retrying Enqueue would compare the caller's
+		// request against the immutable message and can turn an idempotent
+		// replay into an identity conflict.
+		return existing, nil
 	}
 
 	payload, err := marshalOutboxPayload(record)

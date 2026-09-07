@@ -218,7 +218,7 @@ func TestTodo_PERSIST_COMMERCIAL_001_Fault(t *testing.T) {
 	if err := store.PutEntitlementSnapshot(context.Background(), snapshot); err != nil {
 		t.Fatal(err)
 	}
-	db.Exec(t, `INSERT INTO entitlement_snapshot (tenant_id,row_id,contract_id,revision,fingerprint,frozen_at) VALUES ($1,$2,$3,1,$4,$5)`, tenant, uuid.New(), c.ContractID, "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", testAt.Add(24*time.Hour))
+	db.Exec(t, `INSERT INTO entitlement_snapshot (tenant_id,row_id,contract_id,revision,fingerprint,frozen_at) VALUES ($1,$2,$3,1,$4,CURRENT_TIMESTAMP + interval '1 hour')`, tenant, uuid.New(), c.ContractID, "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 	if _, err := store.GetEntitlementSnapshot(context.Background(), tenant.String(), c.ContractID, 1); !errors.Is(err, commercialstore.ErrFingerprintMismatch) {
 		t.Fatalf("fingerprint fault=%v", err)
 	}

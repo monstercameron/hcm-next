@@ -13,7 +13,7 @@ version: 1
 module: github.com/monstercameron/hcm-next
 source: planning/data/models (payroll, benefits, time, leave, recruiting, talent, learning, case, access, regulatory)
 tables:
-    - table: payroll_run
+    - table: payroll_run_preview
       migration: 001_payroll.sql
       owner_package: internal/domains/payroll
       plane: DATA
@@ -153,7 +153,7 @@ tables:
       partitions: []
       notes: 'Preview of RequisitionRevision: the immutable approval-certificate snapshot each requisition change produces (talent-experience-cases.md ## Recruiting).'
       disposition: DRAFT
-    - table: performance_review
+    - table: performance_review_preview
       migration: 006_talent.sql
       owner_package: internal/domains/talent
       plane: DATA

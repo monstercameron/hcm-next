@@ -1237,3 +1237,27 @@ exceptions:
       0.0% of statements covered when the gate was introduced on
       2026-09-06; raise the package to the floor or retire this exception.
     expiry: "2026-12-31"
+  - package: internal/data/commercialstore
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      61.8% of statements covered when its failing tests were repaired on
+      2026-09-06 (it was a test failure, not a coverage gap, in the baseline
+      run); raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/pgtest
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      58.0% of statements covered when its failing tests were repaired on
+      2026-09-06 (it was a test failure, not a coverage gap, in the baseline
+      run); raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"
+  - package: internal/data/runtimestate
+    kind: below_floor
+    owner: backlog
+    reason: >-
+      68.6% of statements covered when its failing tests were repaired on
+      2026-09-06 (it was a test failure, not a coverage gap, in the baseline
+      run); raise the package to the floor or retire this exception.
+    expiry: "2026-12-31"

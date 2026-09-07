@@ -748,8 +748,9 @@ func (s SignalStore) Subscribe(ctx context.Context, ex Executor, in Subscription
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO workflow_signal_subscription (
 			tenant_id, subscription_id, instance_id, node_id, signal_name,
-			correlation_key, subscription_state, subscription_version, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8)
+			correlation_key, event_type, correlation_value,
+			subscription_state, subscription_version, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $5, $6, $7, 1, $8)
 		ON CONFLICT DO NOTHING`,
 		in.TenantID, in.SubscriptionID, in.InstanceID, in.NodeID, in.SignalName,
 		in.CorrelationKey, SubscriptionOpen, in.CreatedAt.UTC())
@@ -784,9 +785,11 @@ func (s SignalStore) Deliver(ctx context.Context, ex Executor, in Signal) error 
 	}
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO workflow_signal (
-			tenant_id, signal_id, signal_name, correlation_key, dedupe_token,
-			schema_ref, payload, payload_digest, delivered_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9)
+			tenant_id, signal_id, signal_name, correlation_key, event_type,
+			source, correlation_value, sequence_number, dedupe_token,
+			schema_ref, payload, payload_digest, delivered_at, received_at)
+		VALUES ($1, $2, $3, $4, $3, 'legacy/unknown', $4, 0, $5,
+			$6, $7::jsonb, $8, $9, $9)
 		ON CONFLICT DO NOTHING`,
 		in.TenantID, in.SignalID, in.SignalName, in.CorrelationKey, in.DedupeToken,
 		in.SchemaRef, string(in.Payload), in.PayloadDigest, in.DeliveredAt.UTC())

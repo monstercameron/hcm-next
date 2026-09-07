@@ -75,12 +75,14 @@ func inTenantTx(t *testing.T, conn *pgxadapter.Conn, tenant uuid.UUID, fn func(t
 func newRow(tenant uuid.UUID, key string) workforce.WorkerRow {
 	id := uuid.New()
 	return workforce.WorkerRow{
-		TenantID:                tenant,
-		WorkerID:                id,
-		WorkerKey:               key,
-		LegalName:               "Ada Lovelace",
-		PreferredName:           "Ada",
-		WorkerNumber:            "W-9001",
+		TenantID:      tenant,
+		WorkerID:      id,
+		WorkerKey:     key,
+		LegalName:     "Ada Lovelace",
+		PreferredName: "Ada",
+		// Migration 00181 made worker numbers unique per tenant, so every
+		// fixture row derives its number from its key.
+		WorkerNumber:            "W-" + key,
 		WorkerType:              "employee",
 		LifecycleStatus:         "active",
 		EmploymentID:            "emp_" + key,
