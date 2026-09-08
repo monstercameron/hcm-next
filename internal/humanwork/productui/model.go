@@ -344,6 +344,10 @@ type View struct {
 	// one sensitive action. Nil means no elevation is required; the prompt
 	// authorizes nothing either way.
 	StepUpChallenge *StepUpChallengeProps
+	// BreakGlassActivation carries the server-projected break-glass
+	// activation for emergency access. Nil means no emergency elevation
+	// is offered; the prompt authorizes nothing either way.
+	BreakGlassActivation *BreakGlassActivationProps
 }
 
 // Can reports whether the resolved role grants an operation on a page. An

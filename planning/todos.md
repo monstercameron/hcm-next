@@ -10587,7 +10587,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** evaluation has zero business effects.
   - **Refs:** [Model conventions](data/models/modeling-conventions.md), [governance decisions](specs/governance-decision-and-obligation-composition.md).
 
-- [ ] `READINESS-004` **[PHASE_3][SOL_HIGH] Compile readiness follow-up requirements into governed intents.**
+- [x] `READINESS-004` **[PHASE_3][SOL_HIGH] Compile readiness follow-up requirements into governed intents.**
+  - **Evidence (2026-09-08):** `TestTodo_READINESS_004`, `TestTodo_READINESS_004_Golden`, `TestTodo_READINESS_004_Race`, and `TestTodo_READINESS_004_Mutation`; `go test -count=1 -cover ./internal/engines/readiness/` PASS (76.8%); `go vet ./internal/engines/readiness/` PASS. Bounded draft compilation pins requirement, evaluation, evidence and policy, rejects cross-domain configuration, emits nothing for READY, and binds explicit human-review/governance requirements into idempotent semantic IDs. Sol refinement and root review covered mutated gates/identity and concurrent success against a known-good digest. This pure compiler grants no execution authority and performs no persistence or business mutation.
   - **Depends:** `READINESS-003`, `INTENT-001`, `GOVERN-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_READINESS_004`.
@@ -15861,7 +15862,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-057` **[GATE_C][SOL_HIGH] Implement the break-glass activation experience.**
+- [x] `WEB-057` **[GATE_C][SOL_HIGH] Implement the break-glass activation experience.**
   - **Depends:** `WEB-056`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the break-glass activation experience without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_057`.
