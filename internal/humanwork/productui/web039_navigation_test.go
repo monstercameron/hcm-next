@@ -86,7 +86,7 @@ func TestTodo_WEB_039_Golden(t *testing.T) {
 }
 
 func TestTodo_WEB_039_Conformance(t *testing.T) {
-	if css := Stylesheet(); !strings.Contains(css, `@media(max-width:360px){.brand-logo-slot[data-hcm-brand-logo-state="fallback"] .wordmark-label{display:none}`) {
+	if css := Stylesheet(); !strings.Contains(css, `@media (max-width:360px){.brand-logo-slot[data-hcm-brand-logo-state="fallback"] .wordmark-label{display:none;}`) {
 		t.Fatal("narrow viewport does not replace a truncated fallback wordmark with its compact brand mark")
 	}
 	for _, page := range []PageID{PageHome, PagePeople, PageSettings} {

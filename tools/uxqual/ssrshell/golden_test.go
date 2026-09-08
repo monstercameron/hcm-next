@@ -20,7 +20,7 @@ const promotionListGoldenHTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Promotion journeys</title>
-<style>.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+<style>.visually-hidden{border:0;clip:rect(0,0,0,0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;white-space:nowrap;width:1px;}</style>
 </head>
 <body>
 <a class="visually-hidden" href="#main-content">Skip to main content</a>
@@ -51,7 +51,7 @@ const promotionDetailGoldenHTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Promotion journey</title>
-<style>.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+<style>.visually-hidden{border:0;clip:rect(0,0,0,0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;white-space:nowrap;width:1px;}</style>
 </head>
 <body>
 <a class="visually-hidden" href="#main-content">Skip to main content</a>
@@ -95,7 +95,7 @@ func TestTodo_WEB_025_Golden(t *testing.T) {
 		if rs.HTML != promotionListGoldenHTML {
 			t.Fatalf("rendered HTML does not match pinned golden bytes.\n--- got ---\n%s\n--- want ---\n%s", rs.HTML, promotionListGoldenHTML)
 		}
-		const wantDigest = "sha256:670e11556f350dbcc330130afb04a1f038adaae9482adfcf7230c4c23c982dfa"
+		const wantDigest = "sha256:fb85a4ac7cbbca487e32ae0956420e15d2a21377f92214b84b6dbb1052210a3a"
 		if rs.Digest != wantDigest {
 			t.Fatalf("RenderedShell.Digest = %q, want pinned golden %q", rs.Digest, wantDigest)
 		}
@@ -109,7 +109,7 @@ func TestTodo_WEB_025_Golden(t *testing.T) {
 		if rs.HTML != promotionDetailGoldenHTML {
 			t.Fatalf("rendered HTML does not match pinned golden bytes.\n--- got ---\n%s\n--- want ---\n%s", rs.HTML, promotionDetailGoldenHTML)
 		}
-		const wantDigest = "sha256:b99a58eb627852cbdba58e783e4f8756ddfe666830d0293afb66b256b020afd9"
+		const wantDigest = "sha256:1ac893ac96477b6d9ab53e60952028de27827b253f5960083ef05b5486f06235"
 		if rs.Digest != wantDigest {
 			t.Fatalf("RenderedShell.Digest = %q, want pinned golden %q", rs.Digest, wantDigest)
 		}

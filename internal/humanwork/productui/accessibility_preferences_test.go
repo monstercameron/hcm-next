@@ -71,8 +71,8 @@ func TestAccessibilitySafetyCSSCannotBeReplacedByBrandChoices(t *testing.T) {
 	for _, want := range []string{
 		`:root[data-hcm-text-size="larger"]`, `:root[data-hcm-contrast="more"]`,
 		`:root[data-hcm-motion-preference="limited"]`, `:root[data-hcm-motion-preference="reduce"]`, `:root[data-hcm-links="underlined"]`,
-		`@media(prefers-contrast:more)`, `@media(forced-colors:active)`, `@media(prefers-reduced-motion:reduce)`,
-		`.people-row>.people-cell:before{content:attr(data-label)`,
+		`@media (prefers-contrast:more)`, `@media (forced-colors:active)`, `@media (prefers-reduced-motion:reduce)`,
+		`.people-row>.people-cell:before{color:var(--muted);content:attr(data-label);`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("accessibility stylesheet missing %q", want)

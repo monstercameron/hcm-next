@@ -67,7 +67,7 @@ func TestTodo_WEB_020_Browser(t *testing.T) {
 	}
 	for _, want := range []string{
 		"validation-summary", "validation-field", "--hcm-color-danger", "--hcm-color-danger-surface",
-		"grid-column:1/-1", "@media(prefers-reduced-motion:reduce)", "@media(forced-colors:active)", "CanvasText", "Mark",
+		"grid-column:1 / -1;", "@media (prefers-reduced-motion:reduce)", "@media (forced-colors:active)", "CanvasText", "Mark",
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("production document missing validation browser contract %q", want)

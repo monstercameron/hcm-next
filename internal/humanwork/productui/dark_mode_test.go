@@ -21,22 +21,22 @@ func TestDarkModeIsAClosedPersistableAppearanceChoice(t *testing.T) {
 func TestDarkModeUsesSemanticTokensAcrossExplicitAndSystemSchemes(t *testing.T) {
 	css := Stylesheet()
 	for _, want := range []string{
-		`:root[data-hcm-color-mode="dark"]{color-scheme:dark;`,
-		`@media(prefers-color-scheme:dark){:root[data-hcm-color-mode="system"]{color-scheme:dark;`,
+		`:root[data-hcm-color-mode="dark"]{--accent:color-mix(in srgb,var(--hcm-color-brand-primary) 62%,#fff);`,
+		`@media (prefers-color-scheme:dark){:root[data-hcm-color-mode="system"]{--accent:color-mix(in srgb,var(--hcm-color-brand-primary) 62%,#fff);`,
 		`--canvas:#0b1118`, `--surface:#131c26`, `--ink:#f3f7fb`, `--muted:#aebdcb`,
 		`--accent:color-mix(in srgb,var(--hcm-color-brand-primary)`,
 		`--hcm-color-success:#69dda2`, `--hcm-color-focus:#d8e9ff`,
-		`.surface{background-color:var(--surface);color:var(--ink)}`,
-		`.people-filter{background:var(--surface);color:var(--ink)}`,
-		`@media(print){:root:is([data-hcm-color-mode="dark"],[data-hcm-color-mode="system"]){color-scheme:light;`,
-		`@media(forced-colors:active){:root:is([data-hcm-color-mode="dark"],[data-hcm-color-mode="system"]){color-scheme:light dark;`,
-		`.jn-embedded{--jn-canvas:var(--canvas)`,
+		`.surface{background-color:var(--surface);color:var(--ink);}`,
+		`.people-filter{background-color:var(--surface);color:var(--ink);}`,
+		`@media (print){:root:is([data-hcm-color-mode="dark"],[data-hcm-color-mode="system"]){--accent:var(--hcm-color-brand-primary);`,
+		`@media (forced-colors:active){:root:is([data-hcm-color-mode="dark"],[data-hcm-color-mode="system"]){--accent:Highlight;--accent-hover:Highlight;`,
+		`.jn-embedded{--jn-accent:var(--accent);`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("dark-mode stylesheet missing %q", want)
 		}
 	}
-	if !strings.HasSuffix(css, themeCoverageStyles) {
+	if !strings.HasSuffix(css, finalThemeCoverageLayer()) {
 		t.Fatal("dark mode displaced the final cross-component theme boundary")
 	}
 }

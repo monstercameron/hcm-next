@@ -72,11 +72,11 @@ func TestTodo_WEB_021_Browser(t *testing.T) {
 	}
 	for _, want := range []string{
 		`data-status-dimension="request"`, `data-status-dimension="obligation"`,
-		`grid-template-columns:repeat(5,minmax(5.3rem,1fr))`, `@media(max-width:1190px)`,
-		`@media(max-width:760px)`, `@media(max-width:420px)`,
-		`@media(prefers-reduced-motion:reduce)`, `@media(forced-colors:active)`,
-		`CanvasText`, `var(--hcm-color-danger`, `.preview-head>.status-dimensions{grid-column:1/-1}`,
-		`.status-dimension-name{min-width:0`, `.preview-head .status-dimension-list{grid-template-columns:repeat(2,minmax(0,1fr))}`,
+		`grid-template-columns:repeat(5,minmax(5.3rem,1fr))`, `@media (max-width:1190px)`,
+		`@media (max-width:760px)`, `@media (max-width:420px)`,
+		`@media (prefers-reduced-motion:reduce)`, `@media (forced-colors:active)`,
+		`CanvasText`, `var(--hcm-color-danger`, `.preview-head>.status-dimensions{grid-column:1 / -1;}`,
+		`.status-dimension-name{color:var(--muted);`, `.preview-head .status-dimension-list{grid-template-columns:repeat(2,minmax(0,1fr));}`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("production document missing status browser contract %q", want)

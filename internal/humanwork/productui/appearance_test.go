@@ -98,9 +98,9 @@ func TestEveryPaletteSupportsWhiteActionAndBrandedNavigationText(t *testing.T) {
 func TestBrandedNavigationAndResponsiveEditorKeepSafetyRules(t *testing.T) {
 	css := Stylesheet()
 	for _, expected := range []string{
-		`:root[data-hcm-navigation="brand"] .sidebar :focus-visible{outline-color:#fff`,
-		`@media(max-width:680px){.appearance-brand-fields{grid-template-columns:1fr}`,
-		`@media(prefers-reduced-motion:reduce)`,
+		`:root[data-hcm-navigation="brand"] .sidebar :focus-visible{box-shadow:0 0 0 3px var(--accent-hover);outline-color:#fff;}`,
+		`@media (max-width:680px){.appearance-brand-fields{grid-template-columns:1fr;}`,
+		`@media (prefers-reduced-motion:reduce)`,
 		`.appearance-status[data-tone="warning"]`,
 	} {
 		if !strings.Contains(css, expected) {

@@ -164,8 +164,8 @@ func TestTodo_WEB_040_Browser(t *testing.T) {
 	}
 	css := Stylesheet()
 	for _, want := range []string{
-		".action-launcher-trigger{", ".action-launcher-dialog{", ".action-launcher-dialog-hidden{display:none}",
-		"@media(forced-colors:active){.action-launcher-trigger,",
+		".action-launcher-trigger{", ".action-launcher-dialog{", ".action-launcher-dialog-hidden{display:none;}",
+		"@media (forced-colors:active){.action-launcher-trigger{",
 	} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("launcher stylesheet missing %q", want)

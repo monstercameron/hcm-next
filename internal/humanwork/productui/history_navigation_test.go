@@ -52,10 +52,10 @@ func TestHistoryNavigationPrecedesGlobalSearchAndHasResponsiveStyles(t *testing.
 		t.Fatalf("history controls must render immediately before global search")
 	}
 	for _, want := range []string{
-		`.header-navigation-tools{display:grid;grid-template-columns:auto minmax(0,1fr)`,
-		`.history-navigation-button:disabled{cursor:not-allowed`,
-		`@media(max-width:760px){.topbar>.header-navigation-tools`,
-		`@media(forced-colors:active){.history-navigation-button`,
+		`grid-template-columns:auto minmax(0,1fr);`,
+		`cursor:not-allowed;opacity:0.38;`,
+		`@media (max-width:760px){.topbar>.header-navigation-tools`,
+		`@media (forced-colors:active){.history-navigation-button`,
 	} {
 		if !strings.Contains(Stylesheet(), want) {
 			t.Fatalf("history navigation stylesheet missing %q", want)

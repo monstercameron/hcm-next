@@ -1,7 +1,6 @@
 package productui
 
 import (
-	"fmt"
 	"path"
 	"strings"
 	"unicode"
@@ -189,46 +188,7 @@ func CustomerThemeAttributes(theme CustomerTheme) map[string]string {
 }
 
 func customerThemeStylesheet() string {
-	var b strings.Builder
-	for _, group := range []struct {
-		attribute string
-		presets   []appearancePreset
-	}{
-		{"data-hcm-palette", palettePresets},
-		{"data-hcm-shape", shapePresets},
-		{"data-hcm-density", densityPresets},
-		{"data-hcm-motion", motionPresets},
-		{"data-hcm-typeface", typefacePresets},
-	} {
-		for _, preset := range group.presets {
-			if len(preset.Overrides) == 0 {
-				continue
-			}
-			theme, err := ResolveTheme(preset.Overrides)
-			if err != nil {
-				panic(fmt.Sprintf("productui: invalid built-in %s preset %q: %v", group.attribute, preset.Option.ID, err))
-			}
-			b.WriteString(":root[")
-			b.WriteString(group.attribute)
-			b.WriteString(`="`)
-			b.WriteString(preset.Option.ID)
-			b.WriteString(`"]{`)
-			for _, token := range registeredThemeTokens {
-				value, changed := preset.Overrides[token.Name]
-				if !changed {
-					continue
-				}
-				resolved, _ := theme.Value(token.Name)
-				if resolved != value {
-					panic("productui: preset resolution drift")
-				}
-				b.WriteString(token.CSSVariable + ":" + resolved + ";")
-			}
-			b.WriteByte('}')
-		}
-	}
-	b.WriteString(`:root[data-hcm-glyphs="rounded-line"] .nav-icon{stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}:root[data-hcm-glyphs="precision-line"] .nav-icon{stroke-width:1.55;stroke-linecap:square;stroke-linejoin:miter}:root[data-hcm-glyphs="bold-line"] .nav-icon{stroke-width:2.35;stroke-linecap:round;stroke-linejoin:round}`)
-	return b.String()
+	return buildTypedSheet(declareCustomerThemeStyles)
 }
 
 func normalizedBrandText(value string, limit int, fallback string, mark bool) string {

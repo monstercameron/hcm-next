@@ -109,14 +109,14 @@ func TestPeopleTableScrollsInsideItsOwnContainer(t *testing.T) {
 	css := Stylesheet()
 	for _, want := range []string{
 		".jn-peoplewrap{max-height:34rem;overflow-y:auto",
-		".jn-tablewrap{overflow-x:auto",
-		".jn-table thead th{",
+		".jn-tablewrap{border:1px solid var(--jn-hairline);border-radius:var(--jn-r2);overflow-x:auto;}",
+		".jn-table thead th{background-color:var(--jn-surface-muted);color:var(--jn-ink-muted);font-size:0.6875rem;font-weight:660;letter-spacing:0.06em;",
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("the stylesheet is missing %q", want)
 		}
 	}
-	if !strings.Contains(css, "position:sticky;top:0}") {
+	if !strings.Contains(css, "position:sticky;text-transform:uppercase;top:0;white-space:nowrap;}") {
 		t.Error("the table header does not stick inside the scroll container")
 	}
 	if !strings.Contains(css, ".jn-people tbody th,.jn-people tbody td{height:2.75rem") {
@@ -151,7 +151,7 @@ func TestSelectedWorkerRowIsMarkedForAssistiveTechnologyAndStyling(t *testing.T)
 	if selected != 1 {
 		t.Fatalf("%d rows are marked selected, want exactly 1", selected)
 	}
-	if !strings.Contains(Stylesheet(), `.jn-people tbody tr[data-selected="true"] .jn-people-idcell{box-shadow:inset 3px 0 0 var(--jn-accent)}`) {
+	if !strings.Contains(Stylesheet(), `.jn-people tbody tr[data-selected="true"] .jn-people-idcell{box-shadow:inset 3px 0 0 0 var(--jn-accent);}`) {
 		t.Error("the selected row has no accent left rule in the stylesheet")
 	}
 }

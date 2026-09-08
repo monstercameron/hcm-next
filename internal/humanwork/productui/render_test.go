@@ -61,9 +61,9 @@ func TestShellOwnsViewportAndSeparatesNavigationFromContentScroll(t *testing.T) 
 	}
 	css := Stylesheet()
 	for _, want := range []string{
-		`html,body,#app{width:100%;height:100%;overflow:hidden}`,
-		`.sidebar{min-height:0;height:100%;overflow-y:auto`,
-		`.main-scroll{min-width:0;min-height:0;height:100%;overflow-x:hidden;overflow-y:auto`,
+		`html,body,#app{height:100%;overflow:hidden;width:100%;}`,
+		`.sidebar{height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;}`,
+		`.main-scroll{background-color:var(--canvas);height:100%;min-height:0;min-width:0;overflow-x:hidden;overflow-y:auto;`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("viewport shell is missing independent scroll contract %q", want)
@@ -488,11 +488,11 @@ func TestPeopleDirectoryCombinesFacetsSortAndPagination(t *testing.T) {
 func TestPeopleSortAndFacetControlsUseSharedResponsiveStyles(t *testing.T) {
 	css := Stylesheet()
 	for _, want := range []string{
-		`.people-filter-control{grid-template-columns:minmax(220px,1.8fr)`,
-		`.people-filter select{width:100%;min-width:0;min-height:44px`,
-		`.people-sort{display:flex;align-items:center;min-height:44px`,
-		`@media(max-width:760px){.people-filter-control{grid-template-columns:1fr}`,
-		`.people-directory .people-columns{display:flex;align-items:center;gap:8px;overflow-x:auto`,
+		`.people-filter-control{align-items:center;grid-template-columns:minmax(220px,1.8fr)`,
+		`.people-filter select{background-color:var(--surface);border:1px solid var(--control-border);`,
+		`.people-sort{align-items:center;color:var(--muted);display:flex;font:inherit;min-height:44px;`,
+		`@media (max-width:760px){.people-filter-control{grid-template-columns:1fr;}`,
+		`.people-directory .people-columns{align-items:center;display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;padding-left:12px;padding-right:12px;padding-top:8px;}`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("people sort/filter styling missing %q", want)
@@ -567,7 +567,7 @@ func TestPersonBackLinkPreservesDirectoryFilterAndPage(t *testing.T) {
 
 func TestResponsiveFocusAndPrintContractsArePlatformOwned(t *testing.T) {
 	css := Stylesheet()
-	for _, want := range []string{"@media(max-width:760px)", "@media(prefers-reduced-motion:reduce)", "@media(forced-colors:active)", "@media print", ":focus-visible", ".skip-link:focus"} {
+	for _, want := range []string{"@media (max-width:760px)", "@media (prefers-reduced-motion:reduce)", "@media (forced-colors:active)", "@media print", ":focus-visible", ".skip-link:focus"} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("stylesheet missing %q", want)
 		}
@@ -575,17 +575,17 @@ func TestResponsiveFocusAndPrintContractsArePlatformOwned(t *testing.T) {
 	if !strings.Contains(css, "grid-template-columns:210px minmax(0,1fr)") {
 		t.Fatal("intermediate desktop shell lost its content column")
 	}
-	if !strings.Contains(css, ".people-workspace{grid-template-columns:1fr}") {
+	if !strings.Contains(css, ".people-workspace{grid-template-columns:1fr;}") {
 		t.Fatal("intermediate desktop directory does not protect readable columns")
 	}
 	for _, contract := range []string{
-		".topbar{grid-template-columns:210px minmax(180px,1fr) auto auto}",
-		".home-grid,.workbench,.people-workspace,.settings-shell{grid-template-columns:1fr}",
-		".studio-shell{grid-template-columns:1fr}",
-		".primary-nav>ul{display:grid!important;width:100%!important;max-width:100%!important}",
-		".sidebar nav:first-of-type{width:100%;min-width:0;max-width:100%;overflow-x:auto",
-		".sidebar nav:first-of-type>ul{width:max-content;max-width:none}",
-		".app-shell,.shell-grid,.sidebar,.main{min-width:0;max-width:100%}",
+		".topbar{grid-template-columns:210px minmax(180px,1fr) auto auto;}",
+		".home-grid,.workbench,.people-workspace,.settings-shell{grid-template-columns:1fr;}",
+		".studio-shell{grid-template-columns:1fr;}",
+		".primary-nav>ul{display:grid!important;max-width:100%!important;width:100%!important;}",
+		".sidebar nav:first-of-type{max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-inline:contain;width:100%;}",
+		".sidebar nav:first-of-type>ul{max-width:none;width:max-content;}",
+		".app-shell,.shell-grid,.sidebar,.main{max-width:100%;min-width:0;}",
 	} {
 		if !strings.Contains(css, contract) {
 			t.Fatalf("responsive contract missing %q", contract)

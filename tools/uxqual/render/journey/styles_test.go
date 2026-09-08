@@ -176,17 +176,106 @@ func TestStylesheetSizesInRelativeUnits(t *testing.T) {
 	}
 }
 
+// TestStylesheetAnimationNamesHaveKeyframes proves every animation the
+// stylesheet references resolves to an @keyframes block it also emits.
+// GWC hashes @keyframes names by content, so a frame edit renames the
+// block; this test fails loudly instead of shipping a dangling
+// animation-name. It also re-pins the hashed names, so an upstream hash
+// change requires an explicit re-pin, not a silent unmatch.
+func TestStylesheetAnimationNamesHaveKeyframes(t *testing.T) {
+	css := Stylesheet()
+	pinned := map[string]string{
+		"jn-slidein":    jnSlideinHash,
+		"jn-pop":        jnPopHash,
+		"jn-grow-y":     jnGrowYHash,
+		"jn-grow-x":     jnGrowXHash,
+		"jn-grow-x-svg": jnGrowXSVGHash,
+		"jn-drop":       jnDropHash,
+		"jn-sweep":      jnSweepHash,
+		"jn-halo":       jnHaloHash,
+		"jn-amber":      jnAmberHash,
+		"jn-alert":      jnAlertHash,
+		"jn-breathe":    jnBreatheHash,
+	}
+	for base, hash := range pinned {
+		if hash == "" {
+			t.Errorf("pinned hash for %s is empty", base)
+			continue
+		}
+		block := "@keyframes " + base + "-" + hash + "{"
+		if !strings.Contains(css, block) {
+			t.Errorf("stylesheet has no live block %q (frames or hash changed; re-pin jnKeyframesHash)", block)
+		}
+	}
+	namePattern := regexp.MustCompile(`(?:animation-name|animation):([^;{}]+)`)
+	nameShape := regexp.MustCompile(`^jn-[a-z-]+-[0-9a-z]+$`)
+	seen := map[string]bool{}
+	for _, match := range namePattern.FindAllStringSubmatch(css, -1) {
+		// Each comma-separated animation takes its name from its first
+		// token (the dual-animation meter rule names two).
+		for _, segment := range strings.Split(match[1], ",") {
+			fields := strings.Fields(segment)
+			if len(fields) == 0 {
+				continue
+			}
+			name := fields[0]
+			if !nameShape.MatchString(name) || seen[name] {
+				continue
+			}
+			seen[name] = true
+			if !strings.Contains(css, "@keyframes "+name+"{") {
+				t.Errorf("animation-name %q has no matching @keyframes block", name)
+			}
+		}
+	}
+	if len(seen) == 0 {
+		t.Fatal("found no animation-name references; the stylesheet lost its motion")
+	}
+}
+
 func TestResponsiveCompositionProtectsEveryJourneySurface(t *testing.T) {
 	css := Stylesheet()
 	for _, want := range []string{
-		`img,svg,video,canvas{max-width:100%}`,
+		`img,svg,video,canvas{max-width:100%;}`,
 		`:where(.jn-shell,.jn-page,.jn-pagehead,.jn-card,.jn-cardhead,.jn-grid,.jn-griditem,`,
-		`:where(input,select,textarea,button){max-width:100%}`,
-		`:where(.jn-pagehead,.jn-cardhead,.jn-toolbar,.jn-actions,.jn-provenance){flex-wrap:wrap}`,
-		`.jn-tablewrap{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}`,
+		`:where(input,select,textarea,button){max-width:100%;}`,
+		`:where(.jn-pagehead,.jn-cardhead,.jn-toolbar,.jn-actions,.jn-provenance){flex-wrap:wrap;}`,
+		`.jn-tablewrap{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin;}`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("journey responsive composition missing %q", want)
+		}
+	}
+}
+
+// TestJourneyKeyframesResolve guards the runtime contract behind GWC's
+// content-hashed animation names: every animation-name the sheet assigns and
+// every shorthand name reference must have a matching @keyframes block.
+// The danger-tone meter keeps one dual-animation Raw shorthand (two Keyframes
+// rules would emit competing animation-name declarations), so this test is
+// what fails loudly if a frames edit ever desyncs a pinned hash.
+func TestJourneyKeyframesResolve(t *testing.T) {
+	css := Stylesheet()
+	defined := map[string]bool{}
+	for _, m := range regexp.MustCompile(`@keyframes\s+([A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		defined[m[1]] = true
+	}
+	if len(defined) == 0 {
+		t.Fatal("journey stylesheet defines no keyframes")
+	}
+	for _, m := range regexp.MustCompile(`animation-name:([A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		if !defined[m[1]] {
+			t.Errorf("animation-name %q has no @keyframes block", m[1])
+		}
+	}
+	for _, m := range regexp.MustCompile(`animation:(jn-[A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		if !defined[m[1]] {
+			t.Errorf("plain animation reference %q has no @keyframes block", m[1])
+		}
+	}
+	for _, m := range regexp.MustCompile(`both,(jn-[A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		if !defined[m[1]] {
+			t.Errorf("second animation reference %q has no @keyframes block", m[1])
 		}
 	}
 }

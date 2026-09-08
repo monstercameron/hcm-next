@@ -25,9 +25,9 @@ func TestTodo_WEB_019(t *testing.T) {
 		"--hcm-focus-ring-width:2px",
 		"--hcm-focus-ring-gap:2px",
 		"--hcm-focus-ring-offset:4px",
-		indicator.Selector + "{outline:var(--hcm-focus-ring-width) solid var(--hcm-color-focus)",
+		indicator.Selector + "{box-shadow:0 0 0 var(--hcm-focus-ring-gap) var(--surface);outline:var(--hcm-focus-ring-width) solid var(--hcm-color-focus)",
 		"box-shadow:0 0 0 var(--hcm-focus-ring-gap) var(--surface)",
-		".wordmark:focus-visible{outline-offset:calc(var(--hcm-focus-ring-offset) * -1);box-shadow:none}",
+		".wordmark:focus-visible{box-shadow:none;outline-offset:calc(var(--hcm-focus-ring-offset) * -1);}",
 	} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("stylesheet missing visible-focus contract %q", want)
@@ -65,7 +65,7 @@ func TestTodo_WEB_019_Browser(t *testing.T) {
 	}
 	for _, want := range []string{
 		VisibleFocusIndicator().Selector,
-		"@media(forced-colors:active)",
+		"@media (forced-colors:active)",
 		"outline:2px solid Highlight!important",
 		"forced-color-adjust:auto",
 		"--jn-focus-color:var(--hcm-color-focus)",
@@ -84,18 +84,18 @@ func TestTodo_WEB_019_Conformance(t *testing.T) {
 	for _, forbidden := range []string{
 		":focus-visible{outline:none",
 		":focus-visible{outline:0",
-		"@media(forced-colors:active){:focus-visible{outline:none",
+		"@media (forced-colors:active){:focus-visible{outline:none",
 	} {
 		if strings.Contains(css, forbidden) {
 			t.Fatalf("visible focus was disabled by %q", forbidden)
 		}
 	}
 	for _, required := range []string{
-		"@media(prefers-reduced-motion:reduce)",
+		"@media (prefers-reduced-motion:reduce)",
 		"animation:none!important",
 		"transition:none!important",
 		"box-shadow:0 0 0 2px Canvas!important",
-		".wordmark:focus-visible{outline-offset:-4px!important;box-shadow:none!important}",
+		".wordmark:focus-visible{box-shadow:none!important;outline-offset:-4px!important;}",
 	} {
 		if !strings.Contains(css, required) {
 			t.Fatalf("focus safety boundary missing %q", required)

@@ -1,10 +1,10 @@
 ﻿=== root (github.com/monstercameron/hcm-next) ===
-files(non-test)=2069 generated=42 hand-written=2027 hand-written-in-untested-pkgs=2
+files(non-test)=2088 generated=42 hand-written=2046 hand-written-in-untested-pkgs=2
 untested pkgs(2): tools/gen/librarystrategy/cmd/generatelibrarystrategy, tools/gen/schemaflux/cmd/modelgen
 
 # Test-coverage file inventory - root (github.com/monstercameron/hcm-next) module
 
-generated=42 hand-written=2027
+generated=42 hand-written=2046
 
 ## Hand-written files
 
@@ -917,6 +917,15 @@ generated=42 hand-written=2027
 | internal/humanwork/productui                             | styles.go                             | yes           |
 | internal/humanwork/productui                             | support_components.go                 | yes           |
 | internal/humanwork/productui                             | theme.go                              | yes           |
+| internal/humanwork/productui                             | typed_mig_A.go                        | yes           |
+| internal/humanwork/productui                             | typed_mig_B.go                        | yes           |
+| internal/humanwork/productui                             | typed_mig_C.go                        | yes           |
+| internal/humanwork/productui                             | typed_mig_D.go                        | yes           |
+| internal/humanwork/productui                             | typed_mig_E.go                        | yes           |
+| internal/humanwork/productui                             | typed_mig_F.go                        | yes           |
+| internal/humanwork/productui                             | typed_sheet.go                        | yes           |
+| internal/humanwork/productui                             | typed_styles.go                       | yes           |
+| internal/humanwork/productui                             | typed_theme.go                        | yes           |
 | internal/humanwork/productui                             | work_components.go                    | yes           |
 | internal/humanwork/productui                             | worker_id_components.go               | yes           |
 | internal/humanwork/profilephoto                          | filestore.go                          | yes           |
@@ -949,6 +958,7 @@ generated=42 hand-written=2027
 | internal/humanwork/workspace                             | render.go                             | yes           |
 | internal/humanwork/workspace                             | request.go                            | yes           |
 | internal/humanwork/workspace                             | tunnel_admission.go                   | yes           |
+| internal/humanwork/workspace                             | typed_sheets.go                       | yes           |
 | internal/i18n                                            | catalog.go                            | yes           |
 | internal/i18n                                            | locale.go                             | yes           |
 | internal/intent                                          | authoring.go                          | yes           |
@@ -2016,6 +2026,11 @@ generated=42 hand-written=2027
 | tools/uxqual/render/journey                              | people.go                             | yes           |
 | tools/uxqual/render/journey                              | renderer.go                           | yes           |
 | tools/uxqual/render/journey                              | styles.go                             | yes           |
+| tools/uxqual/render/journey                              | typed_journey_a.go                    | yes           |
+| tools/uxqual/render/journey                              | typed_journey_b.go                    | yes           |
+| tools/uxqual/render/journey                              | typed_journey_c.go                    | yes           |
+| tools/uxqual/render/journey                              | typed_keyframes.go                    | yes           |
+| tools/uxqual/render/journey                              | typed_sheet.go                        | yes           |
 | tools/uxqual/render/page                                 | doc.go                                | yes           |
 | tools/uxqual/render/page                                 | promotion_widgets.go                  | yes           |
 | tools/uxqual/render/page                                 | render.go                             | yes           |
@@ -2031,8 +2046,12 @@ generated=42 hand-written=2027
 | tools/uxqual/ssrshell                                    | doc.go                                | yes           |
 | tools/uxqual/ssrshell                                    | landmarks.go                          | yes           |
 | tools/uxqual/ssrshell                                    | render.go                             | yes           |
+| tools/uxqual/ssrshell                                    | typed_sheet.go                        | yes           |
+| tools/uxqual/ssrshell                                    | typed_shell.go                        | yes           |
 | tools/uxqual/taskmux                                     | taskmux.go                            | yes           |
 | tools/uxqual/tokens                                      | tokens.go                             | yes           |
+| tools/uxqual/tokens                                      | typed_sheet.go                        | yes           |
+| tools/uxqual/tokens                                      | typed_tokens.go                       | yes           |
 | tools/uxqual/wcag                                        | doc.go                                | yes           |
 | tools/uxqual/wcag                                        | evidence.go                           | yes           |
 | tools/uxqual/wcag                                        | gate.go                               | yes           |

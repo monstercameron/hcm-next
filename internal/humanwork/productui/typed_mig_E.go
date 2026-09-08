@@ -1,0 +1,1066 @@
+package productui
+
+import (
+	gwccss "github.com/monstercameron/GoWebComponents/v5/css"
+)
+
+// Typed builders for the E-batch consts from styles.go (plus the
+// themeCoverageStyles composition with focus.go bridge/focus parts).
+// Selectors are byte-identical to the string consts; gwccss.Raw covers
+// var() fallbacks, logical props, system colors, color-mix, multi-layer
+// backgrounds, shadows, grid shorthands, and !important values.
+
+func AppearanceRobustnessStylesheet() string {
+	return buildTypedSheet(declareAppearanceRobustnessStyles)
+}
+
+func declareAppearanceRobustnessStyles() {
+	declareGlobal(".appearance-status[data-tone=\"warning\"]",
+		gwccss.TextColor(gwccss.Var("warning")),
+		gwccss.Raw("font-weight", "700"),
+	)
+}
+
+func AppearanceSwatchStylesheet() string {
+	return buildTypedSheet(declareAppearanceSwatchStyles)
+}
+
+func declareAppearanceSwatchStyles() {
+	declareGlobal(".swatch-evergreen-1",
+		gwccss.Bg(gwccss.Hex("006b57")),
+	)
+	declareGlobal(".swatch-evergreen-2",
+		gwccss.Bg(gwccss.Hex("eaf3ef")),
+	)
+	declareGlobal(".swatch-evergreen-3",
+		gwccss.Bg(gwccss.Hex("102238")),
+	)
+	declareGlobal(".swatch-ocean-1",
+		gwccss.Bg(gwccss.Hex("1555a3")),
+	)
+	declareGlobal(".swatch-ocean-2",
+		gwccss.Bg(gwccss.Hex("eaf1fb")),
+	)
+	declareGlobal(".swatch-ocean-3",
+		gwccss.Bg(gwccss.Hex("13243a")),
+	)
+	declareGlobal(".swatch-plum-1",
+		gwccss.Bg(gwccss.Hex("7a285f")),
+	)
+	declareGlobal(".swatch-plum-2",
+		gwccss.Bg(gwccss.Hex("f7eaf2")),
+	)
+	declareGlobal(".swatch-plum-3",
+		gwccss.Bg(gwccss.Hex("2e1c29")),
+	)
+	declareGlobal(".swatch-graphite-1",
+		gwccss.Bg(gwccss.Hex("344054")),
+	)
+	declareGlobal(".swatch-graphite-2",
+		gwccss.Bg(gwccss.Hex("edf0f3")),
+	)
+	declareGlobal(".swatch-graphite-3",
+		gwccss.Bg(gwccss.Hex("182230")),
+	)
+}
+
+func CustomerIdentityStylesheet() string {
+	return buildTypedSheet(declareCustomerIdentityStyles)
+}
+
+func declareCustomerIdentityStyles() {
+	declareGlobal(".app-shell .wordmark",
+		gwccss.Gap(gwccss.Px(10)),
+		gwccss.Raw("padding-left", "20px"),
+	)
+	declareGlobal(".app-shell .wordmark:before",
+		gwccss.Display.None,
+	)
+	declareGlobal(".app-shell .wordmark-mark",
+		gwccss.Display.Grid,
+		gwccss.Raw("place-items", "center"),
+		gwccss.Raw("flex", "none"),
+		gwccss.W(gwccss.Px(34)),
+		gwccss.H(gwccss.Px(34)),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.Bg(gwccss.Var("accent")),
+		gwccss.TextColor(gwccss.Hex("fff")),
+		gwccss.FontSize(gwccss.Rem(.9)),
+		gwccss.Tracking(gwccss.Zero),
+	)
+	declareGlobal(".wordmark-label",
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.Raw("overflow", "hidden"),
+		gwccss.TextOverflowEllipsis(),
+		gwccss.Raw("white-space", "nowrap"),
+	)
+	declareGlobal(".appearance-brand-fields",
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)), gwccss.MinMax(gwccss.TrackLen(gwccss.Px(120)), gwccss.Fr(.32))),
+		gwccss.Gap(gwccss.Px(12)),
+	)
+	declareGlobal(".appearance-brand-fields label",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(.82)),
+		gwccss.Raw("font-weight", "700"),
+	)
+	declareGlobal(".appearance-brand-fields input",
+		gwccss.W(gwccss.Percent(100)),
+		gwccss.MinHeight(gwccss.Px(44)),
+		gwccss.PaddingY(gwccss.Px(9)), gwccss.PaddingX(gwccss.Px(11)),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".appearance-brand-fields small",
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.Raw("font-weight", "400"),
+	)
+	declareGlobal(".appearance-preview-mark",
+		gwccss.Display.Grid,
+		gwccss.Raw("place-items", "center"),
+		gwccss.MinWidth(gwccss.Px(25)),
+		gwccss.H(gwccss.Px(25)),
+		gwccss.PaddingY(gwccss.Zero), gwccss.PaddingX(gwccss.Px(5)),
+		gwccss.Raw("border", "1px solid rgba(255,255,255,.45)"),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.Raw("background", "rgba(255,255,255,.16)"),
+		gwccss.FontSize(gwccss.Rem(.7)),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"tinted\"] .sidebar,:root[data-hcm-navigation=\"tinted\"] .appearance-preview-nav",
+		gwccss.Bg(gwccss.Var("soft")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar,:root[data-hcm-navigation=\"brand\"] .appearance-preview-nav",
+		gwccss.BorderColor(gwccss.Var("accent-hover")),
+		gwccss.Bg(gwccss.Var("accent")),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .tenant,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-section-label,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-favorite,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-chevron",
+		gwccss.Raw("color", "rgba(255,255,255,.78)"),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .sidebar-toggle,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-link,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-group-summary",
+		gwccss.Raw("border-color", "rgba(255,255,255,.34)"),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .nav-link:hover,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-link[aria-current=\"page\"],:root[data-hcm-navigation=\"brand\"] .sidebar .nav-group-summary:hover,:root[data-hcm-navigation=\"brand\"] .sidebar .nav-group.current>.nav-group-summary",
+		gwccss.Raw("background", "rgba(255,255,255,.16)"),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .nav-count",
+		gwccss.Raw("background", "rgba(255,255,255,.18)"),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .menu-filter input",
+		gwccss.Raw("border-color", "rgba(255,255,255,.42)"),
+		gwccss.Raw("background", "rgba(255,255,255,.12)"),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .menu-filter input::placeholder",
+		gwccss.Raw("color", "rgba(255,255,255,.76)"),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar .menu-filter-submit",
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .sidebar :focus-visible",
+		gwccss.Raw("outline-color", "#fff"),
+		gwccss.Shadow(gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(3), gwccss.Var("accent-hover"))),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .appearance-preview-nav .nav-icon",
+		gwccss.TextColor(gwccss.Hex("fff")),
+		gwccss.Raw("stroke", "#fff"),
+	)
+	declareGlobal(":root[data-hcm-navigation=\"brand\"] .appearance-preview-nav",
+		gwccss.BorderColor(gwccss.Var("accent-hover")),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .main",
+		mediaRule(gwccss.MinW(761), gwccss.Raw("padding-block", "24px 18px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .page-head",
+		mediaRule(gwccss.MinW(761), gwccss.Raw("margin-bottom", "22px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .nav-link,:root[data-hcm-density=\"compact\"] .nav-group-summary",
+		mediaRule(gwccss.MinW(761), gwccss.MinHeight(gwccss.Px(41)), gwccss.Raw("padding-block", "7px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .work-row",
+		mediaRule(gwccss.MinW(761), gwccss.MinHeight(gwccss.Px(74)), gwccss.Raw("padding-block", "10px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .home-grid,:root[data-hcm-density=\"compact\"] .workbench,:root[data-hcm-density=\"compact\"] .insights-grid",
+		mediaRule(gwccss.MinW(761), gwccss.Gap(gwccss.Px(15))),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .main",
+		mediaRule(gwccss.MinW(761), gwccss.Raw("padding-block", "38px 26px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .page-head",
+		mediaRule(gwccss.MinW(761), gwccss.Raw("margin-bottom", "36px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .nav-link,:root[data-hcm-density=\"spacious\"] .nav-group-summary",
+		mediaRule(gwccss.MinW(761), gwccss.MinHeight(gwccss.Px(51))),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .work-row",
+		mediaRule(gwccss.MinW(761), gwccss.MinHeight(gwccss.Px(96)), gwccss.Raw("padding-block", "18px")),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .home-grid,:root[data-hcm-density=\"spacious\"] .workbench,:root[data-hcm-density=\"spacious\"] .insights-grid",
+		mediaRule(gwccss.MinW(761), gwccss.Gap(gwccss.Px(25))),
+	)
+	declareGlobal(".appearance-brand-fields",
+		mediaRule(gwccss.MaxW(680), gwccss.GridCols(gwccss.Fr(1))),
+	)
+}
+
+func AppearanceStylesheet() string {
+	return buildTypedSheet(declareAppearanceStyles)
+}
+
+func declareAppearanceStyles() {
+	declareGlobal(".appearance-page",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(18)),
+	)
+	declareGlobal(".appearance-intro",
+		gwccss.Display.Flex,
+		gwccss.Raw("align-items", "flex-start"),
+		gwccss.Raw("justify-content", "space-between"),
+		gwccss.Gap(gwccss.Px(24)),
+		gwccss.PaddingY(gwccss.Px(22)), gwccss.PaddingX(gwccss.Px(24)),
+	)
+	declareGlobal(".appearance-intro-copy",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.MaxWidth(gwccss.Px(760)),
+	)
+	declareGlobal(".appearance-intro h2",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(1.2)),
+	)
+	declareGlobal(".appearance-badge",
+		gwccss.Display.InlineFlex,
+		gwccss.Items.Center,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.Raw("white-space", "nowrap"),
+		gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(10)),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.Px(999)),
+		gwccss.Bg(gwccss.Var("soft")),
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.FontSize(gwccss.Rem(.75)),
+		gwccss.Raw("font-weight", "750"),
+	)
+	declareGlobal(".appearance-form",
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1.5)), gwccss.MinMax(gwccss.TrackLen(gwccss.Px(280)), gwccss.Fr(.7))),
+		gwccss.Gap(gwccss.Px(18)),
+		gwccss.Raw("align-items", "start"),
+	)
+	declareGlobal(".appearance-controls",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(14)),
+	)
+	declareGlobal(".appearance-group",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.PaddingY(gwccss.Px(20)), gwccss.PaddingX(gwccss.Px(22)),
+		gwccss.Raw("border", "0"),
+	)
+	declareGlobal(".appearance-group legend",
+		gwccss.Raw("padding", "0 0 10px"),
+		gwccss.FontSize(gwccss.Rem(1)),
+		gwccss.Raw("font-weight", "750"),
+	)
+	declareGlobal(".appearance-group-help",
+		gwccss.Raw("margin", "-6px 0 14px"),
+	)
+	declareGlobal(".appearance-choices",
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.Repeat(3, gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)))),
+		gwccss.Gap(gwccss.Px(10)),
+	)
+	declareGlobal(".appearance-choices.palette-choices",
+		gwccss.GridCols(gwccss.Repeat(4, gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)))),
+	)
+	declareGlobal(".appearance-choice",
+		gwccss.Position.Relative,
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.MinHeight(gwccss.Px(94)),
+		gwccss.Padding(gwccss.Px(13)),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.Raw("cursor", "pointer"),
+	)
+	declareGlobal(".appearance-choice:hover",
+		gwccss.BorderColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".appearance-choice:has(input:checked)",
+		gwccss.BorderColor(gwccss.Var("accent")),
+		gwccss.Shadow(gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(2), gwccss.Var("soft"))),
+	)
+	declareGlobal(".appearance-choice input",
+		gwccss.Position.Absolute,
+		gwccss.Top(gwccss.Px(12)),
+		gwccss.Right(gwccss.Px(12)),
+		gwccss.Raw("accent-color", "var(--accent)"),
+	)
+	declareGlobal(".appearance-choice strong",
+		gwccss.Raw("padding-right", "22px"),
+		gwccss.FontSize(gwccss.Rem(.85)),
+	)
+	declareGlobal(".appearance-choice small",
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.LineHeight(gwccss.Num(1.35)),
+	)
+	declareGlobal(".appearance-swatches",
+		gwccss.Display.Flex,
+		gwccss.Gap(gwccss.Px(4)),
+	)
+	declareGlobal(".appearance-swatch",
+		gwccss.W(gwccss.Px(23)),
+		gwccss.H(gwccss.Px(23)),
+		gwccss.Raw("border", "1px solid rgba(16,34,56,.12)"),
+		gwccss.Rounded(gwccss.Percent(50)),
+	)
+	declareGlobal(".appearance-preview",
+		gwccss.Position.Sticky,
+		gwccss.Top(gwccss.Px(18)),
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(14)),
+		gwccss.Padding(gwccss.Px(20)),
+	)
+	declareGlobal(".appearance-preview-window",
+		gwccss.Raw("overflow", "hidden"),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("panel")),
+		gwccss.Bg(gwccss.Var("canvas")),
+	)
+	declareGlobal(".appearance-preview-bar",
+		gwccss.Display.Flex,
+		gwccss.Items.Center,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.PaddingY(gwccss.Px(10)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Bg(gwccss.Var("accent")),
+		gwccss.TextColor(gwccss.Hex("fff")),
+	)
+	declareGlobal(".appearance-preview-dot",
+		gwccss.W(gwccss.Px(7)),
+		gwccss.H(gwccss.Px(7)),
+		gwccss.Rounded(gwccss.Percent(50)),
+		gwccss.Raw("background", "rgba(255,255,255,.75)"),
+	)
+	declareGlobal(".appearance-preview-body",
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.TrackLen(gwccss.Px(54)), gwccss.Fr(1)),
+		gwccss.MinHeight(gwccss.Px(174)),
+	)
+	declareGlobal(".appearance-preview-nav",
+		gwccss.Display.Grid,
+		gwccss.Raw("align-content", "start"),
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.PaddingY(gwccss.Px(12)), gwccss.PaddingX(gwccss.Px(9)),
+		gwccss.BorderRight(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Bg(gwccss.Var("surface")),
+	)
+	declareGlobal(".appearance-preview-nav span",
+		gwccss.H(gwccss.Px(8)),
+		gwccss.Rounded(gwccss.Px(4)),
+		gwccss.Bg(gwccss.Var("line")),
+	)
+	declareGlobal(".appearance-preview-nav span:first-child",
+		gwccss.Bg(gwccss.Var("accent")),
+	)
+	declareGlobal(".appearance-preview-content",
+		gwccss.Display.Grid,
+		gwccss.Raw("align-content", "start"),
+		gwccss.Gap(gwccss.Px(9)),
+		gwccss.Padding(gwccss.Px(15)),
+	)
+	declareGlobal(".appearance-preview-content>span",
+		gwccss.W(gwccss.Percent(55)),
+		gwccss.H(gwccss.Px(10)),
+		gwccss.Rounded(gwccss.Px(5)),
+		gwccss.Bg(gwccss.Var("ink")),
+	)
+	declareGlobal(".appearance-preview-card",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.Padding(gwccss.Px(12)),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("panel")),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.Raw("box-shadow", "var(--hcm-shadow-resting)"),
+	)
+	declareGlobal(".appearance-preview-card i",
+		gwccss.W(gwccss.Percent(42)),
+		gwccss.H(gwccss.Px(7)),
+		gwccss.Rounded(gwccss.Px(4)),
+		gwccss.Bg(gwccss.Var("accent")),
+	)
+	declareGlobal(".appearance-preview-card span",
+		gwccss.H(gwccss.Px(6)),
+		gwccss.Rounded(gwccss.Px(3)),
+		gwccss.Bg(gwccss.Var("line")),
+	)
+	declareGlobal(".appearance-actions",
+		gwccss.Display.Flex,
+		gwccss.Raw("flex-wrap", "wrap"),
+		gwccss.Items.Center,
+		gwccss.Gap(gwccss.Px(10)),
+		gwccss.Raw("padding-top", "4px"),
+	)
+	declareGlobal(".appearance-status",
+		gwccss.MinHeight(gwccss.Px(22)),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(.78)),
+	)
+	declareGlobal(".appearance-status[data-tone=\"success\"]",
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.Raw("font-weight", "700"),
+	)
+	declareGlobal(":root[data-hcm-density=\"compact\"] .surface,:root[data-hcm-density=\"compact\"] .appearance-group",
+		gwccss.Raw("padding-block", "calc(20px * var(--hcm-density))"),
+	)
+	declareGlobal(":root[data-hcm-density=\"spacious\"] .surface,:root[data-hcm-density=\"spacious\"] .appearance-group",
+		gwccss.Raw("padding-block", "calc(20px * var(--hcm-density))"),
+	)
+	declareGlobal(".appearance-form",
+		mediaRule(gwccss.MaxW(1040), gwccss.GridCols(gwccss.Fr(1))),
+	)
+	declareGlobal(".appearance-preview",
+		mediaRule(gwccss.MaxW(1040), gwccss.Position.Static, gwccss.GridRow(gwccss.GridLineAt(1))),
+	)
+	declareGlobal(".appearance-choices.palette-choices",
+		mediaRule(gwccss.MaxW(1040), gwccss.GridCols(gwccss.Repeat(2, gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1))))),
+	)
+	declareGlobal(".appearance-intro",
+		mediaRule(gwccss.MaxW(680), gwccss.Display.Grid, gwccss.Padding(gwccss.Px(18))),
+	)
+	declareGlobal(".appearance-choices,.appearance-choices.palette-choices",
+		mediaRule(gwccss.MaxW(680), gwccss.GridCols(gwccss.Fr(1))),
+	)
+	declareGlobal(".appearance-group,.appearance-preview",
+		mediaRule(gwccss.MaxW(680), gwccss.Padding(gwccss.Px(16))),
+	)
+	declareGlobal(".appearance-preview-body",
+		mediaRule(gwccss.MaxW(680), gwccss.MinHeight(gwccss.Px(145))),
+	)
+}
+
+func SemanticThemeStylesheet() string {
+	return buildTypedSheet(declareSemanticThemeStyles)
+}
+
+func declareSemanticThemeStyles() {
+	declareGlobal(":root",
+		gwccss.Raw("font-family", "var(--hcm-font-sans)"),
+		gwccss.Custom("accent", "var(--hcm-color-brand-primary)"),
+		gwccss.Custom("accent-hover", "var(--hcm-color-brand-hover)"),
+		gwccss.Custom("soft", "var(--hcm-color-brand-soft)"),
+		gwccss.Custom("ink", "var(--hcm-color-text)"),
+		gwccss.Custom("muted", "var(--hcm-color-text-muted)"),
+		gwccss.Custom("canvas", "var(--hcm-color-canvas)"),
+		gwccss.Custom("surface", "var(--hcm-color-surface)"),
+		gwccss.Custom("line", "var(--hcm-color-border)"),
+		gwccss.Custom("warning", "var(--hcm-color-warning)"),
+		gwccss.Custom("warning-bg", "var(--hcm-color-warning-surface)"),
+		gwccss.Custom("danger", "var(--hcm-color-danger)"),
+		gwccss.Custom("radius", "var(--hcm-radius-control)"),
+		gwccss.Custom("panel", "var(--hcm-radius-surface)"),
+	)
+	declareGlobal("body",
+		gwccss.FontSize(gwccss.VarLength("hcm-font-size-body")),
+		gwccss.Raw("line-height", "var(--hcm-line-height)"),
+	)
+	declareGlobal(".page-head h1",
+		gwccss.FontSize(gwccss.VarLength("hcm-font-size-heading")),
+	)
+	declareGlobal(".button,.nav-link,.work-row,.people-row",
+		gwccss.FontSize(gwccss.VarLength("hcm-font-size-small")),
+	)
+}
+
+func MotionStylesheet() string {
+	return buildTypedSheet(declareMotionStyles)
+}
+
+func declareMotionStyles() {
+	declareGlobal(".main>.page-head,.main>.home-grid,.main>.workbench,.main>.people-page,.main>.person-page,.main>.organization-page,.main>.insights-grid,.main>.admin-grid,.main>.studio-page,.main>.jn-embedded",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-page-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(var(--hcm-motion-distance))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+	)
+	declareGlobal(".work-row,.people-row,.history-row,.jn-embedded .jn-griditem",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+	)
+	declareGlobal(".work-row:nth-child(2),.people-row:nth-child(2),.history-row:nth-child(2),.jn-embedded .jn-griditem:nth-child(2)",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "35ms")),
+	)
+	declareGlobal(".work-row:nth-child(3),.people-row:nth-child(3),.history-row:nth-child(3),.jn-embedded .jn-griditem:nth-child(3)",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "70ms")),
+	)
+	declareGlobal(".work-row:nth-child(4),.people-row:nth-child(4),.history-row:nth-child(4),.jn-embedded .jn-griditem:nth-child(4)",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "105ms")),
+	)
+	declareGlobal(".work-row:nth-child(n+5),.people-row:nth-child(n+5),.history-row:nth-child(n+5),.jn-embedded .jn-griditem:nth-child(n+5)",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "140ms")),
+	)
+	declareGlobal(".status,.count",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-status-settle", gwccss.At("0%", gwccss.Transform(gwccss.Scale(.96)), gwccss.Opacity(.2)), gwccss.At("100%", gwccss.Transform(gwccss.Scale(1)), gwccss.Opacity(1))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+	)
+	declareGlobal(".notifications[open] .popover",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+	)
+	declareGlobal(".jn-embedded .jn-loading",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Position.Relative, gwccss.Raw("overflow", "hidden")),
+	)
+	declareGlobal(".jn-embedded .jn-loading:after",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Position.Absolute, gwccss.Raw("inset", "0"), gwccss.Raw("content", "\"\""), gwccss.Raw("pointer-events", "none"), gwccss.Raw("background", "linear-gradient(100deg,transparent 25%,rgba(255,255,255,.65) 48%,transparent 72%)"), gwccss.Keyframes("hcm-shimmer", gwccss.At("from", gwccss.Raw("transform", "translateX(-115%)")), gwccss.At("to", gwccss.Raw("transform", "translateX(115%)"))), gwccss.Animation(gwccss.S(1.25), gwccss.Linear), gwccss.Raw("animation-iteration-count", "infinite")),
+	)
+	declareGlobal(".button,.nav-link,.nav-favorite,.sidebar-toggle,.surface,.jn-embedded .jn-card",
+		gwccss.Raw("transition", "transform var(--hcm-motion-fast) var(--hcm-motion-easing),box-shadow var(--hcm-motion-normal) var(--hcm-motion-easing),border-color var(--hcm-motion-fast) var(--hcm-motion-easing),background-color var(--hcm-motion-fast) var(--hcm-motion-easing),color var(--hcm-motion-fast) var(--hcm-motion-easing)"),
+	)
+	declareGlobal(".button:hover,.jn-embedded .jn-btn:hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-1)))),
+	)
+	declareGlobal(".button:active,.jn-embedded .jn-btn:active",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Raw("transform", "translateY(0) scale(.985)")),
+	)
+	declareGlobal(".surface:hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Raw("box-shadow", "var(--hcm-shadow-resting)")),
+	)
+	declareGlobal(".notifications[open] .popover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Raw("box-shadow", "var(--hcm-shadow-raised)")),
+	)
+	declareGlobal(":root",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.CustomDuration("hcm-motion-fast", gwccss.RawDuration(".01ms")), gwccss.CustomDuration("hcm-motion-normal", gwccss.RawDuration(".01ms")), gwccss.CustomDuration("hcm-motion-slow", gwccss.RawDuration(".01ms")), gwccss.CustomLength("hcm-motion-distance", gwccss.Px(0))),
+	)
+	declareGlobal("*,*::before,*::after",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("animation", "none!important"), gwccss.TransitionDuration(gwccss.RawDuration(".01ms!important")), gwccss.Raw("transition-delay", "0ms!important"), gwccss.Raw("scroll-behavior", "auto!important")),
+	)
+}
+
+func InteractionMotionStylesheet() string {
+	return buildTypedSheet(declareInteractionMotionStyles)
+}
+
+func declareInteractionMotionStyles() {
+	declareGlobal(":root",
+		gwccss.Raw("interpolate-size", "allow-keywords"),
+	)
+	declareGlobal(":root[data-hcm-motion-preference=\"limited\"]",
+		gwccss.CustomDuration("hcm-motion-fast", gwccss.Ms(70)),
+		gwccss.CustomDuration("hcm-motion-normal", gwccss.Ms(100)),
+		gwccss.CustomDuration("hcm-motion-slow", gwccss.Ms(130)),
+		gwccss.CustomLength("hcm-motion-distance", gwccss.Px(2)),
+	)
+	declareGlobal(".brand-cluster",
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)), gwccss.TrackLen(gwccss.RawLength("auto"))),
+		gwccss.Items.Center,
+		gwccss.H(gwccss.Px(81)),
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.BorderRight(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Raw("overflow", "hidden"),
+	)
+	declareGlobal(".brand-cluster .wordmark",
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.H(gwccss.Percent(100)),
+		gwccss.Raw("padding-inline", "20px 6px"),
+		gwccss.Raw("border-right", "0"),
+	)
+	declareGlobal(".header-nav-toggle",
+		gwccss.Display.Grid,
+		gwccss.Raw("place-items", "center"),
+		gwccss.Raw("flex", "none"),
+		gwccss.W(gwccss.Px(38)),
+		gwccss.H(gwccss.Px(38)),
+		gwccss.Raw("margin-right", "8px"),
+		gwccss.Border(gwccss.Px(1), gwccss.Transparent),
+		gwccss.Rounded(gwccss.VarLength("hcm-radius-control")),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.Raw("text-decoration", "none"),
+	)
+	declareGlobal(".header-nav-toggle:hover",
+		gwccss.BorderColor(gwccss.Var("line")),
+		gwccss.Bg(gwccss.Var("soft")),
+		gwccss.TextColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".header-nav-toggle .nav-icon",
+		gwccss.W(gwccss.Px(19)),
+		gwccss.H(gwccss.Px(19)),
+	)
+	declareGlobal(".sidebar",
+		gwccss.Raw("padding-top", "14px"),
+	)
+	declareGlobal(".tenant",
+		gwccss.Raw("padding-top", "2px"),
+	)
+	declareGlobal(".wordmark-label,.tenant,.nav-label,.nav-count",
+		gwccss.Raw("overflow", "hidden"),
+		gwccss.Opacity(1),
+		gwccss.Transform(gwccss.TranslateX(gwccss.Zero)),
+	)
+	declareGlobal(".wordmark-label",
+		gwccss.MaxWidth(gwccss.Px(180)),
+	)
+	declareGlobal(".nav-label",
+		gwccss.Display.InlineBlock,
+		gwccss.MaxWidth(gwccss.Px(160)),
+		gwccss.Raw("white-space", "nowrap"),
+	)
+	declareGlobal(".nav-count",
+		gwccss.MaxWidth(gwccss.Px(54)),
+	)
+	declareGlobal(".app-shell.nav-collapsed .brand-cluster",
+		gwccss.GridCols(gwccss.TrackLen(gwccss.Px(32)), gwccss.TrackLen(gwccss.Px(32))),
+		gwccss.Gap(gwccss.Px(4)),
+		gwccss.Raw("padding-inline", "2px"),
+	)
+	declareGlobal(".app-shell.nav-collapsed .brand-cluster .wordmark",
+		gwccss.Justify.Center,
+		gwccss.Padding(gwccss.Zero),
+		gwccss.Raw("border", "0"),
+	)
+	declareGlobal(".app-shell.nav-collapsed .wordmark-mark",
+		gwccss.W(gwccss.Px(30)),
+		gwccss.H(gwccss.Px(30)),
+	)
+	declareGlobal(".app-shell.nav-collapsed .header-nav-toggle",
+		gwccss.W(gwccss.Px(32)),
+		gwccss.H(gwccss.Px(32)),
+		gwccss.Margin(gwccss.Zero),
+	)
+	declareGlobal(".app-shell.nav-collapsed .wordmark-label",
+		gwccss.Display.Block,
+		gwccss.MaxWidth(gwccss.Zero),
+		gwccss.Opacity(0),
+		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
+	)
+	declareGlobal(".sidebar.collapsed .tenant",
+		gwccss.Raw("display", "block!important"),
+		gwccss.MaxHeight(gwccss.Zero),
+		gwccss.Raw("padding-block", "0"),
+		gwccss.Opacity(0),
+		gwccss.Raw("overflow", "hidden"),
+		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
+		gwccss.Raw("pointer-events", "none"),
+	)
+	declareGlobal(".sidebar.collapsed .nav-label",
+		gwccss.Raw("display", "inline-block!important"),
+		gwccss.MaxWidth(gwccss.Zero),
+		gwccss.Opacity(0),
+		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
+		gwccss.Raw("pointer-events", "none"),
+	)
+	declareGlobal(".sidebar.collapsed .nav-count",
+		gwccss.Raw("display", "inline-flex!important"),
+		gwccss.MaxWidth(gwccss.Zero),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Raw("padding-inline", "0"),
+		gwccss.Opacity(0),
+		gwccss.Transform(gwccss.Scale(.85)),
+		gwccss.Raw("pointer-events", "none"),
+	)
+	declareGlobal(".sidebar.collapsed .nav-favorite,.sidebar.collapsed .nav-section-label",
+		gwccss.Display.None,
+	)
+	declareGlobal(".nav-group",
+		gwccss.Raw("overflow", "clip"),
+	)
+	declareGlobal(".nav-group::details-content",
+		gwccss.Raw("block-size", "0"),
+		gwccss.Raw("overflow", "clip"),
+		gwccss.Opacity(0),
+		gwccss.Raw("content-visibility", "hidden"),
+		gwccss.Raw("transition", "block-size var(--hcm-motion-normal) var(--hcm-motion-easing),opacity var(--hcm-motion-fast) linear,content-visibility var(--hcm-motion-normal) allow-discrete"),
+	)
+	declareGlobal(".nav-group[open]::details-content",
+		gwccss.Raw("block-size", "auto"),
+		gwccss.Opacity(1),
+		gwccss.Raw("content-visibility", "visible"),
+	)
+	declareGlobal(".nav-chevron",
+		gwccss.Raw("transform-origin", "center"),
+		gwccss.Transition(gwccss.TransitionProps(gwccss.Prop("transform")), gwccss.VarDuration("hcm-motion-normal"), gwccss.Easing("var(--hcm-motion-easing)")),
+	)
+	declareGlobal(".nav-group[open]>.nav-group-summary .nav-chevron",
+		gwccss.Transform(gwccss.Rotate(gwccss.Deg(90))),
+	)
+	declareGlobal(":where(.shell-grid,.topbar,.sidebar,.brand-cluster,.wordmark,.wordmark-label,.tenant,.nav-label,.nav-count,.header-nav-toggle,.nav-icon,.nav-favorite,.menu-filter-control,.button,.tab,.scope,.surface,.work-row,.people-row,.history-row,.activity,.metric,.org-node,.workflow-card,.choice,.accessibility-choice,.jn-embedded .jn-card,.jn-embedded .jn-btn)",
+		gwccss.Raw("transition-property", "width,max-width,max-height,grid-template-columns,opacity,transform,box-shadow,border-color,background-color,color"),
+		gwccss.TransitionDuration(gwccss.VarDuration("hcm-motion-normal")),
+		gwccss.Raw("transition-timing-function", "var(--hcm-motion-easing)"),
+	)
+	declareGlobal(":where(input,select,textarea)",
+		gwccss.Transition(gwccss.TransitionProps(gwccss.Prop("border-color"), gwccss.Prop("box-shadow"), gwccss.Prop("background-color")), gwccss.VarDuration("hcm-motion-fast"), gwccss.Easing("var(--hcm-motion-easing)")),
+	)
+	declareGlobal(".header-nav-toggle:hover .nav-icon",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.TranslateX(gwccss.Px(-2)))),
+	)
+	declareGlobal(".app-shell.nav-collapsed .header-nav-toggle:hover .nav-icon",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.TranslateX(gwccss.Px(2)))),
+	)
+	declareGlobal(".nav-link:hover .nav-icon,.nav-group-summary:hover .nav-icon",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.Scale(1.08))),
+	)
+	declareGlobal(".nav-favorite:hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.Scale(1.12), gwccss.Rotate(gwccss.Deg(-8)))),
+	)
+	declareGlobal(":where(.work-row,.people-row,.history-row):hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.TranslateX(gwccss.Px(2)))),
+	)
+	declareGlobal(":where(.metric,.org-node,.workflow-card,.choice,.accessibility-choice):hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-2))), gwccss.Raw("box-shadow", "var(--hcm-shadow-resting)")),
+	)
+	declareGlobal(".activity:hover .check",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.Scale(1.06))),
+	)
+	declareGlobal(".avatar:hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.Transform(gwccss.Scale(1.04))),
+	)
+	declareGlobal(".tab:hover",
+		mediaRule(gwccss.RawMedia("(hover:hover) and (prefers-reduced-motion:no-preference)"), gwccss.TextColor(gwccss.Var("accent"))),
+	)
+	declareGlobal(":root[data-hcm-motion-preference=\"limited\"] :where(.work-row,.people-row,.history-row,.jn-embedded .jn-griditem)",
+		gwccss.Raw("animation-delay", "0ms!important"),
+	)
+	declareGlobal(":root[data-hcm-motion-preference=\"limited\"] :where(.header-nav-toggle:hover .nav-icon,.nav-link:hover .nav-icon,.nav-group-summary:hover .nav-icon,.nav-favorite:hover,.work-row:hover,.people-row:hover,.history-row:hover,.metric:hover,.org-node:hover,.workflow-card:hover,.choice:hover,.accessibility-choice:hover,.activity:hover .check,.avatar:hover)",
+		gwccss.Raw("transform", "none!important"),
+	)
+	declareGlobal(".brand-cluster,.app-shell.nav-collapsed .brand-cluster",
+		mediaRule(gwccss.MaxW(760), gwccss.Display.Block, gwccss.H(gwccss.Px(65)), gwccss.Padding(gwccss.Zero), gwccss.Raw("border-right", "0")),
+	)
+	declareGlobal(".brand-cluster .wordmark,.app-shell.nav-collapsed .brand-cluster .wordmark",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("justify-content", "flex-start"), gwccss.H(gwccss.Px(65)), gwccss.Raw("padding-left", "16px")),
+	)
+	declareGlobal(".app-shell.nav-collapsed .wordmark-label",
+		mediaRule(gwccss.MaxW(760), gwccss.Display.Inline, gwccss.MaxWidth(gwccss.Px(180)), gwccss.Opacity(1), gwccss.Raw("transform", "none")),
+	)
+	declareGlobal(".app-shell.nav-collapsed .wordmark-mark",
+		mediaRule(gwccss.MaxW(760), gwccss.W(gwccss.Px(34)), gwccss.H(gwccss.Px(34))),
+	)
+	declareGlobal(".header-nav-toggle",
+		mediaRule(gwccss.MaxW(760), gwccss.Display.None),
+	)
+	declareGlobal(".sidebar",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("padding-top", "10px")),
+	)
+	declareGlobal(".header-nav-toggle",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.BorderColor(gwccss.Color("ButtonText"))),
+	)
+	declareGlobal(".header-nav-toggle:hover",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Bg(gwccss.Color("Highlight")), gwccss.TextColor(gwccss.Color("HighlightText"))),
+	)
+	declareGlobal(".nav-group::details-content",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("transition", "none")),
+	)
+	declareGlobal(".nav-group[open]::details-content",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("block-size", "auto")),
+	)
+}
+
+func JourneyIntegrationStylesheet() string {
+	return buildTypedSheet(declareJourneyIntegrationStyles)
+}
+
+func declareJourneyIntegrationStyles() {
+	declareGlobal(".jn-embedded",
+		gwccss.Custom("jn-canvas", "var(--canvas)"),
+		gwccss.Custom("jn-surface", "var(--surface)"),
+		gwccss.Custom("jn-surface-sunk", "var(--soft)"),
+		gwccss.Custom("jn-surface-muted", "var(--soft)"),
+		gwccss.Custom("jn-hairline", "var(--line)"),
+		gwccss.Custom("jn-control-border", "var(--muted)"),
+		gwccss.Custom("jn-ink", "var(--ink)"),
+		gwccss.Custom("jn-ink-muted", "var(--muted)"),
+		gwccss.Custom("jn-accent", "var(--accent)"),
+		gwccss.Custom("jn-accent-strong", "var(--accent-hover)"),
+		gwccss.Custom("jn-accent-soft", "var(--soft)"),
+		gwccss.Custom("jn-info", "var(--accent)"),
+		gwccss.Custom("jn-info-soft", "var(--soft)"),
+		gwccss.Custom("jn-success", "var(--accent)"),
+		gwccss.Custom("jn-success-soft", "var(--soft)"),
+		gwccss.Custom("jn-font", "var(--hcm-font-sans)"),
+		gwccss.Custom("jn-s1", "var(--hcm-space-1)"),
+		gwccss.Custom("jn-s2", "var(--hcm-space-2)"),
+		gwccss.Custom("jn-s3", "var(--hcm-space-3)"),
+		gwccss.Custom("jn-s4", "var(--hcm-space-4)"),
+		gwccss.Custom("jn-r1", "var(--hcm-radius-control)"),
+		gwccss.Custom("jn-r2", "var(--hcm-radius-control)"),
+		gwccss.Custom("jn-r3", "var(--hcm-radius-surface)"),
+		gwccss.Custom("jn-r4", "var(--hcm-radius-surface)"),
+		gwccss.Custom("jn-shadow", "var(--hcm-shadow-resting)"),
+		gwccss.Custom("jn-shadow-raised", "var(--hcm-shadow-raised)"),
+		gwccss.Custom("jn-ease", "var(--hcm-motion-easing)"),
+		gwccss.Custom("jn-ring", "0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)"),
+		gwccss.Display.Block,
+		gwccss.MinWidth(gwccss.Zero),
+	)
+	declareGlobal(".jn-embedded>.jn-shell",
+		gwccss.MaxWidth(gwccss.RawLength("none")),
+		gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".jn-embedded .jn-pagehead",
+		gwccss.MaxWidth(gwccss.Rem(58)),
+	)
+	declareGlobal(".jn-embedded .jn-display",
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".jn-embedded .jn-btn[data-variant=\"primary\"]",
+		gwccss.Raw("background", "linear-gradient(180deg,var(--accent),var(--accent-hover))"),
+		gwccss.BorderColor(gwccss.Var("accent")),
+		gwccss.Raw("box-shadow", "var(--hcm-shadow-resting)"),
+	)
+	declareGlobal(".jn-embedded .jn-card:hover",
+		gwccss.BorderColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".jn-embedded .jn-shell",
+		mediaRule(gwccss.MaxW(760), gwccss.Padding(gwccss.Zero)),
+	)
+	declareGlobal(".jn-embedded .jn-pagehead",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("padding-inline", "2px")),
+	)
+}
+
+func NavigationEnhancementsStylesheet() string {
+	return buildTypedSheet(declareNavigationEnhancementsStyles)
+}
+
+func declareNavigationEnhancementsStyles() {
+	declareGlobal(".sr-only",
+		gwccss.Raw("position", "absolute!important"),
+		gwccss.W(gwccss.RawLength("1px!important")),
+		gwccss.H(gwccss.RawLength("1px!important")),
+		gwccss.Padding(gwccss.RawLength("0!important")),
+		gwccss.Margin(gwccss.RawLength("-1px!important")),
+		gwccss.Raw("overflow", "hidden!important"),
+		gwccss.Raw("clip", "rect(0,0,0,0)!important"),
+		gwccss.Raw("white-space", "nowrap!important"),
+		gwccss.Raw("border", "0!important"),
+	)
+	declareGlobal(".menu-filter",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(7)),
+		gwccss.Raw("margin", "0 5px 14px"),
+	)
+	declareGlobal(".menu-filter-control",
+		gwccss.Position.Relative,
+	)
+	declareGlobal(".menu-filter input",
+		gwccss.W(gwccss.Percent(100)),
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.H(gwccss.Px(38)),
+		gwccss.Raw("padding", "7px 36px 7px 11px"),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.Bg(gwccss.Var("canvas")),
+		gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(.8125)),
+	)
+	declareGlobal(".menu-filter input:focus",
+		gwccss.BorderColor(gwccss.Var("accent")),
+		gwccss.Bg(gwccss.Hex("fff")),
+	)
+	declareGlobal(".menu-filter-submit",
+		gwccss.Position.Absolute,
+		gwccss.Right(gwccss.Px(3)),
+		gwccss.Top(gwccss.Px(3)),
+		gwccss.Display.Grid,
+		gwccss.Raw("place-items", "center"),
+		gwccss.W(gwccss.Px(32)),
+		gwccss.H(gwccss.Px(32)),
+		gwccss.Padding(gwccss.Zero),
+		gwccss.Raw("border", "0"),
+		gwccss.Rounded(gwccss.Px(6)),
+		gwccss.Bg(gwccss.Transparent),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(1.05)),
+	)
+	declareGlobal(".menu-filter-submit:hover",
+		gwccss.Bg(gwccss.Var("soft")),
+		gwccss.TextColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".menu-filter-clear",
+		gwccss.W(gwccss.RawLength("max-content")),
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.FontSize(gwccss.Rem(.72)),
+		gwccss.Raw("font-weight", "650"),
+		gwccss.Raw("text-decoration", "none"),
+	)
+	declareGlobal(".menu-filter-clear:hover",
+		gwccss.Raw("text-decoration", "underline"),
+	)
+	declareGlobal(".primary-nav>ul",
+		gwccss.Display.Grid,
+		gwccss.Gap(gwccss.Px(1)),
+	)
+	declareGlobal(".nav-entry",
+		gwccss.Position.Relative,
+		gwccss.Display.Grid,
+		gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)), gwccss.TrackLen(gwccss.Px(28))),
+		gwccss.Items.Center,
+		gwccss.Raw("list-style", "none"),
+	)
+	declareGlobal(".nav-entry>.nav-link",
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.Raw("margin-right", "0"),
+	)
+	declareGlobal(".nav-favorite",
+		gwccss.Display.Grid,
+		gwccss.Raw("place-items", "center"),
+		gwccss.W(gwccss.Px(27)),
+		gwccss.H(gwccss.Px(30)),
+		gwccss.Rounded(gwccss.Px(6)),
+		gwccss.TextColor(gwccss.Hex("65736c")),
+		gwccss.FontSize(gwccss.Rem(1)),
+		gwccss.Raw("text-decoration", "none"),
+	)
+	declareGlobal(".nav-favorite:hover",
+		gwccss.Bg(gwccss.Var("soft")),
+		gwccss.TextColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".nav-section-label",
+		gwccss.Raw("padding", "13px 13px 5px"),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(.67)),
+		gwccss.Raw("font-weight", "750"),
+		gwccss.Tracking(gwccss.Ems(.09)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Raw("text-transform", "uppercase"),
+	)
+	declareGlobal(".nav-section-label:first-child",
+		gwccss.Raw("padding-top", "4px"),
+	)
+	declareGlobal(".nav-group",
+		gwccss.MarginY(gwccss.Px(2)), gwccss.MarginX(gwccss.Zero),
+	)
+	declareGlobal(".nav-group-summary",
+		gwccss.Display.Flex,
+		gwccss.Items.Center,
+		gwccss.Gap(gwccss.Px(10)),
+		gwccss.MinHeight(gwccss.Px(46)),
+		gwccss.PaddingY(gwccss.Px(10)), gwccss.PaddingX(gwccss.Px(13)),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(.875)),
+		gwccss.Raw("font-weight", "600"),
+		gwccss.Raw("list-style", "none"),
+	)
+	declareGlobal(".nav-group-summary::-webkit-details-marker",
+		gwccss.Display.None,
+	)
+	declareGlobal(".nav-group-summary:hover,.nav-group.current>.nav-group-summary",
+		gwccss.Bg(gwccss.Var("soft")),
+		gwccss.TextColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".nav-group.current>.nav-group-summary",
+		gwccss.Raw("font-weight", "700"),
+	)
+	declareGlobal(".nav-group-summary .nav-count",
+		gwccss.Raw("margin-left", "auto"),
+	)
+	declareGlobal(".nav-chevron",
+		gwccss.Raw("margin-left", "auto"),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(1.1)),
+		gwccss.LineHeight(gwccss.Num(1)),
+		gwccss.Transition(gwccss.TransitionProps(gwccss.Prop("transform")), gwccss.S(.15), gwccss.Ease),
+	)
+	declareGlobal(".nav-group-summary .nav-count+.nav-chevron",
+		gwccss.Raw("margin-left", "0"),
+	)
+	declareGlobal(".nav-group[open]>.nav-group-summary .nav-chevron",
+		gwccss.Transform(gwccss.Rotate(gwccss.Deg(90))),
+	)
+	declareGlobal(".subnav",
+		gwccss.Raw("display", "grid!important"),
+		gwccss.Gap(gwccss.Px(1)),
+		gwccss.Raw("margin-left", "12px!important"),
+		gwccss.Raw("padding", "2px 0 5px 10px!important"),
+	)
+	declareGlobal(".subnav .nav-link",
+		gwccss.MinHeight(gwccss.Px(40)),
+		gwccss.MarginY(gwccss.Px(1)), gwccss.MarginX(gwccss.Zero),
+		gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(8)),
+		gwccss.Gap(gwccss.Px(8)),
+		gwccss.FontSize(gwccss.Rem(.8125)),
+	)
+	declareGlobal(".subnav .nav-label",
+		gwccss.Raw("white-space", "nowrap"),
+	)
+	declareGlobal(".subnav .nav-icon",
+		gwccss.W(gwccss.Px(17)),
+		gwccss.H(gwccss.Px(17)),
+	)
+	declareGlobal(".nav-empty",
+		gwccss.MarginY(gwccss.Px(8)), gwccss.MarginX(gwccss.Px(5)),
+		gwccss.Padding(gwccss.Px(12)),
+		gwccss.Raw("border", "1px dashed var(--line)"),
+		gwccss.Rounded(gwccss.VarLength("radius")),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(.75)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Raw("text-align", "center"),
+	)
+	declareGlobal(".nav-bottom .nav-entry",
+		gwccss.Display.Block,
+	)
+	declareGlobal(".nav-bottom .nav-favorite",
+		gwccss.Display.None,
+	)
+	declareGlobal(".sidebar.collapsed .menu-filter,.sidebar.collapsed .nav-section-label,.sidebar.collapsed .nav-favorite",
+		gwccss.Raw("display", "none!important"),
+	)
+	declareGlobal(".sidebar.collapsed .nav-entry",
+		gwccss.Display.Block,
+	)
+	declareGlobal(".sidebar.collapsed .primary-nav>ul",
+		gwccss.Gap(gwccss.Px(2)),
+	)
+	declareGlobal(".menu-filter",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("margin", "5px 0 10px")),
+	)
+	declareGlobal(".primary-nav",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("overflow", "visible!important")),
+	)
+	declareGlobal(".primary-nav>ul",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("display", "grid!important"), gwccss.W(gwccss.RawLength("100%!important")), gwccss.MaxWidth(gwccss.RawLength("100%!important"))),
+	)
+	declareGlobal(".nav-section-label",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("padding-left", "8px")),
+	)
+	declareGlobal(".subnav",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("padding-left", "10px!important")),
+	)
+	declareGlobal(".nav-bottom",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("display", "none!important")),
+	)
+}
+
+func PhotoStylesheet() string {
+	return buildTypedSheet(declarePhotoStyles)
+}
+
+func declarePhotoStyles() {
+	declareGlobal(".avatar[src]",
+		gwccss.Display.Block,
+		gwccss.Raw("object-fit", "cover"),
+		gwccss.Raw("object-position", "center 32%"),
+		gwccss.TextColor(gwccss.Transparent),
+		gwccss.Shadow(gwccss.Shadows(gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(2), gwccss.Hex("fff")), gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(3), gwccss.Var("line")))),
+	)
+	declareGlobal(".avatar.profile[src]",
+		gwccss.Shadow(gwccss.Shadows(gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(3), gwccss.Hex("fff")), gwccss.ShadowOf(gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Px(4), gwccss.Hex("b6d7ca")))),
+	)
+	declareGlobal(".history-identity",
+		gwccss.Display.Flex,
+		gwccss.Items.Center,
+		gwccss.Gap(gwccss.Px(12)),
+		gwccss.MinWidth(gwccss.Zero),
+	)
+	declareGlobal(".history-person-link",
+		gwccss.Raw("text-decoration", "none"),
+	)
+	declareGlobal(".history-person-link:hover",
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.Raw("text-decoration", "underline"),
+	)
+}

@@ -3,6 +3,7 @@ package productui
 import (
 	"crypto/sha256"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestTodo_WEB_013_Golden(t *testing.T) {
 
 func TestTodo_WEB_013_Browser(t *testing.T) {
 	css := Stylesheet()
-	for _, want := range []string{"--hcm-color-brand-primary", "--accent:var(--hcm-color-brand-primary)", "background:var(--canvas)", "color:var(--ink)"} {
+	for _, want := range []string{"--hcm-color-brand-primary", "--accent:var(--hcm-color-brand-primary)", "background-color:var(--canvas)", "color:var(--ink)"} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("browser stylesheet does not consume semantic token %q", want)
 		}
@@ -183,13 +184,13 @@ func TestTodo_WEB_018_Golden(t *testing.T) { assertThemeKindOrder(t, ThemeMotion
 func TestTodo_WEB_018_Browser(t *testing.T) {
 	assertCSSContains(t,
 		"@keyframes hcm-page-enter", "@keyframes hcm-shimmer", "prefers-reduced-motion:no-preference",
-		`.brand-cluster{display:grid`, `.header-nav-toggle{display:grid`, `.nav-group::details-content`,
+		`.brand-cluster{align-items:center;`, `.header-nav-toggle{display:grid`, `.nav-group::details-content`,
 		`:root[data-hcm-motion-preference="limited"]`,
 	)
 }
 func TestTodo_WEB_018_Conformance(t *testing.T) {
 	css := Stylesheet()
-	for _, want := range []string{"@media(prefers-reduced-motion:reduce)", "animation:none!important", "transition-duration:.01ms!important", "scroll-behavior:auto!important"} {
+	for _, want := range []string{"@media (prefers-reduced-motion:reduce)", "animation:none!important", "transition-duration:.01ms!important", "scroll-behavior:auto!important"} {
 		if !strings.Contains(css, want) {
 			t.Fatalf("reduced-motion safety missing %q", want)
 		}
@@ -212,6 +213,31 @@ func assertThemeKindOrder(t *testing.T, kind ThemeTokenKind) {
 	}
 	if last < 0 {
 		t.Fatalf("theme registry has no %s tokens", kind)
+	}
+}
+
+// TestTypedKeyframesNamesResolve guards the runtime contract behind GWC's
+// content-hashed animation names: every animation-name the sheet assigns must
+// have a matching @keyframes block, and every plain hcm-* animation reference
+// must resolve. Otherwise an animation silently never runs.
+func TestTypedKeyframesNamesResolve(t *testing.T) {
+	css := Stylesheet()
+	defined := map[string]bool{}
+	for _, m := range regexp.MustCompile(`@keyframes\s+([A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		defined[m[1]] = true
+	}
+	if len(defined) == 0 {
+		t.Fatal("production stylesheet defines no keyframes")
+	}
+	for _, m := range regexp.MustCompile(`animation-name:([A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		if !defined[m[1]] {
+			t.Errorf("animation-name %q has no @keyframes block", m[1])
+		}
+	}
+	for _, m := range regexp.MustCompile(`animation:(hcm-[A-Za-z0-9_-]+)`).FindAllStringSubmatch(css, -1) {
+		if !defined[m[1]] {
+			t.Errorf("plain animation reference %q has no @keyframes block", m[1])
+		}
 	}
 }
 

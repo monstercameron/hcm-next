@@ -136,6 +136,10 @@ func (t Theme) Value(name string) (string, bool) {
 
 // CSS renders variables in registry order. The deterministic output can be
 // CSP-hashed, signed, previewed, and compared across BrandPack versions.
+//
+// The registry order is load-bearing: TestTodo_WEB_013_Golden pins the
+// sha256 of this exact byte stream, and the typed GWC path sorts
+// declarations within a block, so this emitter must stay string-built.
 func (t Theme) CSS() string {
 	if len(t.values) == 0 {
 		t, _ = ResolveTheme(nil)

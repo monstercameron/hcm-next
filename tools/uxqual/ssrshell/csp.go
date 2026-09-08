@@ -13,7 +13,7 @@ import (
 // final production page (see the package doc comment's "What this package
 // does and does not own"); this renderer invents no CSS for them.
 func ShellCSS() string {
-	return `.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}`
+	return shellTypedStylesheet()
 }
 
 // shellStylesheetHash pins the exact stylesheet [ShellCSS] returns, computed

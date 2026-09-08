@@ -57,7 +57,7 @@ func TestTodo_WEB_024_Golden(t *testing.T) {
 	modeCSS := mediaBlock(t, css, "@media (prefers-contrast:more)") +
 		mediaBlock(t, css, "@media (forced-colors:active)") +
 		mediaBlock(t, css, "@media print")
-	const wantSHA256 = "d6398076ff3fba2f0b5a50a3aa97afbf1cf376ef2fcc63f5e2ca078243f6c5b7"
+	const wantSHA256 = "d9f29f3d47fbaae828dcd89d8dbae15e04363894d616a04b141d9f2ed3998575"
 	if got := fmt.Sprintf("%x", sha256.Sum256([]byte(modeCSS))); got != wantSHA256 {
 		t.Fatalf("mode contract golden = %s, want %s", got, wantSHA256)
 	}
@@ -122,7 +122,7 @@ func TestTodo_WEB_024_Conformance(t *testing.T) {
 		}
 	}
 	print := mediaBlock(t, css, "@media print")
-	if !strings.Contains(print, "nav,.skip-link,.actions,.interactive-only,[data-print=\"interactive-only\"]{display:none!important}") {
+	if !strings.Contains(print, "nav,.skip-link,.actions,.interactive-only,[data-print=\"interactive-only\"]{display:none!important;}") {
 		t.Fatal("print hiding is not bounded to navigation/actions explicitly marked interactive-only")
 	}
 	if strings.Contains(print, "*::before") || strings.Contains(print, "*::after") {

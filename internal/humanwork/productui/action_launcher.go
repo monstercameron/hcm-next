@@ -5,11 +5,118 @@ import (
 	"sort"
 	"strings"
 
+	gwccss "github.com/monstercameron/GoWebComponents/v5/css"
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
 
 const actionLauncherLimit = 10
+
+// actionLauncherStylesheet builds the launcher styles from typed css rules.
+// Raw covers only what has no typed constructor (var() fallbacks, logical
+// inset properties, system colors, text alignment); everything else is typed.
+func actionLauncherStylesheet() string {
+	return buildTypedSheet(declareActionLauncherStyles)
+}
+
+func declareActionLauncherStyles() {
+	declareGlobal(".action-launcher", gwccss.Position.Relative, gwccss.MinWidth(gwccss.Px(0)))
+	declareGlobal(".action-launcher-trigger",
+		gwccss.Display.InlineFlex, gwccss.Items.Center, gwccss.Gap(gwccss.Px(7)),
+		gwccss.MinHeight(gwccss.Px(42)), gwccss.MaxWidth(gwccss.Px(230)),
+		gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(11)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(0.78)), gwccss.Raw("font-weight", "700"), gwccss.Raw("text-align", "start"),
+		hoverRule(
+			gwccss.Raw("border-color", "var(--hcm-hover-border,var(--accent))"),
+			gwccss.Raw("background", "var(--surface-hover,var(--soft))"),
+			gwccss.TextColor(gwccss.Var("accent")),
+		),
+	)
+	declareGlobal(".action-launcher-trigger .nav-icon", gwccss.Raw("flex", "none"))
+	declareGlobal(".action-launcher-dialog",
+		gwccss.Position.Absolute, gwccss.ZIndex(30),
+		gwccss.Raw("inset-block-start", "48px"), gwccss.Raw("inset-inline-end", "0"),
+		gwccss.W(gwccss.MinLen(gwccss.Px(360), gwccss.RawLength("calc(100vw - 28px)"))),
+		gwccss.MaxHeight(gwccss.MinLen(gwccss.Vh(70), gwccss.Px(560))),
+		gwccss.Raw("overflow", "auto"),
+		gwccss.Padding(gwccss.Px(16)),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Shadow(gwccss.ShadowOf(gwccss.Px(0), gwccss.Px(18), gwccss.Px(48), gwccss.Zero, gwccss.Hex("10223822"))),
+	)
+	declareGlobal(".action-launcher-dialog-hidden", gwccss.Display.None)
+	declareGlobal(".action-launcher-head",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.Raw("margin-bottom", "12px"),
+	)
+	declareGlobal(".action-launcher-input",
+		gwccss.MinHeight(gwccss.Px(42)),
+		gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(11)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(0.85)),
+	)
+	declareGlobal(".action-launcher-result",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.Gap(gwccss.Px(10)),
+		gwccss.MinHeight(gwccss.Px(48)),
+		gwccss.PaddingY(gwccss.Px(8)), gwccss.PaddingX(gwccss.Px(10)),
+		gwccss.Raw("border", "1px solid var(--line)"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.Raw("text-decoration", "none"),
+		hoverRule(
+			gwccss.Raw("border-color", "var(--accent)"),
+			gwccss.Raw("background", "var(--surface-hover,var(--soft))"),
+		),
+	)
+	declareGlobal(".action-launcher-result.active",
+		gwccss.Raw("border-color", "var(--accent)"),
+		gwccss.Raw("background", "var(--surface-hover,var(--soft))"),
+	)
+	declareGlobal(".action-launcher-result small",
+		gwccss.Display.Block,
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(0.72)),
+	)
+	declareGlobal(".action-launcher-dialog",
+		mediaRule(gwccss.MaxW(760),
+			gwccss.Raw("inset-inline-start", "0"), gwccss.Raw("inset-inline-end", "auto"),
+		),
+	)
+	declareGlobal(".action-launcher-trigger",
+		mediaRule(gwccss.MaxW(760), gwccss.MaxWidth(gwccss.Px(190))),
+		mediaRule(gwccss.MaxW(430), gwccss.MaxWidth(gwccss.RawLength("100%"))),
+	)
+	declareGlobal(".action-launcher-result",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("transition", "none")),
+	)
+	declareGlobal(".action-launcher-trigger",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"),
+			gwccss.Raw("border-color", "CanvasText"), gwccss.Raw("background", "Canvas"), gwccss.Raw("color", "CanvasText"),
+		),
+	)
+	declareGlobal(".action-launcher-dialog",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"),
+			gwccss.Raw("border-color", "CanvasText"), gwccss.Raw("background", "Canvas"), gwccss.Raw("color", "CanvasText"),
+		),
+	)
+	declareGlobal(".action-launcher-result",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"),
+			gwccss.Raw("border-color", "CanvasText"), gwccss.Raw("background", "Canvas"), gwccss.Raw("color", "CanvasText"),
+		),
+	)
+	declareGlobal(".action-launcher-result small",
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Raw("color", "GrayText")),
+	)
+	declareGlobal(".action-launcher",
+		mediaRule(gwccss.RawMedia("print"), gwccss.MarkImportant(gwccss.Display.None)),
+	)
+}
 
 // ActionLauncherItem is one authorized start the shell launcher may offer.
 // Items are presentation-only destinations derived from the authorized View

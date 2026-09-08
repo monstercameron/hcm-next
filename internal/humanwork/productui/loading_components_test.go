@@ -48,11 +48,11 @@ func TestLoadingProxyMotionHonorsExplicitAndOperatingSystemPreferences(t *testin
 	css := Stylesheet()
 	for _, want := range []string{
 		`:root:not([data-hcm-motion-preference="reduce"]):not([data-hcm-motion-preference="limited"]) .loading-block:after`,
-		`@media(prefers-reduced-motion:no-preference)`,
-		`animation:hcm-shimmer`,
-		`@media(forced-colors:active){.loading-block,.loading-progress`,
-		`.app-shell.nav-collapsed .loading-progress{left:72px}`,
-		`@media(max-width:760px){.app-shell .loading-progress,.app-shell.nav-collapsed .loading-progress{top:0;left:0}`,
+		`@media (prefers-reduced-motion:no-preference)`,
+		`animation-name:hcm-shimmer-`,
+		`@media (forced-colors:active){.loading-block,.loading-progress`,
+		`.app-shell.nav-collapsed .loading-progress{left:72px;}`,
+		`@media (max-width:760px){.app-shell .loading-progress,.app-shell.nav-collapsed .loading-progress{left:0;top:0;}`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("loading motion contract missing %q", want)
@@ -66,11 +66,11 @@ func TestLoadingProxyMotionHonorsExplicitAndOperatingSystemPreferences(t *testin
 func TestNetworkTransitionsResolveAsOneRegionWithoutNestedFlicker(t *testing.T) {
 	css := Stylesheet()
 	for _, want := range []string{
-		`@starting-style{.network-stage-ready{opacity:.94`,
-		`.network-stage-refreshing{opacity:.985;transform:translateY(1px)}`,
+		`@starting-style{.network-stage-ready{opacity:0.94;`,
+		`.network-stage-refreshing{opacity:0.985;transform:translateY(1px);}`,
 		`.network-stage :where(.work-row,.people-row,.history-row,.status,.count)`,
 		`:root[data-hcm-motion-preference="limited"] .network-stage-refreshing`,
-		`@media(prefers-reduced-motion:reduce){.network-stage,.network-slot`,
+		`@media (prefers-reduced-motion:reduce){.network-stage,.network-slot`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("network transition contract missing %q", want)
@@ -147,7 +147,7 @@ func TestPeopleCollectionRefreshScopesBusyStateToDirectory(t *testing.T) {
 	}
 	css := Stylesheet()
 	for _, want := range []string{
-		`.people-directory.is-refreshing{position:relative}`,
+		`.people-directory.is-refreshing{position:relative;}`,
 		`.people-directory.is-refreshing .people-directory-progress:after`,
 	} {
 		if !strings.Contains(css, want) {

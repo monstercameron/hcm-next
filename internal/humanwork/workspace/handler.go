@@ -632,8 +632,7 @@ func (h *Handler) writeLoginPage(w http.ResponseWriter, status int, problem stri
 }
 
 func loginStylesheet() string {
-	return tokens.WorkspaceCSS() + `
-body{background:#f4f7f5;color:#17231d}.login-shell{display:block;width:min(60rem,calc(100% - 2rem));margin:7vh auto;padding:0}.login-card{display:block;background:#fff;border:1px solid #dbe5df;border-radius:1.125rem;box-shadow:0 1.125rem 3.5rem rgba(24,57,40,.10);padding:clamp(1.5rem,4vw,3rem)}.login-brand{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem}.login-mark{display:grid;place-items:center;width:2.375rem;height:2.375rem;border-radius:.6875rem;background:#147a4a;color:#fff;font-weight:800}.login-card h1{margin:.15rem 0;font-size:clamp(1.8rem,4vw,2.5rem)}.login-intro{max-width:62ch;color:#53645b}.persona-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.875rem;margin:1.75rem 0}.persona{display:flex;flex-direction:column;align-items:flex-start;gap:.4375rem;padding:1.125rem;border:1px solid #dbe5df;border-radius:.875rem;background:#fbfcfb}.persona strong{font-size:1.05rem}.persona span{display:block}.persona-access{color:#147a4a;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.persona button{margin-top:auto;width:100%;background:#147a4a;color:#fff}.persona button:hover{background:#0e623a}.advanced{border-top:1px solid #e7eeea;padding-top:1rem;color:#53645b}.advanced form{margin-top:.875rem}@media(max-width:42.5rem){.login-shell{margin:1rem auto}.persona-grid{grid-template-columns:1fr}.login-card{padding:1.375rem}}`
+	return tokens.WorkspaceCSS() + loginSpecificStylesheet()
 }
 
 func (h *Handler) writeLoginDocument(w http.ResponseWriter, status int, doc, stylesheet string) {

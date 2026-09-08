@@ -74,12 +74,12 @@ func TestTodo_WEB_023_Browser(t *testing.T) {
 
 	css := tokens.WorkspaceCSS()
 	for _, want := range []string{
-		`.layout-region>:where(h1,h2,h3,h4,h5,h6){grid-column:1/-1}`,
-		`.layout-region[data-layout-narrow-mode="grid"]{display:grid}`,
+		`.layout-region>:where(h1,h2,h3,h4,h5,h6){grid-column:1 / -1;}`,
+		`.layout-region[data-layout-narrow-mode="grid"]{display:grid;}`,
 		`@media (min-width:40rem){`,
 		`@media (min-width:60rem){`,
 		`@media (min-width:80rem){`,
-		`[data-layout-wide-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr))}`,
+		`[data-layout-wide-columns="12"]{grid-template-columns:repeat(12,minmax(0,1fr));}`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("renderer stylesheet missing %q", want)
@@ -151,9 +151,9 @@ func TestResponsiveRendererSecurityAndClosedAttributes(t *testing.T) {
 func TestResponsiveDenseTablesUseAccessibleScrollViewport(t *testing.T) {
 	css := tokens.WorkspaceCSS()
 	for _, want := range []string{
-		`.table-scroll{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;touch-action:pan-x pan-y}`,
-		`.table-scroll table{inline-size:max-content;min-inline-size:100%;table-layout:auto;border-collapse:collapse}`,
-		`.table-scroll :where(th,td){min-inline-size:8rem;overflow-wrap:normal;word-break:normal;white-space:nowrap}`,
+		`.table-scroll{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;touch-action:pan-x pan-y;}`,
+		`.table-scroll table{border-collapse:collapse;inline-size:max-content;min-inline-size:100%;table-layout:auto;}`,
+		`.table-scroll :where(th,td){min-inline-size:8rem;overflow-wrap:normal;white-space:nowrap;word-break:normal;}`,
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("dense-table responsive CSS missing %q", want)

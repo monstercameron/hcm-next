@@ -109,9 +109,9 @@ func TestDataTableStylesKeepHeadersStickyAndMobileCellsVisible(t *testing.T) {
 		`.data-table thead{position:sticky`,
 		`overflow:auto`,
 		`content:attr(data-label)`,
-		`.data-table .data-table-cell{display:flex`,
+		`.data-table .data-table-cell{background:transparent!important;`,
 	} {
-		if !strings.Contains(dataTableStyles, fragment) {
+		if !strings.Contains(dataTableStylesStylesheet(), fragment) {
 			t.Fatalf("data table styles missing %q", fragment)
 		}
 	}

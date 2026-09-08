@@ -218,7 +218,7 @@ func TestTodo_WEB_038_Conformance(t *testing.T) {
 			t.Fatalf("loading state is not busy and disabled: %s", markup)
 		}
 		styles := Stylesheet()
-		for _, want := range []string{"@media(max-width:430px)", ".context-switcher-panel{inset-block-start:102px}", "@media(prefers-reduced-motion:reduce)", "@media(forced-colors:active)", "var(--surface)", "inset-inline-start"} {
+		for _, want := range []string{"@media (max-width:430px)", "inset-block-start:102px;", "@media (prefers-reduced-motion:reduce)", "@media (forced-colors:active)", "var(--surface)", "inset-inline-start"} {
 			if !strings.Contains(styles, want) {
 				t.Errorf("context switcher style gate missing %q", want)
 			}

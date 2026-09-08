@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+// finalThemeCoverageLayer renders the terminal cascade boundary exactly as
+// the production sheet assembles it: theme coverage base, then the Journey
+// focus bridge, then the platform focus boundary (the dark-mode tail).
+func finalThemeCoverageLayer() string {
+	return buildTypedSheet(func() {
+		declareThemeCoverageBaseStylesStyles()
+		declareJourneyFocusBridge()
+		declareFocusStyles()
+	})
+}
+
 func TestEveryRegisteredPageReceivesTheCompleteThemeContract(t *testing.T) {
 	appearance := CustomerTheme{
 		BrandName: "Northstar People", BrandMark: "NP", ColorMode: "dark", Palette: "plum", Shape: "rounded",
@@ -41,14 +52,14 @@ func TestEveryRegisteredPageReceivesTheCompleteThemeContract(t *testing.T) {
 
 func TestEveryProductionPageFamilyConsumesSemanticThemeTokens(t *testing.T) {
 	css := Stylesheet()
-	if !strings.HasSuffix(css, themeCoverageStyles) {
+	if !strings.HasSuffix(css, finalThemeCoverageLayer()) {
 		t.Fatal("theme coverage layer is not the final cascade boundary")
 	}
 	for _, selector := range []string{
 		".home-grid", ".workbench", ".history-row", ".people-workspace", ".person-page", ".org-node",
 		".insights-grid", ".admin-grid", ".appearance-page", ".studio-shell", ".support-request", ".settings-shell", ".jn-embedded",
 	} {
-		if !strings.Contains(themeCoverageStyles, selector) {
+		if !strings.Contains(finalThemeCoverageLayer(), selector) {
 			t.Errorf("production page family %q is absent from the final theme coverage layer", selector)
 		}
 	}
@@ -56,7 +67,7 @@ func TestEveryProductionPageFamilyConsumesSemanticThemeTokens(t *testing.T) {
 		"--surface-subtle:", "--control-border:", "--theme-section-gap:", "var(--hcm-font-sans)",
 		"var(--hcm-radius-control)", "var(--hcm-radius-surface)", "var(--hcm-motion-fast)",
 	} {
-		if !strings.Contains(themeCoverageStyles, token) {
+		if !strings.Contains(finalThemeCoverageLayer(), token) {
 			t.Errorf("cross-component theme semantic %q is missing", token)
 		}
 	}
@@ -70,7 +81,7 @@ func TestEmbeddedJourneysUseTheCompleteProductThemeVocabulary(t *testing.T) {
 		"--jn-font:var(--hcm-font-sans)", "--jn-mono:var(--hcm-font-mono)",
 		"--jn-s2:calc(var(--hcm-space-2) * var(--hcm-density))", "--jn-r3:var(--hcm-radius-surface)",
 	} {
-		if !strings.Contains(themeCoverageStyles, token) {
+		if !strings.Contains(finalThemeCoverageLayer(), token) {
 			t.Errorf("embedded journey theme bridge missing %q", token)
 		}
 	}
@@ -87,7 +98,7 @@ func TestCustomerThemeCanRestyleEverySharedSurfaceWithoutRawCSS(t *testing.T) {
 	}
 	for _, want := range []string{
 		"--hcm-color-brand-primary:#4d1f78", "--hcm-color-canvas:#fbf9fd", "--hcm-color-surface:#ffffff",
-		"--hcm-color-border:#d9cfdf", "--hcm-radius-control:6px", "--hcm-radius-surface:14px", themeCoverageStyles,
+		"--hcm-color-border:#d9cfdf", "--hcm-radius-control:6px", "--hcm-radius-surface:14px", finalThemeCoverageLayer(),
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("complete themed stylesheet missing %q", want)

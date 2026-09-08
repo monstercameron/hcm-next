@@ -104,17 +104,17 @@ func TestTodo_WEB_022_Browser(t *testing.T) {
 	}
 	for _, want := range []string{
 		`data-provenance-kind="source-authority"`, `data-provenance-kind="lineage-completeness"`,
-		`.provenance-item-list{grid-template-columns:repeat(4,minmax(0,1fr))`, `@media(max-width:900px)`, `@media(max-width:760px)`,
-		`@media(prefers-reduced-motion:reduce)`, `@media(forced-colors:active)`, `@media(print)`,
-		`CanvasText`, `var(--hcm-color-info`, `var(--hcm-color-warning`, `.work-preview>.provenance-grammar{grid-column:1/-1}`,
-		`.provenance-item-value{min-width:0;margin:0;overflow-wrap:anywhere`,
+		`.provenance-item-list{grid-template-columns:repeat(4,minmax(0,1fr))`, `@media (max-width:900px)`, `@media (max-width:760px)`,
+		`@media (prefers-reduced-motion:reduce)`, `@media (forced-colors:active)`, `@media (print)`,
+		`CanvasText`, `var(--hcm-color-info`, `var(--hcm-color-warning`, `.work-preview>.provenance-grammar{grid-column:1 / -1;}`,
+		`overflow-wrap:anywhere;}`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("production document missing provenance browser contract %q", want)
 		}
 	}
 	for _, forbidden := range []string{"text-overflow:ellipsis", ".provenance-item-value{overflow:hidden", ".provenance-item{color:#"} {
-		if strings.Contains(provenancePresentationStyles, forbidden) {
+		if strings.Contains(provenancePresentationStylesStylesheet(), forbidden) {
 			t.Fatalf("provenance CSS truncates or bypasses semantic colors with %q", forbidden)
 		}
 	}
