@@ -17448,7 +17448,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-212` **[PHASE_3][SOL_HIGH] Implement access and equipment reconciliation.**
+- [x] `WEB-212` **[PHASE_3][SOL_HIGH] Implement access and equipment reconciliation.**
   - **Depends:** `WEB-211`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement access and equipment reconciliation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_212`.
