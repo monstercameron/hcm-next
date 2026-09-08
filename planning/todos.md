@@ -16135,7 +16135,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-083` **[GATE_C][SOL_HIGH] Implement page rollback and retirement.**
+- [x] `WEB-083` **[GATE_C][SOL_HIGH] Implement page rollback and retirement.**
   - **Depends:** `WEB-082`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement page rollback and retirement without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_083`.
