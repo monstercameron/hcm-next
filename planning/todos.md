@@ -17214,7 +17214,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [position domain](specs/position-and-headcount-domain.md).
 
-- [ ] `WEB-189` **[PHASE_3][SOL_HIGH] Implement cost and capacity simulation.**
+- [x] `WEB-189` **[PHASE_3][SOL_HIGH] Implement cost and capacity simulation.**
   - **Depends:** `WEB-188`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement cost and capacity simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_189`.
