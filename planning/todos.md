@@ -16940,7 +16940,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-162` **[PHASE_4][SOL_HIGH] Implement compensation-cycle populations.**
+- [x] `WEB-162` **[PHASE_4][SOL_HIGH] Implement compensation-cycle populations.**
   - **Depends:** `WEB-161`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement compensation-cycle populations without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_162`.
