@@ -110,6 +110,7 @@ const (
 	PageDataFreshness          PageID = "data-freshness"
 	PageAggregateSuppression   PageID = "aggregate-suppression"
 	PageReportExport           PageID = "report-export"
+	PageReportSharing          PageID = "report-sharing"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
