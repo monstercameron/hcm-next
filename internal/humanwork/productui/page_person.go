@@ -24,63 +24,77 @@ func personPage(view View) ui.Node {
 func personProfileProps(view View, person Person, target PageID) PersonProfileProps {
 	text := view.Locale.Text
 	value := func(raw string) string { return valueOrUnavailableFor(view.Locale, raw) }
-	// field renders one fact through the record's field verdict once the
-	// server sends verdicts; a silent server keeps the current values.
-	// Allowed values project identically to value(), so governing changes
-	// nothing until a verdict actually withholds.
+	// fact renders one fact through the record's field verdict once the
+	// server sends verdicts, honoring its disposition: HIDE omits the row
+	// entirely. A silent server keeps the current values. Allowed values
+	// project identically to value(), so governing changes nothing until
+	// a verdict actually withholds.
 	fields := view.RecordVerdicts[person.ID].Fields
-	field := func(name, raw string) string {
-		if len(view.RecordVerdicts) == 0 {
+	silent := len(view.RecordVerdicts) == 0
+	fact := func(facts []ProfileFactProps, label, name, raw string) []ProfileFactProps {
+		if silent {
+			return append(facts, ProfileFactProps{Label: label, Value: value(raw)})
+		}
+		projected, admitted := ProjectField(view.Locale, raw, fields[name])
+		if !admitted {
+			return facts
+		}
+		return append(facts, ProfileFactProps{Label: label, Value: projected.Text})
+	}
+	// heroFact projects one hero string; a hidden hero field reads as
+	// withheld so the admitted profile keeps its anchor.
+	heroFact := func(name, raw string) string {
+		if silent {
 			return value(raw)
 		}
-		return ProjectAuthorizedValue(view.Locale, raw, fields[name]).Text
+		projected, admitted := ProjectField(view.Locale, raw, fields[name])
+		if !admitted {
+			return view.Locale.Text("provenance.value.withheld")
+		}
+		return projected.Text
 	}
+	details := fact(nil, text("person.worker_number"), "worker_number", person.WorkerNumber)
+	details = fact(details, text("person.job_code"), "job_code", person.JobCode)
+	details = fact(details, text("person.job_level"), "job_level", person.Grade)
+	details = fact(details, text("person.hire_date"), "hire_date", person.HireDate)
+	details = fact(details, text("person.employment_type"), "employment_type", "")
+	details = fact(details, text("person.time_type"), "time_type", "")
+	details = fact(details, text("person.record_source"), "record_source", person.Source)
+	details = fact(details, text("person.record_created"), "record_created", person.CreatedAt)
+	organization := fact(nil, text("person.organization_unit"), "organization_unit", person.Team)
+	organization = fact(organization, text("person.manager"), "manager", person.Manager)
+	organization = fact(organization, text("person.position_id"), "position_id", person.PositionID)
+	organization = fact(organization, text("person.work_location"), "work_location", person.Location)
+	organization = fact(organization, text("person.company"), "company", "")
+	organization = fact(organization, text("person.business_unit"), "business_unit", "")
+	organization = fact(organization, text("person.cost_center"), "cost_center", "")
+	organization = fact(organization, text("person.work_arrangement"), "work_arrangement", "")
+	compensation := fact(nil, text("person.base_pay"), "base_pay", money(view.Locale, person.BasePay))
+	compensation = fact(compensation, text("person.bonus_target"), "bonus_target", percentage(view.Locale, person.BonusTarget))
+	compensation = fact(compensation, text("person.pay_zone"), "pay_zone", person.PayZone)
+	compensation = fact(compensation, text("person.pay_frequency"), "pay_frequency", "")
+	personal := fact(nil, text("person.legal_name"), "legal_name", person.LegalName)
+	personal = fact(personal, text("person.preferred_name"), "preferred_name", person.PreferredName)
+	personal = fact(personal, text("person.worker_id"), "worker_id", person.WorkerID)
+	personal = fact(personal, text("person.worker_ref"), "record_id", person.ID)
 	return PersonProfileProps{
 		Hero: PersonHeroProps{
-			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: field("name", person.Name), Role: field("role", person.Role),
-			Status: text("person.visible_scope"), Source: field("source", person.Source),
+			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: heroFact("name", person.Name), Role: heroFact("role", person.Role),
+			Status: text("person.visible_scope"), Source: heroFact("source", person.Source),
 		},
 		Details: EmploymentDetailsProps{
 			Title: text("person.employment_overview"), Description: text("person.employment_overview_detail"),
-			Facts: []ProfileFactProps{
-				{Label: text("person.worker_number"), Value: field("worker_number", person.WorkerNumber)},
-				{Label: text("person.job_code"), Value: field("job_code", person.JobCode)},
-				{Label: text("person.job_level"), Value: field("job_level", person.Grade)},
-				{Label: text("person.hire_date"), Value: field("hire_date", person.HireDate)},
-				{Label: text("person.employment_type"), Value: field("employment_type", "")},
-				{Label: text("person.time_type"), Value: field("time_type", "")},
-				{Label: text("person.record_source"), Value: field("record_source", person.Source)},
-				{Label: text("person.record_created"), Value: field("record_created", person.CreatedAt)},
-			}},
+			Facts: details},
 		Organization: EmploymentDetailsProps{
 			Title: text("person.organization"), Description: text("person.organization_detail"), Class: "organization-details",
-			Facts: []ProfileFactProps{
-				{Label: text("person.organization_unit"), Value: field("organization_unit", person.Team)},
-				{Label: text("person.manager"), Value: field("manager", person.Manager)},
-				{Label: text("person.position_id"), Value: field("position_id", person.PositionID)},
-				{Label: text("person.work_location"), Value: field("work_location", person.Location)},
-				{Label: text("person.company"), Value: field("company", "")},
-				{Label: text("person.business_unit"), Value: field("business_unit", "")},
-				{Label: text("person.cost_center"), Value: field("cost_center", "")},
-				{Label: text("person.work_arrangement"), Value: field("work_arrangement", "")},
-			},
+			Facts: organization,
 		},
 		Compensation: EmploymentDetailsProps{
 			Title: text("person.compensation"), Description: text("person.compensation_detail"), Class: "compensation-details",
-			Facts: []ProfileFactProps{
-				{Label: text("person.base_pay"), Value: field("base_pay", money(view.Locale, person.BasePay))},
-				{Label: text("person.bonus_target"), Value: field("bonus_target", percentage(view.Locale, person.BonusTarget))},
-				{Label: text("person.pay_zone"), Value: field("pay_zone", person.PayZone)},
-				{Label: text("person.pay_frequency"), Value: field("pay_frequency", "")},
-			}},
+			Facts: compensation},
 		Personal: SensitiveDetailsProps{
 			Title: text("person.personal_information"), Description: text("person.personal_hidden"), Badge: text("person.restricted"),
-			Facts: []ProfileFactProps{
-				{Label: text("person.legal_name"), Value: field("legal_name", person.LegalName)},
-				{Label: text("person.preferred_name"), Value: field("preferred_name", person.PreferredName)},
-				{Label: text("person.worker_id"), Value: field("worker_id", person.WorkerID)},
-				{Label: text("person.worker_ref"), Value: field("record_id", person.ID)},
-			},
+			Facts: personal,
 		},
 		Workflows: personWorkflowLauncherProps(view, person, target),
 		History: workflowHistoryPropsForTarget(view, person.ID, target, text("work.past"),

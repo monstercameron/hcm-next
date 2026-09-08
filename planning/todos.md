@@ -15962,7 +15962,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-066` **[GATE_C][SOL_HIGH] Implement all field-disposition renderings.**
+- [x] `WEB-066` **[GATE_C][SOL_HIGH] Implement all field-disposition renderings.**
   - **Depends:** `WEB-065`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement all field-disposition renderings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_066`.

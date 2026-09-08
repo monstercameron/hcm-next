@@ -17,10 +17,16 @@ const (
 
 // AuthorizedField is the server's verdict on one field: its effect and
 // the server's redaction-safe reason, rendered only where the effect
-// withholds a value the viewer asked to see.
+// withholds a value the viewer asked to see. Disposition carries the
+// spec field disposition when the server decides one; StandIn carries
+// the server-composed safe stand-in (masked, summary, or derived form)
+// that MASK, SUMMARY_ONLY, and DERIVED_ONLY render instead of the raw
+// value. A blank disposition keeps the legacy effect rendering.
 type AuthorizedField struct {
-	Effect PresentationEffect
-	Reason string
+	Effect      PresentationEffect
+	Reason      string
+	Disposition FieldDisposition
+	StandIn     string
 }
 
 // ProjectedValue is one field ready to render: display text plus the
