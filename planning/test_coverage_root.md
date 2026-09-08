@@ -919,6 +919,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | page_organization_visibility.go       | yes           |
 | internal/humanwork/productui                             | page_people.go                        | yes           |
 | internal/humanwork/productui                             | page_person.go                        | yes           |
+| internal/humanwork/productui                             | page_precedence.go                    | yes           |
 | internal/humanwork/productui                             | page_revision.go                      | yes           |
 | internal/humanwork/productui                             | page_roles.go                         | yes           |
 | internal/humanwork/productui                             | page_settings.go                      | yes           |
