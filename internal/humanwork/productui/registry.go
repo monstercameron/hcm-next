@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageReviewParticipants, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -144,6 +144,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageGovernedFeedback, Route: "/workspace/app/growth/feedback", Label: "Governed feedback", Icon: "people", Title: "Governed feedback", Subtitle: "Exchange feedback through the governed growth service.", LabelKey: "page.governed_feedback.label", TitleKey: "page.governed_feedback.title", SubtitleKey: "page.governed_feedback.subtitle", SearchTerms: []string{"feedback", "praise", "kudos", "exchange", "growth"}, RenderOrder: 105, render: governedFeedbackPage},
 		{ID: PageManagerCheckins, Route: "/workspace/app/growth/checkins", Label: "Manager check-ins", Icon: "people", Title: "Manager check-ins", Subtitle: "Run check-ins through the governed growth service.", LabelKey: "page.manager_checkins.label", TitleKey: "page.manager_checkins.title", SubtitleKey: "page.manager_checkins.subtitle", SearchTerms: []string{"check-ins", "one-on-one", "notes", "manager", "growth"}, RenderOrder: 106, render: managerCheckinsPage},
 		{ID: PagePerfReview, Route: "/workspace/app/growth/perf-review", Label: "Perf review", Icon: "people", Title: "Performance-review workspace", Subtitle: "Review performance through the governed growth service.", LabelKey: "page.perf_review.label", TitleKey: "page.perf_review.title", SubtitleKey: "page.perf_review.subtitle", SearchTerms: []string{"performance", "review", "rating", "workspace", "growth"}, RenderOrder: 107, render: perfReviewPage},
+		{ID: PageReviewParticipants, Route: "/workspace/app/growth/review-participants", Label: "Review participants", Icon: "people", Title: "Review-participant visibility", Subtitle: "Disclose participants through the governed growth service.", LabelKey: "page.review_participants.label", TitleKey: "page.review_participants.title", SubtitleKey: "page.review_participants.subtitle", SearchTerms: []string{"participants", "reviewer", "reviewee", "visibility", "growth"}, RenderOrder: 108, render: reviewParticipantsPage},
 	}
 }
 
