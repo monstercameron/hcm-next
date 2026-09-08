@@ -99,6 +99,7 @@ const (
 	PageFinalPay               PageID = "final-pay"
 	PageAccessEquipment        PageID = "access-equipment"
 	PageFinalDocuments         PageID = "final-documents"
+	PageOffboardingEffects     PageID = "offboarding-effects"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
