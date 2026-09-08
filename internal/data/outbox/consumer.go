@@ -2,6 +2,7 @@ package outbox
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,6 +37,11 @@ type Consumer struct {
 	lease     time.Duration
 	batchSize int
 	now       func() time.Time
+	// maxAttempts caps deliveries per message: once a message has been
+	// claimed maxAttempts times, the next Fail parks it ABANDONED instead
+	// of PENDING so a poison message stops spinning the sweep. Zero (the
+	// default) means unlimited, preserving redeliver-forever behavior.
+	maxAttempts int
 }
 
 // ConsumerOption configures a Consumer.
@@ -46,6 +52,14 @@ func WithLease(d time.Duration) ConsumerOption { return func(c *Consumer) { c.le
 
 // WithBatchSize overrides DefaultBatchSize.
 func WithBatchSize(n int) ConsumerOption { return func(c *Consumer) { c.batchSize = n } }
+
+// WithMaxAttempts parks a message ABANDONED after n failed deliveries
+// instead of returning it to PENDING forever. Abandoned rows keep their
+// last error as evidence, are never re-polled, and stay visible to the
+// health probes that count terminal rows. Non-positive n means unlimited.
+func WithMaxAttempts(n int) ConsumerOption {
+	return func(c *Consumer) { c.maxAttempts = n }
+}
 
 // WithClock replaces the consumer's source of time, for deterministic lease
 // expiry tests.
@@ -207,15 +221,24 @@ func (c *Consumer) Claim(ctx context.Context, tenant uuid.UUID) ([]Record, error
 	return c.Poll(ctx, tenant)
 }
 
-// Ack marks a message DELIVERED. Acking an already-delivered message is a
-// harmless no-op, matching Handler's own idempotency requirement.
+// Ack marks a message DELIVERED. Only a live IN_FLIGHT claim is settled:
+// anything else (never claimed, already delivered, failed, or abandoned)
+// is [ErrLeaseFence], never a silent no-op, so callers can distinguish
+// "settled" from "no such claim" without parsing driver output. It cannot
+// verify claim ownership without the lease token — a live claim held by
+// another worker settles the same as an owned one — so concurrent-worker
+// call sites must use the token-fenced [Consumer.AckClaim], and this
+// method is an operator-grade repair primitive.
 func (c *Consumer) Ack(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID) error {
-	_, err := execOn(ctx, c.db, `
+	affected, err := execOn(ctx, c.db, `
 		UPDATE outbox SET status = $3, updated_at = $4, lease_token = NULL, lease_until = NULL
 		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5`,
 		tenant, outboxID, StatusDelivered, c.now(), StatusInFlight)
 	if err != nil {
 		return fmt.Errorf("outbox: ack %s: %w", outboxID, err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("outbox: ack %s: %w", outboxID, ErrLeaseFence)
 	}
 	return nil
 }
@@ -242,22 +265,16 @@ func (c *Consumer) AckLease(ctx context.Context, tenant, outboxID, token uuid.UU
 }
 
 // Fail records a delivery attempt's failure. The message returns to PENDING
-// (available immediately) so the next Poll retries it; a caller enforcing a
-// maximum-attempts policy can transition to ABANDONED itself by reading
-// Record.Attempts.
+// (available immediately) so the next Poll retries it, unless the consumer
+// was built with [WithMaxAttempts] and the message has exhausted its
+// deliveries — then it is parked ABANDONED with its last error as
+// evidence. Like [Consumer.Ack], failing anything but a live IN_FLIGHT
+// claim is [ErrLeaseFence], never a silent no-op.
 func (c *Consumer) Fail(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID, cause error) error {
 	if cause == nil {
 		return fmt.Errorf("outbox: fail %s: cause is required", outboxID)
 	}
-	_, err := execOn(ctx, c.db, `
-		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
-			lease_token = NULL, lease_until = NULL
-		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6`,
-		tenant, outboxID, StatusPending, cause.Error(), c.now(), StatusInFlight)
-	if err != nil {
-		return fmt.Errorf("outbox: fail %s: %w", outboxID, err)
-	}
-	return nil
+	return c.failRow(ctx, tenant, outboxID, uuid.Nil, false, cause)
 }
 
 // FailLease is the fenced form of Fail.
@@ -268,18 +285,67 @@ func (c *Consumer) FailLease(ctx context.Context, tenant, outboxID, token uuid.U
 	if cause == nil {
 		return fmt.Errorf("outbox: fail %s: cause is required", outboxID)
 	}
-	affected, err := execOn(ctx, c.db, `
+	return c.failRow(ctx, tenant, outboxID, token, true, cause)
+}
+
+// failRow settles one failed claim inside a single transaction: it reads
+// the row locked, applies the max-attempts policy, and returns it to
+// PENDING — or parks it ABANDONED once exhausted. Anything but a matching
+// live claim (missing row, wrong status, or, when fenced, a foreign or
+// expired lease) is [ErrLeaseFence].
+func (c *Consumer) failRow(ctx context.Context, tenant, outboxID, token uuid.UUID, fenced bool, cause error) error {
+	tx, err := c.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("outbox: fail %s: begin: %w", outboxID, err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
+		}
+	}()
+	now := c.now()
+	var attempts int
+	var status string
+	var leaseToken *uuid.UUID
+	var leaseUntil *time.Time
+	err = tx.QueryRow(ctx, `
+		SELECT attempts, status, lease_token, lease_until FROM outbox
+		WHERE tenant_id = $1 AND outbox_id = $2 FOR UPDATE`,
+		tenant, outboxID).Scan(&attempts, &status, &leaseToken, &leaseUntil)
+	if err != nil {
+		if errors.Is(err, dbport.ErrNoRows) {
+			return fmt.Errorf("outbox: fail %s: %w", outboxID, ErrLeaseFence)
+		}
+		return fmt.Errorf("outbox: fail %s: read: %w", outboxID, err)
+	}
+	if status != StatusInFlight {
+		return fmt.Errorf("outbox: fail %s: %w", outboxID, ErrLeaseFence)
+	}
+	if fenced {
+		if leaseToken == nil || *leaseToken != token || leaseUntil == nil || !leaseUntil.After(now) {
+			return fmt.Errorf("outbox: fail %s: %w", outboxID, ErrLeaseFence)
+		}
+	}
+	target := StatusPending
+	if c.maxAttempts > 0 && attempts >= c.maxAttempts {
+		target = StatusAbandoned
+	}
+	affected, err := tx.Exec(ctx, `
 		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
 			lease_token = NULL, lease_until = NULL
-		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6 AND lease_token = $7
-		  AND lease_until > $5`,
-		tenant, outboxID, StatusPending, cause.Error(), c.now(), StatusInFlight, token)
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $6`,
+		tenant, outboxID, target, cause.Error(), now, StatusInFlight)
 	if err != nil {
-		return fmt.Errorf("outbox: fail lease %s: %w", outboxID, err)
+		return fmt.Errorf("outbox: fail %s: %w", outboxID, err)
 	}
 	if affected != 1 {
-		return fmt.Errorf("outbox: fail lease %s: %w", outboxID, ErrLeaseFence)
+		return fmt.Errorf("outbox: fail %s: %w", outboxID, ErrLeaseFence)
 	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("outbox: fail %s: commit: %w", outboxID, err)
+	}
+	committed = true
 	return nil
 }
 
@@ -288,6 +354,32 @@ func (c *Consumer) FailLease(ctx context.Context, tenant, outboxID, token uuid.U
 // call sites that already pass records through a handler.
 func (c *Consumer) AckClaim(ctx context.Context, msg Record) error {
 	return c.AckLease(ctx, msg.Tenant, msg.OutboxID, msg.LeaseToken)
+}
+
+// ackDelivered settles a handled message without halting on an expired
+// lease the consumer still owns. The fresh-lease path (AckLease) wins when
+// the claim is live; when the lease lapsed but no other poller reclaimed
+// the row — the lease token still names this claim — the delivery is
+// settled under the token fence instead of reported as a failure. A row
+// reclaimed by another poller keeps its new owner: the token predicate
+// matches zero rows and the caller gets [ErrLeaseFence].
+func (c *Consumer) ackDelivered(ctx context.Context, msg Record) error {
+	if err := c.AckLease(ctx, msg.Tenant, msg.OutboxID, msg.LeaseToken); err == nil {
+		return nil
+	} else if !errors.Is(err, ErrLeaseFence) {
+		return err
+	}
+	affected, err := execOn(ctx, c.db, `
+		UPDATE outbox SET status = $3, updated_at = $4, lease_token = NULL, lease_until = NULL
+		WHERE tenant_id = $1 AND outbox_id = $2 AND status = $5 AND lease_token = $6`,
+		msg.Tenant, msg.OutboxID, StatusDelivered, c.now(), StatusInFlight, msg.LeaseToken)
+	if err != nil {
+		return fmt.Errorf("outbox: ack expired lease %s: %w", msg.OutboxID, err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("outbox: ack expired lease %s: %w", msg.OutboxID, ErrLeaseFence)
+	}
+	return nil
 }
 
 // FailClaim returns the exact claim to the pending queue, fenced by its lease.
@@ -344,7 +436,14 @@ func (c *Consumer) Run(ctx context.Context, tenant uuid.UUID, handler Handler, p
 				_ = c.FailLease(ctx, tenant, msg.OutboxID, msg.LeaseToken, err)
 				continue
 			}
-			if err := c.AckLease(ctx, tenant, msg.OutboxID, msg.LeaseToken); err != nil {
+			// A slow handler may outrun its own lease; settling under the
+			// still-owned token keeps one slow dispatch from halting the
+			// loop. Only a row reclaimed by another poller is skipped, and
+			// its new owner redelivers it.
+			if err := c.ackDelivered(ctx, msg); err != nil {
+				if errors.Is(err, ErrLeaseFence) {
+					continue
+				}
 				return err
 			}
 		}

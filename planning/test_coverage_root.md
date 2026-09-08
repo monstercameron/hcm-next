@@ -680,7 +680,7 @@ generated=42 hand-written=2046
 | internal/engines/cycle                                   | current_phase_explanation.go          | yes           |
 | internal/engines/cycle                                   | cycle.go                              | yes           |
 | internal/engines/cycle                                   | late_entrants.go                      | yes           |
-| internal/engines/cycle                                   | phase_windows.go                      | yes           |
+| internal/engines/cycle                                   | phase_timewindows.go                  | yes           |
 | internal/engines/cycle                                   | population_binding.go                 | yes           |
 | internal/engines/cycle                                   | transition.go                         | yes           |
 | internal/engines/docextract                              | contract.go                           | yes           |

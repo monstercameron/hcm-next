@@ -144,12 +144,17 @@ duration` histogram in the Go catalog + YAML mirror + OTel adapter
 - Verification: `go build ./...`, `go vet
 ./internal/platform/telemetry/...`, `go test -count=1
 ./internal/platform/telemetry/...` all PASS.
-- STAGED, commit blocked on environment (this devlog + CHANGELOG +
-  todos staged in the same atomic set): correlation pkg (3 files), otel
-  metrics + tests, catalog YAML, regenerated archdoc testdata,
-  substratecoverage ownership row. `git commit` runs but the husky hook
-  cannot start: WSL interop is down in this shell (Windows binaries fail
-  with Exec format error; binfmt_misc lacks WSLInterop; uid 1000 so no
-  repair). Retry from a Windows shell. `otel/obs013_test.go` Golden
-  content and the `gofmt -w internal/data/jobs/obs013_test.go`
-  worktree-only normalization stay uncommitted (prior sessions' work).
+- LANDED as `621f3d95` via `git commit --no-verify` on explicit
+  user order: the husky hook could not start (WSL interop down in that
+  shell — Windows binaries failed with Exec format error; binfmt_misc
+  lacked WSLInterop; uid 1000 so no repair), so the full hook never ran
+  on the final tree. Gates that passed in-session on this tree:
+  code-style, check:go (gofmt + `go vet ./...`), race-policy,
+  decomposition, covergate (`-changed`: 3 pkgs, floor 70%), full
+  `./internal/platform/telemetry/...` suite green. NOT re-run on the
+  final tree: `test:all`, enginecoverage, apigate, build, plus the
+  `seconds`→`ms` rename (behavior-neutral) — re-verify from a Windows
+  shell. Prior sessions' uncommitted work left untouched:
+  `otel/obs013_test.go` Golden content, `jobs/*`, `scheduler.go`,
+  gateevidence/traceability files (plus a worktree-only `gofmt -w` of
+  `internal/data/jobs/obs013_test.go` needed to satisfy check:go).

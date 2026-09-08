@@ -52,12 +52,65 @@ func TestTodo_OBS_017_Golden(t *testing.T) {
 func FuzzTodo_OBS_017(f *testing.F) {
 	f.Add("secret")
 	f.Add("")
+	f.Add("password=TOP-SECRET-payload-value")
 	f.Fuzz(func(t *testing.T, value string) {
 		failure := ClassifyPanic(value)
-		if failure.Panic && strings.Contains(failure.StackRef, value) && value != "" {
+		// StackRef is "stackref:" plus exactly 24 hex digest characters
+		// over the call PCs and the value's TYPE (never the value). A
+		// value that could appear in a well-formed StackRef by chance —
+		// inside the literal prefix, inside the hex digest, or straddling
+		// their boundary — proves nothing either way and is skipped. Any
+		// other value present in StackRef is a genuine leak.
+		if failure.Panic && value != "" && !isCoincidencePlausible(value) && strings.Contains(failure.StackRef, value) {
 			t.Fatalf("panic input leaked: %q", value)
 		}
 	})
+}
+
+const stackRefPrefix = "stackref:"
+
+// isCoincidencePlausible reports whether value could occur inside a
+// well-formed StackRef ("stackref:" + 24 hex chars) without a leak: fully
+// inside the literal prefix, fully inside the hex digest, or straddling
+// their boundary. Genuine secrets (long, non-hex) never qualify.
+func isCoincidencePlausible(value string) bool {
+	if value == "" || strings.Contains(stackRefPrefix, value) {
+		return true
+	}
+	for i := 1; i < len(value); i++ {
+		if strings.HasSuffix(stackRefPrefix, value[:i]) && isHexBounded(value[i:], 24) {
+			return true
+		}
+	}
+	return isHexBounded(value, 24)
+}
+
+// isHexBounded reports whether value is all hex characters within maxLen.
+func isHexBounded(value string, maxLen int) bool {
+	if value == "" || len(value) > maxLen {
+		return false
+	}
+	for _, r := range value {
+		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+func TestTodo_OBS_017_CoincidenceGuard(t *testing.T) {
+	plausible := []string{"", "0", "s", "ref", "stackref:", "ab12", "ref:ab12", "stackref:abcdef0123456789abcdef"}
+	for _, v := range plausible {
+		if !isCoincidencePlausible(v) {
+			t.Errorf("isCoincidencePlausible(%q) = false, want true", v)
+		}
+	}
+	distinctive := []string{"secret", "password=TOP-SECRET", "Bearer abc", "a-very-long-hex-lookalike-string-0123456789abcdef", strings.Repeat("a", 25)}
+	for _, v := range distinctive {
+		if isCoincidencePlausible(v) {
+			t.Errorf("isCoincidencePlausible(%q) = true, want false", v)
+		}
+	}
 }
 
 func TestTodo_OBS_017_Fault(t *testing.T) {

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 )
@@ -156,6 +157,15 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 		ON CONFLICT (tenant_id, effect_identity) DO NOTHING`,
 		args...)
 	if err != nil {
+		// An explicit OutboxID that collides with another row's primary
+		// key is the same caller bug as a conflicting effect identity: a
+		// reused identity for different content. Report it typed so
+		// callers can distinguish "replay" from "bug" without parsing
+		// driver errors.
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "outbox_pkey" {
+			return Record{}, fmt.Errorf("%w: %s", ErrIdentityConflict, req.EffectIdentity)
+		}
 		return Record{}, fmt.Errorf("outbox: enqueue %s: %w", req.EffectIdentity, err)
 	}
 	if affected == 1 {

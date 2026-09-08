@@ -81,6 +81,14 @@ func allows(graph map[string][]string, from, to string) bool {
 	return slices.Contains(graph[from], to)
 }
 
+// validIdentifier mirrors the semantic_key domain (migration 00002):
+// blank or surrounding-whitespace-padded values are refused before any
+// statement runs, so callers get [ErrInvalid] instead of a raw CHECK
+// violation from the database.
+func validIdentifier(v string) bool {
+	return v != "" && v == strings.TrimSpace(v)
+}
+
 // ---------------------------------------------------------------------------
 // Job definitions.
 // ---------------------------------------------------------------------------
@@ -128,8 +136,8 @@ func (s DefinitionStore) Publish(ctx context.Context, ex Executor, in JobDefinit
 	if in.TenantID == uuid.Nil {
 		return JobDefinition{}, invalid("tenant_id", "a job definition is tenant scoped")
 	}
-	if in.JobID == "" {
-		return JobDefinition{}, invalid("job_id", "a job definition names a job")
+	if !validIdentifier(in.JobID) {
+		return JobDefinition{}, invalid("job_id", "a job definition names a job with an unpadded identifier")
 	}
 	if in.Version == 0 {
 		return JobDefinition{}, invalid("version", "version starts at 1")
@@ -140,8 +148,8 @@ func (s DefinitionStore) Publish(ctx context.Context, ex Executor, in JobDefinit
 	if !isHex64(in.TriggerDigest) {
 		return JobDefinition{}, invalid("trigger_digest", "digest is not 64 hex characters")
 	}
-	if in.TargetDefinitionRef == "" {
-		return JobDefinition{}, invalid("target_definition_ref", "a job definition names the intent it targets")
+	if !validIdentifier(in.TargetDefinitionRef) {
+		return JobDefinition{}, invalid("target_definition_ref", "a job definition names the intent it targets with an unpadded identifier")
 	}
 	if in.TargetDefinitionVersion == 0 {
 		return JobDefinition{}, invalid("target_definition_version", "version starts at 1")
@@ -293,6 +301,19 @@ func boundedIdentifier(v string) string {
 	}
 	return v
 }
+
+// requireLinkExpiry refuses a trace link without an expiry before any
+// statement runs. The schema forbids persisting one — the run/partition
+// completeness CHECKs demand trace_link_expires_at IS NOT NULL whenever a
+// link is present, and the checkpoint link table declares it NOT NULL —
+// and reads can never return one, so accepting it would only surface a raw
+// driver error or a silently dropped link.
+func requireLinkExpiry(c *CausalMetadata) error {
+	if c != nil && c.TraceLink != nil && c.TraceLink.ExpiresAt.IsZero() {
+		return invalid("trace_link_expires_at", "a stored trace link carries an expiry")
+	}
+	return nil
+}
 func validTraceID(v string, size int) bool {
 	if v != strings.ToLower(v) {
 		return false
@@ -391,8 +412,8 @@ func (s RunStore) StartRun(ctx context.Context, ex Executor, in JobRun) (JobRun,
 	if in.RunID == uuid.Nil {
 		return JobRun{}, invalid("run_id", "a run needs an identity")
 	}
-	if in.JobID == "" {
-		return JobRun{}, invalid("job_id", "a run declares the job it runs")
+	if !validIdentifier(in.JobID) {
+		return JobRun{}, invalid("job_id", "a run declares the job it runs with an unpadded identifier")
 	}
 	if in.JobVersion == 0 {
 		return JobRun{}, invalid("job_version", "a run pins the exact published job version")
@@ -404,6 +425,9 @@ func (s RunStore) StartRun(ctx context.Context, ex Executor, in JobRun) (JobRun,
 		return JobRun{}, invalid("declared_at", "timestamp is unset")
 	}
 	in.Causal = normalizeCausal(in.Causal)
+	if err := requireLinkExpiry(in.Causal); err != nil {
+		return JobRun{}, err
+	}
 	if in.Causal != nil && in.Causal.LogicalOperationID != "" && in.Causal.AttemptID == "" {
 		in.Causal.AttemptID = uuid.NewString()
 	}
@@ -430,7 +454,7 @@ func (s RunStore) StartRun(ctx context.Context, ex Executor, in JobRun) (JobRun,
 
 // Begin transitions a run DECLARED -> RUNNING under compare-and-swap.
 func (s RunStore) Begin(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, expectedVersion uint64, at time.Time) (JobRun, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunRunning)
+	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunRunning, expectedVersion)
 	if err != nil {
 		return JobRun{}, err
 	}
@@ -454,7 +478,7 @@ func (s RunStore) Begin(ctx context.Context, ex Executor, tenantID, runID uuid.U
 
 // Complete transitions a run RUNNING -> COMPLETED under compare-and-swap.
 func (s RunStore) Complete(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, expectedVersion uint64, at time.Time) (JobRun, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunCompleted)
+	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunCompleted, expectedVersion)
 	if err != nil {
 		return JobRun{}, err
 	}
@@ -480,7 +504,7 @@ func (s RunStore) Complete(ctx context.Context, ex Executor, tenantID, runID uui
 // detail. A retry that wants another attempt calls [RunStore.Retry]
 // afterward, which is the only way out of FAILED.
 func (s RunStore) Fail(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, expectedVersion uint64, at time.Time, detail string) (JobRun, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunFailed)
+	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunFailed, expectedVersion)
 	if err != nil {
 		return JobRun{}, err
 	}
@@ -509,7 +533,7 @@ func (s RunStore) Fail(ctx context.Context, ex Executor, tenantID, runID uuid.UU
 // Cancel transitions a run DECLARED or RUNNING -> CANCELLED under
 // compare-and-swap.
 func (s RunStore) Cancel(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, expectedVersion uint64, at time.Time) (JobRun, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunCancelled)
+	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunCancelled, expectedVersion)
 	if err != nil {
 		return JobRun{}, err
 	}
@@ -536,7 +560,7 @@ func (s RunStore) Cancel(ctx context.Context, ex Executor, tenantID, runID uuid.
 // started/completed/failure fields. This is where "attempt count" lives: a
 // redrive is a new attempt on the same run identity, not a new run.
 func (s RunStore) Retry(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, expectedVersion uint64, at time.Time) (JobRun, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunDeclared)
+	current, err := s.checkTransition(ctx, ex, tenantID, runID, RunDeclared, expectedVersion)
 	if err != nil {
 		return JobRun{}, err
 	}
@@ -567,12 +591,18 @@ func (s RunStore) Retry(ctx context.Context, ex Executor, tenantID, runID uuid.U
 	return current, nil
 }
 
-// checkTransition loads the current row and refuses a transition the
-// lifecycle does not allow before any statement runs.
-func (s RunStore) checkTransition(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, next string) (JobRun, error) {
+// checkTransition loads the current row and refuses a stale version before
+// it refuses an illegal step, mirroring the partition CAS-first classifier:
+// a caller presenting a version that is no longer current is told
+// [ErrVersionConflict] however the state has moved, while a current
+// version on a disallowed step is [ErrIllegalTransition].
+func (s RunStore) checkTransition(ctx context.Context, ex Executor, tenantID, runID uuid.UUID, next string, expectedVersion uint64) (JobRun, error) {
 	current, err := s.Load(ctx, ex, tenantID, runID)
 	if err != nil {
 		return JobRun{}, err
+	}
+	if current.Version != expectedVersion {
+		return JobRun{}, fmt.Errorf("%w: job_run %s expected version %d", ErrVersionConflict, runID, expectedVersion)
 	}
 	if !allows(runTransitions, current.State, next) {
 		return JobRun{}, fmt.Errorf("%w: job_run %s: %s -> %s", ErrIllegalTransition, runID, current.State, next)
@@ -682,13 +712,16 @@ func (s PartitionStore) Create(ctx context.Context, ex Executor, in JobPartition
 	if in.RunID == uuid.Nil {
 		return JobPartition{}, invalid("run_id", "a partition belongs to a run")
 	}
-	if in.PartitionKey == "" {
-		return JobPartition{}, invalid("partition_key", "a partition carries a deterministic key")
+	if !validIdentifier(in.PartitionKey) {
+		return JobPartition{}, invalid("partition_key", "a partition carries a deterministic unpadded key")
 	}
 	if in.CreatedAt.IsZero() {
 		return JobPartition{}, invalid("created_at", "timestamp is unset")
 	}
 	in.Causal = normalizeCausal(in.Causal)
+	if err := requireLinkExpiry(in.Causal); err != nil {
+		return JobPartition{}, err
+	}
 	args := []any{in.TenantID, in.PartitionID, in.RunID, in.PartitionKey, PartitionPending, in.CreatedAt.UTC()}
 	args = append(args, causalArgs(in.Causal)...)
 	affected, err := ex.Exec(ctx, `
@@ -715,17 +748,17 @@ func (s PartitionStore) Create(ctx context.Context, ex Executor, in JobPartition
 // same expectedVersion, matches zero rows and receives
 // [ErrVersionConflict] rather than partially applying its claim.
 func (s PartitionStore) ClaimPartition(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, expectedVersion uint64, holder string, at time.Time) (JobPartition, error) {
-	if holder == "" {
-		return JobPartition{}, invalid("claimed_by", "a claim names its holder")
+	if !validIdentifier(holder) {
+		return JobPartition{}, invalid("claimed_by", "a claim names its holder with an unpadded identifier")
 	}
 	if at.IsZero() {
 		return JobPartition{}, invalid("claimed_at", "timestamp is unset")
 	}
 	newAttemptID := uuid.NewString()
-	current, err := s.checkTransition(ctx, ex, tenantID, partitionID, PartitionClaimed)
-	if err != nil {
-		return JobPartition{}, err
-	}
+	// The compare-and-swap runs before any state inspection: a concurrent
+	// claimant that already moved the row must deterministically receive
+	// ErrVersionConflict, never an illegal-transition diagnosed off a row
+	// that changed under the read.
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_partition
 		SET partition_state = $4, claimed_by = $5, claimed_at = $6, attempt = attempt + 1, partition_version = partition_version + 1
@@ -735,106 +768,111 @@ func (s PartitionStore) ClaimPartition(ctx context.Context, ex Executor, tenantI
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: claim partition %s: %w", partitionID, err)
 	}
-	if affected == 0 {
-		return JobPartition{}, fmt.Errorf("%w: job_partition %s expected version %d", ErrVersionConflict, partitionID, expectedVersion)
+	if affected == 1 {
+		claimed, err := s.Load(ctx, ex, tenantID, partitionID)
+		if err != nil {
+			return JobPartition{}, fmt.Errorf("jobs: reload claimed partition %s: %w", partitionID, err)
+		}
+		return claimed, nil
 	}
-	current.State, current.Version, current.ClaimedBy, current.ClaimedAt =
-		PartitionClaimed, expectedVersion+1, holder, at.UTC()
-	current.Attempt++
-	if current.Causal != nil {
-		current.Causal.AttemptID = newAttemptID
+	return JobPartition{}, s.classifyUnmatchedTransition(ctx, ex, tenantID, partitionID, expectedVersion, PartitionClaimed)
+}
+
+// classifyUnmatchedTransition tells a lost compare-and-swap apart from a
+// genuinely illegal transition: when the row moved under the caller it is
+// ErrVersionConflict; when the version still matches but the state
+// disallows the step it is ErrIllegalTransition.
+func (s PartitionStore) classifyUnmatchedTransition(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, expectedVersion uint64, next string) error {
+	current, err := s.Load(ctx, ex, tenantID, partitionID)
+	if err != nil {
+		return err
 	}
-	return current, nil
+	if current.Version != expectedVersion {
+		return fmt.Errorf("%w: job_partition %s expected version %d", ErrVersionConflict, partitionID, expectedVersion)
+	}
+	return fmt.Errorf("%w: job_partition %s: %s -> %s", ErrIllegalTransition, partitionID, current.State, next)
 }
 
 // Complete transitions a partition CLAIMED -> COMPLETED under
 // compare-and-swap.
 func (s PartitionStore) Complete(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, expectedVersion uint64, at time.Time) (JobPartition, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, partitionID, PartitionCompleted)
-	if err != nil {
-		return JobPartition{}, err
-	}
 	if at.IsZero() {
 		return JobPartition{}, invalid("completed_at", "timestamp is unset")
 	}
+	// Compare-and-swap first (see ClaimPartition): the state predicate keeps
+	// the old checkTransition guard inside the atomic statement, so a lost
+	// race reports ErrVersionConflict while a genuinely illegal step still
+	// reports ErrIllegalTransition.
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_partition
 		SET partition_state = $4, partition_version = partition_version + 1, completed_at = $5
-		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3`,
-		tenantID, partitionID, int64(expectedVersion), PartitionCompleted, at.UTC())
+		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3 AND partition_state = $6`,
+		tenantID, partitionID, int64(expectedVersion), PartitionCompleted, at.UTC(), PartitionClaimed)
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: complete partition %s: %w", partitionID, err)
 	}
-	if affected == 0 {
-		return JobPartition{}, fmt.Errorf("%w: job_partition %s expected version %d", ErrVersionConflict, partitionID, expectedVersion)
+	if affected == 1 {
+		completed, err := s.Load(ctx, ex, tenantID, partitionID)
+		if err != nil {
+			return JobPartition{}, fmt.Errorf("jobs: reload completed partition %s: %w", partitionID, err)
+		}
+		return completed, nil
 	}
-	current.State, current.Version, current.CompletedAt = PartitionCompleted, expectedVersion+1, at.UTC()
-	return current, nil
+	return JobPartition{}, s.classifyUnmatchedTransition(ctx, ex, tenantID, partitionID, expectedVersion, PartitionCompleted)
 }
 
 // Fail transitions a partition CLAIMED -> FAILED under compare-and-swap,
 // recording detail.
 func (s PartitionStore) Fail(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, expectedVersion uint64, at time.Time, detail string) (JobPartition, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, partitionID, PartitionFailed)
-	if err != nil {
-		return JobPartition{}, err
-	}
 	if at.IsZero() {
 		return JobPartition{}, invalid("completed_at", "timestamp is unset")
 	}
 	if detail == "" {
 		return JobPartition{}, invalid("failure_detail", "a failed partition records why")
 	}
+	// Compare-and-swap first (see ClaimPartition).
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_partition
 		SET partition_state = $4, partition_version = partition_version + 1, completed_at = $5, failure_detail = $6
-		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3`,
-		tenantID, partitionID, int64(expectedVersion), PartitionFailed, at.UTC(), detail)
+		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3 AND partition_state = $7`,
+		tenantID, partitionID, int64(expectedVersion), PartitionFailed, at.UTC(), detail, PartitionClaimed)
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: fail partition %s: %w", partitionID, err)
 	}
-	if affected == 0 {
-		return JobPartition{}, fmt.Errorf("%w: job_partition %s expected version %d", ErrVersionConflict, partitionID, expectedVersion)
+	if affected == 1 {
+		failed, err := s.Load(ctx, ex, tenantID, partitionID)
+		if err != nil {
+			return JobPartition{}, fmt.Errorf("jobs: reload failed partition %s: %w", partitionID, err)
+		}
+		return failed, nil
 	}
-	current.State, current.Version, current.CompletedAt, current.FailureDetail =
-		PartitionFailed, expectedVersion+1, at.UTC(), detail
-	return current, nil
+	return JobPartition{}, s.classifyUnmatchedTransition(ctx, ex, tenantID, partitionID, expectedVersion, PartitionFailed)
 }
 
 // Cancel transitions a partition PENDING or CLAIMED -> CANCELLED under
 // compare-and-swap.
 func (s PartitionStore) Cancel(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, expectedVersion uint64, at time.Time) (JobPartition, error) {
-	current, err := s.checkTransition(ctx, ex, tenantID, partitionID, PartitionCancelled)
-	if err != nil {
-		return JobPartition{}, err
-	}
 	if at.IsZero() {
 		return JobPartition{}, invalid("completed_at", "timestamp is unset")
 	}
+	// Compare-and-swap first (see ClaimPartition). Cancel accepts PENDING
+	// or CLAIMED sources, so the predicate lists both.
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_partition
-		SET partition_state = $4, partition_version = partition_version + 1, completed_at = $5
-		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3`,
-		tenantID, partitionID, int64(expectedVersion), PartitionCancelled, at.UTC())
+		SET partition_state = $5, partition_version = partition_version + 1, completed_at = $6
+		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3 AND partition_state IN ($4, $7)`,
+		tenantID, partitionID, int64(expectedVersion), PartitionPending, PartitionCancelled, at.UTC(), PartitionClaimed)
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: cancel partition %s: %w", partitionID, err)
 	}
-	if affected == 0 {
-		return JobPartition{}, fmt.Errorf("%w: job_partition %s expected version %d", ErrVersionConflict, partitionID, expectedVersion)
+	if affected == 1 {
+		cancelled, err := s.Load(ctx, ex, tenantID, partitionID)
+		if err != nil {
+			return JobPartition{}, fmt.Errorf("jobs: reload cancelled partition %s: %w", partitionID, err)
+		}
+		return cancelled, nil
 	}
-	current.State, current.Version, current.CompletedAt = PartitionCancelled, expectedVersion+1, at.UTC()
-	return current, nil
-}
-
-func (s PartitionStore) checkTransition(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID, next string) (JobPartition, error) {
-	current, err := s.Load(ctx, ex, tenantID, partitionID)
-	if err != nil {
-		return JobPartition{}, err
-	}
-	if !allows(partitionTransitions, current.State, next) {
-		return JobPartition{}, fmt.Errorf("%w: job_partition %s: %s -> %s", ErrIllegalTransition, partitionID, current.State, next)
-	}
-	return current, nil
+	return JobPartition{}, s.classifyUnmatchedTransition(ctx, ex, tenantID, partitionID, expectedVersion, PartitionCancelled)
 }
 
 // Load returns one partition.
@@ -1028,6 +1066,9 @@ func (s CheckpointStore) Checkpoint(ctx context.Context, ex Executor, in JobChec
 		return JobCheckpoint{}, invalid("taken_at", "timestamp is unset")
 	}
 	in.Causal = normalizeCausal(in.Causal)
+	if err := requireLinkExpiry(in.Causal); err != nil {
+		return JobCheckpoint{}, err
+	}
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO job_checkpoint (
 			tenant_id, partition_id, checkpoint_sequence, state_digest, partition_version, taken_at, correlation_id, causation_id, logical_operation_id, attempt_id)

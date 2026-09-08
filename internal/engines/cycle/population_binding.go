@@ -5,7 +5,7 @@
 // binding is permanent once made -- rebinding to a different snapshot is
 // refused unless the cycle's currently active phase declares the
 // OperationRebindPopulation operation (see Phase.AllowedOperations /
-// CompiledPhase.AllowedOperations in phase_windows.go), so "who may change
+// CompiledPhase.AllowedOperations in phase_timewindows.go), so "who may change
 // which population a cycle runs against" is governed by the same declared
 // phase graph as every other cycle operation, not by an out-of-band rule.
 package cycle
