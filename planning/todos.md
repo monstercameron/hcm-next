@@ -16798,7 +16798,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md).
 
-- [ ] `WEB-148` **[PHASE_3][SOL_HIGH] Implement manager time approval.**
+- [x] `WEB-148` **[PHASE_3][SOL_HIGH] Implement manager time approval.**
   - **Depends:** `WEB-147`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement manager time approval without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_148`.

@@ -33,6 +33,7 @@ const (
 	PageTimeHub                PageID = "time-hub"
 	PageTimeEntry              PageID = "time-entry"
 	PageTimeCorrection         PageID = "time-correction"
+	PageTimeApproval           PageID = "time-approval"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
