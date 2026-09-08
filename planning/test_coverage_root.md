@@ -877,6 +877,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | data_domain_scope.go                  | yes           |
 | internal/humanwork/productui                             | data_table.go                         | yes           |
 | internal/humanwork/productui                             | delegation_selector.go                | yes           |
+| internal/humanwork/productui                             | dependency_impact.go                  | yes           |
 | internal/humanwork/productui                             | display.go                            | yes           |
 | internal/humanwork/productui                             | doc.go                                | yes           |
 | internal/humanwork/productui                             | field_disposition.go                  | yes           |
