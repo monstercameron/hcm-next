@@ -75,6 +75,7 @@ const (
 	PageWorkforceScenario      PageID = "workforce-scenario"
 	PageGovernedPopulation     PageID = "governed-population"
 	PageCostCapacity           PageID = "cost-capacity"
+	PageReorgProposals         PageID = "reorg-proposals"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
