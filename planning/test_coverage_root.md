@@ -957,6 +957,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | signed_out.go                         | yes           |
 | internal/humanwork/productui                             | styles.go                             | yes           |
 | internal/humanwork/productui                             | support_components.go                 | yes           |
+| internal/humanwork/productui                             | task_approval_filter.go               | yes           |
 | internal/humanwork/productui                             | theme.go                              | yes           |
 | internal/humanwork/productui                             | typed_mig_A.go                        | yes           |
 | internal/humanwork/productui                             | typed_mig_B.go                        | yes           |

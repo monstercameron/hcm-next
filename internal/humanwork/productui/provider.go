@@ -144,14 +144,5 @@ func stablePersonID(people []Person, ref string) string {
 }
 
 func filterWork(items []WorkItem, filter string) []WorkItem {
-	filtered := make([]WorkItem, 0, len(items))
-	for _, item := range items {
-		include := filter == "review" && item.Status == "Awaiting approval" ||
-			filter == "blocked" && item.Status == "Blocked" ||
-			filter == "complete" && item.Terminal
-		if include {
-			filtered = append(filtered, item)
-		}
-	}
-	return filtered
+	return FilterWorkCollection(items, ParseWorkCollectionFilter(filter))
 }
