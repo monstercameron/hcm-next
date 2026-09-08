@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -142,6 +142,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageGrowthHome, Route: "/workspace/app/growth", Label: "Growth home", Icon: "people", Title: "Employee Growth home", Subtitle: "Growth from the governed growth service.", LabelKey: "page.growth_home.label", TitleKey: "page.growth_home.title", SubtitleKey: "page.growth_home.subtitle", SearchTerms: []string{"growth", "career", "home", "develop", "progress"}, RenderOrder: 103, render: growthHomePage},
 		{ID: PageGoalPlanning, Route: "/workspace/app/growth/goals", Label: "Goal planning", Icon: "people", Title: "Goal planning", Subtitle: "Plan goals through the governed growth service.", LabelKey: "page.goal_planning.label", TitleKey: "page.goal_planning.title", SubtitleKey: "page.goal_planning.subtitle", SearchTerms: []string{"goals", "plan", "target", "milestone", "objective"}, RenderOrder: 104, render: goalPlanningPage},
 		{ID: PageGovernedFeedback, Route: "/workspace/app/growth/feedback", Label: "Governed feedback", Icon: "people", Title: "Governed feedback", Subtitle: "Exchange feedback through the governed growth service.", LabelKey: "page.governed_feedback.label", TitleKey: "page.governed_feedback.title", SubtitleKey: "page.governed_feedback.subtitle", SearchTerms: []string{"feedback", "praise", "kudos", "exchange", "growth"}, RenderOrder: 105, render: governedFeedbackPage},
+		{ID: PageManagerCheckins, Route: "/workspace/app/growth/checkins", Label: "Manager check-ins", Icon: "people", Title: "Manager check-ins", Subtitle: "Run check-ins through the governed growth service.", LabelKey: "page.manager_checkins.label", TitleKey: "page.manager_checkins.title", SubtitleKey: "page.manager_checkins.subtitle", SearchTerms: []string{"check-ins", "one-on-one", "notes", "manager", "growth"}, RenderOrder: 106, render: managerCheckinsPage},
 	}
 }
 
