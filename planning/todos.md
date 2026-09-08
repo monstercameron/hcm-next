@@ -17316,7 +17316,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-199` **[PHASE_3][SOL_HIGH] Implement the specialist Case Center.**
+- [x] `WEB-199` **[PHASE_3][SOL_HIGH] Implement the specialist Case Center.**
   - **Depends:** `WEB-198`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the specialist case center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_199`.

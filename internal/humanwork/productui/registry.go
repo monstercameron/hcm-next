@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageReviewParticipants, PageTalentWorkbench, PageTalentCalibration, PageSuccessionPlanning, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageReviewParticipants, PageTalentWorkbench, PageTalentCalibration, PageSuccessionPlanning, PageCaseCenter, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -169,6 +169,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageConfidentialCase, Route: "/workspace/app/help/confidential-case", Label: "Confidential case", Icon: "help", Title: "Confidential case intake", Subtitle: "Raise confidential cases through the governed help service.", LabelKey: "page.confidential_case.label", TitleKey: "page.confidential_case.title", SubtitleKey: "page.confidential_case.subtitle", SearchTerms: []string{"confidential", "sealed", "case", "intake", "help"}, RenderOrder: 130, render: confidentialCasePage},
 		{ID: PageCaseStatus, Route: "/workspace/app/help/case-status", Label: "Case status", Icon: "help", Title: "Safe participant case status", Subtitle: "Check case status safely through the governed help service.", LabelKey: "page.case_status.label", TitleKey: "page.case_status.title", SubtitleKey: "page.case_status.subtitle", SearchTerms: []string{"case", "status", "participant", "safe", "help"}, RenderOrder: 131, render: caseStatusPage},
 		{ID: PageCaseMessaging, Route: "/workspace/app/help/case-messaging", Label: "Case messaging", Icon: "help", Title: "Restricted case messaging", Subtitle: "Exchange case messages through the governed help service.", LabelKey: "page.case_messaging.label", TitleKey: "page.case_messaging.title", SubtitleKey: "page.case_messaging.subtitle", SearchTerms: []string{"case", "message", "restricted", "exchange", "help"}, RenderOrder: 132, render: caseMessagingPage},
+		{ID: PageCaseCenter, Route: "/workspace/app/help/case-center", Label: "Case Center", Icon: "help", Title: "Specialist Case Center", Subtitle: "Work cases as a specialist through the governed help service.", LabelKey: "page.case_center.label", TitleKey: "page.case_center.title", SubtitleKey: "page.case_center.subtitle", SearchTerms: []string{"case", "center", "specialist", "queue", "help"}, RenderOrder: 133, render: caseCenterPage},
 	}
 }
 
