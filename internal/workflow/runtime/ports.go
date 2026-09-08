@@ -75,6 +75,25 @@ type ContinuationRecord struct {
 	TargetAttempt int
 
 	RecordedAt time.Time
+	// Causal is optional diagnostic/business correlation metadata. Nil keeps
+	// legacy continuation rows byte-for-byte compatible.
+	Causal *CausalMetadata
+}
+
+type CausalMetadata struct {
+	CorrelationID      string
+	CausationID        string
+	LogicalOperationID string
+	AttemptID          string
+	TraceLink          *TraceLinkMetadata
+}
+
+type TraceLinkMetadata struct {
+	TraceID    string
+	SpanID     string
+	TraceFlags byte
+	TraceState string
+	ExpiresAt  time.Time
 }
 
 // ContinuationSink persists the continuation records one [Advance] call

@@ -30,6 +30,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
 	"github.com/monstercameron/hcm-next/internal/humanwork"
@@ -38,6 +40,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/platform/logging"
 	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute"
@@ -77,6 +80,16 @@ type PromotionExecutionConfig struct {
 	Plan PromotionPlan
 	// DB opens the transactions Start and each Advance run inside.
 	DB execute.Beginner
+	// StartRetry opts into bounded serializable START retries. Admission is
+	// caller-owned and must be supplied on the options; this composition root
+	// does not invent an always-admit policy.
+	StartRetry *transactioncommit.RetryOptions
+	// StartRetryFor builds a request-scoped retry policy from the immutable
+	// START request and trusted persisted budget metadata.
+	StartRetryFor func(context.Context, execute.StartRetryIdentity) (*transactioncommit.RetryOptions, error)
+	// ConflictFence is the application-composed durable conflict adapter for
+	// governed transaction plans. Nil preserves legacy unfenced workflows.
+	ConflictFence transactioncommit.ConflictFence
 	// Terminal performs the one governed business write the workflow's END
 	// node raises. This package never implements one itself — it is a port,
 	// supplied by the composition root
@@ -180,6 +193,21 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 	if cfg.Terminal == nil {
 		return nil, fmt.Errorf("platform execution: promotion execution needs a TerminalWriter")
 	}
+	if cfg.StartRetry != nil && cfg.StartRetry.Admit == nil {
+		return nil, fmt.Errorf("platform execution: StartRetry requires an admission callback")
+	}
+	if cfg.StartRetry != nil && cfg.StartRetryFor != nil {
+		return nil, fmt.Errorf("platform execution: StartRetry and StartRetryFor are mutually exclusive")
+	}
+	if cfg.StartRetry != nil && (cfg.StartRetry.Prepare != nil || cfg.StartRetry.ResolveAmbiguous != nil) {
+		return nil, fmt.Errorf("platform execution: StartRetry does not accept commit-plan Prepare or ResolveAmbiguous callbacks")
+	}
+	var startRetry *transactioncommit.RetryOptions
+	if cfg.StartRetry != nil {
+		copy := *cfg.StartRetry
+		startRetry = &copy
+	}
+	startRetryFor := cfg.StartRetryFor
 	guard := cfg.Guard
 	if guard == nil {
 		guard = idempotency.PostgresStore{}
@@ -285,13 +313,16 @@ func NewPromotionExecution(cfg PromotionExecutionConfig) (*PromotionExecution, e
 	evidence := capabilityEvidenceAdapter{sink: evidenceSink, now: clock}
 
 	options := execute.Options{
-		DB:        cfg.DB,
-		Steps:     promotionStepRunner{plan: selected, effectiveDates: effectiveDates},
-		WorkItems: promotionWorkItems{approver: approver, plan: selected},
-		Terminal:  cfg.Terminal,
-		Guard:     guard,
-		Retention: retention,
-		Clock:     clock,
+		DB:            cfg.DB,
+		StartRetry:    startRetry,
+		StartRetryFor: startRetryFor,
+		ConflictFence: cfg.ConflictFence,
+		Steps:         promotionStepRunner{plan: selected, effectiveDates: effectiveDates},
+		WorkItems:     promotionWorkItems{approver: approver, plan: selected},
+		Terminal:      cfg.Terminal,
+		Guard:         guard,
+		Retention:     retention,
+		Clock:         clock,
 		// WF-RUN-028: Resume loads the durable WorkItem itself, through the
 		// real internal/humanwork/workitem store this composition already
 		// uses to create and route it. workitem.Store satisfies
@@ -623,7 +654,23 @@ func (a executeDriverAdapter) Execute(ctx context.Context, start runtime.StartRe
 	if err != nil {
 		return app.ExecutionResult{}, err
 	}
-	return adaptExecutionResult(result, result.Start.InstanceID.String()), nil
+	instanceID, err := executionResultInstanceID(result, result.Start.InstanceID.String())
+	if err != nil {
+		return app.ExecutionResult{}, err
+	}
+	return adaptExecutionResult(result, instanceID), nil
+}
+
+// executionResultInstanceID reads RESOLVED identity only from the durable
+// proof, never from the intentionally empty original StartReceipt.
+func executionResultInstanceID(result execute.Result, legacyInstanceID string) (string, error) {
+	if result.Status != execute.StatusResolved {
+		return legacyInstanceID, nil
+	}
+	if result.StartResolution == nil || result.StartResolution.Instance.InstanceID == uuid.Nil {
+		return "", fmt.Errorf("%w: resolved START has no durable instance proof", transactioncommit.ErrCommitAmbiguous)
+	}
+	return result.StartResolution.Instance.InstanceID.String(), nil
 }
 
 func (a executeDriverAdapter) Resume(ctx context.Context, req app.ExecutionResumeRequest) (app.ExecutionResult, error) {
@@ -690,7 +737,7 @@ func adaptExecutionResult(result execute.Result, instanceID string) app.Executio
 			WorkItemID: item.WorkItemID.String(), Kind: string(item.Kind), NodeID: item.NodeID,
 		})
 	}
-	return app.ExecutionResult{
+	out := app.ExecutionResult{
 		Parked:                 result.Status == execute.StatusParked,
 		InstanceID:             instanceID,
 		InstanceVersion:        result.InstanceVersion,
@@ -700,4 +747,24 @@ func adaptExecutionResult(result execute.Result, instanceID string) app.Executio
 		ParkedWorkItems:        workItems,
 		EvidenceIDs:            append([]string(nil), result.EvidenceIDs...),
 	}
+	switch result.Status {
+	case execute.StatusParked:
+		out.Status = app.ExecutionResultParked
+	case execute.StatusComplete:
+		out.Status = app.ExecutionResultComplete
+	case execute.StatusResolved:
+		out.Status = app.ExecutionResultResolved
+		if result.StartResolution != nil {
+			resolved := result.StartResolution
+			out.InstanceID = resolved.Instance.InstanceID.String()
+			out.InstanceVersion = resolved.Instance.InstanceVersion
+			out.ResolvedStart = &app.ResolvedStartState{
+				RuntimeStatus: resolved.Instance.RuntimeStatus, CurrentNodeIDs: append([]string(nil), resolved.Instance.CurrentNodeIDs...),
+				WorkflowID: resolved.Instance.WorkflowID, WorkflowVersion: resolved.Instance.WorkflowVersion,
+				CompiledPlanDigest: resolved.Instance.CompiledPlanHash, SemanticVersion: resolved.SemanticVersion,
+				Lifecycle: resolved.Instance.CompletionDimensions,
+			}
+		}
+	}
+	return out
 }

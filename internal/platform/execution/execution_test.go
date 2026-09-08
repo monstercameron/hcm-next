@@ -3,15 +3,26 @@ package execution
 import (
 	"context"
 	"errors"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
+	transactioncoordinator "github.com/monstercameron/hcm-next/internal/transaction/coordinator"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute"
@@ -19,6 +30,8 @@ import (
 	"github.com/monstercameron/hcm-next/internal/workflow/prototype"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
+
+func TestMain(m *testing.M) { pgtest.RunMain(m) }
 
 // stubBeginner is a non-nil placeholder satisfying execute.Beginner.
 // NewPromotionExecution only validates that a Beginner exists; it never calls
@@ -51,6 +64,32 @@ func TestNewPromotionExecutionValidation(t *testing.T) {
 	}
 	if _, err := NewPromotionExecution(PromotionExecutionConfig{DB: stubBeginner{}}); err == nil {
 		t.Fatal("NewPromotionExecution without a TerminalWriter: expected an error")
+	}
+	if _, err := NewPromotionExecution(PromotionExecutionConfig{
+		DB: stubBeginner{}, Terminal: stubTerminal{},
+		StartRetry: &transactioncommit.RetryOptions{MaxAttempts: 2},
+	}); err == nil {
+		t.Fatal("StartRetry without caller-owned admission: expected an error")
+	}
+	for name, mutate := range map[string]func(*transactioncommit.RetryOptions){
+		"prepare": func(o *transactioncommit.RetryOptions) {
+			o.Prepare = func(context.Context, dbport.Tx) (transactioncoordinator.CommitRequest, error) {
+				return transactioncoordinator.CommitRequest{}, nil
+			}
+		},
+		"resolve ambiguous": func(o *transactioncommit.RetryOptions) {
+			o.ResolveAmbiguous = func(context.Context, transactioncoordinator.Receipt) (transactioncoordinator.Receipt, error) {
+				return transactioncoordinator.Receipt{}, nil
+			}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			opts := &transactioncommit.RetryOptions{Admit: func(context.Context) error { return nil }}
+			mutate(opts)
+			if _, err := NewPromotionExecution(PromotionExecutionConfig{DB: stubBeginner{}, Terminal: stubTerminal{}, StartRetry: opts}); err == nil {
+				t.Fatal("commit-plan-only retry callback was silently ignored")
+			}
+		})
 	}
 }
 
@@ -299,5 +338,228 @@ func TestAdaptExecutionResult(t *testing.T) {
 	}
 	if completeGot.InstanceVersion != 7 {
 		t.Errorf("complete InstanceVersion = %d, want 7", completeGot.InstanceVersion)
+	}
+}
+
+func TestExecutionResultInstanceID_ResolvedStartUsesDurableProofWithoutFabricatingReceipt(t *testing.T) {
+	instanceID := uuid.MustParse("4bca79c1-c393-493a-a798-f01c48c0e28f")
+	resolved := execute.Result{
+		Status: execute.StatusResolved,
+		// Start is intentionally zero: outcome resolution proves current
+		// durable state and never reconstructs the original StartReceipt.
+		StartResolution: &runtime.StartResolution{Instance: runtime.Instance{
+			InstanceID:      instanceID,
+			InstanceVersion: 9,
+			CurrentNodeIDs:  []string{"approve"},
+			RuntimeStatus:   runtime.InstanceRunning, WorkflowID: "workflow.promotion", WorkflowVersion: 4,
+			CompiledPlanHash: "sha256:plan",
+		}, SemanticVersion: "4.2.0"},
+		// Deliberately contradictory duplicate: the adapter must use the
+		// verified resolution payload as the single source of current state.
+		InstanceVersion: 99,
+		Frontier:        []string{"approve"},
+	}
+
+	got, err := executionResultInstanceID(resolved, resolved.Start.InstanceID.String())
+	if err != nil || got != instanceID.String() {
+		t.Fatalf("resolved instance id result = %q, %v; want durable proof id %s", got, err, instanceID)
+	}
+	if resolved.Start.InstanceID != uuid.Nil {
+		t.Fatalf("test fixture unexpectedly fabricated StartReceipt instance %s", resolved.Start.InstanceID)
+	}
+	adapted := adaptExecutionResult(resolved, got)
+	if adapted.Status != app.ExecutionResultResolved || adapted.Parked || adapted.InstanceID != instanceID.String() || adapted.InstanceVersion != 9 || adapted.ResolvedStart == nil {
+		t.Fatalf("resolved mapping = %+v", adapted)
+	}
+	state := adapted.ResolvedStart
+	if state.RuntimeStatus != runtime.InstanceRunning || state.WorkflowID != "workflow.promotion" || state.WorkflowVersion != 4 || state.CompiledPlanDigest != "sha256:plan" || state.SemanticVersion != "4.2.0" || len(state.CurrentNodeIDs) != 1 || state.CurrentNodeIDs[0] != "approve" {
+		t.Fatalf("resolved current state = %+v", state)
+	}
+	resolved.StartResolution.Instance.CurrentNodeIDs[0] = "mutated"
+	if state.CurrentNodeIDs[0] != "approve" {
+		t.Fatal("resolved frontier aliases driver result")
+	}
+
+	legacyID := uuid.New().String()
+	for _, status := range []execute.Status{execute.StatusParked, execute.StatusComplete} {
+		got, err := executionResultInstanceID(execute.Result{Status: status}, legacyID)
+		if err != nil || got != legacyID {
+			t.Fatalf("legacy %s mapping = %q, %v; want %q, nil", status, got, err, legacyID)
+		}
+	}
+}
+
+func TestExecutionResultInstanceID_RejectsMalformedResolvedProof(t *testing.T) {
+	for name, result := range map[string]execute.Result{
+		"missing resolution": {Status: execute.StatusResolved},
+		"zero instance":      {Status: execute.StatusResolved, StartResolution: &runtime.StartResolution{}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got, err := executionResultInstanceID(result, uuid.New().String()); err == nil || got != "" {
+				t.Fatalf("mapping = %q, %v; want empty result and error", got, err)
+			}
+		})
+	}
+}
+
+type retryApprovalFacts struct{}
+
+func (retryApprovalFacts) Decisions(ctx context.Context, ex runtime.Executor, tenant uuid.UUID, rev intent.ProposalRevision) ([]runtime.ApprovalDecisionFact, error) {
+	var approved bool
+	if err := ex.QueryRow(ctx, `SELECT approved FROM execution_retry_approval WHERE tenant_id=$1`, tenant).Scan(&approved); err != nil {
+		return nil, err
+	}
+	outcome := runtime.ApprovalOutcomeRejected
+	if approved {
+		outcome = runtime.ApprovalOutcomeApproved
+	}
+	return []runtime.ApprovalDecisionFact{{DecisionID: "decision:retry-current", Outcome: outcome, ProposalDigest: rev.MaterialDigest.Digest}}, nil
+}
+
+type observedSerializableBeginner struct {
+	conn       *pgxadapter.Conn
+	admin      *pgxadapter.Conn
+	tenant     uuid.UUID
+	failFirst  atomic.Bool
+	beginCount atomic.Int32
+	mu         sync.Mutex
+	isolation  []string
+}
+
+func (b *observedSerializableBeginner) Begin(ctx context.Context) (dbport.Tx, error) {
+	return b.conn.Begin(ctx)
+}
+
+func (b *observedSerializableBeginner) BeginSerializable(ctx context.Context) (dbport.Tx, error) {
+	tx, err := b.conn.BeginSerializable(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var isolation string
+	if err := tx.QueryRow(ctx, `SHOW transaction_isolation`).Scan(&isolation); err != nil {
+		_ = tx.Rollback(ctx)
+		return nil, err
+	}
+	b.beginCount.Add(1)
+	b.mu.Lock()
+	b.isolation = append(b.isolation, isolation)
+	b.mu.Unlock()
+	return &serializationOnceTx{Tx: tx, owner: b}, nil
+}
+
+type serializationOnceTx struct {
+	dbport.Tx
+	owner *observedSerializableBeginner
+}
+
+func (t *serializationOnceTx) Commit(ctx context.Context) error {
+	if t.owner.failFirst.CompareAndSwap(false, true) {
+		if err := t.Tx.Rollback(ctx); err != nil {
+			return err
+		}
+		if _, err := t.owner.admin.Exec(ctx, `UPDATE execution_retry_approval SET approved=false WHERE tenant_id=$1`, t.owner.tenant); err != nil {
+			return err
+		}
+		return &pgconn.PgError{Code: "40001", Message: "test serialization abort after current approval read"}
+	}
+	return t.Tx.Commit(ctx)
+}
+
+func retryStart(execution *PromotionExecution, tenant uuid.UUID, key string, at time.Time) runtime.StartRequest {
+	intentID := "intent:retry:" + key
+	revisionID := "proposal:retry:" + key
+	rev := intent.ProposalRevision{
+		ProposalRevisionID:  revisionID,
+		IntentID:            intentID,
+		Revision:            1,
+		Tenant:              values.TenantId("retry-tenant"),
+		OrganizationScopeID: "organization:retry",
+		Subjects:            []intent.SubjectReference{{Kind: "EMPLOYMENT", SubjectID: "employment:retry", AuthorityDomain: "PEOPLE"}},
+		// This harness exercises START transaction composition, not intent
+		// materialization. The structurally valid reference is deliberately
+		// local; proposal codec/seal verification is covered by its owner.
+		MaterialDigest: digest.Reference{
+			ProfileID: "PROPOSAL", ProfileVersion: 1, SchemaID: "hcmnext.intent.ProposalRevision", SchemaVersion: 1,
+			AlgorithmID: "sha256", CanonicalLength: 42,
+			Digest: "sha256:" + strings.Repeat("a", 64), ScopeBindingDigest: "sha256:" + strings.Repeat("b", 64),
+			IntentID: &intentID, ProposalRevisionID: &revisionID,
+		},
+	}
+	return runtime.StartRequest{
+		TenantID: tenant, CellID: "cell-local", StartIdempotencyKey: "start:" + key,
+		Resolver: execution.Resolver, Versions: execution.Versions,
+		Proposal: runtime.ProposalBinding{Revision: rev}, ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: retryApprovalFacts{},
+		ExpectedIntentID: intentID, ExpectedTenant: rev.Tenant,
+		BusinessSubjectRefs: []string{"employment:retry"},
+		ExecutionMode:       workflow.ModeExecute, CorrelationID: "correlation:" + key, CreatedAt: at,
+	}
+}
+
+func TestTodo_DB_EDGE_003_IntegrationPromotionCompositionRetriesSerializableAndRechecksApproval(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	database := pgtest.New(t)
+	tenant := uuid.New()
+	at := time.Date(2026, 9, 8, 12, 0, 0, 123456000, time.UTC)
+	database.Exec(t, `INSERT INTO tenant (tenant_id,tenant_key,cell_id,display_name,status,effective_from) VALUES ($1,'retry-tenant','cell-local','Retry tenant','ACTIVE',$2)`, tenant, at.Add(-time.Hour))
+	database.Exec(t, `CREATE TABLE execution_retry_approval (tenant_id uuid PRIMARY KEY, approved boolean NOT NULL)`)
+	database.Exec(t, `INSERT INTO execution_retry_approval (tenant_id,approved) VALUES ($1,true)`, tenant)
+	conn, admin := database.NewConn(t), database.NewConn(t)
+	defer conn.Close(ctx)
+	defer admin.Close(ctx)
+	beginner := &observedSerializableBeginner{conn: conn, admin: admin, tenant: tenant}
+	var admissions atomic.Int32
+	retry := &transactioncommit.RetryOptions{
+		MaxAttempts: 2, BaseDelay: time.Microsecond, MaxDelay: time.Microsecond,
+		Admit: func(context.Context) error { admissions.Add(1); return nil },
+		Sleep: func(context.Context, time.Duration) error { return nil },
+	}
+	execution, err := NewPromotionExecution(PromotionExecutionConfig{DB: beginner, Terminal: stubTerminal{}, Clock: func() time.Time { return at }, StartRetry: retry})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Configuration is owned by the composed driver after construction.
+	retry.MaxAttempts = 1
+	retry.Admit = nil
+	_, refusalErr := execution.Executor.Execute(ctx, retryStart(execution, tenant, "approval-changes", at))
+	if refusalErr == nil {
+		t.Fatal("retry accepted an approval withdrawn after the serialization abort")
+	}
+	var runtimeErr *runtime.Error
+	if !errors.As(refusalErr, &runtimeErr) || runtimeErr.Code != runtime.CodeUnapprovedProposal {
+		t.Fatalf("withdrawn approval error=%v, want typed %s", refusalErr, runtime.CodeUnapprovedProposal)
+	}
+	if beginner.beginCount.Load() != 2 || admissions.Load() != 2 {
+		t.Fatalf("attempts=%d admissions=%d, want two complete admitted START attempts; err=%v", beginner.beginCount.Load(), admissions.Load(), refusalErr)
+	}
+	beginner.mu.Lock()
+	isolation := append([]string(nil), beginner.isolation...)
+	beginner.mu.Unlock()
+	if len(isolation) != 2 || isolation[0] != "serializable" || isolation[1] != "serializable" {
+		t.Fatalf("START isolation = %v", isolation)
+	}
+	var instances int
+	if err := admin.QueryRow(ctx, `SELECT count(*) FROM workflow_instance WHERE tenant_id=$1`, tenant).Scan(&instances); err != nil || instances != 0 {
+		t.Fatalf("refused retry instances=%d err=%v", instances, err)
+	}
+	var workItems int
+	if err := admin.QueryRow(ctx, `SELECT count(*) FROM work_item WHERE tenant_id=$1`, tenant).Scan(&workItems); err != nil || workItems != 0 {
+		t.Fatalf("refused retry work items=%d err=%v", workItems, err)
+	}
+	if _, err := admin.Exec(ctx, `UPDATE execution_retry_approval SET approved=true WHERE tenant_id=$1`, tenant); err != nil {
+		t.Fatal(err)
+	}
+	result, err := execution.Executor.Execute(ctx, retryStart(execution, tenant, "approved-current", at))
+	if err != nil || !result.Parked || len(result.ParkedWorkItems) != 1 {
+		t.Fatalf("approved START result=%+v err=%v", result, err)
+	}
+	if beginner.beginCount.Load() != 3 || admissions.Load() != 3 {
+		t.Fatalf("successful START attempts=%d admissions=%d", beginner.beginCount.Load(), admissions.Load())
+	}
+	if err := admin.QueryRow(ctx, `SELECT count(*) FROM workflow_instance WHERE tenant_id=$1`, tenant).Scan(&instances); err != nil || instances != 1 {
+		t.Fatalf("approved instances=%d err=%v", instances, err)
+	}
+	if err := admin.QueryRow(ctx, `SELECT count(*) FROM work_item WHERE tenant_id=$1`, tenant).Scan(&workItems); err != nil || workItems != 1 {
+		t.Fatalf("approved work items=%d err=%v", workItems, err)
 	}
 }

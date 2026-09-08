@@ -173,18 +173,37 @@ func (d *Driver) CompleteApproval(ctx context.Context, req ApprovalCompletionReq
 		}
 		attempt = highestAttempt(executions, item.NodeID)
 	}
-	advanced, err := d.advance(ctx, tx, runtime.AdvanceRequest{
+	advCtx, advSpan := d.opts.Instrumentation.StartAdvanceSpan(ctx, SpanAttributes{
+		InstanceID: req.InstanceID.String(), NodeID: item.NodeID, Attempt: attempt,
+	})
+	advReq := runtime.AdvanceRequest{
 		TenantID: req.Start.TenantID, InstanceID: req.InstanceID,
 		ExpectedInstanceVersion: req.ExpectedInstanceVersion, Attempt: attempt,
 		Plan: selection.Plan, Outcome: outcome, Refs: refs,
-		RecordedAt: at, Sink: sink, TraceID: d.opts.Instrumentation.TraceID(ctx),
-	})
+		RecordedAt: at, Sink: sink, TraceID: d.opts.Instrumentation.TraceID(advCtx),
+	}
+	if causalSpan, ok := advSpan.(CausalSpan); ok {
+		nodeExecutionID := runtime.NodeExecutionID(req.Start.TenantID, req.InstanceID, item.NodeID, attempt).String()
+		advReq.Causal = causalSpan.CausalMetadata(CausalIdentity{
+			CorrelationID: req.Start.CorrelationID, CausationID: nodeExecutionID,
+			LogicalOperationID: req.InstanceID.String(), AttemptID: nodeExecutionID,
+			ExpiresAt: at.Add(24 * time.Hour),
+		})
+	}
+	advanced, err := d.advance(advCtx, tx, advReq)
 	if err != nil {
+		advSpan.End(OutcomeFailure, err)
 		return ApprovalCompletionResult{}, err
 	}
-	if err := tx.Commit(ctx); err != nil {
+	if err := tx.Commit(advCtx); err != nil {
+		advSpan.End(OutcomeFailure, err)
 		return ApprovalCompletionResult{}, fmt.Errorf("workflow execute: commit approval completion: %w", err)
 	}
+	advOutcome := OutcomeSuccess
+	if !advanced.Complete && len(advanced.Continuations) > 0 {
+		advOutcome = OutcomeParked
+	}
+	advSpan.End(advOutcome, nil)
 
 	base := Result{
 		Advances: []runtime.AdvanceReceipt{advanced}, WorkItems: append([]workitem.WorkItem(nil), sink.created...),

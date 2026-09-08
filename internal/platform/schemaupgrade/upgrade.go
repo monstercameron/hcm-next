@@ -43,6 +43,13 @@ const (
 	CompatibilityFull     Compatibility = "FULL"
 )
 
+// RollbackBoundary is the last lifecycle boundary at which rollback is safe.
+// This protocol currently supports only rollback before contraction removes
+// the old representation; new boundary semantics must be added explicitly.
+type RollbackBoundary string
+
+const RollbackBeforeContract RollbackBoundary = "BEFORE_CONTRACT"
+
 // Row is the stable identity and content digest of one migrated record. Raw
 // payloads are deliberately absent from the contract.
 type Row struct {
@@ -65,7 +72,7 @@ type Plan struct {
 	Compatibility             Compatibility
 	SourceDigest              string
 	TargetDigest              string
-	RollbackBoundary          string
+	RollbackBoundary          RollbackBoundary
 	RequiredAdoptionWatermark uint64
 	BackfillBatchSize         int
 	Binaries                  []Binary
@@ -138,8 +145,8 @@ func ValidatePlan(plan Plan) error {
 	if _, err := hex.DecodeString(plan.TargetDigest); err != nil {
 		return fmt.Errorf("%w: target digest is not hexadecimal", ErrInvalidPlan)
 	}
-	if strings.TrimSpace(plan.RollbackBoundary) == "" || plan.BackfillBatchSize <= 0 {
-		return fmt.Errorf("%w: rollback boundary and positive batch size are required", ErrInvalidPlan)
+	if plan.RollbackBoundary != RollbackBeforeContract || plan.BackfillBatchSize <= 0 {
+		return fmt.Errorf("%w: supported rollback boundary and positive batch size are required", ErrInvalidPlan)
 	}
 	if err := CheckVersionMatrix(plan); err != nil {
 		return err
@@ -319,8 +326,11 @@ func (s *State) Rollback(now time.Time) error {
 	if s.Phase != PhaseCutover && s.Phase != PhaseContracted {
 		return fmt.Errorf("%w: rollback from %s", ErrInvalidTransition, s.Phase)
 	}
-	if strings.TrimSpace(s.Plan.RollbackBoundary) == "" {
+	if s.Plan.RollbackBoundary != RollbackBeforeContract {
 		return ErrNotReversible
+	}
+	if s.Phase == PhaseContracted {
+		return fmt.Errorf("%w: rollback boundary %q has passed", ErrNotReversible, s.Plan.RollbackBoundary)
 	}
 	s.Phase = PhaseRolledBack
 	s.appendEvent(PhaseRolledBack, s.ConsumerWatermark, "serving restored to source representation", now)

@@ -1,6 +1,11 @@
 package execute
 
-import "context"
+import (
+	"context"
+	"time"
+
+	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+)
 
 // OBS-023 outcome vocabulary. These are plain strings, not
 // internal/platform/telemetry's own Outcome type: this package must not
@@ -43,6 +48,20 @@ type Span interface {
 	// itself before it may appear on any exported signal, and the shipped
 	// implementations never emit it verbatim.
 	End(outcome string, err error)
+}
+
+// CausalSpan is the optional capability implemented by instrumentation that
+// can turn the current span into bounded durable continuation metadata.
+// Drivers retain compatibility with older Span implementations by type
+// asserting this extension.
+type CausalSpan interface {
+	Span
+	CausalMetadata(CausalIdentity) *runtime.CausalMetadata
+}
+
+type CausalIdentity struct {
+	CorrelationID, CausationID, LogicalOperationID, AttemptID string
+	ExpiresAt                                                 time.Time
 }
 
 // Instrumentation is OBS-023's port: the driver never opens a raw

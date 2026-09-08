@@ -2,6 +2,7 @@ package schemaupgrade
 
 import (
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ func testPlan() Plan {
 		Compatibility:             CompatibilityFull,
 		SourceDigest:              strings.Repeat("1", 64),
 		TargetDigest:              strings.Repeat("2", 64),
-		RollbackBoundary:          "before-contract",
+		RollbackBoundary:          RollbackBeforeContract,
 		RequiredAdoptionWatermark: 3,
 		BackfillBatchSize:         2,
 		Binaries: []Binary{
@@ -89,11 +90,11 @@ func TestTodo_DB_021_Integration(t *testing.T) {
 	if err := state.Contract(time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
-	if err := state.Rollback(time.Now().UTC()); err != nil {
-		t.Fatal(err)
+	if err := state.Rollback(time.Now().UTC()); !errors.Is(err, ErrNotReversible) {
+		t.Fatalf("rollback after before-contract boundary error=%v, want not reversible", err)
 	}
-	if state.Phase != PhaseRolledBack || state.History[len(state.History)-1].Phase != PhaseRolledBack {
-		t.Fatal("rollback did not append a new rollback event")
+	if state.Phase != PhaseContracted || state.History[len(state.History)-1].Phase != PhaseContracted {
+		t.Fatal("rejected rollback mutated lifecycle history")
 	}
 }
 
@@ -121,8 +122,8 @@ func TestTodo_DB_021_Fault(t *testing.T) {
 	if err := state.Contract(time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
-	if err := state.Rollback(time.Now().UTC()); err != nil {
-		t.Fatal(err)
+	if err := state.Rollback(time.Now().UTC()); !errors.Is(err, ErrNotReversible) {
+		t.Fatalf("rollback after before-contract boundary error=%v, want not reversible", err)
 	}
 
 	lagging, err := New(testPlan(), time.Now().UTC())
@@ -139,5 +140,75 @@ func TestTodo_DB_021_Fault(t *testing.T) {
 	}
 	if _, err := lagging.CompareShadow(testRows(), []Row{{Key: "a", Digest: "wrong"}}, time.Now().UTC()); !errors.Is(err, ErrShadowMismatch) {
 		t.Fatalf("CompareShadow error=%v, want shadow mismatch", err)
+	}
+}
+
+func TestTodo_TOOL_020(t *testing.T) {
+	state := completeUpgrade(t)
+	if state.Phase != PhaseCutover || !state.Shadow.Exact || !state.Checkpoint.Completed {
+		t.Fatalf("rolling upgrade phase=%s shadow=%v completed=%v", state.Phase, state.Shadow.Exact, state.Checkpoint.Completed)
+	}
+	if err := state.Contract(time.Date(2026, 9, 2, 12, 6, 0, 0, time.UTC)); err != nil {
+		t.Fatal(err)
+	}
+	if state.Phase != PhaseContracted || len(state.History) != 6 {
+		t.Fatalf("phase=%s history=%d, want contracted with append-only history", state.Phase, len(state.History))
+	}
+}
+
+func TestTodo_TOOL_020_Golden(t *testing.T) {
+	state := completeUpgrade(t)
+	base := time.Date(2026, 9, 2, 12, 0, 0, 0, time.UTC)
+	want := []Event{
+		{Phase: PhasePlanned, At: base, Detail: "plan accepted"},
+		{Phase: PhaseExpanded, At: base.Add(time.Minute), Detail: "old and new representations admitted"},
+		{Phase: PhaseBackfilled, At: base.Add(2 * time.Minute), Detail: "backfill complete"},
+		{Phase: PhaseShadowed, At: base.Add(3 * time.Minute), Detail: "shadow comparison exact"},
+		{Phase: PhaseCutover, At: base.Add(4 * time.Minute), Watermark: 3, Detail: "new representation serving"},
+	}
+	if !reflect.DeepEqual(state.History, want) {
+		t.Fatalf("history=%#v, want %#v", state.History, want)
+	}
+}
+
+func TestTodo_TOOL_020_Conformance(t *testing.T) {
+	state := completeUpgrade(t)
+	if err := state.Contract(time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.Rollback(time.Now().UTC()); !errors.Is(err, ErrNotReversible) {
+		t.Fatalf("rollback crossed irreversible contract boundary: %v", err)
+	}
+}
+
+func TestTodo_TOOL_020_Fault(t *testing.T) {
+	state := completeUpgrade(t)
+	if err := state.Contract(time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	before := len(state.History)
+	if err := state.Rollback(time.Now().UTC()); !errors.Is(err, ErrNotReversible) {
+		t.Fatalf("rollback error=%v, want not reversible", err)
+	}
+	if len(state.History) != before || state.Phase != PhaseContracted {
+		t.Fatal("rejected rollback mutated durable history or phase")
+	}
+}
+
+func TestRollbackBoundaryIsClosedAndRejectionPreservesState(t *testing.T) {
+	plan := testPlan()
+	plan.RollbackBoundary = RollbackBoundary("AFTER_CONTRACT")
+	if _, err := New(plan, time.Date(2026, 9, 2, 12, 0, 0, 0, time.UTC)); !errors.Is(err, ErrInvalidPlan) {
+		t.Fatalf("New error=%v, want invalid plan", err)
+	}
+
+	state := completeUpgrade(t)
+	state.Plan.RollbackBoundary = RollbackBoundary("AFTER_CONTRACT") // corrupted persisted input
+	before := state.Snapshot()
+	if err := state.Rollback(time.Date(2026, 9, 2, 12, 5, 0, 0, time.UTC)); !errors.Is(err, ErrNotReversible) {
+		t.Fatalf("Rollback error=%v, want not reversible", err)
+	}
+	if !reflect.DeepEqual(state, before) {
+		t.Fatalf("rejected rollback mutated state: got %#v want %#v", state, before)
 	}
 }

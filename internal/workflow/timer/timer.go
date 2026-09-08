@@ -159,6 +159,10 @@ type Request struct {
 	// and key so a WAIT the plan re-enters is promised again rather than
 	// replayed as the already-fired first promise.
 	Attempt int
+
+	// Causal is optional diagnostic and correlation context inherited from
+	// the continuation that requested this durable promise.
+	Causal *runtime.CausalMetadata
 }
 
 func (r Request) validate() error {
@@ -204,6 +208,7 @@ type Timer struct {
 	Version uint64
 
 	CreatedAt time.Time
+	Causal    *runtime.CausalMetadata
 }
 
 // Scheduled is the result of [Scheduler.Schedule].
@@ -239,7 +244,7 @@ func (s Scheduler) Schedule(ctx context.Context, ex Executor, req Request) (Sche
 
 	err := s.timers.Set(ctx, ex, runtimestate.Timer{
 		TenantID: req.TenantID, TimerID: id, InstanceID: req.InstanceID, NodeID: req.NodeID,
-		Key: key, Kind: kind, FiresAt: firesAt, CreatedAt: req.CreatedAt,
+		Key: key, Kind: kind, FiresAt: firesAt, CreatedAt: req.CreatedAt, Causal: causalToRow(req.Causal),
 	})
 	switch {
 	case err == nil:
@@ -262,7 +267,7 @@ func (s Scheduler) Schedule(ctx context.Context, ex Executor, req Request) (Sche
 	created := Timer{
 		TenantID: req.TenantID, TimerID: id, InstanceID: req.InstanceID, NodeID: req.NodeID,
 		Key: key, Kind: kind, State: runtimestate.TimerPending,
-		FiresAt: firesAt, Version: 1, CreatedAt: req.CreatedAt.UTC(),
+		FiresAt: firesAt, Version: 1, CreatedAt: req.CreatedAt.UTC(), Causal: req.Causal,
 	}
 	return Scheduled{
 		Timer:    created,
@@ -531,6 +536,7 @@ func (s Scheduler) fireOne(ctx context.Context, ex Executor, req FireRequest, ro
 		TenantID: row.TenantID, ReadyWorkID: readyID, InstanceID: row.InstanceID,
 		NodeID: row.NodeID, Attempt: attempt,
 		State: runtimestate.ReadyReady, EligibleAt: eligibleAt, EnqueuedAt: req.Now,
+		Causal: causalToRow(row.Causal),
 	})
 	switch {
 	case enqueueErr == nil:
@@ -599,7 +605,30 @@ func fromRow(row runtimestate.Timer) Timer {
 		TenantID: row.TenantID, TimerID: row.TimerID, InstanceID: row.InstanceID, NodeID: row.NodeID,
 		Key: row.Key, Kind: row.Kind, State: row.State, FiresAt: row.FiresAt, Version: row.Version,
 		CreatedAt: row.CreatedAt,
+		Causal:    causalFromRow(row.Causal),
 	}
+}
+
+func causalToRow(in *runtime.CausalMetadata) *runtimestate.CausalMetadata {
+	if in == nil {
+		return nil
+	}
+	out := &runtimestate.CausalMetadata{CorrelationID: in.CorrelationID, CausationID: in.CausationID, LogicalOperationID: in.LogicalOperationID, AttemptID: in.AttemptID}
+	if in.TraceLink != nil {
+		out.TraceLink = &runtimestate.TraceLinkMetadata{TraceID: in.TraceLink.TraceID, SpanID: in.TraceLink.SpanID, TraceFlags: in.TraceLink.TraceFlags, TraceState: in.TraceLink.TraceState, ExpiresAt: in.TraceLink.ExpiresAt}
+	}
+	return out
+}
+
+func causalFromRow(in *runtimestate.CausalMetadata) *runtime.CausalMetadata {
+	if in == nil {
+		return nil
+	}
+	out := &runtime.CausalMetadata{CorrelationID: in.CorrelationID, CausationID: in.CausationID, LogicalOperationID: in.LogicalOperationID, AttemptID: in.AttemptID}
+	if in.TraceLink != nil {
+		out.TraceLink = &runtime.TraceLinkMetadata{TraceID: in.TraceLink.TraceID, SpanID: in.TraceLink.SpanID, TraceFlags: in.TraceLink.TraceFlags, TraceState: in.TraceLink.TraceState, ExpiresAt: in.TraceLink.ExpiresAt}
+	}
+	return out
 }
 
 func only(rows []Timer, ids []uuid.UUID) []Timer {

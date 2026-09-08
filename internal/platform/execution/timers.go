@@ -117,6 +117,7 @@ func (f TimerFactory) CreateTimer(ctx context.Context, ex runtime.Executor, req 
 		Requirement: requirement,
 		CreatedAt:   req.CreatedAt,
 		Attempt:     waitAttempt(req.Continuation.TargetAttempt),
+		Causal:      req.Continuation.Causal,
 	})
 	if err != nil {
 		return execute.TimerHandle{}, err

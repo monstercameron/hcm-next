@@ -21,7 +21,9 @@ func (d *Driver) CommitGoverned(ctx context.Context, prepared plan.TransactionPl
 	if d == nil || d.opts.DB == nil {
 		return GovernedCommitResult{}, invalid("governed commit requires a database")
 	}
-	result, err := transactioncommit.New(d.opts.DB, transactioncommit.Options{Clock: d.opts.Clock}).CommitGoverned(ctx, prepared, req)
+	result, err := transactioncommit.New(d.opts.DB, transactioncommit.Options{
+		Clock: d.opts.Clock, ConflictFence: d.opts.ConflictFence,
+	}).CommitGoverned(ctx, prepared, req)
 	return GovernedCommitResult{Decision: result.Decision, Receipt: result.Receipt}, err
 }
 

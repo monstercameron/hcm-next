@@ -2,7 +2,9 @@ package runtime
 
 import (
 	"context"
+	"encoding/hex"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -70,13 +72,15 @@ func (ContinuationStore) Complete(ctx context.Context, ex Executor, rec Continua
 }
 
 const continuationColumns = `tenant_id, continuation_id, instance_id, source_node_id, source_attempt,
-	target_node_id, kind, route_key, ref, terminal_code, recorded_at`
+	target_node_id, kind, route_key, ref, terminal_code, recorded_at,
+	correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at`
 
 func insertContinuation(ctx context.Context, ex Executor, rec ContinuationRecord) error {
 	if rec.TenantID == uuid.Nil || rec.InstanceID == uuid.Nil {
 		return refuse(CodeInvalidRecord, rec.InstanceID.String(), rec.TargetNodeID,
 			"continuation record carries a nil tenant or instance id")
 	}
+	rec.Causal = normalizeCausal(rec.Causal)
 	if rec.SourceNodeID == "" || rec.TargetNodeID == "" {
 		return refuse(CodeInvalidRecord, rec.InstanceID.String(), rec.TargetNodeID,
 			"continuation record names no source or target node")
@@ -86,18 +90,65 @@ func insertContinuation(ctx context.Context, ex Executor, rec ContinuationRecord
 			"continuation record carries undeclared intent kind %q", rec.Kind)
 	}
 	id := ContinuationID(rec.TenantID, rec.InstanceID, rec.SourceNodeID, rec.SourceAttempt, rec.TargetNodeID, rec.Kind)
+	args := []any{rec.TenantID, id, rec.InstanceID, rec.SourceNodeID, rec.SourceAttempt,
+		rec.TargetNodeID, string(rec.Kind), nullableText(rec.RouteKey), nullableText(rec.Ref),
+		nullableText(rec.TerminalCode), zeroTimeOrNil(rec.RecordedAt)}
+	args = append(args, causalValue(rec.Causal)...)
 	_, err := ex.Exec(ctx, `
 		INSERT INTO workflow_continuation (`+continuationColumns+`)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, now()))
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, now()), $12, $13, $14, $15, $16, $17, $18, $19, $20)
 		ON CONFLICT (tenant_id, continuation_id) DO NOTHING`,
-		rec.TenantID, id, rec.InstanceID, rec.SourceNodeID, rec.SourceAttempt,
-		rec.TargetNodeID, string(rec.Kind), nullableText(rec.RouteKey), nullableText(rec.Ref),
-		nullableText(rec.TerminalCode), zeroTimeOrNil(rec.RecordedAt))
+		args...)
 	if err != nil {
 		return wrap(CodeStorageFailed, rec.InstanceID.String(), rec.TargetNodeID, err,
 			"insert continuation record for intent %s", rec.Kind)
 	}
 	return nil
+}
+
+func normalizeCausal(c *CausalMetadata) *CausalMetadata {
+	if c == nil {
+		return nil
+	}
+	for _, value := range []string{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID} {
+		if strings.TrimSpace(value) == "" || len(value) > 128 {
+			return nil
+		}
+	}
+	out := *c
+	out.TraceLink = nil
+	if c.TraceLink != nil && validTraceID(c.TraceLink.TraceID, 16) && validTraceID(c.TraceLink.SpanID, 8) && len(c.TraceLink.TraceState) <= 256 {
+		link := *c.TraceLink
+		out.TraceLink = &link
+	}
+	return &out
+}
+
+func validTraceID(value string, size int) bool {
+	if value != strings.ToLower(value) {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	if err != nil || len(decoded) != size {
+		return false
+	}
+	for _, b := range decoded {
+		if b != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func causalValue(c *CausalMetadata) []any {
+	c = normalizeCausal(c)
+	if c == nil {
+		return []any{nil, nil, nil, nil, nil, nil, nil, nil, nil}
+	}
+	if c.TraceLink == nil {
+		return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, nil, nil, nil, nil, nil}
+	}
+	return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, c.TraceLink.TraceID, c.TraceLink.SpanID, c.TraceLink.TraceFlags, c.TraceLink.TraceState, zeroTimeOrNil(c.TraceLink.ExpiresAt)}
 }
 
 // MemorySink is an in-process [ContinuationSink] that only records what it

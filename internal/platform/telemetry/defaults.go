@@ -108,6 +108,24 @@ func DefaultAllowlistDefinitions() []AttributeDefinition {
 			MaxCardinality: 0,
 			Description:    "Business correlation identifier; never a metric label.",
 		},
+		{
+			Key: "logical_operation_id", Class: ClassOperationalRestricted,
+			Signals:        []SignalKind{SignalSpan},
+			MaxCardinality: 0,
+			Description:    "Bounded durable logical operation identifier; span context only, never authority or a metric label.",
+		},
+		{
+			Key: "attempt_id", Class: ClassOperationalRestricted,
+			Signals:        []SignalKind{SignalSpan},
+			MaxCardinality: 0,
+			Description:    "Bounded durable attempt identifier; span context only, never authority or a metric label.",
+		},
+		{
+			Key: "message_kind", Class: ClassOperationalRestricted,
+			Signals:        []SignalKind{SignalSpan},
+			MaxCardinality: 16,
+			Description:    "Closed asynchronous message-kind vocabulary; span context only, never payload, authority, or metric label.",
+		},
 	}
 }
 

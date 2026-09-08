@@ -2,6 +2,7 @@ package execute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,8 +10,10 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
@@ -23,6 +26,7 @@ type Status string
 const (
 	StatusParked   Status = "PARKED"
 	StatusComplete Status = "COMPLETE"
+	StatusResolved Status = "RESOLVED"
 )
 
 // Options are the ports and explicit policies a Driver needs. MaxSteps bounds
@@ -62,6 +66,11 @@ type Options struct {
 	// TimerReader loads the durable timer a [Driver.ResumeTimer] advances
 	// from. Required only once a caller actually calls ResumeTimer.
 	TimerReader TimerReader
+	// ConflictFence is the application-composed durable conflict adapter used
+	// only when a prepared transaction plan carries a registered intent. It is
+	// intentionally a port: workflow execution must not construct a data
+	// adapter, and legacy plans remain unfenced when this is nil.
+	ConflictFence transactioncommit.ConflictFence
 	// Fence and FenceVerifier make every advancement this driver performs a
 	// fenced one (WF-RUN-002): the fence is verified against the durable
 	// lease before the advancement reads anything, so a worker whose lease was
@@ -76,6 +85,21 @@ type Options struct {
 	// the fence unset.
 	Fence         *runtime.Fence
 	FenceVerifier runtime.FenceVerifier
+	// StartRetry opts into a bounded serializable retry of the complete start
+	// closure. Nil preserves the historical single transaction behavior.
+	StartRetry *transactioncommit.RetryOptions
+	// StartRetryFor selects a request-scoped retry policy without storing
+	// tenant or operation state on the Driver. It is evaluated once per
+	// Execute call and its returned options are copied locally.
+	StartRetryFor func(context.Context, StartRetryIdentity) (*transactioncommit.RetryOptions, error)
+}
+
+// StartRetryIdentity is the complete immutable identity needed to select a
+// persisted retry budget. Proposal content, mutable slices and runtime ports
+// deliberately do not cross this policy boundary.
+type StartRetryIdentity struct {
+	TenantID            uuid.UUID
+	StartIdempotencyKey string
 }
 
 // Driver synchronously runs the READY frontier of one newly started workflow.
@@ -106,6 +130,9 @@ func New(opts Options) (*Driver, error) {
 	if (opts.Fence == nil) != (opts.FenceVerifier == nil) {
 		return nil, invalid("a lease fence and its verifier are configured together or not at all")
 	}
+	if opts.StartRetry != nil && opts.StartRetryFor != nil {
+		return nil, invalid("StartRetry and StartRetryFor are mutually exclusive")
+	}
 	advance := opts.Advance
 	if advance == nil {
 		advance = runtime.Advance
@@ -123,10 +150,14 @@ type ExecuteRequest struct {
 // Result is either COMPLETE or PARKED on the WorkItems returned here. Every
 // receipt is from a committed transaction.
 type Result struct {
-	Status    Status
-	Start     runtime.StartReceipt
-	Advances  []runtime.AdvanceReceipt
-	WorkItems []workitem.WorkItem
+	Status Status
+	Start  runtime.StartReceipt
+	// StartResolution is populated only when an ambiguous START commit is
+	// resolved by an explicit read-only transaction. Such a result is never
+	// drained or projected as COMPLETE.
+	StartResolution *runtime.StartResolution
+	Advances        []runtime.AdvanceReceipt
+	WorkItems       []workitem.WorkItem
 	// Timers are the durable timers this result's advancements created. An
 	// instance parked on one is waiting for a caller to settle it, not for a
 	// person.
@@ -146,30 +177,70 @@ func (d *Driver) Execute(ctx context.Context, req ExecuteRequest) (Result, error
 	if req.Start.Resolver == nil {
 		return Result{}, invalid("StartRequest has no WorkflowResolver")
 	}
-	selection, err := req.Start.Resolver.ResolveWorkflow(ctx, req.Start)
-	if err != nil {
-		return Result{}, fmt.Errorf("workflow execute: resolve workflow: %w", err)
-	}
-	if selection.Plan == nil || selection.WorkflowID == "" {
-		return Result{}, invalid("WorkflowResolver returned no workflow id or plan")
-	}
+	var selection runtime.WorkflowSelection
+	var err error
 	startReq := req.Start
-	startReq.Resolver = fixedResolver{selection: selection}
-
-	tx, err := d.opts.DB.Begin(ctx)
-	if err != nil {
-		return Result{}, fmt.Errorf("workflow execute: begin start: %w", err)
+	var started runtime.StartReceipt
+	startRetry := d.opts.StartRetry
+	if d.opts.StartRetryFor != nil {
+		identity := StartRetryIdentity{TenantID: startReq.TenantID, StartIdempotencyKey: startReq.StartIdempotencyKey}
+		if identity.TenantID == uuid.Nil || strings.TrimSpace(identity.StartIdempotencyKey) == "" {
+			return Result{}, invalid("StartRetryFor requires tenant and start idempotency identity")
+		}
+		startRetry, err = d.opts.StartRetryFor(ctx, identity)
+		if err != nil {
+			return Result{}, fmt.Errorf("workflow execute: select start retry policy: %w", err)
+		}
+		if startRetry == nil {
+			return Result{}, invalid("StartRetryFor returned no retry policy")
+		}
+		if startRetry.MaxAttempts < 0 || startRetry.BaseDelay < 0 || startRetry.MaxDelay < 0 {
+			return Result{}, invalid("StartRetryFor returned invalid retry bounds")
+		}
+		if startRetry.Admit == nil {
+			return Result{}, invalid("StartRetryFor returned retry policy without admission")
+		}
+		if startRetry.Prepare != nil || startRetry.ResolveAmbiguous != nil {
+			return Result{}, invalid("StartRetryFor returned transaction-coordinator callbacks")
+		}
+		copy := *startRetry
+		startRetry = &copy
 	}
-	defer func() { _ = tx.Rollback(ctx) }()
-	if err := tenancy.WithTenant(ctx, tx, startReq.TenantID); err != nil {
-		return Result{}, err
-	}
-	started, err := runtime.Start(ctx, tx, startReq)
-	if err != nil {
-		return Result{}, err
-	}
-	if err := tx.Commit(ctx); err != nil {
-		return Result{}, fmt.Errorf("workflow execute: commit start: %w", err)
+	if startRetry == nil {
+		selection, err = req.Start.Resolver.ResolveWorkflow(ctx, req.Start)
+		if err != nil {
+			return Result{}, fmt.Errorf("workflow execute: resolve workflow: %w", err)
+		}
+		if selection.Plan == nil || selection.WorkflowID == "" {
+			return Result{}, invalid("WorkflowResolver returned no workflow id or plan")
+		}
+		startReq.Resolver = fixedResolver{selection: selection}
+		started, err = d.startOnce(ctx, startReq, false, nil, nil)
+		if err != nil {
+			return Result{}, err
+		}
+	} else {
+		transactionalResolver, ok := req.Start.Resolver.(TransactionalWorkflowResolver)
+		if !ok {
+			return Result{}, invalid("serializable start requires a transaction-bound WorkflowResolver")
+		}
+		// Observe the resolver used inside every transaction so the plan that
+		// won the authoritative retry is the one used to drain READY work.
+		err := transactioncommit.RetryClosure(ctx, *startRetry, func(ctx context.Context) error {
+			var err error
+			started, err = d.startOnce(ctx, startReq, true, transactionalResolver, &selection)
+			return err
+		})
+		if err != nil {
+			if errors.Is(err, transactioncommit.ErrCommitAmbiguous) {
+				resolved, resolveErr := d.resolveAmbiguousStart(ctx, startReq, selection)
+				if resolveErr == nil {
+					return resolved, nil
+				}
+				return Result{}, fmt.Errorf("%w: start outcome resolution: %v", transactioncommit.ErrCommitAmbiguous, resolveErr)
+			}
+			return Result{}, err
+		}
 	}
 
 	result := Result{
@@ -181,6 +252,94 @@ func (d *Driver) Execute(ctx context.Context, req ExecuteRequest) (Result, error
 		start: startReq, selection: selection, instanceID: started.InstanceID,
 		traceID: d.opts.Instrumentation.TraceID(ctx),
 	}, result, ready)
+}
+
+func (d *Driver) resolveAmbiguousStart(ctx context.Context, req runtime.StartRequest, selection runtime.WorkflowSelection) (Result, error) {
+	db, ok := d.opts.DB.(ReadOnlyBeginner)
+	if !ok {
+		return Result{}, fmt.Errorf("read-only START outcome resolver is unavailable")
+	}
+	tx, err := db.BeginReadOnly(ctx)
+	if err != nil {
+		return Result{}, err
+	}
+	if err := tenancy.WithTenant(ctx, tx, req.TenantID); err != nil {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+			return Result{}, fmt.Errorf("%v; rollback read-only START resolution: %w", err, rollbackErr)
+		}
+		return Result{}, err
+	}
+	resolution, err := runtime.ResolveStartOutcome(ctx, tx, req, selection)
+	if err != nil {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+			return Result{}, fmt.Errorf("%v; rollback read-only START resolution: %w", err, rollbackErr)
+		}
+		return Result{}, err
+	}
+	if err := tx.Rollback(ctx); err != nil {
+		return Result{}, fmt.Errorf("rollback read-only START resolution: %w", err)
+	}
+	return Result{
+		Status:          StatusResolved,
+		StartResolution: &resolution,
+		InstanceVersion: resolution.Instance.InstanceVersion,
+		Frontier:        append([]string(nil), resolution.Instance.CurrentNodeIDs...),
+	}, nil
+}
+
+type transactionalResolver struct {
+	inner     TransactionalWorkflowResolver
+	tx        dbport.Tx
+	selection *runtime.WorkflowSelection
+}
+
+func (r transactionalResolver) ResolveWorkflow(ctx context.Context, req runtime.StartRequest) (runtime.WorkflowSelection, error) {
+	selection, err := r.inner.ResolveWorkflowInTx(ctx, r.tx, req)
+	if err == nil {
+		*r.selection = selection
+	}
+	return selection, err
+}
+
+func (d *Driver) startOnce(ctx context.Context, req runtime.StartRequest, serializable bool, resolver TransactionalWorkflowResolver, selection *runtime.WorkflowSelection) (runtime.StartReceipt, error) {
+	var tx dbport.Tx
+	var err error
+	if serializable {
+		db, ok := d.opts.DB.(SerializableBeginner)
+		if !ok {
+			return runtime.StartReceipt{}, fmt.Errorf("workflow execute: serializable start requires BeginSerializable")
+		}
+		tx, err = db.BeginSerializable(ctx)
+	} else {
+		tx, err = d.opts.DB.Begin(ctx)
+	}
+	if err != nil {
+		return runtime.StartReceipt{}, fmt.Errorf("workflow execute: begin start: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if serializable {
+		req.Resolver = transactionalResolver{inner: resolver, tx: tx, selection: selection}
+	}
+	if err := tenancy.WithTenant(ctx, tx, req.TenantID); err != nil {
+		return runtime.StartReceipt{}, err
+	}
+	started, err := runtime.Start(ctx, tx, req)
+	if err != nil {
+		return runtime.StartReceipt{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		if !serializable {
+			return runtime.StartReceipt{}, fmt.Errorf("workflow execute: commit start: %w", err)
+		}
+		// SQLSTATE 40001/40P01 is a definite abort and may be retried;
+		// every other commit failure is unresolved and must not be replayed.
+		var s interface{ SQLState() string }
+		if errors.As(err, &s) && (s.SQLState() == "40001" || s.SQLState() == "40P01") {
+			return runtime.StartReceipt{}, err
+		}
+		return runtime.StartReceipt{}, fmt.Errorf("%w: workflow execute: commit start: %v", transactioncommit.ErrCommitAmbiguous, err)
+	}
+	return started, nil
 }
 
 type runContext struct {
@@ -439,6 +598,14 @@ func (d *Driver) advanceOnce(
 		ExpectedInstanceVersion: expectedVersion, Attempt: attempt,
 		Plan: run.selection.Plan, Outcome: outcome, Refs: refs,
 		RecordedAt: at, Sink: sink, TraceID: run.traceID,
+	}
+	if causalSpan, ok := advSpan.(CausalSpan); ok {
+		nodeExecutionID := runtime.NodeExecutionID(run.start.TenantID, run.instanceID, outcome.NodeID, attempt).String()
+		advReq.Causal = causalSpan.CausalMetadata(CausalIdentity{
+			CorrelationID: run.start.CorrelationID, CausationID: nodeExecutionID,
+			LogicalOperationID: run.instanceID.String(), AttemptID: nodeExecutionID,
+			ExpiresAt: at.Add(24 * time.Hour),
+		})
 	}
 	var advanced runtime.AdvanceReceipt
 	if d.opts.Fence != nil {

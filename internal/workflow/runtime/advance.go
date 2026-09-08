@@ -53,6 +53,9 @@ type AdvanceRequest struct {
 
 	Refs    GovernanceRefs
 	TraceID string
+	// Causal is optional metadata copied to derived durable continuations.
+	// It never participates in replay identity or authorization.
+	Causal *CausalMetadata
 
 	// Revalidation is optional for legacy/non-material nodes. When present it
 	// is evaluated before Advance reads runtime state, and a changed fact is a
@@ -316,7 +319,7 @@ func Advance(ctx context.Context, tx Executor, req AdvanceRequest) (AdvanceRecei
 			SourceNodeID: req.Outcome.NodeID, SourceAttempt: req.Attempt,
 			TargetNodeID: in.NodeID, Kind: in.Kind, RouteKey: in.RouteKey, Ref: in.Ref, TerminalCode: in.TerminalCode,
 			TargetAttempt: activated[in.NodeID],
-			RecordedAt:    req.RecordedAt,
+			RecordedAt:    req.RecordedAt, Causal: normalizeCausal(req.Causal),
 		}
 		if dispatchErr := dispatchContinuation(ctx, tx, req.Sink, rec); dispatchErr != nil {
 			return AdvanceReceipt{}, wrap(CodeStorageFailed, req.InstanceID.String(), in.NodeID, dispatchErr,

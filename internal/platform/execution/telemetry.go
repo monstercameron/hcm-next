@@ -8,6 +8,7 @@ import (
 
 	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
 // Span names OBS-023 opens. No OBS-012 span-topology contract exists yet
@@ -130,6 +131,19 @@ type otelSpan struct {
 }
 
 var _ execute.Span = (*otelSpan)(nil)
+var _ execute.CausalSpan = (*otelSpan)(nil)
+
+func (s *otelSpan) CausalMetadata(identity execute.CausalIdentity) *runtime.CausalMetadata {
+	link, ok := s.span.TraceLinkMetadata(identity.ExpiresAt)
+	if !ok {
+		return nil
+	}
+	return &runtime.CausalMetadata{
+		CorrelationID: identity.CorrelationID, CausationID: identity.CausationID,
+		LogicalOperationID: identity.LogicalOperationID, AttemptID: identity.AttemptID,
+		TraceLink: &runtime.TraceLinkMetadata{TraceID: link.TraceID, SpanID: link.SpanID, TraceFlags: link.TraceFlags, TraceState: link.TraceState, ExpiresAt: link.ExpiresAt},
+	}
+}
 
 // End implements execute.Span: it closes the span, sets its status and
 // outcome attribute, and — for an advancement or terminal-write span — emits

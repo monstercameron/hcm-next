@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 	"github.com/monstercameron/hcm-next/internal/workflow/version"
@@ -53,4 +54,17 @@ func (r PolicyResolver) ResolveWorkflow(_ context.Context, req runtime.StartRequ
 	}
 	return runtime.WorkflowSelection{}, fmt.Errorf(
 		"effects: no policy entry matches this start request (correlation %q)", req.CorrelationID)
+}
+
+// ResolveWorkflowInTx adapts the immutable, exact-pin policy table to the
+// transaction-bound resolver contract. PolicyResolver has no database-backed
+// facts to read and therefore makes no database-freshness claim; the non-nil
+// transaction only proves the caller invoked selection inside the START
+// boundary. Approval, supersession and other current facts remain separate
+// transaction-bound ports owned by runtime.Start.
+func (r PolicyResolver) ResolveWorkflowInTx(ctx context.Context, tx dbport.Tx, req runtime.StartRequest) (runtime.WorkflowSelection, error) {
+	if tx == nil {
+		return runtime.WorkflowSelection{}, fmt.Errorf("effects: static policy resolution requires an active transaction boundary")
+	}
+	return r.ResolveWorkflow(ctx, req)
 }

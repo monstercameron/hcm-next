@@ -20,6 +20,27 @@ type Beginner interface {
 	Begin(ctx context.Context) (dbport.Tx, error)
 }
 
+// SerializableBeginner is implemented by production PostgreSQL pools. It is
+// optional so legacy callers retain their existing transaction behavior.
+type SerializableBeginner interface {
+	BeginSerializable(ctx context.Context) (dbport.Tx, error)
+}
+
+// ReadOnlyBeginner opens an explicit read-only transaction for resolving an
+// ambiguous START outcome. It is deliberately separate from Beginner so a
+// normal transaction can never be mistaken for an ambiguity resolver.
+type ReadOnlyBeginner interface {
+	BeginReadOnly(ctx context.Context) (dbport.Tx, error)
+}
+
+// TransactionalWorkflowResolver performs authoritative workflow selection
+// through the same serializable snapshot that Start will commit. Retry mode
+// requires this interface; lexical execution inside a closure is not enough
+// when the resolver reads through another connection.
+type TransactionalWorkflowResolver interface {
+	ResolveWorkflowInTx(context.Context, dbport.Tx, runtime.StartRequest) (runtime.WorkflowSelection, error)
+}
+
 // AdvanceFunc is the runtime advancement boundary. Production wiring uses
 // runtime.Advance; naming the function lets the driver be tested without
 // pretending an in-memory transaction is PostgreSQL.

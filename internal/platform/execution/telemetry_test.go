@@ -93,6 +93,28 @@ func newTestInstrumentation(t *testing.T, clock func() time.Time) (*OTelInstrume
 	return NewOTelInstrumentation(provider, logger, clock), provider, spanRec, logRec
 }
 
+func TestTodo_OBS_013_RealExporterAdvanceSpanProducesExactDurableLink(t *testing.T) {
+	start := time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)
+	inst, provider, recorder, _ := newTestInstrumentation(t, func() time.Time { return start })
+	_, span := inst.StartAdvanceSpan(fixedTraceContext(context.Background()), execute.SpanAttributes{InstanceID: "instance-approval", NodeID: "approval", Attempt: 2})
+	causalSpan, ok := span.(execute.CausalSpan)
+	if !ok {
+		t.Fatal("real exporter advancement span does not implement durable causal metadata")
+	}
+	expires := start.Add(24 * time.Hour)
+	got := causalSpan.CausalMetadata(execute.CausalIdentity{CorrelationID: "corr", CausationID: "cause", LogicalOperationID: "logical", AttemptID: "source-attempt", ExpiresAt: expires})
+	if got == nil || got.CorrelationID != "corr" || got.CausationID != "cause" || got.LogicalOperationID != "logical" || got.AttemptID != "source-attempt" || got.TraceLink == nil || got.TraceLink.TraceID != fixedTraceID.String() || !got.TraceLink.ExpiresAt.Equal(expires) {
+		t.Fatalf("durable causal metadata = %#v", got)
+	}
+	span.End(execute.OutcomeSuccess, nil)
+	if report := provider.ForceFlush(context.Background()); report.Err() != nil {
+		t.Fatalf("ForceFlush: %v", report.Err())
+	}
+	if len(recorder.Spans()) != 1 {
+		t.Fatalf("exported spans = %d, want 1", len(recorder.Spans()))
+	}
+}
+
 // TestTodo_OBS_023_Golden proves the OTel-backed Instrumentation's span and
 // log line are byte-stable for a fixed clock and a fixed ambient trace
 // context: the exact envelope fields structured-logging-and-opentelemetry.md
