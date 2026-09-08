@@ -62,34 +62,52 @@ func TestTodo_DB_001(t *testing.T) {
 		t.Fatal("ledger_event missing after migrating from zero")
 	}
 
-	// Roll back the latest reversible migration.
-	down, err := provider.Down(ctx)
+	// Roll back the latest reversible migration on a fresh schema. The stack
+	// tip may hold declared-irreversible evidence migrations, which refuse
+	// goose Down by design, so the cycle runs at the newest version whose
+	// Down can run instead of at the tip, which goose cannot skip past.
+	reversible, err := migrations.NewestReversibleVersion()
 	if err != nil {
-		t.Fatalf("roll back latest migration: %v", err)
+		t.Fatalf("newest reversible version: %v", err)
 	}
-	if down.Source.Version != target {
-		t.Fatalf("rolled back version %d, want %d", down.Source.Version, target)
+	cycled := pgtest.NewEmpty(t)
+	cycledProvider := cycled.Provider(t)
+	if _, err := cycledProvider.UpTo(ctx, reversible); err != nil {
+		t.Fatalf("migrate fresh schema to %d: %v", reversible, err)
 	}
-	// The rolled-back migration is whichever is newest, so assert on the
-	// version ledger rather than on a table a specific migration creates
-	// (later migrations may add no table at all, e.g. RLS-only changes).
-	rolledBack, err := provider.GetDBVersion(ctx)
+	down, err := cycledProvider.Down(ctx)
+	if err != nil {
+		t.Fatalf("roll back latest reversible migration: %v", err)
+	}
+	if down.Source.Version != reversible {
+		t.Fatalf("rolled back version %d, want %d", down.Source.Version, reversible)
+	}
+	// The rolled-back migration is whichever is newest reversible, so assert
+	// on the version ledger rather than on a table a specific migration
+	// creates (later migrations may add no table at all, e.g. RLS-only
+	// changes).
+	rolledBack, err := cycledProvider.GetDBVersion(ctx)
 	if err != nil {
 		t.Fatalf("read version after rollback: %v", err)
 	}
-	previousVersion := files[len(files)-2].Version
+	var previousVersion int64 = -1
+	for _, f := range files {
+		if f.Version < reversible && f.Version > previousVersion {
+			previousVersion = f.Version
+		}
+	}
 	if rolledBack != previousVersion {
 		t.Fatalf("schema version %d after rollback, want %d", rolledBack, previousVersion)
 	}
 
-	// Re-apply it.
-	if _, err := provider.Up(ctx); err != nil {
-		t.Fatalf("re-apply latest migration: %v", err)
+	// Re-apply to the tip.
+	if _, err := cycledProvider.Up(ctx); err != nil {
+		t.Fatalf("re-apply to the tip: %v", err)
 	}
-	if !tableExists(t, db, "outbox") {
-		t.Fatal("outbox missing after re-applying the latest migration")
+	if !tableExists(t, cycled, "outbox") {
+		t.Fatal("outbox missing after re-applying to the tip")
 	}
-	version, err = provider.GetDBVersion(ctx)
+	version, err = cycledProvider.GetDBVersion(ctx)
 	if err != nil {
 		t.Fatalf("read version after re-apply: %v", err)
 	}

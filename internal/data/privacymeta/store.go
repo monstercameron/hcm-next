@@ -179,15 +179,17 @@ func LoadProcessingPurposeDeclaration(ctx context.Context, q dbport.Querier, ten
 
 // DataCopyInventory is one immutable, watermarked census of an asset's copies.
 type DataCopyInventory struct {
-	TenantID          uuid.UUID `json:"tenant_id"`
-	InventoryID       uuid.UUID `json:"inventory_id"`
-	CanonicalAssetKey string    `json:"canonical_asset_key"`
-	AsOf              time.Time `json:"as_of"`
-	SourceWatermark   string    `json:"source_watermark"`
-	Completeness      string    `json:"completeness"`
-	UnknownCount      int32     `json:"unknown_count"`
-	ContentDigest     string    `json:"content_digest"`
-	CreatedAt         time.Time `json:"created_at"`
+	TenantID          uuid.UUID       `json:"tenant_id"`
+	InventoryID       uuid.UUID       `json:"inventory_id"`
+	CanonicalAssetKey string          `json:"canonical_asset_key"`
+	AsOf              time.Time       `json:"as_of"`
+	SourceWatermark   string          `json:"source_watermark"`
+	ExpectedSources   json.RawMessage `json:"expected_sources"`
+	SourceWatermarks  json.RawMessage `json:"source_watermarks"`
+	Completeness      string          `json:"completeness"`
+	UnknownCount      int32           `json:"unknown_count"`
+	ContentDigest     string          `json:"content_digest"`
+	CreatedAt         time.Time       `json:"created_at"`
 }
 
 func (i DataCopyInventory) Validate() error {
@@ -199,6 +201,24 @@ func (i DataCopyInventory) Validate() error {
 	}
 	if i.SourceWatermark == "" {
 		return detail(ErrMissingScope, "data_copy_inventory.source_watermark")
+	}
+	var expected []string
+	if len(i.ExpectedSources) == 0 || json.Unmarshal(i.ExpectedSources, &expected) != nil || len(expected) == 0 {
+		return detail(ErrMissingScope, "data_copy_inventory.expected_sources")
+	}
+	var watermarks map[string]string
+	if len(i.SourceWatermarks) == 0 || json.Unmarshal(i.SourceWatermarks, &watermarks) != nil || len(watermarks) == 0 {
+		return detail(ErrMissingScope, "data_copy_inventory.source_watermarks")
+	}
+	seen := make(map[string]bool, len(expected))
+	for _, source := range expected {
+		if source == "" || seen[source] || watermarks[source] == "" {
+			return detail(ErrIncompleteCensus, "expected discovery source %q has no unique watermark", source)
+		}
+		seen[source] = true
+	}
+	if len(watermarks) != len(seen) {
+		return detail(ErrIncompleteCensus, "source watermark set does not match expected discovery sources")
 	}
 	if i.ContentDigest == "" {
 		return detail(ErrMissingDigest, "data_copy_inventory.content_digest")
@@ -222,18 +242,20 @@ func InsertDataCopyInventory(ctx context.Context, tx dbport.Tx, i DataCopyInvent
 	if err := ensureTenant(ctx, tx, i.TenantID); err != nil {
 		return err
 	}
-	_, err := tx.Exec(ctx, `INSERT INTO data_copy_inventory (tenant_id, inventory_id, canonical_asset_key, as_of, source_watermark, completeness, unknown_count, content_digest, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-		i.TenantID, i.InventoryID, i.CanonicalAssetKey, i.AsOf, i.SourceWatermark, i.Completeness, i.UnknownCount, i.ContentDigest, i.CreatedAt)
+	_, err := tx.Exec(ctx, `INSERT INTO data_copy_inventory (tenant_id, inventory_id, canonical_asset_key, as_of, source_watermark, expected_sources, source_watermarks, completeness, unknown_count, content_digest, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+		i.TenantID, i.InventoryID, i.CanonicalAssetKey, i.AsOf, i.SourceWatermark, i.ExpectedSources, i.SourceWatermarks, i.Completeness, i.UnknownCount, i.ContentDigest, i.CreatedAt)
 	return err
 }
 
 func LoadDataCopyInventory(ctx context.Context, q dbport.Querier, tenantID, inventoryID uuid.UUID) (DataCopyInventory, error) {
 	var i DataCopyInventory
-	err := q.QueryRow(ctx, `SELECT tenant_id, inventory_id, canonical_asset_key, as_of, source_watermark, completeness, unknown_count, content_digest, created_at FROM data_copy_inventory WHERE tenant_id=$1 AND inventory_id=$2`, tenantID, inventoryID).
-		Scan(&i.TenantID, &i.InventoryID, &i.CanonicalAssetKey, &i.AsOf, &i.SourceWatermark, &i.Completeness, &i.UnknownCount, &i.ContentDigest, &i.CreatedAt)
+	var expected, watermarks []byte
+	err := q.QueryRow(ctx, `SELECT tenant_id, inventory_id, canonical_asset_key, as_of, source_watermark, expected_sources, source_watermarks, completeness, unknown_count, content_digest, created_at FROM data_copy_inventory WHERE tenant_id=$1 AND inventory_id=$2`, tenantID, inventoryID).
+		Scan(&i.TenantID, &i.InventoryID, &i.CanonicalAssetKey, &i.AsOf, &i.SourceWatermark, &expected, &watermarks, &i.Completeness, &i.UnknownCount, &i.ContentDigest, &i.CreatedAt)
 	if err != nil {
 		return DataCopyInventory{}, err
 	}
+	i.ExpectedSources, i.SourceWatermarks = expected, watermarks
 	return i, nil
 }
 
@@ -246,6 +268,9 @@ type DataCopy struct {
 	CanonicalAssetKey    string          `json:"canonical_asset_key"`
 	CopyType             string          `json:"copy_type"`
 	StoreRef             string          `json:"store_ref"`
+	DiscoverySource      string          `json:"discovery_source"`
+	SubjectRef           string          `json:"subject_ref"`
+	DataCategory         string          `json:"data_category"`
 	ProcessorRef         string          `json:"processor_ref"`
 	Region               string          `json:"region"`
 	FieldScope           json.RawMessage `json:"field_scope"`
@@ -253,6 +278,7 @@ type DataCopy struct {
 	RetentionScheduleKey string          `json:"retention_schedule_key"`
 	HoldState            string          `json:"hold_state"`
 	DeletionCapability   string          `json:"deletion_capability"`
+	RestorePolicy        string          `json:"restore_policy"`
 	LastVerifiedAt       *time.Time      `json:"last_verified_at"`
 	CreatedAt            time.Time       `json:"created_at"`
 }
@@ -261,8 +287,8 @@ func (c DataCopy) Validate() error {
 	if c.TenantID == uuid.Nil || c.CopyID == uuid.Nil || c.InventoryID == uuid.Nil {
 		return ErrNilTenant
 	}
-	if c.CanonicalAssetKey == "" || c.StoreRef == "" || c.RetentionScheduleKey == "" {
-		return detail(ErrMissingScope, "data_copy canonical_asset_key/store_ref/retention_schedule_key")
+	if c.CanonicalAssetKey == "" || c.StoreRef == "" || c.DiscoverySource == "" || c.SubjectRef == "" || c.DataCategory == "" || c.ProcessorRef == "" || c.Region == "" || c.EncryptionKeyRef == "" || c.RetentionScheduleKey == "" || c.RestorePolicy == "" {
+		return detail(ErrMissingScope, "data_copy asset/store/discovery source/subject/category/processor/location/key/retention/restore metadata")
 	}
 	if !oneOf(c.CopyType, CopyTypes...) {
 		return detail(ErrInvalidEnum, "data_copy.copy_type=%q", c.CopyType)
@@ -286,8 +312,8 @@ func InsertDataCopy(ctx context.Context, tx dbport.Tx, c DataCopy) error {
 	if err := ensureTenant(ctx, tx, c.TenantID); err != nil {
 		return err
 	}
-	_, err := tx.Exec(ctx, `INSERT INTO data_copy (tenant_id, copy_id, inventory_id, canonical_asset_key, copy_type, store_ref, processor_ref, region, field_scope, encryption_key_ref, retention_schedule_key, hold_state, deletion_capability, last_verified_at, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
-		c.TenantID, c.CopyID, c.InventoryID, c.CanonicalAssetKey, c.CopyType, c.StoreRef, c.ProcessorRef, c.Region, object(c.FieldScope), c.EncryptionKeyRef, c.RetentionScheduleKey, c.HoldState, c.DeletionCapability, c.LastVerifiedAt, c.CreatedAt)
+	_, err := tx.Exec(ctx, `INSERT INTO data_copy (tenant_id, copy_id, inventory_id, canonical_asset_key, copy_type, store_ref, discovery_source, subject_ref, data_category, processor_ref, region, field_scope, encryption_key_ref, retention_schedule_key, hold_state, deletion_capability, restore_policy, last_verified_at, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+		c.TenantID, c.CopyID, c.InventoryID, c.CanonicalAssetKey, c.CopyType, c.StoreRef, c.DiscoverySource, c.SubjectRef, c.DataCategory, c.ProcessorRef, c.Region, object(c.FieldScope), c.EncryptionKeyRef, c.RetentionScheduleKey, c.HoldState, c.DeletionCapability, c.RestorePolicy, c.LastVerifiedAt, c.CreatedAt)
 	return err
 }
 
@@ -295,8 +321,8 @@ func LoadDataCopy(ctx context.Context, q dbport.Querier, tenantID, copyID uuid.U
 	var c DataCopy
 	var scope []byte
 	var verified *time.Time
-	err := q.QueryRow(ctx, `SELECT tenant_id, copy_id, inventory_id, canonical_asset_key, copy_type, store_ref, processor_ref, region, field_scope, encryption_key_ref, retention_schedule_key, hold_state, deletion_capability, last_verified_at, created_at FROM data_copy WHERE tenant_id=$1 AND copy_id=$2`, tenantID, copyID).
-		Scan(&c.TenantID, &c.CopyID, &c.InventoryID, &c.CanonicalAssetKey, &c.CopyType, &c.StoreRef, &c.ProcessorRef, &c.Region, &scope, &c.EncryptionKeyRef, &c.RetentionScheduleKey, &c.HoldState, &c.DeletionCapability, &verified, &c.CreatedAt)
+	err := q.QueryRow(ctx, `SELECT tenant_id, copy_id, inventory_id, canonical_asset_key, copy_type, store_ref, discovery_source, subject_ref, data_category, processor_ref, region, field_scope, encryption_key_ref, retention_schedule_key, hold_state, deletion_capability, restore_policy, last_verified_at, created_at FROM data_copy WHERE tenant_id=$1 AND copy_id=$2`, tenantID, copyID).
+		Scan(&c.TenantID, &c.CopyID, &c.InventoryID, &c.CanonicalAssetKey, &c.CopyType, &c.StoreRef, &c.DiscoverySource, &c.SubjectRef, &c.DataCategory, &c.ProcessorRef, &c.Region, &scope, &c.EncryptionKeyRef, &c.RetentionScheduleKey, &c.HoldState, &c.DeletionCapability, &c.RestorePolicy, &verified, &c.CreatedAt)
 	if err != nil {
 		return DataCopy{}, err
 	}

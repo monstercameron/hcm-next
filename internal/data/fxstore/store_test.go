@@ -3,6 +3,8 @@ package fxstore
 import (
 	"context"
 	"errors"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -105,6 +107,9 @@ func TestTodo_PERSIST_FX_001_Integration(t *testing.T) {
 	if gotProfile.ProfileID != profile.ProfileID || gotProfile.CanonicalDigest != profile.CanonicalDigest {
 		t.Fatalf("profile projection = %+v", gotProfile)
 	}
+	if gotProfile.RoundingRule != profile.RoundingRule || gotProfile.Tolerance != profile.Tolerance || strings.Join(gotProfile.FallbackSourceOrder, ",") != strings.Join(profile.FallbackSourceOrder, ",") || strings.Join(gotProfile.TriangulationCurrencies, ",") != "GBP" || gotProfile.Effective.Canonical() == nil {
+		t.Fatalf("full profile policy projection = %+v", gotProfile)
+	}
 }
 
 func TestTodo_PERSIST_FX_001_Security(t *testing.T) {
@@ -158,6 +163,305 @@ func TestTodo_PERSIST_FX_001_Mutation(t *testing.T) {
 	}
 	if _, err := db.Conn.Exec(context.Background(), `DELETE FROM fx_conversion_profile_revision WHERE tenant_id=$1`, tenant); err == nil {
 		t.Fatal("conversion profile revision delete succeeded")
+	}
+}
+
+func TestTodo_FX_002_LegacyProfileFailsClosed(t *testing.T) {
+	db, store, tenant := testStore(t)
+	profileID := "legacy-profile"
+	if _, err := db.Conn.Exec(context.Background(), `INSERT INTO fx_conversion_profile_revision (row_id, tenant_id, profile_id, revision, canonical_digest) VALUES ($1,$2,$3,1,$4)`, uuid.New(), tenant, profileID, strings.Repeat("0", 64)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.LoadConversionProfile(context.Background(), tenant, profileID, 1); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("legacy incomplete profile = %v", err)
+	}
+	var scale *int32
+	if err := db.QueryRow(context.Background(), `SELECT rounding_scale FROM fx_conversion_profile_revision WHERE tenant_id=$1 AND profile_id=$2`, tenant, profileID).Scan(&scale); err != nil {
+		t.Fatal(err)
+	}
+	if scale != nil {
+		t.Fatal("legacy row was backfilled")
+	}
+}
+
+func TestTodo_FX_002_ProfileCanonicalTamperFailsClosed(t *testing.T) {
+	db, store, tenant := testStore(t)
+	profile := testProfile(t, "tamper-source")
+	if _, err := db.Conn.Exec(context.Background(), `
+		INSERT INTO fx_conversion_profile_revision
+		(row_id, tenant_id, profile_id, revision, canonical_digest, rounding_scale, rounding_mode,
+		 tolerance_nanoseconds, fallback_source_order, triangulation_currencies, effective_from, effective_from_submicrosecond)
+		VALUES ($1,$2,$3,1,$4,2,'HALF_EVEN',$5,$6,$7,$8,0)`, uuid.New(), tenant, profile.ProfileID,
+		strings.Repeat("0", 64), profile.Tolerance.Nanoseconds(), profile.FallbackSourceOrder,
+		profile.TriangulationCurrencies, intervalStart(profile.Effective)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.LoadConversionProfile(context.Background(), tenant, profile.ProfileID, 1); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("tampered canonical digest = %v", err)
+	}
+	invalidModeID := "invalid-rounding-mode"
+	if _, err := db.Conn.Exec(context.Background(), `
+		INSERT INTO fx_conversion_profile_revision
+		(row_id, tenant_id, profile_id, revision, canonical_digest, rounding_scale, rounding_mode,
+		 tolerance_nanoseconds, fallback_source_order, triangulation_currencies, effective_from, effective_from_submicrosecond)
+		VALUES ($1,$2,$3,1,$4,2,'NOT_A_MODE',$5,$6,$7,$8,0)`, uuid.New(), tenant, invalidModeID,
+		strings.Repeat("1", 64), profile.Tolerance.Nanoseconds(), profile.FallbackSourceOrder,
+		profile.TriangulationCurrencies, intervalStart(profile.Effective)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.LoadConversionProfile(context.Background(), tenant, invalidModeID, 1); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("invalid stored rounding mode = %v", err)
+	}
+}
+
+func TestTodo_FX_002_ProfileSuccessorConcurrencyAndTenantIsolation(t *testing.T) {
+	db, firstStore, tenantA := testStore(t)
+	tenantB := uuid.NewString()
+	insertTenant(t, db.Conn, tenantB)
+	base := testProfile(t, "concurrent-source")
+	if err := firstStore.SaveConversionProfile(context.Background(), tenantA, base); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := firstStore.LoadConversionProfile(context.Background(), tenantB, base.ProfileID, 1); !errors.Is(err, fx.ErrStoreNotFound) {
+		t.Fatalf("cross-tenant profile read = %v", err)
+	}
+
+	makeSuccessor := func(revision uint64, scale int32) fx.ConversionProfileRevision {
+		candidate := base
+		candidate.Revision = revision
+		candidate.ParentRevision = 1
+		candidate.ParentDigest = base.CanonicalDigest
+		candidate.RoundingRule.Scale = scale
+		candidate.CanonicalDigest = ""
+		sealed, err := fx.NewConversionProfileRevision(candidate)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return sealed
+	}
+	secondConn := db.NewConn(t)
+	if _, err := secondConn.Exec(context.Background(), `SET ROLE hcmnext_app`); err != nil {
+		t.Fatal(err)
+	}
+	stores := []*Store{firstStore, New(secondConn)}
+	candidates := []fx.ConversionProfileRevision{makeSuccessor(2, 3), makeSuccessor(3, 4)}
+	errs := make([]error, 2)
+	var wg sync.WaitGroup
+	for i := range stores {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			errs[i] = stores[i].SaveConversionProfile(context.Background(), tenantA, candidates[i])
+		}(i)
+	}
+	wg.Wait()
+	successes, stale := 0, 0
+	for _, err := range errs {
+		switch {
+		case err == nil:
+			successes++
+		case errors.Is(err, fx.ErrStoreStaleCAS):
+			stale++
+		default:
+			t.Fatalf("unexpected concurrent successor result: %v", err)
+		}
+	}
+	if successes != 1 || stale != 1 {
+		t.Fatalf("concurrent successors: successes=%d stale=%d errors=%v", successes, stale, errs)
+	}
+	for i, candidate := range candidates {
+		if errs[i] != nil {
+			continue
+		}
+		loaded, err := firstStore.LoadConversionProfile(context.Background(), tenantA, candidate.ProfileID, candidate.Revision)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if loaded.ParentDigest != base.CanonicalDigest || loaded.CanonicalDigest != candidate.CanonicalDigest || loaded.Effective.Kind() != values.IntervalKindInstant {
+			t.Fatalf("successor round trip = %+v", loaded)
+		}
+	}
+}
+
+func TestTodo_FX_002_ProfileExactPolicyRoundTrip(t *testing.T) {
+	_, store, tenant := testStore(t)
+	start := testInstant(t, "2026-01-01T00:00:00.123456789Z")
+	end := testInstant(t, "2026-12-31T23:59:59.987654321Z")
+	interval, err := values.NewInstantInterval(start, end)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := fx.NewConversionProfileRevision(fx.ConversionProfileRevision{
+		ProfileID: "exact-policy", Revision: 1,
+		RoundingRule: fx.RoundingRule{Scale: 18, Mode: values.RoundingHalfAwayFromZero},
+		Tolerance:    123456789 * time.Nanosecond, FallbackSourceOrder: []string{"second", "first"},
+		TriangulationCurrencies: []string{"JPY", "GBP"}, Effective: interval,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.SaveConversionProfile(context.Background(), tenant, profile); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.LoadConversionProfile(context.Background(), tenant, profile.ProfileID, profile.Revision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.CanonicalDigest != profile.CanonicalDigest || got.Tolerance != profile.Tolerance || got.RoundingRule != profile.RoundingRule || got.Effective.String() != profile.Effective.String() || strings.Join(got.FallbackSourceOrder, ",") != "second,first" || strings.Join(got.TriangulationCurrencies, ",") != "JPY,GBP" {
+		t.Fatalf("exact policy round trip = %+v", got)
+	}
+	if err := (*Store)(nil).SaveConversionProfile(context.Background(), tenant, profile); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("nil store = %v", err)
+	}
+	if err := store.SaveConversionProfile(context.Background(), "not-a-tenant", profile); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("invalid tenant = %v", err)
+	}
+	if _, err := store.LoadConversionProfile(context.Background(), tenant, "missing", 1); !errors.Is(err, fx.ErrStoreNotFound) {
+		t.Fatalf("missing profile = %v", err)
+	}
+	if err := store.SaveConversionProfile(context.Background(), tenant, fx.ConversionProfileRevision{}); !errors.Is(err, fx.ErrStoreInvalid) {
+		t.Fatalf("invalid profile = %v", err)
+	}
+}
+
+func TestTodo_FX_002_ProfileSubmicrosecondIntervalOrdering(t *testing.T) {
+	db, store, tenant := testStore(t)
+	start := testInstant(t, "2026-01-01T00:00:00.123456100Z")
+	end := testInstant(t, "2026-01-01T00:00:00.123456900Z")
+	interval, err := values.NewInstantInterval(start, end)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := fx.NewConversionProfileRevision(fx.ConversionProfileRevision{
+		ProfileID: "submicrosecond-policy", Revision: 1,
+		RoundingRule: fx.RoundingRule{Scale: 2, Mode: values.RoundingHalfEven},
+		Tolerance:    time.Nanosecond, FallbackSourceOrder: []string{"source"}, Effective: interval,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.SaveConversionProfile(context.Background(), tenant, profile); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.LoadConversionProfile(context.Background(), tenant, profile.ProfileID, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Effective.String() != profile.Effective.String() || got.CanonicalDigest != profile.CanonicalDigest {
+		t.Fatalf("same-microsecond interval round trip = %+v", got)
+	}
+
+	_, err = db.Conn.Exec(context.Background(), `
+		INSERT INTO fx_conversion_profile_revision
+		(row_id, tenant_id, profile_id, revision, canonical_digest, rounding_scale, rounding_mode,
+		 tolerance_nanoseconds, fallback_source_order, triangulation_currencies, effective_from, effective_to,
+		 effective_from_submicrosecond, effective_to_submicrosecond)
+		VALUES ($1,$2,'reversed-submicrosecond',1,$3,2,'HALF_EVEN',1,$4,$5,$6,$6,900,100)`,
+		uuid.New(), tenant, strings.Repeat("2", 64), []string{"source"}, []string{},
+		time.Date(2026, 1, 1, 0, 0, 0, 123456000, time.UTC))
+	if err == nil {
+		t.Fatal("reversed same-microsecond interval was accepted")
+	}
+}
+
+func TestTodo_FX_003_PostgresSuccessorCASRecoveryAndTenantIsolation(t *testing.T) {
+	db, firstStore, tenantA := testStore(t)
+	tenantB := uuid.NewString()
+	insertTenant(t, db.Conn, tenantB)
+	source := testSource(t, "fx003-source")
+	if err := firstStore.SaveRateSource(context.Background(), tenantA, source); err != nil {
+		t.Fatal(err)
+	}
+	if err := firstStore.SaveRateSource(context.Background(), tenantB, source); err != nil {
+		t.Fatal(err)
+	}
+	base := testQuote(t, "fx003-base", source.SourceID)
+	base.AsOf = testInstant(t, "2026-06-01T10:00:00.123456789Z")
+	base.EffectiveAt = base.AsOf
+	base.ObservedAt = base.AsOf
+	base.KnownAt = testInstant(t, "2026-06-01T11:00:00.987654321Z")
+	base.CanonicalDigest = ""
+	var sealErr error
+	base, sealErr = fx.NewFXQuoteRevision(base)
+	if sealErr != nil {
+		t.Fatal(sealErr)
+	}
+	if err := firstStore.SaveQuote(context.Background(), tenantA, base); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := firstStore.LoadQuote(context.Background(), tenantA, base.QuoteID)
+	if err != nil || loaded.CanonicalDigest != base.CanonicalDigest || loaded.Rate.String() != base.Rate.String() || loaded.AsOf.Compare(base.AsOf) != 0 || loaded.KnownAt.Compare(base.KnownAt) != 0 {
+		t.Fatalf("exact base recovery = %+v, err=%v", loaded, err)
+	}
+
+	makeSuccessor := func(id, rateText string) fx.FXQuoteRevision {
+		rate, parseErr := values.NewDecimal(rateText, 6, values.RoundingExactRequired)
+		if parseErr != nil {
+			t.Fatal(parseErr)
+		}
+		candidate := base
+		candidate.QuoteID = id
+		candidate.Revision = 2
+		candidate.ParentQuoteID = base.QuoteID
+		candidate.ParentDigest = base.CanonicalDigest
+		candidate.Rate = rate
+		candidate.KnownAt = testInstant(t, "2026-06-01T12:00:00.111222333Z")
+		candidate.CanonicalDigest = ""
+		sealed, sealErr := fx.NewFXQuoteRevision(candidate)
+		if sealErr != nil {
+			t.Fatal(sealErr)
+		}
+		return sealed
+	}
+	if err := firstStore.SaveQuote(context.Background(), tenantA, makeSuccessor("fx003-bypass", "0.900000")); !errors.Is(err, fx.ErrStoreStaleCAS) {
+		t.Fatalf("generic successor bypass = %v", err)
+	}
+	if err := firstStore.SaveQuoteSuccessor(context.Background(), tenantB, makeSuccessor("fx003-cross-tenant", "0.910000")); !errors.Is(err, fx.ErrStoreStaleCAS) {
+		t.Fatalf("cross-tenant predecessor = %v", err)
+	}
+
+	secondConn := db.NewConn(t)
+	if _, err := secondConn.Exec(context.Background(), `SET ROLE hcmnext_app`); err != nil {
+		t.Fatal(err)
+	}
+	candidates := []fx.FXQuoteRevision{makeSuccessor("fx003-next-a", "0.923400"), makeSuccessor("fx003-next-b", "0.923300")}
+	stores := []*Store{firstStore, New(secondConn)}
+	errs := make([]error, len(stores))
+	var wg sync.WaitGroup
+	for i := range stores {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			errs[i] = stores[i].SaveQuoteSuccessor(context.Background(), tenantA, candidates[i])
+		}(i)
+	}
+	wg.Wait()
+	winners, stale := 0, 0
+	for _, saveErr := range errs {
+		if saveErr == nil {
+			winners++
+		} else if errors.Is(saveErr, fx.ErrStoreStaleCAS) {
+			stale++
+		} else {
+			t.Fatalf("unexpected successor error: %v", saveErr)
+		}
+	}
+	if winners != 1 || stale != 1 {
+		t.Fatalf("successor CAS winners=%d stale=%d errors=%v", winners, stale, errs)
+	}
+	freshConn := db.NewConn(t)
+	if _, err := freshConn.Exec(context.Background(), `SET ROLE hcmnext_app`); err != nil {
+		t.Fatal(err)
+	}
+	fresh := New(freshConn)
+	for i, candidate := range candidates {
+		if errs[i] != nil {
+			continue
+		}
+		got, loadErr := fresh.LoadQuote(context.Background(), tenantA, candidate.QuoteID)
+		if loadErr != nil || got.CanonicalDigest != candidate.CanonicalDigest || got.ParentDigest != base.CanonicalDigest || got.Rate.String() != candidate.Rate.String() || got.KnownAt.Compare(candidate.KnownAt) != 0 {
+			t.Fatalf("successor recovery = %+v, err=%v", got, loadErr)
+		}
 	}
 }
 
@@ -224,7 +528,7 @@ func testProfile(t *testing.T, source string) fx.ConversionProfileRevision {
 	profile, err := fx.NewConversionProfileRevision(fx.ConversionProfileRevision{
 		ProfileID: "profile-" + source, Revision: 1,
 		RoundingRule: fx.RoundingRule{Scale: 2, Mode: values.RoundingHalfEven}, Tolerance: 2 * time.Hour,
-		FallbackSourceOrder: []string{source}, Effective: testInterval(t),
+		FallbackSourceOrder: []string{source}, TriangulationCurrencies: []string{"GBP"}, Effective: testInterval(t),
 	})
 	if err != nil {
 		t.Fatal(err)

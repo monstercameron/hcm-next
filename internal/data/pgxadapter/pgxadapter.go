@@ -117,6 +117,28 @@ func (c *Conn) Begin(ctx context.Context) (dbport.Tx, error) {
 	return Tx{tx: tx}, nil
 }
 
+// BeginSerializable opens a transaction with PostgreSQL's serializable
+// isolation level. It is an optional capability used by retry coordinators;
+// Begin retains the driver's default for existing callers.
+func (c *Conn) BeginSerializable(ctx context.Context) (dbport.Tx, error) {
+	tx, err := c.conn.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
+	if err != nil {
+		return nil, err
+	}
+	return Tx{tx: tx}, nil
+}
+
+// BeginReadOnly opens an explicit read-only transaction for resolving an
+// ambiguous local outcome. The server enforces that this transaction cannot
+// perform writes.
+func (c *Conn) BeginReadOnly(ctx context.Context) (dbport.Tx, error) {
+	tx, err := c.conn.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
+	if err != nil {
+		return nil, err
+	}
+	return Tx{tx: tx}, nil
+}
+
 // Ping verifies the connection is still usable.
 func (c *Conn) Ping(ctx context.Context) error { return c.conn.Ping(ctx) }
 
@@ -233,6 +255,25 @@ func (p *Pool) QueryRow(ctx context.Context, sql string, args ...any) dbport.Row
 // Begin implements [dbport.Beginner].
 func (p *Pool) Begin(ctx context.Context) (dbport.Tx, error) {
 	tx, err := p.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return Tx{tx: tx}, nil
+}
+
+// BeginSerializable opens a pooled transaction at PostgreSQL serializable
+// isolation, preserving the same optional capability as Conn.
+func (p *Pool) BeginSerializable(ctx context.Context) (dbport.Tx, error) {
+	tx, err := p.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
+	if err != nil {
+		return nil, err
+	}
+	return Tx{tx: tx}, nil
+}
+
+// BeginReadOnly opens a pooled transaction with PostgreSQL read-only access.
+func (p *Pool) BeginReadOnly(ctx context.Context) (dbport.Tx, error) {
+	tx, err := p.pool.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
 	if err != nil {
 		return nil, err
 	}

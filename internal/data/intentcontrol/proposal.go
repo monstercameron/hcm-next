@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 // Reversibility classes, matching the schema's closed vocabulary.
@@ -38,6 +40,31 @@ type WriteItem struct {
 
 	ExpectedRevision        string
 	SourceAuthorityDecision string
+	// Typed fence metadata. Zero values are retained only for legacy rows and
+	// are never eligible for fenced execution.
+	AuthorityDomain   string
+	Operation         intent.WriteOperation
+	EffectiveInterval values.EffectiveInterval
+}
+
+// NewWriteItems adapts typed intent writes without reinterpreting their
+// material values. Legacy WriteItem callers remain supported for replay.
+func NewWriteItems(writes []intent.PlannedWrite) ([]WriteItem, error) {
+	out := make([]WriteItem, len(writes))
+	for i, w := range writes {
+		if err := w.Subject.Validate(); err != nil {
+			return nil, fmt.Errorf("writes[%d] subject: %w", i, err)
+		}
+		out[i] = WriteItem{SubjectKind: w.Subject.Kind, SubjectID: w.Subject.SubjectID,
+			ResourceKey: w.ResourceKey.String(), FieldPath: w.FieldPath,
+			CurrentCanonicalText: w.CurrentCanonicalText, ProposedCanonicalText: w.ProposedCanonicalText,
+			ExpectedRevision: w.ExpectedRevision.String(), SourceAuthorityDecision: w.SourceAuthorityDecision,
+			AuthorityDomain: w.Subject.AuthorityDomain, Operation: w.Operation, EffectiveInterval: w.EffectiveInterval}
+		if err := out[i].Validate(); err != nil {
+			return nil, fmt.Errorf("writes[%d]: %w", i, err)
+		}
+	}
+	return out, nil
 }
 
 // Validate rejects a write item that could not be stored.
@@ -59,7 +86,150 @@ func (w WriteItem) Validate() error {
 	if w.ProposedCanonicalText == w.CurrentCanonicalText {
 		return invalid("proposed_canonical_text", "the proposed value equals the current one")
 	}
+	legacy := w.Operation == intent.WriteOperationUnspecified && w.EffectiveInterval == (values.EffectiveInterval{}) && w.AuthorityDomain == ""
+	if !legacy {
+		if !w.Operation.Valid() {
+			return invalid("operation", "operation is required for a typed fence")
+		}
+		if err := w.EffectiveInterval.Validate(); err != nil {
+			return fmt.Errorf("effective_interval: %w", err)
+		}
+		if err := requireText("authority_domain", w.AuthorityDomain); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+type intervalColumns struct{ kind, start, end, calendarRef, calendarVersion, zoneID, tzdbVersion, disambiguation *string }
+
+func encodeInterval(iv values.EffectiveInterval) (intervalColumns, error) {
+	if err := iv.Validate(); err != nil {
+		return intervalColumns{}, err
+	}
+	k, st := iv.Kind().String(), ""
+	var en *string
+	if iv.Kind() == values.IntervalKindLocalDate {
+		d, _ := iv.StartDate()
+		st = d.String()
+		if e, ok := iv.EndDate(); ok {
+			x := e.String()
+			en = &x
+		}
+	} else {
+		d, _ := iv.StartInstant()
+		st = d.String()
+		if e, ok := iv.EndInstant(); ok {
+			x := e.String()
+			en = &x
+		}
+	}
+	columns := intervalColumns{kind: &k, start: &st, end: en}
+	if iv.Kind() == values.IntervalKindLocalDate {
+		c := iv.Calendar()
+		columns.calendarRef, columns.calendarVersion = &c.Ref, &c.Version
+		z := iv.Zone()
+		if z.ID != "" {
+			dis := iv.Disambiguation().String()
+			columns.zoneID, columns.tzdbVersion, columns.disambiguation = &z.ID, &z.TzdbVersion, &dis
+		}
+	}
+	return columns, nil
+}
+
+func nullableText(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+func nullableOperation(o intent.WriteOperation) any {
+	if o == intent.WriteOperationUnspecified {
+		return nil
+	}
+	return string(o)
+}
+func stringValue(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+func decodeInterval(kind *string, start string, end, calr, calv, zid, tz, dis *string) (values.EffectiveInterval, error) {
+	if kind == nil {
+		if start != "" || end != nil || calr != nil || calv != nil || zid != nil || tz != nil || dis != nil {
+			return values.EffectiveInterval{}, fmt.Errorf("interval metadata has no kind")
+		}
+		return values.EffectiveInterval{}, nil
+	}
+	if start == "" {
+		return values.EffectiveInterval{}, fmt.Errorf("invalid stored effective interval")
+	}
+	var iv values.EffectiveInterval
+	var err error
+	if *kind == values.IntervalKindLocalDate.String() {
+		if calr == nil || calv == nil || *calr == "" || *calv == "" {
+			return iv, fmt.Errorf("local-date interval missing calendar")
+		}
+		s, e := values.ParseLocalDate(start)
+		if e != nil {
+			return iv, e
+		}
+		c := values.CalendarRef{Ref: *calr, Version: *calv}
+		if end != nil {
+			d, e := values.ParseLocalDate(*end)
+			if e != nil {
+				return iv, e
+			}
+			iv, err = values.NewLocalDateInterval(s, d, c)
+		} else {
+			iv, err = values.NewOpenLocalDateInterval(s, c)
+		}
+	} else if *kind == values.IntervalKindInstant.String() {
+		if calr != nil || calv != nil || zid != nil || tz != nil || dis != nil {
+			return iv, fmt.Errorf("instant interval carries calendar metadata")
+		}
+		var s values.Instant
+		err = s.UnmarshalText([]byte(start))
+		if err != nil {
+			return iv, err
+		}
+		if end != nil {
+			var e values.Instant
+			if err = e.UnmarshalText([]byte(*end)); err != nil {
+				return iv, err
+			}
+			iv, err = values.NewInstantInterval(s, e)
+		} else {
+			iv, err = values.NewOpenInstantInterval(s)
+		}
+	} else {
+		return iv, fmt.Errorf("unknown interval kind %q", *kind)
+	}
+	if err != nil {
+		return iv, err
+	}
+	zone := stringValue(zid)
+	tzdb := stringValue(tz)
+	policy := stringValue(dis)
+	if zone == "" {
+		if tzdb != "" || policy != "" {
+			return iv, fmt.Errorf("interval has partial zone metadata")
+		}
+		return iv, nil
+	}
+	if tzdb == "" || policy == "" {
+		return iv, fmt.Errorf("interval has partial zone metadata")
+	}
+	dz, e := values.ParseDisambiguation(policy)
+	if e != nil {
+		return iv, e
+	}
+	iv, e = iv.WithZone(values.ZoneRef{ID: zone, TzdbVersion: tzdb}, dz)
+	if e != nil {
+		return iv, e
+	}
+	return iv, nil
 }
 
 // EffectItem is one proposal_effect_item row. Both CompensationRef and
@@ -211,18 +381,30 @@ func (s ProposalSetStore) Record(ctx context.Context, ex Executor, tenantID, int
 
 	writeStatements := make([]dbport.Statement, 0, len(sets.Writes))
 	for i, w := range sets.Writes {
+		ic := intervalColumns{}
+		if w.Operation != intent.WriteOperationUnspecified {
+			var e error
+			ic, e = encodeInterval(w.EffectiveInterval)
+			if e != nil {
+				return e
+			}
+		}
 		writeStatements = append(writeStatements, dbport.Statement{SQL: `
 			INSERT INTO proposal_write_item (
 				tenant_id, intent_id, revision, ordinal,
 				subject_kind, subject_id, resource_key, field_path,
 				current_canonical_text, proposed_canonical_text,
-				expected_revision, source_authority_decision)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+				expected_revision, source_authority_decision, authority_domain, operation,
+				effective_interval_kind, effective_interval_start, effective_interval_end,
+				effective_interval_calendar_ref, effective_interval_calendar_version,
+				effective_interval_zone_id, effective_interval_tzdb_version, effective_interval_disambiguation)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
 			ON CONFLICT DO NOTHING`, Args: []any{
 			tenantID, intentID, int64(revision), i + 1,
 			w.SubjectKind, w.SubjectID, w.ResourceKey, w.FieldPath,
 			w.CurrentCanonicalText, w.ProposedCanonicalText,
-			w.ExpectedRevision, w.SourceAuthorityDecision,
+			w.ExpectedRevision, w.SourceAuthorityDecision, nullableText(w.AuthorityDomain), nullableOperation(w.Operation),
+			ic.kind, ic.start, ic.end, ic.calendarRef, ic.calendarVersion, ic.zoneID, ic.tzdbVersion, ic.disambiguation,
 		}})
 	}
 	writeCounts, err := dbport.ExecAll(ctx, ex, writeStatements)
@@ -329,25 +511,39 @@ func (s ProposalSetStore) Load(ctx context.Context, ex Executor, tenantID, inten
 	writes, err := ex.Query(ctx, `
 		SELECT subject_kind, subject_id, resource_key, field_path,
 			current_canonical_text, proposed_canonical_text,
-			expected_revision, source_authority_decision
+			expected_revision, source_authority_decision, authority_domain, operation,
+			effective_interval_kind, effective_interval_start, effective_interval_end,
+			effective_interval_calendar_ref, effective_interval_calendar_version,
+			effective_interval_zone_id, effective_interval_tzdb_version, effective_interval_disambiguation
 		FROM proposal_write_item
 		WHERE tenant_id = $1 AND intent_id = $2 AND revision = $3
 		ORDER BY ordinal`, tenantID, intentID, int64(revision))
 	if err != nil {
 		return ProposalSets{}, fmt.Errorf("intentcontrol: load write items: %w", err)
 	}
+	defer writes.Close()
 	for writes.Next() {
 		var w WriteItem
+		var domain, operation, kind, start, end, calr, calv, zid, tz, dis *string
 		if err := writes.Scan(&w.SubjectKind, &w.SubjectID, &w.ResourceKey, &w.FieldPath,
 			&w.CurrentCanonicalText, &w.ProposedCanonicalText,
-			&w.ExpectedRevision, &w.SourceAuthorityDecision); err != nil {
-			writes.Close()
+			&w.ExpectedRevision, &w.SourceAuthorityDecision, &domain, &operation, &kind, &start, &end, &calr, &calv, &zid, &tz, &dis); err != nil {
 			return ProposalSets{}, fmt.Errorf("intentcontrol: scan write item: %w", err)
+		}
+		if domain != nil {
+			w.AuthorityDomain = *domain
+		}
+		if operation != nil {
+			w.Operation = intent.WriteOperation(*operation)
+		}
+		var e error
+		w.EffectiveInterval, e = decodeInterval(kind, stringValue(start), end, calr, calv, zid, tz, dis)
+		if e != nil {
+			return ProposalSets{}, fmt.Errorf("intentcontrol: decode write interval: %w", e)
 		}
 		out.Writes = append(out.Writes, w)
 	}
 	if err := writes.Err(); err != nil {
-		writes.Close()
 		return ProposalSets{}, fmt.Errorf("intentcontrol: load write items: %w", err)
 	}
 	writes.Close()

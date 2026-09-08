@@ -432,20 +432,59 @@ func (s *Store) AppendEvidence(ctx context.Context, tenant skill.TenantID, evide
 		proficiency = float64(proficiencyRank(evidence.Proficiency))
 	}
 	return s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
-		_, err := tx.Exec(ctx, `
+		result, err := tx.Exec(ctx, `
 			INSERT INTO worker_skill_evidence (
 				row_id, tenant_id, evidence_id, worker_ref, skill_ref, level, proficiency,
 				evidence_kind, evidence_ref, verified, disputed, effective_from, effective_to,
-				canonical_digest, event_sequence)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+				canonical_digest, event_sequence, supersedes_evidence_id)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 			ON CONFLICT DO NOTHING`, uuid.New(), tenantID, evidenceID, workerID, skillID, level, proficiency,
 			string(evidence.EvidenceKind), evidence.EvidenceRef, evidence.Verified, evidence.Disputed,
-			from, to, storedDigest(evidence.CanonicalDigest), int64(eventSequence))
+			from, to, storedDigest(evidence.CanonicalDigest), int64(eventSequence), nullableEvidenceID(evidence.Supersedes))
 		if err != nil {
 			return mapEvidenceError(err)
 		}
+		if result == 0 {
+			var existingWorker uuid.UUID
+			var existingSkill, existingDigest string
+			var existingSequence int64
+			var existingSupersedes *string
+			err := tx.QueryRow(ctx, `
+				SELECT worker_ref, skill_ref, canonical_digest, event_sequence, supersedes_evidence_id
+				FROM worker_skill_evidence
+				WHERE tenant_id=$1 AND evidence_id=$2`, tenantID, evidenceID).
+				Scan(&existingWorker, &existingSkill, &existingDigest, &existingSequence, &existingSupersedes)
+			if err == nil && existingWorker == workerID && existingSkill == skillID &&
+				existingDigest == storedDigest(evidence.CanonicalDigest) && existingSequence == int64(eventSequence) &&
+				equalOptionalString(existingSupersedes, nullableEvidenceIDString(evidence.Supersedes)) {
+				return nil
+			}
+			return refuse(skill.ErrDuplicateEvidence.Error(), "event_sequence", "evidence event or supersession is already stored", skill.ErrDuplicateEvidence)
+		}
 		return nil
 	})
+}
+
+func nullableEvidenceIDString(ref values.EntityRef) *string {
+	if ref.Id == "" {
+		return nil
+	}
+	value := ref.Id
+	return &value
+}
+
+func equalOptionalString(left, right *string) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
+}
+
+func nullableEvidenceID(ref values.EntityRef) any {
+	if ref.Id == "" {
+		return nil
+	}
+	return ref.Id
 }
 
 func mapEvidenceError(err error) error {
@@ -524,7 +563,7 @@ func (s *Store) EvidenceAt(ctx context.Context, query skill.EvidenceQuery) ([]sk
 	err = s.withTenant(ctx, query.Worker.Tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
 		rows, err := tx.Query(ctx, `
 			SELECT evidence_id, skill_ref, level, proficiency, evidence_kind, evidence_ref,
-				verified, disputed, effective_from, effective_to, canonical_digest
+				verified, disputed, effective_from, effective_to, canonical_digest, supersedes_evidence_id
 			FROM worker_skill_evidence
 			WHERE tenant_id=$1 AND worker_ref=$2 ORDER BY event_sequence`, tenantID, workerID)
 		if err != nil {
@@ -537,10 +576,11 @@ func (s *Store) EvidenceAt(ctx context.Context, query skill.EvidenceQuery) ([]sk
 		}
 		for rows.Next() {
 			var evidenceID, skillID, evidenceKind, evidenceRef, digest string
+			var supersedes *string
 			var level, proficiency *string
 			var verified, disputed bool
 			var from, to *time.Time
-			if err := rows.Scan(&evidenceID, &skillID, &level, &proficiency, &evidenceKind, &evidenceRef, &verified, &disputed, &from, &to, &digest); err != nil {
+			if err := rows.Scan(&evidenceID, &skillID, &level, &proficiency, &evidenceKind, &evidenceRef, &verified, &disputed, &from, &to, &digest, &supersedes); err != nil {
 				return fmt.Errorf("skillstore: scan worker evidence: %w", err)
 			}
 			if len(allowed) > 0 {
@@ -548,7 +588,7 @@ func (s *Store) EvidenceAt(ctx context.Context, query skill.EvidenceQuery) ([]sk
 					continue
 				}
 			}
-			value, err := decodeEvidence(query.Worker.Tenant.String(), evidenceID, workerID, skillID, level, proficiency, evidenceKind, evidenceRef, verified, disputed, from, to, digest)
+			value, err := decodeEvidence(query.Worker.Tenant.String(), evidenceID, workerID, skillID, level, proficiency, evidenceKind, evidenceRef, verified, disputed, from, to, digest, supersedes)
 			if err != nil {
 				return err
 			}
@@ -562,7 +602,7 @@ func (s *Store) EvidenceAt(ctx context.Context, query skill.EvidenceQuery) ([]sk
 	return out, err
 }
 
-func decodeEvidence(tenant, evidenceID string, workerID uuid.UUID, skillID string, level, proficiency *string, evidenceKind, evidenceRef string, verified, disputed bool, from, to *time.Time, digest string) (skill.WorkerSkillEvidence, error) {
+func decodeEvidence(tenant, evidenceID string, workerID uuid.UUID, skillID string, level, proficiency *string, evidenceKind, evidenceRef string, verified, disputed bool, from, to *time.Time, digest string, supersedes ...*string) (skill.WorkerSkillEvidence, error) {
 	worker := values.EntityRef{Tenant: values.TenantId(tenant), Kind: skill.KindWorker, Id: workerID.String()}
 	ref := values.EntityRef{Tenant: values.TenantId(tenant), Kind: skill.KindSkill, Id: skillID}
 	id := values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: evidenceID}
@@ -571,6 +611,9 @@ func decodeEvidence(tenant, evidenceID string, workerID uuid.UUID, skillID strin
 		return skill.WorkerSkillEvidence{}, err
 	}
 	value := skill.WorkerSkillEvidence{EvidenceID: id, Worker: worker, SkillRef: ref, EvidenceKind: skill.EvidenceKind(evidenceKind), EvidenceRef: evidenceRef, Verified: verified, Disputed: disputed, Effective: interval, CanonicalDigest: domainDigest(digest)}
+	if len(supersedes) > 0 && supersedes[0] != nil && *supersedes[0] != "" {
+		value.Supersedes = values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: *supersedes[0]}
+	}
 	if level != nil && *level != "" {
 		value.Level, err = strconv.Atoi(*level)
 		if err != nil {

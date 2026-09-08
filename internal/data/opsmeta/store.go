@@ -17,10 +17,12 @@
 package opsmeta
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,6 +50,18 @@ var (
 	ErrInvalidEnum = errors.New("opsmeta: value outside its declared set")
 	// ErrInvalidInterval is returned for a reversed or empty interval.
 	ErrInvalidInterval = errors.New("opsmeta: time interval invalid")
+	// ErrAlertConflict is returned when a replay reuses a durable dedupe key
+	// with different authoritative alert facts.
+	ErrAlertConflict = errors.New("opsmeta: alert dedupe conflict")
+	// ErrAlertStorm is returned when the durable tenant/window admission limit
+	// has already been reached.
+	ErrAlertStorm = errors.New("opsmeta: alert storm limit reached")
+	// ErrAcknowledgementUnauthorized is returned when an actor other than the
+	// assigned primary owner attempts to acknowledge an incident.
+	ErrAcknowledgementUnauthorized = errors.New("opsmeta: acknowledgement unauthorized")
+	// ErrAcknowledgementConflict is returned when a second acknowledgement
+	// attempts to replace the durable actor, receipt, or observation time.
+	ErrAcknowledgementConflict = errors.New("opsmeta: acknowledgement conflict")
 )
 
 // ErrDetail names the field behind one of the sentinels above.
@@ -86,6 +100,20 @@ func object(raw json.RawMessage) json.RawMessage {
 	return raw
 }
 
+func decodeObject(raw json.RawMessage) (map[string]any, error) {
+	raw = object(raw)
+	if !json.Valid(raw) {
+		return nil, ErrMissingScope
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	var value map[string]any
+	if err := decoder.Decode(&value); err != nil || value == nil {
+		return nil, ErrMissingScope
+	}
+	return value, nil
+}
+
 func oneOf(value string, allowed ...string) bool {
 	for _, a := range allowed {
 		if value == a {
@@ -117,6 +145,215 @@ type OperationalIncident struct {
 	Status         string          `json:"status"`
 }
 
+// AlertIncident is the redacted telemetry-to-incident input. It contains no
+// metric payload or customer identifiers other than the tenant boundary.
+type AlertIncident struct {
+	TenantID       uuid.UUID
+	IncidentID     uuid.UUID
+	IncidentKey    string
+	Severity       string
+	Scope          json.RawMessage
+	CorrelationKey string
+	EvidenceDigest string
+	DeclaredAt     time.Time
+	PrimaryOwner   string
+	SecondaryRoute string
+	StormLimit     int
+	StormWindow    time.Duration
+}
+
+type AlertIncidentResult struct {
+	Incident OperationalIncident
+	Created  bool
+}
+
+// RouteAlert persists a deduplicated incident in the real operations store.
+// The unique incident key is the durable storm/dedupe fence; a concurrent
+// winner is returned as an existing incident.
+func RouteAlert(ctx context.Context, tx dbport.Tx, a AlertIncident) (AlertIncidentResult, error) {
+	if a.TenantID == uuid.Nil || a.IncidentID == uuid.Nil || a.IncidentKey == "" || a.CorrelationKey == "" || a.EvidenceDigest == "" || a.DeclaredAt.IsZero() {
+		return AlertIncidentResult{}, ErrMissingLineage
+	}
+	if a.PrimaryOwner == "" {
+		return AlertIncidentResult{}, detail(ErrMissingScope, "alert primary owner")
+	}
+	if a.SecondaryRoute == "" {
+		return AlertIncidentResult{}, detail(ErrMissingScope, "alert secondary route")
+	}
+	if a.PrimaryOwner == a.SecondaryRoute {
+		return AlertIncidentResult{}, detail(ErrMissingScope, "alert fallback must differ from primary owner")
+	}
+	if !oneOf(a.Severity, "SEV1", "SEV2", "SEV3", "SEV4", "SEV5") {
+		return AlertIncidentResult{}, detail(ErrInvalidEnum, "alert severity=%q", a.Severity)
+	}
+	if a.StormLimit < 1 || a.StormWindow <= 0 {
+		return AlertIncidentResult{}, detail(ErrInvalidInterval, "alert storm policy")
+	}
+	if len(a.IncidentKey) > 512 || len(a.CorrelationKey) > 256 || !isHexDigest(a.EvidenceDigest) || len(a.PrimaryOwner) > 256 || len(a.SecondaryRoute) > 256 || len(a.Scope) > 4096 || strings.ContainsAny(a.PrimaryOwner+a.SecondaryRoute, "\r\n{}[]") {
+		return AlertIncidentResult{}, detail(ErrMissingScope, "alert metadata exceeds bound")
+	}
+	a.DeclaredAt = a.DeclaredAt.UTC().Truncate(time.Microsecond)
+	if err := ensureTenant(ctx, tx, a.TenantID); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	// Serialize admission for this tenant so concurrent distinct alerts cannot
+	// all observe the same pre-limit count and overrun the durable fence.
+	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1, 723007))`, a.TenantID.String()); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	var existing OperationalIncident
+	if err := loadByKey(ctx, tx, a.TenantID, a.IncidentKey, &existing); err == nil {
+		if err := sameAlert(existing, a); err != nil {
+			return AlertIncidentResult{}, err
+		}
+		return AlertIncidentResult{Incident: existing}, nil
+	} else if !errors.Is(err, dbport.ErrNoRows) {
+		return AlertIncidentResult{}, err
+	}
+	scope := object(a.Scope)
+	// Route metadata is bounded and safe; no source alert or tenant data is copied.
+	meta, err := decodeObject(scope)
+	if err != nil {
+		return AlertIncidentResult{}, err
+	}
+	for _, reserved := range []string{"primary_owner", "secondary_route", "acknowledged", "acknowledged_by", "acknowledged_at", "acknowledgement_evidence"} {
+		if _, exists := meta[reserved]; exists {
+			return AlertIncidentResult{}, detail(ErrMissingScope, "alert scope contains reserved field %s", reserved)
+		}
+	}
+	var active int
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM operational_incident WHERE tenant_id=$1 AND status IN ('OPEN','CONTAINED') AND declared_at >= $2`, a.TenantID, a.DeclaredAt.Add(-a.StormWindow)).Scan(&active); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	if active >= a.StormLimit {
+		return AlertIncidentResult{}, ErrAlertStorm
+	}
+	meta["primary_owner"] = a.PrimaryOwner
+	meta["secondary_route"] = a.SecondaryRoute
+	meta["acknowledged"] = false
+	scope, _ = json.Marshal(meta)
+	i := OperationalIncident{TenantID: a.TenantID, IncidentID: a.IncidentID, IncidentKey: a.IncidentKey, Severity: a.Severity, ImpactRevision: 1, Scope: scope, CorrelationKey: a.CorrelationKey, EvidenceDigest: a.EvidenceDigest, DeclaredAt: a.DeclaredAt, Status: "OPEN"}
+	if err := i.Validate(); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	affected, err := tx.Exec(ctx, `INSERT INTO operational_incident (tenant_id, incident_id, incident_key, severity, impact_revision, scope, correlation_key, evidence_digest, declared_at, contained_at, resolved_at, residual_risk, postmortem_ref, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT (tenant_id, incident_key) DO NOTHING`,
+		i.TenantID, i.IncidentID, i.IncidentKey, i.Severity, i.ImpactRevision, i.Scope, i.CorrelationKey, i.EvidenceDigest, i.DeclaredAt, i.ContainedAt, i.ResolvedAt, i.ResidualRisk, i.PostmortemRef, i.Status)
+	if err != nil {
+		return AlertIncidentResult{}, err
+	}
+	if affected == 1 {
+		return AlertIncidentResult{Incident: i, Created: true}, nil
+	}
+	if affected != 0 {
+		return AlertIncidentResult{}, detail(ErrAlertConflict, "unexpected insert row count %d", affected)
+	}
+	if err := loadByKey(ctx, tx, a.TenantID, a.IncidentKey, &existing); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	if err := sameAlert(existing, a); err != nil {
+		return AlertIncidentResult{}, err
+	}
+	return AlertIncidentResult{Incident: existing}, nil
+}
+
+func sameAlert(existing OperationalIncident, a AlertIncident) error {
+	if existing.Severity != a.Severity || existing.CorrelationKey != a.CorrelationKey || existing.EvidenceDigest != a.EvidenceDigest || !existing.DeclaredAt.Equal(a.DeclaredAt) {
+		return ErrAlertConflict
+	}
+	meta, err := decodeObject(existing.Scope)
+	if err != nil || meta["primary_owner"] != a.PrimaryOwner || meta["secondary_route"] != a.SecondaryRoute {
+		return ErrAlertConflict
+	}
+	for _, owned := range []string{"primary_owner", "secondary_route", "acknowledged", "acknowledged_by", "acknowledged_at", "acknowledgement_evidence"} {
+		delete(meta, owned)
+	}
+	existingScope, err := json.Marshal(meta)
+	if err != nil {
+		return ErrAlertConflict
+	}
+	supplied, err := decodeObject(a.Scope)
+	if err != nil {
+		return ErrAlertConflict
+	}
+	suppliedScope, err := json.Marshal(supplied)
+	if err != nil || string(existingScope) != string(suppliedScope) {
+		return ErrAlertConflict
+	}
+	return nil
+}
+
+func loadByKey(ctx context.Context, q dbport.Querier, tenant uuid.UUID, key string, out *OperationalIncident) error {
+	var scope []byte
+	var contained, resolved *time.Time
+	err := q.QueryRow(ctx, `SELECT tenant_id, incident_id, incident_key, severity, impact_revision, scope, correlation_key, evidence_digest, declared_at, contained_at, resolved_at, residual_risk, postmortem_ref, status FROM operational_incident WHERE tenant_id=$1 AND incident_key=$2`, tenant, key).
+		Scan(&out.TenantID, &out.IncidentID, &out.IncidentKey, &out.Severity, &out.ImpactRevision, &scope, &out.CorrelationKey, &out.EvidenceDigest, &out.DeclaredAt, &contained, &resolved, &out.ResidualRisk, &out.PostmortemRef, &out.Status)
+	if err == nil {
+		out.Scope, out.ContainedAt, out.ResolvedAt = scope, contained, resolved
+	}
+	return err
+}
+
+// AcknowledgeOperationalIncident records only operator identity and time in
+// the bounded scope metadata; it never accepts or persists a message body.
+func AcknowledgeOperationalIncident(ctx context.Context, tx dbport.Tx, tenant, incident uuid.UUID, actor, evidenceDigest string, at time.Time) error {
+	if tenant == uuid.Nil || incident == uuid.Nil || actor == "" || !isHexDigest(evidenceDigest) || at.IsZero() || len(actor) > 256 {
+		return ErrInvalidInterval
+	}
+	if err := ensureTenant(ctx, tx, tenant); err != nil {
+		return err
+	}
+	var scope []byte
+	if err := tx.QueryRow(ctx, `SELECT scope FROM operational_incident WHERE tenant_id=$1 AND incident_id=$2 FOR UPDATE`, tenant, incident).Scan(&scope); err != nil {
+		return err
+	}
+	meta, err := decodeObject(scope)
+	if err != nil {
+		return err
+	}
+	owner, ok := meta["primary_owner"].(string)
+	if !ok || owner != actor {
+		return ErrAcknowledgementUnauthorized
+	}
+	acknowledged, _ := meta["acknowledged"].(bool)
+	wantTime := at.UTC().Format(time.RFC3339Nano)
+	if acknowledged {
+		if meta["acknowledged_by"] == actor && meta["acknowledgement_evidence"] == evidenceDigest && meta["acknowledged_at"] == wantTime {
+			return nil
+		}
+		return ErrAcknowledgementConflict
+	}
+	meta["acknowledged"] = true
+	meta["acknowledged_by"] = actor
+	meta["acknowledged_at"] = wantTime
+	meta["acknowledgement_evidence"] = evidenceDigest
+	b, _ := json.Marshal(meta)
+	n, err := tx.Exec(ctx, `UPDATE operational_incident SET scope=$3, impact_revision=impact_revision+1 WHERE tenant_id=$1 AND incident_id=$2`, tenant, incident, b)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return dbport.ErrNoRows
+	}
+	return nil
+}
+
+func isHexDigest(value string) bool {
+	if len(value) != 64 {
+		return false
+	}
+	for _, r := range value {
+		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')) {
+			return false
+		}
+	}
+	return true
+}
+
+// CustomerSafeEvidence is intentionally free of tenant, scope and payload data.
+func CustomerSafeEvidence(i OperationalIncident) string {
+	return "incident=" + i.EvidenceDigest + ";severity=" + i.Severity + ";status=" + i.Status
+}
+
 func (i OperationalIncident) Validate() error {
 	if i.TenantID == uuid.Nil || i.IncidentID == uuid.Nil {
 		return ErrNilTenant
@@ -126,6 +363,9 @@ func (i OperationalIncident) Validate() error {
 	}
 	if i.EvidenceDigest == "" {
 		return detail(ErrMissingLineage, "operational_incident.evidence_digest")
+	}
+	if _, err := decodeObject(i.Scope); err != nil {
+		return err
 	}
 	if i.ImpactRevision < 1 {
 		return detail(ErrInvalidEnum, "operational_incident.impact_revision=%d", i.ImpactRevision)

@@ -183,7 +183,10 @@ tables:
     notes: >-
       The five-dimension intent lifecycle state (DATA-001). Written alongside
       its backing ledger_event by internal/intent/app/pgstore's
-      AppendIntent, inside the same transaction.
+      AppendIntent, inside the same transaction. Migration 00273 adds the
+      current legal receipt-to-proposal evidence binding projection, updated
+      atomically with obligation-state CAS; this mutable projection is not
+      itself an immutable receipt repository or proof of issuer trust.
 
   - table: proposal_revision
     migration: 00004_intent_and_proposal.sql
@@ -309,6 +312,10 @@ tables:
     notes: >-
       Idempotent at-least-once distribution state (effect_identity is
       unique per tenant), rebuildable from the committing ledger_event.
+      Migration 00264 adds bounded correlation/causation/logical-operation
+      and attempt identifiers. Optional diagnostic trace links carry a
+      separate expiry and are ignored when expired; they are not required
+      to reconstruct business delivery and are never authorization evidence.
 
   - table: external_observation
     migration: 00007_connectivity.sql
@@ -1161,7 +1168,7 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      DB-011: internal/intent.ProposalRevision.Writes materialized (00004 stored only the revision digest); the ordinal pins the canonical order the digest was computed over.
+      DB-011: internal/intent.ProposalRevision.Writes materialized (00004 stored only the revision digest); the ordinal pins the canonical order the digest was computed over. Migration 00277 adds nullable authority-domain, closed operation and exact effective-interval replay metadata; legacy rows remain uncertified for fenced execution rather than receiving fabricated semantics.
   - table: proposal_effect_item
     migration: 00024_intent_control.sql
     owner_package: internal/data/intentcontrol
@@ -1409,6 +1416,9 @@ tables:
     rebuild_source: null
     notes: >-
       DB-012: a durable record that one attempt of one node may start at or after eligible_at, unique per (instance, node, attempt); state, not a scheduler: nothing in this repository sweeps it, per the WF-RUN-000 gate.
+      Migration 00267 adds bounded causal identifiers and optional independently
+      expiring trace-link metadata. Trace context is diagnostic, never execution
+      authority; claim-time delivery attempt identity is distinct from node attempt.
   - table: workflow_variable
     migration: 00026_workflow_scheduling_state.sql
     owner_package: internal/data/runtimestate
@@ -1435,6 +1445,9 @@ tables:
     rebuild_source: null
     notes: >-
       DB-012: a durable promise that some node becomes ready at fires_at, unique per (instance, node, timer_key); nothing here fires it, TimerStore.Fire is called by whoever observed the instant passed because firing is scheduler code the WF-RUN-000 gate blocks.
+      Migration 00267 adds bounded causal identifiers and optional independently
+      expiring trace-link metadata, propagated to ready work without becoming
+      timer eligibility or authorization evidence.
   - table: workflow_signal_subscription
     migration: 00026_workflow_scheduling_state.sql
     owner_package: internal/data/runtimestate
@@ -2585,6 +2598,10 @@ tables:
     rebuild_source: null
     notes: >-
       PERSIST-BALANCE-001: append-only balance entries; forbid_mutation.
+      BAL-006 migration 00279 adds immutable correction-parent lineage,
+      exact decimal scale/rounding metadata and sub-microsecond effective
+      and authorized timestamp residues. Existing legacy entries are retained;
+      this metadata does not imply downstream reconciliation is complete.
   - table: balance_lifecycle_entry
     migration: 00051_balance_accumulator.sql
     owner_package: internal/data/balancestore
@@ -3182,7 +3199,9 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      PERSIST-FX-001: fx_quote_revision (registered from the lane report; role and retention as reported).
+      PERSIST-FX-001: immutable provider quote observations. Migration 00276
+      adds successor identity, parent digest and a single-successor index;
+      legacy rows remain revision 1 without fabricated correction lineage.
   - table: fx_conversion_profile_revision
     migration: 00092_fx.sql
     owner_package: internal/data/fxstore
@@ -3195,7 +3214,10 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      PERSIST-FX-001: fx_conversion_profile_revision (registered from the lane report; role and retention as reported).
+      PERSIST-FX-001: immutable conversion policy revisions. Migration 00265 adds
+      complete rounding, tolerance, ordered fallback/triangulation and effective
+      interval metadata with sub-microsecond remainders. Legacy incomplete rows
+      remain unchanged and cannot be reconstructed as complete conversion policy.
   - table: mobility_plan
     migration: 00102_mobility.sql
     owner_package: internal/data/mobilitystore
@@ -3702,7 +3724,9 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      PERSIST-MERIT-001: merit_population_snapshot (registered from the lane report; role and retention as reported).
+      PERSIST-MERIT-001: immutable population snapshots. Migration 00268 retains
+      sub-microsecond frozen-at remainders so canonical digests survive database
+      round trips without timestamp precision loss.
   - table: merit_cycle_revision
     migration: 00100_merit.sql
     owner_package: internal/data/meritstore
@@ -3715,7 +3739,9 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      PERSIST-MERIT-001: merit_cycle_revision (registered from the lane report; role and retention as reported).
+      PERSIST-MERIT-001: immutable cycle revisions. Migration 00268 retains
+      effective-at and known-at nanosecond remainders alongside PostgreSQL
+      timestamps, preserving exact canonical revision identity.
   - table: merit_recommendation
     migration: 00100_merit.sql
     owner_package: internal/data/meritstore
@@ -3728,7 +3754,26 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      PERSIST-MERIT-001: merit_recommendation (registered from the lane report; role and retention as reported).
+      PERSIST-MERIT-001: immutable merit recommendations. Migration 00268 adds
+      rejected outcomes and a versioned decision-evidence envelope. Decided
+      aggregates require verifier-backed rehydration; legacy rows without
+      authenticated decision evidence cannot regain approval authority on load.
+  - table: merit_compensation_intent_emission
+    migration: 00270_merit_compensation_intent_emission.sql
+    owner_package: internal/data/meritstore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      MERIT-002: immutable, retrievable compensation child-intent emission
+      records tied to an exact merit cycle revision and source digest. Durable
+      replay identity is tenant-qualified; recording a draft grants no payroll
+      execution authority.
   - table: appointment_requirement
     migration: 00114_scheduling.sql
     owner_package: internal/data/schedulingstore
@@ -4236,6 +4281,71 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from migration 00112_safety.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/safetystore.
+  - table: safety_filing_revision
+    migration: 00278_safety_conformance_records.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SAFETY-002: tenant-scoped immutable filing revisions. Durable conformance integration and regression verification remain in progress; this registration does not authorize filing or payment execution.
+  - table: safety_workers_comp_payment_revision
+    migration: 00278_safety_conformance_records.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SAFETY-002: tenant-scoped immutable workers comp payment revisions. Durable conformance integration and regression verification remain in progress; this registration does not authorize filing or payment execution.
+  - table: safety_restriction_clearance_revision
+    migration: 00278_safety_conformance_records.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SAFETY-002: tenant-scoped immutable restriction clearance revisions. Durable conformance integration and regression verification remain in progress; this registration does not authorize filing or payment execution.
+  - table: safety_reconciliation_revision
+    migration: 00278_safety_conformance_records.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SAFETY-002: tenant-scoped immutable reconciliation revisions. Durable conformance integration and regression verification remain in progress; this registration does not authorize filing or payment execution.
+  - table: safety_correction_revision
+    migration: 00278_safety_conformance_records.sql
+    owner_package: internal/data/safetystore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      SAFETY-002: tenant-scoped immutable correction revisions. Durable conformance integration and regression verification remain in progress; this registration does not authorize filing or payment execution.
   - table: skill_ontology_revision
     migration: 00116_skill.sql
     owner_package: internal/data/skillstore
@@ -4248,7 +4358,11 @@ tables:
     encryption_class: PLATFORM_MANAGED
     rebuild_source: null
     notes: >-
-      Registered from migration 00116_skill.sql at wave-37 close: append-only (forbid_mutation) ledger table owned by internal/data/skillstore.
+      Registered from migration 00116_skill.sql at wave-37 close: append-only
+      (forbid_mutation) ledger table owned by internal/data/skillstore. Migration
+      00266 adds nullable correction lineage, scoped to the same tenant, worker
+      and skill, with one successor and backward event-sequence references.
+      Legacy evidence retains its original bytes and absent correction lineage.
   - table: skill_definition_revision
     migration: 00116_skill.sql
     owner_package: internal/data/skillstore
@@ -4431,6 +4545,21 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from migration 00124_taxprofile.sql at wave-37 close: append-only (forbid_mutation) aggregate table owned by internal/data/taxprofilestore.
+  - table: withholding_election_head
+    migration: 00263_tax_election_successor_fence.sql
+    owner_package: internal/data/taxprofilestore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: withholding_election_revision
+    notes: >-
+      TAXPROFILE-002 tenant-scoped mutable compare-and-swap head for immutable
+      withholding election revisions. The data adapter locks this row when
+      appending a successor; historical revision rows remain append-only.
   - table: stepup_proof_log
     migration: 00126_trust.sql
     owner_package: internal/data/truststore
@@ -4769,6 +4898,120 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from 00261_operation_store.sql: append-only evidence for operation.
+  - table: job_checkpoint_trace_link
+    migration: 00272_jobs_causal_metadata.sql
+    owner_package: internal/data/jobs
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Optional expiring trace context stored separately from permanent job
+      checkpoints. Removing a link must preserve checkpoint business identity
+      and results; trace values are not authorization or business evidence.
+  - table: legal_evaluation_receipt
+    migration: 00275_legal_evaluation_receipts.sql
+    owner_package: internal/data/legalevidencestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable signed evaluation evidence retaining pinned releases and offline
+      verification material. Stored embedded keys do not confer issuer trust.
+  - table: legal_evaluation_binding
+    migration: 00275_legal_evaluation_receipts.sql
+    owner_package: internal/data/legalevidencestore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable receipt-to-proposal evidence binding tenant, intent, material
+      and legal context. Consumption requires configured issuer authentication
+      and exact obligation validation; this row is not execution authority.
+  - table: conflict_write_intent
+    migration: 00269_conflict_write_intent_fences.sql
+    owner_package: internal/data/conflictstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Durable write-intent lifecycle and snapshot binding; commit validation uses
+      authoritative stream_head rows inside the ledger transaction.
+  - table: conflict_write_footprint
+    migration: 00269_conflict_write_intent_fences.sql
+    owner_package: internal/data/conflictstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable submitted resource, field, interval and expected stream-sequence
+      evidence; forbid_mutation prevents replacement after registration.
+  - table: conflict_scope_fence
+    migration: 00269_conflict_write_intent_fences.sql
+    owner_package: internal/data/conflictstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Active semantic-overlap fences acquired under transaction-scoped database
+      locks and removed when the owning intent releases them.
+  - table: admission_retry_budget
+    migration: 00280_admission_retry_budgets.sql
+    owner_package: internal/data/admissionstore
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Scoped durable retry allowances and consumed counters. Consumption is
+      serialized on the budget row; this is not a capacity snapshot authority.
+  - table: admission_retry_receipt
+    migration: 00280_admission_retry_budgets.sql
+    owner_package: internal/data/admissionstore
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Immutable scoped retry-consumption evidence with exact-attempt replay
+      protection and a composite tenant/budget foreign key.
   - table: operation_cancel
     migration: 00261_operation_store.sql
     owner_package: internal/data/operationstore

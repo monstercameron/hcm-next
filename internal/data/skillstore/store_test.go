@@ -3,8 +3,10 @@ package skillstore
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -175,27 +177,208 @@ func TestTodo_PERSIST_SKILL_001_Mutation(t *testing.T) {
 	}
 }
 
+func TestTodo_PERSIST_SKILL_002_Integration(t *testing.T) {
+	db, store, tenant := testStore(t)
+	ot, _, _, _ := testOntology(t, tenant, uuid.NewString(), 1)
+	if err := store.SaveOntology(context.Background(), values.TenantId(tenant), ot); err != nil {
+		t.Fatal(err)
+	}
+	original := testEvidence(t, tenant, ot.Skills[0].SkillRef, uuid.NewString())
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), original, 1); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), original, 1); err != nil {
+		t.Fatalf("exact evidence retry was not idempotent: %v", err)
+	}
+	conflict := original
+	conflict.Level = 3
+	conflict.CanonicalDigest = ""
+	conflict, err := skill.NewWorkerSkillEvidence(conflict)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), conflict, 1); !errors.Is(err, skill.ErrDuplicateEvidence) {
+		t.Fatalf("conflicting retry = %v, want duplicate rejection", err)
+	}
+	successor, err := skill.NewWorkerSkillEvidence(skill.WorkerSkillEvidence{
+		EvidenceID: values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()},
+		Worker:     original.Worker, SkillRef: original.SkillRef, Level: 2, EvidenceKind: skill.EvidenceAssessment,
+		EvidenceRef: "corrected", Verified: true, Supersedes: original.EvidenceID, Effective: original.Effective,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), successor, 2); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.EvidenceAt(context.Background(), skill.EvidenceQuery{Worker: original.Worker, AsOf: mustDate(t, "2026-06-01")})
+	if err != nil || len(got) != 2 || got[1].Supersedes != original.EvidenceID {
+		t.Fatalf("roundtrip evidence = %+v, err=%v", got, err)
+	}
+	fork := successor
+	fork.EvidenceID = values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()}
+	fork.CanonicalDigest = ""
+	fork, err = skill.NewWorkerSkillEvidence(fork)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), fork, 3); !errors.Is(err, skill.ErrDuplicateEvidence) {
+		t.Fatalf("fork correction = %v, want duplicate rejection", err)
+	}
+	otherTenant := uuid.NewString()
+	insertTenant(t, db.Conn, otherTenant)
+	cross := successor
+	cross.EvidenceID = values.EntityRef{Tenant: values.TenantId(otherTenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()}
+	cross.Worker.Tenant = values.TenantId(otherTenant)
+	cross.SkillRef.Tenant = values.TenantId(otherTenant)
+	cross.Supersedes = values.EntityRef{Tenant: values.TenantId(otherTenant), Kind: values.Kind("skill_evidence"), Id: original.EvidenceID.Id}
+	cross.CanonicalDigest = ""
+	cross, err = skill.NewWorkerSkillEvidence(cross)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(otherTenant), cross, 1); err == nil {
+		t.Fatal("cross-tenant correction was accepted")
+	}
+	crossWorker := successor
+	crossWorker.EvidenceID = values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()}
+	crossWorker.Worker = values.EntityRef{Tenant: values.TenantId(tenant), Kind: skill.KindWorker, Id: uuid.NewString()}
+	crossWorker.CanonicalDigest = ""
+	crossWorker, err = skill.NewWorkerSkillEvidence(crossWorker)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), crossWorker, 1); err == nil {
+		t.Fatal("cross-worker correction was accepted")
+	}
+	crossSkill := successor
+	crossSkill.EvidenceID = values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()}
+	crossSkill.SkillRef = values.EntityRef{Tenant: values.TenantId(tenant), Kind: skill.KindSkill, Id: uuid.NewString()}
+	crossSkill.CanonicalDigest = ""
+	crossSkill, err = skill.NewWorkerSkillEvidence(crossSkill)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), crossSkill, 1); err == nil {
+		t.Fatal("cross-skill correction was accepted")
+	}
+	backdated := successor
+	backdated.EvidenceID = values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind("skill_evidence"), Id: uuid.NewString()}
+	backdated.Effective = mustInterval(t, "2025-01-01", "2027-01-01")
+	backdated.CanonicalDigest = ""
+	backdated, err = skill.NewWorkerSkillEvidence(backdated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendEvidence(context.Background(), values.TenantId(tenant), backdated, 4); err == nil {
+		t.Fatal("backdated correction was accepted")
+	}
+}
+
+func TestTodo_PERSIST_SKILL_002_PopulatedLegacyUpgrade(t *testing.T) {
+	db := pgtest.NewEmpty(t)
+	if _, err := db.Provider(t).UpTo(context.Background(), 70); err != nil {
+		t.Fatalf("apply predecessor migrations through 00070: %v", err)
+	}
+	applyMigrationUp(t, db.Conn, "00116_skill.sql")
+	tenant := uuid.NewString()
+	insertTenant(t, db.Conn, tenant)
+	skillRef := values.EntityRef{Tenant: values.TenantId(tenant), Kind: skill.KindSkill, Id: uuid.NewString()}
+	evidence := testEvidence(t, tenant, skillRef, uuid.NewString())
+	workerID := uuid.MustParse(evidence.Worker.Id)
+	from, to, err := intervalBounds(evidence.Effective)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Conn.Exec(context.Background(), `
+		INSERT INTO worker_skill_evidence (
+			row_id, tenant_id, evidence_id, worker_ref, skill_ref, level, evidence_kind,
+			evidence_ref, verified, disputed, effective_from, effective_to, canonical_digest, event_sequence)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+		uuid.New(), uuid.MustParse(tenant), evidence.EvidenceID.Id, workerID, skillRef.Id,
+		strconv.Itoa(evidence.Level), string(evidence.EvidenceKind), evidence.EvidenceRef,
+		evidence.Verified, evidence.Disputed, from, to, storedDigest(evidence.CanonicalDigest), int64(1)); err != nil {
+		t.Fatalf("seed legacy evidence: %v", err)
+	}
+	applyMigrationUp(t, db.Conn, "00266_skill_evidence_supersession.sql")
+	app := db.NewConn(t)
+	if _, err := app.Exec(context.Background(), `SET ROLE hcmnext_app`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := New(app).EvidenceAt(context.Background(), skill.EvidenceQuery{Worker: evidence.Worker, AsOf: mustDate(t, "2026-06-01")})
+	if err != nil || len(got) != 1 || got[0].CanonicalDigest != evidence.CanonicalDigest || got[0].Supersedes.Id != "" {
+		t.Fatalf("legacy evidence after upgrade = %+v, err=%v", got, err)
+	}
+}
+
+func TestTodo_PERSIST_SKILL_002_CodecBoundaryFaults(t *testing.T) {
+	if domainDigest("") != "" || domainDigest("sha256:abc") != "sha256:abc" || domainDigest("abc") != "sha256:abc" {
+		t.Fatal("digest storage conversion is not reversible")
+	}
+	if proficiencyRank(skill.ProficiencyAdvanced) != 4 || proficiencyRank(skill.ProficiencyLevel("UNKNOWN")) != 0 {
+		t.Fatal("proficiency rank conversion is incorrect")
+	}
+	empty := values.EntityRef{}
+	if nullableEvidenceIDString(empty) != nil || nullableEvidenceID(empty) != nil {
+		t.Fatal("empty supersedes reference was not stored as NULL")
+	}
+	value := "evidence"
+	other := "other"
+	if !equalOptionalString(nil, nil) || equalOptionalString(&value, nil) || equalOptionalString(&value, &other) || !equalOptionalString(&value, &value) {
+		t.Fatal("nullable supersedes comparison is incorrect")
+	}
+	if _, _, err := intervalBounds(values.EffectiveInterval{}); err == nil {
+		t.Fatal("unset effective interval was accepted")
+	}
+	if _, err := intervalFromBounds(nil, nil); err == nil {
+		t.Fatal("missing stored effective_from was accepted")
+	}
+	if _, err := parseTenant(nil); !errors.Is(err, skill.ErrStoreRefused) {
+		t.Fatalf("nil tenant error = %v", err)
+	}
+	if _, err := parseTenant(values.TenantId("not-a-uuid")); !errors.Is(err, skill.ErrStoreRefused) {
+		t.Fatalf("malformed tenant error = %v", err)
+	}
+	badKind := values.EntityRef{Tenant: values.TenantId(uuid.NewString()), Kind: skill.KindWorker, Id: uuid.NewString()}
+	if _, err := entityID(badKind, skill.KindSkill); err == nil {
+		t.Fatal("wrong entity kind was accepted")
+	}
+	if _, err := sequence(values.RevisionToken{}); err == nil {
+		t.Fatal("unset revision was accepted")
+	}
+	start := mustDate(t, "2026-01-01")
+	open, err := values.NewOpenLocalDateInterval(start, values.CalendarRef{Ref: "gregorian", Version: "1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	from, to, err := intervalBounds(open)
+	if err != nil || from == nil || to != nil {
+		t.Fatalf("open interval bounds = %v, %v, %v", from, to, err)
+	}
+	if _, err := intervalFromBounds(from, nil); err != nil {
+		t.Fatalf("open stored interval did not decode: %v", err)
+	}
+	tenant := uuid.NewString()
+	worker := uuid.New()
+	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	badLevel := "not-an-integer"
+	if _, err := decodeEvidence(tenant, uuid.NewString(), worker, uuid.NewString(), &badLevel, nil, string(skill.EvidenceAssessment), "ref", true, false, &now, nil, "abc"); err == nil {
+		t.Fatal("invalid stored level was accepted")
+	}
+	badProficiency := "not-a-number"
+	if _, err := decodeEvidence(tenant, uuid.NewString(), worker, uuid.NewString(), nil, &badProficiency, string(skill.EvidenceAssessment), "ref", true, false, &now, nil, "abc"); err == nil {
+		t.Fatal("invalid stored proficiency was accepted")
+	}
+}
+
 func testStore(t *testing.T) (*pgtest.DB, *Store, string) {
 	t.Helper()
 	db := pgtest.NewEmpty(t)
 	if _, err := db.Provider(t).UpTo(context.Background(), 70); err != nil {
 		t.Fatalf("apply predecessor migrations through 00070: %v", err)
 	}
-	body, err := migrations.FS.ReadFile("00116_skill.sql")
-	if err != nil {
-		t.Fatalf("read skill migration: %v", err)
-	}
-	_, up, ok := strings.Cut(string(body), "-- +goose Up")
-	if !ok {
-		t.Fatal("skill migration has no goose up marker")
-	}
-	up, _, ok = strings.Cut(up, "-- +goose Down")
-	if !ok {
-		t.Fatal("skill migration has no goose down marker")
-	}
-	if _, err := db.Conn.Exec(context.Background(), up); err != nil {
-		t.Fatalf("apply migration 00116: %v", err)
-	}
+	applyMigrationUp(t, db.Conn, "00116_skill.sql")
+	applyMigrationUp(t, db.Conn, "00266_skill_evidence_supersession.sql")
 	tenant := uuid.NewString()
 	insertTenant(t, db.Conn, tenant)
 	app := db.NewConn(t)
@@ -203,6 +386,25 @@ func testStore(t *testing.T) (*pgtest.DB, *Store, string) {
 		t.Fatal(err)
 	}
 	return db, New(app), tenant
+}
+
+func applyMigrationUp(t *testing.T, exec execer, name string) {
+	t.Helper()
+	body, err := migrations.FS.ReadFile(name)
+	if err != nil {
+		t.Fatalf("read migration %s: %v", name, err)
+	}
+	_, up, ok := strings.Cut(string(body), "-- +goose Up")
+	if !ok {
+		t.Fatalf("migration %s has no goose up marker", name)
+	}
+	up, _, ok = strings.Cut(up, "-- +goose Down")
+	if !ok {
+		t.Fatalf("migration %s has no goose down marker", name)
+	}
+	if _, err := exec.Exec(context.Background(), up); err != nil {
+		t.Fatalf("apply migration %s: %v", name, err)
+	}
 }
 
 type execer interface {

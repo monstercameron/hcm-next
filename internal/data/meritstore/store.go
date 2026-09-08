@@ -25,12 +25,19 @@ import (
 type DB interface{ dbport.Beginner }
 
 // Store implements merit.Store over PostgreSQL.
-type Store struct{ db DB }
+type Store struct {
+	db       DB
+	verifier merit.StoredDecisionVerifier
+}
 
 var _ merit.Store = (*Store)(nil)
 
 // New returns a PostgreSQL merit store over db.
 func New(db DB) *Store { return &Store{db: db} }
+
+func NewWithDecisionVerifier(db DB, verifier merit.StoredDecisionVerifier) *Store {
+	return &Store{db: db, verifier: verifier}
+}
 
 func invalid(detail string) error {
 	return &merit.StoreError{Code: merit.StoreInvalidCode, Detail: detail}
@@ -121,11 +128,11 @@ func (s *Store) saveTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, cy
 		INSERT INTO merit_cycle_revision (
 			tenant_id, row_id, cycle_id, revision, parent_revision, parent_digest,
 			population_ref, guidelines, budget, state, effective_at, known_at,
-			canonical_digest)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12,$13)`,
+			canonical_digest, effective_at_ns_remainder, known_at_ns_remainder)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12,$13,$14,$15)`,
 		tenantID, uuid.New(), cycle.CycleID, int64(cycle.Revision), nullableRevision(cycle.ParentRevision),
 		nullableDigest(cycle.ParentDigest), populationRef, string(guidelines), budget,
-		cycle.State, cycle.EffectiveAt.Time(), cycle.KnownAt.Time(), storageDigest(cycle.CanonicalDigest))
+		cycle.State, cycle.EffectiveAt.Time(), cycle.KnownAt.Time(), storageDigest(cycle.CanonicalDigest), instantRemainder(cycle.EffectiveAt), instantRemainder(cycle.KnownAt))
 	if err != nil {
 		return mapWriteError("save cycle", cycle.CycleID, err)
 	}
@@ -137,12 +144,12 @@ func (s *Store) saveTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, cy
 		_, err = tx.Exec(ctx, `
 			INSERT INTO merit_recommendation (
 				tenant_id, row_id, cycle_id, cycle_revision, participant_id,
-				base_pay, state, adjustments, canonical_digest)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)
+				base_pay, state, adjustments, canonical_digest, decision_evidence)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10::jsonb)
 			ON CONFLICT DO NOTHING`,
 			tenantID, uuid.New(), recommendation.CycleID, int64(cycle.Revision),
 			recommendation.ParticipantID, recommendation.BasePay.Amount().String(), recommendation.State,
-			string(payload), storageDigest(recommendation.CanonicalDigest))
+			string(payload), storageDigest(recommendation.CanonicalDigest), string(marshalDecisionEvidence(recommendation)))
 		if err != nil {
 			return mapWriteError("save recommendation", recommendation.ParticipantID, err)
 		}
@@ -233,11 +240,11 @@ func (s *Store) ensurePopulation(ctx context.Context, tx dbport.Tx, tenantID uui
 	_, err = tx.Exec(ctx, `
 		INSERT INTO merit_population_snapshot (
 			tenant_id, row_id, snapshot_id, revision, members, watermark, frozen,
-			frozen_at, canonical_digest)
-		VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
+			frozen_at, canonical_digest, frozen_at_ns_remainder)
+		VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10)
 		ON CONFLICT (tenant_id, snapshot_id, revision) DO NOTHING`,
 		tenantID, uuid.New(), population.SnapshotID, int64(population.Revision), string(members),
-		population.Watermark.String(), population.Frozen, population.FrozenAt.Time(), storageDigest(population.CanonicalDigest))
+		population.Watermark.String(), population.Frozen, population.FrozenAt.Time(), storageDigest(population.CanonicalDigest), instantRemainder(population.FrozenAt))
 	if err != nil {
 		return uuid.Nil, mapWriteError("save population snapshot", population.SnapshotID, err)
 	}
@@ -265,14 +272,16 @@ func (s *Store) loadTx(ctx context.Context, tx dbport.Querier, tenantID uuid.UUI
 		state                string
 		canonicalDigest      string
 		effectiveAt, knownAt *time.Time
+		effectiveNS, knownNS *int16
 	)
 	err := tx.QueryRow(ctx, `
 		SELECT row_id, revision, parent_revision, parent_digest, population_ref,
-			guidelines::text, budget, state, effective_at, known_at, canonical_digest
+			guidelines::text, budget, state, effective_at, known_at, canonical_digest,
+			effective_at_ns_remainder, known_at_ns_remainder
 		FROM merit_cycle_revision
 		WHERE tenant_id=$1 AND cycle_id=$2 AND revision=$3`, tenantID, cycleID, int64(revision)).Scan(
 		&rowID, &storedRevision, &parentRevision, &parentDigest, &populationRef,
-		&guidelinesJSON, &budget, &state, &effectiveAt, &knownAt, &canonicalDigest)
+		&guidelinesJSON, &budget, &state, &effectiveAt, &knownAt, &canonicalDigest, &effectiveNS, &knownNS)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return merit.MeritCycle{}, notFound("merit cycle revision is absent")
@@ -301,7 +310,7 @@ func (s *Store) loadTx(ctx context.Context, tx dbport.Querier, tenantID uuid.UUI
 		CycleID: cycleID, Revision: uint64(storedRevision), ParentRevision: int64Value(parentRevision),
 		ParentDigest: domainDigest(stringValue(parentDigest)), Population: population, Guidelines: guidelines,
 		Budget: storedBudget, Currency: currency, State: merit.MeritCycleState(state), Recommendations: recommendations,
-		EffectiveAt: values.NewInstant(effectiveAt.UTC()), KnownAt: values.NewInstant(knownAt.UTC()),
+		EffectiveAt: restoredInstant(effectiveAt, effectiveNS), KnownAt: restoredInstant(knownAt, knownNS),
 		CanonicalDigest: domainDigest(canonicalDigest),
 	}
 	if err := cycle.Validate(); err != nil {
@@ -320,11 +329,12 @@ func (s *Store) loadPopulationTx(ctx context.Context, tx dbport.Querier, tenantI
 		membersJSON                 []byte
 		frozen                      bool
 		frozenAt                    *time.Time
+		frozenNS                    *int16
 	)
 	err := tx.QueryRow(ctx, `
-		SELECT snapshot_id, revision, members::text, watermark, frozen, frozen_at, canonical_digest
+		SELECT snapshot_id, revision, members::text, watermark, frozen, frozen_at, canonical_digest, frozen_at_ns_remainder
 		FROM merit_population_snapshot WHERE tenant_id=$1 AND row_id=$2`, tenantID, rowID).Scan(
-		&storedID, &revision, &membersJSON, &watermark, &frozen, &frozenAt, &digest)
+		&storedID, &revision, &membersJSON, &watermark, &frozen, &frozenAt, &digest, &frozenNS)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return merit.PopulationSnapshot{}, notFound("merit population snapshot is absent")
@@ -344,7 +354,7 @@ func (s *Store) loadPopulationTx(ctx context.Context, tx dbport.Querier, tenantI
 	}
 	population, err := merit.NewPopulationSnapshot(merit.PopulationSnapshot{
 		SnapshotID: storedID, Revision: uint64(revision), Members: members, Watermark: token,
-		Frozen: frozen, FrozenAt: values.NewInstant(frozenAt.UTC()), CanonicalDigest: domainDigest(digest),
+		Frozen: frozen, FrozenAt: restoredInstant(frozenAt, frozenNS), CanonicalDigest: domainDigest(digest),
 	})
 	if err != nil {
 		return merit.PopulationSnapshot{}, invalid("stored population snapshot is invalid: " + err.Error())
@@ -355,7 +365,7 @@ func (s *Store) loadPopulationTx(ctx context.Context, tx dbport.Querier, tenantI
 func (s *Store) loadRecommendationsTx(ctx context.Context, tx dbport.Querier, tenantID uuid.UUID, cycleID string, revision uint64) ([]merit.MeritRecommendation, error) {
 	rows, err := tx.Query(ctx, `
 		SELECT DISTINCT ON (participant_id)
-			participant_id, cycle_revision, base_pay, state, adjustments::text, canonical_digest
+			participant_id, cycle_revision, base_pay, state, adjustments::text, canonical_digest, decision_evidence::text
 		FROM merit_recommendation
 		WHERE tenant_id=$1 AND cycle_id=$2 AND cycle_revision <= $3
 		ORDER BY participant_id, cycle_revision DESC, row_id DESC`, tenantID, cycleID, int64(revision))
@@ -367,11 +377,11 @@ func (s *Store) loadRecommendationsTx(ctx context.Context, tx dbport.Querier, te
 	for rows.Next() {
 		var participantID, basePay, state, digest string
 		var recommendationRevision int64
-		var payloadJSON []byte
-		if err := rows.Scan(&participantID, &recommendationRevision, &basePay, &state, &payloadJSON, &digest); err != nil {
+		var payloadJSON, evidenceJSON []byte
+		if err := rows.Scan(&participantID, &recommendationRevision, &basePay, &state, &payloadJSON, &digest, &evidenceJSON); err != nil {
 			return nil, fmt.Errorf("meritstore: scan recommendation: %w", err)
 		}
-		recommendation, err := unmarshalRecommendation(payloadJSON, participantID, basePay, cycleID, uint64(recommendationRevision), state, digest)
+		recommendation, err := unmarshalRecommendation(payloadJSON, evidenceJSON, participantID, basePay, cycleID, uint64(recommendationRevision), state, digest, s.verifier)
 		if err != nil {
 			return nil, err
 		}
@@ -439,6 +449,22 @@ type recommendationPayload struct {
 	ProposedBy        string              `json:"proposed_by"`
 	ApprovedBy        string              `json:"approved_by"`
 	Adjustments       []adjustmentPayload `json:"adjustments"`
+}
+
+type decisionEvidencePayload struct {
+	Version            uint64 `json:"version"`
+	ApprovedBy         string `json:"approved_by,omitempty"`
+	ApprovalReceiptID  string `json:"approval_receipt_id,omitempty"`
+	ApprovedDigest     string `json:"approved_digest,omitempty"`
+	RejectedBy         string `json:"rejected_by,omitempty"`
+	RejectionReceiptID string `json:"rejection_receipt_id,omitempty"`
+	RejectedDigest     string `json:"rejected_digest,omitempty"`
+	EffectRevision     uint64 `json:"effect_revision,omitempty"`
+}
+
+func marshalDecisionEvidence(r merit.MeritRecommendation) []byte {
+	b, _ := json.Marshal(decisionEvidencePayload{Version: 1, ApprovedBy: r.ApprovedBy, ApprovalReceiptID: r.ApprovalReceiptID, ApprovedDigest: r.ApprovedDigest, RejectedBy: r.RejectedBy, RejectionReceiptID: r.RejectionReceiptID, RejectedDigest: r.RejectedDigest, EffectRevision: r.EffectRevision})
+	return b
 }
 
 func marshalMembers(members []merit.PopulationMember) ([]byte, error) {
@@ -600,7 +626,7 @@ func marshalRecommendation(recommendation merit.MeritRecommendation) ([]byte, er
 	return b, nil
 }
 
-func unmarshalRecommendation(raw []byte, participantID, basePayNumeric, cycleID string, revision uint64, state, digest string) (merit.MeritRecommendation, error) {
+func unmarshalRecommendation(raw, evidenceRaw []byte, participantID, basePayNumeric, cycleID string, revision uint64, state, digest string, verifier merit.StoredDecisionVerifier) (merit.MeritRecommendation, error) {
 	var payload recommendationPayload
 	if err := json.Unmarshal(raw, &payload); err != nil {
 		return merit.MeritRecommendation{}, invalid("recommendation payload is not valid JSON")
@@ -644,7 +670,18 @@ func unmarshalRecommendation(raw []byte, participantID, basePayNumeric, cycleID 
 	if recommendationRevision == 0 {
 		recommendationRevision = revision
 	}
-	recommendation, err := merit.NewMeritRecommendation(merit.MeritRecommendation{CycleID: cycleID, CycleRevision: recommendationRevision, ParticipantID: participantID, BasePay: basePay, PerformanceRating: performanceRating, BandPosition: bandPosition, SalaryRevisionRef: payload.SalaryRevisionRef, PerformanceRef: payload.PerformanceRef, Rate: rate, Amount: amount, GuidelineDigest: domainDigest(payload.GuidelineDigest), ProposedBy: payload.ProposedBy, ApprovedBy: payload.ApprovedBy, State: merit.RecommendationState(state), Adjustments: adjustments, CanonicalDigest: domainDigest(digest)})
+	rawRecommendation := merit.MeritRecommendation{CycleID: cycleID, CycleRevision: recommendationRevision, ParticipantID: participantID, BasePay: basePay, PerformanceRating: performanceRating, BandPosition: bandPosition, SalaryRevisionRef: payload.SalaryRevisionRef, PerformanceRef: payload.PerformanceRef, Rate: rate, Amount: amount, GuidelineDigest: domainDigest(payload.GuidelineDigest), ProposedBy: payload.ProposedBy, State: merit.RecommendationState(state), Adjustments: adjustments, CanonicalDigest: domainDigest(digest)}
+	var recommendation merit.MeritRecommendation
+	if rawRecommendation.State == merit.RecommendationApproved || rawRecommendation.State == merit.RecommendationFinalized || rawRecommendation.State == merit.RecommendationRejected {
+		var stored decisionEvidencePayload
+		if err := json.Unmarshal(evidenceRaw, &stored); err != nil {
+			return merit.MeritRecommendation{}, invalid("stored decision evidence is not valid JSON")
+		}
+		evidence := merit.StoredDecisionEvidence{Version: stored.Version, ApprovedBy: stored.ApprovedBy, ApprovalReceiptID: stored.ApprovalReceiptID, ApprovedDigest: domainDigest(stored.ApprovedDigest), RejectedBy: stored.RejectedBy, RejectionReceiptID: stored.RejectionReceiptID, RejectedDigest: domainDigest(stored.RejectedDigest), EffectRevision: stored.EffectRevision}
+		recommendation, err = merit.RehydrateMeritRecommendation(rawRecommendation, evidence, verifier)
+	} else {
+		recommendation, err = merit.NewMeritRecommendation(rawRecommendation)
+	}
 	if err != nil {
 		return merit.MeritRecommendation{}, invalid("stored recommendation is invalid: " + err.Error())
 	}
@@ -752,6 +789,15 @@ func domainDigest(value string) string {
 		return value
 	}
 	return "sha256:" + value
+}
+
+func instantRemainder(value values.Instant) int16 { return int16(value.Time().Nanosecond() % 1000) }
+func restoredInstant(value *time.Time, remainder *int16) values.Instant {
+	t := value.UTC()
+	if remainder != nil {
+		t = t.Add(time.Duration(*remainder))
+	}
+	return values.NewInstant(t)
 }
 
 func sameNumeric(left, right string) bool {

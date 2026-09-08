@@ -27,6 +27,7 @@ type DB interface{ dbport.Beginner }
 type Store struct{ db DB }
 
 var _ taxprofile.Store = (*Store)(nil)
+var _ taxprofile.ElectionSuccessorStore = (*Store)(nil)
 
 // New returns a PostgreSQL-backed tax-profile store.
 func New(db DB) *Store { return &Store{db: db} }
@@ -108,8 +109,64 @@ func instantBounds(interval values.EffectiveInterval) (time.Time, error) {
 	return start.Time(), nil
 }
 
+func instantBoundsWithEnd(interval values.EffectiveInterval) (time.Time, *time.Time, error) {
+	if err := interval.Validate(); err != nil {
+		return time.Time{}, nil, invalid("effective interval: " + err.Error())
+	}
+	start, ok := interval.StartInstant()
+	if !ok {
+		return time.Time{}, nil, invalid("effective interval must use an instant")
+	}
+	end, hasEnd := interval.EndInstant()
+	if !hasEnd {
+		return start.Time(), nil, nil
+	}
+	value := end.Time()
+	return start.Time(), &value, nil
+}
+
+func electionHead(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, electionID string) (string, uuid.UUID, string, error) {
+	var digest, jurisdiction string
+	var worker uuid.UUID
+	err := tx.QueryRow(ctx, `SELECT h.current_digest,r.worker_ref,r.jurisdiction
+		FROM withholding_election_head h
+		JOIN withholding_election_revision r ON r.tenant_id=h.tenant_id AND r.election_id=h.election_id AND r.canonical_digest=h.current_digest
+		WHERE h.tenant_id=$1 AND h.election_id=$2 LIMIT 1 FOR UPDATE OF h`, tenantID, electionID).Scan(&digest, &worker, &jurisdiction)
+	if errors.Is(err, dbport.ErrNoRows) {
+		return "", uuid.Nil, "", nil
+	}
+	if err != nil {
+		return "", uuid.Nil, "", fmt.Errorf("taxprofilestore: lock election head: %w", err)
+	}
+	return domainDigest(digest), worker, jurisdiction, nil
+}
+
 func openInterval(at time.Time) (values.EffectiveInterval, error) {
 	return values.NewOpenInstantInterval(values.NewInstant(at.UTC()))
+}
+
+func intervalFromBounds(start time.Time, end *time.Time) (values.EffectiveInterval, error) {
+	first := values.NewInstant(start.UTC())
+	if end == nil {
+		return openInterval(start)
+	}
+	return values.NewInstantInterval(first, values.NewInstant(end.UTC()))
+}
+
+func nanosecondRemainder(value time.Time) int16 { return int16(value.Nanosecond() % 1000) }
+
+func nullableNanosecondRemainder(value *time.Time) any {
+	if value == nil {
+		return nil
+	}
+	return nanosecondRemainder(*value)
+}
+
+func restoreNanoseconds(value time.Time, remainder *int16) time.Time {
+	if remainder == nil {
+		return value.UTC()
+	}
+	return value.UTC().Add(time.Duration(*remainder) * time.Nanosecond)
 }
 
 func nullableUint64(value uint64) any {
@@ -203,7 +260,7 @@ func (s *Store) saveProfileTx(ctx context.Context, tx dbport.Tx, tenantID uuid.U
 		}
 	}
 	for _, election := range profile.Elections {
-		if err := s.saveElectionTx(ctx, tx, tenantID, election, true); err != nil {
+		if err := s.saveElectionTx(ctx, tx, tenantID, election, true, true); err != nil {
 			return err
 		}
 	}
@@ -313,10 +370,12 @@ func (s *Store) loadProfileChildren(ctx context.Context, tx dbport.Tx, tenantID,
 }
 
 func loadElections(ctx context.Context, tx dbport.Tx, tenantID, worker uuid.UUID, out *taxprofile.WorkerTaxProfileRevision) error {
-	rows, err := tx.Query(ctx, `SELECT DISTINCT ON (election_id) election_id,jurisdiction,kind,
-		form_revision_ref,evidence_ref,amount,effective_from,known_at,canonical_digest
-		FROM withholding_election_revision WHERE tenant_id=$1 AND worker_ref=$2
-		ORDER BY election_id,effective_from DESC`, tenantID, worker)
+	rows, err := tx.Query(ctx, `SELECT r.election_id,r.jurisdiction,r.kind,
+		r.form_revision_ref,r.evidence_ref,r.amount,r.amount_scale,r.effective_from,r.effective_to,r.known_at,r.canonical_digest,
+		r.effective_from_ns_remainder,r.effective_to_ns_remainder,r.known_at_ns_remainder
+		FROM withholding_election_head h JOIN withholding_election_revision r
+		ON r.tenant_id=h.tenant_id AND r.election_id=h.election_id AND r.canonical_digest=h.current_digest
+		WHERE r.tenant_id=$1 AND r.worker_ref=$2`, tenantID, worker)
 	if err != nil {
 		return fmt.Errorf("taxprofilestore: list profile elections: %w", err)
 	}
@@ -324,19 +383,27 @@ func loadElections(ctx context.Context, tx dbport.Tx, tenantID, worker uuid.UUID
 	for rows.Next() {
 		var election taxprofile.WithholdingElectionRevision
 		var amount *string
+		var amountScale *int16
+		var effectiveTo *time.Time
+		var effectiveFromNS, effectiveToNS, knownAtNS *int16
 		var effectiveFrom, knownAt time.Time
-		if err := rows.Scan(&election.ElectionID, &election.Jurisdiction, &election.Kind, &election.FormRevisionRef, &election.EvidenceRef, &amount, &effectiveFrom, &knownAt, &election.CanonicalDigest); err != nil {
+		if err := rows.Scan(&election.ElectionID, &election.Jurisdiction, &election.Kind, &election.FormRevisionRef, &election.EvidenceRef, &amount, &amountScale, &effectiveFrom, &effectiveTo, &knownAt, &election.CanonicalDigest, &effectiveFromNS, &effectiveToNS, &knownAtNS); err != nil {
 			return fmt.Errorf("taxprofilestore: scan profile election: %w", err)
 		}
 		election.WorkerRef = worker.String()
 		election.CanonicalDigest = domainDigest(election.CanonicalDigest)
 		var err error
-		election.Effective, err = openInterval(effectiveFrom)
+		effectiveFrom = restoreNanoseconds(effectiveFrom, effectiveFromNS)
+		if effectiveTo != nil {
+			restored := restoreNanoseconds(*effectiveTo, effectiveToNS)
+			effectiveTo = &restored
+		}
+		election.Effective, err = intervalFromBounds(effectiveFrom, effectiveTo)
 		if err != nil {
 			return err
 		}
-		election.KnownAt = values.NewInstant(knownAt.UTC())
-		election.Amount, err = decimalFromStored(amount)
+		election.KnownAt = values.NewInstant(restoreNanoseconds(knownAt, knownAtNS))
+		election.Amount, err = decimalFromStoredScale(amount, amountScale)
 		if err != nil {
 			return err
 		}
@@ -479,11 +546,65 @@ func (s *Store) LoadRegistration(ctx context.Context, tenant, registrationID str
 // SaveElection stores one immutable election revision.
 func (s *Store) SaveElection(ctx context.Context, tenant string, election taxprofile.WithholdingElectionRevision) error {
 	return s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
-		return s.saveElectionTx(ctx, tx, tenantID, election, false)
+		head, _, _, err := electionHead(ctx, tx, tenantID, election.ElectionID)
+		if err != nil {
+			return err
+		}
+		if head != "" {
+			return stale("existing election requires SaveElectionSuccessor", 0, 0)
+		}
+		return s.saveElectionTx(ctx, tx, tenantID, election, false, true)
 	})
 }
 
-func (s *Store) saveElectionTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, election taxprofile.WithholdingElectionRevision, ignoreDuplicate bool) error {
+// SaveElectionSuccessor atomically compares the durable election head and
+// appends the successor. It never updates or deletes the predecessor.
+func (s *Store) SaveElectionSuccessor(ctx context.Context, tenant, expectedDigest string, successor taxprofile.WithholdingElectionRevision) error {
+	return s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
+		if strings.TrimSpace(expectedDigest) == "" {
+			return invalid("expected predecessor digest is required")
+		}
+		var err error
+		if successor.CanonicalDigest == "" {
+			successor, err = taxprofile.NewWithholdingElectionRevision(successor)
+		} else {
+			err = successor.Validate()
+		}
+		if err != nil {
+			return invalid(err.Error())
+		}
+		head, worker, jurisdiction, err := electionHead(ctx, tx, tenantID, successor.ElectionID)
+		if err != nil {
+			return err
+		}
+		if head == "" {
+			return stale("election head not found", 0, 0)
+		}
+		if head != expectedDigest {
+			return stale("election predecessor changed", 0, 1)
+		}
+		successorWorker, err := workerID(successor.WorkerRef)
+		if err != nil {
+			return err
+		}
+		if successorWorker != worker || successor.Jurisdiction != jurisdiction {
+			return invalid("successor identity does not match predecessor")
+		}
+		if err := s.saveElectionTx(ctx, tx, tenantID, successor, false, false); err != nil {
+			return err
+		}
+		affected, err := tx.Exec(ctx, `UPDATE withholding_election_head SET current_digest=$3, updated_at=now() WHERE tenant_id=$1 AND election_id=$2 AND current_digest=$4`, tenantID, successor.ElectionID, storedDigest(successor.CanonicalDigest), storedDigest(expectedDigest))
+		if err != nil {
+			return fmt.Errorf("taxprofilestore: advance election head: %w", err)
+		}
+		if affected != 1 {
+			return stale("election predecessor changed", 0, 1)
+		}
+		return nil
+	})
+}
+
+func (s *Store) saveElectionTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, election taxprofile.WithholdingElectionRevision, ignoreDuplicate, initializeHead bool) error {
 	if election.CanonicalDigest == "" {
 		var err error
 		election, err = taxprofile.NewWithholdingElectionRevision(election)
@@ -497,23 +618,36 @@ func (s *Store) saveElectionTx(ctx context.Context, tx dbport.Tx, tenantID uuid.
 	if err != nil {
 		return err
 	}
-	effectiveFrom, err := instantBounds(election.Effective)
+	effectiveFrom, effectiveTo, err := instantBoundsWithEnd(election.Effective)
 	if err != nil {
 		return err
 	}
 	amount := nilIfZero(election.Amount)
+	var amountScale any
+	if !election.Amount.IsZero() {
+		amountScale = election.Amount.Scale()
+	}
 	affected, err := tx.Exec(ctx, `INSERT INTO withholding_election_revision
 		(tenant_id,row_id,election_id,worker_ref,jurisdiction,kind,form_revision_ref,evidence_ref,
-		 amount,effective_from,known_at,canonical_digest)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		 amount,amount_scale,effective_from,effective_to,known_at,canonical_digest,
+		 effective_from_ns_remainder,effective_to_ns_remainder,known_at_ns_remainder)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
 		ON CONFLICT (tenant_id,election_id,effective_from) DO NOTHING`, tenantID, uuid.New(), election.ElectionID, worker,
 		election.Jurisdiction, string(election.Kind), nilIfEmpty(election.FormRevisionRef), nilIfEmpty(election.EvidenceRef), amount,
-		effectiveFrom, election.KnownAt.Time(), storedDigest(election.CanonicalDigest))
+		amountScale, effectiveFrom, effectiveTo, election.KnownAt.Time(), storedDigest(election.CanonicalDigest),
+		nanosecondRemainder(effectiveFrom), nullableNanosecondRemainder(effectiveTo), nanosecondRemainder(election.KnownAt.Time()))
 	if err != nil {
 		return mapInsertError("insert withholding election revision", err)
 	}
 	if affected == 0 && !ignoreDuplicate {
 		return duplicate("withholding election revision")
+	}
+	headAffected, err := tx.Exec(ctx, `INSERT INTO withholding_election_head (tenant_id,election_id,current_digest) VALUES ($1,$2,$3) ON CONFLICT (tenant_id,election_id) DO NOTHING`, tenantID, election.ElectionID, storedDigest(election.CanonicalDigest))
+	if err != nil {
+		return fmt.Errorf("taxprofilestore: initialize election head: %w", err)
+	}
+	if initializeHead && headAffected == 0 && !ignoreDuplicate {
+		return stale("existing election requires SaveElectionSuccessor", 0, 0)
 	}
 	return nil
 }
@@ -525,10 +659,16 @@ func (s *Store) LoadElection(ctx context.Context, tenant, electionID string) (ta
 		var worker uuid.UUID
 		var amount *string
 		var effectiveFrom, knownAt time.Time
-		err := tx.QueryRow(ctx, `SELECT worker_ref,jurisdiction,kind,form_revision_ref,evidence_ref,amount,
-			effective_from,known_at,canonical_digest FROM withholding_election_revision
-			WHERE tenant_id=$1 AND election_id=$2 ORDER BY effective_from DESC LIMIT 1`, tenantID, electionID).Scan(
-			&worker, &out.Jurisdiction, &out.Kind, &out.FormRevisionRef, &out.EvidenceRef, &amount, &effectiveFrom, &knownAt, &out.CanonicalDigest)
+		var effectiveTo *time.Time
+		var amountScale *int16
+		var effectiveFromNS, effectiveToNS, knownAtNS *int16
+		err := tx.QueryRow(ctx, `SELECT r.worker_ref,r.jurisdiction,r.kind,r.form_revision_ref,r.evidence_ref,r.amount,
+			r.amount_scale,r.effective_from,r.effective_to,r.known_at,r.canonical_digest,
+			r.effective_from_ns_remainder,r.effective_to_ns_remainder,r.known_at_ns_remainder
+			FROM withholding_election_head h JOIN withholding_election_revision r
+			ON r.tenant_id=h.tenant_id AND r.election_id=h.election_id AND r.canonical_digest=h.current_digest
+			WHERE h.tenant_id=$1 AND h.election_id=$2 LIMIT 1`, tenantID, electionID).Scan(
+			&worker, &out.Jurisdiction, &out.Kind, &out.FormRevisionRef, &out.EvidenceRef, &amount, &amountScale, &effectiveFrom, &effectiveTo, &knownAt, &out.CanonicalDigest, &effectiveFromNS, &effectiveToNS, &knownAtNS)
 		if errors.Is(err, dbport.ErrNoRows) {
 			return notFound("withholding election revision")
 		}
@@ -537,12 +677,17 @@ func (s *Store) LoadElection(ctx context.Context, tenant, electionID string) (ta
 		}
 		out.ElectionID, out.WorkerRef = electionID, worker.String()
 		out.CanonicalDigest = domainDigest(out.CanonicalDigest)
-		out.Effective, err = openInterval(effectiveFrom)
+		effectiveFrom = restoreNanoseconds(effectiveFrom, effectiveFromNS)
+		if effectiveTo != nil {
+			restored := restoreNanoseconds(*effectiveTo, effectiveToNS)
+			effectiveTo = &restored
+		}
+		out.Effective, err = intervalFromBounds(effectiveFrom, effectiveTo)
 		if err != nil {
 			return err
 		}
-		out.KnownAt = values.NewInstant(knownAt.UTC())
-		out.Amount, err = decimalFromStored(amount)
+		out.KnownAt = values.NewInstant(restoreNanoseconds(knownAt, knownAtNS))
+		out.Amount, err = decimalFromStoredScale(amount, amountScale)
 		if err != nil {
 			return err
 		}
@@ -664,4 +809,22 @@ func decimalFromStored(value *string) (values.Decimal, error) {
 		scale = int32(len(fraction))
 	}
 	return values.NewDecimal(text, scale, values.RoundingExactRequired)
+}
+
+func decimalFromStoredScale(value *string, scale *int16) (values.Decimal, error) {
+	if value == nil || strings.TrimSpace(*value) == "" {
+		return values.Decimal{}, nil
+	}
+	if scale == nil {
+		return decimalFromStored(value)
+	}
+	text := strings.TrimSpace(*value)
+	if dot := strings.IndexByte(text, '.'); dot >= 0 {
+		whole, fraction := text[:dot], strings.TrimRight(text[dot+1:], "0")
+		text = whole
+		if fraction != "" {
+			text += "." + fraction
+		}
+	}
+	return values.NewDecimal(text, int32(*scale), values.RoundingExactRequired)
 }

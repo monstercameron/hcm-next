@@ -40,6 +40,7 @@ type Subscription struct {
 	Ordering          stepSignal.OrderingExpectation
 	ClosesAt          time.Time
 	CreatedAt         time.Time
+	Causal            *runtimestate.CausalMetadata
 }
 
 type ReceiveRequest struct {
@@ -47,6 +48,7 @@ type ReceiveRequest struct {
 	SignalID   uuid.UUID
 	Signal     stepSignal.Signal
 	ReceivedAt time.Time
+	Causal     *runtimestate.CausalMetadata
 }
 
 type Disposition struct {
@@ -58,12 +60,14 @@ type Disposition struct {
 	Reason          string
 	ContinuationRef string
 	RecordedAt      time.Time
+	Causal          *runtimestate.CausalMetadata
 }
 
 type Receipt struct {
 	SignalID     uuid.UUID
 	AttemptID    uuid.UUID
 	Dispositions []Disposition
+	Causal       *runtimestate.CausalMetadata
 }
 
 type Store struct{}
@@ -89,17 +93,17 @@ func (s Store) Subscribe(ctx context.Context, ex Executor, in Subscription) erro
 	if created.IsZero() {
 		created = time.Now().UTC()
 	}
+	args := []any{in.TenantID, in.SubscriptionID, in.InstanceID, in.NodeID, in.EventType, in.CorrelationKey, closes, created, in.CorrelationValue, in.ExpectedSchemaRef, sources, string(in.Ordering), in.NodeAttempt}
+	args = append(args, causalValues(in.Causal)...)
 	rows, err := ex.Exec(ctx, `
 		INSERT INTO workflow_signal_subscription (
 			tenant_id, subscription_id, instance_id, node_id, signal_name,
 			correlation_key, subscription_state, expires_at, created_at,
 			event_type, correlation_value, expected_schema_ref, accepted_sources,
-			ordering_expectation, node_attempt)
-		VALUES ($1, $2, $3, $4, $5, $6, 'OPEN', $7, $8, $5, $9, $10, $11, $12, $13)
+			ordering_expectation, node_attempt, correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, 'OPEN', $7, $8, $5, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
 		ON CONFLICT DO NOTHING`,
-		in.TenantID, in.SubscriptionID, in.InstanceID, in.NodeID, in.EventType,
-		in.CorrelationKey, closes, created, in.CorrelationValue,
-		in.ExpectedSchemaRef, sources, string(in.Ordering), in.NodeAttempt)
+		args...)
 	if err != nil {
 		return fmt.Errorf("signals: insert subscription: %w", err)
 	}
@@ -121,7 +125,7 @@ func (s Store) Receive(ctx context.Context, ex Executor, req ReceiveRequest, ver
 		req.SignalID = uuid.NewSHA1(signalNamespace, []byte(sig.Tenant.String()+"\x00"+sig.EventType+"\x00"+sig.CorrelationKey+"\x00"+sig.IdempotencyKey))
 	}
 	if req.AttemptID == uuid.Nil {
-		req.AttemptID = uuid.NewSHA1(signalNamespace, []byte("attempt\x00"+req.SignalID.String()))
+		req.AttemptID = uuid.New()
 	}
 	received := req.ReceivedAt.UTC()
 	if received.IsZero() {
@@ -133,47 +137,63 @@ func (s Store) Receive(ctx context.Context, ex Executor, req ReceiveRequest, ver
 	digest := payloadDigest(sig.Payload)
 	var canonical canonicalSignal
 	duplicateDifferentBytes := false
+	incomingCausal := normalizeCausalAt(req.Causal, received)
+	causalArgs := causalValues(incomingCausal)
 	rows, err := ex.Exec(ctx, `
 		INSERT INTO workflow_signal (
 			tenant_id, signal_id, signal_name, correlation_key, dedupe_token,
 			schema_ref, payload, payload_digest, delivered_at,
-			event_type, source, correlation_value, sequence_number, received_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $3, $10, $11, $12, $9)
+			event_type, source, correlation_value, sequence_number, received_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $3, $10, $11, $12, $9,
+			$13, $14, $15, $16, $17, $18, $19, $20, $21)
 		ON CONFLICT DO NOTHING`,
 		uuid.MustParse(sig.Tenant.String()), req.SignalID, sig.EventType, sig.CorrelationKey,
 		sig.IdempotencyKey, sig.SchemaRef, string(sig.Payload), digest, received,
-		sig.Source, sig.CorrelationValue, sig.SequenceNumber)
+		sig.Source, sig.CorrelationValue, sig.SequenceNumber, causalArgs[0], causalArgs[1], causalArgs[2], causalArgs[3], causalArgs[4], causalArgs[5], causalArgs[6], causalArgs[7], causalArgs[8])
 	if err != nil {
 		return Receipt{}, fmt.Errorf("signals: record signal: %w", err)
 	}
 	if rows == 0 {
 		row := ex.QueryRow(ctx, `
 			SELECT signal_id, event_type, source, correlation_key, correlation_value,
-			       schema_ref, dedupe_token, sequence_number, payload, payload_digest, received_at
+			       schema_ref, dedupe_token, sequence_number, payload, payload_digest, received_at,
+			       correlation_id, causation_id, logical_operation_id, attempt_id,
+			       trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 			FROM workflow_signal
 			WHERE tenant_id = $1 AND signal_name = $2 AND correlation_key = $3 AND dedupe_token = $4`,
 			uuid.MustParse(sig.Tenant.String()), sig.EventType, sig.CorrelationKey, sig.IdempotencyKey)
+		var correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		var traceFlags *int16
+		var traceExpires *time.Time
 		if err := row.Scan(&canonical.ID, &canonical.EventType, &canonical.Source,
 			&canonical.CorrelationKey, &canonical.CorrelationValue, &canonical.SchemaRef,
-			&canonical.DedupToken, &canonical.SequenceNumber, &canonical.Payload, &canonical.Digest, &canonical.ReceivedAt); err != nil {
+			&canonical.DedupToken, &canonical.SequenceNumber, &canonical.Payload, &canonical.Digest, &canonical.ReceivedAt,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &traceExpires); err != nil {
 			return Receipt{}, fmt.Errorf("signals: load canonical signal: %w", err)
 		}
+		canonical.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, traceExpires)
 		duplicateDifferentBytes = canonical.Digest != digest
 	} else {
 		canonical = canonicalSignal{ID: req.SignalID, EventType: sig.EventType, Source: sig.Source,
 			CorrelationKey: sig.CorrelationKey, CorrelationValue: sig.CorrelationValue,
 			SchemaRef: sig.SchemaRef, DedupToken: sig.IdempotencyKey, SequenceNumber: sig.SequenceNumber, Payload: sig.Payload,
-			Digest: digest, ReceivedAt: received}
+			Digest: digest, ReceivedAt: received, Causal: incomingCausal}
 	}
 	canonicalSig, err := canonical.step(sig.Tenant)
 	if err != nil {
 		return Receipt{}, err
 	}
-	receipt := Receipt{SignalID: canonical.ID, AttemptID: req.AttemptID}
+	receiptCausal := normalizeCausalAt(canonical.Causal, received)
+	if receiptCausal != nil {
+		receiptCausal.AttemptID = req.AttemptID.String()
+	}
+	receipt := Receipt{SignalID: canonical.ID, AttemptID: req.AttemptID, Causal: receiptCausal}
 	rowsSub, err := ex.Query(ctx, `
 		SELECT subscription_id, instance_id, node_id, node_attempt, event_type,
 		       correlation_key, correlation_value, expected_schema_ref,
-		       accepted_sources, ordering_expectation, expires_at, subscription_version
+		       accepted_sources, ordering_expectation, expires_at, subscription_version,
+		       correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM workflow_signal_subscription
 		WHERE tenant_id = $1 AND subscription_state <> 'CANCELLED'
 		  AND event_type = $2 AND correlation_key = $3 AND correlation_value = $4
@@ -186,11 +206,16 @@ func (s Store) Receive(ctx context.Context, ex Executor, req ReceiveRequest, ver
 	var subscriptions []durableSubscription
 	for rowsSub.Next() {
 		var sub durableSubscription
+		var correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		var traceFlags *int16
+		var traceExpires *time.Time
 		if err := rowsSub.Scan(&sub.ID, &sub.InstanceID, &sub.NodeID, &sub.NodeAttempt,
 			&sub.EventType, &sub.CorrelationKey, &sub.CorrelationValue, &sub.ExpectedSchemaRef,
-			&sub.AcceptedSources, &sub.Ordering, &sub.ClosesAt, &sub.Version); err != nil {
+			&sub.AcceptedSources, &sub.Ordering, &sub.ClosesAt, &sub.Version,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &traceExpires); err != nil {
 			return Receipt{}, fmt.Errorf("signals: scan subscription: %w", err)
 		}
+		sub.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, traceExpires)
 		subscriptions = append(subscriptions, sub)
 	}
 	rowsSub.Close()
@@ -213,7 +238,7 @@ func (s Store) Receive(ctx context.Context, ex Executor, req ReceiveRequest, ver
 				return Receipt{}, fmt.Errorf("signals: evaluate subscription %s: %w", sub.ID, err)
 			}
 		}
-		disposition := Disposition{DispositionID: uuid.New(), AttemptID: req.AttemptID, SignalID: canonical.ID,
+		disposition := Disposition{DispositionID: uuid.New(), AttemptID: req.AttemptID, SignalID: canonical.ID, Causal: receipt.Causal,
 			SubscriptionID: sub.ID, Status: decision.Status, Reason: decision.Reason, RecordedAt: received}
 		if decision.Continuation {
 			disposition.ContinuationRef = "signal:" + canonical.ID.String()
@@ -245,6 +270,7 @@ type canonicalSignal struct {
 	Payload                                                        []byte
 	Digest                                                         string
 	ReceivedAt                                                     time.Time
+	Causal                                                         *runtimestate.CausalMetadata
 }
 
 func (s canonicalSignal) step(tenant values.TenantId) (stepSignal.Signal, error) {
@@ -264,6 +290,7 @@ type durableSubscription struct {
 	Ordering                                                       string
 	ClosesAt                                                       *time.Time
 	Version                                                        uint64
+	Causal                                                         *runtimestate.CausalMetadata
 }
 
 func (s durableSubscription) step(tenant values.TenantId) stepSignal.SignalSubscription {
@@ -334,14 +361,15 @@ func applyAccepted(ctx context.Context, ex Executor, tenant values.TenantId, sub
 	}
 	cont := runtime.ContinuationRecord{TenantID: tenantID, InstanceID: sub.InstanceID,
 		SourceNodeID: sub.NodeID, SourceAttempt: sub.NodeAttempt, TargetNodeID: sub.NodeID,
-		Kind: frontier.IntentReady, RouteKey: "SIGNAL", Ref: "signal:" + signalID.String(), RecordedAt: at.UTC()}
+		Kind: frontier.IntentReady, RouteKey: "SIGNAL", Ref: "signal:" + signalID.String(), RecordedAt: at.UTC(),
+		Causal: runtimeCausal(normalizeCausalAt(sub.Causal, at))}
 	if err := (runtime.ContinuationStore{}).MarkReady(ctx, ex, cont); err != nil {
 		return fmt.Errorf("signals: record continuation: %w", err)
 	}
 	readyID := uuid.NewSHA1(signalNamespace, []byte("ready\x00"+tenant.String()+"\x00"+sub.InstanceID.String()+"\x00"+sub.NodeID+"\x00"+fmt.Sprint(sub.NodeAttempt)))
 	err = (runtimestate.ReadyWorkStore{}).Enqueue(ctx, ex, runtimestate.ReadyWork{TenantID: tenantID, ReadyWorkID: readyID,
 		InstanceID: sub.InstanceID, NodeID: sub.NodeID, Attempt: sub.NodeAttempt, State: runtimestate.ReadyReady,
-		EligibleAt: at.UTC(), EnqueuedAt: at.UTC()})
+		EligibleAt: at.UTC(), EnqueuedAt: at.UTC(), Causal: normalizeCausalAt(sub.Causal, at)})
 	if errors.Is(err, runtimestate.ErrDuplicate) {
 		return nil
 	}
@@ -352,12 +380,15 @@ func applyAccepted(ctx context.Context, ex Executor, tenant values.TenantId, sub
 }
 
 func recordDisposition(ctx context.Context, ex Executor, tenant values.TenantId, d Disposition) error {
+	args := []any{uuid.MustParse(tenant.String()), d.DispositionID, d.AttemptID, d.SignalID,
+		nullableUUID(d.SubscriptionID), string(d.Status), d.Reason, d.ContinuationRef, d.RecordedAt.UTC()}
+	args = append(args, dispositionCausalValues(d.Causal)...)
 	_, err := ex.Exec(ctx, `
 		INSERT INTO workflow_signal_disposition
-			(tenant_id, disposition_id, attempt_id, signal_id, subscription_id, status, reason, continuation_ref, recorded_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, NULLIF($8, ''), $9)
-		ON CONFLICT DO NOTHING`, uuid.MustParse(tenant.String()), d.DispositionID, d.AttemptID, d.SignalID,
-		nullableUUID(d.SubscriptionID), string(d.Status), d.Reason, d.ContinuationRef, d.RecordedAt.UTC())
+			(tenant_id, disposition_id, attempt_id, signal_id, subscription_id, status, reason, continuation_ref, recorded_at,
+			 correlation_id, causation_id, logical_operation_id, causal_attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NULLIF($8, ''), $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+		ON CONFLICT DO NOTHING`, args...)
 	if err != nil {
 		return fmt.Errorf("signals: record disposition: %w", err)
 	}
@@ -400,4 +431,101 @@ func validateReceive(req ReceiveRequest) error {
 func payloadDigest(payload []byte) string {
 	sum := sha256.Sum256(payload)
 	return hex.EncodeToString(sum[:])
+}
+
+func causalValues(c *runtimestate.CausalMetadata) []any {
+	c = normalizeCausal(c)
+	if c == nil {
+		return []any{nil, nil, nil, nil, nil, nil, nil, nil, nil}
+	}
+	if c.TraceLink == nil {
+		return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, nil, nil, nil, nil, nil}
+	}
+	return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, c.TraceLink.TraceID, c.TraceLink.SpanID, c.TraceLink.TraceFlags, c.TraceLink.TraceState, nullableTime(c.TraceLink.ExpiresAt)}
+}
+
+func dispositionCausalValues(c *runtimestate.CausalMetadata) []any {
+	return causalValues(c)
+}
+
+func normalizeCausal(c *runtimestate.CausalMetadata) *runtimestate.CausalMetadata {
+	return normalizeCausalAt(c, time.Time{})
+}
+
+func normalizeCausalAt(c *runtimestate.CausalMetadata, at time.Time) *runtimestate.CausalMetadata {
+	if c == nil {
+		return nil
+	}
+	for _, value := range []string{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID} {
+		if strings.TrimSpace(value) == "" || len(value) > 128 {
+			return nil
+		}
+	}
+	out := *c
+	out.TraceLink = nil
+	if c.TraceLink != nil && validTraceID(c.TraceLink.TraceID, 16) && validTraceID(c.TraceLink.SpanID, 8) && len(c.TraceLink.TraceState) <= 256 &&
+		(at.IsZero() || c.TraceLink.ExpiresAt.IsZero() || c.TraceLink.ExpiresAt.After(at)) {
+		link := *c.TraceLink
+		out.TraceLink = &link
+	}
+	return &out
+}
+
+func runtimeCausal(c *runtimestate.CausalMetadata) *runtime.CausalMetadata {
+	if c == nil {
+		return nil
+	}
+	out := &runtime.CausalMetadata{CorrelationID: c.CorrelationID, CausationID: c.CausationID,
+		LogicalOperationID: c.LogicalOperationID, AttemptID: c.AttemptID}
+	if c.TraceLink != nil {
+		out.TraceLink = &runtime.TraceLinkMetadata{TraceID: c.TraceLink.TraceID, SpanID: c.TraceLink.SpanID,
+			TraceFlags: c.TraceLink.TraceFlags, TraceState: c.TraceLink.TraceState, ExpiresAt: c.TraceLink.ExpiresAt}
+	}
+	return out
+}
+
+func validTraceID(value string, size int) bool {
+	if value != strings.ToLower(value) {
+		return false
+	}
+	b, err := hex.DecodeString(value)
+	if err != nil || len(b) != size {
+		return false
+	}
+	for _, x := range b {
+		if x != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func nullableTime(t time.Time) any {
+	if t.IsZero() {
+		return nil
+	}
+	return t.UTC()
+}
+
+func causalFromPointers(correlation, causation, logical, attempt, traceID, spanID *string, flags *int16, state *string, expires *time.Time) *runtimestate.CausalMetadata {
+	if correlation == nil && causation == nil && logical == nil && attempt == nil {
+		return nil
+	}
+	c := &runtimestate.CausalMetadata{CorrelationID: valueOf(correlation), CausationID: valueOf(causation), LogicalOperationID: valueOf(logical), AttemptID: valueOf(attempt)}
+	if traceID != nil && spanID != nil && flags != nil && *flags >= 0 && *flags <= 255 {
+		c.TraceLink = &runtimestate.TraceLinkMetadata{TraceID: *traceID, SpanID: *spanID, TraceFlags: byte(*flags), TraceState: valueOf(state), ExpiresAt: timeValue(expires)}
+	}
+	return c
+}
+func valueOf(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+func timeValue(v *time.Time) time.Time {
+	if v == nil {
+		return time.Time{}
+	}
+	return v.UTC()
 }

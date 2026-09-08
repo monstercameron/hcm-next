@@ -12,8 +12,10 @@ package outbox
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,6 +52,29 @@ var (
 	ErrLeaseFence         = errors.New("outbox: lease fence refused")
 )
 
+// TraceLink is optional diagnostic context captured at an asynchronous
+// boundary. It is never used as an idempotency, authorization, tenant, or
+// business identity. Invalid links are discarded when an envelope is
+// written so telemetry cannot change the business result.
+type TraceLink struct {
+	TraceID    string
+	SpanID     string
+	TraceFlags byte
+	TraceState string
+	ExpiresAt  time.Time
+}
+
+// CausalMetadata is the bounded, durable identity of an asynchronous
+// envelope. LogicalOperationID remains stable across redelivery; AttemptID
+// identifies the individual claim/attempt. TraceLink is optional.
+type CausalMetadata struct {
+	CorrelationID      string
+	CausationID        string
+	LogicalOperationID string
+	AttemptID          string
+	TraceLink          *TraceLink
+}
+
 // EnqueueRequest is one message to distribute after the authoritative commit.
 type EnqueueRequest struct {
 	Tenant uuid.UUID
@@ -66,6 +91,7 @@ type EnqueueRequest struct {
 	Criticality    string
 	SchemaRef      string
 	Payload        []byte
+	Causal         *CausalMetadata
 }
 
 // Record is one outbox row.
@@ -85,6 +111,7 @@ type Record struct {
 	LeaseUntil     time.Time
 	LeaseVersion   int64
 	LastError      *string
+	Causal         *CausalMetadata
 }
 
 // Enqueue inserts one PENDING message inside the caller's transaction. A
@@ -110,16 +137,24 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	if req.SchemaRef == "" {
 		return Record{}, fmt.Errorf("outbox: enqueue requires a schema reference")
 	}
+	causal, err := normalizeCausal(req.Causal)
+	if err != nil {
+		return Record{}, err
+	}
 	id := req.OutboxID
 	if id == uuid.Nil {
 		id = uuid.New()
 	}
 
+	args := []any{req.Tenant, id, req.EffectIdentity, req.OrderingKey, criticality, req.SchemaRef, req.Payload}
+	args = append(args, causalValues(causal)...)
 	affected, err := tx.Exec(ctx, `
-		INSERT INTO outbox (tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO outbox (tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload,
+			correlation_id, causation_id, logical_operation_id, attempt_id,
+			trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (tenant_id, effect_identity) DO NOTHING`,
-		req.Tenant, id, req.EffectIdentity, req.OrderingKey, criticality, req.SchemaRef, req.Payload)
+		args...)
 	if err != nil {
 		return Record{}, fmt.Errorf("outbox: enqueue %s: %w", req.EffectIdentity, err)
 	}
@@ -138,18 +173,25 @@ func Enqueue(ctx context.Context, tx dbport.Tx, req EnqueueRequest) (Record, err
 	return existing, nil
 }
 
-const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload, status, attempts, available_at, updated_at, lease_token, lease_until, lease_version, last_error`
+const selectRecordColumns = `tenant_id, outbox_id, effect_identity, ordering_key, criticality, schema_ref, payload, status, attempts, available_at, updated_at, lease_token, lease_until, lease_version, last_error,
+	correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at`
 
 func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 	var (
-		rec        Record
-		leaseToken *uuid.UUID
-		leaseUntil *time.Time
+		rec                                                       Record
+		leaseToken                                                *uuid.UUID
+		leaseUntil                                                *time.Time
+		correlationID, causationID, logicalOperationID, attemptID *string
+		traceID, traceSpanID, traceState                          *string
+		traceFlags                                                *int16
+		traceExpiresAt                                            *time.Time
 	)
 	if err := row.Scan(
 		&rec.Tenant, &rec.OutboxID, &rec.EffectIdentity, &rec.OrderingKey, &rec.Criticality,
 		&rec.SchemaRef, &rec.Payload, &rec.Status, &rec.Attempts, &rec.AvailableAt,
 		&rec.UpdatedAt, &leaseToken, &leaseUntil, &rec.LeaseVersion, &rec.LastError,
+		&correlationID, &causationID, &logicalOperationID, &attemptID,
+		&traceID, &traceSpanID, &traceFlags, &traceState, &traceExpiresAt,
 	); err != nil {
 		return Record{}, err
 	}
@@ -159,7 +201,150 @@ func scanRecord(row interface{ Scan(dest ...any) error }) (Record, error) {
 	if leaseUntil != nil {
 		rec.LeaseUntil = leaseUntil.UTC()
 	}
+	if correlationID != nil {
+		rec.Causal = &CausalMetadata{CorrelationID: *correlationID, CausationID: valueOrEmpty(causationID), LogicalOperationID: valueOrEmpty(logicalOperationID), AttemptID: valueOrEmpty(attemptID)}
+		if traceID != nil && traceSpanID != nil {
+			link := &TraceLink{TraceID: *traceID, SpanID: *traceSpanID, TraceState: valueOrEmpty(traceState), ExpiresAt: timeOrZero(traceExpiresAt)}
+			if traceFlags != nil && *traceFlags >= 0 && *traceFlags <= 255 {
+				link.TraceFlags = byte(*traceFlags)
+			}
+			if validTraceLink(link) {
+				rec.Causal.TraceLink = link
+			}
+		}
+	}
 	return rec, nil
+}
+
+func valueOrEmpty(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+func timeOrZero(v *time.Time) time.Time {
+	if v == nil {
+		return time.Time{}
+	}
+	return v.UTC()
+}
+
+func normalizeCausal(c *CausalMetadata) (*CausalMetadata, error) {
+	if c == nil {
+		return nil, nil
+	}
+	for name, value := range map[string]string{"correlation_id": c.CorrelationID, "causation_id": c.CausationID, "logical_operation_id": c.LogicalOperationID, "attempt_id": c.AttemptID} {
+		if strings.TrimSpace(value) == "" || len(value) > 128 {
+			return nil, fmt.Errorf("outbox: invalid causal metadata %s", name)
+		}
+	}
+	out := *c
+	if c.TraceLink != nil && validTraceLink(c.TraceLink) {
+		link := *c.TraceLink
+		out.TraceLink = &link
+	} else {
+		out.TraceLink = nil
+	}
+	return &out, nil
+}
+
+func validTraceLink(link *TraceLink) bool {
+	if link == nil || !validHexID(link.TraceID, 16) || !validHexID(link.SpanID, 8) || !validTraceState(link.TraceState) {
+		return false
+	}
+	return true
+}
+
+func validHexID(value string, size int) bool {
+	if value != strings.ToLower(value) {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	if err != nil || len(decoded) != size {
+		return false
+	}
+	for _, b := range decoded {
+		if b != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func validTraceState(value string) bool {
+	if value == "" {
+		return true
+	}
+	if len(value) > 256 {
+		return false
+	}
+	seen := make(map[string]struct{})
+	entries := strings.Split(value, ",")
+	if len(entries) > 32 {
+		return false
+	}
+	for _, entry := range entries {
+		key, member, ok := strings.Cut(entry, "=")
+		if !ok || !validTraceStateKey(key) || !validTraceStateValue(member) {
+			return false
+		}
+		if _, duplicate := seen[key]; duplicate {
+			return false
+		}
+		seen[key] = struct{}{}
+	}
+	return true
+}
+
+func validTraceStateKey(key string) bool {
+	if key == "" || len(key) > 256 {
+		return false
+	}
+	parts := strings.Split(key, "@")
+	if len(parts) > 2 || len(parts) == 2 && (parts[0] == "" || len(parts[0]) > 241) {
+		return false
+	}
+	for partIndex, part := range parts {
+		if part == "" {
+			return false
+		}
+		lower := part[0] >= 'a' && part[0] <= 'z'
+		digitTenant := len(parts) == 2 && partIndex == 0 && part[0] >= '0' && part[0] <= '9'
+		if !lower && !digitTenant {
+			return false
+		}
+		for _, r := range part[1:] {
+			if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || strings.ContainsRune("_-*/", r)) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func validTraceStateValue(value string) bool {
+	if value == "" || value[0] == ' ' || value[len(value)-1] == ' ' {
+		return false
+	}
+	for _, r := range value {
+		if r < 0x20 || r > 0x7e || r == ',' || r == '=' {
+			return false
+		}
+	}
+	return true
+}
+
+func causalValues(c *CausalMetadata) []any {
+	if c == nil {
+		return []any{nil, nil, nil, nil, nil, nil, nil, nil, nil}
+	}
+	var traceID, spanID, traceState any
+	var flags any
+	var expires any
+	if c.TraceLink != nil {
+		traceID, spanID, traceState, flags, expires = c.TraceLink.TraceID, c.TraceLink.SpanID, c.TraceLink.TraceState, int16(c.TraceLink.TraceFlags), c.TraceLink.ExpiresAt
+	}
+	return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, traceID, spanID, flags, traceState, expires}
 }
 
 func validCriticality(value string) bool {
@@ -171,7 +356,21 @@ func sameImmutableMessage(existing Record, req EnqueueRequest, criticality strin
 		existing.OrderingKey == req.OrderingKey &&
 		existing.Criticality == criticality &&
 		existing.SchemaRef == req.SchemaRef &&
-		bytes.Equal(existing.Payload, req.Payload)
+		bytes.Equal(existing.Payload, req.Payload) && sameCausal(existing.Causal, req.Causal)
+}
+
+func sameCausal(a, b *CausalMetadata) bool {
+	na, errA := normalizeCausal(a)
+	nb, errB := normalizeCausal(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	if na == nil || nb == nil {
+		return na == nil && nb == nil
+	}
+	// AttemptID is claim metadata: it intentionally changes on every
+	// redelivery. The logical envelope identity remains immutable.
+	return na.CorrelationID == nb.CorrelationID && na.CausationID == nb.CausationID && na.LogicalOperationID == nb.LogicalOperationID
 }
 
 // Querier is the minimal database capability Read needs.

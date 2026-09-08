@@ -2,10 +2,12 @@ package runtimestate
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -343,6 +345,7 @@ type ReadyWork struct {
 
 	EnqueuedAt  time.Time
 	CompletedAt time.Time
+	Causal      *CausalMetadata
 }
 
 // ReadyWorkStore writes and advances workflow_ready_work.
@@ -367,14 +370,16 @@ func (s ReadyWorkStore) Enqueue(ctx context.Context, ex Executor, in ReadyWork) 
 	if in.Priority == 0 {
 		in.Priority = 100
 	}
+	args := []any{in.TenantID, in.ReadyWorkID, in.InstanceID, in.NodeID, in.Attempt, in.State, in.Priority, in.EligibleAt.UTC(), in.EnqueuedAt.UTC()}
+	args = append(args, causalValues(in.Causal)...)
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO workflow_ready_work (
 			tenant_id, ready_work_id, instance_id, node_id, attempt,
-			ready_state, priority, eligible_at, ready_version, enqueued_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9)
+			ready_state, priority, eligible_at, ready_version, enqueued_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 		ON CONFLICT DO NOTHING`,
-		in.TenantID, in.ReadyWorkID, in.InstanceID, in.NodeID, in.Attempt,
-		in.State, in.Priority, in.EligibleAt.UTC(), in.EnqueuedAt.UTC())
+		args...)
 	if err != nil {
 		return fmt.Errorf("runtimestate: enqueue ready work for %s/%s: %w", in.InstanceID, in.NodeID, err)
 	}
@@ -422,20 +427,60 @@ func (s ReadyWorkStore) Transition(ctx context.Context, ex Executor, tenantID, r
 	return nil
 }
 
+// Claim moves ready work to DISPATCHED and atomically gives this delivery a
+// fresh attempt identity. The logical operation and correlation identities
+// remain unchanged; only the delivery attempt changes on redelivery.
+func (s ReadyWorkStore) Claim(ctx context.Context, ex Executor, tenantID, readyWorkID uuid.UUID,
+	expectedVersion uint64,
+) (ReadyWork, error) {
+	if expectedVersion == 0 {
+		return ReadyWork{}, invalid("expected_version", "a compare-and-swap needs the version it expects")
+	}
+	current, err := s.Load(ctx, ex, tenantID, readyWorkID)
+	if err != nil {
+		return ReadyWork{}, err
+	}
+	if !allows(readyTransitions, current.State, ReadyDispatched) {
+		return ReadyWork{}, fmt.Errorf("%w: workflow_ready_work %s: %s -> %s",
+			ErrIllegalTransition, readyWorkID, current.State, ReadyDispatched)
+	}
+	attemptID := uuid.NewString()
+	affected, err := ex.Exec(ctx, `
+		UPDATE workflow_ready_work
+		SET ready_state = $4, ready_version = ready_version + 1,
+			attempt_id = CASE WHEN logical_operation_id IS NULL THEN NULL ELSE $5 END,
+			completed_at = NULL
+		WHERE tenant_id = $1 AND ready_work_id = $2 AND ready_version = $3`,
+		tenantID, readyWorkID, int64(expectedVersion), ReadyDispatched, attemptID)
+	if err != nil {
+		return ReadyWork{}, fmt.Errorf("runtimestate: claim ready work %s: %w", readyWorkID, err)
+	}
+	if affected == 0 {
+		return ReadyWork{}, fmt.Errorf("%w: workflow_ready_work %s expected version %d",
+			ErrVersionConflict, readyWorkID, expectedVersion)
+	}
+	return s.Load(ctx, ex, tenantID, readyWorkID)
+}
+
 // Load returns one ready-work row.
 func (s ReadyWorkStore) Load(ctx context.Context, ex Executor, tenantID, readyWorkID uuid.UUID) (ReadyWork, error) {
 	var (
-		out       ReadyWork
-		version   int64
-		completed *time.Time
+		out                                                                   ReadyWork
+		version                                                               int64
+		completed                                                             *time.Time
+		correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		flags                                                                 *int16
+		expires                                                               *time.Time
 	)
 	err := ex.QueryRow(ctx, `
 		SELECT tenant_id, ready_work_id, instance_id, node_id, attempt,
-			ready_state, priority, eligible_at, ready_version, enqueued_at, completed_at
+			ready_state, priority, eligible_at, ready_version, enqueued_at, completed_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM workflow_ready_work
 		WHERE tenant_id = $1 AND ready_work_id = $2`, tenantID, readyWorkID).Scan(
 		&out.TenantID, &out.ReadyWorkID, &out.InstanceID, &out.NodeID, &out.Attempt,
-		&out.State, &out.Priority, &out.EligibleAt, &version, &out.EnqueuedAt, &completed)
+		&out.State, &out.Priority, &out.EligibleAt, &version, &out.EnqueuedAt, &completed,
+		&correlation, &causation, &logical, &attempt, &traceID, &spanID, &flags, &traceState, &expires)
 	if err != nil {
 		if isNoRows(err) {
 			return ReadyWork{}, fmt.Errorf("%w: workflow_ready_work %s", ErrNotFound, readyWorkID)
@@ -448,6 +493,7 @@ func (s ReadyWorkStore) Load(ctx context.Context, ex Executor, tenantID, readyWo
 	if completed != nil {
 		out.CompletedAt = completed.UTC()
 	}
+	out.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, flags, traceState, expires)
 	return out, nil
 }
 
@@ -582,6 +628,107 @@ type Timer struct {
 	Version uint64
 
 	CreatedAt time.Time
+	Causal    *CausalMetadata
+}
+
+// CausalMetadata is optional durable context for a timer/ready-work envelope.
+// TraceLink is diagnostic only and never an authority or replay key.
+type CausalMetadata struct {
+	CorrelationID, CausationID, LogicalOperationID, AttemptID string
+	TraceLink                                                 *TraceLinkMetadata
+}
+type TraceLinkMetadata struct {
+	TraceID, SpanID string
+	TraceFlags      byte
+	TraceState      string
+	ExpiresAt       time.Time
+}
+
+func causalValues(c *CausalMetadata) []any {
+	c = normalizeCausal(c)
+	if c == nil {
+		return []any{nil, nil, nil, nil, nil, nil, nil, nil, nil}
+	}
+	if c.TraceLink == nil {
+		return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, nil, nil, nil, nil, nil}
+	}
+	return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, c.TraceLink.TraceID, c.TraceLink.SpanID, c.TraceLink.TraceFlags, c.TraceLink.TraceState, nullableTime(c.TraceLink.ExpiresAt)}
+}
+
+func normalizeCausal(c *CausalMetadata) *CausalMetadata {
+	if c == nil {
+		return nil
+	}
+	for _, value := range []string{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID} {
+		if strings.TrimSpace(value) == "" || len(value) > 128 {
+			return nil
+		}
+	}
+	out := *c
+	out.TraceLink = nil
+	if c.TraceLink != nil && validCausalTraceID(c.TraceLink.TraceID, 16) && validCausalTraceID(c.TraceLink.SpanID, 8) && len(c.TraceLink.TraceState) <= 256 {
+		link := *c.TraceLink
+		out.TraceLink = &link
+	}
+	return &out
+}
+
+func validCausalTraceID(value string, size int) bool {
+	if value != strings.ToLower(value) {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	if err != nil || len(decoded) != size {
+		return false
+	}
+	for _, b := range decoded {
+		if b != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func nullableTime(t time.Time) any {
+	if t.IsZero() {
+		return nil
+	}
+	return t.UTC()
+}
+
+func causalFromPointers(correlation, causation, logical, attempt, traceID, spanID *string, flags *int16, state *string, expires *time.Time) *CausalMetadata {
+	if correlation == nil && causation == nil && logical == nil && attempt == nil {
+		return nil
+	}
+	c := &CausalMetadata{}
+	if correlation != nil {
+		c.CorrelationID = *correlation
+	}
+	if causation != nil {
+		c.CausationID = *causation
+	}
+	if logical != nil {
+		c.LogicalOperationID = *logical
+	}
+	if attempt != nil {
+		c.AttemptID = *attempt
+	}
+	if traceID != nil && spanID != nil && flags != nil {
+		c.TraceLink = &TraceLinkMetadata{TraceID: *traceID, SpanID: *spanID, TraceFlags: byte(*flags), TraceState: valueOf(state), ExpiresAt: timeValue(expires)}
+	}
+	return c
+}
+func valueOf(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+func timeValue(v *time.Time) time.Time {
+	if v == nil {
+		return time.Time{}
+	}
+	return v.UTC()
 }
 
 // TimerStore writes and advances workflow_timer. Nothing here fires a timer on
@@ -603,14 +750,16 @@ func (s TimerStore) Set(ctx context.Context, ex Executor, in Timer) error {
 	if in.FiresAt.IsZero() || in.CreatedAt.IsZero() {
 		return invalid("fires_at", "a timer carries both a creation and a firing instant")
 	}
+	args := []any{in.TenantID, in.TimerID, in.InstanceID, in.NodeID, in.Key, in.Kind, TimerPending, in.FiresAt.UTC(), in.CreatedAt.UTC()}
+	args = append(args, causalValues(in.Causal)...)
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO workflow_timer (
 			tenant_id, timer_id, instance_id, node_id, timer_key,
-			timer_kind, timer_state, fires_at, timer_version, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9)
+			timer_kind, timer_state, fires_at, timer_version, created_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 		ON CONFLICT DO NOTHING`,
-		in.TenantID, in.TimerID, in.InstanceID, in.NodeID, in.Key,
-		in.Kind, TimerPending, in.FiresAt.UTC(), in.CreatedAt.UTC())
+		args...)
 	if err != nil {
 		return fmt.Errorf("runtimestate: set timer %s: %w", in.Key, err)
 	}
@@ -673,16 +822,21 @@ func (s TimerStore) settle(ctx context.Context, ex Executor, tenantID, timerID u
 // Load returns one timer.
 func (s TimerStore) Load(ctx context.Context, ex Executor, tenantID, timerID uuid.UUID) (Timer, error) {
 	var (
-		out     Timer
-		version int64
+		out                                                                   Timer
+		version                                                               int64
+		correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		flags                                                                 *int16
+		expires                                                               *time.Time
 	)
 	err := ex.QueryRow(ctx, `
 		SELECT tenant_id, timer_id, instance_id, node_id, timer_key,
-			timer_kind, timer_state, fires_at, timer_version, created_at
+			timer_kind, timer_state, fires_at, timer_version, created_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM workflow_timer
 		WHERE tenant_id = $1 AND timer_id = $2`, tenantID, timerID).Scan(
 		&out.TenantID, &out.TimerID, &out.InstanceID, &out.NodeID, &out.Key,
-		&out.Kind, &out.State, &out.FiresAt, &version, &out.CreatedAt)
+		&out.Kind, &out.State, &out.FiresAt, &version, &out.CreatedAt,
+		&correlation, &causation, &logical, &attempt, &traceID, &spanID, &flags, &traceState, &expires)
 	if err != nil {
 		if isNoRows(err) {
 			return Timer{}, fmt.Errorf("%w: workflow_timer %s", ErrNotFound, timerID)
@@ -692,6 +846,7 @@ func (s TimerStore) Load(ctx context.Context, ex Executor, tenantID, timerID uui
 	out.Version = uint64(version)
 	out.FiresAt = out.FiresAt.UTC()
 	out.CreatedAt = out.CreatedAt.UTC()
+	out.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, flags, traceState, expires)
 	return out, nil
 }
 
@@ -1375,7 +1530,8 @@ func (s TimerStore) PendingForInstance(ctx context.Context, ex Executor, tenantI
 func (s TimerStore) list(ctx context.Context, ex Executor, where string, args ...any) ([]Timer, error) {
 	rows, err := ex.Query(ctx, `
 		SELECT tenant_id, timer_id, instance_id, node_id, timer_key,
-			timer_kind, timer_state, fires_at, timer_version, created_at
+			timer_kind, timer_state, fires_at, timer_version, created_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM workflow_timer `+where, args...)
 	if err != nil {
 		return nil, fmt.Errorf("runtimestate: list timers: %w", err)
@@ -1385,15 +1541,20 @@ func (s TimerStore) list(ctx context.Context, ex Executor, where string, args ..
 	var out []Timer
 	for rows.Next() {
 		var (
-			t       Timer
-			version int64
+			t                                                                     Timer
+			version                                                               int64
+			correlation, causation, logical, attempt, traceID, spanID, traceState *string
+			flags                                                                 *int16
+			expires                                                               *time.Time
 		)
 		if err := rows.Scan(&t.TenantID, &t.TimerID, &t.InstanceID, &t.NodeID, &t.Key,
-			&t.Kind, &t.State, &t.FiresAt, &version, &t.CreatedAt); err != nil {
+			&t.Kind, &t.State, &t.FiresAt, &version, &t.CreatedAt,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &flags, &traceState, &expires); err != nil {
 			return nil, fmt.Errorf("runtimestate: scan timer row: %w", err)
 		}
 		t.Version = uint64(version)
 		t.FiresAt, t.CreatedAt = t.FiresAt.UTC(), t.CreatedAt.UTC()
+		t.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, flags, traceState, expires)
 		out = append(out, t)
 	}
 	if err := rows.Err(); err != nil {
@@ -1488,7 +1649,8 @@ func (s SignalStore) CloseSubscription(ctx context.Context, ex Executor, tenantI
 func (s ReadyWorkStore) PendingForInstance(ctx context.Context, ex Executor, tenantID, instanceID uuid.UUID) ([]ReadyWork, error) {
 	rows, err := ex.Query(ctx, `
 		SELECT tenant_id, ready_work_id, instance_id, node_id, attempt,
-			ready_state, priority, eligible_at, ready_version, enqueued_at, completed_at
+			ready_state, priority, eligible_at, ready_version, enqueued_at, completed_at,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM workflow_ready_work
 		WHERE tenant_id = $1 AND instance_id = $2 AND ready_state IN ($3, $4)
 		ORDER BY eligible_at, node_id, attempt`,
@@ -1501,12 +1663,16 @@ func (s ReadyWorkStore) PendingForInstance(ctx context.Context, ex Executor, ten
 	var out []ReadyWork
 	for rows.Next() {
 		var (
-			rw        ReadyWork
-			version   int64
-			completed *time.Time
+			rw                                                                    ReadyWork
+			version                                                               int64
+			completed                                                             *time.Time
+			correlation, causation, logical, attempt, traceID, spanID, traceState *string
+			flags                                                                 *int16
+			expires                                                               *time.Time
 		)
 		if err := rows.Scan(&rw.TenantID, &rw.ReadyWorkID, &rw.InstanceID, &rw.NodeID, &rw.Attempt,
-			&rw.State, &rw.Priority, &rw.EligibleAt, &version, &rw.EnqueuedAt, &completed); err != nil {
+			&rw.State, &rw.Priority, &rw.EligibleAt, &version, &rw.EnqueuedAt, &completed,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &flags, &traceState, &expires); err != nil {
 			return nil, fmt.Errorf("runtimestate: scan ready work row: %w", err)
 		}
 		rw.Version = uint64(version)
@@ -1514,6 +1680,7 @@ func (s ReadyWorkStore) PendingForInstance(ctx context.Context, ex Executor, ten
 		if completed != nil {
 			rw.CompletedAt = completed.UTC()
 		}
+		rw.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, flags, traceState, expires)
 		out = append(out, rw)
 	}
 	if err := rows.Err(); err != nil {

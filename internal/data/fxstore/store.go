@@ -95,6 +95,13 @@ func domainDigest(digest string) string {
 	return "sha256:" + digest
 }
 
+func deref(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+
 // SaveRateSource appends one immutable source revision. For successors, the
 // parent must be the current head in the same tenant; the transaction-scoped
 // advisory lock serializes competing successors of one source.
@@ -240,6 +247,9 @@ func (s *Store) SaveQuote(ctx context.Context, tenant string, quote fx.FXQuoteRe
 	} else if err := sealed.Validate(); err != nil {
 		return invalid(err.Error())
 	}
+	if sealed.Revision != 1 || sealed.ParentQuoteID != "" || sealed.ParentDigest != "" {
+		return stale(sealed.Revision, 0, "quote successors must use SaveQuoteSuccessor")
+	}
 	tenantID, err := parseTenant(tenant)
 	if err != nil {
 		return err
@@ -266,16 +276,60 @@ func (s *Store) SaveQuote(ctx context.Context, tenant string, quote fx.FXQuoteRe
 		affected, err := tx.Exec(ctx, `
 			INSERT INTO fx_quote_revision (
 				row_id, tenant_id, quote_id, source_id, source_revision,
-				as_of, effective_at, observed_at, known_at, canonical_digest)
-			VALUES ($1,$2,$3,$4,$5,$6,$6,$6,$7,$8)
+				as_of, effective_at, observed_at, known_at, canonical_digest,
+				quote_revision, parent_quote_id, parent_digest, base_currency, quote_currency,
+				rate, rate_scale, market_convention, confidence, as_of_submicrosecond, known_at_submicrosecond)
+			VALUES ($1,$2,$3,$4,$5,$6,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
 			ON CONFLICT DO NOTHING`,
 			uuid.New(), tenantID, sealed.QuoteID, sealed.SourceID, int64(sealed.SourceRevision),
-			when.Time(), sealed.KnownAt.Time(), storedDigest(sealed.CanonicalDigest))
+			when.Time(), sealed.KnownAt.Time(), storedDigest(sealed.CanonicalDigest), int64(sealed.Revision), nullableDigest(sealed.ParentQuoteID), nullableDigest(sealed.ParentDigest),
+			sealed.BaseCurrency, sealed.QuoteCurrency, sealed.Rate.String(), sealed.Rate.Scale(), string(sealed.MarketConvention), string(sealed.Confidence), int16(when.Time().Nanosecond()%1000), int16(sealed.KnownAt.Time().Nanosecond()%1000))
 		if err != nil {
 			return fmt.Errorf("fxstore: insert quote %s: %w", sealed.QuoteID, err)
 		}
 		if affected == 0 {
 			return duplicate(fmt.Sprintf("quote revision %s already exists", sealed.QuoteID))
+		}
+		return nil
+	})
+}
+
+// SaveQuoteSuccessor appends a correction fenced by the predecessor digest and
+// revision. The partial unique parent index permits one winner per head.
+func (s *Store) SaveQuoteSuccessor(ctx context.Context, tenant string, successor fx.FXQuoteRevision) error {
+	if successor.ParentQuoteID == "" {
+		return invalid("quote successor parent is required")
+	}
+	tenantID, err := parseTenant(tenant)
+	if err != nil {
+		return err
+	}
+	return s.withTenant(ctx, tenant, func(tx dbport.Tx) error {
+		lockKey := tenantID.String() + ":fx-quote:" + successor.ParentQuoteID
+		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, lockKey); err != nil {
+			return fmt.Errorf("fxstore: lock quote predecessor: %w", err)
+		}
+		previous, err := loadQuoteTx(ctx, tx, tenantID, successor.ParentQuoteID)
+		if errors.Is(err, fx.ErrStoreNotFound) {
+			return stale(successor.Revision, 0, "quote predecessor does not exist")
+		}
+		if err != nil {
+			return err
+		}
+		sealed, err := fx.CorrectQuote(previous, successor)
+		if err != nil {
+			return stale(successor.Revision, previous.Revision, err.Error())
+		}
+		when := sealed.AsOf
+		if !when.IsSet() {
+			when = sealed.EffectiveAt
+		}
+		if !when.IsSet() {
+			when = sealed.ObservedAt
+		}
+		_, err = tx.Exec(ctx, `INSERT INTO fx_quote_revision (row_id,tenant_id,quote_id,source_id,source_revision,as_of,effective_at,observed_at,known_at,canonical_digest,quote_revision,parent_quote_id,parent_digest,base_currency,quote_currency,rate,rate_scale,market_convention,confidence,as_of_submicrosecond,known_at_submicrosecond) VALUES ($1,$2,$3,$4,$5,$6,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`, uuid.New(), tenantID, sealed.QuoteID, sealed.SourceID, int64(sealed.SourceRevision), when.Time(), sealed.KnownAt.Time(), storedDigest(sealed.CanonicalDigest), int64(sealed.Revision), sealed.ParentQuoteID, storedDigest(sealed.ParentDigest), sealed.BaseCurrency, sealed.QuoteCurrency, sealed.Rate.String(), sealed.Rate.Scale(), string(sealed.MarketConvention), string(sealed.Confidence), int16(when.Time().Nanosecond()%1000), int16(sealed.KnownAt.Time().Nanosecond()%1000))
+		if err != nil {
+			return stale(previous.Revision, previous.Revision, "quote successor lost compare-and-set")
 		}
 		return nil
 	})
@@ -292,41 +346,41 @@ func (s *Store) LoadQuote(ctx context.Context, tenant, quoteID string) (fx.FXQuo
 	}
 	var out fx.FXQuoteRevision
 	err = s.withTenant(ctx, tenant, func(tx dbport.Tx) error {
-		var (
-			sourceID, digest                 string
-			sourceRevision                   int64
-			asOf, effective, observed, known *time.Time
-		)
-		err := tx.QueryRow(ctx, `
-			SELECT source_id, source_revision, as_of, effective_at, observed_at,
-				known_at, canonical_digest
-			FROM fx_quote_revision
-			WHERE tenant_id=$1 AND quote_id=$2`, tenantID, quoteID).Scan(
-			&sourceID, &sourceRevision, &asOf, &effective, &observed, &known, &digest)
-		if err != nil {
-			if errors.Is(err, dbport.ErrNoRows) {
-				return notFound(fmt.Sprintf("quote revision %s", quoteID))
-			}
-			return fmt.Errorf("fxstore: load quote: %w", err)
-		}
-		if known == nil {
-			return invalid("stored quote observation times are incomplete")
-		}
-		chosen := asOf
-		if chosen == nil {
-			chosen = effective
-		}
-		if chosen == nil {
-			chosen = observed
-		}
-		if chosen == nil {
-			return invalid("stored quote observation times are incomplete")
-		}
-		asOfValue := values.NewInstant(chosen.UTC())
-		out = fx.FXQuoteRevision{QuoteID: quoteID, SourceID: sourceID, SourceRevision: uint64(sourceRevision), AsOf: asOfValue, EffectiveAt: asOfValue, ObservedAt: asOfValue, KnownAt: values.NewInstant(known.UTC()), CanonicalDigest: domainDigest(digest)}
-		return nil
+		var loadErr error
+		out, loadErr = loadQuoteTx(ctx, tx, tenantID, quoteID)
+		return loadErr
 	})
 	return out, err
+}
+
+func loadQuoteTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, quoteID string) (fx.FXQuoteRevision, error) {
+	var sourceID, digest string
+	var sourceRevision, quoteRevision int64
+	var parentID, parentDigest, base, quote, rate, convention, confidence *string
+	var rateScale *int16
+	var asOf, effective, observed, known *time.Time
+	var asOfSub, knownSub *int16
+	err := tx.QueryRow(ctx, `SELECT source_id,source_revision,as_of,effective_at,observed_at,known_at,canonical_digest,quote_revision,parent_quote_id,parent_digest,base_currency,quote_currency,rate,rate_scale,market_convention,confidence,as_of_submicrosecond,known_at_submicrosecond FROM fx_quote_revision WHERE tenant_id=$1 AND quote_id=$2`, tenantID, quoteID).Scan(&sourceID, &sourceRevision, &asOf, &effective, &observed, &known, &digest, &quoteRevision, &parentID, &parentDigest, &base, &quote, &rate, &rateScale, &convention, &confidence, &asOfSub, &knownSub)
+	if errors.Is(err, dbport.ErrNoRows) {
+		return fx.FXQuoteRevision{}, notFound(fmt.Sprintf("quote revision %s", quoteID))
+	}
+	if err != nil {
+		return fx.FXQuoteRevision{}, fmt.Errorf("fxstore: load quote: %w", err)
+	}
+	if asOf == nil || known == nil || base == nil || quote == nil || rate == nil || rateScale == nil || convention == nil || confidence == nil || asOfSub == nil || knownSub == nil {
+		return fx.FXQuoteRevision{}, invalid("stored quote policy is incomplete")
+	}
+	rateValue, err := values.NewDecimal(*rate, int32(*rateScale), values.RoundingExactRequired)
+	if err != nil {
+		return fx.FXQuoteRevision{}, invalid("stored quote rate is invalid")
+	}
+	asOfValue := values.NewInstant(asOf.UTC().Add(time.Duration(*asOfSub)))
+	knownValue := values.NewInstant(known.UTC().Add(time.Duration(*knownSub)))
+	out := fx.FXQuoteRevision{QuoteID: quoteID, Revision: uint64(quoteRevision), ParentQuoteID: deref(parentID), ParentDigest: domainDigest(deref(parentDigest)), SourceID: sourceID, SourceRevision: uint64(sourceRevision), BaseCurrency: *base, QuoteCurrency: *quote, Rate: rateValue, AsOf: asOfValue, EffectiveAt: asOfValue, ObservedAt: asOfValue, KnownAt: knownValue, MarketConvention: fx.MarketConvention(*convention), Confidence: fx.Confidence(*confidence), CanonicalDigest: domainDigest(digest)}
+	if err := out.Validate(); err != nil {
+		return fx.FXQuoteRevision{}, invalid("stored quote does not match its canonical digest or policy")
+	}
+	return out, nil
 }
 
 // SaveConversionProfile appends one immutable conversion-profile revision.
@@ -345,6 +399,16 @@ func (s *Store) SaveConversionProfile(ctx context.Context, tenant string, profil
 	if err != nil {
 		return err
 	}
+	from, to, err := intervalBounds(sealed.Effective)
+	if err != nil {
+		return invalid(err.Error())
+	}
+	fromSubmicrosecond := int16(from.Nanosecond() % 1000)
+	var toSubmicrosecond *int16
+	if to != nil {
+		part := int16(to.Nanosecond() % 1000)
+		toSubmicrosecond = &part
+	}
 	return s.withTenant(ctx, tenant, func(tx dbport.Tx) error {
 		if err := requireProfileHead(ctx, tx, tenantID, sealed); err != nil {
 			return err
@@ -352,10 +416,12 @@ func (s *Store) SaveConversionProfile(ctx context.Context, tenant string, profil
 		affected, err := tx.Exec(ctx, `
 			INSERT INTO fx_conversion_profile_revision (
 				row_id, tenant_id, profile_id, revision, parent_revision,
-				canonical_digest)
-			VALUES ($1,$2,$3,$4,$5,$6)
+				parent_digest, canonical_digest, rounding_scale, rounding_mode, tolerance_nanoseconds,
+				fallback_source_order, triangulation_currencies, effective_from, effective_to,
+				effective_from_submicrosecond, effective_to_submicrosecond)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 			ON CONFLICT DO NOTHING`,
-			uuid.New(), tenantID, sealed.ProfileID, int64(sealed.Revision), nullableRevision(sealed.ParentRevision), storedDigest(sealed.CanonicalDigest))
+			uuid.New(), tenantID, sealed.ProfileID, int64(sealed.Revision), nullableRevision(sealed.ParentRevision), nullableDigest(sealed.ParentDigest), storedDigest(sealed.CanonicalDigest), sealed.RoundingRule.Scale, sealed.RoundingRule.Mode.String(), sealed.Tolerance.Nanoseconds(), sealed.FallbackSourceOrder, sealed.TriangulationCurrencies, from, to, fromSubmicrosecond, toSubmicrosecond)
 		if err != nil {
 			return fmt.Errorf("fxstore: insert conversion profile %s/%d: %w", sealed.ProfileID, sealed.Revision, err)
 		}
@@ -421,24 +487,57 @@ func (s *Store) LoadConversionProfile(ctx context.Context, tenant, profileID str
 	var out fx.ConversionProfileRevision
 	err = s.withTenant(ctx, tenant, func(tx dbport.Tx) error {
 		var (
-			storedRevision int64
-			parentRevision *int64
-			digest         string
+			storedRevision               int64
+			parentRevision               *int64
+			parentDigest                 *string
+			digest                       string
+			roundingScale                *int32
+			roundingMode                 *string
+			toleranceNanos               *int64
+			fallbackOrder, triangulation []string
+			effectiveFrom, effectiveTo   *time.Time
+			fromSubmicrosecond           *int16
+			toSubmicrosecond             *int16
 		)
 		err := tx.QueryRow(ctx, `
-			SELECT revision, parent_revision, canonical_digest
+			SELECT revision, parent_revision, parent_digest, canonical_digest, rounding_scale, rounding_mode,
+				tolerance_nanoseconds, fallback_source_order, triangulation_currencies, effective_from, effective_to,
+				effective_from_submicrosecond, effective_to_submicrosecond
 			FROM fx_conversion_profile_revision
 			WHERE tenant_id=$1 AND profile_id=$2 AND revision=$3`, tenantID, profileID, int64(revision)).Scan(
-			&storedRevision, &parentRevision, &digest)
+			&storedRevision, &parentRevision, &parentDigest, &digest, &roundingScale, &roundingMode, &toleranceNanos, &fallbackOrder, &triangulation, &effectiveFrom, &effectiveTo, &fromSubmicrosecond, &toSubmicrosecond)
 		if err != nil {
 			if errors.Is(err, dbport.ErrNoRows) {
 				return notFound(fmt.Sprintf("conversion profile revision %s/%d", profileID, revision))
 			}
 			return fmt.Errorf("fxstore: load conversion profile: %w", err)
 		}
-		out = fx.ConversionProfileRevision{ProfileID: profileID, Revision: uint64(storedRevision), CanonicalDigest: domainDigest(digest)}
+		if roundingScale == nil || roundingMode == nil || toleranceNanos == nil || fallbackOrder == nil || effectiveFrom == nil || fromSubmicrosecond == nil || (effectiveTo != nil && toSubmicrosecond == nil) {
+			return invalid("conversion profile policy is incomplete")
+		}
+		mode, parseErr := values.ParseRoundingMode(*roundingMode)
+		if parseErr != nil {
+			return invalid("conversion profile rounding mode is invalid")
+		}
+		fromWithNanos := effectiveFrom.Add(time.Duration(*fromSubmicrosecond))
+		var toWithNanos *time.Time
+		if effectiveTo != nil {
+			adjusted := effectiveTo.Add(time.Duration(*toSubmicrosecond))
+			toWithNanos = &adjusted
+		}
+		interval, intervalErr := intervalFromBounds(&fromWithNanos, toWithNanos)
+		if intervalErr != nil {
+			return invalid("conversion profile effective interval is invalid")
+		}
+		out = fx.ConversionProfileRevision{ProfileID: profileID, Revision: uint64(storedRevision), CanonicalDigest: domainDigest(digest), RoundingRule: fx.RoundingRule{Scale: *roundingScale, Mode: mode}, Tolerance: time.Duration(*toleranceNanos), FallbackSourceOrder: append([]string(nil), fallbackOrder...), TriangulationCurrencies: append([]string(nil), triangulation...), Effective: interval}
 		if parentRevision != nil {
 			out.ParentRevision = uint64(*parentRevision)
+		}
+		if parentDigest != nil {
+			out.ParentDigest = domainDigest(*parentDigest)
+		}
+		if validateErr := out.Validate(); validateErr != nil {
+			return invalid("stored conversion profile does not match its canonical digest or policy")
 		}
 		return nil
 	})
@@ -457,6 +556,26 @@ func nullableDigest(digest string) any {
 		return nil
 	}
 	return storedDigest(digest)
+}
+
+func intervalStart(interval values.EffectiveInterval) time.Time {
+	if start, ok := interval.StartInstant(); ok {
+		return start.Time()
+	}
+	if start, ok := interval.StartDate(); ok {
+		return time.Date(int(start.Year()), start.Month(), int(start.Day()), 0, 0, 0, 0, time.UTC)
+	}
+	return time.Time{}
+}
+
+func intervalEnd(interval values.EffectiveInterval) any {
+	if end, ok := interval.EndInstant(); ok {
+		return end.Time()
+	}
+	if end, ok := interval.EndDate(); ok {
+		return time.Date(int(end.Year()), end.Month(), int(end.Day()), 0, 0, 0, 0, time.UTC)
+	}
+	return nil
 }
 
 func intervalBounds(interval values.EffectiveInterval) (time.Time, *time.Time, error) {

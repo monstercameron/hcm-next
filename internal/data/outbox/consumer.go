@@ -160,13 +160,15 @@ func (c *Consumer) Poll(ctx context.Context, tenant uuid.UUID) ([]Record, error)
 	for _, id := range ids {
 		leaseToken := uuid.New()
 		leaseUntil := now.Add(c.lease)
+		attemptID := uuid.New().String()
 		claims = append(claims, claim{id: id, leaseToken: leaseToken, leaseUntil: leaseUntil})
 		statements = append(statements, dbport.Statement{SQL: `
 			UPDATE outbox SET status = $3, attempts = attempts + 1, updated_at = $4,
-				lease_token = $5, lease_until = $6, lease_version = lease_version + 1
+				lease_token = $5, lease_until = $6, lease_version = lease_version + 1,
+				attempt_id = CASE WHEN logical_operation_id IS NULL THEN attempt_id ELSE $9 END
 			WHERE tenant_id = $1 AND outbox_id = $2
 			  AND ((status = $7 AND available_at <= $4) OR (status = $8 AND lease_until <= $4))`, Args: []any{
-			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight,
+			tenant, id, StatusInFlight, now, leaseToken, leaseUntil, StatusPending, StatusInFlight, attemptID,
 		}})
 	}
 	counts, err := dbport.ExecAll(ctx, tx, statements)

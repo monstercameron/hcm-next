@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
 	legalpipeline "github.com/monstercameron/hcm-next/internal/governance/legal/pipeline"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
@@ -44,6 +46,14 @@ func newLegalDB(t *testing.T) *pgtest.DB {
 	up := strings.SplitN(string(migration), "-- +goose Down", 2)[0]
 	if _, err := db.SQL.ExecContext(context.Background(), up); err != nil {
 		t.Fatalf("apply legal evidence migration: %v", err)
+	}
+	migration, err = os.ReadFile("../../../migrations/00275_legal_evaluation_receipts.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	up = strings.SplitN(string(migration), "-- +goose Down", 2)[0]
+	if _, err := db.SQL.ExecContext(context.Background(), up); err != nil {
+		t.Fatalf("apply evaluation migration: %v", err)
 	}
 	return db
 }
@@ -293,5 +303,164 @@ func TestTodo_PERSIST_LEGALEVIDENCE_001_Mutation(t *testing.T) {
 		if err == nil {
 			t.Fatalf("mutation succeeded: %s", statement)
 		}
+	}
+}
+
+func signedEvaluationEvidence(t *testing.T, tenant uuid.UUID) (EvaluationReceiptEntry, EvaluationBindingEntry, *legal.Signer) {
+	t.Helper()
+	signer, err := legal.NewSigner(ed25519.NewKeyFromSeed(bytes.Repeat([]byte{0x44}, ed25519.SeedSize)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	date, _ := values.NewLocalDate(2026, time.January, 1)
+	known, _ := values.NewKnownAt(values.NewInstant(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)))
+	r := legal.LegalEvaluationReceipt{LegalContextDigest: strings.Repeat("c", 64), JurisdictionSet: legal.ReceiptJurisdictionSet{Primary: legal.Jurisdiction{Country: "US", State: "CA"}}, PinnedReleases: []legal.PinnedReleaseEvidence{{Release: legal.RulePackRelease{PackID: "pack-ca", Version: 1, Jurisdiction: legal.Jurisdiction{Country: "US", State: "CA"}}, Digest: strings.Repeat("a", 64)}}, AttributionRuleFired: legal.AttributionA1, RemoteWorkPolicyApplied: "not_remote", ObligationsApplied: []legal.ReceiptAppliedObligation{}, ObligationsNotApplicable: []legal.ConsideredObligation{}, ObligationsNotConsidered: []legal.NotConsideredKind{}, CompositionTrace: []legal.CompositionTrace{}, Status: legal.LegalEvaluationStatusResolvedAllow, EvaluatedAt: values.NewInstant(time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)), EffectiveDate: date, KnownAt: known}
+	r.Digest, r.Signature = signer.SignDigest(r.CanonicalBytes())
+	ref := uuid.NewString()
+	b := legal.EvaluationBinding{Tenant: tenant.String(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), ReceiptRef: ref, ReceiptDigest: r.Digest, LegalContextDigest: r.LegalContextDigest}
+	b, err = legal.SignEvaluationBinding(b, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return EvaluationReceiptEntry{TenantID: tenant.String(), Tenant: tenant.String(), ReceiptRef: ref, Receipt: r}, EvaluationBindingEntry{TenantID: tenant.String(), Binding: b}, signer
+}
+
+func TestTodo_LEGAL_014_Integration(t *testing.T) {
+	db := newLegalDB(t)
+	tenant := insertTenant(t, db, "eval-integration")
+	re, be, signer := signedEvaluationEvidence(t, tenant)
+	authorize := func(_ context.Context, ref string) (uuid.UUID, error) {
+		if ref != tenant.String() {
+			return uuid.Nil, errors.New("tenant mismatch")
+		}
+		return tenant, nil
+	}
+	v := NewVerifier(New(appConn(t, db)), authorize, signer.PublicKey())
+	if err := v.AppendEvaluationReceipt(context.Background(), re); err != nil {
+		t.Fatal(err)
+	}
+	if err := v.AppendEvaluationReceipt(context.Background(), re); err != nil {
+		t.Fatalf("retry: %v", err)
+	}
+	if err := v.AppendEvaluationBinding(context.Background(), be); err != nil {
+		t.Fatal(err)
+	}
+	got, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: tenant.String(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), LegalContextDigest: strings.Repeat("c", 64)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Digest != be.Binding.Digest {
+		t.Fatalf("digest=%q", got.Digest)
+	}
+	fresh := NewVerifier(New(appConn(t, db)), authorize, signer.PublicKey())
+	if _, err := fresh.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: tenant.String(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), LegalContextDigest: strings.Repeat("c", 64)}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTodo_LEGAL_014_Security(t *testing.T) {
+	db := newLegalDB(t)
+	tenant := insertTenant(t, db, "eval-security")
+	re, be, signer := signedEvaluationEvidence(t, tenant)
+	authorize := func(_ context.Context, ref string) (uuid.UUID, error) {
+		if ref != tenant.String() {
+			return uuid.Nil, errors.New("tenant mismatch")
+		}
+		return tenant, nil
+	}
+	v := NewVerifier(New(appConn(t, db)), authorize, signer.PublicKey())
+	if err := v.AppendEvaluationReceipt(context.Background(), re); err != nil {
+		t.Fatal(err)
+	}
+	bad := NewVerifier(New(appConn(t, db)), authorize, []byte("untrusted"))
+	if err := bad.AppendEvaluationReceipt(context.Background(), re); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("untrusted=%v", err)
+	}
+	forged := be
+	forged.Binding.IntentID = "intent-forged-obligations"
+	forged.Binding.AppliedObligations = []legal.BoundObligation{{Type: legal.ObligationTypeNotice, ID: "unrelated-duty", BodyDigest: strings.Repeat("e", 64)}}
+	var err error
+	forged.Binding, err = legal.SignEvaluationBinding(forged.Binding, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := v.AppendEvaluationBinding(context.Background(), forged); err != nil {
+		t.Fatalf("append internally inconsistent but authentic binding: %v", err)
+	}
+	if _, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: tenant.String(), IntentID: forged.Binding.IntentID, ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), LegalContextDigest: strings.Repeat("c", 64)}); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("forged obligation set verification=%v, want ErrInvalid", err)
+	}
+	if err := v.AppendEvaluationBinding(context.Background(), be); err != nil {
+		t.Fatal(err)
+	}
+	other := insertTenant(t, db, "eval-security-other")
+	inTenantTx(t, appConn(t, db), other, func(tx dbport.Tx) error {
+		var count int
+		if err := tx.QueryRow(context.Background(), `SELECT count(*) FROM legal_evaluation_receipt WHERE tenant_id=$1`, tenant).Scan(&count); err != nil {
+			return err
+		}
+		if count != 0 {
+			t.Fatalf("cross-tenant receipt count=%d, want 0", count)
+		}
+		return nil
+	})
+	if err := inTenantTxErr(appConn(t, db), tenant, func(tx dbport.Tx) error {
+		_, err := tx.Exec(context.Background(), `UPDATE legal_evaluation_receipt SET receipt_digest=$3 WHERE tenant_id=$1 AND receipt_ref=$2`, tenant, re.ReceiptRef, strings.Repeat("f", 64))
+		return err
+	}); err == nil {
+		t.Fatal("immutable receipt accepted tampering update")
+	}
+	if _, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: tenant.String(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: "wrong", LegalContextDigest: strings.Repeat("c", 64)}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("mismatch=%v", err)
+	}
+	foreign := uuid.New()
+	if _, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: foreign.String(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), LegalContextDigest: strings.Repeat("c", 64)}); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("caller-selected tenant=%v, want ErrInvalid", err)
+	}
+	if _, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: uuid.NewString(), IntentID: "intent-1", ProposalRevisionID: "proposal-1", MaterialDigest: strings.Repeat("d", 64), LegalContextDigest: strings.Repeat("c", 64)}); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("caller-selected tenant=%v, want ErrInvalid", err)
+	}
+}
+
+func TestTodo_LEGAL_014_Recovery(t *testing.T) {
+	db := newLegalDB(t)
+	tenant := insertTenant(t, db, "eval-recovery")
+	re, be, signer := signedEvaluationEvidence(t, tenant)
+	authorize := func(_ context.Context, ref string) (uuid.UUID, error) {
+		if ref != tenant.String() {
+			return uuid.Nil, errors.New("tenant mismatch")
+		}
+		return tenant, nil
+	}
+	v := NewVerifier(New(appConn(t, db)), authorize, signer.PublicKey())
+	v2 := NewVerifier(New(appConn(t, db)), authorize, signer.PublicKey())
+	errs := make(chan error, 2)
+	go func() { errs <- v.AppendEvaluationReceipt(context.Background(), re) }()
+	go func() { errs <- v2.AppendEvaluationReceipt(context.Background(), re) }()
+	for range 2 {
+		if err := <-errs; err != nil {
+			t.Fatalf("concurrent exact receipt retry: %v", err)
+		}
+	}
+	conflictingReceipt := re
+	conflictingReceipt.ReceiptRef = uuid.NewString()
+	if err := v.AppendEvaluationReceipt(context.Background(), conflictingReceipt); !errors.Is(err, ErrDuplicate) {
+		t.Fatalf("conflicting receipt duplicate=%v, want ErrDuplicate", err)
+	}
+	if err := v.AppendEvaluationBinding(context.Background(), be); err != nil {
+		t.Fatal(err)
+	}
+	conflictingBinding := be
+	conflictingBinding.Binding.ReceiptRef = uuid.NewString()
+	var err error
+	conflictingBinding.Binding, err = legal.SignEvaluationBinding(conflictingBinding.Binding, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := v.AppendEvaluationBinding(context.Background(), conflictingBinding); !errors.Is(err, ErrDuplicate) {
+		t.Fatalf("conflicting semantic binding=%v, want ErrDuplicate", err)
+	}
+	if _, err := v.VerifyLegalEvidence(context.Background(), EvidenceRequest{Tenant: tenant.String(), IntentID: be.Binding.IntentID, ProposalRevisionID: be.Binding.ProposalRevisionID, MaterialDigest: be.Binding.MaterialDigest, LegalContextDigest: be.Binding.LegalContextDigest}); err != nil {
+		t.Fatalf("conflicting duplicate rolled back original binding: %v", err)
 	}
 }

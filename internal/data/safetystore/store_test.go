@@ -3,7 +3,9 @@ package safetystore_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -37,6 +39,17 @@ func newDB(t *testing.T) *pgtest.DB {
 	up = strings.Replace(up, "-- +goose Up", "", 1)
 	if _, err := db.Conn.Exec(context.Background(), up); err != nil {
 		t.Fatalf("apply owned 00112 migration: %v", err)
+	}
+	body, err = migrations.FS.ReadFile("00278_safety_conformance_records.sql")
+	if err != nil {
+		t.Fatalf("read 00278 migration: %v", err)
+	}
+	up = strings.SplitN(string(body), "-- +goose Down", 2)[0]
+	up = strings.Replace(up, "-- +goose Up", "", 1)
+	// The fixture applies the migration body directly; Goose markers are
+	// comments here and the embedded PostgreSQL accepts the PL/pgSQL blocks.
+	if _, err := db.Conn.Exec(context.Background(), up); err != nil {
+		t.Fatalf("apply owned 00278 migration: %v", err)
 	}
 	return db
 }
@@ -298,4 +311,217 @@ func TestTodo_PERSIST_SAFETY_001_Mutation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestTodo_SAFETY_002_ConformanceRecordsDurableAndTenantScoped(t *testing.T) {
+	db := newDB(t)
+	conn := appConn(t, db)
+	alpha, beta := insertTenant(t, db, "safety-conformance-alpha"), insertTenant(t, db, "safety-conformance-beta")
+	filing, err := safety.NewFilingRevision(safety.FilingRevision{ID: id("filing"), CaseRef: id("case"), CompartmentRef: id("regulatory"), Revision: 1, IncidentRef: id("incident"), AuthorityRef: id("authority"), ProviderRef: id("provider"), SubmissionRef: "submission-1", SignerRef: id("signer"), SignatureRef: "signature-1", Status: safety.FilingSubmitted, Obligations: []string{"notify"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	payment, err := safety.NewWorkersCompPaymentRevision(safety.WorkersCompPaymentRevision{ID: id("payment"), CaseRef: id("case"), CompartmentRef: id("claims"), Revision: 1, ClaimRef: "claim", WorkerRef: id("worker"), AmountMinor: 100, Currency: "USD", Status: safety.PaymentSettled, ObservationRef: "settled"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	clearance, err := safety.NewRestrictionClearanceRevision(safety.RestrictionClearanceRevision{ID: id("clearance"), CaseRef: id("case"), CompartmentRef: id("medical"), Revision: 1, RestrictionRef: id("restriction"), WorkerRef: id("worker"), EvidenceRef: "note", EvidenceDigest: "sha256:note", AuthorityRef: "clinician", ObservationRef: "observed"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	correction, err := safety.NewSafetyCorrectionRevision(safety.SafetyCorrectionRevision{ID: id("correction"), CaseRef: id("case"), CompartmentRef: id("regulatory"), Revision: 1, IncidentRef: id("incident"), SourceRevisionDigest: filing.CanonicalDigest, Reason: "late source", EvidenceRef: "evidence", AmendedFilingRef: filing.CanonicalDigest})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reconciliation, err := safety.NewSafetyReconciliationRevision(safety.SafetyReconciliationRevision{ID: id("reconciliation"), CaseRef: id("case"), CompartmentRef: id("regulatory"), Revision: 1, IncidentRef: id("incident"), SourceRevisionDigest: filing.CanonicalDigest, ObservationRef: "observation-1", Obligations: []string{"amend filing"}, ObservedAt: values.NewInstant(safetyAt.Add(123 * time.Nanosecond)), Status: safety.ReconciliationOpen})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tenantTx(t, conn, alpha, func(tx dbport.Tx) error {
+		s := safetystore.New(tx, alpha)
+		for _, e := range []error{s.SaveFiling(filing), s.SaveWorkersCompPayment(payment), s.SaveRestrictionClearance(clearance), s.SaveSafetyReconciliation(reconciliation), s.SaveSafetyCorrection(correction)} {
+			if e != nil {
+				return e
+			}
+		}
+		return nil
+	})
+	fresh := appConn(t, db)
+	tenantTx(t, fresh, alpha, func(tx dbport.Tx) error {
+		s := safetystore.New(tx, alpha)
+		if got, ok := s.GetFiling(filing.ID, 1); !ok || got.CanonicalDigest != filing.CanonicalDigest {
+			t.Fatal("filing not durable")
+		}
+		if got, ok := s.GetWorkersCompPayment(payment.ID, 1); !ok || got.CanonicalDigest != payment.CanonicalDigest {
+			t.Fatal("payment not durable")
+		}
+		if got, ok := s.GetRestrictionClearance(clearance.ID, 1); !ok || got.CanonicalDigest != clearance.CanonicalDigest {
+			t.Fatal("clearance not durable")
+		}
+		if got, ok := s.GetSafetyCorrection(correction.ID, 1); !ok || got.CanonicalDigest != correction.CanonicalDigest {
+			t.Fatal("correction not durable")
+		}
+		if got, ok := s.GetSafetyReconciliation(reconciliation.ID, 1); !ok || got.CanonicalDigest != reconciliation.CanonicalDigest || got.ObservedAt.Time() != reconciliation.ObservedAt.Time() {
+			t.Fatal("reconciliation not durably reconstructed")
+		}
+		return nil
+	})
+	families := []struct {
+		table, idColumn string
+		id              string
+	}{
+		{"safety_filing_revision", "filing_id", filing.ID},
+		{"safety_workers_comp_payment_revision", "payment_id", payment.ID},
+		{"safety_restriction_clearance_revision", "clearance_id", clearance.ID},
+		{"safety_reconciliation_revision", "reconciliation_id", reconciliation.ID},
+		{"safety_correction_revision", "correction_id", correction.ID},
+	}
+	cloneSQL := func(family struct{ table, idColumn, id string }, overrides string) string {
+		return fmt.Sprintf(`INSERT INTO %s SELECT (jsonb_populate_record(NULL::%s, to_jsonb(t) || jsonb_build_object('row_id',$3::text,'revision',$4::bigint,'parent_revision',$5::bigint,'parent_digest',$6::text,'canonical_digest',$7::text)%s)).* FROM %s t WHERE tenant_id=$1 AND %s=$2 AND revision=$8`, family.table, family.table, overrides, family.table, family.idColumn)
+	}
+	for _, family := range families {
+		family := family
+		t.Run("direct SQL lineage "+family.table, func(t *testing.T) {
+			idValue := uuid.MustParse(family.id)
+			var parentDigest string
+			tenantTx(t, conn, alpha, func(tx dbport.Tx) error {
+				if err := tx.QueryRow(context.Background(), fmt.Sprintf(`SELECT canonical_digest FROM %s WHERE tenant_id=$1 AND %s=$2 AND revision=1`, family.table, family.idColumn), alpha, idValue).Scan(&parentDigest); err != nil {
+					return err
+				}
+				_, err := tx.Exec(context.Background(), cloneSQL(family, ""), alpha, idValue, uuid.New(), 2, 1, parentDigest, strings.Repeat("a", 64), 1)
+				return err
+			})
+			for name, overrides := range map[string]string{
+				"null parent":       "",
+				"bad digest":        "",
+				"cross case":        ` || jsonb_build_object('case_ref',$9::text)`,
+				"cross compartment": ` || jsonb_build_object('compartment_ref',$9::text)`,
+			} {
+				name, overrides := name, overrides
+				t.Run(name, func(t *testing.T) {
+					parentRevision, digest := any(int64(2)), parentDigest
+					if name == "null parent" {
+						parentRevision, digest = nil, ""
+					} else if name == "bad digest" {
+						digest = strings.Repeat("b", 64)
+					}
+					args := []any{alpha, idValue, uuid.New(), 3, parentRevision, nullStringTest(digest), strings.Repeat("c", 64), 2}
+					if overrides != "" {
+						args = append(args, uuid.New())
+					}
+					err := tenantTxErr(conn, alpha, func(tx dbport.Tx) error {
+						_, err := tx.Exec(context.Background(), cloneSQL(family, overrides), args...)
+						return err
+					})
+					if err == nil {
+						t.Fatal("forged successor was accepted")
+					}
+				})
+			}
+			for _, operation := range []string{"UPDATE", "DELETE"} {
+				err := tenantTxErr(conn, alpha, func(tx dbport.Tx) error {
+					if operation == "UPDATE" {
+						_, err := tx.Exec(context.Background(), fmt.Sprintf(`UPDATE %s SET canonical_digest=canonical_digest WHERE tenant_id=$1 AND %s=$2`, family.table, family.idColumn), alpha, idValue)
+						return err
+					}
+					_, err := tx.Exec(context.Background(), fmt.Sprintf(`DELETE FROM %s WHERE tenant_id=$1 AND %s=$2`, family.table, family.idColumn), alpha, idValue)
+					return err
+				})
+				if err == nil {
+					t.Fatalf("%s bypassed append-only protection", operation)
+				}
+			}
+			tenantTx(t, conn, alpha, func(tx dbport.Tx) error {
+				var count int
+				if err := tx.QueryRow(context.Background(), fmt.Sprintf(`SELECT count(*) FROM %s WHERE tenant_id=$1 AND %s=$2 AND revision=3`, family.table, family.idColumn), alpha, idValue).Scan(&count); err != nil {
+					return err
+				}
+				if count != 0 {
+					t.Fatalf("failed lineage writes left %d revision-3 rows", count)
+				}
+				return nil
+			})
+		})
+	}
+	tenantTx(t, conn, beta, func(tx dbport.Tx) error {
+		for _, family := range families {
+			var count int
+			if err := tx.QueryRow(context.Background(), fmt.Sprintf(`SELECT count(*) FROM %s WHERE %s=$1`, family.table, family.idColumn), uuid.MustParse(family.id)).Scan(&count); err != nil {
+				return err
+			}
+			if count != 0 {
+				t.Fatalf("cross-tenant %s read returned %d rows", family.table, count)
+			}
+		}
+		return nil
+	})
+}
+
+func nullStringTest(v string) any {
+	if v == "" {
+		return nil
+	}
+	return v
+}
+
+func TestTodo_SAFETY_002_Race(t *testing.T) {
+	db := newDB(t)
+	tenant := insertTenant(t, db, "safety-payment-race")
+	settled, err := safety.NewWorkersCompPaymentRevision(safety.WorkersCompPaymentRevision{ID: id("race-payment"), CaseRef: id("race-case"), CompartmentRef: id("claims"), Revision: 1, ClaimRef: "claim-race", WorkerRef: id("race-worker"), AmountMinor: 4250, Currency: "USD", Status: safety.PaymentSettled, ObservationRef: "settled-observation"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	setup := appConn(t, db)
+	tenantTx(t, setup, tenant, func(tx dbport.Tx) error { return safetystore.New(tx, tenant).SaveWorkersCompPayment(settled) })
+	reversals := make([]safety.WorkersCompPaymentRevision, 2)
+	for i := range reversals {
+		reversals[i], err = safety.NewWorkersCompPaymentRevision(safety.WorkersCompPaymentRevision{ID: settled.ID, CaseRef: settled.CaseRef, CompartmentRef: settled.CompartmentRef, Revision: 2, ParentRevision: 1, ParentDigest: settled.CanonicalDigest, ClaimRef: settled.ClaimRef, WorkerRef: settled.WorkerRef, AmountMinor: settled.AmountMinor, Currency: settled.Currency, Status: safety.PaymentReversed, ObservationRef: fmt.Sprintf("reversal-observation-%d", i), ReversalRef: fmt.Sprintf("reversal-%d", i)})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	results := make([]error, 2)
+	var start, done sync.WaitGroup
+	start.Add(1)
+	for i := range results {
+		done.Add(1)
+		go func(i int) {
+			defer done.Done()
+			conn := appConn(t, db)
+			start.Wait()
+			results[i] = tenantTxErr(conn, tenant, func(tx dbport.Tx) error { return safetystore.New(tx, tenant).SaveWorkersCompPayment(reversals[i]) })
+		}(i)
+	}
+	start.Done()
+	done.Wait()
+	wins := 0
+	for _, err := range results {
+		if err == nil {
+			wins++
+		} else if !errors.Is(err, safetystore.ErrVersionConflict) {
+			t.Fatalf("unexpected reversal result: %v", err)
+		}
+	}
+	if wins != 1 {
+		t.Fatalf("reversal wins = %d, want exactly 1", wins)
+	}
+	tenantTx(t, setup, tenant, func(tx dbport.Tx) error {
+		var count int
+		var amount int64
+		var parent string
+		if err := tx.QueryRow(context.Background(), `SELECT count(*), min(amount_minor), min(parent_digest) FROM safety_workers_comp_payment_revision WHERE tenant_id=$1 AND payment_id=$2 AND revision=2`, tenant, uuid.MustParse(settled.ID)).Scan(&count, &amount, &parent); err != nil {
+			return err
+		}
+		if count != 1 || amount != settled.AmountMinor || domainDigestForTest(parent) != settled.CanonicalDigest {
+			t.Fatalf("stored reversal count/amount/parent = %d/%d/%s", count, amount, parent)
+		}
+		return nil
+	})
+}
+
+func domainDigestForTest(v string) string {
+	if strings.HasPrefix(v, "sha256:") {
+		return v
+	}
+	return "sha256:" + v
 }

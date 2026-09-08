@@ -55,6 +55,7 @@ var (
 	ErrEntryNotFound       = errors.New("balancestore: entry not found")
 	ErrStaleCAS            = errors.New("balancestore: stale compare-and-swap")
 	ErrIdempotencyConflict = errors.New("balancestore: idempotency key conflict")
+	ErrCorrectionConflict  = errors.New("balancestore: correction parent already superseded")
 	ErrSequenceGap         = errors.New("balancestore: event sequence gap")
 	ErrDuplicateEvent      = errors.New("balancestore: duplicate lifecycle event")
 )
@@ -65,6 +66,7 @@ const (
 	CodeEntryNotFound       = "BALANCE_ENTRY_NOT_FOUND"
 	CodeStaleCAS            = "BALANCE_STALE_CAS"
 	CodeIdempotencyConflict = "BALANCE_IDEMPOTENCY_CONFLICT"
+	CodeCorrectionConflict  = "BALANCE_CORRECTION_CONFLICT"
 	CodeSequenceGap         = "BALANCE_SEQUENCE_GAP"
 	CodeDuplicateEvent      = "BALANCE_DUPLICATE_EVENT"
 )
@@ -219,10 +221,19 @@ func (s Store) Post(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, req bal
 	if req.Entry.IdempotencyKey == "" {
 		return balance.PostReceipt{}, invalid("idempotency_key", "is required")
 	}
+	lineage, err := hasCorrectionLineage(ctx, tx)
+	if err != nil {
+		return balance.PostReceipt{}, err
+	}
+	if req.Entry.SupersedesDigest != "" {
+		if !lineage {
+			return balance.PostReceipt{}, invalid("supersedes_digest", "correction lineage storage is not installed")
+		}
+	}
 	if err := lock(ctx, tx, "key:"+tenant.String()+":"+req.Entry.IdempotencyKey); err != nil {
 		return balance.PostReceipt{}, err
 	}
-	if prior, found, err := s.loadEntryByKey(ctx, tx, tenant, req.Entry.IdempotencyKey); err != nil {
+	if prior, found, err := s.loadEntryByKey(ctx, tx, tenant, req.Entry.IdempotencyKey, lineage); err != nil {
 		return balance.PostReceipt{}, err
 	} else if found {
 		if prior.receipt.Digest != req.Entry.Digest() {
@@ -240,10 +251,33 @@ func (s Store) Post(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, req bal
 	if err := req.Entry.Validate(def.Definition); err != nil {
 		return balance.PostReceipt{}, err
 	}
-	amount, err := req.Entry.Amount.Quantize(4, values.RoundingExactRequired)
-	if err != nil {
-		return balance.PostReceipt{}, fmt.Errorf("%w: amount must be representable at numeric(19,4): %v", ErrInvalid, err)
+	var parentRef uuid.UUID
+	if req.Entry.SupersedesDigest != "" {
+		rows, queryErr := tx.Query(ctx, entryColumnsLineage+` FROM balance_entry b JOIN accumulator_definition d ON d.tenant_id=b.tenant_id AND d.definition_id=b.definition_id AND d.revision=b.definition_version WHERE b.tenant_id=$1 AND b.account_id=$2 ORDER BY b.event_sequence`, tenant, req.Entry.AccountID)
+		if queryErr != nil {
+			return balance.PostReceipt{}, fmt.Errorf("load correction parent: %w", queryErr)
+		}
+		for rows.Next() {
+			parent, scanErr := scanEntryLineage(rows)
+			if scanErr != nil {
+				rows.Close()
+				return balance.PostReceipt{}, scanErr
+			}
+			if parent.Digest() == req.Entry.SupersedesDigest && parent.DefinitionID == req.Entry.DefinitionID && parent.DefinitionVersion == req.Entry.DefinitionVersion {
+				parentRef = parent.rowID
+				break
+			}
+		}
+		if rows.Err() != nil {
+			rows.Close()
+			return balance.PostReceipt{}, fmt.Errorf("load correction parent: %w", rows.Err())
+		}
+		rows.Close()
+		if parentRef == uuid.Nil {
+			return balance.PostReceipt{}, codedError{code: "BALANCE_INVALID", err: ErrInvalid, text: "correction parent not found"}
+		}
 	}
+	amountProjection := req.Entry.Amount.String()
 	if err := lock(ctx, tx, "account:"+tenant.String()+":"+req.Entry.AccountID); err != nil {
 		return balance.PostReceipt{}, err
 	}
@@ -261,22 +295,34 @@ func (s Store) Post(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, req bal
 	if err != nil {
 		return balance.PostReceipt{}, fmt.Errorf("marshal dimensions: %w", err)
 	}
-	row := tx.QueryRow(ctx, `
-		INSERT INTO balance_entry (row_id,tenant_id,account_id,definition_id,definition_version,unit,currency,subject,period,dimensions,kind,amount,entry_type,source_transaction_id,idempotency_key,effective_at,authorized_at,event_sequence)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12::numeric,$13,$14,$15,$16,$17,$18)
-		RETURNING row_id, recorded_at`, uuid.New(), tenant, req.Entry.AccountID, req.Entry.DefinitionID, int64(def.Revision), req.Entry.Unit,
-		optionalText(req.Entry.Currency), req.Entry.Subject, req.Entry.Period, string(dimensions), string(req.Entry.Kind), amount.String(), req.Entry.EntryType,
-		optionalText(req.Entry.SourceTransactionID), req.Entry.IdempotencyKey, optionalInstant(req.Entry.EffectiveAt), optionalInstant(req.Entry.AuthorizedAt), max+1)
+	insertSQL := `
+		INSERT INTO balance_entry (row_id,tenant_id,account_id,definition_id,definition_version,unit,currency,subject,period,dimensions,kind,amount,entry_type,source_transaction_id,idempotency_key,effective_at,authorized_at,event_sequence,supersedes_digest,supersedes_row_id)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12::numeric,$13,$14,$15,$16,$17,$18,$19,$20)
+		RETURNING row_id, recorded_at`
+	args := []any{uuid.New(), tenant, req.Entry.AccountID, req.Entry.DefinitionID, int64(def.Revision), req.Entry.Unit,
+		optionalText(req.Entry.Currency), req.Entry.Subject, req.Entry.Period, string(dimensions), string(req.Entry.Kind), amountProjection, req.Entry.EntryType,
+		optionalText(req.Entry.SourceTransactionID), req.Entry.IdempotencyKey, optionalInstant(req.Entry.EffectiveAt), optionalInstant(req.Entry.AuthorizedAt), max + 1, optionalText(req.Entry.SupersedesDigest), optionalParentUUID(parentRef)}
+	if lineage {
+		insertSQL = `INSERT INTO balance_entry (row_id,tenant_id,account_id,definition_id,definition_version,unit,currency,subject,period,dimensions,kind,amount,entry_type,source_transaction_id,idempotency_key,effective_at,authorized_at,event_sequence,supersedes_digest,supersedes_row_id,amount_exact,amount_scale,amount_rounding,effective_at_submicro,authorized_at_submicro) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12::numeric,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25) RETURNING row_id, recorded_at`
+		args = append(args, req.Entry.Amount.String(), req.Entry.Amount.Scale(), req.Entry.Amount.Rounding().String(), submicro(req.Entry.EffectiveAt), submicro(req.Entry.AuthorizedAt))
+	} else if req.Entry.SupersedesDigest == "" {
+		insertSQL = `INSERT INTO balance_entry (row_id,tenant_id,account_id,definition_id,definition_version,unit,currency,subject,period,dimensions,kind,amount,entry_type,source_transaction_id,idempotency_key,effective_at,authorized_at,event_sequence) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12::numeric,$13,$14,$15,$16,$17,$18) RETURNING row_id, recorded_at`
+		args = args[:18]
+	}
+	row := tx.QueryRow(ctx, insertSQL, args...)
 	var rowID uuid.UUID
 	var recordedAt time.Time
 	if err := row.Scan(&rowID, &recordedAt); err != nil {
 		if isUnique(err) {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.ConstraintName == "balance_entry_one_correction_per_parent" {
+				return balance.PostReceipt{}, codedError{code: CodeCorrectionConflict, err: ErrCorrectionConflict, text: CodeCorrectionConflict}
+			}
 			return balance.PostReceipt{}, codedError{code: CodeIdempotencyConflict, err: ErrIdempotencyConflict, text: fmt.Sprintf("%s: %s", CodeIdempotencyConflict, req.Entry.IdempotencyKey)}
 		}
 		return balance.PostReceipt{}, fmt.Errorf("append balance entry: %w", err)
 	}
 	posted := req.Entry
-	posted.Amount = amount
 	posted.RecordedAt = values.NewInstant(recordedAt.UTC())
 	return balance.PostReceipt{Entry: posted, Head: max + 1, Digest: posted.Digest()}, nil
 }
@@ -294,9 +340,19 @@ type storedEntry struct {
 
 func (e storedEntry) Digest() string { return e.BalanceEntry.Digest() }
 
-func (s Store) loadEntryByKey(ctx context.Context, q dbport.Querier, tenant uuid.UUID, key string) (storedReceipt, bool, error) {
-	row := q.QueryRow(ctx, entryColumns+` FROM balance_entry b JOIN accumulator_definition d ON d.tenant_id=b.tenant_id AND d.definition_id=b.definition_id AND d.revision=b.definition_version WHERE b.tenant_id=$1 AND b.idempotency_key=$2`, tenant, key)
-	e, err := scanEntry(row)
+func (s Store) loadEntryByKey(ctx context.Context, q dbport.Querier, tenant uuid.UUID, key string, lineage bool) (storedReceipt, bool, error) {
+	columns := entryColumns
+	if lineage {
+		columns = entryColumnsLineage
+	}
+	row := q.QueryRow(ctx, columns+` FROM balance_entry b JOIN accumulator_definition d ON d.tenant_id=b.tenant_id AND d.definition_id=b.definition_id AND d.revision=b.definition_version WHERE b.tenant_id=$1 AND b.idempotency_key=$2`, tenant, key)
+	var e storedEntry
+	var err error
+	if lineage {
+		e, err = scanEntryLineage(row)
+	} else {
+		e, err = scanEntry(row)
+	}
 	if errors.Is(err, dbport.ErrNoRows) {
 		return storedReceipt{}, false, nil
 	}
@@ -307,15 +363,29 @@ func (s Store) loadEntryByKey(ctx context.Context, q dbport.Querier, tenant uuid
 }
 
 const entryColumns = `SELECT b.row_id,b.tenant_id,b.account_id,b.definition_id,d.version,b.unit,b.currency,b.subject,b.period,b.dimensions::text,b.kind,b.amount::text,b.entry_type,b.source_transaction_id,b.idempotency_key,b.effective_at,b.recorded_at,b.authorized_at,b.event_sequence`
+const entryColumnsLineage = entryColumns + `,b.supersedes_digest,b.amount_exact,b.amount_scale,b.amount_rounding,b.effective_at_submicro,b.authorized_at_submicro`
 
 func scanEntry(src interface{ Scan(...any) error }) (storedEntry, error) {
+	return scanEntryWithLineage(src, false)
+}
+func scanEntryLineage(src interface{ Scan(...any) error }) (storedEntry, error) {
+	return scanEntryWithLineage(src, true)
+}
+func scanEntryWithLineage(src interface{ Scan(...any) error }, lineage bool) (storedEntry, error) {
 	var e storedEntry
 	var amount, dimensions string
 	var version, kind string
 	var sourceTransaction *string
+	var supersedesDigest *string
+	var amountExact, amountRounding *string
+	var amountScale, effectiveSubmicro, authorizedSubmicro *int32
 	var effective, recorded, authorized *time.Time
 	var sequence int64
-	if err := src.Scan(&e.rowID, &e.TenantID, &e.AccountID, &e.DefinitionID, &version, &e.Unit, &e.Currency, &e.Subject, &e.Period, &dimensions, &kind, &amount, &e.EntryType, &sourceTransaction, &e.IdempotencyKey, &effective, &recorded, &authorized, &sequence); err != nil {
+	args := []any{&e.rowID, &e.TenantID, &e.AccountID, &e.DefinitionID, &version, &e.Unit, &e.Currency, &e.Subject, &e.Period, &dimensions, &kind, &amount, &e.EntryType, &sourceTransaction, &e.IdempotencyKey, &effective, &recorded, &authorized, &sequence}
+	if lineage {
+		args = append(args, &supersedesDigest, &amountExact, &amountScale, &amountRounding, &effectiveSubmicro, &authorizedSubmicro)
+	}
+	if err := src.Scan(args...); err != nil {
 		return storedEntry{}, err
 	}
 	e.DefinitionVersion = version
@@ -327,26 +397,63 @@ func scanEntry(src interface{ Scan(...any) error }) (storedEntry, error) {
 	if sourceTransaction != nil {
 		e.SourceTransactionID = *sourceTransaction
 	}
+	if supersedesDigest != nil {
+		e.SupersedesDigest = *supersedesDigest
+	}
 	if err := json.Unmarshal([]byte(dimensions), &e.Dimensions); err != nil {
 		return storedEntry{}, fmt.Errorf("decode dimensions: %w", err)
 	}
-	decimal, err := values.NewDecimal(amount, 4, values.RoundingExactRequired)
+	decimalText, scale, rounding := amount, int32(4), values.RoundingExactRequired
+	if amountExact != nil || amountScale != nil || amountRounding != nil {
+		if amountExact == nil || amountScale == nil || amountRounding == nil {
+			return storedEntry{}, errors.New("balancestore: partial exact amount metadata")
+		}
+		var err error
+		decimalText, scale, rounding = *amountExact, *amountScale, values.RoundingExactRequired
+		rounding, err = parseRounding(*amountRounding)
+		if err != nil {
+			return storedEntry{}, err
+		}
+	}
+	decimal, err := values.NewDecimal(decimalText, scale, rounding)
 	if err != nil {
 		return storedEntry{}, fmt.Errorf("decode amount: %w", err)
 	}
+	if amountExact != nil {
+		projection, err := values.NewDecimal(amount, scale, rounding)
+		if err != nil || projection.String() != decimal.String() {
+			return storedEntry{}, errors.New("balancestore: exact amount metadata disagrees with numeric projection")
+		}
+	}
 	e.Amount = decimal
+	e.EffectiveAt = restoreSubmicro(effective, effectiveSubmicro)
+	e.AuthorizedAt = restoreSubmicro(authorized, authorizedSubmicro)
 	return e, nil
 }
 
 func (s Store) Entries(ctx context.Context, q dbport.Querier, tenant uuid.UUID, accountID string) ([]balance.BalanceEntry, error) {
-	rows, err := q.Query(ctx, entryColumns+` FROM balance_entry b JOIN accumulator_definition d ON d.tenant_id=b.tenant_id AND d.definition_id=b.definition_id AND d.revision=b.definition_version WHERE b.tenant_id=$1 AND b.account_id=$2 ORDER BY b.event_sequence`, tenant, accountID)
+	lineage, err := hasCorrectionLineage(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	columns := entryColumns
+	if lineage {
+		columns = entryColumnsLineage
+	}
+	rows, err := q.Query(ctx, columns+` FROM balance_entry b JOIN accumulator_definition d ON d.tenant_id=b.tenant_id AND d.definition_id=b.definition_id AND d.revision=b.definition_version WHERE b.tenant_id=$1 AND b.account_id=$2 ORDER BY b.event_sequence`, tenant, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("list balance entries: %w", err)
 	}
 	defer rows.Close()
 	var out []balance.BalanceEntry
 	for rows.Next() {
-		e, scanErr := scanEntry(rows)
+		var e storedEntry
+		var scanErr error
+		if lineage {
+			e, scanErr = scanEntryLineage(rows)
+		} else {
+			e, scanErr = scanEntry(rows)
+		}
 		if scanErr != nil {
 			return nil, scanErr
 		}
@@ -492,7 +599,56 @@ func optionalInstant(i values.Instant) any {
 	if !i.IsSet() {
 		return nil
 	}
-	return i.Time()
+	t := i.Time()
+	return time.Unix(t.Unix(), int64(t.Nanosecond()/1000*1000)).UTC()
+}
+
+func submicro(i values.Instant) any {
+	if !i.IsSet() {
+		return nil
+	}
+	_, nanos := i.Unix()
+	return nanos % 1000
+}
+
+func hasCorrectionLineage(ctx context.Context, q dbport.Querier) (bool, error) {
+	var installed bool
+	if err := q.QueryRow(ctx, `SELECT EXISTS (
+		SELECT 1 FROM pg_attribute
+		WHERE attrelid = to_regclass('balance_entry')
+		  AND attname IN ('supersedes_digest','supersedes_row_id')
+		  AND NOT attisdropped
+		GROUP BY attrelid HAVING count(*) = 2)`).Scan(&installed); err != nil {
+		return false, fmt.Errorf("inspect balance correction lineage storage: %w", err)
+	}
+	return installed, nil
+}
+
+func restoreSubmicro(base *time.Time, remainder *int32) values.Instant {
+	if base == nil {
+		return values.Instant{}
+	}
+	nanos := base.Nanosecond() / 1000 * 1000
+	if remainder != nil {
+		nanos += int(*remainder)
+	}
+	return values.NewInstant(time.Unix(base.Unix(), int64(nanos)).UTC())
+}
+
+func parseRounding(text string) (values.RoundingMode, error) {
+	for _, mode := range []values.RoundingMode{values.RoundingExactRequired, values.RoundingTowardZero, values.RoundingAwayFromZero, values.RoundingHalfEven, values.RoundingHalfUp, values.RoundingHalfAwayFromZero, values.RoundingFloor, values.RoundingCeiling} {
+		if mode.String() == text {
+			return mode, nil
+		}
+	}
+	return 0, fmt.Errorf("balancestore: invalid exact amount rounding %q", text)
+}
+
+func optionalParentUUID(id uuid.UUID) any {
+	if id == uuid.Nil {
+		return nil
+	}
+	return id
 }
 func instantFromPtr(t *time.Time) values.Instant {
 	if t == nil {

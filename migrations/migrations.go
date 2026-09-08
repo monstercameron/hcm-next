@@ -101,6 +101,32 @@ func TargetVersion() (int64, error) {
 	return files[len(files)-1].Version, nil
 }
 
+// NewestReversibleVersion returns the highest embedded migration version
+// whose Down section does not declare irreversibility. Migrations whose
+// Down raises over durable evidence (the declared "is irreversible"
+// convention) refuse goose Down by design, so rollback-cycling tests must
+// stop here instead of at TargetVersion, which goose cannot skip past.
+func NewestReversibleVersion() (int64, error) {
+	files, err := Files()
+	if err != nil {
+		return 0, err
+	}
+	for i := len(files) - 1; i >= 0; i-- {
+		body, err := FS.ReadFile(files[i].Name)
+		if err != nil {
+			return 0, fmt.Errorf("read migration %s: %w", files[i].Name, err)
+		}
+		down := body
+		if idx := strings.Index(string(body), "-- +goose Down"); idx >= 0 {
+			down = body[idx:]
+		}
+		if !strings.Contains(string(down), "is irreversible") {
+			return files[i].Version, nil
+		}
+	}
+	return 0, fmt.Errorf("no reversible migration embedded")
+}
+
 func parseVersion(name string) (int64, error) {
 	idx := strings.Index(name, "_")
 	if idx <= 0 {

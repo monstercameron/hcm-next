@@ -85,6 +85,42 @@ func (r Revision) Validate() error {
 // migration 00024 adds keys to.
 type RevisionStore struct{}
 
+// Load returns the immutable parent row and its explicitly persisted payload.
+// Callers must decode the payload according to SchemaRef; an opaque or legacy
+// payload is never treated as a reconstructed ProposalRevision.
+func (s RevisionStore) Load(ctx context.Context, ex Executor, tenantID, intentID uuid.UUID, revision uint64) (Revision, error) {
+	if err := requireID("tenant_id", tenantID); err != nil {
+		return Revision{}, err
+	}
+	if err := requireID("intent_id", intentID); err != nil {
+		return Revision{}, err
+	}
+	if revision == 0 {
+		return Revision{}, invalid("revision", "a proposal revision starts at 1")
+	}
+	if revision > uint64(1<<63-1) {
+		return Revision{}, invalid("revision", "value exceeds PostgreSQL bigint range")
+	}
+	var out Revision
+	var n int64
+	err := ex.QueryRow(ctx, `
+		SELECT tenant_id, intent_id, revision, proposal_digest, material_digest,
+			schema_ref, payload, produced_by, produced_at
+		FROM proposal_revision
+		WHERE tenant_id = $1 AND intent_id = $2 AND revision = $3`, tenantID, intentID, int64(revision)).Scan(
+		&out.TenantID, &out.IntentID, &n, &out.ProposalDigest, &out.MaterialDigest,
+		&out.SchemaRef, &out.Payload, &out.ProducedBy, &out.ProducedAt)
+	if err != nil {
+		if isNoRows(err) {
+			return Revision{}, fmt.Errorf("%w: proposal_revision %s/%d", ErrNotFound, intentID, revision)
+		}
+		return Revision{}, fmt.Errorf("intentcontrol: load proposal revision %s/%d: %w", intentID, revision, err)
+	}
+	out.Revision = uint64(n)
+	out.ProducedAt = out.ProducedAt.UTC()
+	return out, nil
+}
+
 // Materialize inserts the revision row unless it is already stored, and
 // reports whether this call is the one that created it.
 //

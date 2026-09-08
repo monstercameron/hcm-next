@@ -3,7 +3,9 @@ package crmstore_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -13,8 +15,22 @@ import (
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	"github.com/monstercameron/hcm-next/internal/domains/crm"
+	"github.com/monstercameron/hcm-next/internal/engines/population"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
+
+type storedCampaignAudienceOwner struct {
+	pool       crm.PoolRevision
+	definition population.Definition
+	snapshot   population.Snapshot
+}
+
+func (v storedCampaignAudienceOwner) VerifyCampaignAudience(_ context.Context, claim crm.CampaignAudienceClaim) error {
+	if claim.Tenant != v.pool.PoolID.Tenant || claim.Purpose != v.pool.Purpose || claim.PoolID != v.pool.PoolID || !claim.PoolRevision.Equal(v.pool.Revision) || claim.PopulationOwner != v.definition.Owner || claim.PopulationDefinitionID != v.definition.ID || claim.PopulationDefinitionDigest != v.snapshot.DefinitionDigest || claim.PopulationRevision != v.snapshot.RevisionVersion || claim.PopulationDigest != v.snapshot.Digest || claim.CampaignDigest == "" || !reflect.DeepEqual(claim.Pool, v.pool) || !reflect.DeepEqual(claim.Definition, v.definition) || !reflect.DeepEqual(claim.Snapshot, v.snapshot) {
+		return errors.New("stored audience basis mismatch")
+	}
+	return nil
+}
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
 
@@ -264,5 +280,55 @@ func TestTodo_PERSIST_CRM_001_Mutation(t *testing.T) {
 	}
 	if err := db.ExecErr(`DELETE FROM talent_pool_membership_revision WHERE tenant_id=$1`, id); err == nil {
 		t.Fatal("membership revision accepted DELETE")
+	}
+}
+
+func TestTodo_CRM_003_Integration(t *testing.T) {
+	db := newDB(t)
+	tenantID := insertTenant(t, db, "crm-campaign")
+	tenant := tenantValue(tenantID)
+	store := crmstore.New(appConn(t, db))
+	persisted := pool(t, tenant, uuid.New(), 1)
+	if err := store.PutPool(context.Background(), tenant, persisted); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := store.GetPool(context.Background(), tenant, persisted.PoolID.Id, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	definition := population.Definition{ID: "recruiting-audience", Owner: "population-owner", Subject: population.SubjectWorker, Scope: population.Scope{Tenant: tenant, OrganizationScopeRef: loaded.Scope.Organization.String(), Purpose: loaded.Purpose}, TemporalBasis: population.TemporalBasisAsOfCaller, UnknownDisclosure: population.UnknownDisclosureBlock, CountDisclosure: population.CountDisclosureExact, Criteria: population.Criteria{Root: population.Predicate{Kind: population.PredicateEquals, Field: "consent", Values: []string{"active"}}}}
+	asOf := values.NewInstant(time.Date(2026, 1, 10, 12, 0, 0, 0, time.UTC))
+	known, err := values.NewKnownAt(asOf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	versions := population.PolicyVersions{AuthZVersion: "authz/v1", PrivacyVersion: "privacy/v1", OrganizationVersion: "org/v1", PurposeVersion: "purpose/v1"}
+	resolved := population.Result{AsOf: asOf, KnownAt: known, Members: []population.Member{{Subject: ref(tenant, "worker", uuid.New()), Outcome: population.OutcomeIncluded}}, Completeness: population.CompletenessComplete}
+	restricted, err := population.ApplyRestrictions(resolved, population.RestrictionDecision{Versions: versions, DiscloseMembership: true, DiscloseCount: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := population.Freeze(definition, "population/revision/1", restricted, asOf, known, map[population.SubjectKind]values.Instant{population.SubjectWorker: asOf})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cost, err := values.NewMoney("10.00", "USD", 2, values.RoundingHalfEven)
+	if err != nil {
+		t.Fatal(err)
+	}
+	schedule, err := values.NewInstantInterval(values.NewInstant(time.Date(2026, 1, 11, 0, 0, 0, 0, time.UTC)), values.NewInstant(time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	campaign := crm.CampaignRevision{CampaignID: ref(tenant, "campaign", uuid.New()), Revision: revision(t, 1), Pool: loaded, Population: snapshot, PopulationDefinition: definition, Purpose: loaded.Purpose, ContentRef: ref(tenant, "content", uuid.New()), Channels: []values.EntityRef{ref(tenant, "channel", uuid.New())}, Schedule: schedule, Frequency: crm.FrequencyPolicy{MaxContacts: 1, WindowDays: 7}, Cost: cost, Suppression: crm.SuppressExpired}
+	got, err := crm.NewCampaign(context.Background(), campaign, storedCampaignAudienceOwner{pool: loaded, definition: definition, snapshot: snapshot})
+	if err != nil || got.CanonicalDigest == "" {
+		t.Fatalf("governed campaign=%+v err=%v", got, err)
+	}
+	forged := campaign
+	forged.Population.RevisionVersion = "population/revision/forged"
+	forged.Population.Digest = "sha256:forged"
+	if _, err := crm.NewCampaign(context.Background(), forged, storedCampaignAudienceOwner{pool: loaded, definition: definition, snapshot: snapshot}); !errors.Is(err, crm.ErrAudienceBlocked) {
+		t.Fatalf("forged audience accepted: %v", err)
 	}
 }

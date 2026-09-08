@@ -2,9 +2,11 @@ package jobs
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -239,6 +241,137 @@ type JobRun struct {
 	StartedAt     time.Time
 	CompletedAt   time.Time
 	FailureDetail string
+	Causal        *CausalMetadata
+}
+
+type CausalMetadata struct {
+	CorrelationID, CausationID, LogicalOperationID, AttemptID string
+	TraceLink                                                 *TraceLinkMetadata
+}
+type TraceLinkMetadata struct {
+	TraceID, SpanID string
+	TraceFlags      byte
+	TraceState      string
+	ExpiresAt       time.Time
+}
+
+func causalArgs(c *CausalMetadata) []any {
+	c = normalizeCausal(c)
+	if c == nil {
+		return []any{nil, nil, nil, nil, nil, nil, nil, nil, nil}
+	}
+	if c.TraceLink == nil {
+		return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, nil, nil, nil, nil, nil}
+	}
+	return []any{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID, c.TraceLink.TraceID, c.TraceLink.SpanID, c.TraceLink.TraceFlags, c.TraceLink.TraceState, nullableTime(c.TraceLink.ExpiresAt)}
+}
+func normalizeCausal(c *CausalMetadata) *CausalMetadata {
+	if c == nil {
+		return nil
+	}
+	out := *c
+	out.CorrelationID = boundedIdentifier(c.CorrelationID)
+	out.CausationID = boundedIdentifier(c.CausationID)
+	out.LogicalOperationID = boundedIdentifier(c.LogicalOperationID)
+	out.AttemptID = boundedIdentifier(c.AttemptID)
+	out.TraceLink = nil
+	if l := c.TraceLink; l != nil && validTraceID(l.TraceID, 16) && validTraceID(l.SpanID, 8) && validTraceState(l.TraceState) && (l.ExpiresAt.IsZero() || l.ExpiresAt.After(time.Now())) {
+		copy := *l
+		if !copy.ExpiresAt.IsZero() {
+			copy.ExpiresAt = copy.ExpiresAt.UTC()
+		}
+		out.TraceLink = &copy
+	}
+	if out.CorrelationID == "" && out.CausationID == "" && out.LogicalOperationID == "" && out.AttemptID == "" && out.TraceLink == nil {
+		return nil
+	}
+	return &out
+}
+func boundedIdentifier(v string) string {
+	if strings.TrimSpace(v) == "" || len(v) > 128 {
+		return ""
+	}
+	return v
+}
+func validTraceID(v string, size int) bool {
+	if v != strings.ToLower(v) {
+		return false
+	}
+	b, err := hex.DecodeString(v)
+	if err != nil || len(b) != size {
+		return false
+	}
+	for _, x := range b {
+		if x != 0 {
+			return true
+		}
+	}
+	return false
+}
+func validTraceState(v string) bool {
+	if len(v) > 256 {
+		return false
+	}
+	if v == "" {
+		return true
+	}
+	for _, entry := range strings.Split(v, ",") {
+		if !strings.Contains(entry, "=") {
+			return false
+		}
+	}
+	return true
+}
+func causalFromPointers(correlation, causation, logical, attempt, traceID, spanID *string, flags *int16, state *string, expires *time.Time) *CausalMetadata {
+	if correlation == nil && causation == nil && logical == nil && attempt == nil {
+		return nil
+	}
+	c := &CausalMetadata{}
+	if correlation != nil {
+		c.CorrelationID = *correlation
+	}
+	if causation != nil {
+		c.CausationID = *causation
+	}
+	if logical != nil {
+		c.LogicalOperationID = *logical
+	}
+	if attempt != nil {
+		c.AttemptID = *attempt
+	}
+	if traceID != nil && spanID != nil && flags != nil && *flags >= 0 && *flags <= 255 {
+		c.TraceLink = &TraceLinkMetadata{TraceID: *traceID, SpanID: *spanID, TraceFlags: byte(*flags), TraceState: valueString(state), ExpiresAt: valueTime(expires)}
+	}
+	return normalizeCausal(c)
+}
+func valueString(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+func valueTime(v *time.Time) time.Time {
+	if v == nil {
+		return time.Time{}
+	}
+	return v.UTC()
+}
+func nullableTime(t time.Time) any {
+	if t.IsZero() {
+		return nil
+	}
+	return t.UTC()
+}
+
+func causalValue(c *CausalMetadata, field int) any {
+	if c == nil {
+		return nil
+	}
+	values := []string{c.CorrelationID, c.CausationID, c.LogicalOperationID, c.AttemptID}
+	if values[field] == "" {
+		return nil
+	}
+	return values[field]
 }
 
 // RunStore declares, advances and reads job_run.
@@ -270,14 +403,19 @@ func (s RunStore) StartRun(ctx context.Context, ex Executor, in JobRun) (JobRun,
 	if in.DeclaredAt.IsZero() {
 		return JobRun{}, invalid("declared_at", "timestamp is unset")
 	}
+	in.Causal = normalizeCausal(in.Causal)
+	if in.Causal != nil && in.Causal.LogicalOperationID != "" && in.Causal.AttemptID == "" {
+		in.Causal.AttemptID = uuid.NewString()
+	}
+	args := []any{in.TenantID, in.RunID, in.JobID, int64(in.JobVersion), RunDeclared, in.DeclaredBy, in.DeclaredAt.UTC()}
+	args = append(args, causalArgs(in.Causal)...)
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO job_run (
 			tenant_id, run_id, job_id, job_version, run_state, attempt,
-			run_version, declared_by, declared_at)
-		VALUES ($1, $2, $3, $4, $5, 1, 1, $6, $7)
+			run_version, declared_by, declared_at, correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, 1, 1, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT DO NOTHING`,
-		in.TenantID, in.RunID, in.JobID, int64(in.JobVersion), RunDeclared,
-		in.DeclaredBy, in.DeclaredAt.UTC())
+		args...)
 	if err != nil {
 		return JobRun{}, fmt.Errorf("jobs: declare run %s: %w", in.RunID, err)
 	}
@@ -405,12 +543,15 @@ func (s RunStore) Retry(ctx context.Context, ex Executor, tenantID, runID uuid.U
 	if at.IsZero() {
 		return JobRun{}, invalid("declared_at", "timestamp is unset")
 	}
+	// A retry is a new finite attempt, while the logical operation remains
+	// stable. Attempt identity is diagnostic only and never an idempotency key.
+	newAttemptID := uuid.NewString()
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_run
 		SET run_state = $4, run_version = run_version + 1, attempt = attempt + 1,
-			declared_at = $5, started_at = NULL, completed_at = NULL, failure_detail = NULL
+			declared_at = $5, started_at = NULL, completed_at = NULL, failure_detail = NULL, attempt_id = $6
 		WHERE tenant_id = $1 AND run_id = $2 AND run_version = $3`,
-		tenantID, runID, int64(expectedVersion), RunDeclared, at.UTC())
+		tenantID, runID, int64(expectedVersion), RunDeclared, at.UTC(), newAttemptID)
 	if err != nil {
 		return JobRun{}, fmt.Errorf("jobs: retry run %s: %w", runID, err)
 	}
@@ -419,6 +560,9 @@ func (s RunStore) Retry(ctx context.Context, ex Executor, tenantID, runID uuid.U
 	}
 	current.State, current.Version, current.Attempt = RunDeclared, expectedVersion+1, current.Attempt+1
 	current.DeclaredAt = at.UTC()
+	if current.Causal != nil {
+		current.Causal.AttemptID = newAttemptID
+	}
 	current.StartedAt, current.CompletedAt, current.FailureDetail = time.Time{}, time.Time{}, ""
 	return current, nil
 }
@@ -439,20 +583,25 @@ func (s RunStore) checkTransition(ctx context.Context, ex Executor, tenantID, ru
 // Load returns one run.
 func (s RunStore) Load(ctx context.Context, ex Executor, tenantID, runID uuid.UUID) (JobRun, error) {
 	var (
-		out         JobRun
-		jobVersion  int64
-		version     int64
-		startedAt   *time.Time
-		completedAt *time.Time
-		failure     *string
+		out                                                                   JobRun
+		jobVersion                                                            int64
+		version                                                               int64
+		startedAt                                                             *time.Time
+		completedAt                                                           *time.Time
+		failure                                                               *string
+		correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		traceFlags                                                            *int16
+		expires                                                               *time.Time
 	)
 	err := ex.QueryRow(ctx, `
 		SELECT tenant_id, run_id, job_id, job_version, run_state, attempt,
-			run_version, declared_by, declared_at, started_at, completed_at, failure_detail
+			run_version, declared_by, declared_at, started_at, completed_at, failure_detail,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM job_run
 		WHERE tenant_id = $1 AND run_id = $2`, tenantID, runID).Scan(
 		&out.TenantID, &out.RunID, &out.JobID, &jobVersion, &out.State, &out.Attempt,
-		&version, &out.DeclaredBy, &out.DeclaredAt, &startedAt, &completedAt, &failure)
+		&version, &out.DeclaredBy, &out.DeclaredAt, &startedAt, &completedAt, &failure,
+		&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &expires)
 	if err != nil {
 		if isNoRows(err) {
 			return JobRun{}, fmt.Errorf("%w: job_run %s", ErrNotFound, runID)
@@ -470,6 +619,7 @@ func (s RunStore) Load(ctx context.Context, ex Executor, tenantID, runID uuid.UU
 	if failure != nil {
 		out.FailureDetail = *failure
 	}
+	out.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, expires)
 	return out, nil
 }
 
@@ -510,6 +660,8 @@ type JobPartition struct {
 
 	CreatedAt   time.Time
 	CompletedAt time.Time
+	Attempt     int
+	Causal      *CausalMetadata
 }
 
 // PartitionStore creates, claims, advances and reads job_partition.
@@ -536,13 +688,16 @@ func (s PartitionStore) Create(ctx context.Context, ex Executor, in JobPartition
 	if in.CreatedAt.IsZero() {
 		return JobPartition{}, invalid("created_at", "timestamp is unset")
 	}
+	in.Causal = normalizeCausal(in.Causal)
+	args := []any{in.TenantID, in.PartitionID, in.RunID, in.PartitionKey, PartitionPending, in.CreatedAt.UTC()}
+	args = append(args, causalArgs(in.Causal)...)
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO job_partition (
 			tenant_id, partition_id, run_id, partition_key, partition_state,
-			partition_version, created_at)
-		VALUES ($1, $2, $3, $4, $5, 1, $6)
+			partition_version, created_at, attempt, correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at)
+		VALUES ($1, $2, $3, $4, $5, 1, $6, 0, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		ON CONFLICT ON CONSTRAINT job_partition_key_unique DO NOTHING`,
-		in.TenantID, in.PartitionID, in.RunID, in.PartitionKey, PartitionPending, in.CreatedAt.UTC())
+		args...)
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: create partition %s/%s: %w", in.RunID, in.PartitionKey, err)
 	}
@@ -566,15 +721,17 @@ func (s PartitionStore) ClaimPartition(ctx context.Context, ex Executor, tenantI
 	if at.IsZero() {
 		return JobPartition{}, invalid("claimed_at", "timestamp is unset")
 	}
+	newAttemptID := uuid.NewString()
 	current, err := s.checkTransition(ctx, ex, tenantID, partitionID, PartitionClaimed)
 	if err != nil {
 		return JobPartition{}, err
 	}
 	affected, err := ex.Exec(ctx, `
 		UPDATE job_partition
-		SET partition_state = $4, claimed_by = $5, claimed_at = $6, partition_version = partition_version + 1
+		SET partition_state = $4, claimed_by = $5, claimed_at = $6, attempt = attempt + 1, partition_version = partition_version + 1
+		, attempt_id = $8
 		WHERE tenant_id = $1 AND partition_id = $2 AND partition_version = $3 AND partition_state = $7`,
-		tenantID, partitionID, int64(expectedVersion), PartitionClaimed, holder, at.UTC(), PartitionPending)
+		tenantID, partitionID, int64(expectedVersion), PartitionClaimed, holder, at.UTC(), PartitionPending, newAttemptID)
 	if err != nil {
 		return JobPartition{}, fmt.Errorf("jobs: claim partition %s: %w", partitionID, err)
 	}
@@ -583,6 +740,10 @@ func (s PartitionStore) ClaimPartition(ctx context.Context, ex Executor, tenantI
 	}
 	current.State, current.Version, current.ClaimedBy, current.ClaimedAt =
 		PartitionClaimed, expectedVersion+1, holder, at.UTC()
+	current.Attempt++
+	if current.Causal != nil {
+		current.Causal.AttemptID = newAttemptID
+	}
 	return current, nil
 }
 
@@ -679,20 +840,25 @@ func (s PartitionStore) checkTransition(ctx context.Context, ex Executor, tenant
 // Load returns one partition.
 func (s PartitionStore) Load(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID) (JobPartition, error) {
 	var (
-		out         JobPartition
-		version     int64
-		claimedBy   *string
-		claimedAt   *time.Time
-		completedAt *time.Time
-		failure     *string
+		out                                                                   JobPartition
+		version                                                               int64
+		claimedBy                                                             *string
+		claimedAt                                                             *time.Time
+		completedAt                                                           *time.Time
+		failure                                                               *string
+		correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		traceFlags                                                            *int16
+		expires                                                               *time.Time
 	)
 	err := ex.QueryRow(ctx, `
 		SELECT tenant_id, partition_id, run_id, partition_key, partition_state,
-			claimed_by, claimed_at, failure_detail, partition_version, created_at, completed_at
+			claimed_by, claimed_at, failure_detail, partition_version, created_at, completed_at, attempt,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM job_partition
 		WHERE tenant_id = $1 AND partition_id = $2`, tenantID, partitionID).Scan(
 		&out.TenantID, &out.PartitionID, &out.RunID, &out.PartitionKey, &out.State,
-		&claimedBy, &claimedAt, &failure, &version, &out.CreatedAt, &completedAt)
+		&claimedBy, &claimedAt, &failure, &version, &out.CreatedAt, &completedAt, &out.Attempt,
+		&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &expires)
 	if err != nil {
 		if isNoRows(err) {
 			return JobPartition{}, fmt.Errorf("%w: job_partition %s", ErrNotFound, partitionID)
@@ -713,6 +879,7 @@ func (s PartitionStore) Load(ctx context.Context, ex Executor, tenantID, partiti
 	if failure != nil {
 		out.FailureDetail = *failure
 	}
+	out.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, expires)
 	return out, nil
 }
 
@@ -721,7 +888,8 @@ func (s PartitionStore) Load(ctx context.Context, ex Executor, tenantID, partiti
 func (s PartitionStore) ListByRun(ctx context.Context, ex Executor, tenantID, runID uuid.UUID) ([]JobPartition, error) {
 	rows, err := ex.Query(ctx, `
 		SELECT tenant_id, partition_id, run_id, partition_key, partition_state,
-			claimed_by, claimed_at, failure_detail, partition_version, created_at, completed_at
+			claimed_by, claimed_at, failure_detail, partition_version, created_at, completed_at, attempt,
+			correlation_id, causation_id, logical_operation_id, attempt_id, trace_id, trace_span_id, trace_flags, trace_state, trace_link_expires_at
 		FROM job_partition
 		WHERE tenant_id = $1 AND run_id = $2
 		ORDER BY partition_key`, tenantID, runID)
@@ -733,15 +901,19 @@ func (s PartitionStore) ListByRun(ctx context.Context, ex Executor, tenantID, ru
 	var out []JobPartition
 	for rows.Next() {
 		var (
-			p           JobPartition
-			version     int64
-			claimedBy   *string
-			claimedAt   *time.Time
-			completedAt *time.Time
-			failure     *string
+			p                                                                     JobPartition
+			version                                                               int64
+			claimedBy                                                             *string
+			claimedAt                                                             *time.Time
+			completedAt                                                           *time.Time
+			failure                                                               *string
+			correlation, causation, logical, attempt, traceID, spanID, traceState *string
+			traceFlags                                                            *int16
+			expires                                                               *time.Time
 		)
 		if err := rows.Scan(&p.TenantID, &p.PartitionID, &p.RunID, &p.PartitionKey, &p.State,
-			&claimedBy, &claimedAt, &failure, &version, &p.CreatedAt, &completedAt); err != nil {
+			&claimedBy, &claimedAt, &failure, &version, &p.CreatedAt, &completedAt, &p.Attempt,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &expires); err != nil {
 			return nil, fmt.Errorf("jobs: scan partition: %w", err)
 		}
 		p.Version = uint64(version)
@@ -758,6 +930,7 @@ func (s PartitionStore) ListByRun(ctx context.Context, ex Executor, tenantID, ru
 		if failure != nil {
 			p.FailureDetail = *failure
 		}
+		p.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, expires)
 		out = append(out, p)
 	}
 	if err := rows.Err(); err != nil {
@@ -781,10 +954,56 @@ type JobCheckpoint struct {
 	PartitionVersion uint64
 
 	TakenAt time.Time
+	Causal  *CausalMetadata
 }
 
 // CheckpointStore appends and reads job_checkpoint.
 type CheckpointStore struct{}
+
+// PruneExpiredTraceLinks removes at most limit expired operational links for
+// one tenant across runs, partitions and checkpoints. Business identifiers,
+// lifecycle state, results and compare-and-swap versions are unchanged.
+func (s CheckpointStore) PruneExpiredTraceLinks(ctx context.Context, ex Executor, tenantID uuid.UUID, before time.Time, limit int) (int64, error) {
+	if tenantID == uuid.Nil {
+		return 0, invalid("tenant_id", "trace-link retention is tenant scoped")
+	}
+	if before.IsZero() {
+		return 0, invalid("before", "timestamp is unset")
+	}
+	if limit < 1 || limit > 1000 {
+		return 0, invalid("limit", "must be between 1 and 1000")
+	}
+	var affected int64
+	err := ex.QueryRow(ctx, `
+		WITH candidates AS (
+			SELECT 'run' AS kind, run_id AS owner_id, 0::bigint AS sequence, trace_link_expires_at AS expires_at
+			FROM job_run WHERE tenant_id = $1 AND trace_link_expires_at <= $2
+			UNION ALL
+			SELECT 'partition', partition_id, 0::bigint, trace_link_expires_at
+			FROM job_partition WHERE tenant_id = $1 AND trace_link_expires_at <= $2
+			UNION ALL
+			SELECT 'checkpoint', partition_id, checkpoint_sequence, expires_at
+			FROM job_checkpoint_trace_link WHERE tenant_id = $1 AND expires_at <= $2
+			ORDER BY expires_at, kind, owner_id, sequence
+			LIMIT $3
+		), pruned_runs AS (
+			UPDATE job_run r SET trace_id=NULL, trace_span_id=NULL, trace_flags=NULL, trace_state=NULL, trace_link_expires_at=NULL
+			FROM candidates c WHERE c.kind='run' AND r.tenant_id=$1 AND r.run_id=c.owner_id
+				AND r.trace_link_expires_at <= $2 AND r.trace_link_expires_at = c.expires_at RETURNING 1
+		), pruned_partitions AS (
+			UPDATE job_partition p SET trace_id=NULL, trace_span_id=NULL, trace_flags=NULL, trace_state=NULL, trace_link_expires_at=NULL
+			FROM candidates c WHERE c.kind='partition' AND p.tenant_id=$1 AND p.partition_id=c.owner_id
+				AND p.trace_link_expires_at <= $2 AND p.trace_link_expires_at = c.expires_at RETURNING 1
+		), pruned_checkpoints AS (
+			DELETE FROM job_checkpoint_trace_link l USING candidates c
+			WHERE c.kind='checkpoint' AND l.tenant_id=$1 AND l.partition_id=c.owner_id AND l.checkpoint_sequence=c.sequence RETURNING 1
+		)
+		SELECT (SELECT count(*) FROM pruned_runs) + (SELECT count(*) FROM pruned_partitions) + (SELECT count(*) FROM pruned_checkpoints)`, tenantID, before.UTC(), limit).Scan(&affected)
+	if err != nil {
+		return 0, fmt.Errorf("jobs: prune expired trace links: %w", err)
+	}
+	return affected, nil
+}
 
 // Checkpoint records one immutable checkpoint. A repeated sequence is
 // [ErrDuplicate]: a safe point that could be rewritten is not a safe point,
@@ -808,17 +1027,25 @@ func (s CheckpointStore) Checkpoint(ctx context.Context, ex Executor, in JobChec
 	if in.TakenAt.IsZero() {
 		return JobCheckpoint{}, invalid("taken_at", "timestamp is unset")
 	}
+	in.Causal = normalizeCausal(in.Causal)
 	affected, err := ex.Exec(ctx, `
 		INSERT INTO job_checkpoint (
-			tenant_id, partition_id, checkpoint_sequence, state_digest, partition_version, taken_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+			tenant_id, partition_id, checkpoint_sequence, state_digest, partition_version, taken_at, correlation_id, causation_id, logical_operation_id, attempt_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		ON CONFLICT DO NOTHING`,
-		in.TenantID, in.PartitionID, int64(in.Sequence), in.StateDigest, int64(in.PartitionVersion), in.TakenAt.UTC())
+		in.TenantID, in.PartitionID, int64(in.Sequence), in.StateDigest, int64(in.PartitionVersion), in.TakenAt.UTC(),
+		causalValue(in.Causal, 0), causalValue(in.Causal, 1), causalValue(in.Causal, 2), causalValue(in.Causal, 3))
 	if err != nil {
 		return JobCheckpoint{}, fmt.Errorf("jobs: checkpoint %d of %s: %w", in.Sequence, in.PartitionID, err)
 	}
 	if affected == 0 {
 		return JobCheckpoint{}, fmt.Errorf("%w: job_checkpoint %s/%d", ErrDuplicate, in.PartitionID, in.Sequence)
+	}
+	if in.Causal != nil && in.Causal.TraceLink != nil {
+		link := in.Causal.TraceLink
+		if _, err := ex.Exec(ctx, `INSERT INTO job_checkpoint_trace_link (tenant_id, partition_id, checkpoint_sequence, trace_id, trace_span_id, trace_flags, trace_state, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, in.TenantID, in.PartitionID, int64(in.Sequence), link.TraceID, link.SpanID, link.TraceFlags, link.TraceState, link.ExpiresAt.UTC()); err != nil {
+			return JobCheckpoint{}, fmt.Errorf("jobs: checkpoint trace link %d of %s: %w", in.Sequence, in.PartitionID, err)
+		}
 	}
 	in.TakenAt = in.TakenAt.UTC()
 	return in, nil
@@ -827,17 +1054,23 @@ func (s CheckpointStore) Checkpoint(ctx context.Context, ex Executor, in JobChec
 // Latest returns the highest-numbered checkpoint of a partition.
 func (s CheckpointStore) Latest(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID) (JobCheckpoint, error) {
 	var (
-		out      JobCheckpoint
-		sequence int64
-		version  int64
+		out                                                                   JobCheckpoint
+		sequence                                                              int64
+		version                                                               int64
+		correlation, causation, logical, attempt, traceID, spanID, traceState *string
+		traceFlags                                                            *int16
+		expires                                                               *time.Time
 	)
 	err := ex.QueryRow(ctx, `
-		SELECT tenant_id, partition_id, checkpoint_sequence, state_digest, partition_version, taken_at
-		FROM job_checkpoint
-		WHERE tenant_id = $1 AND partition_id = $2
-		ORDER BY checkpoint_sequence DESC
+		SELECT c.tenant_id, c.partition_id, c.checkpoint_sequence, c.state_digest, c.partition_version, c.taken_at,
+			c.correlation_id, c.causation_id, c.logical_operation_id, c.attempt_id, l.trace_id, l.trace_span_id, l.trace_flags, l.trace_state, l.expires_at
+		FROM job_checkpoint c
+		LEFT JOIN job_checkpoint_trace_link l ON l.tenant_id = c.tenant_id AND l.partition_id = c.partition_id AND l.checkpoint_sequence = c.checkpoint_sequence AND l.expires_at > now()
+		WHERE c.tenant_id = $1 AND c.partition_id = $2
+		ORDER BY c.checkpoint_sequence DESC
 		LIMIT 1`, tenantID, partitionID).Scan(
-		&out.TenantID, &out.PartitionID, &sequence, &out.StateDigest, &version, &out.TakenAt)
+		&out.TenantID, &out.PartitionID, &sequence, &out.StateDigest, &version, &out.TakenAt,
+		&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &expires)
 	if err != nil {
 		if isNoRows(err) {
 			return JobCheckpoint{}, fmt.Errorf("%w: no checkpoint for partition %s", ErrNotFound, partitionID)
@@ -846,16 +1079,19 @@ func (s CheckpointStore) Latest(ctx context.Context, ex Executor, tenantID, part
 	}
 	out.Sequence, out.PartitionVersion = uint64(sequence), uint64(version)
 	out.TakenAt = out.TakenAt.UTC()
+	out.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, expires)
 	return out, nil
 }
 
 // List returns every checkpoint of a partition, oldest first.
 func (s CheckpointStore) List(ctx context.Context, ex Executor, tenantID, partitionID uuid.UUID) ([]JobCheckpoint, error) {
 	rows, err := ex.Query(ctx, `
-		SELECT tenant_id, partition_id, checkpoint_sequence, state_digest, partition_version, taken_at
-		FROM job_checkpoint
-		WHERE tenant_id = $1 AND partition_id = $2
-		ORDER BY checkpoint_sequence`, tenantID, partitionID)
+		SELECT c.tenant_id, c.partition_id, c.checkpoint_sequence, c.state_digest, c.partition_version, c.taken_at,
+			c.correlation_id, c.causation_id, c.logical_operation_id, c.attempt_id, l.trace_id, l.trace_span_id, l.trace_flags, l.trace_state, l.expires_at
+		FROM job_checkpoint c
+		LEFT JOIN job_checkpoint_trace_link l ON l.tenant_id = c.tenant_id AND l.partition_id = c.partition_id AND l.checkpoint_sequence = c.checkpoint_sequence AND l.expires_at > now()
+		WHERE c.tenant_id = $1 AND c.partition_id = $2
+		ORDER BY c.checkpoint_sequence`, tenantID, partitionID)
 	if err != nil {
 		return nil, fmt.Errorf("jobs: read checkpoints of %s: %w", partitionID, err)
 	}
@@ -864,15 +1100,20 @@ func (s CheckpointStore) List(ctx context.Context, ex Executor, tenantID, partit
 	var out []JobCheckpoint
 	for rows.Next() {
 		var (
-			c        JobCheckpoint
-			sequence int64
-			version  int64
+			c                                                                     JobCheckpoint
+			sequence                                                              int64
+			version                                                               int64
+			correlation, causation, logical, attempt, traceID, spanID, traceState *string
+			traceFlags                                                            *int16
+			expires                                                               *time.Time
 		)
-		if err := rows.Scan(&c.TenantID, &c.PartitionID, &sequence, &c.StateDigest, &version, &c.TakenAt); err != nil {
+		if err := rows.Scan(&c.TenantID, &c.PartitionID, &sequence, &c.StateDigest, &version, &c.TakenAt,
+			&correlation, &causation, &logical, &attempt, &traceID, &spanID, &traceFlags, &traceState, &expires); err != nil {
 			return nil, fmt.Errorf("jobs: scan checkpoint: %w", err)
 		}
 		c.Sequence, c.PartitionVersion = uint64(sequence), uint64(version)
 		c.TakenAt = c.TakenAt.UTC()
+		c.Causal = causalFromPointers(correlation, causation, logical, attempt, traceID, spanID, traceFlags, traceState, expires)
 		out = append(out, c)
 	}
 	if err := rows.Err(); err != nil {

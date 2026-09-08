@@ -114,6 +114,24 @@ migrationfiles:
   - 00239_role_page_permissions.sql
   - 00261_operation_store.sql
   - 00262_fk_indexes.sql
+  - 00263_tax_election_successor_fence.sql
+  - 00264_outbox_causal_metadata.sql
+  - 00265_fx_conversion_profile_policy.sql
+  - 00266_skill_evidence_supersession.sql
+  - 00267_runtime_causal_metadata.sql
+  - 00268_merit_decision_outcomes.sql
+  - 00269_conflict_write_intent_fences.sql
+  - 00270_merit_compensation_intent_emission.sql
+  - 00271_signal_causal_metadata.sql
+  - 00272_jobs_causal_metadata.sql
+  - 00273_intent_legal_evaluation_binding.sql
+  - 00274_records_copy_discovery_coverage.sql
+  - 00275_legal_evaluation_receipts.sql
+  - 00276_fx003_quote_successors.sql
+  - 00277_proposal_write_semantics.sql
+  - 00278_safety_conformance_records.sql
+  - 00279_balance_correction_lineage.sql
+  - 00280_admission_retry_budgets.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

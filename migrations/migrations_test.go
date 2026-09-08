@@ -153,6 +153,44 @@ func TestTargetVersionIsTheHighestEmbeddedVersion(t *testing.T) {
 	}
 }
 
+// TestNewestReversibleVersionStopsBelowDeclaredIrreversibles proves the
+// helper returns the highest version whose Down section lacks the declared
+// "is irreversible" marker, and that every version above it carries the
+// marker — so rollback-cycling tests stop exactly where goose Down can run.
+func TestNewestReversibleVersionStopsBelowDeclaredIrreversibles(t *testing.T) {
+	reversible, err := NewestReversibleVersion()
+	if err != nil {
+		t.Fatalf("NewestReversibleVersion(): %v", err)
+	}
+	files, err := Files()
+	if err != nil {
+		t.Fatalf("Files(): %v", err)
+	}
+	seen := false
+	for _, f := range files {
+		body, err := FS.ReadFile(f.Name)
+		if err != nil {
+			t.Fatalf("read %s: %v", f.Name, err)
+		}
+		down := string(body)
+		if idx := strings.Index(down, "-- +goose Down"); idx >= 0 {
+			down = down[idx:]
+		}
+		if f.Version <= reversible && strings.Contains(down, "is irreversible") {
+			t.Errorf("version %d at or below newest reversible %d declares irreversibility", f.Version, reversible)
+		}
+		if f.Version > reversible {
+			seen = true
+			if !strings.Contains(down, "is irreversible") {
+				t.Errorf("version %d above newest reversible %d lacks the irreversibility marker", f.Version, reversible)
+			}
+		}
+	}
+	if !seen {
+		t.Logf("no irreversible tip migrations; newest reversible %d is the target", reversible)
+	}
+}
+
 // TestParseVersion proves the <version>_<name>.sql contract: the leading run
 // before the first underscore must be a positive integer version.
 func TestParseVersion(t *testing.T) {

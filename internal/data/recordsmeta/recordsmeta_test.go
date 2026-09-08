@@ -532,7 +532,7 @@ func TestTodo_DB_015_Mutation(t *testing.T) {
 	inventory := privacymeta.DataCopyInventory{
 		TenantID: tenant, InventoryID: uuid.New(),
 		CanonicalAssetKey: "asset:" + uuid.NewString(), AsOf: fixedInstant,
-		SourceWatermark: "wm-1", Completeness: "COMPLETE", ContentDigest: digestOf("inv"),
+		SourceWatermark: "wm-1", ExpectedSources: json.RawMessage(`["catalog"]`), SourceWatermarks: json.RawMessage(`{"catalog":"wm-1"}`), Completeness: "COMPLETE", ContentDigest: digestOf("inv"),
 		CreatedAt: fixedInstant,
 	}
 	slo := assurancemeta.SLODefinition{
@@ -920,15 +920,15 @@ func TestTodo_DB_015_Integration(t *testing.T) {
 	inventory := privacymeta.DataCopyInventory{
 		TenantID: tenant, InventoryID: uuid.New(),
 		CanonicalAssetKey: "asset:person-file", AsOf: fixedInstant,
-		SourceWatermark: "wm-1", Completeness: "PARTIAL", UnknownCount: 2,
+		SourceWatermark: "wm-1", ExpectedSources: json.RawMessage(`["provider-catalog"]`), SourceWatermarks: json.RawMessage(`{"provider-catalog":"wm-1"}`), Completeness: "PARTIAL", UnknownCount: 2,
 		ContentDigest: digestOf("inv"), CreatedAt: fixedInstant,
 	}
 	copyRow := privacymeta.DataCopy{
 		TenantID: tenant, CopyID: uuid.New(), InventoryID: inventory.InventoryID,
 		CanonicalAssetKey: "asset:person-file", CopyType: "PROVIDER",
-		StoreRef: "store:adp", ProcessorRef: "processor:adp", Region: "us-east",
+		StoreRef: "store:adp", DiscoverySource: "provider-catalog", SubjectRef: "worker:1", DataCategory: "HR", ProcessorRef: "processor:adp", Region: "us-east", FieldScope: json.RawMessage(`{"fields":["name"]}`), EncryptionKeyRef: "key:tenant",
 		RetentionScheduleKey: "schedule:hr-100", HoldState: "NONE",
-		DeletionCapability: "DELETE", CreatedAt: fixedInstant,
+		DeletionCapability: "DELETE", RestorePolicy: "REAPPLY_TOMBSTONES", CreatedAt: fixedInstant,
 	}
 	declaration := newDeclaration(tenant)
 	hold := newHold(tenant)
