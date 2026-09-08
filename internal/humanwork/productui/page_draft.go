@@ -1,6 +1,10 @@
 package productui
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
 
 // PageDraft is the mutable working copy in the page lifecycle: bound
 // to the base revision it edits (or to nothing for a from-scratch
@@ -71,4 +75,67 @@ func PublishDraft(log *PageRevisionLog, draft PageDraft, version int64) (PageDef
 		}
 	}
 	return log.Record(draft.Page, draft.Snapshot, version)
+}
+
+// PublicationReview is one human review attestation: the named
+// reviewer and their decision. The asset pipeline requires
+// review before publication; the attestation is its record.
+type PublicationReview struct {
+	Reviewer string
+	Approved bool
+}
+
+// PublicationRequest is one governed publication: the draft and
+// version, the contracts it validates against, the preview plan
+// with its expanded evidence, and the review attestation.
+type PublicationRequest struct {
+	Draft        PageDraft
+	Version      int64
+	Catalog      FloorplanCatalog
+	Registry     WidgetRegistry
+	Preview      PreviewPlan
+	PreviewCases []PreviewCase
+	Review       PublicationReview
+}
+
+// PublishGoverned publishes one draft through the asset-pipeline
+// gates, in order: the composition must validate; the preview
+// plan must validate, target the draft page, and expand exactly
+// to the carried evidence; a named reviewer must approve; then
+// the mechanical publish records. Evidence freshness beyond
+// plan-equals-cases — whether the preview ran against this exact
+// composition — stays a studio responsibility. First gate to
+// fail reports; later gates never run.
+func PublishGoverned(log *PageRevisionLog, request PublicationRequest) (PageDefinitionRevision, error) {
+	report := ValidateComposition(request.Draft, request.Catalog, request.Registry)
+	if !report.Compatible {
+		var blocked []string
+		for _, finding := range report.Findings {
+			if !finding.Compatible {
+				blocked = append(blocked, finding.Step+": "+strings.Join(finding.Reasons, "; "))
+			}
+		}
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication blocked by validation: %s", strings.Join(blocked, "; "))
+	}
+	preview := ValidatePreviewPlan(request.Preview)
+	if !preview.Compatible {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication preview invalid: %s", strings.Join(preview.Reasons, "; "))
+	}
+	if request.Preview.Page != request.Draft.Page {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication preview targets page %q, draft binds page %q", request.Preview.Page, request.Draft.Page)
+	}
+	expanded, err := ExpandPreviewPlan(request.Preview)
+	if err != nil {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication preview invalid: %s", err.Error())
+	}
+	if !reflect.DeepEqual(expanded, request.PreviewCases) {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication preview evidence does not match the plan")
+	}
+	if !request.Review.Approved {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication has no approved review")
+	}
+	if strings.TrimSpace(request.Review.Reviewer) == "" {
+		return PageDefinitionRevision{}, fmt.Errorf("productui: publication review names no reviewer")
+	}
+	return PublishDraft(log, request.Draft, request.Version)
 }

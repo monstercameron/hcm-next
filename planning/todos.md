@@ -16267,7 +16267,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-096` **[PHASE_2][TERRA] Implement governed page publication controls.**
+- [x] `WEB-096` **[PHASE_2][TERRA] Implement governed page publication controls.**
   - **Depends:** `WEB-095`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement governed page publication controls without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_096`.
