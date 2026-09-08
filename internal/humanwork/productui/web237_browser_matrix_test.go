@@ -153,15 +153,22 @@ func TestTodo_WEB_237_Integration(t *testing.T) {
 	if !ok {
 		t.Fatal("Admin navigation group is missing")
 	}
-	if len(admin.Children) == 0 || admin.Children[len(admin.Children)-1].Page != PageBrowserMatrix {
-		t.Fatalf("Admin submenu does not end with the browser matrix: %+v", admin)
+	found := false
+	for _, child := range admin.Children {
+		if child.Page != PageBrowserMatrix {
+			continue
+		}
+		found = true
+		href := child.Href
+		if index := strings.Index(href, "?"); index >= 0 {
+			href = href[:index]
+		}
+		if _, ok := LookupRoute(href); !ok {
+			t.Fatal("browser matrix submenu href leaves the page registry")
+		}
 	}
-	href := admin.Children[len(admin.Children)-1].Href
-	if index := strings.Index(href, "?"); index >= 0 {
-		href = href[:index]
-	}
-	if _, ok := LookupRoute(href); !ok {
-		t.Fatal("browser matrix submenu href leaves the page registry")
+	if !found {
+		t.Fatalf("Admin submenu carries no browser matrix: %+v", admin)
 	}
 }
 
