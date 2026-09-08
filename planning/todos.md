@@ -16584,7 +16584,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md).
 
-- [ ] `WEB-127` **[GATE_C][SOL_HIGH] Implement policy and obligation explanations.**
+- [x] `WEB-127` **[GATE_C][SOL_HIGH] Implement policy and obligation explanations.**
   - **Depends:** `WEB-126`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement policy and obligation explanations without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_127`.
