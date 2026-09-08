@@ -17610,7 +17610,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-228` **[PHASE_2][TERRA] Implement accessible data visualization.**
+- [x] `WEB-228` **[PHASE_2][TERRA] Implement accessible data visualization.**
   - **Depends:** `WEB-227`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement accessible data visualization without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_228`.
