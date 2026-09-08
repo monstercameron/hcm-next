@@ -40,6 +40,7 @@ const (
 	PageTeamCoverage           PageID = "team-coverage"
 	PageProtectedLeave         PageID = "protected-leave"
 	PageLeaveEvidence          PageID = "leave-evidence"
+	PageLeaveTimeline          PageID = "leave-timeline"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
