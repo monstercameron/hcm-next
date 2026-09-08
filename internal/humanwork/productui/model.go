@@ -65,6 +65,7 @@ const (
 	PageCareerDiscovery        PageID = "career-discovery"
 	PageTalentWorkbench        PageID = "talent-workbench"
 	PageTalentCalibration      PageID = "talent-calibration"
+	PageSuccessionPlanning     PageID = "succession-planning"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
