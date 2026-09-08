@@ -50,6 +50,9 @@ func StepUpChallenge(props StepUpChallengeProps) ui.Node {
 }
 
 func stepUpChallenge(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	if view.StepUpChallenge == nil {
 		return html.Fragment()
 	}

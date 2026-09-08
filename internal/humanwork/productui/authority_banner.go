@@ -23,6 +23,9 @@ func ActingAuthorityBanner(props ContextSwitcherProps) ui.Node {
 }
 
 func actingAuthorityBanner(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	props := view.ContextSwitcher
 	props.I18nProps = I18nProps{Locale: view.Locale}
 	if !validAuthorityContext(props.Current) {

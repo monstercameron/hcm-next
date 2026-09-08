@@ -2089,6 +2089,51 @@ func declarePolicySimulationStyles() {
 	)
 }
 
+func SignedOutStylesheet() string {
+	return buildTypedSheet(declareSignedOutStyles)
+}
+
+func declareSignedOutStyles() {
+	declareGlobal(".signed-out",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.PaddingY(gwccss.Px(16)), gwccss.PaddingX(gwccss.Px(16)),
+	)
+	declareGlobal(".signed-out-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(1.1)), gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".signed-out-detail",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".signed-out-revoked",
+		gwccss.Display.Flex, gwccss.ColumnGap(gwccss.Px(8)),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Raw("flex-wrap", "wrap"),
+		gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".signed-out-grant",
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.PaddingY(gwccss.Px(2)), gwccss.PaddingX(gwccss.Px(8)),
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".signed-out-actions",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.ColumnGap(gwccss.Px(12)),
+		gwccss.Raw("flex-wrap", "wrap"),
+	)
+	declareGlobal("a.signed-out-signin",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("accent")), gwccss.TextColor(gwccss.Var("on-brand")),
+		gwccss.Raw("text-decoration", "none"), gwccss.FontWeight.Semibold,
+	)
+}
+
 func MobileShellStylesheet() string {
 	return buildTypedSheet(declareMobileShellStyles)
 }

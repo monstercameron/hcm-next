@@ -925,6 +925,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | roles_components.go                   | yes           |
 | internal/humanwork/productui                             | selectors.go                          | yes           |
 | internal/humanwork/productui                             | shell.go                              | yes           |
+| internal/humanwork/productui                             | signed_out.go                         | yes           |
 | internal/humanwork/productui                             | styles.go                             | yes           |
 | internal/humanwork/productui                             | support_components.go                 | yes           |
 | internal/humanwork/productui                             | theme.go                              | yes           |

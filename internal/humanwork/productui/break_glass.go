@@ -86,6 +86,9 @@ func BreakGlassActivation(props BreakGlassActivationProps) ui.Node {
 }
 
 func breakGlassActivation(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	if view.BreakGlassActivation == nil {
 		return html.Fragment()
 	}

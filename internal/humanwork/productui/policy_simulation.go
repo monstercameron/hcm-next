@@ -92,6 +92,9 @@ func PolicySimulation(props PolicySimulationProps) ui.Node {
 }
 
 func policySimulation(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	if view.PolicySimulation == nil {
 		return html.Fragment()
 	}

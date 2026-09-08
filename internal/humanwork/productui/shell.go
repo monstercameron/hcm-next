@@ -27,7 +27,10 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		class += " is-refreshing"
 	}
 	content := page
-	if strings.TrimSpace(view.Tenant) == "" {
+	if signedOutState(view) {
+		content = signedOut(view)
+		showHeading = false
+	} else if strings.TrimSpace(view.Tenant) == "" {
 		content = FederationEntryList(federationEntryProps(view))
 		showHeading = false
 	} else if view.LoadError != "" {
@@ -86,6 +89,9 @@ func appHeader(view View) ui.Node {
 }
 
 func contextSwitcherSlot(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	props := view.ContextSwitcher
 	if !contextSwitcherVisible(props) {
 		return html.Fragment()
@@ -94,6 +100,9 @@ func contextSwitcherSlot(view View) ui.Node {
 }
 
 func delegationSelectorSlot(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	props := view.ContextSwitcher
 	if len(delegationSelectorOptions(props)) == 0 {
 		return html.Fragment()

@@ -352,6 +352,10 @@ type View struct {
 	// simulation. Nil means the viewer sees their own view; the panel
 	// assumes no authority either way.
 	PolicySimulation *PolicySimulationProps
+	// SignedOut carries the server-projected signed-out state. Non-nil
+	// converges every authority surface to revoked and makes the
+	// signed-out panel the content; nil means the session stands.
+	SignedOut *SignedOutProps
 }
 
 // Can reports whether the resolved role grants an operation on a page. An

@@ -62,6 +62,9 @@ func SessionWarning(props SessionWarningProps) ui.Node {
 }
 
 func sessionWarning(view View) ui.Node {
+	if signedOutState(view) {
+		return html.Fragment()
+	}
 	if view.SessionWarning == nil {
 		return html.Fragment()
 	}
