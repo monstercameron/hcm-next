@@ -15982,7 +15982,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-068` **[GATE_C][SOL_HIGH] Implement semantic action-availability states.**
+- [x] `WEB-068` **[GATE_C][SOL_HIGH] Implement semantic action-availability states.**
   - **Depends:** `WEB-067`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement semantic action-availability states without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_068`.

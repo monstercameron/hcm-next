@@ -4,9 +4,15 @@ import "github.com/monstercameron/GoWebComponents/v5/ui"
 
 func adminPage(view View) ui.Node {
 	journeyState, journeyTone := "Connected", "positive"
+	journeyAvailability := ActionState{}
 	if view.LoadError != "" {
 		journeyState, journeyTone = "Unavailable", "warning"
+		journeyAvailability = ActionState{Availability: ActionUnavailable, Reason: view.Locale.Text("admin.journeys_unavailable_reason")}
 	}
+	// The studio cell publishes no configuration service: the action is
+	// unavailable with its reason and no live link, never a live link
+	// to something unavailable.
+	studioAvailability := ActionState{Availability: ActionUnavailable, Reason: view.Locale.Text("admin.studio_unavailable_reason")}
 	return ui.CreateElement(AdminPage, AdminPageProps{
 		Hero: AdminHeroProps{
 			Eyebrow: "LIVE CELL", Title: valueOrUnavailable(view.Tenant), Description: "This page reports only services the authenticated cell has actually exposed.",
@@ -30,11 +36,11 @@ func adminPage(view View) ui.Node {
 				Action: ActionLinkProps{Label: "Configure appearance →", Href: statefulHref(view, PageAppearance), Navigate: view.Navigate},
 			},
 			{
-				Title: "Journey service", Description: "Promotion journeys and visible workers are loaded through the canonical gRPC service.", State: journeyState, Tone: journeyTone,
+				Title: "Journey service", Description: "Promotion journeys and visible workers are loaded through the canonical gRPC service.", State: journeyState, Tone: journeyTone, Availability: journeyAvailability,
 				Action: ActionLinkProps{Label: "Open details →", Href: statefulHref(view, PageJourneys), Navigate: view.Navigate},
 			},
 			{
-				Title: "Experience configuration", Description: "No page-configuration service is published by this cell.", State: "Unavailable", Tone: "warning",
+				Title: "Experience configuration", Description: "No page-configuration service is published by this cell.", State: "Unavailable", Tone: "warning", Availability: studioAvailability,
 				Action: ActionLinkProps{Label: "Open details →", Href: statefulHref(view, PageStudio), Navigate: view.Navigate},
 			},
 		},

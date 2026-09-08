@@ -109,8 +109,25 @@ func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole
 			scopeBlock,
 			domainBlock,
 			html.Div(html.Props{Class: "organization-visibility-boundary", Raw: map[string]any{"role": "note"}}, html.Strong(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_title"))), html.P(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_detail")))),
-			html.Div(html.Props{Class: "organization-visibility-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit", Disabled: !props.Editable}, ui.Text(props.Text("organization_visibility.save"))), html.P(html.Props{ID: "organization-visibility-status-" + role.ID, Class: "muted", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("organization_visibility.status")))),
+			saveActions(props, role),
 		),
+	)
+}
+
+// saveActions renders the editor's save row in its semantic state: an
+// editable policy gets the live save button; without the update grant
+// the button stays disabled with the reason and the recovery link, so
+// the viewer can resolve the condition instead of guessing.
+func saveActions(props OrganizationVisibilityPageProps, role AccessRole) ui.Node {
+	save := html.Button(html.Props{Class: "button primary", Type: "submit", Disabled: !props.Editable}, ui.Text(props.Text("organization_visibility.save")))
+	status := html.P(html.Props{ID: "organization-visibility-status-" + role.ID, Class: "muted", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("organization_visibility.status")))
+	if props.Editable {
+		return html.Div(html.Props{Class: "organization-visibility-actions"}, save, status)
+	}
+	return html.Div(html.Props{Class: "organization-visibility-actions", Raw: map[string]any{"data-action-state": "unavailable"}},
+		save, status,
+		html.P(html.Props{Class: "muted"}, ui.Text(props.Text("organization_visibility.save_unavailable"))),
+		ui.CreateElement(ActionLink, props.RolesLink),
 	)
 }
 
