@@ -15,10 +15,14 @@ type workCollectionOptions struct {
 // workPage is a route adapter: it resolves application state into immutable,
 // purpose-built props and delegates all markup to the component layer.
 func workPage(view View) ui.Node {
+	// The queue and its preview draw from the admitted population, so
+	// denied proposal artifacts never render.
+	scoped := view
+	scoped.Work = admittedWork(view)
 	return ui.CreateElement(WorkPage, WorkPageProps{
-		I18nProps:  I18nProps{Locale: view.Locale},
-		Collection: workCollectionProps(view, workCollectionOptions{Title: view.Locale.Text("work.promotion_journeys"), ListDetail: true}),
-		Preview:    workPreviewProps(view, selectedOpenWork(view)),
+		I18nProps:  I18nProps{Locale: scoped.Locale},
+		Collection: workCollectionProps(scoped, workCollectionOptions{Title: scoped.Locale.Text("work.promotion_journeys"), ListDetail: true}),
+		Preview:    workPreviewProps(scoped, selectedOpenWork(scoped)),
 	})
 }
 

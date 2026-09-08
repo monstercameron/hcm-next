@@ -7,9 +7,12 @@ import (
 )
 
 func insightsPage(view View) ui.Node {
-	active, terminal := journeyCounts(view.Work)
+	// Derived counts draw from the admitted population, so denied
+	// journeys keep no share of any metric.
+	population := admittedWork(view)
+	active, terminal := journeyCounts(population)
 	attention := 0
-	for _, item := range view.Work {
+	for _, item := range population {
 		if item.Status == "Awaiting approval" || item.Status == "Blocked" {
 			attention++
 		}

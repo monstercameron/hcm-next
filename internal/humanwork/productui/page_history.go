@@ -180,8 +180,9 @@ func historySourceLabel(item WorkItem) string {
 }
 
 func historyUniverse(view View, personID string) []WorkItem {
-	items := make([]WorkItem, 0, len(view.Work))
-	for _, item := range view.Work {
+	population := admittedWork(view)
+	items := make([]WorkItem, 0, len(population))
+	for _, item := range population {
 		if !item.Terminal {
 			continue
 		}

@@ -38,6 +38,49 @@ func selectedWork(view View) WorkItem {
 	return WorkItem{}
 }
 
+// admittedWork limits work instances to disclosable records once the
+// server speaks about work: instances without a verdict and
+// non-disclosable instances leave every extractable listing — queue
+// rows, history artifacts, and derived counts — so an export drawn
+// from these listings can never carry what the viewer may not open.
+// Silence is population-scoped: a verdict map addressing only person
+// records (as on profile renders) says nothing about journeys, and
+// dropping journeys for a verdict about a person would invent
+// authority presentation does not have. An empty map, or a map with
+// no work-instance verdict, keeps the current set. Order is
+// preserved, inputs are never mutated, and an empty result resolves
+// to nil.
+func admittedWork(view View) []WorkItem {
+	if !workVerdictsPresent(view) {
+		return view.Work
+	}
+	admitted := make([]WorkItem, 0, len(view.Work))
+	for _, item := range view.Work {
+		if DiscoveryAdmitted(item.ID, view.RecordVerdicts) {
+			admitted = append(admitted, item)
+		}
+	}
+	if len(admitted) == 0 {
+		return nil
+	}
+	return admitted
+}
+
+// workVerdictsPresent reports whether the verdict map addresses the work
+// population at all: at least one projected instance carries a verdict.
+// Person-record verdicts alone leave journeys ungated.
+func workVerdictsPresent(view View) bool {
+	if len(view.RecordVerdicts) == 0 {
+		return false
+	}
+	for _, item := range view.Work {
+		if _, ok := view.RecordVerdicts[item.ID]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // OpenWorkItems projects the active assignment set used by My Work and its
 // navigation/notification counts. Terminal journeys remain discoverable from
 // History and must not be counted as work that still needs attention.

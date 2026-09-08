@@ -7,14 +7,19 @@ import (
 )
 
 func homePage(view View) ui.Node {
-	active, terminal := journeyCounts(view.Work)
+	// Counts, recent activity, and the collection draw from the admitted
+	// population, so denied journeys appear nowhere on home.
+	population := admittedWork(view)
+	active, terminal := journeyCounts(population)
 	activities := make([]ActivityProps, 0)
-	for _, item := range view.Work {
+	for _, item := range population {
 		if item.Terminal {
 			activities = append(activities, ActivityProps{Title: item.Title, Detail: item.Person, When: item.Status})
 		}
 	}
-	work := workCollectionProps(view, workCollectionOptions{Title: "Open promotion work"})
+	scoped := view
+	scoped.Work = population
+	work := workCollectionProps(scoped, workCollectionOptions{Title: "Open promotion work"})
 	if !view.Allows(PageWork, "view") {
 		work.Footer.Action = ActionLinkProps{}
 	}
