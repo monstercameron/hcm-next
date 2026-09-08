@@ -94,6 +94,7 @@ const (
 	PageExitDetails            PageID = "exit-details"
 	PageOffboardingImpact      PageID = "offboarding-impact"
 	PageExitReview             PageID = "exit-review"
+	PageOffboardingPlan        PageID = "offboarding-plan"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

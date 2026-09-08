@@ -17418,7 +17418,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-209` **[PHASE_3][SOL_HIGH] Implement the offboarding plan.**
+- [x] `WEB-209` **[PHASE_3][SOL_HIGH] Implement the offboarding plan.**
   - **Depends:** `WEB-208`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the offboarding plan without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_209`.
