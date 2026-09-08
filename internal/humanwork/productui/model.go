@@ -78,6 +78,7 @@ const (
 	PageReorgProposals         PageID = "reorg-proposals"
 	PagePlannedVsCommitted     PageID = "planned-vs-committed"
 	PageOrgResponsive          PageID = "org-responsive"
+	PageHelpHub                PageID = "help-hub"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

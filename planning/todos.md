@@ -17256,7 +17256,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### HR help and cases
 
-- [ ] `WEB-193` **[PHASE_3][SOL_HIGH] Implement the employee Help hub.**
+- [x] `WEB-193` **[PHASE_3][SOL_HIGH] Implement the employee Help hub.**
   - **Depends:** `WEB-121`, `CASE-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee help hub without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_193`.
