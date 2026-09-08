@@ -16,7 +16,7 @@ func TestNavigationRegistryBuildsReusableSubmenus(t *testing.T) {
 		t.Fatalf("My Work submenu = %+v", work)
 	}
 	admin, ok := projectedNavigationItem(items, PageAdmin)
-	if !ok || len(admin.Children) != 12 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations || admin.Children[10].Page != PageReconciliationWorkbench || admin.Children[11].Page != PagePrivacyTelemetry {
+	if !ok || len(admin.Children) != 13 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations || admin.Children[10].Page != PageReconciliationWorkbench || admin.Children[11].Page != PagePrivacyTelemetry || admin.Children[12].Page != PagePerformanceBudgets {
 		t.Fatalf("Admin submenu = %+v, present=%t", admin, ok)
 	}
 }
@@ -42,8 +42,8 @@ func TestMenuFilterKeepsOnlyMatchingHierarchy(t *testing.T) {
 func TestMenuFilterFuzzyRanksMetadataAndHidesUnrelatedSupport(t *testing.T) {
 	view := ApplyRequest(testView(PageSettings), PageRequest{MenuQuery: "pe"})
 	favorites, items := projectNavigation(view)
-	if len(favorites) != 0 || len(items) != 1 || items[0].Page != PagePeople {
-		t.Fatalf("short prefix should resolve only People: favorites=%+v items=%+v", favorites, items)
+	if len(favorites) != 0 || len(items) != 2 || items[0].Page != PagePeople || items[1].Page != PageAdmin {
+		t.Fatalf("short prefix should resolve People first: favorites=%+v items=%+v", favorites, items)
 	}
 	props := navigationSidebarProps(view)
 	if len(props.Support) != 0 {

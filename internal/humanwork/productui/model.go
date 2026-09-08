@@ -120,6 +120,7 @@ const (
 	PageIntegrationOperations   PageID = "integration-operations"
 	PageReconciliationWorkbench PageID = "reconciliation-workbench"
 	PagePrivacyTelemetry        PageID = "privacy-telemetry"
+	PagePerformanceBudgets      PageID = "performance-budgets"
 	PageOrganization            PageID = "organization"
 	PageInsights                PageID = "insights"
 	PageAdmin                   PageID = "admin"

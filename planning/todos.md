@@ -17692,7 +17692,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [execution plan](execution-plan.md).
 
-- [ ] `WEB-236` **[GATE_C][SOL_HIGH] Enforce frontend performance budgets.**
+- [x] `WEB-236` **[GATE_C][SOL_HIGH] Enforce frontend performance budgets.**
   - **Depends:** `WEB-235`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=enforce frontend performance budgets without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_236`.
