@@ -36,6 +36,7 @@ const (
 	PageTimeApproval           PageID = "time-approval"
 	PageTimeExceptions         PageID = "time-exceptions"
 	PageTimeOff                PageID = "time-off"
+	PageTimeOffRequest         PageID = "time-off-request"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
