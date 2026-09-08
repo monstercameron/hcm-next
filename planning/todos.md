@@ -13434,7 +13434,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 ### Shared and high-priority engine continuation
 
-- [ ] `FX-002` **[PHASE_2][SOL_HIGH] Convert Money exactly with direct, inverse and triangulated quotes.**
+- [x] `FX-002` **[PHASE_2][SOL_HIGH] Convert Money exactly with direct, inverse and triangulated quotes.**
+  - **Evidence (2026-09-08):** `TestFXConversionReturnsExactAmountRoundingAndTrace`, `TestTodo_FX_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and `TestDecimalDivisionNearMaxPrecisionHalfBoundary` verify direct/inverse/approved triangulation, exact policy rounding and refusal paths. Independent rational-oracle cases cover signed maximum-precision near-ties as well as 2,304 bounded combinations; kernel division rounds once from the exact quotient/remainder. Root `go test -count=1 -cover ./internal/kernel/values/ ./internal/domains/fx/` PASS (71.2% and 71.7%); `go vet ./internal/kernel/values/ ./internal/domains/fx/` PASS. Luna implementation and Sol/Astra refinement; no live rate-provider or financial-write authority claimed.
   - **Depends:** `FX-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS,BI.PAYROLL,BI.ANALYTICS; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestFXConversionReturnsExactAmountRoundingAndTrace`.
@@ -15908,7 +15909,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Authorization and visibility projection
 
-- [ ] `WEB-061` **[GATE_C][SOL_HIGH] Implement the authorized presentation projection.**
+- [x] `WEB-061` **[GATE_C][SOL_HIGH] Implement the authorized presentation projection.**
   - **Depends:** `WEB-049`, `TRUST-009`, `TRUST-010`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorized presentation projection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_061`.
