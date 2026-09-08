@@ -16035,7 +16035,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Governed customer-page platform
 
-- [ ] `WEB-073` **[GATE_C][SOL_HIGH] Persist immutable PageDefinition revisions.**
+- [x] `WEB-073` **[GATE_C][SOL_HIGH] Persist immutable PageDefinition revisions.**
   - **Depends:** `WEB-002`, `CONFIG-001`, `WEB-061`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=persist immutable pagedefinition revisions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_073`.
