@@ -124,3 +124,36 @@ func ValidateFloorplanCompatibility(composition PageComposition, catalog Floorpl
 func ValidateDraftFloorplan(draft PageDraft, catalog FloorplanCatalog) FloorplanVerdict {
 	return ValidateFloorplanCompatibility(draft.Composition, catalog)
 }
+
+// FloorplanChoice is one governed authoring choice: the catalog
+// floorplan and the version pinned at choice time.
+type FloorplanChoice struct {
+	Floorplan string
+	Version   int64
+}
+
+// ChooseFloorplan resolves one author pick against the catalog.
+// The floorplan must be registered; an unset version pins the
+// catalog current, an explicit version must be positive and
+// supported (staying back on an older admitted version is the
+// author's call). Refusals reuse the compatibility wording so the
+// choice step and the validate step speak identically.
+func ChooseFloorplan(catalog FloorplanCatalog, id string, version int64) (FloorplanChoice, error) {
+	current, found := int64(0), false
+	for _, floorplan := range catalog.Floorplans {
+		if floorplan.ID == id {
+			current, found = floorplan.Version, true
+		}
+	}
+	if !found {
+		return FloorplanChoice{}, fmt.Errorf("unknown floorplan %q", id)
+	}
+	switch {
+	case version == 0:
+		return FloorplanChoice{Floorplan: id, Version: current}, nil
+	case version < 0 || version > current:
+		return FloorplanChoice{}, fmt.Errorf("unsupported floorplan version %d for %q", version, id)
+	default:
+		return FloorplanChoice{Floorplan: id, Version: version}, nil
+	}
+}
