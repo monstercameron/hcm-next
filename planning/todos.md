@@ -16441,7 +16441,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md).
 
-- [ ] `WEB-113` **[GATE_C][TERRA] Implement the worker overview section.**
+- [x] `WEB-113` **[GATE_C][TERRA] Implement the worker overview section.**
   - **Depends:** `WEB-112`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker overview section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_113`.
