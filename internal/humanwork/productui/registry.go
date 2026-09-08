@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -128,6 +128,7 @@ func registeredPages() []PageDefinition {
 		// surfaces land here in delivery order so the governed
 		// tail above never renumbers.
 		{ID: PagePaySummary, Route: "/workspace/app/pay/summary", Label: "Pay summary", Icon: "people", Title: "Employee pay summary", Subtitle: "Pay figures from the governed pay service.", LabelKey: "page.pay_summary.label", TitleKey: "page.pay_summary.title", SubtitleKey: "page.pay_summary.subtitle", SearchTerms: []string{"pay", "salary", "summary", "earnings", "wages"}, RenderOrder: 91, render: paySummaryPage},
+		{ID: PagePayStatements, Route: "/workspace/app/pay/statements", Label: "Pay statements", Icon: "people", Title: "Accessible pay statements", Subtitle: "Statements from the governed pay service.", LabelKey: "page.pay_statements.label", TitleKey: "page.pay_statements.title", SubtitleKey: "page.pay_statements.subtitle", SearchTerms: []string{"statements", "payslip", "period", "pay", "documents"}, RenderOrder: 92, render: payStatementsPage},
 	}
 }
 

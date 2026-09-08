@@ -43,6 +43,7 @@ const (
 	PageLeaveTimeline          PageID = "leave-timeline"
 	PageReturnToWork           PageID = "return-to-work"
 	PagePaySummary             PageID = "pay-summary"
+	PagePayStatements          PageID = "pay-statements"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
