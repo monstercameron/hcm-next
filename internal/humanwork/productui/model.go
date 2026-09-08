@@ -67,6 +67,7 @@ const (
 	PageTalentCalibration      PageID = "talent-calibration"
 	PageSuccessionPlanning     PageID = "succession-planning"
 	PageOrgExplorer            PageID = "org-explorer"
+	PageOrgOutline             PageID = "org-outline"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

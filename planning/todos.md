@@ -17144,7 +17144,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [position domain](specs/position-and-headcount-domain.md).
 
-- [ ] `WEB-182` **[PHASE_3][SOL_HIGH] Implement the accessible organization outline.**
+- [x] `WEB-182` **[PHASE_3][SOL_HIGH] Implement the accessible organization outline.**
   - **Depends:** `WEB-181`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the accessible organization outline without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_182`.
