@@ -116,9 +116,12 @@ func globalSearchItems(view View) []GlobalSearchItem {
 
 	if allowed[PagePeople] {
 		for _, person := range view.People {
+			if !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
+				continue
+			}
 			items = append(items, GlobalSearchItem{
 				ID: "person:" + person.ID, Kind: "person", KindLabel: globalSearchKindLabel(view.Locale, "person"),
-				Label: person.Name, Description: strings.Trim(strings.Join([]string{person.Role, person.Team, person.Location}, " · "), " ·"),
+				Label: DiscoveryLabel(view.Locale, person.ID, person.Name, "name", view.RecordVerdicts), Description: strings.Trim(strings.Join([]string{person.Role, person.Team, person.Location}, " · "), " ·"),
 				Href: statefulHref(view, PagePerson, "person", person.ID), Initials: person.Initials, PhotoURL: person.PhotoURL,
 				Keywords: []string{person.WorkerNumber, person.JobCode, person.Team, person.Location, "employee", "worker", "profile"},
 			})
@@ -155,9 +158,12 @@ func globalSearchItems(view View) []GlobalSearchItem {
 			})
 		}
 		for _, person := range view.People {
+			if !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
+				continue
+			}
 			items = append(items, GlobalSearchItem{
 				ID: "action:promotion:" + person.ID, Kind: "action", KindLabel: globalSearchKindLabel(view.Locale, "action"),
-				Label:       view.Locale.Text("global_search.promote_person", map[string]string{"name": person.Name}),
+				Label:       view.Locale.Text("global_search.promote_person", map[string]string{"name": DiscoveryLabel(view.Locale, person.ID, person.Name, "name", view.RecordVerdicts)}),
 				Description: strings.Trim(strings.Join([]string{person.Role, person.Team}, " · "), " ·"),
 				Href:        JourneyProposalHref(view, person.ID), Icon: "journeys",
 				Keywords: []string{"promotion", "promote", "start workflow", person.WorkerNumber, person.JobCode},
@@ -175,6 +181,9 @@ func globalSearchItems(view View) []GlobalSearchItem {
 
 	if allowed[PageJourneys] {
 		for _, work := range view.Work {
+			if !DiscoveryAdmitted(work.ID, view.RecordVerdicts) {
+				continue
+			}
 			details := []string{work.Status, work.Summary}
 			if work.CompletedAt != "" {
 				details = append(details, view.Locale.Text("global_search.closed", map[string]string{"value": work.CompletedAt}))
@@ -183,7 +192,7 @@ func globalSearchItems(view View) []GlobalSearchItem {
 			}
 			items = append(items, GlobalSearchItem{
 				ID: "workflow-instance:" + work.ID, Kind: "workflow", KindLabel: globalSearchKindLabel(view.Locale, "workflow"),
-				Label:       strings.TrimSpace(work.Title + " · " + work.Person),
+				Label:       strings.TrimSpace(DiscoveryLabel(view.Locale, work.ID, work.Title, "title", view.RecordVerdicts) + " · " + DiscoveryLabel(view.Locale, work.ID, work.Person, "person", view.RecordVerdicts)),
 				Description: strings.Trim(strings.Join(details, " · "), " ·"),
 				Href:        JourneyDetailHref(view, work.ID), Icon: "journeys", Initials: work.Initials, PhotoURL: work.PhotoURL,
 				Keywords: []string{work.PersonRef, work.InstanceID, work.MaterialDigest, "workflow record", "journey"},

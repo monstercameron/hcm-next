@@ -356,6 +356,12 @@ type View struct {
 	// converges every authority surface to revoked and makes the
 	// signed-out panel the content; nil means the session stands.
 	SignedOut *SignedOutProps
+	// RecordVerdicts carries the server's per-record authorization
+	// verdicts keyed by record ID. Nil or empty means the server is
+	// silent and discovery keeps its current set; once present,
+	// discovery surfaces admit only disclosable records and project
+	// their labels. Presentation never authors verdicts.
+	RecordVerdicts map[string]AuthorizedRecord
 }
 
 // Can reports whether the resolved role grants an operation on a page. An

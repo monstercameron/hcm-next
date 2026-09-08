@@ -70,6 +70,32 @@ type ProjectedRecord struct {
 	Values   map[string]ProjectedValue
 }
 
+// DiscoveryAdmitted reports whether a record may appear in a discovery
+// surface (search items, launchers). An empty verdict map means the
+// server is silent, and the current discovery set stands — presentation
+// enforces the authorization it is given instead of inventing its own.
+// Once the server speaks, records without a verdict and non-disclosable
+// records are excluded: discovery must not advertise what the viewer may
+// not open.
+func DiscoveryAdmitted(id string, verdicts map[string]AuthorizedRecord) bool {
+	if len(verdicts) == 0 {
+		return true
+	}
+	verdict, ok := verdicts[id]
+	return ok && verdict.Disclosable
+}
+
+// DiscoveryLabel projects one discovery label through the record's field
+// verdict for the governing field. Silent servers pass labels through
+// untouched; governed records advertise the projected text, so a denied
+// name never leaks through search.
+func DiscoveryLabel(locale LocaleContext, id, label, field string, verdicts map[string]AuthorizedRecord) string {
+	if len(verdicts) == 0 {
+		return label
+	}
+	return ProjectAuthorizedValue(locale, label, verdicts[id].Fields[field]).Text
+}
+
 // ProjectAuthorizedRecord maps one record's values through its verdict. A
 // nil verdict or a non-disclosable subject projects to uniform
 // withholding: no values leak, and the denial reason (or the unavailable
