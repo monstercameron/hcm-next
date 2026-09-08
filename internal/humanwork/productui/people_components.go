@@ -2,6 +2,7 @@ package productui
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
@@ -425,8 +426,14 @@ func PageSizeControl(props PageSizeControlProps) ui.Node {
 		options = append(options, html.Option(html.Props{Value: fmt.Sprint(size), Selected: size == props.Value}, ui.Text(fmt.Sprint(size))))
 	}
 	children := []ui.Node{html.Label(html.Props{}, ui.Text(props.Text("table.rows_per_page")), html.Select(selectProps, options...))}
-	for name, value := range props.Fields {
-		if value != "" {
+	// Sorted so the rendered form is deterministic across runs.
+	names := make([]string, 0, len(props.Fields))
+	for name := range props.Fields {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if value := props.Fields[name]; value != "" {
 			children = append(children, html.Tag("input", html.Props{Name: name, Value: value, Raw: map[string]any{"type": "hidden"}}))
 		}
 	}

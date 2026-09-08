@@ -51,6 +51,18 @@ func ProjectAuthorizedValue(locale LocaleContext, value string, field Authorized
 	}
 }
 
+// PersonRecordFields lists every field key the person profile consults
+// through its verdict, in profile order. The server and presentation
+// share this vocabulary: a fact added to the profile without a key here
+// fails the silent/allow-all equivalence check until the key is listed.
+var PersonRecordFields = []string{
+	"name", "role", "source",
+	"worker_number", "job_code", "job_level", "hire_date", "employment_type", "time_type", "record_source", "record_created",
+	"organization_unit", "manager", "position_id", "work_location", "company", "business_unit", "cost_center", "work_arrangement",
+	"base_pay", "bonus_target", "pay_zone", "pay_frequency",
+	"legal_name", "preferred_name", "worker_id", "record_id",
+}
+
 // AuthorizedRecord is the server's verdict on one record: whether the
 // subject is disclosable at all, the safe denial reason when it is not,
 // and the per-field verdicts. A nil Fields map withholds every field.

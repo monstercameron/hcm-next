@@ -8,7 +8,7 @@ import "github.com/monstercameron/GoWebComponents/v5/ui"
 func myselfPage(view View) ui.Node {
 	props := MyselfPageProps{I18nProps: I18nProps{Locale: view.Locale}}
 	person, ok := viewerPerson(view)
-	if !ok {
+	if !ok || !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
 		return ui.CreateElement(MyselfPage, props)
 	}
 	profile := personProfileProps(view, person, PageMyself)

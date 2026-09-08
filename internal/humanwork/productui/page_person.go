@@ -8,7 +8,7 @@ func personPage(view View) ui.Node {
 	returnHref := peopleReturnHref(view)
 	props := PersonPageProps{I18nProps: I18nProps{Locale: view.Locale}, BackHref: returnHref, Navigate: view.Navigate}
 	person, ok := exactPerson(view)
-	if !ok {
+	if !ok || !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
 		props.Unavailable = PersonUnavailableProps{DirectoryHref: returnHref, Navigate: view.Navigate}
 		return ui.CreateElement(PersonPage, props)
 	}
@@ -24,51 +24,62 @@ func personPage(view View) ui.Node {
 func personProfileProps(view View, person Person, target PageID) PersonProfileProps {
 	text := view.Locale.Text
 	value := func(raw string) string { return valueOrUnavailableFor(view.Locale, raw) }
+	// field renders one fact through the record's field verdict once the
+	// server sends verdicts; a silent server keeps the current values.
+	// Allowed values project identically to value(), so governing changes
+	// nothing until a verdict actually withholds.
+	fields := view.RecordVerdicts[person.ID].Fields
+	field := func(name, raw string) string {
+		if len(view.RecordVerdicts) == 0 {
+			return value(raw)
+		}
+		return ProjectAuthorizedValue(view.Locale, raw, fields[name]).Text
+	}
 	return PersonProfileProps{
 		Hero: PersonHeroProps{
-			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, Role: value(person.Role),
-			Status: text("person.visible_scope"), Source: value(person.Source),
+			Initials: person.Initials, PhotoURL: person.PhotoURL, Name: field("name", person.Name), Role: field("role", person.Role),
+			Status: text("person.visible_scope"), Source: field("source", person.Source),
 		},
 		Details: EmploymentDetailsProps{
 			Title: text("person.employment_overview"), Description: text("person.employment_overview_detail"),
 			Facts: []ProfileFactProps{
-				{Label: text("person.worker_number"), Value: value(person.WorkerNumber)},
-				{Label: text("person.job_code"), Value: value(person.JobCode)},
-				{Label: text("person.job_level"), Value: value(person.Grade)},
-				{Label: text("person.hire_date"), Value: value(person.HireDate)},
-				{Label: text("person.employment_type"), Value: value("")},
-				{Label: text("person.time_type"), Value: value("")},
-				{Label: text("person.record_source"), Value: value(person.Source)},
-				{Label: text("person.record_created"), Value: value(person.CreatedAt)},
+				{Label: text("person.worker_number"), Value: field("worker_number", person.WorkerNumber)},
+				{Label: text("person.job_code"), Value: field("job_code", person.JobCode)},
+				{Label: text("person.job_level"), Value: field("job_level", person.Grade)},
+				{Label: text("person.hire_date"), Value: field("hire_date", person.HireDate)},
+				{Label: text("person.employment_type"), Value: field("employment_type", "")},
+				{Label: text("person.time_type"), Value: field("time_type", "")},
+				{Label: text("person.record_source"), Value: field("record_source", person.Source)},
+				{Label: text("person.record_created"), Value: field("record_created", person.CreatedAt)},
 			}},
 		Organization: EmploymentDetailsProps{
 			Title: text("person.organization"), Description: text("person.organization_detail"), Class: "organization-details",
 			Facts: []ProfileFactProps{
-				{Label: text("person.organization_unit"), Value: value(person.Team)},
-				{Label: text("person.manager"), Value: value(person.Manager)},
-				{Label: text("person.position_id"), Value: value(person.PositionID)},
-				{Label: text("person.work_location"), Value: value(person.Location)},
-				{Label: text("person.company"), Value: value("")},
-				{Label: text("person.business_unit"), Value: value("")},
-				{Label: text("person.cost_center"), Value: value("")},
-				{Label: text("person.work_arrangement"), Value: value("")},
+				{Label: text("person.organization_unit"), Value: field("organization_unit", person.Team)},
+				{Label: text("person.manager"), Value: field("manager", person.Manager)},
+				{Label: text("person.position_id"), Value: field("position_id", person.PositionID)},
+				{Label: text("person.work_location"), Value: field("work_location", person.Location)},
+				{Label: text("person.company"), Value: field("company", "")},
+				{Label: text("person.business_unit"), Value: field("business_unit", "")},
+				{Label: text("person.cost_center"), Value: field("cost_center", "")},
+				{Label: text("person.work_arrangement"), Value: field("work_arrangement", "")},
 			},
 		},
 		Compensation: EmploymentDetailsProps{
 			Title: text("person.compensation"), Description: text("person.compensation_detail"), Class: "compensation-details",
 			Facts: []ProfileFactProps{
-				{Label: text("person.base_pay"), Value: money(view.Locale, person.BasePay)},
-				{Label: text("person.bonus_target"), Value: percentage(view.Locale, person.BonusTarget)},
-				{Label: text("person.pay_zone"), Value: value(person.PayZone)},
-				{Label: text("person.pay_frequency"), Value: value("")},
+				{Label: text("person.base_pay"), Value: field("base_pay", money(view.Locale, person.BasePay))},
+				{Label: text("person.bonus_target"), Value: field("bonus_target", percentage(view.Locale, person.BonusTarget))},
+				{Label: text("person.pay_zone"), Value: field("pay_zone", person.PayZone)},
+				{Label: text("person.pay_frequency"), Value: field("pay_frequency", "")},
 			}},
 		Personal: SensitiveDetailsProps{
 			Title: text("person.personal_information"), Description: text("person.personal_hidden"), Badge: text("person.restricted"),
 			Facts: []ProfileFactProps{
-				{Label: text("person.legal_name"), Value: value(person.LegalName)},
-				{Label: text("person.preferred_name"), Value: value(person.PreferredName)},
-				{Label: text("person.worker_id"), Value: value(person.WorkerID)},
-				{Label: text("person.worker_ref"), Value: value(person.ID)},
+				{Label: text("person.legal_name"), Value: field("legal_name", person.LegalName)},
+				{Label: text("person.preferred_name"), Value: field("preferred_name", person.PreferredName)},
+				{Label: text("person.worker_id"), Value: field("worker_id", person.WorkerID)},
+				{Label: text("person.worker_ref"), Value: field("record_id", person.ID)},
 			},
 		},
 		Workflows: personWorkflowLauncherProps(view, person, target),

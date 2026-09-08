@@ -44,7 +44,9 @@ func ResolveBreadcrumbs(view View) []BreadcrumbItem {
 	}
 	current := BreadcrumbItem{Label: view.Locale.Text(definition.LabelKey), Href: statefulHref(view, definition.ID), Current: true}
 	if view.Page == PagePerson {
-		if person, ok := exactPerson(view); ok && strings.TrimSpace(person.Name) != "" {
+		// An unadmitted record keeps the generic page label: naming the
+		// worker in the chrome would leak what the page withholds.
+		if person, ok := exactPerson(view); ok && strings.TrimSpace(person.Name) != "" && DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
 			current.Label = person.Name
 		}
 	}

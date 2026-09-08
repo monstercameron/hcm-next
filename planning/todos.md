@@ -13216,7 +13216,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `MOBILITY-002` **[CONFORMANCE][SOL_HIGH] Prove extension, country change, return, vendor reconciliation and retro correction.**
+- [x] `MOBILITY-002` **[CONFORMANCE][SOL_HIGH] Prove extension, country change, return, vendor reconciliation and retro correction.**
+  - **Evidence (2026-09-08):** `TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange` and `TestTodo_MOBILITY_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` prove immutable successor changes, exact host/obligation targeting, non-authoritative vendor observations, independent host-effect closure and append-only retro history. Generated properties, fixed golden digests, concurrent assertions and multi-host parent-preservation regressions were refined by Sol/Astra after Luna implementation. Root `go test -count=1 -cover ./internal/domains/mobility/` PASS (71.6%); `go vet ./internal/domains/mobility/` PASS. Domain conformance only; no live vendor or jurisdiction approval is inferred.
   - **Depends:** `MOBILITY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.MOBILITY,BI.REGULATORY,BI.PAYROLL,BI.PRIVACY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange`.
@@ -15929,7 +15930,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-063` **[GATE_C][SOL_HIGH] Enforce record-level page authorization.**
+- [x] `WEB-063` **[GATE_C][SOL_HIGH] Enforce record-level page authorization.**
   - **Depends:** `WEB-062`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce record-level page authorization without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_063`.
