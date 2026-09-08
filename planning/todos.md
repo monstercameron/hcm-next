@@ -16289,7 +16289,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-098` **[GATE_C][TERRA] Implement the unified attention list.**
+- [x] `WEB-098` **[GATE_C][TERRA] Implement the unified attention list.**
   - **Depends:** `WEB-097`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the unified attention list without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_098`.

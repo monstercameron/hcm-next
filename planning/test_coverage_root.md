@@ -867,6 +867,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | admin_components.go                   | yes           |
 | internal/humanwork/productui                             | appearance.go                         | yes           |
 | internal/humanwork/productui                             | appearance_components.go              | yes           |
+| internal/humanwork/productui                             | attention_list.go                     | yes           |
 | internal/humanwork/productui                             | authorized_presentation.go            | yes           |
 | internal/humanwork/productui                             | authority_banner.go                   | yes           |
 | internal/humanwork/productui                             | binding_inspector.go                  | yes           |
