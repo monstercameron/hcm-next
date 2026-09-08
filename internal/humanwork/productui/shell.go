@@ -46,6 +46,7 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		appHeader(view),
 		sessionWarning(view),
 		stepUpChallenge(view),
+		actingAuthorityBanner(view),
 		html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view), pageFrame(view, content, showHeading)),
 	)
 }
@@ -70,6 +71,7 @@ func appHeader(view View) ui.Node {
 		),
 		html.Div(html.Props{Class: "header-navigation-tools"},
 			contextSwitcherSlot(view),
+			delegationSelectorSlot(view),
 			ui.CreateElement(HistoryNavigation, historyNavigationProps(view)),
 			globalSearch(view),
 			actionLauncher(view),
@@ -87,6 +89,14 @@ func contextSwitcherSlot(view View) ui.Node {
 		return html.Fragment()
 	}
 	return ui.CreateElement(ContextSwitcher, props)
+}
+
+func delegationSelectorSlot(view View) ui.Node {
+	props := view.ContextSwitcher
+	if len(delegationSelectorOptions(props)) == 0 {
+		return html.Fragment()
+	}
+	return ui.CreateElement(DelegationSelector, props)
 }
 
 func historyNavigationProps(view View) HistoryNavigationProps {

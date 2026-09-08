@@ -1862,6 +1862,57 @@ func declareSessionWarningStyles() {
 	)
 }
 
+func AuthorityBannerStylesheet() string {
+	return buildTypedSheet(declareAuthorityBannerStyles)
+}
+
+func declareAuthorityBannerStyles() {
+	declareGlobal(".acting-authority-banner",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(2)),
+		gwccss.PaddingY(gwccss.Px(8)), gwccss.PaddingX(gwccss.Px(16)),
+		gwccss.Raw("border-block-end", "1px solid var(--control-border,var(--line))"),
+		gwccss.Raw("background", "var(--surface-subtle,var(--canvas))"),
+	)
+	declareGlobal(".acting-authority-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.75)), gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".acting-authority-detail",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.9)),
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+}
+
+func DelegationSelectorStylesheet() string {
+	return buildTypedSheet(declareDelegationSelectorStyles)
+}
+
+func declareDelegationSelectorStyles() {
+	declareGlobal(".delegation-selector",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+	)
+	declareGlobal(".delegation-selector-summary",
+		gwccss.Display.InlineFlex, gwccss.Items.Center, gwccss.Gap(gwccss.Px(7)),
+		gwccss.MinHeight(gwccss.Px(42)), gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(11)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(0.78)), gwccss.FontWeight.Bold,
+	)
+	declareGlobal(".delegation-selector-options",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(4)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero), gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".delegation-selector-status",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(0.78)),
+	)
+}
+
 func StepUpStylesheet() string {
 	return buildTypedSheet(declareStepUpStyles)
 }

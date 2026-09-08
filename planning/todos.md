@@ -10576,7 +10576,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** engine receives typed evidence descriptors, never raw medical/document content.
   - **Refs:** [Provenance](specs/provenance-graph-and-lineage.md), [classification](specs/data-classification-and-dlp.md).
 
-- [ ] `READINESS-003` **[PHASE_3][SOL_HIGH] Evaluate and explain readiness deterministically.**
+- [x] `READINESS-003` **[PHASE_3][SOL_HIGH] Evaluate and explain readiness deterministically.**
+  - **Evidence:** Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_READINESS_003`, `TestTodo_READINESS_003_Property`, `TestTodo_READINESS_003_Golden` and input/integrity regressions in `internal/engines/readiness`; `go test -count=1 -p 1 -cover ./internal/engines/readiness/` PASS on windows/arm64 (75.8%); `go vet ./internal/engines/readiness/` PASS. Pure domain evaluation binds requirement/resolution digests, preserves unknown/conditional outcomes, and emits only bounded reason codes; no runtime publication or UI behavior is claimed.
   - **Depends:** `READINESS-002`, `RULE-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_READINESS_003`.
@@ -11843,7 +11844,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Rewards/benefits models](data/models/rewards-payroll-workforce.md), [intent coverage](data/models/intent-coverage-matrix.md).
 
-- [ ] `BEN-002` **[PHASE_4][SOL_HIGH] Define and resolve enrollment windows.**
+- [x] `BEN-002` **[PHASE_4][SOL_HIGH] Define and resolve enrollment windows.**
+  - **Evidence:** Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_BEN_002`, `TestTodo_BEN_002_Property`, `TestTodo_BEN_002_Mutation` and typed rejection/calendar/boundary regressions in `internal/domains/benefits`; `go test -count=1 -p 1 -cover ./internal/domains/benefits/ ./internal/domains/attendance/` PASS on windows/arm64 (benefits 78.3%); `go vet ./internal/domains/benefits/ ./internal/domains/attendance/` PASS. Enrollment resolution has no persistence, event, outbox, work-item or provider ports; zero effects are structural at this domain-support boundary. No deployed enrollment workflow is claimed.
   - **Depends:** `BEN-001`, `CYCLE-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BEN_002`.
@@ -11986,7 +11988,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [People/workforce models](data/models/people-workforce.md), [rules models](data/models/rules-and-decisions.md).
 
-- [ ] `ATTEND-002` **[PHASE_4][SOL_HIGH] Detect late, early, missing and unscheduled work.**
+- [x] `ATTEND-002` **[PHASE_4][SOL_HIGH] Detect late, early, missing and unscheduled work.**
+  - **Evidence:** Luna implementation, repeated Sol refinement, and integration review on 2026-09-07: `TestTodo_ATTEND_002`, `TestTodo_ATTEND_002_Property`, `TestTodo_ATTEND_002_Mutation`, permutation and typed-direction regressions in `internal/domains/attendance`; `go test -count=1 -p 1 -cover ./internal/domains/attendance/` PASS on windows/arm64 (87.3%); `go vet ./internal/domains/attendance/` completed with only the documented Windows executable-cleanup warning. Tests pin DST/split boundaries, exact rejection context, permutation-stable digests, IN/OUT sequencing, and zero-minute missing-side markers without double-counting known absence. The pure domain has no persistence/effect ports; production workflow routing remains separate.
   - **Depends:** `ATTEND-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ATTEND_002`.
@@ -12396,7 +12399,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Talent models](data/models/talent-experience-cases.md), [identity resolution](specs/identity-resolution-and-entity-linkage.md).
 
-- [ ] `CRM-002` **[PHASE_4][SOL_HIGH] Manage prospect source attribution and consent.**
+- [x] `CRM-002` **[PHASE_4][SOL_HIGH] Manage prospect source attribution and consent.**
+  - **Evidence:** Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_CRM_002`, `TestTodo_CRM_002_Mutation`, `TestTodo_CRM_002_Security` and memory-store lifecycle/tenant/CAS regressions in `internal/domains/crm`; `go test -count=1 -p 1 -cover ./internal/domains/crm/` PASS on windows/arm64 (76.1%); `go vet ./internal/domains/crm/` PASS. Withdrawal/expiry stop outreach with explicit obligations; invalid authority stops outreach without authorizing deletion. This closes domain-support semantics, not a deployed recruiting workflow or durable prospect store.
   - **Depends:** `CRM-001`, `TRUST-024`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.RECRUITING; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CRM_002`.
@@ -13155,7 +13159,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `PROOF-002` **[CONFORMANCE][SOL_HIGH] Prove review, expiration, renewal, correction and provider ambiguity semantics.**
+- [x] `PROOF-002` **[CONFORMANCE][SOL_HIGH] Prove review, expiration, renewal, correction and provider ambiguity semantics.**
+  - **Evidence (2026-09-07):** `TestWorkAuthorizationConformanceBlocksExpiredUnknownAndAmbiguousProviderState`, `TestTodo_PROOF_002_*`, effective-date boundary and historical-correction regressions; `go test -count=1 -cover ./internal/domains/proofing/` PASS on windows/arm64 (88.3%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove the domain conformance fixtures, not a deployed scheduling authorization adapter. The named race test uses goroutines; detector-backed execution remains CI-only.
   - **Depends:** `PROOF-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.LIFECYCLE,BI.MOBILITY,BI.SECURITY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestWorkAuthorizationConformanceBlocksExpiredUnknownAndAmbiguousProviderState`.
@@ -13229,7 +13234,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `SAFETY-002` **[CONFORMANCE][SOL_HIGH] Prove filing, workers-comp payment, restriction clearance and correction reconciliation.**
+- [x] `SAFETY-002` **[CONFORMANCE][SOL_HIGH] Prove filing, workers-comp payment, restriction clearance and correction reconciliation.**
+  - **Evidence (2026-09-07):** `TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`, `TestTodo_SAFETY_002_*`, and `TestResubmitFilingRequiresFreshObservedRejection`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (58.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify append-only fixture lineage, exact payment reversal, observed-rejection-only resubmission, and fresh-observation closure. No medical/legal determination, live filing, or ledger payment execution is claimed; detector-backed races remain CI-only.
   - **Depends:** `SAFETY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE,BI.CASES,BI.REGULATORY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`.
@@ -13271,7 +13277,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `CAREER-002` **[CONFORMANCE][SOL_HIGH] Prove internal-mobility recommendation, correction and consent semantics.**
+- [x] `CAREER-002` **[CONFORMANCE][SOL_HIGH] Prove internal-mobility recommendation, correction and consent semantics.**
+  - **Evidence (2026-09-08):** `TestCareerMobilityConformanceRequiresConsentEligibilityAndExplainableCandidateSet` and `TestTodo_CAREER_002_*`; `go test -count=1 -cover ./internal/domains/career/` PASS on windows/arm64 (45.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify current consent/preference/population/role evidence through injected ports and reverify the exact assessment/action basis before a separate application intent. Forged assessment, stale preference, withdrawn role and post-assessment consent withdrawal regressions pass. No live recruiting adapter is claimed; detector-backed races remain CI-only.
   - **Depends:** `CAREER-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.TALENT,BI.RECRUITING,BI.ANALYTICS; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestCareerMobilityConformanceRequiresConsentEligibilityAndExplainableCandidateSet`.
@@ -13292,7 +13299,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `SUCCESSION-002` **[CONFORMANCE][SOL_HIGH] Prove calibration, correction, vacancy use and non-guarantee semantics.**
+- [x] `SUCCESSION-002` **[CONFORMANCE][SOL_HIGH] Prove calibration, correction, vacancy use and non-guarantee semantics.**
+  - **Evidence (2026-09-07):** `TestSuccessionConformanceNeverTurnsSlateIntoPromotionOrEmploymentPromise` and `TestTodo_SUCCESSION_002_*`; `go test -count=1 -cover ./internal/domains/succession/` PASS on windows/arm64 (52.6%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify injected authority/consent/privacy/current-readiness checks, exact correction-source tuple binding, withheld candidate/count metadata and separate non-executing vacancy intent. Live authority adapters are not claimed; detector-backed races remain CI-only.
   - **Depends:** `SUCCESSION-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.TALENT,BI.WORKFORCE,BI.PRIVACY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestSuccessionConformanceNeverTurnsSlateIntoPromotionOrEmploymentPromise`.
@@ -13355,7 +13363,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `EQUITY-002` **[CONFORMANCE][SOL_HIGH] Prove vesting, forfeiture, correction, tax/payroll effect and provider reconciliation.**
+- [x] `EQUITY-002` **[CONFORMANCE][SOL_HIGH] Prove vesting, forfeiture, correction, tax/payroll effect and provider reconciliation.**
+  - **Evidence (2026-09-07):** `TestEquityConformancePreservesVestingLotsAndReconcilesProviderTaxEffects`, `TestTodo_EQUITY_002_*` and historical-forfeiture, correction-worker and effect-tampering regressions; `go test -count=1 -cover ./internal/domains/equity/` PASS on windows/arm64 (73.7%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove exact domain lot/effect conformance; provider observations remain non-authoritative and no live payroll posting is claimed. Detector-backed race execution remains CI-only.
   - **Depends:** `EQUITY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS,BI.DOCUMENTS,BI.PAYROLL; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestEquityConformancePreservesVestingLotsAndReconcilesProviderTaxEffects`.
@@ -13376,7 +13385,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `ASSET-002` **[CONFORMANCE][SOL_HIGH] Prove loss, recovery, offboarding and external inventory reconciliation.**
+- [x] `ASSET-002` **[CONFORMANCE][SOL_HIGH] Prove loss, recovery, offboarding and external inventory reconciliation.**
+  - **Evidence (2026-09-07):** `TestAssetConformanceTracksLossOffboardingRecoveryAndProviderDrift`, `TestTodo_ASSET_002_*`, and `TestAssetOffboardingAndCustodyAttributionResistCallerMutation`; `go test -count=1 -cover ./internal/domains/asset/` PASS on windows/arm64 (75.0%); `go vet ./internal/domains/asset/` PASS. Luna implementation, Sol refinement and integration review verify atomic in-memory recovery replay, immutable custody history, detached obligations and worker attribution. Provider observations cannot change physical custody. No external inventory deployment or durable crash recovery is claimed; detector-backed races remain CI-only.
   - **Depends:** `ASSET-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.OPERATIONS; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestAssetConformanceTracksLossOffboardingRecoveryAndProviderDrift`.
@@ -13397,7 +13407,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `CONTACT-002` **[CONFORMANCE][SOL_HIGH] Prove reissue, primary selection, correction and external-contact reconciliation.**
+- [x] `CONTACT-002` **[CONFORMANCE][SOL_HIGH] Prove reissue, primary selection, correction and external-contact reconciliation.**
+  - **Evidence (2026-09-07):** `TestContactConformancePreservesVerificationAndPurposeAcrossCorrectionAndSync` and `TestTodo_CONTACT_002_*`; `go test -count=1 -cover ./internal/domains/contact/` PASS on windows/arm64 (54.4%, existing exact coverage exception expires 2026-12-31); `go vet ./internal/domains/contact/` PASS. Luna implementation, Sol refinement and integration review prove reference-store atomic reissue and exact retry receipts, minimum-priority permutation invariance, equivocation refusal and purpose-bound correction/repair. This is the digest-backed reference store, not a claim of PostgreSQL crash atomicity or message delivery; detector-backed races remain CI-only.
   - **Depends:** `CONTACT-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.EXPERIENCE,BI.SECURITY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestContactConformancePreservesVerificationAndPurposeAcrossCorrectionAndSync`.
@@ -13517,7 +13528,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `SERVICE-002` **[PHASE_3][SOL_HIGH] Calculate continuous service, adjusted dates and seniority with bridging rules.**
+- [x] `SERVICE-002` **[PHASE_3][SOL_HIGH] Calculate continuous service, adjusted dates and seniority with bridging rules.**
+  - **Evidence (2026-09-07):** `TestServiceCalculationExplainsBreakBridgeCreditAndDimensionSpecificOrder`, `TestTodo_SERVICE_002_*` and `TestTodo_SERVICE_002_ContinuousRunResetsAtUnbridgedAndTrailingBreaks`; `go test -count=1 -cover ./internal/domains/service/` PASS on windows/arm64 (77.4%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove interval union, explicit bridge credit, separate total/continuous duration, adjusted dates and pinned-cohort ranking with unknown-peer refusal. New evaluation canonical format is v2 while legacy unpinned model bytes remain v1. No live eligibility adapter is claimed; detector-backed races remain CI-only.
   - **Depends:** `SERVICE-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestServiceCalculationExplainsBreakBridgeCreditAndDimensionSpecificOrder`.
@@ -13548,7 +13560,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `CBA-002` **[PHASE_4][SOL_HIGH] Compose CBA wage, schedule, leave, seniority and discipline constraints.**
+- [x] `CBA-002` **[PHASE_4][SOL_HIGH] Compose CBA wage, schedule, leave, seniority and discipline constraints.**
+  - **Evidence (2026-09-07):** `TestCBACompositionPreservesMandatoryStatutoryAndAgreementConstraints` and `TestTodo_CBA_002_*`; `go test -count=1 -cover ./internal/domains/cba/` PASS on windows/arm64 (52.9%, existing exact coverage exception expires 2026-12-31); `go vet ./internal/domains/cba/` PASS. Luna implementation, Sol refinement and integration review verify explicit policy, mandatory intersections, zero-bound presence, separate per-bound provenance, permutation stability and stale/unpinned seniority refusal. Pure composition consumes supplied release/service pins; it does not certify current law or authenticate a live policy source. Detector-backed race execution remains CI-only.
   - **Depends:** `CBA-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE,BI.REWARDS,BI.CASES,BI.REGULATORY; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestCBACompositionPreservesMandatoryStatutoryAndAgreementConstraints`.
@@ -15674,7 +15687,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-041` **[GATE_C][TERRA] Implement authorization-safe global search.**
+- [x] `WEB-041` **[GATE_C][TERRA] Implement authorization-safe global search.**
   - **Depends:** `WEB-040`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement authorization-safe global search without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_041`.
@@ -15684,7 +15697,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-042` **[GATE_C][TERRA] Implement the attention notification center.**
+- [x] `WEB-042` **[GATE_C][TERRA] Implement the attention notification center.**
   - **Depends:** `WEB-041`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the attention notification center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_042`.
@@ -15694,7 +15707,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-043` **[GATE_C][TERRA] Implement account locale and accessibility controls.**
+- [x] `WEB-043` **[GATE_C][TERRA] Implement account locale and accessibility controls.**
   - **Depends:** `WEB-042`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement account locale and accessibility controls without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_043`.
@@ -15827,7 +15840,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-055` **[GATE_C][SOL_HIGH] Implement the delegation-context selector.**
+- [x] `WEB-055` **[GATE_C][SOL_HIGH] Implement the delegation-context selector.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_055`, `TestTodo_WEB_055_Golden`, `TestTodo_WEB_055_Browser`, `TestTodo_WEB_055_Conformance` in `internal/humanwork/productui` (selectable delegated grants with delegator/expiry/elevation, current and malformed grants excluded, shared exchange contract, no-opaque-ids DOM, topbar placement, de-DE/RTL ar labels, typed stylesheet selectors, golden `fec579a1…`); `go test -count=1 ./internal/humanwork/productui/` PASS (native Linux Go 1.26.3) with no fallout, `go vet`/`gofmt` clean, fixtures regenerated byte-identical. Browser gate deferred (no launchable Chromium on either side) — recorded in devlog §17.
   - **Depends:** `WEB-054`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the delegation-context selector without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_055`.
@@ -15837,7 +15851,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-056` **[GATE_C][SOL_HIGH] Implement the persistent acting-authority banner.**
+- [x] `WEB-056` **[GATE_C][SOL_HIGH] Implement the persistent acting-authority banner.**
   - **Depends:** `WEB-055`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the persistent acting-authority banner without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_056`.
