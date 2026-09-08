@@ -914,6 +914,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | page_history.go                       | yes           |
 | internal/humanwork/productui                             | page_home.go                          | yes           |
 | internal/humanwork/productui                             | page_insights.go                      | yes           |
+| internal/humanwork/productui                             | page_inventory.go                     | yes           |
 | internal/humanwork/productui                             | page_journeys.go                      | yes           |
 | internal/humanwork/productui                             | page_myself.go                        | yes           |
 | internal/humanwork/productui                             | page_organization.go                  | yes           |

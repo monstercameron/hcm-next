@@ -16157,7 +16157,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Experience Studio
 
-- [ ] `WEB-085` **[PHASE_2][TERRA] Implement the page-definition inventory.**
+- [x] `WEB-085` **[PHASE_2][TERRA] Implement the page-definition inventory.**
   - **Depends:** `WEB-073`, `WEB-061`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the page-definition inventory without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_085`.
