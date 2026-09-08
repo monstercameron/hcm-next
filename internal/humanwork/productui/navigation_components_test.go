@@ -16,7 +16,7 @@ func TestNavigationRegistryBuildsReusableSubmenus(t *testing.T) {
 		t.Fatalf("My Work submenu = %+v", work)
 	}
 	admin, ok := projectedNavigationItem(items, PageAdmin)
-	if !ok || len(admin.Children) != 10 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations {
+	if !ok || len(admin.Children) != 11 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations || admin.Children[10].Page != PageReconciliationWorkbench {
 		t.Fatalf("Admin submenu = %+v, present=%t", admin, ok)
 	}
 }
