@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageCareerDiscovery, PageOrgExplorer, PageOrgOutline, PageOrgEffectiveDate, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageCareerDiscovery, PageOrgExplorer, PageOrgOutline, PageOrgEffectiveDate, PagePositionObject, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -154,6 +154,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageOrgExplorer, Route: "/workspace/app/organization/explorer", Label: "Org explorer", Icon: "people", Title: "Organization explorer", Subtitle: "Browse the organization through the governed organization service.", LabelKey: "page.org_explorer.label", TitleKey: "page.org_explorer.title", SubtitleKey: "page.org_explorer.subtitle", SearchTerms: []string{"organization", "explorer", "browse", "units", "chart"}, RenderOrder: 115, render: orgExplorerPage},
 		{ID: PageOrgOutline, Route: "/workspace/app/organization/outline", Label: "Org outline", Icon: "people", Title: "Accessible organization outline", Subtitle: "Outline the organization through the governed organization service.", LabelKey: "page.org_outline.label", TitleKey: "page.org_outline.title", SubtitleKey: "page.org_outline.subtitle", SearchTerms: []string{"outline", "structure", "hierarchy", "accessible", "organization"}, RenderOrder: 116, render: orgOutlinePage},
 		{ID: PageOrgEffectiveDate, Route: "/workspace/app/organization/effective-date", Label: "Org effective date", Icon: "people", Title: "Effective-date organization navigation", Subtitle: "Navigate the organization as of a date through the governed organization service.", LabelKey: "page.org_effective_date.label", TitleKey: "page.org_effective_date.title", SubtitleKey: "page.org_effective_date.subtitle", SearchTerms: []string{"effective date", "history", "as of", "navigate", "organization"}, RenderOrder: 117, render: orgEffectiveDatePage},
+		{ID: PagePositionObject, Route: "/workspace/app/organization/position", Label: "Position object", Icon: "people", Title: "Position object", Subtitle: "Inspect a governed position through the governed position service.", LabelKey: "page.position_object.label", TitleKey: "page.position_object.title", SubtitleKey: "page.position_object.subtitle", SearchTerms: []string{"position", "role", "object", "inspect", "organization"}, RenderOrder: 118, render: positionObjectPage},
 	}
 }
 

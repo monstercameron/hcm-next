@@ -69,6 +69,7 @@ const (
 	PageOrgExplorer            PageID = "org-explorer"
 	PageOrgOutline             PageID = "org-outline"
 	PageOrgEffectiveDate       PageID = "org-effective-date"
+	PagePositionObject         PageID = "position-object"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
