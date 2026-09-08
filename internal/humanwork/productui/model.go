@@ -18,6 +18,7 @@ const (
 	PageHistory                PageID = "history"
 	PagePeople                 PageID = "people"
 	PagePerson                 PageID = "person"
+	PageHeadcount              PageID = "headcount"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
