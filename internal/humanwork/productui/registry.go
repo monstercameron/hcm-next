@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -135,6 +135,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageCyclePopulations, Route: "/workspace/app/pay/cycle-populations", Label: "Cycle populations", Icon: "people", Title: "Compensation-cycle populations", Subtitle: "Scope cycle populations through the governed compensation service.", LabelKey: "page.cycle_populations.label", TitleKey: "page.cycle_populations.title", SubtitleKey: "page.cycle_populations.subtitle", SearchTerms: []string{"cycle", "population", "scope", "eligibility", "compensation"}, RenderOrder: 96, render: cyclePopulationsPage},
 		{ID: PageCompWorksheet, Route: "/workspace/app/pay/comp-worksheet", Label: "Comp worksheet", Icon: "people", Title: "Compensation worksheet", Subtitle: "Work the cycle through the governed compensation service.", LabelKey: "page.comp_worksheet.label", TitleKey: "page.comp_worksheet.title", SubtitleKey: "page.comp_worksheet.subtitle", SearchTerms: []string{"worksheet", "cycle", "adjust", "rows", "compensation"}, RenderOrder: 97, render: compWorksheetPage},
 		{ID: PageCompCalibration, Route: "/workspace/app/pay/comp-calibration", Label: "Comp calibration", Icon: "people", Title: "Compensation calibration", Subtitle: "Calibrate awards through the governed compensation service.", LabelKey: "page.comp_calibration.label", TitleKey: "page.comp_calibration.title", SubtitleKey: "page.comp_calibration.subtitle", SearchTerms: []string{"calibration", "ratings", "awards", "session", "compensation"}, RenderOrder: 98, render: compCalibrationPage},
+		{ID: PageBenefitsOverview, Route: "/workspace/app/benefits/overview", Label: "Benefits overview", Icon: "people", Title: "Benefit-program overview", Subtitle: "Programs from the governed benefits service.", LabelKey: "page.benefits_overview.label", TitleKey: "page.benefits_overview.title", SubtitleKey: "page.benefits_overview.subtitle", SearchTerms: []string{"benefits", "programs", "overview", "enrollment", "coverage"}, RenderOrder: 99, render: benefitsOverviewPage},
 	}
 }
 

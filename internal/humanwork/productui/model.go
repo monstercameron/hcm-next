@@ -50,6 +50,7 @@ const (
 	PageCyclePopulations       PageID = "cycle-populations"
 	PageCompWorksheet          PageID = "comp-worksheet"
 	PageCompCalibration        PageID = "comp-calibration"
+	PageBenefitsOverview       PageID = "benefits-overview"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
