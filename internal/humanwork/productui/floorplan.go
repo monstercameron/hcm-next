@@ -60,6 +60,10 @@ func RegisteredPrimitives() []string {
 // anatomy regions it fills in resolution order, which typed widget
 // bindings it carries, and which semantic action bindings it wires.
 type PageComposition struct {
+	// Purpose and Audience are the opening authoring step: why the
+	// page exists and who it serves (see ValidatePagePurpose).
+	Purpose          string
+	Audience         string
 	Floorplan        string
 	FloorplanVersion int64
 	// ClassificationCeiling is the page's declared classification

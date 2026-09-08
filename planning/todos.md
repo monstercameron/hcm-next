@@ -16167,7 +16167,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-086` **[PHASE_2][TERRA] Implement new-page purpose and audience setup.**
+- [x] `WEB-086` **[PHASE_2][TERRA] Implement new-page purpose and audience setup.**
   - **Depends:** `WEB-085`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement new-page purpose and audience setup without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_086`.
