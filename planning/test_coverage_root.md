@@ -863,6 +863,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | accessibility.go                      | yes           |
 | internal/humanwork/productui                             | accessibility_components.go           | yes           |
 | internal/humanwork/productui                             | action_availability.go                | yes           |
+| internal/humanwork/productui                             | action_binding.go                     | yes           |
 | internal/humanwork/productui                             | admin_components.go                   | yes           |
 | internal/humanwork/productui                             | appearance.go                         | yes           |
 | internal/humanwork/productui                             | appearance_components.go              | yes           |
