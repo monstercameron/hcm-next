@@ -17428,7 +17428,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-210` **[PHASE_3][SOL_HIGH] Implement manager and work reassignment review.**
+- [x] `WEB-210` **[PHASE_3][SOL_HIGH] Implement manager and work reassignment review.**
   - **Depends:** `WEB-209`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement manager and work reassignment review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_210`.

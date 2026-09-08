@@ -95,6 +95,7 @@ const (
 	PageOffboardingImpact      PageID = "offboarding-impact"
 	PageExitReview             PageID = "exit-review"
 	PageOffboardingPlan        PageID = "offboarding-plan"
+	PageReassignmentReview     PageID = "reassignment-review"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
