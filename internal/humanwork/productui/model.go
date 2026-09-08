@@ -32,6 +32,7 @@ const (
 	PageActivationReadiness    PageID = "activation-readiness"
 	PageTimeHub                PageID = "time-hub"
 	PageTimeEntry              PageID = "time-entry"
+	PageTimeCorrection         PageID = "time-correction"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
