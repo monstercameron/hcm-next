@@ -31,12 +31,20 @@ type BreakGlassActivationProps struct {
 // incident reference there is no prompt; an unsafe destination yields no
 // activation link instead of an invented one. Empty reason, capability,
 // and window projections omit their rows rather than rendering blanks.
+// breakGlassSuppressed reports whether the prompt stays hidden: no
+// incident, or this incident already dismissed. Dismissal is keyed by
+// incident reference, so a new emergency always resurfaces — an old
+// dismissal never transfers across authority drift.
+func breakGlassSuppressed(incidentRef, dismissedRef string) bool {
+	return incidentRef == "" || dismissedRef == incidentRef
+}
+
 func BreakGlassActivation(props BreakGlassActivationProps) ui.Node {
 	if strings.TrimSpace(props.IncidentRef) == "" {
 		return nil
 	}
-	dismissed := ui.UseState(false)
-	if dismissed.Get() {
+	dismissed := ui.UseState("")
+	if breakGlassSuppressed(strings.TrimSpace(props.IncidentRef), dismissed.Get()) {
 		return html.Fragment()
 	}
 	href := props.ActivateHref
@@ -77,7 +85,7 @@ func BreakGlassActivation(props BreakGlassActivationProps) ui.Node {
 	actions = append(actions, html.Button(html.Props{
 		ID: "break-glass-dismiss", Class: "break-glass-dismiss", Type: "button",
 		Aria:    map[string]string{"label": dismissLabel},
-		OnClick: ui.UseEvent(func(ui.MouseEvent) { dismissed.Set(true) }),
+		OnClick: ui.UseEvent(func(ui.MouseEvent) { dismissed.Set(strings.TrimSpace(props.IncidentRef)) }),
 	}, ui.Text(dismissLabel)))
 	rows = append(rows, html.Div(html.Props{Class: "break-glass-actions"}, actions...))
 	return html.Section(html.Props{ID: "break-glass-activation", Class: "break-glass-activation", Aria: map[string]string{"labelledby": "break-glass-title"}},

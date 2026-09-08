@@ -130,43 +130,91 @@ type RolePagePermissionRowProps struct {
 	Save       func(RolePagePermission)
 }
 
+// rolePermissionDraftState is the row's client draft plus the server
+// snapshot it was seeded from. Local edits live in the booleans; the
+// key never carries edits, so re-renders keep the draft while drift
+// resets it.
+type rolePermissionDraftState struct {
+	key                          RolePagePermission
+	view, create, update, remove bool
+}
+
+// permissionSnapshot extracts the server-addressed grant snapshot a
+// draft reconciles against: role, page, version, and the four grants.
+func permissionSnapshot(permission RolePagePermission) RolePagePermission {
+	return RolePagePermission{Version: permission.Version, RoleID: permission.RoleID, Page: permission.Page,
+		View: permission.View, Create: permission.Create, Update: permission.Update, Delete: permission.Delete}
+}
+
+// reconcileRolePermissionDraft keeps local edits while the incoming
+// projection matches the seeded snapshot and resets to the incoming
+// grants on drift: a version bump, changed grants, or another role or
+// page. The second result reports whether the draft was replaced, so
+// the component can invalidate its client cache exactly on drift.
+func reconcileRolePermissionDraft(incoming RolePagePermission, current rolePermissionDraftState) (rolePermissionDraftState, bool) {
+	key := permissionSnapshot(incoming)
+	if current.key == key {
+		return current, false
+	}
+	return rolePermissionDraftState{key: key, view: incoming.View, create: incoming.Create, update: incoming.Update, remove: incoming.Delete}, true
+}
+
 // RolePagePermissionRow owns draft checkbox state so dependent CRUD controls
 // update immediately and never submit a mutation grant without page access.
+// The draft reconciles against the incoming projection: local edits survive
+// re-renders, authority drift resets to the server grants.
 func RolePagePermissionRow(props RolePagePermissionRowProps) ui.Node {
-	view := ui.UseState(props.Permission.View)
-	create := ui.UseState(props.Permission.Create)
-	update := ui.UseState(props.Permission.Update)
-	remove := ui.UseState(props.Permission.Delete)
+	seeded := rolePermissionDraftState{key: permissionSnapshot(props.Permission),
+		view: props.Permission.View, create: props.Permission.Create, update: props.Permission.Update, remove: props.Permission.Delete}
+	state := ui.UseState(seeded)
+	draft, reset := reconcileRolePermissionDraft(props.Permission, state.Get())
+	if reset {
+		state.Set(draft)
+	}
+	toggle := func(action string) {
+		next := state.Get()
+		switch action {
+		case "view":
+			next.view = !next.view
+			if !next.view {
+				next.create, next.update, next.remove = false, false, false
+			}
+		case "create":
+			next.create = !next.create
+			if next.create {
+				next.view = true
+			}
+		case "update":
+			next.update = !next.update
+			if next.update {
+				next.view = true
+			}
+		case "delete":
+			next.remove = !next.remove
+			if next.remove {
+				next.view = true
+			}
+		}
+		state.Set(next)
+	}
+	checked := map[string]bool{"view": draft.view, "create": draft.create, "update": draft.update, "delete": draft.remove}
 	id := func(action string) string {
 		return "role-page-" + props.Permission.RoleID + "-" + string(props.Page.ID) + "-" + action
 	}
-	check := func(action, label string, state interface {
-		Get() bool
-		Set(bool)
-	}) ui.Node {
-		input := html.Props{ID: id(action), Type: "checkbox", Checked: state.Get(), Disabled: !props.Editable, Aria: map[string]string{"label": label + " — " + props.Page.Label}}
-		input.OnChange = ui.UseEvent(func(ui.InputEvent) {
-			next := !state.Get()
-			state.Set(next)
-			if action == "view" && !next {
-				create.Set(false)
-				update.Set(false)
-				remove.Set(false)
-			} else if action != "view" && next {
-				view.Set(true)
-			}
-		})
+	check := func(action, label string) ui.Node {
+		input := html.Props{ID: id(action), Type: "checkbox", Checked: checked[action], Disabled: !props.Editable, Aria: map[string]string{"label": label + " — " + props.Page.Label}}
+		input.OnChange = ui.UseEvent(func(ui.InputEvent) { toggle(action) })
 		return html.Label(html.Props{For: id(action), Class: "permission-check"}, html.Input(input), html.Span(html.Props{Class: "sr-only"}, ui.Text(label)))
 	}
-	draft := props.Permission
-	draft.View, draft.Create, draft.Update, draft.Delete = view.Get(), create.Get(), update.Get(), remove.Get()
+	saved := props.Permission
+	saved.View, saved.Create, saved.Update, saved.Delete = draft.view, draft.create, draft.update, draft.remove
 	return html.Tr(html.Props{},
 		html.Th(html.Props{Raw: map[string]any{"scope": "row"}}, html.Strong(html.Props{}, ui.Text(props.Page.Label)), html.Small(html.Props{Class: "muted"}, ui.Text(props.Page.Description))),
-		html.Td(html.Props{}, check("view", props.Text("roles.view"), view)),
-		html.Td(html.Props{}, check("create", props.Text("roles.create_permission"), create)),
-		html.Td(html.Props{}, check("update", props.Text("roles.update_permission"), update)),
-		html.Td(html.Props{}, check("delete", props.Text("roles.delete_permission"), remove)),
-		html.Td(html.Props{}, permissionSaveButton(props, draft)),
+		html.Td(html.Props{}, check("view", props.Text("roles.view"))),
+		html.Td(html.Props{}, check("create", props.Text("roles.create_permission"))),
+		html.Td(html.Props{}, check("update", props.Text("roles.update_permission"))),
+		html.Td(html.Props{}, check("delete", props.Text("roles.delete_permission"))),
+		html.Td(html.Props{}, permissionSaveButton(props, saved)),
 	)
 }
 

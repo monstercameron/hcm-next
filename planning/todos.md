@@ -16013,7 +16013,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-071` **[GATE_C][SOL_HIGH] Invalidate presentation caches on authority drift.**
+- [x] `WEB-071` **[GATE_C][SOL_HIGH] Invalidate presentation caches on authority drift.**
   - **Depends:** `WEB-070`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=invalidate presentation caches on authority drift without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_071`.
