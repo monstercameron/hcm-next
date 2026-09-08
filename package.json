@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Workflow-native HCM platform foundation.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=20.11.0",
     "npm": ">=10.0.0"
