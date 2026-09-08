@@ -104,6 +104,7 @@ const (
 	PageExitCompletion         PageID = "exit-completion"
 	PageReportCatalog          PageID = "report-catalog"
 	PageReportTypes            PageID = "report-types"
+	PageAnalysisFloorplan      PageID = "analysis-floorplan"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
