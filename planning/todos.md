@@ -17388,7 +17388,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-206` **[PHASE_3][SOL_HIGH] Implement exit reason and effective-date collection.**
+- [x] `WEB-206` **[PHASE_3][SOL_HIGH] Implement exit reason and effective-date collection.**
   - **Depends:** `WEB-205`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit reason and effective-date collection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_206`.

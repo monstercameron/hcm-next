@@ -91,6 +91,7 @@ const (
 	PageCaseAppeal             PageID = "case-appeal"
 	PageCaseRedaction          PageID = "case-redaction"
 	PageExitInitiation         PageID = "exit-initiation"
+	PageExitDetails            PageID = "exit-details"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
