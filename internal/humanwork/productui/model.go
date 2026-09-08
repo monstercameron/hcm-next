@@ -20,6 +20,7 @@ const (
 	PagePerson                 PageID = "person"
 	PageHeadcount              PageID = "headcount"
 	PagePosition               PageID = "position"
+	PageRequisition            PageID = "requisition"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
