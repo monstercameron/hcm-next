@@ -17174,7 +17174,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [position domain](specs/position-and-headcount-domain.md).
 
-- [ ] `WEB-185` **[PHASE_3][SOL_HIGH] Implement position occupancy presentation.**
+- [x] `WEB-185` **[PHASE_3][SOL_HIGH] Implement position occupancy presentation.**
   - **Depends:** `WEB-184`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement position occupancy presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_185`.
