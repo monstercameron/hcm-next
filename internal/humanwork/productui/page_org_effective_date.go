@@ -1,0 +1,27 @@
+package productui
+
+import (
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+)
+
+// orgEffectiveDatePage is the route adapter for
+// effective-date organization navigation. The governed
+// organization service is not published to this UI yet,
+// so the surface keeps the journeys fallback contract:
+// an honest empty state with a recovery link that
+// navigates nothing — org truth stays server authority.
+// The live effective-date composition replaces this body
+// once the governed service publishes; until then the UI
+// will not simulate one.
+func orgEffectiveDatePage(view View) ui.Node {
+	return ui.CreateElement(EmptyState, EmptyStateProps{
+		Title:       view.Locale.Text("org_effective_date.unavailable_title"),
+		Description: view.Locale.Text("org_effective_date.unavailable_detail"),
+		Role:        "status",
+		Action: &ActionLinkProps{
+			Label: view.Locale.Text("org_effective_date.return_home"), Href: statefulHref(view, PageHome),
+			Class:    "button primary",
+			Navigate: view.Navigate,
+		},
+	})
+}
