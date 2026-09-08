@@ -25,6 +25,7 @@ var (
 	ErrInvalidAward       = errors.New("incentive: invalid award calculation")
 	ErrInvalidClawback    = errors.New("incentive: invalid clawback rule")
 	ErrAwardTransition    = errors.New("incentive: award transition is not allowed")
+	ErrApprovalRefused    = errors.New("incentive: approval evidence was refused")
 )
 
 // MeasureKind is deliberately closed so a provider cannot silently invent a
@@ -594,26 +595,29 @@ func (s AwardState) Valid() bool {
 
 // AwardCalculation binds every input required to reproduce an exact award.
 type AwardCalculation struct {
-	CalculationID      string
-	WorkerRef          string
-	PlanDigest         string
-	PlanRevision       uint64
-	PeriodRef          string
-	EligibilityRef     string
-	FormulaRef         string
-	Inputs             []AwardInput
-	MeasureInputs      []AwardInput
-	Thresholds         []AwardThreshold
-	Cap                values.Decimal
-	HasCap             bool
-	Amount             values.Decimal
-	Currency           string
-	State              AwardState
-	ApprovalRef        string
-	Revision           uint64
-	SupersedesRevision uint64
-	CanonicalDigest    string
-	Digest             string
+	CalculationID          string
+	WorkerRef              string
+	PlanDigest             string
+	PlanRevision           uint64
+	PeriodRef              string
+	EligibilityRef         string
+	FormulaRef             string
+	Inputs                 []AwardInput
+	MeasureInputs          []AwardInput
+	Thresholds             []AwardThreshold
+	Cap                    values.Decimal
+	HasCap                 bool
+	Amount                 values.Decimal
+	Currency               string
+	State                  AwardState
+	ApprovalRef            string
+	ApprovalSourceDigest   string
+	ApprovalSourceRevision uint64
+	FinalizationRef        string
+	Revision               uint64
+	SupersedesRevision     uint64
+	CanonicalDigest        string
+	Digest                 string
 }
 
 func (a AwardCalculation) allInputs() []AwardInput {
@@ -672,8 +676,14 @@ func (a AwardCalculation) Validate() error {
 			return err
 		}
 	}
-	if a.State != AwardCalculated && strings.TrimSpace(a.ApprovalRef) == "" {
+	if a.State != AwardCalculated && (strings.TrimSpace(a.ApprovalRef) == "" || strings.TrimSpace(a.ApprovalSourceDigest) == "" || a.ApprovalSourceRevision == 0 || a.ApprovalSourceRevision >= a.Revision) {
 		return fmt.Errorf("%w: approval_ref is required after calculation", ErrInvalidAward)
+	}
+	if a.State == AwardCalculated && (a.ApprovalRef != "" || a.ApprovalSourceDigest != "" || a.ApprovalSourceRevision != 0 || a.FinalizationRef != "") {
+		return fmt.Errorf("%w: calculated award cannot carry approval evidence", ErrInvalidAward)
+	}
+	if a.State == AwardFinalized && strings.TrimSpace(a.FinalizationRef) == "" {
+		return fmt.Errorf("%w: finalization_ref is required", ErrInvalidAward)
 	}
 	if a.CanonicalDigest != "" && a.CanonicalDigest != a.computedDigest() {
 		return fmt.Errorf("%w: canonical_digest mismatch", ErrInvalidAward)
@@ -696,6 +706,7 @@ func (a AwardCalculation) canonicalWithoutDigest() []byte {
 		String("formula_ref", a.FormulaRef).String("currency", a.Currency).
 		Value("amount", a.Amount).String("state", string(a.State)).Int("revision", int64(a.Revision)).
 		Int("supersedes_revision", int64(a.SupersedesRevision)).String("approval_ref", a.ApprovalRef).
+		String("approval_source_digest", a.ApprovalSourceDigest).Int("approval_source_revision", int64(a.ApprovalSourceRevision)).String("finalization_ref", a.FinalizationRef).
 		Bool("cap_present", a.HasCap).Count("inputs", len(inputs))
 	if a.HasCap {
 		w.Value("cap", a.Cap)
@@ -725,6 +736,13 @@ func (a AwardCalculation) Canonical() []byte {
 }
 
 func NewAwardCalculation(a AwardCalculation) (AwardCalculation, error) {
+	if a.State != AwardCalculated || strings.TrimSpace(a.ApprovalRef) != "" {
+		return AwardCalculation{}, fmt.Errorf("%w: new awards must start calculated without approval", ErrInvalidAward)
+	}
+	return newAwardCalculation(a)
+}
+
+func newAwardCalculation(a AwardCalculation) (AwardCalculation, error) {
 	a.Inputs = a.allInputs()
 	a.MeasureInputs = append([]AwardInput(nil), a.Inputs...)
 	a.Thresholds = append([]AwardThreshold(nil), a.Thresholds...)
@@ -739,9 +757,47 @@ func NewAwardCalculation(a AwardCalculation) (AwardCalculation, error) {
 
 func NewAward(a AwardCalculation) (AwardCalculation, error) { return NewAwardCalculation(a) }
 
-// Approve and Finalize append a new revision and preserve the prior digest.
-func (a AwardCalculation) Approve(approvalRef string) (AwardCalculation, error) {
-	return a.transition(AwardApproved, approvalRef)
+// ApprovalClaim is the exact calculated award payload authorized by an
+// approval receipt. Implementations must verify the receipt, not its shape.
+type ApprovalClaim struct {
+	CalculationID, WorkerRef, PeriodRef, Currency, AwardDigest string
+	Amount                                                     values.Decimal
+	AwardRevision                                              uint64
+}
+
+// ApprovalVerifier is an injected authority boundary backed by the system
+// that issued the opaque approval receipt.
+type ApprovalVerifier interface {
+	VerifyApproval(ApprovalClaim, string) error
+}
+
+func (a AwardCalculation) approvalClaim() ApprovalClaim {
+	digest, revision := a.Digest, a.Revision
+	if a.State != AwardCalculated {
+		digest, revision = a.ApprovalSourceDigest, a.ApprovalSourceRevision
+	}
+	return ApprovalClaim{CalculationID: a.CalculationID, WorkerRef: a.WorkerRef, PeriodRef: a.PeriodRef, Currency: a.Currency, Amount: a.Amount, AwardDigest: digest, AwardRevision: revision}
+}
+
+// Approve verifies the opaque receipt before appending an approved revision.
+func (a AwardCalculation) Approve(approvalRef string, verifier ApprovalVerifier) (AwardCalculation, error) {
+	if verifier == nil {
+		return AwardCalculation{}, fmt.Errorf("%w: verifier is required", ErrApprovalRefused)
+	}
+	if err := a.Validate(); err != nil {
+		return AwardCalculation{}, err
+	}
+	if a.State != AwardCalculated || a.Digest == "" {
+		return AwardCalculation{}, fmt.Errorf("%w: approval requires a minted calculated award", ErrApprovalRefused)
+	}
+	if err := verifier.VerifyApproval(a.approvalClaim(), approvalRef); err != nil {
+		return AwardCalculation{}, fmt.Errorf("%w: %v", ErrApprovalRefused, err)
+	}
+	n := a
+	n.State, n.ApprovalRef, n.ApprovalSourceDigest = AwardApproved, approvalRef, a.Digest
+	n.ApprovalSourceRevision, n.Revision, n.SupersedesRevision = a.Revision, a.Revision+1, a.Revision
+	n.CanonicalDigest, n.Digest = "", ""
+	return newAwardCalculation(n)
 }
 func (a AwardCalculation) Finalize(approvalRef string) (AwardCalculation, error) {
 	return a.transition(AwardFinalized, approvalRef)
@@ -757,9 +813,14 @@ func (a AwardCalculation) transition(state AwardState, approvalRef string) (Awar
 		return AwardCalculation{}, fmt.Errorf("%w: %s -> %s", ErrAwardTransition, a.State, state)
 	}
 	n := a
-	n.State, n.ApprovalRef, n.Revision, n.SupersedesRevision = state, approvalRef, a.Revision+1, a.Revision
+	n.State, n.Revision, n.SupersedesRevision = state, a.Revision+1, a.Revision
+	if state == AwardApproved {
+		n.ApprovalRef = approvalRef
+	} else {
+		n.FinalizationRef = approvalRef
+	}
 	n.CanonicalDigest, n.Digest = "", ""
-	return NewAwardCalculation(n)
+	return newAwardCalculation(n)
 }
 
 type AwardExplanation struct {

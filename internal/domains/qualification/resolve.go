@@ -9,6 +9,7 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/domains/evidence"
 	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/hcm-next/internal/domains/skill"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
@@ -26,6 +27,7 @@ var (
 	ErrCredentialReaderFailed = errors.New("qualification: credential facts reader failed")
 	ErrCredentialSubject      = errors.New("qualification: credential reader answered about another worker")
 	ErrCredentialNotFresh     = errors.New("qualification: credential fact is not fresh")
+	ErrPinnedSkillInput       = errors.New("qualification: pinned skill input is invalid")
 )
 
 // CredentialFact is the typed, non-content assertion read by QUAL-002. Raw
@@ -227,6 +229,74 @@ type QualificationResolutionRequest struct {
 	Authorization QualificationAuthorization
 }
 
+// PinnedSkillInput is the explicit skill authority used for skill
+// requirements. Skill evidence remains skill evidence; it is never converted
+// into a fabricated CredentialFact with invented trust or provenance.
+type PinnedSkillInput struct {
+	Ontology          skill.SkillOntologyRevision
+	Equivalences      []skill.EquivalenceRule
+	Evidence          skill.EvidenceRevision
+	AuthorityRef      string
+	AuthorityVerifier PinnedSkillAuthorityVerifier
+	Purpose           string
+	EquivalenceDigest string
+}
+
+// PinnedSkillAuthorityClaim is the complete content-addressed assertion a
+// trusted composition-root verifier authenticates. A caller-supplied label is
+// not, by itself, evidence of authority.
+type PinnedSkillAuthorityClaim struct {
+	AuthorityRef      string
+	Tenant            values.TenantId
+	Worker            values.EntityRef
+	Purpose           string
+	OntologyDigest    string
+	EvidenceDigest    string
+	EquivalenceDigest string
+}
+
+type PinnedSkillAuthorityVerifier interface {
+	VerifyPinnedSkillAuthority(context.Context, PinnedSkillAuthorityClaim) error
+}
+
+func (p PinnedSkillInput) Validate(worker values.EntityRef, asOf values.Instant, purpose string) error {
+	if strings.TrimSpace(p.AuthorityRef) == "" || p.AuthorityVerifier == nil {
+		return fmt.Errorf("%w: authenticated skill authority is required", ErrPinnedSkillInput)
+	}
+	if strings.TrimSpace(p.Purpose) == "" || p.Purpose != purpose {
+		return fmt.Errorf("%w: skill purpose does not match authorization", ErrPinnedSkillInput)
+	}
+	if err := p.Ontology.Validate(); err != nil {
+		return fmt.Errorf("%w: skill ontology: %v", ErrPinnedSkillInput, err)
+	}
+	ontologyDigest, err := p.Ontology.Digest()
+	if err != nil || p.Ontology.CanonicalDigest == "" || ontologyDigest != p.Ontology.CanonicalDigest {
+		return fmt.Errorf("%w: skill ontology pin is invalid", ErrPinnedSkillInput)
+	}
+	if p.Evidence.Digest == "" {
+		return fmt.Errorf("%w: skill evidence must be pinned", ErrPinnedSkillInput)
+	}
+	canonical, err := skill.NewEvidenceRevision(p.Evidence.Sequence, p.Evidence.Evidence)
+	if err != nil || canonical.Digest != p.Evidence.Digest {
+		return fmt.Errorf("%w: skill evidence pin is invalid", ErrPinnedSkillInput)
+	}
+	if p.EquivalenceDigest == "" || p.EquivalenceDigest != equivalenceDigest(p.Equivalences) {
+		return fmt.Errorf("%w: skill equivalence pin is invalid", ErrPinnedSkillInput)
+	}
+	if len(p.Ontology.Skills) == 0 || worker.Tenant != p.Ontology.OntologyID.Tenant {
+		return fmt.Errorf("%w: skill authority tenant mismatch", ErrPinnedSkillInput)
+	}
+	for _, item := range p.Evidence.Evidence {
+		if item.Worker != worker {
+			return fmt.Errorf("%w: skill evidence worker mismatch", ErrPinnedSkillInput)
+		}
+	}
+	if err := asOf.Validate(); err != nil {
+		return fmt.Errorf("%w: as-of: %v", ErrResolutionInvalid, err)
+	}
+	return nil
+}
+
 // ResolutionRequest is a concise alias for callers composing the resolver.
 type ResolutionRequest = QualificationResolutionRequest
 
@@ -244,21 +314,26 @@ func (r QualificationResolutionRequest) Validate() error {
 // are present only when the caller has qualification.read and the descriptor
 // was trusted, verified, valid and fresh at AsOf.
 type QualificationResolution struct {
-	Worker          values.EntityRef
-	RequirementID   string
-	Revision        uint64
-	AsOf            values.Instant
-	Disclosure      people.Disclosure
-	Presence        people.SubjectPresence
-	WithheldReason  string
-	Credentials     []CredentialFact
-	Evaluation      Evaluation
-	Watermark       values.RevisionToken
-	PolicyVersion   string
-	ExpiredCount    int
-	RestrictedCount int
-	InputsDigest    string
-	ResultDigest    string
+	Worker                 values.EntityRef
+	RequirementID          string
+	Revision               uint64
+	AsOf                   values.Instant
+	Disclosure             people.Disclosure
+	Presence               people.SubjectPresence
+	WithheldReason         string
+	Credentials            []CredentialFact
+	Evaluation             Evaluation
+	Watermark              values.RevisionToken
+	PolicyVersion          string
+	ExpiredCount           int
+	RestrictedCount        int
+	InputsDigest           string
+	ResultDigest           string
+	SkillAuthority         string
+	SkillPurpose           string
+	SkillOntologyDigest    string
+	SkillEvidenceDigest    string
+	SkillEquivalenceDigest string
 }
 
 func (r QualificationResolution) canonicalBody() []byte {
@@ -281,7 +356,10 @@ func (r QualificationResolution) canonicalBody() []byte {
 	}
 	raw, err := w.String("policy_version", r.PolicyVersion).String("inputs_digest", r.InputsDigest).
 		Int("expired_count", int64(r.ExpiredCount)).
-		Int("restricted_count", int64(r.RestrictedCount)).Bytes()
+		Int("restricted_count", int64(r.RestrictedCount)).String("skill_authority", r.SkillAuthority).
+		String("skill_purpose", r.SkillPurpose).
+		String("skill_ontology_digest", r.SkillOntologyDigest).String("skill_evidence_digest", r.SkillEvidenceDigest).
+		String("skill_equivalence_digest", r.SkillEquivalenceDigest).Bytes()
 	if err != nil {
 		return nil
 	}
@@ -404,6 +482,10 @@ func finishQualificationResolution(r QualificationResolution) (QualificationReso
 // ResolveWorkerQualification performs the QUAL-002 read, filters facts using
 // the as-of instant, and evaluates QUAL-001 only against disclosed facts.
 func ResolveWorkerQualification(ctx context.Context, reader CredentialFacts, req QualificationResolutionRequest) (QualificationResolution, error) {
+	return resolveWorkerQualification(ctx, reader, req, false)
+}
+
+func resolveWorkerQualification(ctx context.Context, reader CredentialFacts, req QualificationResolutionRequest, allowPinnedSkills bool) (QualificationResolution, error) {
 	if err := req.Validate(); err != nil {
 		return QualificationResolution{}, err
 	}
@@ -428,6 +510,9 @@ func ResolveWorkerQualification(ctx context.Context, reader CredentialFacts, req
 			return QualificationResolution{}, err
 		}
 		return finishQualificationResolution(result)
+	}
+	if len(req.Requirement.Skills) != 0 && !allowPinnedSkills {
+		return QualificationResolution{}, fmt.Errorf("%w: skill requirements require pinned skill input", ErrPinnedSkillInput)
 	}
 	if reader == nil {
 		return QualificationResolution{}, fmt.Errorf("%w: no credential facts reader", ErrResolutionInvalid)
@@ -482,4 +567,132 @@ func Resolve(ctx context.Context, reader CredentialFacts, req QualificationResol
 
 func ResolveAuthorizedQualification(ctx context.Context, reader CredentialFacts, req QualificationResolutionRequest) (QualificationResolution, error) {
 	return ResolveWorkerQualification(ctx, reader, req)
+}
+
+// ResolveWorkerQualificationWithPinnedSkills evaluates qualification skill
+// requirements through the skill resolver against exactly one supplied
+// ontology/equivalence/evidence snapshot. Credential facts remain owned by
+// the credential port; only the resulting skill outcomes cross this boundary.
+func ResolveWorkerQualificationWithPinnedSkills(ctx context.Context, reader CredentialFacts, req QualificationResolutionRequest, input PinnedSkillInput) (QualificationResolution, error) {
+	if err := req.Validate(); err != nil {
+		return QualificationResolution{}, err
+	}
+	if !req.Authorization.HasScope(QualificationReadScope) || !req.Authorization.SubjectDisclosable {
+		return resolveWorkerQualification(ctx, reader, req, true)
+	}
+	if err := input.Validate(req.Worker, req.AsOf, req.Authorization.Purpose); err != nil {
+		return QualificationResolution{}, err
+	}
+	claim := PinnedSkillAuthorityClaim{
+		AuthorityRef: input.AuthorityRef, Tenant: req.Tenant, Worker: req.Worker, Purpose: req.Authorization.Purpose,
+		OntologyDigest: input.Ontology.CanonicalDigest, EvidenceDigest: input.Evidence.Digest, EquivalenceDigest: input.EquivalenceDigest,
+	}
+	if err := input.AuthorityVerifier.VerifyPinnedSkillAuthority(ctx, claim); err != nil {
+		return QualificationResolution{}, fmt.Errorf("%w: authority verification failed: %v", ErrPinnedSkillInput, err)
+	}
+	date, err := values.NewLocalDate(req.AsOf.Time().Year(), req.AsOf.Time().Month(), req.AsOf.Time().Day())
+	if err != nil {
+		return QualificationResolution{}, err
+	}
+	refs := make([]values.EntityRef, 0, len(req.Requirement.Skills))
+	for _, required := range req.Requirement.Skills {
+		for _, definition := range input.Ontology.Skills {
+			ref := definition.SkillRef
+			if ref.Validate() != nil {
+				ref = definition.SkillID
+			}
+			if required.Ref == ref.String() || required.Ref == ref.Id || required.Ref == "skill:"+definition.Name {
+				refs = append(refs, ref)
+				break
+			}
+		}
+	}
+	if len(refs) != len(req.Requirement.Skills) {
+		return QualificationResolution{}, fmt.Errorf("%w: requirement skill is not in pinned ontology", ErrResolutionInvalid)
+	}
+	skillReq := skill.ResolveRequest{Worker: req.Worker, AsOf: date, SkillRefs: refs, Ontology: input.Ontology, Equivalences: append([]skill.EquivalenceRule(nil), input.Equivalences...)}
+	skillResolver := skill.NewPinnedResolver(input.Ontology, input.Equivalences, skill.FakeSkillEvidenceReader{Evidence: input.Evidence.Evidence})
+	skillResult, err := skillResolver.Resolve(ctx, skillReq)
+	if err != nil {
+		return QualificationResolution{}, fmt.Errorf("%w: pinned skill resolution: %v", ErrResolutionInvalid, err)
+	}
+	// Prevent a credential adapter's similarly-shaped skill facts from being
+	// used as a second, unpinned authority. The qualification decision below
+	// is then amended only with the validated skill resolver outcomes.
+	filtered := credentialFactsWithoutSkills{inner: reader}
+	result, err := resolveWorkerQualification(ctx, filtered, req, true)
+	if err != nil {
+		return QualificationResolution{}, err
+	}
+	byRef := make(map[string]skill.ProficiencyResult, len(skillResult.Proficiencies))
+	for _, proficiency := range skillResult.Proficiencies {
+		byRef[proficiency.SkillRef.String()] = proficiency
+		byRef[proficiency.SkillRef.Id] = proficiency
+		for _, definition := range input.Ontology.Skills {
+			ref := definition.SkillRef
+			if ref.Validate() != nil {
+				ref = definition.SkillID
+			}
+			if ref == proficiency.SkillRef {
+				byRef["skill:"+definition.Name] = proficiency
+			}
+		}
+	}
+	for i := range result.Evaluation.Results {
+		item := &result.Evaluation.Results[i]
+		if item.Kind != RequirementSkill {
+			continue
+		}
+		proficiency, ok := byRef[item.Ref]
+		item.Status = StatusUnsatisfied
+		item.Gap = "SKILL:" + item.Ref
+		item.EvidenceRef = ""
+		if ok && proficiency.Status == skill.StatusVerified && proficiency.Level >= item.RequiredLevel {
+			item.Status, item.Gap = StatusSatisfied, ""
+		}
+	}
+	result.Evaluation.CanonicalDigest = canonicalbytes.Digest(result.Evaluation.body())
+	result.SkillAuthority = input.AuthorityRef
+	result.SkillPurpose = input.Purpose
+	result.SkillOntologyDigest = input.Ontology.CanonicalDigest
+	result.SkillEvidenceDigest = input.Evidence.Digest
+	result.SkillEquivalenceDigest = equivalenceDigest(input.Equivalences)
+	return finishQualificationResolution(result)
+}
+
+// ResolveAuthorizedQualificationWithPinnedSkills is the authorized spelling
+// for composition roots.
+func ResolveAuthorizedQualificationWithPinnedSkills(ctx context.Context, reader CredentialFacts, req QualificationResolutionRequest, input PinnedSkillInput) (QualificationResolution, error) {
+	return ResolveWorkerQualificationWithPinnedSkills(ctx, reader, req, input)
+}
+
+type credentialFactsWithoutSkills struct{ inner CredentialFacts }
+
+func (r credentialFactsWithoutSkills) CredentialFactsAt(ctx context.Context, q CredentialFactsQuery) (CredentialFactSet, error) {
+	if r.inner == nil {
+		return CredentialFactSet{}, fmt.Errorf("%w: no credential facts reader", ErrResolutionInvalid)
+	}
+	set, err := r.inner.CredentialFactsAt(ctx, q)
+	if err != nil {
+		return set, err
+	}
+	filtered := set
+	filtered.Facts = make([]CredentialFact, 0, len(set.Facts))
+	for _, fact := range set.Facts {
+		if fact.SkillRef == "" {
+			filtered.Facts = append(filtered.Facts, fact)
+		}
+	}
+	return filtered, nil
+}
+
+func equivalenceDigest(rules []skill.EquivalenceRule) string {
+	items := append([]skill.EquivalenceRule(nil), rules...)
+	sort.Slice(items, func(i, j int) bool { return items[i].RuleID.String() < items[j].RuleID.String() })
+	w := canonicalbytes.New("hcmnext.domains.qualification.PinnedSkillEquivalences", schemaVersion).Count("rules", len(items))
+	for _, rule := range items {
+		w.Field("rule", rule.Canonical())
+	}
+	digest, _ := w.Digest()
+	return digest
 }

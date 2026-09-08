@@ -142,3 +142,110 @@ func TestTodo_BEN_001_Mutation(t *testing.T) {
 		t.Fatal("duplicate did not unwrap to ErrStoreDuplicate")
 	}
 }
+
+func TestMemoryStoreRevisionLifecycle(t *testing.T) {
+	ctx := context.Background()
+	store := NewMemoryStore()
+	first, err := NewPlanRevision(benefitRevision(t, 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Save(ctx, "tenant-benefits", first, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := store.Load(ctx, "tenant-benefits", first.PlanID.Id, first.Revision.String())
+	if err != nil || loaded.CanonicalDigest != first.CanonicalDigest {
+		t.Fatalf("load = %+v, %v", loaded, err)
+	}
+	loaded.CoverageTiers[0] = "caller mutation"
+	reloaded, err := store.Current(ctx, "tenant-benefits", first.PlanID.Id)
+	if err != nil || reloaded.CoverageTiers[0] != "employee" {
+		t.Fatalf("store leaked mutable slices: %+v, %v", reloaded.CoverageTiers, err)
+	}
+
+	token, _ := values.NewSequenceRevision("benefits.plan", 2)
+	nextID := benefitRef("tenant-benefits", "benefit_plan_revision", uuid.MustParse("20000000-0000-4000-8000-000000000002"))
+	next, err := first.Successor(nextID, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Save(ctx, "tenant-benefits", next, first.Revision.String()); err != nil {
+		t.Fatal(err)
+	}
+	list, err := store.List(ctx, "tenant-benefits", first.PlanID.Id)
+	if err != nil || len(list) != 2 || list[0].Revision.String() != first.Revision.String() || list[1].Revision.String() != next.Revision.String() {
+		t.Fatalf("ordered history = %+v, %v", list, err)
+	}
+	current, err := store.Current(ctx, "tenant-benefits", first.PlanID.Id)
+	if err != nil || current.Revision.String() != next.Revision.String() {
+		t.Fatalf("current = %+v, %v", current, err)
+	}
+
+	third := next
+	third.RevisionID = benefitRef("tenant-benefits", "benefit_plan_revision", uuid.MustParse("20000000-0000-4000-8000-000000000003"))
+	third.Revision, _ = values.NewSequenceRevision("benefits.plan", 3)
+	third.Supersedes = next.RevisionID
+	third.CanonicalDigest = ""
+	if err := store.Save(ctx, "tenant-benefits", third, first.Revision.String()); !errors.Is(err, ErrStoreStaleCAS) {
+		t.Fatalf("stale save error = %v", err)
+	} else {
+		var typed *StoreError
+		if !errors.As(err, &typed) || typed.Expected != first.Revision.String() || typed.Actual != next.Revision.String() {
+			t.Fatalf("stale context = %#v", typed)
+		}
+	}
+}
+
+func TestMemoryStoreRejectsInvalidScopeAndMissingRecords(t *testing.T) {
+	ctx := context.Background()
+	store := NewMemoryStore()
+	revision := benefitRevision(t, 1)
+	for name, err := range map[string]error{
+		"nil store":       (*MemoryStore)(nil).Save(ctx, "tenant-benefits", revision, ""),
+		"empty tenant":    store.Save(ctx, "", revision, ""),
+		"tenant mismatch": store.Save(ctx, "other-benefits", revision, ""),
+	} {
+		if !errors.Is(err, ErrStoreInvalid) {
+			t.Errorf("%s error = %v", name, err)
+		}
+	}
+	for name, call := range map[string]func() error{
+		"load missing":    func() error { _, err := store.Load(ctx, "tenant-benefits", revision.PlanID.Id, "missing"); return err },
+		"current missing": func() error { _, err := store.Current(ctx, "tenant-benefits", revision.PlanID.Id); return err },
+		"list missing":    func() error { _, err := store.List(ctx, "tenant-benefits", revision.PlanID.Id); return err },
+	} {
+		if err := call(); !errors.Is(err, ErrStoreNotFound) {
+			t.Errorf("%s error = %v", name, err)
+		}
+	}
+}
+
+func TestPlanRevisionPublicContracts(t *testing.T) {
+	revision, err := NewPlanRevision(benefitRevision(t, 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidatePlanRevision(revision); err != nil {
+		t.Fatal(err)
+	}
+	if len(revision.Canonical()) == 0 {
+		t.Fatal("valid revision has no canonical bytes")
+	}
+	explanation, err := ExplainPlanRevision(revision)
+	if err != nil || explanation.Revision != revision.Revision.String() || !explanation.HasEnrollment || !explanation.HasEligibility || !explanation.HasContribution {
+		t.Fatalf("explanation = %+v, %v", explanation, err)
+	}
+
+	bad := revision
+	bad.CanonicalDigest = "sha256:forged"
+	if bad.Canonical() != nil {
+		t.Fatal("invalid revision emitted canonical bytes")
+	}
+	if _, err := bad.Digest(); !errors.Is(err, ErrInvalidRevision) {
+		t.Fatalf("forged digest error = %v", err)
+	}
+	if _, err := bad.Explain(); !errors.Is(err, ErrInvalidRevision) {
+		t.Fatalf("invalid explanation error = %v", err)
+	}
+}

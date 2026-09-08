@@ -75,11 +75,12 @@ func fixtureModels() modelbinding.Table {
 // handler, one resolvable definition.
 func fixtureClaim() Claim {
 	return Claim{
-		CapabilityID:  fixtureCapabilityID,
-		DefinitionRef: fixtureDefinition,
-		WireMethods:   []string{fixtureService + "/ExplainWorkerState"},
-		Handlers:      []HandlerSymbol{fixtureHandler("explainWorkerState")},
-		Rationale:     "fixture",
+		CapabilityID:      fixtureCapabilityID,
+		CapabilityVersion: 1,
+		DefinitionRef:     fixtureDefinition,
+		WireMethods:       []string{fixtureService + "/ExplainWorkerState"},
+		Handlers:          []HandlerSymbol{fixtureHandler("explainWorkerState")},
+		Rationale:         "fixture",
 	}
 }
 
@@ -176,6 +177,38 @@ func TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHan
 		)
 		if !hasGap(table, GapClaimWithoutCapability, fixtureCapabilityID) {
 			t.Fatalf("a claim for an unpublished capability was accepted:\n%s", table.Explain())
+		}
+	})
+
+	t.Run("claim pinned to a different published version is rejected", func(t *testing.T) {
+		claim := fixtureClaim()
+		claim.CapabilityVersion = 2
+		table := fixtureBuild(t, claim, fixtureIndex("explainWorkerState"))
+		if !hasGap(table, GapClaimWithoutCapability, fixtureCapabilityID) {
+			t.Fatalf("a claim for v2 satisfied the published v1 capability:\n%s", table.Explain())
+		}
+		if len(table.Entries) != 0 {
+			t.Fatalf("a mismatched capability version produced %d entries; it must produce none", len(table.Entries))
+		}
+		gaps := table.GapsOfKind(GapClaimWithoutCapability)
+		if len(gaps) != 1 || gaps[0].Subject != fixtureCapabilityID+"/v2" {
+			t.Fatalf("version mismatch gap = %+v, want subject %q", gaps, fixtureCapabilityID+"/v2")
+		}
+	})
+
+	t.Run("unversioned claim is rejected rather than treated as a wildcard", func(t *testing.T) {
+		claim := fixtureClaim()
+		claim.CapabilityVersion = 0
+		table := fixtureBuild(t, claim, fixtureIndex("explainWorkerState"))
+		if !hasGap(table, GapClaimWithoutCapability, fixtureCapabilityID) {
+			t.Fatalf("an unversioned claim satisfied the published v1 capability:\n%s", table.Explain())
+		}
+		if len(table.Entries) != 0 {
+			t.Fatalf("an unversioned claim produced %d entries; it must produce none", len(table.Entries))
+		}
+		gaps := table.GapsOfKind(GapClaimWithoutCapability)
+		if len(gaps) != 1 || gaps[0].Subject != fixtureCapabilityID+"/v0" {
+			t.Fatalf("unversioned claim gap = %+v, want subject %q", gaps, fixtureCapabilityID+"/v0")
 		}
 	})
 

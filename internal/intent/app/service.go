@@ -147,7 +147,8 @@ type Options struct {
 	// service; [NewCell] instead passes the cell's own gateway sink, so a
 	// caller reads capability-invocation and authority-gate evidence back
 	// from one place ([Cell.Evidence]).
-	Evidence capability.EvidenceSink
+	Evidence      capability.EvidenceSink
+	LegalEvidence LegalEvidenceVerifier
 }
 
 // IntentService is the application service behind both transports.
@@ -183,7 +184,8 @@ type IntentService struct {
 	executionFacts ExecutionFacts
 	// evidence is OBS-024's GATE_REFUSED/GATE_ADMITTED recorder.
 	// [IntentService.ExecuteIntent] is the only reader.
-	evidence capability.EvidenceSink
+	evidence      capability.EvidenceSink
+	legalEvidence LegalEvidenceVerifier
 }
 
 var (
@@ -226,6 +228,7 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		tenantUUID:         opts.TenantUUID,
 		executionFacts:     opts.ExecutionFacts,
 		evidence:           opts.Evidence,
+		legalEvidence:      opts.LegalEvidence,
 	}
 	if svc.ids == nil {
 		svc.ids = intent.UUIDv7Source
@@ -829,6 +832,11 @@ func (s *IntentService) ListIntentTimeline(ctx context.Context, req *intentsv1.L
 // ---------------------------------------------------------------------------
 
 // simulate runs the P1A read/preflight/simulate path for one stored intent.
+type simulationResult struct {
+	Artifact *intentsv1.SimulationArtifact
+	Revision *intent.ProposalRevision
+}
+
 func (s *IntentService) simulate(
 	ctx context.Context,
 	principal *trust.Principal,
@@ -836,6 +844,17 @@ func (s *IntentService) simulate(
 	inst intent.Instance,
 	def intent.Definition,
 ) (*intentsv1.SimulationArtifact, *envelope.Error) {
+	result, ownedErr := s.simulateDetailed(ctx, principal, purpose, inst, def)
+	return result.Artifact, ownedErr
+}
+
+func (s *IntentService) simulateDetailed(
+	ctx context.Context,
+	principal *trust.Principal,
+	purpose string,
+	inst intent.Instance,
+	def intent.Definition,
+) (simulationResult, *envelope.Error) {
 	call, err := s.inputs.Resolve(ctx, ResolveRequest{
 		Instance:   inst,
 		Definition: def,
@@ -844,9 +863,9 @@ func (s *IntentService) simulate(
 	})
 	if err != nil {
 		if errors.Is(err, ErrAuthorizationDenied) {
-			return nil, authorizationRefusal(err)
+			return simulationResult{}, authorizationRefusal(err)
 		}
-		return nil, envelope.New(envelope.CodeInvalidArgument, reasonRequestRejected,
+		return simulationResult{}, envelope.New(envelope.CodeInvalidArgument, reasonRequestRejected,
 			"the request is malformed or structurally invalid").
 			WithViolation("request", "the typed request payload could not be resolved into a governed domain read", rulePhaseCeiling).
 			WithDiagnostic(err)
@@ -858,11 +877,11 @@ func (s *IntentService) simulate(
 		answer, _, ownedErr := s.invoke(ctx, principal, purpose,
 			capabilityKeyFor(intent.Ref{TypeID: people.ExplainWorkerStateIntentType, Version: 1}), *call.Explain)
 		if ownedErr != nil {
-			return nil, ownedErr
+			return simulationResult{}, ownedErr
 		}
 		got, ok := answer.(people.Explanation)
 		if !ok {
-			return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			return simulationResult{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 				"the operation could not be completed").
 				WithDiagnostic(fmt.Errorf("app: explain_worker_state returned %T", answer))
 		}
@@ -873,17 +892,23 @@ func (s *IntentService) simulate(
 	case call.Promotion != nil:
 		return s.simulatePromotion(ctx, principal, purpose, inst, def, call, explanation)
 	case call.Compensation != nil:
-		return s.simulateCompensation(ctx, principal, purpose, inst, def, call)
+		artifact, err := s.simulateCompensation(ctx, principal, purpose, inst, def, call)
+		return simulationResult{Artifact: artifact}, err
 	case call.PayBand != nil:
-		return s.simulatePayBand(ctx, principal, purpose, inst, def, call)
+		artifact, err := s.simulatePayBand(ctx, principal, purpose, inst, def, call)
+		return simulationResult{Artifact: artifact}, err
 	case call.Drift != nil:
-		return s.simulateDrift(ctx, principal, purpose, inst, def, call)
+		artifact, err := s.simulateDrift(ctx, principal, purpose, inst, def, call)
+		return simulationResult{Artifact: artifact}, err
 	case call.Repair != nil:
-		return s.simulateRepair(ctx, principal, purpose, inst, def, call)
+		artifact, err := s.simulateRepair(ctx, principal, purpose, inst, def, call)
+		return simulationResult{Artifact: artifact}, err
 	case call.Transaction != nil:
-		return s.simulateTransaction(ctx, principal, purpose, inst, def, call)
+		artifact, err := s.simulateTransaction(ctx, principal, purpose, inst, def, call)
+		return simulationResult{Artifact: artifact}, err
 	default:
-		return s.simulateExplanation(ctx, inst, def, call, explanation)
+		artifact, err := s.simulateExplanation(ctx, inst, def, call, explanation)
+		return simulationResult{Artifact: artifact}, err
 	}
 }
 
@@ -912,7 +937,7 @@ func (s *IntentService) simulatePromotion(
 	def intent.Definition,
 	call DomainCall,
 	explanation people.Explanation,
-) (*intentsv1.SimulationArtifact, *envelope.Error) {
+) (simulationResult, *envelope.Error) {
 	request := *call.Promotion
 	request.WorkerState = explanation
 
@@ -925,17 +950,17 @@ func (s *IntentService) simulatePromotion(
 		Baseline:   call.Baseline,
 	}, s.defs, preflighter)
 	if err != nil {
-		return nil, kernelRejection(err)
+		return simulationResult{}, kernelRejection(err)
 	}
 
 	answer, _, ownedErr := s.invoke(ctx, principal, purpose, key,
 		promotionCall{Mode: promotionModeSimulate, Request: request})
 	if ownedErr != nil {
-		return nil, ownedErr
+		return simulationResult{}, ownedErr
 	}
 	simulated, ok := answer.(promotionAnswer)
 	if !ok {
-		return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+		return simulationResult{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 			"the operation could not be completed").
 			WithDiagnostic(fmt.Errorf("app: promote_worker returned %T", answer))
 	}
@@ -947,6 +972,7 @@ func (s *IntentService) simulatePromotion(
 		Uncertainty:       uncertaintyProto(simulated.Simulation),
 		ZeroEffectReceipt: receiptProto(simulated.Simulation.Receipt, simulated.Simulation.Effects),
 	}
+	var minted *intent.ProposalRevision
 
 	// A proposal is minted only from a READY preflight. A blocked promotion is
 	// still simulated and still answered - that is the product - but it never
@@ -955,36 +981,37 @@ func (s *IntentService) simulatePromotion(
 		ledger := intent.NewProposalLedger(inst.IntentID)
 		spec, specErr := proposalFor(inst, def, request, simulated.Simulation, call.Baseline, s.controls.Snapshots, simulationRevision)
 		if specErr != nil {
-			return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			return simulationResult{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 				"the operation could not be completed").WithDiagnostic(specErr)
 		}
 		artifactIDs := derivedIDs(inst, simulationRevision)
 		rev, revErr := intent.NewProposalRevision(spec, def, s.digester, artifactIDs, s.clock)
 		if revErr != nil {
-			return nil, kernelRejection(revErr)
+			return simulationResult{}, kernelRejection(revErr)
 		}
 		if appendErr := ledger.Append(rev); appendErr != nil {
-			return nil, kernelRejection(appendErr)
+			return simulationResult{}, kernelRejection(appendErr)
 		}
 		planInput, planErr := planFor(inst, def, rev, request, call.Baseline, s.controls, true)
 		if planErr != nil {
-			return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			return simulationResult{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 				"the operation could not be completed").WithDiagnostic(planErr)
 		}
 		plan, compileErr := intent.CompilePlan(planInput, artifactIDs)
 		if compileErr != nil {
-			return nil, kernelRejection(compileErr)
+			return simulationResult{}, kernelRejection(compileErr)
 		}
 		if verifyErr := plan.VerifyDigest(); verifyErr != nil {
-			return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			return simulationResult{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
 				"the operation could not be completed").WithDiagnostic(verifyErr)
 		}
 
 		artifact.ProposalRevisionId = rev.ProposalRevisionID
 		artifact.MaterialProposalDigest = rev.MaterialDigest.ToProto()
 		artifact.PlannedEffects = plannedEffectsProto(plan)
+		minted = &rev
 	}
-	return artifact, nil
+	return simulationResult{Artifact: artifact, Revision: minted}, nil
 }
 
 // simulateCompensation answers a simulate_compensation intent.

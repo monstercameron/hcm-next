@@ -982,6 +982,13 @@ func (iv EffectiveInterval) IsOpenEnded() bool { return !iv.hasEnd }
 // Calendar returns the governing business calendar for a LOCAL_DATE interval.
 func (iv EffectiveInterval) Calendar() CalendarRef { return iv.calendar }
 
+// Zone returns the governing timezone for a LOCAL_DATE interval. It is zero
+// for instant intervals or when no zone was attached.
+func (iv EffectiveInterval) Zone() ZoneRef { return iv.zone }
+
+// Disambiguation returns the policy attached to a LOCAL_DATE interval.
+func (iv EffectiveInterval) Disambiguation() Disambiguation { return iv.disambiguation }
+
 // StartDate returns the inclusive start date and whether the interval is a
 // LOCAL_DATE interval.
 func (iv EffectiveInterval) StartDate() (LocalDate, bool) {

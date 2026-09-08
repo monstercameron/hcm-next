@@ -162,6 +162,7 @@ type PayrollRun struct {
 	ReversalDigest         string
 	SupersedesRevision     uint64
 	CanonicalDigest        string
+	taxInputsRequired      bool
 }
 
 // NewPayrollRun creates revision one in DRAFT. It only constructs a value.
@@ -175,6 +176,16 @@ func NewPayrollRun(runID, payGroupRef string, period PeriodRef, population Popul
 		return PayrollRun{}, err
 	}
 	return run, nil
+}
+
+func NewTaxPayrollRun(runID, payGroupRef string, period PeriodRef, population PopulationBindingRef, calculationInputDigest string) (PayrollRun, error) {
+	run, err := NewPayrollRun(runID, payGroupRef, period, population, calculationInputDigest)
+	if err != nil {
+		return PayrollRun{}, err
+	}
+	run.taxInputsRequired = true
+	run.CanonicalDigest = run.computedDigest()
+	return run, run.Validate()
 }
 
 // NewDraft is a descriptive alias for NewPayrollRun.
@@ -231,7 +242,8 @@ func (r PayrollRun) body() []byte {
 		String("calculation_digest", r.CalculationDigest).
 		String("release_digest", r.ReleaseDigest).
 		String("reversal_digest", r.ReversalDigest).
-		Int("supersedes_revision", int64(r.SupersedesRevision))
+		Int("supersedes_revision", int64(r.SupersedesRevision)).
+		Bool("tax_inputs_required", r.taxInputsRequired)
 	raw, err := w.Bytes()
 	if err != nil {
 		return nil
@@ -264,11 +276,18 @@ func (r PayrollRun) Digest() (string, error) {
 }
 
 func (r PayrollRun) transition(to PayrollRunState, evidence string) (PayrollRun, error) {
+	return r.transitionWithTaxAuthority(to, evidence, false)
+}
+
+func (r PayrollRun) transitionWithTaxAuthority(to PayrollRunState, evidence string, taxAuthority bool) (PayrollRun, error) {
 	if err := r.Validate(); err != nil {
 		return PayrollRun{}, err
 	}
 	if !to.Valid() {
 		return PayrollRun{}, transitionError(r, to, "state", "target state is not declared", nil)
+	}
+	if r.taxInputsRequired && to == PayrollRunStateCalculated && !taxAuthority {
+		return PayrollRun{}, transitionError(r, to, "tax_inputs", "typed tax population inputs are required", ErrInvalidPayrollRun)
 	}
 	allowed := (r.State == PayrollRunStateDraft && to == PayrollRunStateCalculated) ||
 		(r.State == PayrollRunStateCalculated && to == PayrollRunStateReleased) ||
@@ -326,8 +345,15 @@ func (r PayrollRun) TransitionTo(to PayrollRunState, evidence ...string) (Payrol
 }
 
 func (r PayrollRun) Calculate(evidence ...string) (PayrollRun, error) {
+	if r.taxInputsRequired {
+		return PayrollRun{}, transitionError(r, PayrollRunStateCalculated, "tax_inputs", "typed tax population inputs are required", ErrInvalidPayrollRun)
+	}
 	return r.Transition(PayrollRunStateCalculated, evidence...)
 }
+
+// RequiresTaxInputs reports whether the run can only calculate through the
+// typed tax-population route. The route bit is intentionally not mutable.
+func (r PayrollRun) RequiresTaxInputs() bool { return r.taxInputsRequired }
 
 func (r PayrollRun) Release(evidence ...string) (PayrollRun, error) {
 	return r.Transition(PayrollRunStateReleased, evidence...)

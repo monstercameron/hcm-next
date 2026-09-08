@@ -25,6 +25,7 @@ package pgstore
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -35,6 +36,7 @@ import (
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
+	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
 )
@@ -294,24 +296,31 @@ const intentColumns = `
 	request_digest, request_digest_algorithm, idempotency_key,
 	request_state, execution_state, business_state, consistency_state, obligation_state,
 	instance_version, created_at, recorded_at, last_transition_at,
-	commit_receipt_ref, repair_ref`
+	commit_receipt_ref, repair_ref,
+	legal_evaluation_receipt_ref, legal_evaluation_receipt_digest,
+	legal_evaluation_binding_digest, legal_evaluation_proposal_revision_id,
+	legal_evaluation_material_digest, legal_applied_obligations,
+	legal_obligation_discharges`
 
 // scanRecord reads one projected row and then takes the authoritative envelope
 // from the ledger event the row was projected from.
 func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUID, row dbport.Row) (app.IntentRecord, error) {
 	var (
-		rec                              app.IntentRecord
-		definitionVersion                int64
-		instanceVersion                  int64
-		req, exec, bus, cons, obligation string
-		commitReceiptRef, repairRef      *string
+		rec                                                                                           app.IntentRecord
+		definitionVersion                                                                             int64
+		instanceVersion                                                                               int64
+		req, exec, bus, cons, obligation                                                              string
+		commitReceiptRef, repairRef                                                                   *string
+		legalReceiptRef, legalReceiptDigest, legalBindingDigest, legalProposalID, legalMaterialDigest *string
+		legalAppliedObligations, legalObligationDischarges                                            []byte
 	)
 	err := row.Scan(
 		&rec.IntentID, &rec.Definition.TypeID, &definitionVersion,
 		&rec.RequestDigest.Digest, &rec.RequestDigest.AlgorithmID, &rec.IdempotencyKey,
 		&req, &exec, &bus, &cons, &obligation,
 		&instanceVersion, &rec.CreatedAt, &rec.RecordedAt, &rec.LastTransitionAt,
-		&commitReceiptRef, &repairRef)
+		&commitReceiptRef, &repairRef, &legalReceiptRef, &legalReceiptDigest, &legalBindingDigest,
+		&legalProposalID, &legalMaterialDigest, &legalAppliedObligations, &legalObligationDischarges)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return app.IntentRecord{}, app.ErrIntentNotFound
@@ -325,6 +334,28 @@ func (s *Store) scanRecord(ctx context.Context, tenant string, tenantID uuid.UUI
 	}
 	if repairRef != nil {
 		rec.RepairRef = *repairRef
+	}
+	if legalReceiptRef != nil {
+		e := &intent.LegalObligationEvidence{ReceiptRef: *legalReceiptRef}
+		if legalReceiptDigest != nil {
+			e.ReceiptDigest = *legalReceiptDigest
+		}
+		if legalBindingDigest != nil {
+			e.BindingDigest = *legalBindingDigest
+		}
+		if legalProposalID != nil {
+			e.ProposalRevisionID = *legalProposalID
+		}
+		if legalMaterialDigest != nil {
+			e.MaterialDigest = *legalMaterialDigest
+		}
+		if len(legalAppliedObligations) > 0 && string(legalAppliedObligations) != "null" {
+			_ = json.Unmarshal(legalAppliedObligations, &e.AppliedObligations)
+		}
+		if len(legalObligationDischarges) > 0 && string(legalObligationDischarges) != "null" {
+			_ = json.Unmarshal(legalObligationDischarges, &e.Discharges)
+		}
+		rec.LegalEvidence = e
 	}
 	rec.Definition.Version = uint32(definitionVersion)
 	rec.InstanceVersion = uint64(instanceVersion)

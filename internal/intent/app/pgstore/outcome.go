@@ -2,13 +2,16 @@ package pgstore
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
+	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 )
 
@@ -39,15 +42,23 @@ func (s *Store) BindOutcome(ctx context.Context, in app.OutcomeBinding) error {
 		return err
 	}
 	var (
-		request, execution, business, consistency, obligation string
-		version                                               int64
+		request, execution, business, consistency, obligation                                         string
+		version                                                                                       int64
+		legalReceiptRef, legalReceiptDigest, legalBindingDigest, legalProposalID, legalMaterialDigest *string
+		legalAppliedObligations, legalObligationDischarges                                            []byte
 	)
 	err = tx.QueryRow(ctx, `
 		SELECT request_state, execution_state, business_state, consistency_state,
-			obligation_state, instance_version
+			obligation_state, instance_version,
+			legal_evaluation_receipt_ref, legal_evaluation_receipt_digest,
+			legal_evaluation_binding_digest, legal_evaluation_proposal_revision_id,
+			legal_evaluation_material_digest, legal_applied_obligations,
+			legal_obligation_discharges
 		FROM intent_instance
 		WHERE tenant_id = $1 AND intent_id = $2
-		FOR UPDATE`, tenantID, intentID).Scan(&request, &execution, &business, &consistency, &obligation, &version)
+		FOR UPDATE`, tenantID, intentID).Scan(&request, &execution, &business, &consistency, &obligation, &version,
+		&legalReceiptRef, &legalReceiptDigest, &legalBindingDigest, &legalProposalID, &legalMaterialDigest,
+		&legalAppliedObligations, &legalObligationDischarges)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return fmt.Errorf("pgstore: %w", app.ErrIntentNotFound)
@@ -59,23 +70,49 @@ func (s *Store) BindOutcome(ctx context.Context, in app.OutcomeBinding) error {
 		return err
 	}
 	if current == in.Receipt.Dimensions {
-		return nil
+		if sameLegalEvidence(in.Receipt.LegalEvidence, legalReceiptRef, legalReceiptDigest, legalBindingDigest, legalProposalID, legalMaterialDigest, legalAppliedObligations, legalObligationDischarges) {
+			return nil
+		}
+		return fmt.Errorf("%w: stored legal evidence differs", app.ErrOutcomeProjectionConflict)
 	}
 	if uint64(version) != in.ExpectedInstanceVersion {
 		return fmt.Errorf("%w: stored instance version %d, expected %d", app.ErrOutcomeProjectionConflict, version, in.ExpectedInstanceVersion)
 	}
 	nextRequest, nextExecution, nextBusiness, nextConsistency, nextObligation := app.LifecycleColumns(in.Receipt.Dimensions)
+	var legalRef, legalDigest, bindingDigest, proposalID, materialDigest any
+	var appliedObligations, obligationDischarges any
+	if evidence := in.Receipt.LegalEvidence; evidence != nil {
+		legalRef, legalDigest, bindingDigest = evidence.ReceiptRef, evidence.ReceiptDigest, evidence.BindingDigest
+		proposalID, materialDigest = evidence.ProposalRevisionID, evidence.MaterialDigest
+		encodedApplied, marshalErr := json.Marshal(evidence.AppliedObligations)
+		if marshalErr != nil {
+			return fmt.Errorf("pgstore: encode applied legal obligations: %w", marshalErr)
+		}
+		encodedDischarges, marshalErr := json.Marshal(evidence.Discharges)
+		if marshalErr != nil {
+			return fmt.Errorf("pgstore: encode legal obligation discharges: %w", marshalErr)
+		}
+		appliedObligations, obligationDischarges = encodedApplied, encodedDischarges
+	}
 	updated, err := tx.Exec(ctx, `
 		UPDATE intent_instance
 		SET request_state = $3, execution_state = $4, business_state = $5,
 			consistency_state = $6, obligation_state = $7,
 			instance_version = instance_version + 1,
 			recorded_at = $8, last_transition_at = $8,
-			commit_receipt_ref = NULLIF($10, ''), repair_ref = NULLIF($11, '')
+			commit_receipt_ref = NULLIF($10, ''), repair_ref = NULLIF($11, ''),
+			legal_evaluation_receipt_ref = $12,
+			legal_evaluation_receipt_digest = $13,
+			legal_evaluation_binding_digest = $14,
+			legal_evaluation_proposal_revision_id = $15,
+			legal_evaluation_material_digest = $16,
+			legal_applied_obligations = $17,
+			legal_obligation_discharges = $18
 		WHERE tenant_id = $1 AND intent_id = $2 AND instance_version = $9`,
 		tenantID, intentID, nextRequest, nextExecution, nextBusiness, nextConsistency,
 		nextObligation, in.Receipt.RecordedAt.UTC(), int64(in.ExpectedInstanceVersion),
-		in.Receipt.CommitReceiptRef, in.Receipt.RepairRef)
+		in.Receipt.CommitReceiptRef, in.Receipt.RepairRef, legalRef, legalDigest,
+		bindingDigest, proposalID, materialDigest, appliedObligations, obligationDischarges)
 	if err != nil {
 		return fmt.Errorf("pgstore: bind intent outcome: %w", err)
 	}
@@ -86,4 +123,24 @@ func (s *Store) BindOutcome(ctx context.Context, in app.OutcomeBinding) error {
 		return fmt.Errorf("pgstore: commit intent outcome: %w", err)
 	}
 	return nil
+}
+
+func sameLegalEvidence(evidence *intent.LegalObligationEvidence, ref, receiptDigest, bindingDigest, proposalID, materialDigest *string, appliedJSON, dischargeJSON []byte) bool {
+	if evidence == nil {
+		return ref == nil && receiptDigest == nil && bindingDigest == nil && proposalID == nil && materialDigest == nil
+	}
+	if ref == nil || receiptDigest == nil || bindingDigest == nil || proposalID == nil || materialDigest == nil {
+		return false
+	}
+	var applied []intent.LegalBoundObligation
+	if len(appliedJSON) > 0 && string(appliedJSON) != "null" && json.Unmarshal(appliedJSON, &applied) != nil {
+		return false
+	}
+	var discharges []intent.LegalObligationDischarge
+	if len(dischargeJSON) > 0 && string(dischargeJSON) != "null" && json.Unmarshal(dischargeJSON, &discharges) != nil {
+		return false
+	}
+	return *ref == evidence.ReceiptRef && *receiptDigest == evidence.ReceiptDigest && *bindingDigest == evidence.BindingDigest &&
+		*proposalID == evidence.ProposalRevisionID && *materialDigest == evidence.MaterialDigest &&
+		reflect.DeepEqual(applied, evidence.AppliedObligations) && reflect.DeepEqual(discharges, evidence.Discharges)
 }

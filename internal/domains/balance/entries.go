@@ -73,6 +73,9 @@ type BalanceEntry struct {
 	EffectiveAt         values.Instant
 	RecordedAt          values.Instant
 	AuthorizedAt        values.Instant
+	// SupersedesDigest links a correction entry to the immutable entry it
+	// replaces. It is optional for legacy entries and included only when set.
+	SupersedesDigest string
 }
 
 type Entry = BalanceEntry
@@ -161,6 +164,15 @@ func (e BalanceEntry) Canonical() []byte {
 	w := canonicalbytes.New("hcmnext.domains.balance.BalanceEntry", 1).String("account_id", e.AccountID).String("definition_id", e.DefinitionID).String("definition_version", e.DefinitionVersion).String("unit", e.Unit).String("currency", e.Currency).String("subject", e.Subject).String("period", e.Period).String("kind", string(e.Kind)).Value("amount", e.Amount).String("entry_type", e.EntryType).String("source_transaction_id", e.SourceTransactionID).String("idempotency_key", e.IdempotencyKey)
 	for _, k := range keys {
 		w = w.String("dimension."+k, e.Dimensions[k])
+	}
+	if e.EffectiveAt.IsSet() {
+		w.Value("effective_at", e.EffectiveAt)
+	}
+	if e.AuthorizedAt.IsSet() {
+		w.Value("authorized_at", e.AuthorizedAt)
+	}
+	if e.SupersedesDigest != "" {
+		w.String("supersedes_digest", e.SupersedesDigest)
 	}
 	raw, err := w.Bytes()
 	if err != nil {

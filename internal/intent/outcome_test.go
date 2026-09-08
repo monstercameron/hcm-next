@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
 )
 
@@ -44,6 +45,35 @@ func TestTodo_INTENT_007(t *testing.T) {
 	conflict.Reconciliation = ReconciliationPass
 	if err := BindOutcome(&inst, def, conflict); !errors.Is(err, ErrOutcomeConflict) {
 		t.Fatalf("conflicting duplicate error = %v, want ErrOutcomeConflict", err)
+	}
+}
+
+func TestTodo_LEGAL_014_ObligationEvidence(t *testing.T) {
+	def := Definition{Ref: Ref{TypeID: "promotion", Version: 1}}
+	revision := ProposalRevision{ProposalRevisionID: "proposal-1", MaterialDigest: digest.Reference{Digest: "material-1"}, Obligations: []Obligation{{ObligationID: "notice", Kind: "NOTICE"}}}
+	base := Instance{IntentID: "intent-1", Definition: def.Ref, ProposalRevisions: []ProposalRevision{revision}, Lifecycle: lifecycle.Dimensions{Request: lifecycle.RequestApproved, Execution: lifecycle.ExecutionNotPlanned, Business: lifecycle.BusinessNotStarted, Consistency: lifecycle.ConsistencyPendingObservation, Obligation: lifecycle.ObligationPending}, InstanceVersion: 1}
+	receipt := OutcomeReceipt{IntentID: base.IntentID, WorkflowInstanceID: "workflow-1", ProposalRevisionID: revision.ProposalRevisionID, MaterialDigest: revision.MaterialDigest.Digest, TerminalCode: "BLOCKED", Dimensions: lifecycle.Dimensions{Request: lifecycle.RequestApproved, Execution: lifecycle.ExecutionBlocked, Business: lifecycle.BusinessNotAchieved, Consistency: lifecycle.ConsistencyUnknown, Obligation: lifecycle.ObligationPending}, Reconciliation: ReconciliationUnknown, RecordedAt: time.Unix(1, 0).UTC()}
+	if err := BindOutcome(&base, def, receipt); !errors.Is(err, ErrInvalidOutcome) {
+		t.Fatalf("missing evaluation = %v", err)
+	}
+	obligation := LegalBoundObligation{Type: "NOTICE", ID: "notice", BodyDigest: "notice-body"}
+	receipt.LegalEvidence = &LegalObligationEvidence{ReceiptRef: "legal:1", ReceiptDigest: "receipt-digest", BindingDigest: "binding-digest", ProposalRevisionID: revision.ProposalRevisionID, MaterialDigest: revision.MaterialDigest.Digest, AppliedObligations: []LegalBoundObligation{obligation}}
+	if err := BindOutcome(&base, def, receipt); err != nil {
+		t.Fatalf("pending with evaluation: %v", err)
+	}
+	if base.LegalEvidence == nil || base.LegalEvidence.BindingDigest != "binding-digest" {
+		t.Fatalf("binding not retained: %+v", base.LegalEvidence)
+	}
+
+	satisfied := receipt
+	satisfied.Dimensions.Obligation = lifecycle.ObligationSatisfied
+	other := Instance{IntentID: "intent-1", Definition: def.Ref, ProposalRevisions: []ProposalRevision{revision}, Lifecycle: lifecycle.Dimensions{Request: lifecycle.RequestApproved, Execution: lifecycle.ExecutionNotPlanned, Business: lifecycle.BusinessNotStarted, Consistency: lifecycle.ConsistencyPendingObservation, Obligation: lifecycle.ObligationPending}, InstanceVersion: 1}
+	if err := BindOutcome(&other, def, satisfied); !errors.Is(err, ErrInvalidOutcome) {
+		t.Fatalf("evaluation used as discharge = %v", err)
+	}
+	satisfied.LegalEvidence.Discharges = []LegalObligationDischarge{{Obligation: obligation, EvidenceRefs: []string{"discharge:1"}}}
+	if err := BindOutcome(&other, def, satisfied); err != nil {
+		t.Fatalf("satisfied with discharge: %v", err)
 	}
 }
 

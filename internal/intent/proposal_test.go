@@ -437,3 +437,52 @@ func TestTodo_INTENT_005_Mutation(t *testing.T) {
 		})
 	}
 }
+
+// TestTodo_CONFLICT_003 proves the intent-layer portion of the write-fence
+// contract. Commit-time enforcement belongs to the transaction coordinator;
+// this package supplies the closed operation and effective interval material
+// that coordinator will consume.
+func TestTodo_CONFLICT_003(t *testing.T) {
+	reg := mustRegistry(t)
+	d := mustDigester(t)
+	def := mustResolve(t, reg, "hcmnext.people.promote_worker/v1")
+
+	legacy := promoteProposal(t, "intent:1")
+	legacyRev, err := intent.NewProposalRevision(legacy, def, d, countingIDs("aaaaaaaa"), fixedClock())
+	if err != nil {
+		t.Fatalf("mint legacy proposal: %v", err)
+	}
+
+	t.Run("typed write is material and complete", func(t *testing.T) {
+		spec := promoteProposal(t, "intent:1")
+		spec.Writes[0].Operation = intent.WriteOperationUpdate
+		spec.Writes[0].EffectiveInterval = mustInterval(t)
+		rev, err := intent.NewProposalRevision(spec, def, d, countingIDs("bbbbbbbb"), fixedClock())
+		if err != nil {
+			t.Fatalf("mint typed proposal: %v", err)
+		}
+		if rev.Writes[0].Operation != intent.WriteOperationUpdate || rev.Writes[0].EffectiveInterval != mustInterval(t) {
+			t.Fatalf("typed write fields were not retained")
+		}
+		if intent.MaterialEqual(legacyRev, rev) || rev.MaterialDigest.Digest == legacyRev.MaterialDigest.Digest {
+			t.Fatalf("typed write semantics did not change material identity")
+		}
+	})
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*intent.PlannedWrite)
+	}{
+		{name: "operation without interval", mutate: func(w *intent.PlannedWrite) { w.Operation = intent.WriteOperationUpdate }},
+		{name: "interval without operation", mutate: func(w *intent.PlannedWrite) { w.EffectiveInterval = mustInterval(t) }},
+		{name: "unknown operation", mutate: func(w *intent.PlannedWrite) { w.Operation = "PATCH"; w.EffectiveInterval = mustInterval(t) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			spec := promoteProposal(t, "intent:1")
+			tc.mutate(&spec.Writes[0])
+			if _, err := intent.NewProposalRevision(spec, def, d, countingIDs("cccccccc"), fixedClock()); !errors.Is(err, intent.ErrInvalidProposal) {
+				t.Fatalf("invalid typed write accepted: %v", err)
+			}
+		})
+	}
+}

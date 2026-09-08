@@ -40,6 +40,7 @@ func (s IntentStatus) terminal() bool {
 // footprints contain the complete normalized write set and therefore also
 // carry the expected stream revisions used by commit-time validation.
 type WriteIntent struct {
+	TenantID       string
 	ID             string
 	ProposalID     string
 	Footprints     []WriteFootprint
@@ -51,6 +52,9 @@ type WriteIntent struct {
 func (i WriteIntent) Validate() error {
 	if strings.TrimSpace(i.ID) == "" {
 		return fmt.Errorf("%w: intent id is empty", ErrInvalidIntent)
+	}
+	if strings.TrimSpace(i.TenantID) == "" {
+		return fmt.Errorf("%w: tenant id is empty", ErrInvalidIntent)
 	}
 	if len(i.Footprints) == 0 {
 		return fmt.Errorf("%w: intent %s has no footprints", ErrInvalidIntent, i.ID)
@@ -111,5 +115,5 @@ func intentDigest(i WriteIntent) string {
 		b.WriteString(f.Digest())
 		b.WriteByte(0)
 	}
-	return i.SnapshotDigest + "\x00" + b.String()
+	return i.TenantID + "\x00" + i.ProposalID + "\x00" + i.SnapshotDigest + "\x00" + b.String()
 }

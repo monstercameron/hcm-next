@@ -19,12 +19,15 @@ const digestRevisionSchemaVersion = 1
 func Version() int { return digestRevisionSchemaVersion }
 
 var (
-	ErrInvalidContactRevision = errors.New("contact: invalid digest-backed endpoint revision")
-	ErrContactLineage         = errors.New("contact: endpoint revision lineage is invalid")
-	ErrChallengeBudget        = errors.New("contact: challenge attempt budget is exhausted")
-	ErrChallengeNotFound      = errors.New("contact: challenge not found")
-	ErrNoVerifiedEndpoint     = errors.New("contact: no verified endpoint is eligible as primary")
-	ErrAmbiguousPrimary       = errors.New("contact: primary endpoint selection is ambiguous")
+	ErrInvalidContactRevision  = errors.New("contact: invalid digest-backed endpoint revision")
+	ErrContactLineage          = errors.New("contact: endpoint revision lineage is invalid")
+	ErrChallengeBudget         = errors.New("contact: challenge attempt budget is exhausted")
+	ErrChallengeNotFound       = errors.New("contact: challenge not found")
+	ErrNoVerifiedEndpoint      = errors.New("contact: no verified endpoint is eligible as primary")
+	ErrAmbiguousPrimary        = errors.New("contact: primary endpoint selection is ambiguous")
+	ErrInvalidReissue          = errors.New("contact: invalid challenge reissue")
+	ErrExternalContactMismatch = errors.New("contact: external contact observation disagrees")
+	ErrContactRepairRequired   = errors.New("contact: bounded contact repair required")
 )
 
 func digestString(value string) bool {
@@ -212,30 +215,86 @@ func (r ContactEndpointRevision) MarkVerified() (ContactEndpointRevision, error)
 	return r.Successor(next)
 }
 
+// CorrectEndpointRevision creates a successor without laundering verification
+// evidence. A correction may retain existing evidence when the protected
+// endpoint value is unchanged, or deliberately downgrade it when the value is
+// changed; it can never turn an unverified value into a verified one.
+func CorrectEndpointRevision(current, replacement ContactEndpointRevision) (ContactEndpointRevision, error) {
+	if err := current.Validate(); err != nil {
+		return ContactEndpointRevision{}, err
+	}
+	if replacement.Verification == Verified && current.Verification != Verified {
+		return ContactEndpointRevision{}, fmt.Errorf("%w: correction cannot add verification", ErrContactLineage)
+	}
+	if replacement.NormalizedValueDigest != current.NormalizedValueDigest && replacement.Verification == Verified {
+		return ContactEndpointRevision{}, fmt.Errorf("%w: corrected endpoint value requires fresh verification", ErrContactLineage)
+	}
+	return current.Successor(replacement)
+}
+
 // SelectPrimaryEndpoint chooses the single highest-priority verified endpoint.
 // It refuses ties and never promotes an unverified revision.
 func SelectPrimaryEndpoint(revisions []ContactEndpointRevision) (ContactEndpointRevision, error) {
+	return selectPrimaryEndpoint(revisions, "")
+}
+
+// SelectPrimaryEndpointForPurpose chooses a primary only from the requested
+// purpose. The latest revision for each endpoint is authoritative, so an old
+// verified revision cannot compete with its successor. Lower priority values
+// win; equal priorities across distinct endpoints remain ambiguous.
+func SelectPrimaryEndpointForPurpose(revisions []ContactEndpointRevision, purpose string) (ContactEndpointRevision, error) {
+	if strings.TrimSpace(purpose) == "" {
+		return ContactEndpointRevision{}, fmt.Errorf("%w: purpose is required", ErrInvalidPurpose)
+	}
+	return selectPrimaryEndpoint(revisions, purpose)
+}
+
+func selectPrimaryEndpoint(revisions []ContactEndpointRevision, purpose string) (ContactEndpointRevision, error) {
 	if len(revisions) == 0 {
 		return ContactEndpointRevision{}, ErrNoVerifiedEndpoint
 	}
-	var selected ContactEndpointRevision
+	latest := make(map[string]ContactEndpointRevision)
+	var subject values.EntityRef
 	for _, revision := range revisions {
 		if err := revision.Validate(); err != nil {
 			return ContactEndpointRevision{}, err
 		}
+		if purpose != "" && revision.Purpose != purpose {
+			continue
+		}
+		if subject == (values.EntityRef{}) {
+			subject = revision.Subject
+		} else if revision.Subject != subject {
+			return ContactEndpointRevision{}, fmt.Errorf("%w: primary candidates cross subject or tenant scope", ErrContactLineage)
+		}
+		prior, ok := latest[revision.EndpointID]
+		if ok && revision.Revision == prior.Revision && revision.CanonicalDigest != prior.CanonicalDigest {
+			return ContactEndpointRevision{}, fmt.Errorf("%w: conflicting endpoint revisions", ErrContactLineage)
+		}
+		if !ok || revision.Revision > prior.Revision {
+			latest[revision.EndpointID] = revision
+		}
+	}
+	var selected ContactEndpointRevision
+	ambiguous := false
+	for _, revision := range latest {
 		if revision.Verification != Verified {
 			continue
 		}
 		if selected.EndpointID == "" || revision.Priority < selected.Priority {
 			selected = revision
+			ambiguous = false
 			continue
 		}
 		if revision.Priority == selected.Priority {
-			return ContactEndpointRevision{}, ErrAmbiguousPrimary
+			ambiguous = true
 		}
 	}
 	if selected.EndpointID == "" {
 		return ContactEndpointRevision{}, ErrNoVerifiedEndpoint
+	}
+	if ambiguous {
+		return ContactEndpointRevision{}, ErrAmbiguousPrimary
 	}
 	return selected, nil
 }
@@ -248,11 +307,14 @@ const (
 	ContactChallengeVerified  ContactChallengeStatus = "VERIFIED"
 	ContactChallengeExpired   ContactChallengeStatus = "EXPIRED"
 	ContactChallengeExhausted ContactChallengeStatus = "EXHAUSTED"
+	ContactChallengeRevoked   ContactChallengeStatus = "REVOKED"
 )
 
 func (s ContactChallengeStatus) Valid() bool {
 	switch s {
 	case ContactChallengeIssued, ContactChallengeVerified, ContactChallengeExpired, ContactChallengeExhausted:
+		return true
+	case ContactChallengeRevoked:
 		return true
 	default:
 		return false
@@ -267,6 +329,7 @@ const (
 	ChallengeEventVerified  ContactChallengeEventKind = "VERIFIED"
 	ChallengeEventExpired   ContactChallengeEventKind = "EXPIRED"
 	ChallengeEventExhausted ContactChallengeEventKind = "EXHAUSTED"
+	ChallengeEventRevoked   ContactChallengeEventKind = "REVOKED"
 )
 
 // ContactChallengeEvent is a digested audit event. AnswerDigest is a
@@ -280,7 +343,7 @@ type ContactChallengeEvent struct {
 }
 
 func (e ContactChallengeEvent) Validate() error {
-	if e.Kind != ChallengeEventIssued && e.Kind != ChallengeEventAnswered && e.Kind != ChallengeEventVerified && e.Kind != ChallengeEventExpired && e.Kind != ChallengeEventExhausted {
+	if e.Kind != ChallengeEventIssued && e.Kind != ChallengeEventAnswered && e.Kind != ChallengeEventVerified && e.Kind != ChallengeEventExpired && e.Kind != ChallengeEventExhausted && e.Kind != ChallengeEventRevoked {
 		return errors.New("contact: challenge event kind is not declared")
 	}
 	if e.At.IsZero() || e.Attempt < 0 {
@@ -330,6 +393,9 @@ func IssueContactChallenge(challengeID string, subject values.EntityRef, endpoin
 	}
 	if token == "" {
 		return ContactVerificationChallenge{}, "", fmt.Errorf("%w: token is required", ErrChallengeTokenRequired)
+	}
+	if subject != endpoint.Subject || purpose != endpoint.Purpose {
+		return ContactVerificationChallenge{}, "", fmt.Errorf("%w: challenge subject and purpose must match endpoint", ErrInvalidContactRevision)
 	}
 	c := ContactVerificationChallenge{ChallengeID: challengeID, Subject: subject, EndpointID: endpoint.EndpointID, EndpointRevisionDigest: endpoint.CanonicalDigest, NormalizedValueDigest: endpoint.NormalizedValueDigest, Purpose: purpose, IssuedAt: now.UTC(), ExpiresAt: now.UTC().Add(ttl), AttemptBudget: attemptBudget, TokenDigest: challengeTokenDigest(subject, endpoint.CanonicalDigest, purpose, token), Status: ContactChallengeIssued}
 	c.Events = []ContactChallengeEvent{{Kind: ChallengeEventIssued, At: now.UTC(), Attempt: 0}}
@@ -460,15 +526,24 @@ func (c ContactVerificationChallenge) Answer(token string, now time.Time) (Conta
 type ChallengeStore interface {
 	Put(ContactVerificationChallenge) error
 	Get(string) (ContactVerificationChallenge, bool)
+	Reissue(string, string, ContactVerificationChallenge, time.Time) (ContactVerificationChallenge, ContactVerificationChallenge, error)
 }
 
 type InMemoryChallengeStore struct {
 	mu         sync.RWMutex
 	challenges map[string]ContactVerificationChallenge
+	reissues   map[string]challengeReissueReceipt
+}
+
+type challengeReissueReceipt struct {
+	expectedDigest    string
+	replacementDigest string
+	revokedDigest     string
+	at                time.Time
 }
 
 func NewInMemoryChallengeStore() *InMemoryChallengeStore {
-	return &InMemoryChallengeStore{challenges: make(map[string]ContactVerificationChallenge)}
+	return &InMemoryChallengeStore{challenges: make(map[string]ContactVerificationChallenge), reissues: make(map[string]challengeReissueReceipt)}
 }
 
 func (s *InMemoryChallengeStore) Put(challenge ContactVerificationChallenge) error {
@@ -483,8 +558,51 @@ func (s *InMemoryChallengeStore) Put(challenge ContactVerificationChallenge) err
 	if prior, ok := s.challenges[challenge.ChallengeID]; ok && prior.CanonicalDigest != challenge.CanonicalDigest {
 		return ErrContactLineage
 	}
-	s.challenges[challenge.ChallengeID] = challenge
+	s.challenges[challenge.ChallengeID] = cloneChallenge(challenge)
 	return nil
+}
+
+// Reissue atomically revokes the stored challenge identified by previousID and
+// inserts replacement. expectedDigest prevents a stale caller from revoking a
+// newer state. A retry of the already-committed operation returns the original
+// pair without appending another revocation or creating another challenge.
+func (s *InMemoryChallengeStore) Reissue(previousID, expectedDigest string, replacement ContactVerificationChallenge, now time.Time) (ContactVerificationChallenge, ContactVerificationChallenge, error) {
+	if s == nil || strings.TrimSpace(previousID) == "" || !digestString(expectedDigest) {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, ErrInvalidReissue
+	}
+	if err := replacement.Validate(); err != nil {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	previous, ok := s.challenges[previousID]
+	if !ok {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, ErrChallengeNotFound
+	}
+	if previous.CanonicalDigest != expectedDigest {
+		receipt, replay := s.reissues[previousID]
+		stored, exists := s.challenges[replacement.ChallengeID]
+		if replay && exists && receipt.expectedDigest == expectedDigest && receipt.replacementDigest == replacement.CanonicalDigest && receipt.revokedDigest == previous.CanonicalDigest && receipt.at.Equal(now) && stored.CanonicalDigest == replacement.CanonicalDigest {
+			return cloneChallenge(previous), cloneChallenge(stored), nil
+		}
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, ErrContactLineage
+	}
+	if replacement.ChallengeID == previousID {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, fmt.Errorf("%w: replacement id must be new", ErrInvalidReissue)
+	}
+	if _, exists := s.challenges[replacement.ChallengeID]; exists {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, fmt.Errorf("%w: replacement id already exists", ErrInvalidReissue)
+	}
+	revoked, issued, err := ReissueContactChallenge(previous, replacement, now)
+	if err != nil {
+		return ContactVerificationChallenge{}, ContactVerificationChallenge{}, err
+	}
+	// Both preconditions are established before either map entry changes while
+	// the same lock protects the two-key commit.
+	s.challenges[previousID] = cloneChallenge(revoked)
+	s.challenges[replacement.ChallengeID] = cloneChallenge(issued)
+	s.reissues[previousID] = challengeReissueReceipt{expectedDigest: expectedDigest, replacementDigest: issued.CanonicalDigest, revokedDigest: revoked.CanonicalDigest, at: now}
+	return cloneChallenge(revoked), cloneChallenge(issued), nil
 }
 
 func (s *InMemoryChallengeStore) Get(id string) (ContactVerificationChallenge, bool) {
@@ -494,7 +612,7 @@ func (s *InMemoryChallengeStore) Get(id string) (ContactVerificationChallenge, b
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	c, ok := s.challenges[id]
-	return c, ok
+	return cloneChallenge(c), ok
 }
 
 // SHA256Digest is a small helper for callers that already hold a protected

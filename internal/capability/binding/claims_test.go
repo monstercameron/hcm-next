@@ -17,9 +17,9 @@ func TestClaimsCoverExactlyThePublishedCapabilities(t *testing.T) {
 		t.Fatalf("NewBootstrapRegistry: %v", err)
 	}
 
-	published := map[string]bool{}
+	published := map[string]uint32{}
 	for _, rec := range registry.List() {
-		published[rec.Definition.ID] = true
+		published[rec.Definition.ID] = rec.Definition.Version
 	}
 	claimed := map[string]bool{}
 	for _, c := range Claims() {
@@ -34,8 +34,13 @@ func TestClaimsCoverExactlyThePublishedCapabilities(t *testing.T) {
 			t.Errorf("published capability %s has no claim", id)
 		}
 	}
+	for _, c := range Claims() {
+		if want := published[c.CapabilityID]; c.CapabilityVersion != want {
+			t.Errorf("claim %s pins v%d, registry publishes v%d", c.CapabilityID, c.CapabilityVersion, want)
+		}
+	}
 	for id := range claimed {
-		if !published[id] {
+		if _, ok := published[id]; !ok {
 			t.Errorf("claim names %s, which the registry does not publish", id)
 		}
 	}

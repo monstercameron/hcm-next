@@ -252,11 +252,31 @@ func applyDurableJourneyTime(summary *workspace.JourneySummary, record journeyRe
 // a journey whose simulation no longer produces an executable plan is a
 // BLOCKED row on the list, not a failed page.
 func (e *journeyEngine) resimulate(ctx context.Context, intentID string) (*intentsv1.SimulationArtifact, error) {
-	simulated, err := e.svc.SimulateIntent(ctx, &intentsv1.SimulateIntentRequest{IntentId: intentID})
+	simulated, err := e.resimulateDetailed(ctx, intentID)
 	if err != nil {
-		return nil, journeyError(err)
+		return nil, err
 	}
-	return simulated.GetSimulation(), nil
+	return simulated.Artifact, nil
+}
+
+func (e *journeyEngine) resimulateDetailed(ctx context.Context, intentID string) (simulationResult, error) {
+	principal, inv, err := caller(ctx)
+	if err != nil {
+		return simulationResult{}, journeyError(err)
+	}
+	inst, _, ownedErr := e.svc.loadInstance(ctx, principal.Tenant().String(), intentID)
+	if ownedErr != nil {
+		return simulationResult{}, journeyError(ownedErr)
+	}
+	def, resolveErr := e.svc.defs.Resolve(inst.Definition)
+	if resolveErr != nil {
+		return simulationResult{}, journeyError(resolveErr)
+	}
+	simulated, simErr := e.svc.simulateDetailed(ctx, principal, purposeOf(principal, inv), inst, def)
+	if simErr != nil {
+		return simulationResult{}, journeyError(simErr)
+	}
+	return simulated, nil
 }
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/monstercameron/hcm-next/internal/governance/legal"
 	"github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
 	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
@@ -31,12 +32,25 @@ type OutcomeBinder interface {
 	BindOutcome(context.Context, OutcomeBinding) error
 }
 
+type LegalEvidenceRequest struct {
+	Tenant, IntentID, ProposalRevisionID, MaterialDigest, LegalContextDigest string
+}
+
+// LegalEvidenceVerifier resolves immutable receipt evidence and authenticates
+// both it and its proposal binding against configured trusted issuer keys.
+type LegalEvidenceVerifier interface {
+	VerifyLegalEvidence(context.Context, LegalEvidenceRequest) (legal.EvaluationBinding, error)
+}
+
 // OutcomeReceiptFromExecution converts the driver's terminal result into the
 // kernel receipt. The compiled END tuple is preferred; the bounded terminal
 // node fallback keeps older adapters correct until they expose the tuple
 // directly through ExecutionResult.
 func OutcomeReceiptFromExecution(instance intent.Instance, result ExecutionResult, now time.Time) (intent.OutcomeReceipt, bool, error) {
-	if result.Parked {
+	if err := result.validate(); err != nil {
+		return intent.OutcomeReceipt{}, false, err
+	}
+	if result.effectiveStatus() == ExecutionResultParked || result.effectiveStatus() == ExecutionResultResolved {
 		return intent.OutcomeReceipt{}, false, nil
 	}
 	dimensions := result.TerminalDimensions
@@ -62,10 +76,15 @@ func OutcomeReceiptFromExecution(instance intent.Instance, result ExecutionResul
 		now = result.RecordedAt
 	}
 	commitRef, repairRef := terminalRefs(result)
+	var proposalID, materialDigest string
+	if revision, ok := instance.CurrentRevision(); ok {
+		proposalID, materialDigest = revision.ProposalRevisionID, revision.MaterialDigest.Digest
+	}
 	return intent.OutcomeReceipt{
 		IntentID: instance.IntentID, WorkflowInstanceID: result.InstanceID,
 		TerminalCode: terminalCode, Dimensions: dimensions, Reconciliation: reconciliation,
 		CommitReceiptRef: commitRef, RepairRef: repairRef,
+		ProposalRevisionID: proposalID, MaterialDigest: materialDigest,
 		EvidenceRefs: append([]string(nil), result.EvidenceIDs...), RecordedAt: now.UTC(),
 	}, true, nil
 }
@@ -161,6 +180,29 @@ func (s *IntentService) consumeExecutionResult(ctx context.Context, instance int
 	receipt, found, err := OutcomeReceiptFromExecution(instance, result, s.clock().Time())
 	if err != nil || !found {
 		return err
+	}
+	if revision, ok := instance.CurrentRevision(); ok && len(revision.Obligations) > 0 {
+		if s.legalEvidence == nil {
+			return fmt.Errorf("app: legal obligations require a trusted evidence verifier")
+		}
+		binding, verifyErr := s.legalEvidence.VerifyLegalEvidence(ctx, LegalEvidenceRequest{Tenant: rec.Tenant, IntentID: instance.IntentID, ProposalRevisionID: revision.ProposalRevisionID, MaterialDigest: revision.MaterialDigest.Digest, LegalContextDigest: instance.ControlSnapshots.LegalContextDigest})
+		if verifyErr != nil {
+			return fmt.Errorf("app: verify legal obligation evidence: %w", verifyErr)
+		}
+		if binding.Tenant != rec.Tenant || binding.IntentID != instance.IntentID || binding.ProposalRevisionID != revision.ProposalRevisionID || binding.MaterialDigest != revision.MaterialDigest.Digest || binding.LegalContextDigest != instance.ControlSnapshots.LegalContextDigest {
+			return fmt.Errorf("app: verified legal evidence does not bind the current proposal")
+		}
+		evidence := &intent.LegalObligationEvidence{ReceiptRef: binding.ReceiptRef, ReceiptDigest: binding.ReceiptDigest, BindingDigest: binding.Digest, ProposalRevisionID: binding.ProposalRevisionID, MaterialDigest: binding.MaterialDigest}
+		for _, obligation := range binding.AppliedObligations {
+			evidence.AppliedObligations = append(evidence.AppliedObligations, intent.LegalBoundObligation{Type: obligation.Type.String(), ID: obligation.ID, BodyDigest: obligation.BodyDigest})
+		}
+		for _, discharge := range binding.Discharges {
+			evidence.Discharges = append(evidence.Discharges, intent.LegalObligationDischarge{
+				Obligation:   intent.LegalBoundObligation{Type: discharge.Obligation.Type.String(), ID: discharge.Obligation.ID, BodyDigest: discharge.Obligation.BodyDigest},
+				EvidenceRefs: append([]string(nil), discharge.EvidenceRefs...),
+			})
+		}
+		receipt.LegalEvidence = evidence
 	}
 	candidate := instance
 	if err := intent.BindOutcome(&candidate, def, receipt); err != nil {

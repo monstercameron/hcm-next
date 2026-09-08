@@ -12,14 +12,212 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/monstercameron/hcm-next/internal/data/conflictstore"
+	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/pgtest"
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
+	intentmodel "github.com/monstercameron/hcm-next/internal/intent"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
+	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
 	"github.com/monstercameron/hcm-next/internal/transaction/plan"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
+
+type recordingConflictFence struct {
+	req conflict.CommitRequest
+	err error
+}
+
+func (f *recordingConflictFence) ValidateAtCommit(_ context.Context, _ dbport.Tx, req conflict.CommitRequest) (conflict.CommitResult, error) {
+	f.req = req
+	return conflict.CommitResult{}, f.err
+}
+
+func bindConflict(prepared plan.TransactionPlan, id, snapshot string) plan.TransactionPlan {
+	prepared.ConflictIntentID = id
+	prepared.ConflictSnapshotDigest = snapshot
+	if id != "" && len(prepared.ConflictFootprintDigests) == 0 {
+		prepared.ConflictFootprintDigests = []string{"scope-test"}
+	}
+	if id == "" {
+		prepared.ConflictFootprintDigests = nil
+	}
+	sum := sha256.Sum256(prepared.CanonicalBytes())
+	prepared.Digest = "sha256:" + hex.EncodeToString(sum[:])
+	return prepared
+}
+
+func TestCommitRequiresAndUsesPlanBoundConflictFence(t *testing.T) {
+	db, prepared, tenant := commitFixture(t)
+	prepared = bindConflict(prepared, "write-intent-1", "sha256:conflict-snapshot-1")
+	if _, err := committer(t, db).Commit(context.Background(), prepared); !errors.Is(err, transactioncommit.ErrInvalidPlan) {
+		t.Fatalf("commit without required durable fence = %v", err)
+	}
+	refused := errors.New("fence refused")
+	fence := &recordingConflictFence{err: refused}
+	c := transactioncommit.New(db.Conn, transactioncommit.Options{Clock: func() time.Time { return commitAt }, ConflictFence: fence})
+	if _, err := c.Commit(context.Background(), prepared); !errors.Is(err, refused) {
+		t.Fatalf("commit with fence refusal = %v", err)
+	}
+	if fence.req.TenantID != tenant.String() || fence.req.IntentID != prepared.ConflictIntentID {
+		t.Fatalf("fence request = %+v", fence.req)
+	}
+	var events int
+	if err := db.Conn.QueryRow(context.Background(), `SELECT count(*) FROM ledger_event WHERE tenant_id=$1`, tenant).Scan(&events); err != nil {
+		t.Fatal(err)
+	}
+	if events != 0 {
+		t.Fatalf("fence refusal produced %d ledger events", events)
+	}
+	legacy := prepared
+	legacy.ConflictIntentID = ""
+	legacy.ConflictSnapshotDigest = ""
+	legacy = bindConflict(legacy, "", "")
+	if _, err := c.Commit(context.Background(), legacy); !errors.Is(err, transactioncommit.ErrInvalidPlan) {
+		t.Fatalf("caller-supplied fence for unbound legacy plan = %v", err)
+	}
+}
+
+func TestConflictFenceCommitsWithActualCoordinatorTransaction(t *testing.T) {
+	db, prepared, tenant := commitFixture(t)
+	ctx := context.Background()
+	tx, err := db.Conn.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.tenant_id',$1,true)`, tenant.String()); err != nil {
+		t.Fatal(err)
+	}
+	for _, stream := range prepared.Streams {
+		if err := ledger.EnsureStream(ctx, tx, tenant, stream.StreamKey, "TRANSACTION", prepared.PlanID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	resource, err := values.NewResourceKey(values.TenantId(tenant.String()), values.Kind("assignment"), "worker", "9001")
+	if err != nil {
+		t.Fatal(err)
+	}
+	interval, err := values.NewInstantInterval(values.NewInstant(commitAt.Add(10*time.Minute)), values.NewInstant(commitAt.Add(time.Hour)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var footprints []conflict.WriteFootprint
+	for _, stream := range prepared.Streams {
+		revision, revisionErr := values.NewSequenceRevision(stream.StreamKey, uint64(stream.ExpectedSequence))
+		if revisionErr != nil {
+			t.Fatal(revisionErr)
+		}
+		footprints = append(footprints, conflict.WriteFootprint{Resource: resource, Field: conflict.FieldPath("employment.assignment." + strings.TrimPrefix(stream.StreamKey, "stream:")), Interval: interval, Operation: conflict.OperationUpdate, ExpectedRevision: revision, Authority: conflict.AuthorityScope{Domain: "PEOPLE", PolicyRef: "authority.local/v1"}})
+		prepared.Writes = append(prepared.Writes, intentmodel.PlannedWrite{Subject: intentmodel.SubjectReference{Kind: "EMPLOYMENT", SubjectID: "employment:9001", AuthorityDomain: "PEOPLE"}, ResourceKey: resource, FieldPath: "employment.assignment." + strings.TrimPrefix(stream.StreamKey, "stream:"), ExpectedRevision: revision, SourceAuthorityDecision: "authority.local/v1", Operation: intentmodel.WriteOperationUpdate, EffectiveInterval: interval})
+	}
+	for _, footprint := range footprints {
+		prepared.ConflictFootprintDigests = append(prepared.ConflictFootprintDigests, footprint.ScopeDigest())
+	}
+	store := conflictstore.New()
+	intent := conflict.WriteIntent{TenantID: tenant.String(), ID: "intent-" + tenant.String(), ProposalID: prepared.ProposalRevisionID, SnapshotDigest: "snapshot-actual", Footprints: footprints}
+	if err := store.Register(ctx, tx, intent); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	prepared = bindConflict(prepared, intent.ID, intent.SnapshotDigest)
+	wrongScope := prepared
+	wrongScope.ConflictFootprintDigests = append([]string(nil), prepared.ConflictFootprintDigests...)
+	wrongScope.ConflictFootprintDigests[0] = strings.Repeat("f", 64)
+	wrongScope = bindConflict(wrongScope, intent.ID, intent.SnapshotDigest)
+	scopeCommitter := transactioncommit.New(db.Conn, transactioncommit.Options{Clock: func() time.Time { return commitAt }, ConflictFence: store})
+	if _, err := scopeCommitter.Commit(ctx, wrongScope); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("changed effective scope fence = %v, want intent conflict", err)
+	}
+	wrongField := prepared
+	wrongField.Writes = append([]intentmodel.PlannedWrite(nil), prepared.Writes...)
+	wrongField.Writes[0].FieldPath = "employment.assignment.unrelated"
+	wrongField = bindConflict(wrongField, intent.ID, intent.SnapshotDigest)
+	if _, err := scopeCommitter.Commit(ctx, wrongField); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("unrelated planned field fence = %v, want intent conflict", err)
+	}
+	wrongDomain := prepared
+	wrongDomain.Writes = append([]intentmodel.PlannedWrite(nil), prepared.Writes...)
+	wrongDomain.Writes[0].Subject.AuthorityDomain = "POSITION"
+	wrongDomain = bindConflict(wrongDomain, intent.ID, intent.SnapshotDigest)
+	if _, err := scopeCommitter.Commit(ctx, wrongDomain); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("transplanted authority domain fence = %v, want intent conflict", err)
+	}
+	wrongAuthority := prepared
+	wrongAuthority.Writes = append([]intentmodel.PlannedWrite(nil), prepared.Writes...)
+	wrongAuthority.Writes[0].SourceAuthorityDecision = "authority.attacker/v1"
+	wrongAuthority = bindConflict(wrongAuthority, intent.ID, intent.SnapshotDigest)
+	if _, err := scopeCommitter.Commit(ctx, wrongAuthority); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("substituted source authority fence = %v, want intent conflict", err)
+	}
+	wrongOperation := prepared
+	wrongOperation.Writes = append([]intentmodel.PlannedWrite(nil), prepared.Writes...)
+	wrongOperation.Writes[0].Operation = intentmodel.WriteOperationDelete
+	wrongOperation = bindConflict(wrongOperation, intent.ID, intent.SnapshotDigest)
+	if _, err := scopeCommitter.Commit(ctx, wrongOperation); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("substituted operation fence = %v, want intent conflict", err)
+	}
+	changedInterval, intervalErr := values.NewInstantInterval(values.NewInstant(commitAt.Add(time.Minute)), values.NewInstant(commitAt.Add(time.Hour)))
+	if intervalErr != nil {
+		t.Fatal(intervalErr)
+	}
+	wrongInterval := prepared
+	wrongInterval.Writes = append([]intentmodel.PlannedWrite(nil), prepared.Writes...)
+	wrongInterval.Writes[0].EffectiveInterval = changedInterval
+	wrongInterval = bindConflict(wrongInterval, intent.ID, intent.SnapshotDigest)
+	if _, err := scopeCommitter.Commit(ctx, wrongInterval); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("substituted effective interval fence = %v, want intent conflict", err)
+	}
+	mismatched := prepared
+	mismatched.Streams = append([]plan.StreamPlan(nil), prepared.Streams...)
+	mismatched.Events = append([]plan.PlannedEvent(nil), prepared.Events...)
+	mismatched.Streams[0].StreamKey = "stream:unrelated"
+	mismatched.Events[0].StreamKey = "stream:unrelated"
+	mismatched = bindConflict(mismatched, intent.ID, intent.SnapshotDigest)
+	mismatchCommitter := transactioncommit.New(db.Conn, transactioncommit.Options{Clock: func() time.Time { return commitAt }, ConflictFence: store})
+	if _, err := mismatchCommitter.Commit(ctx, mismatched); !errors.Is(err, conflict.ErrIntentConflict) {
+		t.Fatalf("unrelated plan stream fence = %v, want intent conflict", err)
+	}
+
+	rollback := transactioncommit.New(db.Conn, transactioncommit.Options{Clock: func() time.Time { return commitAt }, ConflictFence: store, Failpoint: func(stage string) error {
+		if stage == "after-append" {
+			return errors.New("rollback proof")
+		}
+		return nil
+	}})
+	if _, err := rollback.Commit(ctx, prepared); err == nil {
+		t.Fatal("failpoint commit succeeded")
+	}
+	for table, want := range map[string]int{"ledger_event": 0, "conflict_scope_fence": 0} {
+		var got int
+		if err := db.Conn.QueryRow(ctx, "SELECT count(*) FROM "+table+" WHERE tenant_id=$1", tenant).Scan(&got); err != nil || got != want {
+			t.Fatalf("%s rows=%d err=%v", table, got, err)
+		}
+	}
+
+	c := transactioncommit.New(db.Conn, transactioncommit.Options{Clock: func() time.Time { return commitAt }, ConflictFence: store})
+	receipt, err := c.Commit(ctx, prepared)
+	if err != nil {
+		t.Fatalf("actual fenced commit: %v", err)
+	}
+	if len(receipt.Events) != len(prepared.Events) {
+		t.Fatalf("events=%d want=%d", len(receipt.Events), len(prepared.Events))
+	}
+	var effectiveAt time.Time
+	if err := db.Conn.QueryRow(ctx, `SELECT effective_at FROM ledger_event WHERE tenant_id=$1 ORDER BY stream_key LIMIT 1`, tenant).Scan(&effectiveAt); err != nil || !effectiveAt.Equal(commitAt.Add(10*time.Minute)) {
+		t.Fatalf("ledger effective_at=%s err=%v, want typed interval start", effectiveAt, err)
+	}
+	var status string
+	var fence int64
+	if err := db.Conn.QueryRow(ctx, `SELECT status,fence FROM conflict_write_intent WHERE tenant_id=$1 AND intent_id=$2`, tenant, intent.ID).Scan(&status, &fence); err != nil || status != "COMMITTED" || fence == 0 {
+		t.Fatalf("intent status=%s fence=%d err=%v", status, fence, err)
+	}
+}
 
 var commitAt = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
 

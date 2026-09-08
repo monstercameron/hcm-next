@@ -20,6 +20,7 @@ import (
 	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/data/projection"
+	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/transaction/plan"
 )
@@ -44,6 +45,15 @@ type Options struct {
 	ProjectionName string
 	Clock          func() time.Time
 	Failpoint      Failpoint
+	// ConflictFence executes a conflict reference already bound into the plan.
+	// Legacy plans with no reference retain the existing stream-head CAS.
+	ConflictFence ConflictFence
+}
+
+// ConflictFence closes a registered write intent inside the transaction that
+// also appends the plan's domain events and outbox records.
+type ConflictFence interface {
+	ValidateAtCommit(context.Context, dbport.Tx, conflict.CommitRequest) (conflict.CommitResult, error)
 }
 
 // Receipt is the durable result of one local plan commit. Replayed is true
@@ -122,6 +132,29 @@ func (c *Committer) CommitInTx(ctx context.Context, tx dbport.Tx, prepared plan.
 	if tx == nil {
 		return Receipt{}, errors.New("transaction commit: transaction is required")
 	}
+	declaresFence := strings.TrimSpace(prepared.ConflictIntentID) != "" || strings.TrimSpace(prepared.ConflictSnapshotDigest) != ""
+	if declaresFence && (strings.TrimSpace(prepared.ConflictIntentID) == "" || strings.TrimSpace(prepared.ConflictSnapshotDigest) == "") {
+		return Receipt{}, fmt.Errorf("%w: conflict intent id and snapshot digest must be supplied together", ErrInvalidPlan)
+	}
+	if declaresFence && c.opts.ConflictFence == nil {
+		return Receipt{}, fmt.Errorf("%w: plan declares conflict intent %s but no durable fence is configured", ErrInvalidPlan, prepared.ConflictIntentID)
+	}
+	if declaresFence && len(prepared.ConflictFootprintDigests) == 0 {
+		return Receipt{}, fmt.Errorf("%w: plan declares conflict intent %s without footprint digests", ErrInvalidPlan, prepared.ConflictIntentID)
+	}
+	if declaresFence {
+		for _, write := range prepared.Writes {
+			if !write.Operation.Valid() {
+				return Receipt{}, fmt.Errorf("%w: fenced write %s has no declared operation", ErrInvalidPlan, write.FieldPath)
+			}
+			if err := write.EffectiveInterval.Validate(); err != nil {
+				return Receipt{}, fmt.Errorf("%w: fenced write %s has invalid effective interval: %v", ErrInvalidPlan, write.FieldPath, err)
+			}
+		}
+	}
+	if !declaresFence && c.opts.ConflictFence != nil {
+		return Receipt{}, fmt.Errorf("%w: durable fence cannot be supplied for a plan with no bound conflict intent", ErrInvalidPlan)
+	}
 	if err := prepared.VerifyDigest(); err != nil {
 		return Receipt{}, fmt.Errorf("%w: %v", ErrInvalidPlan, err)
 	}
@@ -149,6 +182,20 @@ func (c *Committer) CommitInTx(ctx context.Context, tx dbport.Tx, prepared plan.
 	if retention <= 0 {
 		return Receipt{}, fmt.Errorf("%w: plan expiry is not in the future", ErrInvalidPlan)
 	}
+	effectiveByStream := map[string]time.Time{}
+	if declaresFence {
+		for _, write := range prepared.Writes {
+			start, ok := write.EffectiveInterval.StartInstant()
+			if !ok {
+				return Receipt{}, fmt.Errorf("%w: fenced write %s has a local-date interval that cannot map to ledger effective_at without a timezone", ErrInvalidPlan, write.FieldPath)
+			}
+			stream := write.ExpectedRevision.Stream()
+			if existing, found := effectiveByStream[stream]; found && !existing.Equal(start.Time()) {
+				return Receipt{}, fmt.Errorf("%w: stream %s has multiple effective starts", ErrInvalidPlan, stream)
+			}
+			effectiveByStream[stream] = start.Time().UTC()
+		}
+	}
 	_, replayed, lookupErr := idempotency.PostgresStore{}.Lookup(ctx, tx, scope)
 	if lookupErr != nil {
 		return Receipt{}, fmt.Errorf("transaction commit: read replay receipt: %w", lookupErr)
@@ -158,6 +205,25 @@ func (c *Committer) CommitInTx(ctx context.Context, tx dbport.Tx, prepared plan.
 		func(ctx context.Context, tx dbport.Tx) (idempotency.ResultIdentity, error) {
 			if err := c.fail("before-append"); err != nil {
 				return idempotency.ResultIdentity{}, err
+			}
+			if declaresFence {
+				baselines := make([]conflict.StreamBaseline, len(prepared.Streams))
+				for i, stream := range prepared.Streams {
+					if stream.ExpectedSequence < 0 {
+						return idempotency.ResultIdentity{}, fmt.Errorf("%w: stream %s has a negative baseline", ErrInvalidPlan, stream.StreamKey)
+					}
+					baselines[i] = conflict.StreamBaseline{StreamKey: stream.StreamKey, ExpectedSequence: uint64(stream.ExpectedSequence)}
+				}
+				writes := make([]conflict.WriteBaseline, len(prepared.Writes))
+				for i, write := range prepared.Writes {
+					writes[i] = conflict.WriteBaseline{ResourceCanonical: write.ResourceKey.String(), FieldPath: conflict.FieldPath(write.FieldPath), StreamKey: write.ExpectedRevision.Stream(), AuthorityDomain: write.Subject.AuthorityDomain, SourceAuthorityDecision: write.SourceAuthorityDecision, Operation: conflict.Operation(write.Operation), EffectiveInterval: write.EffectiveInterval}
+				}
+				if _, err := c.opts.ConflictFence.ValidateAtCommit(ctx, tx, conflict.CommitRequest{
+					TenantID: tenant.String(), IntentID: prepared.ConflictIntentID, SnapshotDigest: prepared.ConflictSnapshotDigest,
+					Streams: baselines, Writes: writes, FootprintDigests: append([]string(nil), prepared.ConflictFootprintDigests...),
+				}); err != nil {
+					return idempotency.ResultIdentity{}, fmt.Errorf("transaction commit: conflict fence: %w", err)
+				}
 			}
 			if err := validateEvents(prepared); err != nil {
 				return idempotency.ResultIdentity{}, err
@@ -173,7 +239,7 @@ func (c *Committer) CommitInTx(ctx context.Context, tx dbport.Tx, prepared plan.
 				}
 			}
 
-			requests, err := c.appendRequest(ctx, tx, tenant, prepared, now)
+			requests, err := c.appendRequest(ctx, tx, tenant, prepared, now, effectiveByStream)
 			if err != nil {
 				return idempotency.ResultIdentity{}, err
 			}
@@ -291,17 +357,25 @@ func validateEvents(prepared plan.TransactionPlan) error {
 	return nil
 }
 
-func (c *Committer) appendRequest(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, prepared plan.TransactionPlan, now time.Time) (datalogger.MultiStreamAppendRequest, error) {
+func (c *Committer) appendRequest(ctx context.Context, tx dbport.Tx, tenant uuid.UUID, prepared plan.TransactionPlan, now time.Time, effectiveByStream map[string]time.Time) (datalogger.MultiStreamAppendRequest, error) {
 	byStream := make(map[string][]datalogger.AppendRequest, len(prepared.Streams))
 	for index, event := range prepared.Events {
 		stream := event.StreamKey
+		effectiveAt := now
+		if len(effectiveByStream) > 0 {
+			var ok bool
+			effectiveAt, ok = effectiveByStream[stream]
+			if !ok {
+				return datalogger.MultiStreamAppendRequest{}, fmt.Errorf("%w: event stream %s has no typed effective interval", ErrInvalidPlan, stream)
+			}
+		}
 		byStream[stream] = append(byStream[stream], datalogger.AppendRequest{
 			Tenant: tenant, StreamKey: stream,
 			ExpectedHead:   event.Sequence - int64(len(byStream[stream])) - 1,
 			AssertionClass: datalogger.TransactionFact,
 			SourceRef:      fmt.Sprintf("transaction-plan:%s:%s", prepared.PlanID, event.EventType),
 			SchemaRef:      event.SchemaRef, ArtifactRef: event.Digest,
-			OccurredAt: now, EffectiveAt: now,
+			OccurredAt: now, EffectiveAt: effectiveAt,
 			CorrelationID:  uuid.NewSHA1(commitNamespace, []byte(prepared.PlanID)),
 			IdempotencyKey: fmt.Sprintf("%s:event:%d", prepared.IdempotencyKey, index),
 		})

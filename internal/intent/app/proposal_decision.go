@@ -131,7 +131,8 @@ func (s *IntentService) decideProposal(ctx context.Context, req ProposalDecision
 		return nil, err
 	}
 
-	artifact, ownedErr := s.simulate(ctx, principal, purposeOf(principal, inv), inst, def)
+	simulated, ownedErr := s.simulateDetailed(ctx, principal, purposeOf(principal, inv), inst, def)
+	artifact := simulated.Artifact
 	if ownedErr != nil {
 		s.recordProposalDecisionEvidence(ctx, req.IntentID, approve, proposalDecisionEvidenceRefused, ownedErr.ReasonRef())
 		return nil, ownedErr
@@ -146,7 +147,10 @@ func (s *IntentService) decideProposal(ctx context.Context, req ProposalDecision
 		s.recordProposalDecisionEvidence(ctx, req.IntentID, approve, proposalDecisionEvidenceRefused, err.ReasonRef())
 		return nil, err
 	}
-	start, startErr := s.executionStart(inst, artifact, journeyApprovalRef(req.IntentID))
+	if simulated.Revision == nil {
+		return nil, proposalDecisionEnvelope(reasonNoExecutablePlan, ErrProposalDecisionStage)
+	}
+	start, startErr := s.executionStart(inst, artifact, journeyApprovalRef(req.IntentID), *simulated.Revision)
 	if startErr != nil {
 		return nil, startErr
 	}

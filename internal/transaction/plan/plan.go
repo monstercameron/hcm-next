@@ -168,7 +168,10 @@ type Effect = OutboxEffect
 // request only supplies the event/effect projections that domain capabilities
 // produced from its planned writes and effects.
 type PrepareRequest struct {
-	Proposal intent.ProposalRevision
+	Proposal                 intent.ProposalRevision
+	ConflictIntentID         string
+	ConflictSnapshotDigest   string
+	ConflictFootprintDigests []string
 
 	// GovernanceDecision is preferred. GovernanceDecisionDigest is accepted for
 	// composition roots that persist only the decision's digest, but when both
@@ -211,6 +214,9 @@ type TransactionPlan struct {
 	ProposalDigest           string
 	IdempotencyKey           string
 	GovernanceDecisionDigest string
+	ConflictIntentID         string
+	ConflictSnapshotDigest   string
+	ConflictFootprintDigests []string
 	ExpiresAt                values.Instant
 
 	Writes        []intent.PlannedWrite
@@ -288,6 +294,9 @@ func Prepare(ctx context.Context, heads HeadReader, req PrepareRequest) (Transac
 		ProposalDigest:           req.Proposal.MaterialDigest.Digest,
 		IdempotencyKey:           req.IdempotencyKey,
 		GovernanceDecisionDigest: governanceDigest,
+		ConflictIntentID:         req.ConflictIntentID,
+		ConflictSnapshotDigest:   req.ConflictSnapshotDigest,
+		ConflictFootprintDigests: append([]string(nil), req.ConflictFootprintDigests...),
 		ExpiresAt:                req.ExpiresAt,
 		Writes:                   cloneWrites(req.Proposal.Writes),
 		Streams:                  streamPlans,
@@ -363,6 +372,9 @@ func (p TransactionPlan) CanonicalBytes() []byte {
 		e.str(w.Subject.Kind).str(w.Subject.SubjectID).str(w.Subject.AuthorityDomain)
 		e.raw(w.ResourceKey.Canonical()).str(w.FieldPath).str(w.CurrentCanonicalText).str(w.ProposedCanonicalText)
 		e.str(w.SourceAuthorityDecision).raw(w.ExpectedRevision.Canonical())
+		if w.Operation != intent.WriteOperationUnspecified || w.EffectiveInterval != (values.EffectiveInterval{}) {
+			e.str("write-semantics.v1").str(string(w.Operation)).raw(w.EffectiveInterval.Canonical())
+		}
 	})
 	e.list(len(p.Streams), func(e *encoder, i int) {
 		s := p.Streams[i]
@@ -376,6 +388,10 @@ func (p TransactionPlan) CanonicalBytes() []byte {
 		x := p.OutboxEffects[i]
 		e.str(x.EffectID).str(x.DestinationRef).str(x.SchemaRef).str(x.PayloadDigest).str(x.IdempotencyKey)
 	})
+	if p.ConflictIntentID != "" || p.ConflictSnapshotDigest != "" {
+		e.str("conflict-intent.v1").str(p.ConflictIntentID).str(p.ConflictSnapshotDigest)
+		e.list(len(p.ConflictFootprintDigests), func(e *encoder, i int) { e.str(p.ConflictFootprintDigests[i]) })
+	}
 	return append([]byte(nil), e.data...)
 }
 
@@ -408,6 +424,28 @@ func VerifyBoundPlan(v interface{ VerifyBoundPlan(string) error }, p Transaction
 func validateRequest(req PrepareRequest) error {
 	if err := req.Proposal.Tenant.Validate(); err != nil {
 		return fmt.Errorf("%w: proposal tenant: %v", ErrInvalidRequest, err)
+	}
+	if (strings.TrimSpace(req.ConflictIntentID) == "") != (strings.TrimSpace(req.ConflictSnapshotDigest) == "") {
+		return fmt.Errorf("%w: conflict intent id and snapshot digest must be supplied together", ErrInvalidRequest)
+	}
+	declaresConflict := strings.TrimSpace(req.ConflictIntentID) != ""
+	if declaresConflict != (len(req.ConflictFootprintDigests) > 0) {
+		return fmt.Errorf("%w: conflict footprint digests must accompany the conflict intent", ErrInvalidRequest)
+	}
+	for _, digest := range req.ConflictFootprintDigests {
+		if strings.TrimSpace(digest) == "" {
+			return fmt.Errorf("%w: conflict footprint digest is empty", ErrInvalidRequest)
+		}
+	}
+	if declaresConflict {
+		for _, write := range req.Proposal.Writes {
+			if !write.Operation.Valid() {
+				return fmt.Errorf("%w: fenced write %s has no declared operation", ErrInvalidRequest, write.FieldPath)
+			}
+			if err := write.EffectiveInterval.Validate(); err != nil {
+				return fmt.Errorf("%w: fenced write %s has invalid effective interval: %v", ErrInvalidRequest, write.FieldPath, err)
+			}
+		}
 	}
 	for _, field := range []struct{ name, value string }{
 		{"proposal_revision_id", req.Proposal.ProposalRevisionID},

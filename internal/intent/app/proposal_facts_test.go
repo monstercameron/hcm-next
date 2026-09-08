@@ -66,31 +66,77 @@ func pfIntent(t *testing.T, db *pgtest.DB, tenant uuid.UUID, idempotencyKey stri
 	return id
 }
 
+func pfTxErr(ctx context.Context, db dbport.Beginner, tenant uuid.UUID, fn func(dbport.Tx) error) error {
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	if err := tenancy.WithTenant(ctx, tx, tenant); err != nil {
+		return err
+	}
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
 // pfRevision is the in-memory revision the adapter is asked about.
 func pfRevision(intentID uuid.UUID, materialDigest string) intent.ProposalRevision {
-	return intent.ProposalRevision{
-		ProposalRevisionID: "revision:" + intentID.String(),
-		IntentID:           intentID.String(),
-		Revision:           simulationRevision,
-		MaterialDigest:     digest.Reference{Digest: materialDigest, AlgorithmID: "sha256"},
+	effective, err := values.NewOpenInstantInterval(values.NewInstant(pfClock))
+	if err != nil {
+		panic(err)
 	}
+	return intent.ProposalRevision{
+		ProposalRevisionID:  "revision:" + intentID.String(),
+		IntentID:            intentID.String(),
+		Revision:            simulationRevision,
+		Tenant:              values.TenantId(intentID.String()),
+		OrganizationScopeID: "org:test",
+		Subjects:            []intent.SubjectReference{{Kind: "WORKER", SubjectID: "worker:test", AuthorityDomain: "PEOPLE"}},
+		EffectiveTime:       effective,
+		ControlSnapshots: intent.ControlSnapshots{
+			CapabilityRegistryDigest: "cap", PolicyBundleDigest: "policy", LegalContextDigest: "legal",
+			EntitlementDigest: "entitlement", ReferenceDataDigest: "reference",
+			ClassificationTaxonomyDigest: "taxonomy", DLPDecisionDigest: "dlp",
+		},
+		CreatedBy:      intent.PrincipalReference{PrincipalID: "principal:test", Kind: intent.InitiatorHuman, IdentityAssuranceRef: "aal2"},
+		CreatedAt:      pfClockInstant(),
+		MaterialDigest: digest.Reference{Digest: materialDigest, AlgorithmID: "sha256"},
+	}
+}
+
+func pfClockInstant() values.Instant { return values.NewInstant(pfClock) }
+
+type pfProposalDigester struct{}
+
+func (pfProposalDigester) RequestDigest(intent.Instance) (digest.Reference, error) {
+	return digest.Reference{}, errors.New("request digest is not used")
+}
+func (pfProposalDigester) ProposalDigest(p intent.ProposalRevision) (digest.Reference, error) {
+	return p.MaterialDigest, nil
 }
 
 // pfAuthorization is the AUTHZ admission the journey records before a start.
 func pfAuthorization(tenant, intentID uuid.UUID, materialDigest string) executionDecision {
+	p := pfRevision(intentID, materialDigest)
+	p.Tenant = values.TenantId(tenant.String())
 	return executionDecision{
-		TenantID:       tenant,
-		IntentID:       intentID,
-		Revision:       simulationRevision,
-		MaterialDigest: materialDigest,
-		ControlDigest:  pfDigest("control"),
-		RequirementID:  executionAuthorityRequirementID,
-		Kind:           intentcontrol.DecisionAuthZ,
-		Outcome:        intentcontrol.OutcomeApproved,
-		DecidedBy:      "principal:operator",
-		AuthorityRef:   "sha256:test-authority",
-		Reason:         "admitted",
-		DecidedAt:      pfClock,
+		TenantID:         tenant,
+		IntentID:         intentID,
+		Revision:         simulationRevision,
+		MaterialDigest:   materialDigest,
+		ControlDigest:    pfDigest("control"),
+		RequirementID:    executionAuthorityRequirementID,
+		Kind:             intentcontrol.DecisionAuthZ,
+		Outcome:          intentcontrol.OutcomeApproved,
+		DecidedBy:        "principal:operator",
+		AuthorityRef:     "sha256:test-authority",
+		Reason:           "admitted",
+		DecidedAt:        pfClock,
+		Proposal:         &p,
+		ProposalVerifier: pfProposalDigester{},
+		TenantUUID:       func(values.TenantId) uuid.UUID { return tenant },
 	}
 }
 
@@ -242,6 +288,16 @@ func TestExecutionDecisionRecordIsIdempotentAndRefusesADigestChange(t *testing.T
 	if len(facts) != 1 {
 		t.Fatalf("recording the same decision twice produced %d rows, want 1", len(facts))
 	}
+	provenanceDrift := pfAuthorization(tenant, intentID, material)
+	provenanceDrift.DecidedBy = "principal:other"
+	provenanceDrift.Proposal.CreatedAt = values.NewInstant(pfClock.Add(time.Second))
+	provenanceDrift.Proposal.ControlSnapshots.PolicyBundleDigest = "policy:changed"
+	err := pfTxErr(t.Context(), conn, tenant, func(tx dbport.Tx) error {
+		return provenanceDrift.record(t.Context(), tx)
+	})
+	if err != nil {
+		t.Fatalf("non-material resimulation should retain the immutable stored snapshot: %v", err)
+	}
 
 	// A second proposal wearing the same revision number cannot borrow the
 	// first one's stored row: the revision is append-only, so the recorder
@@ -259,8 +315,8 @@ func TestExecutionDecisionRecordIsIdempotentAndRefusesADigestChange(t *testing.T
 	}
 	if err := drifted.record(ctx, tx); err == nil {
 		t.Fatal("recording a decision against a different material digest must be refused")
-	} else if !strings.Contains(err.Error(), "is stored with material digest") {
-		t.Fatalf("record(drifted) = %v, want a stored-digest mismatch", err)
+	} else if !strings.Contains(err.Error(), "stored proposal revision") {
+		t.Fatalf("record(drifted) = %v, want an immutable stored-proposal mismatch", err)
 	}
 }
 

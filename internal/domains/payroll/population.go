@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/monstercameron/hcm-next/internal/domains/payroll/calcpolicy"
+	"github.com/monstercameron/hcm-next/internal/domains/taxprofile"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
@@ -51,7 +53,64 @@ var (
 	ErrPopulationBindingMismatch = errors.New("payroll: frozen population does not match the run binding")
 	ErrPopulationAmbiguous       = errors.New("payroll: population has duplicate employment or pay-group membership")
 	ErrPopulationAmendment       = errors.New("payroll: invalid population amendment")
+	ErrTaxPopulationBinding      = errors.New("payroll: invalid tax population binding")
 )
+
+// TaxPopulationInput is the typed, worker-bound tax input consumed by a
+// payroll calculation. The worker reference is checked against the frozen
+// population member and the input is required to carry the same snapshot pin.
+type TaxPopulationInput struct {
+	WorkerRef     string
+	EmploymentRef string
+	PayGroupRef   string
+	Snapshot      taxprofile.PinnedTaxInputSnapshot
+	Input         calcpolicy.Input
+}
+
+func (b TaxPopulationInput) Validate(member PopulationMember) error {
+	if b.WorkerRef == "" || b.WorkerRef != member.workerRef() || b.EmploymentRef != member.EmploymentRef || b.PayGroupRef != member.PayGroupRef || b.Snapshot.WorkerRef != b.WorkerRef || b.Snapshot.EmploymentRef != b.EmploymentRef || b.Snapshot.PayGroupRef != b.PayGroupRef {
+		return fmt.Errorf("%w: worker identity mismatch", ErrTaxPopulationBinding)
+	}
+	if err := taxprofile.PayrollTaxConformance(b.Snapshot); err != nil {
+		return fmt.Errorf("%w: snapshot: %v", ErrTaxPopulationBinding, err)
+	}
+	if b.Input.Kind != calcpolicy.KindTax || b.Input.TaxSnapshotDigest != b.Snapshot.Digest {
+		return fmt.Errorf("%w: input is not pinned to snapshot", ErrTaxPopulationBinding)
+	}
+	if err := b.Input.Validate(); err != nil {
+		return fmt.Errorf("%w: input: %v", ErrTaxPopulationBinding, err)
+	}
+	return nil
+}
+
+// TaxPopulationInputDigest returns a deterministic digest of the complete
+// typed binding set. Inputs are sorted by worker identity, never by caller
+// order, and each snapshot is included through the canonical input digest.
+func TaxPopulationInputDigest(bindings []TaxPopulationInput) (string, error) {
+	ordered := append([]TaxPopulationInput(nil), bindings...)
+	sort.SliceStable(ordered, func(i, j int) bool { return taxBindingKey(ordered[i]) < taxBindingKey(ordered[j]) })
+	for i := range ordered {
+		if ordered[i].WorkerRef == "" || ordered[i].Input.CanonicalDigest == "" {
+			return "", ErrTaxPopulationBinding
+		}
+		if ordered[i].EmploymentRef == "" || ordered[i].PayGroupRef == "" || i > 0 && taxBindingKey(ordered[i-1]) == taxBindingKey(ordered[i]) {
+			return "", ErrTaxPopulationBinding
+		}
+	}
+	w := canonicalbytes.New("hcmnext.domains.payroll.TaxPopulationInputSet", 1).Count("bindings", len(ordered))
+	for _, b := range ordered {
+		w.String("worker_ref", b.WorkerRef).String("employment_ref", b.EmploymentRef).String("pay_group_ref", b.PayGroupRef).String("snapshot_digest", b.Snapshot.Digest).String("input_digest", b.Input.CanonicalDigest)
+	}
+	raw, err := w.Bytes()
+	if err != nil {
+		return "", err
+	}
+	return canonicalbytes.Digest(raw), nil
+}
+
+func taxBindingKey(b TaxPopulationInput) string {
+	return b.WorkerRef + "\x00" + b.EmploymentRef + "\x00" + b.PayGroupRef
+}
 
 // PopulationMember is one resolved employment in the run's pay group. The
 // optional MemberRef spelling is retained for callers that use subject refs;
@@ -345,6 +404,9 @@ func (p FrozenPopulation) SupersededRevision(successor FrozenPopulation) (Frozen
 // CalculateAgainstPopulation refuses a population that is not the current
 // frozen revision for run and then advances the run immutably to CALCULATED.
 func CalculateAgainstPopulation(run PayrollRun, population FrozenPopulation, calculationDigest string) (PayrollRun, error) {
+	if run.RequiresTaxInputs() {
+		return PayrollRun{}, ErrTaxPopulationBinding
+	}
 	if err := run.Validate(); err != nil {
 		return PayrollRun{}, err
 	}
@@ -367,6 +429,60 @@ func CalculateAgainstPopulation(run PayrollRun, population FrozenPopulation, cal
 		return PayrollRun{}, fmt.Errorf("%w: calculation digest is required", ErrInvalidFrozenPopulation)
 	}
 	return run.Calculate(calculationDigest)
+}
+
+// CalculateAgainstPopulationWithTaxInputs binds every frozen worker to one
+// validated tax snapshot and derives the run's calculation digest from that
+// complete set before advancing the run. Validation happens before any state
+// transition, including rejection of unknown or redacted profile facts.
+func CalculateAgainstPopulationWithTaxInputs(run PayrollRun, population FrozenPopulation, bindings []TaxPopulationInput) (PayrollRun, error) {
+	if err := run.Validate(); err != nil {
+		return PayrollRun{}, err
+	}
+	if err := population.Validate(); err != nil {
+		return PayrollRun{}, err
+	}
+	if population.State != PopulationStateFrozen {
+		return PayrollRun{}, ErrPopulationUnfrozen
+	}
+	if !run.RequiresTaxInputs() {
+		return PayrollRun{}, ErrTaxPopulationBinding
+	}
+	if run.State != PayrollRunStateDraft {
+		return PayrollRun{}, fmt.Errorf("%w: run state %s", ErrPopulationUnfrozen, run.State)
+	}
+	if population.RunID != run.RunID || population.Binding != run.Population || population.PayGroupRef != run.PayGroupRef {
+		return PayrollRun{}, ErrPopulationBindingMismatch
+	}
+	members := population.MemberList()
+	if len(bindings) != len(members) {
+		return PayrollRun{}, ErrTaxPopulationBinding
+	}
+	byMember := make(map[string]TaxPopulationInput, len(bindings))
+	for _, b := range bindings {
+		key := taxBindingKey(b)
+		if _, exists := byMember[key]; exists {
+			return PayrollRun{}, ErrTaxPopulationBinding
+		}
+		byMember[key] = b
+	}
+	for _, member := range members {
+		b, ok := byMember[memberKey(member)]
+		if !ok {
+			return PayrollRun{}, fmt.Errorf("%w: missing worker %q", ErrTaxPopulationBinding, member.workerRef())
+		}
+		if err := b.Validate(member); err != nil {
+			return PayrollRun{}, err
+		}
+	}
+	digest, err := TaxPopulationInputDigest(bindings)
+	if err != nil {
+		return PayrollRun{}, err
+	}
+	if run.CalculationInputDigest != digest {
+		return PayrollRun{}, fmt.Errorf("%w: calculation input digest does not match typed bindings", ErrTaxPopulationBinding)
+	}
+	return run.transitionWithTaxAuthority(PayrollRunStateCalculated, digest, true)
 }
 
 // Explain is the package-level contract spelling for a frozen population.

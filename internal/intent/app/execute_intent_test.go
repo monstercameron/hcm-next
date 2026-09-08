@@ -1,11 +1,16 @@
 package app
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/domains/promotion"
 	"github.com/monstercameron/hcm-next/internal/intent"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
@@ -183,5 +188,33 @@ func TestExecutionErrorProjectsTheDerivedProposalRefusals(t *testing.T) {
 				t.Fatalf("reason = %q, want %q", owned.ReasonRef(), tc.reason)
 			}
 		})
+	}
+}
+
+func TestExecutionErrorCommitAmbiguityIsNonRetryableAcrossWireProjections(t *testing.T) {
+	const privateDetail = "provider connection contained tenant-secret"
+	wrapped := fmt.Errorf("commit wrapper: %w: %s", transactioncommit.ErrCommitAmbiguous, privateDetail)
+	owned := executionError(wrapped)
+	if owned.Code() != envelope.CodeUnavailable || owned.ReasonRef() != reasonExecutionOutcomeAmbiguous || owned.Retryable() {
+		t.Fatalf("owned ambiguity = code %s reason %q retryable %v", owned.Code(), owned.ReasonRef(), owned.Retryable())
+	}
+	if strings.Contains(owned.Error(), privateDetail) || strings.Contains(owned.Message(), privateDetail) {
+		t.Fatalf("safe projection leaked diagnostic: %q", owned.Error())
+	}
+	// HTTP transports use HTTPStatus plus this exact ErrorDetail payload.
+	if owned.HTTPStatus() != http.StatusServiceUnavailable || owned.Detail().GetRetryable() {
+		t.Fatalf("HTTP projection = status %d detail %+v", owned.HTTPStatus(), owned.Detail())
+	}
+	back, ok := envelope.FromGRPC(owned.GRPCStatus().Err())
+	if !ok || back.Retryable() || back.Detail().GetRetryable() || back.ReasonRef() != reasonExecutionOutcomeAmbiguous {
+		t.Fatalf("gRPC round trip = %+v ok=%v", back, ok)
+	}
+	if strings.Contains(back.Error(), privateDetail) {
+		t.Fatalf("gRPC projection leaked diagnostic: %q", back.Error())
+	}
+
+	ordinary := executionError(errors.New("temporary dependency failure"))
+	if ordinary.Code() != envelope.CodeUnavailable || !ordinary.Retryable() || !ordinary.Detail().GetRetryable() {
+		t.Fatalf("ordinary transient classification changed: %+v", ordinary)
 	}
 }

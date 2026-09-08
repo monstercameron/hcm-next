@@ -180,6 +180,9 @@ type CellConfig struct {
 	// DurableProposalFacts from ExecutionDB; an explicit source is useful for
 	// a non-durable composition test and is never populated from a request.
 	ExecutionFacts ExecutionFacts
+	// LegalEvidence authenticates signed evaluation receipts and their exact
+	// proposal bindings using deployment-configured trusted issuer keys.
+	LegalEvidence LegalEvidenceVerifier
 	// ExecutionApprover is the principal id the one approval WorkItem this
 	// cell's promotion workflow raises is routed to, and therefore the
 	// principal the journey engine records the decision as. Empty means
@@ -425,7 +428,8 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		// OBS-024: GATE_REFUSED/GATE_ADMITTED land on the same evidence sink
 		// as every CAP-002 invocation/refusal, so Cell.Evidence reads both
 		// back from one place.
-		Evidence: sink,
+		Evidence:      sink,
+		LegalEvidence: cfg.LegalEvidence,
 	})
 	if err != nil {
 		return nil, err

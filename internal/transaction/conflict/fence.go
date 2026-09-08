@@ -3,6 +3,8 @@ package conflict
 import (
 	"errors"
 	"fmt"
+
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
 var (
@@ -40,8 +42,32 @@ const (
 // before commit. Current footprints use the observed revision in
 // ExpectedRevision; no database or transaction is opened by this package.
 type CommitRequest struct {
-	IntentID string
-	Current  []WriteFootprint
+	TenantID       string
+	IntentID       string
+	SnapshotDigest string
+	Current        []WriteFootprint
+	// Streams is the complete stream baseline set bound into the executable
+	// transaction plan. Durable registries require an exact match with the
+	// streams declared by the registered footprints; an unrelated intent must
+	// never fence a plan that writes a different stream.
+	Streams          []StreamBaseline
+	Writes           []WriteBaseline
+	FootprintDigests []string
+}
+
+type StreamBaseline struct {
+	StreamKey        string
+	ExpectedSequence uint64
+}
+
+type WriteBaseline struct {
+	ResourceCanonical       string
+	FieldPath               FieldPath
+	StreamKey               string
+	AuthorityDomain         string
+	SourceAuthorityDecision string
+	Operation               Operation
+	EffectiveInterval       values.EffectiveInterval
 }
 
 type CommitResult struct {
@@ -64,25 +90,30 @@ func (r *Registry) ValidateAtCommit(req CommitRequest) (CommitResult, error) {
 	if in.Status.terminal() {
 		return CommitResult{}, ErrAlreadyTerminal
 	}
-	if len(req.Current) > 0 {
-		for _, want := range in.Footprints {
-			matched := false
-			for _, got := range req.Current {
-				overlap, err := want.Overlaps(got)
-				if err != nil {
-					return CommitResult{}, err
-				}
-				if overlap {
-					matched = true
-					if want.ExpectedRevision.Canonical() == nil || got.ExpectedRevision.Canonical() == nil || string(want.ExpectedRevision.Canonical()) != string(got.ExpectedRevision.Canonical()) {
-						return r.stale(in)
-					}
-					break
-				}
+	// A commit without a current observation cannot prove that its preflight
+	// baseline is still current. Failing closed here is essential: treating a
+	// missing observation as "nothing to check" would let a stale writer evade
+	// the fence entirely.
+	if len(req.Current) == 0 {
+		return r.stale(in)
+	}
+	for _, want := range in.Footprints {
+		matched := false
+		for _, got := range req.Current {
+			overlap, err := want.Overlaps(got)
+			if err != nil {
+				return CommitResult{}, err
 			}
-			if !matched {
-				return r.stale(in)
+			if overlap {
+				matched = true
+				if want.ExpectedRevision.Canonical() == nil || got.ExpectedRevision.Canonical() == nil || string(want.ExpectedRevision.Canonical()) != string(got.ExpectedRevision.Canonical()) {
+					return r.stale(in)
+				}
+				break
 			}
+		}
+		if !matched {
+			return r.stale(in)
 		}
 	}
 	for _, f := range in.Footprints {
@@ -106,7 +137,7 @@ func (r *Registry) ValidateAtCommit(req CommitRequest) (CommitResult, error) {
 	in.Fence = r.next
 	in.Status = IntentCommitted
 	for _, f := range in.Footprints {
-		r.active[f.Digest()] = in.ID
+		r.active[f.ScopeDigest()] = in.ID
 	}
 	return CommitResult{Intent: *in, Fence: in.Fence, Decision: DecisionHardConflict}, nil
 }
@@ -136,8 +167,8 @@ func (r *Registry) Release(id string, fence uint64) (WriteIntent, error) {
 	}
 	in.Status = IntentReleased
 	for _, f := range in.Footprints {
-		if r.active[f.Digest()] == id {
-			delete(r.active, f.Digest())
+		if r.active[f.ScopeDigest()] == id {
+			delete(r.active, f.ScopeDigest())
 		}
 	}
 	return *in, nil

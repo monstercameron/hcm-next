@@ -11,13 +11,51 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/domains/evidence"
 	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
+	"github.com/monstercameron/hcm-next/internal/domains/fx"
 	"github.com/monstercameron/hcm-next/internal/domains/rewards"
 	"github.com/monstercameron/hcm-next/internal/engines/payband"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
+
+func pinnedFX(t *testing.T, knownAt string) *rewards.PinnedFXConversion {
+	t.Helper()
+	pair, err := fx.NewCurrencyPair("USD", "EUR")
+	if err != nil {
+		t.Fatal(err)
+	}
+	instant := func(s string) values.Instant {
+		v, e := time.Parse(time.RFC3339, s)
+		if e != nil {
+			t.Fatal(e)
+		}
+		return values.NewInstant(v)
+	}
+	interval, err := values.NewOpenInstantInterval(instant("2026-01-01T00:00:00Z"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, err := fx.NewRateSourceRevision(fx.RateSourceRevision{SourceID: "src", Revision: 1, ProviderRef: "provider", Pairs: []fx.CurrencyPair{pair}, QuoteCadence: fx.CadenceHourly, AuthorityClass: fx.AuthorityPrimary, Effective: interval})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rate, err := values.NewDecimal("0.923456", 6, values.RoundingExactRequired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	quote, err := fx.NewFXQuoteRevision(fx.FXQuoteRevision{QuoteID: "q", SourceID: "src", SourceRevision: 1, BaseCurrency: "USD", QuoteCurrency: "EUR", Rate: rate, AsOf: instant("2026-06-01T10:00:00Z"), KnownAt: instant(knownAt), MarketConvention: fx.ConventionSpot, Confidence: fx.ConfidenceHigh})
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := fx.NewConversionProfileRevision(fx.ConversionProfileRevision{ProfileID: "rewards", Revision: 1, RoundingRule: fx.RoundingRule{Scale: 2, Mode: values.RoundingHalfEven}, Tolerance: 24 * time.Hour, FallbackSourceOrder: []string{"src"}, Effective: interval})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &rewards.PinnedFXConversion{TargetCurrency: "EUR", AsOf: instant("2026-06-01T12:00:00Z"), KnownAt: instant("2026-06-01T12:00:00Z"), Profile: profile, Sources: []fx.RateSourceRevision{source}, Quotes: []fx.FXQuoteRevision{quote}}
+}
 
 var updateGolden = flag.Bool("update", false, "rewrite the golden files instead of comparing against them")
 
@@ -242,6 +280,121 @@ func TestSimulateCompensationReturnsExactVersionedResultWithZeroEffects(t *testi
 	if result.ResultDigest != repeat.ResultDigest || result.InputsDigest != repeat.InputsDigest {
 		t.Fatalf("digests drifted: %s/%s vs %s/%s",
 			result.InputsDigest, result.ResultDigest, repeat.InputsDigest, repeat.ResultDigest)
+	}
+}
+
+func TestTodo_FX_003_RewardsSimulationBindsPinnedConversion(t *testing.T) {
+	in := baseInput(t)
+	in.Band = nil
+	in.Current = snapshot(t, "100.00", "USD", rewards.PayBasisAnnualSalary, "0", 11)
+	in.Proposed = snapshot(t, "200.00", "USD", rewards.PayBasisAnnualSalary, "0", 11)
+	in.FX = pinnedFX(t, "2026-06-01T11:00:00Z")
+	result, err := rewards.SimulateCompensation(context.Background(), nil, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Current.Base.Currency() != "EUR" || result.Proposed.Base.Currency() != "EUR" || result.FXCurrentConversionDigest == "" || result.FXProposedConversionDigest == "" {
+		t.Fatalf("conversion binding = current %s proposed %s digests %q/%q", result.Current.Base.Currency(), result.Proposed.Base.Currency(), result.FXCurrentConversionDigest, result.FXProposedConversionDigest)
+	}
+	currentReceipt, err := fx.ConvertMoney(fx.MoneyConversionRequest{Amount: in.Current.BaseAmount(), TargetCurrency: in.FX.TargetCurrency, AsOf: in.FX.AsOf, KnownAt: in.FX.KnownAt, Profile: in.FX.Profile, Sources: in.FX.Sources, Quotes: in.FX.Quotes})
+	if err != nil {
+		t.Fatal(err)
+	}
+	proposedReceipt, err := fx.ConvertMoney(fx.MoneyConversionRequest{Amount: in.Proposed.BaseAmount(), TargetCurrency: in.FX.TargetCurrency, AsOf: in.FX.AsOf, KnownAt: in.FX.KnownAt, Profile: in.FX.Profile, Sources: in.FX.Sources, Quotes: in.FX.Quotes})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.FXCurrentConversionDigest != currentReceipt.CanonicalDigest || result.FXProposedConversionDigest != proposedReceipt.CanonicalDigest {
+		t.Fatalf("conversion receipt digests = %q/%q, want %q/%q", result.FXCurrentConversionDigest, result.FXProposedConversionDigest, currentReceipt.CanonicalDigest, proposedReceipt.CanonicalDigest)
+	}
+	repeat, err := rewards.SimulateCompensation(context.Background(), nil, in)
+	if err != nil || repeat.ResultDigest != result.ResultDigest || repeat.Receipt.ResultDigest != result.Receipt.ResultDigest {
+		t.Fatalf("pinned receipt not deterministic: result=%v receipt=%v err=%v", repeat.ResultDigest, repeat.Receipt.ResultDigest, err)
+	}
+}
+
+func TestTodo_FX_003_RewardsSimulationRejectsUnpinnedCurrencyMismatch(t *testing.T) {
+	in := baseInput(t)
+	in.Current = snapshot(t, "100.00", "USD", rewards.PayBasisAnnualSalary, "0", 11)
+	in.Proposed = snapshot(t, "200.00", "EUR", rewards.PayBasisAnnualSalary, "0", 11)
+	if _, err := rewards.SimulateCompensation(context.Background(), nil, in); !errors.Is(err, rewards.ErrCurrencyMismatch) {
+		t.Fatalf("unbound currency mismatch error = %v", err)
+	}
+}
+
+func TestTodo_FX_003_Golden(t *testing.T) {
+	in := baseInput(t)
+	in.Band = nil
+	in.Current = snapshot(t, "100.00", "USD", rewards.PayBasisAnnualSalary, "0", 11)
+	in.Proposed = snapshot(t, "200.00", "USD", rewards.PayBasisAnnualSalary, "0", 12)
+	in.FX = pinnedFX(t, "2026-06-01T11:00:00Z")
+
+	result, err := rewards.SimulateCompensation(context.Background(), nil, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := strings.Join([]string{result.FXCurrentConversionDigest, result.FXProposedConversionDigest, result.ResultDigest, result.Receipt.ResultDigest}, "\n")
+	const want = "sha256:0e17f5e72ed8dbf5c3cb74db54cd2e1ebd48dfadcf59049fbb35c9ed2ab11e09\n" +
+		"sha256:6aa06cc2106422c9bb34cd07bb6fadd540e03079e0f20178ab5027aaa4497e59\n" +
+		"sha256:732a7e8d01e24c79161ecd71b6fcab56852d3f15c5b3ec46d53f5e2de7be3db1\n" +
+		"sha256:732a7e8d01e24c79161ecd71b6fcab56852d3f15c5b3ec46d53f5e2de7be3db1"
+	if got != want {
+		t.Fatalf("FX owner-path golden mismatch\n--- want ---\n%s\n--- got ---\n%s", want, got)
+	}
+}
+
+func TestTodo_FX_003_Security(t *testing.T) {
+	in := baseInput(t)
+	in.Band = nil
+	in.FX = pinnedFX(t, "2026-06-01T11:00:00Z")
+	in.FX.Quotes[0].CanonicalDigest = "sha256:caller-forged"
+	if _, err := rewards.SimulateCompensation(context.Background(), nil, in); !errors.Is(err, fx.ErrInvalidQuote) {
+		t.Fatalf("forged quote digest error = %v, want ErrInvalidQuote", err)
+	}
+
+	in.FX = pinnedFX(t, "2026-06-01T11:00:00Z")
+	early, err := time.Parse(time.RFC3339, "2026-06-01T10:30:00Z")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in.FX.KnownAt = values.NewInstant(early)
+	if _, err := rewards.SimulateCompensation(context.Background(), nil, in); !errors.Is(err, fx.ErrQuoteStale) {
+		t.Fatalf("historically unknown quote error = %v, want ErrQuoteStale", err)
+	}
+}
+
+func TestTodo_FX_003_Mutation(t *testing.T) {
+	in := baseInput(t)
+	in.Band = nil
+	in.Current = snapshot(t, "100.00", "USD", rewards.PayBasisHourly, "0", 11)
+	in.Proposed = snapshot(t, "200.00", "EUR", rewards.PayBasisAnnualSalary, "0", 12)
+	in.FX = pinnedFX(t, "2026-06-01T11:00:00Z")
+
+	before, err := rewards.SimulateCompensation(context.Background(), nil, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Current.Base.Currency() != "EUR" || before.Proposed.Base.Currency() != "EUR" || before.Delta.BaseAmount.State() != values.PresenceNotApplicable {
+		t.Fatalf("separate currencies/bases were not normalized safely: %+v", before)
+	}
+	if !before.Effects.IsZero() || before.Receipt.ExecutionState != evidence.ExecutionStateNotPlanned {
+		t.Fatal("simulation or FX correction changed financial/approval state")
+	}
+
+	mutated := *in.FX
+	mutated.Quotes = append([]fx.FXQuoteRevision(nil), in.FX.Quotes...)
+	mutated.Quotes[0].Rate = values.MustDecimal("0.800000", 6, values.RoundingExactRequired)
+	mutated.Quotes[0].CanonicalDigest = ""
+	in.FX = &mutated
+	after, err := rewards.SimulateCompensation(context.Background(), nil, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.FXCurrentConversionDigest == before.FXCurrentConversionDigest || after.ResultDigest == before.ResultDigest || after.Current.Base.Amount().Equal(before.Current.Base.Amount()) {
+		t.Fatal("mutated quote did not change the exact conversion receipt, compensation result, and converted amount")
+	}
+	if after.FXProposedConversionDigest != "" || before.FXProposedConversionDigest != "" || !after.Proposed.Base.Amount().Equal(before.Proposed.Base.Amount()) {
+		t.Fatal("already-target-currency proposed compensation was affected by an unrelated USD/EUR quote mutation")
 	}
 }
 

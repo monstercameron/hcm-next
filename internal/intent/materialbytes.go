@@ -23,10 +23,13 @@ import (
 // The stream magic is frozen. Changing any rule below is a new encoding
 // generation with a new material schema version, never an edit in place.
 const (
-	materialMagic          = "hcmnext.intent.material.v1"
-	materialSchemaID       = "hcmnext.intents.v1.kernel_material_proposal"
-	materialSchemaVersion  = 1
-	materialProtobufName   = "hcmnext.intents.v1.kernel_material_proposal"
+	materialMagic         = "hcmnext.intent.material.v1"
+	materialSchemaID      = "hcmnext.intents.v1.kernel_material_proposal"
+	materialSchemaVersion = 1
+	materialProtobufName  = "hcmnext.intents.v1.kernel_material_proposal"
+	// writeSemanticsVersion identifies the append-only PlannedWrite semantic
+	// extension. Legacy zero/zero writes intentionally omit this marker.
+	writeSemanticsVersion  = 1
 	planMagic              = "hcmnext.intent.plan.v1"
 	planSchemaID           = "hcmnext.transaction.v1.kernel_transaction_plan"
 	planSchemaVersionValue = 1

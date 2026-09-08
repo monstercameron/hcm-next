@@ -111,6 +111,8 @@ func proposalFor(
 			ProposedCanonicalText:   change.After,
 			SourceAuthorityDecision: "authority.local_master/v1",
 			ExpectedRevision:        watermark,
+			Operation:               intent.WriteOperationUpdate,
+			EffectiveInterval:       effective,
 		})
 	}
 

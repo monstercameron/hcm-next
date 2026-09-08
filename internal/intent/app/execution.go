@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,27 @@ import (
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
+type ExecutionResultStatus string
+
+const (
+	ExecutionResultParked   ExecutionResultStatus = "PARKED"
+	ExecutionResultComplete ExecutionResultStatus = "COMPLETE"
+	ExecutionResultResolved ExecutionResultStatus = "RESOLVED"
+)
+
+// ResolvedStartState is current durable state proved after an ambiguous START
+// commit. It is not the original StartReceipt and grants no permission to
+// rerun or advance the instance.
+type ResolvedStartState struct {
+	RuntimeStatus      runtime.InstanceStatus
+	CurrentNodeIDs     []string
+	WorkflowID         string
+	WorkflowVersion    uint32
+	CompiledPlanDigest string
+	SemanticVersion    string
+	Lifecycle          runtime.Dimensions
+}
+
 // ExecutionResult is the caller-driven workflow driver's outcome, narrowed to
 // exactly what [IntentService.ExecuteIntent] needs to build a wire receipt.
 //
@@ -25,6 +47,11 @@ import (
 // architecturally admitted (tools/policy/archrules) without this package's
 // compilation depending on the answer.
 type ExecutionResult struct {
+	// Status is explicit for new results. Empty preserves legacy adapters and
+	// is interpreted from Parked exactly as before.
+	Status ExecutionResultStatus
+	// ResolvedStart is present only for Status RESOLVED.
+	ResolvedStart *ResolvedStartState
 	// Parked is true when the driver stopped on durable human work rather
 	// than completing the instance outright.
 	Parked bool
@@ -96,6 +123,74 @@ type WorkItemRef struct {
 	WorkItemID string
 	Kind       string
 	NodeID     string
+}
+
+func (r ExecutionResult) effectiveStatus() ExecutionResultStatus {
+	if r.Status != "" {
+		return r.Status
+	}
+	if r.Parked {
+		return ExecutionResultParked
+	}
+	return ExecutionResultComplete
+}
+
+func (r ExecutionResult) validate() error {
+	switch r.effectiveStatus() {
+	case ExecutionResultParked:
+		if !r.Parked || r.ResolvedStart != nil {
+			return fmt.Errorf("app: PARKED execution result has inconsistent state")
+		}
+	case ExecutionResultComplete:
+		if r.Parked || r.ResolvedStart != nil {
+			return fmt.Errorf("app: COMPLETE execution result has inconsistent state")
+		}
+	case ExecutionResultResolved:
+		state := r.ResolvedStart
+		parsedID, idErr := uuid.Parse(r.InstanceID)
+		if r.Parked || state == nil || idErr != nil || parsedID == uuid.Nil || r.InstanceVersion <= 0 ||
+			!state.RuntimeStatus.Valid() || state.WorkflowID == "" || state.WorkflowVersion == 0 ||
+			state.CompiledPlanDigest == "" || state.SemanticVersion == "" ||
+			len(r.VisitedNodes) != 0 || len(r.ParkedContinuations) != 0 ||
+			len(r.ParkedContinuationRefs) != 0 || len(r.ParkedWorkItems) != 0 ||
+			r.TerminalCode != "" || r.TerminalDimensions != (lifecycle.Dimensions{}) || r.Reconciliation != "" ||
+			!r.RecordedAt.IsZero() || r.CommitReceiptRef != "" || r.RepairRef != "" || invalidResolvedNodes(state.CurrentNodeIDs) ||
+			invalidRuntimeDimensions(state.Lifecycle) {
+			return fmt.Errorf("app: RESOLVED execution result has incomplete or contradictory current state")
+		}
+	default:
+		return fmt.Errorf("app: unknown execution result status %q", r.Status)
+	}
+	return nil
+}
+
+func invalidResolvedNodes(nodes []string) bool {
+	seen := make(map[string]struct{}, len(nodes))
+	for _, node := range nodes {
+		if node == "" {
+			return true
+		}
+		if _, duplicate := seen[node]; duplicate {
+			return true
+		}
+		seen[node] = struct{}{}
+	}
+	return false
+}
+
+func invalidRuntimeDimensions(d runtime.Dimensions) bool {
+	if d.Empty() {
+		return false
+	}
+	if d.RequestState == "" || d.ExecutionState == "" || d.BusinessState == "" || d.ConsistencyState == "" || d.ObligationState == "" {
+		return true
+	}
+	_, requestErr := lifecycle.ParseRequestState(lifecycle.StateID(d.RequestState))
+	_, executionErr := lifecycle.ParseExecutionState(lifecycle.StateID(d.ExecutionState))
+	_, businessErr := lifecycle.ParseBusinessState(lifecycle.StateID(d.BusinessState))
+	_, consistencyErr := lifecycle.ParseConsistencyState(lifecycle.StateID(d.ConsistencyState))
+	_, obligationErr := lifecycle.ParseObligationState(lifecycle.StateID(d.ObligationState))
+	return requestErr != nil || executionErr != nil || businessErr != nil || consistencyErr != nil || obligationErr != nil
 }
 
 // ExecutionResumeRequest resumes one parked instance from completed

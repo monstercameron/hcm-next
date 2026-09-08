@@ -17,6 +17,31 @@ type StateAssertion struct {
 	CanonicalText string
 }
 
+// WriteOperation declares the domain semantics of a planned write. The zero
+// value is retained for decoding and canonical compatibility with proposals
+// authored before operation semantics were part of a write; it is not a
+// complete fenced write when paired with an effective interval.
+type WriteOperation string
+
+const (
+	WriteOperationUnspecified WriteOperation = ""
+	WriteOperationCreate      WriteOperation = "CREATE"
+	WriteOperationUpdate      WriteOperation = "UPDATE"
+	WriteOperationDelete      WriteOperation = "DELETE"
+	WriteOperationUpsert      WriteOperation = "UPSERT"
+)
+
+// Valid reports whether the operation is one of the closed set of supported
+// write semantics. The unspecified value is reserved for legacy proposals.
+func (o WriteOperation) Valid() bool {
+	switch o {
+	case WriteOperationCreate, WriteOperationUpdate, WriteOperationDelete, WriteOperationUpsert:
+		return true
+	default:
+		return false
+	}
+}
+
 // PlannedWrite is one typed planned domain write. It is material: changing a
 // field, a value, an expected baseline or the authority decision behind it
 // creates a new revision and invalidates approvals bound to the old one.
@@ -34,6 +59,13 @@ type PlannedWrite struct {
 
 	// ExpectedRevision is the baseline the write assumes.
 	ExpectedRevision values.RevisionToken
+
+	// Operation and EffectiveInterval are the typed conflict-fence semantics.
+	// They must be supplied together for a new fenced write. Both zero values
+	// are accepted only for legacy proposal compatibility; such a write is not
+	// itself an executable fenced contract.
+	Operation         WriteOperation
+	EffectiveInterval values.EffectiveInterval
 }
 
 // PlannedEffect is one declared external or internal effect.
@@ -320,6 +352,19 @@ func validateProposalSpec(spec ProposalSpec, def Definition) error {
 			return newError("Validate", "writes.expected_revision", ErrInvalidProposal,
 				"planned write on %q pins no baseline revision", w.FieldPath)
 		}
+		if w.Operation == WriteOperationUnspecified && w.EffectiveInterval == (values.EffectiveInterval{}) {
+			// Preserve the pre-fence proposal shape and its canonical bytes. The
+			// transaction coordinator must reject this shape for fenced plans.
+			continue
+		}
+		if !w.Operation.Valid() {
+			return newError("Validate", "writes.operation", ErrInvalidProposal,
+				"planned write on %q has undeclared operation %q", w.FieldPath, w.Operation)
+		}
+		if err := w.EffectiveInterval.Validate(); err != nil {
+			return newError("Validate", "writes.effective_interval", ErrInvalidProposal,
+				"planned write on %q has invalid effective interval: %v", w.FieldPath, err)
+		}
 	}
 	for _, e := range spec.Effects {
 		if e.EffectID == "" {
@@ -428,6 +473,15 @@ func encodeWrite(e *enc, w PlannedWrite) {
 		str(w.ProposedCanonicalText).
 		str(w.SourceAuthorityDecision).
 		canonical(w.ExpectedRevision)
+	// The extension is deliberately absent for the legacy zero/zero shape, so
+	// old legal proposals retain byte-for-byte canonical identity. Framed write
+	// payloads make this append unambiguous; versioning lets a future extension
+	// evolve without reinterpreting these bytes.
+	if w.Operation != WriteOperationUnspecified || w.EffectiveInterval != (values.EffectiveInterval{}) {
+		e.uvarint(writeSemanticsVersion).
+			str(string(w.Operation)).
+			canonical(w.EffectiveInterval)
+	}
 }
 
 func encodeEffect(e *enc, x PlannedEffect) {

@@ -218,7 +218,8 @@ type Instance struct {
 	CommitReceiptRef string
 	// RepairRef links the RepairPlan or incident a REPAIR_REQUIRED terminal
 	// raised, required whenever Execution is REPAIR_REQUIRED.
-	RepairRef string
+	RepairRef     string
+	LegalEvidence *LegalObligationEvidence
 
 	OriginEventRef                *string
 	SourceAuthoritySnapshotDigest string

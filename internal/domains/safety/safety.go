@@ -710,6 +710,14 @@ func Explain(record any) string {
 		return r.Explain()
 	case CorrectiveActionRevision:
 		return r.Explain()
+	case FilingRevision:
+		return fmt.Sprintf("filing %s in case %s, revision %d, status %s, observation recorded, digest %s", r.ID, r.CaseRef, r.Revision, r.Status, r.CanonicalDigest)
+	case WorkersCompPaymentRevision:
+		return fmt.Sprintf("workers-comp payment %s in case %s, revision %d, amount recorded in exact minor units, status %s, digest %s", r.ID, r.CaseRef, r.Revision, r.Status, r.CanonicalDigest)
+	case RestrictionClearanceRevision:
+		return fmt.Sprintf("restriction clearance %s in case %s, revision %d, evidence recorded, digest %s", r.ID, r.CaseRef, r.Revision, r.CanonicalDigest)
+	case SafetyReconciliationRevision:
+		return fmt.Sprintf("safety reconciliation %s in case %s, revision %d, status %s, digest %s", r.ID, r.CaseRef, r.Revision, r.Status, r.CanonicalDigest)
 	default:
 		return "safety: unsupported record"
 	}
@@ -729,19 +737,40 @@ type Store interface {
 	GetRestriction(string, uint64) (WorkRestrictionRevision, bool)
 	SaveCorrectiveAction(CorrectiveActionRevision) error
 	GetCorrectiveAction(string, uint64) (CorrectiveActionRevision, bool)
+	SaveFiling(FilingRevision) error
+	GetFiling(string, uint64) (FilingRevision, bool)
+	SaveWorkersCompPayment(WorkersCompPaymentRevision) error
+	GetWorkersCompPayment(string, uint64) (WorkersCompPaymentRevision, bool)
+	SaveRestrictionClearance(RestrictionClearanceRevision) error
+	GetRestrictionClearance(string, uint64) (RestrictionClearanceRevision, bool)
+	SaveSafetyReconciliation(SafetyReconciliationRevision) error
+	GetSafetyReconciliation(string, uint64) (SafetyReconciliationRevision, bool)
+	SaveSafetyCorrection(SafetyCorrectionRevision) error
+	GetSafetyCorrection(string, uint64) (SafetyCorrectionRevision, bool)
 }
 
 type MemoryStore struct {
 	mu                                                                            sync.RWMutex
 	incidents, injuries, reportabilities, claims, restrictions, correctiveActions map[string]map[uint64]any
+	filings, payments, clearances, reconciliations                                map[string]map[uint64]any
+	corrections                                                                   map[string]map[uint64]any
 }
 
 func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{incidents: map[string]map[uint64]any{}, injuries: map[string]map[uint64]any{}, reportabilities: map[string]map[uint64]any{}, claims: map[string]map[uint64]any{}, restrictions: map[string]map[uint64]any{}, correctiveActions: map[string]map[uint64]any{}}
+	return &MemoryStore{incidents: map[string]map[uint64]any{}, injuries: map[string]map[uint64]any{}, reportabilities: map[string]map[uint64]any{}, claims: map[string]map[uint64]any{}, restrictions: map[string]map[uint64]any{}, correctiveActions: map[string]map[uint64]any{}, filings: map[string]map[uint64]any{}, payments: map[string]map[uint64]any{}, clearances: map[string]map[uint64]any{}, reconciliations: map[string]map[uint64]any{}, corrections: map[string]map[uint64]any{}}
 }
 func putRecord(m map[string]map[uint64]any, id string, rev uint64, value any, digest string) error {
 	if m[id] == nil {
 		m[id] = map[uint64]any{}
+	}
+	if rev > 1 {
+		previous, ok := m[id][rev-1]
+		if !ok {
+			return refused("SAFETY_LINEAGE_MISSING", "parent_revision", "immediately prior revision is not stored", ErrRefused)
+		}
+		if recordDigest(previous) != parentDigest(value) {
+			return refused("SAFETY_LINEAGE_CONFLICT", "parent_digest", "parent digest does not match stored predecessor", ErrRefused)
+		}
 	}
 	if old, ok := m[id][rev]; ok {
 		if recordDigest(old) != digest {
@@ -751,6 +780,34 @@ func putRecord(m map[string]map[uint64]any, id string, rev uint64, value any, di
 	}
 	m[id][rev] = value
 	return nil
+}
+func parentDigest(v any) string {
+	switch x := v.(type) {
+	case IncidentRevision:
+		return x.ParentDigest
+	case InjuryRevision:
+		return x.ParentDigest
+	case ReportabilityDeterminationRevision:
+		return x.ParentDigest
+	case ClaimRevision:
+		return x.ParentDigest
+	case WorkRestrictionRevision:
+		return x.ParentDigest
+	case CorrectiveActionRevision:
+		return x.ParentDigest
+	case FilingRevision:
+		return x.ParentDigest
+	case WorkersCompPaymentRevision:
+		return x.ParentDigest
+	case RestrictionClearanceRevision:
+		return x.ParentDigest
+	case SafetyReconciliationRevision:
+		return x.ParentDigest
+	case SafetyCorrectionRevision:
+		return x.ParentDigest
+	default:
+		return ""
+	}
 }
 func recordDigest(v any) string {
 	switch x := v.(type) {
@@ -765,6 +822,16 @@ func recordDigest(v any) string {
 	case WorkRestrictionRevision:
 		return x.CanonicalDigest
 	case CorrectiveActionRevision:
+		return x.CanonicalDigest
+	case FilingRevision:
+		return x.CanonicalDigest
+	case WorkersCompPaymentRevision:
+		return x.CanonicalDigest
+	case RestrictionClearanceRevision:
+		return x.CanonicalDigest
+	case SafetyReconciliationRevision:
+		return x.CanonicalDigest
+	case SafetyCorrectionRevision:
 		return x.CanonicalDigest
 	default:
 		return ""
@@ -877,4 +944,114 @@ func (s *MemoryStore) GetCorrectiveAction(id string, rev uint64) (CorrectiveActi
 		return CorrectiveActionRevision{}, false
 	}
 	return x.(CorrectiveActionRevision), true
+}
+
+func (s *MemoryStore) SaveFiling(r FilingRevision) error {
+	r, err := NewFilingRevision(r)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return putRecord(s.filings, r.ID, r.Revision, r, r.CanonicalDigest)
+}
+func (s *MemoryStore) GetFiling(id string, rev uint64) (FilingRevision, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	x, ok := s.filings[id][rev]
+	if !ok {
+		return FilingRevision{}, false
+	}
+	return x.(FilingRevision), true
+}
+func (s *MemoryStore) SaveWorkersCompPayment(r WorkersCompPaymentRevision) error {
+	r, err := NewWorkersCompPaymentRevision(r)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if r.Status == PaymentReversed {
+		previousValue, ok := s.payments[r.ID][r.Revision-1]
+		if !ok {
+			return refused("SAFETY_PAYMENT_SOURCE_MISSING", "parent_revision", "settled payment is not stored", ErrRefused)
+		}
+		previous := previousValue.(WorkersCompPaymentRevision)
+		if previous.Status != PaymentSettled || previous.AmountMinor != r.AmountMinor || previous.Currency != r.Currency || previous.ClaimRef != r.ClaimRef || previous.WorkerRef != r.WorkerRef {
+			return refused("SAFETY_PAYMENT_REVERSAL_MISMATCH", "parent_digest", "reversal must exactly offset the stored settled payment", ErrRefused)
+		}
+		for _, revisions := range s.payments {
+			for _, value := range revisions {
+				payment := value.(WorkersCompPaymentRevision)
+				if payment.Status == PaymentReversed && payment.ReversalRef == r.ReversalRef && payment.CanonicalDigest != r.CanonicalDigest {
+					return refused("SAFETY_PAYMENT_REVERSAL_REPLAY", "reversal_ref", "reversal reference was already consumed", ErrRefused)
+				}
+			}
+		}
+	}
+	return putRecord(s.payments, r.ID, r.Revision, r, r.CanonicalDigest)
+}
+func (s *MemoryStore) GetWorkersCompPayment(id string, rev uint64) (WorkersCompPaymentRevision, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	x, ok := s.payments[id][rev]
+	if !ok {
+		return WorkersCompPaymentRevision{}, false
+	}
+	return x.(WorkersCompPaymentRevision), true
+}
+func (s *MemoryStore) SaveRestrictionClearance(r RestrictionClearanceRevision) error {
+	r, err := NewRestrictionClearanceRevision(r)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return putRecord(s.clearances, r.ID, r.Revision, r, r.CanonicalDigest)
+}
+func (s *MemoryStore) GetRestrictionClearance(id string, rev uint64) (RestrictionClearanceRevision, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	x, ok := s.clearances[id][rev]
+	if !ok {
+		return RestrictionClearanceRevision{}, false
+	}
+	return x.(RestrictionClearanceRevision), true
+}
+func (s *MemoryStore) SaveSafetyReconciliation(r SafetyReconciliationRevision) error {
+	r, err := NewSafetyReconciliationRevision(r)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return putRecord(s.reconciliations, r.ID, r.Revision, r, r.CanonicalDigest)
+}
+func (s *MemoryStore) GetSafetyReconciliation(id string, rev uint64) (SafetyReconciliationRevision, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	x, ok := s.reconciliations[id][rev]
+	if !ok {
+		return SafetyReconciliationRevision{}, false
+	}
+	return x.(SafetyReconciliationRevision), true
+}
+
+func (s *MemoryStore) SaveSafetyCorrection(r SafetyCorrectionRevision) error {
+	r, err := NewSafetyCorrectionRevision(r)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return putRecord(s.corrections, r.ID, r.Revision, r, r.CanonicalDigest)
+}
+func (s *MemoryStore) GetSafetyCorrection(id string, rev uint64) (SafetyCorrectionRevision, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	x, ok := s.corrections[id][rev]
+	if !ok {
+		return SafetyCorrectionRevision{}, false
+	}
+	return x.(SafetyCorrectionRevision), true
 }

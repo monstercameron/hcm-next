@@ -72,9 +72,13 @@ func (e *journeyEngine) Execute(ctx context.Context, intentID string) (workspace
 		return workspace.JourneyDetail{}, fmt.Errorf("%w: %s is not a promotion journey",
 			workspace.ErrJourneyUnknown, intentID)
 	}
-	artifact, simErr := e.resimulate(ctx, intentID)
+	simulated, simErr := e.resimulateDetailed(ctx, intentID)
 	if simErr != nil {
 		return workspace.JourneyDetail{}, simErr
+	}
+	artifact := simulated.Artifact
+	if simulated.Revision == nil {
+		return workspace.JourneyDetail{}, fmt.Errorf("%w: executable simulation returned no minted proposal revision", workspace.ErrJourneyStage)
 	}
 
 	if _, running, guardErr := e.instanceOf(ctx, principal, artifact); guardErr != nil {
@@ -92,7 +96,7 @@ func (e *journeyEngine) Execute(ctx context.Context, intentID string) (workspace
 	// The gate is evaluated first (ExecuteIntent evaluates it again, and
 	// records the evidence): a caller the authority refuses must not leave an
 	// AUTHZ decision behind saying it was admitted.
-	if admitErr := e.admitExecution(ctx, principal, intentID, artifact); admitErr != nil {
+	if admitErr := e.admitExecution(ctx, principal, intentID, artifact, *simulated.Revision); admitErr != nil {
 		return workspace.JourneyDetail{}, admitErr
 	}
 
@@ -128,7 +132,7 @@ func (e *journeyEngine) Execute(ctx context.Context, intentID string) (workspace
 // A cell composed with no execution facts cannot start: it has no durable
 // source from which runtime.Start can derive approval and supersession facts.
 func (e *journeyEngine) admitExecution(
-	ctx context.Context, principal *trust.Principal, intentID string, artifact *intentsv1.SimulationArtifact,
+	ctx context.Context, principal *trust.Principal, intentID string, artifact *intentsv1.SimulationArtifact, revision intent.ProposalRevision,
 ) error {
 	inst, _, ownedErr := e.svc.loadInstance(ctx, principal.Tenant().String(), intentID)
 	if ownedErr != nil {
@@ -149,18 +153,21 @@ func (e *journeyEngine) admitExecution(
 		return parseErr
 	}
 	decision := executionDecision{
-		TenantID:       e.svc.tenantUUID(principal.Tenant()),
-		IntentID:       intentUUID,
-		Revision:       simulationRevision,
-		MaterialDigest: artifact.GetMaterialProposalDigest().GetDigest(),
-		ControlDigest:  controlSnapshotDigest(inst.ControlSnapshots),
-		RequirementID:  executionAuthorityRequirementID,
-		Kind:           intentcontrol.DecisionAuthZ,
-		Outcome:        intentcontrol.OutcomeApproved,
-		DecidedBy:      principal.Subject(),
-		AuthorityRef:   e.svc.executionAuthority.decisionRef(),
-		Reason:         "the execution authority admits this caller to run this proposal revision",
-		DecidedAt:      e.now().UTC(),
+		TenantID:         e.svc.tenantUUID(principal.Tenant()),
+		IntentID:         intentUUID,
+		Revision:         simulationRevision,
+		MaterialDigest:   artifact.GetMaterialProposalDigest().GetDigest(),
+		ControlDigest:    controlSnapshotDigest(inst.ControlSnapshots),
+		RequirementID:    executionAuthorityRequirementID,
+		Kind:             intentcontrol.DecisionAuthZ,
+		Outcome:          intentcontrol.OutcomeApproved,
+		DecidedBy:        principal.Subject(),
+		AuthorityRef:     e.svc.executionAuthority.decisionRef(),
+		Reason:           "the execution authority admits this caller to run this proposal revision",
+		DecidedAt:        e.now().UTC(),
+		Proposal:         &revision,
+		ProposalVerifier: e.svc.digester,
+		TenantUUID:       e.svc.tenantUUID,
 	}
 	tx, err := e.beginTenant(ctx, principal)
 	if err != nil {
@@ -263,15 +270,19 @@ func (e *journeyEngine) Decide(ctx context.Context, intentID string, d workspace
 			"%w: this cell was composed with no execution driver", workspace.ErrJourneyUnavailable)
 	}
 
-	artifact, simErr := e.resimulate(ctx, intentID)
+	simulated, simErr := e.resimulateDetailed(ctx, intentID)
 	if simErr != nil {
 		return workspace.JourneyDetail{}, simErr
 	}
+	artifact := simulated.Artifact
 	if artifact.GetProposalRevisionId() == "" {
 		return workspace.JourneyDetail{}, fmt.Errorf(
 			"%w: this promotion has no executable proposal", workspace.ErrJourneyStage)
 	}
-	start, startErr := e.svc.executionStart(inst, artifact, journeyApprovalRef(intentID))
+	if simulated.Revision == nil {
+		return workspace.JourneyDetail{}, fmt.Errorf("%w: executable simulation returned no minted proposal revision", workspace.ErrJourneyStage)
+	}
+	start, startErr := e.svc.executionStart(inst, artifact, journeyApprovalRef(intentID), *simulated.Revision)
 	if startErr != nil {
 		return workspace.JourneyDetail{}, journeyError(startErr)
 	}
@@ -513,18 +524,21 @@ func (e *journeyEngine) recordApprovalDecision(
 		outcome = intentcontrol.OutcomeRejected
 	}
 	return executionDecision{
-		TenantID:       e.svc.tenantUUID(principal.Tenant()),
-		IntentID:       intentUUID,
-		Revision:       simulationRevision,
-		MaterialDigest: revision.MaterialDigest.Digest,
-		ControlDigest:  controlSnapshotDigest(inst.ControlSnapshots),
-		RequirementID:  decision.Binding.RequirementID,
-		Kind:           intentcontrol.DecisionHumanApproval,
-		Outcome:        outcome,
-		DecidedBy:      decision.Approver.PrincipalID,
-		AuthorityRef:   decision.AuthorityDecisionRef,
-		Reason:         nonEmptyReason(decision.Reason, journeyReasonDecided),
-		DecidedAt:      decidedAt,
+		TenantID:         e.svc.tenantUUID(principal.Tenant()),
+		IntentID:         intentUUID,
+		Revision:         simulationRevision,
+		MaterialDigest:   revision.MaterialDigest.Digest,
+		ControlDigest:    controlSnapshotDigest(inst.ControlSnapshots),
+		RequirementID:    decision.Binding.RequirementID,
+		Kind:             intentcontrol.DecisionHumanApproval,
+		Outcome:          outcome,
+		DecidedBy:        decision.Approver.PrincipalID,
+		AuthorityRef:     decision.AuthorityDecisionRef,
+		Reason:           nonEmptyReason(decision.Reason, journeyReasonDecided),
+		DecidedAt:        decidedAt,
+		Proposal:         &revision,
+		ProposalVerifier: e.svc.digester,
+		TenantUUID:       e.svc.tenantUUID,
 	}.record(ctx, tx)
 }
 

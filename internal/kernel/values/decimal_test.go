@@ -61,6 +61,35 @@ func TestTodo_MODEL_003(t *testing.T) {
 		}
 	})
 
+	t.Run("directed multiplication below one unit", func(t *testing.T) {
+		left := MustDecimal("0.005", 3, RoundingHalfEven)
+		positive := MustDecimal("0.125", 3, RoundingHalfEven)
+		negative := MustDecimal("-0.125", 3, RoundingHalfEven)
+		cases := []struct {
+			name    string
+			mode    RoundingMode
+			operand Decimal
+			want    string
+		}{
+			{"ceiling-positive", RoundingCeiling, positive, "1"},
+			{"ceiling-negative", RoundingCeiling, negative, "0"},
+			{"floor-positive", RoundingFloor, positive, "0"},
+			{"floor-negative", RoundingFloor, negative, "-1"},
+			{"toward-zero-positive", RoundingTowardZero, positive, "0"},
+			{"toward-zero-negative", RoundingTowardZero, negative, "0"},
+			{"away-positive", RoundingAwayFromZero, positive, "1"},
+			{"away-negative", RoundingAwayFromZero, negative, "-1"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				got, err := left.Mul(tc.operand, 0, tc.mode)
+				if err != nil || got.String() != tc.want {
+					t.Fatalf("Mul = %q, %v; want %q", got.String(), err, tc.want)
+				}
+			})
+		}
+	})
+
 	t.Run("RejectsExcessScaleAndOverflow", func(t *testing.T) {
 		if _, err := NewDecimal("1.234", 2, RoundingHalfEven); !errors.Is(err, ErrExcessScale) {
 			t.Fatalf("excess scale error = %v, want ErrExcessScale", err)
@@ -303,6 +332,52 @@ func TestTodo_MODEL_003(t *testing.T) {
 			t.Fatalf("text round trip changed canonical bytes")
 		}
 	})
+}
+
+func TestDecimalDirectedDivisionBelowUnit(t *testing.T) {
+	positive := MustDecimal("0.005", 3, RoundingHalfEven)
+	negative := MustDecimal("-0.005", 3, RoundingHalfEven)
+	divisor := MustDecimal("8", 0, RoundingHalfEven)
+	tests := []struct {
+		name  string
+		input Decimal
+		mode  RoundingMode
+		want  string
+	}{
+		{"positive ceiling", positive, RoundingCeiling, "1"},
+		{"positive floor", positive, RoundingFloor, "0"},
+		{"negative ceiling", negative, RoundingCeiling, "0"},
+		{"negative floor", negative, RoundingFloor, "-1"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := test.input.Div(divisor, 0, test.mode)
+			if err != nil || got.String() != test.want {
+				t.Fatalf("Div = %q, %v; want %q", got.String(), err, test.want)
+			}
+		})
+	}
+}
+
+func TestDecimalDivisionNearMaxPrecisionHalfBoundary(t *testing.T) {
+	denominator := MustDecimal("99999999999999999999000000000000000001", 0, RoundingHalfEven)
+	below := MustDecimal("50000000000000000049500000000000000000", 0, RoundingHalfEven)
+	above := MustDecimal("50000000000000000049500000000000000001", 0, RoundingHalfEven)
+	for _, test := range []struct {
+		name  string
+		input Decimal
+		want  string
+	}{
+		{"below", below, "0.500000000000000000"},
+		{"above", above, "0.500000000000000001"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := test.input.Div(denominator, 18, RoundingHalfEven)
+			if err != nil || got.String() != test.want {
+				t.Fatalf("Div = %q, %v; want %q", got.String(), err, test.want)
+			}
+		})
+	}
 }
 
 // TestTodo_MODEL_003_Property asserts arithmetic and encoding properties.

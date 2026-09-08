@@ -112,3 +112,43 @@ func TestTodo_PERSIST_FX_001_Mutation(t *testing.T) {
 		t.Fatalf("stored source changed after caller mutation: %+v", got.Pairs)
 	}
 }
+
+func TestTodo_PERSIST_FX_001_ValidationPaths(t *testing.T) {
+	store := NewMemoryStore()
+	if _, err := store.LoadConversionProfile(context.Background(), "tenant-a", "missing", 1); !errors.Is(err, ErrStoreNotFound) {
+		t.Fatalf("missing profile = %v", err)
+	}
+	if err := store.SaveRateSource(context.Background(), "", validFXSource(t, "invalid-tenant")); !errors.Is(err, ErrStoreInvalid) {
+		t.Fatalf("empty tenant = %v", err)
+	}
+	if err := store.SaveRateSource(context.Background(), "tenant-a", validFXSource(t, "context-source")); err != nil {
+		t.Fatal(err)
+	}
+	q := validFXQuote(t, "orphan-quote", "not-saved", "2026-06-01T10:00:00Z")
+	if err := store.SaveQuote(context.Background(), "tenant-a", q); !errors.Is(err, ErrStoreReferenceNotFound) {
+		t.Fatalf("orphan quote = %v", err)
+	}
+	if _, err := store.LoadQuote(context.Background(), "tenant-a", "missing"); !errors.Is(err, ErrStoreNotFound) {
+		t.Fatalf("missing quote = %v", err)
+	}
+	if CodeOf(errors.New("ordinary")) != "" {
+		t.Fatal("ordinary error received store code")
+	}
+	var nilErr *StoreError
+	if nilErr.Error() == "" {
+		t.Fatal("nil store error text is empty")
+	}
+	var nilStore *MemoryStore
+	if err := nilStore.SaveRateSource(context.Background(), "tenant-a", validFXSource(t, "nil-store")); !errors.Is(err, ErrStoreInvalid) {
+		t.Fatalf("nil store = %v", err)
+	}
+	if _, err := store.LoadRateSource(context.Background(), "tenant-a", "", 0); !errors.Is(err, ErrStoreInvalid) {
+		t.Fatalf("invalid source load = %v", err)
+	}
+	if _, err := store.LoadConversionProfile(context.Background(), "tenant-a", "", 0); !errors.Is(err, ErrStoreInvalid) {
+		t.Fatalf("invalid profile load = %v", err)
+	}
+	if _, err := store.LoadQuote(context.Background(), "tenant-a", ""); !errors.Is(err, ErrStoreInvalid) {
+		t.Fatalf("invalid quote load = %v", err)
+	}
+}

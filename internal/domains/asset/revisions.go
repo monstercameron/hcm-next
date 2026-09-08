@@ -2,7 +2,6 @@ package asset
 
 import (
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
@@ -165,31 +164,29 @@ func Explain(inventory InventoryRevision, history []CustodyRevision) (AssetExpla
 	if err := inventory.Validate(); err != nil {
 		return AssetExplanation{}, err
 	}
-	for _, event := range history {
+	for index, event := range history {
 		if err := event.Validate(); err != nil {
 			return AssetExplanation{}, err
 		}
 		if event.Asset != inventory.InventoryID {
 			return AssetExplanation{}, fmt.Errorf("%w: custody event is for another asset", ErrInvalidAsset)
 		}
+		if index > 0 {
+			prior := history[index-1]
+			order, compareErr := prior.Revision.CompareInStream(event.Revision)
+			if !prior.EffectiveAt.Before(event.EffectiveAt) || compareErr != nil || order >= 0 {
+				return AssetExplanation{}, ErrChronology
+			}
+		}
 	}
 	current := inventory.Status
 	if len(history) > 0 {
-		ordered := append([]CustodyRevision(nil), history...)
-		sort.SliceStable(ordered, func(a, b int) bool { return ordered[a].EffectiveAt.Before(ordered[b].EffectiveAt) })
-		current = ordered[len(ordered)-1].Status
+		current = history[len(history)-1].Status
 	}
-	ordered := append([]CustodyRevision(nil), history...)
-	sort.SliceStable(ordered, func(a, b int) bool {
-		if ordered[a].EffectiveAt.Equal(ordered[b].EffectiveAt) {
-			return ordered[a].Revision.String() < ordered[b].Revision.String()
-		}
-		return ordered[a].EffectiveAt.Before(ordered[b].EffectiveAt)
-	})
 	w := canonicalbytes.New("hcmnext.domains.asset.AssetExplanation", schemaVersion).
 		String("inventory_status", string(inventory.Status)).Int("custody_events", int64(len(history))).
 		String("current_status", string(current)).String("inventory_digest", canonicalbytes.Digest(inventory.body()))
-	for _, event := range ordered {
+	for _, event := range history {
 		w.String("custody_digest", canonicalbytes.Digest(event.body()))
 	}
 	digest, err := w.Digest()

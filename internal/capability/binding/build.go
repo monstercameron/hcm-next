@@ -83,6 +83,14 @@ func BuildFrom(
 			})
 			continue
 		}
+		if claim.CapabilityVersion != def.Version {
+			table.Gaps = append(table.Gaps, Gap{
+				Kind: GapClaimWithoutCapability, Capability: def.ID,
+				Subject: fmt.Sprintf("%s/v%d", def.ID, claim.CapabilityVersion),
+				Detail:  fmt.Sprintf("the claim pins capability version v%d but the registry publishes v%d; an exact version binding is required", claim.CapabilityVersion, def.Version),
+			})
+			continue
+		}
 		for _, ref := range claim.WireMethods {
 			if _, known := wireByRef[ref]; known {
 				claimedWire[ref] = true
@@ -242,21 +250,39 @@ func staleClaimGaps(claims []Claim, records []capability.Record) []Gap {
 	published := make(map[string]bool, len(records))
 	for _, rec := range records {
 		published[rec.Definition.ID] = true
+		published[rec.Definition.Key().String()] = true
 	}
 	sorted := append([]Claim(nil), claims...)
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].CapabilityID < sorted[j].CapabilityID })
 
 	var gaps []Gap
 	for _, c := range sorted {
-		if published[c.CapabilityID] {
+		// BuildFrom reports a version mismatch against the published record;
+		// do not duplicate that precise finding as a second stale-claim gap.
+		if c.CapabilityVersion != 0 && published[c.CapabilityID] {
+			continue
+		}
+		key := c.CapabilityID
+		if c.CapabilityVersion != 0 {
+			key = fmt.Sprintf("%s/v%d", c.CapabilityID, c.CapabilityVersion)
+		}
+		if published[key] {
 			continue
 		}
 		gaps = append(gaps, Gap{
 			Kind: GapClaimWithoutCapability, Capability: c.CapabilityID,
-			Detail: "a reviewed claim names this capability but the registry publishes no version of it; the claim is stale or the capability was never registered",
+			Subject: claimVersionSubject(c),
+			Detail:  "a reviewed claim names this capability but the registry publishes no version of it; the claim is stale or the capability was never registered",
 		})
 	}
 	return gaps
+}
+
+func claimVersionSubject(c Claim) string {
+	if c.CapabilityVersion == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s/v%d", c.CapabilityID, c.CapabilityVersion)
 }
 
 // sharedHandlerGaps reports every typed Go symbol claimed by more than one

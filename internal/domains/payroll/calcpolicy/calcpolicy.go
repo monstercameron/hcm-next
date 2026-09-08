@@ -4,12 +4,14 @@
 package calcpolicy
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 	"sort"
 	"strings"
 
+	"github.com/monstercameron/hcm-next/internal/domains/taxprofile"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
@@ -374,6 +376,16 @@ type Input struct {
 	Rate            values.Decimal
 	Allocations     []Allocation
 	CanonicalDigest string
+	// TaxSnapshotDigest binds a TAX input to the immutable tax-profile
+	// snapshot that supplied its governed facts. It is intentionally absent
+	// for non-tax inputs.
+	TaxSnapshotDigest string
+	taxPin            *taxInputPin
+}
+
+type taxInputPin struct {
+	snapshotDigest string
+	contentDigest  string
 }
 
 func (in Input) direct() bool { return in.Amount.Validate() == nil }
@@ -388,6 +400,22 @@ func (in Input) Validate() error {
 	}
 	if strings.TrimSpace(in.Currency) == "" {
 		return fieldError("input.currency", ErrInvalidInput)
+	}
+	if in.TaxSnapshotDigest != "" {
+		const prefix = "sha256:"
+		if len(in.TaxSnapshotDigest) != len(prefix)+64 || in.TaxSnapshotDigest[:len(prefix)] != prefix {
+			return fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+		}
+		if _, err := hex.DecodeString(in.TaxSnapshotDigest[len(prefix):]); err != nil {
+			return fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+		}
+	}
+	if in.Kind == KindTax {
+		if in.taxPin == nil || in.TaxSnapshotDigest == "" || in.taxPin.snapshotDigest != in.TaxSnapshotDigest {
+			return fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+		}
+	} else if in.TaxSnapshotDigest != "" || in.taxPin != nil {
+		return fieldError("input.tax_snapshot_digest", ErrInvalidInput)
 	}
 	amountSet := in.Amount.Validate() == nil
 	baseSet, rateSet := in.Base.Validate() == nil, in.Rate.Validate() == nil
@@ -431,6 +459,9 @@ func (in Input) body() []byte {
 		String("kind", in.Kind.String()).String("currency", in.Currency).
 		Bool("amount_present", in.Amount.Validate() == nil).Bool("base_present", in.Base.Validate() == nil).
 		Bool("rate_present", in.Rate.Validate() == nil)
+	if in.TaxSnapshotDigest != "" {
+		w.String("tax_snapshot_digest", in.TaxSnapshotDigest)
+	}
 	if in.Amount.Validate() == nil {
 		w.Value("amount", in.Amount)
 	}
@@ -455,6 +486,13 @@ func (in Input) computedDigest() string { return canonicalbytes.Digest(in.body()
 
 // NewInput validates and digests an immutable input revision.
 func NewInput(in Input) (Input, error) {
+	if in.Kind == KindTax {
+		return Input{}, fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+	}
+	return newInput(in)
+}
+
+func newInput(in Input) (Input, error) {
 	if in.Revision == 0 {
 		in.Revision = 1
 	}
@@ -465,6 +503,25 @@ func NewInput(in Input) (Input, error) {
 	}
 	in.CanonicalDigest = in.computedDigest()
 	return in, nil
+}
+
+// NewPinnedTaxInput is the only tax-input constructor. It accepts the concrete
+// privately sealed snapshot, not a caller-provided digest string.
+func NewPinnedTaxInput(snapshot taxprofile.PinnedTaxInputSnapshot, in Input) (Input, error) {
+	if err := taxprofile.TaxCalculationConformance(snapshot); err != nil {
+		return Input{}, err
+	}
+	if in.Kind != KindTax {
+		return Input{}, fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+	}
+	in.TaxSnapshotDigest = snapshot.Digest
+	in.taxPin = &taxInputPin{snapshotDigest: snapshot.Digest}
+	bound, err := newInput(in)
+	if err != nil {
+		return Input{}, err
+	}
+	bound.taxPin.contentDigest = canonicalbytes.Digest(bound.body())
+	return bound, nil
 }
 
 func (in Input) Canonical() []byte {
@@ -671,7 +728,16 @@ func Calculate(policy Policy, input Input) (Receipt, error) {
 	if err := policy.Validate(); err != nil {
 		return Receipt{}, err
 	}
-	normalized, err := NewInput(input)
+	var normalized Input
+	var err error
+	if input.Kind == KindTax {
+		if input.taxPin == nil || input.taxPin.contentDigest != canonicalbytes.Digest(input.body()) {
+			return Receipt{}, fieldError("input.tax_snapshot_digest", ErrInvalidInput)
+		}
+		normalized, err = newInput(input)
+	} else {
+		normalized, err = NewInput(input)
+	}
 	if err != nil {
 		return Receipt{}, err
 	}

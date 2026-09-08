@@ -38,14 +38,6 @@ const (
 	ReadinessReadyLater ReadinessBand = "READY_LATER"
 	ReadinessNotReady   ReadinessBand = "NOT_READY"
 	ReadinessUnknown    ReadinessBand = "UNKNOWN"
-	READY_NOW                         = ReadinessReadyNow
-	READY_LATER                       = ReadinessReadyLater
-	NOT_READY                         = ReadinessNotReady
-	UNKNOWN                           = ReadinessUnknown
-	ReadyNow                          = ReadinessReadyNow
-	ReadyLater                        = ReadinessReadyLater
-	NotReady                          = ReadinessNotReady
-	Unknown                           = ReadinessUnknown
 )
 
 func (r ReadinessBand) Valid() bool {
@@ -66,15 +58,6 @@ const (
 	VacancyRiskHigh     VacancyRisk = "HIGH"
 	VacancyRiskCritical VacancyRisk = "CRITICAL"
 	VacancyRiskUnknown  VacancyRisk = "UNKNOWN"
-	RiskLow                         = VacancyRiskLow
-	RiskMedium                      = VacancyRiskMedium
-	RiskHigh                        = VacancyRiskHigh
-	RiskCritical                    = VacancyRiskCritical
-	RiskUnknown                     = VacancyRiskUnknown
-	Low                             = VacancyRiskLow
-	Medium                          = VacancyRiskMedium
-	High                            = VacancyRiskHigh
-	Critical                        = VacancyRiskCritical
 )
 
 func (r VacancyRisk) Valid() bool {
@@ -93,8 +76,6 @@ type DisclosureScope string
 const (
 	DisclosureWithheld DisclosureScope = "WITHHELD"
 	DisclosureScoped   DisclosureScope = "SCOPED"
-	VisibilityWithheld                 = DisclosureWithheld
-	VisibilityScoped                   = DisclosureScoped
 )
 
 func (d DisclosureScope) Valid() bool { return d == DisclosureWithheld || d == DisclosureScoped }
@@ -115,9 +96,6 @@ type CriticalRole struct {
 	EvidenceRefs    []string
 	CanonicalDigest string
 }
-
-// CriticalRoleRevision is the explicit revision spelling used by integrations.
-type CriticalRoleRevision = CriticalRole
 
 func (r CriticalRole) Validate() error {
 	if strings.TrimSpace(r.RoleID) == "" {
@@ -207,9 +185,6 @@ func (r CriticalRole) Digest() (string, error) {
 	return r.CanonicalDigest, nil
 }
 
-// NewCriticalRoleRevision is an explicit constructor alias.
-func NewCriticalRoleRevision(r CriticalRole) (CriticalRole, error) { return NewCriticalRole(r) }
-
 // Revise returns a successor role revision and leaves the parent unchanged.
 func (r CriticalRole) Revise(next CriticalRole) (CriticalRole, error) {
 	if err := r.Validate(); err != nil {
@@ -236,9 +211,6 @@ type SuccessorReadinessRevision struct {
 	KnownAt          values.Instant
 	CanonicalDigest  string
 }
-
-// SuccessorReadiness is the concise spelling used by callers.
-type SuccessorReadiness = SuccessorReadinessRevision
 
 func (a SuccessorReadinessRevision) Validate() error {
 	if strings.TrimSpace(a.SuccessorID) == "" {
@@ -511,12 +483,6 @@ func (s SuccessionSlate) CandidatesFor(scope string) ([]SuccessorReadinessRevisi
 	return out, nil
 }
 
-// MembersFor is an alias emphasizing that slate membership is a protected
-// projection rather than a field in the public explanation.
-func (s SuccessionSlate) MembersFor(scope string) ([]SuccessorReadinessRevision, error) {
-	return s.CandidatesFor(scope)
-}
-
 // SuccessionSlateExplanation is audit-safe: it does not enumerate candidate
 // IDs, assessment sources, or evidence references.
 type SuccessionSlateExplanation struct {
@@ -527,15 +493,19 @@ type SuccessionSlateExplanation struct {
 	Visibility           DisclosureScope
 	CandidateCount       int
 	Digest               string
+	NonGuaranteeNotice   string
 }
 
 func (s SuccessionSlate) Explain() (SuccessionSlateExplanation, error) {
 	if err := s.Validate(); err != nil {
 		return SuccessionSlateExplanation{}, err
 	}
-	return SuccessionSlateExplanation{SlateID: s.SlateID, Revision: s.Revision, CriticalRoleID: s.CriticalRoleID, CriticalRoleRevision: s.CriticalRoleRevision, Visibility: s.Visibility, CandidateCount: len(s.Candidates), Digest: s.CanonicalDigest}, nil
+	candidateCount := 0
+	if s.Visibility == DisclosureScoped {
+		candidateCount = len(s.Candidates)
+	}
+	return SuccessionSlateExplanation{SlateID: s.SlateID, Revision: s.Revision, CriticalRoleID: s.CriticalRoleID, CriticalRoleRevision: s.CriticalRoleRevision, Visibility: s.Visibility, CandidateCount: candidateCount, Digest: s.CanonicalDigest, NonGuaranteeNotice: NonGuaranteeNotice}, nil
 }
-func Explain(s SuccessionSlate) (SuccessionSlateExplanation, error) { return s.Explain() }
 
 // SlateStore is the small in-memory port used by pure callers and tests.
 type SlateStore interface {

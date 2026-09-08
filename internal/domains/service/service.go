@@ -14,7 +14,12 @@ import (
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
-const schemaVersion = 1
+const (
+	schemaVersion           = 1
+	evaluationSchemaVersion = 2
+)
+
+const maxSeniorityPopulation = 10000
 
 // Version reports this package's stable contract version.
 func Version() int { return schemaVersion }
@@ -30,6 +35,18 @@ var (
 	ErrRoundingConflict     = errors.New("service: rounded seniority is not exact")
 	ErrInvalidAsOf          = errors.New("service: invalid as-of")
 )
+
+type CalculationStatus string
+
+const (
+	StatusKnown   CalculationStatus = "KNOWN"
+	StatusPartial CalculationStatus = "PARTIAL"
+	StatusUnknown CalculationStatus = "UNKNOWN"
+)
+
+func (s CalculationStatus) Valid() bool {
+	return s == StatusKnown || s == StatusPartial || s == StatusUnknown
+}
 
 // CreditSourceKind is the closed vocabulary for how service credit was
 // obtained. The evidence reference is mandatory for every source.
@@ -447,9 +464,76 @@ func (a AsOf) Validate() error {
 // ServiceModel is an immutable set of periods and the explicit rules used to
 // interpret them.
 type ServiceModel struct {
-	Periods         []ServicePeriod
-	Rules           []SeniorityRule
-	CanonicalDigest string
+	Periods          []ServicePeriod
+	Rules            []SeniorityRule
+	PeerPopulation   []SeniorityPeer
+	HistoryComplete  bool
+	CanonicalDigest  string
+	populationPinned bool
+}
+
+// SeniorityPeer is an explicitly pinned comparison subject. It is never
+// inferred from tenant or employment data.
+type SeniorityPeer struct {
+	SubjectID string
+	Periods   []ServicePeriod
+}
+
+func (p SeniorityPeer) Validate() error {
+	if strings.TrimSpace(p.SubjectID) == "" || p.SubjectID != strings.TrimSpace(p.SubjectID) || len(p.SubjectID) > 256 || len(p.Periods) == 0 || len(p.Periods) > maxSeniorityPopulation {
+		return fmt.Errorf("%w: peer requires subject_id and periods", ErrInvalidService)
+	}
+	seenPeriods := make(map[string]struct{}, len(p.Periods))
+	for i, period := range p.Periods {
+		if err := period.Validate(); err != nil {
+			return fmt.Errorf("%w: peer[%s] period[%d]: %v", ErrInvalidService, p.SubjectID, i, err)
+		}
+		if _, exists := seenPeriods[period.periodID()]; exists {
+			return fmt.Errorf("%w: peer[%s] duplicate period %s", ErrInvalidService, p.SubjectID, period.periodID())
+		}
+		seenPeriods[period.periodID()] = struct{}{}
+	}
+	return nil
+}
+
+func (p SeniorityPeer) Canonical() []byte {
+	if p.Validate() != nil {
+		return nil
+	}
+	periods := clonePeriods(p.Periods)
+	sort.Slice(periods, func(i, j int) bool { return periods[i].periodID() < periods[j].periodID() })
+	w := canonicalbytes.New("hcmnext.domains.service.SeniorityPeer", evaluationSchemaVersion).String("subject_id", p.SubjectID).Count("period", len(periods))
+	for _, period := range periods {
+		w.Value("period", period)
+	}
+	b, err := w.Bytes()
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+// WithPeerPopulation returns a model with an explicit, pinned ranking cohort.
+func (m ServiceModel) WithPeerPopulation(peers []SeniorityPeer, historyComplete bool) (ServiceModel, error) {
+	if len(peers) > maxSeniorityPopulation {
+		return ServiceModel{}, fmt.Errorf("%w: peer population exceeds %d", ErrInvalidService, maxSeniorityPopulation)
+	}
+	copyModel := m
+	copyModel.CanonicalDigest = ""
+	copyModel.PeerPopulation = make([]SeniorityPeer, len(peers))
+	for i, peer := range peers {
+		if err := peer.Validate(); err != nil {
+			return ServiceModel{}, err
+		}
+		copyModel.PeerPopulation[i] = SeniorityPeer{SubjectID: peer.SubjectID, Periods: clonePeriods(peer.Periods)}
+	}
+	copyModel.HistoryComplete = historyComplete
+	copyModel.populationPinned = true
+	if err := copyModel.Validate(); err != nil {
+		return ServiceModel{}, err
+	}
+	copyModel.CanonicalDigest = canonicalbytes.Digest(copyModel.body())
+	return copyModel, nil
 }
 
 type ServiceRevision = ServiceModel
@@ -470,6 +554,9 @@ func NewServiceRevision(periods []ServicePeriod, rules []SeniorityRule) (Service
 func (m ServiceModel) Validate() error {
 	if len(m.Periods) == 0 {
 		return fmt.Errorf("%w: field periods: at least one period is required", ErrInvalidService)
+	}
+	if len(m.Periods) > maxSeniorityPopulation {
+		return fmt.Errorf("%w: primary history exceeds %d periods", ErrInvalidService, maxSeniorityPopulation)
 	}
 	if len(m.Rules) == 0 {
 		return fmt.Errorf("%w: field rules: at least one rule is required", ErrInvalidService)
@@ -508,6 +595,75 @@ func (m ServiceModel) Validate() error {
 			}
 		}
 	}
+	seenPeers := make(map[string]struct{}, len(m.PeerPopulation))
+	totalPeerPeriods := 0
+	primaryEmployments := make(map[string]struct{}, len(m.Periods))
+	var cohortTenant values.TenantId
+	primaryUsesRefs := false
+	if !m.populationPinned && (len(m.PeerPopulation) != 0 || m.HistoryComplete) {
+		return fmt.Errorf("%w: peer population must be explicitly pinned", ErrInvalidService)
+	}
+	for _, period := range m.Periods {
+		if period.EmploymentID != "" {
+			primaryEmployments[period.EmploymentID] = struct{}{}
+		}
+		if period.EmploymentRef.Validate() == nil {
+			primaryUsesRefs = true
+			primaryEmployments[period.EmploymentRef.Id] = struct{}{}
+			primaryEmployments[period.EmploymentRef.String()] = struct{}{}
+			if cohortTenant != "" && cohortTenant != period.EmploymentRef.Tenant {
+				return fmt.Errorf("%w: primary periods cross tenant boundary", ErrInvalidService)
+			}
+			cohortTenant = period.EmploymentRef.Tenant
+		}
+	}
+	if primaryUsesRefs {
+		for _, period := range m.Periods {
+			if period.EmploymentRef.Validate() != nil {
+				return fmt.Errorf("%w: primary cohort mixes scoped and unscoped employment identities", ErrInvalidService)
+			}
+		}
+	}
+	if m.populationPinned && !primaryUsesRefs {
+		return fmt.Errorf("%w: pinned peer population requires tenant-scoped primary employment references", ErrInvalidService)
+	}
+	for _, peer := range m.PeerPopulation {
+		totalPeerPeriods += len(peer.Periods)
+		if totalPeerPeriods > maxSeniorityPopulation {
+			return fmt.Errorf("%w: peer histories exceed %d periods", ErrInvalidService, maxSeniorityPopulation)
+		}
+		if err := peer.Validate(); err != nil {
+			return err
+		}
+		if _, exists := seenPeers[peer.SubjectID]; exists {
+			return fmt.Errorf("%w: duplicate peer %s", ErrInvalidService, peer.SubjectID)
+		}
+		if _, isPrimary := primaryEmployments[peer.SubjectID]; isPrimary {
+			return fmt.Errorf("%w: peer %s duplicates the primary subject", ErrInvalidService, peer.SubjectID)
+		}
+		peerModel := ServiceModel{Periods: clonePeriods(peer.Periods), Rules: cloneRules(m.Rules)}
+		if err := peerModel.Validate(); err != nil {
+			return fmt.Errorf("%w: peer %s violates cohort rules: %v", ErrInvalidService, peer.SubjectID, err)
+		}
+		for _, period := range peer.Periods {
+			if _, isPrimary := primaryEmployments[period.EmploymentID]; period.EmploymentID != "" && isPrimary {
+				return fmt.Errorf("%w: peer %s repeats a primary employment", ErrInvalidService, peer.SubjectID)
+			}
+			peerRefValid := period.EmploymentRef.Validate() == nil
+			if peerRefValid != primaryUsesRefs {
+				return fmt.Errorf("%w: peer %s does not use the cohort identity scope", ErrInvalidService, peer.SubjectID)
+			}
+			if peerRefValid && period.EmploymentRef.Tenant != cohortTenant {
+				return fmt.Errorf("%w: peer %s crosses tenant boundary", ErrInvalidService, peer.SubjectID)
+			}
+			if peerRefValid {
+				if _, isPrimary := primaryEmployments[period.EmploymentRef.Id]; isPrimary {
+					return fmt.Errorf("%w: peer %s repeats a primary employment", ErrInvalidService, peer.SubjectID)
+				}
+			}
+		}
+		seenPeers[peer.SubjectID] = struct{}{}
+	}
 	if m.CanonicalDigest != "" && m.CanonicalDigest != canonicalbytes.Digest(m.body()) {
 		return fmt.Errorf("%w: field canonical_digest: mismatch", ErrInvalidService)
 	}
@@ -545,7 +701,11 @@ func (m ServiceModel) body() []byte {
 	sort.Slice(periods, func(i, j int) bool { return periods[i].periodID() < periods[j].periodID() })
 	rules := cloneRules(m.Rules)
 	sort.Slice(rules, func(i, j int) bool { return rules[i].Dimension < rules[j].Dimension })
-	w := canonicalbytes.New("hcmnext.domains.service.ServiceModel", schemaVersion).
+	modelVersion := schemaVersion
+	if m.populationPinned {
+		modelVersion = evaluationSchemaVersion
+	}
+	w := canonicalbytes.New("hcmnext.domains.service.ServiceModel", modelVersion).
 		Count("period", len(periods))
 	for _, period := range periods {
 		w.Value("period", period)
@@ -553,6 +713,14 @@ func (m ServiceModel) body() []byte {
 	w.Count("rule", len(rules))
 	for _, rule := range rules {
 		w.Value("rule", rule)
+	}
+	if m.populationPinned {
+		peers := append([]SeniorityPeer(nil), m.PeerPopulation...)
+		sort.Slice(peers, func(i, j int) bool { return peers[i].SubjectID < peers[j].SubjectID })
+		w.Bool("population_pinned", true).Bool("history_complete", m.HistoryComplete).Count("peer", len(peers))
+		for _, peer := range peers {
+			w.Value("peer", peer)
+		}
 	}
 	raw, err := w.Bytes()
 	if err != nil {
@@ -601,22 +769,53 @@ func (b SeniorityBreak) Canonical() []byte {
 
 // SeniorityMeasure is one purpose-specific result.
 type SeniorityMeasure struct {
-	Dimension    SeniorityDimension
-	RawDays      int64
-	BridgedDays  int64
-	RoundedUnits int64
-	Unit         RoundingUnit
-	DaysPerUnit  int64
-	Rounding     RoundingMode
-	Breaks       []SeniorityBreak
-	InputsDigest string
+	Dimension         SeniorityDimension
+	RawDays           int64
+	BridgedDays       int64
+	TotalCreditedDays int64
+	ContinuousDays    int64
+	RoundedUnits      int64
+	AdjustedDate      values.LocalDate
+	SeniorityRank     int
+	RankStatus        CalculationStatus
+	Status            CalculationStatus
+	Unit              RoundingUnit
+	DaysPerUnit       int64
+	Rounding          RoundingMode
+	Breaks            []SeniorityBreak
+	Trace             []string
+	InputsDigest      string
+}
+
+type optionalLocalDate struct{ date values.LocalDate }
+
+func (d optionalLocalDate) Canonical() []byte {
+	if d.date.Validate() != nil {
+		return []byte{0}
+	}
+	return append([]byte{1}, d.date.Canonical()...)
 }
 
 type SeniorityDimensionResult = SeniorityMeasure
 
 func (r SeniorityMeasure) Validate() error {
-	if !r.Dimension.Valid() || !r.Unit.Valid() || !r.Rounding.Valid() || r.DaysPerUnit <= 0 || r.RawDays < 0 || r.BridgedDays < 0 {
+	if !r.Dimension.Valid() || !r.Unit.Valid() || !r.Rounding.Valid() || r.DaysPerUnit <= 0 || r.RawDays < 0 || r.BridgedDays < 0 || r.ContinuousDays < 0 || r.SeniorityRank < 0 || !r.Status.Valid() || !r.RankStatus.Valid() {
 		return fmt.Errorf("%w: invalid seniority measure", ErrInvalidService)
+	}
+	if r.TotalCreditedDays != r.RawDays+r.BridgedDays || r.ContinuousDays > r.TotalCreditedDays {
+		return fmt.Errorf("%w: seniority measure durations are inconsistent", ErrInvalidService)
+	}
+	if strings.TrimSpace(r.InputsDigest) == "" {
+		return fmt.Errorf("%w: seniority measure inputs digest is required", ErrInvalidService)
+	}
+	if r.Status != StatusUnknown && r.AdjustedDate.Validate() != nil {
+		return fmt.Errorf("%w: seniority measure adjusted date is required", ErrInvalidService)
+	}
+	if r.RankStatus == StatusKnown && r.SeniorityRank == 0 {
+		return fmt.Errorf("%w: known seniority rank must be positive", ErrInvalidService)
+	}
+	if r.RankStatus != StatusKnown && r.SeniorityRank != 0 {
+		return fmt.Errorf("%w: unresolved seniority rank must be zero", ErrInvalidService)
 	}
 	return nil
 }
@@ -636,10 +835,24 @@ func (s SenioritySnapshot) Validate() error {
 	if len(s.Measures) == 0 {
 		return fmt.Errorf("%w: seniority snapshot has no measures", ErrInvalidService)
 	}
+	if strings.TrimSpace(s.InputsDigest) == "" {
+		return fmt.Errorf("%w: seniority snapshot inputs digest is required", ErrInvalidService)
+	}
+	seen := make(map[SeniorityDimension]struct{}, len(s.Measures))
 	for _, measure := range s.Measures {
 		if err := measure.Validate(); err != nil {
 			return err
 		}
+		if measure.InputsDigest != s.InputsDigest {
+			return fmt.Errorf("%w: seniority measure inputs digest mismatch", ErrInvalidService)
+		}
+		if _, ok := seen[measure.Dimension]; ok {
+			return fmt.Errorf("%w: duplicate seniority dimension %s", ErrInvalidService, measure.Dimension)
+		}
+		seen[measure.Dimension] = struct{}{}
+	}
+	if s.CanonicalDigest != "" && s.CanonicalDigest != canonicalbytes.Digest(s.body()) {
+		return fmt.Errorf("%w: seniority snapshot canonical digest mismatch", ErrInvalidService)
 	}
 	return nil
 }
@@ -647,16 +860,21 @@ func (s SenioritySnapshot) Validate() error {
 func (s SenioritySnapshot) body() []byte {
 	measures := append([]SeniorityMeasure(nil), s.Measures...)
 	sort.Slice(measures, func(i, j int) bool { return measures[i].Dimension < measures[j].Dimension })
-	w := canonicalbytes.New("hcmnext.domains.service.SenioritySnapshot", schemaVersion).
+	w := canonicalbytes.New("hcmnext.domains.service.SenioritySnapshot", evaluationSchemaVersion).
 		Value("as_of_date", s.AsOf.EffectiveDate).Value("as_of_known_at", s.AsOf.KnownAt).
 		String("inputs_digest", s.InputsDigest).Count("measure", len(measures))
 	for _, measure := range measures {
 		w.String("dimension", string(measure.Dimension)).Int("raw_days", measure.RawDays).
-			Int("bridged_days", measure.BridgedDays).Int("rounded_units", measure.RoundedUnits).
+			Int("bridged_days", measure.BridgedDays).Int("total_credited_days", measure.TotalCreditedDays).Int("continuous_days", measure.ContinuousDays).
+			Int("rounded_units", measure.RoundedUnits).Value("adjusted_date", optionalLocalDate{date: measure.AdjustedDate}).
+			Int("seniority_rank", int64(measure.SeniorityRank)).String("rank_status", string(measure.RankStatus)).String("status", string(measure.Status)).
 			String("unit", string(measure.Unit)).Int("days_per_unit", measure.DaysPerUnit).
-			String("rounding", string(measure.Rounding)).Count("break", len(measure.Breaks))
+			String("rounding", string(measure.Rounding)).Count("break", len(measure.Breaks)).Count("trace", len(measure.Trace))
 		for _, item := range measure.Breaks {
 			w.Value("break", item)
+		}
+		for _, item := range measure.Trace {
+			w.String("trace", item)
 		}
 	}
 	raw, err := w.Bytes()
@@ -688,7 +906,7 @@ func (m ServiceModel) Compute(asOf AsOf) (SenioritySnapshot, error) {
 	if err := asOf.Validate(); err != nil {
 		return SenioritySnapshot{}, err
 	}
-	inputs := canonicalbytes.New("hcmnext.domains.service.SeniorityInputs", schemaVersion).
+	inputs := canonicalbytes.New("hcmnext.domains.service.SeniorityInputs", evaluationSchemaVersion).
 		Value("model", m).Value("as_of", asOf)
 	inputsDigest, err := inputs.Digest()
 	if err != nil {
@@ -706,6 +924,42 @@ func (m ServiceModel) Compute(asOf AsOf) (SenioritySnapshot, error) {
 		}
 		measures = append(measures, measure)
 	}
+	if m.populationPinned {
+		for i, rule := range m.Rules {
+			if !m.HistoryComplete {
+				if measures[i].Status == StatusKnown {
+					measures[i].Status = StatusPartial
+				}
+				continue
+			}
+			if measures[i].Status == StatusUnknown {
+				continue
+			}
+			rankKnown := true
+			for _, peer := range m.PeerPopulation {
+				peerMeasure, err := calculateDimension(peer.Periods, rule, asOf, inputsDigest)
+				if err != nil {
+					return SenioritySnapshot{}, err
+				}
+				if peerMeasure.Status == StatusUnknown {
+					rankKnown = false
+					break
+				}
+				if peerMeasure.TotalCreditedDays > measures[i].TotalCreditedDays {
+					measures[i].SeniorityRank++
+				}
+			}
+			if !rankKnown {
+				measures[i].SeniorityRank = 0
+				measures[i].RankStatus = StatusUnknown
+				measures[i].Trace = append(measures[i].Trace, "rank:unknown-peer-history")
+				continue
+			}
+			measures[i].SeniorityRank++
+			measures[i].RankStatus = StatusKnown
+		}
+	}
+	sort.Slice(measures, func(i, j int) bool { return measures[i].Dimension < measures[j].Dimension })
 	snapshot := SenioritySnapshot{AsOf: asOf, Measures: measures, InputsDigest: inputsDigest}
 	snapshot.CanonicalDigest = canonicalbytes.Digest(snapshot.body())
 	return snapshot, nil
@@ -726,6 +980,7 @@ func CalculateSeniority(periods []ServicePeriod, asOf AsOf, rules []SeniorityRul
 }
 
 type clippedPeriod struct {
+	id        string
 	start     values.LocalDate
 	end       values.LocalDate
 	breakType BreakType
@@ -733,6 +988,7 @@ type clippedPeriod struct {
 
 func calculateDimension(periods []ServicePeriod, rule SeniorityRule, asOf AsOf, inputsDigest string) (SeniorityMeasure, error) {
 	var clipped []clippedPeriod
+	trace := make([]string, 0, len(periods)+2)
 	for _, period := range periods {
 		if !containsDimension(period.dimensions(), rule.Dimension) {
 			continue
@@ -753,65 +1009,133 @@ func calculateDimension(periods []ServicePeriod, rule SeniorityRule, asOf AsOf, 
 		}
 		if period.breakType() == BreakLeave && period.source().Kind == CreditLeaveCredit {
 			// Leave credit is a positive, explicitly attributed service period.
-			clipped = append(clipped, clippedPeriod{start: start, end: end, breakType: BreakNone})
+			clipped = append(clipped, clippedPeriod{id: period.periodID(), start: start, end: end, breakType: BreakNone})
 			continue
 		}
 		if period.breakType() != BreakNone {
-			clipped = append(clipped, clippedPeriod{start: start, end: end, breakType: period.breakType()})
+			clipped = append(clipped, clippedPeriod{id: period.periodID(), start: start, end: end, breakType: period.breakType()})
 			continue
 		}
-		clipped = append(clipped, clippedPeriod{start: start, end: end, breakType: BreakNone})
+		clipped = append(clipped, clippedPeriod{id: period.periodID(), start: start, end: end, breakType: BreakNone})
 	}
 	sort.Slice(clipped, func(i, j int) bool {
 		if c := clipped[i].start.Compare(clipped[j].start); c != 0 {
 			return c < 0
 		}
-		return clipped[i].end.Compare(clipped[j].end) < 0
+		if c := clipped[i].end.Compare(clipped[j].end); c != 0 {
+			return c < 0
+		}
+		return clipped[i].id < clipped[j].id
 	})
-	var rawDays, bridgedDays int64
+	for _, period := range clipped {
+		trace = append(trace, "include:"+period.id)
+	}
+	var rawDays, bridgedDays, continuousDays int64
 	var breaks []SeniorityBreak
 	var covered []clippedPeriod
+	var adjustedDate values.LocalDate
+	status := StatusKnown
 	for _, current := range clipped {
 		if current.breakType != BreakNone {
 			continue
 		}
-		if len(covered) > 0 {
-			previous := covered[len(covered)-1]
-			if current.start.Compare(previous.end) > 0 {
-				gap := daysBetween(previous.end, current.start)
-				breakType := gapBreakType(clipped, previous.end, current.start)
-				bridge := gap <= rule.Bridge.MaxGapDays && bridgeAllows(rule.Bridge, breakType)
-				breaks = append(breaks, SeniorityBreak{From: previous.end, To: current.start, Days: gap, Bridged: bridge, BreakType: breakType})
-				if bridge {
-					bridgedDays += gap
+		if len(covered) == 0 {
+			covered = append(covered, current)
+		} else {
+			last := &covered[len(covered)-1]
+			if current.start.Compare(last.end) <= 0 {
+				// Merge concurrent employment into one credited interval. This
+				// prevents double-counting service while retaining the furthest end.
+				if current.end.Compare(last.end) > 0 {
+					last.end = current.end
 				}
+			} else {
+				covered = append(covered, current)
 			}
 		}
-		if len(covered) == 0 || current.end.Compare(covered[len(covered)-1].end) > 0 {
-			covered = append(covered, current)
+	}
+	if len(covered) == 0 {
+		status = StatusUnknown
+		trace = append(trace, "unknown:no-credited-period")
+	} else {
+		for i, period := range covered {
+			periodDays := daysBetween(period.start, period.end)
+			rawDays += periodDays
+			if i == 0 {
+				continuousDays = periodDays
+				continue
+			}
+			previous := covered[i-1]
+			gap := daysBetween(previous.end, period.start)
+			breakType := gapBreakType(clipped, previous.end, period.start)
+			bridge := gap <= rule.Bridge.MaxGapDays && bridgeAllows(rule.Bridge, breakType)
+			breaks = append(breaks, SeniorityBreak{From: previous.end, To: period.start, Days: gap, Bridged: bridge, BreakType: breakType})
+			if bridge {
+				bridgedDays += gap
+				continuousDays += gap + periodDays
+				trace = append(trace, fmt.Sprintf("bridge:%s:%d", breakType, gap))
+			} else {
+				status = StatusPartial
+				continuousDays = periodDays
+				trace = append(trace, fmt.Sprintf("break:%s:%d", breakType, gap))
+			}
 		}
+		last := covered[len(covered)-1]
+		if last.end.Compare(asOf.EffectiveDate) < 0 {
+			gap := daysBetween(last.end, asOf.EffectiveDate)
+			breakType := gapBreakType(clipped, last.end, asOf.EffectiveDate)
+			bridge := gap <= rule.Bridge.MaxGapDays && bridgeAllows(rule.Bridge, breakType)
+			breaks = append(breaks, SeniorityBreak{From: last.end, To: asOf.EffectiveDate, Days: gap, Bridged: bridge, BreakType: breakType})
+			if bridge {
+				bridgedDays += gap
+				continuousDays += gap
+				trace = append(trace, fmt.Sprintf("bridge:%s:%d", breakType, gap))
+			} else {
+				status = StatusPartial
+				continuousDays = 0
+				trace = append(trace, fmt.Sprintf("break:%s:%d", breakType, gap))
+			}
+		}
+		adjustedDate = addDays(asOf.EffectiveDate, -continuousDays)
 	}
-	for _, period := range covered {
-		rawDays += daysBetween(period.start, period.end)
-	}
-	totalDays := rawDays + bridgedDays
-	rounded, err := roundDays(totalDays, rule.DaysPerUnit, rule.Rounding)
+	totalCreditedDays := rawDays + bridgedDays
+	rounded, err := roundDays(totalCreditedDays, rule.DaysPerUnit, rule.Rounding)
 	if err != nil {
 		return SeniorityMeasure{}, fmt.Errorf("%w: dimension=%s: %v", err, rule.Dimension, err)
 	}
-	return SeniorityMeasure{Dimension: rule.Dimension, RawDays: rawDays, BridgedDays: bridgedDays, RoundedUnits: rounded, Unit: rule.Unit, DaysPerUnit: rule.DaysPerUnit, Rounding: rule.Rounding, Breaks: breaks, InputsDigest: inputsDigest}, nil
+	return SeniorityMeasure{Dimension: rule.Dimension, RawDays: rawDays, BridgedDays: bridgedDays,
+		TotalCreditedDays: totalCreditedDays, ContinuousDays: continuousDays, RoundedUnits: rounded, AdjustedDate: adjustedDate,
+		SeniorityRank: 0, RankStatus: StatusUnknown, Status: status, Unit: rule.Unit, DaysPerUnit: rule.DaysPerUnit,
+		Rounding: rule.Rounding, Breaks: breaks, Trace: trace, InputsDigest: inputsDigest}, nil
 }
 
 func gapBreakType(periods []clippedPeriod, from, to values.LocalDate) BreakType {
+	var candidates []clippedPeriod
 	for _, period := range periods {
 		if period.breakType == BreakNone {
 			continue
 		}
-		if period.start.Compare(from) >= 0 && period.end.Compare(to) <= 0 {
-			return period.breakType
+		if period.end.Compare(from) > 0 && period.start.Compare(to) < 0 {
+			candidates = append(candidates, period)
 		}
 	}
-	return BreakUncredited
+	if len(candidates) == 0 {
+		return BreakUncredited
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].start.Compare(candidates[j].start) < 0 })
+	kind, cursor := candidates[0].breakType, from
+	for _, period := range candidates {
+		if period.breakType != kind || period.start.Compare(cursor) > 0 {
+			return BreakUncredited
+		}
+		if period.end.Compare(cursor) > 0 {
+			cursor = period.end
+		}
+	}
+	if cursor.Compare(to) < 0 {
+		return BreakUncredited
+	}
+	return kind
 }
 
 func bridgeAllows(rule BridgeRule, breakType BreakType) bool {
@@ -830,6 +1154,13 @@ func daysBetween(start, end values.LocalDate) int64 {
 	a := time.Date(int(start.Year()), start.Month(), int(start.Day()), 0, 0, 0, 0, time.UTC)
 	b := time.Date(int(end.Year()), end.Month(), int(end.Day()), 0, 0, 0, 0, time.UTC)
 	return int64(b.Sub(a) / (24 * time.Hour))
+}
+
+func addDays(date values.LocalDate, days int64) values.LocalDate {
+	base := time.Date(int(date.Year()), date.Month(), int(date.Day()), 0, 0, 0, 0, time.UTC)
+	shifted := base.AddDate(0, 0, int(days))
+	result, _ := values.NewLocalDate(shifted.Year(), shifted.Month(), shifted.Day())
+	return result
 }
 
 func roundDays(days, unit int64, mode RoundingMode) (int64, error) {

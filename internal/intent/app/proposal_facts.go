@@ -1,12 +1,13 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/data/intentcontrol"
 	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
 )
 
@@ -71,6 +73,22 @@ var executionDecisionNamespace = uuid.MustParse("6b1f2d84-9c37-4a15-8e63-0d5a7c9
 type ExecutionFacts interface {
 	runtime.ProposalFacts
 	runtime.ApprovalFacts
+}
+
+type fullProposalVerifier struct{ digester intent.Digester }
+
+func (v fullProposalVerifier) VerifyProposalDigest(p intent.ProposalRevision) error {
+	if v.digester == nil {
+		return fmt.Errorf("proposal digester required")
+	}
+	r, err := v.digester.ProposalDigest(p)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(r, p.MaterialDigest) {
+		return fmt.Errorf("material digest reference mismatch")
+	}
+	return nil
 }
 
 // DurableProposalFacts reads WF-RUN-027's two facts out of migration 00024's
@@ -179,13 +197,16 @@ type executionDecision struct {
 	MaterialDigest string
 	ControlDigest  string
 
-	RequirementID string
-	Kind          string
-	Outcome       string
-	DecidedBy     string
-	AuthorityRef  string
-	Reason        string
-	DecidedAt     time.Time
+	RequirementID    string
+	Kind             string
+	Outcome          string
+	DecidedBy        string
+	AuthorityRef     string
+	Reason           string
+	DecidedAt        time.Time
+	Proposal         *intent.ProposalRevision
+	ProposalVerifier intent.Digester
+	TenantUUID       func(values.TenantId) uuid.UUID
 }
 
 // decisionID derives this decision's identity from the tuple that defines it,
@@ -207,13 +228,26 @@ func (d executionDecision) decisionID() uuid.UUID {
 // replayed journey step re-derives the same identities and changes nothing;
 // [intentcontrol.ErrDuplicate] is that outcome, not a failure.
 func (d executionDecision) record(ctx context.Context, ex intentcontrol.Executor) error {
-	payload, err := json.Marshal(map[string]any{
-		"intent_id":       d.IntentID.String(),
-		"revision":        d.Revision,
-		"material_digest": d.MaterialDigest,
-	})
+	if d.Proposal == nil {
+		return fmt.Errorf("app: complete proposal revision snapshot is required")
+	}
+	p := *d.Proposal
+	if d.TenantUUID == nil || d.TenantUUID(p.Tenant) != d.TenantID || p.IntentID != d.IntentID.String() || p.Revision != d.Revision || p.MaterialDigest.Digest != d.MaterialDigest {
+		return fmt.Errorf("app: proposal revision snapshot does not match decision binding")
+	}
+	if d.ProposalVerifier == nil {
+		return fmt.Errorf("app: proposal revision verifier is required")
+	}
+	ref, err := d.ProposalVerifier.ProposalDigest(p)
 	if err != nil {
-		return fmt.Errorf("app: encode the proposal revision payload: %w", err)
+		return fmt.Errorf("app: proposal revision material digest verification failed: %w", err)
+	}
+	if !reflect.DeepEqual(ref, p.MaterialDigest) {
+		return fmt.Errorf("app: proposal revision material digest verification failed: digest reference mismatch")
+	}
+	payload, err := intentcontrol.EncodeFullProposal(p)
+	if err != nil {
+		return fmt.Errorf("app: encode the complete proposal revision payload: %w", err)
 	}
 	if _, err := (intentcontrol.RevisionStore{}).Materialize(ctx, ex, intentcontrol.Revision{
 		TenantID:       d.TenantID,
@@ -228,16 +262,19 @@ func (d executionDecision) record(ctx context.Context, ex intentcontrol.Executor
 	}); err != nil {
 		return fmt.Errorf("app: materialize the proposal revision: %w", err)
 	}
-	// A revision that is already stored under a different material digest is a
-	// different proposal wearing this revision's number. Recording a decision
-	// against it would bind an approval to content nobody decided on.
-	stored, err := (intentcontrol.RevisionStore{}).MaterialDigestOf(ctx, ex, d.TenantID, d.IntentID, d.Revision)
+	stored, err := (intentcontrol.RevisionStore{}).Load(ctx, ex, d.TenantID, d.IntentID, d.Revision)
 	if err != nil {
 		return fmt.Errorf("app: read back the proposal revision: %w", err)
 	}
-	if stored != d.MaterialDigest {
-		return fmt.Errorf("app: proposal revision %s/%d is stored with material digest %s, not %s",
-			d.IntentID, d.Revision, stored, d.MaterialDigest)
+	if stored.TenantID != d.TenantID || stored.IntentID != d.IntentID || stored.Revision != d.Revision || stored.ProposalDigest != d.MaterialDigest || stored.MaterialDigest != d.MaterialDigest || stored.SchemaRef != executionProposalSchemaRef {
+		return fmt.Errorf("app: stored proposal revision identity or digest does not match decision binding")
+	}
+	storedProposal, err := intentcontrol.DecodeFullProposal(stored.Payload, fullProposalVerifier{d.ProposalVerifier})
+	if err != nil {
+		return fmt.Errorf("app: legacy proposal revision cannot be resumed: %w", err)
+	}
+	if !bytes.Equal(storedProposal.MaterialPayload().WireBytes, p.MaterialPayload().WireBytes) {
+		return fmt.Errorf("app: stored proposal revision material does not match the decision snapshot")
 	}
 
 	err = (intentcontrol.DecisionStore{}).Record(ctx, ex, intentcontrol.Decision{

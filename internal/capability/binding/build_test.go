@@ -34,10 +34,11 @@ func TestBuildWithoutAnIndexDoesNotVerifySymbols(t *testing.T) {
 		[]capability.Record{fixtureRecord(fixtureCapabilityID)},
 		fixtureWire(),
 		[]Claim{{
-			CapabilityID:  fixtureCapabilityID,
-			DefinitionRef: fixtureDefinition,
-			WireMethods:   []string{fixtureService + "/ExplainWorkerState"},
-			Handlers:      []HandlerSymbol{fixtureHandler("thisDoesNotExistAnywhere")},
+			CapabilityID:      fixtureCapabilityID,
+			CapabilityVersion: 1,
+			DefinitionRef:     fixtureDefinition,
+			WireMethods:       []string{fixtureService + "/ExplainWorkerState"},
+			Handlers:          []HandlerSymbol{fixtureHandler("thisDoesNotExistAnywhere")},
 		}},
 		fixtureModels(),
 		nil,
@@ -80,10 +81,11 @@ func TestBuildFromReportsEveryFailureForOneCapability(t *testing.T) {
 		[]capability.Record{fixtureRecord(fixtureCapabilityID)},
 		fixtureWire(),
 		[]Claim{{
-			CapabilityID:  fixtureCapabilityID,
-			DefinitionRef: "fixture.people.nonexistent/v1",
-			WireMethods:   []string{fixtureService + "/DoesNotExist"},
-			Handlers:      nil,
+			CapabilityID:      fixtureCapabilityID,
+			CapabilityVersion: 1,
+			DefinitionRef:     "fixture.people.nonexistent/v1",
+			WireMethods:       []string{fixtureService + "/DoesNotExist"},
+			Handlers:          nil,
 		}},
 		fixtureModels(),
 		HandlerIndex{},
@@ -99,9 +101,9 @@ func TestBuildFromReportsEveryFailureForOneCapability(t *testing.T) {
 // without re-deriving it.
 func TestSharedHandlerGapNamesEveryOwner(t *testing.T) {
 	claims := []Claim{
-		{CapabilityID: "a", DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/ExplainWorkerState"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
-		{CapabilityID: "b", DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/OtherMethod"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
-		{CapabilityID: "c", DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/OtherMethod"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
+		{CapabilityID: "a", CapabilityVersion: 1, DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/ExplainWorkerState"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
+		{CapabilityID: "b", CapabilityVersion: 1, DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/OtherMethod"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
+		{CapabilityID: "c", CapabilityVersion: 1, DefinitionRef: fixtureDefinition, WireMethods: []string{fixtureService + "/OtherMethod"}, Handlers: []HandlerSymbol{fixtureHandler("shared")}},
 	}
 	table := BuildFrom(
 		[]capability.Record{fixtureRecord("a"), fixtureRecord("b"), fixtureRecord("c")},
@@ -127,10 +129,11 @@ func TestUnknownWireMethodDoesNotCountAsClaimed(t *testing.T) {
 		[]capability.Record{fixtureRecord(fixtureCapabilityID)},
 		fixtureWire(),
 		[]Claim{{
-			CapabilityID:  fixtureCapabilityID,
-			DefinitionRef: fixtureDefinition,
-			WireMethods:   []string{fixtureService + "/Ghost"},
-			Handlers:      []HandlerSymbol{fixtureHandler("explainWorkerState")},
+			CapabilityID:      fixtureCapabilityID,
+			CapabilityVersion: 1,
+			DefinitionRef:     fixtureDefinition,
+			WireMethods:       []string{fixtureService + "/Ghost"},
+			Handlers:          []HandlerSymbol{fixtureHandler("explainWorkerState")},
 		}},
 		fixtureModels(),
 		fixtureIndex("explainWorkerState"),

@@ -222,6 +222,9 @@ func (s *MemoryStore) SaveQuote(ctx context.Context, tenant string, quote FXQuot
 	} else if err := sealed.Validate(); err != nil {
 		return storeError(StoreCodeInvalid, err.Error())
 	}
+	if sealed.Revision != 1 || sealed.ParentQuoteID != "" || sealed.ParentDigest != "" {
+		return storeError(StoreCodeStaleCAS, "quote successors must use SaveQuoteSuccessor")
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.sources[sourceKey(tenant, sealed.SourceID, sealed.SourceRevision)]; !exists {
@@ -232,6 +235,40 @@ func (s *MemoryStore) SaveQuote(ctx context.Context, tenant string, quote FXQuot
 		return storeError(StoreCodeDuplicateRevision, "quote revision already exists")
 	}
 	s.quotes[key] = sealed
+	return nil
+}
+
+// SaveQuoteSuccessor performs a tenant-scoped compare-and-set append for a
+// corrected quote. The predecessor remains available for historical replay.
+func (s *MemoryStore) SaveQuoteSuccessor(ctx context.Context, tenant string, successor FXQuoteRevision) error {
+	if err := validateStoreContext(ctx, tenant); err != nil {
+		return err
+	}
+	if s == nil {
+		return storeError(StoreCodeInvalid, "nil memory store")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	previous, ok := s.quotes[quoteKey(tenant, successor.ParentQuoteID)]
+	if !ok {
+		return storeError(StoreCodeStaleCAS, "quote predecessor does not exist")
+	}
+	sealed, err := CorrectQuote(previous, successor)
+	if err != nil {
+		return storeError(StoreCodeStaleCAS, err.Error())
+	}
+	if _, exists := s.quotes[quoteKey(tenant, sealed.QuoteID)]; exists {
+		return storeError(StoreCodeDuplicateRevision, "quote revision already exists")
+	}
+	for _, quote := range s.quotes {
+		if quote.ParentQuoteID == previous.QuoteID {
+			return storeError(StoreCodeStaleCAS, "quote predecessor already has a successor")
+		}
+	}
+	if _, exists := s.sources[sourceKey(tenant, sealed.SourceID, sealed.SourceRevision)]; !exists {
+		return storeError(StoreCodeReferenceNotFound, "quote source revision does not exist")
+	}
+	s.quotes[quoteKey(tenant, sealed.QuoteID)] = sealed
 	return nil
 }
 

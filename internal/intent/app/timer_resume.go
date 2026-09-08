@@ -9,7 +9,6 @@ import (
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/hcm-next/internal/data/intentcontrol"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/workflow"
 	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
@@ -120,25 +119,25 @@ func (c *Cell) ResumeFiredTimer(ctx context.Context, instanceID, nodeID string, 
 	if err != nil {
 		return ExecutionResult{}, err
 	}
-	materialDigest, err := (intentcontrol.RevisionStore{}).MaterialDigestOf(ctx, tx, tenantID, intentID, simulationRevision)
+	stored, err := (intentcontrol.RevisionStore{}).Load(ctx, tx, tenantID, intentID, simulationRevision)
 	if err != nil {
-		return ExecutionResult{}, err
+		return ExecutionResult{}, fmt.Errorf("app: load stored proposal revision: %w", err)
 	}
-	revisionID, err := derivedIDs(intentInstance, simulationRevision)()
+	revision, err := intentcontrol.DecodeFullProposal(stored.Payload, fullProposalVerifier{c.Service.digester})
 	if err != nil {
-		return ExecutionResult{}, fmt.Errorf("app: derive proposal revision: %w", err)
+		return ExecutionResult{}, fmt.Errorf("app: timer resume legacy/tampered proposal: %w", err)
 	}
-	materialRef := digest.Reference{
-		ProfileID: digest.ProfileProposal, ProfileVersion: 1,
-		SchemaID: executionProposalSchemaRef, SchemaVersion: 1,
-		AlgorithmID: "sha256", Digest: materialDigest,
-		IntentID: &intentInstance.IntentID, ProposalRevisionID: &revisionID,
+	if stored.TenantID != tenantID || stored.IntentID != intentID || stored.Revision != simulationRevision ||
+		stored.SchemaRef != executionProposalSchemaRef || stored.ProposalDigest != stored.MaterialDigest ||
+		revision.Tenant != values.TenantId(tenant) || revision.IntentID != intentInstance.IntentID || revision.Revision != simulationRevision ||
+		revision.MaterialDigest.Digest != stored.MaterialDigest {
+		return ExecutionResult{}, fmt.Errorf("app: timer resume proposal identity mismatch")
 	}
 	artifact := &intentsv1.SimulationArtifact{
-		IntentId: intentInstance.IntentID, ProposalRevisionId: revisionID,
-		MaterialProposalDigest: materialRef.ToProto(),
+		IntentId: intentInstance.IntentID, ProposalRevisionId: revision.ProposalRevisionID,
+		MaterialProposalDigest: revision.MaterialDigest.ToProto(),
 	}
-	start, startErr := c.Service.executionStart(intentInstance, artifact, "timer:"+timerID.String())
+	start, startErr := c.Service.executionStart(intentInstance, artifact, "timer:"+timerID.String(), revision)
 	if startErr != nil {
 		return ExecutionResult{}, startErr
 	}

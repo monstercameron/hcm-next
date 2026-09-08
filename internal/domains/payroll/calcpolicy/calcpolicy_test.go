@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/monstercameron/hcm-next/internal/domains/payroll/calcpolicy"
+	"github.com/monstercameron/hcm-next/internal/domains/taxprofile"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
@@ -77,7 +78,7 @@ func TestTodo_SECARCH_015(t *testing.T) {
 	// idempotent, and largest-remainder does not depend on input order.
 	for _, total := range []string{"0.01", "1.00", "10.00", "99.99"} {
 		amount := decimal(t, total, 2)
-		candidate := calcpolicy.Input{Kind: calcpolicy.KindTax, Currency: "USD", Amount: amount, Allocations: []calcpolicy.Allocation{
+		candidate := calcpolicy.Input{Kind: calcpolicy.KindPayroll, Currency: "USD", Amount: amount, Allocations: []calcpolicy.Allocation{
 			{Key: "a", Order: 20, Weight: decimal(t, "1", 0)}, {Key: "b", Order: 10, Weight: decimal(t, "2", 0)}, {Key: "c", Order: 30, Weight: decimal(t, "3", 0)},
 		}}
 		got, err := calcpolicy.Calculate(p, candidate)
@@ -186,7 +187,7 @@ func errForNegative(t *testing.T, p calcpolicy.Policy) error {
 func TestTodo_SECARCH_015_Mutation(t *testing.T) {
 	even := policy(t, values.RoundingHalfEven)
 	up := policy(t, values.RoundingHalfUp)
-	in := calcpolicy.Input{Kind: calcpolicy.KindTax, Currency: "USD", Amount: decimal(t, "1.005", 3)}
+	in := calcpolicy.Input{Kind: calcpolicy.KindPayroll, Currency: "USD", Amount: decimal(t, "1.005", 3)}
 	evenReceipt, err := calcpolicy.Calculate(even, in)
 	if err != nil {
 		t.Fatal(err)
@@ -208,5 +209,25 @@ func TestTodo_SECARCH_015_Mutation(t *testing.T) {
 	}
 	if _, err := mutated.Digest(); err == nil {
 		t.Fatal("mutated output passed receipt digest validation")
+	}
+}
+
+func TestTaxInputRequiresPrivateContentBoundPin(t *testing.T) {
+	p := policy(t, values.RoundingHalfEven)
+	forged := calcpolicy.Input{Kind: calcpolicy.KindTax, Currency: "USD", Amount: decimal(t, "1.00", 2), TaxSnapshotDigest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+	if _, err := calcpolicy.NewInput(forged); !errors.Is(err, calcpolicy.ErrInvalidInput) {
+		t.Fatalf("public constructor accepted forged tax pin: %v", err)
+	}
+	if _, err := calcpolicy.Calculate(p, forged); !errors.Is(err, calcpolicy.ErrInvalidInput) {
+		t.Fatalf("calculation accepted forged tax pin: %v", err)
+	}
+	omitted := forged
+	omitted.TaxSnapshotDigest = ""
+	if _, err := calcpolicy.Calculate(p, omitted); !errors.Is(err, calcpolicy.ErrInvalidInput) {
+		t.Fatalf("calculation accepted omitted tax pin: %v", err)
+	}
+	forgedSnapshot := taxprofile.PinnedTaxInputSnapshot{WorkerRef: "worker-1", EmploymentRef: "employment-1", PayGroupRef: "monthly", ProfileRevision: 1, ProfileDigest: forged.TaxSnapshotDigest, FormReleaseDigest: forged.TaxSnapshotDigest, RuleReleaseDigest: forged.TaxSnapshotDigest, Digest: forged.TaxSnapshotDigest}
+	if _, err := calcpolicy.NewPinnedTaxInput(forgedSnapshot, forged); !errors.Is(err, taxprofile.ErrSnapshotInvalid) {
+		t.Fatalf("pinned constructor accepted caller-built snapshot: %v", err)
 	}
 }

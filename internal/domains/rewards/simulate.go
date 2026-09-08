@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/monstercameron/hcm-next/internal/domains/evidence"
+	"github.com/monstercameron/hcm-next/internal/domains/fx"
 	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
@@ -421,6 +422,66 @@ type SimulateCompensationInput struct {
 
 	// Band, when set, is evaluated against the proposed annualized base.
 	Band *BandQuery
+	FX   *PinnedFXConversion
+}
+
+// PinnedFXConversion contains the immutable conversion inputs selected by the
+// owner of the simulation. Possession of these values is not approval or
+// authority to publish a rate; ConvertMoney validates them before use.
+type PinnedFXConversion struct {
+	TargetCurrency string
+	AsOf, KnownAt  values.Instant
+	Profile        fx.ConversionProfileRevision
+	Sources        []fx.RateSourceRevision
+	Quotes         []fx.FXQuoteRevision
+}
+
+func (p PinnedFXConversion) validate(sample values.Money) error {
+	if _, err := values.NewMoneyFromDecimal(sample.Amount(), p.TargetCurrency); err != nil {
+		return fmt.Errorf("%w: target currency: %w", ErrSimulationInputInvalid, err)
+	}
+	if err := p.AsOf.Validate(); err != nil {
+		return fmt.Errorf("%w: FX as-of: %w", ErrSimulationInputInvalid, err)
+	}
+	if err := p.KnownAt.Validate(); err != nil {
+		return fmt.Errorf("%w: FX known-at: %w", ErrSimulationInputInvalid, err)
+	}
+	if err := p.Profile.Validate(); err != nil {
+		return fmt.Errorf("%w: FX profile: %w", ErrSimulationInputInvalid, err)
+	}
+	for i, source := range p.Sources {
+		if err := source.Validate(); err != nil {
+			return fmt.Errorf("%w: FX source %d: %w", ErrSimulationInputInvalid, i, err)
+		}
+	}
+	for i, quote := range p.Quotes {
+		if err := quote.Validate(); err != nil {
+			return fmt.Errorf("%w: FX quote %d: %w", ErrSimulationInputInvalid, i, err)
+		}
+	}
+	return nil
+}
+
+func (p PinnedFXConversion) canonical() ([]byte, error) {
+	w := canonicalbytes.New("hcmnext.domains.rewards.PinnedFXConversion", rewardsSchemaVer).
+		String("target_currency", p.TargetCurrency).Value("as_of", p.AsOf).Value("known_at", p.KnownAt).
+		Field("profile", p.Profile.Canonical()).Count("sources", len(p.Sources))
+	for _, s := range p.Sources {
+		w.Field("source", s.Canonical())
+	}
+	w.Count("quotes", len(p.Quotes))
+	for _, q := range p.Quotes {
+		w.Field("quote", q.Canonical())
+	}
+	return w.Bytes()
+}
+
+func (p PinnedFXConversion) convert(m values.Money) (values.Money, string, error) {
+	r, err := fx.ConvertMoney(fx.MoneyConversionRequest{Amount: m, TargetCurrency: p.TargetCurrency, AsOf: p.AsOf, KnownAt: p.KnownAt, Profile: p.Profile, Sources: p.Sources, Quotes: p.Quotes})
+	if err != nil {
+		return values.Money{}, "", err
+	}
+	return r.Converted, r.CanonicalDigest, nil
 }
 
 // Validate reports whether the input can produce an exact result.
@@ -440,9 +501,14 @@ func (in SimulateCompensationInput) Validate() error {
 	if err := in.Proposed.Validate("proposed"); err != nil {
 		return err
 	}
-	if in.Current.BaseAmount().Currency() != in.Proposed.BaseAmount().Currency() {
+	if in.FX == nil && in.Current.BaseAmount().Currency() != in.Proposed.BaseAmount().Currency() {
 		return fmt.Errorf("%w: current %s, proposed %s", ErrCurrencyMismatch,
 			in.Current.BaseAmount().Currency(), in.Proposed.BaseAmount().Currency())
+	}
+	if in.FX != nil {
+		if err := in.FX.validate(in.Current.BaseAmount()); err != nil {
+			return err
+		}
 	}
 	if err := in.Annualization.Validate(); err != nil {
 		return err
@@ -454,7 +520,11 @@ func (in SimulateCompensationInput) Validate() error {
 		if err := in.Band.Validate(); err != nil {
 			return err
 		}
-		if in.Band.Currency != in.Proposed.BaseAmount().Currency() {
+		bandCurrency := in.Proposed.BaseAmount().Currency()
+		if in.FX != nil {
+			bandCurrency = in.FX.TargetCurrency
+		}
+		if in.Band.Currency != bandCurrency {
 			return fmt.Errorf("%w: band query %s, proposed %s", ErrCurrencyMismatch,
 				in.Band.Currency, in.Proposed.BaseAmount().Currency())
 		}
@@ -479,6 +549,13 @@ func (in SimulateCompensationInput) Digest() (string, error) {
 		Bool("band?", in.Band != nil)
 	if in.Band != nil {
 		w.Value("band", *in.Band)
+	}
+	if in.FX != nil {
+		pinned, err := in.FX.canonical()
+		if err != nil {
+			return "", fmt.Errorf("%w: pinned FX conversion: %w", ErrSimulationInputInvalid, err)
+		}
+		w.Bool("fx?", true).Field("fx", pinned)
 	}
 	return w.Digest()
 }
@@ -566,6 +643,10 @@ type SimulateCompensationResult struct {
 	// baseline rather than a later one that happens to agree.
 	CurrentSnapshotMark  values.RevisionToken
 	ProposedSnapshotMark values.RevisionToken
+	// FXCurrentConversionDigest and FXProposedConversionDigest are the exact
+	// ConvertMoney receipt digests, not hashes of the requested quote set.
+	FXCurrentConversionDigest  string
+	FXProposedConversionDigest string
 }
 
 // canonicalBody encodes everything the result digest covers.
@@ -586,14 +667,17 @@ func (r SimulateCompensationResult) canonicalBody() ([]byte, error) {
 			String("assumption.value", a.Value).
 			String("assumption.reason", a.Reason)
 	}
-	return w.
-		String("rule_pack_version", r.RulePackVersion).
+	w.String("rule_pack_version", r.RulePackVersion).
 		String("annualization_version", r.AnnualizationVersion).
 		String("catalog_version", r.CatalogVersion).
 		Value("current_snapshot_mark", r.CurrentSnapshotMark).
-		Value("proposed_snapshot_mark", r.ProposedSnapshotMark).
-		Value("effects", r.Effects).
-		Bytes()
+		Value("proposed_snapshot_mark", r.ProposedSnapshotMark)
+	if r.FXCurrentConversionDigest != "" || r.FXProposedConversionDigest != "" {
+		w.String("fx_current_conversion_digest", r.FXCurrentConversionDigest).
+			String("fx_proposed_conversion_digest", r.FXProposedConversionDigest)
+	}
+	w.Value("effects", r.Effects)
+	return w.Bytes()
 }
 
 // Canonical returns the canonical byte encoding of the whole result, or nil
@@ -730,11 +814,31 @@ func SimulateCompensation(ctx context.Context, catalog PayBandCatalog, in Simula
 		return SimulateCompensationResult{}, err
 	}
 
-	current, currentAssumptions, err := project(in.Current, in.Annualization, "current")
+	currentInput, proposedInput := in.Current, in.Proposed
+	currentFXDigest, proposedFXDigest := "", ""
+	if in.FX != nil {
+		if currentInput.BaseAmount().Currency() != in.FX.TargetCurrency {
+			currentMoney, currentDigest, conversionErr := in.FX.convert(currentInput.BaseAmount())
+			if conversionErr != nil {
+				return SimulateCompensationResult{}, fmt.Errorf("rewards: current FX conversion: %w", conversionErr)
+			}
+			currentFXDigest = currentDigest
+			currentInput.Base = values.Value(currentMoney)
+		}
+		if proposedInput.BaseAmount().Currency() != in.FX.TargetCurrency {
+			proposedMoney, proposedDigest, conversionErr := in.FX.convert(proposedInput.BaseAmount())
+			if conversionErr != nil {
+				return SimulateCompensationResult{}, fmt.Errorf("rewards: proposed FX conversion: %w", conversionErr)
+			}
+			proposedFXDigest = proposedDigest
+			proposedInput.Base = values.Value(proposedMoney)
+		}
+	}
+	current, currentAssumptions, err := project(currentInput, in.Annualization, "current")
 	if err != nil {
 		return SimulateCompensationResult{}, err
 	}
-	proposed, proposedAssumptions, err := project(in.Proposed, in.Annualization, "proposed")
+	proposed, proposedAssumptions, err := project(proposedInput, in.Annualization, "proposed")
 	if err != nil {
 		return SimulateCompensationResult{}, err
 	}
@@ -780,23 +884,25 @@ func SimulateCompensation(ctx context.Context, catalog PayBandCatalog, in Simula
 	}
 
 	result := SimulateCompensationResult{
-		IntentType:           SimulateCompensationIntentType,
-		IntentVersion:        SimulateCompensationIntentVersion,
-		Tenant:               in.Tenant,
-		Subject:              in.Subject,
-		EffectiveDate:        in.EffectiveDate,
-		Current:              current,
-		Proposed:             proposed,
-		Delta:                delta,
-		Band:                 band,
-		Assumptions:          assumptions,
-		RulePackVersion:      CompensationRulePackVersion,
-		AnnualizationVersion: in.Annualization.Version,
-		CatalogVersion:       catalogVersion,
-		InputsDigest:         inputsDigest,
-		Effects:              evidence.ZeroEffects(),
-		CurrentSnapshotMark:  in.Current.Watermark,
-		ProposedSnapshotMark: in.Proposed.Watermark,
+		IntentType:                 SimulateCompensationIntentType,
+		IntentVersion:              SimulateCompensationIntentVersion,
+		Tenant:                     in.Tenant,
+		Subject:                    in.Subject,
+		EffectiveDate:              in.EffectiveDate,
+		Current:                    current,
+		Proposed:                   proposed,
+		Delta:                      delta,
+		Band:                       band,
+		Assumptions:                assumptions,
+		RulePackVersion:            CompensationRulePackVersion,
+		AnnualizationVersion:       in.Annualization.Version,
+		CatalogVersion:             catalogVersion,
+		InputsDigest:               inputsDigest,
+		Effects:                    evidence.ZeroEffects(),
+		CurrentSnapshotMark:        in.Current.Watermark,
+		ProposedSnapshotMark:       in.Proposed.Watermark,
+		FXCurrentConversionDigest:  currentFXDigest,
+		FXProposedConversionDigest: proposedFXDigest,
 	}
 	body, err := result.canonicalBody()
 	if err != nil {

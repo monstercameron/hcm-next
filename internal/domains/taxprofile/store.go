@@ -80,6 +80,14 @@ type Store interface {
 	LoadExemption(context.Context, string, string) (TaxExemptionRevision, error)
 }
 
+// ElectionSuccessorStore is the persistence boundary required by callers
+// that append corrections. Implementations must compare and advance the head
+// atomically; a read followed by SaveElection is not an equivalent CAS.
+type ElectionSuccessorStore interface {
+	Store
+	SaveElectionSuccessor(context.Context, string, string, WithholdingElectionRevision) error
+}
+
 // MemoryStore is the kernel-pure reference implementation of Store. It keeps
 // detached immutable values and applies the same tenant and revision rules as
 // the PostgreSQL adapter.
@@ -88,16 +96,19 @@ type MemoryStore struct {
 	profiles      map[string]WorkerTaxProfileRevision
 	registrations map[string]TaxRegistrationRevision
 	elections     map[string]WithholdingElectionRevision
+	electionHeads map[string]string
 	exemptions    map[string]TaxExemptionRevision
 }
 
 var _ Store = (*MemoryStore)(nil)
+var _ ElectionSuccessorStore = (*MemoryStore)(nil)
 
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		profiles:      make(map[string]WorkerTaxProfileRevision),
 		registrations: make(map[string]TaxRegistrationRevision),
 		elections:     make(map[string]WithholdingElectionRevision),
+		electionHeads: make(map[string]string),
 		exemptions:    make(map[string]TaxExemptionRevision),
 	}
 }
@@ -249,6 +260,10 @@ func (s *MemoryStore) SaveProfile(ctx context.Context, tenant string, profile Wo
 		if err := s.saveElectionLocked(tenant, election); err != nil && !errors.Is(err, ErrStoreDuplicate) {
 			return err
 		}
+		headKey := tenant + "\x00" + election.ElectionID
+		if _, exists := s.electionHeads[headKey]; !exists {
+			s.electionHeads[headKey] = election.CanonicalDigest
+		}
 	}
 	for _, exemption := range profile.Exemptions {
 		if err := s.saveExemptionLocked(tenant, exemption); err != nil && !errors.Is(err, ErrStoreDuplicate) {
@@ -351,7 +366,57 @@ func (s *MemoryStore) SaveElection(ctx context.Context, tenant string, election 
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.saveElectionLocked(tenant, election)
+	headKey := tenant + "\x00" + election.ElectionID
+	if _, exists := s.electionHeads[headKey]; exists {
+		return &StoreError{Code: StoreCodeStaleCAS, Detail: "existing election requires SaveElectionSuccessor"}
+	}
+	if err := s.saveElectionLocked(tenant, election); err != nil {
+		return err
+	}
+	s.electionHeads[headKey] = election.CanonicalDigest
+	return nil
+}
+
+// SaveElectionSuccessor appends a new election only when expectedDigest is
+// still the latest predecessor. The predecessor remains addressable and is
+// never overwritten, making corrections safe for closed payroll periods.
+func (s *MemoryStore) SaveElectionSuccessor(ctx context.Context, tenant, expectedDigest string, successor WithholdingElectionRevision) error {
+	if err := storeContext(ctx, tenant); err != nil {
+		return err
+	}
+	if strings.TrimSpace(expectedDigest) == "" {
+		return invalidStore("expected predecessor digest is required")
+	}
+	canonical, err := canonicalElection(successor)
+	if err != nil {
+		return invalidStore(err.Error())
+	}
+	successor = canonical
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	headKey := tenant + "\x00" + successor.ElectionID
+	if s.electionHeads[headKey] != expectedDigest {
+		return &StoreError{Code: StoreCodeStaleCAS, Detail: ErrElectionCAS.Error()}
+	}
+	var predecessor WithholdingElectionRevision
+	var found bool
+	for key, candidate := range s.elections {
+		if strings.HasPrefix(key, headKey+"\x00") && candidate.CanonicalDigest == expectedDigest {
+			predecessor, found = candidate, true
+			break
+		}
+	}
+	if !found {
+		return &StoreError{Code: StoreCodeStaleCAS, Detail: ErrElectionCAS.Error()}
+	}
+	if successor.WorkerRef != predecessor.WorkerRef || successor.Jurisdiction != predecessor.Jurisdiction {
+		return invalidStore("successor identity does not match predecessor")
+	}
+	if err := s.saveElectionLocked(tenant, successor); err != nil {
+		return err
+	}
+	s.electionHeads[headKey] = successor.CanonicalDigest
+	return nil
 }
 
 func (s *MemoryStore) saveElectionLocked(tenant string, election WithholdingElectionRevision) error {
@@ -369,19 +434,13 @@ func (s *MemoryStore) LoadElection(ctx context.Context, tenant, electionID strin
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	var candidates []WithholdingElectionRevision
+	head := s.electionHeads[tenant+"\x00"+electionID]
 	for key, election := range s.elections {
-		if strings.HasPrefix(key, tenant+"\x00"+electionID+"\x00") {
-			candidates = append(candidates, election)
+		if strings.HasPrefix(key, tenant+"\x00"+electionID+"\x00") && election.CanonicalDigest == head {
+			return election, nil
 		}
 	}
-	if len(candidates) == 0 {
-		return WithholdingElectionRevision{}, notFoundStore(electionID)
-	}
-	sort.Slice(candidates, func(i, j int) bool {
-		return effectiveSortKey(candidates[i].Effective) < effectiveSortKey(candidates[j].Effective)
-	})
-	return candidates[len(candidates)-1], nil
+	return WithholdingElectionRevision{}, notFoundStore(electionID)
 }
 
 func (s *MemoryStore) SaveExemption(ctx context.Context, tenant string, exemption TaxExemptionRevision) error {

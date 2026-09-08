@@ -441,16 +441,19 @@ func (s EvidenceStatus) Valid() bool {
 // WorkerSkillEvidence is an immutable, reference-only proficiency assertion.
 // Effective's exclusive end is the expiry boundary.
 type WorkerSkillEvidence struct {
-	EvidenceID      values.EntityRef
-	Worker          values.EntityRef
-	SkillRef        values.EntityRef
-	Level           int
-	Proficiency     ProficiencyLevel
-	EvidenceKind    EvidenceKind
-	EvidenceRef     string
-	Verified        bool
-	Disputed        bool
-	Effective       values.EffectiveInterval
+	EvidenceID   values.EntityRef
+	Worker       values.EntityRef
+	SkillRef     values.EntityRef
+	Level        int
+	Proficiency  ProficiencyLevel
+	EvidenceKind EvidenceKind
+	EvidenceRef  string
+	Verified     bool
+	Disputed     bool
+	Effective    values.EffectiveInterval
+	// Supersedes links a correction to the immutable evidence it replaces.
+	// Corrections append a successor; the predecessor remains auditable.
+	Supersedes      values.EntityRef
 	CanonicalDigest string
 }
 
@@ -496,6 +499,14 @@ func (e WorkerSkillEvidence) Validate() error {
 	if err := e.Effective.Validate(); err != nil {
 		return fmt.Errorf("%w: effective: %v", ErrInvalidEvidence, err)
 	}
+	if e.Supersedes.Id != "" {
+		if err := e.Supersedes.Validate(); err != nil {
+			return fmt.Errorf("%w: supersedes: %v", ErrInvalidEvidence, err)
+		}
+		if e.Supersedes.Kind != values.Kind("skill_evidence") || e.Supersedes.Tenant != e.EvidenceID.Tenant || e.Supersedes == e.EvidenceID {
+			return fmt.Errorf("%w: supersedes must identify a distinct same-tenant skill evidence", ErrInvalidEvidence)
+		}
+	}
 	if e.Effective.Kind() != values.IntervalKindLocalDate {
 		return fmt.Errorf("%w: effective must be LOCAL_DATE", ErrInvalidEvidence)
 	}
@@ -530,6 +541,11 @@ func (e WorkerSkillEvidence) canonicalBody() []byte {
 		Value("evidence_id", e.EvidenceID).Value("worker", e.Worker).Value("skill_ref", e.SkillRef).
 		Int("level", int64(e.Level)).String("proficiency", string(e.Proficiency)).String("evidence_kind", string(e.EvidenceKind)).
 		String("evidence_ref", e.EvidenceRef).Bool("verified", e.Verified).Bool("disputed", e.Disputed).Value("effective", e.Effective)
+	// Preserve the version-1 canonical representation for historical evidence.
+	// The additive correction field is encoded only when it is present.
+	if e.Supersedes.Id != "" {
+		w.Value("supersedes", e.Supersedes)
+	}
 	raw, err := w.Bytes()
 	if err != nil {
 		return nil

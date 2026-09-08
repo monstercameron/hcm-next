@@ -9,37 +9,47 @@ import (
 	"sort"
 	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
 )
 
-// qualityPatternCache holds compiled FORMAT patterns. Rules are evaluated
-// once per record, so without it every evaluation recompiles the same
-// pattern. The cache is bounded: once full, further patterns compile per
-// call rather than growing memory without limit.
-var qualityPatternCache sync.Map // pattern string -> *regexp.Regexp
-
-var qualityPatternCacheSize atomic.Int64
-
 const qualityPatternCacheCap = 512
 
-// compileQualityPattern compiles a FORMAT pattern, reusing a cached
-// compilation when one exists.
-func compileQualityPattern(pattern string) (*regexp.Regexp, error) {
-	if cached, ok := qualityPatternCache.Load(pattern); ok {
-		return cached.(*regexp.Regexp), nil
+// QualityEvaluator owns the bounded compiled-pattern cache used by quality
+// evaluations. Keeping this state on the evaluator makes reuse explicit and
+// prevents independent compositions from sharing mutable package state.
+type QualityEvaluator struct {
+	mu       sync.Mutex
+	patterns map[string]*regexp.Regexp
+}
+
+// NewQualityEvaluator creates an evaluator with its own compiled-pattern
+// cache.
+func NewQualityEvaluator() *QualityEvaluator {
+	return &QualityEvaluator{patterns: make(map[string]*regexp.Regexp)}
+}
+
+func (e *QualityEvaluator) compileQualityPattern(pattern string) (*regexp.Regexp, error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.patterns == nil {
+		e.patterns = make(map[string]*regexp.Regexp)
+	}
+	if cached, ok := e.patterns[pattern]; ok {
+		return cached, nil
 	}
 	re, err := regexp.Compile(pattern) // regexhoist:dynamic
 	if err != nil {
 		return nil, err
 	}
-	if qualityPatternCacheSize.Load() < qualityPatternCacheCap {
-		if _, loaded := qualityPatternCache.LoadOrStore(pattern, re); !loaded {
-			qualityPatternCacheSize.Add(1)
-		}
+	if len(e.patterns) < qualityPatternCacheCap {
+		e.patterns[pattern] = re
 	}
 	return re, nil
+}
+
+func compileQualityPattern(pattern string) (*regexp.Regexp, error) {
+	return regexp.Compile(pattern) // regexhoist:dynamic
 }
 
 // Sentinel causes for data-quality evaluation envelopes (MODEL-024).
@@ -195,6 +205,10 @@ type QualityRule struct {
 // severity, no checked path, or parameters its check family requires to be
 // evaluable.
 func (r QualityRule) Validate() error {
+	return validateQualityRule(r, compileQualityPattern)
+}
+
+func validateQualityRule(r QualityRule, compile func(string) (*regexp.Regexp, error)) error {
 	if r.RuleRef == "" {
 		return newError("QualityRule.Validate", "rule_ref", ErrInvalidQualityRule,
 			"rule carries no reference")
@@ -228,7 +242,7 @@ func (r QualityRule) Validate() error {
 			return newError("QualityRule.Validate", "pattern", ErrInvalidQualityRule,
 				"%s is FORMAT but declares no pattern", r.RuleRef)
 		}
-		if _, err := compileQualityPattern(r.Pattern); err != nil {
+		if _, err := compile(r.Pattern); err != nil {
 			return newError("QualityRule.Validate", "pattern", ErrInvalidQualityRule,
 				"%s pattern %q does not compile: %v", r.RuleRef, r.Pattern, err)
 		}
@@ -304,7 +318,37 @@ type QualityResult struct {
 // pair) evaluates to FAIL. Every finding carries remediationOwner
 // (MODEL-024 RED/GREEN).
 func EvaluateRule(rule QualityRule, facts map[string]QualityFact, asOf values.Instant, staleAfterSeconds uint32, remediationOwner string) (QualityResult, error) {
-	if err := rule.Validate(); err != nil {
+	return evaluateRule(rule, facts, asOf, staleAfterSeconds, remediationOwner, compileQualityPattern)
+}
+
+// EvaluateRule evaluates a rule using this evaluator's explicitly owned
+// compiled-pattern cache. The zero value is ready for use. A nil receiver is
+// also valid, but does not retain compiled patterns between calls; callers
+// evaluating repeatedly should reuse an evaluator returned by
+// [NewQualityEvaluator].
+func (e *QualityEvaluator) EvaluateRule(rule QualityRule, facts map[string]QualityFact, asOf values.Instant, staleAfterSeconds uint32, remediationOwner string) (QualityResult, error) {
+	if e == nil {
+		e = NewQualityEvaluator()
+	}
+	return evaluateRule(rule, facts, asOf, staleAfterSeconds, remediationOwner, e.compileQualityPattern)
+}
+
+func evaluateRule(rule QualityRule, facts map[string]QualityFact, asOf values.Instant, staleAfterSeconds uint32, remediationOwner string, compile func(string) (*regexp.Regexp, error)) (QualityResult, error) {
+	// Validation must compile FORMAT patterns even when the fact is missing or
+	// stale. Retain that result for the actual check so one evaluation never
+	// compiles the same pattern twice, including through the package API.
+	var compiledPattern *regexp.Regexp
+	compileOnce := func(pattern string) (*regexp.Regexp, error) {
+		if compiledPattern != nil {
+			return compiledPattern, nil
+		}
+		re, err := compile(pattern)
+		if err == nil {
+			compiledPattern = re
+		}
+		return re, err
+	}
+	if err := validateQualityRule(rule, compileOnce); err != nil {
 		return QualityResult{}, err
 	}
 
@@ -372,7 +416,7 @@ func EvaluateRule(rule QualityRule, facts map[string]QualityFact, asOf values.In
 		if unk != nil {
 			findings = append(findings, *unk)
 		} else {
-			re, err := compileQualityPattern(rule.Pattern)
+			re, err := compileOnce(rule.Pattern)
 			if err != nil {
 				return QualityResult{}, newError("EvaluateRule", "pattern", ErrInvalidQualityRule,
 					"%s pattern %q does not compile: %v", rule.RuleRef, rule.Pattern, err)

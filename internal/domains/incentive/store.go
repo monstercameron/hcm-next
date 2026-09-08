@@ -259,7 +259,10 @@ func validateNextRevision[T any](revisions map[uint64]T, revision, supersedes ui
 	if revision != currentRevision(current)+1 || supersedes != currentRevision(current) {
 		return staleStoreError(actual, actual, fmt.Sprintf("revision %d does not extend current revision %d", revision, currentRevision(current)))
 	}
-	if parentDigest != currentDigest(current) {
+	// Award revisions do not expose a parent-digest field; their complete
+	// canonical digest and revision CAS still prevent rewrite. Plan callers
+	// always supply parentDigest and therefore also enforce digest lineage.
+	if parentDigest != "" && parentDigest != currentDigest(current) {
 		return staleStoreError(actual, actual, "parent digest does not match the current revision")
 	}
 	return nil

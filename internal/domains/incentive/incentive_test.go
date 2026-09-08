@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -96,10 +97,25 @@ func testAward(t *testing.T, plan incentive.IncentivePlanRevision) incentive.Awa
 	return award
 }
 
+type approvalVerifier struct {
+	claim incentive.ApprovalClaim
+	ref   string
+}
+
+func (v approvalVerifier) VerifyApproval(got incentive.ApprovalClaim, ref string) error {
+	if ref != v.ref || got.CalculationID != v.claim.CalculationID || got.WorkerRef != v.claim.WorkerRef || got.PeriodRef != v.claim.PeriodRef || got.Currency != v.claim.Currency || got.AwardDigest != v.claim.AwardDigest || got.AwardRevision != v.claim.AwardRevision || !got.Amount.Equal(v.claim.Amount) {
+		return errors.New("receipt mismatch")
+	}
+	return nil
+}
+func verifierForCalculated(a incentive.AwardCalculation, ref string) approvalVerifier {
+	return approvalVerifier{ref: ref, claim: incentive.ApprovalClaim{CalculationID: a.CalculationID, WorkerRef: a.WorkerRef, PeriodRef: a.PeriodRef, Currency: a.Currency, Amount: a.Amount, AwardDigest: a.Digest, AwardRevision: a.Revision}}
+}
+
 func TestIncentiveAwardRequiresPinnedPlanMeasuresAttainmentAndEligibility(t *testing.T) {
 	plan := testPlan(t)
 	award := testAward(t, plan)
-	approved, err := award.Approve("approval-1")
+	approved, err := award.Approve("approval-1", verifierForCalculated(award, "approval-1"))
 	if err != nil || approved.State != incentive.AwardApproved || approved.SupersedesRevision != 1 {
 		t.Fatalf("approve: %#v %v", approved, err)
 	}
@@ -127,15 +143,30 @@ func TestTodo_INCENTIVE_001_Property(t *testing.T) {
 
 func TestTodo_INCENTIVE_001_Golden(t *testing.T) {
 	award := testAward(t, testPlan(t))
-	if award.CanonicalDigest == "" || award.Digest != award.CanonicalDigest {
-		t.Fatal("award digest was not minted")
+	if got, want := award.CanonicalDigest, "sha256:b06644a86d9160a818eb8f51ca971073445eda1b922204971b37e8146d190989"; got != want {
+		t.Fatalf("award canonical digest = %q, want %q", got, want)
 	}
 }
 
 func TestTodo_INCENTIVE_001_Race(t *testing.T) {
 	plan := testPlan(t)
-	if _, err := plan.Successor(incentive.IncentivePlanRevision{Revision: 2, Name: plan.Name, Currency: plan.Currency, PeriodRef: plan.PeriodRef, EligibilityRef: plan.EligibilityRef, FormulaRef: plan.FormulaRef, Measures: plan.Measures}); err != nil {
-		t.Fatal(err)
+	const callers = 32
+	errs := make(chan error, callers)
+	var wg sync.WaitGroup
+	for range callers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := plan.Successor(incentive.IncentivePlanRevision{Revision: 2, Name: plan.Name, Currency: plan.Currency, PeriodRef: plan.PeriodRef, EligibilityRef: plan.EligibilityRef, FormulaRef: plan.FormulaRef, Measures: plan.Measures})
+			errs <- err
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -166,5 +197,50 @@ func TestTodo_INCENTIVE_001_Mutation(t *testing.T) {
 	plan.Measures[0].Name = "changed"
 	if err := plan.Validate(); !errors.Is(err, incentive.ErrInvalidPlan) {
 		t.Fatalf("mutated plan accepted: %v", err)
+	}
+}
+
+func TestVocabularyCanonicalAndExplanationSurface(t *testing.T) {
+	plan := testPlan(t)
+	if len(plan.Canonical()) == 0 {
+		t.Fatal("plan canonical is empty")
+	}
+	digest, err := plan.DigestValue()
+	if err != nil || digest != plan.Digest {
+		t.Fatalf("plan digest = %q, err=%v", digest, err)
+	}
+	explanation, err := incentive.ExplainPlan(plan)
+	if err != nil || explanation.Digest != plan.Digest || len(explanation.MeasureIDs) != 2 {
+		t.Fatalf("plan explanation = %#v, err=%v", explanation, err)
+	}
+	copyPlan, err := incentive.NewPlanRevision(incentive.IncentivePlanRevision{
+		PlanID: plan.PlanID, Revision: 1, Name: plan.Name, Currency: plan.Currency,
+		PeriodRef: plan.PeriodRef, EligibilityRef: plan.EligibilityRef, FormulaRef: plan.FormulaRef,
+		Measures: plan.Measures, ClawbackRules: plan.ClawbackRules,
+	})
+	if err != nil || copyPlan.Digest != plan.Digest {
+		t.Fatalf("plan alias constructor = %#v, err=%v", copyPlan, err)
+	}
+	successor, err := plan.Successor(incentive.IncentivePlanRevision{Revision: 2, Name: plan.Name, Currency: plan.Currency, PeriodRef: plan.PeriodRef, EligibilityRef: plan.EligibilityRef, FormulaRef: plan.FormulaRef, Measures: plan.Measures, ClawbackRules: plan.ClawbackRules})
+	if err != nil || successor.ParentDigest != plan.Digest || successor.SupersedesRevision != 1 {
+		t.Fatalf("successor = %#v, err=%v", successor, err)
+	}
+
+	observation := testObservation(t, "canonical-observation", "bookings", decimal(t, "101.00"))
+	if len(observation.Canonical()) == 0 {
+		t.Fatal("observation canonical is empty")
+	}
+	threshold := incentive.AwardThreshold{Name: "floor", Minimum: decimal(t, "80.00"), Multiplier: decimal(t, "1.00")}
+	if err := threshold.Validate(); err != nil || len(threshold.Canonical()) == 0 {
+		t.Fatalf("threshold = %#v, err=%v", threshold, err)
+	}
+	award := testAward(t, plan)
+	award.Thresholds = []incentive.AwardThreshold{threshold}
+	award, err = incentive.NewAward(award)
+	if err != nil || len(award.Canonical()) == 0 {
+		t.Fatalf("award alias constructor = %#v, err=%v", award, err)
+	}
+	if _, err := award.Finalize("too-soon"); !errors.Is(err, incentive.ErrAwardTransition) {
+		t.Fatalf("calculated award finalized directly: %v", err)
 	}
 }

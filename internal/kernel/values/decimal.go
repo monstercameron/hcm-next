@@ -527,33 +527,36 @@ func (d Decimal) Div(o Decimal, scale int32, mode RoundingMode) (Decimal, error)
 	if err := checkMode(mode); err != nil {
 		return Decimal{}, err
 	}
-	num, _, err := apd.NewFromString(d.String())
-	if err != nil {
-		return Decimal{}, fmt.Errorf("values: decimal backend rejected %q: %w", d.String(), err)
+	// A finite-precision quotient followed by Quantize can double-round
+	// across a target tie. Work at target scale and round once from the
+	// exact integer quotient and remainder.
+	numerator, denominator := d.Unscaled(), o.Unscaled()
+	shift := o.scale + scale - d.scale
+	if shift >= 0 {
+		numerator.Mul(numerator, pow10(shift))
+	} else {
+		denominator.Mul(denominator, pow10(-shift))
 	}
-	den, _, err := apd.NewFromString(o.String())
-	if err != nil {
-		return Decimal{}, fmt.Errorf("values: decimal backend rejected %q: %w", o.String(), err)
-	}
-	ctx := newDecimalContext(mode)
-	var quotient apd.Decimal
-	if _, err := ctx.Quo(&quotient, num, den); err != nil {
-		return Decimal{}, fmt.Errorf("values: divide: %w", err)
-	}
-	if mode == RoundingExactRequired {
-		var check apd.Decimal
-		if _, err := ctx.Quantize(&check, &quotient, -scale); err != nil {
-			return Decimal{}, fmt.Errorf("values: divide: %w", err)
-		}
-		if check.Cmp(&quotient) != 0 {
+	quotient, remainder := new(big.Int), new(big.Int)
+	quotient.QuoRem(numerator, denominator, remainder)
+	negative := d.Sign() != o.Sign()
+	if remainder.Sign() != 0 {
+		if mode == RoundingExactRequired {
 			return Decimal{}, fmt.Errorf("%w: %s / %s at scale %d", ErrInexact, d.String(), o.String(), scale)
 		}
+		increment := mode == RoundingAwayFromZero || mode == RoundingFloor && negative || mode == RoundingCeiling && !negative
+		if mode == RoundingHalfEven || mode == RoundingHalfUp || mode == RoundingHalfAwayFromZero {
+			comparison := new(big.Int).Lsh(new(big.Int).Set(remainder), 1).Cmp(denominator)
+			increment = comparison > 0 || comparison == 0 && (mode != RoundingHalfEven || quotient.Bit(0) == 1)
+		}
+		if increment {
+			quotient.Add(quotient, big.NewInt(1))
+		}
 	}
-	var out apd.Decimal
-	if _, err := ctx.Quantize(&out, &quotient, -scale); err != nil {
-		return Decimal{}, fmt.Errorf("values: divide: %w", err)
+	if negative {
+		quotient.Neg(quotient)
 	}
-	return decimalFromBackendText(out.Text('f'), scale, mode)
+	return fromSigned(quotient, scale, mode)
 }
 
 // Quantize returns the same number at a different declared scale, rounding by
@@ -565,8 +568,13 @@ func (d Decimal) Quantize(scale int32, mode RoundingMode) (Decimal, error) {
 	return quantizeSigned(d.signed(), d.scale, scale, mode)
 }
 
-// quantizeSigned rescales a signed unscaled integer. Widening the scale is
-// exact; narrowing it defers the rounding decision to the qualified backend.
+func directedRounding(mode RoundingMode) bool {
+	return mode == RoundingFloor || mode == RoundingCeiling || mode == RoundingTowardZero || mode == RoundingAwayFromZero
+}
+
+// quantizeSigned rescales a signed unscaled integer. Widening is exact;
+// narrowing uses exact integer decisions for directed modes and the qualified
+// decimal backend for nearest modes.
 func quantizeSigned(signed *big.Int, fromScale, toScale int32, mode RoundingMode) (Decimal, error) {
 	if err := checkScale(toScale); err != nil {
 		return Decimal{}, err
@@ -584,6 +592,23 @@ func quantizeSigned(signed *big.Int, fromScale, toScale int32, mode RoundingMode
 			return Decimal{}, fmt.Errorf("%w: scale %d -> %d discards %s",
 				ErrInexact, fromScale, toScale, rem.String())
 		}
+	}
+	if directedRounding(mode) {
+		// See Div: the backend loses directed sub-unit information during
+		// Quantize, while integer rescaling retains it exactly.
+		divisor := pow10(fromScale - toScale)
+		magnitude, remainder := new(big.Int), new(big.Int)
+		magnitude.QuoRem(new(big.Int).Abs(signed), divisor, remainder)
+		if remainder.Sign() != 0 {
+			increment := mode == RoundingAwayFromZero || mode == RoundingFloor && signed.Sign() < 0 || mode == RoundingCeiling && signed.Sign() > 0
+			if increment {
+				magnitude.Add(magnitude, big.NewInt(1))
+			}
+		}
+		if signed.Sign() < 0 {
+			magnitude.Neg(magnitude)
+		}
+		return fromSigned(magnitude, toScale, mode)
 	}
 	text := formatFixed(new(big.Int).Abs(signed), signed.Sign() < 0, fromScale)
 	in, _, err := apd.NewFromString(text)

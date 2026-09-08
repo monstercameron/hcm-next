@@ -224,6 +224,20 @@ func (w WriteFootprint) Digest() string {
 	return hex.EncodeToString(sum[:])
 }
 
+// ScopeDigest identifies the normalized write scope independently of the
+// baseline revision. Competing writers at different observed revisions still
+// contend for the same durable scope fence.
+func (w WriteFootprint) ScopeDigest() string {
+	if err := w.Validate(); err != nil {
+		return ""
+	}
+	e := newEnc("hcmnext.transaction.conflict.write_scope.v1")
+	e.raw(w.Resource.Canonical()).str(string(w.Field)).raw(w.Interval.Canonical())
+	e.str(string(w.Operation)).str(w.Authority.Domain).str(w.Authority.PolicyRef)
+	sum := sha256.Sum256(e.bytes())
+	return hex.EncodeToString(sum[:])
+}
+
 // enc is the length-framed canonical byte builder, mirroring the pattern
 // internal/intent uses for its own material and plan digests.
 type enc struct{ buf []byte }

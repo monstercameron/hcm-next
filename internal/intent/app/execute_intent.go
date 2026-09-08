@@ -2,13 +2,15 @@ package app
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"reflect"
 
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/hcm-next/internal/capability"
 	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
 	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/trust"
 	"github.com/monstercameron/hcm-next/internal/workflow"
@@ -31,6 +33,7 @@ const (
 
 // Reason references [IntentService.ExecuteIntent] owns.
 const (
+	reasonExecutionOutcomeAmbiguous = "intent.execution_outcome_ambiguous"
 	// reasonExecutionRoleRequired reports a cell whose ExecutionAuthority is
 	// configured and admits the intent type, but whose caller does not carry
 	// the role the authority names.
@@ -122,7 +125,8 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 	// ([derivedIDs]/[simulationRevision]), so simulating twice for the same
 	// stored intent produces the same revision id and digest, never a
 	// caller-invented one.
-	artifact, ownedErr := s.simulate(ctx, principal, purposeOf(principal, inv), inst, def)
+	simulated, ownedErr := s.simulateDetailed(ctx, principal, purposeOf(principal, inv), inst, def)
+	artifact := simulated.Artifact
 	if ownedErr != nil {
 		return nil, ownedErr
 	}
@@ -130,6 +134,10 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 		return nil, envelope.New(envelope.CodeFailedPrecondition, reasonNoExecutablePlan,
 			"a precondition for the operation is not met").
 			WithViolation("intent_id", "the intent has no executable proposal to run", ruleExecutionAuthorityGate)
+	}
+	if simulated.Revision == nil || simulated.Revision.ProposalRevisionID == "" {
+		return nil, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
+			"the operation could not be completed").WithDiagnostic(fmt.Errorf("executable simulation returned no minted proposal revision"))
 	}
 
 	if ownedErr := checkApproval(req.GetApproval(), artifact); ownedErr != nil {
@@ -141,13 +149,16 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 		return nil, executionUnavailable()
 	}
 
-	start, ownedErr := s.executionStart(inst, artifact, req.GetApproval().GetApprovalRef())
+	start, ownedErr := s.executionStart(inst, artifact, req.GetApproval().GetApprovalRef(), *simulated.Revision)
 	if ownedErr != nil {
 		return nil, ownedErr
 	}
 
 	result, err := s.executor.Execute(ctx, start)
 	if err != nil {
+		return nil, executionError(err)
+	}
+	if err := result.validate(); err != nil {
 		return nil, executionError(err)
 	}
 	if outcomeErr := s.consumeExecutionResult(ctx, inst, def, rec, result); outcomeErr != nil {
@@ -175,13 +186,13 @@ func (s *IntentService) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 // first divergence between them would surface as an unexplained
 // WORK_ITEM_DRIFT rather than as a compile error.
 //
-// It reconstructs only the fields runtime.Start itself inspects (identity,
-// tenant, subjects and material digest), not a persisted proposal: P1A mints
-// a ProposalRevision as an in-memory simulation artifact and never stores it
-// (see [IntentService.simulatePromotion]), so there is no stored revision to
-// load back here.
+// ExecuteIntent passes the already-minted revision through the optional
+// argument, preserving its writes, baselines, effective interval and control
+// context without a second simulation. Resume and older callers may omit it;
+// those callers retain the compatibility shell until durable proposal
+// persistence is introduced.
 func (s *IntentService) executionStart(
-	inst intent.Instance, artifact *intentsv1.SimulationArtifact, _ string,
+	inst intent.Instance, artifact *intentsv1.SimulationArtifact, _ string, minted intent.ProposalRevision,
 ) (runtime.StartRequest, *envelope.Error) {
 	materialDigest, digestErr := digest.FromProto(artifact.GetMaterialProposalDigest())
 	if digestErr != nil {
@@ -203,34 +214,26 @@ func (s *IntentService) executionStart(
 	// (runtime.CodeUnapprovedProposal -> reasonUnapprovedProposal) and a
 	// superseded revision is refused (runtime.CodeSupersededProposal) whatever
 	// the caller said.
-	binding := runtime.ProposalBinding{
-		Revision: intent.ProposalRevision{
-			ProposalRevisionID:  artifact.GetProposalRevisionId(),
-			IntentID:            inst.IntentID,
-			Revision:            simulationRevision,
-			Tenant:              inst.Tenant,
-			OrganizationScopeID: inst.OrganizationScopeID,
-			Subjects:            inst.Subjects,
-			MaterialDigest:      materialDigest,
-		},
+	revision := intent.ProposalRevision{
+		ProposalRevisionID:  artifact.GetProposalRevisionId(),
+		IntentID:            inst.IntentID,
+		Revision:            simulationRevision,
+		Tenant:              inst.Tenant,
+		OrganizationScopeID: inst.OrganizationScopeID,
+		Subjects:            inst.Subjects,
+		MaterialDigest:      materialDigest,
 	}
-	// The requested effective instant is the one durable fact a WAIT node's
-	// effective-date wake is derived from (internal/platform/execution binds
-	// the promotionexec WAIT placeholder from Revision.EffectiveTime). It is
-	// carried the way proposalFor carries it for the simulation artifact, so
-	// Start, every Resume and the timer promise all read one interval.
-	if inst.RequestedEffectiveAt != nil {
-		if effective, intervalErr := values.NewOpenInstantInterval(*inst.RequestedEffectiveAt); intervalErr == nil {
-			binding.Revision.EffectiveTime = effective
-		}
+	if minted.ProposalRevisionID != revision.ProposalRevisionID || minted.IntentID != inst.IntentID || minted.Revision != simulationRevision || minted.Tenant != inst.Tenant || !reflect.DeepEqual(minted.MaterialDigest, materialDigest) {
+		return runtime.StartRequest{}, envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable, "the operation could not be completed").WithDiagnostic(fmt.Errorf("minted proposal revision does not match simulation artifact or intent binding"))
 	}
+	revision = minted
 	return runtime.StartRequest{
 		TenantID:            s.tenantUUID(inst.Tenant),
 		CellID:              cellID,
 		StartIdempotencyKey: "execute:" + inst.IntentID + ":" + artifact.GetProposalRevisionId(),
 		Resolver:            s.executionResolver,
 		Versions:            s.executionVersions,
-		Proposal:            binding,
+		Proposal:            runtime.ProposalBinding{Revision: revision},
 		ProposalFacts:       proposalFactsOf(s.executionFacts),
 		ApprovalFacts:       approvalFactsOf(s.executionFacts),
 		ExpectedIntentID:    inst.IntentID,
@@ -322,6 +325,12 @@ func executionUnavailable() *envelope.Error {
 // error model. [runtime.Error] is the one typed refusal shape that package
 // exposes; anything else is reported as this cell's own fault.
 func executionError(err error) *envelope.Error {
+	if errors.Is(err, transactioncommit.ErrCommitAmbiguous) {
+		return envelope.New(envelope.CodeUnavailable, reasonExecutionOutcomeAmbiguous,
+			"the workflow start outcome could not be determined").
+			WithRetryable(false).
+			WithDiagnostic(err)
+	}
 	code := runtime.CodeOf(err)
 	if code == "" {
 		return envelope.New(envelope.CodeUnavailable, reasonDomainUnavailable,
@@ -387,7 +396,7 @@ func executionReceiptProto(result ExecutionResult) *intentsv1.ExecutionReceipt {
 			WorkItemId: w.WorkItemID, Kind: w.Kind, NodeId: w.NodeID,
 		})
 	}
-	return &intentsv1.ExecutionReceipt{
+	receipt := &intentsv1.ExecutionReceipt{
 		InstanceId:             result.InstanceID,
 		VisitedNodes:           append([]string(nil), result.VisitedNodes...),
 		ParkedContinuations:    append([]string(nil), result.ParkedContinuations...),
@@ -395,6 +404,36 @@ func executionReceiptProto(result ExecutionResult) *intentsv1.ExecutionReceipt {
 		ReceiptDigest:          receiptDigestFor(result),
 		ParkedContinuationRefs: continuations,
 		WorkItems:              workItems,
+	}
+	switch result.effectiveStatus() {
+	case ExecutionResultParked:
+		receipt.Status = intentsv1.ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_PARKED
+	case ExecutionResultComplete:
+		receipt.Status = intentsv1.ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_COMPLETE
+	case ExecutionResultResolved:
+		receipt.Status = intentsv1.ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_RESOLVED
+		if state := result.ResolvedStart; state != nil {
+			receipt.ResolvedStart = &intentsv1.ResolvedStartState{
+				RuntimeStatus: string(state.RuntimeStatus), CurrentNodeIds: append([]string(nil), state.CurrentNodeIDs...),
+				WorkflowId: state.WorkflowID, WorkflowVersion: state.WorkflowVersion,
+				CompiledPlanDigest: state.CompiledPlanDigest, SemanticVersion: state.SemanticVersion,
+				Lifecycle: runtimeDimensionsProto(state.Lifecycle),
+			}
+		}
+	}
+	return receipt
+}
+
+func runtimeDimensionsProto(d runtime.Dimensions) *intentsv1.LifecycleDimensions {
+	if d.Empty() {
+		return nil
+	}
+	return &intentsv1.LifecycleDimensions{
+		Request:     intentsv1.RequestState(intentsv1.RequestState_value["REQUEST_STATE_"+d.RequestState]),
+		Execution:   intentsv1.ExecutionState(intentsv1.ExecutionState_value["EXECUTION_STATE_"+d.ExecutionState]),
+		Business:    intentsv1.BusinessState(intentsv1.BusinessState_value["BUSINESS_STATE_"+d.BusinessState]),
+		Consistency: intentsv1.ConsistencyState(intentsv1.ConsistencyState_value["CONSISTENCY_STATE_"+d.ConsistencyState]),
+		Obligation:  intentsv1.ObligationState(intentsv1.ObligationState_value["OBLIGATION_STATE_"+d.ObligationState]),
 	}
 }
 
@@ -404,9 +443,9 @@ func executionReceiptProto(result ExecutionResult) *intentsv1.ExecutionReceipt {
 // is; nothing here is approval-bound material, only a receipt of what
 // already ran.
 func receiptDigestFor(result ExecutionResult) string {
-	status := "PARKED"
-	if !result.Parked {
-		status = "COMPLETE"
+	status := string(result.effectiveStatus())
+	if status == string(ExecutionResultResolved) {
+		return fmt.Sprintf("execution:%s:RESOLVED:%d", result.InstanceID, result.InstanceVersion)
 	}
 	return "execution:" + result.InstanceID + ":" + status
 }

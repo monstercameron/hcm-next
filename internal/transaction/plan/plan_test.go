@@ -21,6 +21,55 @@ import (
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
 
+func TestConflictIntentReferenceIsBoundToPlanDigest(t *testing.T) {
+	f := newPromotionFixture(t)
+	f.request.ConflictIntentID = "write-intent-1"
+	f.request.ConflictSnapshotDigest = "sha256:conflict-snapshot-1"
+	f.request.ConflictFootprintDigests = []string{"scope-digest-1"}
+	effective, intervalErr := values.NewOpenInstantInterval(f.request.Now)
+	if intervalErr != nil {
+		t.Fatal(intervalErr)
+	}
+	for i := range f.request.Proposal.Writes {
+		f.request.Proposal.Writes[i].Operation = intent.WriteOperationUpdate
+		f.request.Proposal.Writes[i].EffectiveInterval = effective
+	}
+	prepared, err := Prepare(context.Background(), f.book, f.request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prepared.ConflictIntentID != f.request.ConflictIntentID || prepared.ConflictSnapshotDigest != f.request.ConflictSnapshotDigest {
+		t.Fatalf("prepared conflict binding = %q/%q", prepared.ConflictIntentID, prepared.ConflictSnapshotDigest)
+	}
+	if len(prepared.ConflictFootprintDigests) != 1 || prepared.ConflictFootprintDigests[0] != "scope-digest-1" {
+		t.Fatalf("prepared conflict scopes = %v", prepared.ConflictFootprintDigests)
+	}
+	mutated := prepared
+	mutated.ConflictIntentID = "write-intent-attacker"
+	if err := mutated.VerifyDigest(); !errors.Is(err, ErrInvalidPlan) {
+		t.Fatalf("substituted conflict intent VerifyDigest = %v", err)
+	}
+	mutated = prepared
+	mutated.ConflictSnapshotDigest = "sha256:other-snapshot"
+	if err := mutated.VerifyDigest(); !errors.Is(err, ErrInvalidPlan) {
+		t.Fatalf("substituted conflict snapshot VerifyDigest = %v", err)
+	}
+	mutated = prepared
+	mutated.ConflictFootprintDigests = append([]string(nil), prepared.ConflictFootprintDigests...)
+	mutated.ConflictFootprintDigests[0] = "scope-digest-attacker"
+	if err := mutated.VerifyDigest(); !errors.Is(err, ErrInvalidPlan) {
+		t.Fatalf("substituted conflict footprint VerifyDigest = %v", err)
+	}
+	legacy := newPromotionFixture(t)
+	legacyPrepared, err := Prepare(context.Background(), legacy.book, legacy.request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if legacyPrepared.ConflictIntentID != "" || legacyPrepared.ConflictSnapshotDigest != "" {
+		t.Fatal("legacy plan unexpectedly declares a conflict fence")
+	}
+}
+
 type headBook struct {
 	mu    sync.RWMutex
 	heads map[string]Head

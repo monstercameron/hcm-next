@@ -279,6 +279,11 @@ func containsDate(interval values.EffectiveInterval, date values.LocalDate) bool
 	return err == nil && ok
 }
 
+func startedAt(interval values.EffectiveInterval, date values.LocalDate) bool {
+	start, ok := interval.StartDate()
+	return ok && start.Compare(date) <= 0
+}
+
 func expiredAt(interval values.EffectiveInterval, date values.LocalDate) bool {
 	end, hasEnd := interval.EndDate()
 	return hasEnd && end.Compare(date) <= 0
@@ -333,6 +338,15 @@ func (r Resolver) Resolve(ctx context.Context, req ResolveRequest) (Resolution, 
 			return Resolution{}, fmt.Errorf("%w: evidence[%d]: %v", ErrInvalidResolution, i, err)
 		}
 	}
+	// A correction is an append-only successor relation. Once a successor is
+	// present, the predecessor remains in the audit set but cannot influence a
+	// current decision.
+	superseded := make(map[string]struct{}, len(evidence))
+	for _, item := range evidence {
+		if item.Supersedes.Id != "" && startedAt(item.Effective, req.AsOf) {
+			superseded[item.Supersedes.String()] = struct{}{}
+		}
+	}
 	scales := make(map[string][]ProficiencyLevel, len(req.Ontology.Skills))
 	for _, definition := range req.Ontology.Skills {
 		scales[definition.ref().String()] = scaleOrDefault(definition.ProficiencyScale)
@@ -347,6 +361,9 @@ func (r Resolver) Resolve(ctx context.Context, req ResolveRequest) (Resolution, 
 	for _, target := range targets {
 		best, found := evidenceCandidate{}, false
 		for _, item := range evidence {
+			if _, replaced := superseded[item.EvidenceID.String()]; replaced {
+				continue
+			}
 			if item.SkillRef != target {
 				continue
 			}
@@ -368,6 +385,9 @@ func (r Resolver) Resolve(ctx context.Context, req ResolveRequest) (Resolution, 
 				continue
 			}
 			for _, item := range evidence {
+				if _, replaced := superseded[item.EvidenceID.String()]; replaced {
+					continue
+				}
 				if item.SkillRef != rule.SourceSkill {
 					continue
 				}

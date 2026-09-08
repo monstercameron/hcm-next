@@ -26,9 +26,36 @@ type OutcomeReceipt struct {
 	CommitReceiptRef string
 	// RepairRef links the RepairPlan or incident a REPAIR_REQUIRED terminal
 	// raised; required when Dimensions.Execution is REPAIR_REQUIRED.
-	RepairRef    string
+	RepairRef     string
+	EvidenceRefs  []string
+	LegalEvidence *LegalObligationEvidence
+	RecordedAt    time.Time
+}
+
+// LegalObligationEvidence binds a trusted legal-evaluation receipt to the
+// exact proposal whose obligation state is being projected. Evaluation says
+// which exact duties attach; Discharges separately prove which duty each
+// item of evidence discharges. Counts and unbound evidence references are not
+// sufficient to establish SATISFIED.
+type LegalObligationEvidence struct {
+	ReceiptRef         string
+	ReceiptDigest      string
+	BindingDigest      string
+	ProposalRevisionID string
+	MaterialDigest     string
+	AppliedObligations []LegalBoundObligation
+	Discharges         []LegalObligationDischarge
+}
+
+type LegalBoundObligation struct {
+	Type       string
+	ID         string
+	BodyDigest string
+}
+
+type LegalObligationDischarge struct {
+	Obligation   LegalBoundObligation
 	EvidenceRefs []string
-	RecordedAt   time.Time
 }
 
 // ReconciliationVerdict is the bounded RECON-002 answer carried beside the
@@ -83,6 +110,12 @@ func (r OutcomeReceipt) Validate() error {
 	if r.Dimensions.Execution == lifecycle.ExecutionRepairRequired && r.RepairRef == "" {
 		return fmt.Errorf("%w: REPAIR_REQUIRED requires a repair ref", ErrInvalidOutcome)
 	}
+	if r.LegalEvidence != nil {
+		e := r.LegalEvidence
+		if e.ReceiptRef == "" || e.ReceiptDigest == "" || e.BindingDigest == "" || e.ProposalRevisionID == "" || e.MaterialDigest == "" {
+			return fmt.Errorf("%w: legal obligation evidence is incomplete", ErrInvalidOutcome)
+		}
+	}
 	return nil
 }
 
@@ -112,6 +145,12 @@ func BindOutcome(instance *Instance, def Definition, receipt OutcomeReceipt) err
 		return fmt.Errorf("%w: receipt names proposal %s, current revision is %s",
 			ErrOutcomeStaleRevision, receipt.ProposalRevisionID, current.ProposalRevisionID)
 	}
+	current, hasRevision := instance.CurrentRevision()
+	if hasRevision && len(current.Obligations) > 0 {
+		if err := validateLegalObligationEvidence(receipt, current); err != nil {
+			return err
+		}
+	}
 	if instance.Lifecycle == receipt.Dimensions {
 		return nil
 	}
@@ -132,8 +171,102 @@ func BindOutcome(instance *Instance, def Definition, receipt OutcomeReceipt) err
 	instance.Lifecycle = receipt.Dimensions
 	instance.CommitReceiptRef = receipt.CommitReceiptRef
 	instance.RepairRef = receipt.RepairRef
+	instance.LegalEvidence = cloneLegalEvidence(receipt.LegalEvidence)
 	instance.InstanceVersion++
 	instance.RecordedAt = values.NewInstant(receipt.RecordedAt)
 	instance.LastTransitionAt = values.NewInstant(receipt.RecordedAt)
 	return nil
+}
+
+func validateLegalObligationEvidence(receipt OutcomeReceipt, revision ProposalRevision) error {
+	e := receipt.LegalEvidence
+	if e == nil {
+		return fmt.Errorf("%w: proposal declares legal obligations but carries no verified evaluation", ErrInvalidOutcome)
+	}
+	if e.ProposalRevisionID != revision.ProposalRevisionID || e.MaterialDigest != revision.MaterialDigest.Digest ||
+		receipt.ProposalRevisionID != revision.ProposalRevisionID || receipt.MaterialDigest != revision.MaterialDigest.Digest {
+		return fmt.Errorf("%w: legal evidence does not bind the current proposal", ErrOutcomeStaleRevision)
+	}
+	if !legalObligationsMatchProposal(e.AppliedObligations, revision.Obligations) {
+		return fmt.Errorf("%w: legal evidence obligation set differs from the proposal", ErrInvalidOutcome)
+	}
+	switch receipt.Dimensions.Obligation {
+	case lifecycle.ObligationPending:
+		if len(e.AppliedObligations) == 0 {
+			return fmt.Errorf("%w: PENDING requires an applied legal obligation", ErrInvalidOutcome)
+		}
+	case lifecycle.ObligationNotApplicable:
+		if len(e.AppliedObligations) != 0 {
+			return fmt.Errorf("%w: NOT_APPLICABLE conflicts with applied legal obligations", ErrInvalidOutcome)
+		}
+	case lifecycle.ObligationSatisfied:
+		if !allAppliedObligationsDischarged(e) {
+			return fmt.Errorf("%w: SATISFIED requires evidence discharging every applied obligation", ErrInvalidOutcome)
+		}
+	case lifecycle.ObligationWaived, lifecycle.ObligationOverdue:
+		if len(e.AppliedObligations) == 0 {
+			return fmt.Errorf("%w: %s requires an applied legal obligation", ErrInvalidOutcome, receipt.Dimensions.Obligation)
+		}
+	}
+	return nil
+}
+
+func legalObligationsMatchProposal(applied []LegalBoundObligation, declared []Obligation) bool {
+	if len(applied) != len(declared) {
+		return false
+	}
+	seen := make(map[string]struct{}, len(applied))
+	for _, obligation := range applied {
+		if obligation.Type == "" || obligation.ID == "" || obligation.BodyDigest == "" {
+			return false
+		}
+		key := obligation.Type + "\x00" + obligation.ID
+		if _, duplicate := seen[key]; duplicate {
+			return false
+		}
+		seen[key] = struct{}{}
+	}
+	for _, obligation := range declared {
+		if _, ok := seen[obligation.Kind+"\x00"+obligation.ObligationID]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func allAppliedObligationsDischarged(e *LegalObligationEvidence) bool {
+	if len(e.AppliedObligations) == 0 || len(e.Discharges) != len(e.AppliedObligations) {
+		return false
+	}
+	applied := make(map[LegalBoundObligation]struct{}, len(e.AppliedObligations))
+	for _, obligation := range e.AppliedObligations {
+		if obligation.Type == "" || obligation.ID == "" || obligation.BodyDigest == "" {
+			return false
+		}
+		applied[obligation] = struct{}{}
+	}
+	if len(applied) != len(e.AppliedObligations) {
+		return false
+	}
+	for _, discharge := range e.Discharges {
+		if _, ok := applied[discharge.Obligation]; !ok || len(discharge.EvidenceRefs) == 0 {
+			return false
+		}
+		delete(applied, discharge.Obligation)
+	}
+	return len(applied) == 0
+}
+
+func cloneLegalEvidence(in *LegalObligationEvidence) *LegalObligationEvidence {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.AppliedObligations = append([]LegalBoundObligation(nil), in.AppliedObligations...)
+	out.Discharges = make([]LegalObligationDischarge, len(in.Discharges))
+	for i := range in.Discharges {
+		out.Discharges[i] = in.Discharges[i]
+		out.Discharges[i].EvidenceRefs = append([]string(nil), in.Discharges[i].EvidenceRefs...)
+	}
+	return &out
 }

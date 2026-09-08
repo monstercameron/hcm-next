@@ -66,8 +66,9 @@ const (
 func Claims() []Claim {
 	claims := []Claim{
 		{
-			CapabilityID:  "hcmnext.people.explain_worker_state",
-			DefinitionRef: "hcmnext.people.explain_worker_state/v1",
+			CapabilityID:      "hcmnext.people.explain_worker_state",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.people.explain_worker_state/v1",
 			WireMethods: append(genericIntentLifecycleMethods(),
 				"hcmnext.admin.v1.AdminService/GetWorkerState"),
 			Handlers: []HandlerSymbol{
@@ -77,8 +78,9 @@ func Claims() []Claim {
 			Rationale: genericLifecycleRationale + "; internal/transport/admin/worker_state.go additionally answers the same question as a direct passthrough to internal/domains/people.ExplainWorkerState, without the capability gateway",
 		},
 		{
-			CapabilityID:  "hcmnext.people.promote_worker",
-			DefinitionRef: "hcmnext.people.promote_worker/v1",
+			CapabilityID:      "hcmnext.people.promote_worker",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.people.promote_worker/v1",
 			WireMethods: append(genericIntentLifecycleMethods(),
 				"hcmnext.journey.v1.JourneyService/ProposePromotion"),
 			Handlers: []HandlerSymbol{
@@ -88,22 +90,25 @@ func Claims() []Claim {
 			Rationale: genericLifecycleRationale + "; internal/transport/journey/promotionpropose.go additionally forwards to the one Promotion application service, which does run the capability gateway",
 		},
 		{
-			CapabilityID:  "hcmnext.rewards.simulate_compensation",
-			DefinitionRef: "hcmnext.rewards.simulate_compensation/v1",
-			WireMethods:   genericIntentLifecycleMethods(),
-			Handlers:      []HandlerSymbol{appHandler("simulateCompensation")},
-			Rationale:     genericLifecycleRationale,
+			CapabilityID:      "hcmnext.rewards.simulate_compensation",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.rewards.simulate_compensation/v1",
+			WireMethods:       genericIntentLifecycleMethods(),
+			Handlers:          []HandlerSymbol{appHandler("simulateCompensation")},
+			Rationale:         genericLifecycleRationale,
 		},
 		{
-			CapabilityID:  "hcmnext.rewards.evaluate_pay_band_position",
-			DefinitionRef: "hcmnext.rewards.evaluate_pay_band_position/v1",
-			WireMethods:   genericIntentLifecycleMethods(),
-			Handlers:      []HandlerSymbol{appHandler("evaluatePayBandPosition")},
-			Rationale:     genericLifecycleRationale,
+			CapabilityID:      "hcmnext.rewards.evaluate_pay_band_position",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.rewards.evaluate_pay_band_position/v1",
+			WireMethods:       genericIntentLifecycleMethods(),
+			Handlers:          []HandlerSymbol{appHandler("evaluatePayBandPosition")},
+			Rationale:         genericLifecycleRationale,
 		},
 		{
-			CapabilityID:  "hcmnext.intelligence.explain_transaction",
-			DefinitionRef: "hcmnext.intelligence.explain_transaction/v1",
+			CapabilityID:      "hcmnext.intelligence.explain_transaction",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.intelligence.explain_transaction/v1",
 			WireMethods: append(genericIntentLifecycleMethods(),
 				"hcmnext.admin.v1.AdminService/ExplainTransaction"),
 			Handlers: []HandlerSymbol{
@@ -113,28 +118,32 @@ func Claims() []Claim {
 			Rationale: genericLifecycleRationale + "; internal/transport/admin/explain_transaction.go additionally answers the same question as a direct passthrough to internal/domains/intelligence.ExplainTransaction, without the capability gateway",
 		},
 		{
-			CapabilityID:  "hcmnext.operations.detect_drift",
-			DefinitionRef: "hcmnext.operations.detect_drift/v1",
-			WireMethods:   genericIntentLifecycleMethods(),
-			Handlers:      []HandlerSymbol{appHandler("detectDrift")},
-			Rationale:     genericLifecycleRationale,
+			CapabilityID:      "hcmnext.operations.detect_drift",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.operations.detect_drift/v1",
+			WireMethods:       genericIntentLifecycleMethods(),
+			Handlers:          []HandlerSymbol{appHandler("detectDrift")},
+			Rationale:         genericLifecycleRationale,
 		},
 		{
-			CapabilityID:  "hcmnext.operations.create_repair_plan",
-			DefinitionRef: "hcmnext.operations.create_repair_plan/v1",
-			WireMethods:   genericIntentLifecycleMethods(),
-			Handlers:      []HandlerSymbol{appHandler("createRepairPlan")},
-			Rationale:     genericLifecycleRationale,
+			CapabilityID:      "hcmnext.operations.create_repair_plan",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.operations.create_repair_plan/v1",
+			WireMethods:       genericIntentLifecycleMethods(),
+			Handlers:          []HandlerSymbol{appHandler("createRepairPlan")},
+			Rationale:         genericLifecycleRationale,
 		},
 		{
-			CapabilityID:  "hcmnext.operations.simulate_repair",
-			DefinitionRef: "hcmnext.operations.simulate_repair/v1",
-			WireMethods:   genericIntentLifecycleMethods(),
-			Handlers:      []HandlerSymbol{appHandler("simulateRepair")},
-			Rationale:     genericLifecycleRationale,
+			CapabilityID:      "hcmnext.operations.simulate_repair",
+			CapabilityVersion: 1,
+			DefinitionRef:     "hcmnext.operations.simulate_repair/v1",
+			WireMethods:       genericIntentLifecycleMethods(),
+			Handlers:          []HandlerSymbol{appHandler("simulateRepair")},
+			Rationale:         genericLifecycleRationale,
 		},
 		{
-			CapabilityID: "hcmnext.registry.resolve_capability",
+			CapabilityID:      "hcmnext.registry.resolve_capability",
+			CapabilityVersion: 1,
 			// The registry's self-description capabilities answer "what
 			// exists"; no drafted BusinessIntent definition covers them, so
 			// there is no model binding to resolve.
@@ -150,8 +159,9 @@ func Claims() []Claim {
 			Rationale: registryPairRationale,
 		},
 		{
-			CapabilityID:  "hcmnext.registry.explain_capability",
-			DefinitionRef: "",
+			CapabilityID:      "hcmnext.registry.explain_capability",
+			CapabilityVersion: 1,
+			DefinitionRef:     "",
 			WireMethods: []string{
 				"hcmnext.registry.v1.RegistryService/GetCapability",
 				"hcmnext.registry.v1.RegistryService/GetIntentDefinition",

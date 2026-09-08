@@ -85,6 +85,10 @@ func (h HandlerIndex) Refs() []string {
 // first-wins pick.
 type Claim struct {
 	CapabilityID string
+	// CapabilityVersion is the published capability version this claim
+	// binds. It must match exactly; zero is not a legacy wildcard because
+	// that would let an unversioned claim silently satisfy any release.
+	CapabilityVersion uint32
 	// DefinitionRef is the intent definition ("<intent_type_id>/v<version>")
 	// whose model binding supplies this capability's entities and
 	// properties. Empty means the capability has no drafted definition, and

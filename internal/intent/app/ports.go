@@ -50,6 +50,7 @@ type IntentRecord struct {
 	// projected beside the lifecycle tuple; empty until a terminal is bound.
 	CommitReceiptRef string
 	RepairRef        string
+	LegalEvidence    *intent.LegalObligationEvidence
 
 	// Envelope is the marshalled hcmnext.intents.v1.IntentInstance.
 	Envelope []byte

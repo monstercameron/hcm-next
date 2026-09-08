@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/quick"
 	"time"
 
 	"github.com/monstercameron/hcm-next/internal/kernel/values"
@@ -97,27 +98,40 @@ func TestMobilityAssignmentRequiresHomeHostAuthorityDatesAndAuthorizationMilesto
 }
 
 func TestTodo_MOBILITY_001_Property(t *testing.T) {
-	a := validPlan(t)
-	b := validPlan(t)
-	if a.CanonicalDigest != b.CanonicalDigest {
-		t.Fatal("identical plans have different digests")
+	property := func(startRaw, spanRaw uint8) bool {
+		start := 1 + int(startRaw)%20
+		end := start + 1 + int(spanRaw)%(28-start)
+		p := validPlan(t)
+		p.Legs[0].Effective = mobilityInterval(t, start, end)
+		p, err := NewMobilityPlan(p)
+		if err != nil || p.Revision != 1 || p.CanonicalDigest == "" || len(p.Canonical()) == 0 {
+			return false
+		}
+		got, err := p.Digest()
+		return err == nil && got == p.CanonicalDigest
 	}
-	copy := a
-	copy.HostAssignments = append([]AssignmentRevision(nil), a.HostAssignments...)
-	if len(copy.HostAssignments) != 0 {
-		t.Fatal("singular host should not create an unrelated list")
-	}
-	if a.HomeAssignment.Revision != 1 {
-		t.Fatal("construction changed home revision")
+	if err := quick.Check(property, &quick.Config{MaxCount: 64}); err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestTodo_MOBILITY_001_Golden(t *testing.T) {
 	p := validPlan(t)
-	if len(p.Canonical()) == 0 {
-		t.Fatal("plan has no canonical bytes")
+	canonical := p.Canonical()
+	const wantDigest = "sha256:070816042b337e9935fa98e75f90e4cb4a67edc61572948f1db1d45b1f8cecf1"
+	if p.CanonicalDigest != wantDigest {
+		t.Fatalf("digest=%q want=%q", p.CanonicalDigest, wantDigest)
 	}
-	if got, err := p.Digest(); err != nil || got != p.CanonicalDigest {
+	if len(canonical) != 3712 {
+		t.Fatalf("canonical length=%d want=3712", len(canonical))
+	}
+	if string(canonical[:24]) != "\x07$schema%hcmnext.domains" {
+		t.Fatalf("canonical prefix=%q", canonical[:24])
+	}
+	if string(canonical[len(canonical)-13:]) != "\x06status\x05READY" {
+		t.Fatalf("canonical suffix=%q", canonical[len(canonical)-13:])
+	}
+	if got, err := p.Digest(); err != nil || got != wantDigest {
 		t.Fatalf("digest = %q, %v", got, err)
 	}
 	x, err := p.Explain()
@@ -129,11 +143,36 @@ func TestTodo_MOBILITY_001_Golden(t *testing.T) {
 func TestTodo_MOBILITY_001_Race(t *testing.T) {
 	p := validPlan(t)
 	var wg sync.WaitGroup
+	results := make(chan struct {
+		digest string
+		status MobilityStatus
+		err    error
+	}, 24)
 	for i := 0; i < 12; i++ {
 		wg.Add(1)
-		go func() { defer wg.Done(); _, _ = p.Explain(); _ = p.Validate() }()
+		go func() {
+			defer wg.Done()
+			x, err := p.Explain()
+			results <- struct {
+				digest string
+				status MobilityStatus
+				err    error
+			}{x.Digest, x.Status, err}
+			err = p.Validate()
+			results <- struct {
+				digest string
+				status MobilityStatus
+				err    error
+			}{p.CanonicalDigest, p.Status, err}
+		}()
 	}
 	wg.Wait()
+	close(results)
+	for got := range results {
+		if got.err != nil || got.digest != p.CanonicalDigest || got.status != StatusReady {
+			t.Fatalf("shared race result=%+v", got)
+		}
+	}
 }
 
 func TestTodo_MOBILITY_001_Fault(t *testing.T) {

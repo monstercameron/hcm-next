@@ -22,17 +22,18 @@ const schemaVersion = 1
 func Version() int { return schemaVersion }
 
 var (
-	ErrInvalidPopulation       = errors.New("merit: invalid frozen population")
-	ErrInvalidGuideline        = errors.New("merit: invalid guideline matrix")
-	ErrInvalidCycle            = errors.New("merit: invalid merit cycle")
-	ErrInvalidRecommendation   = errors.New("merit: invalid merit recommendation")
-	ErrInvalidAdjustment       = errors.New("merit: invalid calibration adjustment")
-	ErrBudgetExceeded          = errors.New("merit: budget pool would be exceeded")
-	ErrRecommendationDuplicate = errors.New("merit: participant already has a recommendation")
-	ErrCalibrationSeparation   = errors.New("merit: manager cannot be the sole calibration adjuster")
-	ErrStalePopulationFact     = errors.New("merit: recommendation does not use the frozen salary and performance facts")
-	ErrCycleTransition         = errors.New("merit: cycle transition is not allowed")
-	ErrInvalidRevisionLineage  = errors.New("merit: invalid revision lineage")
+	ErrInvalidPopulation           = errors.New("merit: invalid frozen population")
+	ErrInvalidGuideline            = errors.New("merit: invalid guideline matrix")
+	ErrInvalidCycle                = errors.New("merit: invalid merit cycle")
+	ErrInvalidRecommendation       = errors.New("merit: invalid merit recommendation")
+	ErrInvalidAdjustment           = errors.New("merit: invalid calibration adjustment")
+	ErrBudgetExceeded              = errors.New("merit: budget pool would be exceeded")
+	ErrRecommendationDuplicate     = errors.New("merit: participant already has a recommendation")
+	ErrCalibrationSeparation       = errors.New("merit: manager cannot be the sole calibration adjuster")
+	ErrStalePopulationFact         = errors.New("merit: recommendation does not use the frozen salary and performance facts")
+	ErrCycleTransition             = errors.New("merit: cycle transition is not allowed")
+	ErrInvalidRevisionLineage      = errors.New("merit: invalid revision lineage")
+	ErrCorrectionAfterFinalization = errors.New("merit: finalized cycle requires a successor correction")
 )
 
 // MeritCycleState is the lifecycle of a cycle revision.
@@ -66,16 +67,18 @@ const (
 	RecommendationProposed   RecommendationState = "PROPOSED"
 	RecommendationAdjusted   RecommendationState = "ADJUSTED"
 	RecommendationApproved   RecommendationState = "APPROVED"
+	RecommendationRejected   RecommendationState = "REJECTED"
 	RecommendationFinalized  RecommendationState = "FINALIZED"
 	PROPOSED                                     = RecommendationProposed
 	ADJUSTED                                     = RecommendationAdjusted
 	APPROVED_RECOMMENDATION                      = RecommendationApproved
+	REJECTED_RECOMMENDATION                      = RecommendationRejected
 	FINALIZED_RECOMMENDATION                     = RecommendationFinalized
 )
 
 func (s RecommendationState) Valid() bool {
 	switch s {
-	case RecommendationProposed, RecommendationAdjusted, RecommendationApproved, RecommendationFinalized:
+	case RecommendationProposed, RecommendationAdjusted, RecommendationApproved, RecommendationRejected, RecommendationFinalized:
 		return true
 	}
 	return false
@@ -393,22 +396,31 @@ func (g GuidelineMatrix) Lookup(rating, position values.Decimal) (GuidelineRule,
 // MeritRecommendation is an exact, per-participant proposal with the frozen
 // salary/rating facts copied into it, so a later live read cannot change it.
 type MeritRecommendation struct {
-	CycleID           string
-	CycleRevision     uint64
-	ParticipantID     string
-	BasePay           values.Money
-	PerformanceRating values.Decimal
-	BandPosition      values.Decimal
-	SalaryRevisionRef string
-	PerformanceRef    string
-	Rate              values.Decimal
-	Amount            values.Decimal
-	GuidelineDigest   string
-	ProposedBy        string
-	ApprovedBy        string
-	State             RecommendationState
-	Adjustments       []CalibrationAdjustment
-	CanonicalDigest   string
+	CycleID                string
+	CycleRevision          uint64
+	ParticipantID          string
+	BasePay                values.Money
+	PerformanceRating      values.Decimal
+	BandPosition           values.Decimal
+	SalaryRevisionRef      string
+	PerformanceRef         string
+	Rate                   values.Decimal
+	Amount                 values.Decimal
+	GuidelineDigest        string
+	ProposedBy             string
+	ApprovedBy             string
+	ApprovalReceiptID      string
+	ApprovedDigest         string
+	EffectRevision         uint64
+	approvalVerified       bool
+	RejectedBy             string
+	RejectionReceiptID     string
+	RejectedDigest         string
+	rejectionVerified      bool
+	verifiedDecisionDigest string
+	State                  RecommendationState
+	Adjustments            []CalibrationAdjustment
+	CanonicalDigest        string
 }
 
 func (r MeritRecommendation) Validate() error {
@@ -437,6 +449,20 @@ func (r MeritRecommendation) Validate() error {
 	if !r.State.Valid() {
 		return fmt.Errorf("%w: state is not declared", ErrInvalidRecommendation)
 	}
+	approved := r.State == RecommendationApproved || r.State == RecommendationFinalized
+	if approved && (!r.approvalVerified || strings.TrimSpace(r.ApprovedBy) == "" || strings.TrimSpace(r.ApprovalReceiptID) == "" || strings.TrimSpace(r.ApprovedDigest) == "" || r.verifiedDecisionDigest != r.decisionPayloadDigest()) {
+		return fmt.Errorf("%w: approved states require bound approval evidence", ErrInvalidRecommendation)
+	}
+	if !approved && (r.ApprovedBy != "" || r.ApprovalReceiptID != "" || r.ApprovedDigest != "") {
+		return fmt.Errorf("%w: approval evidence is only valid on approved states", ErrInvalidRecommendation)
+	}
+	rejected := r.State == RecommendationRejected
+	if rejected && (!r.rejectionVerified || strings.TrimSpace(r.RejectedBy) == "" || strings.TrimSpace(r.RejectionReceiptID) == "" || strings.TrimSpace(r.RejectedDigest) == "" || r.Amount.Sign() != 0 || r.Rate.Sign() != 0 || r.verifiedDecisionDigest != r.decisionPayloadDigest()) {
+		return fmt.Errorf("%w: rejected state requires bound zero-award evidence", ErrInvalidRecommendation)
+	}
+	if !rejected && (r.RejectedBy != "" || r.RejectionReceiptID != "" || r.RejectedDigest != "") {
+		return fmt.Errorf("%w: rejection evidence is only valid on rejected state", ErrInvalidRecommendation)
+	}
 	for _, adjustment := range r.Adjustments {
 		if err := adjustment.Validate(); err != nil {
 			return err
@@ -451,7 +477,10 @@ func (r MeritRecommendation) body() []byte {
 	w := canonicalbytes.New("hcmnext.domains.merit.MeritRecommendation", schemaVersion).
 		String("cycle_id", r.CycleID).Int("cycle_revision", int64(r.CycleRevision)).String("participant_id", r.ParticipantID).Value("base_pay", r.BasePay).
 		Value("performance_rating", r.PerformanceRating).Value("band_position", r.BandPosition).String("salary_revision_ref", r.SalaryRevisionRef).String("performance_ref", r.PerformanceRef).Value("rate", r.Rate).Value("amount", r.Amount).
-		String("guideline_digest", r.GuidelineDigest).String("proposed_by", r.ProposedBy).String("approved_by", r.ApprovedBy).String("state", string(r.State)).Count("adjustments", len(r.Adjustments))
+		String("guideline_digest", r.GuidelineDigest).String("proposed_by", r.ProposedBy).String("approved_by", r.ApprovedBy).
+		String("approval_receipt_id", r.ApprovalReceiptID).String("approved_digest", r.ApprovedDigest).String("state", string(r.State)).Count("adjustments", len(r.Adjustments))
+	w.Int("effect_revision", int64(r.EffectRevision))
+	w.String("rejected_by", r.RejectedBy).String("rejection_receipt_id", r.RejectionReceiptID).String("rejected_digest", r.RejectedDigest)
 	for _, adjustment := range r.Adjustments {
 		w.String("adjustment", adjustment.CanonicalDigest)
 	}
@@ -462,6 +491,24 @@ func (r MeritRecommendation) body() []byte {
 	return b
 }
 func (r MeritRecommendation) computedDigest() string { return canonicalbytes.Digest(r.body()) }
+func (r MeritRecommendation) decisionPayloadDigest() string {
+	w := canonicalbytes.New("hcmnext.domains.merit.MeritDecisionPayload", schemaVersion).
+		String("cycle_id", r.CycleID).Int("cycle_revision", int64(r.CycleRevision)).String("participant_id", r.ParticipantID).
+		Value("base_pay", r.BasePay).Value("performance_rating", r.PerformanceRating).Value("band_position", r.BandPosition).
+		String("salary_revision_ref", r.SalaryRevisionRef).String("performance_ref", r.PerformanceRef).Value("rate", r.Rate).Value("amount", r.Amount).
+		String("guideline_digest", r.GuidelineDigest).String("proposed_by", r.ProposedBy).
+		String("approved_by", r.ApprovedBy).String("approval_receipt_id", r.ApprovalReceiptID).String("approved_digest", r.ApprovedDigest).
+		String("rejected_by", r.RejectedBy).String("rejection_receipt_id", r.RejectionReceiptID).String("rejected_digest", r.RejectedDigest).
+		Count("adjustments", len(r.Adjustments))
+	for _, adjustment := range r.Adjustments {
+		w.String("adjustment", adjustment.CanonicalDigest)
+	}
+	b, err := w.Bytes()
+	if err != nil {
+		return ""
+	}
+	return canonicalbytes.Digest(b)
+}
 func (r MeritRecommendation) Canonical() []byte {
 	if r.Validate() != nil {
 		return nil
@@ -821,6 +868,9 @@ func (c MeritCycle) Calibrate(participantID string, adjustment CalibrationAdjust
 	if err := c.Validate(); err != nil {
 		return MeritCycle{}, err
 	}
+	if c.State == CycleFinalized {
+		return MeritCycle{}, ErrCorrectionAfterFinalization
+	}
 	recIndex := -1
 	for i := range c.Recommendations {
 		if c.Recommendations[i].ParticipantID == participantID {
@@ -872,12 +922,110 @@ func (c MeritCycle) Calibrate(participantID string, adjustment CalibrationAdjust
 	return NewMeritCycle(next)
 }
 
-func (c MeritCycle) Approve(participantID, approver string) (MeritCycle, error) {
+// ApprovalReceipt is authority evidence bound to the exact recommendation
+// revision presented to an approval system.
+type ApprovalReceipt struct {
+	ReceiptID            string
+	ApproverID           string
+	RecommendationDigest string
+}
+
+// ApprovalVerifier is supplied by the authorization boundary. Implementations
+// must authenticate the receipt; this domain fails closed without one.
+type ApprovalVerifier interface {
+	VerifyMeritApproval(ApprovalReceipt) error
+}
+
+type RejectionReceipt = ApprovalReceipt
+
+type RejectionVerifier interface {
+	VerifyMeritRejection(RejectionReceipt) error
+}
+
+// StoredDecisionEvidence is the typed persistence envelope for a verified
+// decision. Rehydration still requires an adapter verifier; stored flags alone
+// never mint a domain seal.
+type StoredDecisionEvidence struct {
+	Version            uint64
+	ApprovedBy         string
+	ApprovalReceiptID  string
+	ApprovedDigest     string
+	RejectedBy         string
+	RejectionReceiptID string
+	RejectedDigest     string
+	EffectRevision     uint64
+}
+
+type StoredDecisionVerifier interface {
+	VerifyStoredMeritDecision(MeritRecommendation, StoredDecisionEvidence) error
+}
+
+func RehydrateMeritRecommendation(r MeritRecommendation, evidence StoredDecisionEvidence, verifier StoredDecisionVerifier) (MeritRecommendation, error) {
+	if evidence.Version != 1 || verifier == nil {
+		return MeritRecommendation{}, fmt.Errorf("%w: authenticated stored decision evidence is required", ErrInvalidRecommendation)
+	}
+	if err := verifier.VerifyStoredMeritDecision(r, evidence); err != nil {
+		return MeritRecommendation{}, fmt.Errorf("%w: stored decision evidence: %v", ErrInvalidRecommendation, err)
+	}
+	r.ApprovedBy, r.ApprovalReceiptID, r.ApprovedDigest = evidence.ApprovedBy, evidence.ApprovalReceiptID, evidence.ApprovedDigest
+	r.RejectedBy, r.RejectionReceiptID, r.RejectedDigest = evidence.RejectedBy, evidence.RejectionReceiptID, evidence.RejectedDigest
+	r.EffectRevision = evidence.EffectRevision
+	r.approvalVerified = r.State == RecommendationApproved || r.State == RecommendationFinalized
+	r.rejectionVerified = r.State == RecommendationRejected
+	r.verifiedDecisionDigest = r.decisionPayloadDigest()
+	return NewMeritRecommendation(r)
+}
+
+// Reject turns an existing proposal into an explicit, governed no-award
+// outcome. The receipt is bound to the proposal that the decision rejected.
+func (c MeritCycle) Reject(participantID string, receipt RejectionReceipt, verifier RejectionVerifier) (MeritCycle, error) {
 	if err := c.Validate(); err != nil {
 		return MeritCycle{}, err
 	}
-	if strings.TrimSpace(approver) == "" {
-		return MeritCycle{}, fmt.Errorf("%w: approver is required", ErrCycleTransition)
+	if verifier == nil || strings.TrimSpace(receipt.ReceiptID) == "" || strings.TrimSpace(receipt.ApproverID) == "" || strings.TrimSpace(receipt.RecommendationDigest) == "" {
+		return MeritCycle{}, fmt.Errorf("%w: verified rejection receipt is required", ErrCycleTransition)
+	}
+	if err := verifier.VerifyMeritRejection(receipt); err != nil {
+		return MeritCycle{}, fmt.Errorf("%w: rejection receipt: %v", ErrCycleTransition, err)
+	}
+	next := c
+	next.Recommendations = append([]MeritRecommendation(nil), c.Recommendations...)
+	for i := range next.Recommendations {
+		r := &next.Recommendations[i]
+		if r.ParticipantID != participantID {
+			continue
+		}
+		if r.State != RecommendationProposed && r.State != RecommendationAdjusted {
+			return MeritCycle{}, ErrCycleTransition
+		}
+		if receipt.RecommendationDigest != r.CanonicalDigest {
+			return MeritCycle{}, fmt.Errorf("%w: rejection receipt is stale", ErrCycleTransition)
+		}
+		r.Rate, r.Amount = zeroLike(r.Rate), zeroLike(r.Amount)
+		r.State, r.RejectedBy, r.RejectionReceiptID, r.RejectedDigest = RecommendationRejected, receipt.ApproverID, receipt.ReceiptID, receipt.RecommendationDigest
+		r.rejectionVerified, r.CanonicalDigest = true, ""
+		r.verifiedDecisionDigest = r.decisionPayloadDigest()
+		var err error
+		*r, err = NewMeritRecommendation(*r)
+		if err != nil {
+			return MeritCycle{}, err
+		}
+		next.Revision, next.ParentRevision, next.ParentDigest, next.CanonicalDigest = c.Revision+1, c.Revision, c.CanonicalDigest, ""
+		next.State = CycleApproved
+		return NewMeritCycle(next)
+	}
+	return MeritCycle{}, fmt.Errorf("%w: participant has no recommendation", ErrCycleTransition)
+}
+
+func (c MeritCycle) Approve(participantID string, receipt ApprovalReceipt, verifier ApprovalVerifier) (MeritCycle, error) {
+	if err := c.Validate(); err != nil {
+		return MeritCycle{}, err
+	}
+	if verifier == nil || strings.TrimSpace(receipt.ReceiptID) == "" || strings.TrimSpace(receipt.ApproverID) == "" || strings.TrimSpace(receipt.RecommendationDigest) == "" {
+		return MeritCycle{}, fmt.Errorf("%w: verified approval receipt is required", ErrCycleTransition)
+	}
+	if err := verifier.VerifyMeritApproval(receipt); err != nil {
+		return MeritCycle{}, fmt.Errorf("%w: approval receipt: %v", ErrCycleTransition, err)
 	}
 	next := c
 	found := false
@@ -887,8 +1035,16 @@ func (c MeritCycle) Approve(participantID, approver string) (MeritCycle, error) 
 			if next.Recommendations[i].State != RecommendationProposed && next.Recommendations[i].State != RecommendationAdjusted {
 				return MeritCycle{}, ErrCycleTransition
 			}
+			if receipt.RecommendationDigest != next.Recommendations[i].CanonicalDigest {
+				return MeritCycle{}, fmt.Errorf("%w: approval receipt is stale", ErrCycleTransition)
+			}
 			next.Recommendations[i].State = RecommendationApproved
-			next.Recommendations[i].ApprovedBy = approver
+			next.Recommendations[i].ApprovedBy = receipt.ApproverID
+			next.Recommendations[i].ApprovalReceiptID = receipt.ReceiptID
+			next.Recommendations[i].ApprovedDigest = receipt.RecommendationDigest
+			next.Recommendations[i].approvalVerified = true
+			next.Recommendations[i].verifiedDecisionDigest = next.Recommendations[i].decisionPayloadDigest()
+			next.Recommendations[i].CanonicalDigest = ""
 			var err error
 			next.Recommendations[i], err = NewMeritRecommendation(next.Recommendations[i])
 			if err != nil {
@@ -907,7 +1063,7 @@ func (c MeritCycle) Approve(participantID, approver string) (MeritCycle, error) 
 }
 
 // Finalize returns a successor cycle only when every recommendation is
-// approved and the exact total remains within the pool.
+// approved or explicitly rejected and the exact total remains within the pool.
 func (c MeritCycle) Finalize() (MeritCycle, error) {
 	if err := c.Validate(); err != nil {
 		return MeritCycle{}, err
@@ -915,9 +1071,19 @@ func (c MeritCycle) Finalize() (MeritCycle, error) {
 	if len(c.Recommendations) == 0 {
 		return MeritCycle{}, fmt.Errorf("%w: recommendations are required", ErrCycleTransition)
 	}
+	if len(c.Recommendations) != len(c.Population.Members) {
+		return MeritCycle{}, fmt.Errorf("%w: every frozen-population worker must have an explicit outcome", ErrCycleTransition)
+	}
+	seen := make(map[string]struct{}, len(c.Recommendations))
 	for _, rec := range c.Recommendations {
-		if rec.State != RecommendationApproved {
-			return MeritCycle{}, fmt.Errorf("%w: every recommendation must be approved", ErrCycleTransition)
+		seen[rec.ParticipantID] = struct{}{}
+		if rec.State != RecommendationApproved && rec.State != RecommendationRejected {
+			return MeritCycle{}, fmt.Errorf("%w: every recommendation must be approved or explicitly rejected", ErrCycleTransition)
+		}
+	}
+	for _, member := range c.Population.Members {
+		if _, ok := seen[member.ParticipantID]; !ok {
+			return MeritCycle{}, fmt.Errorf("%w: worker %q has no explicit outcome", ErrCycleTransition, member.ParticipantID)
 		}
 	}
 	next := c
@@ -925,7 +1091,14 @@ func (c MeritCycle) Finalize() (MeritCycle, error) {
 	next.State = CycleFinalized
 	next.Recommendations = append([]MeritRecommendation(nil), c.Recommendations...)
 	for i := range next.Recommendations {
+		if next.Recommendations[i].State == RecommendationRejected {
+			continue
+		}
 		next.Recommendations[i].State = RecommendationFinalized
+		if next.Recommendations[i].EffectRevision == 0 {
+			next.Recommendations[i].EffectRevision = next.Revision
+		}
+		next.Recommendations[i].CanonicalDigest = ""
 		var err error
 		next.Recommendations[i], err = NewMeritRecommendation(next.Recommendations[i])
 		if err != nil {

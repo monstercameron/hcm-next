@@ -265,7 +265,12 @@ func NewFXRateSourceRevision(s RateSourceRevision) (RateSourceRevision, error) {
 // observation time; EffectiveAt and ObservedAt are accepted compatibility
 // spellings and must agree when both are supplied.
 type FXQuoteRevision struct {
-	QuoteID          string
+	QuoteID string
+	// Revision and parent fields make corrections append-only. They are zero
+	// for the original FX-002 quote shape, preserving its canonical bytes.
+	Revision         uint64
+	ParentQuoteID    string
+	ParentDigest     string
 	SourceID         string
 	SourceRevision   uint64
 	BaseCurrency     string
@@ -306,6 +311,15 @@ func (q FXQuoteRevision) Validate() error {
 	}
 	if strings.TrimSpace(q.SourceID) == "" || q.SourceRevision == 0 {
 		return fmt.Errorf("%w: source_id and source_revision are required", ErrInvalidQuote)
+	}
+	if q.Revision == 0 {
+		q.Revision = 1
+	}
+	if q.Revision == 1 && (q.ParentQuoteID != "" || q.ParentDigest != "") {
+		return fmt.Errorf("%w: first quote revision cannot have a parent", ErrInvalidQuote)
+	}
+	if q.Revision > 1 && (strings.TrimSpace(q.ParentQuoteID) == "" || strings.TrimSpace(q.ParentDigest) == "") {
+		return fmt.Errorf("%w: successor quote requires parent id and digest", ErrInvalidQuote)
 	}
 	pair := CurrencyPair{Base: q.BaseCurrency, Quote: q.QuoteCurrency}
 	if err := pair.Validate(); err != nil {
@@ -355,6 +369,9 @@ func (q FXQuoteRevision) body() []byte {
 		String("base_currency", q.BaseCurrency).String("quote_currency", q.QuoteCurrency).Value("rate", q.Rate).
 		Value("as_of", q.AsOf).Value("known_at", q.KnownAt).
 		String("market_convention", string(q.MarketConvention)).String("confidence", string(q.Confidence))
+	if q.Revision > 1 {
+		w.Int("revision", int64(q.Revision)).String("parent_quote_id", q.ParentQuoteID).String("parent_digest", q.ParentDigest)
+	}
 	b, err := w.Bytes()
 	if err != nil {
 		return nil
@@ -373,6 +390,9 @@ func (q FXQuoteRevision) Canonical() []byte {
 // NewFXQuoteRevision copies and digests an observation.
 func NewFXQuoteRevision(q FXQuoteRevision) (FXQuoteRevision, error) {
 	q = q.normalized()
+	if q.Revision == 0 {
+		q.Revision = 1
+	}
 	q.CanonicalDigest = ""
 	if err := q.Validate(); err != nil {
 		return FXQuoteRevision{}, err
@@ -424,8 +444,11 @@ type ConversionProfileRevision struct {
 	RoundingRule        RoundingRule
 	Tolerance           time.Duration
 	FallbackSourceOrder []string
-	Effective           values.EffectiveInterval
-	CanonicalDigest     string
+	// TriangulationCurrencies is the explicit allow-list of intermediary
+	// currencies. An empty list disables triangulation.
+	TriangulationCurrencies []string
+	Effective               values.EffectiveInterval
+	CanonicalDigest         string
 }
 
 type ConversionProfile = ConversionProfileRevision
@@ -459,8 +482,21 @@ func (p ConversionProfileRevision) Validate() error {
 		}
 		seen[id] = struct{}{}
 	}
+	seenCurrencies := make(map[string]struct{}, len(p.TriangulationCurrencies))
+	for _, currency := range p.TriangulationCurrencies {
+		if !currencyCode(currency) {
+			return fmt.Errorf("%w: triangulation currency %q is invalid", ErrInvalidConversionProfile, currency)
+		}
+		if _, ok := seenCurrencies[currency]; ok {
+			return fmt.Errorf("%w: duplicate triangulation currency %q", ErrInvalidConversionProfile, currency)
+		}
+		seenCurrencies[currency] = struct{}{}
+	}
 	if err := p.Effective.Validate(); err != nil {
 		return fmt.Errorf("%w: effective: %v", ErrInvalidConversionProfile, err)
+	}
+	if p.Effective.Kind() != values.IntervalKindInstant {
+		return fmt.Errorf("%w: effective interval must use instant boundaries", ErrInvalidConversionProfile)
 	}
 	if p.CanonicalDigest != "" && p.CanonicalDigest != p.computedDigest() {
 		return fmt.Errorf("%w: canonical_digest mismatch", ErrInvalidConversionProfile)
@@ -477,6 +513,10 @@ func (p ConversionProfileRevision) body() []byte {
 		Count("fallback_source_order", len(order))
 	for _, id := range order {
 		w.String("fallback_source", id)
+	}
+	w.Count("triangulation_currencies", len(p.TriangulationCurrencies))
+	for _, currency := range p.TriangulationCurrencies {
+		w.String("triangulation_currency", currency)
 	}
 	b, err := w.Bytes()
 	if err != nil {
@@ -495,6 +535,7 @@ func (p ConversionProfileRevision) Canonical() []byte {
 
 func NewConversionProfileRevision(p ConversionProfileRevision) (ConversionProfileRevision, error) {
 	p.FallbackSourceOrder = append([]string(nil), p.FallbackSourceOrder...)
+	p.TriangulationCurrencies = append([]string(nil), p.TriangulationCurrencies...)
 	p.CanonicalDigest = ""
 	if err := p.Validate(); err != nil {
 		return ConversionProfileRevision{}, err
@@ -687,6 +728,25 @@ func ResolveQuote(req QuoteResolutionRequest) (QuoteResolution, error) {
 		}
 		return QuoteResolution{Status: ResolutionUnknown}, nil
 	}
+	// A correction only supersedes its exact predecessor once the correction
+	// is inside the caller's knowledge cutoff. Earlier cutoffs continue to
+	// resolve the historical observation.
+	superseded := make(map[string]struct{}, len(candidates))
+	for _, quote := range candidates {
+		if quote.ParentQuoteID != "" {
+			superseded[quote.ParentQuoteID+"\x00"+quote.ParentDigest] = struct{}{}
+		}
+	}
+	current := candidates[:0]
+	for _, quote := range candidates {
+		if _, replaced := superseded[quote.QuoteID+"\x00"+quote.CanonicalDigest]; !replaced {
+			current = append(current, quote)
+		}
+	}
+	candidates = current
+	if len(candidates) == 0 {
+		return QuoteResolution{Status: ResolutionConflict}, nil
+	}
 	sort.SliceStable(candidates, func(i, j int) bool {
 		pi, pj := order[candidates[i].SourceID], order[candidates[j].SourceID]
 		if pi == 0 {
@@ -848,3 +908,294 @@ func (r QuoteResolution) Explain() (string, error) {
 }
 
 func Explain(r QuoteResolution) (string, error) { return r.Explain() }
+
+// ConversionPathKind identifies how a quote was applied.
+type ConversionPathKind string
+
+const (
+	PathDirect       ConversionPathKind = "DIRECT"
+	PathInverse      ConversionPathKind = "INVERSE"
+	PathTriangulated ConversionPathKind = "TRIANGULATED"
+)
+
+// ConversionLeg is an auditable application of one immutable quote. Rate is
+// never represented as a float; the quote itself carries its canonical digest.
+type ConversionLeg struct {
+	FromCurrency   string
+	ToCurrency     string
+	QuoteID        string
+	QuoteDigest    string
+	SourceID       string
+	SourceRevision uint64
+	Rate           values.Decimal
+	Direction      ConversionPathKind
+	Input          values.Money
+	Output         values.Money
+	Remainder      values.Decimal
+}
+
+// MoneyConversionRequest supplies a complete, immutable conversion snapshot.
+// ViaCurrency is optional; when present, exactly two direct legs are required.
+type MoneyConversionRequest struct {
+	Amount         values.Money
+	TargetCurrency string
+	ViaCurrency    string
+	AsOf           values.Instant
+	KnownAt        values.Instant
+	Profile        ConversionProfileRevision
+	Sources        []RateSourceRevision
+	Quotes         []FXQuoteRevision
+}
+
+// MoneyConversionResult records the rounded money result and every quote path
+// used to produce it. Remainder is the discarded fractional amount at the
+// profile scale (zero when conversion is exact).
+type MoneyConversionResult struct {
+	Source          values.Money
+	Converted       values.Money
+	Path            ConversionPathKind
+	Legs            []ConversionLeg
+	Remainder       values.Decimal
+	ProfileID       string
+	ProfileRevision uint64
+	RoundingRule    RoundingRule
+	CanonicalDigest string
+}
+
+func (r MoneyConversionResult) Validate() error {
+	if err := r.Source.Validate(); err != nil {
+		return fmt.Errorf("%w: source: %v", ErrInvalidConversion, err)
+	}
+	if err := r.Converted.Validate(); err != nil {
+		return fmt.Errorf("%w: converted: %v", ErrInvalidConversion, err)
+	}
+	if r.Path != PathDirect && r.Path != PathInverse && r.Path != PathTriangulated {
+		return fmt.Errorf("%w: path is not declared", ErrInvalidConversion)
+	}
+	if len(r.Legs) == 0 || (r.Path == PathTriangulated && len(r.Legs) != 2) || (r.Path != PathTriangulated && len(r.Legs) != 1) {
+		return fmt.Errorf("%w: invalid leg count", ErrInvalidConversion)
+	}
+	for _, l := range r.Legs {
+		if !currencyCode(l.FromCurrency) || !currencyCode(l.ToCurrency) || l.QuoteID == "" || l.QuoteDigest == "" {
+			return fmt.Errorf("%w: invalid conversion leg", ErrInvalidConversion)
+		}
+		if err := l.Rate.Validate(); err != nil {
+			return fmt.Errorf("%w: leg rate: %v", ErrInvalidConversion, err)
+		}
+		if err := l.Input.Validate(); err != nil {
+			return fmt.Errorf("%w: leg input: %v", ErrInvalidConversion, err)
+		}
+		if err := l.Output.Validate(); err != nil {
+			return fmt.Errorf("%w: leg output: %v", ErrInvalidConversion, err)
+		}
+		if err := l.Remainder.Validate(); err != nil {
+			return fmt.Errorf("%w: leg remainder: %v", ErrInvalidConversion, err)
+		}
+		if l.Input.Currency() != l.FromCurrency || l.Output.Currency() != l.ToCurrency {
+			return fmt.Errorf("%w: leg currencies do not match its money values", ErrInvalidConversion)
+		}
+		if l.Direction != PathDirect && l.Direction != PathInverse {
+			return fmt.Errorf("%w: leg direction is not declared", ErrInvalidConversion)
+		}
+	}
+	if (r.Path == PathDirect && r.Legs[0].Direction != PathDirect) || (r.Path == PathInverse && r.Legs[0].Direction != PathInverse) {
+		return fmt.Errorf("%w: path and leg direction disagree", ErrInvalidConversion)
+	}
+	if r.Legs[0].Input.String() != r.Source.String() || r.Legs[len(r.Legs)-1].Output.String() != r.Converted.String() {
+		return fmt.Errorf("%w: conversion trace endpoints do not match result", ErrInvalidConversion)
+	}
+	for i := 1; i < len(r.Legs); i++ {
+		if r.Legs[i-1].Output.String() != r.Legs[i].Input.String() || r.Legs[i-1].ToCurrency != r.Legs[i].FromCurrency {
+			return fmt.Errorf("%w: conversion legs are not contiguous", ErrInvalidConversion)
+		}
+	}
+	if r.Remainder.String() != r.Legs[len(r.Legs)-1].Remainder.String() {
+		return fmt.Errorf("%w: result remainder is not the final-currency residual", ErrInvalidConversion)
+	}
+	if err := r.Remainder.Validate(); err != nil {
+		return fmt.Errorf("%w: remainder: %v", ErrInvalidConversion, err)
+	}
+	if strings.TrimSpace(r.ProfileID) == "" || r.ProfileRevision == 0 {
+		return fmt.Errorf("%w: conversion profile identity is required", ErrInvalidConversion)
+	}
+	if err := r.RoundingRule.Validate(); err != nil {
+		return err
+	}
+	if r.CanonicalDigest == "" || r.CanonicalDigest != r.computedDigest() {
+		return fmt.Errorf("%w: canonical_digest mismatch", ErrInvalidConversion)
+	}
+	return nil
+}
+
+func (r MoneyConversionResult) computedDigest() string {
+	w := canonicalbytes.New("hcmnext.domains.fx.MoneyConversionResult", schemaVersion).
+		Value("source", r.Source).Value("converted", r.Converted).String("path", string(r.Path)).Value("remainder", r.Remainder).
+		String("profile_id", r.ProfileID).Int("profile_revision", int64(r.ProfileRevision)).Value("rounding_rule", r.RoundingRule).Count("legs", len(r.Legs))
+	for _, l := range r.Legs {
+		w.String("from", l.FromCurrency).String("to", l.ToCurrency).String("quote_id", l.QuoteID).String("quote_digest", l.QuoteDigest).String("source_id", l.SourceID).Int("source_revision", int64(l.SourceRevision)).Value("rate", l.Rate).String("direction", string(l.Direction)).Value("input", l.Input).Value("output", l.Output).Value("remainder", l.Remainder)
+	}
+	b, err := w.Bytes()
+	if err != nil {
+		return ""
+	}
+	return canonicalbytes.Digest(b)
+}
+
+func (r MoneyConversionResult) Canonical() []byte {
+	if r.Validate() != nil {
+		return nil
+	}
+	w := canonicalbytes.New("hcmnext.domains.fx.MoneyConversionResult", schemaVersion).
+		Value("source", r.Source).Value("converted", r.Converted).String("path", string(r.Path)).Value("remainder", r.Remainder).
+		String("profile_id", r.ProfileID).Int("profile_revision", int64(r.ProfileRevision)).Value("rounding_rule", r.RoundingRule).Count("legs", len(r.Legs))
+	for _, l := range r.Legs {
+		w.String("from", l.FromCurrency).String("to", l.ToCurrency).String("quote_id", l.QuoteID).String("quote_digest", l.QuoteDigest).String("source_id", l.SourceID).Int("source_revision", int64(l.SourceRevision)).Value("rate", l.Rate).String("direction", string(l.Direction)).Value("input", l.Input).Value("output", l.Output).Value("remainder", l.Remainder)
+	}
+	b, _ := w.Bytes()
+	return b
+}
+
+func triangulationAllowed(p ConversionProfileRevision, currency string) bool {
+	for _, allowed := range p.TriangulationCurrencies {
+		if allowed == currency {
+			return true
+		}
+	}
+	return false
+}
+
+func resolutionFailure(status QuoteResolutionStatus) error {
+	switch status {
+	case ResolutionStale:
+		return ErrQuoteStale
+	case ResolutionConflict:
+		return ErrQuoteConflict
+	default:
+		return nil
+	}
+}
+
+func resolveMoneyPair(req MoneyConversionRequest, base, quote string) (QuoteResolution, error) {
+	return ResolveQuote(QuoteResolutionRequest{BaseCurrency: base, QuoteCurrency: quote, AsOf: req.AsOf, KnownAt: req.KnownAt, Profile: req.Profile, Sources: req.Sources, Quotes: req.Quotes})
+}
+
+// ConvertMoney converts an amount directly, through an inverse quote, or via
+// one explicitly approved intermediary currency. It rejects zero/invalid,
+// stale, conflicting, and unapproved paths without financial state changes.
+func ConvertMoney(req MoneyConversionRequest) (MoneyConversionResult, error) {
+	if err := req.Amount.Validate(); err != nil {
+		return MoneyConversionResult{}, fmt.Errorf("%w: amount: %v", ErrInvalidConversion, err)
+	}
+	if !currencyCode(req.TargetCurrency) || req.TargetCurrency == req.Amount.Currency() {
+		return MoneyConversionResult{}, fmt.Errorf("%w: target currency is invalid", ErrInvalidConversion)
+	}
+	if err := req.AsOf.Validate(); err != nil {
+		return MoneyConversionResult{}, fmt.Errorf("%w: as_of: %v", ErrInvalidConversion, err)
+	}
+	if err := req.KnownAt.Validate(); err != nil {
+		return MoneyConversionResult{}, fmt.Errorf("%w: known_at: %v", ErrInvalidConversion, err)
+	}
+	if err := req.Profile.Validate(); err != nil {
+		return MoneyConversionResult{}, err
+	}
+	type planned struct {
+		q        QuoteResolution
+		inverse  bool
+		from, to string
+	}
+	var plans []planned
+	direct, err := resolveMoneyPair(req, req.Amount.Currency(), req.TargetCurrency)
+	if err != nil {
+		return MoneyConversionResult{}, err
+	}
+	if direct.Status == ResolutionQuote {
+		plans = []planned{{direct, false, req.Amount.Currency(), req.TargetCurrency}}
+	} else if err := resolutionFailure(direct.Status); err != nil {
+		return MoneyConversionResult{}, err
+	}
+	if len(plans) == 0 {
+		inverse, e := resolveMoneyPair(req, req.TargetCurrency, req.Amount.Currency())
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		if inverse.Status == ResolutionQuote {
+			plans = []planned{{inverse, true, req.Amount.Currency(), req.TargetCurrency}}
+		} else if err := resolutionFailure(inverse.Status); err != nil {
+			return MoneyConversionResult{}, err
+		}
+	}
+	if len(plans) == 0 && req.ViaCurrency != "" && triangulationAllowed(req.Profile, req.ViaCurrency) && req.ViaCurrency != req.Amount.Currency() && req.ViaCurrency != req.TargetCurrency {
+		first, e := resolveMoneyPair(req, req.Amount.Currency(), req.ViaCurrency)
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		second, e := resolveMoneyPair(req, req.ViaCurrency, req.TargetCurrency)
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		if first.Status == ResolutionQuote && second.Status == ResolutionQuote {
+			plans = []planned{{first, false, req.Amount.Currency(), req.ViaCurrency}, {second, false, req.ViaCurrency, req.TargetCurrency}}
+		} else if err := resolutionFailure(first.Status); err != nil {
+			return MoneyConversionResult{}, err
+		} else if err := resolutionFailure(second.Status); err != nil {
+			return MoneyConversionResult{}, err
+		}
+	}
+	if len(plans) == 0 {
+		return MoneyConversionResult{}, ErrQuoteUnknown
+	}
+	current := req.Amount
+	legs := make([]ConversionLeg, 0, len(plans))
+	remainder, err := values.NewDecimal("0", values.MaxScale, req.Profile.RoundingRule.Mode)
+	if err != nil {
+		return MoneyConversionResult{}, err
+	}
+	for _, p := range plans {
+		rate := p.q.Quote.Rate
+		var raw, out values.Decimal
+		if p.inverse {
+			// Round the exact quotient once at the policy scale. The wider value
+			// exists only to express the audit residual and never feeds output.
+			out, err = current.Amount().Div(rate, req.Profile.RoundingRule.Scale, req.Profile.RoundingRule.Mode)
+			if err != nil {
+				return MoneyConversionResult{}, fmt.Errorf("%w: output division: %v", ErrInvalidConversion, err)
+			}
+			raw, err = current.Amount().Div(rate, values.MaxScale, req.Profile.RoundingRule.Mode)
+		} else {
+			// Mul computes the full integer product before applying the requested
+			// scale, so output receives exactly one policy-rounding decision.
+			out, err = current.Amount().Mul(rate, req.Profile.RoundingRule.Scale, req.Profile.RoundingRule.Mode)
+			if err != nil {
+				return MoneyConversionResult{}, fmt.Errorf("%w: output multiplication: %v", ErrInvalidConversion, err)
+			}
+			raw, err = current.Amount().Mul(rate, values.MaxScale, req.Profile.RoundingRule.Mode)
+		}
+		if err != nil {
+			return MoneyConversionResult{}, fmt.Errorf("%w: audit residual: %v", ErrInvalidConversion, err)
+		}
+		rounded, e := out.Quantize(values.MaxScale, req.Profile.RoundingRule.Mode)
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		residual, e := raw.Sub(rounded)
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		next, e := values.NewMoneyFromDecimal(out, p.to)
+		if e != nil {
+			return MoneyConversionResult{}, e
+		}
+		remainder = residual // Remainder is denominated in the final output currency; leg remainders retain their own units.
+		legs = append(legs, ConversionLeg{FromCurrency: p.from, ToCurrency: p.to, QuoteID: p.q.Quote.QuoteID, QuoteDigest: p.q.Quote.CanonicalDigest, SourceID: p.q.Quote.SourceID, SourceRevision: p.q.Quote.SourceRevision, Rate: rate, Direction: map[bool]ConversionPathKind{true: PathInverse, false: PathDirect}[p.inverse], Input: current, Output: next, Remainder: residual})
+		current = next
+	}
+	path := PathDirect
+	if len(legs) == 2 {
+		path = PathTriangulated
+	} else if legs[0].Direction == PathInverse {
+		path = PathInverse
+	}
+	result := MoneyConversionResult{Source: req.Amount, Converted: current, Path: path, Legs: legs, Remainder: remainder, ProfileID: req.Profile.ProfileID, ProfileRevision: req.Profile.Revision, RoundingRule: req.Profile.RoundingRule}
+	result.CanonicalDigest = result.computedDigest()
+	return result, nil
+}
