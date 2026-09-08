@@ -503,10 +503,13 @@ func (b ObligationBinding) Validate() error {
 // AppliedObligation is one obligation [Evaluate] found applicable to a
 // proposal, together with its citation and how it binds.
 type AppliedObligation struct {
-	Type        ObligationType
-	ID          string
-	Description string
-	Citation    Citation
+	Type         ObligationType
+	ID           string
+	Description  string
+	Citation     Citation
+	Jurisdiction Jurisdiction
+	PackID       string
+	PackVersion  uint32
 	// Binding is the primary binding, kept for LEGAL-001 callers that
 	// predate multi-step binding. It is always Bindings[0].
 	Binding ObligationBinding

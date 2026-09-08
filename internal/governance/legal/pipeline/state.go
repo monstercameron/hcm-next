@@ -136,13 +136,16 @@ func sodEvaluate(ctx sod.DecisionContext, constraints sod.Constraints) (sod.Resu
 // p.Stage. prevDigest is always the chain's current head, computed from
 // p.Events rather than taken as a parameter, so a caller can never construct
 // an event out of chain order.
-func (p *Pipeline) appendEvent(stage Stage, principalID string, role legal.SigningRole, artifactDigest string, signer *legal.Signer) {
+func (p *Pipeline) appendEvent(stage Stage, principalID string, role legal.SigningRole, artifactDigest string, signer *legal.Signer) error {
 	prev := ""
 	if n := len(p.Events); n > 0 {
 		prev = p.Events[n-1].Digest
 	}
 	bytes := eventBytes(stage, principalID, role, artifactDigest, prev)
-	digest, sig := signer.SignDigest(bytes)
+	digest, sig, err := signer.SignDigestChecked(bytes)
+	if err != nil {
+		return fmt.Errorf("%w: sign %s event: %w", ErrNotPublishable, stage, err)
+	}
 	p.Events = append(p.Events, Event{
 		Stage:          stage,
 		PrincipalID:    principalID,
@@ -153,6 +156,7 @@ func (p *Pipeline) appendEvent(stage Stage, principalID string, role legal.Signi
 		Signature:      sig,
 	})
 	p.Stage = stage
+	return nil
 }
 
 // Author starts a pipeline: it ingests data as authorID's draft definition,
@@ -173,7 +177,9 @@ func Author(data []byte, authorID string, authorSigner *legal.Signer) (*Pipeline
 		return nil, err
 	}
 	p := &Pipeline{AuthorID: authorID, Draft: d}
-	p.appendEvent(StageAuthored, authorID, legal.SigningRoleRuleAuthor, digest, authorSigner)
+	if err := p.appendEvent(StageAuthored, authorID, legal.SigningRoleRuleAuthor, digest, authorSigner); err != nil {
+		return nil, err
+	}
 	return p, nil
 }
 
@@ -239,10 +245,12 @@ func (p *Pipeline) Review(reviewerID string, status legal.ReviewStatus, findings
 		return err
 	}
 
+	if err := p.appendEvent(StageReviewed, reviewerID, reviewRole(status), record.ComputeDigest(), reviewerSigner); err != nil {
+		return err
+	}
 	p.ReviewerID = reviewerID
 	p.Draft.Definition.ReviewStatus = status.String()
 	p.ReviewRecord = record
-	p.appendEvent(StageReviewed, reviewerID, reviewRole(status), record.ComputeDigest(), reviewerSigner)
 	return nil
 }
 
@@ -293,9 +301,11 @@ func (p *Pipeline) Publish(publisherID string, publisherSigner *legal.Signer, co
 		return legal.PackRelease{}, err
 	}
 
+	if err := p.appendEvent(StagePublished, publisherID, legal.SigningRoleReleasePublisher, release.ComputeDigest(), publisherSigner); err != nil {
+		return legal.PackRelease{}, err
+	}
 	p.PublisherID = publisherID
 	p.Release = release
-	p.appendEvent(StagePublished, publisherID, legal.SigningRoleReleasePublisher, release.ComputeDigest(), publisherSigner)
 	return release, nil
 }
 
@@ -324,9 +334,11 @@ func (p *Pipeline) PublishSupersession(predecessor legal.RulePackRelease, publis
 		return legal.PackRelease{}, err
 	}
 
+	if err := p.appendEvent(StagePublished, publisherID, legal.SigningRoleReleasePublisher, release.ComputeDigest(), publisherSigner); err != nil {
+		return legal.PackRelease{}, err
+	}
 	p.PublisherID = publisherID
 	p.Release = release
-	p.appendEvent(StagePublished, publisherID, legal.SigningRoleReleasePublisher, release.ComputeDigest(), publisherSigner)
 	return release, nil
 }
 
@@ -343,8 +355,7 @@ func (p *Pipeline) Supersede(principalID string, successor legal.PackRelease, si
 	if signer == nil {
 		return fmt.Errorf("%w: signer is required", ErrNotPublishable)
 	}
-	p.appendEvent(StageSuperseded, principalID, legal.SigningRoleReleasePublisher, successor.ComputeDigest(), signer)
-	return nil
+	return p.appendEvent(StageSuperseded, principalID, legal.SigningRoleReleasePublisher, successor.ComputeDigest(), signer)
 }
 
 // withdrawalDigest digests a withdrawal's reason and the release it withdrew,
@@ -372,8 +383,7 @@ func (p *Pipeline) Withdraw(principalID, reason string, signer *legal.Signer) er
 		return fmt.Errorf("%w: signer is required", ErrNotPublishable)
 	}
 	digest := withdrawalDigest(p.Release.ComputeDigest(), reason)
-	p.appendEvent(StageWithdrawn, principalID, legal.SigningRoleReleasePublisher, digest, signer)
-	return nil
+	return p.appendEvent(StageWithdrawn, principalID, legal.SigningRoleReleasePublisher, digest, signer)
 }
 
 // VerifyChain recomputes every event's bytes from its recorded fields,

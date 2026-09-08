@@ -115,6 +115,10 @@ type LegalContextInput struct {
 	// KnownAt is the earliest instant these facts were available to HCM
 	// Next. Required; see values.KnownAt.
 	KnownAt values.KnownAt
+	// FailClosedOnUnregisteredLocality applies the tenant's configured policy.
+	// The default records the locality for receipt evidence and continues with
+	// the exact registered subdivision release.
+	FailClosedOnUnregisteredLocality bool
 }
 
 // RulePackRelease pins one applicable [RulePack] version. A [LegalContext]
@@ -138,19 +142,22 @@ type RulePackRelease struct {
 // door is [Resolve], and every field is set once and never mutated
 // afterwards.
 type LegalContext struct {
-	legalEntityID          string
-	workLocation           Jurisdiction
-	employmentJurisdiction Jurisdiction
-	remoteWork             bool
-	jurisdiction           Jurisdiction
-	effectiveDate          values.LocalDate
-	knownAt                values.KnownAt
-	recordedAt             values.RecordedAt
-	releases               []RulePackRelease
-	provenance             Provenance
-	confidence             Confidence
-	digest                 string
-	signature              Signature
+	legalEntityID                    string
+	workLocation                     Jurisdiction
+	employmentJurisdiction           Jurisdiction
+	remoteWork                       bool
+	jurisdiction                     Jurisdiction
+	effectiveDate                    values.LocalDate
+	knownAt                          values.KnownAt
+	recordedAt                       values.RecordedAt
+	releases                         []RulePackRelease
+	unregisteredLocalities           []Jurisdiction
+	failClosedOnUnregisteredLocality bool
+	attributionRule                  AttributionRule
+	provenance                       Provenance
+	confidence                       Confidence
+	digest                           string
+	signature                        Signature
 }
 
 // LegalEntityID returns the employer legal entity identifier.
@@ -182,6 +189,23 @@ func (c *LegalContext) RecordedAt() values.RecordedAt { return c.recordedAt }
 // RulePackReleases returns a copy of the applicable, version-pinned rule-pack
 // releases this context resolved against.
 func (c *LegalContext) RulePackReleases() []RulePackRelease { return slices.Clone(c.releases) }
+
+// UnregisteredLocalities returns locality work facts for which no exact,
+// effective locality release was registered at resolution time.
+func (c *LegalContext) UnregisteredLocalities() []Jurisdiction {
+	return slices.Clone(c.unregisteredLocalities)
+}
+
+// AttributionRule returns the exact A1-A6 rule used by jurisdiction resolution.
+func (c *LegalContext) AttributionRule() AttributionRule {
+	if c.attributionRule != "" {
+		return c.attributionRule
+	}
+	if c.remoteWork {
+		return AttributionA3
+	}
+	return AttributionA1
+}
 
 // Provenance returns the recorded resolution provenance.
 func (c *LegalContext) Provenance() Provenance { return c.provenance }
@@ -218,6 +242,18 @@ func (c *LegalContext) canonicalBytes() []byte {
 		b = appendField(b, "release_pack_id", r.PackID)
 		b = appendUint32Field(b, "release_version", r.Version)
 		b = r.Jurisdiction.canonicalBytes(appendField(b, "release_jurisdiction", ""))
+	}
+	if len(c.unregisteredLocalities) > 0 {
+		b = appendUint32Field(b, "unregistered_locality_count", uint32(len(c.unregisteredLocalities)))
+		for _, locality := range c.unregisteredLocalities {
+			b = locality.canonicalBytes(appendField(b, "unregistered_locality", ""))
+		}
+	}
+	if c.failClosedOnUnregisteredLocality {
+		b = appendFieldBool(b, "fail_closed_on_unregistered_locality", true)
+	}
+	if c.attributionRule != "" && c.attributionRule != AttributionA1 {
+		b = appendField(b, "attribution_rule", string(c.attributionRule))
 	}
 	b = c.provenance.canonicalBytes(b)
 	b = appendField(b, "confidence", c.confidence.String())
@@ -275,19 +311,32 @@ func Resolve(input LegalContextInput, registry *Registry, signer *Signer, now va
 		return nil, fmt.Errorf("%w: no signer supplied", ErrLegalContextUnknown)
 	}
 
-	resolved, confidence, policy, err := resolveJurisdiction(input)
+	set, err := ResolveJurisdictionSet(JurisdictionSetInput{
+		EmploymentJurisdiction: input.EmploymentJurisdiction,
+		RemoteWork:             input.RemoteWork,
+		WorkLocations:          []ScheduledWorkLocation{{Jurisdiction: input.WorkLocation, Share: 1}},
+		EffectiveDate:          input.EffectiveDate,
+	}, registry)
 	if err != nil {
 		return nil, err
 	}
-	if !resolved.IsStateResolved() {
-		return nil, fmt.Errorf("%w: jurisdiction did not resolve to at least country and state", ErrLegalContextUnknown)
+	if input.FailClosedOnUnregisteredLocality && len(set.UnregisteredLocalities) > 0 {
+		return nil, fmt.Errorf("%w: no exact locality rule-pack release for %s as of %s", ErrLegalContextUnknown, set.UnregisteredLocalities[0], input.EffectiveDate)
 	}
-
-	pack, err := registry.Lookup(resolved, input.EffectiveDate)
+	resolved := set.Primary
+	pack, err := registry.LookupExact(resolved, input.EffectiveDate)
 	if err != nil {
-		return nil, fmt.Errorf("%w: no applicable rule-pack release for %s as of %s: %v",
-			ErrLegalContextUnknown, resolved, input.EffectiveDate, err)
+		return nil, fmt.Errorf("%w: no applicable rule-pack release for %s as of %s: %v", ErrLegalContextUnknown, resolved, input.EffectiveDate, err)
 	}
+	releases := []RulePackRelease{pack.Release()}
+	for _, overlay := range set.Overlays {
+		overlayPack, lookupErr := registry.LookupExact(overlay, input.EffectiveDate)
+		if lookupErr != nil {
+			return nil, fmt.Errorf("%w: no applicable locality rule-pack release for %s as of %s: %v", ErrLegalContextUnknown, overlay, input.EffectiveDate, lookupErr)
+		}
+		releases = append(releases, overlayPack.Release())
+	}
+	confidence, policy := set.Confidence, set.RemoteWorkPolicyApplied
 
 	recordedAt, err := values.NewRecordedAt(now)
 	if err != nil {
@@ -298,15 +347,18 @@ func Resolve(input LegalContextInput, registry *Registry, signer *Signer, now va
 	}
 
 	ctx := &LegalContext{
-		legalEntityID:          input.LegalEntityID,
-		workLocation:           input.WorkLocation,
-		employmentJurisdiction: input.EmploymentJurisdiction,
-		remoteWork:             input.RemoteWork,
-		jurisdiction:           resolved,
-		effectiveDate:          input.EffectiveDate,
-		knownAt:                input.KnownAt,
-		recordedAt:             recordedAt,
-		releases:               []RulePackRelease{pack.Release()},
+		legalEntityID:                    input.LegalEntityID,
+		workLocation:                     input.WorkLocation,
+		employmentJurisdiction:           input.EmploymentJurisdiction,
+		remoteWork:                       input.RemoteWork,
+		jurisdiction:                     resolved,
+		effectiveDate:                    input.EffectiveDate,
+		knownAt:                          input.KnownAt,
+		recordedAt:                       recordedAt,
+		releases:                         releases,
+		unregisteredLocalities:           slices.Clone(set.UnregisteredLocalities),
+		failClosedOnUnregisteredLocality: input.FailClosedOnUnregisteredLocality,
+		attributionRule:                  set.AttributionRule,
 		provenance: Provenance{
 			WorkLocationBasis:           "input.work_location",
 			EmploymentJurisdictionBasis: "input.employment_jurisdiction",
@@ -315,9 +367,12 @@ func Resolve(input LegalContextInput, registry *Registry, signer *Signer, now va
 		confidence: confidence,
 	}
 	canonicalBytes := ctx.canonicalBytes()
-	digest, sig := signer.sign(canonicalBytes)
+	digest, signature, signErr := signer.SignDigestChecked(canonicalBytes)
+	if signErr != nil {
+		return nil, fmt.Errorf("%w: signing context: %w", ErrLegalContextUnknown, signErr)
+	}
 	ctx.digest = digest
-	ctx.signature = Signature{PublicKey: signer.PublicKey(), Bytes: sig}
+	ctx.signature = signature
 	return ctx, nil
 }
 

@@ -140,3 +140,18 @@ attribute_allowlist:
     signals: [log, span]
     max_cardinality: 0
     description: Business correlation identifier; never a metric label.
+  - key: logical_operation_id
+    class: OPERATIONAL_RESTRICTED
+    signals: [span]
+    max_cardinality: 0
+    description: Bounded durable logical operation identifier; span context only, never authority or a metric label.
+  - key: attempt_id
+    class: OPERATIONAL_RESTRICTED
+    signals: [span]
+    max_cardinality: 0
+    description: Bounded durable attempt identifier; span context only, never authority or a metric label.
+  - key: message_kind
+    class: OPERATIONAL_RESTRICTED
+    signals: [span]
+    max_cardinality: 16
+    description: Closed asynchronous message-kind vocabulary; span context only, never payload, authority, or metric label.

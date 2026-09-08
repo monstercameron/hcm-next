@@ -5,6 +5,8 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   {
     ignores: [
+      // Repository-owned disposable output, including isolated worktrees.
+      ".artifacts/**",
       "**/dist/**",
       "**/.next/**",
       "**/coverage/**",

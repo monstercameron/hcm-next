@@ -45,6 +45,7 @@ func TestTodo_GOV_021_Property(t *testing.T) {
 		{name: "map golden", body: `func TestMapGolden(t *testing.T) { values := map[string]int{"a": 1}; for key, value := range values { Golden(key, value) } }`, want: WeakOracle},
 		{name: "mock", body: `func TestMock(t *testing.T) { mock.AssertCalled(t, "Save") }`, want: WeakOracle},
 		{name: "coverage", body: `func TestCoverage(t *testing.T) { if testing.Coverage() < 1 { t.Fatal("coverage") } }`, want: WeakOracle},
+		{name: "bare execution", body: `func TestBareExecution(t *testing.T) { len([]string{"side effect"}) }`, want: WeakOracle},
 		{name: "prohibited", body: `func TestProhibited(t *testing.T) { if err != ErrDenied { t.Fatal(err) } }`, want: StrongOracle},
 		{name: "effect count", body: `func TestEffectCount(t *testing.T) { if len(events) != 1 { t.Fatal(events) } }`, want: StrongOracle},
 	}
@@ -64,6 +65,79 @@ func TestTodo_GOV_021_Property(t *testing.T) {
 				t.Fatalf("oracle = %+v, want %s", report.Tests, tc.want)
 			}
 		})
+	}
+}
+
+func TestTodo_GOV_021_AdversarialOracleBoundaries(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want Strength
+	}{
+		{name: "range conjunction is exact", body: `func TestRange(t *testing.T) { if count > 0 && count < 10 { t.Fatal(count) } }`, want: StrongOracle},
+		{name: "equal conjunction is contradictory", body: `func TestContradictory(t *testing.T) { if got == "a" && got == "b" { t.Fatal(got) } }`, want: WeakOracle},
+		{name: "repeated equality is satisfiable", body: `func TestRepeated(t *testing.T) { if got == "a" && got == "a" { t.Fatal(got) } }`, want: StrongOracle},
+		{name: "equality and different inequality is satisfiable", body: `func TestMixed(t *testing.T) { if got == "a" && got != "b" { t.Fatal(got) } }`, want: StrongOracle},
+		{name: "reversed equality and negation is contradictory", body: `func TestReversed(t *testing.T) { if "a" == got && got != "a" { t.Fatal(got) } }`, want: WeakOracle},
+		{name: "direct map golden is unstable", body: `func TestDirectMapGolden(t *testing.T) { values := map[string]int{"a": 1}; Golden(values) }`, want: WeakOracle},
+		{name: "map alias snapshot is unstable", body: `func TestMapAliasSnapshot(t *testing.T) { values := map[string]int{"a": 1}; snapshot := values; MatchSnapshot(snapshot) }`, want: WeakOracle},
+		{name: "typed map snapshot is unstable", body: `func TestTypedMapSnapshot(t *testing.T) { var values map[string]int; MatchSnapshot(values) }`, want: WeakOracle},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			path := filepath.Join(root, "sample_test.go")
+			source := "package sample\nimport \"testing\"\nvar count int\n" + tc.body + "\n"
+			if err := os.WriteFile(path, []byte(source), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			report, err := Scan(root)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(report.Tests) != 1 || report.Tests[0].Strength != tc.want {
+				t.Fatalf("oracle = %+v, want %s", report.Tests, tc.want)
+			}
+		})
+	}
+}
+
+func TestTodo_GOV_021_MapNamesAreFunctionScoped(t *testing.T) {
+	root := t.TempDir()
+	source := `package sample
+import "testing"
+func TestMap(t *testing.T) { got := map[string]int{"a": 1}; MatchSnapshot(got) }
+func TestScalar(t *testing.T) { got := "stable"; Golden(got); if got != "stable" { t.Fatal(got) } }
+`
+	if err := os.WriteFile(filepath.Join(root, "sample_test.go"), []byte(source), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	report, err := Scan(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Tests) != 2 || report.Tests[0].Strength != WeakOracle || report.Tests[1].Strength != StrongOracle {
+		t.Fatalf("oracles = %+v, want map weak and sibling scalar strong", report.Tests)
+	}
+}
+
+func TestTodo_GOV_021_PackageMapInference(t *testing.T) {
+	root := t.TempDir()
+	source := `package sample
+import "testing"
+var source = map[string]int{"a": 1}
+var alias = source
+func TestPackageMap(t *testing.T) { Golden(alias); if len(alias) != 1 { t.Fatal(alias) } }
+`
+	if err := os.WriteFile(filepath.Join(root, "sample_test.go"), []byte(source), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	report, err := Scan(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Tests) != 1 || report.Tests[0].Strength != WeakOracle {
+		t.Fatalf("oracles = %+v, want inferred package map weak", report.Tests)
 	}
 }
 

@@ -152,5 +152,8 @@ func finishSet(set JurisdictionSet, input JurisdictionSetInput, registry *Regist
 		}
 	}
 	sort.Slice(set.Overlays, func(i, j int) bool { return set.Overlays[i].String() < set.Overlays[j].String() })
+	sort.Slice(set.UnregisteredLocalities, func(i, j int) bool {
+		return set.UnregisteredLocalities[i].String() < set.UnregisteredLocalities[j].String()
+	})
 	return set, nil
 }

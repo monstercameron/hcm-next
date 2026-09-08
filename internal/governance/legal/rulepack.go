@@ -3,6 +3,7 @@ package legal
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -517,6 +518,31 @@ func (r *Registry) Lookup(j Jurisdiction, date values.LocalDate) (*RulePack, err
 	return &out, nil
 }
 
+// LookupExact returns the highest-versioned release registered for exactly j
+// and effective on date. Unlike Lookup it never falls back to a subdivision
+// release, which is required when pinning locality overlays.
+func (r *Registry) LookupExact(j Jurisdiction, date values.LocalDate) (*RulePack, error) {
+	if err := date.Validate(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrRuleCoverageUnknown, err)
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var best *RulePack
+	for k, pack := range r.packs {
+		if k.Jurisdiction != j || !pack.Window.Contains(date) {
+			continue
+		}
+		if best == nil || pack.Version > best.Version || (pack.Version == best.Version && pack.MinorVersion > best.MinorVersion) {
+			best = pack
+		}
+	}
+	if best == nil {
+		return nil, fmt.Errorf("%w: no exact rule pack governs %s as of %s", ErrRuleCoverageUnknown, j, date)
+	}
+	out := *best
+	return &out, nil
+}
+
 // IsRegisteredExact reports whether an exact jurisdiction release is
 // registered and effective on date. Unlike Lookup, it never falls back from
 // a locality to its subdivision; this distinction is required for locality
@@ -839,6 +865,21 @@ type EvaluationResult struct {
 	// merged into NotApplicable: "not considered" and "does not apply" are
 	// different findings.
 	NotConsidered []NotConsideredKind
+	// PreemptionsApplied records locality obligations removed before trigger
+	// evaluation and composition.
+	PreemptionsApplied []PreemptionApplied
+	// ReceiptNotes makes incomplete locality coverage explicit rather than
+	// silently treating an unregistered locality as obligation-free.
+	ReceiptNotes []LegalEvaluationNote
+	Composition  CompositionReceipt
+	pinnedPacks  []RulePack
+}
+
+// LegalEvaluationNote is deterministic non-obligation evidence carried by an
+// evaluation receipt.
+type LegalEvaluationNote struct {
+	Code         string
+	Jurisdiction Jurisdiction
 }
 
 // Evaluate re-fetches every rule-pack release ctx pinned and returns the
@@ -860,17 +901,27 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 	if len(releases) == 0 {
 		return EvaluationResult{}, errors.New("legal: context carries no rule-pack releases")
 	}
+	receiptNotes := unregisteredLocalityNotes(ctx.UnregisteredLocalities())
 
 	var obligations []AppliedObligation
 	var notApplicable []ConsideredObligation
 	var notConsidered []NotConsideredKind
+	var pinnedPacks []RulePack
+	var triggeredInputs []composableObligation
+	seenReleases := make(map[string]struct{})
 	for _, release := range releases {
+		identity := releaseIdentity(release)
+		if _, duplicate := seenReleases[identity]; duplicate {
+			continue
+		}
+		seenReleases[identity] = struct{}{}
 		pack, err := registry.GetExact(release)
 		if err != nil {
 			return EvaluationResult{
 				Status:           LegalEvaluationStatusRuleCoverageUnknown,
 				Jurisdiction:     ctx.Jurisdiction(),
 				RulePackReleases: releases,
+				ReceiptNotes:     receiptNotes,
 			}, nil
 		}
 		if pack.VocabularyVersion > SupportedVocabularyVersion {
@@ -878,16 +929,43 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 					Status:           LegalEvaluationStatusRuleCoverageUnknown,
 					Jurisdiction:     ctx.Jurisdiction(),
 					RulePackReleases: releases,
+					ReceiptNotes:     receiptNotes,
 				}, fmt.Errorf("%w: release %s v%d.%d declares vocabulary %d, this build supports %d",
 					ErrVocabularyVersionUnsupported, pack.PackID, pack.Version, pack.MinorVersion,
 					pack.VocabularyVersion, SupportedVocabularyVersion)
 		}
-		applied, considered := applicableObligations(*pack, proposal)
+		pinnedPacks = append(pinnedPacks, *pack)
+	}
+	// Preemption is deliberately a separate stage after release pinning and
+	// before trigger evaluation. Construct identity-only inputs so this stage
+	// cannot invoke a comparator or inspect proposal facts.
+	var preemptionInputs []composableObligation
+	for _, pack := range pinnedPacks {
+		for _, item := range pack.obligations() {
+			preemptionInputs = append(preemptionInputs, composableObligation{
+				evidence:     ObligationEvidence{Jurisdiction: pack.Jurisdiction, Type: item.Type, ID: item.Rule.obligationID()},
+				jurisdiction: pack.Jurisdiction,
+			})
+		}
+	}
+	_, preemptions, err := applyPreemptionsToComposable(preemptionInputs, pinnedPacks)
+	if err != nil {
+		return EvaluationResult{}, err
+	}
+	for _, pack := range pinnedPacks {
+		applied, considered := applicableObligations(pack, proposal, preemptions)
 		obligations = append(obligations, applied...)
 		notApplicable = append(notApplicable, considered...)
-		notConsidered = append(notConsidered, unconsideredKinds(*pack)...)
+		notConsidered = append(notConsidered, unconsideredKinds(pack)...)
+		for _, item := range pack.obligations() {
+			for _, hit := range applied {
+				if hit.Jurisdiction == pack.Jurisdiction && hit.PackID == pack.PackID && hit.PackVersion == pack.Version && hit.Type == item.Type && hit.ID == item.Rule.obligationID() {
+					triggeredInputs = append(triggeredInputs, composableObligation{evidence: ObligationEvidence{Jurisdiction: pack.Jurisdiction, PackID: pack.PackID, PackVersion: pack.Version, Type: item.Type, ID: item.Rule.obligationID(), Description: item.Rule.describe(), Citation: item.Rule.obligationCitation()}, rule: item.Rule, jurisdiction: pack.Jurisdiction, packKey: releaseIdentity(pack.Release())})
+				}
+			}
+		}
 	}
-
+	composition := composeTriggeredInputs(ctx.Jurisdiction(), triggeredInputs, preemptions)
 	sort.Slice(obligations, func(i, j int) bool {
 		if obligations[i].Type != obligations[j].Type {
 			return obligations[i].Type < obligations[j].Type
@@ -906,13 +984,62 @@ func Evaluate(ctx *LegalContext, proposal PromotionProposalSnapshot, registry *R
 		status = LegalEvaluationStatusAllowWithObligations
 	}
 	return EvaluationResult{
-		Status:           status,
-		Jurisdiction:     ctx.Jurisdiction(),
-		RulePackReleases: releases,
-		Obligations:      obligations,
-		NotApplicable:    notApplicable,
-		NotConsidered:    notConsidered,
+		Status:             status,
+		Jurisdiction:       ctx.Jurisdiction(),
+		RulePackReleases:   releases,
+		Obligations:        obligations,
+		NotApplicable:      notApplicable,
+		NotConsidered:      notConsidered,
+		PreemptionsApplied: preemptions,
+		ReceiptNotes:       receiptNotes,
+		Composition:        composition,
+		pinnedPacks:        pinnedPacks,
 	}, nil
+}
+
+func composeTriggeredInputs(primary Jurisdiction, items []composableObligation, preemptions []PreemptionApplied) CompositionReceipt {
+	byKind := make(map[ObligationType][]composableObligation)
+	for _, item := range items {
+		byKind[item.evidence.Type] = append(byKind[item.evidence.Type], item)
+	}
+	receipt := CompositionReceipt{Status: CompositionResolved, Jurisdictions: []Jurisdiction{primary}, PreemptionsApplied: slices.Clone(preemptions)}
+	for _, item := range items {
+		receipt.Inputs = append(receipt.Inputs, item.evidence)
+	}
+	for _, kind := range sortedKinds(byKind) {
+		definition, ok := obligationComparators[kind]
+		if !ok {
+			definition = comparatorDefinition{Name: ComparatorUnion, Resolve: resolveUnion}
+		}
+		selected, winner := definition.Resolve(byKind[kind])
+		trace := CompositionTrace{Kind: kind, Comparator: definition.Name, Winner: winner}
+		for _, item := range byKind[kind] {
+			trace.Inputs = append(trace.Inputs, item.evidence)
+		}
+		receipt.Traces = append(receipt.Traces, trace)
+		for _, item := range selected {
+			receipt.Obligations = append(receipt.Obligations, ComposedObligation{Type: item.evidence.Type, ID: item.evidence.ID, Description: item.evidence.Description, Citation: item.evidence.Citation, Jurisdiction: item.jurisdiction, Sources: []ObligationEvidence{item.evidence}})
+		}
+	}
+	receipt.Contradictions = findRetentionContradictions(byKind[ObligationTypeRetention])
+	if len(receipt.Contradictions) > 0 {
+		receipt.Status = CompositionContradictoryRequirements
+		receipt.Obligations = nil
+	}
+	receipt.sort()
+	receipt.refreshDigest()
+	return receipt
+}
+
+func unregisteredLocalityNotes(localities []Jurisdiction) []LegalEvaluationNote {
+	if len(localities) == 0 {
+		return nil
+	}
+	notes := make([]LegalEvaluationNote, 0, len(localities))
+	for _, locality := range localities {
+		notes = append(notes, LegalEvaluationNote{Code: "unregistered_locality", Jurisdiction: locality})
+	}
+	return notes
 }
 
 // unconsideredKinds lists the kinds this engine knows that pack's vocabulary
@@ -944,10 +1071,17 @@ func unconsideredKinds(pack RulePack) []NotConsideredKind {
 // by its own pure trigger predicate. There is no switch on kind here: the
 // predicate lives on the typed body and the bindings come from
 // [ObligationKindSpec], so adding a kind never edits this function.
-func applicableObligations(pack RulePack, proposal PromotionProposalSnapshot) ([]AppliedObligation, []ConsideredObligation) {
+func applicableObligations(pack RulePack, proposal PromotionProposalSnapshot, preemptionSets ...[]PreemptionApplied) ([]AppliedObligation, []ConsideredObligation) {
+	var preemptions []PreemptionApplied
+	if len(preemptionSets) > 0 {
+		preemptions = preemptionSets[0]
+	}
 	var applied []AppliedObligation
 	var considered []ConsideredObligation
 	for _, o := range pack.obligations() {
+		if preempted(pack.Jurisdiction, o.Type, o.Rule.obligationID(), preemptions) {
+			continue
+		}
 		fired, reason := o.Rule.trigger(proposal)
 		if !fired {
 			considered = append(considered, ConsideredObligation{
@@ -973,15 +1107,35 @@ func applicableObligations(pack RulePack, proposal PromotionProposalSnapshot) ([
 			continue
 		}
 		applied = append(applied, AppliedObligation{
-			Type:        o.Type,
-			ID:          o.Rule.obligationID(),
-			Description: o.Rule.describe(),
-			Citation:    o.Rule.obligationCitation(),
-			Binding:     bindings[0],
-			Bindings:    bindings,
+			Type:         o.Type,
+			ID:           o.Rule.obligationID(),
+			Description:  o.Rule.describe(),
+			Citation:     o.Rule.obligationCitation(),
+			Jurisdiction: pack.Jurisdiction,
+			PackID:       pack.PackID,
+			PackVersion:  pack.Version,
+			Binding:      bindings[0],
+			Bindings:     bindings,
 		})
 	}
 	return applied, considered
+}
+
+func preempted(jurisdiction Jurisdiction, kind ObligationType, id string, records []PreemptionApplied) bool {
+	if jurisdiction.Locality == "" {
+		return false
+	}
+	for _, record := range records {
+		if record.Kind != kind || record.AssertingJurisdiction.Country != jurisdiction.Country || record.AssertingJurisdiction.State != jurisdiction.State {
+			continue
+		}
+		for _, removed := range record.RemovedObligationIDs {
+			if removed == id {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func timingWord(direction string) string {

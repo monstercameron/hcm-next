@@ -127,6 +127,30 @@ func TestTodo_LEGAL_015(t *testing.T) {
 	}
 }
 
+func TestTodo_LEGAL_015_ExternalSigningFailureLeavesNoEventOrTransition(t *testing.T) {
+	want := errors.New("custody unavailable")
+	key := fixedSigner(t, 0x7a)
+	failing, err := legal.NewPortSigner(key.PublicKey(), legal.SignerFunc(func([]byte) ([]byte, error) { return nil, want }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p, err := Author(waMinimumWageDefinitionJSON(), "author", failing); p != nil || !errors.Is(err, legal.ErrSignerPort) || !errors.Is(err, want) {
+		t.Fatalf("Author returned pipeline=%+v error=%v", p, err)
+	}
+	p, err := Author(waMinimumWageDefinitionJSON(), "author", key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := *p
+	before.Events = append([]Event(nil), p.Events...)
+	if err := p.Review("reviewer", legal.ReviewStatusVendorBaseline, nil, failing); !errors.Is(err, legal.ErrSignerPort) || !errors.Is(err, want) {
+		t.Fatalf("Review error=%v", err)
+	}
+	if p.Stage != before.Stage || p.ReviewerID != before.ReviewerID || len(p.Events) != len(before.Events) {
+		t.Fatalf("failed signing mutated pipeline: before=%+v after=%+v", before, p)
+	}
+}
+
 // TestTodo_LEGAL_015_Property proves the state machine only ever advances
 // through valid transitions and never lets two roles coincide, across a small
 // combinatorial sweep of actor assignments.

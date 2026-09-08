@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "baseline": [
+    { "kind": "module", "identity": "go.mod" },
+    { "kind": "module", "identity": "src/blocks/go/go.mod" },
+    { "kind": "process", "identity": "cmd/frontenddev" },
+    { "kind": "process", "identity": "cmd/hcmctl" },
+    { "kind": "process", "identity": "cmd/hcmnext" },
+    { "kind": "process", "identity": "cmd/migrate" },
+    { "kind": "process", "identity": "cmd/projector" },
+    { "kind": "process", "identity": "cmd/scheduler" },
+    { "kind": "process", "identity": "cmd/worker" },
+    { "kind": "process", "identity": "src/blocks/go/cmd/executor" }
+  ],
+  "reviewed": []
+}

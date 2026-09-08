@@ -1,5 +1,12 @@
 package legal
 
+import (
+	"crypto/ed25519"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+)
+
 // This file exports the generic sign/verify primitive [PackCandidate.Sign]
 // and [LegalContext] resolution already use internally, for LEGAL-015's
 // authoring and review pipeline. That pipeline signs two artifacts that are
@@ -15,8 +22,32 @@ package legal
 // bytes directly, so this works for any digested artifact this package
 // defines, not only a [RulePack].
 func (s *Signer) SignDigest(data []byte) (digest string, sig Signature) {
-	d, raw := s.sign(data)
-	return d, Signature{PublicKey: s.PublicKey(), Bytes: raw}
+	digest, sig, _ = s.SignDigestChecked(data)
+	return digest, sig
+}
+
+// SignDigestChecked is the error-returning form of SignDigest. It is required
+// for externally backed signers so callers can refuse to publish an artifact
+// when custody fails or returns a signature under the wrong key.
+func (s *Signer) SignDigestChecked(data []byte) (digest string, sig Signature, err error) {
+	if s == nil || len(s.pub) != ed25519.PublicKeySize {
+		return "", Signature{}, ErrSignerKey
+	}
+	sum := sha256.Sum256(data)
+	digest = hex.EncodeToString(sum[:])
+	var raw []byte
+	if s.port != nil {
+		raw, err = s.port.Sign(append([]byte(nil), sum[:]...))
+		if err != nil {
+			return "", Signature{}, fmt.Errorf("%w: %w", ErrSignerPort, err)
+		}
+	} else {
+		raw = ed25519.Sign(s.priv, sum[:])
+	}
+	if len(raw) != ed25519.SignatureSize || !ed25519.Verify(s.pub, sum[:], raw) {
+		return "", Signature{}, ErrSignatureInvalid
+	}
+	return digest, Signature{PublicKey: s.PublicKey(), Bytes: append([]byte(nil), raw...)}, nil
 }
 
 // VerifySignature recomputes the sha256 digest of data and checks both that

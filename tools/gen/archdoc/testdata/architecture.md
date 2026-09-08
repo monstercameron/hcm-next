@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/hcm-next`
-- Source graph: 4ea55e21d52b567802cd6425ec5c64bb09a20fc88c23f84404465cb554ff1ae7
-- Package count: 739
-- Within-module edge count: 1663
+- Source graph: 7abb182f5a0378f5cce3656c2f4ff403af6e821f54e2ffbad8ae6b1c4bd5c4a3
+- Package count: 743
+- Within-module edge count: 1711
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -183,6 +183,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/customobject`
 - `github.com/monstercameron/hcm-next/internal/data`
 - `github.com/monstercameron/hcm-next/internal/data/accessstore`
+- `github.com/monstercameron/hcm-next/internal/data/admissionstore`
 - `github.com/monstercameron/hcm-next/internal/data/aggregates`
 - `github.com/monstercameron/hcm-next/internal/data/analytics`
 - `github.com/monstercameron/hcm-next/internal/data/artifacts`
@@ -197,6 +198,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/data/cbastore`
 - `github.com/monstercameron/hcm-next/internal/data/commercialstore`
 - `github.com/monstercameron/hcm-next/internal/data/configregistry`
+- `github.com/monstercameron/hcm-next/internal/data/conflictstore`
 - `github.com/monstercameron/hcm-next/internal/data/connectivityopstore`
 - `github.com/monstercameron/hcm-next/internal/data/contactstore`
 - `github.com/monstercameron/hcm-next/internal/data/contentregistrystore`
@@ -365,6 +367,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/domains/taxprofile`
 - `github.com/monstercameron/hcm-next/internal/domains/tenant`
 - `github.com/monstercameron/hcm-next/internal/domains/tenant/govauth`
+- `github.com/monstercameron/hcm-next/internal/domains/workerlifecycle`
 - `github.com/monstercameron/hcm-next/internal/effectgraph`
 - `github.com/monstercameron/hcm-next/internal/engines/abuse`
 - `github.com/monstercameron/hcm-next/internal/engines/abuse/anomaly002`
@@ -629,6 +632,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/workflow/shadow`
 - `github.com/monstercameron/hcm-next/internal/workflow/simulate`
 - `github.com/monstercameron/hcm-next/internal/workflow/steps/approval`
+- `github.com/monstercameron/hcm-next/internal/workflow/steps/compensate`
 - `github.com/monstercameron/hcm-next/internal/workflow/steps/signal`
 - `github.com/monstercameron/hcm-next/internal/workflow/steps/task`
 - `github.com/monstercameron/hcm-next/internal/workflow/steps/wait`
@@ -887,4 +891,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`e911c1e858a9c567266615ff6e1bb521069c13cdb113b030f1156d1c406a019e`
+`3db52df2c90a92b8e10c24d43156a24b91065fb69c1446cef0c35e42fe687609`

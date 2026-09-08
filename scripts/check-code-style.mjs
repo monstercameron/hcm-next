@@ -14,6 +14,11 @@ const ignoredPathSegments = new Set([
   "node_modules",
 ]);
 
+// .artifacts is the repository's disposable output root. Only that exact
+// root is ignored; a source directory named .artifacts remains production
+// code and must still be checked.
+const repositoryArtifactsRoot = path.resolve(".artifacts");
+
 const allowedTryCatchFiles = new Set([
   // Vendored Go toolchain shim copied verbatim from $(go env GOROOT)/lib/wasm.
   "internal/humanwork/workspace/assets/wasm_exec.js",
@@ -88,7 +93,17 @@ const isSourceFile = (filePath) => sourceExtensions.has(path.extname(filePath));
 const isIgnoredPath = (filePath) =>
   normalizePath(filePath)
     .split("/")
-    .some((segment) => ignoredPathSegments.has(segment));
+    .some((segment) => ignoredPathSegments.has(segment)) ||
+  (() => {
+    const resolved = path.resolve(filePath);
+    const relative = path.relative(repositoryArtifactsRoot, resolved);
+    return (
+      relative === "" ||
+      (relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative))
+    );
+  })();
 
 const scriptKindForPath = (filePath) => {
   switch (path.extname(filePath)) {

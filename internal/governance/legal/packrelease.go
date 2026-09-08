@@ -1,7 +1,6 @@
 package legal
 
 import (
-	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -113,11 +112,14 @@ func (c PackCandidate) Sign(role SigningRole, signer *Signer) (PackRelease, erro
 		return PackRelease{}, fmt.Errorf("%w: signature role is required", ErrPackNotSigned)
 	}
 	release := c.pack
-	digest, sig := signer.sign(release.canonicalBytes())
+	digest, signature, err := signer.SignDigestChecked(release.canonicalBytes())
+	if err != nil {
+		return PackRelease{}, fmt.Errorf("%w: signing release: %w", ErrPackNotSigned, err)
+	}
 	release.Digest = digest
 	release.Signatures = []RoleSignature{{
 		Role:      role,
-		Signature: Signature{PublicKey: signer.PublicKey(), Bytes: sig},
+		Signature: signature,
 	}}
 	return release, nil
 }
@@ -140,11 +142,14 @@ func AddSignature(release PackRelease, role SigningRole, signer *Signer) (PackRe
 			return PackRelease{}, fmt.Errorf("%w: %s", ErrPackSignatureRoleDupe, role)
 		}
 	}
-	sum := sha256.Sum256(release.canonicalBytes())
+	_, signature, err := signer.SignDigestChecked(release.canonicalBytes())
+	if err != nil {
+		return PackRelease{}, fmt.Errorf("%w: signing release: %w", ErrPackNotSigned, err)
+	}
 	out := release
 	out.Signatures = append(append([]RoleSignature(nil), release.Signatures...), RoleSignature{
 		Role:      role,
-		Signature: Signature{PublicKey: signer.PublicKey(), Bytes: ed25519.Sign(signer.priv, sum[:])},
+		Signature: signature,
 	})
 	return out, nil
 }

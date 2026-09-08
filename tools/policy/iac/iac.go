@@ -36,6 +36,100 @@ type Resource struct {
 	Encryption             bool
 	Backup                 bool
 	Tags                   map[string]string
+	// The following fields are the provider-neutral IAC-001 resource contract.
+	// They describe operational intent, never a cloud provider's API.
+	Owner               string `json:"owner,omitempty"`
+	Region              string `json:"region,omitempty"`
+	Residency           string `json:"residency,omitempty"`
+	Classification      string `json:"classification,omitempty"`
+	SLO                 string `json:"slo,omitempty"`
+	BackupPolicy        string `json:"backup_policy,omitempty"`
+	Cost                string `json:"cost,omitempty"`
+	Capacity            string `json:"capacity,omitempty"`
+	ReplacementStrategy string `json:"replacement_strategy,omitempty"`
+}
+
+const (
+	ResourceNetwork   = "network"
+	ResourceCompute   = "compute"
+	ResourcePostgres  = "postgres"
+	ResourceObject    = "object"
+	ResourceQueue     = "queue"
+	ResourceCache     = "cache"
+	ResourceTelemetry = "telemetry"
+	ResourceSecrets   = "secrets"
+	ResourceEdge      = "edge"
+)
+
+// Catalog is the machine-readable, provider-neutral inventory for a
+// cell. A catalog is descriptive only; applying it is outside this package.
+type Catalog struct {
+	Version   int        `json:"version"`
+	Resources []Resource `json:"resources"`
+}
+
+type CatalogFinding struct {
+	ResourceID string `json:"resource_id,omitempty"`
+	Field      string `json:"field"`
+	Code       string `json:"code"`
+	Detail     string `json:"detail"`
+}
+
+type CatalogReport struct {
+	Findings []CatalogFinding `json:"findings,omitempty"`
+}
+
+func (r CatalogReport) OK() bool { return len(r.Findings) == 0 }
+
+// ValidateCatalog checks the complete IAC-001 contract and requires all nine
+// declared semantic resource classes. It is deterministic and fail-closed.
+func ValidateCatalog(c Catalog) CatalogReport {
+	r := CatalogReport{}
+	if c.Version <= 0 {
+		r.Findings = append(r.Findings, CatalogFinding{Field: "version", Code: "INVALID_VERSION", Detail: "catalog version must be positive"})
+	}
+	required := map[string]bool{ResourceNetwork: false, ResourceCompute: false, ResourcePostgres: false, ResourceObject: false, ResourceQueue: false, ResourceCache: false, ResourceTelemetry: false, ResourceSecrets: false, ResourceEdge: false}
+	seen := make(map[string]bool, len(c.Resources))
+	for _, resource := range c.Resources {
+		id := strings.TrimSpace(resource.ID)
+		kind := resource.Kind
+		if id == "" {
+			r.Findings = append(r.Findings, CatalogFinding{Field: "id", Code: "MISSING_ID", Detail: "resource id is required"})
+		}
+		if seen[id] {
+			r.Findings = append(r.Findings, CatalogFinding{ResourceID: id, Field: "id", Code: "DUPLICATE_ID", Detail: "resource ids must be unique after trimming surrounding whitespace"})
+		}
+		seen[id] = true
+		if _, ok := required[kind]; !ok {
+			r.Findings = append(r.Findings, CatalogFinding{ResourceID: id, Field: "kind", Code: "UNKNOWN_KIND", Detail: "resource kind must exactly match the provider-neutral vocabulary"})
+		} else {
+			required[kind] = true
+		}
+		checks := []struct{ field, value string }{{"owner", resource.Owner}, {"region", resource.Region}, {"residency", resource.Residency}, {"classification", resource.Classification}, {"slo", resource.SLO}, {"backup_policy", resource.BackupPolicy}, {"cost", resource.Cost}, {"capacity", resource.Capacity}, {"replacement_strategy", resource.ReplacementStrategy}}
+		for _, check := range checks {
+			if strings.TrimSpace(check.value) == "" {
+				r.Findings = append(r.Findings, CatalogFinding{ResourceID: id, Field: check.field, Code: "MISSING_CONTRACT_FIELD", Detail: "resource contract requires " + check.field})
+			}
+		}
+	}
+	for kind, present := range required {
+		if !present {
+			r.Findings = append(r.Findings, CatalogFinding{Field: "resources", Code: "MISSING_KIND", Detail: "catalog must cover " + kind + " resources"})
+		}
+	}
+	sort.Slice(r.Findings, func(i, j int) bool {
+		if r.Findings[i].ResourceID != r.Findings[j].ResourceID {
+			return r.Findings[i].ResourceID < r.Findings[j].ResourceID
+		}
+		if r.Findings[i].Code != r.Findings[j].Code {
+			return r.Findings[i].Code < r.Findings[j].Code
+		}
+		if r.Findings[i].Field != r.Findings[j].Field {
+			return r.Findings[i].Field < r.Findings[j].Field
+		}
+		return r.Findings[i].Detail < r.Findings[j].Detail
+	})
+	return r
 }
 
 // PlanChange describes one proposed infrastructure change.

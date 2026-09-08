@@ -192,7 +192,7 @@ func scanFile(root, path string) ([]TestOracle, error) {
 		return nil, fmt.Errorf("oraclestrength: parse %s: %w", path, err)
 	}
 	imports := importAliases(file)
-	mapNames := mapVariables(file)
+	packageMaps := packageMapVariables(file)
 	rel, err := filepath.Rel(root, path)
 	if err != nil {
 		return nil, err
@@ -207,7 +207,7 @@ func scanFile(root, path string) ([]TestOracle, error) {
 		if !ok || fn.Recv != nil || fn.Body == nil || !isTestFunction(fn.Name.Name) {
 			continue
 		}
-		strength, reasons := classify(fn, imports, mapNames)
+		strength, reasons := classify(fn, imports, mapVariables(fn, packageMaps))
 		out = append(out, TestOracle{
 			Package: packagePath, File: filepath.ToSlash(rel), Name: fn.Name.Name,
 			Line: fset.Position(fn.Pos()).Line, Strength: strength, Reasons: reasons,
@@ -221,7 +221,7 @@ func classify(fn *ast.FuncDecl, imports map[string]string, mapNames map[string]b
 	ast.Inspect(fn.Body, func(node ast.Node) bool {
 		switch n := node.(type) {
 		case *ast.CallExpr:
-			state.inspectCall(n, imports)
+			state.inspectCall(n, imports, mapNames)
 		case *ast.BinaryExpr:
 			state.inspectBinary(n)
 		case *ast.RangeStmt:
@@ -274,7 +274,7 @@ type oracleState struct {
 	mapRange      bool
 }
 
-func (s *oracleState) inspectCall(call *ast.CallExpr, imports map[string]string) {
+func (s *oracleState) inspectCall(call *ast.CallExpr, imports map[string]string, mapNames map[string]bool) {
 	name, receiver := callName(call.Fun)
 	lower := strings.ToLower(name + " " + receiver)
 	if name == "Now" || name == "Since" || name == "Until" {
@@ -287,6 +287,15 @@ func (s *oracleState) inspectCall(call *ast.CallExpr, imports map[string]string)
 	}
 	if strings.Contains(lower, "golden") || strings.Contains(lower, "snapshot") || strings.Contains(lower, "matchsnapshot") {
 		s.snapshot = true
+		// A map passed directly to a golden/snapshot helper is just as
+		// order-sensitive as one ranged in the test body. Treat this as weak
+		// even when the helper hides the iteration from the test source.
+		for _, arg := range call.Args {
+			if isMapExpression(arg, mapNames) {
+				s.mapRange = true
+				break
+			}
+		}
 	}
 	if strings.Contains(lower, "coverage") || strings.Contains(lower, "coverprofile") {
 		s.assertion = true
@@ -323,7 +332,7 @@ func (s *oracleState) inspectBinary(expr *ast.BinaryExpr) {
 		s.contradictory = true
 		return
 	}
-	if expr.Op == token.LAND && comparisonPair(expr) {
+	if expr.Op == token.LAND && contradictoryAndPair(expr) {
 		s.assertion = true
 		s.contradictory = true
 		return
@@ -374,29 +383,70 @@ func importAliases(file *ast.File) map[string]string {
 	return aliases
 }
 
-func mapVariables(file *ast.File) map[string]bool {
+func packageMapVariables(file *ast.File) map[string]bool {
 	result := map[string]bool{}
-	ast.Inspect(file, func(node ast.Node) bool {
-		switch n := node.(type) {
-		case *ast.ValueSpec:
-			if !isMapType(n.Type) {
-				return true
+	for changed := true; changed; {
+		changed = false
+		for _, decl := range file.Decls {
+			gen, ok := decl.(*ast.GenDecl)
+			if !ok || gen.Tok != token.VAR {
+				continue
 			}
-			for _, name := range n.Names {
-				result[name.Name] = true
-			}
-		case *ast.AssignStmt:
-			for i, rhs := range n.Rhs {
-				if i >= len(n.Lhs) || !isMapExpression(rhs, result) {
+			for _, spec := range gen.Specs {
+				value, ok := spec.(*ast.ValueSpec)
+				if !ok {
 					continue
 				}
-				if ident, ok := n.Lhs[i].(*ast.Ident); ok {
-					result[ident.Name] = true
+				for i, name := range value.Names {
+					isMap := isMapType(value.Type)
+					if !isMap && i < len(value.Values) {
+						isMap = isMapExpression(value.Values[i], result)
+					}
+					if isMap && !result[name.Name] {
+						result[name.Name], changed = true, true
+					}
 				}
 			}
 		}
-		return true
-	})
+	}
+	return result
+}
+
+func mapVariables(fn *ast.FuncDecl, packageMaps map[string]bool) map[string]bool {
+	result := make(map[string]bool, len(packageMaps))
+	for name := range packageMaps {
+		result[name] = true
+	}
+	// Repeat to resolve alias chains without leaking local names between tests.
+	for changed := true; changed; {
+		changed = false
+		ast.Inspect(fn.Body, func(node ast.Node) bool {
+			switch n := node.(type) {
+			case *ast.ValueSpec:
+				for i, name := range n.Names {
+					isMap := isMapType(n.Type)
+					if !isMap && i < len(n.Values) {
+						isMap = isMapExpression(n.Values[i], result)
+					}
+					if isMap && !result[name.Name] {
+						result[name.Name], changed = true, true
+					}
+				}
+			case *ast.AssignStmt:
+				for i, rhs := range n.Rhs {
+					if i >= len(n.Lhs) || !isMapExpression(rhs, result) {
+						continue
+					}
+					if ident, ok := n.Lhs[i].(*ast.Ident); ok {
+						if !result[ident.Name] {
+							result[ident.Name], changed = true, true
+						}
+					}
+				}
+			}
+			return true
+		})
+	}
 	return result
 }
 
@@ -564,7 +614,7 @@ func weakCallReason(name string) string {
 
 func isStrongAssertionCall(name string) bool {
 	switch strings.ToLower(name) {
-	case "equal", "equalerror", "erroris", "matcherror", "deepequal", "len", "elementsmatch", "exactly":
+	case "equal", "equalerror", "erroris", "matcherror", "deepequal", "elementsmatch", "exactly":
 		return true
 	default:
 		return false
@@ -594,6 +644,41 @@ func comparisonPair(expr *ast.BinaryExpr) bool {
 		return false
 	}
 	return exprString(left.X) == exprString(right.X) || exprString(left.Y) == exprString(right.Y)
+}
+
+// contradictoryAndPair recognizes conjunctions that cannot describe one
+// value, without rejecting ordinary range checks such as count > 0 && count <
+// 10. A conjunction of two equality claims for the same value (or an equality
+// and its negation) is contradictory; inequalities and bounds are not.
+func contradictoryAndPair(expr *ast.BinaryExpr) bool {
+	left, lok := unwrapParen(expr.X).(*ast.BinaryExpr)
+	right, rok := unwrapParen(expr.Y).(*ast.BinaryExpr)
+	if !lok || !rok || !isComparison(left.Op) || !isComparison(right.Op) {
+		return false
+	}
+	if (left.Op == token.EQL && right.Op == token.NEQ) || (left.Op == token.NEQ && right.Op == token.EQL) {
+		return sameUnorderedPair(left, right)
+	}
+	if left.Op != token.EQL || right.Op != token.EQL {
+		return false
+	}
+	for _, pair := range [][4]ast.Expr{{left.X, left.Y, right.X, right.Y}, {left.X, left.Y, right.Y, right.X}, {left.Y, left.X, right.X, right.Y}, {left.Y, left.X, right.Y, right.X}} {
+		if exprString(pair[0]) == exprString(pair[2]) && distinctLiterals(pair[1], pair[3]) {
+			return true
+		}
+	}
+	return false
+}
+
+func sameUnorderedPair(left, right *ast.BinaryExpr) bool {
+	return (exprString(left.X) == exprString(right.X) && exprString(left.Y) == exprString(right.Y)) ||
+		(exprString(left.X) == exprString(right.Y) && exprString(left.Y) == exprString(right.X))
+}
+
+func distinctLiterals(left, right ast.Expr) bool {
+	l, lok := unwrapParen(left).(*ast.BasicLit)
+	r, rok := unwrapParen(right).(*ast.BasicLit)
+	return lok && rok && (l.Kind != r.Kind || l.Value != r.Value)
 }
 
 func unwrapParen(expr ast.Expr) ast.Expr {

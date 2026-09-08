@@ -601,7 +601,7 @@
     "refactor": "retry accounting is per logical operation, tenant and dependency",
     "refs": "[Backpressure](data/models/operations-production.md), [connector capacity](specs/integration-platform.md)",
     "retired": false,
-    "done": true,
+    "done": false,
     "evidence": "`TestTodo_ADMISSION_002` in `internal/operations/admission` (upstream scheduling slows at declared watermark; logical operation consumes bounded retry tokens and exhaustion returns RETRY_BUDGET_EXHAUSTED once with repair/escalation route; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
@@ -651,7 +651,8 @@
     "refactor": "detector failure defaults to lower trust, not execution authority",
     "refs": "[Agent security](data/models/assurance-intelligence-platform.md), [evidence model](data/models/kernel-governance-and-evidence.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_AGENT_002`, `TestTodo_AGENT_002_Golden`, `FuzzTodo_AGENT_002`, and adversarial admission/result/inference tests; `go test -count=1 -cover ./internal/agentsecurity/` PASS (95.6%); `go vet ./internal/agentsecurity/` PASS; `go test -run '^$' -fuzz '^FuzzTodo_AGENT_002$' -fuzztime=3s ./internal/agentsecurity/` PASS (42,824 executions; documented Windows cleanup warning only). Sol and root refinement bind admissions and validated results to exact payloads, refuse fabricated canonical facts, preserve source citations and inherited taints through inference, and quarantine detector faults and detected hostile source content before derivation. This is the semantic gateway design boundary, not a claim of exhaustive injection detection or a deployed model-serving adapter"
   },
   {
     "id": "AGENT-003",
@@ -4214,7 +4215,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestAssetConformanceTracksLossOffboardingRecoveryAndProviderDrift`, `TestTodo_ASSET_002_*`, and `TestAssetOffboardingAndCustodyAttributionResistCallerMutation`; `go test -count=1 -cover ./internal/domains/asset/` PASS on windows/arm64 (75.0%); `go vet ./internal/domains/asset/` PASS. Luna implementation, Sol refinement and integration review verify atomic in-memory recovery replay, immutable custody history, detached obligations and worker attribution. Provider observations cannot change physical custody. No external inventory deployment or durable crash recovery is claimed; detector-backed races remain CI-only"
   },
   {
     "id": "ASSURANCE-001",
@@ -4290,7 +4292,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Wire time](data/models/wire-contract-primitives.md), [data quality](specs/data-quality-and-invariant-evaluation.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Luna implementation, repeated Sol refinement, and integration review on 2026-09-07: `TestTodo_ATTEND_002`, `TestTodo_ATTEND_002_Property`, `TestTodo_ATTEND_002_Mutation`, permutation and typed-direction regressions in `internal/domains/attendance`; `go test -count=1 -p 1 -cover ./internal/domains/attendance/` PASS on windows/arm64 (87.3%); `go vet ./internal/domains/attendance/` completed with only the documented Windows executable-cleanup warning. Tests pin DST/split boundaries, exact rejection context, permutation-stable digests, IN/OUT sequencing, and zero-minute missing-side markers without double-counting known absence. The pure domain has no persistence/effect ports; production workflow routing remains separate"
   },
   {
     "id": "ATTEND-003",
@@ -5328,7 +5331,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Business cycles](#38-eligibility-business-cycle-and-balance-engines), [wire time](data/models/wire-contract-primitives.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_BEN_002`, `TestTodo_BEN_002_Property`, `TestTodo_BEN_002_Mutation` and typed rejection/calendar/boundary regressions in `internal/domains/benefits`; `go test -count=1 -p 1 -cover ./internal/domains/benefits/ ./internal/domains/attendance/` PASS on windows/arm64 (benefits 78.3%); `go vet ./internal/domains/benefits/ ./internal/domains/attendance/` PASS. Enrollment resolution has no persistence, event, outbox, work-item or provider ports; zero effects are structural at this domain-support boundary. No deployed enrollment workflow is claimed"
   },
   {
     "id": "BEN-003",
@@ -5722,7 +5726,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestCareerMobilityConformanceRequiresConsentEligibilityAndExplainableCandidateSet` and `TestTodo_CAREER_002_*`; `go test -count=1 -cover ./internal/domains/career/` PASS on windows/arm64 (45.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify current consent/preference/population/role evidence through injected ports and reverify the exact assessment/action basis before a separate application intent. Forged assessment, stale preference, withdrawn role and post-assessment consent withdrawal regressions pass. No live recruiting adapter is claimed; detector-backed races remain CI-only"
   },
   {
     "id": "CASE-001",
@@ -5901,7 +5906,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestCBACompositionPreservesMandatoryStatutoryAndAgreementConstraints` and `TestTodo_CBA_002_*`; `go test -count=1 -cover ./internal/domains/cba/` PASS on windows/arm64 (52.9%, existing exact coverage exception expires 2026-12-31); `go vet ./internal/domains/cba/` PASS. Luna implementation, Sol refinement and integration review verify explicit policy, mandatory intersections, zero-bound presence, separate per-bound provenance, permutation stability and stale/unpinned seniority refusal. Pure composition consumes supplied release/service pins; it does not certify current law or authenticate a live policy source. Detector-backed race execution remains CI-only"
   },
   {
     "id": "CBA-003",
@@ -7890,7 +7896,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestContactConformancePreservesVerificationAndPurposeAcrossCorrectionAndSync` and `TestTodo_CONTACT_002_*`; `go test -count=1 -cover ./internal/domains/contact/` PASS on windows/arm64 (54.4%, existing exact coverage exception expires 2026-12-31); `go vet ./internal/domains/contact/` PASS. Luna implementation, Sol refinement and integration review prove reference-store atomic reissue and exact retry receipts, minimum-priority permutation invariance, equivocation refusal and purpose-bound correction/repair. This is the digest-backed reference store, not a claim of PostgreSQL crash atomicity or message delivery; detector-backed races remain CI-only"
   },
   {
     "id": "CONTACT-003",
@@ -8251,7 +8258,8 @@
     "refactor": "Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior",
     "refs": "[Privacy lifecycle](specs/records-management-and-disposition.md), [talent models](data/models/talent-experience-cases.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_CRM_002`, `TestTodo_CRM_002_Mutation`, `TestTodo_CRM_002_Security` and memory-store lifecycle/tenant/CAS regressions in `internal/domains/crm`; `go test -count=1 -p 1 -cover ./internal/domains/crm/` PASS on windows/arm64 (76.1%); `go vet ./internal/domains/crm/` PASS. Withdrawal/expiry stop outreach with explicit obligations; invalid authority stops outreach without authorizing deletion. This closes domain-support semantics, not a deployed recruiting workflow or durable prospect store"
   },
   {
     "id": "CRM-003",
@@ -12185,7 +12193,7 @@
     "refactor": "promotion façade only maps typed input to `promotion.propose`; generic lifecycle endpoints own subsequent simulate/submit/inspect operations",
     "refs": "[Promotion endpoint](specs/http-grpc-endpoint-contract.md#gate-b-promotion-slice), [Promotion workflow](reference-workflows/promote-into-management.md), [intent-only request](#5-phase-1-people-organization-position-compensation-and-budget-domains)",
     "retired": false,
-    "done": true,
+    "done": false,
     "evidence": "`TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth` in `internal/transport/journey` (typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one PromoteWorker intent/change request plus immutable snapshot/simulation/proposal candidates with zero author; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/journey/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
@@ -12435,7 +12443,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestEquityConformancePreservesVestingLotsAndReconcilesProviderTaxEffects`, `TestTodo_EQUITY_002_*` and historical-forfeiture, correction-worker and effect-tampering regressions; `go test -count=1 -cover ./internal/domains/equity/` PASS on windows/arm64 (73.7%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove exact domain lot/effect conformance; provider observations remain non-authoritative and no live payroll posting is claimed. Detector-backed race execution remains CI-only"
   },
   {
     "id": "ER-001",
@@ -13161,7 +13170,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestFXConversionReturnsExactAmountRoundingAndTrace`, `TestTodo_FX_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and `TestDecimalDivisionNearMaxPrecisionHalfBoundary` verify direct/inverse/approved triangulation, exact policy rounding and refusal paths. Independent rational-oracle cases cover signed maximum-precision near-ties as well as 2,304 bounded combinations; kernel division rounds once from the exact quotient/remainder. Root `go test -count=1 -cover ./internal/kernel/values/ ./internal/domains/fx/` PASS (71.2% and 71.7%); `go vet ./internal/kernel/values/ ./internal/domains/fx/` PASS. Luna implementation and Sol/Astra refinement; no live rate-provider or financial-write authority claimed"
   },
   {
     "id": "FX-003",
@@ -18138,7 +18148,8 @@
     "refactor": "preemption is a distinct evaluation stage between release pinning and trigger evaluation; it never runs inside a comparator",
     "refs": "[Preemption](specs/legal-rule-packs-and-state-configuration.md#64-preemption), [state employment-law research](research/state-employment-law/README.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEGAL_013`, `_Property`, `_Golden`, `_Mutation`, and real `Resolve`→`Evaluate` integration/boundary tests; `go test -count=1 -cover ./internal/governance/legal/` PASS (82.2%); `go vet ./internal/governance/legal/` PASS. Five state golden fixtures pin receipt hashes; preemption removes only cited locality obligations of the named kind before triggers, preserves higher-level obligations, and rejects conflicting duplicate releases. Exact overlay pinning and signed unregistered-locality evidence obey optional tenant fail-closed policy; legacy single-release canonical bytes remain unchanged. Fixtures retain unreviewed citation status and do not constitute counsel approval or deployed state-pack release evidence"
   },
   {
     "id": "LEGAL-014",
@@ -21219,7 +21230,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce` and `TestTodo_MERIT_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` cover exact conservation, explicit approved/rejected outcomes and immutable corrections. `TestMeritDecisionEvidenceRoundTrip` proves tenant-bound finalized-source verification, caller-transaction rollback, concurrent once-only child persistence, restart retrieval and synchronized post-insert conflicting-payload refusal. Root `go test -count=1 -cover ./internal/domains/merit/` PASS (70.1%); `go test -count=1 -cover ./internal/data/meritstore/` PASS (76.2%); final `go test -count=1 -run '^TestMeritDecisionEvidenceRoundTrip$' ./internal/data/meritstore/` PASS; `go vet ./internal/domains/merit/ ./internal/data/meritstore/` PASS. Migrations 00268/00270 retain exact timestamps and durable emission records; no compensation execution authority is inferred"
   },
   {
     "id": "METRIC-001",
@@ -21328,7 +21340,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange` and `TestTodo_MOBILITY_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` prove immutable successor changes, exact host/obligation targeting, non-authoritative vendor observations, independent host-effect closure and append-only retro history. Generated properties, fixed golden digests, concurrent assertions and multi-host parent-preservation regressions were refined by Sol/Astra after Luna implementation. Root `go test -count=1 -cover ./internal/domains/mobility/` PASS (71.6%); `go vet ./internal/domains/mobility/` PASS. Domain conformance only; no live vendor or jurisdiction approval is inferred"
   },
   {
     "id": "MODEL-001",
@@ -28243,7 +28256,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestWorkAuthorizationConformanceBlocksExpiredUnknownAndAmbiguousProviderState`, `TestTodo_PROOF_002_*`, effective-date boundary and historical-correction regressions; `go test -count=1 -cover ./internal/domains/proofing/` PASS on windows/arm64 (88.3%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove the domain conformance fixtures, not a deployed scheduling authorization adapter. The named race test uses goroutines; detector-backed execution remains CI-only"
   },
   {
     "id": "PROOF-003",
@@ -28876,7 +28890,8 @@
     "refactor": "evaluation has zero business effects",
     "refs": "[Model conventions](data/models/modeling-conventions.md), [governance decisions](specs/governance-decision-and-obligation-composition.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "Luna implementation, Sol refinement, and integration review on 2026-09-07: `TestTodo_READINESS_003`, `TestTodo_READINESS_003_Property`, `TestTodo_READINESS_003_Golden` and input/integrity regressions in `internal/engines/readiness`; `go test -count=1 -p 1 -cover ./internal/engines/readiness/` PASS on windows/arm64 (75.8%); `go vet ./internal/engines/readiness/` PASS. Pure domain evaluation binds requirement/resolution digests, preserves unknown/conditional outcomes, and emits only bounded reason codes; no runtime publication or UI behavior is claimed"
   },
   {
     "id": "READINESS-004",
@@ -28901,7 +28916,8 @@
     "refactor": "readiness recommends/compiles next work and never bypasses capability execution",
     "refs": "[BusinessIntent catalog](specs/business-intent-catalog.md), [workflow runtime](specs/workflow-runtime.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_READINESS_004`, `TestTodo_READINESS_004_Golden`, `TestTodo_READINESS_004_Race`, and `TestTodo_READINESS_004_Mutation`; `go test -count=1 -cover ./internal/engines/readiness/` PASS (76.8%); `go vet ./internal/engines/readiness/` PASS. Bounded draft compilation pins requirement, evaluation, evidence and policy, rejects cross-domain configuration, emits nothing for READY, and binds explicit human-review/governance requirements into idempotent semantic IDs. Sol refinement and root review covered mutated gates/identity and concurrent success against a known-good digest. This pure compiler grants no execution authority and performs no persistence or business mutation"
   },
   {
     "id": "READINESS-CONF-001",
@@ -30153,7 +30169,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": false,
+    "evidence": "`TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`, `TestTodo_SAFETY_002_*`, and `TestResubmitFilingRequiresFreshObservedRejection`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (58.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify append-only fixture lineage, exact payment reversal, observed-rejection-only resubmission, and fresh-observation closure. No medical/legal determination, live filing, or ledger payment execution is claimed; detector-backed races remain CI-only"
   },
   {
     "id": "SANDBOX-001",
@@ -31460,7 +31477,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestServiceCalculationExplainsBreakBridgeCreditAndDimensionSpecificOrder`, `TestTodo_SERVICE_002_*` and `TestTodo_SERVICE_002_ContinuousRunResetsAtUnbridgedAndTrailingBreaks`; `go test -count=1 -cover ./internal/domains/service/` PASS on windows/arm64 (77.4%); scoped vet PASS. Luna implementation, Sol refinement and integration review prove interval union, explicit bridge credit, separate total/continuous duration, adjusted dates and pinned-cohort ranking with unknown-peer refusal. New evaluation canonical format is v2 while legacy unpinned model bytes remain v1. No live eligibility adapter is claimed; detector-backed races remain CI-only"
   },
   {
     "id": "SERVICE-003",
@@ -31489,7 +31507,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility` and independent `TestTodo_SERVICE_003_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and removed-scope/rule-change regressions; `go test -count=1 -cover ./internal/domains/service/` PASS (78.4%); `go vet ./internal/domains/service/` PASS. Exact successor/current/result pins retain prior explanation; old and new interval/dimension scope and rule-only changes emit bounded dependent drafts, excluding unrelated workers. Protected outcomes require governed correction. Sol/root refinement replaced matrix aliases with exact golden, permutation, shared-input concurrency and five eligibility-domain assertions. This semantic compiler emits non-executable drafts; no live dispatcher or governance authority is claimed"
   },
   {
     "id": "SETTLE-001",
@@ -32767,7 +32786,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSuccessionConformanceNeverTurnsSlateIntoPromotionOrEmploymentPromise` and `TestTodo_SUCCESSION_002_*`; `go test -count=1 -cover ./internal/domains/succession/` PASS on windows/arm64 (52.6%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify injected authority/consent/privacy/current-readiness checks, exact correction-source tuple binding, withheld candidate/count metadata and separate non-executing vacancy intent. Live authority adapters are not claimed; detector-backed races remain CI-only"
   },
   {
     "id": "SUPPLY-001",
@@ -33517,7 +33537,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection` and independent `TestTodo_TAXPROFILE_002` property/golden/race/fault/security/conformance/mutation matrix; `go test -count=1 -cover ./internal/domains/taxprofile/` PASS (71.3%); `go vet ./internal/domains/taxprofile/` PASS. Sol's full `go test -count=1 -cover ./internal/data/taxprofilestore/` PASS (73.8%); root independently ran `go test -count=1 -run '^TestTodo_TAXPROFILE_002_PostgresSubMicrosecondEffectiveBounds$' ./internal/data/taxprofilestore/` PASS. Migration 00263 and real PostgreSQL tests cover tenant-scoped successor CAS, populated append-only upgrade, exact scale/nanosecond round trips and reversed interval refusal. Closed-payroll inputs produce correction drafts, never payroll rewrites; domain tests pin exact golden bytes and generated boundary/permutation invariants. No tax-rate or payroll-execution authority is inferred"
   },
   {
     "id": "TAXPROFILE-003",
@@ -37227,7 +37248,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_040`, `TestTodo_WEB_040_Golden`, `TestTodo_WEB_040_Browser`, `TestTodo_WEB_040_Conformance` in `internal/humanwork/productui` (shell `action-launcher` control offering only authorized starts, denied create hides the promotion start, navigation-only hrefs, deterministic derivation, dialog/trigger accessible names, no unresolved keys in en-US/de-DE/RTL ar; goldens `2fabcf2f…`, `a9374abc…` shell, `e2762626…` navigation); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet` clean, coverage 86.6%, `tools/uxqual/i18n` + `pagedef` PASS, `./internal/humanwork/...` PASS on windows/arm64 (Go 1.26.3); `test/workspace` has two failures (`TestTodo_UX_004_Browser`, `TestPromotionWorkspaceRendersFromTheLiveCellWithZeroEffects`) proven unrelated — the harness does not build at clean HEAD without the other session's uncommitted journey-edge work; static SSR screenshots at 1280px and 390px verified in headless Chromium (a missing trigger stylesheet rendering the control dark was found and fixed, `.artifacts/web040-desktop.png`, `.artifacts/web040-mobile.png`); live browser interaction pending (no running cell in this environment)"
   },
   {
     "id": "WEB-041",
@@ -37250,7 +37272,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-042",
@@ -37273,7 +37295,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-043",
@@ -37296,7 +37318,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-044",
@@ -37319,7 +37341,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_044`, `TestTodo_WEB_044_Golden`, `TestTodo_WEB_044_Browser`, `TestTodo_WEB_044_Conformance` in `internal/humanwork/productui` (registry ParentNav trail with projection-filtered ancestors, worker-naming profile crumb, nil for unknown pages, silence for single generic crumbs; nav landmark with ordered list, software-routed links, aria-current page marker, aria-hidden separators, en-US/de-DE/RTL ar labels; golden `a2817ac7…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet` clean, `gofmt` clean, `tools/uxqual/...` 26/26 PASS, playwright browser gate 18/20 with the 2 failures proven pre-existing on clean-HEAD fixtures; two older document-wide aria-current assertions re-scoped to the primary-nav landmark (Studio, person) with breadcrumb-marker assertions added"
   },
   {
     "id": "WEB-045",
@@ -37342,7 +37365,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_045`, `TestTodo_WEB_045_Golden`, `TestTodo_WEB_045_Browser`, `TestTodo_WEB_045_Conformance` in `internal/humanwork/productui` (governed identity resolution per page/role/locale, withheld settings destination under a denying permissions projection, Home greeting, unknown-page Home fallback, profile keeps registry H1; `data-hcm-page` stamp, labelledby wiring, golden `0016c935…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures; WEB-037/WEB-039 goldens re-pinned after strip-proof of attribute-only delta; route-adapter markup rule kept green via `header_identity.go` naming"
   },
   {
     "id": "WEB-046",
@@ -37365,7 +37389,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_046`, `TestTodo_WEB_046_Golden`, `TestTodo_WEB_046_Browser`, `TestTodo_WEB_046_Conformance` in `internal/humanwork/productui` (registry-derived Related plus grant-gated Actions sections, denied/empty/unknown contexts yield nothing, deterministic derivation, dialog semantics with hidden-until-open dialog, registry-coupled in-shell links, de-DE/RTL ar labels, typed stylesheet selectors, golden `0f4db16a…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no golden fallout, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures"
   },
   {
     "id": "WEB-047",
@@ -37388,7 +37413,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_047`, `TestTodo_WEB_047_Golden`, `TestTodo_WEB_047_Browser`, `TestTodo_WEB_047_Conformance` in `internal/humanwork/productui` (collapsible trigger-label spans with intact accessible names, canonical 430px collapse rules, exactly 2 logical-only narrow blocks, viewport-bound dialogs, golden `96b75252…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures; WEB-037/WEB-039/WEB-040/WEB-046 goldens re-pinned after strip-proofs of span-wrap-only deltas"
   },
   {
     "id": "WEB-048",
@@ -37411,7 +37437,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_048`, `TestTodo_WEB_048_Golden`, `TestTodo_WEB_048_Browser`, `TestTodo_WEB_048_Conformance` in `internal/humanwork/productui` (named-landmark inventory per page/projection/locale, document-existence proof per landmark, skip-link wiring, shared Escape predicate, golden `1d58b14d…`) plus new `tools/uxqual/browser/web048_keyboard_landmarks.spec.mjs` 6/6 in real Chromium (DOM-order tabs, landmark roles, 390px reflow); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, full browser gate 24 passed with the same 2 pre-existing ux003 failures"
   },
   {
     "id": "WEB-049",
@@ -37436,7 +37463,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_049`, `TestTodo_WEB_049_Golden`, `TestTodo_WEB_049_Browser`, `TestTodo_WEB_049_Conformance` in `internal/humanwork/productui` (tenantless gate with grouped issuer links and in-workspace hrefs, tenant chrome suppressed, honest empty state, tenanted views unaffected, deterministic grouping, de-DE/RTL ar titles, typed stylesheet selectors, golden `b5f9cf65…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures"
   },
   {
     "id": "WEB-050",
@@ -37460,7 +37488,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_050`, `TestTodo_WEB_050_Golden`, `TestTodo_WEB_050_Browser`, `TestTodo_WEB_050_Conformance` in `internal/humanwork/productui` (labelled recovery section with discernible link text, javascript:/data:/network-relative/plain-http/empty dropped with no section when nothing safe, gate placement after title, de-DE/RTL ar titles, 9-scheme policy table, typed stylesheet selectors, golden `8e43b2bc…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures"
   },
   {
     "id": "WEB-051",
@@ -37484,7 +37513,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_051`, `TestTodo_WEB_051_Golden`, `TestTodo_WEB_051_Browser`, `TestTodo_WEB_051_Conformance` in `internal/humanwork/productui` (3-state × 3-locale sweep: 8 conformance properties green with zero findings, gate-document shell honesty, shared scheme policy, matrix digest `6380d315…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures. Proof-only: no production change"
   },
   {
     "id": "WEB-052",
@@ -37508,7 +37538,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_052`, `TestTodo_WEB_052_Golden`, `TestTodo_WEB_052_Browser`, `TestTodo_WEB_052_Conformance` in `internal/humanwork/productui` (labelled banner with server detail, re-auth link, labelled dismiss, fragment without projection, topbar-to-content placement, de-DE/RTL ar titles, typed stylesheet selectors, golden `93253689…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures"
   },
   {
     "id": "WEB-053",
@@ -37532,7 +37563,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_053`, `TestTodo_WEB_053_Golden`, `TestTodo_WEB_053_Browser`, `TestTodo_WEB_053_Conformance` in `internal/humanwork/productui` (resume target on the re-auth link from the shell address primitive, destination query preserved, unsafe/unparsable bases pass through, registry-coupled resume paths for every page); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures. WEB-052's exact-href assertion evolved to parse the destination path (intended behavior change)"
   },
   {
     "id": "WEB-054",
@@ -37556,7 +37588,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_054`, `TestTodo_WEB_054_Golden`, `TestTodo_WEB_054_Browser`, `TestTodo_WEB_054_Conformance` in `internal/humanwork/productui` (action-bound prompt with server reason and policy-gated challenge link, labelled dismiss, fragment without projection, warning-then-prompt-then-content ordering, de-DE/RTL ar titles, typed stylesheet selectors, golden `24c5c9f1…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures"
   },
   {
     "id": "WEB-055",
@@ -37580,7 +37613,8 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_WEB_055`, `TestTodo_WEB_055_Golden`, `TestTodo_WEB_055_Browser`, `TestTodo_WEB_055_Conformance` in `internal/humanwork/productui` (selectable delegated grants with delegator/expiry/elevation, current and malformed grants excluded, shared exchange contract, no-opaque-ids DOM, topbar placement, de-DE/RTL ar labels, typed stylesheet selectors, golden `fec579a1…`); `go test -count=1 ./internal/humanwork/productui/` PASS (native Linux Go 1.26.3) with no fallout, `go vet`/`gofmt` clean, fixtures regenerated byte-identical. Browser gate deferred (no launchable Chromium on either side) — recorded in devlog §17"
   },
   {
     "id": "WEB-056",
@@ -37604,7 +37638,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-057",
@@ -37628,7 +37662,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-058",
@@ -37652,7 +37686,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-059",
@@ -37676,7 +37710,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-060",
@@ -37700,7 +37734,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-061",
@@ -37726,7 +37760,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-062",
@@ -37750,7 +37784,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-063",
@@ -37774,7 +37808,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-064",
@@ -37798,7 +37832,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-065",
@@ -37822,7 +37856,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-066",
@@ -37846,7 +37880,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-067",
@@ -37870,7 +37904,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-068",
@@ -37894,7 +37928,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-069",
@@ -37918,7 +37952,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-070",
@@ -37942,7 +37976,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-071",
@@ -37966,7 +38000,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-072",
@@ -37990,7 +38024,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-073",
@@ -38015,7 +38049,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-074",
@@ -38038,7 +38072,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-075",
@@ -38061,7 +38095,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-076",
@@ -38084,7 +38118,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-077",
@@ -38107,7 +38141,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-078",
@@ -38130,7 +38164,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-079",
@@ -38153,7 +38187,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-080",
@@ -38176,7 +38210,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-081",
@@ -38199,7 +38233,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-082",
@@ -38222,7 +38256,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-083",
@@ -38245,7 +38279,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-084",
@@ -38268,7 +38302,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-085",
@@ -38292,7 +38326,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-086",
@@ -38315,7 +38349,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-087",
@@ -38338,7 +38372,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-088",
@@ -38361,7 +38395,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-089",
@@ -38384,7 +38418,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-090",
@@ -38407,7 +38441,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-091",
@@ -38430,7 +38464,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-092",
@@ -38453,7 +38487,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-093",
@@ -38476,7 +38510,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-094",
@@ -38499,7 +38533,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-095",
@@ -38522,7 +38556,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-096",
@@ -38545,7 +38579,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-097",
@@ -38570,7 +38604,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-098",
@@ -38593,7 +38627,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-099",
@@ -38616,7 +38650,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-100",
@@ -38639,7 +38673,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-101",
@@ -38662,7 +38696,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-102",
@@ -38685,7 +38719,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-103",
@@ -38708,7 +38742,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-104",
@@ -38731,7 +38765,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-105",
@@ -38754,7 +38788,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-106",
@@ -38777,7 +38811,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-107",
@@ -38800,7 +38834,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-108",
@@ -38823,7 +38857,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-109",
@@ -38848,7 +38882,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-110",
@@ -38871,7 +38905,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-111",
@@ -38894,7 +38928,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-112",
@@ -38917,7 +38951,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-113",
@@ -38940,7 +38974,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-114",
@@ -38963,7 +38997,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-115",
@@ -38986,7 +39020,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-116",
@@ -39009,7 +39043,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-117",
@@ -39032,7 +39066,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-118",
@@ -39055,7 +39089,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-119",
@@ -39078,7 +39112,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-120",
@@ -39101,7 +39135,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [People domain](specs/people-employment-assignment-domain.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-121",
@@ -39154,7 +39188,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-123",
@@ -39179,7 +39213,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-124",
@@ -39204,7 +39238,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-125",
@@ -39229,7 +39263,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-126",
@@ -39254,7 +39288,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-127",
@@ -39279,7 +39313,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-128",
@@ -39304,7 +39338,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-129",
@@ -39329,7 +39363,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-130",
@@ -39354,7 +39388,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-131",
@@ -39379,7 +39413,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-132",
@@ -39404,7 +39438,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-133",
@@ -39428,7 +39462,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-134",
@@ -39451,7 +39485,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-135",
@@ -39474,7 +39508,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-136",
@@ -39497,7 +39531,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-137",
@@ -39520,7 +39554,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-138",
@@ -39543,7 +39577,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-139",
@@ -39566,7 +39600,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-140",
@@ -39589,7 +39623,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-141",
@@ -39612,7 +39646,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-142",
@@ -39635,7 +39669,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-143",
@@ -39658,7 +39692,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-144",
@@ -39681,7 +39715,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-145",
@@ -39706,7 +39740,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-146",
@@ -39729,7 +39763,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-147",
@@ -39752,7 +39786,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-148",
@@ -39775,7 +39809,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-149",
@@ -39798,7 +39832,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-150",
@@ -39821,7 +39855,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-151",
@@ -39844,7 +39878,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-152",
@@ -39867,7 +39901,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-153",
@@ -39890,7 +39924,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-154",
@@ -39913,7 +39947,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-155",
@@ -39936,7 +39970,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-156",
@@ -39959,7 +39993,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-157",
@@ -39984,7 +40018,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-158",
@@ -40007,7 +40041,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-159",
@@ -40030,7 +40064,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-160",
@@ -40053,7 +40087,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-161",
@@ -40076,7 +40110,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-162",
@@ -40099,7 +40133,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-163",
@@ -40122,7 +40156,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-164",
@@ -40145,7 +40179,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-165",
@@ -40168,7 +40202,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-166",
@@ -40191,7 +40225,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-167",
@@ -40214,7 +40248,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-168",
@@ -40237,7 +40271,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-169",
@@ -40261,7 +40295,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-170",
@@ -40284,7 +40318,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-171",
@@ -40307,7 +40341,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-172",
@@ -40330,7 +40364,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-173",
@@ -40353,7 +40387,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-174",
@@ -40376,7 +40410,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-175",
@@ -40399,7 +40433,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-176",
@@ -40422,7 +40456,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-177",
@@ -40445,7 +40479,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-178",
@@ -40468,7 +40502,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-179",
@@ -40491,7 +40525,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-180",
@@ -40514,7 +40548,7 @@
     "refactor": "keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages",
     "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md)",
     "retired": false,
-    "done": false
+    "done": true
   },
   {
     "id": "WEB-181",

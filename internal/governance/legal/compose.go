@@ -16,6 +16,10 @@ import (
 // contains the two complete pieces of evidence that caused the refusal.
 var ErrContradictoryRequirements = errors.New("legal: CONTRADICTORY_REQUIREMENTS")
 
+// ErrConflictingDuplicateRelease rejects two different release bodies claiming
+// the same immutable registration identity.
+var ErrConflictingDuplicateRelease = errors.New("legal: conflicting duplicate rule-pack release")
+
 // ObligationComparator is the stable name of the operation registered for an
 // obligation kind. The names are receipt data, so changing one is a wire
 // compatibility change.
@@ -92,16 +96,27 @@ type CompositionTrace struct {
 	Winner     string
 }
 
+// PreemptionApplied records one subdivision release assertion consumed before
+// composition. Removed IDs are locality obligations only; the assertion can
+// never remove a subdivision/country obligation or an unrelated kind.
+type PreemptionApplied struct {
+	Kind                  ObligationType
+	AssertingJurisdiction Jurisdiction
+	RemovedObligationIDs  []string
+	Citation              Citation
+}
+
 // CompositionReceipt is deterministic audit evidence for one composition.
 // Bytes and Digest are derived only from the sorted fields in this value.
 type CompositionReceipt struct {
-	Status         CompositionStatus
-	Jurisdictions  []Jurisdiction
-	Inputs         []ObligationEvidence
-	Obligations    []ComposedObligation
-	Traces         []CompositionTrace
-	Contradictions []ContradictoryRequirement
-	Digest         string
+	Status             CompositionStatus
+	Jurisdictions      []Jurisdiction
+	Inputs             []ObligationEvidence
+	Obligations        []ComposedObligation
+	Traces             []CompositionTrace
+	Contradictions     []ContradictoryRequirement
+	PreemptionsApplied []PreemptionApplied
+	Digest             string
 }
 
 type composableObligation struct {
@@ -168,7 +183,7 @@ func ComposeObligations(request CompositionRequest) (CompositionReceipt, error) 
 	}
 
 	allowed := jurisdictionSetMembers(request.Jurisdictions)
-	seenPacks := map[string]struct{}{}
+	seenPacks := map[string]string{}
 	var all []composableObligation
 	for _, pack := range request.Packs {
 		if err := pack.Jurisdiction.Validate(); err != nil {
@@ -179,11 +194,15 @@ func ComposeObligations(request CompositionRequest) (CompositionReceipt, error) 
 				return CompositionReceipt{}, fmt.Errorf("legal: pack %s jurisdiction %s is outside the jurisdiction set", pack.PackID, pack.Jurisdiction)
 			}
 		}
-		packKey := pack.Jurisdiction.String() + "|" + pack.PackID + "|" + strconv.FormatUint(uint64(pack.Version), 10)
-		if _, duplicate := seenPacks[packKey]; duplicate {
+		packKey := releaseIdentity(pack.Release())
+		fingerprint := pack.ComputeDigest()
+		if previous, duplicate := seenPacks[packKey]; duplicate {
+			if previous != fingerprint {
+				return CompositionReceipt{}, fmt.Errorf("%w: %s", ErrConflictingDuplicateRelease, packKey)
+			}
 			continue
 		}
-		seenPacks[packKey] = struct{}{}
+		seenPacks[packKey] = fingerprint
 		for _, item := range pack.obligations() {
 			all = append(all, composableObligation{
 				evidence: ObligationEvidence{
@@ -202,6 +221,10 @@ func ComposeObligations(request CompositionRequest) (CompositionReceipt, error) 
 		}
 	}
 	sortComposable(all)
+	all, preemptions, err := applyPreemptionsToComposable(all, request.Packs)
+	if err != nil {
+		return CompositionReceipt{}, err
+	}
 
 	byKind := map[ObligationType][]composableObligation{}
 	for _, item := range all {
@@ -209,6 +232,7 @@ func ComposeObligations(request CompositionRequest) (CompositionReceipt, error) 
 	}
 
 	receipt := CompositionReceipt{Status: CompositionResolved}
+	receipt.PreemptionsApplied = preemptions
 	receipt.Jurisdictions = sortedJurisdictions(request.Jurisdictions)
 	for _, item := range all {
 		receipt.Inputs = append(receipt.Inputs, item.evidence)
@@ -248,6 +272,10 @@ func ComposeObligations(request CompositionRequest) (CompositionReceipt, error) 
 		return receipt, fmt.Errorf("%w: %s", ErrContradictoryRequirements, receipt.Contradictions[0].Reason)
 	}
 	return receipt, nil
+}
+
+func releaseIdentity(release RulePackRelease) string {
+	return release.Jurisdiction.String() + "|" + release.PackID + "|" + strconv.FormatUint(uint64(release.Version), 10) + "." + strconv.FormatUint(uint64(release.MinorVersion), 10)
 }
 
 // Compose is the concise entry point for callers that already have a
@@ -300,6 +328,71 @@ func sortComposable(items []composableObligation) {
 		}
 		return left.PackID < right.PackID
 	})
+}
+
+type preemptionKey struct {
+	jurisdiction Jurisdiction
+	kind         ObligationType
+	id           string
+}
+
+// applyPreemptionsToComposable is the standalone evaluation stage shared by
+// composition. Assertions are read from subdivision releases, then applied to
+// already-pinned inputs before any comparator is selected.
+func applyPreemptionsToComposable(items []composableObligation, packs []RulePack) ([]composableObligation, []PreemptionApplied, error) {
+	removed := make(map[preemptionKey]struct{})
+	var records []PreemptionApplied
+	seenAssertions := make(map[string]struct{})
+	for _, pack := range packs {
+		if pack.Jurisdiction.Locality != "" || pack.Jurisdiction.State == "" {
+			if len(pack.PreemptionAssertions) > 0 {
+				return nil, nil, fmt.Errorf("legal: preemption asserting jurisdiction %s is not subdivision-level", pack.Jurisdiction)
+			}
+			continue
+		}
+		for _, assertion := range pack.PreemptionAssertions {
+			if err := assertion.Validate(); err != nil {
+				return nil, nil, err
+			}
+			assertionKey := releaseIdentity(pack.Release()) + "|" + assertion.Kind.String() + "|" + assertion.Citation.SourceFile + "|" + assertion.Citation.Section
+			if _, duplicate := seenAssertions[assertionKey]; duplicate {
+				continue
+			}
+			seenAssertions[assertionKey] = struct{}{}
+			record := PreemptionApplied{Kind: assertion.Kind, AssertingJurisdiction: pack.Jurisdiction, Citation: assertion.Citation}
+			for _, item := range items {
+				if item.jurisdiction.Locality == "" || item.jurisdiction.Country != pack.Jurisdiction.Country || item.jurisdiction.State != pack.Jurisdiction.State || item.evidence.Type != assertion.Kind {
+					continue
+				}
+				key := preemptionKey{jurisdiction: item.jurisdiction, kind: item.evidence.Type, id: item.evidence.ID}
+				removed[key] = struct{}{}
+				record.RemovedObligationIDs = append(record.RemovedObligationIDs, item.evidence.ID)
+			}
+			if len(record.RemovedObligationIDs) > 0 {
+				sort.Strings(record.RemovedObligationIDs)
+				records = append(records, record)
+			}
+		}
+	}
+	filtered := make([]composableObligation, 0, len(items))
+	for _, item := range items {
+		if _, ok := removed[preemptionKey{jurisdiction: item.jurisdiction, kind: item.evidence.Type, id: item.evidence.ID}]; !ok {
+			filtered = append(filtered, item)
+		}
+	}
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].AssertingJurisdiction.String() != records[j].AssertingJurisdiction.String() {
+			return records[i].AssertingJurisdiction.String() < records[j].AssertingJurisdiction.String()
+		}
+		if records[i].Kind != records[j].Kind {
+			return records[i].Kind < records[j].Kind
+		}
+		if records[i].Citation.SourceFile != records[j].Citation.SourceFile {
+			return records[i].Citation.SourceFile < records[j].Citation.SourceFile
+		}
+		return records[i].Citation.Section < records[j].Citation.Section
+	})
+	return filtered, records, nil
 }
 
 func sortedKinds(groups map[ObligationType][]composableObligation) []ObligationType {
@@ -602,18 +695,20 @@ func retentionRecordClass(rule obligationRule) string {
 }
 
 type canonicalComposition struct {
-	Status         CompositionStatus          `json:"status"`
-	Jurisdictions  []Jurisdiction             `json:"jurisdictions"`
-	Inputs         []ObligationEvidence       `json:"inputs"`
-	Obligations    []ComposedObligation       `json:"obligations"`
-	Traces         []CompositionTrace         `json:"traces"`
-	Contradictions []ContradictoryRequirement `json:"contradictions"`
+	Status             CompositionStatus          `json:"status"`
+	Jurisdictions      []Jurisdiction             `json:"jurisdictions"`
+	Inputs             []ObligationEvidence       `json:"inputs"`
+	Obligations        []ComposedObligation       `json:"obligations"`
+	Traces             []CompositionTrace         `json:"traces"`
+	Contradictions     []ContradictoryRequirement `json:"contradictions"`
+	PreemptionsApplied []PreemptionApplied        `json:"preemptions_applied,omitempty"`
 }
 
 func (r CompositionReceipt) canonicalValue() canonicalComposition {
 	return canonicalComposition{
 		Status: r.Status, Jurisdictions: r.Jurisdictions, Inputs: r.Inputs,
 		Obligations: r.Obligations, Traces: r.Traces, Contradictions: r.Contradictions,
+		PreemptionsApplied: r.PreemptionsApplied,
 	}
 }
 

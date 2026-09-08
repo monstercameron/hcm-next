@@ -473,13 +473,20 @@ modules:
     semantic_owner: experience-and-transport
     license_owner: platform-foundation
     security_owner: platform-foundation
-    allowed_import_roots: [tools/uxqual]
+    allowed_import_roots:
+      [
+        tools/uxqual,
+        internal/humanwork/productui,
+        internal/humanwork/uicomponents,
+        internal/humanwork/workspace,
+      ]
     direct_import_expected: false
     upgrade_sla: Minor within 90 days; security patch within 14 days.
     exposure: >-
-      Preferred UI renderer per the Go technology constitution, admitted only
-      for the UX-QUAL-001 qualification fixture until that decision is
-      recorded; no production package imports it before then.
+      Preferred UI renderer per the Go technology constitution, qualified by
+      UX-QUAL-001 as the selected renderer; the production UI packages import
+      its html/ui/css subpackages as renderer mechanics only (markup, server
+      components, typed CSS). No business semantics may come from it.
     replacement_strategy: Go html/template server-side rendering with progressive enhancement (UX-QUAL-001 fallback).
 
   - path: github.com/monstercameron/schemaflux

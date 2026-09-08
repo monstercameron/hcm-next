@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 )
 
 // Canonical-encoding and signature errors. All are matchable with errors.Is.
@@ -18,6 +19,7 @@ var (
 	ErrDigestMismatch      = errors.New("legal: recomputed digest does not match the recorded digest")
 	ErrSignatureInvalid    = errors.New("legal: ed25519 signature does not verify")
 	ErrSignatureKeyMissing = errors.New("legal: no public key supplied to verify against")
+	ErrSignerPort          = errors.New("legal: signing port refused the digest")
 )
 
 // appendField appends a length-prefixed (label, value) pair to dst so that
@@ -69,6 +71,25 @@ func appendStringSlice(dst []byte, label string, values []string) []byte {
 type Signer struct {
 	priv ed25519.PrivateKey
 	pub  ed25519.PublicKey
+	port SignerPort
+}
+
+// SignerPort signs the raw SHA-256 digest bytes supplied by this package.
+// Implementations may keep private key material outside the process (for
+// example, in a custody service). The bytes passed to Sign are exactly the
+// bytes covered by the existing Signer convention; they are not hex text.
+type SignerPort interface {
+	Sign([]byte) ([]byte, error)
+}
+
+// SignerFunc adapts a function to SignerPort.
+type SignerFunc func([]byte) ([]byte, error)
+
+func (f SignerFunc) Sign(digest []byte) ([]byte, error) {
+	if f == nil {
+		return nil, ErrSignerPort
+	}
+	return f(digest)
 }
 
 // NewSigner wraps an existing ed25519 private key.
@@ -80,7 +101,31 @@ func NewSigner(priv ed25519.PrivateKey) (*Signer, error) {
 	if !ok || len(pub) != ed25519.PublicKeySize {
 		return nil, ErrSignerKey
 	}
-	return &Signer{priv: priv, pub: pub}, nil
+	return &Signer{priv: append(ed25519.PrivateKey(nil), priv...), pub: append(ed25519.PublicKey(nil), pub...)}, nil
+}
+
+// NewPortSigner creates a signer backed by an external Ed25519 signing port.
+// publicKey is trusted configuration and is embedded in every returned
+// signature. The port's output is verified before it is returned, so a
+// misconfigured or compromised port cannot emit evidence under another key.
+func NewPortSigner(publicKey ed25519.PublicKey, port SignerPort) (*Signer, error) {
+	if len(publicKey) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("%w: trusted public key has %d bytes", ErrSignerKey, len(publicKey))
+	}
+	if port == nil || isNilSignerPort(port) {
+		return nil, fmt.Errorf("%w: nil signing port", ErrSignerPort)
+	}
+	return &Signer{pub: append(ed25519.PublicKey(nil), publicKey...), port: port}, nil
+}
+
+func isNilSignerPort(port SignerPort) bool {
+	v := reflect.ValueOf(port)
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return v.IsNil()
+	default:
+		return false
+	}
 }
 
 // GenerateSigner creates a fresh ed25519 key pair. src may be nil, which uses
@@ -98,16 +143,12 @@ func GenerateSigner(src io.Reader) (*Signer, error) {
 
 // PublicKey returns a copy of the signer's public key.
 func (s *Signer) PublicKey() ed25519.PublicKey {
+	if s == nil {
+		return nil
+	}
 	out := make(ed25519.PublicKey, len(s.pub))
 	copy(out, s.pub)
 	return out
-}
-
-// sign returns the digest of canonicalBytes and the ed25519 signature over
-// that digest.
-func (s *Signer) sign(canonicalBytes []byte) (digest string, signature []byte) {
-	sum := sha256.Sum256(canonicalBytes)
-	return hex.EncodeToString(sum[:]), ed25519.Sign(s.priv, sum[:])
 }
 
 // Signature is the detached ed25519 evidence over a [LegalContext]'s
