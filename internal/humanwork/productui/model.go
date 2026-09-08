@@ -121,6 +121,7 @@ const (
 	PageReconciliationWorkbench PageID = "reconciliation-workbench"
 	PagePrivacyTelemetry        PageID = "privacy-telemetry"
 	PagePerformanceBudgets      PageID = "performance-budgets"
+	PageBrowserMatrix           PageID = "browser-matrix"
 	PageOrganization            PageID = "organization"
 	PageInsights                PageID = "insights"
 	PageAdmin                   PageID = "admin"
