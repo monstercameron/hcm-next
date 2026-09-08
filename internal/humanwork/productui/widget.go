@@ -1,6 +1,9 @@
 package productui
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 // WidgetDefinition is one registered widget contract: its type, trust
 // tier, pinned version, and opaque classification ceiling.
@@ -129,4 +132,51 @@ func ValidateDraftWidgets(draft PageDraft, registry WidgetRegistry) WidgetVerdic
 		return WidgetVerdict{Compatible: false, Reasons: reasons}
 	}
 	return WidgetVerdict{Compatible: true}
+}
+
+// WidgetPermission is one widget's catalog status under a page
+// ceiling: the widget, whether the page may compose it, and the
+// stable refusal reason when it may not. Reasons stay empty on
+// permission.
+type WidgetPermission struct {
+	Widget    WidgetDefinition
+	Permitted bool
+	Reason    string
+}
+
+// PermittedWidgetCatalog lists every registered widget with its
+// status under one page classification ceiling: a widget clears
+// the catalog exactly when its classification limit sits at or
+// below the ceiling. This is the capability side of ceiling
+// enforcement — binding data still gates per binding — so
+// authors learn a widget is unusable before composing it.
+// Undeclared ceilings clear nothing and unranked labels refuse,
+// both fail-closed; the catalog sorts by widget ID and never
+// mutates the registry.
+func PermittedWidgetCatalog(ceiling string, registry WidgetRegistry) []WidgetPermission {
+	ordered := append([]WidgetDefinition(nil), registry.Widgets...)
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i].ID < ordered[j].ID })
+	catalog := make([]WidgetPermission, 0, len(ordered))
+	ceilingRank, ceilingOK := ClassificationRank(ceiling)
+	for _, widget := range ordered {
+		permission := WidgetPermission{Widget: widget}
+		switch {
+		case ceiling == "":
+			permission.Reason = "missing classification ceiling"
+		case !ceilingOK:
+			permission.Reason = fmt.Sprintf("unknown classification ceiling %q", ceiling)
+		default:
+			limitRank, limitOK := ClassificationRank(widget.ClassificationLimit)
+			switch {
+			case !limitOK:
+				permission.Reason = fmt.Sprintf("unranked classification limit %q for widget %q", widget.ClassificationLimit, widget.ID)
+			case limitRank > ceilingRank:
+				permission.Reason = fmt.Sprintf("widget %q limit %q exceeds page ceiling %q", widget.ID, widget.ClassificationLimit, ceiling)
+			default:
+				permission.Permitted = true
+			}
+		}
+		catalog = append(catalog, permission)
+	}
+	return catalog
 }
