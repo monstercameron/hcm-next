@@ -22,6 +22,7 @@ const (
 	PagePosition               PageID = "position"
 	PageRequisition            PageID = "requisition"
 	PageCandidates             PageID = "candidates"
+	PageCandidate              PageID = "candidate"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
