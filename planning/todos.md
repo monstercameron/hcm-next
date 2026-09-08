@@ -16878,7 +16878,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md).
 
-- [ ] `WEB-156` **[PHASE_3][SOL_HIGH] Implement return-to-work planning.**
+- [x] `WEB-156` **[PHASE_3][SOL_HIGH] Implement return-to-work planning.**
   - **Depends:** `WEB-155`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement return-to-work planning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_156`.
