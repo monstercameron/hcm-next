@@ -55,13 +55,15 @@ func RegisteredPrimitives() []string {
 }
 
 // PageComposition is the draft-scoped composition document: which
-// floorplan version the draft targets and which semantic primitives
-// it composes. Regions, widgets, and action bindings arrive as later
-// lifecycle layers extend this document.
+// floorplan version the draft targets, which semantic primitives it
+// composes, and which anatomy regions it fills in resolution order.
+// Widgets and action bindings arrive as later lifecycle layers extend
+// this document.
 type PageComposition struct {
 	Floorplan        string
 	FloorplanVersion int64
 	Primitives       []string
+	Regions          []string
 }
 
 // FloorplanVerdict is the compatibility answer: compatible plus the
