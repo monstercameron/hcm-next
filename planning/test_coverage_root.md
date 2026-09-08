@@ -896,6 +896,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | history_components.go                 | yes           |
 | internal/humanwork/productui                             | history_navigation.go                 | yes           |
 | internal/humanwork/productui                             | home_components.go                    | yes           |
+| internal/humanwork/productui                             | home_floorplan.go                     | yes           |
 | internal/humanwork/productui                             | i18n.go                               | yes           |
 | internal/humanwork/productui                             | icons.go                              | yes           |
 | internal/humanwork/productui                             | insights_components.go                | yes           |

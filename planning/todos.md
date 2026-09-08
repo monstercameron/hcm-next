@@ -16279,7 +16279,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Home and My Work
 
-- [ ] `WEB-097` **[GATE_C][TERRA] Implement the authorization-resolved Home floorplan.**
+- [x] `WEB-097` **[GATE_C][TERRA] Implement the authorization-resolved Home floorplan.**
   - **Depends:** `WEB-037`, `WEB-061`, `WORK-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the authorization-resolved home floorplan without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_097`.
