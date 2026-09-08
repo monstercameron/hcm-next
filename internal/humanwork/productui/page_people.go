@@ -13,20 +13,26 @@ import (
 // peoplePage is the route adapter. It is the only People component that sees
 // the broad page projection; every child receives a purpose-built props value.
 func peoplePage(view View) ui.Node {
-	filtered := filteredPeople(view)
+	// The directory population is the admitted population: rows, facet
+	// options, and counts all derive from it, so denied workers appear
+	// nowhere once the server speaks.
+	population := admittedPeople(view)
+	scoped := view
+	scoped.People = population
+	filtered := filteredPeople(scoped)
 	ordered := sortedPeople(filtered, view.PeopleSort, view.PeopleDirection)
 	window := paginatePeople(ordered, view.PeoplePage, view.PeoplePageSize)
 	filterActive := view.Query != "" || view.PeopleTeam != "" || view.PeopleLocation != ""
 	props := PeoplePageProps{
 		I18nProps: I18nProps{Locale: view.Locale},
 		Summary: PeopleSummaryProps{
-			CountLabel: peopleCountLabel(view.Locale, filterActive, len(filtered), len(view.People)),
+			CountLabel: peopleCountLabel(view.Locale, filterActive, len(filtered), len(population)),
 			ScopeLabel: view.Locale.Text("people.scope", map[string]string{"scope": valueOrUnavailableFor(view.Locale, view.Scope)}),
 		},
 		Filter: PeopleFilterProps{
 			Query: view.Query, Team: view.PeopleTeam, Location: view.PeopleLocation,
-			Teams:     peopleFilterOptions(peopleFacetOptions(view.People, func(person Person) string { return person.Team })),
-			Locations: peopleFilterOptions(peopleFacetOptions(view.People, func(person Person) string { return person.Location })),
+			Teams:     peopleFilterOptions(peopleFacetOptions(population, func(person Person) string { return person.Team })),
+			Locations: peopleFilterOptions(peopleFacetOptions(population, func(person Person) string { return person.Location })),
 			Sort:      view.PeopleSort, Direction: view.PeopleDirection,
 			Action: pageHref(PagePeople), ClearHref: peopleClearHref(view),
 			NavCollapsed: view.NavCollapsed, Navigate: view.Navigate,

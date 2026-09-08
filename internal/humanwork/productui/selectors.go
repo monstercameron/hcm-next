@@ -60,15 +60,39 @@ func exactPerson(view View) (Person, bool) {
 	return Person{}, false
 }
 
+// admittedPeople limits the directory population to admitted records
+// once the server speaks: records without a verdict and non-disclosable
+// records leave the population, so rows, facet options, and counts can
+// never advertise what the viewer may not open. An empty verdict map
+// means the server is silent, and the current population stands —
+// presentation enforces the authorization it is given instead of
+// inventing its own. Order is preserved and inputs are never mutated.
+func admittedPeople(view View) []Person {
+	if len(view.RecordVerdicts) == 0 {
+		return view.People
+	}
+	admitted := make([]Person, 0, len(view.People))
+	for _, person := range view.People {
+		if DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
+			admitted = append(admitted, person)
+		}
+	}
+	if len(admitted) == 0 {
+		return nil
+	}
+	return admitted
+}
+
 func filteredPeople(view View) []Person {
 	query := strings.ToLower(strings.TrimSpace(view.Query))
 	team := strings.ToLower(strings.TrimSpace(view.PeopleTeam))
 	location := strings.ToLower(strings.TrimSpace(view.PeopleLocation))
+	population := admittedPeople(view)
 	if query == "" && team == "" && location == "" {
-		return view.People
+		return population
 	}
-	result := make([]Person, 0, len(view.People))
-	for _, person := range view.People {
+	result := make([]Person, 0, len(population))
+	for _, person := range population {
 		index := normalizedPerson(person)
 		if query != "" && !strings.Contains(index.search, query) {
 			continue

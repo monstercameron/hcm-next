@@ -15972,7 +15972,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-067` **[GATE_C][SOL_HIGH] Enforce population-query presentation limits.**
+- [x] `WEB-067` **[GATE_C][SOL_HIGH] Enforce population-query presentation limits.**
   - **Depends:** `WEB-066`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce population-query presentation limits without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_067`.
