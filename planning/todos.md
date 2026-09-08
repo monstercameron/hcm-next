@@ -16930,7 +16930,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-161` **[PHASE_4][SOL_HIGH] Implement salary-range and budget comparison.**
+- [x] `WEB-161` **[PHASE_4][SOL_HIGH] Implement salary-range and budget comparison.**
   - **Depends:** `WEB-160`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement salary-range and budget comparison without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_161`.
