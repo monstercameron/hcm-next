@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -99,19 +100,21 @@ type ToolCall struct {
 // service may use it to perform the selected operation and then pass its
 // output to ValidateOutput.
 type Admission struct {
-	AgentID    string
-	Tenant     string
-	Purpose    string
-	Tool       string
-	Capability string
-	Version    uint32
-	Nonce      string
-	ArgsDigest string
-	InputTaint []string
-	Provenance []string
-	Cost       int
-	Budget     int
-	DataScope  []string
+	AgentID          string
+	Tenant           string
+	Purpose          string
+	Tool             string
+	Capability       string
+	Version          uint32
+	Nonce            string
+	ArgsDigest       string
+	InputTaint       []string
+	Provenance       []string
+	Cost             int
+	Budget           int
+	DataScope        []string
+	admissionSeal    *ToolGateway
+	admissionReceipt string
 }
 
 // RefusalCode is a stable machine-readable refusal reason.
@@ -156,12 +159,15 @@ func (e *Refusal) Explain() string { return e.Error() }
 // execution port, credential resolver, database handle, clock, or network
 // client.
 type ToolGateway struct {
-	tools map[string]ToolDescriptor
+	tools        map[string]ToolDescriptor
+	detector     Detector
+	semanticSeal *ToolGateway
 }
 
 // NewToolGateway validates and freezes tool descriptors.
 func NewToolGateway(tools []ToolDescriptor) (*ToolGateway, error) {
-	result := &ToolGateway{tools: make(map[string]ToolDescriptor, len(tools))}
+	result := &ToolGateway{tools: make(map[string]ToolDescriptor, len(tools)), detector: DefaultInstructionDetector}
+	result.semanticSeal = result
 	for _, tool := range tools {
 		if strings.TrimSpace(tool.Name) == "" || strings.TrimSpace(tool.Capability) == "" || tool.Version == 0 || !tool.Class.valid() || tool.Cost <= 0 || strings.TrimSpace(tool.Schema) == "" || tool.Validate == nil {
 			return nil, &Refusal{Code: RefusalInvalid, Field: "tool_descriptor", Detail: "name, capability, version, class, positive cost, schema and validator are required"}
@@ -216,7 +222,9 @@ func (g *ToolGateway) Admit(call ToolCall) (Admission, error) {
 	if call.CostBudget < tool.Cost || call.CostBudget > call.Agent.Budget || call.CostBudget > call.Delegation[len(call.Delegation)-1].Budget {
 		return Admission{}, refusal(RefusalBudget, "cost_budget", "budget is exhausted or exceeds delegated budget")
 	}
-	return Admission{AgentID: call.Agent.AgentID, Tenant: call.Tenant, Purpose: call.Purpose, Tool: call.Tool, Capability: call.Capability, Version: call.Version, Nonce: call.Nonce, ArgsDigest: digest, InputTaint: cloneStrings(call.InputTaint), Provenance: cloneStrings(call.Provenance), Cost: tool.Cost, Budget: call.CostBudget, DataScope: cloneStrings(call.DataScope)}, nil
+	admission := Admission{AgentID: call.Agent.AgentID, Tenant: call.Tenant, Purpose: call.Purpose, Tool: call.Tool, Capability: call.Capability, Version: call.Version, Nonce: call.Nonce, ArgsDigest: digest, InputTaint: cloneStrings(call.InputTaint), Provenance: cloneStrings(call.Provenance), Cost: tool.Cost, Budget: call.CostBudget, DataScope: cloneStrings(call.DataScope), admissionSeal: g.semanticSeal}
+	admission.admissionReceipt = digestAdmission(admission)
+	return admission, nil
 }
 
 // Invoke is a convenience for a deterministic service: the service supplies
@@ -235,6 +243,9 @@ func (g *ToolGateway) ValidateOutput(admission Admission, toolName string, outpu
 	if g == nil {
 		return TypedResult{}, refusal(RefusalInvalid, "gateway", "nil gateway")
 	}
+	if g.semanticSeal == nil || admission.admissionSeal != g.semanticSeal || admission.admissionReceipt == "" || admission.admissionReceipt != digestAdmission(admission) {
+		return TypedResult{}, refusal(RefusalInvalid, "admission", "admission was not issued unchanged by this gateway")
+	}
 	tool, ok := g.tools[toolName]
 	if !ok || toolName != admission.Tool || tool.Version != admission.Version {
 		return TypedResult{}, refusal(RefusalCapability, "capability.version", "admission does not bind the registered tool")
@@ -245,7 +256,75 @@ func (g *ToolGateway) ValidateOutput(admission Admission, toolName string, outpu
 	}
 	result.Taint = cloneStrings(result.Taint)
 	result.Provenance = cloneStrings(result.Provenance)
+	result.Taint = joinStrings(result.Taint, string(TaintTool))
+	result.Provenance = joinStrings(result.Provenance, fmt.Sprintf("tool:%s@%d", tool.Name, tool.Version))
+	result.semanticSeal = g.semanticSeal
+	receipt, err := digestValidatedResult(result)
+	if err != nil {
+		return TypedResult{}, refusal(RefusalOutput, "output", "validated output cannot be bound to canonical material")
+	}
+	result.semanticReceipt = receipt
 	return result, nil
+}
+
+func digestAdmission(a Admission) string {
+	bound := struct {
+		AgentID    string   `json:"agent_id"`
+		Tenant     string   `json:"tenant"`
+		Purpose    string   `json:"purpose"`
+		Tool       string   `json:"tool"`
+		Capability string   `json:"capability"`
+		Version    uint32   `json:"version"`
+		Nonce      string   `json:"nonce"`
+		ArgsDigest string   `json:"args_digest"`
+		InputTaint []string `json:"input_taint"`
+		Provenance []string `json:"provenance"`
+		Cost       int      `json:"cost"`
+		Budget     int      `json:"budget"`
+		DataScope  []string `json:"data_scope"`
+	}{a.AgentID, a.Tenant, a.Purpose, a.Tool, a.Capability, a.Version, a.Nonce, a.ArgsDigest, a.InputTaint, a.Provenance, a.Cost, a.Budget, a.DataScope}
+	encoded, _ := json.Marshal(bound)
+	sum := sha256.Sum256(append([]byte("hcm-next-agent-admission/v1\x00"), encoded...))
+	return "sha256:" + hex.EncodeToString(sum[:])
+}
+
+func digestValidatedResult(result TypedResult) (string, error) {
+	if draft, ok := result.Value.(DraftValue); ok && !nilValue(draft) {
+		material, err := draft.DraftCanonicalBytes()
+		if err != nil {
+			return "", fmt.Errorf("draft canonical material: %w", err)
+		}
+		if len(material) == 0 {
+			return "", errors.New("draft canonical material is empty")
+		}
+		materialSum := sha256.Sum256(material)
+		bound := struct {
+			Schema         string   `json:"schema"`
+			MaterialDigest string   `json:"material_digest"`
+			Validated      bool     `json:"validated"`
+			Taint          []string `json:"taint"`
+			Provenance     []string `json:"provenance"`
+		}{result.Schema, "sha256:" + hex.EncodeToString(materialSum[:]), result.Validated, result.Taint, result.Provenance}
+		encoded, err := json.Marshal(bound)
+		if err != nil {
+			return "", err
+		}
+		sum := sha256.Sum256(append([]byte("hcm-next-agent-validated-draft/v1\x00"), encoded...))
+		return "sha256:" + hex.EncodeToString(sum[:]), nil
+	}
+	bound := struct {
+		Schema     string   `json:"schema"`
+		Value      any      `json:"value"`
+		Validated  bool     `json:"validated"`
+		Taint      []string `json:"taint"`
+		Provenance []string `json:"provenance"`
+	}{result.Schema, result.Value, result.Validated, result.Taint, result.Provenance}
+	encoded, err := json.Marshal(bound)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(append([]byte("hcm-next-agent-validated-result/v1\x00"), encoded...))
+	return "sha256:" + hex.EncodeToString(sum[:]), nil
 }
 
 // Explain is an audit-safe projection of a call. It does not validate or

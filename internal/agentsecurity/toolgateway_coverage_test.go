@@ -218,12 +218,13 @@ func TestToolGateway_InvokeValidateDigestAndUtilities(t *testing.T) {
 		name      string
 		admission Admission
 		tool      string
+		want      RefusalCode
 	}{
-		{"unknown tool", admission, "missing"},
-		{"tool binding", func() Admission { a := admission; a.Tool = "other"; return a }(), call.Tool},
-		{"version binding", func() Admission { a := admission; a.Version++; return a }(), call.Tool},
+		{"unknown tool", admission, "missing", RefusalCapability},
+		{"tool binding", func() Admission { a := admission; a.Tool = "other"; return a }(), call.Tool, RefusalInvalid},
+		{"version binding", func() Admission { a := admission; a.Version++; return a }(), call.Tool, RefusalInvalid},
 	} {
-		t.Run(tc.name, func(t *testing.T) { refusalMust(t, gValidate(g, tc.admission, tc.tool, "value"), RefusalCapability) })
+		t.Run(tc.name, func(t *testing.T) { refusalMust(t, gValidate(g, tc.admission, tc.tool, "value"), tc.want) })
 	}
 	for name, output := range map[string]TypedResult{
 		"validator error":              {},

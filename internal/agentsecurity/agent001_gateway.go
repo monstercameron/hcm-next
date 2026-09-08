@@ -54,11 +54,13 @@ type Request struct {
 // TypedResult is the only result that crosses the gateway. Validated must be
 // set by a deterministic validator owned by the tool, never by an agent.
 type TypedResult struct {
-	Schema     string
-	Value      any
-	Validated  bool
-	Taint      []string
-	Provenance []string
+	Schema          string
+	Value           any
+	Validated       bool
+	Taint           []string
+	Provenance      []string
+	semanticSeal    *ToolGateway
+	semanticReceipt string
 }
 
 type Tool struct {
