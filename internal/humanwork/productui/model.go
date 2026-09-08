@@ -80,6 +80,7 @@ const (
 	PageOrgResponsive          PageID = "org-responsive"
 	PageHelpHub                PageID = "help-hub"
 	PageKnowledgeSearch        PageID = "knowledge-search"
+	PageHRServiceRequest       PageID = "hr-service-request"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
