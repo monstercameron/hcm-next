@@ -875,6 +875,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | breadcrumb.go                         | yes           |
 | internal/humanwork/productui                             | components.go                         | yes           |
 | internal/humanwork/productui                             | composition_components.go             | yes           |
+| internal/humanwork/productui                             | composition_diff.go                   | yes           |
 | internal/humanwork/productui                             | content_editor.go                     | yes           |
 | internal/humanwork/productui                             | data_domain_scope.go                  | yes           |
 | internal/humanwork/productui                             | data_table.go                         | yes           |
