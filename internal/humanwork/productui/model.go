@@ -100,6 +100,7 @@ const (
 	PageAccessEquipment        PageID = "access-equipment"
 	PageFinalDocuments         PageID = "final-documents"
 	PageOffboardingEffects     PageID = "offboarding-effects"
+	PageRetainedObligations    PageID = "retained-obligations"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
