@@ -16389,7 +16389,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-108` **[GATE_C][TERRA] Implement responsive My Work list-detail behavior.**
+- [x] `WEB-108` **[GATE_C][TERRA] Implement responsive My Work list-detail behavior.**
   - **Depends:** `WEB-107`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement responsive my work list-detail behavior without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_108`.

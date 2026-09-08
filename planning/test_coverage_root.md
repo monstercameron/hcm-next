@@ -894,6 +894,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | federation_entry.go                   | yes           |
 | internal/humanwork/productui                             | header_identity.go                    | yes           |
 | internal/humanwork/productui                             | landmarks.go                          | yes           |
+| internal/humanwork/productui                             | list_detail.go                        | yes           |
 | internal/humanwork/productui                             | session_warning.go                    | yes           |
 | internal/humanwork/productui                             | step_up.go                            | yes           |
 | internal/humanwork/productui                             | utility_drawer.go                     | yes           |
