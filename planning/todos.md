@@ -17600,7 +17600,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-227` **[PHASE_2][TERRA] Implement analysis-to-proposal handoff.**
+- [x] `WEB-227` **[PHASE_2][TERRA] Implement analysis-to-proposal handoff.**
   - **Depends:** `WEB-226`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement analysis-to-proposal handoff without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_227`.

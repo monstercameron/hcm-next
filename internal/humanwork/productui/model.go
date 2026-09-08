@@ -112,6 +112,7 @@ const (
 	PageReportExport           PageID = "report-export"
 	PageReportSharing          PageID = "report-sharing"
 	PageNLAnalysis             PageID = "nl-analysis"
+	PageAnalysisHandoff        PageID = "analysis-handoff"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
