@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -140,6 +140,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageBenefitsEnroll, Route: "/workspace/app/benefits/enroll", Label: "Benefits enroll", Icon: "people", Title: "Benefit enrollment", Subtitle: "Enroll through the governed benefits service.", LabelKey: "page.benefits_enroll.label", TitleKey: "page.benefits_enroll.title", SubtitleKey: "page.benefits_enroll.subtitle", SearchTerms: []string{"enroll", "election", "sign up", "choose", "benefits"}, RenderOrder: 101, render: benefitsEnrollPage},
 		{ID: PagePayBenefitRecon, Route: "/workspace/app/pay/reconciliation", Label: "Pay-benefit recon", Icon: "people", Title: "Payroll and benefit reconciliation status", Subtitle: "Agreement status from the governed reconciliation service.", LabelKey: "page.pay_benefit_recon.label", TitleKey: "page.pay_benefit_recon.title", SubtitleKey: "page.pay_benefit_recon.subtitle", SearchTerms: []string{"reconciliation", "agree", "breaks", "payroll", "benefits"}, RenderOrder: 102, render: payBenefitReconPage},
 		{ID: PageGrowthHome, Route: "/workspace/app/growth", Label: "Growth home", Icon: "people", Title: "Employee Growth home", Subtitle: "Growth from the governed growth service.", LabelKey: "page.growth_home.label", TitleKey: "page.growth_home.title", SubtitleKey: "page.growth_home.subtitle", SearchTerms: []string{"growth", "career", "home", "develop", "progress"}, RenderOrder: 103, render: growthHomePage},
+		{ID: PageGoalPlanning, Route: "/workspace/app/growth/goals", Label: "Goal planning", Icon: "people", Title: "Goal planning", Subtitle: "Plan goals through the governed growth service.", LabelKey: "page.goal_planning.label", TitleKey: "page.goal_planning.title", SubtitleKey: "page.goal_planning.subtitle", SearchTerms: []string{"goals", "plan", "target", "milestone", "objective"}, RenderOrder: 104, render: goalPlanningPage},
 	}
 }
 
