@@ -945,6 +945,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | page_worker_ids.go                    | yes           |
 | internal/humanwork/productui                             | people_components.go                  | yes           |
 | internal/humanwork/productui                             | people_directory.go                   | yes           |
+| internal/humanwork/productui                             | people_query.go                       | yes           |
 | internal/humanwork/productui                             | person_components.go                  | yes           |
 | internal/humanwork/productui                             | personal_summaries.go                 | yes           |
 | internal/humanwork/productui                             | policy_simulation.go                  | yes           |
