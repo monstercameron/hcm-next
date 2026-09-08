@@ -107,6 +107,7 @@ const (
 	PageAnalysisFloorplan      PageID = "analysis-floorplan"
 	PageAnalysisFilters        PageID = "analysis-filters"
 	PageResultLineage          PageID = "result-lineage"
+	PageDataFreshness          PageID = "data-freshness"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
