@@ -106,6 +106,7 @@ const (
 	PageReportTypes            PageID = "report-types"
 	PageAnalysisFloorplan      PageID = "analysis-floorplan"
 	PageAnalysisFilters        PageID = "analysis-filters"
+	PageResultLineage          PageID = "result-lineage"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
