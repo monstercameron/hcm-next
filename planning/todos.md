@@ -1213,6 +1213,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Execution plan](execution-plan.md), [Phase 1 scope](plan.md#phase-1-changeops-overlay).
 
 - [ ] `ARCH-GO-019` **[GATE_C][SOL_HIGH] Require evidence before module, process or service decomposition.**
+  - **Implementation evidence (2026-09-08; commit gates pending):** `TestDecompositionDecisionRejectsTopologyDrivenSplit` and the named matrix cover topology-only refusal, fixed golden bytes, concurrent checks, boundary inventory and mutation. Additional regressions reject baseline additions, YAML alias/resource hiding, invented ownership and missing/tampered evidence. Reviewed decision v2 requires repository-contained SHA-256-pinned sources and integer-minor-unit costs. Independent `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 76.6%; `npm run check:decomposition` PASS with exactly ten grandfathered boundaries and no reviewed additions. The command is wired into `test:all` and CI; no new process or service is approved by this evidence.
   - **Depends:** `ARCH-GO-003`, `PERF-ENV-001`, `OPS-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestDecompositionDecisionRejectsTopologyDrivenSplit`.
@@ -16002,7 +16003,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-070` **[GATE_C][SOL_HIGH] Filter real-time events by current authority.**
+- [x] `WEB-070` **[GATE_C][SOL_HIGH] Filter real-time events by current authority.**
   - **Depends:** `WEB-069`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=filter real-time events by current authority without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_070`.
