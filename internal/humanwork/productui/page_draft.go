@@ -17,6 +17,10 @@ type PageDraft struct {
 	// Snapshot is the working copy. Owners mutate it directly; the
 	// log only ever sees it through PublishDraft.
 	Snapshot PageDefinitionSnapshot
+	// Composition is the draft-scoped composition document the
+	// lifecycle validates: floorplan, primitives, and — as later
+	// steps extend PageComposition — regions, widgets, and actions.
+	Composition PageComposition
 }
 
 // NewPageDraft opens a draft on one recorded revision. The working

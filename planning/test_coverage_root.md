@@ -880,6 +880,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | doc.go                                | yes           |
 | internal/humanwork/productui                             | field_disposition.go                  | yes           |
 | internal/humanwork/productui                             | focus.go                              | yes           |
+| internal/humanwork/productui                             | floorplan.go                          | yes           |
 | internal/humanwork/productui                             | global_search.go                      | yes           |
 | internal/humanwork/productui                             | federation_entry.go                   | yes           |
 | internal/humanwork/productui                             | header_identity.go                    | yes           |

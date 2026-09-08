@@ -16055,7 +16055,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-075` **[GATE_C][SOL_HIGH] Validate floorplan compatibility.**
+- [x] `WEB-075` **[GATE_C][SOL_HIGH] Validate floorplan compatibility.**
   - **Depends:** `WEB-074`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=validate floorplan compatibility without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_075`.
