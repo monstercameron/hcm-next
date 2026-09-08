@@ -37,6 +37,7 @@ const (
 	PageTimeExceptions         PageID = "time-exceptions"
 	PageTimeOff                PageID = "time-off"
 	PageTimeOffRequest         PageID = "time-off-request"
+	PageTeamCoverage           PageID = "team-coverage"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
