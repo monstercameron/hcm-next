@@ -28,6 +28,7 @@ const (
 	PageOffer                  PageID = "offer"
 	PagePortal                 PageID = "portal"
 	PageOnboarding             PageID = "onboarding"
+	PageOnboardingTasks        PageID = "onboarding-tasks"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

@@ -16746,7 +16746,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-143` **[PHASE_3][SOL_HIGH] Implement onboarding task completion.**
+- [x] `WEB-143` **[PHASE_3][SOL_HIGH] Implement onboarding task completion.**
   - **Depends:** `WEB-142`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement onboarding task completion without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_143`.
