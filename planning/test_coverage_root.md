@@ -905,6 +905,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | organization_visibility_components.go | yes           |
 | internal/humanwork/productui                             | page_admin.go                         | yes           |
 | internal/humanwork/productui                             | page_appearance.go                    | yes           |
+| internal/humanwork/productui                             | page_draft.go                         | yes           |
 | internal/humanwork/productui                             | page_help.go                          | yes           |
 | internal/humanwork/productui                             | page_history.go                       | yes           |
 | internal/humanwork/productui                             | page_home.go                          | yes           |
