@@ -124,3 +124,65 @@ func removeString(set []string, value string) []string {
 	}
 	return kept
 }
+
+// Keyboard move directions: one step earlier or later in region
+// resolution order. Directions stay axis-neutral on purpose —
+// earlier/later holds for vertical, horizontal, and RTL layouts
+// alike, where up/down or left/right would each lie somewhere.
+const (
+	RegionMoveEarlier = "earlier"
+	RegionMoveLater   = "later"
+)
+
+// RegionMove is one keyboard move: the region and the direction.
+// One press moves one step; longer walks loop the call.
+type RegionMove struct {
+	Region    string
+	Direction string
+}
+
+// MoveOutlineRegion moves one region one step earlier or later,
+// swapping with its neighbor. Moves name composed regions, not
+// vocabulary: any region present moves, including duplicates
+// (the first occurrence travels) and platform-owned strays the
+// editor is converging away. Absent regions refuse with the
+// validator's wording, as do unknown directions. Boundary moves
+// converge silently — the disabled-control equivalent — leaving
+// the outline unchanged. Result ordering validates downstream.
+// The output never aliases the input.
+func MoveOutlineRegion(composition PageComposition, move RegionMove) OutlineVerdict {
+	unmoved := PageComposition{
+		Purpose:               composition.Purpose,
+		Audience:              composition.Audience,
+		Floorplan:             composition.Floorplan,
+		FloorplanVersion:      composition.FloorplanVersion,
+		ClassificationCeiling: composition.ClassificationCeiling,
+		Primitives:            append([]string(nil), composition.Primitives...),
+		Regions:               append([]string(nil), composition.Regions...),
+		Widgets:               append([]WidgetBinding(nil), composition.Widgets...),
+		Actions:               append([]ActionBinding(nil), composition.Actions...),
+	}
+	at := -1
+	for i, region := range unmoved.Regions {
+		if region == move.Region {
+			at = i
+			break
+		}
+	}
+	if at < 0 {
+		return OutlineVerdict{Compatible: false, Reasons: []string{fmt.Sprintf("unknown region %q", move.Region)}, Composition: unmoved}
+	}
+	switch move.Direction {
+	case RegionMoveEarlier:
+		if at > 0 {
+			unmoved.Regions[at-1], unmoved.Regions[at] = unmoved.Regions[at], unmoved.Regions[at-1]
+		}
+	case RegionMoveLater:
+		if at < len(unmoved.Regions)-1 {
+			unmoved.Regions[at], unmoved.Regions[at+1] = unmoved.Regions[at+1], unmoved.Regions[at]
+		}
+	default:
+		return OutlineVerdict{Compatible: false, Reasons: []string{fmt.Sprintf("unknown move direction %q", move.Direction)}, Composition: unmoved}
+	}
+	return OutlineVerdict{Compatible: true, Composition: unmoved}
+}
