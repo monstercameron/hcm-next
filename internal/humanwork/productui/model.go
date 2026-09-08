@@ -81,6 +81,7 @@ const (
 	PageHelpHub                PageID = "help-hub"
 	PageKnowledgeSearch        PageID = "knowledge-search"
 	PageHRServiceRequest       PageID = "hr-service-request"
+	PageConfidentialCase       PageID = "confidential-case"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
