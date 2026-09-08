@@ -115,6 +115,7 @@ const (
 	PageAnalysisHandoff        PageID = "analysis-handoff"
 	PageAccessibleViz          PageID = "accessible-viz"
 	PagePolicyStudio           PageID = "policy-studio"
+	PagePolicySimulation       PageID = "policy-simulation"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
