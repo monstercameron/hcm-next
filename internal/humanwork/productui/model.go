@@ -60,6 +60,7 @@ const (
 	PageManagerCheckins        PageID = "manager-checkins"
 	PagePerfReview             PageID = "perf-review"
 	PageReviewParticipants     PageID = "review-participants"
+	PageSkillsProfile          PageID = "skills-profile"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

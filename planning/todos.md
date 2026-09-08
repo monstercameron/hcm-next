@@ -17072,7 +17072,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-175` **[PHASE_3][TERRA] Implement the governed skills profile.**
+- [x] `WEB-175` **[PHASE_3][TERRA] Implement the governed skills profile.**
   - **Depends:** `WEB-174`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the governed skills profile without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_175`.
