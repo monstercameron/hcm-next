@@ -17652,7 +17652,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [execution plan](execution-plan.md).
 
-- [ ] `WEB-232` **[GATE_C][SOL_HIGH] Implement the configuration center.**
+- [x] `WEB-232` **[GATE_C][SOL_HIGH] Implement the configuration center.**
   - **Depends:** `WEB-231`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the configuration center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_232`.
