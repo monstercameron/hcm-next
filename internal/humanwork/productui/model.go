@@ -124,6 +124,7 @@ const (
 	PageBrowserMatrix           PageID = "browser-matrix"
 	PageAssistiveTech           PageID = "assistive-tech"
 	PageDisasterRecovery        PageID = "disaster-recovery"
+	PageReleaseGate             PageID = "release-gate"
 	PageOrganization            PageID = "organization"
 	PageInsights                PageID = "insights"
 	PageAdmin                   PageID = "admin"

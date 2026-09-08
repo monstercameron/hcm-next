@@ -17732,7 +17732,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [execution plan](execution-plan.md).
 
-- [ ] `WEB-240` **[GATE_C][SOL_HIGH] Gate the production frontend release.**
+- [x] `WEB-240` **[GATE_C][SOL_HIGH] Gate the production frontend release.**
   - **Depends:** `WEB-239`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=gate the production frontend release without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_240`.
