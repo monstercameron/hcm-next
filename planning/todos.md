@@ -17632,7 +17632,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [execution plan](execution-plan.md).
 
-- [ ] `WEB-230` **[GATE_C][SOL_HIGH] Implement the Policy Studio.**
+- [x] `WEB-230` **[GATE_C][SOL_HIGH] Implement the Policy Studio.**
   - **Depends:** `WEB-229`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the policy studio without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_230`.
