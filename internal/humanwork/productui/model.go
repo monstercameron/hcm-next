@@ -26,6 +26,7 @@ const (
 	PageInterviews             PageID = "interviews"
 	PageEvaluation             PageID = "evaluation"
 	PageOffer                  PageID = "offer"
+	PagePortal                 PageID = "portal"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

@@ -16726,7 +16726,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-141` **[PHASE_3][SOL_HIGH] Implement the external candidate portal.**
+- [x] `WEB-141` **[PHASE_3][SOL_HIGH] Implement the external candidate portal.**
   - **Depends:** `WEB-140`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the external candidate portal without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_141`.
