@@ -31,8 +31,8 @@ func TestTodo_WEB_046(t *testing.T) {
 	roles := ApplyRoleVisibility(testView(PageRoles), []string{RoleHCMAdmin})
 	adminSections := utilityDrawerSections(roles)
 	adminRelated := findDrawerSection(adminSections, "related")
-	if adminRelated == nil || len(adminRelated.Items) != 8 {
-		t.Fatalf("roles drawer related = %#v, want Admin parent plus 7 siblings", adminSections)
+	if adminRelated == nil || len(adminRelated.Items) != 9 {
+		t.Fatalf("roles drawer related = %#v, want Admin parent plus 8 siblings", adminSections)
 	}
 	if adminRelated.Items[0].Href != "/workspace/app/admin" {
 		t.Fatalf("roles drawer first item = %#v, want Admin parent first", adminRelated.Items[0])
@@ -80,7 +80,7 @@ func TestTodo_WEB_046_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(node))
 	got := hex.EncodeToString(digest[:])
-	const want = "1e5a7113a7a0d84cf2ca5bfe20687a375be23a3a15bf09f7125e4a8890a7cbf8"
+	const want = "6068c03e04adbeb61fe87aaf010625739f307b9ee26154897b21311201f1c41a"
 	if got != want {
 		t.Fatalf("utility drawer golden digest = %s, want %s", got, want)
 	}
@@ -120,8 +120,8 @@ func TestTodo_WEB_046_Browser(t *testing.T) {
 			t.Fatalf("drawer link leaves the page registry: %q", xhtmlAttr(link, "href"))
 		}
 	}
-	if len(collectElements(dialog, "a")) != 8 {
-		t.Fatalf("drawer links = %d, want 8 related and no actions on roles page", len(collectElements(dialog, "a")))
+	if len(collectElements(dialog, "a")) != 9 {
+		t.Fatalf("drawer links = %d, want 9 related and no actions on roles page", len(collectElements(dialog, "a")))
 	}
 
 	homeDoc, err := Render(testView(PageHome))

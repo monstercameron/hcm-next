@@ -117,6 +117,7 @@ const (
 	PagePolicyStudio           PageID = "policy-studio"
 	PagePolicySimulation       PageID = "policy-simulation"
 	PageConfigurationCenter    PageID = "configuration-center"
+	PageIntegrationOperations  PageID = "integration-operations"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
