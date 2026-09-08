@@ -16756,7 +16756,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-144` **[PHASE_3][SOL_HIGH] Implement worker-activation readiness.**
+- [x] `WEB-144` **[PHASE_3][SOL_HIGH] Implement worker-activation readiness.**
   - **Depends:** `WEB-143`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement worker-activation readiness without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_144`.
