@@ -16706,7 +16706,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-139` **[PHASE_3][SOL_HIGH] Implement structured candidate evaluation.**
+- [x] `WEB-139` **[PHASE_3][SOL_HIGH] Implement structured candidate evaluation.**
   - **Depends:** `WEB-138`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement structured candidate evaluation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_139`.
