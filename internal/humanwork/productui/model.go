@@ -77,6 +77,7 @@ const (
 	PageCostCapacity           PageID = "cost-capacity"
 	PageReorgProposals         PageID = "reorg-proposals"
 	PagePlannedVsCommitted     PageID = "planned-vs-committed"
+	PageOrgResponsive          PageID = "org-responsive"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
