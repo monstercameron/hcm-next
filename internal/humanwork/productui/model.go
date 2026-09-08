@@ -123,6 +123,7 @@ const (
 	PagePerformanceBudgets      PageID = "performance-budgets"
 	PageBrowserMatrix           PageID = "browser-matrix"
 	PageAssistiveTech           PageID = "assistive-tech"
+	PageDisasterRecovery        PageID = "disaster-recovery"
 	PageOrganization            PageID = "organization"
 	PageInsights                PageID = "insights"
 	PageAdmin                   PageID = "admin"

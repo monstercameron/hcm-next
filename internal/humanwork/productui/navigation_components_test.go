@@ -16,7 +16,7 @@ func TestNavigationRegistryBuildsReusableSubmenus(t *testing.T) {
 		t.Fatalf("My Work submenu = %+v", work)
 	}
 	admin, ok := projectedNavigationItem(items, PageAdmin)
-	if !ok || len(admin.Children) != 15 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations || admin.Children[10].Page != PageReconciliationWorkbench || admin.Children[11].Page != PagePrivacyTelemetry || admin.Children[12].Page != PagePerformanceBudgets || admin.Children[13].Page != PageBrowserMatrix || admin.Children[14].Page != PageAssistiveTech {
+	if !ok || len(admin.Children) != 16 || admin.Children[1].Page != PageWorkerIDs || admin.Children[2].Page != PageRoles || admin.Children[3].Page != PageOrganizationVisibility || admin.Children[4].Page != PageAppearance || admin.Children[5].Page != PageStudio || admin.Children[6].Page != PagePolicyStudio || admin.Children[7].Page != PagePolicySimulation || admin.Children[8].Page != PageConfigurationCenter || admin.Children[9].Page != PageIntegrationOperations || admin.Children[10].Page != PageReconciliationWorkbench || admin.Children[11].Page != PagePrivacyTelemetry || admin.Children[12].Page != PagePerformanceBudgets || admin.Children[13].Page != PageBrowserMatrix || admin.Children[14].Page != PageAssistiveTech || admin.Children[15].Page != PageDisasterRecovery {
 		t.Fatalf("Admin submenu = %+v, present=%t", admin, ok)
 	}
 }
