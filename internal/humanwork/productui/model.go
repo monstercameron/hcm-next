@@ -108,6 +108,7 @@ const (
 	PageAnalysisFilters        PageID = "analysis-filters"
 	PageResultLineage          PageID = "result-lineage"
 	PageDataFreshness          PageID = "data-freshness"
+	PageAggregateSuppression   PageID = "aggregate-suppression"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
