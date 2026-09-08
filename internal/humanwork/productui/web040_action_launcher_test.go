@@ -97,7 +97,7 @@ func launcherHrefs(root *xhtml.Node) []string {
 }
 
 // web040GoldenDigest is pinned from the GREEN implementation run.
-const web040GoldenDigest = "2fabcf2ffeb7396a64de5b7215db243bd661b52e768694bb41daaf4094ecb01f"
+const web040GoldenDigest = "ec01684d4f16a0c53dd67496792fad7e3351f67f553eff0ed5494a217b63ce9a"
 
 func TestTodo_WEB_040_Golden(t *testing.T) {
 	doc, err := Render(testView(PageHome))

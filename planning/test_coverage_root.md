@@ -866,6 +866,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | appearance.go                         | yes           |
 | internal/humanwork/productui                             | appearance_components.go              | yes           |
 | internal/humanwork/productui                             | brand_logo.go                         | yes           |
+| internal/humanwork/productui                             | breadcrumb.go                         | yes           |
 | internal/humanwork/productui                             | components.go                         | yes           |
 | internal/humanwork/productui                             | composition_components.go             | yes           |
 | internal/humanwork/productui                             | data_table.go                         | yes           |
@@ -873,6 +874,12 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | doc.go                                | yes           |
 | internal/humanwork/productui                             | focus.go                              | yes           |
 | internal/humanwork/productui                             | global_search.go                      | yes           |
+| internal/humanwork/productui                             | federation_entry.go                   | yes           |
+| internal/humanwork/productui                             | header_identity.go                    | yes           |
+| internal/humanwork/productui                             | landmarks.go                          | yes           |
+| internal/humanwork/productui                             | session_warning.go                    | yes           |
+| internal/humanwork/productui                             | step_up.go                            | yes           |
+| internal/humanwork/productui                             | utility_drawer.go                     | yes           |
 | internal/humanwork/productui                             | history_components.go                 | yes           |
 | internal/humanwork/productui                             | history_navigation.go                 | yes           |
 | internal/humanwork/productui                             | home_components.go                    | yes           |

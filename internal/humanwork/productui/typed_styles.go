@@ -1652,3 +1652,271 @@ func declareBaseStyles() {
 		mediaRule(gwccss.RawMedia("print"), gwccss.BorderTop(gwccss.Px(1), gwccss.Hex("000")), gwccss.Raw("padding-top", "12px")),
 	)
 }
+
+func BreadcrumbStylesheet() string {
+	return buildTypedSheet(declareBreadcrumbStyles)
+}
+
+func declareBreadcrumbStyles() {
+	declareGlobal(".breadcrumbs",
+		gwccss.Raw("margin-block", "0 10px"),
+	)
+	declareGlobal(".breadcrumbs ol",
+		gwccss.Display.Flex,
+		gwccss.FlexWrap.Wrap,
+		gwccss.Items.Center,
+		gwccss.RowGap(gwccss.Px(4)),
+		gwccss.ColumnGap(gwccss.Px(8)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".breadcrumbs li",
+		gwccss.Display.InlineFlex,
+		gwccss.Items.Center,
+		gwccss.ColumnGap(gwccss.Px(8)),
+		gwccss.MinWidth(gwccss.Zero),
+	)
+	declareGlobal(".breadcrumbs a",
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.TextUnderlineOffset(gwccss.Px(2)),
+		hoverRule(gwccss.Raw("text-decoration", "underline")),
+	)
+	declareGlobal(".breadcrumbs [aria-current=page]",
+		gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontWeight.Semibold,
+	)
+	declareGlobal(".breadcrumb-separator",
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.UserSelect.None,
+	)
+}
+
+func UtilityDrawerStylesheet() string {
+	return buildTypedSheet(declareUtilityDrawerStyles)
+}
+
+func declareUtilityDrawerStyles() {
+	declareGlobal(".utility-drawer-trigger",
+		gwccss.Display.InlineFlex, gwccss.Items.Center, gwccss.Gap(gwccss.Px(7)),
+		gwccss.MinHeight(gwccss.Px(42)), gwccss.PaddingY(gwccss.Px(7)), gwccss.PaddingX(gwccss.Px(11)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.FontSize(gwccss.Rem(0.78)), gwccss.FontWeight.Bold, gwccss.Raw("text-align", "start"),
+		hoverRule(
+			gwccss.Raw("border-color", "var(--hcm-hover-border,var(--accent))"),
+			gwccss.Raw("background", "var(--surface-hover,var(--soft))"),
+			gwccss.TextColor(gwccss.Var("accent")),
+		),
+	)
+	declareGlobal(".utility-drawer-trigger .nav-icon", gwccss.Raw("flex", "none"))
+	declareGlobal(".utility-drawer-dialog",
+		gwccss.Position.Absolute, gwccss.ZIndex(30),
+		gwccss.Raw("inset-block-start", "48px"), gwccss.Raw("inset-inline-end", "0"),
+		gwccss.W(gwccss.MinLen(gwccss.Px(320), gwccss.RawLength("calc(100vw - 28px)"))),
+		gwccss.MaxHeight(gwccss.MinLen(gwccss.Vh(70), gwccss.Px(560))),
+		gwccss.Raw("overflow", "auto"),
+		gwccss.Padding(gwccss.Px(16)),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Shadow(gwccss.ShadowOf(gwccss.Px(0), gwccss.Px(18), gwccss.Px(48), gwccss.Zero, gwccss.Hex("10223822"))),
+	)
+	declareGlobal(".utility-drawer-dialog-hidden", gwccss.Display.None)
+	declareGlobal(".utility-drawer-close",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("margin-block-end", "12px"),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".utility-drawer-section",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.Raw("margin-block", "0 12px"),
+	)
+	declareGlobal(".utility-drawer-section-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(0.78)), gwccss.FontWeight.Semibold,
+	)
+	declareGlobal(".utility-drawer-list",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(4)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero), gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".utility-drawer-item a",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.ColumnGap(gwccss.Px(10)),
+		gwccss.PaddingY(gwccss.Px(8)), gwccss.PaddingX(gwccss.Px(10)),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.TextColor(gwccss.Var("ink")), gwccss.Raw("text-decoration", "none"),
+		hoverRule(gwccss.Raw("background", "var(--surface-hover,var(--soft))")),
+	)
+	declareGlobal(".utility-drawer-item-text",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(2)), gwccss.MinWidth(gwccss.Zero),
+	)
+	declareGlobal(".utility-drawer-item-label", gwccss.FontWeight.Semibold)
+	declareGlobal(".utility-drawer-item-description",
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(0.78)),
+	)
+}
+
+// MobileShellStylesheet owns the narrow-viewport collapse of the topbar
+// tool triggers. Labels hide visually at phone widths while the triggers
+// keep their accessible names and touch targets; logical properties keep
+// the collapse RTL-safe.
+func FederationEntryStylesheet() string {
+	return buildTypedSheet(declareFederationEntryStyles)
+}
+
+func declareFederationEntryStyles() {
+	declareGlobal(".federation-entry",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(12)),
+		gwccss.Raw("padding-block", "24px"),
+		gwccss.MaxWidth(gwccss.Px(640)),
+	)
+	declareGlobal(".federation-entry-description",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".federation-entry-group",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+	)
+	declareGlobal(".federation-entry-tenant",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.85)), gwccss.FontWeight.Semibold,
+	)
+	declareGlobal(".federation-entry-list",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero), gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".federation-entry-item a",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(2)),
+		gwccss.PaddingY(gwccss.Px(12)), gwccss.PaddingX(gwccss.Px(14)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.TextColor(gwccss.Var("ink")), gwccss.Raw("text-decoration", "none"),
+		hoverRule(
+			gwccss.Raw("border-color", "var(--hcm-hover-border,var(--accent))"),
+			gwccss.TextColor(gwccss.Var("accent")),
+		),
+	)
+	declareGlobal(".federation-entry-issuer", gwccss.FontWeight.Semibold, gwccss.Raw("overflow-wrap", "anywhere"))
+	declareGlobal(".federation-entry-meta",
+		gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.FontSize(gwccss.Rem(0.78)),
+	)
+	declareGlobal(".federation-entry-empty",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+	)
+	declareGlobal(".federation-entry-recovery",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.Raw("margin-block-start", "12px"),
+	)
+	declareGlobal(".federation-entry-recovery-list",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(8)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero), gwccss.Padding(gwccss.Zero),
+	)
+}
+
+func SessionWarningStylesheet() string {
+	return buildTypedSheet(declareSessionWarningStyles)
+}
+
+func declareSessionWarningStyles() {
+	declareGlobal(".session-warning",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(6)),
+		gwccss.PaddingY(gwccss.Px(12)), gwccss.PaddingX(gwccss.Px(16)),
+		gwccss.Raw("border-block-end", "1px solid var(--control-border,var(--line))"),
+		gwccss.Raw("background", "var(--surface-subtle,var(--canvas))"),
+	)
+	declareGlobal(".session-warning-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.9)), gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".session-warning-detail",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".session-warning-actions",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.ColumnGap(gwccss.Px(12)),
+		gwccss.Raw("flex-wrap", "wrap"),
+	)
+	declareGlobal(".session-warning-reauth",
+		gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.TextUnderlineOffset(gwccss.Px(2)),
+		hoverRule(gwccss.Raw("text-decoration", "underline")),
+	)
+	declareGlobal(".session-warning-dismiss",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+	)
+}
+
+func StepUpStylesheet() string {
+	return buildTypedSheet(declareStepUpStyles)
+}
+
+func declareStepUpStyles() {
+	declareGlobal(".step-up-challenge",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(6)),
+		gwccss.PaddingY(gwccss.Px(12)), gwccss.PaddingX(gwccss.Px(16)),
+		gwccss.Raw("border-block-end", "1px solid var(--control-border,var(--line))"),
+		gwccss.Raw("background", "var(--surface-subtle,var(--canvas))"),
+	)
+	declareGlobal(".step-up-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.9)), gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".step-up-action",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".step-up-reason",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".step-up-actions",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.ColumnGap(gwccss.Px(12)),
+		gwccss.Raw("flex-wrap", "wrap"),
+	)
+	declareGlobal("a.step-up-challenge",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("accent")), gwccss.TextColor(gwccss.Var("on-brand")),
+		gwccss.Raw("text-decoration", "none"), gwccss.FontWeight.Semibold,
+	)
+	declareGlobal(".step-up-dismiss",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+	)
+}
+
+func MobileShellStylesheet() string {
+	return buildTypedSheet(declareMobileShellStyles)
+}
+
+func declareMobileShellStyles() {
+	declareGlobal(".action-launcher-trigger .action-launcher-label",
+		mediaRule(gwccss.MaxW(430), gwccss.Display.None),
+	)
+	declareGlobal(".utility-drawer-trigger .utility-drawer-label",
+		mediaRule(gwccss.MaxW(430), gwccss.Display.None),
+	)
+}

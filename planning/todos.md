@@ -15704,7 +15704,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-044` **[GATE_C][TERRA] Implement meaningful breadcrumb resolution.**
+- [x] `WEB-044` **[GATE_C][TERRA] Implement meaningful breadcrumb resolution.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_044`, `TestTodo_WEB_044_Golden`, `TestTodo_WEB_044_Browser`, `TestTodo_WEB_044_Conformance` in `internal/humanwork/productui` (registry ParentNav trail with projection-filtered ancestors, worker-naming profile crumb, nil for unknown pages, silence for single generic crumbs; nav landmark with ordered list, software-routed links, aria-current page marker, aria-hidden separators, en-US/de-DE/RTL ar labels; golden `a2817ac7…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet` clean, `gofmt` clean, `tools/uxqual/...` 26/26 PASS, playwright browser gate 18/20 with the 2 failures proven pre-existing on clean-HEAD fixtures; two older document-wide aria-current assertions re-scoped to the primary-nav landmark (Studio, person) with breadcrumb-marker assertions added.
   - **Depends:** `WEB-043`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement meaningful breadcrumb resolution without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_044`.
@@ -15714,7 +15715,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-045` **[GATE_C][TERRA] Implement the canonical page-identity header.**
+- [x] `WEB-045` **[GATE_C][TERRA] Implement the canonical page-identity header.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_045`, `TestTodo_WEB_045_Golden`, `TestTodo_WEB_045_Browser`, `TestTodo_WEB_045_Conformance` in `internal/humanwork/productui` (governed identity resolution per page/role/locale, withheld settings destination under a denying permissions projection, Home greeting, unknown-page Home fallback, profile keeps registry H1; `data-hcm-page` stamp, labelledby wiring, golden `0016c935…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures; WEB-037/WEB-039 goldens re-pinned after strip-proof of attribute-only delta; route-adapter markup rule kept green via `header_identity.go` naming.
   - **Depends:** `WEB-044`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the canonical page-identity header without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_045`.
@@ -15724,7 +15726,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-046` **[GATE_C][TERRA] Implement the contextual utility drawer.**
+- [x] `WEB-046` **[GATE_C][TERRA] Implement the contextual utility drawer.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_046`, `TestTodo_WEB_046_Golden`, `TestTodo_WEB_046_Browser`, `TestTodo_WEB_046_Conformance` in `internal/humanwork/productui` (registry-derived Related plus grant-gated Actions sections, denied/empty/unknown contexts yield nothing, deterministic derivation, dialog semantics with hidden-until-open dialog, registry-coupled in-shell links, de-DE/RTL ar labels, typed stylesheet selectors, golden `0f4db16a…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no golden fallout, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures.
   - **Depends:** `WEB-045`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the contextual utility drawer without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_046`.
@@ -15734,7 +15737,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-047` **[GATE_C][TERRA] Implement the responsive mobile shell.**
+- [x] `WEB-047` **[GATE_C][TERRA] Implement the responsive mobile shell.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_047`, `TestTodo_WEB_047_Golden`, `TestTodo_WEB_047_Browser`, `TestTodo_WEB_047_Conformance` in `internal/humanwork/productui` (collapsible trigger-label spans with intact accessible names, canonical 430px collapse rules, exactly 2 logical-only narrow blocks, viewport-bound dialogs, golden `96b75252…`); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 18/20 with the same 2 pre-existing failures; WEB-037/WEB-039/WEB-040/WEB-046 goldens re-pinned after strip-proofs of span-wrap-only deltas.
   - **Depends:** `WEB-046`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the responsive mobile shell without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_047`.
@@ -15744,7 +15748,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-048` **[GATE_C][TERRA] Prove shell keyboard and landmark navigation.**
+- [x] `WEB-048` **[GATE_C][TERRA] Prove shell keyboard and landmark navigation.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_048`, `TestTodo_WEB_048_Golden`, `TestTodo_WEB_048_Browser`, `TestTodo_WEB_048_Conformance` in `internal/humanwork/productui` (named-landmark inventory per page/projection/locale, document-existence proof per landmark, skip-link wiring, shared Escape predicate, golden `1d58b14d…`) plus new `tools/uxqual/browser/web048_keyboard_landmarks.spec.mjs` 6/6 in real Chromium (DOM-order tabs, landmark roles, 390px reflow); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, full browser gate 24 passed with the same 2 pre-existing ux003 failures.
   - **Depends:** `WEB-047`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=prove shell keyboard and landmark navigation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_048`.
@@ -15756,7 +15761,8 @@ This program implements [the production frontend and governed page-composition p
 
 ### Authentication session and delegated context
 
-- [ ] `WEB-049` **[GATE_C][SOL_HIGH] Implement the tenant-federation entry experience.**
+- [x] `WEB-049` **[GATE_C][SOL_HIGH] Implement the tenant-federation entry experience.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_049`, `TestTodo_WEB_049_Golden`, `TestTodo_WEB_049_Browser`, `TestTodo_WEB_049_Conformance` in `internal/humanwork/productui` (tenantless gate with grouped issuer links and in-workspace hrefs, tenant chrome suppressed, honest empty state, tenanted views unaffected, deterministic grouping, de-DE/RTL ar titles, typed stylesheet selectors, golden `b5f9cf65…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures.
   - **Depends:** `WEB-037`, `AUTHN-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the tenant-federation entry experience without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_049`.
@@ -15766,7 +15772,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-050` **[GATE_C][SOL_HIGH] Implement accessible sign-in recovery.**
+- [x] `WEB-050` **[GATE_C][SOL_HIGH] Implement accessible sign-in recovery.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_050`, `TestTodo_WEB_050_Golden`, `TestTodo_WEB_050_Browser`, `TestTodo_WEB_050_Conformance` in `internal/humanwork/productui` (labelled recovery section with discernible link text, javascript:/data:/network-relative/plain-http/empty dropped with no section when nothing safe, gate placement after title, de-DE/RTL ar titles, 9-scheme policy table, typed stylesheet selectors, golden `8e43b2bc…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures.
   - **Depends:** `WEB-049`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement accessible sign-in recovery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_050`.
@@ -15776,7 +15783,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-051` **[GATE_C][SOL_HIGH] Prove accessible-authentication conformance.**
+- [x] `WEB-051` **[GATE_C][SOL_HIGH] Prove accessible-authentication conformance.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_051`, `TestTodo_WEB_051_Golden`, `TestTodo_WEB_051_Browser`, `TestTodo_WEB_051_Conformance` in `internal/humanwork/productui` (3-state × 3-locale sweep: 8 conformance properties green with zero findings, gate-document shell honesty, shared scheme policy, matrix digest `6380d315…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures. Proof-only: no production change.
   - **Depends:** `WEB-050`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=prove accessible-authentication conformance without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_051`.
@@ -15786,7 +15794,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-052` **[GATE_C][SOL_HIGH] Implement the session-expiry warning.**
+- [x] `WEB-052` **[GATE_C][SOL_HIGH] Implement the session-expiry warning.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_052`, `TestTodo_WEB_052_Golden`, `TestTodo_WEB_052_Browser`, `TestTodo_WEB_052_Conformance` in `internal/humanwork/productui` (labelled banner with server detail, re-auth link, labelled dismiss, fragment without projection, topbar-to-content placement, de-DE/RTL ar titles, typed stylesheet selectors, golden `93253689…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures.
   - **Depends:** `WEB-051`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the session-expiry warning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_052`.
@@ -15796,7 +15805,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-053` **[GATE_C][SOL_HIGH] Implement reauthentication work restoration.**
+- [x] `WEB-053` **[GATE_C][SOL_HIGH] Implement reauthentication work restoration.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_053`, `TestTodo_WEB_053_Golden`, `TestTodo_WEB_053_Browser`, `TestTodo_WEB_053_Conformance` in `internal/humanwork/productui` (resume target on the re-auth link from the shell address primitive, destination query preserved, unsafe/unparsable bases pass through, registry-coupled resume paths for every page); `go test -count=1 ./internal/humanwork/productui/` PASS, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures. WEB-052's exact-href assertion evolved to parse the destination path (intended behavior change).
   - **Depends:** `WEB-052`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement reauthentication work restoration without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_053`.
@@ -15806,7 +15816,8 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-054` **[GATE_C][SOL_HIGH] Implement risk-bound step-up authentication.**
+- [x] `WEB-054` **[GATE_C][SOL_HIGH] Implement risk-bound step-up authentication.**
+  - **Evidence (2026-09-07):** `TestTodo_WEB_054`, `TestTodo_WEB_054_Golden`, `TestTodo_WEB_054_Browser`, `TestTodo_WEB_054_Conformance` in `internal/humanwork/productui` (action-bound prompt with server reason and policy-gated challenge link, labelled dismiss, fragment without projection, warning-then-prompt-then-content ordering, de-DE/RTL ar titles, typed stylesheet selectors, golden `24c5c9f1…`); `go test -count=1 ./internal/humanwork/productui/` PASS with no fallout, `go vet`/`gofmt` clean, browser gate 24 passed with the same 2 pre-existing ux003 failures.
   - **Depends:** `WEB-053`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement risk-bound step-up authentication without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_054`.

@@ -27,7 +27,10 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		class += " is-refreshing"
 	}
 	content := page
-	if view.LoadError != "" {
+	if strings.TrimSpace(view.Tenant) == "" {
+		content = FederationEntryList(federationEntryProps(view))
+		showHeading = false
+	} else if view.LoadError != "" {
 		content = html.Div(html.Props{Class: "page-stack"},
 			unavailablePanel(view.Locale.Text("shell.live_unavailable"), view.LoadError),
 			page,
@@ -41,6 +44,8 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		html.A(html.Props{Class: "skip-link", Href: "#main-content"}, ui.Text(view.Locale.Text("shell.skip_main"))),
 		html.Div(html.Props{Class: "sr-only route-announcer", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(announcement)),
 		appHeader(view),
+		sessionWarning(view),
+		stepUpChallenge(view),
 		html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view), pageFrame(view, content, showHeading)),
 	)
 }
@@ -68,6 +73,7 @@ func appHeader(view View) ui.Node {
 			ui.CreateElement(HistoryNavigation, historyNavigationProps(view)),
 			globalSearch(view),
 			actionLauncher(view),
+			utilityDrawer(view),
 		),
 		localeMenu(view),
 		notificationSlot(view),
@@ -420,7 +426,7 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 		}))
 	}
 	if showHeading {
-		children = append(children, pageHeader(view))
+		children = append(children, PageIdentityHeader(view))
 	}
 	children = append(children, page,
 		html.Footer(html.Props{Class: "footer"},
@@ -446,25 +452,5 @@ func pageFrame(view View, page ui.Node, showHeading bool) ui.Node {
 	}
 	return html.Main(mainProps,
 		html.Div(html.Props{Class: stageClass, Data: map[string]string{"network-state": stage}}, children...),
-	)
-}
-
-func pageHeader(view View) ui.Node {
-	scope := view.Scope
-	if scope == "" {
-		scope = view.Locale.Text("shell.authenticated_scope")
-	}
-	scopeProps := html.Props{Class: "scope"}
-	scopeText := ui.Text(scope + " ⌄")
-	var scopeControl ui.Node = html.Span(scopeProps, scopeText)
-	if navigationDestinationAuthorized(view, PageSettings) {
-		scopeControl = appLink(view, scopeProps, statefulHref(view, PageSettings), scopeText)
-	}
-	return html.Div(html.Props{Class: "page-head"},
-		html.Div(html.Props{}, html.H1(html.Props{ID: "page-title", Raw: map[string]any{"tabindex": "-1"}}, ui.Text(view.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(view.Subtitle))),
-		html.Div(html.Props{Class: "scope-wrap"},
-			scopeControl,
-			html.Span(html.Props{}, ui.Text(view.Locale.Text("shell.acting_self"))),
-		),
 	)
 }

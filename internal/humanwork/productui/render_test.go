@@ -121,8 +121,11 @@ func TestExperienceStudioLivesUnderAuthorizedAdminNavigation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if bodyAriaCurrentCount(doc) != 1 || !strings.Contains(doc, `class="nav-group current"`) {
+	if primaryNavAriaCurrentCount(doc) != 1 || !strings.Contains(doc, `class="nav-group current"`) {
 		t.Fatal("Studio must identify its active leaf and expanded Admin group")
+	}
+	if !strings.Contains(doc, `aria-current="page">Experience Studio</span>`) {
+		t.Fatal("Studio breadcrumb must mark its own current leaf beside the navigation marker")
 	}
 }
 
@@ -391,8 +394,11 @@ func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) 
 			t.Fatalf("person page missing %q", want)
 		}
 	}
-	if bodyAriaCurrentCount(doc) != 1 {
+	if primaryNavAriaCurrentCount(doc) != 1 {
 		t.Fatal("person page must keep exactly its People navigation parent active")
+	}
+	if !strings.Contains(doc, `aria-current="page">Avery Patel</span>`) {
+		t.Fatal("person breadcrumb must name its worker beside the navigation marker")
 	}
 
 	view.WorkflowQuery = "promotion"
@@ -422,6 +428,31 @@ func bodyAriaCurrentCount(document string) int {
 		body = document
 	}
 	return strings.Count(body, `aria-current="page"`)
+}
+
+// primaryNavAriaCurrentCount scopes the single-active-leaf contract to the
+// primary navigation landmark. Breadcrumb trails carry their own
+// aria-current marker by design, so a document-wide count can no longer
+// express "exactly one navigation leaf is current".
+func primaryNavAriaCurrentCount(document string) int {
+	_, body, found := strings.Cut(document, "</style>")
+	if !found {
+		body = document
+	}
+	marker := strings.Index(body, `class="primary-nav"`)
+	if marker < 0 {
+		return 0
+	}
+	start := strings.LastIndex(body[:marker], "<nav")
+	if start < 0 {
+		return 0
+	}
+	rest := body[start:]
+	end := strings.Index(rest, "</nav>")
+	if end < 0 {
+		return 0
+	}
+	return strings.Count(rest[:end], `aria-current="page"`)
 }
 
 func TestPersonPageDoesNotFallBackToAnotherWorker(t *testing.T) {

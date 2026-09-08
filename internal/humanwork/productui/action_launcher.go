@@ -275,7 +275,7 @@ func ActionLauncher(props ActionLauncherProps) ui.Node {
 			open.Set(true)
 			active.Set(0)
 		}),
-	}, navIcon("actions"), ui.Text(props.Text("action_launcher.trigger")))
+	}, navIcon("actions"), html.Span(html.Props{Class: "action-launcher-label"}, ui.Text(props.Text("action_launcher.trigger"))))
 
 	// The dialog stays in the document while closed so its destinations and
 	// accessible name resolve without client state; hidden keeps it out of

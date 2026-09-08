@@ -327,6 +327,23 @@ type View struct {
 	// projection. It is intentionally separate from Tenant/Scope strings so
 	// presentation cannot mint a context or authority from a URL value.
 	ContextSwitcher ContextSwitcherProps
+	// FederationEntries is the server-composed tenant-federation entry
+	// projection, derived from the issuer registry. Presentation renders the
+	// entries it is given; it never authors issuers, protocols, or
+	// destinations.
+	FederationEntries []FederationEntry
+	// RecoveryOptions carries the server-composed sign-in recovery
+	// destinations for the entry gate. Presentation validates each scheme
+	// and drops unsafe ones without inventing replacements.
+	RecoveryOptions []RecoveryOption
+	// SessionWarning carries the server-projected expiring-session
+	// warning. Nil means the session is not expiring; presentation never
+	// derives expiry itself.
+	SessionWarning *SessionWarningProps
+	// StepUpChallenge carries the server-projected step-up challenge for
+	// one sensitive action. Nil means no elevation is required; the prompt
+	// authorizes nothing either way.
+	StepUpChallenge *StepUpChallengeProps
 }
 
 // Can reports whether the resolved role grants an operation on a page. An
