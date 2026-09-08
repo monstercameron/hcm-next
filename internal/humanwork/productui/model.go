@@ -49,6 +49,7 @@ const (
 	PageSalaryComparison       PageID = "salary-comparison"
 	PageCyclePopulations       PageID = "cycle-populations"
 	PageCompWorksheet          PageID = "comp-worksheet"
+	PageCompCalibration        PageID = "comp-calibration"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
