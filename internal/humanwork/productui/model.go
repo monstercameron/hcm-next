@@ -86,6 +86,7 @@ const (
 	PageCaseMessaging          PageID = "case-messaging"
 	PageCaseCenter             PageID = "case-center"
 	PageCaseAssignment         PageID = "case-assignment"
+	PageCaseEvidence           PageID = "case-evidence"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
