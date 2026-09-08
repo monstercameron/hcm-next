@@ -101,6 +101,7 @@ const (
 	PageFinalDocuments         PageID = "final-documents"
 	PageOffboardingEffects     PageID = "offboarding-effects"
 	PageRetainedObligations    PageID = "retained-obligations"
+	PageExitCompletion         PageID = "exit-completion"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
