@@ -1,6 +1,7 @@
 package productui
 
 import (
+	"net/url"
 	"sort"
 	"strings"
 
@@ -39,21 +40,56 @@ type FederationEntryProps struct {
 	Navigate func(string)
 }
 
+// credentialQueryKeys denies the query parameters that carry authenticator
+// material. Rendered destinations end up in server logs and telemetry
+// surfaces, so a destination smuggling a token, secret, or password fails
+// closed even when its scheme is otherwise admissible. Matching is exact
+// and case-insensitive on the parameter name: merely containing the
+// substring (mytoken) is not a credential.
+var credentialQueryKeys = map[string]struct{}{
+	"token": {}, "access_token": {}, "id_token": {}, "refresh_token": {},
+	"secret": {}, "client_secret": {}, "password": {},
+	"api_key": {}, "apikey": {}, "auth_token": {}, "session_token": {},
+}
+
 // validRecoveryHref admits only destinations a sign-in recovery link may
 // carry: workspace-relative starts, https flows, and mail contacts.
 // Everything else — script, data, network-relative, plain http — fails
 // closed so a compromised or misconfigured server answer cannot turn the
-// gate into an attack surface.
+// gate into an attack surface. Admissible schemes carrying credential
+// query parameters fail closed too: authenticator material must never
+// reach the logged URL surfaces.
 func validRecoveryHref(href string) bool {
 	href = strings.TrimSpace(href)
 	if href == "" {
 		return false
 	}
-	if strings.HasPrefix(href, "/") && !strings.HasPrefix(href, "//") {
-		return true
-	}
+	relative := strings.HasPrefix(href, "/") && !strings.HasPrefix(href, "//")
 	lower := strings.ToLower(href)
-	return strings.HasPrefix(lower, "https://") || strings.HasPrefix(lower, "mailto:")
+	secure := strings.HasPrefix(lower, "https://")
+	if !relative && !secure && !strings.HasPrefix(lower, "mailto:") {
+		return false
+	}
+	if relative || secure {
+		return !recoveryHrefCarriesCredentials(href)
+	}
+	return true
+}
+
+// recoveryHrefCarriesCredentials reports whether a destination carries a
+// denied credential query parameter. An unparsable destination keeps its
+// scheme verdict: the check refuses to invent credentials it cannot see.
+func recoveryHrefCarriesCredentials(href string) bool {
+	parsed, err := url.Parse(href)
+	if err != nil {
+		return false
+	}
+	for key := range parsed.Query() {
+		if _, denied := credentialQueryKeys[strings.ToLower(key)]; denied {
+			return true
+		}
+	}
+	return false
 }
 
 // federationRecoverySection renders the labelled recovery options. No safe

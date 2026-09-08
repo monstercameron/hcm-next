@@ -5900,7 +5900,8 @@ closed.
   - **REFACTOR:** comparators are registered per kind in one table; no `switch` on kind is duplicated at a call site.
   - **Refs:** [Evaluation semantics](specs/legal-rule-packs-and-state-configuration.md#6-evaluation-semantics), [governance decision and obligation composition](specs/governance-decision-and-obligation-composition.md).
 
-- [ ] `LEGAL-013` **[PHASE_2][SOL_HIGH] Enforce state preemption of locality obligations.**
+- [x] `LEGAL-013` **[PHASE_2][SOL_HIGH] Enforce state preemption of locality obligations.**
+  - **Evidence (2026-09-08):** `TestTodo_LEGAL_013`, `_Property`, `_Golden`, `_Mutation`, and real `Resolve`→`Evaluate` integration/boundary tests; `go test -count=1 -cover ./internal/governance/legal/` PASS (82.2%); `go vet ./internal/governance/legal/` PASS. Five state golden fixtures pin receipt hashes; preemption removes only cited locality obligations of the named kind before triggers, preserves higher-level obligations, and rejects conflicting duplicate releases. Exact overlay pinning and signed unregistered-locality evidence obey optional tenant fail-closed policy; legacy single-release canonical bytes remain unchanged. Fixtures retain unreviewed citation status and do not constitute counsel approval or deployed state-pack release evidence.
   - **Depends:** `LEGAL-012`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_013`.
@@ -13541,7 +13542,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `SERVICE-003` **[CONFORMANCE][SOL_HIGH] Correct service history and trigger affected eligibility safely.**
+- [x] `SERVICE-003` **[CONFORMANCE][SOL_HIGH] Correct service history and trigger affected eligibility safely.**
+  - **Evidence (2026-09-08):** `TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility` and independent `TestTodo_SERVICE_003_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and removed-scope/rule-change regressions; `go test -count=1 -cover ./internal/domains/service/` PASS (78.4%); `go vet ./internal/domains/service/` PASS. Exact successor/current/result pins retain prior explanation; old and new interval/dimension scope and rule-only changes emit bounded dependent drafts, excluding unrelated workers. Protected outcomes require governed correction. Sol/root refinement replaced matrix aliases with exact golden, permutation, shared-input concurrency and five eligibility-domain assertions. This semantic compiler emits non-executable drafts; no live dispatcher or governance authority is claimed.
   - **Depends:** `SERVICE-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility`.
@@ -13627,7 +13629,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
-- [ ] `TAXPROFILE-002` **[PHASE_4][SOL_HIGH] Validate, effective-date and correct worker tax elections.**
+- [x] `TAXPROFILE-002` **[PHASE_4][SOL_HIGH] Validate, effective-date and correct worker tax elections.**
+  - **Evidence (2026-09-08):** `TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection` and independent `TestTodo_TAXPROFILE_002` property/golden/race/fault/security/conformance/mutation matrix; `go test -count=1 -cover ./internal/domains/taxprofile/` PASS (71.3%); `go vet ./internal/domains/taxprofile/` PASS. Sol's full `go test -count=1 -cover ./internal/data/taxprofilestore/` PASS (73.8%); root independently ran `go test -count=1 -run '^TestTodo_TAXPROFILE_002_PostgresSubMicrosecondEffectiveBounds$' ./internal/data/taxprofilestore/` PASS. Migration 00263 and real PostgreSQL tests cover tenant-scoped successor CAS, populated append-only upgrade, exact scale/nanosecond round trips and reversed interval refusal. Closed-payroll inputs produce correction drafts, never payroll rewrites; domain tests pin exact golden bytes and generated boundary/permutation invariants. No tax-rate or payroll-execution authority is inferred.
   - **Depends:** `TAXPROFILE-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL,BI.REGULATORY,BI.PEOPLE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection`.
@@ -15893,7 +15896,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-060` **[GATE_C][SOL_HIGH] Enforce authentication telemetry privacy.**
+- [x] `WEB-060` **[GATE_C][SOL_HIGH] Enforce authentication telemetry privacy.**
   - **Depends:** `WEB-059`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=enforce authentication telemetry privacy without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_060`.
