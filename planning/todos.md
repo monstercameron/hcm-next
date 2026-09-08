@@ -17378,7 +17378,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Exit and offboarding
 
-- [ ] `WEB-205` **[PHASE_3][SOL_HIGH] Implement exit initiation.**
+- [x] `WEB-205` **[PHASE_3][SOL_HIGH] Implement exit initiation.**
   - **Depends:** `WEB-121`, `WORKER-LIFE-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit initiation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_205`.
