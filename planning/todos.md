@@ -17134,7 +17134,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Organization and workforce planning
 
-- [ ] `WEB-181` **[PHASE_3][SOL_HIGH] Implement the organization explorer.**
+- [x] `WEB-181` **[PHASE_3][SOL_HIGH] Implement the organization explorer.**
   - **Depends:** `WEB-121`, `ORG-001`, `POSITION-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the organization explorer without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_181`.

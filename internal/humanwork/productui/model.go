@@ -66,6 +66,7 @@ const (
 	PageTalentWorkbench        PageID = "talent-workbench"
 	PageTalentCalibration      PageID = "talent-calibration"
 	PageSuccessionPlanning     PageID = "succession-planning"
+	PageOrgExplorer            PageID = "org-explorer"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageCareerDiscovery, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageCareerDiscovery, PageOrgExplorer, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -151,6 +151,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageTalentWorkbench, Route: "/workspace/app/growth/talent-workbench", Label: "Talent workbench", Icon: "people", Title: "Manager talent workbench", Subtitle: "Work team talent through the governed growth service.", LabelKey: "page.talent_workbench.label", TitleKey: "page.talent_workbench.title", SubtitleKey: "page.talent_workbench.subtitle", SearchTerms: []string{"talent", "workbench", "team", "successors", "manager"}, RenderOrder: 112, render: talentWorkbenchPage},
 		{ID: PageTalentCalibration, Route: "/workspace/app/growth/talent-calibration", Label: "Talent calibration", Icon: "people", Title: "Talent calibration", Subtitle: "Calibrate team talent through the governed growth service.", LabelKey: "page.talent_calibration.label", TitleKey: "page.talent_calibration.title", SubtitleKey: "page.talent_calibration.subtitle", SearchTerms: []string{"talent", "calibration", "grid", "session", "manager"}, RenderOrder: 113, render: talentCalibrationPage},
 		{ID: PageSuccessionPlanning, Route: "/workspace/app/growth/succession", Label: "Succession planning", Icon: "people", Title: "Succession planning", Subtitle: "Plan succession through the governed growth service.", LabelKey: "page.succession_planning.label", TitleKey: "page.succession_planning.title", SubtitleKey: "page.succession_planning.subtitle", SearchTerms: []string{"succession", "successors", "bench", "slate", "manager"}, RenderOrder: 114, render: successionPlanningPage},
+		{ID: PageOrgExplorer, Route: "/workspace/app/organization/explorer", Label: "Org explorer", Icon: "people", Title: "Organization explorer", Subtitle: "Browse the organization through the governed organization service.", LabelKey: "page.org_explorer.label", TitleKey: "page.org_explorer.title", SubtitleKey: "page.org_explorer.subtitle", SearchTerms: []string{"organization", "explorer", "browse", "units", "chart"}, RenderOrder: 115, render: orgExplorerPage},
 	}
 }
 
