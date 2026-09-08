@@ -980,8 +980,10 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | widget_migration.go                   | yes           |
 | internal/humanwork/productui                             | work_components.go                    | yes           |
 | internal/humanwork/productui                             | worker_id_components.go               | yes           |
+| internal/humanwork/productui                             | worker_employment.go                  | yes           |
 | internal/humanwork/productui                             | worker_identity.go                    | yes           |
 | internal/humanwork/productui                             | worker_overview.go                    | yes           |
+| internal/humanwork/productui                             | worker_section.go                     | yes           |
 | internal/humanwork/profilephoto                          | filestore.go                          | yes           |
 | internal/humanwork/profilephoto                          | profilephoto.go                       | yes           |
 | internal/humanwork/sla                                   | sla.go                                | yes           |
