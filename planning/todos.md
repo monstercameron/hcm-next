@@ -13325,7 +13325,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [ ] `MERIT-002` **[CONFORMANCE][SOL_HIGH] Prove concurrent budgeting, correction, finalization and compensation-child intents.**
+- [x] `MERIT-002` **[CONFORMANCE][SOL_HIGH] Prove concurrent budgeting, correction, finalization and compensation-child intents.**
+  - **Evidence (2026-09-08):** `TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce` and `TestTodo_MERIT_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` cover exact conservation, explicit approved/rejected outcomes and immutable corrections. `TestMeritDecisionEvidenceRoundTrip` proves tenant-bound finalized-source verification, caller-transaction rollback, concurrent once-only child persistence, restart retrieval and synchronized post-insert conflicting-payload refusal. Root `go test -count=1 -cover ./internal/domains/merit/` PASS (70.1%); `go test -count=1 -cover ./internal/data/meritstore/` PASS (76.2%); final `go test -count=1 -run '^TestMeritDecisionEvidenceRoundTrip$' ./internal/data/meritstore/` PASS; `go vet ./internal/domains/merit/ ./internal/data/meritstore/` PASS. Migrations 00268/00270 retain exact timestamps and durable emission records; no compensation execution authority is inferred.
   - **Depends:** `MERIT-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS,BI.ANALYTICS; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce`.
@@ -15940,7 +15941,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-064` **[GATE_C][SOL_HIGH] Resolve current and proposed organization scope.**
+- [x] `WEB-064` **[GATE_C][SOL_HIGH] Resolve current and proposed organization scope.**
   - **Depends:** `WEB-063`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=resolve current and proposed organization scope without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_064`.

@@ -898,6 +898,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | navigation_components.go              | yes           |
 | internal/humanwork/productui                             | navigation_search.go                  | yes           |
 | internal/humanwork/productui                             | organization_components.go            | yes           |
+| internal/humanwork/productui                             | organization_scope.go                 | yes           |
 | internal/humanwork/productui                             | organization_visibility_components.go | yes           |
 | internal/humanwork/productui                             | page_admin.go                         | yes           |
 | internal/humanwork/productui                             | page_appearance.go                    | yes           |
