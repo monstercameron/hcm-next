@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PagePayStatements, PagePayDiscrepancy, PageBenefitsOverview, PageBenefitsCompare, PageBenefitsEnroll, PageGrowthHome, PageGoalPlanning, PageGovernedFeedback, PageSkillsProfile, PageAssignedLearning, PageCareerDiscovery, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -147,6 +147,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageReviewParticipants, Route: "/workspace/app/growth/review-participants", Label: "Review participants", Icon: "people", Title: "Review-participant visibility", Subtitle: "Disclose participants through the governed growth service.", LabelKey: "page.review_participants.label", TitleKey: "page.review_participants.title", SubtitleKey: "page.review_participants.subtitle", SearchTerms: []string{"participants", "reviewer", "reviewee", "visibility", "growth"}, RenderOrder: 108, render: reviewParticipantsPage},
 		{ID: PageSkillsProfile, Route: "/workspace/app/growth/skills", Label: "Skills profile", Icon: "people", Title: "Governed skills profile", Subtitle: "Skills from the governed growth service.", LabelKey: "page.skills_profile.label", TitleKey: "page.skills_profile.title", SubtitleKey: "page.skills_profile.subtitle", SearchTerms: []string{"skills", "profile", "proficiency", "endorsed", "growth"}, RenderOrder: 109, render: skillsProfilePage},
 		{ID: PageAssignedLearning, Route: "/workspace/app/growth/learning", Label: "Assigned learning", Icon: "people", Title: "Assigned learning", Subtitle: "Assignments from the governed learning service.", LabelKey: "page.assigned_learning.label", TitleKey: "page.assigned_learning.title", SubtitleKey: "page.assigned_learning.subtitle", SearchTerms: []string{"learning", "assigned", "courses", "training", "growth"}, RenderOrder: 110, render: assignedLearningPage},
+		{ID: PageCareerDiscovery, Route: "/workspace/app/growth/opportunities", Label: "Career discovery", Icon: "people", Title: "Career-opportunity discovery", Subtitle: "Openings from the governed growth service.", LabelKey: "page.career_discovery.label", TitleKey: "page.career_discovery.title", SubtitleKey: "page.career_discovery.subtitle", SearchTerms: []string{"career", "opportunities", "openings", "jobs", "discover"}, RenderOrder: 111, render: careerDiscoveryPage},
 	}
 }
 

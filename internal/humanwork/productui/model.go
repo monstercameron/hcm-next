@@ -62,6 +62,7 @@ const (
 	PageReviewParticipants     PageID = "review-participants"
 	PageSkillsProfile          PageID = "skills-profile"
 	PageAssignedLearning       PageID = "assigned-learning"
+	PageCareerDiscovery        PageID = "career-discovery"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
