@@ -58,8 +58,8 @@ func TestMoneyBearingViewFieldsUseTheExactMoneyValueObject(t *testing.T) {
 
 func TestPageRegistryOwnsCanonicalIdentityRouteAndRenderer(t *testing.T) {
 	definitions := PageDefinitions()
-	if len(definitions) != 104 {
-		t.Fatalf("page registry has %d definitions; want 104", len(definitions))
+	if len(definitions) != 105 {
+		t.Fatalf("page registry has %d definitions; want 105", len(definitions))
 	}
 	ids := map[PageID]bool{}
 	routes := map[string]bool{}

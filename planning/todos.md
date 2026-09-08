@@ -17530,7 +17530,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-220` **[PHASE_2][TERRA] Enforce authorized analysis filters.**
+- [x] `WEB-220` **[PHASE_2][TERRA] Enforce authorized analysis filters.**
   - **Depends:** `WEB-219`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=enforce authorized analysis filters without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_220`.
