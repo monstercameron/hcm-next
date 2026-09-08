@@ -17012,7 +17012,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Performance and growth
 
-- [ ] `WEB-169` **[PHASE_3][TERRA] Implement the employee Growth home.**
+- [x] `WEB-169` **[PHASE_3][TERRA] Implement the employee Growth home.**
   - **Depends:** `WEB-121`, `CONF-012`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee growth home without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_169`.

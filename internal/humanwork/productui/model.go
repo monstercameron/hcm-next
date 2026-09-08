@@ -54,6 +54,7 @@ const (
 	PageBenefitsCompare        PageID = "benefits-compare"
 	PageBenefitsEnroll         PageID = "benefits-enroll"
 	PagePayBenefitRecon        PageID = "pay-benefit-recon"
+	PageGrowthHome             PageID = "growth-home"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
