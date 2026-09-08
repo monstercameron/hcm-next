@@ -906,6 +906,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | locale_components.go                  | yes           |
 | internal/humanwork/productui                             | model.go                              | yes           |
 | internal/humanwork/productui                             | mount_wasm.go                         | yes           |
+| internal/humanwork/productui                             | my_work.go                            | yes           |
 | internal/humanwork/productui                             | myself_components.go                  | yes           |
 | internal/humanwork/productui                             | navigation_components.go              | yes           |
 | internal/humanwork/productui                             | navigation_search.go                  | yes           |

@@ -16339,7 +16339,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-103` **[GATE_C][TERRA] Implement the My Work collection.**
+- [x] `WEB-103` **[GATE_C][TERRA] Implement the My Work collection.**
   - **Depends:** `WEB-102`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the my work collection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_103`.
